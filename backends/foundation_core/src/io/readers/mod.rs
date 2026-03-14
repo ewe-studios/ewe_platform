@@ -136,6 +136,7 @@ impl<R: Read> Iterator for BatchReader<R> {
             Err(e)
                 if e.kind() == io::ErrorKind::WouldBlock || e.kind() == io::ErrorKind::TimedOut =>
             {
+                tracing::error!("Timeout/WouldBlock error received");
                 self.consecutive_retries += 1;
                 if self.consecutive_retries > self.max_consecutive_retries {
                     self.done = true;
@@ -205,6 +206,7 @@ impl FullBodyReader {
                     if e.kind() == io::ErrorKind::WouldBlock
                         || e.kind() == io::ErrorKind::TimedOut =>
                 {
+                    tracing::error!("Timeout/WouldBlock error received");
                     consecutive_retries += 1;
                     if consecutive_retries > max_retries {
                         return Err(io::Error::new(

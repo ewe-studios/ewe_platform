@@ -11,9 +11,9 @@
 
 use crate::wire::simple_http::client::{
     ClientRequest, ClientRequestBuilder, ConnectionPool, DnsResolver, HttpConnectionPool,
-    MiddlewareChain, OpTimeout, ProxyConfig, SystemDnsResolver,
+    MiddlewareChain, ProxyConfig, SystemDnsResolver,
 };
-use crate::wire::simple_http::{HttpClientError, SimpleHeaders};
+use crate::wire::simple_http::{HttpClientError, SimpleHeaders, SimpleHttpBody};
 use std::collections::BTreeMap;
 use std::sync::Arc;
 use std::time::Duration;
@@ -30,12 +30,12 @@ use std::time::Duration;
 /// via builder pattern.
 #[derive(Debug, Clone)]
 pub struct ClientConfig {
-    /// Connection timeout duration
-    pub connect_timeout: Option<Duration>,
-    /// Read timeout duration
-    pub read_timeout: Option<Duration>,
-    /// Write timeout duration
-    pub write_timeout: Option<Duration>,
+    /// Connection timeout
+    pub connect_timeout: std::time::Duration,
+    /// Read timeout
+    pub read_timeout: std::time::Duration,
+    /// Write timeout
+    pub write_timeout: std::time::Duration,
     /// Maximum number of redirects to follow (0 = no redirects)
     pub max_redirects: u8,
     /// Headers to include in every request
@@ -48,25 +48,162 @@ pub struct ClientConfig {
     pub proxy: Option<ProxyConfig>,
     /// Whether to automatically detect proxy from environment variables
     pub proxy_from_env: bool,
+    /// Maximum allowed response body size (None = no limit, useful for clients downloading large payloads)
+    pub max_body_size: Option<u64>,
+    /// Size threshold for reading bodies fully into memory vs streaming (default: 512 KB)
+    pub full_body_threshold: u64,
+    /// Read buffer size for streaming reads (default: 8192)
+    pub batch_size: usize,
+    /// Maximum consecutive retries for WouldBlock/TimedOut errors (default: 100)
+    pub max_retries: usize,
 }
 
 impl ClientConfig {
-    /// Returns operation timeout configuration.
+    /// Returns timeout configuration as individual durations.
     ///
-    /// WHY: Converts optional timeout durations into `OpTimeout` struct used by internal tasks.
-    ///
-    /// WHAT: If all timeouts are configured, creates `OpTimeout` with specified values.
-    /// Otherwise returns default `OpTimeout`.
+    /// WHY: Returns the stored timeouts used by internal tasks.
     ///
     /// # Returns
     ///
-    /// `OpTimeout` with configured or default timeout values.
+    /// Tuple of `(connect_timeout, read_timeout, write_timeout)`.
     #[must_use]
-    pub fn get_op_timeout(&self) -> OpTimeout {
-        match (self.connect_timeout, self.read_timeout, self.write_timeout) {
-            (Some(connect), Some(read), Some(write)) => OpTimeout::new(connect, read, write),
-            _ => OpTimeout::default(),
-        }
+    pub fn get_op_timeout(
+        &self,
+    ) -> (
+        std::time::Duration,
+        std::time::Duration,
+        std::time::Duration,
+    ) {
+        (self.connect_timeout, self.read_timeout, self.write_timeout)
+    }
+
+    /// Creates a `SimpleHttpBody` from this client configuration.
+    ///
+    /// WHY: HTTP clients need to configure body reading behavior (size limits, thresholds,
+    /// retry behavior) consistently from `ClientConfig` for all requests.
+    ///
+    /// WHAT: Constructor that maps `ClientConfig` fields to `SimpleHttpBody` fields.
+    ///
+    /// # Returns
+    ///
+    /// A `SimpleHttpBody` configured with the client's settings.
+    #[must_use]
+    pub fn into_simple_http_body(&self) -> SimpleHttpBody {
+        SimpleHttpBody::new(
+            self.max_body_size,
+            self.full_body_threshold,
+            self.batch_size,
+            self.max_retries,
+        )
+    }
+
+    /// Sets the maximum allowed response body size.
+    ///
+    /// WHY: Clients downloading large payloads (e.g., file downloads) may want to disable
+    /// body size limits, while servers typically enforce strict limits.
+    ///
+    /// WHAT: Builder method to set optional max body size. If `None`, no limit is enforced.
+    ///
+    /// # Arguments
+    ///
+    /// * `max_body_size` - Maximum body size in bytes, or `None` for no limit
+    #[must_use]
+    pub fn with_max_body_size(mut self, max_body_size: Option<u64>) -> Self {
+        self.max_body_size = max_body_size;
+        self
+    }
+
+    /// Sets the threshold for reading bodies fully into memory vs streaming.
+    ///
+    /// WHY: Bodies at or below this threshold are read entirely into memory (faster for small bodies),
+    /// while larger bodies are streamed (memory efficient).
+    ///
+    /// WHAT: Builder method to set the full body threshold.
+    ///
+    /// # Arguments
+    ///
+    /// * `threshold` - Size threshold in bytes (default: 512 KB)
+    #[must_use]
+    pub fn with_full_body_threshold(mut self, threshold: u64) -> Self {
+        self.full_body_threshold = threshold;
+        self
+    }
+
+    /// Sets the batch size for streaming reads.
+    ///
+    /// WHY: Larger batch sizes improve throughput on high-latency connections,
+    /// smaller batch sizes reduce memory usage.
+    ///
+    /// WHAT: Builder method to set the read buffer size.
+    ///
+    /// # Arguments
+    ///
+    /// * `batch_size` - Read buffer size in bytes (default: 8192)
+    #[must_use]
+    pub fn with_batch_size(mut self, batch_size: usize) -> Self {
+        self.batch_size = batch_size;
+        self
+    }
+
+    /// Sets the maximum consecutive retries for WouldBlock/TimedOut errors.
+    ///
+    /// WHY: On slow or congested connections, more retries improve resilience.
+    /// Lower values fail faster on connection issues.
+    ///
+    /// WHAT: Builder method to set the max retry count.
+    ///
+    /// # Arguments
+    ///
+    /// * `max_retries` - Maximum consecutive retries (default: 100)
+    #[must_use]
+    pub fn with_max_retries(mut self, max_retries: usize) -> Self {
+        self.max_retries = max_retries;
+        self
+    }
+
+    /// Sets connection timeout.
+    ///
+    /// WHY: Users often need to customize timeout without rebuilding entire config.
+    ///
+    /// WHAT: Builder method to set connection timeout.
+    ///
+    /// # Arguments
+    ///
+    /// * `timeout` - Connection timeout duration
+    #[must_use]
+    pub fn with_connect_timeout(mut self, timeout: std::time::Duration) -> Self {
+        self.connect_timeout = timeout;
+        self
+    }
+
+    /// Sets read timeout.
+    ///
+    /// WHY: Users often need to customize timeout without rebuilding entire config.
+    ///
+    /// WHAT: Builder method to set read timeout.
+    ///
+    /// # Arguments
+    ///
+    /// * `timeout` - Read timeout duration
+    #[must_use]
+    pub fn with_read_timeout(mut self, timeout: std::time::Duration) -> Self {
+        self.read_timeout = timeout;
+        self
+    }
+
+    /// Sets write timeout.
+    ///
+    /// WHY: Users often need to customize timeout without rebuilding entire config.
+    ///
+    /// WHAT: Builder method to set write timeout.
+    ///
+    /// # Arguments
+    ///
+    /// * `timeout` - Write timeout duration
+    #[must_use]
+    pub fn with_write_timeout(mut self, timeout: std::time::Duration) -> Self {
+        self.write_timeout = timeout;
+        self
     }
 }
 
@@ -75,19 +212,23 @@ impl Default for ClientConfig {
     ///
     /// WHY: Sensible defaults for most use cases. Users can customize via builder.
     ///
-    /// WHAT: Default timeouts (30s connect, 30s read, 30s write), 5 redirects,
-    /// no default headers, pooling disabled, no proxy.
+    /// WHAT: Default timeouts (15s connect, 10s read, 10s write), 5 redirects,
+    /// no default headers, pooling disabled, no proxy, no body size limit (client-friendly).
     fn default() -> Self {
         Self {
-            connect_timeout: Some(Duration::from_secs(30)),
-            read_timeout: Some(Duration::from_secs(30)),
-            write_timeout: Some(Duration::from_secs(30)),
+            connect_timeout: std::time::Duration::from_secs(15),
+            read_timeout: std::time::Duration::from_secs(10),
+            write_timeout: std::time::Duration::from_secs(10),
             default_headers: BTreeMap::default(),
             max_redirects: 5,
             pool_enabled: false,
             pool_max_connections: 10,
             proxy: None,
             proxy_from_env: false,
+            max_body_size: None, // Clients typically don't enforce body size limits
+            full_body_threshold: 512 * 1024, // 512 KB
+            batch_size: 8192,
+            max_retries: 100,
         }
     }
 }
@@ -370,7 +511,7 @@ impl<R: DnsResolver> SimpleHttpClient<R> {
     /// * `timeout` - Connection timeout duration
     #[must_use]
     pub fn connect_timeout(mut self, timeout: Duration) -> Self {
-        self.config.connect_timeout = Some(timeout);
+        self.config.connect_timeout = timeout;
         self
     }
 
@@ -385,7 +526,7 @@ impl<R: DnsResolver> SimpleHttpClient<R> {
     /// * `timeout` - Read timeout duration
     #[must_use]
     pub fn read_timeout(mut self, timeout: Duration) -> Self {
-        self.config.read_timeout = Some(timeout);
+        self.config.read_timeout = timeout;
         self
     }
 
@@ -400,7 +541,7 @@ impl<R: DnsResolver> SimpleHttpClient<R> {
     /// * `timeout` - Write timeout duration
     #[must_use]
     pub fn write_timeout(mut self, timeout: Duration) -> Self {
-        self.config.write_timeout = Some(timeout);
+        self.config.write_timeout = timeout;
         self
     }
 
@@ -526,6 +667,70 @@ impl<R: DnsResolver> SimpleHttpClient<R> {
     #[must_use]
     pub fn proxy_from_env(mut self) -> Self {
         self.config.proxy_from_env = true;
+        self
+    }
+
+    /// Sets the maximum allowed response body size.
+    ///
+    /// WHY: Clients downloading large payloads (e.g., file downloads) may want to disable
+    /// body size limits, while servers typically enforce strict limits.
+    ///
+    /// WHAT: Builder method to set optional max body size. If `None`, no limit is enforced.
+    ///
+    /// # Arguments
+    ///
+    /// * `max_body_size` - Maximum body size in bytes, or `None` for no limit
+    #[must_use]
+    pub fn max_body_size(mut self, max_body_size: Option<u64>) -> Self {
+        self.config.max_body_size = max_body_size;
+        self
+    }
+
+    /// Sets the threshold for reading bodies fully into memory vs streaming.
+    ///
+    /// WHY: Bodies at or below this threshold are read entirely into memory (faster for small bodies),
+    /// while larger bodies are streamed (memory efficient).
+    ///
+    /// WHAT: Builder method to set the full body threshold.
+    ///
+    /// # Arguments
+    ///
+    /// * `threshold` - Size threshold in bytes (default: 512 KB)
+    #[must_use]
+    pub fn full_body_threshold(mut self, threshold: u64) -> Self {
+        self.config.full_body_threshold = threshold;
+        self
+    }
+
+    /// Sets the batch size for streaming reads.
+    ///
+    /// WHY: Larger batch sizes improve throughput on high-latency connections,
+    /// smaller batch sizes reduce memory usage.
+    ///
+    /// WHAT: Builder method to set the read buffer size.
+    ///
+    /// # Arguments
+    ///
+    /// * `batch_size` - Read buffer size in bytes (default: 8192)
+    #[must_use]
+    pub fn batch_size(mut self, batch_size: usize) -> Self {
+        self.config.batch_size = batch_size;
+        self
+    }
+
+    /// Sets the maximum consecutive retries for WouldBlock/TimedOut errors.
+    ///
+    /// WHY: On slow or congested connections, more retries improve resilience.
+    /// Lower values fail faster on connection issues.
+    ///
+    /// WHAT: Builder method to set the max retry count.
+    ///
+    /// # Arguments
+    ///
+    /// * `max_retries` - Maximum consecutive retries (default: 100)
+    #[must_use]
+    pub fn max_retries(mut self, max_retries: usize) -> Self {
+        self.config.max_retries = max_retries;
         self
     }
 

@@ -8,8 +8,8 @@ context_optimization: true
 compact_context_file: ./COMPACT_CONTEXT.md
 context_reload_required: true
 metadata:
-  version: '1.2'
-  last_updated: 2026-03-14 — Added EofReader for TCP-resilient EOF reading, used by Body::FullBody
+  version: '1.3'
+  last_updated: 2026-03-14 — Added ClientConfig integration for HTTP client body configuration
   estimated_effort: medium
   tags:
   - tcp
@@ -17,6 +17,7 @@ metadata:
   - readers
   - resilience
   - streaming
+  - client-config
   stack_files:
   - .agents/stacks/rust.md
   skills: []
@@ -249,6 +250,55 @@ let reader = HttpResponseReader::new(stream)
 
 Wherever `SimpleHttpBody` is used, callers should be able to configure it (pass their own instance). If not configured, fall back to `SimpleHttpBody::default()`.
 
+#### ClientConfig Integration
+
+HTTP clients can configure `SimpleHttpBody` behavior from `ClientConfig`, allowing consistent body reading settings across all requests:
+
+```rust
+// ClientConfig fields for body reading
+pub struct ClientConfig {
+    // ... other fields ...
+
+    /// Maximum allowed response body size (None = no limit)
+    pub max_body_size: Option<u64>,
+    /// Size threshold for buffered vs streamed reads (default: 512 KB)
+    pub full_body_threshold: u64,
+    /// Read buffer size for streaming reads (default: 8192)
+    pub batch_size: usize,
+    /// Maximum consecutive retries for WouldBlock/TimedOut (default: 100)
+    pub max_retries: usize,
+}
+```
+
+**Builder methods on `ClientConfig`:**
+```rust
+let config = ClientConfig::default()
+    .with_max_body_size(None)           // No limit for downloads
+    .with_full_body_threshold(256 * 1024)  // 256 KB threshold
+    .with_batch_size(16384)             // Larger batches
+    .with_max_retries(200);             // More retries
+```
+
+**Creating `SimpleHttpBody` from `ClientConfig`:**
+```rust
+// In client code (backends/foundation_core/src/wire/simple_http/client/)
+let body_config = config.into_simple_http_body();
+let reader = HttpResponseReader::new(stream, body_config);
+```
+
+**Client usage example:**
+```rust
+let client = SimpleHttpClient::from_system()
+    .max_body_size(None)              // Download large files
+    .full_body_threshold(256 * 1024)  // 256 KB threshold
+    .batch_size(16384)                // 16 KB batches
+    .max_retries(200);                // 200 max retries
+
+let response = client.get("http://example.com/large-file")?.send()?;
+```
+
+This ensures all requests from the client use consistent body reading configuration.
+
 ## Files to Create/Modify
 
 ### New Files
@@ -257,6 +307,9 @@ Wherever `SimpleHttpBody` is used, callers should be able to configure it (pass 
 ### Modified Files
 - `backends/foundation_core/src/io/mod.rs` — add `pub mod readers;`
 - `backends/foundation_core/src/wire/simple_http/impls.rs` — update `SimpleHttpBody` struct and `BodyExtractor` impl
+- `backends/foundation_core/src/wire/simple_http/client/client.rs` — add body config fields to `ClientConfig` with builder methods and `into_simple_http_body()` converter
+- `backends/foundation_core/src/wire/simple_http/client/tasks/request_redirect.rs` — use `ClientConfig` to create `SimpleHttpBody` for response readers
+- `backends/foundation_core/src/wire/simple_http/client/tasks/request_intro.rs` — add optional `SimpleHttpBody` parameter to `GetRequestIntroTask`
 
 ## Tasks
 

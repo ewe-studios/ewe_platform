@@ -7,6 +7,9 @@ pub trait DataStream {
 
     /// headers returns a `Option<HashMap<String, String>>` which might
     /// contains the related headers of the underlying streams.
+    ///
+    /// # Errors
+    /// Returns an error if retrieving the headers fails.
     fn headers(&self) -> std::result::Result<Self::Headers, Self::Error>;
 
     /// body returns an iterator that returns the underlying type
@@ -24,5 +27,8 @@ pub trait IntoHeaders {
 
     /// `into_headers` returns the Header representation for a giving byteslice reference
     /// which allows us customize how headers are really generated.
+    ///
+    /// # Errors
+    /// Returns an error if converting the byte slice to headers fails.
     fn into_headers(content: &[u8]) -> std::result::Result<Self::Headers, Self::Error>;
 }

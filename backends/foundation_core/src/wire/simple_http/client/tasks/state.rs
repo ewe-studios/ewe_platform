@@ -7,37 +7,6 @@ use crate::wire::simple_http::{
 };
 use std::sync::Arc;
 
-pub struct OpTimeout {
-    pub connection_timeout: std::time::Duration,
-    pub read_timeout: std::time::Duration,
-    pub write_timeout: std::time::Duration,
-}
-
-impl OpTimeout {
-    #[must_use]
-    pub fn new(
-        connection_timeout: std::time::Duration,
-        read_timeout: std::time::Duration,
-        write_timeout: std::time::Duration,
-    ) -> Self {
-        Self {
-            connection_timeout,
-            read_timeout,
-            write_timeout,
-        }
-    }
-}
-
-impl Default for OpTimeout {
-    fn default() -> Self {
-        Self {
-            connection_timeout: std::time::Duration::from_secs(20),
-            read_timeout: std::time::Duration::from_secs(60),
-            write_timeout: std::time::Duration::from_secs(60),
-        }
-    }
-}
-
 /// HTTP request stream processing states.
 ///
 /// WHY: HTTP request processing involves multiple sequential steps that should
@@ -68,8 +37,8 @@ where
     /// Number of remaining redirects allowed (Phase 1: unused)
     #[allow(dead_code)]
     pub remaining_redirects: u8,
-    /// Connection and read timeout
-    pub timeouts: OpTimeout,
+    /// Connection, read, and write timeouts
+    pub timeouts: (std::time::Duration, std::time::Duration, std::time::Duration),
     /// The prepared request to send
     pub request: Option<PreparedRequest>,
     /// Connection pool for reuse (optional)
@@ -99,7 +68,7 @@ where
         request: PreparedRequest,
         max_redirects: u8,
         pool: Arc<HttpConnectionPool<R>>,
-        timeouts: OpTimeout,
+        timeouts: (std::time::Duration, std::time::Duration, std::time::Duration),
         config: Option<crate::wire::simple_http::client::ClientConfig>,
     ) -> Self {
         Self {

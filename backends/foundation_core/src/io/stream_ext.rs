@@ -83,6 +83,10 @@ pub trait ReadBytesExt: Read {
     /// # Returns
     ///
     /// `Ok(Some(u8))` on success, `Ok(None)` on EOF, `Err` on error.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if reading from the underlying stream fails.
     fn read_byte(&mut self) -> std::io::Result<Option<u8>>;
 
     /// Read into a pooled buffer.
@@ -121,7 +125,7 @@ impl<R: Read> ReadBytesExt for R {
         }
 
         let slice = &mut available[..to_read];
-        let ptr = slice.as_mut_ptr() as *mut u8;
+        let ptr = slice.as_mut_ptr().cast();
 
         let n = unsafe { Read::read(self, std::slice::from_raw_parts_mut(ptr, to_read))? };
 

@@ -48,7 +48,7 @@ where
         request: PreparedRequest,
         max_redirects: u8,
         pool: Arc<HttpConnectionPool<R>>,
-        timeouts: Option<super::OpTimeout>,
+        timeouts: Option<(std::time::Duration, std::time::Duration, std::time::Duration)>,
         config: Option<crate::wire::simple_http::client::ClientConfig>,
     ) -> Self {
         Self(
@@ -57,7 +57,11 @@ where
                 request,
                 max_redirects,
                 pool,
-                timeouts.unwrap_or_default(),
+                timeouts.unwrap_or((
+                    std::time::Duration::from_secs(15),
+                    std::time::Duration::from_secs(10),
+                    std::time::Duration::from_secs(10),
+                )),
                 config,
             ),
         )
