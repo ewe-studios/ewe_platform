@@ -30,23 +30,14 @@ RUN git clone --depth=1 https://github.com/google/dawn.git /tools/dawn
 
 # Configure cargo to use clang with mold linker (platform-specific)
 RUN if [ "$TARGETPLATFORM" = "linux/arm64" ]; then \
-        mkdir -p /root/.cargo && cat > /root/.cargo/config.toml << 'EOFARM'
-[target.aarch64-unknown-linux-gnu]
-linker = "aarch64-linux-gnu-gcc"
-rustflags = ["-C", "link-arg=-fuse-ld=mold"]
-EOFARM
+        mkdir -p /root/.cargo && \
+        echo -e '[target.aarch64-unknown-linux-gnu]\nlinker = "aarch64-linux-gnu-gcc"\nrustflags = ["-C", "link-arg=-fuse-ld=mold"]' > /root/.cargo/config.toml; \
     elif [ "$TARGETPLATFORM" = "linux/arm/v7" ]; then \
-        mkdir -p /root/.cargo && cat > /root/.cargo/config.toml << 'EOFARMHF'
-[target.armv7-unknown-linux-gnueabihf]
-linker = "arm-linux-gnueabihf-gcc"
-rustflags = ["-C", "link-arg=-fuse-ld=mold"]
-EOFARMHF
+        mkdir -p /root/.cargo && \
+        echo -e '[target.armv7-unknown-linux-gnueabihf]\nlinker = "arm-linux-gnueabihf-gcc"\nrustflags = ["-C", "link-arg=-fuse-ld=mold"]' > /root/.cargo/config.toml; \
     else \
-        mkdir -p /root/.cargo && cat > /root/.cargo/config.toml << 'EOFX86'
-[target.x86_64-unknown-linux-gnu]
-linker = "clang"
-rustflags = ["-C", "link-arg=-fuse-ld=mold"]
-EOFX86
+        mkdir -p /root/.cargo && \
+        echo -e '[target.x86_64-unknown-linux-gnu]\nlinker = "clang"\nrustflags = ["-C", "link-arg=-fuse-ld=mold"]' > /root/.cargo/config.toml; \
     fi
 
 COPY . .
