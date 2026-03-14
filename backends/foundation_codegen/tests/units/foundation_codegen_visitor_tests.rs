@@ -190,7 +190,9 @@ fn parses_string_attribute_value() {
     assert_eq!(items.len(), 1);
     assert_eq!(
         items[0].attributes.get("name"),
-        Some(&foundation_codegen::AttributeValue::String("auth".to_string())),
+        Some(&foundation_codegen::AttributeValue::String(
+            "auth".to_string()
+        )),
     );
 }
 
@@ -238,7 +240,9 @@ fn parses_ident_attribute_value() {
 
     assert_eq!(
         items[0].attributes.get("kind"),
-        Some(&foundation_codegen::AttributeValue::Ident("Handler".to_string())),
+        Some(&foundation_codegen::AttributeValue::Ident(
+            "Handler".to_string()
+        )),
     );
 }
 
@@ -271,7 +275,9 @@ fn parses_multiple_attribute_args() {
     assert_eq!(items[0].attributes.len(), 3);
     assert_eq!(
         items[0].attributes.get("name"),
-        Some(&foundation_codegen::AttributeValue::String("auth".to_string())),
+        Some(&foundation_codegen::AttributeValue::String(
+            "auth".to_string()
+        )),
     );
 }
 

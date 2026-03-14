@@ -188,13 +188,13 @@ mod directorate_tests {
         let generator = Directorate::<Directory>::default();
         let mut files: Vec<String> = generator.files();
         files.sort();
-        let mut expected = vec! {
+        let mut expected = vec![
             "docs/runner.sh",
             "schema/partials/partial_1.sql",
             "schema/schema.sql",
             "README.md",
             "elem.js",
-        };
+        ];
         expected.sort();
         assert_eq!(files, expected);
     }
@@ -880,7 +880,7 @@ mod package_generator_tests {
 
         let mut actual = shorten_path(
             list_dir(&project_directory),
-            project_directory.try_into_string().unwrap()
+            project_directory.try_into_string().unwrap(),
         );
         actual.sort();
         let mut expected = vec![
@@ -936,7 +936,7 @@ mod package_generator_tests {
 
         let mut actual = shorten_path(
             list_dir(&project_directory),
-            project_directory.try_into_string().unwrap()
+            project_directory.try_into_string().unwrap(),
         );
         actual.sort();
         let mut expected = vec![

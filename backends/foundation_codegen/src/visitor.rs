@@ -1,5 +1,5 @@
 use std::collections::HashMap;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 use syn::visit::Visit;
 
@@ -36,10 +36,10 @@ impl MacroFinder {
     ///
     /// Never panics.
     #[must_use]
-    pub fn new(target_attr: &str, file_path: &PathBuf) -> Self {
+    pub fn new(target_attr: &str, file_path: &Path) -> Self {
         Self {
             target_attr: target_attr.to_string(),
-            current_file: file_path.clone(),
+            current_file: file_path.to_path_buf(),
             module_stack: Vec::new(),
             found: Vec::new(),
         }
@@ -53,7 +53,7 @@ impl MacroFinder {
 
                 self.found.push(FoundItem {
                     item_name: ident.to_string(),
-                    item_kind: kind.clone(),
+                    item_kind: kind,
                     attributes,
                     location: Location {
                         file_path: self.current_file.clone(),
@@ -146,8 +146,9 @@ fn parse_attribute_args(attr: &syn::Attribute) -> HashMap<String, AttributeValue
                 let value = nested
                     .path
                     .get_ident()
-                    .map(|i| AttributeValue::Ident(i.to_string()))
-                    .unwrap_or(AttributeValue::Ident(String::new()));
+                    .map_or(AttributeValue::Ident(String::new()), |i| {
+                        AttributeValue::Ident(i.to_string())
+                    });
                 list.push(value);
                 Ok(())
             })?;

@@ -28,7 +28,7 @@ pub fn find_rust_files(src_dir: &Path) -> Result<Vec<PathBuf>> {
             let name = e.file_name().to_string_lossy();
             !name.starts_with('.') && name != "target"
         })
-        .filter_map(|e| e.ok())
+        .filter_map(std::result::Result::ok)
         .filter(|e| e.file_type().is_file())
         .filter(|e| e.path().extension().is_some_and(|ext| ext == "rs"))
     {

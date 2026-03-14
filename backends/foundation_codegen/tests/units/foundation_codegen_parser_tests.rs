@@ -21,11 +21,7 @@ fn write_source(dir: &Path, name: &str, content: &str) -> std::path::PathBuf {
 #[test]
 fn parses_valid_rust_file() {
     let tmp = TempDir::new().unwrap();
-    let path = write_source(
-        tmp.path(),
-        "lib.rs",
-        "pub struct Foo;\nfn bar() {}\n",
-    );
+    let path = write_source(tmp.path(), "lib.rs", "pub struct Foo;\nfn bar() {}\n");
 
     let ast = parse_rust_file(&path).unwrap();
     assert_eq!(ast.items.len(), 2, "should parse both items");
