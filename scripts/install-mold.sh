@@ -43,8 +43,12 @@ if curl -fsSL -o "/tmp/${MOLD_TARBALL}" "$MOLD_URL" 2>/dev/null; then
     echo "Download successful, extracting..."
     cd /tmp
     tar -xzf "${MOLD_TARBALL}"
-    cd /tmp/mold-${MOLD_VERSION}-${TARGET}-linux
-    cmake --install build --prefix /usr/local
+    # Copy binaries from prebuilt tarball to system paths
+    cp -r /tmp/mold-${MOLD_VERSION}-${TARGET}-linux/bin/* /usr/local/bin/
+    cp -r /tmp/mold-${MOLD_VERSION}-${TARGET}-linux/lib/* /usr/local/lib/
+    cp -r /tmp/mold-${MOLD_VERSION}-${TARGET}-linux/libexec/* /usr/local/libexec/ 2>/dev/null || true
+    cp -r /tmp/mold-${MOLD_VERSION}-${TARGET}-linux/share/* /usr/local/share/ 2>/dev/null || true
+    ldconfig
     rm -rf /tmp/mold-* "${MOLD_TARBALL}"
     echo "Mold installed successfully from prebuilt binary"
     mold --version
