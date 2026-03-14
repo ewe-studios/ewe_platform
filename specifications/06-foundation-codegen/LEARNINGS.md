@@ -19,3 +19,22 @@
 - **Tests go in `tests/` directory, NOT inline `#[cfg(test)]`** per `rust-clean-code/testing/skill.md`. Structure: `tests/crate_tests.rs` → `mod units;` → `tests/units/{crate}_{module}_tests.rs`.
 - Cargo ignores `tests/mod.rs` — need a named `.rs` file in `tests/` as the entry point.
 - All public items need WHY/WHAT/HOW documentation, `# Errors`, and `# Panics` sections per `rust-clean-code/implementation/skill.md`.
+
+## New Learnings (Features 01-02)
+
+- **`syn::parse_file` works outside proc-macro context**: Can parse any Rust source file from a build script or standalone tool, not just in proc macro `TokenStream` handlers.
+- **`syn::visit::Visit` for AST traversal**: The visitor pattern automatically walks the entire AST; override specific `visit_item_*` methods to intercept items.
+- **`attr.parse_nested_meta` for attribute parsing**: Syn 2.x provides this method for parsing `#[attr(key = "value", flag)]` syntax cleanly.
+- **Inline module tracking**: The visitor maintains a stack (`module_stack`) to track nesting from `mod inner { ... }` blocks within a file.
+- **Module path resolution rules**: `lib.rs`/`main.rs` → crate root, `mod.rs` → parent directory name, `foo.rs` → `foo` module segment.
+- **`ItemKind` should be `Copy`**: Small enum variants without heap data should implement `Copy` to avoid unnecessary `.clone()` calls (clippy lint).
+- **Path handling**: Use `&Path` for function arguments, `PathBuf` for struct fields; clippy flags `&PathBuf` as redundant.
+
+## New Learnings (Feature 03)
+
+- **Type aliases for complex types**: `ScanRegistry = HashMap<String, DerivedTarget>` provides a clear, single source of truth for the registry type.
+- **Extension traits for utilities**: `RegistryExt` trait adds filtering/grouping methods without cluttering the core type.
+- **Qualified paths as keys**: Using `qualified_path` (e.g., `crate::module::Item`) as HashMap keys avoids name collisions across crates.
+- **Workspace member parsing**: Can extract `workspace.members` from `Cargo.toml` using `toml::Value` navigation, but glob patterns require manual handling.
+- **Doctest hygiene**: Use `no_run` and import statements in doc examples to avoid compilation failures during doctest runs.
+- **Merge patterns**: Multi-crate scanning merges results by iterating and re-keying to avoid collisions.

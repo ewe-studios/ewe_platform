@@ -5041,7 +5041,8 @@ impl BodyExtractor for SimpleHttpBody {
             }
             Body::FullBody(_, optional_max_body_size) => {
                 // Use explicit max_body_size if provided, otherwise fall back to self.0
-                let effective_max_size = optional_max_body_size.or(self.0);
+                #[allow(clippy::cast_possible_truncation)]
+                let effective_max_size = optional_max_body_size.or(self.0.map(|s| s as usize));
                 match stream.do_once_mut(|borrowed_stream| {
                     let mut body_content = Vec::with_capacity(1024);
                     borrowed_stream
