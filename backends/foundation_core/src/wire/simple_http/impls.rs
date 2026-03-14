@@ -5044,10 +5044,14 @@ impl BodyExtractor for SimpleHttpBody {
                 #[allow(clippy::cast_possible_truncation)]
                 let effective_max_size = optional_max_body_size.or(self.0.map(|s| s as usize));
                 match stream.do_once_mut(|borrowed_stream| {
-                    let mut body_content = Vec::with_capacity(1024);
-                    borrowed_stream
-                        .read_all(&mut body_content, effective_max_size)
-                        .map(|_| SendSafeBody::Bytes(body_content))
+                    use crate::io::readers::EofReader;
+                    EofReader::read_to_end(
+                        borrowed_stream,
+                        self.2,  // batch_size
+                        self.3,  // max_retries
+                        effective_max_size,
+                    )
+                    .map(SendSafeBody::Bytes)
                 }) {
                     Ok(inner) => Ok(inner),
                     Err(err) => Err(Box::new(err)),

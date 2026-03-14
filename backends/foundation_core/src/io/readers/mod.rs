@@ -255,6 +255,74 @@ impl<R: Read + Send> Iterator for BatchStreamReader<R> {
     }
 }
 
+/// WHY: Reading until EOF on TCP streams requires handling `WouldBlock`/`TimedOut`
+/// errors gracefully rather than treating them as fatal. Using `read()` directly
+/// loses retry state and buffer management.
+///
+/// WHAT: Reads an unknown-size body (until EOF) with TCP-resilient retry handling.
+///
+/// HOW: Uses [`BatchReader`] internally with `eof_on_zero_read=true`, accumulating
+/// all bytes into a `Vec<u8>`. Respects `max_consecutive_retries` for transient
+/// failures and supports an optional maximum size limit.
+pub struct EofReader;
+
+impl EofReader {
+    /// Read until EOF from `reader` with TCP-resilient retry handling.
+    ///
+    /// Unlike `read_to_end()`, this propagates meaningful errors on `WouldBlock`/`TimedOut`
+    /// rather than treating them as fatal.
+    ///
+    /// # Arguments
+    /// - `reader` - The `Read` source to read from
+    /// - `batch_size` - Size of each read batch (default: 8192 if not specified)
+    /// - `max_retries` - Maximum consecutive retries for WouldBlock/TimedOut
+    /// - `max_size` - Optional maximum size limit. Returns error if body exceeds this.
+    ///
+    /// # Errors
+    /// - `WouldBlock`/`TimedOut` — retry limit exceeded without progress.
+    /// - `InvalidInput` — body exceeds `max_size` if provided.
+    /// - Any other `io::Error` from the underlying reader.
+    ///
+    /// # Panics
+    /// Never panics.
+    pub fn read_to_end<R: Read>(
+        reader: &mut R,
+        batch_size: usize,
+        max_retries: usize,
+        max_size: Option<usize>,
+    ) -> Result<Vec<u8>, io::Error> {
+        let mut result = Vec::with_capacity(1024);
+        let batch_reader = BatchReader::new(reader)
+            .batch_size(batch_size)
+            .eof_on_zero_read(true)
+            .max_consecutive_retries(max_retries);
+
+        for batch_result in batch_reader {
+            match batch_result {
+                Ok(Data::Bytes(bytes)) => {
+                    if let Some(max) = max_size {
+                        if result.len() + bytes.len() > max {
+                            return Err(io::Error::new(
+                                io::ErrorKind::InvalidInput,
+                                format!(
+                                    "body size {} exceeds max {}",
+                                    result.len() + bytes.len(),
+                                    max
+                                ),
+                            ));
+                        }
+                    }
+                    result.extend(bytes);
+                }
+                Ok(Data::Retry) => continue,
+                Err(e) => return Err(e),
+            }
+        }
+
+        Ok(result)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -539,5 +607,95 @@ mod tests {
         let stream = BatchStreamReader::new(batch);
         let results: Vec<_> = stream.collect();
         assert!(results.is_empty());
+    }
+
+    // -- EofReader tests --
+
+    #[test]
+    fn eof_reader_complete_read() {
+        let data = b"hello world test data";
+        let result = EofReader::read_to_end(&mut Cursor::new(data.to_vec()), 512, 100, None);
+        assert_eq!(result.unwrap(), data);
+    }
+
+    #[test]
+    fn eof_reader_with_max_size() {
+        let data = b"hello world";
+        let result = EofReader::read_to_end(&mut Cursor::new(data.to_vec()), 512, 100, Some(20));
+        assert_eq!(result.unwrap(), data);
+
+        let result = EofReader::read_to_end(&mut Cursor::new(data.to_vec()), 512, 100, Some(5));
+        assert!(result.is_err());
+        assert_eq!(result.unwrap_err().kind(), io::ErrorKind::InvalidInput);
+    }
+
+    #[test]
+    fn eof_reader_partial_reads() {
+        struct OneByteReader {
+            data: Vec<u8>,
+            pos: usize,
+        }
+        impl Read for OneByteReader {
+            fn read(&mut self, buf: &mut [u8]) -> io::Result<usize> {
+                if self.pos >= self.data.len() {
+                    return Ok(0);
+                }
+                buf[0] = self.data[self.pos];
+                self.pos += 1;
+                Ok(1)
+            }
+        }
+
+        let data = b"hello";
+        let result = EofReader::read_to_end(&mut OneByteReader { data: data.to_vec(), pos: 0 }, 512, 100, None);
+        assert_eq!(result.unwrap(), data);
+    }
+
+    #[test]
+    fn eof_reader_retry_handling() {
+        struct RetryReader {
+            data: Vec<u8>,
+            pos: usize,
+            calls: usize,
+        }
+        impl Read for RetryReader {
+            fn read(&mut self, buf: &mut [u8]) -> io::Result<usize> {
+                self.calls += 1;
+                if self.calls % 3 == 0 {
+                    return Err(io::Error::new(io::ErrorKind::WouldBlock, "blocked"));
+                }
+                if self.pos >= self.data.len() {
+                    return Ok(0);
+                }
+                let n = std::cmp::min(buf.len(), self.data.len() - self.pos);
+                buf[..n].copy_from_slice(&self.data[self.pos..self.pos + n]);
+                self.pos += n;
+                Ok(n)
+            }
+        }
+
+        let data = b"hello world test";
+        let result = EofReader::read_to_end(&mut RetryReader { data: data.to_vec(), pos: 0, calls: 0 }, 512, 100, None);
+        assert_eq!(result.unwrap(), data);
+    }
+
+    #[test]
+    fn eof_reader_retry_limit_exceeded() {
+        struct AlwaysWouldBlock;
+        impl Read for AlwaysWouldBlock {
+            fn read(&mut self, _buf: &mut [u8]) -> io::Result<usize> {
+                Err(io::Error::new(io::ErrorKind::WouldBlock, "blocked"))
+            }
+        }
+
+        let result = EofReader::read_to_end(&mut AlwaysWouldBlock, 512, 3, None);
+        assert!(result.is_err());
+        assert_eq!(result.unwrap_err().kind(), io::ErrorKind::WouldBlock);
+    }
+
+    #[test]
+    fn eof_reader_empty_source() {
+        let result = EofReader::read_to_end(&mut Cursor::new(Vec::<u8>::new()), 512, 100, None);
+        assert_eq!(result.unwrap(), Vec::<u8>::new());
     }
 }
