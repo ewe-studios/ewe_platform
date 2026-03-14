@@ -25,8 +25,8 @@ use std::io::Write;
 use std::sync::Arc;
 
 use super::{
-    GetHttpRequestRedirectTask, GetRequestIntroTask, HttpRequestRedirectResponse, OpTimeout,
-    RequestIntro, SendRequest,
+    GetHttpRequestRedirectTask, GetRequestIntroTask, HttpRequestRedirectResponse, RequestIntro,
+    SendRequest,
 };
 
 pub enum SendRequestState<R>
@@ -66,7 +66,11 @@ where
         request: PreparedRequest,
         max_redirects: u8,
         pool: Arc<HttpConnectionPool<R>>,
-        timeouts: Option<OpTimeout>,
+        timeouts: Option<(
+            std::time::Duration,
+            std::time::Duration,
+            std::time::Duration,
+        )>,
         config: Option<crate::wire::simple_http::client::ClientConfig>,
     ) -> Self {
         Self(Some(SendRequestState::Init(Some(Box::new(
@@ -74,7 +78,11 @@ where
                 request,
                 max_redirects,
                 pool,
-                timeouts.unwrap_or_default(),
+                timeouts.unwrap_or((
+                    std::time::Duration::from_secs(15),
+                    std::time::Duration::from_secs(10),
+                    std::time::Duration::from_secs(10),
+                )),
                 config,
             ),
         )))))
@@ -136,7 +144,7 @@ where
                             send_request.remaining_redirects,
                             send_request.config.clone(),
                         ),
-                        std::time::Duration::from_millis(100),
+                        std::time::Duration::from_millis(10),
                     );
 
                     self.0 = Some(SendRequestState::Connecting(get_stream_receiver));
@@ -250,7 +258,7 @@ where
                                         crate::valtron::InlineSendActionBehaviour::LiftWithParent,
                                         Vec::new(),
                                         GetRequestIntroTask::new(stream),
-                                        std::time::Duration::from_millis(100),
+                                        std::time::Duration::from_millis(10),
                                     );
 
                                 self.0 = Some(SendRequestState::Reading(drive_receiver(
@@ -275,7 +283,7 @@ where
                                         crate::valtron::InlineSendActionBehaviour::LiftWithParent,
                                         Vec::new(),
                                         GetRequestIntroTask::new(conn),
-                                        std::time::Duration::from_millis(100),
+                                        std::time::Duration::from_millis(10),
                                     );
 
                                 self.0 = Some(SendRequestState::Reading(drive_receiver(

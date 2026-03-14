@@ -28,11 +28,21 @@ pub trait ReadTimeoutOperations: Read {
         timeout: std::time::Duration,
     ) -> std::result::Result<usize, std::io::Error>;
 
+    /// Sets the read timeout for this stream.
+    ///
+    /// # Errors
+    /// Returns an error if the underlying stream does not support setting read timeouts
+    /// or if setting the timeout fails.
     fn set_read_timeout_as(
         &mut self,
         timeout: std::time::Duration,
     ) -> std::result::Result<(), std::io::Error>;
 
+    /// Gets the current read timeout for this stream.
+    ///
+    /// # Errors
+    /// Returns an error if the underlying stream does not support getting read timeouts
+    /// or if retrieving the timeout fails.
     fn get_current_read_timeout(
         &self,
     ) -> std::result::Result<Option<std::time::Duration>, std::io::Error>;
@@ -469,7 +479,12 @@ pub trait PeekableReadStream: Read {
     fn peek(&mut self, buf: &mut [u8]) -> std::result::Result<usize, PeekError>;
 }
 
+/// Trait for read streams that can be split into a separate connection.
 pub trait SplitReadStream: Read + Sized {
+    /// Split the connection into a separate handle.
+    ///
+    /// # Errors
+    /// Returns an error if the stream cannot be split.
     fn split_connection(&self) -> std::io::Result<Self>;
 }
 
@@ -984,8 +999,11 @@ impl<T: Read> SharedByteBufferStream<T> {
 
     /// Read a line from the stream into the provided buffer.
     ///
-    /// Delegates to the inner ByteBufferPointer's read_line method.
+    /// Delegates to the inner `ByteBufferPointer`'s `read_line` method.
     /// Returns the number of bytes read, or an error if reading fails.
+    ///
+    /// # Errors
+    /// Returns an error if reading from the underlying stream fails.
     pub fn read_line(&mut self, buf: &mut String) -> std::io::Result<usize> {
         self.0.do_once_mut(|inner| inner.read_line(buf))
     }
@@ -1025,8 +1043,8 @@ impl<T: Read> SharedByteBufferStream<T> {
         Self(OwnedReader::rwrite(Arc::new(RwLock::new(byte_reader))))
     }
 
-    pub fn sync(reader: Arc<Mutex<T>>) -> Self {
-        let wrapped_reader = OwnedReader::sync(Arc::clone(&reader));
+    pub fn sync(reader: &Arc<Mutex<T>>) -> Self {
+        let wrapped_reader = OwnedReader::sync(Arc::clone(reader));
         let byte_reader = ByteBufferPointer::new(DEFAULT_READ_SIZE, wrapped_reader);
         Self(OwnedReader::sync(Arc::new(Mutex::new(byte_reader))))
     }
@@ -1290,6 +1308,7 @@ impl<T: Read> ByteBufferPointer<T> {
         }
 
         let buffer_length = self.buffer.len();
+        #[allow(clippy::cast_precision_loss)]
         let percentage = (buffer_length as f64 / self.pos as f64);
         percentage > 0.4
     }
@@ -1303,6 +1322,7 @@ impl<T: Read> ByteBufferPointer<T> {
 
         let distance = self.peek_pos - self.pos;
         let buffer_length = self.buffer.len();
+        #[allow(clippy::cast_precision_loss)]
         let percentage = (buffer_length as f64 / self.pos as f64);
         let should_truncate = percentage > 0.7 || force;
 
@@ -1607,7 +1627,7 @@ impl<T: Read> ByteBufferPointer<T> {
     ///
     /// # Errors
     /// Returns an error if peeking fails or if there's no data available.
-    pub fn peekby2<'b>(&mut self, size: usize) -> std::io::Result<&[u8]> {
+    pub fn peekby2(&mut self, size: usize) -> std::io::Result<&[u8]> {
         self.peekby(size).map(|item| match item {
             PeekState::Request(inner) => Ok(inner),
             PeekState::NoNext => Err(crate::err!(UnexpectedEof, "No more data to pull through")),
@@ -1640,8 +1660,8 @@ impl<T: Read> ByteBufferPointer<T> {
 
         loop {
             // Check remaining unconsumed data from peek_pos, not total buffer length.
-            let available = (self.buffer.len() as isize) - (self.peek_pos as isize);
-            let rem = (size as isize) - available;
+            let available = self.buffer.len().cast_signed() - self.peek_pos.cast_signed();
+            let rem = size.cast_signed() - available;
 
             if rem <= 0 {
                 break;
@@ -1693,8 +1713,8 @@ impl<T: Read> ByteBufferPointer<T> {
             // not total buffer length. After prior reads consume data, peek_pos
             // advances but buffer.len() stays the same until truncation. We must
             // compare against what's actually available to read.
-            let available = (self.buffer.len() as isize) - (self.peek_pos as isize);
-            let rem = (size as isize) - available;
+            let available = self.buffer.len().cast_signed() - self.peek_pos.cast_signed();
+            let rem = size.cast_signed() - available;
 
             if rem <= 0 {
                 break;
@@ -2069,6 +2089,9 @@ impl<T: Read> ByteBufferPointer<T> {
     /// [`read_all`] pulls the whole data within the underlying stream into provided buffer
     /// returning the total length of bytes read out after pulling all the data within the
     /// stream until EOF.
+    ///
+    /// # Errors
+    /// Returns an error if reading from the underlying stream fails or if the read limit is exceeded.
     pub fn read_all(
         &mut self,
         buf: &mut Vec<u8>,
@@ -2771,6 +2794,7 @@ impl SharedBufferWriter {
     }
 
     /// Get a clone of the underlying Arc.
+    #[must_use]
     pub fn clone_arc(&self) -> Arc<Mutex<Vec<u8>>> {
         Arc::clone(&self.inner)
     }
@@ -2816,11 +2840,13 @@ impl SharedBufferReader {
     }
 
     /// Get the current read position.
+    #[must_use]
     pub fn position(&self) -> usize {
         self.position
     }
 
     /// Convert this reader into a `SharedByteBufferStream`.
+    #[must_use]
     pub fn into_buffered_stream(self) -> SharedByteBufferStream<SharedBufferReadStream> {
         SharedByteBufferStream::rwrite(SharedBufferReadStream::new(
             Arc::clone(&self.inner),
@@ -2892,10 +2918,10 @@ pub struct SharedBuffer {
 }
 
 impl SharedBuffer {
-    /// Create a new SharedBuffer with separate writer and reader handles.
+    /// Create a new `SharedBuffer` with separate writer and reader handles.
     ///
     /// # Returns
-    /// A tuple of `(SharedBufferWriter, SharedBufferReader)` that share
+    /// A tuple of (`SharedBufferWriter`, `SharedBufferReader`) that share
     /// the same underlying buffer.
     ///
     /// # Examples
@@ -2910,6 +2936,7 @@ impl SharedBuffer {
     /// reader.read_exact(&mut buf).unwrap();
     /// assert_eq!(&buf, b"hello");
     /// ```
+    #[must_use]
     pub fn split() -> (SharedBufferWriter, SharedBufferReader) {
         let inner = Arc::new(Mutex::new(Vec::new()));
         let writer = SharedBufferWriter::new(Arc::clone(&inner));
@@ -2917,13 +2944,14 @@ impl SharedBuffer {
         (writer, reader)
     }
 
-    /// Create a new SharedBuffer with initial content.
+    /// Create a new `SharedBuffer` with initial content.
     ///
     /// # Arguments
     /// * `initial` - Initial bytes to populate the buffer with
     ///
     /// # Returns
     /// A `SharedBuffer` containing the initial data.
+    #[must_use]
     pub fn with_initial(initial: &[u8]) -> Self {
         let inner = Arc::new(Mutex::new(initial.to_vec()));
         Self { inner }
@@ -2931,8 +2959,12 @@ impl SharedBuffer {
 
     /// Get the current length of the buffer.
     ///
+    /// # Panics
+    /// Panics if the mutex lock is poisoned (i.e., another thread panicked while holding the lock).
+    ///
     /// # Returns
     /// The number of bytes currently in the buffer.
+    #[must_use]
     pub fn len(&self) -> usize {
         let guard = self.inner.lock().expect("SharedBuffer lock poisoned");
         guard.len()
@@ -2942,6 +2974,7 @@ impl SharedBuffer {
     ///
     /// # Returns
     /// `true` if the buffer contains no bytes, `false` otherwise.
+    #[must_use]
     pub fn is_empty(&self) -> bool {
         self.len() == 0
     }
@@ -2980,25 +3013,26 @@ impl<T: Read + Write> Clone for SharedWriteReader<T> {
 }
 
 impl<T: Read + Write> SharedWriteReader<T> {
-    /// Create a new SharedWriteReader from a Read+Write type.
+    /// Create a new `SharedWriteReader` from a `Read`+`Write` type.
     ///
     /// # Returns
-    /// A SharedWriteReader that owns the wrapped value.
+    /// A `SharedWriteReader` that owns the wrapped value.
     pub fn new(inner: T) -> Self {
         Self {
             inner: Arc::new(Mutex::new(inner)),
         }
     }
 
-    /// Create a new SharedWriteReader from an existing Arc<Mutex<T>>.
+    /// Create a new `SharedWriteReader` from an existing `Arc<Mutex<T>>`.
     ///
     /// # Returns
-    /// A SharedWriteReader wrapping the provided Arc.
+    /// A `SharedWriteReader` wrapping the provided Arc.
     pub fn from_arc(arc: Arc<Mutex<T>>) -> Self {
         Self { inner: arc }
     }
 
     /// Clone the underlying Arc reference.
+    #[must_use]
     pub fn clone_arc(&self) -> Arc<Mutex<T>> {
         Arc::clone(&self.inner)
     }
@@ -3123,7 +3157,7 @@ mod shared_byte_buffer_stream_tests {
         let mut w1 = shared.clone();
         w1.write_all(b"hello").expect("write should succeed");
 
-        let mut r1 = shared.clone();
+        let r1 = shared.clone();
         let inner = r1.inner.lock().expect("lock not poisoned");
         assert_eq!(inner.get_ref(), b"hello");
     }

@@ -13,6 +13,7 @@
 use std::collections::BTreeMap;
 use std::path::PathBuf;
 use std::process::Command;
+use std::time::Duration;
 
 use derive_more::{Display, From};
 use foundation_core::valtron;
@@ -400,9 +401,17 @@ fn http_get_json<T: serde::de::DeserializeOwned>(
         }
     };
 
-    serde_json::from_str(&body_text).map_err(|e| GenModelError::Json {
-        url: url.to_string(),
-        source: e,
+    tracing::info!(
+        "Received total body: len={} as {}",
+        body_text.len(),
+        &body_text
+    );
+    serde_json::from_str(&body_text).map_err(|e| {
+        tracing::error!("Failed to process read contents of body: {:?}", &e);
+        GenModelError::Json {
+            url: url.to_string(),
+            source: e,
+        }
     })
 }
 
@@ -1749,7 +1758,11 @@ pub fn run(args: &clap::ArgMatches) -> std::result::Result<(), BoxedError> {
 
     valtron::initialize_pool(100, None);
 
-    let client = SimpleHttpClient::from_system();
+    let client = SimpleHttpClient::from_system()
+        .max_body_size(None)
+        .batch_size(1024 * 1024)
+        .read_timeout(Duration::from_secs(10))
+        .max_retries(50);
 
     let models_dev = fetch_models_dev(&client);
     let openrouter = fetch_openrouter(&client);

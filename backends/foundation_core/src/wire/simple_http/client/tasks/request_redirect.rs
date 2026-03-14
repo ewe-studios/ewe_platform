@@ -29,12 +29,16 @@ use std::io::Write;
 use std::sync::Arc;
 use std::time::Duration;
 
-use super::{HttpOperationState, OpTimeout};
+use super::HttpOperationState;
 
 // Type aliases for complex enum variant data
 type InitData<R> = Box<(
     SimpleIncomingRequest,
-    OpTimeout,
+    (
+        std::time::Duration,
+        std::time::Duration,
+        std::time::Duration,
+    ),
     Arc<HttpConnectionPool<R>>,
     u8,
     Option<crate::wire::simple_http::client::ClientConfig>,
@@ -42,7 +46,11 @@ type InitData<R> = Box<(
 
 type TryingData<R> = Box<(
     SimpleIncomingRequest,
-    OpTimeout,
+    (
+        std::time::Duration,
+        std::time::Duration,
+        std::time::Duration,
+    ),
     Arc<HttpConnectionPool<R>>,
     RequestDescriptor,
     u8,
@@ -87,14 +95,23 @@ impl<R: DnsResolver + Send + 'static> GetHttpRequestRedirectTask<R> {
     #[must_use]
     pub fn new(
         data: SimpleIncomingRequest,
-        timeout: Option<OpTimeout>,
+        timeout: Option<(
+            std::time::Duration,
+            std::time::Duration,
+            std::time::Duration,
+        )>,
         pool: Arc<HttpConnectionPool<R>>,
         max_redirects: u8,
         config: Option<crate::wire::simple_http::client::ClientConfig>,
     ) -> Self {
+        let timeouts = timeout.unwrap_or((
+            std::time::Duration::from_secs(15),
+            std::time::Duration::from_secs(10),
+            std::time::Duration::from_secs(10),
+        ));
         Self(Some(HttpRequestRedirectState::Init(Some(Box::new((
             data,
-            timeout.unwrap_or_default(),
+            timeouts,
             pool,
             max_redirects,
             config,
@@ -140,7 +157,7 @@ impl<R: DnsResolver + Send + 'static> TaskIterator for GetHttpRequestRedirectTas
                         return None;
                     };
 
-                    let (data, timeout, pool, mut descriptor, remaining_redirects, config) = *state;
+                    let (data, (connect_timeout, read_timeout, write_timeout), pool, mut descriptor, remaining_redirects, config) = *state;
                     tracing::info!("REDIRECTIONS: Remaining redirects: {}", remaining_redirects);
 
                     // Determine effective proxy configuration
@@ -210,11 +227,11 @@ impl<R: DnsResolver + Send + 'static> TaskIterator for GetHttpRequestRedirectTas
                         .get_current_read_timeout()
                         .unwrap_or(None);
 
-                    tracing::debug!("Set read timeout to {:?}", timeout.read_timeout);
+                    tracing::debug!("Set read timeout to {:?}", read_timeout);
 
                     if let Err(err) = connection
                         .stream_mut()
-                        .set_read_timeout_as(timeout.read_timeout)
+                        .set_read_timeout_as(read_timeout)
                     {
                         tracing::error!("Failed to set read timeout: {}", err);
                         self.0 = Some(HttpRequestRedirectState::Done);
@@ -226,9 +243,13 @@ impl<R: DnsResolver + Send + 'static> TaskIterator for GetHttpRequestRedirectTas
                     tracing::debug!("Get response reader from stream");
 
                     // 4. Try to read response intro once
+                    let simple_http_body = config
+                        .as_ref()
+                        .map(|cfg| cfg.into_simple_http_body())
+                        .unwrap_or_default();
                     let mut reader = HttpResponseReader::<SimpleHttpBody, RawStream>::new(
                         connection.clone_stream(),
-                        SimpleHttpBody::default(),
+                        simple_http_body,
                     );
 
                     tracing::debug!("Read the request response intro");
@@ -262,7 +283,7 @@ impl<R: DnsResolver + Send + 'static> TaskIterator for GetHttpRequestRedirectTas
                     // Restore previous timeout
                     let _ = connection
                         .stream_mut()
-                        .set_read_timeout_as(previous_timeout.unwrap_or(Duration::from_secs(60)));
+                        .set_read_timeout_as(previous_timeout.unwrap_or(read_timeout));
 
                     tracing::debug!("Recevied request response intro: {:?}", &intro_result);
 
@@ -353,7 +374,7 @@ impl<R: DnsResolver + Send + 'static> TaskIterator for GetHttpRequestRedirectTas
                         tracing::debug!("Following redirect to new URL: {}", new_url);
                         self.0 = Some(HttpRequestRedirectState::Trying(Some(Box::new((
                             data,
-                            timeout,
+                            (connect_timeout, read_timeout, write_timeout),
                             pool,
                             new_descriptor,
                             remaining_redirects - 1,

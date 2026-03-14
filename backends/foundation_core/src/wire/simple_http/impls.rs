@@ -3,7 +3,9 @@
 use crate::extensions::result_ext::{BoxedError, SendableBoxedError};
 use crate::extensions::strings_ext::{TryIntoString, TryIntoStringError};
 use crate::io::ioutils::{self, ByteBufferPointer, SharedByteBufferStream};
-use crate::io::ubytes::{self};
+use crate::io::readers::EofReader;
+use crate::io::readers::{BatchReader, BatchStreamReader};
+use crate::io::ubytes;
 use crate::valtron::{
     BoxedResultIterator, BoxedSendableIterator, BoxedSendableVecIterator, CloneableFn,
     SendVecIterator, StringBoxedIterator, TransformIterator, VecBoxedIterator,
@@ -4929,13 +4931,11 @@ impl<T: std::io::Read + Send> Iterator for SimpleHttpChunkIterator<T> {
             tracing::debug!("ChunKState::ParsingTrailer");
 
             return match ChunkState::parse_http_trailer_from_pointer(self.2.clone()) {
-                Ok(value) => {
-                    tracing::debug!("ChunkTrailer::Chunk::DataRead: {:?} ", &value);
-                    match value {
-                        Some(item) => match item {
-                            ChunkState::Trailer(inner) => {
-                                tracing::debug!("Processing::Chunk::Trailer: {:?} ", &inner);
-                                let trailers: Vec<(String, Option<String>)> = inner
+                Ok(value) => match value {
+                    Some(item) => match item {
+                        ChunkState::Trailer(inner) => {
+                            tracing::debug!("Processing::Chunk::Trailer: {:?} ", &inner);
+                            let trailers: Vec<(String, Option<String>)> = inner
                                     .split('\n')
                                     .filter(|item| !item.trim().is_empty())
                                     .map(|item| match item.find(':') {
@@ -4948,13 +4948,12 @@ impl<T: std::io::Read + Send> Iterator for SimpleHttpChunkIterator<T> {
                                     })
                                     .collect();
 
-                                Some(Ok(ChunkedData::Trailers(trailers)))
-                            }
-                            _ => Some(Err(Box::new(HttpReaderError::OnlyTrailersAreAllowedHere))),
-                        },
-                        None => None,
-                    }
-                }
+                            Some(Ok(ChunkedData::Trailers(trailers)))
+                        }
+                        _ => Some(Err(Box::new(HttpReaderError::OnlyTrailersAreAllowedHere))),
+                    },
+                    None => None,
+                },
                 Err(err) => Some(Err(Box::new(err))),
             };
         }
@@ -4984,9 +4983,8 @@ impl<T: std::io::Read + Send> Iterator for SimpleHttpChunkIterator<T> {
                             }
 
                             tracing::debug!(
-                                "ChunkState::Chunk::DataRead: {:?} | {:?}",
-                                &chunk_data,
-                                str::from_utf8(&chunk_data),
+                                "ChunkState::Chunk::DataRead: len={:?}",
+                                chunk_data.len(),
                             );
 
                             Ok(ChunkedData::Data(chunk_data, opt_exts))
@@ -4999,9 +4997,11 @@ impl<T: std::io::Read + Send> Iterator for SimpleHttpChunkIterator<T> {
                         // set the state store as false
                         ending_indicator.store(true, Ordering::Release);
 
+                        tracing::debug!("Received last Chunk, ending");
                         Some(Ok(ChunkedData::DataEnded))
                     }
                     ChunkState::Trailer(_) => {
+                        tracing::error!("Trailer should not be recieved");
                         Some(Err(Box::new(HttpReaderError::TrailerShouldNotOccurHere)))
                     }
                 }
@@ -5035,6 +5035,29 @@ impl Default for SimpleHttpBody {
     }
 }
 
+impl SimpleHttpBody {
+    /// Creates a new `SimpleHttpBody` with explicit configuration.
+    ///
+    /// WHY: Callers need to configure body reading behavior (size limits, thresholds,
+    /// retry behavior) for different use cases (e.g., client vs server).
+    ///
+    /// # Arguments
+    ///
+    /// * `max_body_size` - Maximum allowed body size (None = no limit)
+    /// * `full_body_threshold` - Size threshold for buffered vs streamed reads
+    /// * `batch_size` - Read buffer size for streaming reads
+    /// * `max_retries` - Maximum consecutive retries for WouldBlock/TimedOut errors
+    #[must_use]
+    pub fn new(
+        max_body_size: Option<u64>,
+        full_body_threshold: u64,
+        batch_size: usize,
+        max_retries: usize,
+    ) -> Self {
+        SimpleHttpBody(max_body_size, full_body_threshold, batch_size, max_retries)
+    }
+}
+
 impl BodyExtractor for SimpleHttpBody {
     fn extract<T: std::io::Read + Send + 'static>(
         &self,
@@ -5044,6 +5067,10 @@ impl BodyExtractor for SimpleHttpBody {
         let _span = tracing::span!(tracing::Level::TRACE, "extract").entered();
         match body {
             Body::LineFeedBody(headers) => {
+                tracing::debug!(
+                    "LineFeedBody: returning lineFeed body reader/iterator with headers={:?}",
+                    headers
+                );
                 let line_feed_iterator = Box::new(SimpleLineFeedIterator::new(headers, stream));
                 Ok(SendSafeBody::LineFeedStream(Some(line_feed_iterator)))
             }
@@ -5058,7 +5085,6 @@ impl BodyExtractor for SimpleHttpBody {
                 match stream.do_once_mut(|borrowed_stream| {
                     tracing::debug!("Acquired borrowed stream");
 
-                    use crate::io::readers::EofReader;
                     EofReader::read_to_end(
                         borrowed_stream,
                         self.2, // batch_size
@@ -5067,7 +5093,10 @@ impl BodyExtractor for SimpleHttpBody {
                     )
                     .map(SendSafeBody::Bytes)
                 }) {
-                    Ok(inner) => Ok(inner),
+                    Ok(inner) => {
+                        tracing::debug!("Finished reading data from stream: {:?}", &inner);
+                        Ok(inner)
+                    }
                     Err(err) => {
                         tracing::error!("Failed to read from stream: {:?}", &err);
                         Err(Box::new(err))
@@ -5102,7 +5131,10 @@ impl BodyExtractor for SimpleHttpBody {
                         FullBodyReader::read_full(borrowed_stream, content_length as usize, self.3)
                             .map(SendSafeBody::Bytes)
                     }) {
-                        Ok(inner) => Ok(inner),
+                        Ok(inner) => {
+                            tracing::debug!("Finished reading data from stream: {:?}", &inner);
+                            Ok(inner)
+                        }
                         Err(err) => {
                             tracing::error!("Failed to read from stream: {:?}", &err);
                             Err(Box::new(err))
@@ -5110,7 +5142,6 @@ impl BodyExtractor for SimpleHttpBody {
                     }
                 } else {
                     // Large body: stream via BatchStreamReader
-                    use crate::io::readers::{BatchReader, BatchStreamReader};
                     let batch = BatchReader::new(stream)
                         .batch_size(self.2)
                         .max_consecutive_retries(self.3);

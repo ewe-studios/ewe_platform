@@ -77,6 +77,10 @@ impl Endpoint<()> {
         Endpoint::WithDefault(EndpointConfig::WithTimeout(target, timeout))
     }
 
+    /// Create an endpoint from a string.
+    ///
+    /// # Errors
+    /// Returns an error if the URL parsing fails.
     #[inline]
     pub fn with_string<S: Into<String>>(target: S) -> std::result::Result<Self, EndpointError> {
         match url::Url::parse(&target.into()) {
@@ -85,6 +89,10 @@ impl Endpoint<()> {
         }
     }
 
+    /// Create an endpoint from a string with a timeout.
+    ///
+    /// # Errors
+    /// Returns an error if the URL parsing fails.
     #[inline]
     pub fn with_string_timeout<S: Into<String>>(
         target: S,
@@ -118,6 +126,7 @@ impl<T: Clone> Endpoint<T> {
 impl<T: Clone> Endpoint<T> {
     /// Returns a copy of the url of the target endpoint.
     #[inline]
+    #[allow(clippy::match_same_arms)]
     pub fn url(&self) -> url::Url {
         match self {
             Self::WithDefault(inner) => inner.url(),
@@ -216,10 +225,18 @@ pub enum Listener {
 }
 
 impl Listener {
+    /// Get the peer address of the listener.
+    ///
+    /// # Errors
+    /// Returns an error if getting the peer address fails.
     pub fn peer_addr(&self) -> std::io::Result<Option<ListenAddr>> {
         Ok(None)
     }
 
+    /// Get the local address of the listener.
+    ///
+    /// # Errors
+    /// Returns an error if getting the local address fails.
     pub fn local_addr(&self) -> std::io::Result<ListenAddr> {
         match self {
             Self::Tcp(l) => l.local_addr().map(ListenAddr::from),
@@ -228,6 +245,10 @@ impl Listener {
         }
     }
 
+    /// Accept a new connection on the listener.
+    ///
+    /// # Errors
+    /// Returns an error if accepting the connection fails.
     pub fn accept(&self) -> std::io::Result<(Connection, Option<SocketAddr>)> {
         match self {
             Self::Tcp(l) => l
@@ -283,12 +304,20 @@ pub enum Connection {
 }
 
 impl Connection {
+    /// Create a new TCP connection without a timeout.
+    ///
+    /// # Errors
+    /// Returns an error if the TCP connection fails.
     pub fn without_timeout(
         addr: core::net::SocketAddr,
     ) -> std::result::Result<Self, Box<dyn std::error::Error + Send + Sync + 'static>> {
         Ok(Self::Tcp(TcpStream::connect(addr)?))
     }
 
+    /// Create a new TCP connection with a timeout.
+    ///
+    /// # Errors
+    /// Returns an error if the TCP connection fails or the timeout expires.
     pub fn with_timeout(
         addr: core::net::SocketAddr,
         timeout: Duration,
@@ -558,6 +587,9 @@ impl std::io::Write for Connection {
 
 impl Connection {
     /// Gets the peer's address. Some for TCP, None for Unix sockets.
+    ///
+    /// # Errors
+    /// Returns an error if getting the peer address fails.
     pub fn peer_addr(&self) -> std::io::Result<Option<SocketAddr>> {
         match self {
             Self::Tcp(s) => s.peer_addr().map(SocketAddr::from).map(Some),
@@ -573,6 +605,9 @@ impl Connection {
     }
 
     /// Gets the local's address. Some for TCP, None for Unix sockets.
+    ///
+    /// # Errors
+    /// Returns an error if getting the local address fails.
     pub fn local_addr(&self) -> std::io::Result<Option<SocketAddr>> {
         match self {
             Self::Tcp(s) => s.local_addr().map(SocketAddr::from).map(Some),
@@ -587,6 +622,10 @@ impl Connection {
         }
     }
 
+    /// Get the stream address information.
+    ///
+    /// # Errors
+    /// Returns an error if getting local or peer address fails, or if address information is missing.
     pub fn stream_addr(&self) -> DataStreamResult<DataStreamAddr> {
         let local_addr = self.local_addr()?;
         let peer_addr = self.peer_addr()?;
@@ -599,6 +638,10 @@ impl Connection {
         }
     }
 
+    /// Shutdown the connection.
+    ///
+    /// # Errors
+    /// Returns an error if shutting down the connection fails.
     pub fn shutdown(&self, how: Shutdown) -> std::io::Result<()> {
         match self {
             Self::Tcp(s) => s.shutdown(how),
@@ -618,6 +661,10 @@ impl Connection {
         }
     }
 
+    /// Try to clone the connection.
+    ///
+    /// # Errors
+    /// Returns an error if cloning the underlying socket fails.
     pub fn try_clone(&self) -> std::io::Result<Self> {
         match self {
             Self::Tcp(s) => s.try_clone().map(Self::from),
@@ -633,6 +680,9 @@ impl Connection {
     }
 
     /// Reads bytes until a delimiter is found, returning the bytes including the delimiter.
+    ///
+    /// # Errors
+    /// Returns an error if reading fails or the connection closes before the delimiter is found.
     pub fn take_until(&mut self, delimiter: &[u8], output: &mut Vec<u8>) -> std::io::Result<usize> {
         let mut buf = [0u8; 4096];
         let mut total_read = 0;
@@ -659,6 +709,9 @@ impl Connection {
     }
 
     /// Consumes the first `n` bytes from the read buffer.
+    ///
+    /// # Errors
+    /// Returns an error if reading from the underlying stream fails.
     pub fn consume(&mut self, n: usize) -> std::io::Result<()> {
         // Since Connection doesn't have a buffer, we need to read and discard
         let mut buf = vec![0u8; n];
@@ -725,6 +778,10 @@ pub enum ConfigListenAddr {
 }
 
 impl ConfigListenAddr {
+    /// Create a `ConfigListenAddr` from socket addresses.
+    ///
+    /// # Errors
+    /// Returns an error if converting to socket addresses fails.
     pub fn from_socket_addrs<A: ToSocketAddrs>(addrs: A) -> std::io::Result<Self> {
         addrs.to_socket_addrs().map(|it| Self::IP(it.collect()))
     }
@@ -734,6 +791,10 @@ impl ConfigListenAddr {
         Self::Unix(path.into())
     }
 
+    /// Bind to the configured address.
+    ///
+    /// # Errors
+    /// Returns an error if binding to the address fails.
     pub fn bind(&self) -> std::io::Result<Listener> {
         match self {
             Self::IP(a) => TcpListener::bind(a.as_slice()).map(Listener::from),
@@ -819,11 +880,17 @@ impl TcpStreamWrapper {
     /// Sets the value of the `TCP_NODELAY` option on this socket.
     ///
     /// If set, this disables Nagle's algorithm, meaning segments are sent as soon as possible.
+    ///
+    /// # Errors
+    /// Returns an error if setting the `TCP_NODELAY` option fails.
     pub fn set_nodelay(&self, nodelay: bool) -> std::io::Result<()> {
         self.inner.set_nodelay(nodelay)
     }
 
     /// Gets the value of the `TCP_NODELAY` option for this socket.
+    ///
+    /// # Errors
+    /// Returns an error if getting the `TCP_NODELAY` option fails.
     pub fn nodelay(&self) -> std::io::Result<bool> {
         self.inner.nodelay()
     }
@@ -831,11 +898,17 @@ impl TcpStreamWrapper {
     /// Sets the value for the `IP_TTL` option on this socket.
     ///
     /// This specifies the time-to-live for IP packets.
+    ///
+    /// # Errors
+    /// Returns an error if setting the TTL fails.
     pub fn set_ttl(&self, ttl: u32) -> std::io::Result<()> {
         self.inner.set_ttl(ttl)
     }
 
     /// Gets the value of the `IP_TTL` option for this socket.
+    ///
+    /// # Errors
+    /// Returns an error if getting the TTL fails.
     pub fn ttl(&self) -> std::io::Result<u32> {
         self.inner.ttl()
     }
@@ -843,6 +916,9 @@ impl TcpStreamWrapper {
     /// Sets the read timeout to the timeout specified.
     ///
     /// If the value specified is None, then read operations will not timeout.
+    ///
+    /// # Errors
+    /// Returns an error if setting the read timeout fails.
     pub fn set_read_timeout(&self, timeout: Option<Duration>) -> std::io::Result<()> {
         self.inner.set_read_timeout(timeout)
     }
@@ -850,16 +926,25 @@ impl TcpStreamWrapper {
     /// Sets the write timeout to the timeout specified.
     ///
     /// If the value specified is None, then write operations will not timeout.
+    ///
+    /// # Errors
+    /// Returns an error if setting the write timeout fails.
     pub fn set_write_timeout(&self, timeout: Option<Duration>) -> std::io::Result<()> {
         self.inner.set_write_timeout(timeout)
     }
 
     /// Returns the read timeout of this socket.
+    ///
+    /// # Errors
+    /// Returns an error if getting the read timeout fails.
     pub fn read_timeout(&self) -> std::io::Result<Option<Duration>> {
         self.inner.read_timeout()
     }
 
     /// Returns the write timeout of this socket.
+    ///
+    /// # Errors
+    /// Returns an error if getting the write timeout fails.
     pub fn write_timeout(&self) -> std::io::Result<Option<Duration>> {
         self.inner.write_timeout()
     }
@@ -867,6 +952,9 @@ impl TcpStreamWrapper {
     /// Receives data on the socket without removing it from the input queue.
     ///
     /// On success, returns the number of bytes peeked.
+    ///
+    /// # Errors
+    /// Returns an error if peeking fails.
     pub fn peek(&self, buf: &mut [u8]) -> std::io::Result<usize> {
         self.inner.peek(buf)
     }
@@ -874,21 +962,33 @@ impl TcpStreamWrapper {
     /// Gets the socket error and clears it.
     ///
     /// Returns None if no error is pending.
+    ///
+    /// # Errors
+    /// Returns an error if getting the socket error fails.
     pub fn take_error(&self) -> std::io::Result<Option<std::io::Error>> {
         self.inner.take_error()
     }
 
     /// Shuts down the read, write, or both halves of this connection.
+    ///
+    /// # Errors
+    /// Returns an error if shutting down the socket fails.
     pub fn shutdown(&self, how: Shutdown) -> std::io::Result<()> {
         self.inner.shutdown(how)
     }
 
     /// Creates a new TCP stream and issues a non-blocking connect to the specified address.
+    ///
+    /// # Errors
+    /// Returns an error if connecting fails.
     pub fn connect<A: std::net::ToSocketAddrs>(addr: A) -> std::io::Result<Self> {
         TcpStream::connect(addr).map(Self::new)
     }
 
     /// Creates a new TCP stream and issues a connect with a timeout to the specified address.
+    ///
+    /// # Errors
+    /// Returns an error if connecting fails or the timeout expires.
     pub fn connect_timeout(
         addr: &core::net::SocketAddr,
         timeout: Duration,
@@ -901,6 +1001,9 @@ impl TcpStreamWrapper {
     /// When linger is set, the stream will wait for the specified duration
     /// for data to be sent when closing. If duration is None, the socket
     /// will close immediately.
+    ///
+    /// # Errors
+    /// Returns an error if setting the linger option fails.
     #[cfg(feature = "nightly")]
     #[cfg_attr(docsrs, doc(cfg(feature = "nightly")))]
     pub fn set_linger(&self, linger: Option<Duration>) -> std::io::Result<()> {
@@ -908,6 +1011,9 @@ impl TcpStreamWrapper {
     }
 
     /// Gets the linger duration for this TCP stream.
+    ///
+    /// # Errors
+    /// Returns an error if getting the linger option fails.
     #[cfg(feature = "nightly")]
     #[cfg_attr(docsrs, doc(cfg(feature = "nightly")))]
     pub fn linger(&self) -> std::io::Result<Option<Duration>> {
@@ -915,6 +1021,9 @@ impl TcpStreamWrapper {
     }
 
     /// Gets the local socket address of this stream.
+    ///
+    /// # Errors
+    /// Returns an error if getting the local address fails.
     #[cfg(feature = "nightly")]
     #[cfg_attr(docsrs, doc(cfg(feature = "nightly")))]
     pub fn local_addr(&self) -> std::io::Result<SocketAddr> {
@@ -922,6 +1031,9 @@ impl TcpStreamWrapper {
     }
 
     /// Gets the remote socket address of this stream.
+    ///
+    /// # Errors
+    /// Returns an error if getting the peer address fails.
     #[cfg(feature = "nightly")]
     #[cfg_attr(docsrs, doc(cfg(feature = "nightly")))]
     pub fn peer_addr(&self) -> std::io::Result<SocketAddr> {
@@ -929,6 +1041,9 @@ impl TcpStreamWrapper {
     }
 
     /// Sets the value for the SO_REUSEADDR socket option.
+    ///
+    /// # Errors
+    /// Returns an error if setting the reuse address option fails.
     #[cfg(feature = "nightly")]
     #[cfg_attr(docsrs, doc(cfg(feature = "nightly")))]
     pub fn set_reuse_address(&self, reuse: bool) -> std::io::Result<()> {
@@ -936,6 +1051,9 @@ impl TcpStreamWrapper {
     }
 
     /// Gets the value of the SO_REUSEADDR socket option.
+    ///
+    /// # Errors
+    /// Returns an error if getting the reuse address option fails.
     #[cfg(feature = "nightly")]
     #[cfg_attr(docsrs, doc(cfg(feature = "nightly")))]
     pub fn reuse_address(&self) -> std::io::Result<bool> {
