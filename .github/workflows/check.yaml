@@ -86,6 +86,7 @@ jobs:
           build-args: |
             CUDA_VERSION=12.3.1
             UBUNTU_VERSION=22.04
+            TARGETPLATFORM=${{ matrix.target }}
   mac:
     name: "macOS - Run rust checks"
     runs-on: macos-latest
