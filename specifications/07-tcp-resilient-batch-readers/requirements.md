@@ -8,8 +8,8 @@ context_optimization: true
 compact_context_file: ./COMPACT_CONTEXT.md
 context_reload_required: true
 metadata:
-  version: '1.1'
-  last_updated: 2026-03-14 — Updated SimpleHttpBody with Option<u64> max_body_size and builder methods
+  version: '1.2'
+  last_updated: 2026-03-14 — Added EofReader for TCP-resilient EOF reading, used by Body::FullBody
   estimated_effort: medium
   tags:
   - tcp
@@ -29,9 +29,9 @@ related_specs:
 has_features: false
 has_fundamentals: false
 tasks:
-  completed: 21
+  completed: 23
   uncompleted: 0
-  total: 21
+  total: 23
   completion_percentage: 100
 ---
 
@@ -152,7 +152,31 @@ pub struct BatchStreamReader<R: Read> {
 
 **Why this exists:** `SendSafeBody::Stream` needs an iterator of `Result<Vec<u8>, BoxedError>`. `BatchReader` yields `Result<Data, Error>` where `Data` is an enum with `Bytes` and `Retry` variants — the stream consumer shouldn't need to know about retries.
 
-### 4. Updated `SimpleHttpBody`
+### 4. `EofReader` — Read until EOF with retry resilience
+
+Reads an unknown-size body (until EOF) using `read()` with retry handling:
+
+```rust
+pub fn read_to_end<R: Read>(
+    reader: &mut R,
+    batch_size: usize,
+    max_retries: usize,
+    max_size: Option<usize>,
+) -> Result<Vec<u8>, io::Error>
+```
+
+**Behavior:**
+- Uses `BatchReader` internally with `eof_on_zero_read=true`
+- Loops calling `read()` until EOF, accumulating bytes into a `Vec<u8>`
+- On `WouldBlock`/`TimedOut` → increments retry counter, continues
+- On `Ok(n > 0)` → accumulates bytes, resets retry counter
+- On `Ok(0)` → returns accumulated bytes (normal EOF)
+- On retry counter exceeded → returns error
+- On `max_size` exceeded → returns `InvalidInput` error
+
+**Why this exists:** `Body::FullBody` reads until EOF without a known size. Using `EofReader` provides TCP-resilient behavior consistent with `FullBodyReader` and `BatchStreamReader`.
+
+### 5. Updated `SimpleHttpBody`
 
 Change from unit struct to tuple struct with configurable fields:
 
@@ -228,7 +252,7 @@ Wherever `SimpleHttpBody` is used, callers should be able to configure it (pass 
 ## Files to Create/Modify
 
 ### New Files
-- `backends/foundation_core/src/io/readers/mod.rs` — `BatchReader`, `BatchStreamReader`, `FullBodyReader`, `Data` enum, builder/config types
+- `backends/foundation_core/src/io/readers/mod.rs` — `BatchReader`, `BatchStreamReader`, `FullBodyReader`, `EofReader`, `Data` enum, builder/config types
 
 ### Modified Files
 - `backends/foundation_core/src/io/mod.rs` — add `pub mod readers;`
@@ -237,37 +261,41 @@ Wherever `SimpleHttpBody` is used, callers should be able to configure it (pass 
 ## Tasks
 
 ### Module Setup
-- [ ] 1. Create `backends/foundation_core/src/io/readers/mod.rs` with module structure
-- [ ] 2. Add `pub mod readers;` to `backends/foundation_core/src/io/mod.rs`
+- [x] 1. Create `backends/foundation_core/src/io/readers/mod.rs` with module structure
+- [x] 2. Add `pub mod readers;` to `backends/foundation_core/src/io/mod.rs`
 
 ### BatchReader Implementation
-- [ ] 3. Implement `Data` enum with `Bytes(Vec<u8>)` and `Retry` variants
-- [ ] 4. Implement `BatchReader<R>` struct with configuration fields
-- [ ] 5. Implement `BatchReader::new()` and builder methods for configuration
-- [ ] 6. Implement `Iterator` for `BatchReader<R>` with WouldBlock/TimedOut/retry handling
-- [ ] 7. Write tests for `BatchReader` — normal reads, WouldBlock handling, retry limits, EOF behavior
+- [x] 3. Implement `Data` enum with `Bytes(Vec<u8>)` and `Retry` variants
+- [x] 4. Implement `BatchReader<R>` struct with configuration fields
+- [x] 5. Implement `BatchReader::new()` and builder methods for configuration
+- [x] 6. Implement `Iterator` for `BatchReader<R>` with WouldBlock/TimedOut/retry handling
+- [x] 7. Write tests for `BatchReader` — normal reads, WouldBlock handling, retry limits, EOF behavior
 
 ### FullBodyReader Implementation
-- [ ] 8. Implement `FullBodyReader::read_full()` function
-- [ ] 9. Write tests for `FullBodyReader` — complete reads, partial reads, retry handling, unexpected EOF
+- [x] 8. Implement `FullBodyReader::read_full()` function
+- [x] 9. Write tests for `FullBodyReader` — complete reads, partial reads, retry handling, unexpected EOF
 
 ### BatchStreamReader Implementation
-- [ ] 10. Implement `BatchStreamReader<R>` struct wrapping `BatchReader<R>`
-- [ ] 11. Implement `Iterator` for `BatchStreamReader` with internal spin on `Data::Retry`
-- [ ] 12. Write tests for `BatchStreamReader` — verify retry absorption, bytes pass-through, error propagation
+- [x] 10. Implement `BatchStreamReader<R>` struct wrapping `BatchReader<R>`
+- [x] 11. Implement `Iterator` for `BatchStreamReader` with internal spin on `Data::Retry`
+- [x] 12. Write tests for `BatchStreamReader` — verify retry absorption, bytes pass-through, error propagation
+
+### EofReader Implementation
+- [x] 13. Implement `EofReader::read_to_end()` function for EOF-based reading
+- [x] 14. Write tests for `EofReader` — complete reads, partial reads, retry handling, max size enforcement, empty sources
 
 ### SimpleHttpBody Update
-- [x] 13. Change `SimpleHttpBody` from unit struct to `SimpleHttpBody(Option<u64>, u64, usize, usize)` with `Default` impl and builder methods on reader types
-- [x] 14. Update `BodyExtractor` impl to use `FullBodyReader` for small bodies and `BatchStreamReader` for large bodies
-- [x] 15. Update `HttpRequestReader::simple_tcp_stream()` and `HttpResponseReader::simple_tcp_stream()` to use `SimpleHttpBody::default()`
-- [x] 16. Update `HTTPStreams::next_request()` / `next_response()` and the `http_helpers` module to use `SimpleHttpBody::default()`
-- [x] 17. Update call sites in `client/connection.rs`, `client/tasks/`, and `websocket/task.rs` to accept an optional `SimpleHttpBody` or fall back to `SimpleHttpBody::default()`
+- [x] 15. Change `SimpleHttpBody` from unit struct to `SimpleHttpBody(Option<u64>, u64, usize, usize)` with `Default` impl and builder methods on reader types
+- [x] 16. Update `BodyExtractor` impl to use `FullBodyReader` for small bodies, `BatchStreamReader` for large bodies, and `EofReader` for EOF-based bodies
+- [x] 17. Update `HttpRequestReader::simple_tcp_stream()` and `HttpResponseReader::simple_tcp_stream()` to use `SimpleHttpBody::default()`
+- [x] 18. Update `HTTPStreams::next_request()` / `next_response()` and the `http_helpers` module to use `SimpleHttpBody::default()`
+- [x] 19. Update call sites in `client/connection.rs`, `client/tasks/`, and `websocket/task.rs` to accept an optional `SimpleHttpBody` or fall back to `SimpleHttpBody::default()`
 
 ### Validation (Mandatory)
-- [ ] 18. Run `cargo check` on `foundation_core` — must compile with zero errors
-- [ ] 19. Run all existing unit tests (`cargo test -p foundation_core`) — all must pass, no regressions
-- [ ] 20. Run all existing integration tests — all must pass, no regressions
-- [ ] 21. Run `cargo clippy -p foundation_core` — no new warnings introduced
+- [x] 20. Run `cargo check` on `foundation_core` — must compile with zero errors
+- [x] 21. Run all existing unit tests (`cargo test -p foundation_core`) — all must pass, no regressions
+- [x] 22. Run all existing integration tests — all must pass, no regressions
+- [x] 23. Run `cargo clippy -p foundation_core` — no new warnings introduced
 
 ## Validation Requirements
 
