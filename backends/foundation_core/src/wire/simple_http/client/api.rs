@@ -697,7 +697,7 @@ impl<R: DnsResolver + 'static> ClientRequest<R> {
                                 RawStream,
                             >::new(
                                 conn.clone_stream(),
-                                SimpleHttpBody,
+                                SimpleHttpBody::default(),
                             ));
 
                             return Ok((items.into_iter(), conn));

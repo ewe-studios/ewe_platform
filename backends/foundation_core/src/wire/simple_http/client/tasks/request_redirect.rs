@@ -228,7 +228,7 @@ impl<R: DnsResolver + Send + 'static> TaskIterator for GetHttpRequestRedirectTas
                     // 4. Try to read response intro once
                     let mut reader = HttpResponseReader::<SimpleHttpBody, RawStream>::new(
                         connection.clone_stream(),
-                        SimpleHttpBody,
+                        SimpleHttpBody::default(),
                     );
 
                     tracing::debug!("Read the request response intro");

@@ -35,7 +35,11 @@
       "Bash(curl -s https://api.github.com/repos/rui314/mold/releases/tags/v2.40.4 | jq -r '.assets[] | select\\(.name | contains\\(\"arm\"\\)\\) | .name')",
       "Bash(curl -sL https://api.github.com/repos/rui314/mold/releases/tags/v2.40.4 | jq -r '.assets[] | select\\(.name | contains\\(\"arm\"\\) or contains\\(\"aarch\"\\)\\) | \"\\\\\\(.name\\) - \\\\\\(.size\\)\"' 2>/dev/null || curl -sL https://api.github.com/repos/rui314/mold/releases/tags/v2.40.4 | grep -E '\"name\"|\"size\"' | head -20)",
       "Bash(curl -sL \"https://github.com/rui314/mold/releases/download/v2.40.4/mold-2.40.4-aarch64-linux.tar.gz\" | tar -tzf - | head -5)",
-      "Bash(curl -sL \"https://github.com/rui314/mold/releases/download/v2.40.4/mold-2.40.4-arm-linux.tar.gz\" | tar -tzf - | head -5)"
+      "Bash(curl -sL \"https://github.com/rui314/mold/releases/download/v2.40.4/mold-2.40.4-arm-linux.tar.gz\" | tar -tzf - | head -5)",
+      "Bash(find /home/darkvoid/Boxxed/@dev/ewe_platform/backends/foundation_core/src/io -name \"*.rs\" -exec head -50 {} \\\\; 2>/dev/null | head -100)",
+      "Bash(curl -sL \"https://github.com/rui314/mold/releases/download/v2.40.4/mold-2.40.4-arm-linux.tar.gz\")",
+      "Bash(tar -xzf - -C /tmp mold-2.40.4-arm-linux/bin/mold)",
+      "Read(//tmp/mold-2.40.4-arm-linux/bin/**)"
     ]
   }
 }

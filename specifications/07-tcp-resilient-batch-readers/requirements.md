@@ -30,8 +30,8 @@ has_features: false
 has_fundamentals: false
 tasks:
   completed: 0
-  uncompleted: 17
-  total: 17
+  uncompleted: 21
+  total: 21
   completion_percentage: 0
 ---
 
@@ -217,5 +217,37 @@ Wherever `SimpleHttpBody` is used, callers should be able to configure it (pass 
 - [ ] 16. Update `HTTPStreams::next_request()` / `next_response()` and the `http_helpers` module to use `SimpleHttpBody::default()`
 - [ ] 17. Update call sites in `client/connection.rs`, `client/tasks/`, and `websocket/task.rs` to accept an optional `SimpleHttpBody` or fall back to `SimpleHttpBody::default()`
 
+### Validation (Mandatory)
+- [ ] 18. Run `cargo check` on `foundation_core` — must compile with zero errors
+- [ ] 19. Run all existing unit tests (`cargo test -p foundation_core`) — all must pass, no regressions
+- [ ] 20. Run all existing integration tests — all must pass, no regressions
+- [ ] 21. Run `cargo clippy -p foundation_core` — no new warnings introduced
+
+## Validation Requirements
+
+> **MANDATORY**: Every task above must be validated against these criteria before it can be marked complete.
+
+### Per-Task Validation
+After completing each task:
+1. `cargo check -p foundation_core` must succeed (no compile errors)
+2. `cargo test -p foundation_core` must pass (no test regressions)
+3. `cargo clippy -p foundation_core` must produce no new warnings
+
+### Final Validation
+Before the specification can be marked complete:
+1. **All existing unit tests pass** — `cargo test -p foundation_core` with zero failures
+2. **All existing integration tests pass** — no regressions in any dependent crate
+3. **Clippy clean** — `cargo clippy -p foundation_core` with no new warnings
+4. **No behavioral regressions** — `SimpleHttpBody::default()` must produce identical behavior to the old unit struct for all existing call sites (same max body size semantics, same error types)
+
+### Regression Test Checklist
+- [ ] WebSocket frame decoding still works (existing tests)
+- [ ] HTTP request/response parsing still works (existing tests)
+- [ ] Chunked transfer encoding still works (existing tests)
+- [ ] Line-feed body reading still works (existing tests)
+- [ ] Client connection handling still works (existing tests)
+- [ ] All `SimpleHttpBody` call sites compile and behave identically to pre-change
+
 ---
 *Created: 2026-03-14*
+*Updated: 2026-03-14 — Added mandatory validation requirements*
