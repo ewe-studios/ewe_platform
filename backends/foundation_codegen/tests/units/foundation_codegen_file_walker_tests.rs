@@ -29,7 +29,9 @@ fn finds_rs_files_in_flat_directory() {
 
     let files = find_rust_files(&tmp.path().join("src")).unwrap();
     assert_eq!(files.len(), 2);
-    assert!(files.iter().all(|p| p.extension().is_some_and(|e| e == "rs")));
+    assert!(files
+        .iter()
+        .all(|p| p.extension().is_some_and(|e| e == "rs")));
 }
 
 #[test]

@@ -7,7 +7,7 @@ use std::path::PathBuf;
 /// WHAT: Classifies the Rust item kind discovered by the source scanner.
 ///
 /// HOW: Simple enum with `Display` for human-readable output.
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum ItemKind {
     Struct,
     Enum,

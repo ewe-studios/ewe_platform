@@ -149,7 +149,7 @@ pub enum HttpClientError {
     /// Carries the number of redirects that were attempted.
     TooManyRedirects,
 
-    /// Map SendableBoxedError to HttpClientError.
+    /// Map `SendableBoxedError` to `HttpClientError`.
     FailedWith(SendableBoxedError),
 
     /// DNS resolution error.
@@ -261,7 +261,7 @@ impl core::fmt::Display for HttpClientError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Self::FailedWith(err) => {
-                write!(f, "Failed with error: {}", err)
+                write!(f, "Failed with error: {err}")
             }
             Self::InvalidState => {
                 write!(f, "Invalid state, please investigate")
@@ -273,7 +273,7 @@ impl core::fmt::Display for HttpClientError {
                 write!(f, "Read error occurred, please investigate")
             }
             Self::Reason(reason) => {
-                write!(f, "Failed due to Reason: {}", reason)
+                write!(f, "Failed due to reason: {reason}")
             }
             Self::ConnectionError => {
                 write!(f, "Connection error occurred, please investigate")
@@ -440,15 +440,15 @@ impl From<ChunkStateError> for HttpReaderError {
     fn from(err: ChunkStateError) -> Self {
         match err {
             ChunkStateError::ChunkSizeTooLarge(size) => HttpReaderError::ChunkSizeTooLarge(size),
-            ChunkStateError::ParseFailed => HttpReaderError::InvalidChunkSize,
+            ChunkStateError::ParseFailed
+            | ChunkStateError::InvalidByte(_)
+            | ChunkStateError::InvalidOctetSizeByte(_)
+            | ChunkStateError::InvalidChunkEnding
+            | ChunkStateError::InvalidChunkEndingExpectedCRLF
+            | ChunkStateError::ExtensionWithNoValue
+            | ChunkStateError::InvalidOctetBytes(_)
+            | ChunkStateError::ChunkSizeNotFound => HttpReaderError::InvalidChunkSize,
             ChunkStateError::ReadErrors => HttpReaderError::ReadFailed,
-            ChunkStateError::InvalidByte(_) => HttpReaderError::InvalidChunkSize,
-            ChunkStateError::InvalidOctetSizeByte(_) => HttpReaderError::InvalidChunkSize,
-            ChunkStateError::ChunkSizeNotFound => HttpReaderError::InvalidChunkSize,
-            ChunkStateError::InvalidChunkEnding => HttpReaderError::InvalidChunkSize,
-            ChunkStateError::InvalidChunkEndingExpectedCRLF => HttpReaderError::InvalidChunkSize,
-            ChunkStateError::ExtensionWithNoValue => HttpReaderError::InvalidChunkSize,
-            ChunkStateError::InvalidOctetBytes(_) => HttpReaderError::InvalidChunkSize,
         }
     }
 }

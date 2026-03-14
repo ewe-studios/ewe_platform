@@ -1,6 +1,6 @@
 ---
 description: TCP-resilient batch readers that use read() instead of read_exact() to correctly handle WouldBlock/TimedOut on TCP streams
-status: pending
+status: completed
 priority: high
 created: 2026-03-14
 author: Main Agent
@@ -29,10 +29,10 @@ related_specs:
 has_features: false
 has_fundamentals: false
 tasks:
-  completed: 0
-  uncompleted: 21
+  completed: 21
+  uncompleted: 0
   total: 21
-  completion_percentage: 0
+  completion_percentage: 100
 ---
 
 # TCP-Resilient Batch Readers - Requirements
@@ -157,25 +157,29 @@ pub struct BatchStreamReader<R: Read> {
 Change from unit struct to tuple struct with required fields:
 
 ```rust
-pub struct SimpleHttpBody(usize, usize);
+pub struct SimpleHttpBody(pub u64, pub u64, pub usize, pub usize);
 ```
 
 - First field: `max_body_size` — maximum allowed body size (applies to all body types)
 - Second field: `full_body_threshold` — for `LimitedBody`: if `content_length <= threshold` → use `FullBodyReader` → return `SendSafeBody::Bytes`; if `content_length > threshold` → use `BatchStreamReader` → return `SendSafeBody::Stream`
+- Third field: `batch_size` — read buffer size for `BatchReader` (default: 8192)
+- Fourth field: `max_retries` — max consecutive retries for WouldBlock/TimedOut (default: 100)
 
 Implements `Default` with sensible defaults:
 
 ```rust
 impl Default for SimpleHttpBody {
     fn default() -> Self {
-        // max_body_size: 1 GB, full_body_threshold: 1 MB
-        SimpleHttpBody(1024 * 1024 * 1024, 1024 * 1024)
+        // max_body_size: 1 GB, full_body_threshold: 512 KB, batch_size: 8192, max_retries: 100
+        SimpleHttpBody(1024 * 1024 * 1024, 512 * 1024, 8192, 100)
     }
 }
 ```
 
 - Default `max_body_size` of 1 GB — permissive default matching Apache/RHEL, can be tightened per use case.
-- Default `full_body_threshold` of 1 MB — bodies at or below this are read entirely into memory via `FullBodyReader` and returned as `SendSafeBody::Bytes`. Bodies above are streamed via `BatchStreamReader` as `SendSafeBody::Stream`.
+- Default `full_body_threshold` of 512 KB — bodies at or below this are read entirely into memory via `FullBodyReader` and returned as `SendSafeBody::Bytes`. Bodies above are streamed via `BatchStreamReader` as `SendSafeBody::Stream`.
+- Default `batch_size` of 8192 bytes — read buffer size for batched streaming reads.
+- Default `max_retries` of 100 — maximum consecutive WouldBlock/TimedOut retries before erroring.
 
 Wherever `SimpleHttpBody` is used, callers should be able to configure it (pass their own instance). If not configured, fall back to `SimpleHttpBody::default()`.
 

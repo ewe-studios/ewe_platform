@@ -32,7 +32,7 @@ use std::io::{self, Read};
 pub enum Data {
     /// A batch of bytes successfully read from the source.
     Bytes(Vec<u8>),
-    /// Yielded on WouldBlock, TimedOut, or Ok(0)-when-not-EOF.
+    /// Yielded on `WouldBlock`, `TimedOut`, or `Ok(0)`-when-not-EOF.
     /// Signals the caller should retry (poll again later).
     Retry,
 }
@@ -60,7 +60,7 @@ pub struct BatchReader<R: Read> {
 impl<R: Read> BatchReader<R> {
     /// Create a new `BatchReader` with default configuration.
     ///
-    /// Defaults: batch_size=512, eof_on_zero_read=true, max_consecutive_retries=100.
+    /// Defaults: `batch_size=512`, `eof_on_zero_read=true`, `max_consecutive_retries=100`.
     ///
     /// # Panics
     /// Never panics.
@@ -189,7 +189,7 @@ impl FullBodyReader {
                 Ok(0) => {
                     return Err(io::Error::new(
                         io::ErrorKind::UnexpectedEof,
-                        format!("unexpected EOF: read {} of {} bytes", pos, total_size),
+                        format!("unexpected EOF: read {pos} of {total_size} bytes"),
                     ));
                 }
                 Ok(n) => {
@@ -205,8 +205,7 @@ impl FullBodyReader {
                         return Err(io::Error::new(
                             e.kind(),
                             format!(
-                                "max retries ({}) exceeded at {} of {} bytes",
-                                max_retries, pos, total_size
+                                "max retries ({max_retries}) exceeded at {pos} of {total_size} bytes",
                             ),
                         ));
                     }
