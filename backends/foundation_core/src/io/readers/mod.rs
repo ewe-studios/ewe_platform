@@ -52,6 +52,7 @@ pub struct BatchReader<R: Read> {
     reader: R,
     batch_size: usize,
     eof_on_zero_read: bool,
+    received_data: bool,
     max_consecutive_retries: usize,
     consecutive_retries: usize,
     done: bool,
@@ -68,6 +69,7 @@ impl<R: Read> BatchReader<R> {
         Self {
             reader,
             batch_size: 512,
+            received_data: false,
             eof_on_zero_read: true,
             max_consecutive_retries: 100,
             consecutive_retries: 0,
@@ -118,17 +120,26 @@ impl<R: Read> Iterator for BatchReader<R> {
                     self.consecutive_retries += 1;
                     if self.consecutive_retries > self.max_consecutive_retries {
                         self.done = true;
+
+                        // if data was received then we know maybe its
+                        // just really EOF. Let the data interpreter decides.
+                        if self.received_data {
+                            return None;
+                        }
+
                         Some(Err(io::Error::new(
                             io::ErrorKind::TimedOut,
                             "max consecutive retries exceeded without progress",
                         )))
                     } else {
+                        tracing::debug!("Sending retry");
                         Some(Ok(Data::Retry))
                     }
                 }
             }
             Ok(n) => {
                 tracing::debug!("Received data Bytes(len={})", n);
+                self.received_data = true;
                 self.consecutive_retries = 0;
                 buf.truncate(n);
                 Some(Ok(Data::Bytes(buf)))
@@ -136,10 +147,17 @@ impl<R: Read> Iterator for BatchReader<R> {
             Err(e)
                 if e.kind() == io::ErrorKind::WouldBlock || e.kind() == io::ErrorKind::TimedOut =>
             {
-                tracing::error!("Timeout/WouldBlock error received");
+                tracing::error!("Timeout/WouldBlock error received: {:?}", &e);
                 self.consecutive_retries += 1;
                 if self.consecutive_retries > self.max_consecutive_retries {
                     self.done = true;
+
+                    // if data was received then we know maybe its
+                    // just really EOF. Let the data interpreter decides.
+                    if self.received_data {
+                        return None;
+                    }
+
                     Some(Err(io::Error::new(
                         e.kind(),
                         "max consecutive retries exceeded without progress",
@@ -162,10 +180,23 @@ impl<R: Read> Iterator for BatchReader<R> {
 ///
 /// WHAT: Reads a body of known total size using `read()` with retry handling.
 ///
-/// HOW: Loops calling `read()` on the remaining slice, tracking position and
-/// a consecutive retry counter. `WouldBlock`/`TimedOut` increment the counter;
-/// successful reads reset it. `Ok(0)` is treated as unexpected EOF.
-pub struct FullBodyReader;
+/// HOW: Uses [`BatchReader`] internally with `eof_on_zero_read=true`, collecting
+/// all bytes until EOF or the expected size is reached. Respects `max_consecutive_retries`
+/// for transient failures.
+pub struct FullBodyReader(usize);
+
+impl FullBodyReader {
+    #[must_use]
+    pub fn new(batch_size: usize) -> Self {
+        Self(batch_size)
+    }
+}
+
+impl Default for FullBodyReader {
+    fn default() -> Self {
+        Self(8192)
+    }
+}
 
 impl FullBodyReader {
     /// Read exactly `total_size` bytes from `reader` with TCP-resilient retry handling.
@@ -181,41 +212,27 @@ impl FullBodyReader {
     /// # Panics
     /// Never panics.
     pub fn read_full<R: Read>(
+        &self,
         reader: &mut R,
         total_size: usize,
         max_retries: usize,
     ) -> Result<Vec<u8>, io::Error> {
-        let mut buf = vec![0u8; total_size];
-        let mut pos = 0;
-        let mut consecutive_retries: usize = 0;
+        let batch_reader = BatchReader::new(reader)
+            .batch_size(self.0)
+            .eof_on_zero_read(true)
+            .max_consecutive_retries(max_retries);
 
-        while pos < total_size {
-            match reader.read(&mut buf[pos..]) {
-                Ok(0) => {
-                    return Err(io::Error::new(
-                        io::ErrorKind::UnexpectedEof,
-                        format!("unexpected EOF: read {pos} of {total_size} bytes"),
-                    ));
+        let mut result = Vec::with_capacity(total_size);
+        for batch_result in batch_reader {
+            match batch_result {
+                Ok(Data::Bytes(bytes)) => {
+                    tracing::debug!("Received Data::Bytes(len={})", bytes.len());
+                    result.extend(bytes);
                 }
-                Ok(n) => {
-                    tracing::debug!("Received data Bytes(len={})", n);
-                    pos += n;
-                    consecutive_retries = 0;
-                }
-                Err(e)
-                    if e.kind() == io::ErrorKind::WouldBlock
-                        || e.kind() == io::ErrorKind::TimedOut =>
-                {
-                    tracing::error!("Timeout/WouldBlock error received");
-                    consecutive_retries += 1;
-                    if consecutive_retries > max_retries {
-                        return Err(io::Error::new(
-                            e.kind(),
-                            format!(
-                                "max retries ({max_retries}) exceeded at {pos} of {total_size} bytes",
-                            ),
-                        ));
-                    }
+                Ok(Data::Retry) => {
+                    // This shouldn't happen with eof_on_zero_read=true unless
+                    // we get WouldBlock/TimedOut - just continue retrying
+                    tracing::debug!("Received Data::Retry - will retry read");
                 }
                 Err(e) => {
                     tracing::error!("Read error occured: {:?}", &e);
@@ -224,7 +241,19 @@ impl FullBodyReader {
             }
         }
 
-        Ok(buf)
+        // BatchReader returned None (EOF)
+        if result.len() != total_size {
+            return Err(io::Error::new(
+                io::ErrorKind::UnexpectedEof,
+                format!(
+                    "unexpected EOF: read {} of {} bytes",
+                    result.len(),
+                    total_size
+                ),
+            ));
+        }
+
+        Ok(result)
     }
 }
 
@@ -470,7 +499,7 @@ mod tests {
     fn full_body_reader_complete_read() {
         let data = b"hello world";
         let mut cursor = Cursor::new(data.to_vec());
-        let result = FullBodyReader::read_full(&mut cursor, data.len(), 10);
+        let result = FullBodyReader::default().read_full(&mut cursor, data.len(), 10);
         assert_eq!(result.unwrap(), data);
     }
 
@@ -497,7 +526,7 @@ mod tests {
             data: data.to_vec(),
             pos: 0,
         };
-        let result = FullBodyReader::read_full(&mut reader, data.len(), 10);
+        let result = FullBodyReader::default().read_full(&mut reader, data.len(), 10);
         assert_eq!(result.unwrap(), data);
     }
 
@@ -530,7 +559,7 @@ mod tests {
             pos: 0,
             calls: 0,
         };
-        let result = FullBodyReader::read_full(&mut reader, data.len(), 10);
+        let result = FullBodyReader::default().read_full(&mut reader, data.len(), 10);
         assert_eq!(result.unwrap(), data);
     }
 
@@ -538,7 +567,7 @@ mod tests {
     fn full_body_reader_unexpected_eof() {
         let data = b"hi";
         let mut cursor = Cursor::new(data.to_vec());
-        let result = FullBodyReader::read_full(&mut cursor, 10, 5);
+        let result = FullBodyReader::default().read_full(&mut cursor, 10, 5);
         assert!(result.is_err());
         assert_eq!(result.unwrap_err().kind(), io::ErrorKind::UnexpectedEof);
     }
@@ -552,7 +581,7 @@ mod tests {
             }
         }
 
-        let result = FullBodyReader::read_full(&mut AlwaysWouldBlock, 10, 3);
+        let result = FullBodyReader::default().read_full(&mut AlwaysWouldBlock, 10, 3);
         assert!(result.is_err());
         assert_eq!(result.unwrap_err().kind(), io::ErrorKind::WouldBlock);
     }

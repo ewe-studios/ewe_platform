@@ -358,12 +358,7 @@ impl<R: DnsResolver + 'static> ClientRequest<R> {
             request,
             self.config.max_redirects,
             self.pool.clone().ok_or(HttpClientError::NoPool)?,
-            Some((
-                self.config.connect_timeout,
-                self.config.read_timeout,
-                self.config.write_timeout,
-            )),
-            Some(self.config.clone()),
+            self.config.clone(),
         );
 
         // Spawn task via execute_task
@@ -630,14 +625,9 @@ impl<R: DnsResolver + 'static> ClientRequest<R> {
 
             let task = GetHttpRequestRedirectTask::new(
                 into_incoming,
-                Some((
-                    self.config.connect_timeout,
-                    self.config.read_timeout,
-                    self.config.write_timeout,
-                )),
                 pool,
+                self.config.clone(),
                 self.config.max_redirects,
-                Some(self.config.clone()),
             );
 
             // Spawn task via execute_task

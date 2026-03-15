@@ -654,7 +654,7 @@ impl RetryMiddleware {
             max_retries,
             retry_status_codes,
             backoff: BackoffStrategy::Exponential {
-                base: std::time::Duration::from_millis(50),
+                base: std::time::Duration::from_millis(30),
                 multiplier: 2.0,
             },
         }

@@ -23,7 +23,7 @@ use crate::wire::simple_http::client::{
 };
 use crate::wire::simple_http::{
     Http11, HttpClientError, HttpResponseReader, IncomingResponseParts, RenderHttp,
-    RequestDescriptor, SimpleHeader, SimpleHttpBody, SimpleIncomingRequest,
+    RequestDescriptor, SimpleHeader, SimpleHttpBody, SimpleIncomingRequest, Status,
 };
 use std::io::Write;
 use std::sync::Arc;
@@ -34,27 +34,17 @@ use super::HttpOperationState;
 // Type aliases for complex enum variant data
 type InitData<R> = Box<(
     SimpleIncomingRequest,
-    (
-        std::time::Duration,
-        std::time::Duration,
-        std::time::Duration,
-    ),
     Arc<HttpConnectionPool<R>>,
+    crate::wire::simple_http::client::ClientConfig,
     u8,
-    Option<crate::wire::simple_http::client::ClientConfig>,
 )>;
 
 type TryingData<R> = Box<(
     SimpleIncomingRequest,
-    (
-        std::time::Duration,
-        std::time::Duration,
-        std::time::Duration,
-    ),
     Arc<HttpConnectionPool<R>>,
+    crate::wire::simple_http::client::ClientConfig,
     RequestDescriptor,
     u8,
-    Option<crate::wire::simple_http::client::ClientConfig>,
 )>;
 
 type WriteBodyData<R> = Box<(
@@ -95,26 +85,15 @@ impl<R: DnsResolver + Send + 'static> GetHttpRequestRedirectTask<R> {
     #[must_use]
     pub fn new(
         data: SimpleIncomingRequest,
-        timeout: Option<(
-            std::time::Duration,
-            std::time::Duration,
-            std::time::Duration,
-        )>,
         pool: Arc<HttpConnectionPool<R>>,
+        config: crate::wire::simple_http::client::ClientConfig,
         max_redirects: u8,
-        config: Option<crate::wire::simple_http::client::ClientConfig>,
     ) -> Self {
-        let timeouts = timeout.unwrap_or((
-            std::time::Duration::from_secs(15),
-            std::time::Duration::from_secs(10),
-            std::time::Duration::from_secs(10),
-        ));
         Self(Some(HttpRequestRedirectState::Init(Some(Box::new((
             data,
-            timeouts,
             pool,
-            max_redirects,
             config,
+            max_redirects,
         ))))))
     }
 }
@@ -131,18 +110,17 @@ impl<R: DnsResolver + Send + 'static> TaskIterator for GetHttpRequestRedirectTas
             match self.0.take()? {
                 HttpRequestRedirectState::Init(mut inner_opt) => {
                     if let Some(inner) = inner_opt.take() {
-                        let (data, timeout, pool, remaining_redirects, config) = *inner;
+                        let (data, pool, config, remaining_redirects) = *inner;
 
                         // create the request descriptor
                         let request_descriptor = data.descriptor();
 
                         self.0 = Some(HttpRequestRedirectState::Trying(Some(Box::new((
                             data,
-                            timeout,
                             pool,
+                            config,
                             request_descriptor,
                             remaining_redirects,
-                            config,
                         )))));
 
                         return Some(TaskStatus::Pending(HttpOperationState::Connecting));
@@ -157,24 +135,23 @@ impl<R: DnsResolver + Send + 'static> TaskIterator for GetHttpRequestRedirectTas
                         return None;
                     };
 
-                    let (data, (connect_timeout, read_timeout, write_timeout), pool, mut descriptor, remaining_redirects, config) = *state;
+
+                    let (data, pool, config, mut descriptor, remaining_redirects) = *state;
+                    let (_connect_timeout, read_timeout, _write_timeout) = config.get_op_timeout();
+
                     tracing::info!("REDIRECTIONS: Remaining redirects: {}", remaining_redirects);
 
                     // Determine effective proxy configuration
-                    let env_proxy = if let Some(ref cfg) = config {
-                        if cfg.proxy_from_env {
-                            crate::wire::simple_http::client::ProxyConfig::from_env(
-                                descriptor.request_uri.scheme(),
-                            )
-                        } else {
-                            None
-                        }
+                    let env_proxy = if config.proxy_from_env {
+                        crate::wire::simple_http::client::ProxyConfig::from_env(
+                            descriptor.request_uri.scheme(),
+                        )
                     } else {
                         None
                     };
 
                     let proxy_config = env_proxy.as_ref().or_else(|| {
-                        config.as_ref().and_then(|cfg| cfg.proxy.as_ref())
+                        config.proxy.as_ref()
                     });
 
                     // 1. Create connection (with proxy support)
@@ -243,10 +220,8 @@ impl<R: DnsResolver + Send + 'static> TaskIterator for GetHttpRequestRedirectTas
                     tracing::debug!("Get response reader from stream");
 
                     // 4. Try to read response intro once
-                    let simple_http_body = config
-                        .as_ref()
-                        .map(|cfg| cfg.into_simple_http_body())
-                        .unwrap_or_default();
+                    let simple_http_body = config.into_simple_http_body();
+
                     let mut reader = HttpResponseReader::<SimpleHttpBody, RawStream>::new(
                         connection.clone_stream(),
                         simple_http_body,
@@ -304,6 +279,21 @@ impl<R: DnsResolver + Send + 'static> TaskIterator for GetHttpRequestRedirectTas
                     };
 
                     tracing::debug!("Check if response is a redirect");
+
+                    let is_100_continue = status == &Status::Continue;
+                    tracing::debug!("Is 100-continue: {}", is_100_continue);
+
+                    if is_100_continue {
+                        self.0 = Some(HttpRequestRedirectState::WriteBody(Some(Box::new((
+                            None,
+                            data,
+                            pool,
+                            connection,
+                            reader,
+                        )))));
+
+                        return Some(TaskStatus::Pending(HttpOperationState::Connecting));
+                    }
 
                     let is_redirect = (300..400).contains(&status.clone().into_usize());
                     tracing::debug!("Is redirect: {}", is_redirect);
@@ -374,11 +364,10 @@ impl<R: DnsResolver + Send + 'static> TaskIterator for GetHttpRequestRedirectTas
                         tracing::debug!("Following redirect to new URL: {}", new_url);
                         self.0 = Some(HttpRequestRedirectState::Trying(Some(Box::new((
                             data,
-                            (connect_timeout, read_timeout, write_timeout),
                             pool,
+                            config,
                             new_descriptor,
                             remaining_redirects - 1,
-                            config,
                         )))));
 
                         return Some(TaskStatus::Pending(HttpOperationState::Connecting));

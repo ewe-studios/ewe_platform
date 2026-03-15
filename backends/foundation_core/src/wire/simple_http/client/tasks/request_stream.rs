@@ -48,22 +48,11 @@ where
         request: PreparedRequest,
         max_redirects: u8,
         pool: Arc<HttpConnectionPool<R>>,
-        timeouts: Option<(std::time::Duration, std::time::Duration, std::time::Duration)>,
-        config: Option<crate::wire::simple_http::client::ClientConfig>,
+        config: crate::wire::simple_http::client::ClientConfig,
     ) -> Self {
         Self(
             Some(HttpOperationState::Init),
-            SendRequest::new(
-                request,
-                max_redirects,
-                pool,
-                timeouts.unwrap_or((
-                    std::time::Duration::from_secs(15),
-                    std::time::Duration::from_secs(10),
-                    std::time::Duration::from_secs(10),
-                )),
-                config,
-            ),
+            SendRequest::new(request, max_redirects, pool, config),
         )
     }
 
@@ -115,25 +104,14 @@ where
 
                 // Determine effective proxy configuration
                 // First check if proxy_from_env is set and try environment
-                let env_proxy = if let Some(ref config) = self.1.config {
-                    if config.proxy_from_env {
-                        crate::wire::simple_http::client::ProxyConfig::from_env(
-                            request.url.scheme(),
-                        )
-                    } else {
-                        None
-                    }
+                let env_proxy = if self.1.config.proxy_from_env {
+                    crate::wire::simple_http::client::ProxyConfig::from_env(request.url.scheme())
                 } else {
                     None
                 };
 
                 // Use env proxy if found, otherwise use configured proxy
-                let proxy_config = env_proxy.as_ref().or_else(|| {
-                    self.1
-                        .config
-                        .as_ref()
-                        .and_then(|config| config.proxy.as_ref())
-                });
+                let proxy_config = env_proxy.as_ref().or_else(|| self.1.config.proxy.as_ref());
 
                 // Try to get connection from pool or create new one (with proxy support)
                 let stream =

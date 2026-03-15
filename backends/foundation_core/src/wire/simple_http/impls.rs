@@ -4,6 +4,7 @@ use crate::extensions::result_ext::{BoxedError, SendableBoxedError};
 use crate::extensions::strings_ext::{TryIntoString, TryIntoStringError};
 use crate::io::ioutils::{self, ByteBufferPointer, SharedByteBufferStream};
 use crate::io::readers::EofReader;
+use crate::io::readers::FullBodyReader;
 use crate::io::readers::{BatchReader, BatchStreamReader};
 use crate::io::ubytes;
 use crate::valtron::{
@@ -3695,6 +3696,11 @@ where
                     .do_once_mut(|binding| binding.read_line(&mut line))
                     .map_err(|err| HttpReaderError::LineReadFailed(Box::new(err)));
 
+                tracing::debug!(
+                    "Response start line: {:?} -> {:?}",
+                    &line,
+                    &line_read_result
+                );
                 if let Err(e) = line_read_result {
                     tracing::debug!("Http read error: {:?}", &e);
 
@@ -3789,8 +3795,12 @@ where
                 );
 
                 let headers = match header_reader.parse_headers() {
-                    Ok(header) => header,
+                    Ok(header) => {
+                        tracing::debug!("Response headers: {:?}", &header,);
+                        header
+                    }
                     Err(err) => {
+                        tracing::error!("Failed to read headers: {:?}", &err);
                         self.state = HttpReadState::Finished;
                         return Some(Err(err));
                     }
@@ -3805,6 +3815,7 @@ where
                 // if header has content type that is equal to text/event-stream
                 // then set state to line feed streaming body.
                 if let Some(content_types) = headers.get(&SimpleHeader::CONTENT_TYPE) {
+                    tracing::debug!("Response content types: {:?}", &content_types,);
                     if content_types
                         .iter()
                         .map(|item| item.to_lowercase())
@@ -3812,6 +3823,7 @@ where
                         .count()
                         != 0
                     {
+                        tracing::debug!("Response uses LineFeed based body: {:?}", &content_types,);
                         self.state = HttpReadState::Body(Body::LineFeedBody(headers.clone()));
 
                         return Some(Ok(IncomingResponseParts::Headers(headers)));
@@ -3823,6 +3835,10 @@ where
                 if headers.get(&SimpleHeader::TRANSFER_ENCODING).is_none()
                     && headers.get(&SimpleHeader::CONTENT_LENGTH).is_none()
                 {
+                    tracing::debug!(
+                        "Response has neither content length nor transfer_encoding: {:?}",
+                        &headers,
+                    );
                     self.state =
                         HttpReadState::Body(Body::FullBody(headers.clone(), self.max_body_length));
 
@@ -3886,6 +3902,8 @@ where
                 // must have a CONTENT_LENGTH
                 // header.
                 if let Some(content_size_headers) = headers.get(&SimpleHeader::CONTENT_LENGTH) {
+                    tracing::debug!("Response content length: {:?}", &content_size_headers);
+
                     if content_size_headers.is_empty() {
                         self.state = HttpReadState::NoBody;
                         return Some(Ok(IncomingResponseParts::Headers(headers)));
@@ -3922,6 +3940,7 @@ where
                         }
                     }
                 } else {
+                    tracing::debug!("Response has no body: {:?}", &headers);
                     self.state = HttpReadState::NoBody;
                     Some(Ok(IncomingResponseParts::Headers(headers)))
                 }
@@ -5065,6 +5084,9 @@ impl BodyExtractor for SimpleHttpBody {
         stream: SharedByteBufferStream<T>,
     ) -> Result<SendSafeBody, SendableBoxedError> {
         let _span = tracing::span!(tracing::Level::TRACE, "extract").entered();
+
+        tracing::debug!("Executing extraction: max_body_size={:?}, full_body_threshold={}, batch_size={}, max_retries={}", &self.0, self.1, self.2, self.3);
+
         match body {
             Body::LineFeedBody(headers) => {
                 tracing::debug!(
@@ -5094,7 +5116,7 @@ impl BodyExtractor for SimpleHttpBody {
                     .map(SendSafeBody::Bytes)
                 }) {
                     Ok(inner) => {
-                        tracing::debug!("Finished reading data from stream: {:?}", &inner);
+                        tracing::debug!("Finished reading data from stream");
                         Ok(inner)
                     }
                     Err(err) => {
@@ -5116,8 +5138,7 @@ impl BodyExtractor for SimpleHttpBody {
                         return Err(Box::new(std::io::Error::new(
                             std::io::ErrorKind::InvalidInput,
                             format!(
-                                "content length {} exceeds max body size {}",
-                                content_length, max_size
+                                "content length {content_length:} exceeds max body size {max_size:}"
                             ),
                         )));
                     }
@@ -5125,10 +5146,12 @@ impl BodyExtractor for SimpleHttpBody {
 
                 if content_length <= self.1 {
                     // Small body: read entirely into memory with retry resilience
-                    use crate::io::readers::FullBodyReader;
-                    #[allow(clippy::cast_possible_truncation)]
                     match stream.do_once_mut(|borrowed_stream| {
-                        FullBodyReader::read_full(borrowed_stream, content_length as usize, self.3)
+                        tracing::debug!("FullBodyReader: reading body under: max_body_size={:?}, full_body_threshold={}, batch_size={}, max_retries={}", &self.0, self.1, self.2, self.3);
+
+                        #[allow(clippy::cast_possible_truncation)]
+                        FullBodyReader::new(self.2)
+                            .read_full(borrowed_stream, content_length as usize, self.3)
                             .map(SendSafeBody::Bytes)
                     }) {
                         Ok(inner) => {
@@ -5141,6 +5164,8 @@ impl BodyExtractor for SimpleHttpBody {
                         }
                     }
                 } else {
+                    tracing::debug!("BatchReader: reading body under: max_body_size={:?}, full_body_threshold={}, batch_size={}, max_retries={}", &self.0, self.1, self.2, self.3);
+
                     // Large body: stream via BatchStreamReader
                     let batch = BatchReader::new(stream)
                         .batch_size(self.2)

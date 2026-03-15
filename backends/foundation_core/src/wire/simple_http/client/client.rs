@@ -30,6 +30,8 @@ use std::time::Duration;
 /// via builder pattern.
 #[derive(Debug, Clone)]
 pub struct ClientConfig {
+    /// Timeout for InlineLift/Schedule operations
+    pub inline_processing_timeout: std::time::Duration,
     /// Connection timeout
     pub connect_timeout: std::time::Duration,
     /// Read timeout
@@ -89,6 +91,12 @@ impl ClientConfig {
     /// A `SimpleHttpBody` configured with the client's settings.
     #[must_use]
     pub fn into_simple_http_body(&self) -> SimpleHttpBody {
+        tracing::debug!("Creating SimpleHttpBody with config: max_body_size={:?}, body_threshold={}, batch_size={}, max_retries={}",
+            &self.max_body_size,
+            self.full_body_threshold,
+            self.batch_size,
+            self.max_retries,
+        );
         SimpleHttpBody::new(
             self.max_body_size,
             self.full_body_threshold,
@@ -176,6 +184,12 @@ impl ClientConfig {
         self
     }
 
+    #[must_use]
+    pub fn with_inline_processing_timeout(mut self, timeout: std::time::Duration) -> Self {
+        self.inline_processing_timeout = timeout;
+        self
+    }
+
     /// Sets read timeout.
     ///
     /// WHY: Users often need to customize timeout without rebuilding entire config.
@@ -216,6 +230,7 @@ impl Default for ClientConfig {
     /// no default headers, pooling disabled, no proxy, no body size limit (client-friendly).
     fn default() -> Self {
         Self {
+            inline_processing_timeout: std::time::Duration::from_millis(10),
             connect_timeout: std::time::Duration::from_secs(15),
             read_timeout: std::time::Duration::from_secs(10),
             write_timeout: std::time::Duration::from_secs(10),
