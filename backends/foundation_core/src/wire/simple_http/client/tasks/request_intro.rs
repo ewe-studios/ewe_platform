@@ -60,12 +60,18 @@ pub enum GetRequestIntroState {
     WithIntro(WithIntroData),
 }
 
-pub struct GetRequestIntroTask(Option<GetRequestIntroState>);
+pub struct GetRequestIntroTask(Option<GetRequestIntroState>, Option<SimpleHttpBody>);
 
 impl GetRequestIntroTask {
     #[must_use]
     pub fn new(stream: HttpClientConnection) -> Self {
-        Self(Some(GetRequestIntroState::Init(Some(stream))))
+        Self(Some(GetRequestIntroState::Init(Some(stream))), None)
+    }
+
+    #[must_use]
+    pub fn with_body_config(mut self, body: SimpleHttpBody) -> Self {
+        self.1 = Some(body);
+        self
     }
 }
 
@@ -79,9 +85,10 @@ impl TaskIterator for GetRequestIntroTask {
             GetRequestIntroState::Init(inner) => match inner {
                 Some(stream) => {
                     tracing::info!("Creating http response reader from stream");
+                    let body_config = self.1.take().unwrap_or_default();
                     let mut reader = HttpResponseReader::<SimpleHttpBody, RawStream>::new(
                         stream.clone_stream(),
-                        SimpleHttpBody,
+                        body_config,
                     );
 
                     tracing::info!("Get intro from stream");

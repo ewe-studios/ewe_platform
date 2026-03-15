@@ -604,6 +604,7 @@ pub mod host_runtime {
             ReturnValues, Returns, String, ThreeState, TickState, ToBinary, Vec, ALLOCATIONS,
         };
 
+        #[cfg(any(target_arch = "wasm32", target_arch = "wasm64"))]
         #[link(wasm_import_module = "abi")]
         extern "C" {
 
@@ -864,6 +865,145 @@ pub mod host_runtime {
                 returns_length: u64,
             ) -> u64;
         }
+
+        #[cfg(all(not(target_arch = "wasm32"), not(target_arch = "wasm64")))]
+        mod stubs {
+            pub fn hook_up_animation_frames() {}
+            pub fn schedule_timeout(_timing: f64, _callback: u64) {}
+            pub fn unschedule_timeout(_callback: u64) {}
+            pub fn schedule_interval(_timing: f64, _callback: u64) {}
+            pub fn unschedule_interval(_callback: u64) {}
+            pub fn host_batch_apply(
+                _operation_pointer: u64,
+                _operation_length: u64,
+                _text_pointer: u64,
+                _text_length: u64,
+            ) {
+            }
+            pub fn host_batch_returning_apply(
+                _operation_pointer: u64,
+                _operation_length: u64,
+                _text_pointer: u64,
+                _text_length: u64,
+            ) -> u64 {
+                0
+            }
+            pub fn function_allocate_external_pointer() -> u64 {
+                0
+            }
+            pub fn object_allocate_external_pointer() -> u64 {
+                0
+            }
+            pub fn dom_allocate_external_pointer() -> u64 {
+                0
+            }
+            pub fn host_cache_string(_start: u64, _len: u64, _encoding: u8) -> u64 {
+                0
+            }
+            pub fn host_unregister_function(_handle: u64) {}
+            pub fn host_register_function(_start: u64, _len: u64, _encoding: u8) -> u64 {
+                0
+            }
+            pub fn host_invoke_function_as_i64(
+                _handler: u64,
+                _parameters_start: *const u8,
+                _parameters_length: u64,
+            ) -> i64 {
+                0
+            }
+            pub fn host_invoke_function_as_i32(
+                _handler: u64,
+                _parameters_start: *const u8,
+                _parameters_length: u64,
+            ) -> i32 {
+                0
+            }
+            pub fn host_invoke_function_as_i16(
+                _handler: u64,
+                _parameters_start: *const u8,
+                _parameters_length: u64,
+            ) -> i16 {
+                0
+            }
+            pub fn host_invoke_function_as_i8(
+                _handler: u64,
+                _parameters_start: *const u8,
+                _parameters_length: u64,
+            ) -> i8 {
+                0
+            }
+            pub fn host_invoke_function_as_u64(
+                _handler: u64,
+                _parameters_start: *const u8,
+                _parameters_length: u64,
+            ) -> u64 {
+                0
+            }
+            pub fn host_invoke_function_as_u32(
+                _handler: u64,
+                _parameters_start: *const u8,
+                _parameters_length: u64,
+            ) -> u32 {
+                0
+            }
+            pub fn host_invoke_function_as_u16(
+                _handler: u64,
+                _parameters_start: *const u8,
+                _parameters_length: u64,
+            ) -> u16 {
+                0
+            }
+            pub fn host_invoke_function_as_u8(
+                _handler: u64,
+                _parameters_start: *const u8,
+                _parameters_length: u64,
+            ) -> u8 {
+                0
+            }
+            pub fn host_invoke_function_as_bool(
+                _handler: u64,
+                _parameters_start: *const u8,
+                _parameters_length: u64,
+            ) -> u8 {
+                0
+            }
+            pub fn host_invoke_function_as_f64(
+                _handler: u64,
+                _parameters_start: *const u8,
+                _parameters_length: u64,
+            ) -> f64 {
+                0.0
+            }
+            pub fn host_invoke_function_as_f32(
+                _handler: u64,
+                _parameters_start: *const u8,
+                _parameters_length: u64,
+            ) -> f32 {
+                0.0
+            }
+            pub fn host_invoke_async_function(
+                _handler: u64,
+                _callback_handler: u64,
+                _parameters_start: *const u8,
+                _parameters_length: u64,
+                _returns_start: *const u8,
+                _returns_length: u64,
+            ) {
+            }
+            pub fn host_invoke_function(
+                _handler: u64,
+                _parameters_start: *const u8,
+                _parameters_length: u64,
+                _returns_start: *const u8,
+                _returns_length: u64,
+            ) -> u64 {
+                0
+            }
+        }
+
+        // Re-export stubs with same names as extern functions for non-wasm targets
+        #[cfg(all(not(target_arch = "wasm32"), not(target_arch = "wasm64")))]
+        pub use stubs::*;
 
         /// [`allocate_dom_reference`] requests the host runtime to pre-allocate
         /// a target external reference for usage by the caller for a dom node.

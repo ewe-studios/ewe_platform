@@ -58,6 +58,10 @@ impl MemoryLimiter {
         self.current_usage
     }
 
+    /// Preallocate memory by the specified amount.
+    ///
+    /// # Panics
+    /// Panics if the allocation exceeds the memory limit.
     #[inline]
     pub fn preallocate(&mut self, by_amount: usize) {
         self.increase_usage(by_amount)
@@ -72,6 +76,10 @@ impl MemoryLimiter {
         self.current_usage -= by_amount;
     }
 
+    /// Increase the current memory usage by the specified amount.
+    ///
+    /// # Errors
+    /// Returns `MemoryErrors::MemoryLimitExceededError` if the new usage exceeds the maximum capacity.
     #[inline]
     pub fn increase_usage(&mut self, by_amount: usize) -> MemoryResult<()> {
         self.current_usage += by_amount;
@@ -109,7 +117,7 @@ mod memory_limiter_tests {
 
         assert_eq!(limiter.current_usage(), 0);
 
-        assert!(matches!(limiter.increase_usage(5), MemoryResult::Ok(_)));
+        assert!(matches!(limiter.increase_usage(5), Ok(())));
         assert_eq!(limiter.current_usage(), 5);
     }
 }
@@ -151,11 +159,19 @@ impl Arena {
         self.data.truncate(self.data.len() - by_amount);
     }
 
+    /// Initialize the arena with the provided slice.
+    ///
+    /// # Errors
+    /// Returns an error if the new size exceeds the memory limit.
     pub fn init_with(&mut self, slice: &[u8]) -> MemoryResult<()> {
         self.data.clear();
         self.append(slice)
     }
 
+    /// Append data to the arena.
+    ///
+    /// # Errors
+    /// Returns an error if the new size exceeds the memory limit.
     pub fn append(&mut self, slice: &[u8]) -> MemoryResult<()> {
         let new_len = self.data.len() + slice.len();
         let capacity = self.data.capacity();
@@ -268,6 +284,10 @@ impl<T> TypeArena<T> {
         }
     }
 
+    /// Push an element to the arena.
+    ///
+    /// # Errors
+    /// Returns an error if adding the element exceeds the memory limit.
     pub fn push(&mut self, element: T) -> MemoryResult<()> {
         let by_amount = calculate_size_for::<T>(None);
         self.limiter.borrow_mut().increase_usage(by_amount)?;
@@ -502,25 +522,25 @@ pub type SharedArenaPool<T> = rc::Rc<cell::RefCell<ArenaPool<T>>>;
 
 impl<T: Resettable> ArenaPool<T> {
     pub fn create_shared(
-        limiter: SharedMemoryLimiter,
+        limiter: &SharedMemoryLimiter,
         gen: impl PoolGenerator<T> + 'static,
     ) -> SharedArenaPool<T> {
         let tracker = MemoryLimiter::non_shared(limiter.borrow().capacity());
         rc::Rc::new(cell::RefCell::new(Self {
             tracker,
             generator: rc::Rc::new(gen),
-            limiter: rc::Rc::clone(&limiter),
-            arena: TypeArena::new(rc::Rc::clone(&limiter)),
+            limiter: rc::Rc::clone(limiter),
+            arena: TypeArena::new(rc::Rc::clone(limiter)),
         }))
     }
 
-    pub fn new(limiter: SharedMemoryLimiter, gen: impl PoolGenerator<T> + 'static) -> Self {
+    pub fn new(limiter: &SharedMemoryLimiter, gen: impl PoolGenerator<T> + 'static) -> Self {
         let tracker = MemoryLimiter::non_shared(limiter.borrow().capacity());
         Self {
             tracker,
             generator: rc::Rc::new(gen),
-            limiter: rc::Rc::clone(&limiter),
-            arena: TypeArena::new(rc::Rc::clone(&limiter)),
+            limiter: rc::Rc::clone(limiter),
+            arena: TypeArena::new(rc::Rc::clone(limiter)),
         }
     }
 
@@ -542,6 +562,10 @@ impl<T: Resettable> ArenaPool<T> {
         self.limiter.borrow().capacity()
     }
 
+    /// Deallocate an element and return it to the pool.
+    ///
+    /// # Panics
+    /// Panics if pushing to the arena fails (should never happen under normal conditions).
     #[inline]
     pub fn deallocate(&mut self, mut elem: T) {
         self.tracker.set_capacity(self.limiter.borrow().capacity());
@@ -550,6 +574,13 @@ impl<T: Resettable> ArenaPool<T> {
         self.tracker.decrease_usage(calculate_size_for::<T>(None));
     }
 
+    /// Allocate an element from the pool.
+    ///
+    /// # Panics
+    /// Panics if draining the last element fails (should never happen under normal conditions).
+    ///
+    /// # Errors
+    /// Returns an error if increasing usage exceeds the memory limit.
     #[inline]
     pub fn allocate(&mut self) -> MemoryResult<T> {
         self.tracker.set_capacity(self.limiter.borrow().capacity());
@@ -588,7 +619,7 @@ mod arena_pool_tests {
     fn test_arena_pool() {
         let limiter = MemoryLimiter::create_shared(800);
         let mut pool: ArenaPool<ResettableU8> = ArenaPool::new(
-            limiter,
+            &limiter,
             FnGenerator::new(|_| {
                 let new_value: ResettableU8 = &0;
                 new_value
@@ -614,7 +645,7 @@ mod arena_pool_tests {
     fn test_arena_pool_limits() {
         let limiter = MemoryLimiter::create_shared(8);
         let mut pool: ArenaPool<ResettableU8> = ArenaPool::new(
-            limiter,
+            &limiter,
             FnGenerator::new(|_| {
                 let new_value: ResettableU8 = &0;
                 new_value

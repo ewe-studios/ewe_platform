@@ -56,11 +56,7 @@ pub trait ReadBytesExt: Read {
     /// # Errors
     ///
     /// Returns `io::Error` if reading fails.
-    fn read_into_bytes(
-        &mut self,
-        buf: &mut BytesMut,
-        max_len: usize,
-    ) -> std::io::Result<usize>;
+    fn read_into_bytes(&mut self, buf: &mut BytesMut, max_len: usize) -> std::io::Result<usize>;
 
     /// Read exactly `len` bytes into a `BytesMut`.
     ///
@@ -87,6 +83,10 @@ pub trait ReadBytesExt: Read {
     /// # Returns
     ///
     /// `Ok(Some(u8))` on success, `Ok(None)` on EOF, `Err` on error.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if reading from the underlying stream fails.
     fn read_byte(&mut self) -> std::io::Result<Option<u8>>;
 
     /// Read into a pooled buffer.
@@ -116,11 +116,7 @@ pub trait ReadBytesExt: Read {
 }
 
 impl<R: Read> ReadBytesExt for R {
-    fn read_into_bytes(
-        &mut self,
-        buf: &mut BytesMut,
-        max_len: usize,
-    ) -> std::io::Result<usize> {
+    fn read_into_bytes(&mut self, buf: &mut BytesMut, max_len: usize) -> std::io::Result<usize> {
         let available = buf.spare_capacity_mut();
         let to_read = max_len.min(available.len());
 
@@ -129,14 +125,9 @@ impl<R: Read> ReadBytesExt for R {
         }
 
         let slice = &mut available[..to_read];
-        let ptr = slice.as_mut_ptr() as *mut u8;
+        let ptr = slice.as_mut_ptr().cast();
 
-        let n = unsafe {
-            Read::read(
-                self,
-                std::slice::from_raw_parts_mut(ptr, to_read),
-            )?
-        };
+        let n = unsafe { Read::read(self, std::slice::from_raw_parts_mut(ptr, to_read))? };
 
         unsafe {
             buf.set_len(buf.len() + n);
@@ -177,7 +168,6 @@ impl<R: Read> ReadBytesExt for R {
         Ok(Some(buf))
     }
 }
-
 
 #[cfg(test)]
 mod tests {

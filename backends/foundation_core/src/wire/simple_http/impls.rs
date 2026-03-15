@@ -3,10 +3,13 @@
 use crate::extensions::result_ext::{BoxedError, SendableBoxedError};
 use crate::extensions::strings_ext::{TryIntoString, TryIntoStringError};
 use crate::io::ioutils::{self, ByteBufferPointer, SharedByteBufferStream};
-use crate::io::ubytes::{self};
+use crate::io::readers::EofReader;
+use crate::io::readers::FullBodyReader;
+use crate::io::readers::{BatchReader, BatchStreamReader};
+use crate::io::ubytes;
 use crate::valtron::{
-    BoxedResultIterator, BoxedSendableIterator, CloneableFn, SendVecIterator, StringBoxedIterator,
-    TransformIterator,
+    BoxedResultIterator, BoxedSendableIterator, BoxedSendableVecIterator, CloneableFn,
+    SendVecIterator, StringBoxedIterator, TransformIterator, VecBoxedIterator,
 };
 use crate::wire::simple_http::client::Extensions as ClientExtensions;
 use crate::wire::simple_http::errors::{
@@ -37,6 +40,10 @@ pub enum ChunkedData {
 }
 
 impl ChunkedData {
+    /// Convert chunked data to bytes for transmission.
+    ///
+    /// # Panics
+    /// Panics if extension value cloning fails.
     pub fn into_bytes(&mut self) -> Vec<u8> {
         match self {
             ChunkedData::Data(data, exts) => {
@@ -56,11 +63,9 @@ impl ChunkedData {
                 });
 
                 let mut chunk_data: Vec<u8> = Vec::new();
-                if extension_string.is_some() {
-                    chunk_data.append(
-                        &mut format!("{} {}", hexa_octet, extension_string.unwrap().join(""))
-                            .into_bytes(),
-                    );
+                if let Some(ext_str) = extension_string {
+                    chunk_data
+                        .append(&mut format!("{} {}", hexa_octet, ext_str.join("")).into_bytes());
                 } else {
                     chunk_data.extend(hexa_octet.clone().into_bytes());
                 }
@@ -167,7 +172,7 @@ pub enum SimpleBody {
     None,
     Text(String),
     Bytes(Vec<u8>),
-    Stream(Option<SendVecIterator<BoxedError>>),
+    Stream(Option<VecBoxedIterator<BoxedError>>),
     ChunkedStream(Option<ChunkedVecIterator<BoxedError>>),
     LineFeedStream(Option<LineFeedVecIterator<BoxedError>>),
 }
@@ -293,7 +298,7 @@ pub enum SendSafeBody {
     Text(String),
     Bytes(Vec<u8>),
     // Send-safe iterator variants using BoxedSendableIterator which requires Send
-    Stream(Option<SendVecIterator<BoxedError>>),
+    Stream(Option<BoxedSendableIterator<Vec<u8>, BoxedError>>),
     ChunkedStream(Option<BoxedSendableIterator<ChunkedData, BoxedError>>),
     LineFeedStream(Option<BoxedSendableIterator<LineFeed, BoxedError>>),
 }
@@ -367,7 +372,9 @@ impl From<SendSafeBody> for SimpleBody {
             SendSafeBody::None => SimpleBody::None,
             SendSafeBody::Text(s) => SimpleBody::Text(s),
             SendSafeBody::Bytes(b) => SimpleBody::Bytes(b),
-            SendSafeBody::Stream(iter) => SimpleBody::Stream(iter),
+            SendSafeBody::Stream(iter) => {
+                SimpleBody::Stream(iter.map(|i| i as VecBoxedIterator<BoxedError>))
+            }
             // Cast Box<dyn Iterator + Send> to Box<dyn Iterator> by forgetting Send bound
             SendSafeBody::ChunkedStream(iter) => {
                 SimpleBody::ChunkedStream(iter.map(|i| i as ChunkedVecIterator<BoxedError>))
@@ -385,12 +392,20 @@ impl From<SendSafeBody> for SimpleBody {
 pub trait RenderHttp {
     type Error: From<FromUtf8Error> + From<BoxedError> + From<std::io::Error> + 'static;
 
+    /// Render HTTP message to an iterator of byte vectors.
+    ///
+    /// # Errors
+    /// Returns `Self::Error` if rendering fails.
     fn http_render(
         self,
     ) -> std::result::Result<BoxedResultIterator<Vec<u8>, Self::Error>, Self::Error>
     where
         Self: Sized;
 
+    /// Render HTTP message to a writer.
+    ///
+    /// # Errors
+    /// Returns `Self::Error` if writing fails.
     fn http_render_to_writer<W>(self, writer: &mut W) -> std::result::Result<usize, Self::Error>
     where
         W: std::io::Write,
@@ -411,6 +426,10 @@ pub trait RenderHttp {
         Ok(total_bytes)
     }
 
+    /// Render HTTP message with encoded bytes to a writer.
+    ///
+    /// # Errors
+    /// Returns `Self::Error` if writing or encoding fails.
     fn http_render_encoded_to_writer<E, W>(
         self,
         writer: &mut W,
@@ -439,8 +458,10 @@ pub trait RenderHttp {
         Ok(total_bytes)
     }
 
-    /// `http_render_encoded_string` attempts to render the results of calling
-    /// `RenderHttp::http_render()` as a custom encoded strings.
+    /// Render HTTP message as encoded strings.
+    ///
+    /// # Errors
+    /// Returns `Self::Error` if encoding fails.
     fn http_render_encoded_string<E>(
         self,
         encoder: E,
@@ -454,8 +475,10 @@ pub trait RenderHttp {
         Ok(Box::new(transformed))
     }
 
-    /// `http_render_utf8_string` attempts to render the results of calling
-    /// `RenderHttp::http_render()` as utf8 strings.
+    /// Render HTTP message as UTF-8 strings.
+    ///
+    /// # Errors
+    /// Returns `Self::Error` if UTF-8 decoding fails.
     fn http_render_utf8_string(
         self,
     ) -> std::result::Result<StringBoxedIterator<Self::Error>, Self::Error>
@@ -471,9 +494,10 @@ pub trait RenderHttp {
         })
     }
 
-    /// allows implementing string representation of the http constructs
-    /// as a string. You can override to implement a custom render but by
-    /// default it calls `RenderHttp::http_render_utf8_string`.
+    /// Render HTTP message as a single string.
+    ///
+    /// # Errors
+    /// Returns `Self::Error` if rendering fails.
     fn http_render_string(self) -> std::result::Result<String, Self::Error>
     where
         Self: Sized,
@@ -483,7 +507,6 @@ pub trait RenderHttp {
             match part {
                 Ok(inner) => {
                     encoded_content.push_str(&inner);
-                    continue;
                 }
                 Err(err) => return Err(err),
             }
@@ -661,8 +684,7 @@ impl From<String> for SimpleHeader {
     fn from(value: String) -> Self {
         let upper = value.to_uppercase();
         match upper.as_str() {
-            "KEEP_ALIVE" => Self::KEEP_ALIVE,
-            "KEEP-ALIVE" => Self::KEEP_ALIVE,
+            "KEEP_ALIVE" | "KEEP-ALIVE" => Self::KEEP_ALIVE,
             "ACCEPT" => Self::ACCEPT,
             "ACCEPT-CHARSET" => Self::ACCEPT_CHARSET,
             "ACCEPT-ENCODING" => Self::ACCEPT_ENCODING,
@@ -1335,7 +1357,7 @@ impl SimpleUrl {
                         if self.params.is_none() {
                             (true, None)
                         } else {
-                            match self.merge_params(extracted_params) {
+                            match self.merge_params(&extracted_params) {
                                 Some(params) => (true, Some(params)),
                                 None => (false, None),
                             }
@@ -1358,7 +1380,7 @@ impl SimpleUrl {
         (false, params)
     }
 
-    fn merge_params(&self, extracted: Vec<String>) -> Option<BTreeMap<String, String>> {
+    fn merge_params(&self, extracted: &[String]) -> Option<BTreeMap<String, String>> {
         match &self.params {
             Some(inner) => {
                 if inner.len() != extracted.len() {
@@ -1455,6 +1477,10 @@ impl SimpleUrl {
         }
     }
 
+    /// Capture URL parameters from a pattern string.
+    ///
+    /// # Panics
+    /// Panics if the regex pattern is invalid (should never happen with the built-in pattern).
     #[must_use]
     pub fn capture_url_params(url: &str) -> Option<Vec<String>> {
         let re = Regex::new(CAPTURE_PARAM_STR).unwrap();
@@ -1469,6 +1495,10 @@ impl SimpleUrl {
         Some(params)
     }
 
+    /// Capture path pattern and build a regex matcher.
+    ///
+    /// # Panics
+    /// Panics if the URL pattern cannot be compiled into a valid regex.
     pub fn capture_path_pattern(url: &str) -> regex::Regex {
         let re = Regex::new(CAPTURE_PARAM_STR).unwrap();
         let query_regex = Regex::new(CAPTURE_QUERY).unwrap();
@@ -1488,6 +1518,10 @@ impl SimpleUrl {
         url_pattern.expect("Should have created url matcher")
     }
 
+    /// Capture query parameters from a URL into a hashmap.
+    ///
+    /// # Panics
+    /// Panics if the regex patterns are invalid (should never happen with built-in patterns).
     #[must_use]
     pub fn capture_query_hashmap(url: &str) -> Option<BTreeMap<String, String>> {
         let re = Regex::new(CAPTURE_QUERY_KEY_VALUE).unwrap();
@@ -1528,6 +1562,10 @@ impl SimpleOutgoingResponse {
         SimpleOutgoingResponseBuilder::default()
     }
 
+    /// Create an empty response with status 200 OK and Content-Length: 0.
+    ///
+    /// # Panics
+    /// Panics if building the response fails (should never happen with this configuration).
     #[must_use]
     pub fn empty() -> SimpleOutgoingResponse {
         SimpleOutgoingResponseBuilder::default()
@@ -1586,11 +1624,13 @@ impl SimpleOutgoingResponseBuilder {
         self
     }
 
+    #[must_use]
     pub fn with_body_bytes<S: Into<Vec<u8>>>(mut self, body: S) -> Self {
         self.body = Some(SendSafeBody::Bytes(body.into()));
         self
     }
 
+    #[must_use]
     pub fn with_body_string<S: Into<String>>(mut self, body: S) -> Self {
         self.body = Some(SendSafeBody::Text(body.into()));
         self
@@ -1602,6 +1642,7 @@ impl SimpleOutgoingResponseBuilder {
         self
     }
 
+    #[must_use]
     pub fn add_header<H: Into<SimpleHeader>, S: Into<String>>(mut self, key: H, value: S) -> Self {
         let mut headers = self.headers.unwrap_or_default();
 
@@ -1737,11 +1778,13 @@ pub struct SimpleIncomingRequestBuilder {
 }
 
 impl SimpleIncomingRequestBuilder {
+    #[must_use]
     pub fn with_plain_url<S: Into<String>>(mut self, url: S) -> Self {
         self.url = Some(SimpleUrl::url_only(url.into()));
         self
     }
 
+    #[must_use]
     pub fn with_parsed_url<S: Into<String>>(mut self, url: S) -> Self {
         self.url = Some(SimpleUrl::url_with_query(url.into()));
         self
@@ -1783,11 +1826,13 @@ impl SimpleIncomingRequestBuilder {
         self
     }
 
+    #[must_use]
     pub fn with_body_bytes<S: Into<Vec<u8>>>(mut self, body: S) -> Self {
         self.body = Some(SendSafeBody::Bytes(body.into()));
         self
     }
 
+    #[must_use]
     pub fn with_body_string<S: Into<String>>(mut self, body: S) -> Self {
         self.body = Some(SendSafeBody::Text(body.into()));
         self
@@ -1799,6 +1844,7 @@ impl SimpleIncomingRequestBuilder {
         self
     }
 
+    #[must_use]
     pub fn add_header<H: Into<SimpleHeader>, S: Into<String>>(mut self, key: H, value: S) -> Self {
         let mut headers = self.headers.unwrap_or_default();
 
@@ -1823,6 +1869,7 @@ impl SimpleIncomingRequestBuilder {
     ///
     /// Use this for headers that contain comma-separated values as a single string
     /// (e.g., Sec-WebSocket-Protocol).
+    #[must_use]
     pub fn add_header_raw<H: Into<SimpleHeader>, S: Into<String>>(
         mut self,
         key: H,
@@ -1953,6 +2000,7 @@ impl Iterator for Http11RequestDescriptorIterator {
     type Item = Result<Vec<u8>, Http11RenderError>;
 
     fn next(&mut self) -> Option<Self::Item> {
+        let _span = tracing::span!(tracing::Level::TRACE, "next").entered();
         match self.0.take()? {
             Http11RequestDescriptorState::Intro(request) => {
                 let method = request.method.clone();
@@ -2026,7 +2074,7 @@ pub enum Http11RequestBodyState {
     ///
     /// Once done it moves state to the `Http11ReqState::BodyStream`
     ///  or `Http11ReqState::End` variant.
-    BodyStreaming(Option<SendVecIterator<BoxedError>>),
+    BodyStreaming(Option<VecBoxedIterator<BoxedError>>),
 
     /// `ChunkedBodyStreaming` like `BodyStreaming` is meant to support
     /// handling of a chunked body parts where
@@ -2317,7 +2365,7 @@ pub enum Http11ResState {
     Intro(SimpleOutgoingResponse),
     Headers(SimpleOutgoingResponse),
     Body(SimpleOutgoingResponse),
-    BodyStreaming(Option<SendVecIterator<BoxedError>>),
+    BodyStreaming(Option<BoxedSendableVecIterator<BoxedError>>),
     LineFeedStreaming(Option<LineFeedVecIterator<BoxedError>>),
     ChunkedBodyStreaming(Option<ChunkedVecIterator<BoxedError>>),
     End,
@@ -2351,6 +2399,7 @@ impl Iterator for Http11ResponseIterator {
     type Item = Result<Vec<u8>, Http11RenderError>;
 
     fn next(&mut self) -> Option<Self::Item> {
+        let _span = tracing::span!(tracing::Level::TRACE, "next").entered();
         match self.0.take()? {
             Http11ResState::Intro(response) => {
                 // switch state to headers
@@ -2609,7 +2658,8 @@ impl<T> core::fmt::Debug for SimpleResponse<T> {
         f.debug_struct("SimpleResponse")
             .field("status", &self.0)
             .field("headers", &self.1)
-            .finish()
+            .field("body", &"<omitted>")
+            .finish_non_exhaustive()
     }
 }
 
@@ -2718,12 +2768,10 @@ impl core::fmt::Display for IncomingRequestParts {
 
 pub trait BodyExtractor {
     /// extract will attempt to extract the relevant Body of a `TcpStream` shared
-    /// stream by doing whatever internal logic is required to extract the necessary
-    /// tcp body content required.
+    /// Extract body content from a stream based on the body type.
     ///
-    /// This allows custom implementation of Tcp/Http body extractors.
-    ///
-    /// See sample implementation in `SimpleHttpBody`.
+    /// # Errors
+    /// Returns `SendableBoxedError` if extraction fails due to I/O errors, size limits, or protocol violations.
     fn extract<T: Read + Send + 'static>(
         &self,
         body: Body,
@@ -2792,6 +2840,7 @@ where
     T: std::io::Read,
 {
     fn parse_headers(&mut self) -> Result<SimpleHeaders, HttpReaderError> {
+        let _span = tracing::span!(tracing::Level::TRACE, "parse_headers").entered();
         let mut headers: SimpleHeaders = BTreeMap::new();
         let mut total_header_size: usize = 0;
 
@@ -2810,8 +2859,8 @@ where
                 .do_once_mut(|binding| binding.read_line(&mut line))
                 .map_err(|err| HttpReaderError::LineReadFailed(Box::new(err)));
 
-            if line_read_result.is_err() {
-                return Err(line_read_result.unwrap_err());
+            if let Err(e) = line_read_result {
+                return Err(e);
             }
 
             tracing::debug!("HeaderLine: {:?}", &line);
@@ -3197,6 +3246,7 @@ where
     type Item = Result<IncomingRequestParts, HttpReaderError>;
 
     fn next(&mut self) -> Option<Self::Item> {
+        let _span = tracing::span!(tracing::Level::TRACE, "next").entered();
         let no_body = match &self.state {
             HttpReadState::OnlyHeaders => true,
             _ => false,
@@ -3211,11 +3261,11 @@ where
                     .do_once_mut(|binding| binding.read_line(&mut line))
                     .map_err(|err| HttpReaderError::LineReadFailed(Box::new(err)));
 
-                if line_read_result.is_err() {
-                    tracing::debug!("Http read error: {:?}", &line_read_result);
+                if let Err(e) = line_read_result {
+                    tracing::debug!("Http read error: {:?}", &e);
 
                     self.state = HttpReadState::Finished;
-                    return Some(Err(line_read_result.unwrap_err()));
+                    return Some(Err(e));
                 }
 
                 let intro_parts: Vec<&str> = line
@@ -3629,6 +3679,7 @@ where
     type Item = Result<IncomingResponseParts, HttpReaderError>;
 
     fn next(&mut self) -> Option<Self::Item> {
+        let _span = tracing::span!(tracing::Level::TRACE, "next").entered();
         let no_body = matches!(&self.state, HttpReadState::OnlyHeaders);
         tracing::debug!(
             "Current state of HttpResponseReader: {:?} -> should handle as no_body={}",
@@ -3645,11 +3696,16 @@ where
                     .do_once_mut(|binding| binding.read_line(&mut line))
                     .map_err(|err| HttpReaderError::LineReadFailed(Box::new(err)));
 
-                if line_read_result.is_err() {
-                    tracing::debug!("Http read error: {:?}", &line_read_result);
+                tracing::debug!(
+                    "Response start line: {:?} -> {:?}",
+                    &line,
+                    &line_read_result
+                );
+                if let Err(e) = line_read_result {
+                    tracing::debug!("Http read error: {:?}", &e);
 
                     self.state = HttpReadState::Finished;
-                    return Some(Err(line_read_result.unwrap_err()));
+                    return Some(Err(e));
                 }
 
                 let intro_parts: Vec<&str> = line
@@ -3739,8 +3795,12 @@ where
                 );
 
                 let headers = match header_reader.parse_headers() {
-                    Ok(header) => header,
+                    Ok(header) => {
+                        tracing::debug!("Response headers: {:?}", &header,);
+                        header
+                    }
                     Err(err) => {
+                        tracing::error!("Failed to read headers: {:?}", &err);
                         self.state = HttpReadState::Finished;
                         return Some(Err(err));
                     }
@@ -3755,6 +3815,7 @@ where
                 // if header has content type that is equal to text/event-stream
                 // then set state to line feed streaming body.
                 if let Some(content_types) = headers.get(&SimpleHeader::CONTENT_TYPE) {
+                    tracing::debug!("Response content types: {:?}", &content_types,);
                     if content_types
                         .iter()
                         .map(|item| item.to_lowercase())
@@ -3762,6 +3823,7 @@ where
                         .count()
                         != 0
                     {
+                        tracing::debug!("Response uses LineFeed based body: {:?}", &content_types,);
                         self.state = HttpReadState::Body(Body::LineFeedBody(headers.clone()));
 
                         return Some(Ok(IncomingResponseParts::Headers(headers)));
@@ -3773,6 +3835,10 @@ where
                 if headers.get(&SimpleHeader::TRANSFER_ENCODING).is_none()
                     && headers.get(&SimpleHeader::CONTENT_LENGTH).is_none()
                 {
+                    tracing::debug!(
+                        "Response has neither content length nor transfer_encoding: {:?}",
+                        &headers,
+                    );
                     self.state =
                         HttpReadState::Body(Body::FullBody(headers.clone(), self.max_body_length));
 
@@ -3836,6 +3902,8 @@ where
                 // must have a CONTENT_LENGTH
                 // header.
                 if let Some(content_size_headers) = headers.get(&SimpleHeader::CONTENT_LENGTH) {
+                    tracing::debug!("Response content length: {:?}", &content_size_headers);
+
                     if content_size_headers.is_empty() {
                         self.state = HttpReadState::NoBody;
                         return Some(Ok(IncomingResponseParts::Headers(headers)));
@@ -3872,6 +3940,7 @@ where
                         }
                     }
                 } else {
+                    tracing::debug!("Response has no body: {:?}", &headers);
                     self.state = HttpReadState::NoBody;
                     Some(Ok(IncomingResponseParts::Headers(headers)))
                 }
@@ -4874,19 +4943,18 @@ impl<T: std::io::Read + Send> Iterator for SimpleHttpChunkIterator<T> {
     type Item = Result<ChunkedData, BoxedError>;
 
     fn next(&mut self) -> Option<Self::Item> {
+        let _span = tracing::span!(tracing::Level::TRACE, "next").entered();
         let ending_indicator = self.3.clone();
 
         if ending_indicator.load(Ordering::Acquire) {
             tracing::debug!("ChunKState::ParsingTrailer");
 
             return match ChunkState::parse_http_trailer_from_pointer(self.2.clone()) {
-                Ok(value) => {
-                    tracing::debug!("ChunkTrailer::Chunk::DataRead: {:?} ", &value);
-                    match value {
-                        Some(item) => match item {
-                            ChunkState::Trailer(inner) => {
-                                tracing::debug!("Processing::Chunk::Trailer: {:?} ", &inner);
-                                let trailers: Vec<(String, Option<String>)> = inner
+                Ok(value) => match value {
+                    Some(item) => match item {
+                        ChunkState::Trailer(inner) => {
+                            tracing::debug!("Processing::Chunk::Trailer: {:?} ", &inner);
+                            let trailers: Vec<(String, Option<String>)> = inner
                                     .split('\n')
                                     .filter(|item| !item.trim().is_empty())
                                     .map(|item| match item.find(':') {
@@ -4899,13 +4967,12 @@ impl<T: std::io::Read + Send> Iterator for SimpleHttpChunkIterator<T> {
                                     })
                                     .collect();
 
-                                Some(Ok(ChunkedData::Trailers(trailers)))
-                            }
-                            _ => Some(Err(Box::new(HttpReaderError::OnlyTrailersAreAllowedHere))),
-                        },
-                        None => None,
-                    }
-                }
+                            Some(Ok(ChunkedData::Trailers(trailers)))
+                        }
+                        _ => Some(Err(Box::new(HttpReaderError::OnlyTrailersAreAllowedHere))),
+                    },
+                    None => None,
+                },
                 Err(err) => Some(Err(Box::new(err))),
             };
         }
@@ -4928,15 +4995,15 @@ impl<T: std::io::Read + Send> Iterator for SimpleHttpChunkIterator<T> {
                         match self.2.do_once_mut(|reader| {
                             tracing::debug!("ChunkState::Chunk::GetSize: {:?}", size);
 
+                            #[allow(clippy::cast_possible_truncation)]
                             let mut chunk_data = vec![0; size as usize];
                             if let Err(err) = reader.read_exact(&mut chunk_data) {
                                 return Err(Box::new(err));
                             }
 
                             tracing::debug!(
-                                "ChunkState::Chunk::DataRead: {:?} | {:?}",
-                                &chunk_data,
-                                str::from_utf8(&chunk_data),
+                                "ChunkState::Chunk::DataRead: len={:?}",
+                                chunk_data.len(),
                             );
 
                             Ok(ChunkedData::Data(chunk_data, opt_exts))
@@ -4949,9 +5016,11 @@ impl<T: std::io::Read + Send> Iterator for SimpleHttpChunkIterator<T> {
                         // set the state store as false
                         ending_indicator.store(true, Ordering::Release);
 
+                        tracing::debug!("Received last Chunk, ending");
                         Some(Ok(ChunkedData::DataEnded))
                     }
                     ChunkState::Trailer(_) => {
+                        tracing::error!("Trailer should not be recieved");
                         Some(Err(Box::new(HttpReaderError::TrailerShouldNotOccurHere)))
                     }
                 }
@@ -4961,8 +5030,52 @@ impl<T: std::io::Read + Send> Iterator for SimpleHttpChunkIterator<T> {
     }
 }
 
-#[derive(Default)]
-pub struct SimpleHttpBody;
+/// WHY: The old unit struct used `read_exact()` for `LimitedBody`, which converts
+/// `WouldBlock`/`TimedOut` into `UnexpectedEof` — hiding transient TCP failures.
+/// Configurable thresholds let callers control memory vs streaming trade-offs.
+///
+/// WHAT: HTTP body extractor with configurable size thresholds and reader settings.
+///
+/// HOW: For `LimitedBody`, bodies at or below `full_body_threshold` are read
+/// entirely via [`FullBodyReader`] (returned as `SendSafeBody::Bytes`); larger
+/// bodies are streamed via [`BatchStreamReader`] (returned as `SendSafeBody::Stream`).
+/// Bodies exceeding `max_body_size` are rejected.
+///
+/// - First field (`max_body_size`): maximum allowed body size (applies to all body types), or `None` for no limit.
+/// - Second field (`full_body_threshold`): size threshold for buffered vs streamed reads.
+/// - Third field (`batch_size`): read buffer size for `BatchReader` (default: 8192).
+/// - Fourth field (`max_retries`): max consecutive retries for WouldBlock/TimedOut (default: 100).
+pub struct SimpleHttpBody(pub Option<u64>, pub u64, pub usize, pub usize);
+
+impl Default for SimpleHttpBody {
+    fn default() -> Self {
+        // max_body_size: 1 GB, full_body_threshold: 512 KB, batch_size: 8192, max_retries: 100
+        SimpleHttpBody(Some(1024 * 1024 * 1024), 512 * 1024, 8192, 100)
+    }
+}
+
+impl SimpleHttpBody {
+    /// Creates a new `SimpleHttpBody` with explicit configuration.
+    ///
+    /// WHY: Callers need to configure body reading behavior (size limits, thresholds,
+    /// retry behavior) for different use cases (e.g., client vs server).
+    ///
+    /// # Arguments
+    ///
+    /// * `max_body_size` - Maximum allowed body size (None = no limit)
+    /// * `full_body_threshold` - Size threshold for buffered vs streamed reads
+    /// * `batch_size` - Read buffer size for streaming reads
+    /// * `max_retries` - Maximum consecutive retries for WouldBlock/TimedOut errors
+    #[must_use]
+    pub fn new(
+        max_body_size: Option<u64>,
+        full_body_threshold: u64,
+        batch_size: usize,
+        max_retries: usize,
+    ) -> Self {
+        SimpleHttpBody(max_body_size, full_body_threshold, batch_size, max_retries)
+    }
+}
 
 impl BodyExtractor for SimpleHttpBody {
     fn extract<T: std::io::Read + Send + 'static>(
@@ -4970,38 +5083,104 @@ impl BodyExtractor for SimpleHttpBody {
         body: Body,
         stream: SharedByteBufferStream<T>,
     ) -> Result<SendSafeBody, SendableBoxedError> {
+        let _span = tracing::span!(tracing::Level::TRACE, "extract").entered();
+
+        tracing::debug!("Executing extraction: max_body_size={:?}, full_body_threshold={}, batch_size={}, max_retries={}", &self.0, self.1, self.2, self.3);
+
         match body {
             Body::LineFeedBody(headers) => {
+                tracing::debug!(
+                    "LineFeedBody: returning lineFeed body reader/iterator with headers={:?}",
+                    headers
+                );
                 let line_feed_iterator = Box::new(SimpleLineFeedIterator::new(headers, stream));
                 Ok(SendSafeBody::LineFeedStream(Some(line_feed_iterator)))
             }
-            Body::FullBody(_, optional_max_body_size) => {
+            Body::FullBody(headers, optional_max_body_size) => {
+                tracing::debug!("FullBody: reading as full body with potential max body size: {:?}, headers={:?}", &optional_max_body_size, headers);
+
+                // Use explicit max_body_size if provided, otherwise fall back to self.0
+                #[allow(clippy::cast_possible_truncation)]
+                let effective_max_size = optional_max_body_size.or(self.0.map(|s| s as usize));
+
+                tracing::debug!("Acquiring borrowed stream");
                 match stream.do_once_mut(|borrowed_stream| {
-                    let mut body_content = Vec::with_capacity(1024);
-                    borrowed_stream
-                        .read_all(&mut body_content, optional_max_body_size)
-                        .map(|_| SendSafeBody::Bytes(body_content))
+                    tracing::debug!("Acquired borrowed stream");
+
+                    EofReader::read_to_end(
+                        borrowed_stream,
+                        self.2, // batch_size
+                        self.3, // max_retries
+                        effective_max_size,
+                    )
+                    .map(SendSafeBody::Bytes)
                 }) {
-                    Ok(inner) => Ok(inner),
-                    Err(err) => Err(Box::new(err)),
+                    Ok(inner) => {
+                        tracing::debug!("Finished reading data from stream");
+                        Ok(inner)
+                    }
+                    Err(err) => {
+                        tracing::error!("Failed to read from stream: {:?}", &err);
+                        Err(Box::new(err))
+                    }
                 }
             }
-            Body::LimitedBody(content_length, _) => {
+            Body::LimitedBody(content_length, headers) => {
+                tracing::debug!("LimitedBody: reading as limited content body with content_length: {:?}, headers={:?}", &content_length, headers);
+
                 if content_length == 0 {
                     return Err(Box::new(HttpReaderError::ZeroBodySizeNotAllowed));
                 }
 
-                match stream.do_once_mut(|borrowed_stream| {
-                    let mut body_content = vec![0; content_length as usize];
-                    borrowed_stream
-                        .read_exact(&mut body_content)
-                        .map(|()| SendSafeBody::Bytes(body_content))
-                }) {
-                    Ok(inner) => Ok(inner),
-                    Err(err) => Err(Box::new(err)),
+                // Check against max_body_size if set
+                if let Some(max_size) = self.0 {
+                    if content_length > max_size {
+                        return Err(Box::new(std::io::Error::new(
+                            std::io::ErrorKind::InvalidInput,
+                            format!(
+                                "content length {content_length:} exceeds max body size {max_size:}"
+                            ),
+                        )));
+                    }
+                }
+
+                if content_length <= self.1 {
+                    // Small body: read entirely into memory with retry resilience
+                    match stream.do_once_mut(|borrowed_stream| {
+                        tracing::debug!("FullBodyReader: reading body under: max_body_size={:?}, full_body_threshold={}, batch_size={}, max_retries={}", &self.0, self.1, self.2, self.3);
+
+                        #[allow(clippy::cast_possible_truncation)]
+                        FullBodyReader::new(self.2)
+                            .read_full(borrowed_stream, content_length as usize, self.3)
+                            .map(SendSafeBody::Bytes)
+                    }) {
+                        Ok(inner) => {
+                            tracing::debug!("Finished reading data from stream: {:?}", &inner);
+                            Ok(inner)
+                        }
+                        Err(err) => {
+                            tracing::error!("Failed to read from stream: {:?}", &err);
+                            Err(Box::new(err))
+                        }
+                    }
+                } else {
+                    tracing::debug!("BatchReader: reading body under: max_body_size={:?}, full_body_threshold={}, batch_size={}, max_retries={}", &self.0, self.1, self.2, self.3);
+
+                    // Large body: stream via BatchStreamReader
+                    let batch = BatchReader::new(stream)
+                        .batch_size(self.2)
+                        .max_consecutive_retries(self.3);
+                    let stream_reader: Box<BatchStreamReader<SharedByteBufferStream<T>>> =
+                        Box::new(BatchStreamReader::new(batch));
+                    Ok(SendSafeBody::Stream(Some(stream_reader)))
                 }
             }
             Body::ChunkedBody(transfer_encoding, headers) => {
+                tracing::debug!(
+                    "ChunkedBody: reading transfer_encoding={:?}, headers={:?}",
+                    &transfer_encoding,
+                    &headers
+                );
                 let chunked_iterator = Box::new(SimpleHttpChunkIterator::new(
                     transfer_encoding,
                     headers,
@@ -5018,7 +5197,36 @@ impl<T: std::io::Read + Send + 'static> HttpRequestReader<SimpleHttpBody, T> {
     pub fn simple_tcp_stream(
         reader: SharedByteBufferStream<T>,
     ) -> HttpRequestReader<SimpleHttpBody, T> {
-        HttpRequestReader::<SimpleHttpBody, T>::new(reader, SimpleHttpBody)
+        HttpRequestReader::<SimpleHttpBody, T>::new(reader, SimpleHttpBody::default())
+    }
+
+    /// Set the maximum body size limit. If `None`, no limit is enforced.
+    #[must_use]
+    pub fn with_max_body_size(mut self, max_body_size: Option<u64>) -> Self {
+        self.bodies.0 = max_body_size;
+        self
+    }
+
+    /// Set the threshold for reading bodies fully into memory vs streaming.
+    /// Bodies at or below this size are read entirely into memory.
+    #[must_use]
+    pub fn with_full_body_threshold(mut self, threshold: u64) -> Self {
+        self.bodies.1 = threshold;
+        self
+    }
+
+    /// Set the batch size for streaming reads.
+    #[must_use]
+    pub fn with_batch_size(mut self, batch_size: usize) -> Self {
+        self.bodies.2 = batch_size;
+        self
+    }
+
+    /// Set the maximum consecutive retries for WouldBlock/TimedOut errors.
+    #[must_use]
+    pub fn with_max_retries(mut self, max_retries: usize) -> Self {
+        self.bodies.3 = max_retries;
+        self
     }
 }
 
@@ -5027,7 +5235,36 @@ impl<T: std::io::Read + Send + 'static> HttpResponseReader<SimpleHttpBody, T> {
     pub fn simple_tcp_stream(
         reader: SharedByteBufferStream<T>,
     ) -> HttpResponseReader<SimpleHttpBody, T> {
-        HttpResponseReader::<SimpleHttpBody, T>::new(reader, SimpleHttpBody)
+        HttpResponseReader::<SimpleHttpBody, T>::new(reader, SimpleHttpBody::default())
+    }
+
+    /// Set the maximum body size limit. If `None`, no limit is enforced.
+    #[must_use]
+    pub fn with_max_body_size(mut self, max_body_size: Option<u64>) -> Self {
+        self.bodies.0 = max_body_size;
+        self
+    }
+
+    /// Set the threshold for reading bodies fully into memory vs streaming.
+    /// Bodies at or below this size are read entirely into memory.
+    #[must_use]
+    pub fn with_full_body_threshold(mut self, threshold: u64) -> Self {
+        self.bodies.1 = threshold;
+        self
+    }
+
+    /// Set the batch size for streaming reads.
+    #[must_use]
+    pub fn with_batch_size(mut self, batch_size: usize) -> Self {
+        self.bodies.2 = batch_size;
+        self
+    }
+
+    /// Set the maximum consecutive retries for WouldBlock/TimedOut errors.
+    #[must_use]
+    pub fn with_max_retries(mut self, max_retries: usize) -> Self {
+        self.bodies.3 = max_retries;
+        self
     }
 }
 
@@ -5061,7 +5298,7 @@ impl<T: std::io::Read + Send + 'static> HTTPStreams<T> {
     /// its data parts.
     #[must_use]
     pub fn next_request(&self) -> HttpRequestReader<SimpleHttpBody, T> {
-        HttpRequestReader::<SimpleHttpBody, T>::new(self.source.clone(), SimpleHttpBody)
+        HttpRequestReader::<SimpleHttpBody, T>::new(self.source.clone(), SimpleHttpBody::default())
     }
 
     /// [`next_response`] returns a new [`HttpResponse`] to read the next read http response from the
@@ -5069,7 +5306,7 @@ impl<T: std::io::Read + Send + 'static> HTTPStreams<T> {
     /// its data parts.
     #[must_use]
     pub fn next_response(&self) -> HttpResponseReader<SimpleHttpBody, T> {
-        HttpResponseReader::<SimpleHttpBody, T>::new(self.source.clone(), SimpleHttpBody)
+        HttpResponseReader::<SimpleHttpBody, T>::new(self.source.clone(), SimpleHttpBody::default())
     }
 }
 
@@ -5088,14 +5325,14 @@ pub mod http_streams {
             reader: T,
         ) -> HttpRequestReader<SimpleHttpBody, T> {
             let byte_reader = ioutils::SharedByteBufferStream::ref_cell(reader);
-            HttpRequestReader::<SimpleHttpBody, T>::new(byte_reader, SimpleHttpBody)
+            HttpRequestReader::<SimpleHttpBody, T>::new(byte_reader, SimpleHttpBody::default())
         }
 
         pub fn response_reader<T: Read + 'static>(
             reader: T,
         ) -> HttpResponseReader<SimpleHttpBody, T> {
             let byte_reader = ioutils::SharedByteBufferStream::ref_cell(reader);
-            HttpResponseReader::<SimpleHttpBody, T>::new(byte_reader, SimpleHttpBody)
+            HttpResponseReader::<SimpleHttpBody, T>::new(byte_reader, SimpleHttpBody::default())
         }
 
         pub fn http_streams<T: Read + 'static>(reader: T) -> HTTPStreams<T> {
@@ -5115,14 +5352,16 @@ pub mod http_streams {
             reader: T,
         ) -> HttpSendRequestReader<SimpleHttpBody, T> {
             let byte_reader = ioutils::SharedByteBufferStream::rwrite(reader);
-            HttpRequestReader::<SimpleHttpBody, T>::new(byte_reader, SimpleHttpBody).into()
+            HttpRequestReader::<SimpleHttpBody, T>::new(byte_reader, SimpleHttpBody::default())
+                .into()
         }
 
         pub fn response_reader<T: Read + Send + 'static>(
             reader: T,
         ) -> HttpSendResponseReader<SimpleHttpBody, T> {
             let byte_reader = ioutils::SharedByteBufferStream::rwrite(reader);
-            HttpResponseReader::<SimpleHttpBody, T>::new(byte_reader, SimpleHttpBody).into()
+            HttpResponseReader::<SimpleHttpBody, T>::new(byte_reader, SimpleHttpBody::default())
+                .into()
         }
 
         pub fn http_streams<T: Read + Send + 'static>(reader: T) -> HTTPStreams<T> {

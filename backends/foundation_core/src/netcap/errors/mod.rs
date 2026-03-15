@@ -22,7 +22,9 @@ impl PartialEq for TlsError {
     fn eq(&self, other: &Self) -> bool {
         match (self, other) {
             (Self::IO(m1), Self::IO(m2)) => m1.kind() == m2.kind(),
+            #[allow(clippy::match_same_arms)]
             (Self::Handshake, Self::Handshake) => true,
+            #[allow(clippy::match_same_arms)]
             (Self::ConnectorCreation, Self::ConnectorCreation) => true,
             _ => false,
         }
@@ -79,7 +81,9 @@ impl PartialEq for DataStreamError {
             (Self::SocketAddrError(m1), Self::SocketAddrError(m2)) => {
                 m1.to_string() == m2.to_string()
             }
+            #[allow(clippy::match_same_arms)]
             (Self::ConnectionFailed, Self::ConnectionFailed) => true,
+            #[allow(clippy::match_same_arms)]
             (Self::ReconnectionError, Self::ReconnectionError) => true,
             _ => false,
         }

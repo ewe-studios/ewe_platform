@@ -19,7 +19,30 @@
       "WebFetch(domain:platform.openai.com)",
       "WebFetch(domain:cookbook.openai.com)",
       "WebFetch(domain:github.com)",
-      "Bash(wget:*)"
+      "Bash(wget:*)",
+      "Bash(./scripts/modules.sh 2>&1)",
+      "Bash(mkdir -p /home/darkvoid/Boxxed/@dev/ewe_platform/specifications/06-foundation-codegen/features/00-foundation && mkdir -p /home/darkvoid/Boxxed/@dev/ewe_platform/specifications/06-foundation-codegen/features/01-source-scanner && mkdir -p /home/darkvoid/Boxxed/@dev/ewe_platform/specifications/06-foundation-codegen/features/02-module-path-resolver && mkdir -p /home/darkvoid/Boxxed/@dev/ewe_platform/specifications/06-foundation-codegen/features/03-registry-api && mkdir -p /home/darkvoid/Boxxed/@dev/ewe_platform/specifications/06-foundation-codegen/fundamentals)",
+      "Bash(cargo metadata:*)",
+      "Bash(gh pr:*)",
+      "Bash(gh run:*)",
+      "Bash(gh workflow:*)",
+      "Bash(gh api:*)",
+      "Bash(for f:*)",
+      "Bash(curl -s https://api.github.com/repos/rui314/mold/releases/tags/v2.4.2 | jq -r '.assets[].name' | grep -E \"linux\")",
+      "Bash(curl -s https://api.github.com/repos/rui314/mold/releases/tags/v2.4.2 | grep '\"name\":' | grep -i linux)",
+      "Bash(curl -s https://api.github.com/repos/rui314/mold/releases/latest | grep '\"tag_name\"')",
+      "Bash(curl -s https://api.github.com/repos/rui314/mold/releases/tags/v2.40.4 | grep '\"name\":' | grep -i linux)",
+      "Bash(curl -s https://api.github.com/repos/rui314/mold/releases/tags/v2.40.4 | jq -r '.assets[] | select\\(.name | contains\\(\"arm\"\\)\\) | .name')",
+      "Bash(curl -sL https://api.github.com/repos/rui314/mold/releases/tags/v2.40.4 | jq -r '.assets[] | select\\(.name | contains\\(\"arm\"\\) or contains\\(\"aarch\"\\)\\) | \"\\\\\\(.name\\) - \\\\\\(.size\\)\"' 2>/dev/null || curl -sL https://api.github.com/repos/rui314/mold/releases/tags/v2.40.4 | grep -E '\"name\"|\"size\"' | head -20)",
+      "Bash(curl -sL \"https://github.com/rui314/mold/releases/download/v2.40.4/mold-2.40.4-aarch64-linux.tar.gz\" | tar -tzf - | head -5)",
+      "Bash(curl -sL \"https://github.com/rui314/mold/releases/download/v2.40.4/mold-2.40.4-arm-linux.tar.gz\" | tar -tzf - | head -5)",
+      "Bash(find /home/darkvoid/Boxxed/@dev/ewe_platform/backends/foundation_core/src/io -name \"*.rs\" -exec head -50 {} \\\\; 2>/dev/null | head -100)",
+      "Bash(curl -sL \"https://github.com/rui314/mold/releases/download/v2.40.4/mold-2.40.4-arm-linux.tar.gz\")",
+      "Bash(tar -xzf - -C /tmp mold-2.40.4-arm-linux/bin/mold)",
+      "Read(//tmp/mold-2.40.4-arm-linux/bin/**)",
+      "Bash(curl -sL \"https://github.com/rui314/mold/releases/download/v2.40.4/mold-2.40.4-x86_64-linux.tar.gz\" | tar -tzf - | head -20)",
+      "Bash(cargo test:*)",
+      "Bash(python3:*)"
     ]
   }
 }

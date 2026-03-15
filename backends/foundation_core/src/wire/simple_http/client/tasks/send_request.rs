@@ -19,14 +19,16 @@ use crate::valtron::{
     drive_receiver, inlined_task, BoxedSendExecutionAction, DrivenRecvIterator, InlineSendAction,
     IntoBoxedSendExecutionAction, TaskIterator, TaskStatus,
 };
-use crate::wire::simple_http::client::{DnsResolver, HttpConnectionPool, PreparedRequest};
+use crate::wire::simple_http::client::{
+    ClientConfig, DnsResolver, HttpConnectionPool, PreparedRequest,
+};
 use crate::wire::simple_http::{HttpClientError, IncomingResponseParts};
 use std::io::Write;
 use std::sync::Arc;
 
 use super::{
-    GetHttpRequestRedirectTask, GetRequestIntroTask, HttpRequestRedirectResponse, OpTimeout,
-    RequestIntro, SendRequest,
+    GetHttpRequestRedirectTask, GetRequestIntroTask, HttpRequestRedirectResponse, RequestIntro,
+    SendRequest,
 };
 
 pub enum SendRequestState<R>
@@ -53,7 +55,7 @@ where
     Done,
 }
 
-pub struct SendRequestTask<R>(Option<SendRequestState<R>>)
+pub struct SendRequestTask<R>(Option<SendRequestState<R>>, ClientConfig)
 where
     R: DnsResolver + Send + 'static;
 
@@ -66,18 +68,17 @@ where
         request: PreparedRequest,
         max_redirects: u8,
         pool: Arc<HttpConnectionPool<R>>,
-        timeouts: Option<OpTimeout>,
-        config: Option<crate::wire::simple_http::client::ClientConfig>,
+        config: crate::wire::simple_http::client::ClientConfig,
     ) -> Self {
-        Self(Some(SendRequestState::Init(Some(Box::new(
-            SendRequest::new(
+        Self(
+            Some(SendRequestState::Init(Some(Box::new(SendRequest::new(
                 request,
                 max_redirects,
                 pool,
-                timeouts.unwrap_or_default(),
-                config,
-            ),
-        )))))
+                config.clone(),
+            ))))),
+            config,
+        )
     }
 }
 
@@ -131,12 +132,11 @@ where
                         Vec::new(),
                         GetHttpRequestRedirectTask::new(
                             into_incoming,
-                            Some(send_request.timeouts),
                             send_request.pool.clone(),
-                            send_request.remaining_redirects,
                             send_request.config.clone(),
+                            send_request.remaining_redirects,
                         ),
-                        std::time::Duration::from_millis(100),
+                        self.1.inline_processing_timeout,
                     );
 
                     self.0 = Some(SendRequestState::Connecting(get_stream_receiver));
@@ -249,8 +249,9 @@ where
                                     InlineSendAction::boxed_mapper(
                                         crate::valtron::InlineSendActionBehaviour::LiftWithParent,
                                         Vec::new(),
-                                        GetRequestIntroTask::new(stream),
-                                        std::time::Duration::from_millis(100),
+                                        GetRequestIntroTask::new(stream)
+                                            .with_body_config(self.1.into_simple_http_body()),
+                                        self.1.inline_processing_timeout,
                                     );
 
                                 self.0 = Some(SendRequestState::Reading(drive_receiver(
@@ -274,8 +275,9 @@ where
                                     InlineSendAction::boxed_mapper(
                                         crate::valtron::InlineSendActionBehaviour::LiftWithParent,
                                         Vec::new(),
-                                        GetRequestIntroTask::new(conn),
-                                        std::time::Duration::from_millis(100),
+                                        GetRequestIntroTask::new(conn)
+                                            .with_body_config(self.1.into_simple_http_body()),
+                                        self.1.inline_processing_timeout,
                                     );
 
                                 self.0 = Some(SendRequestState::Reading(drive_receiver(

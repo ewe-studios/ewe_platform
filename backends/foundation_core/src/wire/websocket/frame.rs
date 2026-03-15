@@ -193,7 +193,9 @@ impl WebSocketFrame {
         let mut header = [0u8; 2];
         let first_byte_read = match reader.read(&mut header[..1]) {
             Ok(0) => {
-                tracing::debug!("Received Ok(0) — no data available yet on TCP stream, signal retry");
+                tracing::debug!(
+                    "Received Ok(0) — no data available yet on TCP stream, signal retry"
+                );
 
                 // On a TCP stream, Ok(0) doesn't necessarily mean EOF.
                 // The stream may simply have no data available yet.
@@ -245,7 +247,9 @@ impl WebSocketFrame {
         };
 
         // Now read the second header byte — data is flowing, read_exact is safe
-        reader.read_exact(&mut header[1..2]).map_err(|e| map_partial_read_err(e.into()))?;
+        reader
+            .read_exact(&mut header[1..2])
+            .map_err(|e| map_partial_read_err(e.into()))?;
         tracing::debug!(
             "Read second header byte: {:#04x}, full header: [{:#04x}, {:#04x}]",
             header[1],
@@ -262,12 +266,16 @@ impl WebSocketFrame {
         let payload_len: usize = match length_byte {
             126 => {
                 let mut buf = [0u8; 2];
-                reader.read_exact(&mut buf).map_err(|e| map_partial_read_err(e.into()))?;
+                reader
+                    .read_exact(&mut buf)
+                    .map_err(|e| map_partial_read_err(e.into()))?;
                 u16::from_be_bytes(buf) as usize
             }
             127 => {
                 let mut buf = [0u8; 8];
-                reader.read_exact(&mut buf).map_err(|e| map_partial_read_err(e.into()))?;
+                reader
+                    .read_exact(&mut buf)
+                    .map_err(|e| map_partial_read_err(e.into()))?;
                 #[allow(clippy::cast_possible_truncation)] // WebSocket frames won't exceed usize
                 let len = u64::from_be_bytes(buf) as usize;
                 len
@@ -278,7 +286,9 @@ impl WebSocketFrame {
         // Read masking key if present
         let mask = if masked {
             let mut key = [0u8; 4];
-            reader.read_exact(&mut key).map_err(|e| map_partial_read_err(e.into()))?;
+            reader
+                .read_exact(&mut key)
+                .map_err(|e| map_partial_read_err(e.into()))?;
             Some(key)
         } else {
             None
@@ -286,7 +296,9 @@ impl WebSocketFrame {
 
         // Read payload
         let mut payload = vec![0u8; payload_len];
-        reader.read_exact(&mut payload).map_err(|e| map_partial_read_err(e.into()))?;
+        reader
+            .read_exact(&mut payload)
+            .map_err(|e| map_partial_read_err(e.into()))?;
 
         // Unmask payload if masked
         if let Some(mask_key) = mask {
@@ -358,7 +370,10 @@ impl WebSocketFrame {
                     Ok(WebSocketMessage::Close(1005, String::new()))
                 } else if self.payload.len() == 1 {
                     // Invalid close payload (must be 0 or >=2 bytes)
-                    Ok(WebSocketMessage::Close(1002, "Invalid close payload".to_string()))
+                    Ok(WebSocketMessage::Close(
+                        1002,
+                        "Invalid close payload".to_string(),
+                    ))
                 } else {
                     let code = u16::from_be_bytes([self.payload[0], self.payload[1]]);
                     let reason = if self.payload.len() > 2 {
@@ -372,7 +387,8 @@ impl WebSocketFrame {
             Opcode::Continuation => {
                 // Continuation frames should be handled by MessageAssembler, not directly
                 Err(WebSocketError::InvalidFrame(
-                    "unexpected Continuation frame (use MessageAssembler for fragmented messages)".to_string()
+                    "unexpected Continuation frame (use MessageAssembler for fragmented messages)"
+                        .to_string(),
                 ))
             }
         }
@@ -410,7 +426,9 @@ impl WebSocketFrame {
         let mut header = [0u8; 2];
         let first_byte_read = match reader.read(&mut header[..1]) {
             Ok(0) => {
-                tracing::debug!("Received Ok(0) — no data available yet on TCP stream, signal retry");
+                tracing::debug!(
+                    "Received Ok(0) — no data available yet on TCP stream, signal retry"
+                );
                 return Err(WebSocketError::IoError(std::io::Error::new(
                     std::io::ErrorKind::WouldBlock,
                     "zero bytes read from stream, retry later",
@@ -452,7 +470,9 @@ impl WebSocketFrame {
         };
 
         // Read the second header byte
-        reader.read_exact(&mut header[1..2]).map_err(|e| map_partial_read_err(e.into()))?;
+        reader
+            .read_exact(&mut header[1..2])
+            .map_err(|e| map_partial_read_err(e.into()))?;
         tracing::debug!(
             "Read second header byte: {:#04x}, full header: [{:#04x}, {:#04x}]",
             header[1],
@@ -469,12 +489,16 @@ impl WebSocketFrame {
         let payload_len: usize = match length_byte {
             126 => {
                 let mut buf = [0u8; 2];
-                reader.read_exact(&mut buf).map_err(|e| map_partial_read_err(e.into()))?;
+                reader
+                    .read_exact(&mut buf)
+                    .map_err(|e| map_partial_read_err(e.into()))?;
                 u16::from_be_bytes(buf) as usize
             }
             127 => {
                 let mut buf = [0u8; 8];
-                reader.read_exact(&mut buf).map_err(|e| map_partial_read_err(e.into()))?;
+                reader
+                    .read_exact(&mut buf)
+                    .map_err(|e| map_partial_read_err(e.into()))?;
                 #[allow(clippy::cast_possible_truncation)]
                 let len = u64::from_be_bytes(buf) as usize;
                 len
@@ -485,7 +509,9 @@ impl WebSocketFrame {
         // Read masking key if present
         let mask = if masked {
             let mut key = [0u8; 4];
-            reader.read_exact(&mut key).map_err(|e| map_partial_read_err(e.into()))?;
+            reader
+                .read_exact(&mut key)
+                .map_err(|e| map_partial_read_err(e.into()))?;
             Some(key)
         } else {
             None
@@ -494,7 +520,9 @@ impl WebSocketFrame {
         // Read payload into provided buffer
         payload_buf.clear();
         payload_buf.resize(payload_len, 0);
-        reader.read_exact(&mut payload_buf[..]).map_err(|e| map_partial_read_err(e.into()))?;
+        reader
+            .read_exact(&mut payload_buf[..])
+            .map_err(|e| map_partial_read_err(e.into()))?;
 
         // Unmask payload if masked
         if let Some(mask_key) = mask {

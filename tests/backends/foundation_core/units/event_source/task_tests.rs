@@ -19,13 +19,21 @@ fn test_event_source_task_connect_creates_task() {
     // First call: Init → Connecting (pool handles DNS internally)
     let first = task.next();
     assert!(
-        matches!(first, Some(foundation_core::valtron::TaskStatus::Pending(foundation_core::wire::event_source::EventSourceProgress::Connecting))),
+        matches!(
+            first,
+            Some(foundation_core::valtron::TaskStatus::Pending(
+                foundation_core::wire::event_source::EventSourceProgress::Connecting
+            ))
+        ),
         "Expected Pending(Connecting) on first call"
     );
 
     // Second call: Connection fails (DNS has no response) → Closed → None
     let result = task.next();
-    assert!(result.is_none(), "Expected None when DNS resolver has no configured response");
+    assert!(
+        result.is_none(),
+        "Expected None when DNS resolver has no configured response"
+    );
 }
 
 /// WHY: EventSourceTask should handle connection failure gracefully.
@@ -37,13 +45,17 @@ fn test_event_source_task_dns_failure() {
         DnsError::NoAddressesFound("test.invalid".to_string()),
     );
 
-    let mut task =
-        EventSourceTask::connect(resolver, "http://test.invalid/events").unwrap();
+    let mut task = EventSourceTask::connect(resolver, "http://test.invalid/events").unwrap();
 
     // First call: Init → Connecting (pool handles DNS internally)
     let first = task.next();
     assert!(
-        matches!(first, Some(foundation_core::valtron::TaskStatus::Pending(foundation_core::wire::event_source::EventSourceProgress::Connecting))),
+        matches!(
+            first,
+            Some(foundation_core::valtron::TaskStatus::Pending(
+                foundation_core::wire::event_source::EventSourceProgress::Connecting
+            ))
+        ),
         "Expected Pending(Connecting) on first call"
     );
 
@@ -52,7 +64,10 @@ fn test_event_source_task_dns_failure() {
     assert!(result.is_none(), "Expected None after connection failure");
 
     // Subsequent calls should also return None (Closed state is terminal)
-    assert!(task.next().is_none(), "Expected None on repeated calls after close");
+    assert!(
+        task.next().is_none(),
+        "Expected None on repeated calls after close"
+    );
 }
 
 /// WHY: EventSourceTask should handle invalid URLs gracefully.
@@ -81,13 +96,21 @@ fn test_event_source_task_builder_chaining() {
     // First call: Init → Connecting (pool handles DNS internally)
     let first = task.next();
     assert!(
-        matches!(first, Some(foundation_core::valtron::TaskStatus::Pending(foundation_core::wire::event_source::EventSourceProgress::Connecting))),
+        matches!(
+            first,
+            Some(foundation_core::valtron::TaskStatus::Pending(
+                foundation_core::wire::event_source::EventSourceProgress::Connecting
+            ))
+        ),
         "Expected Pending(Connecting) on first call"
     );
 
     // Second call: Connection fails → Closed → None
     let result = task.next();
-    assert!(result.is_none(), "Expected None when DNS resolver has no configured response");
+    assert!(
+        result.is_none(),
+        "Expected None when DNS resolver has no configured response"
+    );
 }
 
 /// WHY: EventSourceTask should handle HTTPS URLs.

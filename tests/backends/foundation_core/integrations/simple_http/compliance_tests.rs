@@ -3,14 +3,12 @@
 #[cfg(test)]
 mod test_http_reader {
 
-    
     use foundation_core::netcap::RawStream;
     use foundation_core::panic_if_failed;
     // Or comment out if not present in foundation_core
     use foundation_core::wire::simple_http::{
-        http_streams, HttpReaderError,
-        IncomingRequestParts, SendSafeBody, SimpleHeader, SimpleMethod,
-        SimpleUrl,
+        http_streams, HttpReaderError, IncomingRequestParts, SendSafeBody, SimpleHeader,
+        SimpleMethod, SimpleUrl,
     };
     use regex::Regex; // add to Cargo.toml if missing
 
@@ -211,16 +209,17 @@ Hello world!";
 
 #[cfg(test)]
 mod http_response_compliance {
-    
+
     use foundation_core::extensions::result_ext::BoxedError;
-    
+
     use foundation_core::netcap::RawStream;
     // use foundation_core::panic_if_failed;
     // Or comment out if not present in foundation_core
     use foundation_core::wire::simple_http::{
-        http_streams, ChunkedData, HttpReaderError, IncomingResponseParts, SendSafeBody, SimpleHeader, Status,
+        http_streams, ChunkedData, HttpReaderError, IncomingResponseParts, SendSafeBody,
+        SimpleHeader, Status,
     };
-     // add to Cargo.toml if missing
+    // add to Cargo.toml if missing
 
     use std::collections::BTreeMap;
     use std::io::Write;
@@ -1819,10 +1818,7 @@ mod http_response_compliance {
     mod text_event_stream {
         use tracing_test::traced_test;
 
-        use foundation_core::{
-            panic_if_failed,
-            wire::simple_http::LineFeed,
-        };
+        use foundation_core::{panic_if_failed, wire::simple_http::LineFeed};
 
         use super::*;
 
@@ -3413,16 +3409,15 @@ mod http_response_compliance {
 
 #[cfg(test)]
 mod http_requests_compliance {
-    
+
     use foundation_core::extensions::result_ext::BoxedError;
-    
+
     use foundation_core::netcap::RawStream;
     // use foundation_core::panic_if_failed;
     // Or comment out if not present in foundation_core
     use foundation_core::wire::simple_http::{
-        http_streams, ChunkedData, HttpReaderError,
-        IncomingRequestParts, SendSafeBody, SimpleHeader, SimpleMethod,
-        SimpleUrl,
+        http_streams, ChunkedData, HttpReaderError, IncomingRequestParts, SendSafeBody,
+        SimpleHeader, SimpleMethod, SimpleUrl,
     };
     use regex::Regex; // add to Cargo.toml if missing
 
@@ -3907,10 +3902,7 @@ Hello world!";
     mod text_event_stream {
         use tracing_test::traced_test;
 
-        use foundation_core::{
-            panic_if_failed,
-            wire::simple_http::LineFeed,
-        };
+        use foundation_core::{panic_if_failed, wire::simple_http::LineFeed};
 
         use super::*;
 
@@ -8331,8 +8323,6 @@ Hello world!";
     mod connection_header {
         use tracing_test::traced_test;
 
-        
-
         use super::*;
 
         mod keep_alive {
@@ -9687,8 +9677,7 @@ mod hardening_tests {
     use foundation_core::netcap::RawStream;
     use foundation_core::panic_if_failed;
     use foundation_core::wire::simple_http::{
-        http_streams, HttpReaderError, IncomingRequestParts, IncomingResponseParts,
-        SendSafeBody,
+        http_streams, HttpReaderError, IncomingRequestParts, IncomingResponseParts, SendSafeBody,
     };
 
     use std::io::Write;
@@ -9729,7 +9718,10 @@ mod hardening_tests {
             .collect::<Result<Vec<IncomingRequestParts>, HttpReaderError>>();
 
         // Should reject with TotalHeaderSizeTooLarge error
-        assert!(result.is_err(), "Should reject requests with >64KB of headers");
+        assert!(
+            result.is_err(),
+            "Should reject requests with >64KB of headers"
+        );
         assert!(
             matches!(result, Err(HttpReaderError::TotalHeaderSizeTooLarge(_))),
             "Should return TotalHeaderSizeTooLarge error, got: {:?}",
@@ -9767,7 +9759,10 @@ mod hardening_tests {
 
         // Should reject with UriTooLong error
         assert!(result.is_err(), "Should reject requests with >8KB URI");
-        assert!(matches!(result, Err(HttpReaderError::UriTooLong(_))), "Should return UriTooLong error");
+        assert!(
+            matches!(result, Err(HttpReaderError::UriTooLong(_))),
+            "Should return UriTooLong error"
+        );
 
         req_thread.join().expect("should be closed");
     }
@@ -9851,7 +9846,8 @@ mod hardening_tests {
         let addr = listener.local_addr().expect("should return address");
 
         // Header with OWS (space before and after value)
-        let message = "GET / HTTP/1.1\r\nHost: localhost\r\nX-Test:   value with leading spaces   \r\n\r\n";
+        let message =
+            "GET / HTTP/1.1\r\nHost: localhost\r\nX-Test:   value with leading spaces   \r\n\r\n";
 
         let req_thread = thread::spawn(move || {
             let mut client = panic_if_failed!(TcpStream::connect(addr));

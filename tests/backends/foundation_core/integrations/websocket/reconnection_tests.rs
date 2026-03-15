@@ -14,7 +14,7 @@ use std::time::Duration;
 use base64::Engine;
 use foundation_core::valtron::{TaskIterator, TaskStatus};
 use foundation_core::wire::simple_http::client::SystemDnsResolver;
-use foundation_core::wire::websocket::{ReconnectingWebSocketTask, ReconnectingWebSocketProgress};
+use foundation_core::wire::websocket::{ReconnectingWebSocketProgress, ReconnectingWebSocketTask};
 use sha1::{Digest, Sha1};
 use tracing_test::traced_test;
 
@@ -65,7 +65,10 @@ impl ReconnectTestServer {
                                 continue;
                             }
                         };
-                        eprintln!("Server: Read {} bytes from connection {}", bytes_read, conn_num);
+                        eprintln!(
+                            "Server: Read {} bytes from connection {}",
+                            bytes_read, conn_num
+                        );
 
                         if bytes_read > 0 {
                             // Parse client's Sec-WebSocket-Key from request
@@ -89,7 +92,9 @@ impl ReconnectTestServer {
 Upgrade: websocket\r\n\
 Connection: Upgrade\r\n\
 Sec-WebSocket-Accept: {}\r\n\
-\r\n", accept_key);
+\r\n",
+                                accept_key
+                            );
                             let _ = stream.write_all(response.as_bytes());
                             eprintln!("Server: Sent {} bytes", response.len());
                             let _ = stream.flush();
@@ -129,7 +134,8 @@ Sec-WebSocket-Accept: {}\r\n\
 
 impl Drop for ReconnectTestServer {
     fn drop(&mut self) {
-        self.running.store(false, std::sync::atomic::Ordering::Relaxed);
+        self.running
+            .store(false, std::sync::atomic::Ordering::Relaxed);
     }
 }
 
@@ -237,7 +243,10 @@ fn test_reconnecting_task_with_header() {
 
     let task = ReconnectingWebSocketTask::connect(resolver, "ws://localhost:8080/chat")
         .unwrap()
-        .with_header(SimpleHeader::Custom("X-Custom-Header".to_string()), "custom-value");
+        .with_header(
+            SimpleHeader::Custom("X-Custom-Header".to_string()),
+            "custom-value",
+        );
 
     let _ = task;
 }
@@ -272,10 +281,12 @@ fn test_connection_failure_triggers_reconnect() {
     let mut task = ReconnectingWebSocketTask::connect(resolver, "ws://127.0.0.1:1")
         .unwrap()
         .with_max_retries(3)
-        .with_backoff(foundation_core::retries::ExponentialBackoffDecider::from_duration(
-            Duration::from_millis(10),
-            Some(Duration::from_millis(50)),
-        ));
+        .with_backoff(
+            foundation_core::retries::ExponentialBackoffDecider::from_duration(
+                Duration::from_millis(10),
+                Some(Duration::from_millis(50)),
+            ),
+        );
 
     // Run task and observe reconnection behavior
     let mut iterations = 0;
@@ -308,7 +319,10 @@ fn test_connection_failure_triggers_reconnect() {
     }
 
     // Should have seen reconnecting state or backoff delay
-    assert!(saw_reconnecting || saw_delay, "Should have seen reconnection activity (Reconnecting state or backoff delay)");
+    assert!(
+        saw_reconnecting || saw_delay,
+        "Should have seen reconnection activity (Reconnecting state or backoff delay)"
+    );
 }
 
 // Test 11: Max retries eventually exhausts
@@ -352,10 +366,12 @@ fn test_max_reconnect_duration_exhausts() {
         .unwrap()
         .with_max_reconnect_duration(Duration::from_millis(500)) // Short duration
         .with_max_retries(100) // High retry count - duration should limit
-        .with_backoff(foundation_core::retries::ExponentialBackoffDecider::from_duration(
-            Duration::from_millis(10),
-            Some(Duration::from_millis(50)),
-        ));
+        .with_backoff(
+            foundation_core::retries::ExponentialBackoffDecider::from_duration(
+                Duration::from_millis(10),
+                Some(Duration::from_millis(50)),
+            ),
+        );
 
     // Run until exhausted - need more iterations because each reconnect cycle takes multiple next() calls
     let start = std::time::Instant::now();
@@ -380,6 +396,14 @@ fn test_max_reconnect_duration_exhausts() {
     }
 
     let elapsed = start.elapsed();
-    assert!(got_exhausted, "Task should exhaust after max duration, iterations={}, elapsed={:?}", iterations, elapsed);
-    assert!(elapsed >= Duration::from_millis(100), "Should have run for some time before exhausting, elapsed={:?}", elapsed);
+    assert!(
+        got_exhausted,
+        "Task should exhaust after max duration, iterations={}, elapsed={:?}",
+        iterations, elapsed
+    );
+    assert!(
+        elapsed >= Duration::from_millis(100),
+        "Should have run for some time before exhausting, elapsed={:?}",
+        elapsed
+    );
 }

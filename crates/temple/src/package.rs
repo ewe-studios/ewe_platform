@@ -186,17 +186,17 @@ mod directorate_tests {
     #[test]
     fn validate_can_read_all_directories() {
         let generator = Directorate::<Directory>::default();
-        let files: Vec<String> = generator.files();
-        assert_eq!(
-            files,
-            vec! {
-                "docs/runner.sh",
-                "schema/partials/partial_1.sql",
-                "schema/schema.sql",
-                "README.md",
-                "elem.js",
-            }
-        );
+        let mut files: Vec<String> = generator.files();
+        files.sort();
+        let mut expected = vec![
+            "docs/runner.sh",
+            "schema/partials/partial_1.sql",
+            "schema/schema.sql",
+            "README.md",
+            "elem.js",
+        ];
+        expected.sort();
+        assert_eq!(files, expected);
     }
 }
 
@@ -878,20 +878,21 @@ mod package_generator_tests {
         ewe_trace::debug!("Result: {:?}", result);
         assert!(matches!(result, Ok(())));
 
-        assert_eq!(
-            shorten_path(
-                list_dir(&project_directory),
-                project_directory.try_into_string().unwrap()
-            ),
-            vec![
-                "retro_project/Cargo.toml",
-                "retro_project/src/lib.rs",
-                "retro_project/src/page.rs",
-                ".gitignore",
-                "Cargo.toml",
-            ]
-            .to_vec_string()
+        let mut actual = shorten_path(
+            list_dir(&project_directory),
+            project_directory.try_into_string().unwrap(),
         );
+        actual.sort();
+        let mut expected = vec![
+            "retro_project/Cargo.toml",
+            "retro_project/src/lib.rs",
+            "retro_project/src/page.rs",
+            ".gitignore",
+            "Cargo.toml",
+        ]
+        .to_vec_string();
+        expected.sort();
+        assert_eq!(actual, expected);
     }
 
     #[test]
@@ -933,20 +934,21 @@ mod package_generator_tests {
         ewe_trace::debug!("Result: {:?}", result);
         assert!(matches!(result, Ok(())));
 
-        assert_eq!(
-            shorten_path(
-                list_dir(&project_directory),
-                project_directory.try_into_string().unwrap()
-            ),
-            vec![
-                "retro_project/Cargo.toml",
-                "retro_project/src/lib.rs",
-                "retro_project/src/page.rs",
-                ".gitignore",
-                "Cargo.toml",
-            ]
-            .to_vec_string()
+        let mut actual = shorten_path(
+            list_dir(&project_directory),
+            project_directory.try_into_string().unwrap(),
         );
+        actual.sort();
+        let mut expected = vec![
+            "retro_project/Cargo.toml",
+            "retro_project/src/lib.rs",
+            "retro_project/src/page.rs",
+            ".gitignore",
+            "Cargo.toml",
+        ]
+        .to_vec_string();
+        expected.sort();
+        assert_eq!(actual, expected);
     }
 
     #[test]

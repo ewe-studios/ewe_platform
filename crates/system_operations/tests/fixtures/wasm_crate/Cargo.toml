@@ -1,0 +1,19 @@
+[package]
+name = "test_wasm_crate"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib"]
+
+[[bin]]
+name = "data_processor"
+path = "bin/data_processor/main.rs"
+
+[[bin]]
+name = "root_worker"
+path = "bin/root_worker/main.rs"
+
+[[bin]]
+name = "auth_worker"
+path = "bin/auth_worker/main.rs"

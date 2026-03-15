@@ -162,19 +162,20 @@ checksum = "c08606f8c3cbf4ce6ec8e28fb0014a2c086708fe954eaa885384a6165172e7e8"
 
 [[package]]
 name = "aws-lc-rs"
-version = "1.15.1"
+version = "1.16.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6b5ce75405893cd713f9ab8e297d8e438f624dde7d706108285f7e17a25a180f"
+checksum = "94bffc006df10ac2a68c83692d734a465f8ee6c5b384d8545a636f81d858f4bf"
 dependencies = [
  "aws-lc-sys",
+ "untrusted 0.7.1",
  "zeroize",
 ]
 
 [[package]]
 name = "aws-lc-sys"
-version = "0.34.0"
+version = "0.38.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "179c3777a8b5e70e90ea426114ffc565b2c1a9f82f6c4a0c5a34aa6ef5e781b6"
+checksum = "4321e568ed89bb5a7d291a7f37997c2c0df89809d7b6d12062c81ddb54aa782e"
 dependencies = [
  "cc",
  "cmake",
@@ -940,10 +941,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "ewe-ai"
-version = "0.1.0"
-
-[[package]]
 name = "ewe_async_utils"
 version = "0.0.1"
 dependencies = [
@@ -1072,6 +1069,7 @@ dependencies = [
  "ewe_trace",
  "ewe_watch_utils",
  "ewe_watchers",
+ "foundation_ai",
  "foundation_core",
  "foundation_macros",
  "foundation_nostd",
@@ -1085,6 +1083,7 @@ dependencies = [
  "serde_json",
  "serde_with",
  "signal-hook",
+ "system_operations",
  "thiserror",
  "tokio",
  "tower 0.4.13",
@@ -1364,10 +1363,25 @@ dependencies = [
 ]
 
 [[package]]
+name = "foundation_codegen"
+version = "0.1.0"
+dependencies = [
+ "derive_more",
+ "proc-macro2",
+ "quote",
+ "serde",
+ "syn 2.0.114",
+ "tempfile",
+ "toml 0.9.8",
+ "walkdir",
+]
+
+[[package]]
 name = "foundation_core"
 version = "0.0.3"
 dependencies = [
  "async-trait",
+ "aws-lc-rs",
  "base64 0.22.1",
  "brotli 6.0.0",
  "bytes",
@@ -1386,6 +1400,7 @@ dependencies = [
  "rand_chacha",
  "regex",
  "reqwest",
+ "ring",
  "rust-embed",
  "rustls",
  "rustls-pemfile",
@@ -1420,6 +1435,7 @@ dependencies = [
  "quote",
  "sha2",
  "syn 2.0.114",
+ "trybuild",
 ]
 
 [[package]]
@@ -3041,7 +3057,7 @@ dependencies = [
  "cfg-if",
  "getrandom 0.2.16",
  "libc",
- "untrusted",
+ "untrusted 0.9.0",
  "windows-sys 0.52.0",
 ]
 
@@ -3152,7 +3168,7 @@ dependencies = [
  "aws-lc-rs",
  "ring",
  "rustls-pki-types",
- "untrusted",
+ "untrusted 0.9.0",
 ]
 
 [[package]]
@@ -3638,6 +3654,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "system_operations"
+version = "0.1.0"
+dependencies = [
+ "foundation_codegen",
+ "serde",
+ "tempfile",
+ "toml 0.9.8",
+ "toml_edit 0.22.27",
+]
+
+[[package]]
 name = "target-triple"
 version = "1.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3663,174 +3690,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "06794f8f6c5c898b3275aebefa6b8a1cb24cd2c6c79397ab15774837a0bc5755"
 dependencies = [
  "winapi-util",
-]
-
-[[package]]
-name = "tests_callfunction"
-version = "0.0.1"
-dependencies = [
- "foundation_nostd",
- "foundation_wasm",
-]
-
-[[package]]
-name = "tests_instructions_array"
-version = "0.1.0"
-dependencies = [
- "foundation_nostd",
- "foundation_wasm",
-]
-
-[[package]]
-name = "tests_instructions_array_callback"
-version = "0.1.0"
-dependencies = [
- "foundation_nostd",
- "foundation_wasm",
-]
-
-[[package]]
-name = "tests_instructions_function"
-version = "0.1.0"
-dependencies = [
- "foundation_nostd",
- "foundation_wasm",
-]
-
-[[package]]
-name = "tests_instructions_multi_return"
-version = "0.1.0"
-dependencies = [
- "foundation_nostd",
- "foundation_wasm",
-]
-
-[[package]]
-name = "tests_instructions_none_return_callback"
-version = "0.1.0"
-dependencies = [
- "foundation_nostd",
- "foundation_wasm",
-]
-
-[[package]]
-name = "tests_js_interval"
-version = "0.0.1"
-dependencies = [
- "foundation_nostd",
- "foundation_wasm",
-]
-
-[[package]]
-name = "tests_js_invoke_async_function"
-version = "0.0.1"
-dependencies = [
- "foundation_nostd",
- "foundation_wasm",
-]
-
-[[package]]
-name = "tests_js_invoke_failed_async_function"
-version = "0.0.1"
-dependencies = [
- "foundation_nostd",
- "foundation_wasm",
-]
-
-[[package]]
-name = "tests_js_invoke_function"
-version = "0.0.1"
-dependencies = [
- "foundation_nostd",
- "foundation_wasm",
-]
-
-[[package]]
-name = "tests_js_invoke_function_and_return_big_int"
-version = "0.0.1"
-dependencies = [
- "foundation_nostd",
- "foundation_wasm",
-]
-
-[[package]]
-name = "tests_js_invoke_function_and_return_bool"
-version = "0.0.1"
-dependencies = [
- "foundation_nostd",
- "foundation_wasm",
-]
-
-[[package]]
-name = "tests_js_invoke_function_and_return_dom"
-version = "0.0.1"
-dependencies = [
- "foundation_nostd",
- "foundation_wasm",
-]
-
-[[package]]
-name = "tests_js_invoke_function_and_return_none"
-version = "0.0.1"
-dependencies = [
- "foundation_nostd",
- "foundation_wasm",
-]
-
-[[package]]
-name = "tests_js_invoke_function_and_return_object"
-version = "0.0.1"
-dependencies = [
- "foundation_nostd",
- "foundation_wasm",
-]
-
-[[package]]
-name = "tests_js_invoke_function_and_return_string"
-version = "0.0.1"
-dependencies = [
- "foundation_nostd",
- "foundation_wasm",
-]
-
-[[package]]
-name = "tests_js_invoke_function_and_return_types"
-version = "0.0.1"
-dependencies = [
- "foundation_nostd",
- "foundation_wasm",
-]
-
-[[package]]
-name = "tests_js_invoke_function_with_array"
-version = "0.1.0"
-dependencies = [
- "foundation_nostd",
- "foundation_wasm",
-]
-
-[[package]]
-name = "tests_js_raf"
-version = "0.0.1"
-dependencies = [
- "foundation_nostd",
- "foundation_wasm",
-]
-
-[[package]]
-name = "tests_js_timeout"
-version = "0.0.1"
-dependencies = [
- "foundation_nostd",
- "foundation_wasm",
-]
-
-[[package]]
-name = "tests_registerfunction"
-version = "0.1.0"
-dependencies = [
- "foundation_nostd",
- "foundation_wasm",
 ]
 
 [[package]]
@@ -4309,6 +4168,12 @@ name = "unicode-xid"
 version = "0.2.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ebc1c04c71510c7f702b52b7c350734c9ff1295c464a03335b00bb84fc54f853"
+
+[[package]]
+name = "untrusted"
+version = "0.7.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a156c684c91ea7d62626509bce3cb4e1d9ed5c4d978f7b4352658f96a4c26b4a"
 
 [[package]]
 name = "untrusted"

@@ -2,7 +2,7 @@
 
 //! WebSocket frame encoding/decoding tests (RFC 6455).
 
-use foundation_core::wire::websocket::{WebSocketFrame, Opcode, WebSocketError};
+use foundation_core::wire::websocket::{Opcode, WebSocketError, WebSocketFrame};
 use std::io::Cursor;
 
 // Test 1: Opcode encoding/decoding
@@ -252,8 +252,7 @@ fn test_text_frame_utf8_roundtrip() {
     let mut cursor = Cursor::new(encoded);
     let decoded = WebSocketFrame::decode(&mut cursor).unwrap();
 
-    let decoded_text =
-        String::from_utf8(decoded.payload).expect("payload should be valid UTF-8");
+    let decoded_text = String::from_utf8(decoded.payload).expect("payload should be valid UTF-8");
     assert_eq!(decoded_text, text);
 }
 

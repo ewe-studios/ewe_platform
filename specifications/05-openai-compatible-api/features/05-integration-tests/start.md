@@ -6,6 +6,8 @@ created: 2026-03-08
 
 # Integration Tests Feature Workflow
 
+**Important**: Place tests in correct location - follow language testing skill or project test structure.
+
 ## Tasks Summary
 
 1. Create test infrastructure

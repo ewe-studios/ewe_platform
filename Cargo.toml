@@ -18,8 +18,6 @@ members = [
   "examples/llama-cpp/reranker",
   "examples/llama-cpp/mtmd",
 
-  # tests members
-  "integrations/nodejs/integrations/*",
 ]
 
 exclude = [
@@ -30,6 +28,8 @@ exclude = [
   "crates/temple/output_directory",
   "backends/docs",
   "backends/docs/*",
+  # tests members
+  "integrations/nodejs/integrations/*",
 ]
 
 [workspace.package]
@@ -56,6 +56,9 @@ foundation_wasm = { path = "./backends/foundation_wasm", version = "0.0.2" }
 foundation_core = { path = "./backends/foundation_core", version = "0.0.3" }
 foundation_runtimes = { path = "./backends/runtimes", version = "0.0.3" }
 foundation_ai = { path = "./backends/foundation_ai", version = "0.0.1" }
+foundation_codegen = { path = "./backends/foundation_codegen", version = "0.1.0" }
+
+system_operations = { path = "./crates/system_operations", version = "0.1.0" }
 
 # -- internal packages so others can use them
 ewe_web = { path = "./crates/web", version = "0.0.1" }
@@ -78,6 +81,7 @@ ewe_templates_macro = { path = "./crates/template-macro", version = "0.0.1" }
 
 # -- workspace wide packages
 toml = { version = "0.9" }
+toml_edit = { version = "0.22" }
 anyhow = { version = "1.0" }
 concurrent-queue = { version = "2.5" }
 derive_more = { version = ">=2.0", features = ["full"] }

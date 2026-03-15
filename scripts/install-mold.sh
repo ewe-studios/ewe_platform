@@ -1,0 +1,68 @@
+#!/bin/bash
+set -e
+
+# Script to install mold linker - tries prebuilt binary first, falls back to building from source
+
+MOLD_VERSION="2.40.4"
+TARGET="x86_64"
+
+echo "=== Installing mold linker ==="
+
+# Check for target architecture override (useful for Docker cross-compilation)
+if [ -n "$MOLD_TARGET" ]; then
+    TARGET="$MOLD_TARGET"
+    echo "Using MOLD_TARGET override: $TARGET"
+else
+    # Detect architecture
+    ARCH=$(uname -m)
+    if [ "$ARCH" = "aarch64" ]; then
+        TARGET="aarch64"
+    elif [ "$ARCH" = "arm64" ]; then
+        # macOS Apple Silicon reports arm64, but mold uses aarch64 for 64-bit ARM
+        TARGET="aarch64"
+    elif [ "$ARCH" = "armv7l" ] || [ "$ARCH" = "armhf" ] || [ "$ARCH" = "arm" ]; then
+        # 32-bit ARM
+        TARGET="arm"
+    elif [ "$ARCH" = "x86_64" ]; then
+        TARGET="x86_64"
+    else
+        echo "Unsupported architecture: $ARCH"
+        exit 1
+    fi
+fi
+
+echo "Target architecture: ${TARGET}-linux-gnu"
+
+# Try to download prebuilt binary from GitHub releases
+MOLD_TARBALL="mold-${MOLD_VERSION}-${TARGET}-linux.tar.gz"
+MOLD_URL="https://github.com/rui314/mold/releases/download/v${MOLD_VERSION}/${MOLD_TARBALL}"
+
+echo "Attempting to download prebuilt mold from: $MOLD_URL"
+
+if curl -fsSL -o "/tmp/${MOLD_TARBALL}" "$MOLD_URL" 2>/dev/null; then
+    echo "Download successful, extracting..."
+    cd /tmp
+    tar -xzf "${MOLD_TARBALL}"
+    # Copy binaries from prebuilt tarball to system paths
+    cp -r /tmp/mold-${MOLD_VERSION}-${TARGET}-linux/bin/* /usr/local/bin/
+    cp -r /tmp/mold-${MOLD_VERSION}-${TARGET}-linux/lib/* /usr/local/lib/
+    cp -r /tmp/mold-${MOLD_VERSION}-${TARGET}-linux/libexec/* /usr/local/libexec/ 2>/dev/null || true
+    cp -r /tmp/mold-${MOLD_VERSION}-${TARGET}-linux/share/* /usr/local/share/ 2>/dev/null || true
+    ldconfig
+    rm -rf /tmp/mold-* "${MOLD_TARBALL}"
+    echo "Mold installed successfully from prebuilt binary"
+    mold --version
+    exit 0
+else
+    echo "Failed to download prebuilt binary, building from source..."
+fi
+
+# Fall back to building from source
+git clone --branch stable --depth=1 https://github.com/rui314/mold.git /tmp/mold
+cd /tmp/mold
+cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_COMPILER=c++ -B build
+cmake --build build -j$(nproc)
+cmake --build build --target install
+rm -rf /tmp/mold
+echo "Mold built and installed from source"
+mold --version

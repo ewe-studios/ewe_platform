@@ -10,6 +10,8 @@ created: 2026-03-08
 
 Follow the same workflow pattern as previous features.
 
+**Important**: Place tests in correct location - follow language testing skill or project test structure.
+
 ## Tasks Summary
 
 1. Implement chat completions method

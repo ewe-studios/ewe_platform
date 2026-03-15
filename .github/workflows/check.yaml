@@ -18,10 +18,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v4
+        with:
+          submodules: false
+          fetch-depth: 1
       - name: Pull the accompany tools
         run: |
-          ./scripts/modules.sh
+          git submodule update --init --recursive tools/emsdk
+          git submodule update --init --depth=1 tools/dawn
+          git submodule update --init --recursive infrastructure/llama-bindings/llama.cpp
       - name: Install native dependencies
         env:
           DEBIAN_FRONTEND: noninteractive
@@ -36,54 +41,93 @@ jobs:
         run: cargo clippy
       - name: Fmt
         run: cargo fmt --check
-      - name: Test
-        run: cargo test --features sampler
+      - name: Test (No Std)
+        run: cargo test --workspace
+      - name: Test (Std)
+        run: cargo test --workspace --features multi
+      - name: Test (LLamaCPP)
+        run: cargo test --workspace --features infrastructure_llama_cpp/sampler --features multi
       - name: Dry-Run Publishing
         run: RUST_BACKTRACE=1 cargo publish --workspace --verbose --dry-run
-  # arm64:
-  #   name: Check that it builds on various targets
-  #   runs-on: ubuntu-latest
-  #   strategy:
-  #     matrix:
-  #       target: [ linux/arm64, linux/amd64 ]
-  #   steps:
-  #     - name: checkout
-  #       uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8
-  #     - name: Setup QEMU
-  #       uses: docker/setup-qemu-action@c7c53464625b32c7a7e944ae62b3e17d2b600130
-  #       with:
-  #         platforms: arm64,amd64
-  #     - name: Set up Docker Buildx
-  #       uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f
-  #     - name: Build
-  #       uses: docker/build-push-action@v6
-  #       with:
-  #         file: test-build.Dockerfile
-  #         target: base-cuda
-  #         platforms: ${{ matrix.target }}
-  # mac:
-  #   name: Check that it builds on mac
-  #   runs-on: macos-latest
-  #   steps:
-  #     - name: checkout
-  #       uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8
-  #       with:
-  #         submodules: recursive
-  #     - name: Setup Rust
-  #       uses: dtolnay/rust-toolchain@stable
-  #     - name: Build
-  #       run: cargo build --features sampler
-  # windows:
-  #   name: Check that it builds on windows
-  #   runs-on: windows-latest
-  #   steps:
-  #     - name: checkout
-  #       uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8
-  #       with:
-  #         submodules: recursive
-  #     - name: Setup Rust
-  #       uses: dtolnay/rust-toolchain@stable
-  #     - name: Build
-  #       run: cargo build --features sampler
-  #     - name: Test
-  #       run: cargo test --features sampler
+  docker:
+    name: "Docker - Build on various targets"
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        target: [linux/arm64, linux/amd64]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: false
+          fetch-depth: 1
+      - name: Checkout llama.cpp
+        run: |
+          git submodule update --init --recursive infrastructure/llama-bindings/llama.cpp
+      - name: Prepare clean build context
+        run: |
+          mkdir -p /tmp/ewe-docker-build
+          rsync -av --exclude='.git' --exclude='tools/dawn' --exclude='tools/emsdk' --exclude='.agents' --exclude='bin' . /tmp/ewe-docker-build/
+      - name: Setup QEMU
+        uses: docker/setup-qemu-action@v3
+        with:
+          platforms: arm64,amd64
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      - name: Build
+        uses: docker/build-push-action@v6
+        with:
+          context: /tmp/ewe-docker-build
+          file: /tmp/ewe-docker-build/test-build.Dockerfile
+          platforms: ${{ matrix.target }}
+          push: false
+          cache-from: type=gha
+          cache-to: type=gha
+          build-args: |
+            CUDA_VERSION=12.3.1
+            UBUNTU_VERSION=22.04
+            TARGETPLATFORM=${{ matrix.target }}
+  mac:
+    name: "macOS - Run rust checks"
+    runs-on: macos-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: false
+          fetch-depth: 1
+      - name: Pull the accompany tools
+        run: |
+          git submodule update --init --recursive tools/emsdk
+          git submodule update --init --depth=1 tools/dawn
+          git submodule update --init --recursive infrastructure/llama-bindings/llama.cpp
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy, rustfmt
+      - name: Build
+        run: cargo build --workspace --features infrastructure_llama_cpp/sampler
+#  windows:
+#    name: "Windows - Run rust checks"
+#    runs-on: windows-latest
+#    steps:
+#      - name: Checkout
+#        uses: actions/checkout@v4
+#        with:
+#          submodules: false
+#          fetch-depth: 1
+#      - name: Enable long paths in Git
+#        run: git config --system core.longpaths true
+#      - name: Pull the accompany tools
+#        run: |
+#          git submodule update --init --recursive tools/emsdk
+#          git submodule update --init --depth=1 tools/dawn
+#          git submodule update --init --recursive infrastructure/llama-bindings/llama.cpp
+#      - name: Setup Rust
+#        uses: dtolnay/rust-toolchain@stable
+#        with:
+#          components: clippy, rustfmt
+#      - name: Build
+#        run: cargo build --workspace --features infrastructure_llama_cpp/sampler
+#      - name: Test
+#        run: cargo test --workspace --features infrastructure_llama_cpp/sampler

@@ -2,7 +2,7 @@
 
 //! WebSocket message tests (RFC 6455).
 
-use foundation_core::wire::websocket::{WebSocketFrame, WebSocketMessage, Opcode};
+use foundation_core::wire::websocket::{Opcode, WebSocketFrame, WebSocketMessage};
 use tracing_test::traced_test;
 
 // Test 1: to_message - Text frame conversion
@@ -153,19 +153,34 @@ fn test_unexpected_continuation_frame() {
     };
 
     let result = frame.to_message();
-    assert!(result.is_err(), "should reject unexpected continuation frame");
+    assert!(
+        result.is_err(),
+        "should reject unexpected continuation frame"
+    );
 }
 
 // Test 9: WebSocketMessage variant_name
 #[test]
 #[traced_test]
 fn test_message_variant_name() {
-    assert_eq!(WebSocketMessage::Text("test".to_string()).variant_name(), "text");
-    assert_eq!(WebSocketMessage::Binary(vec![1, 2, 3]).variant_name(), "binary");
+    assert_eq!(
+        WebSocketMessage::Text("test".to_string()).variant_name(),
+        "text"
+    );
+    assert_eq!(
+        WebSocketMessage::Binary(vec![1, 2, 3]).variant_name(),
+        "binary"
+    );
     assert_eq!(WebSocketMessage::Ping(vec![]).variant_name(), "ping");
     assert_eq!(WebSocketMessage::Pong(vec![]).variant_name(), "pong");
-    assert_eq!(WebSocketMessage::Close(1000, "bye".to_string()).variant_name(), "close");
-    assert_eq!(WebSocketMessage::ConnectionEstablished.variant_name(), "connection_established");
+    assert_eq!(
+        WebSocketMessage::Close(1000, "bye".to_string()).variant_name(),
+        "close"
+    );
+    assert_eq!(
+        WebSocketMessage::ConnectionEstablished.variant_name(),
+        "connection_established"
+    );
 }
 
 // Test 10: WebSocketMessage clone
@@ -197,7 +212,9 @@ fn test_text_frame_various_utf8() {
             payload: text.as_bytes().to_vec(),
         };
 
-        let message = frame.to_message().expect(&format!("should convert {} to message", name));
+        let message = frame
+            .to_message()
+            .expect(&format!("should convert {} to message", name));
         if let WebSocketMessage::Text(t) = message {
             assert_eq!(t, text, "{} should roundtrip correctly", name);
         } else {

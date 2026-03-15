@@ -26,10 +26,9 @@ pub trait IntoString<'a> {
 }
 
 /// Trait for types that can be converted to a `String` with potential failure.
-///
-/// # Errors
-/// Returns an error if the conversion fails.
 pub trait TryIntoString<'a> {
+    /// # Errors
+    /// Returns an error if the conversion fails.
     fn try_into_string(&'a self) -> IntoStringResult;
 }
 
@@ -152,10 +151,9 @@ pub trait IntoStr<'a> {
 }
 
 /// Trait for types that can be converted to a string slice with potential failure.
-///
-/// # Errors
-/// Returns an error if the conversion fails.
 pub trait TryIntoStr<'a> {
+    /// # Errors
+    /// Returns an error if the conversion fails.
     fn try_into_str(&'a self) -> TryIntoStrResult<'a>;
 }
 
