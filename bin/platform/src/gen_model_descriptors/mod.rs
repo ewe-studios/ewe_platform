@@ -292,6 +292,8 @@ fn http_get_json<T: serde::de::DeserializeOwned>(
         })?;
 
     let status = response.get_status();
+    tracing::info!("Got response status: {:?} for: {}", &status, &url);
+
     if status != Status::OK {
         return Err(GenModelError::BadStatus {
             url: url.to_string(),
@@ -318,17 +320,23 @@ fn http_get_json<T: serde::de::DeserializeOwned>(
                     url: url.to_string(),
                 });
             };
+
             let mut bytes = Vec::new();
             for chunk_result in stream {
                 match chunk_result {
                     Ok(chunk) => bytes.extend(chunk),
                     Err(e) => {
+                        tracing::info!(
+                            "Stream: Failing response body read: {:?} for: {}",
+                            &e,
+                            &url
+                        );
                         return Err(GenModelError::Http {
                             url: url.to_string(),
                             source: foundation_core::wire::simple_http::HttpClientError::from(
                                 std::io::Error::new(std::io::ErrorKind::InvalidData, e.to_string()),
                             ),
-                        })
+                        });
                     }
                 }
             }
@@ -354,12 +362,17 @@ fn http_get_json<T: serde::de::DeserializeOwned>(
                         ChunkedData::DataEnded => {}
                     },
                     Err(e) => {
+                        tracing::info!(
+                            "ChunkedStream: Failing response body read: {:?} for: {}",
+                            &e,
+                            &url
+                        );
                         return Err(GenModelError::Http {
                             url: url.to_string(),
                             source: foundation_core::wire::simple_http::HttpClientError::from(
                                 std::io::Error::new(std::io::ErrorKind::InvalidData, e.to_string()),
                             ),
-                        })
+                        });
                     }
                 }
             }
@@ -385,12 +398,17 @@ fn http_get_json<T: serde::de::DeserializeOwned>(
                         LineFeed::SKIP | LineFeed::END => {}
                     },
                     Err(e) => {
+                        tracing::info!(
+                            "LineFeed: Failing response body read: {:?} for: {}",
+                            &e,
+                            &url
+                        );
                         return Err(GenModelError::Http {
                             url: url.to_string(),
                             source: foundation_core::wire::simple_http::HttpClientError::from(
                                 std::io::Error::new(std::io::ErrorKind::InvalidData, e.to_string()),
                             ),
-                        })
+                        });
                     }
                 }
             }
@@ -402,8 +420,9 @@ fn http_get_json<T: serde::de::DeserializeOwned>(
     };
 
     tracing::info!(
-        "Received total body: len={} as {}",
+        "Received total body: len={} from={} -> {:?}",
         body_text.len(),
+        &url,
         &body_text
     );
     serde_json::from_str(&body_text).map_err(|e| {
@@ -1760,9 +1779,9 @@ pub fn run(args: &clap::ArgMatches) -> std::result::Result<(), BoxedError> {
 
     let client = SimpleHttpClient::from_system()
         .max_body_size(None)
-        .batch_size(1024 * 1024)
+        .batch_size(8192 * 2)
         .read_timeout(Duration::from_secs(10))
-        .max_retries(50);
+        .max_retries(5);
 
     let models_dev = fetch_models_dev(&client);
     let openrouter = fetch_openrouter(&client);

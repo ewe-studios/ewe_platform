@@ -1363,7 +1363,16 @@ impl<T: Read> ByteBufferPointer<T> {
         // extract and add more to buffer from reader.
         // self.reader.fill_buf()?;
         let mut copied = vec![0; self.pull_amount];
-        let read = self.reader.read(&mut copied)?;
+        let read = match self.reader.read(&mut copied) {
+            Ok(read_size) => {
+                tracing::debug!("FillUp: read total size of data from reader: {}", read_size);
+                read_size
+            }
+            Err(err) => {
+                tracing::error!("Failed to read data from reader due to: {:?}", &err);
+                return Err(err);
+            }
+        };
 
         // copy into the buffer the data just extracted from the buffer.
         // let location_before_extend = self.buffer.len();
@@ -1708,6 +1717,8 @@ impl<T: Read> ByteBufferPointer<T> {
             return Ok(PeekState::ZeroLengthInput);
         }
 
+        let mut cached_error: Option<std::io::Error> = None;
+
         loop {
             // Check remaining unconsumed data (from peek_pos to end of buffer),
             // not total buffer length. After prior reads consume data, peek_pos
@@ -1722,8 +1733,16 @@ impl<T: Read> ByteBufferPointer<T> {
 
             // request more data so we get to enough to actually resolve the
             // requested size.
-            if self.fill_up()? == 0 {
-                break;
+            match self.fill_up() {
+                Ok(fill_size) => {
+                    if fill_size == 0 {
+                        break;
+                    }
+                }
+                Err(err) => {
+                    cached_error = Some(err);
+                    break;
+                }
             }
         }
 
@@ -1745,8 +1764,21 @@ impl<T: Read> ByteBufferPointer<T> {
         }
 
         let slice = &self.buffer[original_peek..self.peek_pos];
+        tracing::debug!(
+            "Read from {} to {} buffer_len={} and slice_len={}",
+            original_peek,
+            self.peek_pos,
+            buffer_len,
+            slice.len(),
+        );
 
         if self.peek_pos == original_peek {
+            // if we never moved beyond our existing position and cached error
+            // is not None then return error instead.
+            if let Some(cached_error) = cached_error.take() {
+                return Err(cached_error);
+            }
+
             return Ok(PeekState::NoNext);
         }
         Ok(PeekState::Request(slice))
@@ -1763,16 +1795,29 @@ impl<T: Read> ByteBufferPointer<T> {
         let read = match self.nextby(buf.len()) {
             Ok(state) => match state {
                 PeekState::Request(data) => {
+                    tracing::debug!(
+                        "read_size: read next data: {} into target buf_len={}",
+                        data.len(),
+                        buf.len()
+                    );
                     let ending = if buf.len() > data.len() {
                         data.len()
                     } else {
                         buf.len()
                     };
 
+                    tracing::debug!(
+                        "read_size: read next data ending: {} from buf_len={}, data_len={}",
+                        ending,
+                        buf.len(),
+                        data.len(),
+                    );
+
                     for (index, elem) in data[0..ending].iter().enumerate() {
                         buf[index] = *elem;
                     }
-                    Ok(data.len())
+
+                    Ok(ending)
                 }
                 PeekState::LessThanRequested => {
                     let ending = if buf.len() > self.buffer.len() {
