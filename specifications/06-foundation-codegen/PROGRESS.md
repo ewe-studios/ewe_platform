@@ -74,10 +74,10 @@
   - Created `src/lib.rs` → `src/wasm_bins/mod.rs` with `WasmBinGenerator` struct
   - Created `src/wasm_bins/error.rs` — `WasmBinError` enum with manual Display/Error impls
   - Created `src/wasm_bins/validator.rs` — crate validation (cdylib/bin/no-lib)
-  - Created `src/wasm_bins/planner.rs` — dry-run plan builder
+  - Created `src/wasm_bins/planner.rs` — dry-run plan builder (generates `main.rs` with proper `use` imports)
   - Created `src/wasm_bins/generator.rs` — file creation + Cargo.toml update via `toml_edit`
   - Created test fixtures: `wasm_crate` (cdylib, 3 entrypoints) + `rlib_crate` (invalid)
-  - 9 tests passing (5 integration + 4 validator), fmt + clippy clean
+  - 10 tests passing (6 integration + 4 validator), fmt + clippy clean
 - **Component 3: `wasm_bins` Platform Subcommand**
   - Created `bin/platform/src/wasm_bins/mod.rs` with `register()` + `run()` + `list`/`generate` handlers
   - Registered in `bin/platform/src/main.rs` (added to chain + match)
