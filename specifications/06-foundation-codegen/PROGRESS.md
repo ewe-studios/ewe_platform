@@ -95,13 +95,14 @@
 - `bin/platform/src/wasm_bins/mod.rs` — new
 - `bin/platform/Cargo.toml` — added `system_operations` dep
 
-## Remaining
-
-None — all features complete!
-
 ## Summary
 
+**Total Features:** 5 (00-foundation, 01-source-scanner, 02-module-path-resolver, 03-registry-api, 04-wasm-entrypoint-toolchain)
 **Total Tests:** 84 (74 foundation_codegen + 1 trybuild/5 cases foundation_macros + 9 system_operations)
 **Code Quality:** `cargo fmt` ✅, `cargo clippy -D warnings` ✅ (for foundation_macros, foundation_codegen, system_operations)
 
 The `foundation_codegen` spec is fully implemented. All 5 features complete.
+
+## Related Specifications
+
+- `07-foundation-ai` — AI model inference backend (llama.cpp integration moved here)

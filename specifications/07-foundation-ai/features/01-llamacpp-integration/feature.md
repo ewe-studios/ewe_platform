@@ -1,8 +1,8 @@
 ---
 workspace_name: "ewe_platform"
-spec_directory: "specifications/06-foundation-codegen"
-feature_directory: "specifications/06-foundation-codegen/features/05-llamacpp-foundation-integration"
-this_file: "specifications/06-foundation-codegen/features/05-llamacpp-foundation-integration/feature.md"
+spec_directory: "specifications/07-foundation-ai"
+feature_directory: "specifications/07-foundation-ai/features/01-llamacpp-integration"
+this_file: "specifications/07-foundation-ai/features/01-llamacpp-integration/feature.md"
 
 feature: "llama.cpp Foundation AI Integration"
 description: "Complete integration of llama.cpp inference engine into foundation_ai backend via infrastructure_llama_cpp crate for local model execution"
@@ -10,7 +10,6 @@ status: pending
 priority: high
 depends_on:
   - "00-foundation"
-  - "04-wasm-entrypoint-toolchain"
 estimated_effort: "large"
 created: 2026-03-16
 last_updated: 2026-03-16
@@ -41,7 +40,6 @@ The integration provides:
 
 **Required Features:**
 - `00-foundation` - Core `foundation_codegen` types and error handling
-- `04-wasm-entrypoint-toolchain` - WASM binary generation for edge deployment
 
 **External Dependencies:**
 - `infrastructure_llama_cpp` - Safe Rust bindings to llama.cpp
