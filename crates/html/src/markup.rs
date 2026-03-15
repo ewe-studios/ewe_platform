@@ -98,8 +98,8 @@ impl<'a> Attribute<'a> {
         encoding: encoding::SharedEncoding,
     ) -> ElementResult<Self> {
         Ok(Self {
-            name: Some(Bytes::from_str(name, rc::Rc::clone(&encoding))),
-            value: Some(Bytes::from_str(value, rc::Rc::clone(&encoding))),
+            name: Some(Bytes::from_str(name, &rc::Rc::clone(&encoding))),
+            value: Some(Bytes::from_str(value, &rc::Rc::clone(&encoding))),
             encoding,
         })
     }
@@ -108,7 +108,7 @@ impl<'a> Attribute<'a> {
     #[must_use]
     pub fn name_lower(&self) -> Option<String> {
         if let Some(name) = self.name.clone() {
-            return Some(name.as_lower(rc::Rc::clone(&self.encoding)));
+            return Some(name.as_lower(&rc::Rc::clone(&self.encoding)));
         }
         None
     }
@@ -129,7 +129,7 @@ impl<'a> Attribute<'a> {
     #[must_use]
     pub fn name(&self) -> Option<String> {
         if let Some(name) = self.name.clone() {
-            return Some(name.to_string(rc::Rc::clone(&self.encoding)));
+            return Some(name.to_string(&rc::Rc::clone(&self.encoding)));
         }
         None
     }
@@ -138,7 +138,7 @@ impl<'a> Attribute<'a> {
     #[must_use]
     pub fn value(&self) -> Option<String> {
         if let Some(value) = self.value.clone() {
-            return Some(value.to_string(rc::Rc::clone(&self.encoding)));
+            return Some(value.to_string(&rc::Rc::clone(&self.encoding)));
         }
         None
     }
@@ -160,7 +160,7 @@ impl<'a> Attribute<'a> {
 
     #[inline]
     pub fn set_name(&mut self, name: &'a str) {
-        self.name = Some(Bytes::from_str(name, rc::Rc::clone(&self.encoding)));
+        self.name = Some(Bytes::from_str(name, &rc::Rc::clone(&self.encoding)));
     }
 
     #[inline]
@@ -170,7 +170,7 @@ impl<'a> Attribute<'a> {
 
     #[inline]
     pub fn set_value(&mut self, value: &'a str) {
-        self.value = Some(Bytes::from_str(value, rc::Rc::clone(&self.encoding)));
+        self.value = Some(Bytes::from_str(value, &rc::Rc::clone(&self.encoding)));
     }
 }
 
@@ -583,18 +583,18 @@ impl<'a> Fragment<'a> {
     }
 
     pub fn name(&mut self, name: &'a str) {
-        self.name = Some(Bytes::from_str(name, rc::Rc::clone(&self.encoding)));
+        self.name = Some(Bytes::from_str(name, &rc::Rc::clone(&self.encoding)));
     }
 
     pub fn add_attribute(&mut self, name: &'a str, value: &'a str) {
         self.update_attribute(
-            Bytes::from_str(name, self.encoding.clone()),
-            Bytes::from_str(value, self.encoding.clone()),
+            Bytes::from_str(name, &self.encoding.clone()),
+            Bytes::from_str(value, &self.encoding.clone()),
         );
     }
 
     pub fn has_attr(&mut self, name: &'a str) -> bool {
-        let encoded_str = Bytes::from_str(name, self.encoding.clone());
+        let encoded_str = Bytes::from_str(name, &self.encoding.clone());
         self.attributes.iter_mut().any(|attr_container| {
             ewe_trace::debug!("Checking attribute in list");
             if let Some(attr) = attr_container {
@@ -614,7 +614,7 @@ impl<'a> Fragment<'a> {
         tracing::instrument(level = "trace", skip_all)
     )]
     pub fn attr_value(&mut self, name: &'a str) -> Option<Bytes<'a>> {
-        let encoded_str = Bytes::from_str(name, self.encoding.clone());
+        let encoded_str = Bytes::from_str(name, &self.encoding.clone());
         match self.attributes.iter_mut().find(|attr_container| {
             if let Some(attr) = attr_container {
                 return attr.name_bytes().unwrap() == encoded_str;
@@ -841,12 +841,12 @@ mod markup_tests {
         let memory_limit = memory::MemoryLimiter::create_shared(10 * 10234 * 1024);
 
         let attribute_pool: AttributePool = memory::ArenaPool::create_shared(
-            rc::Rc::clone(&memory_limit),
+            &memory_limit,
             memory::FnGenerator::new(|_| Attribute::empty(encoding::UTF8Encoding::shared())),
         );
 
         let node_allocator: FragmentPool = memory::ArenaPool::create_shared(
-            memory_limit,
+            &memory_limit,
             NodeGenerator::new(shared_encoding.clone(), attribute_pool.clone()),
         );
 
@@ -875,12 +875,12 @@ mod markup_tests {
         let memory_limit = memory::MemoryLimiter::create_shared(10 * 10234 * 1024);
 
         let attribute_pool: AttributePool = memory::ArenaPool::create_shared(
-            rc::Rc::clone(&memory_limit),
+            &memory_limit,
             memory::FnGenerator::new(|_| Attribute::empty(encoding::UTF8Encoding::shared())),
         );
 
         let node_allocator: FragmentPool = memory::ArenaPool::create_shared(
-            memory_limit,
+            &memory_limit,
             NodeGenerator::new(shared_encoding.clone(), attribute_pool.clone()),
         );
 
@@ -911,12 +911,12 @@ mod markup_tests {
         let memory_limit = memory::MemoryLimiter::create_shared(10 * 10234 * 1024);
 
         let attribute_pool: AttributePool = memory::ArenaPool::create_shared(
-            rc::Rc::clone(&memory_limit),
+            &memory_limit,
             memory::FnGenerator::new(|_| Attribute::empty(encoding::UTF8Encoding::shared())),
         );
 
         let node_allocator: FragmentPool = memory::ArenaPool::create_shared(
-            memory_limit,
+            &memory_limit,
             NodeGenerator::new(shared_encoding.clone(), attribute_pool.clone()),
         );
 
@@ -941,12 +941,12 @@ mod markup_tests {
         let memory_limit = memory::MemoryLimiter::create_shared(10 * 10234 * 1024);
 
         let attribute_pool: AttributePool = memory::ArenaPool::create_shared(
-            rc::Rc::clone(&memory_limit),
+            &memory_limit,
             memory::FnGenerator::new(|_| Attribute::empty(encoding::UTF8Encoding::shared())),
         );
 
         let node_allocator: FragmentPool = memory::ArenaPool::create_shared(
-            memory_limit,
+            &memory_limit,
             NodeGenerator::new(shared_encoding.clone(), attribute_pool.clone()),
         );
 
@@ -971,12 +971,12 @@ mod markup_tests {
         let memory_limit = memory::MemoryLimiter::create_shared(10 * 10234 * 1024);
 
         let attribute_pool: AttributePool = memory::ArenaPool::create_shared(
-            rc::Rc::clone(&memory_limit),
+            &memory_limit,
             memory::FnGenerator::new(|_| Attribute::empty(encoding::UTF8Encoding::shared())),
         );
 
         let node_allocator: FragmentPool = memory::ArenaPool::create_shared(
-            memory_limit,
+            &memory_limit,
             NodeGenerator::new(shared_encoding.clone(), attribute_pool.clone()),
         );
 
@@ -1001,12 +1001,12 @@ mod markup_tests {
         let memory_limit = memory::MemoryLimiter::create_shared(10 * 10234 * 1024);
 
         let attribute_pool: AttributePool = memory::ArenaPool::create_shared(
-            rc::Rc::clone(&memory_limit),
+            &memory_limit,
             memory::FnGenerator::new(|_| Attribute::empty(encoding::UTF8Encoding::shared())),
         );
 
         let node_allocator: FragmentPool = memory::ArenaPool::create_shared(
-            memory_limit,
+            &memory_limit,
             NodeGenerator::new(shared_encoding.clone(), attribute_pool.clone()),
         );
 
@@ -1015,7 +1015,7 @@ mod markup_tests {
 
         assert_eq!(
             node.name.clone().unwrap(),
-            Bytes::from_str("div", shared_encoding.clone())
+            Bytes::from_str("div", &shared_encoding.clone())
         );
 
         node.add_attribute("width", "400px");
@@ -1029,12 +1029,12 @@ mod markup_tests {
 
         assert_eq!(
             node.attr_value("width").unwrap(),
-            Bytes::from_str("400px", shared_encoding.clone())
+            Bytes::from_str("400px", &shared_encoding.clone())
         );
 
         assert_eq!(
             node.attr_value("height").unwrap(),
-            Bytes::from_str("400px", shared_encoding.clone())
+            Bytes::from_str("400px", &shared_encoding.clone())
         );
 
         node_allocator.borrow_mut().deallocate(node);
