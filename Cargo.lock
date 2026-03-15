@@ -1083,6 +1083,7 @@ dependencies = [
  "serde_json",
  "serde_with",
  "signal-hook",
+ "system_operations",
  "thiserror",
  "tokio",
  "tower 0.4.13",
@@ -1434,6 +1435,7 @@ dependencies = [
  "quote",
  "sha2",
  "syn 2.0.114",
+ "trybuild",
 ]
 
 [[package]]
@@ -3649,6 +3651,17 @@ checksum = "8e1d1b10ced5ca923a1fcb8d03e96b8d3268065d724548c0211415ff6ac6bac4"
 dependencies = [
  "core-foundation-sys",
  "libc",
+]
+
+[[package]]
+name = "system_operations"
+version = "0.1.0"
+dependencies = [
+ "foundation_codegen",
+ "serde",
+ "tempfile",
+ "toml 0.9.8",
+ "toml_edit 0.22.27",
 ]
 
 [[package]]

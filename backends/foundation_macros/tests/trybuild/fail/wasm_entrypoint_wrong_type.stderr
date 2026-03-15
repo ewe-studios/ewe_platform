@@ -1,0 +1,5 @@
+error: `name` must be a string literal
+ --> tests/trybuild/fail/wasm_entrypoint_wrong_type.rs:3:19
+  |
+3 | #[wasm_entrypoint(name = 42, desc = "wrong type")]
+  |                   ^^^^

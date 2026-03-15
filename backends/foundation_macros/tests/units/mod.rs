@@ -1,0 +1,1 @@
+mod foundation_macros_wasm_entrypoint_tests;

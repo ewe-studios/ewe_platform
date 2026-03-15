@@ -11,6 +11,7 @@ keywords = ["ewe-platform", "ewe-platform-cli", "ewe-platform-binary"]
 
 [dependencies]
 # -- workspace dependency
+system_operations = { workspace = true }
 ewe_temple = { workspace = true }
 ewe_watch_utils = { workspace = true }
 ewe_watchers = { workspace = true }

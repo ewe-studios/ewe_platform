@@ -61,13 +61,47 @@
 - `backends/foundation_codegen/src/registry.rs` — new
 - Test files in `tests/` and `tests/units/`
 
+### Feature 04: wasm-entrypoint-toolchain ✅
+- **Component 1: `wasm_entrypoint` Proc Macro**
+  - Created `backends/foundation_macros/src/wasm_entrypoint.rs` — attribute proc macro implementation
+  - Added `#[proc_macro_attribute] pub fn wasm_entrypoint` to `backends/foundation_macros/src/lib.rs`
+  - Added `syn` `full` + `parsing` + `extra-traits` features to foundation_macros Cargo.toml
+  - Added `trybuild` dev-dependency for compile-fail tests
+  - Created 5 trybuild test cases (1 pass, 4 fail) — all passing
+- **Component 2: `system_operations` Crate**
+  - Created `crates/system_operations/Cargo.toml` with workspace-inherited settings
+  - Added `system_operations` and `toml_edit` to workspace dependencies in root Cargo.toml
+  - Created `src/lib.rs` → `src/wasm_bins/mod.rs` with `WasmBinGenerator` struct
+  - Created `src/wasm_bins/error.rs` — `WasmBinError` enum with manual Display/Error impls
+  - Created `src/wasm_bins/validator.rs` — crate validation (cdylib/bin/no-lib)
+  - Created `src/wasm_bins/planner.rs` — dry-run plan builder
+  - Created `src/wasm_bins/generator.rs` — file creation + Cargo.toml update via `toml_edit`
+  - Created test fixtures: `wasm_crate` (cdylib, 3 entrypoints) + `rlib_crate` (invalid)
+  - 9 tests passing (5 integration + 4 validator), fmt + clippy clean
+- **Component 3: `wasm_bins` Platform Subcommand**
+  - Created `bin/platform/src/wasm_bins/mod.rs` with `register()` + `run()` + `list`/`generate` handlers
+  - Registered in `bin/platform/src/main.rs` (added to chain + match)
+  - Added `system_operations` dependency to `bin/platform/Cargo.toml`
+  - Note: `ewe_platform` binary has pre-existing build errors in `foundation_ai` (unrelated)
+
+### Files Modified (Feature 04)
+- `Cargo.toml` (workspace root) — added `system_operations`, `toml_edit` workspace deps
+- `backends/foundation_macros/Cargo.toml` — added `syn` features, `trybuild` dev-dep
+- `backends/foundation_macros/src/lib.rs` — added `wasm_entrypoint` attribute proc macro
+- `backends/foundation_macros/src/wasm_entrypoint.rs` — new
+- `backends/foundation_macros/tests/` — new test structure with trybuild pass/fail fixtures
+- `crates/system_operations/` — entire new crate
+- `bin/platform/src/main.rs` — registered `wasm_bins` subcommand
+- `bin/platform/src/wasm_bins/mod.rs` — new
+- `bin/platform/Cargo.toml` — added `system_operations` dep
+
 ## Remaining
 
 None — all features complete!
 
 ## Summary
 
-**Total Tests:** 74 (all passing)
-**Code Quality:** `cargo fmt` ✅, `cargo clippy -D warnings` ✅
+**Total Tests:** 84 (74 foundation_codegen + 1 trybuild/5 cases foundation_macros + 9 system_operations)
+**Code Quality:** `cargo fmt` ✅, `cargo clippy -D warnings` ✅ (for foundation_macros, foundation_codegen, system_operations)
 
-The `foundation_codegen` crate is now complete and ready for use as a dependency in build.rs scripts or standalone tools.
+The `foundation_codegen` spec is fully implemented. All 5 features complete.
