@@ -48,7 +48,7 @@ fn plan_produces_correct_bin_sections() {
 }
 
 #[test]
-fn plan_generated_files_contain_correct_content() {
+fn plan_generates_files_contain_correct_content() {
     let fixture_dir = Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/wasm_crate");
     let generator = WasmBinGenerator::new(&fixture_dir).expect("should scan fixture crate");
     let plan = generator.plan().expect("should produce plan");
@@ -66,7 +66,52 @@ fn plan_generated_files_contain_correct_content() {
             file.content.contains("pub extern \"C\" fn main()"),
             "generated file should have extern C main"
         );
+        assert!(
+            file.content.contains("use "),
+            "generated file should have use statement for importing entrypoint function"
+        );
     }
+}
+
+#[test]
+fn generated_files_contain_correct_use_statements() {
+    let fixture_dir = Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/wasm_crate");
+    let generator = WasmBinGenerator::new(&fixture_dir).expect("should scan fixture crate");
+    let plan = generator.plan().expect("should produce plan");
+
+    // Find the auth_worker generated file and verify its use statement
+    let auth_file = plan
+        .generated_files
+        .iter()
+        .find(|f| f.path.to_str().unwrap().contains("auth_worker"))
+        .expect("should have auth_worker file");
+    assert!(
+        auth_file
+            .content
+            .contains("use test_wasm_crate::handlers::auth_handler;"),
+        "auth_worker should import from test_wasm_crate::handlers::auth_handler"
+    );
+    assert!(
+        auth_file.content.contains("auth_handler();"),
+        "auth_worker main() should call auth_handler()"
+    );
+
+    // Find the root_worker generated file and verify its use statement
+    let root_file = plan
+        .generated_files
+        .iter()
+        .find(|f| f.path.to_str().unwrap().contains("root_worker"))
+        .expect("should have root_worker file");
+    assert!(
+        root_file
+            .content
+            .contains("use test_wasm_crate::root_entry;"),
+        "root_worker should import from test_wasm_crate::root_entry"
+    );
+    assert!(
+        root_file.content.contains("root_entry();"),
+        "root_worker main() should call root_entry()"
+    );
 }
 
 #[test]
