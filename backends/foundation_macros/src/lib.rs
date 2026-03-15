@@ -1,6 +1,7 @@
 use proc_macro::TokenStream;
 
 mod embedders;
+mod wasm_entrypoint;
 
 /// [`embed_directory_as`] specifies a proc macro for embedding files into
 /// your binary as a series of UTF8 array and UTF16 array with
@@ -105,4 +106,37 @@ pub fn embed_directory_as(item: TokenStream) -> TokenStream {
 )]
 pub fn embed_file_as(item: TokenStream) -> TokenStream {
     embedders::embed_file_on_struct(item)
+}
+
+/// WHY: WASM binary entrypoints need a discoverable marker so the source
+/// scanner can find them without linker tricks (which don't work on WASM).
+///
+/// WHAT: Attribute proc macro that marks a function as a WASM binary entrypoint.
+///
+/// HOW: Validates the attribute has `name` and `desc` string arguments,
+/// verifies it's applied to a function, then passes the function through
+/// unchanged. The `foundation_codegen` scanner discovers these at build time.
+///
+/// # Required Attributes
+///
+/// - `name` — string literal naming the WASM binary (e.g., `name = "auth_worker"`)
+/// - `desc` — string literal describing the entrypoint
+///
+/// # Examples
+///
+/// ```ignore
+/// use foundation_macros::wasm_entrypoint;
+///
+/// #[wasm_entrypoint(name = "auth_worker", desc = "Authentication worker")]
+/// pub fn auth_handler() {
+///     // Function body
+/// }
+/// ```
+///
+/// # Panics
+///
+/// Never panics. Returns compile errors for invalid usage.
+#[proc_macro_attribute]
+pub fn wasm_entrypoint(attr: TokenStream, item: TokenStream) -> TokenStream {
+    wasm_entrypoint::expand(attr.into(), item.into()).into()
 }

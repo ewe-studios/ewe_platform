@@ -38,3 +38,14 @@
 - **Workspace member parsing**: Can extract `workspace.members` from `Cargo.toml` using `toml::Value` navigation, but glob patterns require manual handling.
 - **Doctest hygiene**: Use `no_run` and import statements in doc examples to avoid compilation failures during doctest runs.
 - **Merge patterns**: Multi-crate scanning merges results by iterating and re-keying to avoid collisions.
+
+## New Learnings (Feature 04)
+
+- **Attribute proc macros vs derive macros**: `#[proc_macro_attribute]` receives both `attr` (the attribute args) and `item` (the annotated item) as `TokenStream`. Derive macros only get the item. For marker macros, return the item unchanged.
+- **`syn` features in proc-macro crates**: The `foundation_macros` crate originally used `syn >= 2.0` without the `full` feature. To parse `ItemFn` (and other full AST items), you must enable `features = ["full"]`.
+- **`trybuild` for proc macro testing**: Creates `.stderr` files for expected compile errors. First run generates them in a `wip/` directory; copy to `tests/trybuild/fail/` to accept.
+- **`toml_edit` type inference issues**: `toml_edit`'s API uses associated types that Rust can't always infer. Extract closures into named functions or add explicit type annotations (e.g., `|e: toml_edit::TomlError|`).
+- **`toml_edit::DocumentMut` for preserving formatting**: Unlike `toml::Value`, `toml_edit` preserves comments and whitespace when modifying Cargo.toml files.
+- **`&PathBuf` vs `&Path`**: Clippy pedantic flags `&PathBuf` in function parameters — always use `&Path` for function args, `PathBuf` for owned fields.
+- **Test fixtures for source scanning**: The scanner finds `#[wasm_entrypoint(...)]` by attribute name in source text — fixtures don't need to depend on the proc macro crate. Just write the attribute as raw text.
+- **Pre-existing build errors**: The `ewe_platform` binary has pre-existing errors in `foundation_ai` (conflicting `From` impls on types with `derive_more::From`). Our `wasm_bins` subcommand code is correct but the full binary can't build until those are fixed.
