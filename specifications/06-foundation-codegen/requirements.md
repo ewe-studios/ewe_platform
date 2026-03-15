@@ -28,10 +28,10 @@ builds_on: []
 related_specs:
   - "specifications/03-wasm-friendly-sync-primitives"
 features:
-  completed: 0
-  uncompleted: 4
-  total: 4
-  completion_percentage: 0%
+  completed: 4
+  uncompleted: 1
+  total: 5
+  completion_percentage: 80%
 ---
 
 # Foundation Codegen - Source-Scanning Code Generation Library
@@ -119,24 +119,29 @@ Features are listed in dependency order. Each feature contains detailed requirem
 
 ### Features (4 total)
 
-1. **[foundation](./features/00-foundation/feature.md)** - Pending
+1. **[foundation](./features/00-foundation/feature.md)** - Completed
    - Description: Core types, error handling, crate metadata extraction from Cargo.toml
    - Dependencies: None
-   - Status: Pending
+   - Status: Completed
 
-2. **[source-scanner](./features/01-source-scanner/feature.md)** - Pending
+2. **[source-scanner](./features/01-source-scanner/feature.md)** - Completed
    - Description: File walking, syn parsing, AST visitor that finds macro-annotated items
    - Dependencies: #0 (foundation)
-   - Status: Pending
+   - Status: Completed
 
-3. **[module-path-resolver](./features/02-module-path-resolver/feature.md)** - Pending
+3. **[module-path-resolver](./features/02-module-path-resolver/feature.md)** - Completed
    - Description: Resolves filesystem paths to Rust module paths, handles mod.rs and inline modules
    - Dependencies: #0 (foundation)
-   - Status: Pending
+   - Status: Completed
 
-4. **[registry-api](./features/03-registry-api/feature.md)** - Pending
+4. **[registry-api](./features/03-registry-api/feature.md)** - Completed
    - Description: CrateScanner public API, HashMap construction, multi-crate scanning, grouping utilities
    - Dependencies: #0, #1, #2
+   - Status: Completed
+
+5. **[wasm-entrypoint-toolchain](./features/04-wasm-entrypoint-toolchain/feature.md)** - Pending
+   - Description: `wasm_entrypoint` proc macro, `system_operations` crate with `WasmBinGenerator`, and `wasm_bins` platform subcommand for listing/generating WASM binary entrypoints
+   - Dependencies: #0, #1, #2, #3
    - Status: Pending
 
 ## Requirements Conversation Summary

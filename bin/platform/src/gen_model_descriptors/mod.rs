@@ -588,6 +588,14 @@ fn fetch_models_dev(client: &SimpleHttpClient) -> Vec<ModelEntry> {
             default_max: 4096,
         },
         Cfg {
+            key: "azure",
+            api: "azure-openai-responses",
+            provider: "azure",
+            base_url: "https://{YOUR_RESOURCE_NAME}.openai.azure.com/openai",
+            default_ctx: 4096,
+            default_max: 4096,
+        },
+        Cfg {
             key: "groq",
             api: "openai-completions",
             provider: "groq",

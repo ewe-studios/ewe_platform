@@ -1,7 +1,9 @@
 //! Core definition for what models entail
 
+use std::collections::HashMap;
 use std::path::PathBuf;
 
+use foundation_core::extensions::strings_ext::IntoString;
 use foundation_core::valtron::StreamIterator;
 use foundation_core::wire::simple_http::url::Uri;
 use serde::{Deserialize, Serialize};
@@ -28,6 +30,164 @@ impl DeviceId {
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, PartialOrd)]
+pub enum CacheRetention {
+    None,
+    Short,
+    Long,
+    Custom(String),
+}
+
+impl From<String> for CacheRetention {
+    fn from(value: String) -> Self {
+        match value.as_str() {
+            "none" => Self::None,
+            "short" => Self::Short,
+            "long" => Self::Long,
+            _ => Self::Custom(value),
+        }
+    }
+}
+
+impl From<&'static str> for CacheRetention {
+    fn from(value: &'static str) -> Self {
+        match value {
+            "none" => Self::None,
+            "short" => Self::Short,
+            "long" => Self::Long,
+            _ => Self::Custom(value.to_string()),
+        }
+    }
+}
+
+#[derive(Serialize, Deserialize, Debug, Copy, Clone, PartialEq, PartialOrd)]
+pub struct ThinkingBudget {
+    pub minimal: f64,
+    pub medium: f64,
+    pub low: f64,
+    pub high: f64,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, PartialOrd)]
+pub enum ThinkingLevels {
+    Minimal,
+    Low,
+    Medium,
+    High,
+    Custom(String),
+}
+
+impl From<String> for ThinkingLevels {
+    fn from(value: String) -> Self {
+        match value.as_str() {
+            "low" => Self::Low,
+            "high" => Self::High,
+            "medium" => Self::Medium,
+            "minimal" => Self::Minimal,
+            _ => Self::Custom(value),
+        }
+    }
+}
+
+impl From<&'static str> for ThinkingLevels {
+    fn from(value: &'static str) -> Self {
+        match value {
+            "low" => Self::Low,
+            "high" => Self::High,
+            "medium" => Self::Medium,
+            "minimal" => Self::Minimal,
+            _ => Self::Custom(value.to_string()),
+        }
+    }
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, PartialOrd)]
+pub enum KnownModelProviders {
+    AMAZONBEDROCK,
+    ANTHROPIC,
+    GOOGLE,
+    GOOGLEGEMINICLI,
+    GOOGLEANTIGRAVITY,
+    GOOGLEVERTEX,
+    OPENAI,
+    AZUREOPENAIRESPONSES,
+    OPENAICODEX,
+    GITHUBCOPILOT,
+    XAI,
+    GROQ,
+    CEREBRAS,
+    OPENROUTER,
+    VERCELAIGATEWAY,
+    ZAI,
+    MISTRAL,
+    MINIMAX,
+    MINIMAXCN,
+    HUGGINGFACE,
+    OPENCODE,
+    KIMICODING,
+    Custom(String),
+}
+
+impl From<&'static str> for KnownModelProviders {
+    fn from(value: &'static str) -> Self {
+        match value {
+            "amazon-bedrock" => Self::AMAZONBEDROCK,
+            "anthropic" => Self::ANTHROPIC,
+            "google" => Self::GOOGLE,
+            "google-gemini-cli" => Self::GOOGLEGEMINICLI,
+            "google-antigravity" => Self::GOOGLEANTIGRAVITY,
+            "google-vertex" => Self::GOOGLEVERTEX,
+            "openai" => Self::OPENAI,
+            "azure-openai-responses" => Self::AZUREOPENAIRESPONSES,
+            "openai-codex" => Self::OPENAICODEX,
+            "github-copilot" => Self::GITHUBCOPILOT,
+            "xai" => Self::XAI,
+            "groq" => Self::GROQ,
+            "cerebras" => Self::CEREBRAS,
+            "openrouter" => Self::OPENROUTER,
+            "vercel-ai-gateway" => Self::VERCELAIGATEWAY,
+            "zai" => Self::ZAI,
+            "mistral" => Self::MISTRAL,
+            "minimax" => Self::MINIMAX,
+            "minimax-cn" => Self::MINIMAXCN,
+            "huggingface" => Self::HUGGINGFACE,
+            "opencode" => Self::OPENCODE,
+            "kimi-coding" => Self::KIMICODING,
+            _ => Self::Custom(value.to_string()),
+        }
+    }
+}
+
+impl From<String> for KnownModelProviders {
+    fn from(value: String) -> Self {
+        match value.as_str() {
+            "amazon-bedrock" => Self::AMAZONBEDROCK,
+            "anthropic" => Self::ANTHROPIC,
+            "google" => Self::GOOGLE,
+            "google-gemini-cli" => Self::GOOGLEGEMINICLI,
+            "google-antigravity" => Self::GOOGLEANTIGRAVITY,
+            "google-vertex" => Self::GOOGLEVERTEX,
+            "openai" => Self::OPENAI,
+            "azure-openai-responses" => Self::AZUREOPENAIRESPONSES,
+            "openai-codex" => Self::OPENAICODEX,
+            "github-copilot" => Self::GITHUBCOPILOT,
+            "xai" => Self::XAI,
+            "groq" => Self::GROQ,
+            "cerebras" => Self::CEREBRAS,
+            "openrouter" => Self::OPENROUTER,
+            "vercel-ai-gateway" => Self::VERCELAIGATEWAY,
+            "zai" => Self::ZAI,
+            "mistral" => Self::MISTRAL,
+            "minimax" => Self::MINIMAX,
+            "minimax-cn" => Self::MINIMAXCN,
+            "huggingface" => Self::HUGGINGFACE,
+            "opencode" => Self::OPENCODE,
+            "kimi-coding" => Self::KIMICODING,
+            _ => Self::Custom(value),
+        }
+    }
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, PartialOrd)]
 pub enum ModelAPI {
     OpenAICompletions,
     OpenAIResponses,
@@ -39,6 +199,40 @@ pub enum ModelAPI {
     GoogleGeminiCli,
     GoogleVertex,
     Custom(String),
+}
+
+impl From<String> for ModelAPI {
+    fn from(value: String) -> Self {
+        match value.as_str() {
+            "openai-completions" => Self::OpenAICompletions,
+            "openai-responses" => Self::OpenAIResponses,
+            "azure-openai-responses" => Self::AzureOpenaiResponses,
+            "openai-codex-responses" => Self::OpenaiCodexResponses,
+            "anthropic-messages" => Self::AnthropicMessages,
+            "bedrock-converse-stream" => Self::BedrockConverseStream,
+            "google-generative-ai" => Self::GoogleGenerativeAi,
+            "google-gemini-cli" => Self::GoogleGeminiCli,
+            "google-vertex" => Self::GoogleVertex,
+            _ => Self::Custom(value),
+        }
+    }
+}
+
+impl From<&'static str> for ModelAPI {
+    fn from(value: &'static str) -> Self {
+        match value {
+            "openai-completions" => Self::OpenAICompletions,
+            "openai-responses" => Self::OpenAIResponses,
+            "azure-openai-responses" => Self::AzureOpenaiResponses,
+            "openai-codex-responses" => Self::OpenaiCodexResponses,
+            "anthropic-messages" => Self::AnthropicMessages,
+            "bedrock-converse-stream" => Self::BedrockConverseStream,
+            "google-generative-ai" => Self::GoogleGenerativeAi,
+            "google-gemini-cli" => Self::GoogleGeminiCli,
+            "google-vertex" => Self::GoogleVertex,
+            _ => Self::Custom(value.into_string()),
+        }
+    }
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, PartialOrd)]
@@ -123,14 +317,9 @@ pub struct ModelParams {
     pub repeat_penalty: f32,
     pub seed: Option<u32>,
     pub stop_tokens: Vec<String>,
-}
-
-/// [`ResponseSpec`] defines expectation for how a response specification
-/// should be returned.
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, PartialOrd)]
-pub struct ResponseConfig {
-    pub call_spec: ModelParams,
-    pub streaming: bool,
+    pub thinking_level: ThinkingLevels,
+    pub cache_retention: CacheRetention,
+    pub thinking_budget: Option<ThinkingBudget>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, PartialOrd)]
@@ -143,7 +332,8 @@ pub struct ModelConfig {
     /// The [`ResponseConfig`] defines the properties controlling
     /// how we want this to overall output
     /// temperature, `top_k``top_p`, etc
-    pub response_config: ResponseConfig,
+    pub params: ModelParams,
+    pub streaming: bool,
 }
 
 pub enum ModelSource {
@@ -161,17 +351,146 @@ pub enum ModelSource {
 }
 
 #[derive(Serialize, Deserialize, Debug, Copy, Clone, PartialEq, PartialOrd)]
-pub enum MessageType {
-    Text,
-    Images,
-}
-
-#[derive(Serialize, Deserialize, Debug, Copy, Clone, PartialEq, PartialOrd)]
 pub struct ModelUsageCosting {
     pub input: f64,
     pub output: f64,
     pub cach_read: f64,
     pub cach_write: f64,
+}
+
+#[derive(Serialize, Deserialize, Debug, Copy, Clone, PartialEq, PartialOrd)]
+pub enum MessageType {
+    Text,
+    Images,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, PartialOrd)]
+pub enum MimeType {
+    TextPlain,
+    TextHtml,
+    TextMarkdown,
+    TextXml,
+    TextCss,
+    ApplicationJson,
+    ApplicationXml,
+    ApplicationOctetStream,
+    ApplicationPdf,
+    ImagePng,
+    ImageJpeg,
+    ImageGif,
+    ImageWebp,
+    ImageSvgXml,
+    ImageBmp,
+    AudioMp3,
+    AudioWav,
+    AudioOgg,
+    AudioMpeg,
+    VideoMp4,
+    VideoWebm,
+    VideoOgg,
+    Custom(String),
+}
+
+impl From<&'static str> for MimeType {
+    fn from(value: &'static str) -> Self {
+        match value {
+            "text/plain" => Self::TextPlain,
+            "text/html" => Self::TextHtml,
+            "text/markdown" => Self::TextMarkdown,
+            "text/xml" => Self::TextXml,
+            "text/css" => Self::TextCss,
+            "application/json" => Self::ApplicationJson,
+            "application/xml" => Self::ApplicationXml,
+            "application/octet-stream" => Self::ApplicationOctetStream,
+            "application/pdf" => Self::ApplicationPdf,
+            "image/png" => Self::ImagePng,
+            "image/jpeg" => Self::ImageJpeg,
+            "image/gif" => Self::ImageGif,
+            "image/webp" => Self::ImageWebp,
+            "image/svg+xml" => Self::ImageSvgXml,
+            "image/bmp" => Self::ImageBmp,
+            "audio/mp3" => Self::AudioMp3,
+            "audio/wav" => Self::AudioWav,
+            "audio/ogg" => Self::AudioOgg,
+            "audio/mpeg" => Self::AudioMpeg,
+            "video/mp4" => Self::VideoMp4,
+            "video/webm" => Self::VideoWebm,
+            "video/ogg" => Self::VideoOgg,
+            _ => Self::Custom(value.to_string()),
+        }
+    }
+}
+
+impl From<String> for MimeType {
+    fn from(value: String) -> Self {
+        match value.as_str() {
+            "text/plain" => Self::TextPlain,
+            "text/html" => Self::TextHtml,
+            "text/markdown" => Self::TextMarkdown,
+            "text/xml" => Self::TextXml,
+            "text/css" => Self::TextCss,
+            "application/json" => Self::ApplicationJson,
+            "application/xml" => Self::ApplicationXml,
+            "application/octet-stream" => Self::ApplicationOctetStream,
+            "application/pdf" => Self::ApplicationPdf,
+            "image/png" => Self::ImagePng,
+            "image/jpeg" => Self::ImageJpeg,
+            "image/gif" => Self::ImageGif,
+            "image/webp" => Self::ImageWebp,
+            "image/svg+xml" => Self::ImageSvgXml,
+            "image/bmp" => Self::ImageBmp,
+            "audio/mp3" => Self::AudioMp3,
+            "audio/wav" => Self::AudioWav,
+            "audio/ogg" => Self::AudioOgg,
+            "audio/mpeg" => Self::AudioMpeg,
+            "video/mp4" => Self::VideoMp4,
+            "video/webm" => Self::VideoWebm,
+            "video/ogg" => Self::VideoOgg,
+            _ => Self::Custom(value),
+        }
+    }
+}
+
+#[derive(Serialize, Deserialize, Debug, Copy, Clone, PartialEq, PartialOrd)]
+pub enum ArgType {
+    Text(String),
+    Float32(f32),
+    Float64(f64),
+    Usize(usize),
+    U8(u8),
+    U16(u16),
+    U32(u32),
+    U64(u64),
+    U128(u128),
+    Isize(isize),
+    I8(i8),
+    I16(i16),
+    I32(i32),
+    I64(i64),
+    I128(i128),
+    Duration(std::time::Duration),
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+pub enum ModelOutput {
+    Text {
+        content: String,
+        signature: Option<String>,
+    },
+    ThinkingContent {
+        thinking: String,
+        signature: Option<String>,
+    },
+    Image {
+        b64: String,
+        mime_type: MimeType,
+    },
+    ToolCall {
+        id: String,
+        name: String,
+        arguments: Option<HashMap<String, ArgType>>,
+        signature: Option<String>,
+    },
 }
 
 pub trait ModelProvider {
