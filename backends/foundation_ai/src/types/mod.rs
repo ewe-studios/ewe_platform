@@ -3,6 +3,7 @@
 use std::collections::HashMap;
 use std::path::PathBuf;
 
+use derive_more::From;
 use foundation_core::extensions::strings_ext::IntoString;
 use foundation_core::valtron::StreamIterator;
 use foundation_core::wire::simple_http::url::Uri;
@@ -12,7 +13,7 @@ use crate::errors::GenerationResult;
 use crate::errors::ModelProviderResult;
 use crate::errors::ModelResult;
 
-#[derive(Serialize, Deserialize, Debug, Copy, Clone, PartialEq, PartialOrd)]
+#[derive(From, Serialize, Deserialize, Debug, Copy, Clone, PartialEq, PartialOrd)]
 pub struct DeviceId(u16);
 
 impl DeviceId {
@@ -59,7 +60,7 @@ impl From<&'static str> for CacheRetention {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug, Copy, Clone, PartialEq, PartialOrd)]
+#[derive(From, Serialize, Deserialize, Debug, Copy, Clone, PartialEq, PartialOrd)]
 pub struct ThinkingBudget {
     pub minimal: f64,
     pub medium: f64,
@@ -235,7 +236,7 @@ impl From<&'static str> for ModelAPI {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, PartialOrd)]
+#[derive(From, Serialize, Deserialize, Debug, Clone, PartialEq, PartialOrd)]
 pub struct ModelProviderDescriptor {
     pub id: String,
     pub name: String,
@@ -250,7 +251,7 @@ pub struct ModelProviderDescriptor {
 }
 
 #[allow(non_camel_case_types)]
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, PartialOrd)]
+#[derive(From, Serialize, Deserialize, Debug, Clone, PartialEq, PartialOrd)]
 pub enum Quantization {
     None,
     Default,
@@ -308,7 +309,7 @@ pub enum ModelId {
 
 /// [`CallSpec`] defines the calling configuration for the model
 /// which can be customized as needed for different use-case.
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, PartialOrd)]
+#[derive(From, Serialize, Deserialize, Debug, Clone, PartialEq, PartialOrd)]
 pub struct ModelParams {
     pub max_tokens: usize,
     pub temperature: f32,
@@ -322,7 +323,7 @@ pub struct ModelParams {
     pub thinking_budget: Option<ThinkingBudget>,
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, PartialOrd)]
+#[derive(From, Serialize, Deserialize, Debug, Clone, PartialEq, PartialOrd)]
 pub struct ModelConfig {
     // standard model properties
     pub context_length: usize,
@@ -350,7 +351,7 @@ pub enum ModelSource {
     LocalDirectory(PathBuf),
 }
 
-#[derive(Serialize, Deserialize, Debug, Copy, Clone, PartialEq, PartialOrd)]
+#[derive(From, Serialize, Deserialize, Debug, Copy, Clone, PartialEq, PartialOrd)]
 pub struct ModelUsageCosting {
     pub input: f64,
     pub output: f64,
@@ -364,7 +365,7 @@ pub enum MessageType {
     Images,
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, PartialOrd)]
+#[derive(From, Serialize, Deserialize, Debug, Clone, PartialEq, PartialOrd)]
 pub enum MimeType {
     TextPlain,
     TextHtml,
@@ -388,6 +389,8 @@ pub enum MimeType {
     VideoMp4,
     VideoWebm,
     VideoOgg,
+
+    #[from(ignore)]
     Custom(String),
 }
 
@@ -451,7 +454,7 @@ impl From<String> for MimeType {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug, Copy, Clone, PartialEq, PartialOrd)]
+#[derive(From, Serialize, Deserialize, Debug, Clone, PartialEq, PartialOrd)]
 pub enum ArgType {
     Text(String),
     Float32(f32),
@@ -471,24 +474,67 @@ pub enum ArgType {
     Duration(std::time::Duration),
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+/// [`UsageCosting`] represents the overal costing in actual currency value.
+#[derive(From, Serialize, Deserialize, Debug, Clone, PartialEq)]
+pub struct UsageCosting {
+    pub curreny: String,
+    pub input: f64,
+    pub output: f64,
+    pub cache_read: f64,
+    pub cache_write: f64,
+    pub total_tokens: f64,
+}
+
+/// [`UsageReport`] represents the accumulated usage at the point in time of
+/// generation and the overal costing of that usage.
+#[derive(From, Serialize, Deserialize, Debug, Clone, PartialEq)]
+pub struct UsageReport {
+    pub input: f64,
+    pub output: f64,
+    pub cache_read: f64,
+    pub cache_write: f64,
+    pub total_tokens: f64,
+    pub cost: UsageCosting,
+}
+
+#[derive(From, Serialize, Deserialize, Debug, Clone, PartialEq)]
+pub struct TextOutput {
+    pub content: String,
+    pub signature: Option<String>,
+}
+
+#[derive(From, Serialize, Deserialize, Debug, Clone, PartialEq)]
+pub struct ImageOutput {
+    pub b64: String,
+    pub mime_type: MimeType,
+}
+
+#[derive(From, Serialize, Deserialize, Debug, Clone, PartialEq)]
+pub enum UserModelOutput {
+    Text(TextOutput),
+    Image(ImageOutput),
+}
+
+#[derive(From, Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub enum ModelOutput {
-    Text {
-        content: String,
-        signature: Option<String>,
-    },
+    Text(TextOutput),
+    Image(ImageOutput),
     ThinkingContent {
         thinking: String,
         signature: Option<String>,
-    },
-    Image {
-        b64: String,
-        mime_type: MimeType,
     },
     ToolCall {
         id: String,
         name: String,
         arguments: Option<HashMap<String, ArgType>>,
+        signature: Option<String>,
+    },
+}
+
+pub enum Messages {
+    UserMessage {
+        role: String,
+        content: UserModelOutput,
         signature: Option<String>,
     },
 }
@@ -534,6 +580,13 @@ pub struct ModelSpec {
 pub trait Model {
     /// [`spec`] returns model specification information for this target model.
     fn spec(&self) -> ModelSpec;
+
+    /// [`costing`] returns model usage costing report.
+    ///
+    /// # Errors
+    ///
+    /// Returns a [`GenerationError`] if the underlying model fails to generate output.
+    fn costing(&self) -> GenerationResult<UsageReport>;
 
     /// [`text`] calls the [`Model::generate`] method internally which
     /// should specifically take in a prompt and generate a text output.
