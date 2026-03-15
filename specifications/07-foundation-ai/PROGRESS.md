@@ -39,6 +39,7 @@ None planned — Feature 01 covers the complete llama.cpp integration.
 ```
 specifications/07-foundation-ai/
 ├── PROGRESS.md           # This file
+├── requirements.md       # Full specification requirements
 └── features/
     └── 01-llamacpp-integration/
         ├── feature.md    # Full specification
