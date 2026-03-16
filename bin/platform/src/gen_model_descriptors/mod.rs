@@ -113,8 +113,8 @@ fn verify_struct_shape() -> ModelProviderDescriptor {
         cost: ModelUsageCosting {
             input: 0.0,
             output: 0.0,
-            cach_read: 0.0,
-            cach_write: 0.0,
+            cache_read: 0.0,
+            cache_write: 0.0,
         },
         context_window: 0,
         max_tokens: 0,
@@ -136,8 +136,8 @@ struct ModelEntry {
     has_image_input: bool,
     cost_input: f64,
     cost_output: f64,
-    cost_cach_read: f64,
-    cost_cach_write: f64,
+    cost_cache_read: f64,
+    cost_cache_write: f64,
     context_window: u32,
     max_tokens: u32,
 }
@@ -506,8 +506,8 @@ fn entry(
         has_image_input,
         cost_input: cost.0,
         cost_output: cost.1,
-        cost_cach_read: cost.2,
-        cost_cach_write: cost.3,
+        cost_cache_read: cost.2,
+        cost_cache_write: cost.3,
         context_window,
         max_tokens,
     }
@@ -1399,15 +1399,15 @@ fn has(models: &[ModelEntry], provider: &str, id: &str) -> bool {
 fn apply_overrides(models: &mut Vec<ModelEntry>) {
     for m in models.iter_mut() {
         if m.provider == "anthropic" && m.id == "claude-opus-4-5" {
-            m.cost_cach_read = 0.5;
-            m.cost_cach_write = 6.25;
+            m.cost_cache_read = 0.5;
+            m.cost_cache_write = 6.25;
         }
     }
 
     for m in models.iter_mut() {
         if m.provider == "amazon-bedrock" && m.id.contains("anthropic.claude-opus-4-6-v1") {
-            m.cost_cach_read = 0.5;
-            m.cost_cach_write = 6.25;
+            m.cost_cache_read = 0.5;
+            m.cost_cache_write = 6.25;
             m.context_window = 200_000;
         }
         if (m.provider == "anthropic" || m.provider == "opencode") && m.id == "claude-opus-4-6" {
@@ -1710,8 +1710,8 @@ pub fn model_descriptors() -> Vec<ModelProviderDescriptor> {
             cost: ModelUsageCosting {{
                 input: {ci},
                 output: {co},
-                cach_read: {cr},
-                cach_write: {cw},
+                cache_read: {cr},
+                cache_write: {cw},
             }},
             context_window: {context_window},
             max_tokens: {max_tokens},
@@ -1725,8 +1725,8 @@ pub fn model_descriptors() -> Vec<ModelProviderDescriptor> {
                 reasoning = m.reasoning,
                 ci = format_f64(m.cost_input),
                 co = format_f64(m.cost_output),
-                cr = format_f64(m.cost_cach_read),
-                cw = format_f64(m.cost_cach_write),
+                cr = format_f64(m.cost_cache_read),
+                cw = format_f64(m.cost_cache_write),
                 context_window = format_u32(m.context_window),
                 max_tokens = format_u32(m.max_tokens),
             );
