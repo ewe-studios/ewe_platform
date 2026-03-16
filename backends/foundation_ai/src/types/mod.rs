@@ -2,7 +2,10 @@
 
 use std::collections::HashMap;
 use std::path::PathBuf;
+use std::time::Instant;
+use std::time::SystemTime;
 
+use chrono::DateTime;
 use derive_more::From;
 use foundation_core::extensions::strings_ext::IntoString;
 use foundation_core::valtron::StreamIterator;
@@ -102,7 +105,7 @@ impl From<&'static str> for ThinkingLevels {
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, PartialOrd)]
-pub enum KnownModelProviders {
+pub enum ModelProviders {
     AMAZONBEDROCK,
     ANTHROPIC,
     GOOGLE,
@@ -125,10 +128,11 @@ pub enum KnownModelProviders {
     HUGGINGFACE,
     OPENCODE,
     KIMICODING,
+    LLAMACPP,
     Custom(String),
 }
 
-impl From<&'static str> for KnownModelProviders {
+impl From<&'static str> for ModelProviders {
     fn from(value: &'static str) -> Self {
         match value {
             "amazon-bedrock" => Self::AMAZONBEDROCK,
@@ -158,7 +162,7 @@ impl From<&'static str> for KnownModelProviders {
     }
 }
 
-impl From<String> for KnownModelProviders {
+impl From<String> for ModelProviders {
     fn from(value: String) -> Self {
         match value.as_str() {
             "amazon-bedrock" => Self::AMAZONBEDROCK,
@@ -296,7 +300,7 @@ pub enum ModelId {
     /// Specifically named model.
     Name(String, Option<Quantization>),
 
-    /// A model wih a specific alias generally not the full name
+    /// A model with a specific alias generally not the full name
     /// and optional quantization.
     Alias(String, Option<Quantization>),
 
@@ -355,8 +359,8 @@ pub enum ModelSource {
 pub struct ModelUsageCosting {
     pub input: f64,
     pub output: f64,
-    pub cach_read: f64,
-    pub cach_write: f64,
+    pub cache_read: f64,
+    pub cache_write: f64,
 }
 
 #[derive(Serialize, Deserialize, Debug, Copy, Clone, PartialEq, PartialOrd)]
@@ -454,6 +458,41 @@ impl From<String> for MimeType {
     }
 }
 
+#[derive(From, Serialize, Deserialize, Debug, Clone, PartialEq)]
+pub enum StopReason {
+    Stop,
+    Length,
+    ToolUse,
+    Error,
+    Aborted,
+}
+
+impl From<String> for StopReason {
+    fn from(value: String) -> Self {
+        match value.to_lowercase().as_str() {
+            "stop" => Self::Stop,
+            "length" => Self::Length,
+            "tooluse" => Self::ToolUse,
+            "error" => Self::Error,
+            "aborted" => Self::Aborted,
+            _ => Self::Stop,
+        }
+    }
+}
+
+impl From<&'static str> for StopReason {
+    fn from(value: &'static str) -> Self {
+        match value.to_lowercase().as_str() {
+            "stop" => Self::Stop,
+            "length" => Self::Length,
+            "tooluse" => Self::ToolUse,
+            "error" => Self::Error,
+            "aborted" => Self::Aborted,
+            _ => Self::Stop,
+        }
+    }
+}
+
 #[derive(From, Serialize, Deserialize, Debug, Clone, PartialEq, PartialOrd)]
 pub enum ArgType {
     Text(String),
@@ -472,12 +511,16 @@ pub enum ArgType {
     I64(i64),
     I128(i128),
     Duration(std::time::Duration),
+
+    // Custom types
+    #[from(ignore)]
+    JSON(String),
 }
 
-/// [`UsageCosting`] represents the overal costing in actual currency value.
+/// [`UsageCosting`] represents the overall costing in actual currency value.
 #[derive(From, Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct UsageCosting {
-    pub curreny: String,
+    pub currency: String,
     pub input: f64,
     pub output: f64,
     pub cache_read: f64,
@@ -486,7 +529,7 @@ pub struct UsageCosting {
 }
 
 /// [`UsageReport`] represents the accumulated usage at the point in time of
-/// generation and the overal costing of that usage.
+/// generation and the overall costing of that usage.
 #[derive(From, Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct UsageReport {
     pub input: f64,
@@ -498,27 +541,27 @@ pub struct UsageReport {
 }
 
 #[derive(From, Serialize, Deserialize, Debug, Clone, PartialEq)]
-pub struct TextOutput {
+pub struct TextContent {
     pub content: String,
     pub signature: Option<String>,
 }
 
 #[derive(From, Serialize, Deserialize, Debug, Clone, PartialEq)]
-pub struct ImageOutput {
+pub struct ImageContent {
     pub b64: String,
     pub mime_type: MimeType,
 }
 
 #[derive(From, Serialize, Deserialize, Debug, Clone, PartialEq)]
-pub enum UserModelOutput {
-    Text(TextOutput),
-    Image(ImageOutput),
+pub enum UserModelContent {
+    Text(TextContent),
+    Image(ImageContent),
 }
 
 #[derive(From, Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub enum ModelOutput {
-    Text(TextOutput),
-    Image(ImageOutput),
+    Text(TextContent),
+    Image(ImageContent),
     ThinkingContent {
         thinking: String,
         signature: Option<String>,
@@ -531,12 +574,58 @@ pub enum ModelOutput {
     },
 }
 
+#[derive(From, Serialize, Deserialize, Debug, Clone, PartialEq)]
+pub struct ErrorDetails {
+    error_message: String,
+    signature: Option<String>,
+}
+
+#[derive(From, Serialize, Deserialize, Debug, Clone, PartialEq)]
+pub struct ToolParam {
+    value: ArgType,
+    name: String,
+    description: String,
+}
+
+#[derive(From, Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub enum Messages {
-    UserMessage {
+    User {
         role: String,
-        content: UserModelOutput,
+        content: UserModelContent,
         signature: Option<String>,
     },
+    Assistant {
+        model: ModelId,
+        timestamp: SystemTime,
+        usage: UsageReport,
+        content: ModelOutput,
+        stop_reason: StopReason,
+        provider: ModelProviders,
+        error_detail: Option<ErrorDetails>,
+    },
+    ToolResult {
+        id: String,
+        name: String,
+        timestamp: SystemTime,
+        details: Option<String>,
+        content: UserModelContent,
+        error_detail: Option<ErrorDetails>,
+    },
+}
+
+#[derive(From, Serialize, Deserialize, Debug, Clone, PartialEq)]
+pub struct Tool {
+    id: String,
+    name: String,
+    description: String,
+    arguments: Option<HashMap<String, ArgType>>,
+}
+
+#[derive(From, Serialize, Deserialize, Debug, Clone, PartialEq)]
+pub struct ModelInteraction {
+    system_prompt: Option<String>,
+    messages: Vec<Messages>,
+    tools: Vec<Tool>,
 }
 
 pub trait ModelProvider {
@@ -559,6 +648,7 @@ pub trait ModelProvider {
     fn get_all(&self, model_id: ModelId) -> ModelProviderResult<ModelSpec>;
 }
 
+#[derive(From, Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct ModelSpec {
     pub name: String,
 
@@ -577,6 +667,13 @@ pub struct ModelSpec {
     pub lora_location: Option<PathBuf>,
 }
 
+#[derive(From, Serialize, Deserialize, Debug, Clone, PartialEq)]
+pub enum ModelState {
+    GeneratingEmbeddings,
+    GeneratingTokens(Option<UsageReport>),
+    Finished,
+}
+
 pub trait Model {
     /// [`spec`] returns model specification information for this target model.
     fn spec(&self) -> ModelSpec;
@@ -588,29 +685,6 @@ pub trait Model {
     /// Returns a [`GenerationError`] if the underlying model fails to generate output.
     fn costing(&self) -> GenerationResult<UsageReport>;
 
-    /// [`text`] calls the [`Model::generate`] method internally which
-    /// should specifically take in a prompt and generate a text output.
-    ///
-    /// # Errors
-    ///
-    /// Returns a [`GenerationError`] if the underlying model fails to generate output.
-    fn text(&self, prompt: String, specs: Option<ModelParams>) -> GenerationResult<String> {
-        self.generate::<String>(prompt, specs)
-    }
-
-    /// [`stream_text]` provides a streaming version of the [`Model::text`] method which
-    /// supports streaming text output.
-    ///
-    /// # Errors
-    ///
-    /// Returns a [`GenerationError`] if the underlying model fails to stream output.
-    fn stream_text<T>(&self, prompt: String, specs: Option<ModelParams>) -> GenerationResult<T>
-    where
-        T: StreamIterator<String, ()>,
-    {
-        self.stream::<T, String, ()>(prompt, specs)
-    }
-
     /// [`generate`] runs the actual inference within the model outputting
     /// the relevant type of output desired by the specified type.
     ///
@@ -621,7 +695,11 @@ pub trait Model {
     /// # Errors
     ///
     /// Returns a [`GenerationError`] if inference fails.
-    fn generate<T>(&self, prompt: String, specs: Option<ModelParams>) -> GenerationResult<T>;
+    fn generate(
+        &self,
+        interaction: ModelInteraction,
+        specs: Option<ModelParams>,
+    ) -> GenerationResult<Vec<Messages>>;
 
     /// [`stream`] will returns a stream iterator which will represent the
     /// results of the prompt from the underlying model.
@@ -633,9 +711,13 @@ pub trait Model {
     /// # Errors
     ///
     /// Returns a [`GenerationError`] if streaming fails.
-    fn stream<T, D, P>(&self, prompt: String, specs: Option<ModelParams>) -> GenerationResult<T>
+    fn stream<T>(
+        &self,
+        interaction: ModelInteraction,
+        specs: Option<ModelParams>,
+    ) -> GenerationResult<T>
     where
-        T: StreamIterator<D, P>;
+        T: StreamIterator<Messages, ModelState>;
 }
 
 pub trait ModelBackend {
