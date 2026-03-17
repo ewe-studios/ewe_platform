@@ -105,11 +105,11 @@ fn verify_struct_shape() -> ModelProviderDescriptor {
     ModelProviderDescriptor {
         id: String::new(),
         name: String::new(),
-        api: ModelAPI::OpenAICompletions,
-        provider: String::new(),
-        base_url: String::new(),
         reasoning: false,
-        inputs: [MessageType::Text, MessageType::Text],
+        api: ModelAPI::OpenAICompletions,
+        provider: foundation_ai::types::ModelProviders::ANTHROPIC,
+        base_url: Some(String::new()),
+        inputs: MessageType::Text,
         cost: ModelUsageCosting {
             input: 0.0,
             output: 0.0,
@@ -1667,6 +1667,36 @@ fn api_to_variant(api: &str) -> String {
     }
 }
 
+/// Maps a provider string identifier to the corresponding `ModelProviders` variant source text.
+fn provider_to_variant(provider: &str) -> String {
+    match provider {
+        "amazon-bedrock" => "ModelProviders::AMAZONBEDROCK".to_string(),
+        "anthropic" => "ModelProviders::ANTHROPIC".to_string(),
+        "google" => "ModelProviders::GOOGLE".to_string(),
+        "google-gemini-cli" => "ModelProviders::GOOGLEGEMINICLI".to_string(),
+        "google-antigravity" => "ModelProviders::GOOGLEANTIGRAVITY".to_string(),
+        "google-vertex" => "ModelProviders::GOOGLEVERTEX".to_string(),
+        "openai" => "ModelProviders::OPENAI".to_string(),
+        "azure-openai-responses" => "ModelProviders::AZUREOPENAIRESPONSES".to_string(),
+        "openai-codex" => "ModelProviders::OPENAICODEX".to_string(),
+        "github-copilot" => "ModelProviders::GITHUBCOPILOT".to_string(),
+        "xai" => "ModelProviders::XAI".to_string(),
+        "groq" => "ModelProviders::GROQ".to_string(),
+        "cerebras" => "ModelProviders::CEREBRAS".to_string(),
+        "openrouter" => "ModelProviders::OPENROUTER".to_string(),
+        "vercel-ai-gateway" => "ModelProviders::VERCELAIGATEWAY".to_string(),
+        "zai" => "ModelProviders::ZAI".to_string(),
+        "mistral" => "ModelProviders::MISTRAL".to_string(),
+        "minimax" => "ModelProviders::MINIMAX".to_string(),
+        "minimax-cn" => "ModelProviders::MINIMAXCN".to_string(),
+        "huggingface" => "ModelProviders::HUGGINGFACE".to_string(),
+        "opencode" => "ModelProviders::OPENCODE".to_string(),
+        "kimi-coding" => "ModelProviders::KIMICODING".to_string(),
+        "llamacpp" => "ModelProviders::LLAMACPP".to_string(),
+        other => format!("ModelProviders::Custom({other:?}.to_string())"),
+    }
+}
+
 fn generate_rust(providers: &BTreeMap<String, BTreeMap<String, ModelEntry>>) -> String {
     use std::fmt::Write;
 
@@ -1679,7 +1709,7 @@ fn generate_rust(providers: &BTreeMap<String, BTreeMap<String, ModelEntry>>) -> 
 
 #![allow(clippy::too_many_lines)]
 
-use crate::types::{MessageType, ModelAPI, ModelProviderDescriptor, ModelUsageCosting};
+use crate::types::{MessageType, ModelAPI, ModelProviderDescriptor, ModelProviders, ModelUsageCosting};
 
 #[must_use]
 #[inline]
@@ -1690,10 +1720,16 @@ pub fn model_descriptors() -> Vec<ModelProviderDescriptor> {
 
     for models in providers.values() {
         for m in models.values() {
-            let input1 = if m.has_image_input {
-                "MessageType::Images"
+            let input_type = if m.has_image_input {
+                "MessageType::TextAndImages"
             } else {
                 "MessageType::Text"
+            };
+
+            let base_url_str = if m.base_url.is_empty() {
+                "None".to_string()
+            } else {
+                format!("Some({:?}.to_string())", m.base_url)
             };
 
             let _ = write!(
@@ -1702,11 +1738,11 @@ pub fn model_descriptors() -> Vec<ModelProviderDescriptor> {
         ModelProviderDescriptor {{
             id: {id:?}.to_string(),
             name: {name:?}.to_string(),
-            api: {api},
-            provider: {provider:?}.to_string(),
-            base_url: {base_url:?}.to_string(),
             reasoning: {reasoning},
-            inputs: [MessageType::Text, {input1}],
+            api: {api},
+            provider: {provider},
+            base_url: {base_url},
+            inputs: {input},
             cost: ModelUsageCosting {{
                 input: {ci},
                 output: {co},
@@ -1719,10 +1755,11 @@ pub fn model_descriptors() -> Vec<ModelProviderDescriptor> {
 ",
                 id = m.id,
                 name = m.name,
-                api = api_to_variant(&m.api),
-                provider = m.provider,
-                base_url = m.base_url,
                 reasoning = m.reasoning,
+                api = api_to_variant(&m.api),
+                provider = provider_to_variant(&m.provider),
+                base_url = base_url_str,
+                input = input_type,
                 ci = format_f64(m.cost_input),
                 co = format_f64(m.cost_output),
                 cr = format_f64(m.cost_cache_read),

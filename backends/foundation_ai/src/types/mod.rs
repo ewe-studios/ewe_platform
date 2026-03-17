@@ -280,15 +280,21 @@ impl From<&'static str> for ModelAPI {
     }
 }
 
+#[derive(Serialize, Deserialize, Debug, Copy, Clone, PartialEq, PartialOrd)]
+pub enum MessageType {
+    Text,
+    TextAndImages,
+}
+
 #[derive(From, Serialize, Deserialize, Debug, Clone, PartialEq, PartialOrd)]
 pub struct ModelProviderDescriptor {
     pub id: String,
     pub name: String,
-    pub api: ModelAPI,
-    pub provider: String,
-    pub base_url: String,
     pub reasoning: bool,
-    pub inputs: [MessageType; 2],
+    pub api: ModelAPI,
+    pub provider: ModelProviders,
+    pub base_url: Option<String>,
+    pub inputs: MessageType,
     pub cost: ModelUsageCosting,
     pub context_window: u32,
     pub max_tokens: u32,
@@ -401,12 +407,6 @@ pub struct ModelUsageCosting {
     pub output: f64,
     pub cache_read: f64,
     pub cache_write: f64,
-}
-
-#[derive(Serialize, Deserialize, Debug, Copy, Clone, PartialEq, PartialOrd)]
-pub enum MessageType {
-    Text,
-    Images,
 }
 
 #[derive(From, Serialize, Deserialize, Debug, Clone, PartialEq, PartialOrd)]
@@ -618,9 +618,9 @@ pub enum ModelOutput {
 
 #[derive(From, Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct ToolParam {
-    value: ArgType,
-    name: String,
-    description: String,
+    pub value: ArgType,
+    pub name: String,
+    pub description: String,
 }
 
 #[derive(From, Serialize, Deserialize, Debug, Clone, PartialEq)]
@@ -700,17 +700,17 @@ impl Messages {
 
 #[derive(From, Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct Tool {
-    id: String,
-    name: String,
-    description: String,
-    arguments: Option<HashMap<String, ArgType>>,
+    pub id: String,
+    pub name: String,
+    pub description: String,
+    pub arguments: Option<HashMap<String, ArgType>>,
 }
 
 #[derive(From, Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct ModelInteraction {
-    system_prompt: Option<String>,
-    messages: Vec<Messages>,
-    tools: Vec<Tool>,
+    pub system_prompt: Option<String>,
+    pub messages: Vec<Messages>,
+    pub tools: Vec<Tool>,
 }
 
 #[derive(From, Serialize, Deserialize, Debug, Clone, PartialEq)]
@@ -786,9 +786,10 @@ pub trait Model {
 }
 
 pub trait ModelProvider {
+    type Config;
     type Model: Model;
 
-    /// [`authenticate`] will consume self and the credentials, perform the necessary
+    /// [`create`] will consume self and the credentials, perform the necessary
     /// operation to properly authenticate provider to ensure provider is fully
     /// ready to service and perform operations.
     ///
@@ -797,9 +798,15 @@ pub trait ModelProvider {
     ///
     /// It seems reasonable that the provider should handle the refresh and re-authentication/
     /// re-authorization necessary after the initial call by user.
-    fn authenticate(self, credential: Option<AuthCredential>) -> ModelProviderResult<Self>
+    fn create(
+        self,
+        config: Option<Self::Config>,
+        credential: Option<AuthCredential>,
+    ) -> ModelProviderResult<Self>
     where
         Self: Sized;
+
+    fn describe(&self) -> ModelProviderResult<ModelProviderDescriptor>;
 
     /// [`get_model_by_spec`] returns a Model interaction type that allows you to
     /// perform completions/generations with a given underlying model.

@@ -61,10 +61,13 @@ impl Model for LlamaModels {
 // ==================================
 
 impl ModelProvider for LlamaBackends {
+    // we will update config to match the sensible things LLamaCpp requires
+    type Config = ();
     type Model = LlamaModels;
 
-    fn authenticate(
+    fn create(
         self,
+        config: Option<Self::Config>,
         credential: Option<foundation_auth::AuthCredential>,
     ) -> crate::errors::ModelProviderResult<Self>
     where
@@ -73,17 +76,17 @@ impl ModelProvider for LlamaBackends {
         Ok(self)
     }
 
-    fn get_model<T: crate::types::Model>(
+    fn get_model(
         &self,
         model_id: crate::types::ModelId,
-    ) -> crate::errors::ModelProviderResult<T> {
+    ) -> crate::errors::ModelProviderResult<Self::Model> {
         todo!()
     }
 
-    fn get_model_by_spec<T: crate::types::Model>(
+    fn get_model_by_spec(
         &self,
         model_spec: crate::types::ModelSpec,
-    ) -> crate::errors::ModelProviderResult<T> {
+    ) -> crate::errors::ModelProviderResult<Self::Model> {
         todo!()
     }
 
@@ -98,6 +101,12 @@ impl ModelProvider for LlamaBackends {
         &self,
         model_id: crate::types::ModelId,
     ) -> crate::errors::ModelProviderResult<crate::types::ModelSpec> {
+        todo!()
+    }
+
+    fn describe(
+        &self,
+    ) -> crate::errors::ModelProviderResult<crate::types::ModelProviderDescriptor> {
         todo!()
     }
 }
