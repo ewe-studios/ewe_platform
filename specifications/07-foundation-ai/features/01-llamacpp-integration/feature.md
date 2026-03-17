@@ -17,8 +17,8 @@ author: "Main Agent"
 
 tasks:
   completed: 0
-  uncompleted: 29
-  total: 29
+  uncompleted: 27
+  total: 27
   completion_percentage: 0%
 ---
 
@@ -59,8 +59,7 @@ The integration provides:
 8. **Streaming** - `LlamaCppStream` implementing `StreamIterator` for token-by-token yield
 9. **Chat Templates from ModelInteraction** - `LlamaChatTemplate` constructed from our `ModelInteraction` context (system prompt + messages)
 10. **Embeddings via ModelOutput** - `ModelOutput::Embedding { dimensions: usize, values: Vec<f32> }` variant; users request embeddings via `ModelInteraction` and receive results as `Messages::Assistant`
-11. **HuggingFace Provider** - Extend `HuggingFaceProvider` for GGUF model discovery/download
-12. **Error Extensions** - Extend error types to wrap `infrastructure_llama_cpp` errors
+11. **Error Extensions** - Extend error types to wrap `infrastructure_llama_cpp` errors
 13. **Sampler Chain Builder** - Build sampler chain from `ModelParams` (temp, top_k, top_p, penalties)
 14. **Feature Flags** - Hardware acceleration features (cuda, metal, vulkan, mtmd) - already in Cargo.toml
 15. **LlamaConfig Type** - Configuration struct for GPU layers, split mode, KV cache type
@@ -127,8 +126,7 @@ backends/foundation_ai/
 │   ├── backends/
 │   │   ├── mod.rs                     - Backend module exports (MODIFY)
 │   │   ├── llamacpp.rs                - LlamaBackends + LlamaModels + LlamaBackendConfig (MODIFY)
-│   │   ├── llamacpp_helpers.rs        - Sampler chain builder (CREATE)
-│   │   └── huggingface.rs             - HuggingFace provider (MODIFY)
+│   │   └── llamacpp_helpers.rs        - Sampler chain builder (CREATE)
 │   ├── types/
 │   │   └── mod.rs                     - ChatMessage, LlamaConfig, ModelOutput::Embedding (MODIFY)
 │   ├── errors/
@@ -390,7 +388,6 @@ Extend existing error types in `errors/mod.rs`:
 - `backends/foundation_ai/src/backends/llamacpp.rs` - LlamaBackends (provider + cache), LlamaModels (Model impl with interior mutability), LlamaBackendConfig (builder), LlamaCppStream (MODIFY - replace todo!())
 - `backends/foundation_ai/src/backends/llamacpp_helpers.rs` - Sampler chain builder, f32→i32 mapping helpers (CREATE)
 - `backends/foundation_ai/src/backends/mod.rs` - Add `llamacpp_helpers` module (MODIFY)
-- `backends/foundation_ai/src/backends/huggingface.rs` - HuggingFace GGUF provider (MODIFY)
 - `backends/foundation_ai/src/types/mod.rs` - Add ChatMessage, LlamaConfig, SplitMode, KVCacheType, `ModelOutput::Embedding { dimensions, values }` (MODIFY)
 - `backends/foundation_ai/src/errors/mod.rs` - Extend error types with llama.cpp variants (MODIFY)
 - `backends/foundation_ai/tests/llamacpp_tests.rs` - Integration tests (CREATE)
@@ -434,11 +431,7 @@ Extend existing error types in `errors/mod.rs`:
 - [ ] Implement `Model::stream()` returning `LlamaCppStream`
 - [ ] Create `LlamaCppStream` struct implementing `StreamIterator`
 
-### Task Group 7: HuggingFace Provider
-- [ ] Implement `HuggingFaceProvider` with `ModelProvider` trait
-- [ ] Add GGUF download logic using `hf-hub` crate
-
-### Task Group 8: Integration Tests
+### Task Group 7: Integration Tests
 - [ ] Test sampler chain builder with various ModelParams (including f32 top_k)
 - [ ] Test error type conversions
 - [ ] Test ChatMessage construction

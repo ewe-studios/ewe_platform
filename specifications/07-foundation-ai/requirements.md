@@ -32,8 +32,8 @@ related_specs:
   - "specifications/04-wasm-entrypoint-toolchain"
 features:
   completed: 0
-  uncompleted: 1
-  total: 1
+  uncompleted: 3
+  total: 3
   completion_percentage: 0%
 ---
 
@@ -183,6 +183,8 @@ Features are listed in dependency order. Each feature contains detailed requirem
 | #  | Feature | Description | Dependencies | Status |
 |----|---------|-------------|--------------|--------|
 | 1  | [llamacpp-integration](./features/01-llamacpp-integration/feature.md) | Complete llama.cpp inference engine integration via `infrastructure_llama_cpp` | 00-foundation | ⬜ Pending |
+| 2  | [huggingface-provider](./features/02-huggingface-provider/feature.md) | HuggingFace Hub model discovery, download, and GGUF serving via `hf-hub` | 01-llamacpp-integration | ⬜ Pending |
+| 3  | [candle-integration](./features/03-candle-integration/feature.md) | Alternative ModelProvider using HuggingFace Candle for native Rust inference with safetensors | 01-llamacpp-integration | ⬜ Pending |
 
 Status Key: ⬜ Pending | 🔄 In Progress | ✅ Complete
 
@@ -203,8 +205,9 @@ Create a comprehensive integration of llama.cpp as a first-class inference backe
 7. **Sampler Chain** - Build sampler chains from `ModelParams` using `build_sampler_chain()` helper
 8. **Streaming** - `LlamaCppStream` as a `StreamIterator` for token-by-token generation
 9. **Error Handling** - Extend error types to wrap `infrastructure_llama_cpp` errors using `derive_more::From`
-10. **HuggingFace Integration** - Extend `HuggingFaceProvider` to discover and download GGUF models
-11. **Feature Flags** - Mirror `infrastructure_llama_cpp` features (cuda, metal, vulkan, mtmd, etc.)
+10. **HuggingFace Provider** - Separate feature (02) for HuggingFace Hub model discovery/download via `hf-hub`
+11. **Candle Integration** - Separate feature (03) for alternative pure-Rust inference backend via HuggingFace Candle with safetensors support
+12. **Feature Flags** - Mirror `infrastructure_llama_cpp` features (cuda, metal, vulkan, mtmd) + Candle features (candle-cuda, candle-metal)
 12. **f32 Params** - `temperature`, `top_k`, `top_p` as f32; map to i32 internally when llama.cpp API requires
 13. **Spec as Guidance** - The llama.cpp API and bindings are the authoritative source; spec is guidance that should be adapted to the actual API
 
@@ -213,10 +216,12 @@ Create a comprehensive integration of llama.cpp as a first-class inference backe
 ### Functionality
 - All features completed and verified (see Feature Index)
 - `foundation_ai` crate compiles and passes all tests
-- Can load GGUF models from local file paths and HuggingFace Hub
-- Text generation, streaming, chat completion, and embeddings all functional
-- GPU offloading works on CUDA, Metal, and Vulkan
-- All error types properly wrap underlying llama.cpp errors
+- Can load GGUF models from local file paths (llama.cpp backend)
+- Can load safetensors models from local paths and HuggingFace Hub (Candle backend)
+- HuggingFace Hub model discovery and GGUF download functional
+- Text generation, streaming, chat completion, and embeddings all functional across both backends
+- GPU offloading works on CUDA, Metal, and Vulkan (llama.cpp) / CUDA, Metal (Candle)
+- All error types owned by foundation_ai with idiomatic `derive_more::From` conversions
 
 ### Code Quality
 - Zero warnings from `cargo clippy -- -D warnings`
