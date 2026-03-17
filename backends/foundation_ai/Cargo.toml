@@ -14,12 +14,15 @@ keywords = ["foundations_ai", "ewe-platform-ai"]
 # -- Workspace dependencies
 
 foundation_nostd = { workspace = true }
+foundation_auth = { workspace = true }
 foundation_macros = { workspace = true }
 foundation_core = { workspace = true }
 
 infrastructure_llama_cpp = { workspace = true }
 
 # -- Other dependencies
+regex = { version = "1.10" }
+lazy-regex = { version = "3.1" }
 derive_more = { version = "2.1", features = ["from", "debug", "error"] }
 serde = { version = "1", features = ["derive"] }
 fastrand = { version = "2.3"}

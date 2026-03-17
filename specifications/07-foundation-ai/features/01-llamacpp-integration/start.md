@@ -1,57 +1,36 @@
-# Starting Point: llama.cpp Foundation AI Integration
+---
+workspace_name: "ewe_platform"
+spec_directory: "specifications/07-foundation-ai"
+feature_directory: "specifications/07-foundation-ai/features/01-llamacpp-integration"
+this_file: "specifications/07-foundation-ai/features/01-llamacpp-integration/start.md"
+created: 2026-03-16
+---
 
-## Context
+# Start: llama.cpp Integration Feature
 
-This feature integrates llama.cpp as a first-class inference backend in the `foundation_ai` crate. The integration enables local execution of GGUF-format models from HuggingFace and other sources.
+## Agent Workflow
 
-## Current State
+1. Read `feature.md` (detailed requirements + tasks)
+2. Read `../../LEARNINGS.md` (past discoveries and mistakes)
+3. Read `./VERIFICATION.md` (verification requirements)
+3. Read `./PROGRESS.md` (last progress of this feature if present)
+4. Read `.agents/AGENTS.md` to identify your agent type
+5. Read your agent file in `.agents/agents/[agent-name].md`
+6. Read skills specified in your agent documentation
+7. **MANDATORY**: Generate `compacted.md` with all info using `.agents/skills/context-compaction/skill.md`
+8. Clear context, reload from `compacted.md` only, start work
+9. **Work on ONE item at a time** - one test, one function, one file - finish it completely before next
+10. Implement following TDD (test first, then code) - **one test at a time**
+11. **Place tests in correct location** - follow language testing skill or project test structure
+12. Report to Main Agent when done (DO NOT commit)
+13. Wait for verification to pass
+14. After commit: delete `compacted.md`, update `./PROGRESS.md`, move to next task
+15. **ALWAYS UPDATE ../../LEARNINGS.md** after each completed task/milestone
 
-**Existing Infrastructure:**
-- `infrastructure/llama-cpp/` — Safe Rust wrapper around llama.cpp (already implemented)
-- `infrastructure/llama-bindings/` — Low-level FFI bindings via bindgen (already implemented)
-- `backends/foundation_ai/` — Target crate for integration
+---
 
-**Existing Types:**
-- `backends/foundation_ai/src/types/mod.rs` — `Model`, `ModelBackend`, `ModelProvider` traits
-- `backends/foundation_ai/src/errors/mod.rs` — Error types to extend
-- `backends/foundation_ai/src/backends/llamacpp.rs` — Stub implementation with `todo!()`
+**Workflow:** Feature.md → Learnings → Verification → AGENTS.md → Agent Doc → Skills → **Compact → Clear → Reload** → **ONE ITEM AT A TIME** → Implement → Report → Verify → Commit → Delete compacted.md → Next
 
-## Goal
+---
 
-Complete the integration by:
-1. Implementing `LlamaBackends` enum and `ModelBackend` trait
-2. Creating `LlamaCppModel` struct with full `Model` trait implementation
-3. Adding generation, streaming, chat, and embeddings support
-4. Extending error types and configuration
-5. Adding comprehensive tests
-
-## Implementation Plan
-
-See `feature.md` for the complete specification with:
-- 14 detailed requirements
-- Architecture diagrams
-- Code snippets for all implementations
-- 25 tasks across 10 task groups
-- Test strategy
-- Verification commands
-
-## Key Files to Modify
-
-1. `backends/foundation_ai/src/errors/mod.rs` — Extend error types
-2. `backends/foundation_ai/src/backends/llamacpp.rs` — Core implementation
-3. `backends/foundation_ai/src/models/model_descriptors.rs` — Add `LlamaConfig`
-4. `backends/foundation_ai/src/types/mod.rs` — Add `ChatMessage`
-5. `backends/foundation_ai/Cargo.toml` — Add feature flags
-6. `backends/foundation_ai/tests/llamacpp_tests.rs` — Integration tests
-
-## Prerequisites
-
-- Review `infrastructure/llama-cpp/src/lib.rs` for available APIs
-- Review `documentary/llamacpp-integration.md` for llama.cpp concepts
-- Understand `foundation_ai` type system in `backends/foundation_ai/src/types/mod.rs`
-
-## Next Steps
-
-1. Read the full `feature.md` specification
-2. Begin with Task Group 1: Core Backend Implementation
-3. Follow the phased implementation approach in `feature.md`
+_Created: 2026-03-16_

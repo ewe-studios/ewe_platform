@@ -1355,14 +1355,28 @@ dependencies = [
  "chrono",
  "derive_more",
  "fastrand",
+ "foundation_auth",
  "foundation_core",
  "foundation_macros",
  "foundation_nostd",
  "hf-hub",
  "infrastructure_llama_cpp",
+ "lazy-regex",
  "rand 0.9.2",
  "rand_chacha",
+ "regex",
  "serde",
+]
+
+[[package]]
+name = "foundation_auth"
+version = "0.0.1"
+dependencies = [
+ "base64 0.22.1",
+ "bytes",
+ "derive_more",
+ "sha1",
+ "zeroize",
 ]
 
 [[package]]
