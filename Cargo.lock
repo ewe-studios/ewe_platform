@@ -1375,6 +1375,7 @@ dependencies = [
  "base64 0.22.1",
  "bytes",
  "derive_more",
+ "foundation_core",
  "sha1",
  "zeroize",
 ]

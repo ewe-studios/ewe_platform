@@ -5,6 +5,7 @@ use std::path::PathBuf;
 use std::time::SystemTime;
 
 use derive_more::From;
+use foundation_auth::AuthCredential;
 use foundation_core::extensions::strings_ext::IntoString;
 use foundation_core::valtron::StreamIterator;
 use foundation_core::wire::simple_http::url::Uri;
@@ -712,26 +713,6 @@ pub struct ModelInteraction {
     tools: Vec<Tool>,
 }
 
-pub trait ModelProvider {
-    /// [`get_model`] returns a Model interaction type that allows you to
-    /// perform completions/generations with a given underlying model.
-    ///
-    /// # Errors
-    ///
-    /// Returns a [`ModelRegistryResult`] or the [`ModelSpec`] for the model.
-    ///
-    fn get_one(&self, model_id: ModelId) -> ModelProviderResult<ModelSpec>;
-
-    /// [`get_all`] returns all Model type match the provided modeil id and.
-    /// from the target source.
-    ///
-    /// # Errors
-    ///
-    /// Returns a [`ModelRegistryResult`] or the [`ModelSpec`] for the model.
-    ///
-    fn get_all(&self, model_id: ModelId) -> ModelProviderResult<ModelSpec>;
-}
-
 #[derive(From, Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct ModelSpec {
     pub name: String,
@@ -804,12 +785,51 @@ pub trait Model {
         T: StreamIterator<Messages, ModelState>;
 }
 
-pub trait ModelBackend {
-    /// [`get_model`] returns a Model interaction type that allows you to
+pub trait ModelProvider {
+    /// [`authenticate`] will consume self and the credentials, perform the necessary
+    /// operation to properly authenticate provider to ensure provider is fully
+    /// ready to service and perform operations.
+    ///
+    /// This means if the provider requires credentials to function and none of these
+    /// get called then all functions should fail when called from this provider.
+    ///
+    /// It seems reasonable that the provider should handle the refresh and re-authentication/
+    /// re-authorization necessary after the initial call by user.
+    fn authenticate(self, credential: Option<AuthCredential>) -> ModelProviderResult<Self>
+    where
+        Self: Sized;
+
+    /// [`get_model_by_spec`] returns a Model interaction type that allows you to
     /// perform completions/generations with a given underlying model.
     ///
     /// # Errors
     ///
     /// Returns a [`ModelError`] if the model cannot be loaded or initialized.
-    fn get_model<T: Model>(&self, model_spec: ModelSpec) -> ModelResult<T>;
+    fn get_model<T: Model>(&self, model_id: ModelId) -> ModelProviderResult<T>;
+
+    /// [`get_model_by_spec`] returns a Model interaction type that allows you to
+    /// perform completions/generations with a given underlying model.
+    ///
+    /// # Errors
+    ///
+    /// Returns a [`ModelError`] if the model cannot be loaded or initialized.
+    fn get_model_by_spec<T: Model>(&self, model_spec: ModelSpec) -> ModelProviderResult<T>;
+
+    /// [`get_model`] returns a Model interaction type that allows you to
+    /// perform completions/generations with a given underlying model.
+    ///
+    /// # Errors
+    ///
+    /// Returns a [`ModelRegistryResult`] or the [`ModelSpec`] for the model.
+    ///
+    fn get_one(&self, model_id: ModelId) -> ModelProviderResult<ModelSpec>;
+
+    /// [`get_all`] returns all Model type match the provided modeil id and.
+    /// from the target source.
+    ///
+    /// # Errors
+    ///
+    /// Returns a [`ModelRegistryResult`] or the [`ModelSpec`] for the model.
+    ///
+    fn get_all(&self, model_id: ModelId) -> ModelProviderResult<ModelSpec>;
 }

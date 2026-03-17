@@ -1,6 +1,6 @@
 //! `LlamaCPP` `ModelBackend` implementations.
 
-use crate::types::ModelBackend;
+use crate::types::ModelProvider;
 
 /// [`LlamaBackends`] implements a model backend for different
 /// underlying local backends for interacting with Large Language Models.
@@ -22,11 +22,42 @@ pub enum LlamaBackends {
 // Constructors
 // ==================================
 
-impl ModelBackend for LlamaBackends {
+impl ModelProvider for LlamaBackends {
+    fn authenticate(
+        self,
+        credential: Option<foundation_auth::AuthCredential>,
+    ) -> crate::errors::ModelProviderResult<Self>
+    where
+        Self: Sized,
+    {
+        Ok(self)
+    }
+
     fn get_model<T: crate::types::Model>(
         &self,
-        _model_spec: crate::types::ModelSpec,
-    ) -> crate::errors::ModelResult<T> {
+        model_id: crate::types::ModelId,
+    ) -> crate::errors::ModelProviderResult<T> {
+        todo!()
+    }
+
+    fn get_model_by_spec<T: crate::types::Model>(
+        &self,
+        model_spec: crate::types::ModelSpec,
+    ) -> crate::errors::ModelProviderResult<T> {
+        todo!()
+    }
+
+    fn get_one(
+        &self,
+        model_id: crate::types::ModelId,
+    ) -> crate::errors::ModelProviderResult<crate::types::ModelSpec> {
+        todo!()
+    }
+
+    fn get_all(
+        &self,
+        model_id: crate::types::ModelId,
+    ) -> crate::errors::ModelProviderResult<crate::types::ModelSpec> {
         todo!()
     }
 }
