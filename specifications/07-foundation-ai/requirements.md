@@ -86,9 +86,9 @@ graph TD
     end
 
     subgraph FoundationAI["foundation_ai"]
-        B[ModelBackend Trait]
-        C[LlamaBackends Enum]
-        D[LlamaCppModel]
+        B[ModelProvider Trait]
+        C[LlamaBackends Enum + Model Cache]
+        D[LlamaModels Struct]
         E[HuggingFaceProvider]
         F[Type Mappings]
         G[Error Types]
@@ -123,25 +123,34 @@ graph TD
 ```mermaid
 sequenceDiagram
     participant App as Application
-    participant FA as foundation_ai
+    participant LB as LlamaBackends (Provider)
+    participant LM as LlamaModels
     participant IL as infrastructure_llama_cpp
     participant LC as llama.cpp (C)
 
-    App->>FA: ModelBackend::get_model(spec)
-    FA->>IL: LlamaModel::load_from_file()
-    IL->>LC: llama_model_load_from_file()
-    LC-->>IL: Model handle
-    IL-->>FA: LlamaModel
-    FA->>IL: model.new_context()
-    IL->>LC: llama_context_init()
-    IL-->>FA: LlamaContext
-    FA-->>App: LlamaCppModel
+    App->>LB: create(config, credential)
+    Note over LB: Initialize with LlamaBackendConfig (builder + defaults)
 
-    App->>FA: model.generate(interaction, params)
-    FA->>IL: tokenize + batch + decode loop
+    App->>LB: get_model(model_id)
+    LB->>LB: Check model cache (HashMap)
+    alt Cache miss
+        LB->>IL: LlamaModel::load_from_file()
+        IL->>LC: llama_model_load_from_file()
+        LC-->>IL: Model handle
+        IL-->>LB: LlamaModel
+        LB->>IL: model.new_context()
+        IL->>LC: llama_context_init()
+        IL-->>LB: LlamaContext
+        LB->>LB: Store in cache
+    end
+    LB-->>App: LlamaModels
+
+    App->>LM: generate(interaction, params)
+    Note over LM: Interior mutability (RefCell/Mutex)
+    LM->>IL: tokenize + batch + decode loop
     IL->>LC: llama_decode() + llama_sampler_sample()
-    IL-->>FA: Generated tokens
-    FA-->>App: Vec<Messages>
+    IL-->>LM: Generated tokens
+    LM-->>App: Vec<Messages>
 ```
 
 ### Technical Decisions and Trade-offs
@@ -149,9 +158,18 @@ sequenceDiagram
 | Decision | Rationale | Alternatives Considered |
 |----------|-----------|------------------------|
 | `LlamaBackends` enum for hardware variants | Simple dispatch, compile-time feature gating | Trait objects (too much indirection), single struct with config (less type-safe) |
+| `LlamaModels` as struct | llama.cpp uses a single `LlamaModel` handle for all architectures (transformer, MOE, recurrent, etc.) — struct mirrors this | Enum (unnecessary since API is uniform) |
+| `LlamaBackends` caches models | Avoids reloading models on repeated requests; simple `HashMap<ModelId, LlamaModels>` | No cache (wasteful), LRU (premature complexity) |
+| Interior mutability (`RefCell`/`Mutex`) | `Model` trait uses `&self` but `LlamaContext::decode` needs `&mut self` | Change trait to `&mut self` (breaks other backends) |
+| `LlamaBackendConfig` with builder pattern | Sensible defaults with opt-in customization; `ModelParams` provides base defaults, per-call customization on model methods | Config in `ModelSpec` (too coupled), no config (inflexible) |
+| Chat template from `ModelInteraction` | Our `ModelInteraction` carries system prompt + messages; template constructed from this context | Template from model metadata only (less flexible) |
 | Sampler chain builder from `ModelParams` | Keeps sampling config in foundation_ai types | Direct sampler construction (leaks infrastructure types) |
-| Chat template from model metadata | GGUF models carry their own templates | Hardcoded templates (fragile, model-specific) |
+| f32 for temperature/top_k/top_p | Supports decimal values; map to i32 internally when llama.cpp API requires it | i32 (loses precision for valid use cases) |
 | `derive_more::From` for error wrapping | Ergonomic error conversion | Manual `From` impls (boilerplate), `thiserror` (extra dep) |
+
+### Architectural Guidance Note
+
+The specification provides guidance, not rigid constraints. The **llama.cpp API and bindings are the authoritative source** for implementation decisions. Where the spec and the actual API diverge, prefer the API's natural patterns. The bindings can be updated to expose additional llama.cpp features as needed.
 
 ## Feature Index
 
@@ -176,14 +194,19 @@ Create a comprehensive integration of llama.cpp as a first-class inference backe
 
 ### Key Decisions Made
 
-1. **Backend Abstraction** - Use `LlamaBackends` enum (CPU, GPU, Metal) implementing `ModelBackend` trait
-2. **Type Mappings** - Map `foundation_ai` types to `infrastructure_llama_cpp` equivalents via helper functions
-3. **Sampler Chain** - Build sampler chains from `ModelParams` using `build_sampler_chain()` helper
-4. **Chat Templates** - Load chat template from model metadata, apply automatically in `chat()` method
-5. **Streaming** - Implement `LlamaCppStream` as a `StreamIterator` for token-by-token generation
-6. **Error Handling** - Extend error types to wrap `infrastructure_llama_cpp` errors using `derive_more::From`
-7. **HuggingFace Integration** - Extend `HuggingFaceProvider` to discover and download GGUF models
-8. **Feature Flags** - Mirror `infrastructure_llama_cpp` features (cuda, metal, vulkan, mtmd, etc.)
+1. **Provider Pattern** - `LlamaBackends` enum (CPU, GPU, Metal) implements `ModelProvider` trait with `create()` accepting `LlamaBackendConfig` (builder pattern, sensible defaults)
+2. **Model Struct** - `LlamaModels` as struct (confirmed: llama.cpp uses single `LlamaModel` handle for all architectures)
+3. **Model Cache** - `LlamaBackends` maintains a simple `HashMap<ModelId, LlamaModels>` cache of loaded models
+4. **Interior Mutability** - `LlamaModels` uses `RefCell`/`Mutex` internally so `Model` trait's `&self` methods can call `LlamaContext::decode(&mut self)`
+5. **Embeddings via ModelOutput** - `ModelOutput::Embedding { dimensions, values }` variant; users request embeddings via `ModelInteraction` and receive results as `Messages::Assistant`
+6. **Chat Templates from ModelInteraction** - `LlamaChatTemplate` constructed from our `ModelInteraction` context (system prompt + messages), not solely from model metadata
+7. **Sampler Chain** - Build sampler chains from `ModelParams` using `build_sampler_chain()` helper
+8. **Streaming** - `LlamaCppStream` as a `StreamIterator` for token-by-token generation
+9. **Error Handling** - Extend error types to wrap `infrastructure_llama_cpp` errors using `derive_more::From`
+10. **HuggingFace Integration** - Extend `HuggingFaceProvider` to discover and download GGUF models
+11. **Feature Flags** - Mirror `infrastructure_llama_cpp` features (cuda, metal, vulkan, mtmd, etc.)
+12. **f32 Params** - `temperature`, `top_k`, `top_p` as f32; map to i32 internally when llama.cpp API requires
+13. **Spec as Guidance** - The llama.cpp API and bindings are the authoritative source; spec is guidance that should be adapted to the actual API
 
 ## Success Criteria (Spec-Wide)
 
@@ -229,5 +252,5 @@ cargo fmt --package foundation_ai -- --check
 ---
 
 _Created: 2026-03-16_
-_Last Updated: 2026-03-17_
+_Last Updated: 2026-03-17 (revised: provider pattern, struct model, embeddings, interior mutability, owned errors)_
 _Structure: Feature-based (has_features: true)_
