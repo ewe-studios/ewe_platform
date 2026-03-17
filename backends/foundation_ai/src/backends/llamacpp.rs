@@ -1,6 +1,6 @@
 //! `LlamaCPP` `ModelBackend` implementations.
 
-use crate::types::ModelProvider;
+use crate::types::{Model, ModelProvider};
 
 /// [`LlamaBackends`] implements a model backend for different
 /// underlying local backends for interacting with Large Language Models.
@@ -19,10 +19,50 @@ pub enum LlamaBackends {
 }
 
 // ==================================
+// LlamaModels
+// ==================================
+
+pub enum LlamaModels {}
+
+impl Model for LlamaModels {
+    fn spec(&self) -> crate::types::ModelSpec {
+        todo!()
+    }
+
+    fn costing(&self) -> crate::errors::GenerationResult<crate::types::UsageReport> {
+        todo!()
+    }
+
+    fn generate(
+        &self,
+        interaction: crate::types::ModelInteraction,
+        specs: Option<crate::types::ModelParams>,
+    ) -> crate::errors::GenerationResult<Vec<crate::types::Messages>> {
+        todo!()
+    }
+
+    fn stream<T>(
+        &self,
+        interaction: crate::types::ModelInteraction,
+        specs: Option<crate::types::ModelParams>,
+    ) -> crate::errors::GenerationResult<T>
+    where
+        T: foundation_core::valtron::StreamIterator<
+            crate::types::Messages,
+            crate::types::ModelState,
+        >,
+    {
+        todo!()
+    }
+}
+
+// ==================================
 // Constructors
 // ==================================
 
 impl ModelProvider for LlamaBackends {
+    type Model = LlamaModels;
+
     fn authenticate(
         self,
         credential: Option<foundation_auth::AuthCredential>,

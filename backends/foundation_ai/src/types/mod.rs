@@ -786,6 +786,8 @@ pub trait Model {
 }
 
 pub trait ModelProvider {
+    type Model: Model;
+
     /// [`authenticate`] will consume self and the credentials, perform the necessary
     /// operation to properly authenticate provider to ensure provider is fully
     /// ready to service and perform operations.
@@ -805,7 +807,7 @@ pub trait ModelProvider {
     /// # Errors
     ///
     /// Returns a [`ModelError`] if the model cannot be loaded or initialized.
-    fn get_model<T: Model>(&self, model_id: ModelId) -> ModelProviderResult<T>;
+    fn get_model(&self, model_id: ModelId) -> ModelProviderResult<Self::Model>;
 
     /// [`get_model_by_spec`] returns a Model interaction type that allows you to
     /// perform completions/generations with a given underlying model.
@@ -813,7 +815,7 @@ pub trait ModelProvider {
     /// # Errors
     ///
     /// Returns a [`ModelError`] if the model cannot be loaded or initialized.
-    fn get_model_by_spec<T: Model>(&self, model_spec: ModelSpec) -> ModelProviderResult<T>;
+    fn get_model_by_spec(&self, model_spec: ModelSpec) -> ModelProviderResult<Self::Model>;
 
     /// [`get_model`] returns a Model interaction type that allows you to
     /// perform completions/generations with a given underlying model.
