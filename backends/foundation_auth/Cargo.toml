@@ -9,6 +9,8 @@ repository.workspace = true
 keywords.workspace = true
 
 [dependencies]
+foundation_core = { workspace = true }
+
 derive_more = { version = "2.0", features = ["from", "debug", "error"] }
 base64 = "0.22"
 sha1 = "0.10"
