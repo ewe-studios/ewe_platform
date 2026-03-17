@@ -2,19 +2,58 @@
 
 use std::collections::HashMap;
 use std::path::PathBuf;
-use std::time::Instant;
 use std::time::SystemTime;
 
-use chrono::DateTime;
 use derive_more::From;
 use foundation_core::extensions::strings_ext::IntoString;
 use foundation_core::valtron::StreamIterator;
 use foundation_core::wire::simple_http::url::Uri;
+use lazy_regex::{lazy_regex, Lazy, Regex};
 use serde::{Deserialize, Serialize};
 
 use crate::errors::GenerationResult;
 use crate::errors::ModelProviderResult;
 use crate::errors::ModelResult;
+
+/// Regex patterns to detect context overflow errors from different providers.
+///
+/// These patterns match error messages returned when the input exceeds
+/// the model's context window.
+///
+/// Provider-specific patterns (with example error messages):
+///
+/// - Anthropic: "prompt is too long: 213462 tokens > 200000 maximum"
+/// - OpenAI: "Your input exceeds the context window of this model"
+/// - Google: "The input token count (1196265) exceeds the maximum number of tokens allowed (1048575)"
+/// - xAI: "This model's maximum prompt length is 131072 but the request contains 537812 tokens"
+/// - Groq: "Please reduce the length of the messages or completion"
+/// - OpenRouter: "This endpoint's maximum context length is X tokens. However, you requested about Y tokens"
+/// - llama.cpp: "the request exceeds the available context size, try increasing it"
+/// - LM Studio: "tokens to keep from the initial prompt is greater than the context length"
+/// - GitHub Copilot: "prompt token count of X exceeds the limit of Y"
+/// - MiniMax: "invalid params, context window exceeds limit"
+/// - Kimi For Coding: "Your request exceeded model token limit: X (requested: Y)"
+/// - Cerebras: Returns "400/413 status code (no body)" - handled separately below
+/// - Mistral: Returns "400/413 status code (no body)" - handled separately below
+/// - z.ai: Does NOT error, accepts overflow silently - handled via usage.input > contextWindow
+/// - Ollama: Silently truncates input - not detectable via error message
+const OVERFLOW_PATTERNS: &[&str] = &[
+    r"(?i)prompt is too long",                     // Anthropic
+    r"(?i)input is too long for requested model",  // Amazon Bedrock
+    r"(?i)exceeds the context window",             // OpenAI (Completions & Responses API)
+    r"(?i)input token count.*exceeds the maximum", // Google (Gemini)
+    r"(?i)maximum prompt length is \d+",           // xAI (Grok)
+    r"(?i)reduce the length of the messages",      // Groq
+    r"(?i)maximum context length is \d+ tokens",   // OpenRouter (all backends)
+    r"(?i)exceeds the limit of \d+",               // GitHub Copilot
+    r"(?i)exceeds the available context size",     // llama.cpp server
+    r"(?i)greater than the context length",        // LM Studio
+    r"(?i)context window exceeds limit",           // MiniMax
+    r"(?i)exceeded model token limit",             // Kimi For Coding
+    r"(?i)context[_ ]length[_ ]exceeded",          // Generic fallback
+    r"(?i)too many tokens",                        // Generic fallback
+    r"(?i)token limit exceeded",                   // Generic fallback
+];
 
 #[derive(From, Serialize, Deserialize, Debug, Copy, Clone, PartialEq, PartialOrd)]
 pub struct DeviceId(u16);
@@ -467,19 +506,21 @@ pub enum StopReason {
     Aborted,
 }
 
+#[allow(clippy::match_same_arms)]
 impl From<String> for StopReason {
     fn from(value: String) -> Self {
         match value.to_lowercase().as_str() {
-            "stop" => Self::Stop,
             "length" => Self::Length,
             "tooluse" => Self::ToolUse,
             "error" => Self::Error,
             "aborted" => Self::Aborted,
+            "stop" => Self::Stop,
             _ => Self::Stop,
         }
     }
 }
 
+#[allow(clippy::match_same_arms)]
 impl From<&'static str> for StopReason {
     fn from(value: &'static str) -> Self {
         match value.to_lowercase().as_str() {
@@ -575,12 +616,6 @@ pub enum ModelOutput {
 }
 
 #[derive(From, Serialize, Deserialize, Debug, Clone, PartialEq)]
-pub struct ErrorDetails {
-    error_message: String,
-    signature: Option<String>,
-}
-
-#[derive(From, Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct ToolParam {
     value: ArgType,
     name: String,
@@ -601,7 +636,8 @@ pub enum Messages {
         content: ModelOutput,
         stop_reason: StopReason,
         provider: ModelProviders,
-        error_detail: Option<ErrorDetails>,
+        error_detail: Option<String>,
+        signature: Option<String>,
     },
     ToolResult {
         id: String,
@@ -609,8 +645,56 @@ pub enum Messages {
         timestamp: SystemTime,
         details: Option<String>,
         content: UserModelContent,
-        error_detail: Option<ErrorDetails>,
+        error_detail: Option<String>,
+        signature: Option<String>,
     },
+}
+
+static OVERFLOW_SILENT_PATTERN: Lazy<Regex> =
+    lazy_regex!(r"(?i)^4(00|13)\s*(status code)?\s*\(no body\)");
+
+impl Messages {
+    pub fn is_context_overflow(&self, context_window: u64) -> bool {
+        match self {
+            Messages::Assistant {
+                stop_reason,
+                error_detail,
+                usage,
+                ..
+            } => {
+                // Case 1: Check error message patterns
+                if *stop_reason == StopReason::Error {
+                    if let Some(error_msg) = error_detail {
+                        // Check known patterns
+                        for pattern in OVERFLOW_PATTERNS {
+                            if let Ok(re) = regex::Regex::new(pattern) {
+                                if re.is_match(error_msg) {
+                                    return true;
+                                }
+                            }
+                        }
+
+                        // Cerebras and Mistral return 400/413 with no body for context overflow
+                        // Note: 429 is rate limiting (requests/tokens per time), NOT context overflow
+                        if OVERFLOW_SILENT_PATTERN.is_match(error_msg) {
+                            return true;
+                        }
+                    }
+                }
+
+                // Case 2: Silent overflow (z.ai style) - successful but usage exceeds context
+                if *stop_reason == StopReason::Stop {
+                    let input_tokens = usage.input + usage.cache_read;
+                    if input_tokens > context_window as f64 {
+                        return true;
+                    }
+                }
+
+                false
+            }
+            _ => false,
+        }
+    }
 }
 
 #[derive(From, Serialize, Deserialize, Debug, Clone, PartialEq)]

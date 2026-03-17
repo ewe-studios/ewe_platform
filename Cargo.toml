@@ -49,6 +49,7 @@ infrastructure_llama_bindings = { path = "./infrastructure/llama-bindings", vers
 infrastructure_llama_cpp = { path = "./infrastructure/llama-cpp", version = "0.0.1" }
 
 # --- foundation crates
+foundation_auth = { path = "./backends/foundation_auth", version = "0.0.1" }
 foundation_macros = { path = "./backends/foundation_macros", version = "0.0.4" }
 foundation_testing = { path = "./backends/foundation_testing", version = "0.0.1" }
 foundation_nostd = { path = "./backends/foundation_nostd", version = "0.0.4" }
