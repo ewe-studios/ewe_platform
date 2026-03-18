@@ -533,3 +533,743 @@ cargo check --package foundation_ai --features vulkan
 
 _Created: 2026-03-16_
 _Last Updated: 2026-03-17 (revised: struct model, provider config, embeddings, interior mutability, owned errors)_
+
+---
+
+# Documentation: llama.cpp Deep Dive
+
+## Part 1: Fundamentals
+
+### What is llama.cpp?
+
+**llama.cpp** is a highly optimized C/C++ library for running large language models (LLMs) efficiently on consumer hardware. It has become the de facto standard for local LLM inference due to its:
+
+- **Performance**: Optimized for CPU and GPU inference with extensive quantization support
+- **Portability**: Cross-platform with support for CUDA, Metal, Vulkan, and CPU-only execution
+- **Model Support**: Broad ecosystem supporting GGUF format models (Llama, Mistral, Qwen, Gemma, Phi, etc.)
+- **Quantization**: Extensive quantization types (Q2_K through Q8_0, IQ variants) for memory efficiency
+- **No External Dependencies**: Pure C/C++ with optional GPU backend libraries
+
+### Key Capabilities
+
+| Capability | Description | foundation_ai Integration |
+|------------|-------------|--------------------------|
+| Text Generation | Autoregressive token generation with configurable sampling | `Model::generate()` |
+| Chat Completion | Multi-turn conversation with chat template support | `ModelInteraction` + templates |
+| Embeddings | Extract contextual embeddings for RAG, similarity, etc. | `ModelOutput::Embedding` |
+| Streaming | Token-by-token generation | `Model::stream()` → `LlamaCppStream` |
+| LoRA Adapters | Low-Rank Adapter support for fine-tuned variants | `ModelSpec::lora_location` |
+| Multimodal | Image + text processing (llava, gemma3, etc.) | `mtmd` feature flag |
+
+---
+
+## Part 2: GGUF Model Format
+
+### Overview
+
+**GGUF (GPT-Generated Unified Format)** is llama.cpp's model format designed for:
+
+- Fast loading via memory mapping
+- Embedded metadata (tokenizer, chat templates, architecture info)
+- Quantized tensor storage
+- Efficient random access
+
+### File Structure
+
+```
+┌──────────────────┐
+│ GGUF Header      │ - Magic number, version, tensor count, metadata KV count
+├──────────────────┤
+│ Metadata KV      │ - Architecture, hyperparameters, tokenizer info, chat templates
+├──────────────────┤
+│ Tensor Info      │ - Name, dimensions, type, offset for each tensor
+├──────────────────┤
+│ Tensor Data      │ - Actual tensor weights (possibly quantized)
+└──────────────────┘
+```
+
+### Quantization Types
+
+| Type | Size | Quality | Use Case |
+|------|------|---------|----------|
+| F16 | 2B/param | Lossless | High-quality inference, debugging |
+| Q8_0 | ~1B/param | Near-lossless | Quality-focused deployments |
+| Q5_K_M | ~0.625B/param | Very Good | Balanced quality/size (recommended) |
+| Q4_K_M | ~0.5B/param | Good | Default recommendation for most uses |
+| Q3_K_M | ~0.4B/param | Acceptable | Memory-constrained environments |
+| Q2_K | ~0.3B/param | Degraded | Extreme memory constraints |
+
+### Loading from HuggingFace
+
+Models from HuggingFace typically follow this pattern:
+
+```
+https://huggingface.co/{org}/{repo}/resolve/main/{model_name}-{quant}.gguf
+```
+
+Example URLs:
+```
+https://huggingface.co/Qwen/Qwen2-1.5B-Instruct-GGUF/resolve/main/qwen2-1_5b-instruct-q4_k_m.gguf
+https://huggingface.co/TheBloke/Mistral-7B-Instruct-v0.3-GGUF/resolve/main/mistral-7b-instruct-v0.3.q4_k_m.gguf
+https://huggingface.co/bartowski/Llama-3.1-8B-Instruct-GGUF/resolve/main/Llama-3.1-8B-Instruct-Q4_K_M.gguf
+```
+
+---
+
+## Part 3: Core API Components
+
+### 1. Backend (`LlamaBackend`)
+
+The backend must be initialized before any other operations:
+
+```rust
+use infrastructure_llama_cpp::llama_backend::LlamaBackend;
+
+// Initialize (can only be done once per process)
+let backend = LlamaBackend::init()?;
+
+// ... use backend to load models ...
+
+drop(backend);  // Frees backend resources
+```
+
+### 2. Model (`LlamaModel`)
+
+Represents a loaded GGUF model file:
+
+```rust
+use infrastructure_llama_cpp::model::{LlamaModel, params::LlamaModelParams};
+
+let params = LlamaModelParams::default()
+    .with_n_gpu_layers(35);  // Offload 35 layers to GPU
+
+let model = LlamaModel::load_from_file(&backend, "model.gguf", &params)?;
+```
+
+### 3. Context (`LlamaContext`)
+
+The context holds:
+- KV cache for autoregressive generation
+- Current session state
+- Logits from last decode
+
+```rust
+use infrastructure_llama_cpp::context::params::LlamaContextParams;
+
+let ctx_params = LlamaContextParams::default()
+    .with_n_ctx(4096)       // Context window size
+    .with_n_batch(512)      // Logical batch size
+    .with_embeddings(false); // Enable for embeddings
+
+let mut ctx = model.new_context(&backend, ctx_params)?;
+```
+
+### 4. Batch (`LlamaBatch`)
+
+Batches submit tokens for processing:
+
+```rust
+use infrastructure_llama_cpp::llama_batch::LlamaBatch;
+
+let mut batch = LlamaBatch::new(512, 1);  // capacity, sequences
+
+// Add tokens
+for (i, token) in tokens.iter().enumerate() {
+    let is_last = i == tokens.len() - 1;
+    batch.add(*token, i as i32, &[0], is_last)?;  // token, pos, seq_ids, logits
+}
+
+// Process batch
+ctx.decode(&mut batch)?;
+```
+
+### 5. Sampler (`LlamaSampler`)
+
+Samplers select the next token from logits:
+
+```rust
+use infrastructure_llama_cpp::sampling::LlamaSampler;
+
+// Simple greedy
+let sampler = LlamaSampler::greedy();
+
+// Temperature + Top-P + Greedy chain
+let sampler = LlamaSampler::chain_simple([
+    LlamaSampler::temp(0.7),
+    LlamaSampler::top_p(0.9, 1),
+    LlamaSampler::greedy(),
+]);
+
+// Sample token
+let next_token = sampler.sample(&ctx, -1);  // -1 = last token
+sampler.accept(next_token);  // Update sampler state
+```
+
+---
+
+## Part 4: Inference Pipeline
+
+### Complete Generation Flow
+
+```
+Input Text
+    |
+    v
+[Tokenization] model.str_to_token(prompt, AddBos::Always)
+    |
+    v
+Token IDs: [BOS, 15043, 590, 1024, ...]
+    |
+    v
+[Batch Construction] LlamaBatch::add()
+    |
+    v
+llama_batch { token, pos, seq_id, logits }
+    |
+    v
+[Prefill] ctx.decode(&mut batch) - process all prompt tokens
+    |
+    v
+KV Cache updated with all prompt positions
+    |
+    v
+[Logit Extraction] ctx.get_logits() - logits for last token
+    |
+    v
+float[n_vocab] logit distribution
+    |
+    v
+[Sampling] sampler.sample(&ctx, -1)
+    |
+    v
+Selected token ID
+    |
+    v
+[Detokenization] model.token_to_bytes(token)
+    |
+    v
+Output text appended
+    |
+    +----> [Repeat until EOS or max_tokens]
+```
+
+### Basic Text Generation Loop
+
+```rust
+use infrastructure_llama_cpp::{
+    llama_batch::LlamaBatch,
+    sampling::LlamaSampler,
+    model::{AddBos, Special},
+};
+
+fn generate_text(
+    model: &LlamaModel,
+    ctx: &mut LlamaContext,
+    prompt: &str,
+    max_tokens: usize,
+) -> Result<String> {
+    // 1. Tokenize prompt
+    let tokens = model.str_to_token(prompt, AddBos::Always)?;
+
+    // 2. Create batch and process prompt
+    let mut batch = LlamaBatch::new(512, 1);
+    for (i, token) in tokens.iter().enumerate() {
+        let is_last = i == tokens.len() - 1;
+        batch.add(*token, i as i32, &[0], is_last)?;
+    }
+    ctx.decode(&mut batch)?;
+
+    // 3. Setup sampler
+    let mut sampler = LlamaSampler::chain_simple([
+        LlamaSampler::temp(0.7),
+        LlamaSampler::top_p(0.9, 1),
+        LlamaSampler::greedy(),
+    ]);
+
+    // 4. Generation loop
+    let mut n_cur = batch.n_tokens();
+    let mut output = String::new();
+    let mut decoder = encoding_rs::UTF_8.new_decoder();
+
+    while n_cur < max_tokens {
+        // Sample next token
+        let token = sampler.sample(ctx, -1);
+        sampler.accept(token);
+
+        // Check for EOS
+        if token == model.token_eos() {
+            break;
+        }
+
+        // Convert token to text
+        let bytes = model.token_to_bytes(token, Special::Tokenize)?;
+        let mut piece = String::new();
+        decoder.decode_to_string(&bytes, &mut piece, false)?;
+        output.push_str(&piece);
+
+        // Prepare next batch (single token)
+        batch.clear();
+        batch.add(token, n_cur as i32, &[0], true)?;
+        ctx.decode(&mut batch)?;
+
+        n_cur += 1;
+    }
+
+    Ok(output)
+}
+```
+
+---
+
+## Part 5: Sampling Strategies
+
+### Available Samplers
+
+| Sampler | Description | Use Case |
+|---------|-------------|----------|
+| `greedy()` | Select highest probability token | Deterministic output, code |
+| `dist(seed)` | Random sample by probability | Creative generation |
+| `temp(t)` | Apply temperature scaling | Control randomness |
+| `top_k(k)` | Limit to top k tokens | Remove long-tail noise |
+| `top_p(p, min_keep)` | Nucleus sampling | Adaptive candidate selection |
+| `min_p(p, min_keep)` | Minimum probability threshold | Filter relative to best |
+| `penalties(...)` | Repetition penalties | Reduce repetition |
+| `grammar(...)` | Grammar-constrained | Structured output (JSON, code) |
+| `dry(...)` | DRY repetition prevention | N-gram based repetition control |
+
+### Typical Chat Configuration
+
+```rust
+let sampler = LlamaSampler::chain_simple([
+    // 1. Repetition penalty (modifies logits based on history)
+    LlamaSampler::penalties(64, 1.1, 0.1, 0.1),
+
+    // 2. Top-K (keep only top K candidates)
+    LlamaSampler::top_k(40),
+
+    // 3. Top-P / Nucleus (keep candidates summing to P probability)
+    LlamaSampler::top_p(0.9, 1),
+
+    // 4. Temperature (scale logits)
+    LlamaSampler::temp(0.7),
+
+    // 5. Selection (must be last)
+    LlamaSampler::dist(1234),  // Random weighted selection
+]);
+```
+
+### Grammar-Constrained Generation
+
+For structured output like JSON:
+
+```rust
+let grammar = r#"
+root   ::= object
+value  ::= object | array | string | number | "true" | "false" | "null"
+object ::= "{" ws (string ":" ws value ("," ws value)*)? "}"
+array  ::= "[" ws (value ("," ws value)*)? "]"
+string ::= "\"" ([^"\\] | "\\" .)* "\""
+number ::= "-"? [0-9]+ ("." [0-9]+)?
+ws     ::= [ \t\n]*
+"#;
+
+let sampler = LlamaSampler::chain_simple([
+    LlamaSampler::grammar(&model, grammar, "root")?,
+    LlamaSampler::temp(0.2),  // Low temp for structured output
+    LlamaSampler::greedy(),
+]);
+```
+
+---
+
+## Part 6: Chat Templates
+
+### Applying Chat Templates
+
+```rust
+use infrastructure_llama_cpp::model::{LlamaChatTemplate, LlamaChatMessage};
+
+// Get template from model (uses model's built-in template)
+let template = model.chat_template(None)?;
+
+// Or get named template
+let template = model.chat_template(Some("chatml"))?;
+
+// Build messages
+let messages = vec![
+    LlamaChatMessage::new("system", "You are a helpful assistant")?,
+    LlamaChatMessage::new("user", "Hello, how are you?")?,
+];
+
+// Apply template (add_ass=true adds opening assistant tag)
+let formatted_prompt = model.apply_chat_template(&template, &messages, true)?;
+
+// Now generate with formatted_prompt
+```
+
+### Common Template Formats
+
+| Template | Models | Format Example |
+|----------|--------|----------------|
+| ChatML | Mistral, Qwen | `<|im_start|>user\nHello<|im_end|>` |
+| Llama3 | Llama 3.x | `<|begin_of_text|><|start_header_id|>user<|end_header_id|>` |
+| Gemma | Gemma 2.x | `<start_of_turn>user\nHello<end_of_turn>` |
+| Mistral | Mistral 7B | `[INST] Hello [/INST]` |
+
+---
+
+## Part 7: Embeddings
+
+### Enabling Embeddings
+
+```rust
+use infrastructure_llama_cpp::context::params::{LlamaContextParams, LlamaPoolingType};
+
+let ctx_params = LlamaContextParams::default()
+    .with_embeddings(true)
+    .with_pooling_type(LlamaPoolingType::Mean);  // or Last, Cls, Rank
+
+let mut ctx = model.new_context(&backend, ctx_params)?;
+```
+
+### Extracting Embeddings
+
+```rust
+// Process text
+let tokens = model.str_to_token(text, AddBos::Always)?;
+let mut batch = LlamaBatch::new(512, 1);
+batch.add_sequence(&tokens, 0, false)?;
+ctx.decode(&mut batch)?;
+
+// Extract embedding
+let embeddings: &[f32] = ctx.embeddings_seq_ith(0)?;
+// embeddings.len() == model.n_embd()
+```
+
+### Pooling Types
+
+| Type | Description | Use Case |
+|------|-------------|----------|
+| `Mean` | Average of all token embeddings | General purpose |
+| `Last` | Last token embedding | Causal models |
+| `Cls` | CLS token embedding | BERT-style models |
+| `Rank` | Single relevance score | Reranking models |
+
+---
+
+## Part 8: KV Cache Management
+
+### How KV Cache Works
+
+The KV cache stores key/value attention projections:
+
+```
+Position:  0    1    2    3    4    5    ...    n_ctx-1
+          [K0] [K1] [K2] [K3] [K4] [K5]  ...  [empty]
+          [V0] [V1] [V2] [V3] [V4] [V5]  ...  [empty]
+```
+
+Each decode adds new K/V entries. Subsequent tokens attend to all cached entries.
+
+### Multi-Turn Conversation
+
+```rust
+let mut total_position = 0;
+
+// Turn 1: Process system + user message
+let tokens_turn1 = model.str_to_token(&prompt_turn1, AddBos::Always)?;
+let mut batch = LlamaBatch::new(512, 1);
+for (i, token) in tokens_turn1.iter().enumerate() {
+    batch.add(*token, i as i32, &[0], i == tokens_turn1.len() - 1)?;
+}
+ctx.decode(&mut batch)?;
+// ... generate response ...
+total_position += tokens_turn1.len() + response_tokens.len();
+
+// Turn 2: Only process new user message (cache has context)
+let tokens_turn2 = model.str_to_token(&new_message, AddBos::Never)?;
+batch.clear();
+for (i, token) in tokens_turn2.iter().enumerate() {
+    let pos = (total_position + i) as i32;
+    batch.add(*token, pos, &[0], i == tokens_turn2.len() - 1)?;
+}
+ctx.decode(&mut batch)?;
+// ... generate response ...
+```
+
+### Cache Management (When Full)
+
+```rust
+let n_ctx = ctx.n_ctx() as i32;
+let n_keep = 256;  // Keep first N tokens (system prompt)
+let n_discard = 128;
+
+// Remove tokens in range
+ctx.clear_kv_cache_seq(Some(0), Some(n_keep as u32), Some((n_keep + n_discard) as u32))?;
+
+// Shift remaining positions down
+ctx.kv_cache_seq_add(0, Some((n_keep + n_discard) as u32), None, -n_discard)?;
+```
+
+---
+
+## Part 9: Hardware Acceleration
+
+### GPU Offloading
+
+```rust
+let params = LlamaModelParams::default()
+    .with_n_gpu_layers(999)    // Offload ALL layers to GPU
+    .with_main_gpu(0)          // Use GPU 0
+    .with_split_mode(SplitMode::Layer);  // Split by layer across GPUs
+```
+
+### Feature Flags
+
+```toml
+# Cargo.toml
+[dependencies]
+infrastructure_llama_cpp = { workspace = true }
+
+[features]
+metal = ["infrastructure_llama_cpp/metal"]
+vulkan = ["infrastructure_llama_cpp/vulkan"]
+cuda = ["infrastructure_llama_cpp/cuda"]
+cuda_static = ["infrastructure_llama_cpp/cuda", "infrastructure_llama_cpp/cuda-no-vmm"]
+mtmd = ["infrastructure_llama_cpp/mtmd"]  # Multi-modal
+```
+
+### Platform Recommendations
+
+| Platform | Backend | Recommendation |
+|----------|---------|----------------|
+| Apple Silicon | Metal | Use `metal` feature, offload all layers |
+| NVIDIA GPU | CUDA | Use `cuda` feature, 70-999 GPU layers |
+| AMD GPU | Vulkan | Use `vulkan` feature |
+| CPU Only | CPU | Use `n_gpu_layers=0`, optimize threads |
+
+---
+
+## Part 10: Model Use Cases
+
+### Voice/Audio-to-Text (Whisper)
+
+For audio transcription, use Whisper models in GGUF format:
+
+```rust
+// Whisper models are encoder-only
+let ctx_params = LlamaContextParams::default()
+    .with_embeddings(true);
+
+// Process audio (converted to mel spectrogram tokens)
+// ... audio preprocessing ...
+let tokens = audio_to_tokens(audio_bytes)?;
+
+let mut batch = LlamaBatch::new(448, 1);  // Whisper uses 448 context
+batch.add_sequence(&tokens, 0, false)?;
+ctx.encode(&mut batch)?;  // Use encode for encoder models
+
+// Get transcription
+let transcription = decode_whisper_output(&ctx)?;
+```
+
+**Recommended Models:**
+- `ggerganov/whisper.cpp` (official GGUF Whisper)
+- HuggingFace: search for `whisper-gguf`
+
+### Text Generation (Mistral, Llama, Qwen)
+
+```rust
+// Typical 7B-8B model configuration
+let ctx_params = LlamaContextParams::default()
+    .with_n_ctx(8192)        // Extended context
+    .with_n_batch(1024)      // Large batch for prompt prefill
+    .with_n_threads(8);      // Match CPU cores
+
+let params = LlamaModelParams::default()
+    .with_n_gpu_layers(35);  // Partial offload for balanced VRAM
+```
+
+**Recommended Models:**
+- Mistral 7B Instruct: `TheBloke/Mistral-7B-Instruct-v0.3-GGUF`
+- Llama 3.1 8B Instruct: `bartowski/Llama-3.1-8B-Instruct-GGUF`
+- Qwen2.5 7B Instruct: `Qwen/Qwen2.5-7B-Instruct-GGUF`
+
+### Code Generation
+
+```rust
+// Low temperature for deterministic code
+let sampler = LlamaSampler::chain_simple([
+    LlamaSampler::grammar(&model, CODE_GRAMMAR, "root")?,  // Constrained
+    LlamaSampler::temp(0.2),
+    LlamaSampler::greedy(),
+]);
+```
+
+### Embedding Models
+
+```rust
+// BGE, E5, or other embedding models
+let ctx_params = LlamaContextParams::default()
+    .with_embeddings(true)
+    .with_pooling_type(LlamaPoolingType::Mean);
+
+// For reranking
+let rerank_ctx_params = LlamaContextParams::default()
+    .with_embeddings(true)
+    .with_pooling_type(LlamaPoolingType::Rank);
+```
+
+**Recommended Models:**
+- BGE-M3: `BAAI/bge-m3` (multilingual, 8192 context)
+- E5-Mistral: `intfloat/e5-mistral-7b-instruct`
+
+### Multimodal (Image + Text)
+
+Enable `mtmd` feature and use llava-style models:
+
+```rust
+#[cfg(feature = "mtmd")]
+{
+    use infrastructure_llama_cpp::mtmd::{MtmdContext, MtmdInput};
+
+    let mtmd_ctx = MtmdContext::new(&model)?;
+    let input = MtmdInput::new()
+        .with_text("Describe this image:")
+        .with_image(image_bytes)?;
+
+    let result = mtmd_ctx.process(&input)?;
+}
+```
+
+---
+
+## Part 11: Performance Optimization
+
+### Memory Usage
+
+KV Cache memory calculation:
+```
+KV_cache_memory = n_ctx * n_layer * (n_embd_head * n_head_kv) * 2 * sizeof(kv_type)
+```
+
+For a 7B model (32 layers, 32 heads, 128 dim) with 4096 context:
+- F16 KV: ~2 GB
+- Q8_0 KV: ~1 GB
+- Q4_0 KV: ~512 MB
+
+### Context Parameters Optimization
+
+```rust
+let ctx_params = LlamaContextParams::default()
+    .with_n_ctx(4096)           // Match your use case
+    .with_n_batch(1024)         // >= max prompt length
+    .with_n_ubatch(512)         // Physical batch (GPU-friendly)
+    .with_n_threads(8)          // Match physical CPU cores
+    .with_n_threads_batch(16)   // Can use hyperthreading
+    .with_type_k(KvCacheType::Q8_0)  // Quantized KV cache
+    .with_type_v(KvCacheType::Q8_0)
+    .with_offload_kqv(true);    // Keep KV on GPU
+```
+
+### Timing and Profiling
+
+```rust
+ctx.reset_timings();
+
+// ... run generation ...
+
+let timings = ctx.timings();
+println!("Load time: {:.1}ms", timings.t_load_ms());
+println!("Prompt: {:.1}ms ({} tokens, {:.1} t/s)",
+    timings.t_p_eval_ms(),
+    timings.n_p_eval(),
+    1000.0 * timings.n_p_eval() as f64 / timings.t_p_eval_ms());
+println!("Generation: {:.1}ms ({} tokens, {:.1} t/s)",
+    timings.t_eval_ms(),
+    timings.n_eval(),
+    1000.0 * timings.n_eval() as f64 / timings.t_eval_ms());
+```
+
+---
+
+## Part 12: Error Handling Patterns
+
+```rust
+use infrastructure_llama_cpp::{
+    LlamaModelLoadError,
+    StringToTokenError,
+    DecodeError,
+    TokenToStringError,
+};
+
+fn safe_generate(model: &LlamaModel, prompt: &str) -> Result<String, AppError> {
+    match model.str_to_token(prompt, AddBos::Always) {
+        Ok(tokens) => { /* process */ }
+        Err(StringToTokenError::NulError(e)) => {
+            Err(AppError::InvalidInput(format!("Null byte in prompt: {}", e)))
+        }
+        Err(StringToTokenError::TooLong) => {
+            Err(AppError::InvalidInput("Prompt exceeds context window"))
+        }
+        Err(e) => Err(AppError::TokenizationFailed(e.to_string()))
+    }
+}
+
+fn load_model_safely(path: &str) -> Result<LlamaModel, AppError> {
+    match LlamaModel::load_from_file(&backend, path, &params) {
+        Ok(model) => Ok(model),
+        Err(LlamaModelLoadError::FileNotFound) => {
+            Err(AppError::Config(format!("Model file not found: {}", path)))
+        }
+        Err(LlamaModelLoadError::InvalidModel) => {
+            Err(AppError::Config(format!("Invalid GGUF file: {}", path)))
+        }
+        Err(e) => Err(AppError::ModelLoad(e.to_string()))
+    }
+}
+```
+
+---
+
+## Part 13: Testing Patterns
+
+```rust
+#[cfg(test)]
+mod tests {
+    use infrastructure_llama_cpp::{
+        llama_backend::LlamaBackend,
+        model::{LlamaModel, params::LlamaModelParams},
+    };
+
+    #[test]
+    fn test_model_loading() {
+        let backend = LlamaBackend::init().unwrap();
+        let model = LlamaModel::load_from_file(
+            &backend,
+            "test_models/tiny-llama-1.1b-q4_k_m.gguf",
+            &LlamaModelParams::default()
+        );
+        assert!(model.is_ok());
+        let model = model.unwrap();
+        assert!(model.n_vocab() > 0);
+        assert!(model.n_embd() > 0);
+    }
+
+    #[test]
+    fn test_tokenization() {
+        let backend = LlamaBackend::init().unwrap();
+        let model = LlamaModel::load_from_file(
+            &backend,
+            "test_models/tiny.gguf",
+            &LlamaModelParams::default()
+        ).unwrap();
+
+        let tokens = model.str_to_token("Hello, world!", AddBos::Always).unwrap();
+        assert!(!tokens.is_empty());
+
+        let text = model.tokens_to_str(&tokens, Special::Tokenize).unwrap();
+        assert!(text.contains("Hello"));
+    }
+}
+```
