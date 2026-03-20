@@ -34,8 +34,8 @@ related_specs:
   - "specifications/04-wasm-entrypoint-toolchain"
 features:
   completed: 0
-  uncompleted: 6
-  total: 6
+  uncompleted: 7
+  total: 7
   completion_percentage: 0%
 ---
 
@@ -184,8 +184,9 @@ Features are listed in dependency order. Each feature contains detailed requirem
 
 | #  | Feature | Description | Dependencies | Status |
 |----|---------|-------------|--------------|--------|
-| 0a | [auth-infrastructure](./features/00a-auth-infrastructure/feature.md) | Comprehensive authentication infrastructure for foundation_auth (JWT, OAuth 2.0, credential storage, auth state machine, 2FA) | None | ⬜ Pending |
-| 0  | [openai-provider](./features/00-openai-provider/feature.md) | OpenAI-compatible HTTP provider for connecting to OpenAI, llama.cpp server, vLLM, Ollama | 00a-auth-infrastructure | ⬜ Pending |
+| 0a | [foundation-db](./features/00a-foundation-db/feature.md) | Unified storage backend wrapping Turso (libsql), Cloudflare D1, R2 with in-memory fallback | None | ⬜ Pending |
+| 0b | [auth-infrastructure](./features/00b-auth-infrastructure/feature.md) | Comprehensive authentication infrastructure for foundation_auth (JWT, OAuth 2.0, credential storage via foundation_db, auth state machine, 2FA) | 00a-foundation-db | ⬜ Pending |
+| 0c | [openai-provider](./features/00c-openai-provider/feature.md) | OpenAI-compatible HTTP provider for connecting to OpenAI, llama.cpp server, vLLM, Ollama | 00b-auth-infrastructure | ⬜ Pending |
 | 1  | [llamacpp-integration](./features/01-llamacpp-integration/feature.md) | Complete llama.cpp inference engine integration via `infrastructure_llama_cpp` | None | ⬜ Pending |
 | 2  | [huggingface-provider](./features/02-huggingface-provider/feature.md) | HuggingFace Hub model discovery, download, and GGUF serving via `hf-hub` | 01-llamacpp-integration | ⬜ Pending |
 | 3  | [candle-integration](./features/03-candle-integration/feature.md) | Alternative ModelProvider using HuggingFace Candle for native Rust inference with safetensors | 01-llamacpp-integration | ⬜ Pending |
@@ -219,10 +220,12 @@ Create a comprehensive AI inference backend in `foundation_ai` that supports:
 13. **Feature Flags** - Mirror `infrastructure_llama_cpp` features (cuda, metal, vulkan, mtmd) + Candle features (candle-cuda, candle-metal)
 14. **f32 Params** - `temperature`, `top_k`, `top_p` as f32; map to i32 internally when llama.cpp API requires
 15. **Spec as Guidance** - The llama.cpp API and bindings are the authoritative source; spec is guidance that should be adapted to the actual API
-16. **Authentication Infrastructure** - Separate feature (00a) for comprehensive auth infrastructure (JWT, OAuth, credential storage, state machine, 2FA) to support all HTTP-based providers
-17. **OAuth with PKCE** - OAuth 2.0 implementation MUST use PKCE (S256) for public clients per RFC 7636
-18. **Zeroizing Secrets** - All secrets MUST use `Zeroizing<T>` for secure memory clearing on drop
-19. **State Parameter** - OAuth state parameter is MANDATORY for CSRF protection
+16. **Foundation DB** - Separate feature (00a) for unified storage backend (Turso/libsql, D1, R2, Memory) to enable persistent credential and state storage
+17. **Authentication Infrastructure** - Separate feature (00b) for comprehensive auth infrastructure (JWT, OAuth, credential storage via foundation_db, state machine, 2FA)
+18. **OAuth with PKCE** - OAuth 2.0 implementation MUST use PKCE (S256) for public clients per RFC 7636
+19. **Zeroizing Secrets** - All secrets MUST use `Zeroizing<T>` for secure memory clearing on drop
+20. **State Parameter** - OAuth state parameter is MANDATORY for CSRF protection
+21. **Turso for Production** - Turso (libsql) is the default production backend for credential persistence with embedded SQLite mode for local development
 
 ## Success Criteria (Spec-Wide)
 
