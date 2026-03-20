@@ -82,7 +82,7 @@ pub const DEFAULT_WAIT_CYCLE: std::time::Duration = std::time::Duration::from_mi
 ///
 /// WHY: Provides single API that works across all platforms/configurations
 /// WHAT: Auto-selects executor based on compile-time configuration
-pub fn execute<T>(
+pub fn execute_as_task<T>(
     task: T,
     wait_cycle: Option<std::time::Duration>,
 ) -> GenericResult<DrivenRecvIterator<T>>
@@ -95,7 +95,7 @@ where
     #[cfg(target_arch = "wasm32")]
     {
         tracing::debug!("Executing as a single stream in wasm");
-        execute_single(task, wait_cycle)
+        execute_single_as_task(task, wait_cycle)
     }
 
     #[cfg(not(target_arch = "wasm32"))]
@@ -103,18 +103,18 @@ where
         #[cfg(feature = "multi")]
         {
             tracing::debug!("Executing as a multi-threaded stream in no-wasm");
-            execute_multi(task, wait_cycle)
+            execute_multi_as_task(task, wait_cycle)
         }
 
         #[cfg(not(feature = "multi"))]
         {
             tracing::debug!("Executing as a single-threaded stream in no-wasm");
-            execute_single(task, wait_cycle)
+            execute_single_as_task(task, wait_cycle)
         }
     }
 }
 
-/// [`execute_stream`] unlike [`execute`] returns a [`StreamRecvIterator`]
+/// [`execute_stream`] unlike [`execute_as_task`] returns a [`StreamRecvIterator`]
 /// which hides the underlying mechanics of handling [`TaskStatus`]. The stream
 /// iterator will internally manage different task states, send any required
 /// spawn events to the executor as tasks request additional work, and present a
@@ -175,7 +175,7 @@ where
 /// WHY: Provides single API that works across all platforms/configurations.
 /// WHAT: Auto-selects executor based on compile-time configuration and returns a
 /// higher-level stream iterator that simplifies consuming produced values.
-pub fn execute_stream<T>(
+pub fn execute<T>(
     task: T,
     wait_cycle: Option<std::time::Duration>,
 ) -> GenericResult<DrivenStreamIterator<T>>
@@ -212,7 +212,7 @@ where
 /// WHY: WASM and minimal builds need single-threaded execution
 /// WHAT: Schedules task, runs until complete, returns first Ready value
 #[allow(clippy::type_complexity)]
-fn execute_single<T>(
+fn execute_single_as_task<T>(
     task: T,
     wait_cycle: Option<std::time::Duration>,
 ) -> GenericResult<DrivenRecvIterator<T>>
@@ -261,7 +261,7 @@ where
 /// WHY: Native builds can use multiple threads for better performance
 /// WHAT: Schedules task, runs until complete, returns first Ready value
 #[cfg(all(not(target_arch = "wasm32"), feature = "multi"))]
-fn execute_multi<T>(
+fn execute_multi_as_task<T>(
     task: T,
     wait_cycle: Option<std::time::Duration>,
 ) -> GenericResult<DrivenRecvIterator<T>>

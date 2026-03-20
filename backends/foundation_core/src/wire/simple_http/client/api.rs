@@ -362,8 +362,8 @@ impl<R: DnsResolver + 'static> ClientRequest<R> {
         );
 
         // Spawn task via execute_task
-        let iter: DrivenStreamIterator<SendRequestTask<R>> = valtron::execute_stream(task, None)
-            .map_err(|e| {
+        let iter: DrivenStreamIterator<SendRequestTask<R>> =
+            valtron::execute(task, None).map_err(|e| {
                 HttpClientError::FailedWith(format!("Failed to spawn task: {e}").into())
             })?;
 
@@ -631,7 +631,7 @@ impl<R: DnsResolver + 'static> ClientRequest<R> {
             );
 
             // Spawn task via execute_task
-            let iter = valtron::execute_stream(task, None).map_err(|e| {
+            let iter = valtron::execute(task, None).map_err(|e| {
                 HttpClientError::FailedWith(format!("Failed to spawn task: {e}").into())
             })?;
 
