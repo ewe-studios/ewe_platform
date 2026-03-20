@@ -226,6 +226,17 @@ Create a comprehensive AI inference backend in `foundation_ai` that supports:
 19. **Zeroizing Secrets** - All secrets MUST use `Zeroizing<T>` for secure memory clearing on drop
 20. **State Parameter** - OAuth state parameter is MANDATORY for CSRF protection
 21. **Turso for Production** - Turso (libsql) is the default production backend for credential persistence with embedded SQLite mode for local development
+22. **Better-Auth Insights** - Database schema, OAuth implementation, and session management patterns inspired by better-auth library:
+    - Complete auth schema with users, sessions, accounts, verification_tokens tables
+    - OAuth account linking for multiple providers per user
+    - Rate limiting with database backend
+    - Audit logging for security compliance
+    - API key authentication support
+23. **Three-Cookie Session System** - session_token (7 days), session_data (5 min cache), dont_remember (session-only)
+24. **Secret Rotation** - Multi-key signer pattern for seamless credential rotation
+25. **Timing Attack Prevention** - Constant-time comparison for all credential validation; hash passwords even for invalid emails
+26. **Argon2id Password Hashing** - Memory-hard, timing-safe password hashing
+27. **Sliding Expiration** - Active sessions auto-extend with configurable absolute maximum
 
 ## Success Criteria (Spec-Wide)
 
