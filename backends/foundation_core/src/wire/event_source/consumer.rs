@@ -11,7 +11,7 @@
 //! HOW: Uses `execute_stream()` internally and maps Stream states to user-visible
 //! variants.
 
-use crate::valtron::{execute_stream, DrivenStreamIterator, Stream};
+use crate::valtron::{execute, DrivenStreamIterator, Stream};
 use crate::wire::event_source::{
     Event, EventSourceError, EventSourceTask, ParseResult, ReconnectingEventSourceTask,
 };
@@ -76,7 +76,7 @@ impl<R: DnsResolver + Send + 'static> SseStream<R> {
     /// - Executor fails to schedule the task
     pub fn connect(resolver: R, url: impl Into<String>) -> Result<Self, EventSourceError> {
         let task = EventSourceTask::connect(resolver, url)?;
-        let inner = execute_stream(task, None)
+        let inner = execute(task, None)
             .map_err(|e| EventSourceError::Http(format!("Executor error: {}", e)))?;
         Ok(Self { inner })
     }
@@ -95,7 +95,7 @@ impl<R: DnsResolver + Send + 'static> SseStream<R> {
         pool: Arc<HttpConnectionPool<R>>,
     ) -> Result<Self, EventSourceError> {
         let task = EventSourceTask::connect_with_pool(url, pool)?;
-        let inner = execute_stream(task, None)
+        let inner = execute(task, None)
             .map_err(|e| EventSourceError::Http(format!("Executor error: {}", e)))?;
         Ok(Self { inner })
     }
@@ -136,7 +136,7 @@ impl<R: DnsResolver + Clone + Send + 'static> ReconnectingSseStream<R> {
     /// - Executor fails to schedule the task
     pub fn connect(resolver: R, url: impl Into<String>) -> Result<Self, EventSourceError> {
         let task = ReconnectingEventSourceTask::connect(resolver, url)?;
-        let inner = execute_stream(task, None)
+        let inner = execute(task, None)
             .map_err(|e| EventSourceError::Http(format!("Executor error: {}", e)))?;
         Ok(Self { inner })
     }

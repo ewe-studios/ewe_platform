@@ -12,7 +12,7 @@
 
 use crate::io::ioutils::SharedByteBufferStream;
 use crate::netcap::RawStream;
-use crate::valtron::{execute_stream, DrivenStreamIterator, Stream};
+use crate::valtron::{execute, DrivenStreamIterator, Stream};
 use crate::wire::simple_http::client::DnsResolver;
 use crate::wire::simple_http::client::HttpConnectionPool;
 use crate::wire::simple_http::SimpleHeader;
@@ -480,7 +480,7 @@ impl<R: DnsResolver + Send + 'static> WebSocketClient<R> {
             delivery.queue().clone(),
             read_timeout,
         )?;
-        let inner = execute_stream(task, None)
+        let inner = execute(task, None)
             .map_err(|e| WebSocketError::ProtocolError(format!("Executor error: {e}")))?;
         let client = Self {
             inner,
@@ -528,7 +528,7 @@ impl<R: DnsResolver + Send + 'static> WebSocketClient<R> {
             delivery.queue().clone(),
             read_timeout,
         )?;
-        let inner = execute_stream(task, None)
+        let inner = execute(task, None)
             .map_err(|e| WebSocketError::ProtocolError(format!("Executor error: {e}")))?;
         let client = Self {
             inner,
