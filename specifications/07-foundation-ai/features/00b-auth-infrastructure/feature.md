@@ -77,6 +77,8 @@ This feature fills those gaps with reusable authentication infrastructure.
 4. **Token Validation** - Parse JWT payload to extract expiration
 5. **Token Serialization** - Save/load tokens for persistence via foundation_db
 6. **Multi-Token Support** - Manage tokens for multiple audiences/issuers
+7. **Secret Rotation** - Multi-key signer support for seamless key rotation
+8. **Token Formats** - Support for Compact, JWT (RFC 7519), and PASETO V4 formats
 
 ### OAuth 2.0 Flows
 
@@ -87,6 +89,8 @@ This feature fills those gaps with reusable authentication infrastructure.
 11. **State Parameter** - Generate and validate CSRF protection state
 12. **Scope Management** - Track requested and granted scopes
 13. **Token Refresh** - Refresh OAuth tokens using refresh_token grant
+14. **OAuth Account Linking** - Link/unlink OAuth provider accounts to users
+15. **Generic OIDC Provider** - Configurable OpenID Connect provider support
 
 ### Credential Storage (via foundation_db)
 
@@ -112,12 +116,21 @@ This feature fills those gaps with reusable authentication infrastructure.
 25. **Challenge Response** - Handle 2FA challenges during auth
 26. **Backup Codes** - Validate one-time backup codes
 
+### Session Management
+
+27. **SessionManager** - Create, validate, and revoke sessions
+28. **Three-Cookie System** - session_token, session_data, dont_remember
+29. **Sliding Expiration** - Active sessions auto-extend (configurable)
+30. **Absolute Expiration** - Maximum session lifetime
+31. **Session Revocation** - Revoke single or all sessions ("sign out everywhere")
+32. **Session Tracking** - IP address, user agent, last_active_at
+
 ### Type Extensions
 
-27. **AuthToken Struct** - Unified token representation across auth methods
-28. **Extended AuthCredential** - New variants if needed
-29. **Extended AuthenticationErrors** - More specific error types
-30. **OnAuthData Extensions** - OAuth-specific auth data variants
+33. **AuthToken Struct** - Unified token representation across auth methods
+34. **Extended AuthCredential** - New variants if needed
+35. **Extended AuthenticationErrors** - More specific error types
+36. **OnAuthData Extensions** - OAuth-specific auth data variants
 
 ## Architecture
 
@@ -199,6 +212,61 @@ sequenceDiagram
     end
 ```
 
+### Three-Cookie Session Flow
+
+```mermaid
+sequenceDiagram
+    participant User as User Browser
+    participant App as Application
+    participant SM as SessionManager
+    participant DB as foundation_db
+
+    User->>App: POST /sign-in (credentials)
+    App->>SM: create_session(user)
+    SM->>DB: create_session()
+    DB-->>SM: session {id, token, expires_at}
+    SM->>SM: generate_token(session)
+    SM-->>App: session + token
+
+    App->>User: Response with cookies:
+    Note over App,User: 1. session_token (7 days, signed)
+    Note over App,User: 2. session_data (5 min, encrypted cache)
+    Note over App,User: 3. dont_remember (session-only, optional)
+
+    User->>App: Request (with cookies)
+    App->>SM: get_session(token)
+    SM->>SM: verify token signature
+    SM->>DB: find_session(token)
+    DB-->>SM: session + user
+
+    alt Sliding expiration enabled
+        SM->>SM: extend_expiration_if_active()
+        SM->>DB: update_session_activity()
+    end
+
+    SM-->>App: session + user
+    App->>User: Response + refreshed session_data cookie
+```
+
+### Secret Rotation Architecture
+
+```mermaid
+graph LR
+    subgraph "Multi-Key Signer"
+        A[Current Key v3] --> D[Sign New Tokens]
+        B[Previous Key v2] --> E[Verify Legacy Tokens]
+        C[Oldest Key v1] --> E
+    end
+
+    subgraph "Token Verification Flow"
+        F[Incoming Token] --> G{Try Current Key}
+        G -->|Fail| H{Try Previous Keys}
+        G -->|Success| I[Valid Token]
+        H -->|Success| I
+        H -->|Fail| J[Invalid Token]
+    end
+```
+
 ## Implementation
 
 ### Files to Create
@@ -209,11 +277,86 @@ sequenceDiagram
 - `backends/foundation_auth/src/auth_state.rs` - Authentication state machine
 - `backends/foundation_auth/src/two_factor.rs` - 2FA/TOTP handling
 - `backends/foundation_auth/src/auth_token.rs` - Unified token type
+- `backends/foundation_auth/src/session.rs` - Session management and cookies
+- `backends/foundation_auth/src/middleware.rs` - Auth middleware and guards
 
 ### Files to Modify
 
 - `backends/foundation_auth/src/lib.rs` - Export new modules and types
 - `backends/foundation_auth/Cargo.toml` - Add new dependencies
+
+### Key Implementation Patterns (from better-auth)
+
+#### 1. Timing-Attack Prevention
+
+All credential validation MUST use constant-time comparison:
+
+```rust
+// Password verification - hash even for invalid emails
+let user = find_user_by_email(&email).await;
+if user.is_none() {
+    // Hash anyway to prevent timing-based email enumeration
+    password_hasher.hash(&password).await;
+    return Err(AuthError::InvalidCredentials);
+}
+```
+
+#### 2. OAuth State Storage
+
+OAuth states MUST be stored in database with automatic cleanup:
+
+```rust
+// Store state with 10-minute expiration
+let expires_at = Utc::now() + Duration::minutes(10);
+storage.store_oauth_state(&state, &code_verifier, expires_at).await?;
+
+// Cleanup query (run periodically)
+DELETE FROM oauth_states WHERE expires_at < current_timestamp;
+```
+
+#### 3. Hook System (Plugin Architecture)
+
+Consider implementing before/after hooks for extensibility:
+
+```rust
+pub trait AuthHook: Send + Sync {
+    async fn before_request(&self, ctx: &mut AuthContext) -> Result<()>;
+    async fn after_response(&self, ctx: &mut AuthContext, response: &mut Response) -> Result<()>;
+}
+
+// Example: Rate limiting hook
+impl AuthHook for RateLimitHook {
+    async fn before_request(&self, ctx: &mut AuthContext) -> Result<()> {
+        check_rate_limit(ctx.path(), ctx.ip_address()).await
+    }
+}
+```
+
+#### 4. Multi-Key Secret Rotation
+
+```rust
+pub struct MultiKeySigner {
+    current_key_id: u32,
+    keys: HashMap<u32, SecretKey>,
+}
+
+impl MultiKeySigner {
+    pub fn sign(&self, claims: &Claims) -> String {
+        // Always sign with current key
+        self.keys[&self.current_key_id].sign(claims)
+    }
+
+    pub fn verify(&self, token: &str) -> Result<Claims> {
+        // Try current key first, then legacy keys
+        for (_, key) in &self.keys {
+            if let Ok(claims) = key.verify(token) {
+                return Ok(claims);
+            }
+        }
+        Err(Error::InvalidToken)
+    }
+}
+```
 
 ## Tasks
 
@@ -282,7 +425,30 @@ sequenceDiagram
 - [ ] Implement challenge creation and response handling
 - [ ] Add unit tests for TOTP generation and verification
 
-### Task Group 6: Type Extensions
+### Task Group 6: Session Management
+
+- [ ] Create `src/session.rs` with `SessionManager` struct
+- [ ] Implement `SessionManager::create_session()` with cookie generation
+- [ ] Implement `SessionManager::get_session()` with token verification
+- [ ] Implement sliding expiration logic
+- [ ] Implement `SessionManager::revoke_session()` for single session logout
+- [ ] Implement `SessionManager::revoke_all_sessions()` for "sign out everywhere"
+- [ ] Create three-cookie system: `session_token`, `session_data`, `dont_remember`
+- [ ] Implement session data caching (5-min cache to reduce DB calls)
+- [ ] Add session tracking: IP address, user agent, last_active_at
+- [ ] Implement `SessionManager::refresh_token()` for token rotation
+- [ ] Add unit tests for session lifecycle
+
+### Task Group 7: Middleware and Guards
+
+- [ ] Create `src/middleware.rs` with auth middleware
+- [ ] Implement `require_auth()` middleware for protected routes
+- [ ] Implement `optional_auth()` middleware for routes that work with or without auth
+- [ ] Add role/permission checking helpers
+- [ ] Implement request context extension with session data
+- [ ] Add unit tests for middleware
+
+### Task Group 8: Type Extensions
 
 - [ ] Create `src/auth_token.rs` with `AuthToken` enum
 - [ ] Implement unified token interface across auth methods
@@ -295,12 +461,14 @@ sequenceDiagram
   - `OAuthError { error: String, description: Option<String> }`
   - `InvalidState`
   - `PKCEFailed`
+  - `SessionNotFound`
+  - `AccountLocked`
 - [ ] Implement `Display` for all new error types
 - [ ] Extend `OnAuthData` with OAuth-specific variants:
   - `OAuthAuthorizationRequired { url, state }`
 - [ ] Update `lib.rs` exports
 
-### Task Group 7: Integration and Tests
+### Task Group 9: Integration and Tests
 
 - [ ] Update `src/lib.rs` to declare all new modules
 - [ ] Update `src/lib.rs` to re-export all public types
@@ -417,14 +585,61 @@ cargo fmt --package foundation_auth -- --check
 
 ## Security Considerations
 
+### Core Security Requirements
+
 1. **Zeroizing**: All secrets MUST use `Zeroizing<String>` or `Zeroizing<Vec<u8>>`
 2. **Debug Redaction**: All `Debug` impls must redact sensitive values
 3. **HTTPS Only**: OAuth flows must require HTTPS for token endpoints
 4. **State Parameter**: OAuth state parameter is MANDATORY for CSRF protection
-5. **PKCE**: PKCE is REQUIRED for public clients
+5. **PKCE**: PKCE is REQUIRED for public clients (S256 method)
 6. **Token Logging**: NEVER log full tokens; always use `ConfidentialText` pattern
 
+### Timing Attack Prevention
+
+7. **Constant-Time Comparison**: All credential validation must use constant-time comparison
+8. **Password Hashing**: Always hash even for invalid emails (prevent email enumeration)
+9. **Argon2id**: Use Argon2id for password hashing (memory-hard, timing-safe)
+
+### Session Security
+
+10. **HttpOnly Cookies**: Session cookies must be HttpOnly (no JavaScript access)
+11. **Secure Flag**: Session cookies must use Secure flag (HTTPS only)
+12. **SameSite**: Use SameSite=Lax or SameSite=Strict for CSRF protection
+13. **Sliding Expiration**: Active sessions auto-extend (configurable)
+14. **Absolute Expiration**: Maximum session lifetime (hard limit)
+15. **Session Revocation**: Support "sign out everywhere" (revoke all sessions)
+
+### Secret Management
+
+16. **Secret Rotation**: Support multi-key rotation (current + legacy keys)
+17. **Minimum Secret Length**: 256-bit (32 byte) secrets minimum
+18. **Key Derivation**: Use HKDF or similar for deriving keys from master secret
+
+### Rate Limiting
+
+19. **Login Rate Limiting**: Limit failed login attempts (account lockout)
+20. **Token Endpoint Rate Limiting**: Strict limits on token exchange endpoints
+21. **2FA Rate Limiting**: Very strict limits on TOTP verification (3 attempts max)
+
 ## Dependencies
+
+**Required Crates:**
+- `foundation_core` - For `ConfidentialText`, `Cookie`, basic types
+- `foundation_db` - For persistent credential storage (Turso/Memory backends)
+- `zeroize` - For secure memory clearing
+- `derive_more` - For error type derives
+- `uuid` - For session IDs, token IDs
+- `chrono` or `time` - For timestamp handling
+- `serde` + `serde_json` - For token serialization
+- `url` + `urlencoding` - For OAuth URL encoding
+- `base64` - For OAuth PKCE, token encoding
+- `sha2` - For SHA256 in PKCE S256
+- `hmac` - For TOTP, HMAC operations
+- `argon2` - For password hashing (memory-hard, timing-safe)
+- `chacha20poly1305` or `aes-gcm` - For encrypted session data
+- `rand` - For secure random generation
+- `jwt-simple` or `jsonwebtoken` - For JWT support (optional, can use custom)
+- `rusty_paseto` - For PASETO support (optional)
 
 Add to `backends/foundation_auth/Cargo.toml`:
 
@@ -433,28 +648,71 @@ Add to `backends/foundation_auth/Cargo.toml`:
 foundation_core = { workspace = true }
 foundation_db = { workspace = true }
 
+# Error handling
 derive_more = { version = "2.0", features = ["from", "debug", "error"] }
-base64 = "0.22"
-sha1 = "0.10"
-sha2 = "0.10"  # For PKCE S256
-bytes = "1.5"
+thiserror = "2.0"
+
+# Cryptography
 zeroize = { version = "1" }
-hmac = "0.12"  # For TOTP
-time = "0.3"   # For timestamp handling
+argon2 = "0.5"           # Password hashing (memory-hard)
+chacha20poly1305 = "0.10" # Encrypted session data
+sha2 = "0.10"            # SHA256 for PKCE
+hmac = "0.12"            # TOTP, HMAC
+rand = "0.8"             # Secure random generation
+
+# Token formats (optional - can implement custom)
+jwt-simple = "0.12"      # JWT support
+# rusty_paseto = "0.6"   # PASETO support (alternative)
+
+# Encoding
+base64 = "0.22"
+url = "2.5"
+urlencoding = "2.1"
+
+# Serialization
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
-url = "2.5"    # For URL encoding
+
+# Time handling
+time = "0.3"
+chrono = "0.4"
+
+# Utilities
+uuid = { version = "1.0", features = ["v4"] }
+bytes = "1.5"
+
+# Async
+tokio = { version = "1", features = ["sync", "time"] }
 ```
 
 ## References
 
-- [OAuth 2.0 RFC 6749](https://datatracker.ietf.org/doc/html/rfc6749)
-- [OAuth 2.0 PKCE RFC 7636](https://datatracker.ietf.org/doc/html/rfc7636)
-- [JWT RFC 7519](https://datatracker.ietf.org/doc/html/rfc7519)
-- [TOTP RFC 6238](https://datatracker.ietf.org/doc/html/rfc6238)
-- [HMAC RFC 2104](https://datatracker.ietf.org/doc/html/rfc2104)
+### RFCs and Standards
+
+- [OAuth 2.0 RFC 6749](https://datatracker.ietf.org/doc/html/rfc6749) - OAuth 2.0 Authorization Framework
+- [OAuth 2.0 PKCE RFC 7636](https://datatracker.ietf.org/doc/html/rfc7636) - Proof Key for Code Exchange
+- [JWT RFC 7519](https://datatracker.ietf.org/doc/html/rfc7519) - JSON Web Tokens
+- [JWS RFC 7515](https://datatracker.ietf.org/doc/html/rfc7515) - JSON Web Signature
+- [JWE RFC 7516](https://datatracker.ietf.org/doc/html/rfc7516) - JSON Web Encryption
+- [TOTP RFC 6238](https://datatracker.ietf.org/doc/html/rfc6238) - Time-Based One-Time Passwords
+- [HMAC RFC 2104](https://datatracker.ietf.org/doc/html/rfc2104) - HMAC: Keyed-Hashing for Message Authentication
+- [OpenID Connect Core](https://openid.net/specs/openid-connect-core-1_0.html) - OIDC authentication
+
+### Implementation References
+
+- [better-auth](https://github.com/better-auth/better-auth) - TypeScript auth library with plugin architecture
+  - Database schema patterns
+  - OAuth provider implementations
+  - Session management strategies
+  - Three-cookie system design
+
+### Cryptography References
+
+- [Argon2 RFC 9106](https://datatracker.ietf.org/doc/html/rfc9106) - Argon2 Memory-Hard Hash Function
+- [ChaCha20-Poly1305 RFC 8439](https://datatracker.ietf.org/doc/html/rfc8439) - AEAD Construction
+- [PASETO](https://github.com/paseto-standard/paseto-specification) - Platform-Agnostic Security Tokens
 
 ---
 
 _Created: 2026-03-20_
-_Last Updated: 2026-03-20_
+_Last Updated: 2026-03-20 (enhanced with better-auth insights)_
