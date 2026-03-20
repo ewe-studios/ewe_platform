@@ -1,16 +1,17 @@
 ---
 workspace_name: "ewe_platform"
 spec_directory: "specifications/07-foundation-ai"
-feature_directory: "specifications/07-foundation-ai/features/00a-auth-infrastructure"
-this_file: "specifications/07-foundation-ai/features/00a-auth-infrastructure/feature.md"
+feature_directory: "specifications/07-foundation-ai/features/00b-auth-infrastructure"
+this_file: "specifications/07-foundation-ai/features/00b-auth-infrastructure/feature.md"
 
 feature: "Authentication Infrastructure Extension"
-description: "Comprehensive authentication infrastructure for foundation_auth including JWT management, OAuth 2.0 flows, credential storage, auth state machine, and two-factor authentication"
+description: "Comprehensive authentication infrastructure for foundation_auth including JWT management, OAuth 2.0 flows, credential storage (via foundation_db), auth state machine, and two-factor authentication"
 status: pending
 priority: high
 depends_on:
   - "00-foundation"
   - "foundation_auth (existing)"
+  - "00a-foundation-db"
 estimated_effort: "large"
 created: 2026-03-20
 last_updated: 2026-03-20
@@ -51,6 +52,7 @@ This feature fills those gaps with reusable authentication infrastructure.
 
 **Required Crates:**
 - `foundation_core` - For `ConfidentialText`, `Cookie`, basic types
+- `foundation_db` - For persistent credential storage (Turso/Memory backends)
 - `zeroize` - For secure memory clearing (already in Cargo.toml)
 - `derive_more` - For error type derives (already in Cargo.toml)
 - `base64` - For OAuth PKCE (already in Cargo.toml)
@@ -73,7 +75,7 @@ This feature fills those gaps with reusable authentication infrastructure.
 2. **JWTManager Struct** - Manage token lifecycle
 3. **Automatic Refresh** - Refresh token before expiration (configurable buffer, default 5 minutes)
 4. **Token Validation** - Parse JWT payload to extract expiration
-5. **Token Serialization** - Save/load tokens for persistence
+5. **Token Serialization** - Save/load tokens for persistence via foundation_db
 6. **Multi-Token Support** - Manage tokens for multiple audiences/issuers
 
 ### OAuth 2.0 Flows
@@ -86,13 +88,15 @@ This feature fills those gaps with reusable authentication infrastructure.
 12. **Scope Management** - Track requested and granted scopes
 13. **Token Refresh** - Refresh OAuth tokens using refresh_token grant
 
-### Credential Storage
+### Credential Storage (via foundation_db)
 
-14. **CredentialStore Trait** - Abstract credential storage interface
-15. **InMemoryCredentialStore** - Default implementation with Zeroizing
-16. **Secure Deletion** - Zeroize credentials before drop
-17. **Credential Rotation** - Update credentials securely
-18. **Credential Validation** - Check if credentials are valid/present
+14. **CredentialStore Trait** - Interface wrapping foundation_db StorageProvider
+15. **TursoCredentialStore** - Production storage using Turso (libsql)
+16. **MemoryCredentialStore** - Development/testing with zeroizing
+17. **Secure Deletion** - Zeroize credentials before drop
+18. **Credential Rotation** - Update credentials securely
+19. **Credential Validation** - Check if credentials are valid/present
+20. **Persistence** - Survive application restarts via Turso
 
 ### Auth State Machine
 
@@ -241,17 +245,17 @@ sequenceDiagram
 - [ ] Implement scope tracking and validation
 - [ ] Add unit tests for OAuth URL generation and parsing
 
-### Task Group 3: Credential Storage
+### Task Group 3: Credential Storage (via foundation_db)
 
-- [ ] Create `src/credential_store.rs` with `CredentialStore` trait
-- [ ] Define trait methods: `get()`, `set()`, `delete()`, `exists()`
-- [ ] Create `InMemoryCredentialStore` struct
-- [ ] Implement `CredentialStore` trait for `InMemoryCredentialStore`
-- [ ] Use `Zeroizing` for all stored secrets
-- [ ] Implement `Drop` to zeroize on drop
-- [ ] Create `FileCredentialStore` (optional, encrypted at rest)
-- [ ] Implement credential rotation
-- [ ] Add unit tests for secure storage and deletion
+- [ ] Create `src/credential_store.rs` with `CredentialStore` trait wrapping foundation_db
+- [ ] Define trait methods: `get()`, `set()`, `delete()`, `exists()` using `foundation_db::StorageProvider`
+- [ ] Create `TursoCredentialStore` struct with `foundation_db::StorageProvider` backend
+- [ ] Implement `CredentialStore` trait for `TursoCredentialStore`
+- [ ] Create `MemoryCredentialStore` for dev/test using foundation_db Memory backend
+- [ ] Implement `Drop` to zeroize cached secrets on drop
+- [ ] Implement credential rotation via foundation_db transactions
+- [ ] Add unit tests for secure storage and retrieval
+- [ ] Test: Credential persists across application restart (Turso)
 
 ### Task Group 4: Auth State Machine
 
@@ -300,9 +304,10 @@ sequenceDiagram
 
 - [ ] Update `src/lib.rs` to declare all new modules
 - [ ] Update `src/lib.rs` to re-export all public types
-- [ ] Update `Cargo.toml` with new dependencies (sha2, hmac, time, serde, url)
-- [ ] Create integration tests for full OAuth flow
-- [ ] Create integration tests for JWT refresh cycle
+- [ ] Update `Cargo.toml` with new dependencies (sha2, hmac, time, serde, url, **foundation_db**)
+- [ ] Add `foundation_db = { workspace = true }` to Cargo.toml
+- [ ] Create integration tests for full OAuth flow with Turso persistence
+- [ ] Create integration tests for JWT refresh cycle with persistence
 - [ ] Run `cargo test --package foundation_auth`
 - [ ] Run `cargo clippy --package foundation_auth -- -D warnings`
 - [ ] Fix all warnings and errors
@@ -350,8 +355,8 @@ sequenceDiagram
 
 ### Credential Store Tests
 
-8. **Secure storage**
-   - Given: `InMemoryCredentialStore`
+8. **Secure storage (Memory)**
+   - Given: `MemoryCredentialStore` via foundation_db
    - When: Credential stored and retrieved
    - Then: Returns identical credential
 
@@ -359,6 +364,11 @@ sequenceDiagram
    - Given: Store with secret
    - When: `delete()` called and store dropped
    - Then: Memory is zeroized (test via Debug output showing redacted)
+
+10. **Persistence (Turso)**
+    - Given: `TursoCredentialStore` with stored credential
+    - When: Application restarted
+    - Then: Credential recovered from Turso database
 
 ### Auth State Tests
 
@@ -421,6 +431,7 @@ Add to `backends/foundation_auth/Cargo.toml`:
 ```toml
 [dependencies]
 foundation_core = { workspace = true }
+foundation_db = { workspace = true }
 
 derive_more = { version = "2.0", features = ["from", "debug", "error"] }
 base64 = "0.22"
