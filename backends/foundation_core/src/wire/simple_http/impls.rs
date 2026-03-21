@@ -5149,13 +5149,20 @@ impl BodyExtractor for SimpleHttpBody {
                     match stream.do_once_mut(|borrowed_stream| {
                         tracing::debug!("FullBodyReader: reading body under: max_body_size={:?}, full_body_threshold={}, batch_size={}, max_retries={}", &self.0, self.1, self.2, self.3);
 
+                        // if lesser than batch size, then just use content length.
+                        let batch_size = if content_length < (self.2 as u64) {
+                            content_length
+                        } else {
+                            self.2 as u64
+                        };
+
                         #[allow(clippy::cast_possible_truncation)]
-                        FullBodyReader::new(self.2)
+                        FullBodyReader::new(batch_size as usize)
                             .read_full(borrowed_stream, content_length as usize, self.3)
                             .map(SendSafeBody::Bytes)
                     }) {
                         Ok(inner) => {
-                            tracing::debug!("Finished reading data from stream: {:?}", &inner);
+                            tracing::debug!("Finished reading data from stream");
                             Ok(inner)
                         }
                         Err(err) => {

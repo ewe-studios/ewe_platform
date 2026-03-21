@@ -40,12 +40,27 @@ enum ClientRequestState {
 2. Can't easily compose with other combinators
 3. No clean separation between "observe" and "continue"
 
+**Key Design Principle: Works with Both TaskIterator and StreamIterator**
+
+The `split_collector()` combinator is available via both extension traits:
+
+```rust
+// Available on TaskIterator (before execute)
+let (observer, continuation) = task
+    .split_collector(|item| matches!(item, RequestIntro::Success { .. }), 1);
+let stream = execute(continuation)?;  // Continue with execute()
+
+// Available on StreamIterator (after execute)
+let (observer, continuation) = stream
+    .split_collector(|item| matches!(item, RequestIntro::Success { .. }), 1);
+```
+
 **Desired pattern**:
 
 ```rust
 // Split the iterator: one branch for observing, one for continuing
 let (observer, continuation) = send_request_task
-    .split_collector(|item| matches!(item, RequestIntro::Success { .. }), 1);
+    .split_collect_one(|item| matches!(item, RequestIntro::Success { .. }));
 
 // Observer: Gets intro/headers immediately
 for status in observer {
@@ -67,6 +82,8 @@ let body = continuation
 ## WHAT: Solution Overview
 
 ### split_collector() Method
+
+Available via both `TaskIteratorExt` and `StreamIteratorExt`:
 
 ```rust
 /// Split the iterator into an observer branch and a continuation branch.
@@ -93,6 +110,7 @@ let body = continuation
 /// # Example
 ///
 /// ```rust
+/// // On TaskIterator (before execute)
 /// let (observer, continuation) = send_request_task
 ///     .split_collector(
 ///         |item| matches!(item, RequestIntro::Success { .. }),
@@ -113,10 +131,8 @@ let body = continuation
 ///     }
 /// });
 ///
-/// // Continuation: Can chain more combinators
-/// let body = continuation
-///     .map_ready(|response| response.body())
-///     .stream_collect();
+/// // Continuation: Can chain more combinators, then execute
+/// let stream = execute(continuation)?;
 /// ```
 fn split_collector<P, F>(
     self,
@@ -258,7 +274,7 @@ where
 
 1. Create `CollectorStreamIterator<D, P>` struct with ConcurrentQueue
 2. Create `SplitCollectorContinuation<I, P>` wrapper struct
-3. Implement `split_collector()` on TaskIteratorExt
+3. Implement `split_collector()` on both TaskIteratorExt and StreamIteratorExt
 4. Implement `split_collect_one()` as convenience wrapper
 5. Ensure proper Clone bounds on Ready and Pending
 6. Add tests for observer/continuation behavior
@@ -269,7 +285,7 @@ where
 1. **Clone bounds** - Ready and Pending must be Clone for split_collector
 2. **ConcurrentQueue** - Size-configurable queue between branches
 3. **AtomicBool** - Signal when source is done
-4. **split_collector()** - Main method with predicate + queue_size
+4. **split_collector()** - Main method with predicate + queue_size (both traits)
 5. **split_collect_one()** - Convenience with queue_size=1
 6. **Observer yields matched items** - CollectorStreamIterator gets copies
 7. **Continuation forwards all items** - SplitCollectorContinuation continues chain
@@ -279,13 +295,14 @@ where
 1. [ ] Create `CollectorStreamIterator<D, P>` struct
 2. [ ] Create `SplitCollectorContinuation<I, P>` struct
 3. [ ] Implement `split_collector()` method on TaskIteratorExt
-4. [ ] Implement `split_collect_one()` convenience method
-5. [ ] Add Clone bounds to trait where needed
-6. [ ] Write unit tests for split_collector behavior
-7. [ ] Test: Observer receives matched items
-8. [ ] Test: Continuation can chain more combinators
-9. [ ] Integration test: ClientRequest intro/body pattern
-10. [ ] Run clippy and fmt checks
+4. [ ] Implement `split_collector()` method on StreamIteratorExt
+5. [ ] Implement `split_collect_one()` convenience method
+6. [ ] Add Clone bounds to trait where needed
+7. [ ] Write unit tests for split_collector behavior
+8. [ ] Test: Observer receives matched items
+9. [ ] Test: Continuation can chain more combinators
+10. [ ] Integration test: ClientRequest intro/body pattern
+11. [ ] Run clippy and fmt checks
 
 ## Verification
 
@@ -297,8 +314,8 @@ cargo fmt -p foundation_core -- --check
 
 ## Success Criteria
 
-- All 10 tasks completed
-- `split_collector()` compiles with Clone bounds
+- All 11 tasks completed
+- `split_collector()` compiles with Clone bounds on both traits
 - `split_collect_one()` works as convenience wrapper
 - Observer receives matched items while source continues
 - Continuation can chain additional combinators
@@ -321,8 +338,9 @@ let (intro, headers) = intro_observer
     .into_future()  // Wait for first matched item
     .unwrap();
 
-// Continuation: Chain body extraction
-let body = body_continuation
+// Continuation: Chain body extraction, then execute
+let stream = execute(body_continuation)?;
+let body = stream
     .map_ready(|response| response.body())
     .stream_collect();
 ```
@@ -330,13 +348,15 @@ let body = body_continuation
 ### Progress Reporting During Long Operations
 
 ```rust
-let (progress_observer, result_continuation) = long_running_task
+let task = long_running_task()
     .split_collector(
         |status| matches!(status, TaskStatus::Pending(Progress::PercentComplete(_))),
         5  // Queue size for buffering
     );
 
 // Observer: Report progress to UI
+let (progress_observer, result_continuation) = task;
+
 rayon::spawn(move || {
     for status in progress_observer {
         if let Stream::Next(Progress::PercentComplete(pct)) = status {
@@ -345,8 +365,8 @@ rayon::spawn(move || {
     }
 });
 
-// Continuation: Get final result
-let result = result_continuation
+// Continuation: Get final result via execute()
+let result = execute(result_continuation)?
     .stream_collect();
 ```
 
@@ -357,8 +377,9 @@ let result = result_continuation
 3. **Configurable queue size** - Allows buffering for high-frequency updates
 4. **AtomicBool for done signal** - Observer knows when to stop polling
 5. **force_push()** - Queue never blocks; if full, items dropped (acceptable for progress updates)
+6. **Available on both traits** - Works with TaskIterator (before execute) and StreamIterator (after execute)
 
 ---
 
 _Created: 2026-03-20_
-_Updated: 2026-03-20 (Enables ClientRequest intro/body pattern with observer + continuation branches)_
+_Updated: 2026-03-20 (v3.0: Available on both TaskIterator and StreamIterator)_

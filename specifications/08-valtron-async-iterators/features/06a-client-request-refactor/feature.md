@@ -64,11 +64,25 @@ pub fn introduction_with_connection(&mut self) -> Result<(HttpClientConnection, 
 3. **Intro/body coupling** - Must store intro in state to return it, then separately read body
 4. **Hard to extend** - Adding new behaviors requires modifying the state machine
 
+## Key Design Principle: TaskIterators Are Inputs, StreamIterators Are Outputs
+
+The refactored pattern uses `split_collector()` to fork the iterator:
+- **Observer branch**: Gets `RequestIntro::Success` immediately (for `introduction()` method)
+- **Continuation branch**: Continues to body reader (for `body()` method)
+
+```rust
+// TaskIterator (input) → split_collector() → StreamIterator (output via execute())
+let (observer, continuation) = task.split_collect_one(...);
+let stream = execute(continuation)?;  // End user works with StreamIterator
+```
+
+End users never deal with TaskIterator directly - they receive `StreamIterator` from `execute()`.
+
 ## WHAT: Solution Overview
 
 Refactor `ClientRequest` to use `split_collector()` to fork the iterator:
 - **Observer branch**: Gets `RequestIntro::Success` immediately (for `introduction()` method)
-- **Continuation branch**: Continues to body reader (for `body()` method)
+- **Continuation branch**: Continues to body reader, then execute() returns StreamIterator
 
 ### Before: Manual State Machine
 
@@ -137,8 +151,9 @@ pub fn body(&mut self) -> Result<SendSafeBody, HttpClientError> {
         return Err(HttpClientError::InvalidRequestState);
     };
 
-    // Body reading uses the continuation that didn't consume the intro
-    for status in body_continuation {
+    // Execute continuation, get StreamIterator for body reading
+    let stream = execute(body_continuation)?;
+    for status in stream {
         match status {
             Stream::Next(ResponseComplete { body, .. }) => return Ok(body),
             Stream::Pending(_) => continue,
@@ -156,6 +171,7 @@ pub fn body(&mut self) -> Result<SendSafeBody, HttpClientError> {
 2. **Remove manual `loop { match }`** - Replaced with iterator chaining
 3. **`start()` returns composed iterator** - Instead of storing state
 4. **Methods consume iterator** - `introduction()` pulls from iterator until first useful result
+5. **execute() returns StreamIterator** - body() works with Stream results
 
 ## HOW: Refactoring Approach
 
@@ -209,18 +225,19 @@ pub fn introduction_with_connection(&mut self) -> Result<(HttpClientConnection, 
 
 ```rust
 pub fn body(&mut self) -> Result<SendSafeBody, HttpClientError> {
-    // Use stored stream from introduction
-    let Some(mut stream) = self.response_stream.take() else {
+    // Use continuation branch for body reading
+    let Some(body_continuation) = self.body_continuation.take() else {
         return Err(HttpClientError::InvalidRequestState);
     };
 
-    // Body reading is simple iteration
-    for part in stream.by_ref() {
-        match part? {
-            IncomingResponseParts::SizedBody(body) | IncomingResponseParts::StreamedBody(body) => {
-                return Ok(body);
-            }
-            IncomingResponseParts::NoBody => return Ok(SendSafeBody::None),
+    // Execute continuation, get StreamIterator for body reading
+    let stream = execute(body_continuation)?;
+
+    // Body reading is simple iteration over StreamIterator
+    for status in stream {
+        match status {
+            Stream::Next(ResponseComplete { body, .. }) => return Ok(body),
+            Stream::Pending(_) => continue,
             _ => continue,
         }
     }
@@ -236,9 +253,10 @@ pub fn body(&mut self) -> Result<SendSafeBody, HttpClientError> {
 3. **ConcurrentQueue** - Size-configurable queue between branches
 4. **Refactor start()** - Use split_collector to fork intro/body
 5. **Refactor introduction_with_connection()** - Pull from observer branch
-6. **Refactor body()** - Use continuation branch or stored stream
+6. **Refactor body()** - Execute continuation, iterate StreamIterator
 7. **Keep API compatible** - Public methods unchanged
 8. **Remove ClientRequestState** - Replace with observer/continuation storage
+9. **execute() returns StreamIterator** - End users work with Stream results
 
 ## Tasks
 
@@ -249,7 +267,7 @@ pub fn body(&mut self) -> Result<SendSafeBody, HttpClientError> {
 5. [ ] Remove `ClientRequestState` enum
 6. [ ] Add `intro_observer` and `body_continuation` fields to `ClientRequest`
 7. [ ] Refactor `introduction_with_connection()` to pull from observer
-8. [ ] Refactor `body()` to use continuation or stored stream
+8. [ ] Refactor `body()` to execute continuation and iterate StreamIterator
 9. [ ] Write tests verifying API compatibility
 10. [ ] Run clippy and fmt checks
 
@@ -269,6 +287,7 @@ cargo fmt -p foundation_core -- --check
 - Public API unchanged (backward compatible)
 - Tests pass demonstrating same behavior
 - Code is simpler and more composable
+- `execute()` returns StreamIterator for body reading
 - Zero clippy warnings
 
 ## Benefits
@@ -280,8 +299,9 @@ cargo fmt -p foundation_core -- --check
 | Intro/body coupling via state storage | Clean separation via fork |
 | Hard to extend | Easy to add more split points |
 | No progress visibility | Can add progress observers |
+| Body reading from stored stream | Body reading via execute() → StreamIterator |
 
 ---
 
 _Created: 2026-03-20_
-_Updated: 2026-03-20 (Split from original 06: Focus on ClientRequest refactor)_
+_Updated: 2026-03-20 (v3.0: execute() returns StreamIterator, TaskIterator is input)_

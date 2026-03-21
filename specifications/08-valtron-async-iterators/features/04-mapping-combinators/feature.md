@@ -132,9 +132,9 @@ pub enum Stream<D, P> {
 
 ## HOW: Implementation Approach
 
-1. Define `StreamState<D, P>` enum with helper methods
-2. Implement `MapAllDoneStreamIterator<I, F>` that holds sources + mapper
-3. Implement `MapAllPendingDoneStreamIterator<I, F>` that holds sources + mapper with state tracking
+1. Implement `MapAllDoneStreamIterator<I, F>` that holds sources + mapper
+2. Implement `MapAllPendingDoneStreamIterator<I, F>` that holds sources + mapper with state tracking
+3. Use existing `Stream<D, P>` from `synca/mpp.rs` (not a new StreamState enum)
 4. Add tests for state-aware mapping behavior
 
 ## Requirements
@@ -147,14 +147,13 @@ pub enum Stream<D, P> {
 
 ## Tasks
 
-1. [ ] Define `StreamState<D, P>` enum with all variants and helpers
-2. [ ] Define `MapAllDoneStreamIterator<I, F>` struct with generic mapper
-3. [ ] Implement `Iterator` for `MapAllDoneStreamIterator`
-4. [ ] Define `MapAllPendingDoneStreamIterator<I, F>` struct with generic mapper
-5. [ ] Implement `Iterator` for `MapAllPendingDoneStreamIterator`
-6. [ ] Write unit tests for map_all_done behavior
-7. [ ] Write unit tests for map_all_pending_and_done behavior
-8. [ ] Run clippy and fmt checks
+1. [ ] Define `MapAllDoneStreamIterator<I, F>` struct with generic mapper
+2. [ ] Implement `Iterator` for `MapAllDoneStreamIterator`
+3. [ ] Define `MapAllPendingDoneStreamIterator<I, F>` struct with generic mapper
+4. [ ] Implement `Iterator` for `MapAllPendingDoneStreamIterator`
+5. [ ] Write unit tests for map_all_done behavior
+6. [ ] Write unit tests for map_all_pending_and_done behavior
+7. [ ] Run clippy and fmt checks
 
 ## Verification
 
@@ -166,7 +165,7 @@ cargo fmt -p foundation_core -- --check
 
 ## Success Criteria
 
-- All 8 tasks completed
+- All 7 tasks completed
 - Both mapping iterators compile with zero errors
 - Buffering works correctly in map_all_done
 - State tracking accurate in map_all_pending_and_done
@@ -176,4 +175,4 @@ cargo fmt -p foundation_core -- --check
 ---
 
 _Created: 2026-03-20_
-_Updated: 2026-03-20 (Generic wrapper types with embedded mapper functions)_
+_Updated: 2026-03-20 (v3.0: Use existing Stream<D,P>, not StreamState)_

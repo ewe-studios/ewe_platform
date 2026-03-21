@@ -118,7 +118,7 @@ pub trait StreamIteratorExt<D, P>: StreamIterator<D, P> {
     fn map_all_pending_and_done<I, F, O>(iterators: Vec<I>, mapper: F) -> MapAllPendingDoneStreamIterator<O, I::Pending>
     where
         I: StreamIteratorExt,
-        F: Fn(Vec<StreamState<I::Item, I::Pending>>) -> O + Send + 'static;
+        F: Fn(Vec<Stream<I::Item, I::Pending>>) -> O + Send + 'static;
 }
 ```
 

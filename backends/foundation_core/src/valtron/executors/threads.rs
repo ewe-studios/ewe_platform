@@ -16,7 +16,10 @@ use std::{
     time::{self, Instant},
 };
 
-use crate::{synca::mpp::StreamRecvIterator, valtron::iterators::Stream};
+use crate::{
+    synca::mpp::StreamRecvIterator,
+    valtron::{iterators::Stream, DEFAULT_YIELD_WAIT_TIME},
+};
 use concurrent_queue::{ConcurrentQueue, PushError};
 use derive_more::derive::From;
 use rand::{RngCore, SeedableRng};
@@ -520,6 +523,7 @@ pub struct ThreadPool {
     tasks: SharedTaskQueue,
     priority: PriorityOrder,
     op_read_time: time::Duration,
+    yield_wait_time: time::Duration,
     parked_threads: Mutex<Vec<ThreadId>>,
     blocked_threads: Mutex<Vec<ThreadId>>,
     registry: SharedThreadRegistry,
@@ -580,6 +584,7 @@ impl ThreadPool {
             num_threads,
             PriorityOrder::Top,
             DEFAULT_OP_READ_TIME,
+            DEFAULT_YIELD_WAIT_TIME,
             None,
             MAX_ROUNDS_IDLE_COUNT,
             MAX_ROUNDS_WHEN_SLEEPING_ENDS,
@@ -601,6 +606,7 @@ impl ThreadPool {
         num_threads: usize,
         priority: PriorityOrder,
         op_read_time: time::Duration,
+        yield_wait: time::Duration,
         thread_stack_size: Option<usize>,
         thread_max_idle_count: u32,
         thread_max_sleep_before_end: u32,
@@ -636,6 +642,7 @@ impl ThreadPool {
             thread_back_off_jitter,
             thread_back_min_duration,
             thread_back_max_duration,
+            yield_wait_time: yield_wait,
             activity_receiver: receiver,
             latch: thread_latch.clone(),
             activity_sender: sender.clone(),
@@ -728,6 +735,7 @@ impl ThreadPool {
         let sender_id = thread_id.clone();
         let sender = self.activity_sender.clone();
 
+        let thread_yield_wait_duration = self.yield_wait_time;
         let thread_max_idle_count = self.thread_max_idle_count;
         let thread_max_sleep_before_end = self.thread_max_sleep_before_end;
         let thread_back_off_factor = self.thread_back_off_factor;
@@ -765,6 +773,7 @@ impl ThreadPool {
                     ),
                     priority,
                     process_clone,
+                    thread_yield_wait_duration,
                     Some(thread_kill_signal),
                     Some(sender.clone()),
                 );
