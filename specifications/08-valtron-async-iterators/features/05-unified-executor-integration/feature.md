@@ -1,17 +1,17 @@
 ---
 feature: "Unified Executor Integration"
 description: "execute_collect_all and execute_map_all helper functions - TaskIterators in, StreamIterators out"
-status: "pending"
+status: "complete"
 priority: "high"
 depends_on: ["03-collection-combinators", "04-mapping-combinators"]
 estimated_effort: "small"
 created: 2026-03-20
 author: "Main Agent"
 tasks:
-  completed: 0
-  uncompleted: 6
+  completed: 6
+  uncompleted: 0
   total: 6
-  completion_percentage: 0%
+  completion_percentage: 100%
 ---
 
 # Unified Executor Integration Feature

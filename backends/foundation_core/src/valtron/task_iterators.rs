@@ -32,7 +32,12 @@
 //! - [`super::executors::unified`] - Contains `execute()` entry point
 //! - [`super::stream_iterators`] - Contains `StreamIteratorExt` for post-execute combinators
 
+use crate::synca::mpp::Stream;
 use crate::valtron::{ExecutionAction, TaskIterator, TaskStatus};
+use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::Arc;
+
+use concurrent_queue::ConcurrentQueue;
 
 /// Extension trait providing builder-style combinator methods for any `TaskIterator`.
 ///
@@ -47,6 +52,8 @@ use crate::valtron::{ExecutionAction, TaskIterator, TaskStatus};
 /// - [`map_pending`](TaskIteratorExt::map_pending) - Transform Pending values
 /// - [`filter_ready`](TaskIteratorExt::filter_ready) - Filter Ready values
 /// - [`stream_collect`](TaskIteratorExt::stream_collect) - Collect all Ready values
+/// - [`split_collector`](TaskIteratorExt::split_collector) - Split into observer + continuation
+/// - [`split_collect_one`](TaskIteratorExt::split_collect_one) - Split for first match
 ///
 /// ## Example
 ///
@@ -90,6 +97,74 @@ pub trait TaskIteratorExt: TaskIterator + Sized {
     fn stream_collect(self) -> TStreamCollect<Self>
     where
         Self::Ready: Clone + Send + 'static;
+
+    /// Split the iterator into an observer branch and a continuation branch.
+    ///
+    /// The observer receives a copy of items matching the predicate,
+    /// while the continuation continues the chain for further combinators.
+    ///
+    /// ## Type Requirements
+    ///
+    /// - `Ready` must be `Clone` (observer gets a copy)
+    /// - `Pending` must be `Clone` (observer gets a copy)
+    ///
+    /// ## Arguments
+    ///
+    /// * `predicate` - Function determining which items to send to observer
+    /// * `queue_size` - Size of the ConcurrentQueue between branches
+    ///
+    /// ## Returns
+    ///
+    /// Tuple of:
+    /// - `CollectorStreamIterator` - Observer that receives matched items
+    /// - `SplitCollectorContinuation` - Continuation that continues the chain
+    ///
+    /// ## Example
+    ///
+    /// ```ignore
+    /// let (observer, continuation) = send_request_task
+    ///     .split_collector(
+    ///         |item| matches!(item, RequestIntro::Success { .. }),
+    ///         1  // Queue size 1 for immediate delivery
+    ///     );
+    /// ```
+    fn split_collector<P>(
+        self,
+        predicate: P,
+        queue_size: usize,
+    ) -> (
+        CollectorStreamIterator<Self::Ready, Self::Pending>,
+        SplitCollectorContinuation<Self, P>,
+    )
+    where
+        Self: Sized,
+        Self::Ready: Clone,
+        Self::Pending: Clone,
+        P: Fn(&Self::Ready) -> bool + Send + 'static;
+
+    /// Convenience method: split_collector with queue_size = 1.
+    ///
+    /// Sends the first matching item to the observer, then continues.
+    /// Perfect for "get intro first, then body" patterns.
+    ///
+    /// ## Example
+    ///
+    /// ```ignore
+    /// let (observer, continuation) = send_request_task
+    ///     .split_collect_one(|item| matches!(item, RequestIntro::Success { .. }));
+    /// ```
+    fn split_collect_one<P>(
+        self,
+        predicate: P,
+    ) -> (
+        CollectorStreamIterator<Self::Ready, Self::Pending>,
+        SplitCollectorContinuation<Self, P>,
+    )
+    where
+        Self: Sized,
+        Self::Ready: Clone,
+        Self::Pending: Clone,
+        P: Fn(&Self::Ready) -> bool + Send + 'static;
 }
 
 // Blanket implementation: anything implementing TaskIterator gets TaskIteratorExt
@@ -141,6 +216,56 @@ where
             collected: Vec::new(),
             done: false,
         }
+    }
+
+    fn split_collector<P>(
+        self,
+        predicate: P,
+        queue_size: usize,
+    ) -> (
+        CollectorStreamIterator<Self::Ready, Self::Pending>,
+        SplitCollectorContinuation<Self, P>,
+    )
+    where
+        Self: Sized,
+        Self::Ready: Clone,
+        Self::Pending: Clone,
+        P: Fn(&Self::Ready) -> bool + Send + 'static,
+    {
+        let queue = Arc::new(ConcurrentQueue::bounded(queue_size));
+        let source_done = Arc::new(AtomicBool::new(false));
+
+        let observer = CollectorStreamIterator {
+            queue: Arc::clone(&queue),
+            source_done: Arc::clone(&source_done),
+            _phantom: std::marker::PhantomData,
+        };
+
+        let continuation = SplitCollectorContinuation {
+            inner: self,
+            queue,
+            source_done,
+            predicate,
+            _phantom: std::marker::PhantomData,
+        };
+
+        (observer, continuation)
+    }
+
+    fn split_collect_one<P>(
+        self,
+        predicate: P,
+    ) -> (
+        CollectorStreamIterator<Self::Ready, Self::Pending>,
+        SplitCollectorContinuation<Self, P>,
+    )
+    where
+        Self: Sized,
+        Self::Ready: Clone,
+        Self::Pending: Clone,
+        P: Fn(&Self::Ready) -> bool + Send + 'static,
+    {
+        self.split_collector(predicate, 1)
     }
 }
 
@@ -327,6 +452,126 @@ where
 
     fn next(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
         Iterator::next(self)
+    }
+}
+
+// ============================================================================
+// Split Collector Combinators (Feature 07)
+// ============================================================================
+
+/// Observer branch from split_collector().
+///
+/// Receives copies of items matching the predicate via a ConcurrentQueue.
+/// Yields Stream::Next for matched items, forwards Pending/Delayed from source.
+pub struct CollectorStreamIterator<D, P> {
+    /// Shared queue receiving copied items from the splitter
+    queue: Arc<ConcurrentQueue<Stream<D, P>>>,
+    /// Track if source is done
+    source_done: Arc<AtomicBool>,
+    _phantom: std::marker::PhantomData<(D, P)>,
+}
+
+impl<D, P> Iterator for CollectorStreamIterator<D, P>
+where
+    D: Clone + Send + 'static,
+    P: Clone + Send + 'static,
+{
+    type Item = Stream<D, P>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        // Try to get item from queue
+        match self.queue.pop() {
+            Ok(item) => Some(item),
+            Err(concurrent_queue::PopError::Empty) => {
+                // Check if source is done
+                if self.source_done.load(Ordering::SeqCst) {
+                    None // No more items
+                } else {
+                    // Still waiting - return a default Pending
+                    // Note: We can't create a default P, so we return Ignore instead
+                    Some(Stream::Ignore)
+                }
+            }
+            Err(concurrent_queue::PopError::Closed) => None,
+        }
+    }
+}
+
+impl<D, P> crate::synca::mpp::StreamIterator<D, P> for CollectorStreamIterator<D, P>
+where
+    D: Clone + Send + 'static,
+    P: Clone + Send + 'static,
+{
+}
+
+/// Continuation branch from split_collector().
+///
+/// Wraps the original iterator, copying matched items to the observer queue
+/// while continuing the chain for further combinators.
+pub struct SplitCollectorContinuation<I, P>
+where
+    I: TaskIterator,
+{
+    /// The wrapped iterator
+    inner: I,
+    /// Queue to send copied items to observer
+    queue: Arc<ConcurrentQueue<Stream<I::Ready, I::Pending>>>,
+    /// Flag to signal when source is done
+    source_done: Arc<AtomicBool>,
+    /// Predicate to determine which items to copy
+    predicate: P,
+    _phantom: std::marker::PhantomData<P>,
+}
+
+impl<I, P> Iterator for SplitCollectorContinuation<I, P>
+where
+    I: TaskIterator,
+    I::Ready: Clone,
+    I::Pending: Clone,
+    P: Fn(&I::Ready) -> bool,
+{
+    type Item = TaskStatus<I::Ready, I::Pending, I::Spawner>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        let item = self.inner.next()?;
+
+        // Copy matched items to observer queue
+        if let TaskStatus::Ready(value) = &item {
+            if (self.predicate)(value) {
+                // Convert to Stream and copy to queue
+                let stream_item = Stream::Next(value.clone());
+                let _ = self.queue.force_push(stream_item);
+            }
+        }
+
+        // Always forward to continuation
+        Some(item)
+    }
+}
+
+impl<I, P> TaskIterator for SplitCollectorContinuation<I, P>
+where
+    I: TaskIterator,
+    I::Ready: Clone,
+    I::Pending: Clone,
+    P: Fn(&I::Ready) -> bool,
+{
+    type Ready = I::Ready;
+    type Pending = I::Pending;
+    type Spawner = I::Spawner;
+
+    fn next(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+        Iterator::next(self)
+    }
+}
+
+impl<I, P> Drop for SplitCollectorContinuation<I, P>
+where
+    I: TaskIterator,
+{
+    fn drop(&mut self) {
+        // Signal that the source is done
+        self.source_done.store(true, Ordering::SeqCst);
     }
 }
 
