@@ -266,6 +266,10 @@ where
                         self.state = Some(ReconnectingState::Connected(inner));
                         Some(TaskStatus::Init)
                     }
+                    Some(TaskStatus::Ignore) => {
+                        self.state = Some(ReconnectingState::Connected(inner));
+                        Some(TaskStatus::Ignore)
+                    }
                     None => {
                         // Check why the inner task closed
                         let close_reason = inner.close_reason();

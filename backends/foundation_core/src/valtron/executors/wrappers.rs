@@ -77,6 +77,7 @@ where
             TaskStatus::Delayed(d) => TaskStatus::Delayed(d),
             TaskStatus::Spawn(a) => TaskStatus::Spawn(a),
             TaskStatus::Init => TaskStatus::Init,
+            TaskStatus::Ignore => TaskStatus::Ignore,
         })
     }
 }

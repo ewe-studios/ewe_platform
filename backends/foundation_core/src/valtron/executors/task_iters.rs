@@ -157,6 +157,21 @@ where
                     State::SpawnFailed(entry)
                 }
             },
+            TaskStatus::Ignore => {
+                if let Ok(()) = self.channel.push(Stream::Ignore) {
+                    State::Pending(None)
+                } else {
+                    tracing::error!("Failed to deliver status to channel, closing task",);
+
+                    // close the queue
+                    self.channel.close();
+
+                    // set alive signal to empty.
+                    self.alive.take();
+
+                    State::Done
+                }
+            }
             TaskStatus::Delayed(inner) => {
                 if let Ok(()) = self.channel.push(Stream::Delayed(inner)) {
                     State::Pending(Some(inner))
@@ -440,6 +455,7 @@ where
                     State::Done
                 }
             }
+            TaskStatus::Ignore => State::Pending(None),
         })
     }
 }
@@ -596,6 +612,7 @@ where
                     State::Done
                 }
             }
+            TaskStatus::Ignore => State::Pending(None),
         })
     }
 }

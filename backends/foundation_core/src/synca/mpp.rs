@@ -270,6 +270,7 @@ impl<T> Iterator for RecvIterator<T> {
     }
 }
 
+#[derive(Debug, PartialEq)]
 pub enum Stream<D, P> {
     // Indicative the stream is instantiating.
     Init,
