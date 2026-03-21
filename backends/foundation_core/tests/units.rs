@@ -502,6 +502,7 @@ fn test_split_collector_observer_receives_matched_items() {
         }
     }
     assert_eq!(continuation_values, vec![5, 10, 15]);
+    // continuation is exhausted here, queue is closed
 
     // Observer should only receive matched values (> 7)
     let mut observer_values = Vec::new();
@@ -573,14 +574,17 @@ fn test_split_collector_observer_stream_type() {
         for _status in &mut continuation {
             // Drive the continuation
         }
-        // continuation is dropped here, setting source_done = true
+        // continuation is dropped here, closing the queue
     }
 
     // Observer should receive Stream::Next(42)
     let mut got_42 = false;
     for stream in &mut observer {
         match stream {
-            Stream::Next(v) if v == 42 => got_42 = true,
+            Stream::Next(v) if v == 42 => {
+                got_42 = true;
+                break;
+            }
             Stream::Ignore => continue, // Skip Ignore states while waiting
             _ => {}
         }
@@ -635,17 +639,22 @@ fn test_stream_split_collector_observer_receives_matched_items() {
     ]);
 
     // Split: observer gets values > 7
-    let (mut observer, mut continuation) =
+    let (mut observer, continuation) =
         stream.split_collector(|s| matches!(s, Stream::Next(v) if *v > 7), 10);
 
     // Continuation should produce all original values
-    let mut continuation_values = Vec::new();
-    for status in &mut continuation {
-        if let Stream::Next(v) = status {
-            continuation_values.push(v);
+    // Use scoped block to ensure continuation is dropped before we iterate observer
+    {
+        let mut continuation = continuation;
+        let mut continuation_values = Vec::new();
+        for status in &mut continuation {
+            if let Stream::Next(v) = status {
+                continuation_values.push(v);
+            }
         }
+        assert_eq!(continuation_values, vec![5, 10, 15]);
+        // continuation is dropped here, closing the queue
     }
-    assert_eq!(continuation_values, vec![5, 10, 15]);
 
     // Observer should only receive matched values (> 7)
     let mut observer_values = Vec::new();

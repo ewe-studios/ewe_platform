@@ -34,7 +34,6 @@
 
 use crate::synca::mpp::Stream;
 use crate::valtron::{ExecutionAction, TaskIterator, TaskStatus};
-use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
 
 use concurrent_queue::ConcurrentQueue;
@@ -233,18 +232,19 @@ where
         P: Fn(&Self::Ready) -> bool + Send + 'static,
     {
         let queue = Arc::new(ConcurrentQueue::bounded(queue_size));
-        let source_done = Arc::new(AtomicBool::new(false));
+        tracing::debug!(
+            "split_collector: creating observer and continuation with queue_size={}",
+            queue_size
+        );
 
         let observer = CollectorStreamIterator {
             queue: Arc::clone(&queue),
-            source_done: Arc::clone(&source_done),
             _phantom: std::marker::PhantomData,
         };
 
         let continuation = SplitCollectorContinuation {
             inner: self,
             queue,
-            source_done,
             predicate,
             _phantom: std::marker::PhantomData,
         };
@@ -466,8 +466,6 @@ where
 pub struct CollectorStreamIterator<D, P> {
     /// Shared queue receiving copied items from the splitter
     queue: Arc<ConcurrentQueue<Stream<D, P>>>,
-    /// Track if source is done
-    source_done: Arc<AtomicBool>,
     _phantom: std::marker::PhantomData<(D, P)>,
 }
 
@@ -481,18 +479,27 @@ where
     fn next(&mut self) -> Option<Self::Item> {
         // Try to get item from queue
         match self.queue.pop() {
-            Ok(item) => Some(item),
+            Ok(item) => {
+                tracing::trace!("CollectorStreamIterator: received item from queue");
+                Some(item)
+            }
             Err(concurrent_queue::PopError::Empty) => {
-                // Check if source is done
-                if self.source_done.load(Ordering::SeqCst) {
-                    None // No more items
+                // Queue is empty, check if source is done (queue closed)
+                if self.queue.is_closed() {
+                    tracing::debug!("CollectorStreamIterator: queue closed, returning None");
+                    None
                 } else {
-                    // Still waiting - return a default Pending
-                    // Note: We can't create a default P, so we return Ignore instead
+                    // Still waiting for items - return Ignore to signal still pending
+                    tracing::trace!(
+                        "CollectorStreamIterator: queue empty but not closed, returning Ignore"
+                    );
                     Some(Stream::Ignore)
                 }
             }
-            Err(concurrent_queue::PopError::Closed) => None,
+            Err(concurrent_queue::PopError::Closed) => {
+                tracing::debug!("CollectorStreamIterator: queue closed, returning None");
+                None
+            }
         }
     }
 }
@@ -516,8 +523,6 @@ where
     inner: I,
     /// Queue to send copied items to observer
     queue: Arc<ConcurrentQueue<Stream<I::Ready, I::Pending>>>,
-    /// Flag to signal when source is done
-    source_done: Arc<AtomicBool>,
     /// Predicate to determine which items to copy
     predicate: P,
     _phantom: std::marker::PhantomData<P>,
@@ -533,14 +538,27 @@ where
     type Item = TaskStatus<I::Ready, I::Pending, I::Spawner>;
 
     fn next(&mut self) -> Option<Self::Item> {
-        let item = self.inner.next()?;
+        let item = match self.inner.next() {
+            Some(item) => item,
+            None => {
+                // Source iterator is naturally exhausted, close the queue
+                self.queue.close();
+                tracing::debug!("SplitCollectorContinuation: source exhausted, queue closed");
+                return None;
+            }
+        };
 
         // Copy matched items to observer queue
         if let TaskStatus::Ready(value) = &item {
             if (self.predicate)(value) {
-                // Convert to Stream and copy to queue
                 let stream_item = Stream::Next(value.clone());
-                let _ = self.queue.force_push(stream_item);
+                if let Err(e) = self.queue.force_push(stream_item) {
+                    tracing::error!("SplitCollectorContinuation: failed to push to queue: {}", e);
+                } else {
+                    tracing::trace!(
+                        "SplitCollectorContinuation: copied matched item to observer queue"
+                    );
+                }
             }
         }
 
@@ -570,8 +588,9 @@ where
     I: TaskIterator,
 {
     fn drop(&mut self) {
-        // Signal that the source is done
-        self.source_done.store(true, Ordering::SeqCst);
+        // Close the queue to signal that the source is done
+        self.queue.close();
+        tracing::debug!("SplitCollectorContinuation: dropped, queue closed");
     }
 }
 

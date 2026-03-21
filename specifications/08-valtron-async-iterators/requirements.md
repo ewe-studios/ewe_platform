@@ -27,10 +27,10 @@ builds_on: "specifications/02-build-http-client"
 related_specs:
   - "specifications/07-foundation-ai"
 features:
-  completed: 5
-  uncompleted: 2
+  completed: 6
+  uncompleted: 1
   total: 7
-  completion_percentage: 71%
+  completion_percentage: 86%
 ---
 
 # Overview
@@ -121,7 +121,7 @@ This allows users to:
 | 4 | [collection-combinators](./features/03-collection-combinators/feature.md) | ✅ COMPLETE - execute_collect_all() returns StreamIterator | #2, #3 |
 | 5 | [mapping-combinators](./features/04-mapping-combinators/feature.md) | ✅ COMPLETE - execute_map_all() returns StreamIterator | #3, #4 |
 | 6 | [unified-executor-integration](./features/05-unified-executor-integration/feature.md) | execute() returns StreamIterator, execute_as_task() opt-in | #4, #5 |
-| 7 | [split-collector](./features/07-split-collector/feature.md) | split_collector() for observer + continuation pattern | #2, #3 |
+| 7 | [split-collector](./features/07-split-collector/feature.md) | ✅ COMPLETE - split_collector() for observer + continuation pattern | #2, #3 |
 | 8 | [client-request-refactor](./features/06a-client-request-refactor/feature.md) | Refactor ClientRequest to use StreamIterator combinators | #6, #7 |
 | 9 | [gen-model-descriptors-parallel-fetch](./features/06b-gen-model-descriptors-parallel-fetch/feature.md) | Use execute_collect_all() for parallel API fetches | #6, #8 |
 
