@@ -1,17 +1,17 @@
 ---
-feature: "ClientRequest Refactor with split_collector"
-description: "Refactor ClientRequest to use split_collector() for intro/body separation instead of manual state machine"
-status: "pending"
+feature: "ClientRequest Refactor with split_collect_until_map"
+description: "Refactor ClientRequest to use split_collect_until_map() for intro/body separation instead of manual state machine"
+status: "complete"
 priority: "high"
 depends_on: ["05-unified-executor-integration", "07-split-collector"]
 estimated_effort: "large"
 created: 2026-03-20
 author: "Main Agent"
 tasks:
-  completed: 0
-  uncompleted: 10
+  completed: 10
+  uncompleted: 0
   total: 10
-  completion_percentage: 0%
+  completion_percentage: 100%
 ---
 
 # ClientRequest Refactor Feature
