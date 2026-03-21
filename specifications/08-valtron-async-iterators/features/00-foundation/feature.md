@@ -18,24 +18,24 @@ tasks:
 
 ## WHY: Problem Statement
 
-Before implementing TaskStatusIterator and StreamIteratorExt traits, we need to establish:
+Before implementing TaskIteratorExt and StreamIteratorExt traits, we need to establish:
 
-1. **Module structure** - Where new types live within `backends/foundation_core/src/valtron/`
+1. **Module structure** - Where new extension traits live within `backends/foundation_core/src/valtron/`
 2. **Core type imports** - Ensure `TaskStatus`, `Stream`, `ExecutionAction` types are properly accessible
-3. **Design alignment** - Document how new traits compose with existing `DrivenRecvIterator`, `DrivenStreamIterator` types
+3. **Design alignment** - Document how extension traits compose with existing `TaskIterator`, `StreamIterator`, `DrivenRecvIterator`, `DrivenStreamIterator` types
 
 The foundation ensures all subsequent features have consistent structure and proper imports, leveraging existing Valtron infrastructure rather than duplicating it.
 
 ## WHAT: Solution Overview
 
-Create the module structure and document how new combinators compose with existing types:
+Create the module structure and document how extension traits compose with existing types:
 
 ### New Module Files
 
 | File | Purpose |
 |------|---------|
-| `backends/foundation_core/src/valtron/task_iterators.rs` | TaskStatusIterator trait and conversions |
-| `backends/foundation_core/src/valtron/stream_iterators.rs` | StreamIteratorExt trait and state-aware methods |
+| `backends/foundation_core/src/valtron/task_iterators.rs` | TaskIteratorExt extension trait (blanket impl for T: TaskIterator) |
+| `backends/foundation_core/src/valtron/stream_iterators.rs` | StreamIteratorExt extension trait (blanket impl for T: StreamIterator) |
 | `backends/foundation_core/src/valtron/collect_all.rs` | collect_all() collection combinators |
 | `backends/foundation_core/src/valtron/map_all.rs` | map_all_done(), map_all_pending_and_done() mapping combinators |
 | `backends/foundation_core/src/valtron/mod.rs` | Update to export new modules |
@@ -67,24 +67,27 @@ let mapped = raw.map_ready(|x| x * 2);  // Works - raw is also a TaskIterator
 
 ```rust
 // Combinators accept anything implementing TaskIterator
-pub trait TaskIteratorExt: TaskStatusIterator + Sized {
+pub trait TaskIteratorExt: TaskIterator + Sized {
     fn map_ready<F, R>(self, f: F) -> MapReady<Self, F>
     where
         F: Fn(Self::Ready) -> R + Send + 'static;
 }
 
-// Blanket impl - ANY TaskStatusIterator gets these methods
+// Blanket impl - ANY TaskIterator gets these methods
 impl<I> TaskIteratorExt for I
 where
-    I: TaskStatusIterator + Send + 'static,
+    I: TaskIterator + Send + 'static,
+    I::Ready: Send + 'static,
+    I::Pending: Send + 'static,
+    I::Spawner: ExecutionAction + Send + 'static,
 {
     fn map_ready<F, R>(self, f: F) -> MapReady<Self, F> {
         MapReady(self, f)
     }
 }
 
-// DrivenRecvIterator implements TaskStatusIterator, so it gets TaskIteratorExt methods
-// Raw TaskIterator also implements TaskStatusIterator, so it also gets the methods
+// DrivenRecvIterator implements TaskIterator, so it gets TaskIteratorExt methods
+// Raw TaskIterator also implements TaskIterator, so it also gets the methods
 // Same trait, same methods - works for both!
 ```
 
@@ -122,7 +125,7 @@ Raw TaskIterator          DrivenSendTaskIterator (wrapper with auto-drive)
      ├──────────────────────────►│
      │                           │
      │  Both implement           │ Both get TaskIteratorExt
-     │  TaskStatusIterator       │ combinators (map_ready, etc.)
+     │  TaskIterator             │ combinators (map_ready, etc.)
      ▼                           ▼
 ┌────────────────────────────────────────┐
 │     TaskIteratorExt combinators        │
@@ -186,14 +189,16 @@ Read these files to understand current structure and patterns:
 
 - [ ] Create `backends/foundation_core/src/valtron/task_iterators.rs`
 - [ ] Add `//!` module-level documentation explaining composition with execute()
-- [ ] Add trait signature stubs (can use `todo!()` for method bodies)
-- [ ] Import required types: `TaskStatus`, `ExecutionAction`, `StreamIterator`, `DrivenRecvIterator`
+- [ ] Add `TaskIteratorExt` trait with combinator methods (map_ready, map_pending, stream_collect)
+- [ ] Add blanket implementation for any `T: TaskIterator` with proper bounds
+- [ ] Import required types: `TaskStatus`, `ExecutionAction`, `TaskIterator`
 
 ### Task 3: Create stream_iterators.rs module
 
 - [ ] Create `backends/foundation_core/src/valtron/stream_iterators.rs`
 - [ ] Add `//!` module-level documentation explaining composition with execute_stream()
-- [ ] Add trait signature stubs
+- [ ] Add `StreamIteratorExt` trait with state-aware combinator methods
+- [ ] Add blanket implementation for any `T: StreamIterator` with proper bounds
 - [ ] Import required types: `Stream`, `StreamIterator`, `DrivenStreamIterator`
 
 ### Task 4: Create collect_all.rs module
@@ -248,7 +253,7 @@ cargo fmt -p foundation_core -- --check
 - All tasks completed
 - `cargo check -p foundation_core` passes with zero errors
 - All new modules have `//!` level documentation
-- Trait signatures show composition with existing Driven* types
+- Extension traits properly extend TaskIterator and StreamIterator
 - Zero clippy warnings
 
 ---

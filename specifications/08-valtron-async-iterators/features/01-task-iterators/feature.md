@@ -1,17 +1,17 @@
 ---
 feature: "Task Iterators"
-description: "TaskStatusIterator trait with into_stream() conversion and TaskIteratorExt for builder-style chaining"
-status: "pending"
+description: "TaskIteratorExt extension trait for builder-style chaining on any T: TaskIterator"
+status: "complete"
 priority: "high"
 depends_on: ["00-foundation"]
 estimated_effort: "medium"
 created: 2026-03-20
 author: "Main Agent"
 tasks:
-  completed: 0
-  uncompleted: 8
-  total: 8
-  completion_percentage: 0%
+  completed: 7
+  uncompleted: 0
+  total: 7
+  completion_percentage: 100%
 ---
 
 # Task Iterators Feature
@@ -32,7 +32,7 @@ TaskIterators are for implementers defining async tasks. Combinators are applied
 ```rust
 // Implementer defines task with builder combinators
 let task = fetch_models_dev_task(client)
-    .map_models(|m| m.with_enhanced_metadata())  // Transform Ready values
+    .map_ready(|m| m.with_enhanced_metadata())  // Transform Ready values
     .filter_pending(|p| !p.is_transient());      // Filter Pending states
 
 // Execute returns StreamIterator for end users
@@ -43,27 +43,12 @@ End users never deal with TaskIterator directly - they receive `StreamIterator` 
 
 ## WHAT: Solution Overview
 
-### TaskStatusIterator Trait (Foundation)
-
-```rust
-/// Core trait for TaskStatus-aware iteration.
-///
-/// This is the foundation trait that all TaskIterators implement.
-/// Implementers define async tasks that yield TaskStatus variants.
-///
-/// Key principle: TaskIterators are INPUTS to execute().
-/// End users receive StreamIterator from execute(), never TaskIterator directly.
-pub trait TaskStatusIterator: Iterator<Item = TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
-    type Ready;
-    type Pending;
-    type Spawner: ExecutionAction;
-}
-```
-
 ### TaskIteratorExt Trait (Builder-Style Chaining)
 
 ```rust
 /// Extension trait providing builder-style combinator methods.
+///
+/// Implemented for any T: TaskIterator with proper bounds.
 ///
 /// Each method:
 /// 1. Consumes self and wraps it internally
@@ -84,41 +69,35 @@ pub trait TaskStatusIterator: Iterator<Item = TaskStatus<Self::Ready, Self::Pend
 /// // Then execute - returns StreamIterator for end users
 /// let stream = execute(task)?;
 /// ```
-pub trait TaskIteratorExt: TaskStatusIterator + Sized {
+pub trait TaskIteratorExt: TaskIterator + Sized {
     /// Map Ready values using the provided function.
     ///
     /// Forwards Pending, Delayed, Init, Spawn unchanged.
     fn map_ready<F, O>(self, mapper: F) -> MapReady<Self, F>
     where
-        F: Fn(Self::Ready) -> O;
+        F: Fn(Self::Ready) -> O + Send + 'static,
+        O: Send + 'static;
 
     /// Map Pending values using the provided function.
     ///
     /// Forwards Ready, Delayed, Init, Spawn unchanged.
     fn map_pending<F, O>(self, mapper: F) -> MapPending<Self, F>
     where
-        F: Fn(Self::Pending) -> O;
+        F: Fn(Self::Pending) -> O + Send + 'static,
+        O: Send + 'static;
 
     /// Filter Ready values, returning None for filtered items.
     ///
     /// Forwards Pending, Delayed, Init, Spawn unchanged.
     fn filter_ready<F>(self, predicate: F) -> FilterReady<Self, F>
     where
-        F: Fn(&Self::Ready) -> bool;
+        F: Fn(&Self::Ready) -> bool + Send + 'static;
 
-    /// Transform any TaskStatus variant the combinator cares about.
-    ///
-    /// Generic mapping over TaskStatus itself.
-    fn map_task_status<F, R, P>(self, mapper: F) -> MapTaskStatus<Self, F>
-    where
-        F: Fn(TaskStatus<Self::Ready, Self::Pending, Self::Spawner>) -> TaskStatus<R, P, Self::Spawner>;
-
-    /// Stream-collect that yields StreamCollectStatus while gathering items.
+    /// Stream-collect that gathers all Ready values.
     ///
     /// Unlike std::Iterator::collect(), this does NOT block waiting for all items.
-    /// Instead, it yields StreamCollectStatus variants showing collection progress:
-    /// - StreamCollectStatus::Pending(count) - still gathering, have `count` items so far
-    /// - StreamCollectStatus::Ready(Vec<D>) - collection complete with all items
+    /// It passes through Pending, Delayed, Init, Spawn states unchanged,
+    /// and only yields the collected Vec<Ready> when the inner iterator returns None.
     ///
     /// # Example
     ///
@@ -127,76 +106,79 @@ pub trait TaskIteratorExt: TaskStatusIterator + Sized {
     ///     .stream_collect();
     ///
     /// // Execute returns StreamIterator
-    /// for status in execute(task)? {
-    ///     match status {
-    ///         Stream::Pending(count) => println!("Collected {count} so far..."),
+    /// for item in execute(task)? {
+    ///     match item {
+    ///         Stream::Pending(_) => println!("Still fetching..."),
+    ///         Stream::Delayed(d) => println!("Delayed by {:?}", d),
     ///         Stream::Next(all_items) => println!("Done! Got {} items", all_items.len()),
+    ///         _ => {}
     ///     }
     /// }
     /// ```
     fn stream_collect(self) -> StreamCollect<Self>
     where
-        Self::Ready: Clone;
+        Self::Ready: Clone + Send + 'static;
 }
 ```
 
-### StreamCollectStatus Type
+### StreamCollect Type (Simplified - No StreamCollectStatus)
 
 ```rust
-/// Progress states for stream-based collection
-pub enum StreamCollectStatus<D, P> {
-    /// Still gathering items, have `count` items so far
-    Pending { count: usize, pending_info: P },
-    /// Collection complete with all items
-    Ready(Vec<D>),
-}
-```
-
-### StreamCollect Type
-
-```rust
-/// Stream-based collector that yields StreamCollectStatus while gathering items.
+/// Stream-based collector that gathers all Ready values.
 ///
 /// Unlike std::Iterator::collect(), this does NOT block waiting for all items.
-/// It yields status updates as items arrive, finally yielding the complete collection.
+/// It passes through Pending, Delayed, Init, Spawn states unchanged,
+/// and yields Vec<Ready> only when the inner iterator completes.
 ///
 /// This is a TaskIterator combinator - apply BEFORE execute().
 pub struct StreamCollect<I> {
     inner: I,
     collected: Vec<I::Ready>,
+    done: bool,
 }
 
 impl<I> Iterator for StreamCollect<I>
 where
-    I: TaskStatusIterator,
+    I: TaskIterator,
     I::Ready: Clone,
 {
-    type Item = TaskStatus<StreamCollectStatus<I::Ready>, I::Pending, I::Spawner>;
+    type Item = TaskStatus<Vec<I::Ready>, I::Pending, I::Spawner>;
 
     fn next(&mut self) -> Option<Self::Item> {
-        match self.inner.next()? {
-            TaskStatus::Ready(value) => {
-                self.collected.push(value);
-                Some(TaskStatus::Pending(StreamCollectStatus::Pending {
-                    count: self.collected.len(),
-                    pending_info: None,
-                }))
-            }
-            TaskStatus::Pending(p) => {
-                Some(TaskStatus::Pending(StreamCollectStatus::Pending {
-                    count: self.collected.len(),
-                    pending_info: Some(p),
-                }))
-            }
-            TaskStatus::Delayed(d) => Some(TaskStatus::Delayed(d)),
-            TaskStatus::Init => Some(TaskStatus::Init),
-            TaskStatus::Spawn(s) => Some(TaskStatus::Spawn(s)),
+        // If we've already yielded the collected result, we're done
+        if self.done {
+            return None;
         }
-        // Note: When inner returns None, we yield TaskStatus::Ready(collected)
-        // This requires tracking completion state
+
+        loop {
+            match self.inner.next()? {
+                TaskStatus::Ready(value) => {
+                    self.collected.push(value);
+                    // Don't yield yet - keep collecting
+                }
+                TaskStatus::Pending(p) => {
+                    // Pass through Pending with current count info
+                    return Some(TaskStatus::Pending(p));
+                }
+                TaskStatus::Delayed(d) => {
+                    return Some(TaskStatus::Delayed(d));
+                }
+                TaskStatus::Init => {
+                    return Some(TaskStatus::Init);
+                }
+                TaskStatus::Spawn(s) => {
+                    return Some(TaskStatus::Spawn(s));
+                }
+            }
+        }
+        // When inner returns None, we fall through and yield the collected result
+        // But we need to track that we've yielded it, so set done = true first
+        // This requires restructuring - see actual implementation
     }
 }
 ```
+
+**Simplified approach**: Just collect all Ready values silently, pass through all other states, and only yield the final Vec<Ready> when done. No intermediate StreamCollectStatus.
 
 ### Custom Combinator Types (Hold Source + Operation)
 
@@ -209,8 +191,9 @@ pub struct MapReady<I, F> {
 
 impl<I, F, O> Iterator for MapReady<I, F>
 where
-    I: TaskStatusIterator,
-    F: Fn(I::Ready) -> O,
+    I: TaskIterator,
+    F: Fn(I::Ready) -> O + Send + 'static,
+    O: Send + 'static,
 {
     type Item = TaskStatus<O, I::Pending, I::Spawner>;
 
@@ -225,6 +208,17 @@ where
     }
 }
 
+impl<I, F, O> TaskIterator for MapReady<I, F>
+where
+    I: TaskIterator,
+    F: Fn(I::Ready) -> O + Send + 'static,
+    O: Send + 'static,
+{
+    type Ready = O;
+    type Pending = I::Pending;
+    type Spawner = I::Spawner;
+}
+
 /// Maps Pending values, forwards all other TaskStatus variants unchanged.
 pub struct MapPending<I, F> {
     inner: I,
@@ -233,8 +227,9 @@ pub struct MapPending<I, F> {
 
 impl<I, F, O> Iterator for MapPending<I, F>
 where
-    I: TaskStatusIterator,
-    F: Fn(I::Pending) -> O,
+    I: TaskIterator,
+    F: Fn(I::Pending) -> O + Send + 'static,
+    O: Send + 'static,
 {
     type Item = TaskStatus<I::Ready, O, I::Spawner>;
 
@@ -249,6 +244,17 @@ where
     }
 }
 
+impl<I, F, O> TaskIterator for MapPending<I, F>
+where
+    I: TaskIterator,
+    F: Fn(I::Pending) -> O + Send + 'static,
+    O: Send + 'static,
+{
+    type Ready = I::Ready;
+    type Pending = O;
+    type Spawner = I::Spawner;
+}
+
 /// Filters Ready values, returns None for non-matching.
 pub struct FilterReady<I, F> {
     inner: I,
@@ -257,8 +263,8 @@ pub struct FilterReady<I, F> {
 
 impl<I, F> Iterator for FilterReady<I, F>
 where
-    I: TaskStatusIterator,
-    F: Fn(&I::Ready) -> bool,
+    I: TaskIterator,
+    F: Fn(&I::Ready) -> bool + Send + 'static,
 {
     type Item = TaskStatus<I::Ready, I::Pending, I::Spawner>;
 
@@ -274,37 +280,45 @@ where
         }
     }
 }
+
+impl<I, F> TaskIterator for FilterReady<I, F>
+where
+    I: TaskIterator,
+    F: Fn(&I::Ready) -> bool + Send + 'static,
+{
+    type Ready = I::Ready;
+    type Pending = I::Pending;
+    type Spawner = I::Spawner;
+}
 ```
 
 ## HOW: Implementation Approach
 
-1. Define `TaskStatusIterator` trait as the foundation for TaskStatus-aware iteration
-2. Define `TaskIteratorExt` trait with builder-style chaining methods
-3. Each combinator is a custom struct holding `inner: I` + operation (`mapper`, `predicate`, etc.)
-4. Each combinator's `next()` forwards unknown `TaskStatus` variants, transforms targeted ones
-5. Provide blanket implementation of `TaskIteratorExt` for all `TaskStatusIterator` types
+1. Define `TaskIteratorExt` trait with builder-style chaining methods for any `T: TaskIterator`
+2. Each combinator is a custom struct holding `inner: I` + operation (`mapper`, `predicate`, etc.)
+3. Each combinator's `next()` forwards unknown `TaskStatus` variants, transforms targeted ones
+4. Each combinator also implements `TaskIterator` to enable chaining
+5. Provide blanket implementation of `TaskIteratorExt` for all `T: TaskIterator` with proper bounds
 6. Execute via `execute()` which returns `StreamIterator` for end users
 
 ## Requirements
 
-1. **TaskStatusIterator trait** - Core trait for TaskStatus-aware iteration (input to execute())
-2. **TaskIteratorExt trait** - Builder-style chaining methods (map_ready, map_pending, filter_ready, etc.)
-3. **Custom combinator types** - Each holds inner iterator + operation, forwards unknown states
-4. **Blanket implementations** - Auto-implement for all `TaskStatusIterator` types
+1. **TaskIteratorExt trait** - Builder-style chaining methods (map_ready, map_pending, filter_ready, stream_collect)
+2. **Custom combinator types** - Each holds inner iterator + operation, forwards unknown states
+3. **Combinators implement TaskIterator** - Enables chaining multiple combinators
+4. **Blanket implementations** - Auto-implement for all `T: TaskIterator` with proper bounds
 5. **Unit tests** - Verify combinators forward/transform correctly
 6. **Integration test** - Chain multiple combinators, execute via `execute()` returning StreamIterator
 
 ## Tasks
 
-1. [ ] Define `TaskStatusIterator` trait (no into_stream method - execute() is separate)
-2. [ ] Define `TaskIteratorExt` trait with builder-style methods
-3. [ ] Implement `MapReady<I, F>` combinator - transforms Ready, forwards rest
-4. [ ] Implement `MapPending<I, F>` combinator - transforms Pending, forwards rest
-5. [ ] Implement `FilterReady<I, F>` combinator - filters Ready, forwards rest
-6. [ ] Implement `MapTaskStatus<I, F>` combinator - transforms any TaskStatus variant
-7. [ ] Implement `StreamCollect<I>` combinator - yields StreamCollectStatus while gathering
-8. [ ] Write unit tests for each combinator type
-9. [ ] Write integration test chaining multiple combinators, then execute()
+1. [x] Define `TaskIteratorExt` trait with builder-style methods (extend T: TaskIterator)
+2. [x] Implement `TMapReady<I, F>` combinator - transforms Ready, forwards rest
+3. [x] Implement `TMapPending<I, F>` combinator - transforms Pending, forwards rest
+4. [x] Implement `TFilterReady<I, F>` combinator - filters Ready, forwards rest
+5. [x] Implement `TStreamCollect<I>` combinator - collects Ready values, passes through rest
+6. [x] Write unit tests for each combinator type
+7. [x] Write integration test chaining multiple combinators, then execute()
 
 ## Verification
 
@@ -316,9 +330,10 @@ cargo fmt -p foundation_core -- --check
 
 ## Success Criteria
 
-- All 9 tasks completed
-- `TaskStatusIterator` and `TaskIteratorExt` traits compile with zero errors
+- All 7 tasks completed
+- `TaskIteratorExt` trait compiles with zero errors
 - All combinator types correctly forward/transform TaskStatus variants
+- All combinators implement TaskIterator for chaining
 - Unit tests pass for each combinator
 - Integration test demonstrates chaining combinators then execute() returning StreamIterator
 - Zero clippy warnings
@@ -326,4 +341,4 @@ cargo fmt -p foundation_core -- --check
 ---
 
 _Created: 2026-03-20_
-_Updated: 2026-03-20 (v3.0: TaskIterator is input to execute(), which returns StreamIterator)_
+_Updated: 2026-03-20 (v3.1: Removed TaskStatusIterator, simplified StreamCollect)_

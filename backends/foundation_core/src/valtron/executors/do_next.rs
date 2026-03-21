@@ -103,6 +103,7 @@ where
                     }
                 },
                 TaskStatus::Ready(_) => State::ReadyValue(entry),
+                TaskStatus::Ignore => State::Pending(None),
             },
             None => State::Done,
         })

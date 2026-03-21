@@ -62,9 +62,8 @@ Each fetch function uses blocking HTTP calls via `http_get_json()`, causing:
 
 ## Goals
 
-1. **TaskStatusIterator trait** - Iterator-like operations over `TaskStatus<Ready, Pending, Spawner>` for implementers
-2. **TaskIteratorExt trait** - Builder-style combinators (map_ready, map_pending, stream_collect) applied BEFORE execute()
-3. **StreamIteratorExt trait** - Extensions for `Stream<Done, Pending>` applied AFTER execute()
+1. **TaskIteratorExt trait** - Builder-style combinators (map_ready, map_pending, stream_collect) for any `T: TaskIterator`
+2. **StreamIteratorExt trait** - Extensions for `Stream<Done, Pending>` applied AFTER execute() for any `T: StreamIterator`
 4. **Collection combinators** - `execute_collect_all()` to aggregate multiple TaskIterators
 5. **Mapping combinators** - `execute_map_all()` for state-aware transformations
 6. **Executor integration** - `execute()` returns `StreamIterator` only (hides delays, actions, spawner)
@@ -117,7 +116,7 @@ This allows users to:
 | # | Feature | Description | Dependencies |
 |---|---------|-------------|--------------|
 | 1 | [foundation](./features/00-foundation/feature.md) | Module structure, core types, trait foundations | None |
-| 2 | [task-iterators](./features/01-task-iterators/feature.md) | TaskStatusIterator trait, TaskIteratorExt combinators for implementers (map_ready, map_pending) | #0 |
+| 2 | [task-iterators](./features/01-task-iterators/feature.md) | ✅ COMPLETE - TaskIteratorExt combinators for implementers (map_ready, map_pending, filter_ready, stream_collect) | #0 |
 | 3 | [stream-iterators](./features/02-stream-iterators/feature.md) | StreamIteratorExt trait, state-aware combinators for end users | #0 |
 | 4 | [collection-combinators](./features/03-collection-combinators/feature.md) | execute_collect_all() returns StreamIterator | #2, #3 |
 | 5 | [mapping-combinators](./features/04-mapping-combinators/feature.md) | execute_map_all() returns StreamIterator | #3, #4 |
@@ -157,14 +156,14 @@ graph TD
 ```
 TaskIterator (implementers define tasks)
     │
-    ├── Apply TaskIteratorExt combinators BEFORE execute()
+    ├── TaskIteratorExt combinators (blanket impl for T: TaskIterator)
     │   - map_ready(f)
     │   - map_pending(f)
     │   - stream_collect()
     │
     └── execute(task) ──────────────────────► StreamIterator (end users consume)
                                                 │
-                                                ├── Apply StreamIteratorExt combinators AFTER execute()
+                                                ├── StreamIteratorExt combinators (blanket impl for T: StreamIterator)
                                                 │   - collect_all()
                                                 │   - map_all_done()
                                                 │   - map_all_pending_and_done()
@@ -189,7 +188,7 @@ None currently identified. This is a greenfield implementation.
 
 This specification was created through collaborative requirements gathering and updated to align with existing Valtron infrastructure:
 
-- **Scope**: Core traits (TaskStatusIterator, TaskIteratorExt, StreamIteratorExt) plus combinators AND real-world application (ClientRequest refactor + gen_model_descriptors) as features
+- **Scope**: Core extension traits (TaskIteratorExt, StreamIteratorExt) plus combinators AND real-world application (ClientRequest refactor + gen_model_descriptors) as features
 - **Structure**: Feature-based with 8 features covering foundation through application
 - **Detail level**: Comprehensive - clear "what we are doing" and "how we are doing it", not just code copying
 - **Priority**: High priority, large effort investment
@@ -201,8 +200,8 @@ This specification is considered complete when:
 
 ### Functionality
 - All 9 features completed and verified
-- TaskStatusIterator and TaskIteratorExt traits implemented (for implementers, before execute)
-- StreamIteratorExt trait implemented with state-aware combinators (for end users, after execute)
+- TaskIteratorExt trait implemented for any `T: TaskIterator` (for implementers, before execute)
+- StreamIteratorExt trait implemented for any `T: StreamIterator` (for end users, after execute)
 - `execute()` returns `StreamIterator` (hides executor concerns)
 - `execute_as_task()` available as opt-in for TaskStatus output
 - `execute_collect_all()` and `execute_map_all()` functional in unified.rs

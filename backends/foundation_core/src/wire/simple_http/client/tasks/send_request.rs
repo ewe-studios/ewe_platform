@@ -182,6 +182,7 @@ where
                         tracing::debug!("HttpRequestTaskState::Connecting: spawn new action");
                         Some(TaskStatus::Spawn(action.into_box_send_execution_action()))
                     }
+                    Some(TaskStatus::Ignore) => Some(TaskStatus::Ignore),
                     Some(TaskStatus::Ready(item)) => {
                         tracing::debug!(
                             "HttpRequestTaskState::Connecting: received TaskStats::Ready(_)"
@@ -346,6 +347,7 @@ where
                     Some(TaskStatus::Spawn(action)) => {
                         Some(TaskStatus::Spawn(action.into_box_send_execution_action()))
                     }
+                    Some(TaskStatus::Ignore) => Some(TaskStatus::Ignore),
                     Some(TaskStatus::Ready(item)) => {
                         self.0.take();
 

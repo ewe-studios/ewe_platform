@@ -105,6 +105,11 @@ pub enum TaskStatus<D, P, S: ExecutionAction> {
     /// Ready is the final state where we consider the task
     /// has finished/ended with relevant result.
     Ready(D),
+
+    /// Ignore signals that this item should be skipped.
+    /// Used by filtering combinators to indicate filtered-out items
+    /// without blocking the iterator.
+    Ignore,
 }
 
 impl<D, P, S: ExecutionAction> From<TaskStatus<D, P, S>> for Stream<D, P> {
@@ -115,6 +120,7 @@ impl<D, P, S: ExecutionAction> From<TaskStatus<D, P, S>> for Stream<D, P> {
             TaskStatus::Ready(inner) => Stream::Next(inner),
             TaskStatus::Delayed(inner) => Stream::Delayed(inner),
             TaskStatus::Pending(inner) => Stream::Pending(inner),
+            TaskStatus::Ignore => Stream::Ignore,
         }
     }
 }
@@ -127,9 +133,9 @@ impl<D: PartialEq, P: PartialEq, S: ExecutionAction> PartialEq for TaskStatus<D,
             (TaskStatus::Delayed(me), TaskStatus::Delayed(them)) => me == them,
             (TaskStatus::Pending(me), TaskStatus::Pending(them)) => me == them,
             (TaskStatus::Ready(me), TaskStatus::Ready(them)) => me == them,
-            (TaskStatus::Spawn(_), TaskStatus::Spawn(_)) | (TaskStatus::Init, TaskStatus::Init) => {
-                true
-            }
+            (TaskStatus::Spawn(_), TaskStatus::Spawn(_))
+            | (TaskStatus::Init, TaskStatus::Init)
+            | (TaskStatus::Ignore, TaskStatus::Ignore) => true,
             _ => false,
         }
     }
@@ -147,6 +153,7 @@ impl<D: core::fmt::Debug, P: core::fmt::Debug, S: ExecutionAction> core::fmt::Di
             Ready(D),
             Init,
             Spawn,
+            Ignore,
         }
 
         let debug_item = match self {
@@ -155,6 +162,7 @@ impl<D: core::fmt::Debug, P: core::fmt::Debug, S: ExecutionAction> core::fmt::Di
             TaskStatus::Ready(inner) => TStatus::Ready(inner),
             TaskStatus::Spawn(_) => TStatus::Spawn,
             TaskStatus::Init => TStatus::Init,
+            TaskStatus::Ignore => TStatus::Ignore,
         };
 
         write!(f, "{debug_item:?}")
@@ -173,6 +181,7 @@ impl<D: core::fmt::Debug, P: core::fmt::Debug, S: ExecutionAction> core::fmt::De
             Ready(D),
             Init,
             Spawn,
+            Ignore,
         }
 
         let debug_item = match self {
@@ -181,6 +190,7 @@ impl<D: core::fmt::Debug, P: core::fmt::Debug, S: ExecutionAction> core::fmt::De
             TaskStatus::Ready(inner) => TStatus::Ready(inner),
             TaskStatus::Spawn(_) => TStatus::Spawn,
             TaskStatus::Init => TStatus::Init,
+            TaskStatus::Ignore => TStatus::Ignore,
         };
 
         write!(f, "{debug_item:?}")
@@ -1053,6 +1063,7 @@ where
                 TaskStatus::Delayed(dur) => Some(TaskStatus::Delayed(dur)),
                 TaskStatus::Pending(dur) => Some(TaskStatus::Pending(dur)),
                 TaskStatus::Init => Some(TaskStatus::Init),
+                TaskStatus::Ignore => Some(TaskStatus::Ignore),
                 TaskStatus::Ready(item) => {
                     self.cache = Some(TaskStatus::Ready(item));
                     self.used = Some(());
@@ -1093,6 +1104,7 @@ where
                 TaskStatus::Delayed(inner) => Some(Stream::Delayed(inner)),
                 TaskStatus::Pending(inner) => Some(Stream::Pending(inner)),
                 TaskStatus::Ready(item) => Some(Stream::Next(item)),
+                TaskStatus::Ignore => Some(Stream::Ignore),
             },
             None => None,
         }
@@ -1141,7 +1153,8 @@ where
                 TaskStatus::Init
                 | TaskStatus::Spawn(_)
                 | TaskStatus::Delayed(_)
-                | TaskStatus::Pending(_) => Some(ReadyValue::Skip),
+                | TaskStatus::Pending(_)
+                | TaskStatus::Ignore => Some(ReadyValue::Skip),
                 TaskStatus::Ready(item) => Some(ReadyValue::Inner(item)),
             },
             None => None,
@@ -1203,6 +1216,7 @@ where
                 TaskStatus::Spawn(inner) => Some(TaskStatus::Spawn(inner)),
                 TaskStatus::Pending(dur) => Some(TaskStatus::Pending(dur)),
                 TaskStatus::Init => Some(TaskStatus::Init),
+                TaskStatus::Ignore => Some(TaskStatus::Ignore),
                 TaskStatus::Ready(item) => {
                     self.next = Some(TaskStatus::Ready(item));
                     None
@@ -1255,6 +1269,7 @@ where
             TaskStatus::Spawn(inner) => TaskStatus::Spawn(inner),
             TaskStatus::Pending(dur) => TaskStatus::Pending(dur),
             TaskStatus::Init => TaskStatus::Init,
+            TaskStatus::Ignore => TaskStatus::Ignore,
             TaskStatus::Ready(item) => {
                 self.blocked = Some(());
                 TaskStatus::Ready(item)

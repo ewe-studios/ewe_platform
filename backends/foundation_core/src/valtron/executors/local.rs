@@ -2244,6 +2244,7 @@ mod test_local_thread_executor {
                                 TaskStatus::Spawn(action) => {
                                     Some(TaskStatus::Spawn(action.into_box_send_execution_action()))
                                 }
+                                TaskStatus::Ignore => Some(TaskStatus::Ignore),
                             },
                             None => None,
                         }

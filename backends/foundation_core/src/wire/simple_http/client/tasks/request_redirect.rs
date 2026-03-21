@@ -27,7 +27,6 @@ use crate::wire::simple_http::{
 };
 use std::io::Write;
 use std::sync::Arc;
-use std::time::Duration;
 
 use super::HttpOperationState;
 

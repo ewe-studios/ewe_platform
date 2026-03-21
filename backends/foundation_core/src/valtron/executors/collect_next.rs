@@ -109,6 +109,7 @@ where
                     self.list.push(TaskStatus::Ready(next));
                     State::ReadyValue(entry)
                 }
+                TaskStatus::Ignore => State::Pending(None),
             },
             None => State::Done,
         })

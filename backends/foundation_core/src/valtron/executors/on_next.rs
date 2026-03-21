@@ -196,6 +196,7 @@ where
                             self.resolver.handle(TaskStatus::Ready(content), executor);
                             State::Progressed
                         }
+                        TaskStatus::Ignore => State::Pending(None),
                     },
                     None => State::Pending(None),
                 }
