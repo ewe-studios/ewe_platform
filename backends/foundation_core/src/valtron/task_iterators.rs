@@ -211,6 +211,56 @@ pub trait TaskIteratorExt: TaskIterator + Sized {
         Self::Ready: Clone,
         Self::Pending: Clone,
         P: Fn(&Self::Ready) -> bool + Send + 'static;
+
+    /// Split the iterator with transformation for observer.
+    ///
+    /// Like split_collect_until but observer receives transformed data D (which must be Clone),
+    /// while continuation receives original Ready values. Useful when Ready is not Clone
+    /// but extractable subset is.
+    ///
+    /// ## Type Requirements
+    ///
+    /// - `D` must be `Clone` (observer gets transformed copy)
+    /// - `Pending` must be `Clone` (observer gets transformed copy)
+    ///
+    /// ## Arguments
+    ///
+    /// * `predicate` - Function determining when to close observer
+    /// * `transform` - Function to extract D from &Ready (returns None to skip sending to observer)
+    /// * `queue_size` - Size of the ConcurrentQueue between branches
+    ///
+    /// ## Returns
+    ///
+    /// Tuple of:
+    /// - `SplitUntilObserverMap` - Observer that receives transformed D values
+    /// - `SplitUntilContinuationMap` - Continuation that continues with original Ready
+    ///
+    /// ## Example
+    ///
+    /// ```ignore
+    /// // Observer gets RequestIntroData (cloneable), continuation gets full RequestIntro
+    /// let (observer, continuation) = send_request_task
+    ///     .split_collect_until_map(
+    ///         |item| matches!(item, RequestIntro::Success { .. }),
+    ///         |item| item.to_cloneable_data(),
+    ///         1
+    ///     );
+    /// ```
+    fn split_collect_until_map<P, F, D>(
+        self,
+        predicate: P,
+        transform: F,
+        queue_size: usize,
+    ) -> (
+        SplitUntilObserverMap<D, Self::Pending>,
+        SplitUntilContinuationMap<Self, P, F, D>,
+    )
+    where
+        Self: Sized,
+        D: Clone + Send + 'static,
+        Self::Pending: Clone,
+        P: Fn(&Self::Ready) -> bool + Send + 'static,
+        F: Fn(&Self::Ready) -> Option<D> + Send + 'static;
 }
 
 // Blanket implementation: anything implementing TaskIterator gets TaskIteratorExt
@@ -344,6 +394,44 @@ where
             inner: self,
             queue,
             predicate,
+            _phantom: std::marker::PhantomData,
+        };
+
+        (observer, continuation)
+    }
+
+    fn split_collect_until_map<P, F, D>(
+        self,
+        predicate: P,
+        transform: F,
+        queue_size: usize,
+    ) -> (
+        SplitUntilObserverMap<D, Self::Pending>,
+        SplitUntilContinuationMap<Self, P, F, D>,
+    )
+    where
+        Self: Sized,
+        D: Clone + Send + 'static,
+        Self::Pending: Clone,
+        P: Fn(&Self::Ready) -> bool + Send + 'static,
+        F: Fn(&Self::Ready) -> Option<D> + Send + 'static,
+    {
+        let queue = Arc::new(ConcurrentQueue::bounded(queue_size));
+        tracing::debug!(
+            "split_collect_until_map: creating observer and continuation with queue_size={}",
+            queue_size
+        );
+
+        let observer = SplitUntilObserverMap {
+            queue: Arc::clone(&queue),
+            _phantom: std::marker::PhantomData,
+        };
+
+        let continuation = SplitUntilContinuationMap {
+            inner: self,
+            queue,
+            predicate,
+            transform,
             _phantom: std::marker::PhantomData,
         };
 
@@ -809,6 +897,151 @@ where
         // Close the queue as backup if not already closed
         if !self.queue.is_closed() {
             tracing::debug!("SplitUntilContinuation: dropped before completion, closing queue");
+            self.queue.close();
+        }
+    }
+}
+
+// ============================================================================
+// Split Collect Until Map Combinator
+// ============================================================================
+
+/// Observer branch from split_collect_until_map().
+///
+/// Receives transformed copies of items until the predicate is met, then the queue
+/// is closed and the observer completes.
+pub struct SplitUntilObserverMap<D, P> {
+    /// Shared queue receiving transformed copied items from the splitter
+    queue: Arc<ConcurrentQueue<Stream<D, P>>>,
+    _phantom: std::marker::PhantomData<(D, P)>,
+}
+
+impl<D, P> Iterator for SplitUntilObserverMap<D, P>
+where
+    D: Clone + Send + 'static,
+    P: Clone + Send + 'static,
+{
+    type Item = Stream<D, P>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        match self.queue.pop() {
+            Ok(item) => {
+                tracing::trace!("SplitUntilObserverMap: received item from queue");
+                Some(item)
+            }
+            Err(concurrent_queue::PopError::Empty) => {
+                if self.queue.is_closed() {
+                    tracing::debug!("SplitUntilObserverMap: queue closed, returning None");
+                    None
+                } else {
+                    tracing::trace!("SplitUntilObserverMap: queue empty but not closed, returning Ignore");
+                    Some(Stream::Ignore)
+                }
+            }
+            Err(concurrent_queue::PopError::Closed) => {
+                tracing::debug!("SplitUntilObserverMap: queue closed, returning None");
+                None
+            }
+        }
+    }
+}
+
+impl<D, P> crate::synca::mpp::StreamIterator<D, P> for SplitUntilObserverMap<D, P>
+where
+    D: Clone + Send + 'static,
+    P: Clone + Send + 'static,
+{
+}
+
+/// Continuation branch from split_collect_until_map().
+///
+/// Wraps the original iterator, transforming and copying items to the observer queue
+/// until the predicate is met. When predicate returns true, that item
+/// is transformed, sent, and the queue is closed (observer completes).
+pub struct SplitUntilContinuationMap<I, P, F, D>
+where
+    I: TaskIterator,
+{
+    /// The wrapped iterator
+    inner: I,
+    /// Queue to send transformed copied items to observer
+    queue: Arc<ConcurrentQueue<Stream<D, I::Pending>>>,
+    /// Predicate to determine when to close observer
+    predicate: P,
+    /// Transform function to extract D from &Ready
+    transform: F,
+    _phantom: std::marker::PhantomData<(P, F, D)>,
+}
+
+impl<I, P, F, D> Iterator for SplitUntilContinuationMap<I, P, F, D>
+where
+    I: TaskIterator,
+    I::Pending: Clone,
+    D: Clone + Send + 'static,
+    P: Fn(&I::Ready) -> bool,
+    F: Fn(&I::Ready) -> Option<D>,
+{
+    type Item = TaskStatus<I::Ready, I::Pending, I::Spawner>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        let item = match self.inner.next() {
+            Some(item) => item,
+            None => {
+                // Source iterator is naturally exhausted, close the queue
+                self.queue.close();
+                tracing::debug!("SplitUntilContinuationMap: source exhausted, queue closed");
+                return None;
+            }
+        };
+
+        // Transform and copy items to observer queue until predicate is met
+        if let TaskStatus::Ready(value) = &item {
+            if (self.predicate)(value) {
+                // Try to transform the value
+                if let Some(transformed) = (self.transform)(value) {
+                    let stream_item = Stream::Next(transformed);
+                    if let Err(e) = self.queue.force_push(stream_item) {
+                        tracing::error!("SplitUntilContinuationMap: failed to push to queue: {}", e);
+                    } else {
+                        tracing::trace!("SplitUntilContinuationMap: predicate met, sending transformed item and closing observer queue");
+                    }
+                }
+                // Close the queue after sending (or attempting to send) the matching item
+                self.queue.close();
+                tracing::debug!("SplitUntilContinuationMap: observer queue closed after predicate met");
+            }
+        }
+
+        // Always forward to continuation
+        Some(item)
+    }
+}
+
+impl<I, P, F, D> TaskIterator for SplitUntilContinuationMap<I, P, F, D>
+where
+    I: TaskIterator,
+    I::Pending: Clone,
+    D: Clone + Send + 'static,
+    P: Fn(&I::Ready) -> bool,
+    F: Fn(&I::Ready) -> Option<D>,
+{
+    type Ready = I::Ready;
+    type Pending = I::Pending;
+    type Spawner = I::Spawner;
+
+    fn next(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+        Iterator::next(self)
+    }
+}
+
+impl<I, P, F, D> Drop for SplitUntilContinuationMap<I, P, F, D>
+where
+    I: TaskIterator,
+{
+    fn drop(&mut self) {
+        // Close the queue as backup if not already closed
+        if !self.queue.is_closed() {
+            tracing::debug!("SplitUntilContinuationMap: dropped before completion, closing queue");
             self.queue.close();
         }
     }

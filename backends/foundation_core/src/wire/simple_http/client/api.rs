@@ -6,46 +6,66 @@
 //!
 //! WHAT: Implements `ClientRequest` which wraps HTTP request execution. Supports both
 //! progressive reading (intro first, then body) and one-shot execution (send everything).
-//! Manages internal state machine for request lifecycle.
+//! Uses `split_collect_until()` to fork intro/headers from body continuation.
 //!
-//! HOW: Wraps `HttpRequestTask` execution via `execute()`. Uses internal state enum
-//! to track progress through request lifecycle. Platform-aware executor driving
-//! (single-threaded on WASM/multi=off, multi-threaded with multi=on).
+//! HOW: Uses `split_collect_until()` on SendRequestTask:
+//! - Observer: receives RequestIntro::Success, extracts (intro, headers, conn), completes
+//! - Continuation: keeps stream for body reading
+//! Platform-aware executor driving (single-threaded on WASM/multi=off, multi-threaded with multi=on).
 
 use foundation_nostd::primitives::wait_duration;
 
 use crate::netcap::RawStream;
-use crate::valtron::{self, DrivenStreamIterator, Stream};
+use crate::valtron::{self, SplitUntilObserverMap, Stream, TaskStatus, TaskIteratorExt};
 use crate::wire::simple_http::client::{
     ClientConfig, DnsResolver, GetHttpRequestRedirectTask, HttpClientConnection,
-    HttpConnectionPool, HttpRequestRedirectResponse, IncomingResponseMapper, MiddlewareChain,
-    PreparedRequest, RequestIntro, ResponseIntro, SendRequestTask,
+    HttpConnectionPool, HttpRequestPending, HttpRequestRedirectResponse, IncomingResponseMapper,
+    MiddlewareChain, PreparedRequest, RequestIntro, RequestIntroData, ResponseIntro, SendRequestTask,
 };
 use crate::wire::simple_http::{
     HttpClientError, HttpResponseReader, IncomingResponseParts, SendSafeBody, SimpleHeaders,
     SimpleHttpBody, SimpleResponse,
 };
 use std::io::Write;
+use std::marker::PhantomData;
 use std::sync::Arc;
 
-/// Internal state for progressive request reading.
+/// Observer branch from split_collect_until_map - receives RequestIntroData then completes.
+type IntroObserver = SplitUntilObserverMap<RequestIntroData, HttpRequestPending>;
+
+/// Continuation branch - keeps stream for body reading.
+/// We box the continuation to erase the closure type.
+type BodyContinuation = Box<
+    dyn Iterator<
+            Item = TaskStatus<
+                RequestIntro,
+                HttpRequestPending,
+                crate::valtron::BoxedSendExecutionAction,
+            >,
+        > + Send
+        + 'static,
+>;
+
+/// Internal state for progressive request reading using split_collect_until.
 ///
-/// WHY: `ClientRequest` supports both progressive reading (introduction, then body)
-/// and one-shot reading (send). This requires tracking execution state between
-/// method calls.
+/// WHY: split_collect_until forks the task into observer (intro) and continuation (body).
+/// Need to store both branches between method calls.
 ///
-/// WHAT: State machine tracking request lifecycle. Stores iterator and partial
-/// results (intro, headers, stream) for progressive consumption.
+/// WHAT: State machine with split collector branches instead of manual iterator driving.
 ///
-/// HOW: Transitions from `NotStarted` -> Executing -> Completed. Executing state
-/// holds all intermediate data needed for progressive reading.
+/// HOW: NotStarted → Split(observer, continuation) → IntroReady(stored results) → Completed.
 pub enum ClientRequestState<R: DnsResolver + 'static> {
     /// Request hasn't been executed yet
-    NotStarted,
-    /// Request is currently executing or has partial results
-    Executing(Box<DrivenStreamIterator<SendRequestTask<R>>>),
-    /// Now we've acquired the necessary request introduction and reader.
-    IntroReady(Option<Box<RequestIntro>>),
+    NotStarted(PhantomData<R>),
+    /// Split into observer (gets intro/headers) and continuation (keeps stream)
+    Split {
+        observer: Option<IntroObserver>,
+        continuation: Option<BodyContinuation>,
+        /// Predicate function - needs to be stored
+        predicate: Option<fn(&RequestIntro) -> bool>,
+    },
+    /// Intro/headers received and stored, continuation ready for body()
+    IntroReady(RequestIntroData, Option<BodyContinuation>),
     /// Request completed (terminal state)
     Completed,
 }
@@ -54,9 +74,9 @@ impl<R: DnsResolver + 'static> core::fmt::Debug for ClientRequestState<R> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Self::Completed => write!(f, "Completed"),
-            Self::NotStarted => write!(f, "NotStarted"),
-            Self::Executing(_) => write!(f, "Executing"),
-            Self::IntroReady(_) => write!(f, "IntroReady"),
+            Self::NotStarted(_) => write!(f, "NotStarted"),
+            Self::Split { .. } => write!(f, "Split"),
+            Self::IntroReady(_, _) => write!(f, "IntroReady"),
         }
     }
 }
@@ -150,7 +170,7 @@ impl<R: DnsResolver + 'static> ClientRequest<R> {
             config,
             stream: None,
             pool: Some(pool),
-            task_state: Some(ClientRequestState::NotStarted),
+            task_state: Some(ClientRequestState::NotStarted(PhantomData)),
             middleware_chain,
             original_request: None,
         }
@@ -214,100 +234,119 @@ impl<R: DnsResolver + 'static> ClientRequest<R> {
     pub fn introduction_with_connection(
         &mut self,
     ) -> Result<(HttpClientConnection, ResponseIntro, SimpleHeaders), HttpClientError> {
-        if let Some(ClientRequestState::IntroReady(Some(inner))) = &self.task_state {
-            return match inner.as_ref() {
-                RequestIntro::Success {
-                    stream: _,
-                    conn,
-                    intro,
-                    headers,
-                } => Ok((conn.clone(), intro.clone().into(), headers.clone())),
-                RequestIntro::Failed(_) => Err(HttpClientError::FailedExecution),
-            };
+        // Check if already in IntroReady state
+        if let Some(ClientRequestState::IntroReady(intro_data, _)) = &self.task_state {
+            return Ok((
+                intro_data.conn.clone(),
+                intro_data.intro.clone(),
+                intro_data.headers.clone(),
+            ));
         }
 
+        // Drive the observer until it completes
         loop {
-            tracing::debug!("Get next state");
+            tracing::debug!("Get next observer state");
             if let Some(val) = self.task_state.take() {
                 tracing::debug!("Running introduction process: {:?}", &val);
                 match val {
-                    ClientRequestState::NotStarted => {
+                    ClientRequestState::NotStarted(_) => {
                         self.start()?;
                         continue;
                     }
-                    ClientRequestState::Executing(mut iter) => {
-                        tracing::debug!("Running execution state with iterator");
+                    ClientRequestState::Split {
+                        observer,
+                        continuation,
+                        predicate,
+                    } => {
+                        tracing::debug!("Driving observer branch");
 
-                        let Some(task_status) = iter.next() else {
-                            tracing::debug!("Execution state ends with failure");
+                        // Observer should be Some at this point
+                        let Some(mut observer) = observer else {
+                            tracing::debug!("Observer is None in Split state");
                             self.task_state = Some(ClientRequestState::Completed);
                             return Err(HttpClientError::FailedExecution);
                         };
 
-                        tracing::debug!(
-                            "Resetting state before review of status after getting status"
-                        );
+                        let Some(stream_item) = observer.next() else {
+                            // Observer completed without getting intro data
+                            tracing::debug!("Observer completed without intro data");
+                            self.task_state = Some(ClientRequestState::Completed);
+                            return Err(HttpClientError::FailedExecution);
+                        };
 
-                        self.task_state = Some(ClientRequestState::Executing(iter));
-                        tracing::debug!("Set next state and check status");
-
-                        match task_status {
-                            Stream::Init | Stream::Ignore => continue,
-                            Stream::Pending(v) => {
+                        match stream_item {
+                            Stream::Ignore => {
+                                // Still waiting for data, put observer back
+                                tracing::debug!("Observer returned Ignore, still waiting");
+                                self.task_state = Some(ClientRequestState::Split {
+                                    observer: Some(observer),
+                                    continuation,
+                                    predicate,
+                                });
+                                continue;
+                            }
+                            Stream::Next(intro_data) => {
                                 tracing::debug!(
-                                    "Intro at request execution, seen pending state: {:?}",
-                                    v
+                                    "Observer received RequestIntroData: intro={:?}",
+                                    &intro_data.intro
                                 );
+
+                                // Observer is now closed (predicate was met), transition to IntroReady
+                                self.task_state =
+                                    Some(ClientRequestState::IntroReady(intro_data, continuation));
+
+                                let ClientRequestState::IntroReady(data, _) =
+                                    self.task_state.as_ref().unwrap()
+                                else {
+                                    unreachable!()
+                                };
+
+                                return Ok((
+                                    data.conn.clone(),
+                                    data.intro.clone(),
+                                    data.headers.clone(),
+                                ));
+                            }
+                            Stream::Pending(_) => {
+                                tracing::debug!("Observer returned Pending");
+                                self.task_state = Some(ClientRequestState::Split {
+                                    observer: Some(observer),
+                                    continuation,
+                                    predicate,
+                                });
                                 continue;
                             }
                             Stream::Delayed(dur) => {
-                                tracing::debug!("Received delayed indicator, the execution engine will internally deal with this: nothing to do here: {:?}", dur);
+                                tracing::debug!("Observer returned Delayed: {:?}", dur);
+                                self.task_state = Some(ClientRequestState::Split {
+                                    observer: Some(observer),
+                                    continuation,
+                                    predicate,
+                                });
+                                wait_duration(dur);
                                 continue;
                             }
-                            Stream::Next(value) => {
-                                tracing::debug!(
-                                    "Stream::Next: Received next value state from stream"
-                                );
-
-                                match value {
-                                    RequestIntro::Success {
-                                        stream,
-                                        conn,
-                                        intro,
-                                        headers,
-                                    } => {
-                                        tracing::debug!(
-                                            "RequestIntro::Success received response: intro={:?}",
-                                            intro
-                                        );
-
-                                        self.task_state = Some(ClientRequestState::IntroReady(
-                                            Some(Box::new(RequestIntro::Success {
-                                                stream,
-                                                conn: conn.clone(),
-                                                intro: intro.clone(),
-                                                headers: headers.clone(),
-                                            })),
-                                        ));
-
-                                        return Ok((conn, intro.into(), headers));
-                                    }
-                                    RequestIntro::Failed(err) => {
-                                        tracing::debug!(
-                                            "RequestIntro::Failed during execution: {err:?}"
-                                        );
-                                        return Err(err);
-                                    }
-                                }
+                            Stream::Init => {
+                                tracing::debug!("Observer returned Init");
+                                self.task_state = Some(ClientRequestState::Split {
+                                    observer: Some(observer),
+                                    continuation,
+                                    predicate,
+                                });
+                                continue;
                             }
                         }
                     }
-                    ClientRequestState::IntroReady(_) => {
-                        unreachable!("should never trigger this state in the loop");
+                    ClientRequestState::IntroReady(data, _) => {
+                        return Ok((
+                            data.conn.clone(),
+                            data.intro.clone(),
+                            data.headers.clone(),
+                        ));
                     }
                     ClientRequestState::Completed => {
                         return Err(HttpClientError::FailedWith(
-                            "Request response already completedly read".into(),
+                            "Request response already completely read".into(),
                         ));
                     }
                 }
@@ -320,16 +359,13 @@ impl<R: DnsResolver + 'static> ClientRequest<R> {
         Err(HttpClientError::FailedWith("Request state missing".into()))
     }
 
-    /// Internal helper to start request execution.
+    /// Internal helper to start request execution using split_collect_until_map.
     ///
-    /// WHY: Multiple methods need to start execution if not already started.
-    /// Centralizes the logic.
+    /// WHY: split_collect_until_map forks the task into observer (gets RequestIntroData) and continuation (body).
     ///
-    /// WHAT: Creates `HttpRequestTask`, spawns via `execute_task()`, transitions
-    /// state to Executing.
+    /// WHAT: Creates SendRequestTask, applies split_collect_until_map with transform to extract RequestIntroData, stores both branches.
     ///
-    /// HOW: Takes `PreparedRequest`, creates task with resolver and config,
-    /// spawns using platform-appropriate executor, stores iterator in state.
+    /// HOW: Takes PreparedRequest, creates SendRequestTask, splits it with transform, stores observer and continuation.
     #[tracing::instrument(skip(self))]
     fn start(&mut self) -> Result<(), HttpClientError> {
         if self.pool.is_none() {
@@ -353,7 +389,7 @@ impl<R: DnsResolver + 'static> ClientRequest<R> {
             extensions: std::mem::take(&mut request.extensions),
         });
 
-        // Create HttpRequestTask with pool and control
+        // Create SendRequestTask with pool and control
         let task = SendRequestTask::new(
             request,
             self.config.max_redirects,
@@ -361,14 +397,26 @@ impl<R: DnsResolver + 'static> ClientRequest<R> {
             self.config.clone(),
         );
 
-        // Spawn task via execute_task
-        let iter: DrivenStreamIterator<SendRequestTask<R>> =
-            valtron::execute(task, None).map_err(|e| {
-                HttpClientError::FailedWith(format!("Failed to spawn task: {e}").into())
-            })?;
+        // Define predicate: close observer when we get RequestIntro::Success
+        const fn is_intro_success(item: &RequestIntro) -> bool {
+            matches!(item, RequestIntro::Success { .. })
+        }
 
-        // Transition to Executing state
-        self.task_state = Some(ClientRequestState::Executing(Box::new(iter)));
+        // Define transform: extract RequestIntroData from RequestIntro::Success
+        fn extract_intro_data(item: &RequestIntro) -> Option<RequestIntroData> {
+            item.to_cloneable_data()
+        }
+
+        // Split using split_collect_until_map: observer gets RequestIntroData, continuation keeps stream
+        let (observer, continuation) =
+            task.split_collect_until_map(is_intro_success, extract_intro_data, 1);
+
+        // Transition to Split state with both branches
+        self.task_state = Some(ClientRequestState::Split {
+            observer: Some(observer),
+            continuation: Some(Box::new(continuation)),
+            predicate: Some(is_intro_success),
+        });
 
         Ok(())
     }
@@ -404,7 +452,7 @@ impl<R: DnsResolver + 'static> ClientRequest<R> {
     #[tracing::instrument(skip(self))]
     pub fn body(&mut self) -> Result<SendSafeBody, HttpClientError> {
         tracing::debug!("Requesting response body next");
-        // Take the prepared request to avoid cloning
+
         let Some(state) = self.task_state.take() else {
             return Err(HttpClientError::InvalidRequestState);
         };
@@ -412,73 +460,120 @@ impl<R: DnsResolver + 'static> ClientRequest<R> {
         tracing::debug!("Reading request processing state: {state:?}");
 
         match state {
-            ClientRequestState::NotStarted
-            | ClientRequestState::Executing(_)
-            | ClientRequestState::Completed => {
-                tracing::error!("client found in invalid state");
+            ClientRequestState::NotStarted(_) | ClientRequestState::Split { .. } => {
+                tracing::error!("client found in invalid state - introduction() not called first");
                 self.task_state = Some(ClientRequestState::Completed);
-
                 Err(HttpClientError::FailedWith(
-                    "request client in invalid state".into(),
+                    "request client in invalid state - call introduction() first".into(),
                 ))
             }
+            ClientRequestState::Completed => {
+                tracing::error!("client found in completed state");
+                Err(HttpClientError::FailedWith(
+                    "request already completed".into(),
+                ))
+            }
+            ClientRequestState::IntroReady(_intro_data, Some(mut continuation)) => {
+                tracing::info!("Pulling body from continuation");
 
-            ClientRequestState::IntroReady(state) => {
-                tracing::info!("Pulling body from state");
+                // Drive continuation to get the stream
+                // The continuation should yield the RequestIntro::Success with the stream
+                loop {
+                    let Some(task_status) = continuation.next() else {
+                        tracing::error!("Continuation exhausted without yielding stream");
+                        self.task_state = Some(ClientRequestState::Completed);
+                        return Err(HttpClientError::FailedToReadBody);
+                    };
 
-                // complete the state since we've finally requested for the body.
-                self.task_state = Some(ClientRequestState::Completed);
+                    match task_status {
+                        TaskStatus::Ready(request_intro) => {
+                            match request_intro {
+                                RequestIntro::Success { stream, .. } => {
+                                    tracing::info!(
+                                        "Continuation yielded stream, reading body"
+                                    );
 
-                let Some(request_intro) = state else {
-                    return Err(HttpClientError::FailedExecution);
-                };
-
-                match *request_intro {
-                    RequestIntro::Failed(err) => Err(err),
-                    RequestIntro::Success {
-                        stream,
-                        conn: _,
-                        intro: _,
-                        headers: _,
-                    } => {
-                        tracing::info!("Seen RequestIntro::Success state and attempting to read from response stream");
-
-                        for next_value in stream {
-                            match next_value {
-                                Ok(next_res) => {
-                                    match next_res {
-                                        IncomingResponseParts::Intro(_, _, _)
-                                        | IncomingResponseParts::Headers(_) => {
-                                            tracing::debug!("IncomingResponseParts::Intro or Headers invalid state");
-                                            return Err(HttpClientError::InvalidReadState);
-                                        }
-                                        IncomingResponseParts::SKIP => {
-                                            tracing::debug!("IncomingResponseParts::Skip seen");
-                                        }
-                                        IncomingResponseParts::NoBody => {
-                                            tracing::debug!("IncomingResponseParts::NoBody seen");
-                                            return Ok(SendSafeBody::None);
-                                        }
-                                        IncomingResponseParts::SizedBody(inner)
-                                        | IncomingResponseParts::StreamedBody(inner) => {
-                                            tracing::debug!(
-                                                "IncomingResponseParts::Sized/Streamed body seen"
-                                            );
-                                            return Ok(inner);
+                                    // Read body from stream
+                                    for next_value in stream {
+                                        match next_value {
+                                            Ok(next_res) => {
+                                                match next_res {
+                                                    IncomingResponseParts::Intro(_, _, _)
+                                                    | IncomingResponseParts::Headers(_) => {
+                                                        tracing::debug!("IncomingResponseParts::Intro or Headers invalid state for body reading");
+                                                        return Err(HttpClientError::InvalidReadState);
+                                                    }
+                                                    IncomingResponseParts::SKIP => {
+                                                        tracing::debug!("IncomingResponseParts::Skip seen");
+                                                    }
+                                                    IncomingResponseParts::NoBody => {
+                                                        tracing::debug!("IncomingResponseParts::NoBody seen");
+                                                        self.task_state =
+                                                            Some(ClientRequestState::Completed);
+                                                        return Ok(SendSafeBody::None);
+                                                    }
+                                                    IncomingResponseParts::SizedBody(inner)
+                                                    | IncomingResponseParts::StreamedBody(
+                                                        inner,
+                                                    ) => {
+                                                        tracing::debug!(
+                                                            "IncomingResponseParts::Sized/Streamed body seen"
+                                                        );
+                                                        self.task_state = Some(
+                                                            ClientRequestState::Completed,
+                                                        );
+                                                        return Ok(inner);
+                                                    }
+                                                }
+                                            }
+                                            Err(err) => {
+                                                tracing::debug!(
+                                                    "Body retrieved failed with error: {err:?}"
+                                                );
+                                                return Err(HttpClientError::ReaderError(err));
+                                            }
                                         }
                                     }
+
+                                    tracing::debug!("Body stream exhausted without body");
+                                    self.task_state = Some(ClientRequestState::Completed);
+                                    return Err(HttpClientError::FailedToReadBody);
                                 }
-                                Err(err) => {
-                                    tracing::debug!("Body retrieved failed with error: {err:?}");
-                                    return Err(HttpClientError::ReaderError(err));
+                                RequestIntro::Failed(err) => {
+                                    tracing::debug!("RequestIntro::Failed from continuation: {err:?}");
+                                    return Err(err);
                                 }
                             }
                         }
-
-                        tracing::debug!("Body retrieved failed and exhausted attempts");
-                        Err(HttpClientError::FailedToReadBody)
+                        TaskStatus::Pending(_) => {
+                            tracing::debug!("Continuation returned Pending, still waiting");
+                            continue;
+                        }
+                        TaskStatus::Delayed(dur) => {
+                            tracing::debug!("Continuation returned Delayed: {:?}", dur);
+                            wait_duration(dur);
+                            continue;
+                        }
+                        TaskStatus::Init => {
+                            tracing::debug!("Continuation returned Init");
+                            continue;
+                        }
+                        TaskStatus::Ignore => {
+                            tracing::debug!("Continuation returned Ignore");
+                            continue;
+                        }
+                        TaskStatus::Spawn(_) => {
+                            tracing::debug!("Continuation returned Spawn");
+                            continue;
+                        }
                     }
                 }
+            }
+            ClientRequestState::IntroReady(_, None) => {
+                tracing::error!("body() called but continuation already consumed");
+                Err(HttpClientError::FailedWith(
+                    "body already consumed".into(),
+                ))
             }
         }
     }
@@ -589,7 +684,7 @@ impl<R: DnsResolver + 'static> ClientRequest<R> {
             return Err(HttpClientError::NoPool);
         }
 
-        if let Some(ClientRequestState::IntroReady(Some(_))) = &self.task_state {
+        if let Some(ClientRequestState::IntroReady(_, Some(_))) = &self.task_state {
             let (conn, intro, headers) = self.introduction_with_connection()?;
             let body = self.body()?;
 
@@ -606,7 +701,7 @@ impl<R: DnsResolver + 'static> ClientRequest<R> {
             return Ok((IncomingResponseMapper::List(items.into_iter()), conn));
         }
 
-        if let Some(ClientRequestState::NotStarted) = &self.task_state {
+        if let Some(ClientRequestState::NotStarted(_)) = &self.task_state {
             // Take the prepared request to avoid cloning
             let Some(request) = self.prepared_request.take() else {
                 return Err(HttpClientError::NoRequestToSend);

@@ -19,11 +19,26 @@ use derive_more::From;
 
 use crate::netcap::RawStream;
 use crate::valtron::{NoSpawner, TaskIterator, TaskStatus};
-use crate::wire::simple_http::client::HttpClientConnection;
+use crate::wire::simple_http::client::{HttpClientConnection, ResponseIntro};
 use crate::wire::simple_http::{
     HttpClientError, HttpReaderError, HttpResponseIntro, HttpResponseReader, SimpleHeaders,
     SimpleHttpBody,
 };
+
+/// Cloneable subset of RequestIntro for observer patterns.
+///
+/// WHY: split_collect_until requires Clone on the data sent to observer,
+/// but RequestIntro::Success contains non-cloneable stream.
+///
+/// WHAT: Contains only the cloneable parts: conn, intro, headers.
+///
+/// HOW: Extracted from RequestIntro::Success for observer, keeps stream for continuation.
+#[derive(Clone, Debug)]
+pub struct RequestIntroData {
+    pub conn: HttpClientConnection,
+    pub intro: ResponseIntro,
+    pub headers: SimpleHeaders,
+}
 
 #[derive(From)]
 pub enum RequestIntro {
@@ -38,6 +53,27 @@ pub enum RequestIntro {
     },
 
     Failed(HttpClientError),
+}
+
+impl RequestIntro {
+    /// Extract cloneable data from Success variant.
+    ///
+    /// Returns None for Failed variant or if stream is not available.
+    pub fn to_cloneable_data(&self) -> Option<RequestIntroData> {
+        match self {
+            RequestIntro::Success {
+                conn,
+                intro,
+                headers,
+                ..
+            } => Some(RequestIntroData {
+                conn: conn.clone(),
+                intro: intro.clone().into(),
+                headers: headers.clone(),
+            }),
+            RequestIntro::Failed(_) => None,
+        }
+    }
 }
 
 impl From<HttpReaderError> for RequestIntro {
