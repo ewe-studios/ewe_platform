@@ -27,10 +27,10 @@ builds_on: "specifications/02-build-http-client"
 related_specs:
   - "specifications/07-foundation-ai"
 features:
-  completed: 7
-  uncompleted: 2
+  completed: 6
+  uncompleted: 3
   total: 9
-  completion_percentage: 78%
+  completion_percentage: 67%
 ---
 
 # Overview
