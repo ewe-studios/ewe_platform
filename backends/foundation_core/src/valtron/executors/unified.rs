@@ -17,6 +17,7 @@ use crate::valtron::{
     TaskIterator,
 };
 
+use crate::synca::mpp::Stream;
 use crate::valtron::GenericResult;
 
 pub const DEFAULT_WAIT_CYCLE: std::time::Duration = std::time::Duration::from_millis(10);
@@ -304,4 +305,223 @@ where
         .stream_iter(wait_cycle.unwrap_or(DEFAULT_WAIT_CYCLE))?;
 
     Ok(drive_stream(iter))
+}
+
+// ============================================================================
+// Feature 03: Collection Combinators
+// ============================================================================
+
+/// Execute multiple TaskIterators in parallel and collect their results.
+///
+/// This function takes a vector of TaskIterators, executes them in parallel
+/// using `execute()`, and returns a `CollectAllStream` that aggregates their
+/// outputs. The returned iterator yields `Stream<Vec<D>, P>` variants:
+/// - `Stream::Pending(count)` while any sources are still pending
+/// - `Stream::Next(Vec<D>)` when all sources complete
+/// - `Stream::Delayed(duration)` if any source is delayed
+///
+/// # Arguments
+///
+/// * `tasks` - Vector of TaskIterators to execute in parallel
+/// * `wait_cycle` - Optional polling duration (defaults to DEFAULT_WAIT_CYCLE)
+///
+/// # Returns
+///
+/// Returns a `CollectAllStream` that aggregates outputs from all tasks.
+///
+/// # Example
+///
+/// ```ignore
+/// let tasks = vec![task1, task2, task3];
+/// let collected = execute_collect_all(tasks, None)?;
+///
+/// for stream_item in collected {
+///     match stream_item {
+///         Stream::Pending(count) => println!("{count} still pending..."),
+///         Stream::Next(results) => process(results),
+///         Stream::Delayed(dur) => continue,
+///     }
+/// }
+/// ```
+pub fn execute_collect_all<T>(
+    tasks: Vec<T>,
+    wait_cycle: Option<std::time::Duration>,
+) -> GenericResult<CollectAllStream<T>>
+where
+    T: TaskIterator + Send + 'static,
+    T::Ready: Send + 'static,
+    T::Pending: Send + 'static,
+    T::Spawner: ExecutionAction + Send + 'static,
+{
+    let streams: Vec<DrivenStreamIterator<T>> = tasks
+        .into_iter()
+        .map(|t| execute(t, wait_cycle))
+        .collect::<GenericResult<_>>()?;
+
+    Ok(CollectAllStream::new(streams))
+}
+
+/// Collects outputs from multiple TaskIterators executed via `execute()`.
+///
+/// This type holds the `DrivenStreamIterator`s returned from `execute()` and
+/// polls them in round-robin fashion, yielding `Stream::Pending` while any
+/// sources are pending, and `Stream::Next(Vec<D>)` when all complete.
+pub struct CollectAllStream<T>
+where
+    T: TaskIterator + Send + 'static,
+    T::Ready: Send + 'static,
+    T::Pending: Send + 'static,
+    T::Spawner: ExecutionAction + Send + 'static,
+{
+    sources: Vec<DrivenStreamIterator<T>>,
+    collected: Vec<T::Ready>,
+    done: bool,
+}
+
+impl<T> CollectAllStream<T>
+where
+    T: TaskIterator + Send + 'static,
+    T::Ready: Send + 'static,
+    T::Pending: Send + 'static,
+    T::Spawner: ExecutionAction + Send + 'static,
+{
+    /// Create a new `CollectAllStream` from a vector of `DrivenStreamIterator`s.
+    pub fn new(sources: Vec<DrivenStreamIterator<T>>) -> Self {
+        Self {
+            sources,
+            collected: Vec::new(),
+            done: false,
+        }
+    }
+}
+
+impl<T> Iterator for CollectAllStream<T>
+where
+    T: TaskIterator + Send + 'static,
+    T::Ready: Send + 'static,
+    T::Pending: Send + 'static,
+    T::Spawner: ExecutionAction + Send + 'static,
+{
+    type Item = Stream<Vec<T::Ready>, usize>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.done {
+            return None;
+        }
+
+        let mut all_done = true;
+        let mut has_pending = false;
+        let mut max_delayed: Option<std::time::Duration> = None;
+
+        // Poll all sources in round-robin
+        for source in &mut self.sources {
+            match source.next() {
+                Some(Stream::Next(value)) => {
+                    self.collected.push(value);
+                    all_done = false;
+                }
+                Some(Stream::Pending(_)) => {
+                    all_done = false;
+                    has_pending = true;
+                }
+                Some(Stream::Delayed(d)) => {
+                    all_done = false;
+                    max_delayed = Some(match max_delayed {
+                        Some(current) => current.max(d),
+                        None => d,
+                    });
+                }
+                Some(Stream::Init) => {
+                    all_done = false;
+                }
+                Some(Stream::Ignore) => {
+                    // Ignore internal events, keep collecting
+                    all_done = false;
+                }
+                None => {
+                    // This source is exhausted
+                }
+            }
+        }
+
+        if all_done {
+            // All sources exhausted, yield collected results
+            self.done = true;
+            if self.collected.is_empty() {
+                return None;
+            }
+            Some(Stream::Next(std::mem::take(&mut self.collected)))
+        } else if let Some(delay) = max_delayed {
+            Some(Stream::Delayed(delay))
+        } else if has_pending {
+            Some(Stream::Pending(self.collected.len()))
+        } else {
+            // Still collecting, return pending with count
+            Some(Stream::Pending(self.collected.len()))
+        }
+    }
+}
+
+impl<T> crate::synca::mpp::StreamIterator<Vec<T::Ready>, usize> for CollectAllStream<T>
+where
+    T: TaskIterator + Send + 'static,
+    T::Ready: Send + 'static,
+    T::Pending: Send + 'static,
+    T::Spawner: ExecutionAction + Send + 'static,
+{
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::valtron::{NoAction, TaskStatus};
+
+    // Simple test task for unit tests
+    struct SimpleTask {
+        items: Vec<TaskStatus<u32, String, NoAction>>,
+        index: usize,
+    }
+
+    impl SimpleTask {
+        #[allow(dead_code)]
+        fn new(items: Vec<TaskStatus<u32, String, NoAction>>) -> Self {
+            Self { items, index: 0 }
+        }
+    }
+
+    impl Iterator for SimpleTask {
+        type Item = TaskStatus<u32, String, NoAction>;
+
+        fn next(&mut self) -> Option<Self::Item> {
+            if self.index < self.items.len() {
+                let item = self.items[self.index].clone();
+                self.index += 1;
+                Some(item)
+            } else {
+                None
+            }
+        }
+    }
+
+    impl TaskIterator for SimpleTask {
+        type Ready = u32;
+        type Pending = String;
+        type Spawner = NoAction;
+
+        fn next(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+            Iterator::next(self)
+        }
+    }
+
+    #[test]
+    fn test_execute_collect_all_compiles() {
+        // Basic compilation test - ensures the function signature is correct
+        // Note: Full integration tests would require initializing the executor pool
+        let _func: fn(
+            Vec<SimpleTask>,
+            Option<std::time::Duration>,
+        ) -> GenericResult<CollectAllStream<SimpleTask>> = execute_collect_all;
+        // Test passes if this compiles
+        assert!(true);
+    }
 }

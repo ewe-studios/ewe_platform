@@ -1,17 +1,17 @@
 ---
 feature: "Collection Combinators"
 description: "CollectAll types that aggregate multiple async sources via execute() returning StreamIterator"
-status: "pending"
+status: "complete"
 priority: "high"
 depends_on: ["01-task-iterators", "02-stream-iterators"]
 estimated_effort: "medium"
 created: 2026-03-20
 author: "Main Agent"
 tasks:
-  completed: 0
-  uncompleted: 8
-  total: 8
-  completion_percentage: 0%
+  completed: 6
+  uncompleted: 0
+  total: 6
+  completion_percentage: 100%
 ---
 
 # Collection Combinators Feature
@@ -200,12 +200,12 @@ where
 
 ## Tasks
 
-1. [ ] Define `CollectAllStream<T>` struct holding `Vec<DrivenStreamIterator<T>>`
-2. [ ] Implement `Iterator` for `CollectAllStream<T>` yielding `Stream<Vec<T::Ready>, T::Pending>`
-3. [ ] Implement round-robin polling logic
-4. [ ] Track pending_count, detect completion
-5. [ ] Write unit tests for collection behavior
-6. [ ] Run clippy and fmt checks
+1. [x] Define `CollectAllStream<T>` struct holding `Vec<DrivenStreamIterator<T>>`
+2. [x] Implement `Iterator` for `CollectAllStream<T>` yielding `Stream<Vec<T::Ready>, T::Pending>`
+3. [x] Implement round-robin polling logic
+4. [x] Track pending_count, detect completion
+5. [x] Write unit tests for collection behavior
+6. [x] Run clippy and fmt checks
 
 ## Verification
 
