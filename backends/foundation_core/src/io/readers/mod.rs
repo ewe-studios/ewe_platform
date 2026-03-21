@@ -228,6 +228,9 @@ impl FullBodyReader {
                 Ok(Data::Bytes(bytes)) => {
                     tracing::debug!("Received Data::Bytes(len={})", bytes.len());
                     result.extend(bytes);
+                    if result.len() == total_size {
+                        break;
+                    }
                 }
                 Ok(Data::Retry) => {
                     // This shouldn't happen with eof_on_zero_read=true unless

@@ -29,6 +29,7 @@ fn test_client_requests_subprotocol() {
         Some("chat".to_string()),
         Vec::new(),
         Duration::from_secs(5),
+        Duration::from_secs(1),
     );
 
     assert!(result.is_ok(), "Should connect to server with subprotocols");
@@ -70,6 +71,7 @@ fn test_client_with_subprotocol_builder() {
         Some("chat".to_string()),
         Vec::new(),
         Duration::from_secs(5),
+        Duration::from_secs(1),
     );
 
     assert!(result.is_ok());
@@ -93,6 +95,7 @@ fn test_server_selects_first_matching_protocol() {
         Some("chat".to_string()),
         Vec::new(),
         Duration::from_secs(5),
+        Duration::from_secs(1),
     );
 
     assert!(
@@ -119,6 +122,7 @@ fn test_client_requests_multiple_subprotocols() {
         Some("superchat,chat".to_string()),
         Vec::new(),
         Duration::from_secs(5),
+        Duration::from_secs(1),
     );
 
     assert!(
@@ -156,8 +160,12 @@ fn test_connection_without_subprotocol() {
     let base_url = server.base_url().split('|').next().unwrap();
     let url = format!("{}/echo", base_url);
 
-    let result =
-        WebSocketClient::connect(SystemDnsResolver::default(), &url, Duration::from_secs(5));
+    let result = WebSocketClient::connect(
+        SystemDnsResolver::default(),
+        &url,
+        Duration::from_secs(5),
+        Duration::from_secs(1),
+    );
 
     assert!(
         result.is_ok(),
@@ -176,8 +184,12 @@ fn test_server_without_subprotocol_support() {
     let url = server.ws_url("/echo");
 
     // Client connects without requesting subprotocol
-    let result =
-        WebSocketClient::connect(SystemDnsResolver::default(), &url, Duration::from_secs(5));
+    let result = WebSocketClient::connect(
+        SystemDnsResolver::default(),
+        &url,
+        Duration::from_secs(5),
+        Duration::from_secs(1),
+    );
 
     assert!(
         result.is_ok(),

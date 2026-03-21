@@ -443,8 +443,9 @@ impl<R: DnsResolver + Send + 'static> WebSocketClient<R> {
         resolver: R,
         url: impl Into<String>,
         read_timeout: Duration,
+        sleep_timeout: Duration,
     ) -> Result<(Self, MessageDelivery), WebSocketError> {
-        Self::with_options(resolver, url, None, Vec::new(), read_timeout)
+        Self::with_options(resolver, url, None, Vec::new(), read_timeout, sleep_timeout)
     }
 
     /// Connect to a WebSocket endpoint with custom options.
@@ -469,6 +470,7 @@ impl<R: DnsResolver + Send + 'static> WebSocketClient<R> {
         subprotocols: Option<String>,
         extra_headers: Vec<(SimpleHeader, String)>,
         read_timeout: Duration,
+        sleep_timeout: Duration,
     ) -> Result<(Self, MessageDelivery), WebSocketError> {
         let url_str = url.into();
         let delivery = MessageDelivery::new();
@@ -479,6 +481,7 @@ impl<R: DnsResolver + Send + 'static> WebSocketClient<R> {
             extra_headers,
             delivery.queue().clone(),
             read_timeout,
+            sleep_timeout,
         )?;
         let inner = execute(task, None)
             .map_err(|e| WebSocketError::ProtocolError(format!("Executor error: {e}")))?;
@@ -501,7 +504,14 @@ impl<R: DnsResolver + Send + 'static> WebSocketClient<R> {
         url: impl Into<String>,
         pool: Arc<HttpConnectionPool<R>>,
     ) -> Result<(Self, MessageDelivery), WebSocketError> {
-        Self::with_pool_and_options(url, pool, None, Vec::new(), Duration::from_secs(1))
+        Self::with_pool_and_options(
+            url,
+            pool,
+            None,
+            Vec::new(),
+            Duration::from_secs(3),
+            Duration::from_secs(1),
+        )
     }
 
     /// Connect using an existing connection pool with custom options.
@@ -517,6 +527,7 @@ impl<R: DnsResolver + Send + 'static> WebSocketClient<R> {
         subprotocols: Option<String>,
         extra_headers: Vec<(SimpleHeader, String)>,
         read_timeout: Duration,
+        sleep_timeout: Duration,
     ) -> Result<(Self, MessageDelivery), WebSocketError> {
         let url_str = url.into();
         let delivery = MessageDelivery::new();
@@ -527,6 +538,7 @@ impl<R: DnsResolver + Send + 'static> WebSocketClient<R> {
             extra_headers,
             delivery.queue().clone(),
             read_timeout,
+            sleep_timeout,
         )?;
         let inner = execute(task, None)
             .map_err(|e| WebSocketError::ProtocolError(format!("Executor error: {e}")))?;
@@ -563,6 +575,7 @@ impl<'a, R: DnsResolver + Send + 'static> Iterator for WebSocketMessageIterator<
     fn next(&mut self) -> Option<Self::Item> {
         match self.client.inner.next()? {
             Stream::Next(result) => {
+                tracing::debug!("Stream got Next value");
                 // Skip ConnectionEstablished message, return actual messages
                 match result {
                     Ok(WebSocketMessage::ConnectionEstablished) => Some(Ok(WebSocketEvent::Skip)),

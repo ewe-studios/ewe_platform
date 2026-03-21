@@ -1738,6 +1738,7 @@ impl ReferencedExecutorState {
 pub struct LocalThreadExecutor<T: ProcessController + Clone> {
     kill_signal: Option<Arc<OnSignal>>,
     state: ReferencedExecutorState,
+    no_work_yield: time::Duration,
     yielder: T,
 }
 
@@ -1748,6 +1749,7 @@ impl<T: ProcessController + Clone> Clone for LocalThreadExecutor<T> {
         LocalThreadExecutor {
             state: self.state.clone(),
             yielder: self.yielder.clone(),
+            no_work_yield: self.no_work_yield.clone(),
             kill_signal: self.kill_signal.clone(),
         }
     }
@@ -1763,12 +1765,14 @@ impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
         idler: IdleMan,
         priority: PriorityOrder,
         yielder: T,
+        no_work_yield: time::Duration,
         kill_signal: Option<Arc<OnSignal>>,
         activities: Option<mpp::Sender<ThreadActivity>>,
     ) -> Self {
         Self {
             yielder,
             kill_signal,
+            no_work_yield,
             state: ReferencedExecutorState::new(
                 rc::Rc::new(ExecutorState::new(tasks, priority, rng, idler)),
                 activities,
@@ -1784,6 +1788,7 @@ impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
         idler: IdleMan,
         priority: PriorityOrder,
         yielder: T,
+        no_work_yield: time::Duration,
         kill_signal: Option<Arc<OnSignal>>,
         activities: Option<mpp::Sender<ThreadActivity>>,
     ) -> Self {
@@ -1793,6 +1798,7 @@ impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
             idler,
             priority,
             yielder,
+            no_work_yield,
             kill_signal,
             activities,
         )
@@ -1806,6 +1812,7 @@ impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
         idler: IdleMan,
         priority: PriorityOrder,
         yielder: T,
+        no_work_yield: time::Duration,
         kill_signal: Option<Arc<OnSignal>>,
         activities: Option<mpp::Sender<ThreadActivity>>,
     ) -> Self {
@@ -1815,6 +1822,7 @@ impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
             idler,
             priority,
             yielder,
+            no_work_yield,
             kill_signal,
             activities,
         )
@@ -1879,7 +1887,7 @@ impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
         let span = tracing::trace_span!("LocalThreadExecutor::run_once");
         let _enter = span.enter();
 
-        tracing::debug!("Creating local executor from state");
+        tracing::debug!("Get local engine for work execution");
         let local_executor = self.state.local_engine();
 
         tracing::debug!("run: ReferencedExecutorState::schedule_and_do_work with local executor");
@@ -1974,7 +1982,7 @@ impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
     ///
     #[inline]
     pub fn block_on(&self) {
-        let span = tracing::trace_span!("LocalThreadExecutor::kill");
+        let span = tracing::trace_span!("LocalThreadExecutor::block_on");
         let _enter = span.enter();
 
         /// panics: if [`kill_signal`] is not set or instantiated
@@ -2004,7 +2012,13 @@ impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
                             );
                             return;
                         }
-                        self.yielder.yield_process();
+
+                        tracing::debug!(
+                            dur = ?self.no_work_yield,
+                            "No work received, yielding for a dur={:?} to signal",
+                            &self.no_work_yield,
+                        );
+                        self.yielder.yield_for(self.no_work_yield);
                     }
                     ProgressIndicator::SpinWait(duration) => {
                         if kill_signal.probe() {
@@ -2016,9 +2030,6 @@ impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
                     }
                 }
             }
-
-            tracing::debug!("Yielding processes");
-            self.yielder.yield_process();
         }
     }
 }
@@ -2267,6 +2278,7 @@ mod test_local_thread_executor {
             ),
             PriorityOrder::Bottom,
             NoYielder,
+            time::Duration::from_secs(10),
             Some(kill_signal.clone()),
             None,
         );
@@ -2317,6 +2329,7 @@ mod test_local_thread_executor {
             ),
             PriorityOrder::Bottom,
             NoYielder,
+            time::Duration::from_secs(10),
             Some(kill_signal.clone()),
             None,
         );
@@ -2361,6 +2374,7 @@ mod test_local_thread_executor {
             ),
             PriorityOrder::Bottom,
             NoYielder,
+            time::Duration::from_secs(10),
             Some(kill_signal.clone()),
             None,
         );
@@ -2405,6 +2419,7 @@ mod test_local_thread_executor {
             ),
             PriorityOrder::Bottom,
             NoYielder,
+            time::Duration::from_secs(10),
             Some(kill_signal.clone()),
             None,
         );
@@ -2456,6 +2471,7 @@ mod test_local_thread_executor {
             ),
             PriorityOrder::Bottom,
             NoYielder,
+            time::Duration::from_secs(10),
             Some(kill_signal.clone()),
             None,
         );
@@ -2507,6 +2523,7 @@ mod test_local_thread_executor {
             ),
             PriorityOrder::Bottom,
             NoYielder,
+            time::Duration::from_secs(10),
             None,
             None,
         );
@@ -2559,6 +2576,7 @@ mod test_local_thread_executor {
             ),
             PriorityOrder::Bottom,
             NoYielder,
+            time::Duration::from_secs(10),
             None,
             None,
         );
@@ -2608,6 +2626,7 @@ mod test_local_thread_executor {
             ),
             PriorityOrder::Bottom,
             NoYielder,
+            time::Duration::from_secs(10),
             None,
             None,
         );
@@ -2678,6 +2697,7 @@ mod test_local_thread_executor {
             ),
             PriorityOrder::Top,
             NoYielder,
+            time::Duration::from_secs(10),
             None,
             None,
         );
@@ -2833,6 +2853,7 @@ mod test_local_thread_executor {
             ),
             PriorityOrder::Bottom,
             NoYielder,
+            time::Duration::from_secs(10),
             None,
             None,
         );
@@ -3126,6 +3147,7 @@ mod test_local_thread_executor {
             ),
             PriorityOrder::Bottom,
             NoYielder,
+            time::Duration::from_secs(10),
             None,
             None,
         );
@@ -3226,6 +3248,7 @@ mod test_local_thread_executor {
             ),
             PriorityOrder::Bottom,
             NoYielder,
+            time::Duration::from_secs(10),
             None,
             None,
         );
@@ -3323,6 +3346,7 @@ mod test_local_thread_executor {
             ),
             PriorityOrder::Bottom,
             NoYielder,
+            time::Duration::from_secs(10),
             None,
             None,
         );
@@ -3394,6 +3418,7 @@ mod test_local_thread_executor {
             ),
             PriorityOrder::Bottom,
             NoYielder,
+            time::Duration::from_secs(10),
             None,
             None,
         );
@@ -3466,6 +3491,7 @@ mod test_local_thread_executor {
             ),
             PriorityOrder::Bottom,
             NoYielder,
+            time::Duration::from_secs(10),
             None,
             None,
         );

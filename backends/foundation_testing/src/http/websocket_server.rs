@@ -493,6 +493,7 @@ impl WebSocketEchoServer {
         stream.set_read_timeout(None)?;
 
         while running.load(Ordering::Relaxed) {
+            tracing::info!("WebsocketEchoServer: next loop for message");
             match decode_frame(stream) {
                 Some((fin, opcode, _mask, payload)) => {
                     tracing::info!(
@@ -502,6 +503,7 @@ impl WebSocketEchoServer {
                     );
                     match opcode {
                         Opcode::Text | Opcode::Binary => {
+                            tracing::info!("WebSocketEchoServer: received text|binary");
                             // Echo back the message
                             let response = encode_frame(fin, opcode, None, &payload);
                             tracing::info!("WebSocketEchoServer: echoing {} bytes", response.len());
@@ -510,12 +512,14 @@ impl WebSocketEchoServer {
                             tracing::info!("WebSocketEchoServer: echo sent");
                         }
                         Opcode::Ping => {
+                            tracing::info!("WebSocketEchoServer: received ping");
                             // Respond with Pong (same payload)
                             let response = encode_frame(true, Opcode::Pong, None, &payload);
                             stream.write_all(&response)?;
                             stream.flush()?;
                         }
                         Opcode::Close => {
+                            tracing::info!("WebSocketEchoServer: closing connection");
                             // Echo close frame back and exit
                             let response = encode_frame(true, Opcode::Close, None, &payload);
                             stream.write_all(&response)?;
@@ -523,17 +527,20 @@ impl WebSocketEchoServer {
                             break;
                         }
                         Opcode::Pong | Opcode::Continuation => {
+                            tracing::info!("WebSocketEchoServer: received pong|continuation");
                             // Ignore
                         }
                     }
                 }
                 None => {
+                    tracing::info!("WebSocketEchoServer: no message received, breaking");
                     // Client disconnected or error reading - exit cleanly
                     break;
                 }
             }
         }
 
+        tracing::info!("WebSocketEchoServer: stopping server");
         Ok(())
     }
 }

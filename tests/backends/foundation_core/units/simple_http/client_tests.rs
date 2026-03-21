@@ -29,7 +29,7 @@ fn test_client_config_fields_public() {
     config.pool_enabled = true;
 
     assert_eq!(config.connect_timeout, Duration::from_secs(10));
-    assert_eq!(config.max_redirects, 3);
+    assert_eq!(config.max_retries, 3);
     assert!(config.pool_enabled);
 }
 

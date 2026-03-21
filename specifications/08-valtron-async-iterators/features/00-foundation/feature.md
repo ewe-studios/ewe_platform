@@ -194,7 +194,7 @@ Read these files to understand current structure and patterns:
 - [ ] Create `backends/foundation_core/src/valtron/stream_iterators.rs`
 - [ ] Add `//!` module-level documentation explaining composition with execute_stream()
 - [ ] Add trait signature stubs
-- [ ] Import required types: `Stream`, `StreamIterator`, `StreamState`, `DrivenStreamIterator`
+- [ ] Import required types: `Stream`, `StreamIterator`, `DrivenStreamIterator`
 
 ### Task 4: Create collect_all.rs module
 

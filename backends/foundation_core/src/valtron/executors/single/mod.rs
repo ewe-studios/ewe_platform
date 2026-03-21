@@ -6,7 +6,7 @@ use std::sync::Arc;
 use crate::valtron::{
     executors::constants::{
         BACK_OFF_JITER, BACK_OFF_MAX_DURATION, BACK_OFF_MIN_DURATION, BACK_OFF_THREAD_FACTOR,
-        MAX_ROUNDS_IDLE_COUNT, MAX_ROUNDS_WHEN_SLEEPING_ENDS,
+        DEFAULT_YIELD_WAIT_TIME, MAX_ROUNDS_IDLE_COUNT, MAX_ROUNDS_WHEN_SLEEPING_ENDS,
     },
     BoxedSendExecutionIterator, ExecutionAction, ExecutionTaskIteratorBuilder, LocalThreadExecutor,
     PriorityOrder, ProcessController, ProgressIndicator, TaskIterator, TaskReadyResolver,
@@ -67,6 +67,7 @@ pub fn initialize_pool(seed_for_rng: u64) {
                 ),
                 PriorityOrder::Top,
                 NoThreadController,
+                DEFAULT_YIELD_WAIT_TIME,
                 None,
                 None,
             )

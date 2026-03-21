@@ -150,7 +150,6 @@ impl LockSignal {
         }
 
         // wait till it's released or free
-        tracing::debug!("Will loop till lock is free");
         loop {
             if *current_state == LockState::Released {
                 // set back to free state
@@ -166,6 +165,7 @@ impl LockSignal {
             }
 
             // wait for the event to be signaled.
+            tracing::debug!("Waiting for event signal to be received");
             current_state = self.event.wait(current_state).unwrap();
         }
     }

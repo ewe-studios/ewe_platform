@@ -34,6 +34,7 @@ use super::handshake::{build_upgrade_request, compute_accept_key, generate_webso
 use super::message::WebSocketMessage;
 
 const DEFAULT_READ_TIMEOUT: Duration = Duration::from_secs(5);
+const SLEEP_BETWEEN_WORK: Duration = Duration::from_millis(15);
 
 /// [`WebSocketProgress`] indicates the current state of WebSocket connection.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -141,6 +142,7 @@ where
 {
     state: Option<WebSocketState>,
     pool: Arc<HttpConnectionPool<R>>,
+    sleep_between_work: Duration,
 }
 
 impl<R> WebSocketTask<R>
@@ -179,6 +181,7 @@ where
         ));
 
         Ok(Self {
+            sleep_between_work: SLEEP_BETWEEN_WORK,
             state: Some(WebSocketState::Init(Some(Box::new(WebSocketConnectInfo {
                 url: url_str,
                 subprotocols: None,
@@ -218,6 +221,7 @@ where
         debug!(scheme = ?uri.scheme(), host = ?uri.host_str(), "URL validated");
 
         Ok(Self {
+            sleep_between_work: SLEEP_BETWEEN_WORK,
             state: Some(WebSocketState::Init(Some(Box::new(WebSocketConnectInfo {
                 url: url_str,
                 subprotocols: None,
@@ -251,6 +255,7 @@ where
         extra_headers: Vec<(SimpleHeader, String)>,
         delivery: Arc<ConcurrentQueue<WebSocketMessage>>,
         read_timeout: Duration,
+        sleep_between: Duration,
     ) -> Result<Self, WebSocketError> {
         let url_str = url;
         info!(url = %url_str, "Connecting to WebSocket endpoint with delivery queue");
@@ -275,6 +280,7 @@ where
         ));
 
         Ok(Self {
+            sleep_between_work: sleep_between,
             state: Some(WebSocketState::Init(Some(Box::new(WebSocketConnectInfo {
                 url: url_str,
                 subprotocols,
@@ -299,6 +305,7 @@ where
         extra_headers: Vec<(SimpleHeader, String)>,
         delivery: Arc<ConcurrentQueue<WebSocketMessage>>,
         read_timeout: Duration,
+        sleep_between: Duration,
     ) -> Result<Self, WebSocketError> {
         let url_str = _url;
         info!(url = %url_str, "Connecting to WebSocket endpoint with pool and delivery queue");
@@ -318,6 +325,7 @@ where
         debug!(scheme = ?uri.scheme(), host = ?uri.host_str(), "URL validated");
 
         Ok(Self {
+            sleep_between_work: sleep_between,
             state: Some(WebSocketState::Init(Some(Box::new(WebSocketConnectInfo {
                 url: url_str,
                 subprotocols,
@@ -327,6 +335,12 @@ where
             })))),
             pool,
         })
+    }
+
+    #[must_use]
+    pub fn with_sleep_between(mut self, sleep_duration: Duration) -> Self {
+        self.sleep_between_work = sleep_duration;
+        self
     }
 
     /// Add a subprotocol to the connection.
@@ -651,6 +665,8 @@ where
             }
 
             WebSocketState::Open(mut open_state_opt) => {
+                debug!("OpenState: Processing messages");
+
                 let mut open_state = open_state_opt.take()?;
                 trace!(state = "Open", "Reading WebSocket frame");
                 debug!("Delivery queue len: {}", open_state.delivery_queue.len());
@@ -707,16 +723,21 @@ where
                             }
                         };
 
+                        debug!("Frame generated for outgoing message: {:?}", &frame);
                         if let Some(frame) = frame {
                             let encoded = frame.encode();
 
                             debug!("Sending {} bytes to stream", encoded.len());
-                            let _ = open_state.stream.write_all(&encoded);
+                            if let Err(err) = open_state.stream.write_all(&encoded) {
+                                tracing::error!("Failed to write data to stream: {:?}", err);
+                            }
 
                             if let Err(err) = open_state.stream.flush() {
                                 tracing::error!("Failed to flush stream due to: {:?}", err);
                             }
                             debug!("Sent frame to server: opcode={:?}", frame.opcode);
+                        } else {
+                            debug!("No message sent to server");
                         }
 
                         // Stay in Open state - no cloning needed, just put back
@@ -724,7 +745,10 @@ where
                         return Some(TaskStatus::Pending(WebSocketProgress::Reading));
                     }
                     Err(err) => {
-                        debug!("Delivery queue empty or disconnected due to: {:?}", err);
+                        debug!(
+                            "Outgoing Delivery queue empty or disconnected due to: {:?}",
+                            err
+                        );
                     }
                 }
 
@@ -830,15 +854,19 @@ where
                             Ok(Some(message)) => {
                                 // Complete message assembled (or control frame passed through)
                                 self.state = Some(WebSocketState::Open(Some(open_state)));
+
+                                debug!("Received new message from server: {:?}", &message);
                                 Some(TaskStatus::Ready(Ok(message)))
                             }
                             Ok(None) => {
                                 // More fragments needed, stay in Open state
                                 self.state = Some(WebSocketState::Open(Some(open_state)));
+                                debug!("Received no message from server");
                                 Some(TaskStatus::Pending(WebSocketProgress::Reading))
                             }
                             Err(e) => {
                                 // Protocol error during assembly
+                                error!("Error occurred assembly message: {:?}", &e);
                                 self.state = Some(WebSocketState::Open(Some(open_state)));
                                 Some(TaskStatus::Ready(Err(e)))
                             }
@@ -859,7 +887,7 @@ where
                         // Stay in Open state and delay before retrying to avoid busy-spinning
                         debug!("Read timeout - no data available yet, will retry after delay");
                         self.state = Some(WebSocketState::Open(Some(open_state)));
-                        Some(TaskStatus::Delayed(Duration::from_millis(5)))
+                        Some(TaskStatus::Delayed(self.sleep_between_work))
                     }
                     Err(e) => {
                         error!(error = ?e, "Frame decode error");

@@ -1,9 +1,9 @@
 ---
 feature: "gen_model_descriptors Parallel Fetch"
-description: "Use refactored ClientRequest with TaskIteratorExt combinators for parallel API fetches in gen_model_descriptors"
+description: "Use execute_collect_all() for parallel API fetches in gen_model_descriptors"
 status: "pending"
 priority: "high"
-depends_on: ["06a-client-request-refactor"]
+depends_on: ["05-unified-executor-integration"]
 estimated_effort: "medium"
 created: 2026-03-20
 author: "Main Agent"
@@ -18,9 +18,7 @@ tasks:
 
 ## WHY: Problem Statement
 
-After refactoring `ClientRequest` to use `TaskIteratorExt` combinators (feature 06a), we can now leverage this in `gen_model_descriptors` for parallel API fetches.
-
-**Current sequential pattern** (from feature 06a baseline):
+The current `gen_model_descriptors` implementation fetches model metadata from three upstream APIs **sequentially**:
 
 ```rust
 // Sequential blocking - each fetch blocks until complete
@@ -31,28 +29,38 @@ all_models.extend(fetch_ai_gateway(&client));      // ~500ms, blocks
 // Total: ~1500ms
 ```
 
-**Desired parallel pattern** (using refactored ClientRequest):
+**Key Design Principle: execute_collect_all() for Parallel Execution**
 
 ```rust
-// Use refactored ClientRequest that returns composed TaskIterators
+// TaskIterators go into execute_collect_all()...
 let tasks = vec![
     create_fetch_task(client.clone(), "models.dev")?,
     create_fetch_task(client.clone(), "openrouter")?,
     create_fetch_task(client.clone(), "ai_gateway")?,
 ];
 
+// ...StreamIterator comes out
 let collected = execute_collect_all(tasks, None)?;
 // Parallel execution (~500ms total)
+
+for stream_item in collected {
+    match stream_item {
+        Stream::Pending(count) => println!("{count} still pending"),
+        Stream::Next(results) => process(results),
+    }
+}
 ```
+
+End users work with `StreamIterator` from `execute_collect_all()` - never dealing with TaskIterator directly.
 
 ## WHAT: Solution Overview
 
-Build on feature 06a's refactored `ClientRequest` to create parallel fetch tasks:
+Use `execute_collect_all()` from `unified.rs` to execute multiple fetch tasks in parallel:
 
 ### Pattern: create_fetch_task Helper
 
 ```rust
-/// Create a fetch task for a specific API using refactored ClientRequest patterns
+/// Create a fetch task for a specific API using TaskIterator combinators
 fn create_fetch_task(
     client: SimpleHttpClient,
     api_name: &str,
@@ -63,10 +71,10 @@ fn create_fetch_task(
     Spawner = BoxedSendExecutionAction,
 > + Send + 'static, HttpClientError>
 {
-    // Build request using existing client
+    // Build request
     let request = client.get(url)?;
 
-    // Use refactored task creation (from 06a)
+    // Create SendRequestTask and apply combinators (BEFORE execute)
     let task = SendRequestTask::new(request, pool, config)
         // Transform: HttpResponse → Vec<ModelEntry>
         .map_ready(|response| {
@@ -82,7 +90,7 @@ fn create_fetch_task(
 }
 ```
 
-### run() Function Using Refactored Pattern
+### run() Function Using execute_collect_all()
 
 ```rust
 fn run(args: &clap::ArgMatches) -> Result<(), BoxedError> {
@@ -92,14 +100,14 @@ fn run(args: &clap::ArgMatches) -> Result<(), BoxedError> {
 
     tracing::info!("Starting model descriptor generation with parallel fetch...");
 
-    // Create tasks using refactored helper (from 06a patterns)
+    // Create tasks using helper (TaskIterators are inputs)
     let tasks = vec![
         create_fetch_task(client.clone(), "models.dev", "https://models.dev/api/models")?,
         create_fetch_task(client.clone(), "openrouter", "https://openrouter.ai/api/v1/models")?,
         create_fetch_task(client.clone(), "ai_gateway", "https://ai-gateway.internal/api/models")?,
     ];
 
-    // Execute all in parallel using execute_collect_all
+    // Execute all in parallel - returns StreamIterator (end user type)
     let collected = execute_collect_all(tasks, None)?;
 
     // Process stream with progress reporting
@@ -150,9 +158,9 @@ fn run(args: &clap::ArgMatches) -> Result<(), BoxedError> {
 
 ## HOW: Implementation Steps
 
-1. **Read feature 06a output** - Understand refactored `ClientRequest` patterns
+1. **Read unified.rs** - Understand execute_collect_all() pattern
 2. **Create `FetchPending` enum** - Progress states with source tracking
-3. **Create `create_fetch_task()` helper** - Compose `SendRequestTask` with combinators
+3. **Create `create_fetch_task()` helper** - Compose SendRequestTask with combinators
 4. **Create parser functions** - `parse_models_response()`, `parse_openrouter_response()`, etc.
 5. **Update `run()` function** - Use `execute_collect_all()` with composed tasks
 6. **Add benchmark timing** - Log fetch elapsed time
@@ -160,21 +168,22 @@ fn run(args: &clap::ArgMatches) -> Result<(), BoxedError> {
 ## Requirements
 
 1. **FetchPending enum** - Progress states with source tracking, `from_http()` conversion
-2. **create_fetch_task() helper** - Returns composed TaskIterator with combinators
+2. **create_fetch_task() helper** - Returns composed TaskIterator with combinators (input to execute)
 3. **Parser functions** - Transform HttpResponse → Vec<ModelEntry> for each API
-4. **run() function** - Uses `execute_collect_all()` and progress reporting
+4. **run() function** - Uses `execute_collect_all()` returning StreamIterator
 5. **Benchmark output** - Log elapsed time and estimated sequential equivalent
+6. **execute_collect_all()** - Takes TaskIterators, returns StreamIterator
 
 ## Tasks
 
-1. [ ] Read feature 06a spec and implementation
-2. [ ] Define `FetchPending` enum with Connecting, AwaitingResponse, ParsingJson, ProcessingModels
-3. [ ] Implement `FetchPending::from_http()` conversion
-4. [ ] Create `create_fetch_task()` helper function
-5. [ ] Implement parser functions for each API format
-6. [ ] Refactor `run()` to use `execute_collect_all()` with composed tasks
-7. [ ] Test: Run generator, verify output matches original
-8. [ ] Test: Verify ~3x speedup (1500ms → 500ms)
+1. [ ] Define `FetchPending` enum with Connecting, AwaitingResponse, ParsingJson, ProcessingModels
+2. [ ] Implement `FetchPending::from_http()` conversion
+3. [ ] Create `create_fetch_task()` helper function
+4. [ ] Implement parser functions for each API format
+5. [ ] Refactor `run()` to use `execute_collect_all()` with composed tasks
+6. [ ] Test: Run generator, verify output matches original
+7. [ ] Test: Verify ~3x speedup (1500ms → 500ms)
+8. [ ] Run clippy and fmt checks
 
 ## Verification
 
@@ -193,18 +202,33 @@ cargo fmt -p ewe_platform -- --check
 - Generated output matches original
 - Execution time reduced by ~3x
 - Progress logging shows fetch states
+- `execute_collect_all()` takes TaskIterators, returns StreamIterator
 - Zero clippy warnings
 
-## Relationship to Feature 06a
+## Relationship to Other Features
 
-| Feature 06a | Feature 06b |
-|-------------|-------------|
-| Refactors `ClientRequest` internal implementation | Uses 06a patterns for parallel fetch |
-| Removes manual state machines | Composes `SendRequestTask` with combinators |
-| Provides building blocks | Applies building blocks to real use case |
-| Internal API improvement | End-user visible speedup |
+| Feature | Role |
+|---------|------|
+| 05-unified-executor-integration | Provides `execute_collect_all()` helper |
+| 01-task-iterators | TaskIterator combinators for create_fetch_task() |
+| 02-stream-iterators | StreamIterator combinators for processing results |
+| 06a-client-request-refactor | Optional: Can use refactored ClientRequest |
+
+## Architecture Flow
+
+```
+create_fetch_task() → TaskIterator (input)
+                         │
+                         │ execute_collect_all()
+                         ▼
+              StreamIterator (output to end users)
+                         │
+                         │ for stream_item in collected
+                         ▼
+              Stream::Pending, Stream::Next, etc.
+```
 
 ---
 
 _Created: 2026-03-20_
-_Updated: 2026-03-20 (Split from original 06: Application of 06a patterns)_
+_Updated: 2026-03-20 (v3.0: execute_collect_all() returns StreamIterator)_

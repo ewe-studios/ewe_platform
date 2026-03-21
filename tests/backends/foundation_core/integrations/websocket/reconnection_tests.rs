@@ -54,7 +54,7 @@ impl ReconnectTestServer {
                         eprintln!("Server: Accepted connection {}", conn_num);
 
                         // Set read timeout
-                        stream.set_read_timeout(Some(Duration::from_secs(2))).ok();
+                        stream.set_read_timeout(Some(Duration::from_secs(4))).ok();
 
                         // Read request
                         let mut buffer = [0u8; 4096];

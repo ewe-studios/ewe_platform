@@ -128,7 +128,7 @@ pub trait StreamIteratorExt<D, P>: Iterator<Item = Stream<D, P>> {
     ) -> MapAllPendingDoneStreamIterator<I, F>
     where
         I: StreamIteratorExt<Item = D, Pending = P>,
-        F: Fn(Vec<StreamState<D, P>>) -> O + Send + 'static;
+        F: Fn(Vec<Stream<D, P>>) -> O + Send + 'static;
 
     /// Stream-collect that yields StreamCollectStatus while gathering items.
     ///
@@ -202,32 +202,30 @@ where
 
 ## HOW: Implementation Approach
 
-1. Define `StreamState<D, P>` enum in `stream_iterators.rs`
-2. Implement `StreamIteratorExt` trait with all methods returning custom wrapper types
-3. Each wrapper type holds its sources and mapper function
+1. Implement `StreamIteratorExt` trait with all methods returning custom wrapper types
+2. Each wrapper type holds its sources and mapper function
+3. Use existing `Stream<D, P>` from `synca/mpp.rs` (not a new StreamState enum)
 4. Add tests for state-aware behavior
 
 ## Requirements
 
-1. **StreamState enum** - Unified state representation with helper methods
-2. **StreamIteratorExt trait** - Extension trait with all combinators
-3. **Custom wrapper types** - Each combinator is a struct holding sources + mapper
-4. **collect_all()** - Aggregate multiple StreamIterators
-5. **map_all_done()** - Map when all sources complete (holds mapper)
-6. **map_all_pending_and_done()** - Map with Pending+Done visibility (holds mapper)
-7. **collect_nonblocking()** - Non-blocking collect yielding progress states
+1. **StreamIteratorExt trait** - Extension trait with all combinators
+2. **Custom wrapper types** - Each combinator is a struct holding sources + mapper
+3. **collect_all()** - Aggregate multiple StreamIterators
+4. **map_all_done()** - Map when all sources complete (holds mapper)
+5. **map_all_pending_and_done()** - Map with Pending+Done visibility (holds mapper)
+6. **stream_collect()** - Non-blocking collect yielding progress states
 
 ## Tasks
 
-1. [ ] Define `StreamState<D, P>` enum with Init, Pending, Delayed, Done variants
-2. [ ] Define `StreamIteratorExt<D, P>` trait with all methods
-3. [ ] Implement `collect_all()` returning CollectAllStreamIterator wrapper type
-4. [ ] Implement `map_all_done()` returning MapAllDoneStreamIterator wrapper type
-5. [ ] Implement `map_all_pending_and_done()` returning MapAllPendingDoneStreamIterator wrapper type
-6. [ ] Implement `stream_collect()` returning StreamCollect wrapper type (stream_collect method)
-7. [ ] Write unit tests for each combinator
-8. [ ] Verify wrapper types hold sources + mapper correctly
-9. [ ] Run clippy and fmt checks
+1. [ ] Define `StreamIteratorExt<D, P>` trait with all methods
+2. [ ] Implement `collect_all()` returning CollectAllStreamIterator wrapper type
+3. [ ] Implement `map_all_done()` returning MapAllDoneStreamIterator wrapper type
+4. [ ] Implement `map_all_pending_and_done()` returning MapAllPendingDoneStreamIterator wrapper type
+5. [ ] Implement `stream_collect()` returning StreamCollect wrapper type
+6. [ ] Write unit tests for each combinator
+7. [ ] Verify wrapper types hold sources + mapper correctly
+8. [ ] Run clippy and fmt checks
 
 ## Verification
 
@@ -239,15 +237,15 @@ cargo fmt -p foundation_core -- --check
 
 ## Success Criteria
 
-- All 9 tasks completed
+- All 8 tasks completed
 - `StreamIteratorExt` trait compiles with zero errors
 - All combinators functional with proper state handling
 - Wrapper types correctly hold sources and mappers
-- `collect_nonblocking()` yields progress states without blocking
+- Uses existing `Stream<D, P>` from `synca/mpp.rs`
 - Unit tests pass for state-aware behavior
 - Zero clippy warnings
 
 ---
 
 _Created: 2026-03-20_
-_Updated: 2026-03-20 (Custom wrapper types with embedded mappers)_
+_Updated: 2026-03-20 (v3.0: Use existing Stream<D,P>, not StreamState)_
