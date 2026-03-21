@@ -471,6 +471,347 @@ where
 {
 }
 
+// ============================================================================
+// Feature 04: Mapping Combinators
+// ============================================================================
+
+/// Execute multiple TaskIterators and apply a mapper when all complete.
+///
+/// This function takes a vector of TaskIterators and a mapper function,
+/// executes them in parallel, and applies the mapper only when all sources
+/// have produced their values. The returned iterator yields:
+/// - `Stream::Pending(count)` while any sources are still pending
+/// - `Stream::Next(O)` when all sources complete and mapper is applied
+/// - `Stream::Delayed(duration)` if any source is delayed
+///
+/// # Arguments
+///
+/// * `tasks` - Vector of TaskIterators to execute in parallel
+/// * `mapper` - Function that transforms `Vec<T::Ready>` into output type `O`
+/// * `wait_cycle` - Optional polling duration (defaults to DEFAULT_WAIT_CYCLE)
+///
+/// # Returns
+///
+/// Returns a `MapAllDoneStream` that applies the mapper when all complete.
+///
+/// # Example
+///
+/// ```ignore
+/// let tasks = vec![task1, task2, task3];
+/// let merged = execute_map_all(tasks, |results| {
+///     results.into_iter().flatten().collect::<Vec<_>>()
+/// }, None)?;
+///
+/// for stream_item in merged {
+///     match stream_item {
+///         Stream::Pending(count) => println!("{count} still pending..."),
+///         Stream::Next(merged) => process(merged),
+///         Stream::Delayed(dur) => continue,
+///     }
+/// }
+/// ```
+pub fn execute_map_all<T, F, O>(
+    tasks: Vec<T>,
+    mapper: F,
+    wait_cycle: Option<std::time::Duration>,
+) -> GenericResult<MapAllDoneStream<T, F, O>>
+where
+    T: TaskIterator + Send + 'static,
+    T::Ready: Send + 'static,
+    T::Pending: Send + 'static,
+    T::Spawner: ExecutionAction + Send + 'static,
+    F: Fn(Vec<T::Ready>) -> O + Send + 'static,
+    O: Send + 'static,
+{
+    let streams: Vec<DrivenStreamIterator<T>> = tasks
+        .into_iter()
+        .map(|t| execute(t, wait_cycle))
+        .collect::<GenericResult<_>>()?;
+
+    Ok(MapAllDoneStream::new(streams, mapper))
+}
+
+/// Maps values from multiple TaskIterators only when all sources reach Done state.
+///
+/// This type holds the `DrivenStreamIterator`s returned from `execute()` and
+/// buffers values as they arrive. When all sources complete, it applies the
+/// mapper function to the collected values and yields the result.
+pub struct MapAllDoneStream<T, F, O>
+where
+    T: TaskIterator + Send + 'static,
+    T::Ready: Send + 'static,
+    T::Pending: Send + 'static,
+    T::Spawner: ExecutionAction + Send + 'static,
+    F: Fn(Vec<T::Ready>) -> O + Send + 'static,
+    O: Send + 'static,
+{
+    sources: Vec<DrivenStreamIterator<T>>,
+    mapper: F,
+    buffer: Vec<Option<T::Ready>>,
+    done: bool,
+}
+
+impl<T, F, O> MapAllDoneStream<T, F, O>
+where
+    T: TaskIterator + Send + 'static,
+    T::Ready: Send + 'static,
+    T::Pending: Send + 'static,
+    T::Spawner: ExecutionAction + Send + 'static,
+    F: Fn(Vec<T::Ready>) -> O + Send + 'static,
+    O: Send + 'static,
+{
+    /// Create a new `MapAllDoneStream` from sources and a mapper function.
+    pub fn new(sources: Vec<DrivenStreamIterator<T>>, mapper: F) -> Self {
+        let len = sources.len();
+        Self {
+            sources,
+            mapper,
+            buffer: (0..len).map(|_| None).collect(),
+            done: false,
+        }
+    }
+}
+
+impl<T, F, O> Iterator for MapAllDoneStream<T, F, O>
+where
+    T: TaskIterator + Send + 'static,
+    T::Ready: Send + 'static,
+    T::Pending: Send + 'static,
+    T::Spawner: ExecutionAction + Send + 'static,
+    F: Fn(Vec<T::Ready>) -> O + Send + 'static,
+    O: Send + 'static,
+{
+    type Item = Stream<O, usize>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.done {
+            return None;
+        }
+
+        let mut all_done = true;
+        let mut has_pending = false;
+        let mut max_delayed: Option<std::time::Duration> = None;
+
+        for (i, source) in self.sources.iter_mut().enumerate() {
+            if self.buffer[i].is_some() {
+                continue; // Already have value from this source
+            }
+
+            match source.next() {
+                Some(Stream::Next(value)) => {
+                    self.buffer[i] = Some(value);
+                }
+                Some(Stream::Pending(_)) => {
+                    all_done = false;
+                    has_pending = true;
+                }
+                Some(Stream::Delayed(d)) => {
+                    all_done = false;
+                    max_delayed = Some(match max_delayed {
+                        Some(current) => current.max(d),
+                        None => d,
+                    });
+                }
+                Some(Stream::Init) => {
+                    all_done = false;
+                }
+                Some(Stream::Ignore) => {
+                    all_done = false;
+                }
+                None => {
+                    // Source exhausted without producing
+                }
+            }
+        }
+
+        // Check if all sources have produced a value
+        if self.buffer.iter().all(|x| x.is_some()) {
+            self.done = true;
+            let values: Vec<T::Ready> = self.buffer.drain(..).filter_map(|x| x).collect();
+            let result = (self.mapper)(values);
+            return Some(Stream::Next(result));
+        }
+
+        if all_done {
+            // All sources exhausted but not all produced values
+            self.done = true;
+            return None;
+        }
+
+        if let Some(delay) = max_delayed {
+            Some(Stream::Delayed(delay))
+        } else if has_pending {
+            let collected: usize = self.buffer.iter().filter(|x| x.is_some()).count();
+            Some(Stream::Pending(collected))
+        } else {
+            Some(Stream::Init)
+        }
+    }
+}
+
+impl<T, F, O> crate::synca::mpp::StreamIterator<O, usize> for MapAllDoneStream<T, F, O>
+where
+    T: TaskIterator + Send + 'static,
+    T::Ready: Send + 'static,
+    T::Pending: Send + 'static,
+    T::Spawner: ExecutionAction + Send + 'static,
+    F: Fn(Vec<T::Ready>) -> O + Send + 'static,
+    O: Send + 'static,
+{
+}
+
+/// Execute multiple TaskIterators with state-aware mapping.
+///
+/// This function takes a vector of TaskIterators and a mapper function that
+/// receives the current `Stream<D, P>` state from each source. This enables
+/// progress tracking and partial result visibility.
+///
+/// # Arguments
+///
+/// * `tasks` - Vector of TaskIterators to execute in parallel
+/// * `mapper` - Function that transforms `Vec<Stream<D, P>>` into output type `O`
+/// * `wait_cycle` - Optional polling duration (defaults to DEFAULT_WAIT_CYCLE)
+///
+/// # Returns
+///
+/// Returns a `MapAllPendingAndDoneStream` that applies the mapper each poll.
+///
+/// # Example
+///
+/// ```ignore
+/// let tasks = vec![task1, task2, task3];
+/// let progress = execute_map_all_pending_and_done(tasks, |states| {
+///     let done_count = states.iter().filter(|s| matches!(s, Stream::Next(_))).count();
+///     format!("Progress: {}/{} complete", done_count, states.len())
+/// }, None)?;
+/// ```
+pub fn execute_map_all_pending_and_done<T, F, O>(
+    tasks: Vec<T>,
+    mapper: F,
+    wait_cycle: Option<std::time::Duration>,
+) -> GenericResult<MapAllPendingAndDoneStream<T, F, O>>
+where
+    T: TaskIterator + Send + 'static,
+    T::Ready: Send + 'static,
+    T::Pending: Send + 'static,
+    T::Spawner: ExecutionAction + Send + 'static,
+    F: Fn(Vec<Stream<T::Ready, T::Pending>>) -> O + Send + 'static,
+    O: Send + 'static,
+{
+    let streams: Vec<DrivenStreamIterator<T>> = tasks
+        .into_iter()
+        .map(|t| execute(t, wait_cycle))
+        .collect::<GenericResult<_>>()?;
+
+    Ok(MapAllPendingAndDoneStream::new(streams, mapper))
+}
+
+/// Maps values from multiple TaskIterators with full state visibility.
+///
+/// This type holds the `DrivenStreamIterator`s and applies the mapper function
+/// to the current state of all sources on each poll. This enables progress
+/// tracking and state-aware transformations.
+pub struct MapAllPendingAndDoneStream<T, F, O>
+where
+    T: TaskIterator + Send + 'static,
+    T::Ready: Send + 'static,
+    T::Pending: Send + 'static,
+    T::Spawner: ExecutionAction + Send + 'static,
+    F: Fn(Vec<Stream<T::Ready, T::Pending>>) -> O + Send + 'static,
+    O: Send + 'static,
+{
+    sources: Vec<DrivenStreamIterator<T>>,
+    mapper: F,
+    done: bool,
+}
+
+impl<T, F, O> MapAllPendingAndDoneStream<T, F, O>
+where
+    T: TaskIterator + Send + 'static,
+    T::Ready: Send + 'static,
+    T::Pending: Send + 'static,
+    T::Spawner: ExecutionAction + Send + 'static,
+    F: Fn(Vec<Stream<T::Ready, T::Pending>>) -> O + Send + 'static,
+    O: Send + 'static,
+{
+    /// Create a new `MapAllPendingAndDoneStream` from sources and a mapper.
+    pub fn new(sources: Vec<DrivenStreamIterator<T>>, mapper: F) -> Self {
+        Self {
+            sources,
+            mapper,
+            done: false,
+        }
+    }
+}
+
+impl<T, F, O> Iterator for MapAllPendingAndDoneStream<T, F, O>
+where
+    T: TaskIterator + Send + 'static,
+    T::Ready: Send + 'static,
+    T::Pending: Send + 'static,
+    T::Spawner: ExecutionAction + Send + 'static,
+    F: Fn(Vec<Stream<T::Ready, T::Pending>>) -> O + Send + 'static,
+    O: Send + 'static,
+{
+    type Item = Stream<O, usize>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.done {
+            return None;
+        }
+
+        let mut states: Vec<Stream<T::Ready, T::Pending>> = Vec::with_capacity(self.sources.len());
+        let mut all_exhausted = true;
+
+        for source in &mut self.sources {
+            match source.next() {
+                Some(state) => {
+                    states.push(state);
+                    all_exhausted = false;
+                }
+                None => {
+                    // Source exhausted
+                }
+            }
+        }
+
+        if states.is_empty() {
+            self.done = true;
+            return None;
+        }
+
+        // Check if all sources have produced Next values
+        let all_done = states.iter().all(|s| matches!(s, Stream::Next(_)));
+        let pending_count = states
+            .iter()
+            .filter(|s| !matches!(s, Stream::Next(_)))
+            .count();
+
+        if all_done && !all_exhausted {
+            // All sources produced values, mapper will produce final result
+            self.done = true;
+        }
+
+        let result = (self.mapper)(states);
+        Some(if all_done {
+            Stream::Next(result)
+        } else {
+            Stream::Pending(pending_count)
+        })
+    }
+}
+
+impl<T, F, O> crate::synca::mpp::StreamIterator<O, usize> for MapAllPendingAndDoneStream<T, F, O>
+where
+    T: TaskIterator + Send + 'static,
+    T::Ready: Send + 'static,
+    T::Pending: Send + 'static,
+    T::Spawner: ExecutionAction + Send + 'static,
+    F: Fn(Vec<Stream<T::Ready, T::Pending>>) -> O + Send + 'static,
+    O: Send + 'static,
+{
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -522,6 +863,32 @@ mod tests {
             Option<std::time::Duration>,
         ) -> GenericResult<CollectAllStream<SimpleTask>> = execute_collect_all;
         // Test passes if this compiles
+        assert!(true);
+    }
+
+    #[test]
+    fn test_execute_map_all_compiles() {
+        // Compilation test for execute_map_all
+        let _func: fn(
+            Vec<SimpleTask>,
+            fn(Vec<u32>) -> u32,
+            Option<std::time::Duration>,
+        )
+            -> GenericResult<MapAllDoneStream<SimpleTask, fn(Vec<u32>) -> u32, u32>> =
+            execute_map_all;
+        assert!(true);
+    }
+
+    #[test]
+    fn test_execute_map_all_pending_and_done_compiles() {
+        // Compilation test for execute_map_all_pending_and_done
+        let _func: fn(
+            Vec<SimpleTask>,
+            fn(Vec<Stream<u32, String>>) -> String,
+            Option<std::time::Duration>,
+        ) -> GenericResult<
+            MapAllPendingAndDoneStream<SimpleTask, fn(Vec<Stream<u32, String>>) -> String, String>,
+        > = execute_map_all_pending_and_done;
         assert!(true);
     }
 }
