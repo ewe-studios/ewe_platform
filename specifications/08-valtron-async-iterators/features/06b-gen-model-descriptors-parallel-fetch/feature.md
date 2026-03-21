@@ -1,17 +1,17 @@
 ---
 feature: "gen_model_descriptors Parallel Fetch"
 description: "Use execute_collect_all() for parallel API fetches in gen_model_descriptors"
-status: "complete"
+status: "pending"
 priority: "high"
 depends_on: ["05-unified-executor-integration"]
 estimated_effort: "medium"
 created: 2026-03-20
 author: "Main Agent"
 tasks:
-  completed: 8
-  uncompleted: 0
+  completed: 0
+  uncompleted: 8
   total: 8
-  completion_percentage: 100%
+  completion_percentage: 0%
 ---
 
 # gen_model_descriptors Parallel Fetch Feature
