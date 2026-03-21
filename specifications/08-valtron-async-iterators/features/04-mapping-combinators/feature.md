@@ -1,17 +1,17 @@
 ---
 feature: "Mapping Combinators"
 description: "MapAllDone and MapAllPendingDone custom types that hold sources + mapper function"
-status: "pending"
+status: "complete"
 priority: "high"
 depends_on: ["02-stream-iterators", "03-collection-combinators"]
 estimated_effort: "medium"
 created: 2026-03-20
 author: "Main Agent"
 tasks:
-  completed: 0
-  uncompleted: 8
-  total: 8
-  completion_percentage: 0%
+  completed: 7
+  uncompleted: 0
+  total: 7
+  completion_percentage: 100%
 ---
 
 # Mapping Combinators Feature
@@ -147,13 +147,13 @@ pub enum Stream<D, P> {
 
 ## Tasks
 
-1. [ ] Define `MapAllDoneStreamIterator<I, F>` struct with generic mapper
-2. [ ] Implement `Iterator` for `MapAllDoneStreamIterator`
-3. [ ] Define `MapAllPendingDoneStreamIterator<I, F>` struct with generic mapper
-4. [ ] Implement `Iterator` for `MapAllPendingDoneStreamIterator`
-5. [ ] Write unit tests for map_all_done behavior
-6. [ ] Write unit tests for map_all_pending_and_done behavior
-7. [ ] Run clippy and fmt checks
+1. [x] Define `MapAllDoneStream<T, F, O>` struct with generic mapper
+2. [x] Implement `Iterator` for `MapAllDoneStream`
+3. [x] Define `MapAllPendingAndDoneStream<T, F, O>` struct with generic mapper
+4. [x] Implement `Iterator` for `MapAllPendingAndDoneStream`
+5. [x] Write unit tests for map_all_done behavior
+6. [x] Write unit tests for map_all_pending_and_done behavior
+7. [x] Run clippy and fmt checks
 
 ## Verification
 
