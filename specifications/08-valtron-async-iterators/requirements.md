@@ -27,10 +27,10 @@ builds_on: "specifications/02-build-http-client"
 related_specs:
   - "specifications/07-foundation-ai"
 features:
-  completed: 0
-  uncompleted: 7
+  completed: 2
+  uncompleted: 5
   total: 7
-  completion_percentage: 0%
+  completion_percentage: 28%
 ---
 
 # Overview
@@ -117,7 +117,7 @@ This allows users to:
 |---|---------|-------------|--------------|
 | 1 | [foundation](./features/00-foundation/feature.md) | Module structure, core types, trait foundations | None |
 | 2 | [task-iterators](./features/01-task-iterators/feature.md) | ✅ COMPLETE - TaskIteratorExt combinators for implementers (map_ready, map_pending, filter_ready, stream_collect) | #0 |
-| 3 | [stream-iterators](./features/02-stream-iterators/feature.md) | StreamIteratorExt trait, state-aware combinators for end users | #0 |
+| 3 | [stream-iterators](./features/02-stream-iterators/feature.md) | ✅ COMPLETE - StreamIteratorExt trait, state-aware combinators for end users | #0 |
 | 4 | [collection-combinators](./features/03-collection-combinators/feature.md) | execute_collect_all() returns StreamIterator | #2, #3 |
 | 5 | [mapping-combinators](./features/04-mapping-combinators/feature.md) | execute_map_all() returns StreamIterator | #3, #4 |
 | 6 | [unified-executor-integration](./features/05-unified-executor-integration/feature.md) | execute() returns StreamIterator, execute_as_task() opt-in | #4, #5 |
