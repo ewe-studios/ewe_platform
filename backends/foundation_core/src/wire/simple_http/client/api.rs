@@ -8,7 +8,7 @@
 //! progressive reading (intro first, then body) and one-shot execution (send everything).
 //! Manages internal state machine for request lifecycle.
 //!
-//! HOW: Wraps `HttpRequestTask` execution via `execute_task()`. Uses internal state enum
+//! HOW: Wraps `HttpRequestTask` execution via `execute()`. Uses internal state enum
 //! to track progress through request lifecycle. Platform-aware executor driving
 //! (single-threaded on WASM/multi=off, multi-threaded with multi=on).
 
