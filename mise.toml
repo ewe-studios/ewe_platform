@@ -1,0 +1,619 @@
+# =============================================================================
+# EWE Platform - mise configuration
+# =============================================================================
+# Replaces: root Makefile, assets/public/Makefile, examples/todo/Makefile,
+#           backends/foundation_nostd/Makefile
+#
+# Usage:
+#   mise install          Install all tools
+#   mise run <task>       Run a task
+#   mise tasks            List all available tasks
+# =============================================================================
+
+[env]
+CARGO_TERM_COLOR = "always"
+
+# =============================================================================
+# Tool versions - mise manages these automatically
+# =============================================================================
+# NOTE: Rust toolchain is managed by rust-toolchain.toml (rustup).
+# mise defers to rust-toolchain.toml when present, so we don't duplicate it.
+
+[tools]
+node = "22"
+"cargo:cargo-nextest" = "latest"
+"cargo:cargo-audit" = "latest"
+"cargo:bacon" = "latest"
+
+# =============================================================================
+# Tasks - Setup
+# =============================================================================
+
+[tasks.setup]
+description = "Install all dev tools and WASM targets"
+depends = ["setup:tools", "setup:wasm"]
+run = 'echo "✓ Development environment setup complete"'
+
+[tasks."setup:tools"]
+description = "Install rustfmt, clippy, rust-analyzer, cargo-nextest, cargo-audit"
+run = """
+echo "Installing development tools..."
+rustup component add rustfmt clippy rust-analyzer 2>/dev/null || true
+echo "✓ Tools installed (cargo-nextest and cargo-audit managed by mise)"
+"""
+
+[tasks."setup:wasm"]
+description = "Install WASM compilation targets"
+run = """
+echo "Installing WASM targets..."
+rustup target add wasm32-unknown-unknown
+rustup target add wasm32-wasip1
+echo "✓ WASM targets installed"
+"""
+
+[tasks."setup:check"]
+alias = "check-tools"
+description = "Verify all installed tools and versions"
+run = """
+echo "Checking installed tools..."
+rustup --version
+cargo --version
+node --version
+rustup target list --installed | grep wasm32 || echo "⚠ No WASM targets installed"
+cargo nextest --version 2>/dev/null || echo "⚠ cargo-nextest not installed"
+cargo audit --version 2>/dev/null || echo "⚠ cargo-audit not installed"
+bacon --version 2>/dev/null || echo "⚠ bacon not installed"
+echo "✓ Tool check complete"
+"""
+
+# =============================================================================
+# Tasks - Git / Submodules
+# =============================================================================
+
+[tasks."git:update-submodules"]
+alias = "update-submodules"
+description = "Update all git submodules to latest remote"
+run = """
+git submodule update --remote .agents
+git submodule update --remote tools/dawn
+git submodule update --remote tools/emsdk
+git submodule update --remote infrastructure/llama-bindings/llama.cpp/
+"""
+
+# =============================================================================
+# Tasks - Build
+# =============================================================================
+
+[tasks."build:all"]
+alias = "build-all"
+description = "Build all packages (debug)"
+run = """
+echo "Building all packages (debug)..."
+cargo build --all
+echo "✓ Build complete"
+"""
+
+[tasks."build:release"]
+alias = "build-release"
+description = "Build all packages (release)"
+run = """
+echo "Building all packages (release)..."
+cargo build --all --release
+echo "✓ Release build complete"
+"""
+
+[tasks."build:wasm"]
+alias = "build-wasm"
+description = "Build foundation_nostd for WASM"
+run = """
+echo "Building for WASM..."
+cargo build --package foundation_nostd --target wasm32-unknown-unknown
+echo "✓ WASM build complete"
+"""
+
+[tasks."build:demos"]
+alias = "build-demos"
+description = "Build demo WASM binaries and generate WAT"
+run = """
+RUSTFLAGS='-C link-arg=-s' cargo build --package intro --target wasm32-unknown-unknown
+cp target/wasm32-unknown-unknown/debug/intro.wasm ./assets/public/intro.wasm
+wasm2wat ./assets/public/intro.wasm -o ./assets/public/intro.wat
+"""
+
+[tasks."build:test-directory"]
+description = "Build a single WASM test directory"
+run = """
+#!/usr/bin/env bash
+TEST_DIRECTORY="${TEST_DIRECTORY:-./tests/integrations/tests_callfunction}"
+TEST_PACKAGE="${TEST_PACKAGE:-$(basename "$TEST_DIRECTORY")}"
+
+RUSTFLAGS='-C link-arg=-s' cargo build --package "$TEST_PACKAGE" --target wasm32-unknown-unknown
+cp "./target/wasm32-unknown-unknown/debug/${TEST_PACKAGE}.d" "${TEST_DIRECTORY}/module.d"
+cp "./target/wasm32-unknown-unknown/debug/${TEST_PACKAGE}.wasm" "${TEST_DIRECTORY}/module.wasm"
+cp ./assets/jsruntime/megatron.js "${TEST_DIRECTORY}/megatron.js"
+wasm2wat "${TEST_DIRECTORY}/module.wasm" -o "${TEST_DIRECTORY}/module.wat"
+"""
+
+[tasks."build:tests"]
+alias = "build-tests"
+description = "Build all WASM integration test packages"
+run = """
+#!/usr/bin/env bash
+for dir in ./tests/integrations/*/; do
+    pkg=$(basename "$dir")
+    echo "Building test package: $pkg"
+    TEST_DIRECTORY="$dir" TEST_PACKAGE="$pkg" mise run build:test-directory
+done
+"""
+
+[tasks."build:target-test"]
+alias = "build-target-test"
+description = "Build a specific WASM test target"
+run = """
+#!/usr/bin/env bash
+TARGET_TEST="${TARGET_TEST:-tests_callfunction}"
+mise run build:test-directory TEST_DIRECTORY="./tests/integrations/${TARGET_TEST}" TEST_PACKAGE="${TARGET_TEST}"
+"""
+
+[tasks.clean]
+description = "Clean all build artifacts"
+run = """
+echo "Cleaning build artifacts..."
+cargo clean
+echo "✓ Clean complete"
+"""
+
+# =============================================================================
+# Tasks - Testing
+# =============================================================================
+
+[tasks.test]
+description = "Run tests for all listed packages"
+run = """
+#!/usr/bin/env bash
+PACKAGES="ewe_platform foundations_ext foundations_jsnostd foundations_nostd ewe_trace ewe_async_utils ewe_channels ewe_domain ewe_devserver ewe_domain_server ewe_html ewe_html_macro ewe_mem ewe_routing ewe_spawn ewe_spawn ewe_template_macro ewe_templates ewe_temple ewe_watch_utils ewe_watchers ewe_web"
+for pkg in $PACKAGES; do
+    cargo test --package "$pkg"
+done
+"""
+
+[tasks."test:all"]
+alias = "test-all"
+description = "Run all tests (unit + integration)"
+depends = ["test:unit", "test:integration"]
+run = 'echo "✓ All tests passed"'
+
+[tasks."test:unit"]
+alias = "test-unit"
+description = "Run only unit tests (fast, in-crate tests)"
+run = """
+echo "Running unit tests..."
+cargo test --lib --all
+echo "✓ Unit tests passed"
+"""
+
+[tasks."test:integration"]
+alias = "test-integration"
+description = "Run workspace-level integration tests"
+run = """
+echo "Running integration tests..."
+cargo test --package ewe_platform_tests
+echo "✓ Integration tests passed"
+"""
+
+[tasks."test:quick"]
+alias = "test-quick"
+description = "Quick smoke test (fast feedback)"
+run = """
+echo "Running quick smoke tests..."
+cargo test --package foundation_nostd --lib
+echo "✓ Quick tests passed"
+"""
+
+[tasks.nextest]
+description = "Run all tests with cargo-nextest via bacon"
+run = "bacon -j nextest"
+
+[tasks."test:foundation-core"]
+alias = "test-foundation-core"
+description = "Run foundation_core tests via bacon + nextest"
+run = "bacon -j test_foundation_core"
+
+# --- Foundation NoStd Testing ---
+
+[tasks."test:nostd"]
+alias = "test-nostd"
+description = "All foundation_nostd tests"
+depends = ["test:nostd:unit", "test:nostd:integration"]
+run = 'echo "✓ All foundation_nostd tests passed"'
+
+[tasks."test:nostd:unit"]
+alias = "test-nostd-unit"
+description = "Run foundation_nostd unit tests"
+run = """
+echo "Running foundation_nostd unit tests..."
+cargo test --package foundation_nostd --lib
+echo "✓ foundation_nostd unit tests passed"
+"""
+
+[tasks."test:nostd:integration"]
+alias = "test-nostd-integration"
+description = "Run foundation_nostd integration tests"
+run = """
+echo "Running foundation_nostd integration tests..."
+cargo test --package ewe_platform_tests --lib
+echo "✓ foundation_nostd integration tests passed"
+"""
+
+[tasks."test:nostd:std"]
+description = "Run foundation_nostd tests with std feature"
+run = """
+echo "Running tests with std feature..."
+cargo test --package foundation_nostd --features std
+cargo test --package foundation_testing
+"""
+
+[tasks."test:nostd:no-std"]
+description = "Run foundation_nostd tests in no_std mode"
+run = """
+echo "Running tests in no_std mode..."
+cargo test --package foundation_nostd --no-default-features
+"""
+
+[tasks."test:nostd:docs"]
+description = "Run foundation_nostd documentation tests"
+run = """
+echo "Running documentation tests..."
+cargo test --package foundation_nostd --doc
+cargo test --package foundation_testing --doc
+"""
+
+[tasks."test:nostd:stress"]
+description = "Run foundation_nostd stress tests"
+run = """
+echo "Running stress tests..."
+cargo test --package foundation_testing --release -- stress
+"""
+
+[tasks."test:nostd:wasm"]
+alias = "test-nostd-wasm"
+description = "WASM compilation tests for foundation_nostd"
+depends = ["test:nostd:wasm:build", "test:nostd:wasm:verify"]
+run = 'echo "✓ WASM tests complete"'
+
+[tasks."test:nostd:wasm:build"]
+alias = "test-nostd-wasm-build"
+description = "Build foundation_nostd for WASM targets"
+run = """
+echo "Building foundation_nostd for WASM (no_std)..."
+cargo build --package foundation_nostd --target wasm32-unknown-unknown --no-default-features
+echo "Building foundation_nostd for WASM (with std)..."
+cargo build --package foundation_nostd --target wasm32-unknown-unknown --features std
+echo "Building foundation_nostd for WASM (release)..."
+cargo build --package foundation_nostd --target wasm32-unknown-unknown --release --no-default-features
+echo "✓ WASM builds successful"
+"""
+
+[tasks."test:nostd:wasm:verify"]
+alias = "test-nostd-wasm-verify"
+description = "Verify WASM artifacts"
+run = """
+echo "Verifying WASM artifacts..."
+ls -lh target/wasm32-unknown-unknown/debug/deps/libfoundation_nostd*.rlib | head -1
+ls -lh target/wasm32-unknown-unknown/release/deps/libfoundation_nostd*.rlib | head -1
+echo "✓ WASM artifacts verified"
+echo "See specifications/04-condvar-primitives/WASM_TESTING_REPORT.md for details"
+"""
+
+# --- WASM Testing ---
+
+[tasks."test:wasm"]
+alias = "test-wasm"
+description = "WASM compilation tests (build + verify)"
+depends = ["test:wasm:build", "test:wasm:verify"]
+run = 'echo "✓ WASM tests complete"'
+
+[tasks."test:wasm:build"]
+description = "Build foundation_nostd for all WASM configurations"
+run = """
+echo "Building foundation_nostd for WASM (no_std)..."
+cargo build --package foundation_nostd --target wasm32-unknown-unknown --no-default-features
+echo "Building foundation_nostd for WASM (with std)..."
+cargo build --package foundation_nostd --target wasm32-unknown-unknown --features std
+echo "Building foundation_nostd for WASM (release)..."
+cargo build --package foundation_nostd --target wasm32-unknown-unknown --release --no-default-features
+echo "✓ WASM builds successful"
+"""
+
+[tasks."test:wasm:verify"]
+description = "Verify WASM artifacts exist"
+run = """
+echo "Verifying WASM artifacts..."
+ls -lh target/wasm32-unknown-unknown/debug/deps/libfoundation_nostd*.rlib | head -1
+ls -lh target/wasm32-unknown-unknown/release/deps/libfoundation_nostd*.rlib | head -1
+echo "✓ WASM artifacts verified"
+"""
+
+[tasks."test:wasm:node"]
+alias = "wasm-tests"
+description = "Build and run WASM integration tests with Node.js"
+depends = ["build:tests"]
+run = """
+#!/usr/bin/env bash
+for dir in ./tests/integrations/*/; do
+    echo "Running WASM test: $(basename "$dir")"
+    node "${dir}/index.node.js"
+done
+"""
+
+[tasks."test:wasm:node-single"]
+alias = "wasm-test"
+description = "Build and run a single WASM integration test"
+run = """
+#!/usr/bin/env bash
+TARGET_TEST="${TARGET_TEST:-tests_callfunction}"
+mise run build:test-directory TEST_DIRECTORY="./tests/integrations/${TARGET_TEST}" TEST_PACKAGE="${TARGET_TEST}"
+node "./tests/integrations/${TARGET_TEST}/index.node.js"
+"""
+
+# =============================================================================
+# Tasks - Code Quality
+# =============================================================================
+
+[tasks.check]
+description = "Check code compiles"
+run = """
+echo "Checking compilation..."
+cargo check --all
+echo "✓ Compilation check passed"
+"""
+
+[tasks.clippy]
+description = "Run clippy with strict lints (zero warnings)"
+run = """
+echo "Running clippy..."
+cargo clippy --all-targets --all-features -- -D warnings
+echo "✓ Clippy passed (zero warnings)"
+"""
+
+[tasks.fmt]
+alias = "lint"
+description = "Format all code with rustfmt"
+run = """
+echo "Formatting code..."
+cargo fmt --all
+echo "✓ Code formatted"
+"""
+
+[tasks."fmt:check"]
+alias = "fmt-check"
+description = "Check if code is properly formatted"
+run = """
+echo "Checking code formatting..."
+cargo fmt --all -- --check
+echo "✓ Code is properly formatted"
+"""
+
+[tasks.audit]
+description = "Run cargo security audit"
+run = """
+echo "Running security audit..."
+cargo audit
+echo "✓ Security audit complete"
+"""
+
+[tasks.quality]
+description = "Run all quality checks (fmt + clippy + unit tests)"
+depends = ["fmt:check", "clippy", "test:unit"]
+run = 'echo "✓ All quality checks passed"'
+
+[tasks.verify]
+alias = "verify-all"
+description = "Full verification (quality + all tests)"
+depends = ["quality", "test:all"]
+run = 'echo "✓ Full verification passed"'
+
+# =============================================================================
+# Tasks - Benchmarking
+# =============================================================================
+
+[tasks.bench]
+alias = "bench-all"
+description = "Run all Criterion benchmarks"
+run = """
+echo "Running Criterion benchmarks..."
+cargo bench
+echo "✓ Benchmarks complete"
+echo "Results: target/criterion/report/index.html"
+"""
+
+[tasks."bench:condvar"]
+alias = "bench-condvar"
+description = "Run CondVar-specific benchmarks"
+run = """
+echo "Running CondVar benchmarks..."
+cargo bench --bench condvar_bench
+echo "✓ CondVar benchmarks complete"
+"""
+
+[tasks."bench:nostd"]
+description = "Run foundation_testing benchmarks"
+run = """
+echo "Running foundation_testing benchmarks..."
+cargo bench --package foundation_testing
+"""
+
+# =============================================================================
+# Tasks - Documentation
+# =============================================================================
+
+[tasks.doc]
+description = "Generate Rust documentation"
+run = """
+echo "Generating documentation..."
+cargo doc --no-deps --all-features
+echo "✓ Documentation generated"
+echo "Open: target/doc/index.html"
+"""
+
+[tasks."doc:open"]
+alias = "doc-open"
+description = "Generate and open documentation in browser"
+run = "cargo doc --no-deps --all-features --open"
+
+[tasks."doc:nostd"]
+alias = "doc-nostd"
+description = "Generate and open foundation_nostd documentation"
+run = "cargo doc --package foundation_nostd --no-deps --all-features --open"
+
+# =============================================================================
+# Tasks - Development Helpers
+# =============================================================================
+
+[tasks.sandbox]
+description = "Run ewe_platform sandbox binary"
+run = "cargo run --profile dev --bin ewe_platform sandbox"
+
+[tasks.bacon]
+description = "Start bacon with bacon-ls job for IDE integration"
+run = "bacon -j bacon-ls"
+
+[tasks.publish]
+description = "Publish all packages to crates.io"
+run = """
+#!/usr/bin/env bash
+PACKAGES="ewe_platform foundations_ext foundations_jsnostd foundations_nostd ewe_trace ewe_async_utils ewe_channels ewe_domain ewe_devserver ewe_domain_server ewe_html ewe_html_macro ewe_mem ewe_routing ewe_spawn ewe_spawn ewe_template_macro ewe_templates ewe_temple ewe_watch_utils ewe_watchers ewe_web"
+for pkg in $PACKAGES; do
+    cargo publish --package "$pkg"
+done
+"""
+
+# =============================================================================
+# Tasks - Assets (from assets/public/Makefile)
+# =============================================================================
+
+[tasks."assets:wat"]
+description = "Regenerate WAT from intro WASM binary"
+dir = "assets/public"
+run = """
+rm -f intro.wat
+wasm2wat intro.wasm > intro.wat
+"""
+
+# =============================================================================
+# Tasks - Examples (from examples/todo/Makefile)
+# =============================================================================
+
+[tasks."examples:todo:serve"]
+description = "Serve todo example on localhost:8080"
+dir = "examples/todo"
+run = "localserver ./web 8080"
+
+[tasks."examples:todo:tailwind"]
+description = "Watch and rebuild Tailwind CSS for todo example"
+dir = "examples/todo"
+run = "npx tailwindcss -i ./web/css/main.tailwind -o ./web/css/main.css --watch"
+
+# =============================================================================
+# Tasks - Foundation NoStd (from backends/foundation_nostd/Makefile)
+# =============================================================================
+
+[tasks."nostd:build"]
+description = "Build foundation_nostd and foundation_testing"
+run = """
+echo "Building all packages..."
+cargo build --package foundation_nostd
+cargo build --package foundation_testing
+"""
+
+[tasks."nostd:build-wasm"]
+description = "Build foundation_nostd for WASM target (no_std)"
+run = """
+echo "Building for WASM target..."
+cargo build --package foundation_nostd --target wasm32-unknown-unknown --no-default-features
+"""
+
+[tasks."nostd:clippy"]
+description = "Run clippy on foundation_nostd and foundation_testing"
+run = """
+echo "Running clippy..."
+cargo clippy --package foundation_nostd --features std -- -D warnings
+cargo clippy --package foundation_testing -- -D warnings
+"""
+
+[tasks."nostd:fmt"]
+description = "Format foundation_nostd and foundation_testing"
+run = """
+echo "Formatting code..."
+cargo fmt --package foundation_nostd
+cargo fmt --package foundation_testing
+"""
+
+[tasks."nostd:fmt-check"]
+description = "Check formatting for foundation_nostd and foundation_testing"
+run = """
+echo "Checking code formatting..."
+cargo fmt --package foundation_nostd -- --check
+cargo fmt --package foundation_testing -- --check
+"""
+
+[tasks."nostd:quality"]
+description = "Run all quality checks for foundation_nostd"
+depends = ["nostd:fmt-check", "nostd:clippy", "test:nostd:std"]
+run = 'echo "✓ All quality checks passed"'
+
+# =============================================================================
+# Tasks - Help
+# =============================================================================
+
+[tasks.help]
+description = "Show help message with all available tasks"
+run = """
+echo "EWE Platform - mise Tasks"
+echo ""
+echo "Usage: mise run <task>"
+echo ""
+echo "Setup:"
+echo "  setup              Install all dev tools and WASM targets"
+echo "  setup:tools        Install rustfmt, clippy, cargo-nextest, etc."
+echo "  setup:wasm         Install WASM targets"
+echo "  setup:check        Verify installed tools"
+echo ""
+echo "Testing:"
+echo "  test:all           Run all tests (unit + integration)"
+echo "  test:unit          Run only unit tests (fast)"
+echo "  test:integration   Run only integration tests"
+echo "  test:quick         Quick smoke test"
+echo "  test:nostd         All foundation_nostd tests"
+echo "  test:wasm          WASM compilation tests"
+echo ""
+echo "Benchmarking:"
+echo "  bench              Run all benchmarks"
+echo "  bench:condvar      Run CondVar benchmarks only"
+echo ""
+echo "Quality:"
+echo "  quality            Run fmt-check + clippy + unit tests"
+echo "  verify-all         Full verification (quality + all tests)"
+echo "  clippy             Run clippy (zero warnings)"
+echo "  fmt                Format code"
+echo "  fmt-check          Check if code is formatted"
+echo "  audit              Security audit"
+echo ""
+echo "Build:"
+echo "  build:all          Build all packages (debug)"
+echo "  build:release      Build all packages (release)"
+echo "  build:wasm         Build for WASM"
+echo "  clean              Clean build artifacts"
+echo ""
+echo "Documentation:"
+echo "  doc                Generate documentation"
+echo "  doc:open           Generate and open documentation"
+echo "  doc:nostd          Open foundation_nostd docs"
+echo ""
+echo "Development:"
+echo "  nextest            Run with bacon nextest"
+echo "  sandbox            Run ewe_platform sandbox"
+echo "  bacon              Start bacon language server"
+echo ""
+echo "Full task list: mise tasks"
+"""
