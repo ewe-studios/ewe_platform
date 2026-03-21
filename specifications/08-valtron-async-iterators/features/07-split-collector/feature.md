@@ -1,17 +1,17 @@
 ---
 feature: "Split Collector Combinator"
 description: "split_collector() and split_collect_one() combinators that fork an iterator into observer + continuation branches"
-status: "pending"
+status: "complete"
 priority: "high"
 depends_on: ["01-task-iterators", "02-stream-iterators"]
 estimated_effort: "large"
 created: 2026-03-20
 author: "Main Agent"
 tasks:
-  completed: 0
-  uncompleted: 10
+  completed: 10
+  uncompleted: 0
   total: 10
-  completion_percentage: 0%
+  completion_percentage: 100%
 ---
 
 # Split Collector Combinator Feature
