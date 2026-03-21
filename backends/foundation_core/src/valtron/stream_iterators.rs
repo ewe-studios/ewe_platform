@@ -187,6 +187,37 @@ pub trait StreamIteratorExt<D, P>: StreamIterator<D, P> + Sized {
     {
         self.split_collector(predicate, 1)
     }
+
+    /// Split the iterator into an observer branch and a continuation branch,
+    /// closing the observer when the predicate is met.
+    ///
+    /// The observer receives copies of items until the predicate returns true.
+    /// When the predicate is met, that item is sent to the observer and the
+    /// queue is closed (observer completes). The continuation continues forwarding.
+    ///
+    /// ## Arguments
+    ///
+    /// * `predicate` - Function determining when to close observer (returns true = close)
+    /// * `queue_size` - Size of the ConcurrentQueue between branches
+    ///
+    /// ## Returns
+    ///
+    /// Tuple of:
+    /// - `SSplitUntilObserver` - Observer that receives items until predicate is met
+    /// - `SSplitUntilContinuation` - Continuation that continues the chain
+    fn split_collect_until<Pred>(
+        self,
+        predicate: Pred,
+        queue_size: usize,
+    ) -> (
+        SSplitUntilObserver<D, P>,
+        SSplitUntilContinuation<Self, Pred, D, P>,
+    )
+    where
+        Self: Sized,
+        D: Clone,
+        P: Clone,
+        Pred: Fn(&Stream<D, P>) -> bool + Send + 'static;
 }
 
 // Blanket implementation: anything implementing StreamIterator gets StreamIteratorExt
@@ -289,6 +320,38 @@ where
         };
 
         let continuation = SSplitCollectorContinuation {
+            inner: self,
+            queue,
+            predicate,
+            _phantom: std::marker::PhantomData,
+        };
+
+        (observer, continuation)
+    }
+
+    fn split_collect_until<Pred>(
+        self,
+        predicate: Pred,
+        queue_size: usize,
+    ) -> (
+        SSplitUntilObserver<D, P>,
+        SSplitUntilContinuation<Self, Pred, D, P>,
+    )
+    where
+        Self: Sized,
+        D: Clone,
+        P: Clone,
+        Pred: Fn(&Stream<D, P>) -> bool + Send + 'static,
+    {
+        let queue = Arc::new(ConcurrentQueue::bounded(queue_size));
+        tracing::debug!("split_collect_until: creating observer and continuation with queue_size={}", queue_size);
+
+        let observer = SSplitUntilObserver {
+            queue: Arc::clone(&queue),
+            _phantom: std::marker::PhantomData,
+        };
+
+        let continuation = SSplitUntilContinuation {
             inner: self,
             queue,
             predicate,
@@ -660,6 +723,134 @@ where
         // Close the queue to signal that the source is done
         self.queue.close();
         tracing::debug!("SSplitCollectorContinuation: dropped, queue closed");
+    }
+}
+
+// ============================================================================
+// Split Collect Until Combinator
+// ============================================================================
+
+/// Observer branch from split_collect_until() for StreamIterator.
+///
+/// Receives copies of items until the predicate is met, then the queue
+/// is closed and the observer completes.
+pub struct SSplitUntilObserver<D, P> {
+    /// Shared queue receiving copied items from the splitter
+    queue: Arc<ConcurrentQueue<Stream<D, P>>>,
+    _phantom: std::marker::PhantomData<(D, P)>,
+}
+
+impl<D, P> Iterator for SSplitUntilObserver<D, P>
+where
+    D: Clone + Send + 'static,
+    P: Clone + Send + 'static,
+{
+    type Item = Stream<D, P>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        match self.queue.pop() {
+            Ok(item) => {
+                tracing::trace!("SSplitUntilObserver: received item from queue");
+                Some(item)
+            }
+            Err(concurrent_queue::PopError::Empty) => {
+                if self.queue.is_closed() {
+                    tracing::debug!("SSplitUntilObserver: queue closed, returning None");
+                    None
+                } else {
+                    tracing::trace!("SSplitUntilObserver: queue empty but not closed, returning Ignore");
+                    Some(Stream::Ignore)
+                }
+            }
+            Err(concurrent_queue::PopError::Closed) => {
+                tracing::debug!("SSplitUntilObserver: queue closed, returning None");
+                None
+            }
+        }
+    }
+}
+
+impl<D, P> StreamIterator<D, P> for SSplitUntilObserver<D, P>
+where
+    D: Clone + Send + 'static,
+    P: Clone + Send + 'static,
+{
+}
+
+/// Continuation branch from split_collect_until() for StreamIterator.
+///
+/// Wraps the original iterator, copying items to the observer queue
+/// until the predicate is met. When predicate returns true, that item
+/// is sent and the queue is closed (observer completes).
+pub struct SSplitUntilContinuation<I, Pred, D, P>
+where
+    I: StreamIterator<D, P>,
+{
+    /// The wrapped iterator
+    inner: I,
+    /// Queue to send copied items to observer
+    queue: Arc<ConcurrentQueue<Stream<D, P>>>,
+    /// Predicate to determine when to close observer
+    predicate: Pred,
+    _phantom: std::marker::PhantomData<(D, P)>,
+}
+
+impl<I, Pred, D, P> Iterator for SSplitUntilContinuation<I, Pred, D, P>
+where
+    I: StreamIterator<D, P>,
+    D: Clone,
+    P: Clone,
+    Pred: Fn(&Stream<D, P>) -> bool,
+{
+    type Item = Stream<D, P>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        let item = match self.inner.next() {
+            Some(item) => item,
+            None => {
+                // Source iterator is naturally exhausted, close the queue
+                self.queue.close();
+                tracing::debug!("SSplitUntilContinuation: source exhausted, queue closed");
+                return None;
+            }
+        };
+
+        // Copy items to observer queue until predicate is met
+        if (self.predicate)(&item) {
+            if let Err(e) = self.queue.force_push(item.clone()) {
+                tracing::error!("SSplitUntilContinuation: failed to push to queue: {}", e);
+            } else {
+                tracing::trace!("SSplitUntilContinuation: predicate met, sending item and closing observer queue");
+            }
+            // Close the queue after sending the matching item
+            self.queue.close();
+            tracing::debug!("SSplitUntilContinuation: observer queue closed after predicate met");
+        }
+
+        // Always forward to continuation
+        Some(item)
+    }
+}
+
+impl<I, Pred, D, P> StreamIterator<D, P> for SSplitUntilContinuation<I, Pred, D, P>
+where
+    I: StreamIterator<D, P>,
+    D: Clone,
+    P: Clone,
+    Pred: Fn(&Stream<D, P>) -> bool,
+{
+}
+
+impl<I, Pred, D, P> Drop for SSplitUntilContinuation<I, Pred, D, P>
+where
+    I: StreamIterator<D, P>,
+{
+    fn drop(&mut self) {
+        // Close the queue as backup if not already closed
+        if !self.queue.is_closed() {
+            tracing::debug!("SSplitUntilContinuation: dropped before completion, closing queue");
+            self.queue.close();
+        }
     }
 }
 
