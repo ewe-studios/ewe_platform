@@ -1,17 +1,17 @@
 ---
 feature: "Stream Iterators"
 description: "StreamIteratorExt trait with state-aware combinators using custom wrapper types with embedded mappers"
-status: "pending"
+status: "complete"
 priority: "high"
 depends_on: ["00-foundation"]
 estimated_effort: "medium"
 created: 2026-03-20
 author: "Main Agent"
 tasks:
-  completed: 0
-  uncompleted: 8
+  completed: 8
+  uncompleted: 0
   total: 8
-  completion_percentage: 0%
+  completion_percentage: 100%
 ---
 
 # Stream Iterators Feature
@@ -218,14 +218,14 @@ where
 
 ## Tasks
 
-1. [ ] Define `StreamIteratorExt<D, P>` trait with all methods
-2. [ ] Implement `collect_all()` returning CollectAllStreamIterator wrapper type
-3. [ ] Implement `map_all_done()` returning MapAllDoneStreamIterator wrapper type
-4. [ ] Implement `map_all_pending_and_done()` returning MapAllPendingDoneStreamIterator wrapper type
-5. [ ] Implement `stream_collect()` returning StreamCollect wrapper type
-6. [ ] Write unit tests for each combinator
-7. [ ] Verify wrapper types hold sources + mapper correctly
-8. [ ] Run clippy and fmt checks
+1. [x] Define `StreamIteratorExt<D, P>` trait with all methods
+2. [x] Implement `collect_all()` returning CollectAll wrapper type
+3. [x] Implement `map_all_done()` returning MapAllDone wrapper type
+4. [x] Implement `map_all_pending_and_done()` returning MapAllPendingAndDone wrapper type
+5. [x] Implement `collect()` (single-source collector)
+6. [x] Write unit tests for each combinator
+7. [x] Verify wrapper types hold sources + mapper correctly
+8. [x] Run clippy and fmt checks
 
 ## Verification
 

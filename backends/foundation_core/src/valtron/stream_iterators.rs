@@ -431,6 +431,377 @@ where
 {
 }
 
+// ============================================================================
+// Multi-Source Combinators (Feature 02)
+// ============================================================================
+
+/// Extension trait for multi-source StreamIterator combinators.
+///
+/// These combinators work with multiple StreamIterators simultaneously,
+/// aggregating their outputs or mapping them together.
+pub trait MultiSourceStreamIteratorExt<D, P> {
+    /// Collect all outputs from multiple StreamIterators into a single Vec.
+    ///
+    /// Polls all sources in round-robin fashion, collecting Next values.
+    /// Yields Stream::Pending with count while any source is still producing.
+    /// Yields Stream::Next with all collected values when all sources complete.
+    fn collect_all<I>(iterators: Vec<I>) -> CollectAll<I, D, P>
+    where
+        I: StreamIterator<D, P> + Send + 'static,
+        D: Clone + Send + 'static,
+        P: Send + 'static;
+
+    /// Map all values - only when all sources reach Done state.
+    ///
+    /// Buffers values from all sources until all have produced a Next value.
+    /// Then applies the mapper to the collected Vec and yields the result.
+    fn map_all_done<I, F, O>(iterators: Vec<I>, mapper: F) -> MapAllDone<I, F, D, P, O>
+    where
+        I: StreamIterator<D, P> + Send + 'static,
+        F: Fn(Vec<D>) -> O + Send + 'static,
+        O: Send + 'static,
+        D: Clone + Send + 'static,
+        P: Send + 'static;
+
+    /// Map all values processing both Pending and Done states together.
+    ///
+    /// Buffers Stream<D, P> from all sources and applies the mapper
+    /// to the Vec of all states, enabling visibility into which sources
+    /// are pending vs done.
+    fn map_all_pending_and_done<I, F, O>(
+        iterators: Vec<I>,
+        mapper: F,
+    ) -> MapAllPendingAndDone<I, F, D, P, O>
+    where
+        I: StreamIterator<D, P> + Send + 'static,
+        F: Fn(Vec<Stream<D, P>>) -> O + Send + 'static,
+        O: Send + 'static,
+        D: Clone + Send + 'static,
+        P: Send + 'static;
+}
+
+impl<D, P> MultiSourceStreamIteratorExt<D, P> for ()
+where
+    D: Clone + Send + 'static,
+    P: Send + 'static,
+{
+    fn collect_all<I>(iterators: Vec<I>) -> CollectAll<I, D, P>
+    where
+        I: StreamIterator<D, P> + Send + 'static,
+        D: Clone + Send + 'static,
+        P: Send + 'static,
+    {
+        CollectAll::new(iterators)
+    }
+
+    fn map_all_done<I, F, O>(iterators: Vec<I>, mapper: F) -> MapAllDone<I, F, D, P, O>
+    where
+        I: StreamIterator<D, P> + Send + 'static,
+        F: Fn(Vec<D>) -> O + Send + 'static,
+        O: Send + 'static,
+        D: Clone + Send + 'static,
+        P: Send + 'static,
+    {
+        MapAllDone::new(iterators, mapper)
+    }
+
+    fn map_all_pending_and_done<I, F, O>(
+        iterators: Vec<I>,
+        mapper: F,
+    ) -> MapAllPendingAndDone<I, F, D, P, O>
+    where
+        I: StreamIterator<D, P> + Send + 'static,
+        F: Fn(Vec<Stream<D, P>>) -> O + Send + 'static,
+        O: Send + 'static,
+        D: Clone + Send + 'static,
+        P: Send + 'static,
+    {
+        MapAllPendingAndDone::new(iterators, mapper)
+    }
+}
+
+/// Multi-source collector that aggregates outputs from multiple StreamIterators.
+///
+/// Polls all sources in round-robin, collecting Next values.
+/// Yields Stream::Pending(count) while gathering.
+/// Yields Stream::Next(Vec<D>) when all sources complete.
+pub struct CollectAll<I, D, P> {
+    sources: Vec<I>,
+    collected: Vec<D>,
+    done: bool,
+    _phantom: std::marker::PhantomData<(D, P)>,
+}
+
+impl<I, D, P> CollectAll<I, D, P>
+where
+    I: StreamIterator<D, P>,
+    D: Clone + Send + 'static,
+    P: Send + 'static,
+{
+    pub fn new(iterators: Vec<I>) -> Self {
+        Self {
+            sources: iterators,
+            collected: Vec::new(),
+            done: false,
+            _phantom: std::marker::PhantomData,
+        }
+    }
+}
+
+impl<I, D, P> Iterator for CollectAll<I, D, P>
+where
+    I: StreamIterator<D, P> + Send + 'static,
+    D: Clone + Send + 'static,
+    P: Send + 'static,
+{
+    type Item = Stream<Vec<D>, usize>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.done {
+            return None;
+        }
+
+        let mut all_done = true;
+        let mut has_pending = false;
+        let mut max_delayed: Option<std::time::Duration> = None;
+
+        // Poll all sources in round-robin
+        for source in &mut self.sources {
+            match source.next() {
+                Some(Stream::Next(value)) => {
+                    self.collected.push(value);
+                    all_done = false;
+                }
+                Some(Stream::Pending(_)) => {
+                    all_done = false;
+                    has_pending = true;
+                }
+                Some(Stream::Delayed(d)) => {
+                    all_done = false;
+                    max_delayed = Some(match max_delayed {
+                        Some(current) => current.max(d),
+                        None => d,
+                    });
+                }
+                Some(Stream::Init) => {
+                    all_done = false;
+                }
+                Some(Stream::Ignore) => {
+                    // Ignore internal events, keep collecting
+                    all_done = false;
+                }
+                None => {
+                    // This source is exhausted
+                }
+            }
+        }
+
+        if all_done {
+            // All sources exhausted, yield collected results
+            self.done = true;
+            if self.collected.is_empty() {
+                return None;
+            }
+            Some(Stream::Next(std::mem::take(&mut self.collected)))
+        } else if let Some(delay) = max_delayed {
+            Some(Stream::Delayed(delay))
+        } else if has_pending {
+            Some(Stream::Pending(self.collected.len()))
+        } else {
+            // Still collecting, return pending with count
+            Some(Stream::Pending(self.collected.len()))
+        }
+    }
+}
+
+impl<I, D, P> StreamIterator<Vec<D>, usize> for CollectAll<I, D, P>
+where
+    I: StreamIterator<D, P> + Send + 'static,
+    D: Clone + Send + 'static,
+    P: Send + 'static,
+{
+}
+
+/// Multi-source mapper that applies a function when all sources reach Done.
+pub struct MapAllDone<I, F, D, P, O> {
+    sources: Vec<I>,
+    mapper: F,
+    buffer: Vec<Option<D>>,
+    done: bool,
+    _phantom: std::marker::PhantomData<(D, P, O)>,
+}
+
+impl<I, F, D, P, O> MapAllDone<I, F, D, P, O>
+where
+    I: StreamIterator<D, P>,
+    F: Fn(Vec<D>) -> O + Send + 'static,
+    O: Send + 'static,
+    D: Clone + Send + 'static,
+    P: Send + 'static,
+{
+    pub fn new(iterators: Vec<I>, mapper: F) -> Self {
+        let len = iterators.len();
+        Self {
+            sources: iterators,
+            mapper,
+            buffer: (0..len).map(|_| None).collect(),
+            done: false,
+            _phantom: std::marker::PhantomData,
+        }
+    }
+}
+
+impl<I, F, D, P, O> Iterator for MapAllDone<I, F, D, P, O>
+where
+    I: StreamIterator<D, P> + Send + 'static,
+    F: Fn(Vec<D>) -> O + Send + 'static,
+    O: Send + 'static,
+    D: Clone + Send + 'static,
+    P: Send + 'static,
+{
+    type Item = Stream<O, usize>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.done {
+            return None;
+        }
+
+        let mut all_done = true;
+        let mut has_pending = false;
+
+        for (i, source) in self.sources.iter_mut().enumerate() {
+            if self.buffer[i].is_some() {
+                continue; // Already have value from this source
+            }
+
+            match source.next() {
+                Some(Stream::Next(value)) => {
+                    self.buffer[i] = Some(value);
+                }
+                Some(Stream::Pending(_)) => {
+                    all_done = false;
+                    has_pending = true;
+                }
+                Some(Stream::Delayed(d)) => return Some(Stream::Delayed(d)),
+                Some(Stream::Init) => {
+                    all_done = false;
+                }
+                Some(Stream::Ignore) => {
+                    all_done = false;
+                }
+                None => {
+                    // Source exhausted without producing - treat as done
+                }
+            }
+        }
+
+        // Check if all sources have produced a value
+        if self.buffer.iter().all(|x| x.is_some()) {
+            self.done = true;
+            let values: Vec<D> = self.buffer.drain(..).filter_map(|x| x).collect();
+            let result = (self.mapper)(values);
+            return Some(Stream::Next(result));
+        }
+
+        if all_done {
+            // All sources exhausted but not all produced values
+            self.done = true;
+            return None;
+        }
+
+        if has_pending {
+            let collected: usize = self.buffer.iter().filter(|x| x.is_some()).count();
+            Some(Stream::Pending(collected))
+        } else {
+            Some(Stream::Init)
+        }
+    }
+}
+
+impl<I, F, D, P, O> StreamIterator<O, usize> for MapAllDone<I, F, D, P, O>
+where
+    I: StreamIterator<D, P> + Send + 'static,
+    F: Fn(Vec<D>) -> O + Send + 'static,
+    O: Send + 'static,
+    D: Clone + Send + 'static,
+    P: Send + 'static,
+{
+}
+
+/// Multi-source mapper that processes both Pending and Done states together.
+pub struct MapAllPendingAndDone<I, F, D, P, O> {
+    sources: Vec<I>,
+    mapper: F,
+    done: bool,
+    _phantom: std::marker::PhantomData<(D, P, O)>,
+}
+
+impl<I, F, D, P, O> MapAllPendingAndDone<I, F, D, P, O>
+where
+    I: StreamIterator<D, P>,
+    F: Fn(Vec<Stream<D, P>>) -> O + Send + 'static,
+    O: Send + 'static,
+    D: Clone + Send + 'static,
+    P: Send + 'static,
+{
+    pub fn new(iterators: Vec<I>, mapper: F) -> Self {
+        Self {
+            sources: iterators,
+            mapper,
+            done: false,
+            _phantom: std::marker::PhantomData,
+        }
+    }
+}
+
+impl<I, F, D, P, O> Iterator for MapAllPendingAndDone<I, F, D, P, O>
+where
+    I: StreamIterator<D, P> + Send + 'static,
+    F: Fn(Vec<Stream<D, P>>) -> O + Send + 'static,
+    O: Send + 'static,
+    D: Clone + Send + 'static,
+    P: Send + 'static,
+{
+    type Item = Stream<O, P>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.done {
+            return None;
+        }
+
+        let mut states: Vec<Stream<D, P>> = Vec::with_capacity(self.sources.len());
+
+        for source in &mut self.sources {
+            match source.next() {
+                Some(state) => {
+                    states.push(state);
+                }
+                None => {
+                    // Source exhausted
+                }
+            }
+        }
+
+        if states.is_empty() {
+            self.done = true;
+            return None;
+        }
+
+        let result = (self.mapper)(states);
+        Some(Stream::Next(result))
+    }
+}
+
+impl<I, F, D, P, O> StreamIterator<O, P> for MapAllPendingAndDone<I, F, D, P, O>
+where
+    I: StreamIterator<D, P> + Send + 'static,
+    F: Fn(Vec<Stream<D, P>>) -> O + Send + 'static,
+    O: Send + 'static,
+    D: Clone + Send + 'static,
+    P: Send + 'static,
+{
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -555,5 +926,82 @@ mod tests {
             Iterator::next(&mut mapped),
             Some(Stream::Delayed(Duration::from_secs(2)))
         );
+    }
+
+    #[test]
+    fn test_collect_all() {
+        // Create two test streams
+        let stream1 = TestStream::new(vec![Stream::Next(1u32), Stream::Next(2)]);
+        let stream2 = TestStream::new(vec![Stream::Next(10u32), Stream::Next(20)]);
+
+        let mut combined = CollectAll::new(vec![stream1, stream2]);
+
+        // Should collect all values and yield single Next with combined results
+        let mut collected_values = Vec::new();
+        for item in &mut combined {
+            match item {
+                Stream::Next(values) => collected_values.extend(values),
+                Stream::Pending(_) | Stream::Ignore => {}
+                _ => {}
+            }
+        }
+
+        assert_eq!(collected_values.len(), 4);
+        assert!(collected_values.contains(&1));
+        assert!(collected_values.contains(&2));
+        assert!(collected_values.contains(&10));
+        assert!(collected_values.contains(&20));
+    }
+
+    #[test]
+    fn test_map_all_done() {
+        // Create two test streams
+        let stream1 = TestStream::new(vec![Stream::Next(1u32)]);
+        let stream2 = TestStream::new(vec![Stream::Next(10u32)]);
+
+        let mut mapper = MapAllDone::new(vec![stream1, stream2], |values: Vec<u32>| {
+            values.iter().sum::<u32>()
+        });
+
+        // Should apply mapper when all sources produce values
+        let mut got_result = false;
+        for item in &mut mapper {
+            match item {
+                Stream::Next(sum) => {
+                    assert_eq!(sum, 11); // 1 + 10
+                    got_result = true;
+                }
+                Stream::Pending(_) | Stream::Init => {}
+                _ => {}
+            }
+        }
+
+        assert!(got_result, "Should have produced mapped result");
+    }
+
+    #[test]
+    fn test_map_all_pending_and_done() {
+        // Create two test streams
+        let stream1 = TestStream::new(vec![Stream::Next(1u32)]);
+        let stream2 = TestStream::new(vec![Stream::Next(10u32)]);
+
+        let mut mapper = MapAllPendingAndDone::new(
+            vec![stream1, stream2],
+            |states: Vec<Stream<u32, String>>| states.len(),
+        );
+
+        // Should apply mapper to all states
+        let mut got_result = false;
+        for item in &mut mapper {
+            match item {
+                Stream::Next(count) => {
+                    assert_eq!(count, 2); // Two states
+                    got_result = true;
+                }
+                _ => {}
+            }
+        }
+
+        assert!(got_result, "Should have produced mapped result");
     }
 }
