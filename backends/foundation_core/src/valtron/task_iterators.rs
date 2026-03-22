@@ -796,7 +796,9 @@ where
                     tracing::debug!("SplitUntilObserver: queue closed, returning None");
                     None
                 } else {
-                    tracing::trace!("SplitUntilObserver: queue empty but not closed, returning Ignore");
+                    tracing::trace!(
+                        "SplitUntilObserver: queue empty but not closed, returning Ignore"
+                    );
                     Some(Stream::Ignore)
                 }
             }
@@ -864,7 +866,9 @@ where
                 }
                 // Close the queue after sending the matching item
                 self.queue.close();
-                tracing::debug!("SplitUntilContinuation: observer queue closed after predicate met");
+                tracing::debug!(
+                    "SplitUntilContinuation: observer queue closed after predicate met"
+                );
             }
         }
 
@@ -934,7 +938,9 @@ where
                     tracing::debug!("SplitUntilObserverMap: queue closed, returning None");
                     None
                 } else {
-                    tracing::trace!("SplitUntilObserverMap: queue empty but not closed, returning Ignore");
+                    tracing::trace!(
+                        "SplitUntilObserverMap: queue empty but not closed, returning Ignore"
+                    );
                     Some(Stream::Ignore)
                 }
             }
@@ -1001,14 +1007,19 @@ where
                 if let Some(transformed) = (self.transform)(value) {
                     let stream_item = Stream::Next(transformed);
                     if let Err(e) = self.queue.force_push(stream_item) {
-                        tracing::error!("SplitUntilContinuationMap: failed to push to queue: {}", e);
+                        tracing::error!(
+                            "SplitUntilContinuationMap: failed to push to queue: {}",
+                            e
+                        );
                     } else {
                         tracing::trace!("SplitUntilContinuationMap: predicate met, sending transformed item and closing observer queue");
                     }
                 }
                 // Close the queue after sending (or attempting to send) the matching item
                 self.queue.close();
-                tracing::debug!("SplitUntilContinuationMap: observer queue closed after predicate met");
+                tracing::debug!(
+                    "SplitUntilContinuationMap: observer queue closed after predicate met"
+                );
             }
         }
 

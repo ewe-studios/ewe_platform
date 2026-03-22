@@ -208,6 +208,45 @@ where
     }
 }
 
+/// Send a task for execution without a need to get back any replies
+/// using the appropriate executor for the current platform/features.
+///
+/// # Errors
+///
+/// Returns an error if scheduling the task with the chosen executor fails. Possible
+/// reasons include executor initialization issues or errors returned by the spawn builder.
+///
+/// WHY: Provides single API that works across all platforms/configurations
+/// WHAT: Auto-selects executor based on compile-time configuration
+pub fn send<T>(task: T) -> GenericResult<()>
+where
+    T: TaskIterator + Send + 'static,
+    T::Ready: Send + 'static,
+    T::Pending: Send + 'static,
+    T::Spawner: ExecutionAction + Send + 'static,
+{
+    #[cfg(target_arch = "wasm32")]
+    {
+        tracing::debug!("Executing as a single stream in wasm");
+        execute_single(task)
+    }
+
+    #[cfg(not(target_arch = "wasm32"))]
+    {
+        #[cfg(feature = "multi")]
+        {
+            tracing::debug!("Executing as a multi-threaded stream in no-wasm");
+            execute_multi(task)
+        }
+
+        #[cfg(not(feature = "multi"))]
+        {
+            tracing::debug!("Executing as a single-threaded stream in no-wasm");
+            execute_single(task)
+        }
+    }
+}
+
 /// Execute using single-threaded executor.
 ///
 /// WHY: WASM and minimal builds need single-threaded execution
@@ -231,6 +270,22 @@ where
         .schedule_iter(wait_cycle.unwrap_or(DEFAULT_WAIT_CYCLE))?;
 
     Ok(drive_receiver(iter))
+}
+
+#[allow(clippy::type_complexity)]
+fn execute_single<T>(task: T) -> GenericResult<()>
+where
+    T: TaskIterator + Send + 'static,
+    T::Ready: Send + 'static,
+    T::Pending: Send + 'static,
+    T::Spawner: ExecutionAction + Send + 'static,
+{
+    use super::single;
+
+    // Schedule task and get iterator
+    single::spawn().with_task(task).schedule()?;
+
+    Ok(())
 }
 
 /// Execute using single-threaded executor returning a stream iterator.
@@ -305,6 +360,22 @@ where
         .stream_iter(wait_cycle.unwrap_or(DEFAULT_WAIT_CYCLE))?;
 
     Ok(drive_stream(iter))
+}
+
+#[cfg(all(not(target_arch = "wasm32"), feature = "multi"))]
+fn execute_multi<T>(task: T) -> GenericResult<()>
+where
+    T: TaskIterator + Send + 'static,
+    T::Ready: Send + 'static,
+    T::Pending: Send + 'static,
+    T::Spawner: ExecutionAction + Send + 'static,
+{
+    use crate::valtron::multi;
+
+    // Schedule task and get iterator
+    multi::spawn().with_task(task).schedule()?;
+
+    Ok(())
 }
 
 // ============================================================================
