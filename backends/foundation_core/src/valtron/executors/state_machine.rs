@@ -94,7 +94,7 @@ where
     type Pending = M::State;
     type Spawner = M::Action;
 
-    fn next(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+    fn next_status(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
         let state = self.current_state.take()?;
 
         match self.machine.transition(state) {
@@ -181,31 +181,31 @@ mod tests {
         let mut task = StateMachineTask::new(machine);
 
         // Should yield 0
-        match task.next() {
+        match task.next_status() {
             Some(TaskStatus::Ready(0)) => {}
             other => panic!("Expected Ready(0), got {:?}", other),
         }
 
         // Should yield 1
-        match task.next() {
+        match task.next_status() {
             Some(TaskStatus::Ready(1)) => {}
             other => panic!("Expected Ready(1), got {:?}", other),
         }
 
         // Should yield 2
-        match task.next() {
+        match task.next_status() {
             Some(TaskStatus::Ready(2)) => {}
             other => panic!("Expected Ready(2), got {:?}", other),
         }
 
         // Should complete with 3
-        match task.next() {
+        match task.next_status() {
             Some(TaskStatus::Ready(3)) => {}
             other => panic!("Expected Ready(3), got {:?}", other),
         }
 
         // Done
-        assert!(task.next().is_none());
+        assert!(task.next_status().is_none());
     }
 
     /// WHY: StateTransition::Continue must allow non-yielding state changes
@@ -254,13 +254,13 @@ mod tests {
         let mut task = StateMachineTask::new(machine);
 
         // First next() should be Pending(Init) after Continue
-        match task.next() {
+        match task.next_status() {
             Some(TaskStatus::Pending(State::Processing)) => {}
             other => panic!("Expected Pending(done), got {other:?}"),
         }
 
         // Next should complete
-        match task.next() {
+        match task.next_status() {
             Some(TaskStatus::Ready(ref s)) if s == "done" => {}
             other => panic!("Expected Ready(done), got {other:?}"),
         }
@@ -312,13 +312,13 @@ mod tests {
         let mut task = StateMachineTask::new(machine);
 
         // Should emit Delayed
-        match task.next() {
+        match task.next_status() {
             Some(TaskStatus::Delayed(d)) if d == Duration::from_millis(100) => {}
             other => panic!("Expected Delayed(100ms), got {:?}", other),
         }
 
         // After delay, should complete
-        match task.next() {
+        match task.next_status() {
             Some(TaskStatus::Ready(ref s)) if s == "after delay" => {}
             other => panic!("Expected Ready(after delay), got {:?}", other),
         }
@@ -362,7 +362,7 @@ mod tests {
         let mut task = StateMachineTask::new(machine);
 
         // Error should stop the task
-        assert!(task.next().is_none());
+        assert!(task.next_status().is_none());
     }
 
     /// WHY: StateTransition::Spawn must emit TaskStatus::Spawn
@@ -411,13 +411,13 @@ mod tests {
         let mut task = StateMachineTask::new(machine);
 
         // Should emit Spawn
-        match task.next() {
+        match task.next_status() {
             Some(TaskStatus::Spawn(_)) => {}
             other => panic!("Expected Spawn, got {:?}", other),
         }
 
         // After spawn, should complete
-        match task.next() {
+        match task.next_status() {
             Some(TaskStatus::Ready(ref s)) if s == "spawned task" => {}
             other => panic!("Expected Ready(spawned task), got {:?}", other),
         }

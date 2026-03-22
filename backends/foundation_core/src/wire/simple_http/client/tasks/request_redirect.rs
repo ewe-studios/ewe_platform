@@ -103,7 +103,7 @@ impl<R: DnsResolver + Send + 'static> TaskIterator for GetHttpRequestRedirectTas
     type Spawner = BoxedSendExecutionAction;
 
     #[allow(clippy::too_many_lines)]
-    fn next(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+    fn next_status(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
         let trace_span = tracing::info_span!("GetHttpRequestRedirectTask");
         trace_span.in_scope(|| {
             match self.0.take()? {

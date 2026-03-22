@@ -240,7 +240,7 @@ pub trait TaskIterator {
     type Spawner: ExecutionAction;
 
     /// Advances the iterator and returns the next value.
-    fn next(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>>;
+    fn next_status(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>>;
 
     /// `into_stream_iter` consumes the implementation and wraps
     /// it in an iterator type that emits
@@ -329,7 +329,7 @@ impl<D, P, S: ExecutionAction> Iterator for TaskAsStreamIterator<D, P, S> {
     type Item = crate::valtron::Stream<D, P>;
 
     fn next(&mut self) -> Option<Self::Item> {
-        self.0.next().map(std::convert::Into::into)
+        self.0.next_status().map(std::convert::Into::into)
     }
 }
 
@@ -350,7 +350,7 @@ impl<D, P, S: ExecutionAction> Iterator for TaskAsIterator<D, P, S> {
     type Item = TaskStatus<D, P, S>;
 
     fn next(&mut self) -> Option<Self::Item> {
-        self.0.next()
+        self.0.next_status()
     }
 }
 

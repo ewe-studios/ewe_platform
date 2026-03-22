@@ -155,7 +155,7 @@ mod multi_threaded_tests {
 
         type Spawner = NoSpawner;
 
-        fn next(
+        fn next_status(
             &mut self,
         ) -> Option<crate::valtron::TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
             let item_size = self.1.lock().unwrap().len();
@@ -188,7 +188,7 @@ mod multi_threaded_tests {
 
         type Spawner = NoSpawner;
 
-        fn next(
+        fn next_status(
             &mut self,
         ) -> Option<crate::valtron::TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
             tracing::debug!("Counter Task is running");
@@ -216,7 +216,7 @@ mod multi_threaded_tests {
 
         type Spawner = NoSpawner;
 
-        fn next(
+        fn next_status(
             &mut self,
         ) -> Option<crate::valtron::TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
             tracing::debug!("PanicCounter Task is running");

@@ -163,7 +163,7 @@ where
     Task: TaskIterator<Pending = Pending, Ready = Done, Spawner = Action>,
 {
     fn next(&mut self, entry: Entry, executor: BoxedExecutionEngine) -> Option<State> {
-        let task_response = match std::panic::catch_unwind(|| self.task.lock().unwrap().next()) {
+        let task_response = match std::panic::catch_unwind(|| self.task.lock().unwrap().next_status()) {
             Ok(inner) => inner,
             Err(panic_error) => {
                 if let Some(panic_handler) = &self.panic_handler {

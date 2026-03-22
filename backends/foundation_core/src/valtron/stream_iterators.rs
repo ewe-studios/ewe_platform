@@ -41,6 +41,7 @@
 //! - [`super::task_iterators`] - Contains `TaskIteratorExt` for pre-execute combinators
 
 use crate::synca::mpp::{Stream, StreamIterator};
+use crate::valtron::branches::CollectionState;
 use std::sync::Arc;
 
 use concurrent_queue::ConcurrentQueue;
@@ -75,7 +76,7 @@ pub trait StreamIteratorExt<D, P>: StreamIterator<D, P> + Sized {
     /// Transform Next (Done) values using the provided function.
     ///
     /// Init, Ignore, Delayed, and Pending states pass through unchanged.
-    fn map_done<F, R>(self, f: F) -> MapDone<Self, F, D, P>
+    fn map_done<F, R>(self, f: F) -> MapDone<Self, D, P, R>
     where
         F: Fn(D) -> R + Send + 'static,
         R: Send + 'static;
@@ -83,7 +84,7 @@ pub trait StreamIteratorExt<D, P>: StreamIterator<D, P> + Sized {
     /// Transform Pending values using the provided function.
     ///
     /// Init, Ignore, Delayed, and Next states pass through unchanged.
-    fn map_pending<F, R>(self, f: F) -> MapPending<Self, F, P, D>
+    fn map_pending<F, R>(self, f: F) -> MapPending<Self, P, D, R>
     where
         F: Fn(P) -> R + Send + 'static,
         R: Send + 'static;
@@ -91,7 +92,7 @@ pub trait StreamIteratorExt<D, P>: StreamIterator<D, P> + Sized {
     /// Transform both Pending and Next values with a single function.
     ///
     /// Returns a unified output type for both states.
-    fn map_pending_and_done<F, R>(self, f: F) -> MapPendingAndDone<Self, F, D, P>
+    fn map_pending_and_done<F, R>(self, f: F) -> MapPendingAndDone<Self, D, P, R>
     where
         F: Fn(Stream<D, P>) -> R + Send + 'static,
         R: Send + 'static;
@@ -100,12 +101,12 @@ pub trait StreamIteratorExt<D, P>: StreamIterator<D, P> + Sized {
     ///
     /// Non-Next states pass through unchanged. Next values that don't
     /// satisfy the predicate are skipped.
-    fn filter_done<F>(self, f: F) -> FilterDone<Self, F, D, P>
+    fn filter_done<F>(self, f: F) -> FilterDone<Self, D, P>
     where
         F: Fn(&D) -> bool + Send + 'static;
 
     /// Transform Delayed durations.
-    fn map_delayed<F>(self, f: F) -> MapDelayed<Self, F, D, P>
+    fn map_delayed<F>(self, f: F) -> MapDelayed<Self, D, P>
     where
         F: Fn(std::time::Duration) -> std::time::Duration + Send + 'static;
 
@@ -154,7 +155,7 @@ pub trait StreamIteratorExt<D, P>: StreamIterator<D, P> + Sized {
         queue_size: usize,
     ) -> (
         SCollectorStreamIterator<D, P>,
-        SSplitCollectorContinuation<Self, Pred, D, P>,
+        SSplitCollectorContinuation<Self, D, P>,
     )
     where
         Self: Sized,
@@ -163,21 +164,12 @@ pub trait StreamIteratorExt<D, P>: StreamIterator<D, P> + Sized {
         Pred: Fn(&Stream<D, P>) -> bool + Send + 'static;
 
     /// Convenience method: split_collector with queue_size = 1.
-    ///
-    /// Sends the first matching item to the observer, then continues.
-    ///
-    /// ## Example
-    ///
-    /// ```ignore
-    /// let (observer, continuation) = stream
-    ///     .split_collect_one(|item| matches!(item, Stream::Next(_)));
-    /// ```
     fn split_collect_one<Pred>(
         self,
         predicate: Pred,
     ) -> (
         SCollectorStreamIterator<D, P>,
-        SSplitCollectorContinuation<Self, Pred, D, P>,
+        SSplitCollectorContinuation<Self, D, P>,
     )
     where
         Self: Sized,
@@ -189,35 +181,57 @@ pub trait StreamIteratorExt<D, P>: StreamIterator<D, P> + Sized {
     }
 
     /// Split the iterator into an observer branch and a continuation branch,
-    /// closing the observer when the predicate is met.
-    ///
-    /// The observer receives copies of items until the predicate returns true.
-    /// When the predicate is met, that item is sent to the observer and the
-    /// queue is closed (observer completes). The continuation continues forwarding.
-    ///
-    /// ## Arguments
-    ///
-    /// * `predicate` - Function determining when to close observer (returns true = close)
-    /// * `queue_size` - Size of the ConcurrentQueue between branches
-    ///
-    /// ## Returns
-    ///
-    /// Tuple of:
-    /// - `SSplitUntilObserver` - Observer that receives items until predicate is met
-    /// - `SSplitUntilContinuation` - Continuation that continues the chain
+    /// closing the observer when the predicate signals close.
     fn split_collect_until<Pred>(
         self,
         predicate: Pred,
         queue_size: usize,
     ) -> (
         SSplitUntilObserver<D, P>,
-        SSplitUntilContinuation<Self, Pred, D, P>,
+        SSplitUntilContinuation<Self, D, P>,
     )
     where
         Self: Sized,
         D: Clone,
         P: Clone,
-        Pred: Fn(&Stream<D, P>) -> bool + Send + 'static;
+        Pred: Fn(&Stream<D, P>) -> CollectionState + Send + 'static;
+
+    /// Split the iterator into an observer branch and a continuation branch,
+    /// mapping matched items to a different type before sending to the observer.
+    fn split_collector_map<F, DM, PM>(
+        self,
+        transform: F,
+        queue_size: usize,
+    ) -> (
+        SSplitCollectorMapObserver<DM, PM>,
+        SSplitCollectorMapContinuation<Self, D, P, DM, PM>,
+    )
+    where
+        Self: Sized,
+        DM: Clone + Send + 'static,
+        PM: Clone + Send + 'static,
+        D: Clone,
+        P: Clone,
+        F: Fn(&Stream<D, P>) -> (bool, Option<Stream<DM, PM>>) + Send + 'static;
+
+    /// Convenience method: split_collector_map with queue_size = 1.
+    fn split_collect_one_map<F, DM, PM>(
+        self,
+        transform: F,
+    ) -> (
+        SSplitCollectorMapObserver<DM, PM>,
+        SSplitCollectorMapContinuation<Self, D, P, DM, PM>,
+    )
+    where
+        Self: Sized,
+        DM: Clone + Send + 'static,
+        PM: Clone + Send + 'static,
+        D: Clone,
+        P: Clone,
+        F: Fn(&Stream<D, P>) -> (bool, Option<Stream<DM, PM>>) + Send + 'static,
+    {
+        self.split_collector_map(transform, 1)
+    }
 }
 
 // Blanket implementation: anything implementing StreamIterator gets StreamIteratorExt
@@ -227,60 +241,59 @@ where
     D: Send + 'static,
     P: Send + 'static,
 {
-    fn map_done<F, R>(self, f: F) -> MapDone<Self, F, D, P>
+    fn map_done<F, R>(self, f: F) -> MapDone<Self, D, P, R>
     where
         F: Fn(D) -> R + Send + 'static,
         R: Send + 'static,
     {
         MapDone {
             inner: self,
-            mapper: f,
+            mapper: Box::new(f),
             _phantom: std::marker::PhantomData,
         }
     }
 
-    fn map_pending<F, R>(self, f: F) -> MapPending<Self, F, P, D>
+    fn map_pending<F, R>(self, f: F) -> MapPending<Self, P, D, R>
     where
         F: Fn(P) -> R + Send + 'static,
         R: Send + 'static,
     {
         MapPending {
             inner: self,
-            mapper: f,
+            mapper: Box::new(f),
             _phantom: std::marker::PhantomData,
         }
     }
 
-    fn map_pending_and_done<F, R>(self, f: F) -> MapPendingAndDone<Self, F, D, P>
+    fn map_pending_and_done<F, R>(self, f: F) -> MapPendingAndDone<Self, D, P, R>
     where
         F: Fn(Stream<D, P>) -> R + Send + 'static,
         R: Send + 'static,
     {
         MapPendingAndDone {
             inner: self,
-            mapper: f,
-            _phantom: std::marker::PhantomData,
+            mapper: Box::new(f),
         }
     }
 
-    fn filter_done<F>(self, f: F) -> FilterDone<Self, F, D, P>
+    fn filter_done<F>(self, f: F) -> FilterDone<Self, D, P>
     where
         F: Fn(&D) -> bool + Send + 'static,
     {
         FilterDone {
             inner: self,
-            predicate: f,
+            predicate: Box::new(f),
             _phantom: std::marker::PhantomData,
         }
     }
 
-    fn map_delayed<F>(self, f: F) -> MapDelayed<Self, F, D, P>
+    fn map_delayed<F>(self, f: F) -> MapDelayed<Self, D, P>
     where
         F: Fn(std::time::Duration) -> std::time::Duration + Send + 'static,
     {
         MapDelayed {
             inner: self,
-            mapper: f,
+            mapper: Box::new(f),
             _phantom: std::marker::PhantomData,
         }
     }
@@ -303,7 +316,7 @@ where
         queue_size: usize,
     ) -> (
         SCollectorStreamIterator<D, P>,
-        SSplitCollectorContinuation<Self, Pred, D, P>,
+        SSplitCollectorContinuation<Self, D, P>,
     )
     where
         Self: Sized,
@@ -316,14 +329,12 @@ where
 
         let observer = SCollectorStreamIterator {
             queue: Arc::clone(&queue),
-            _phantom: std::marker::PhantomData,
         };
 
         let continuation = SSplitCollectorContinuation {
             inner: self,
             queue,
-            predicate,
-            _phantom: std::marker::PhantomData,
+            predicate: Box::new(predicate),
         };
 
         (observer, continuation)
@@ -335,44 +346,94 @@ where
         queue_size: usize,
     ) -> (
         SSplitUntilObserver<D, P>,
-        SSplitUntilContinuation<Self, Pred, D, P>,
+        SSplitUntilContinuation<Self, D, P>,
     )
     where
         Self: Sized,
         D: Clone,
         P: Clone,
-        Pred: Fn(&Stream<D, P>) -> bool + Send + 'static,
+        Pred: Fn(&Stream<D, P>) -> CollectionState + Send + 'static,
     {
         let queue = Arc::new(ConcurrentQueue::bounded(queue_size));
         tracing::debug!("split_collect_until: creating observer and continuation with queue_size={}", queue_size);
 
         let observer = SSplitUntilObserver {
             queue: Arc::clone(&queue),
-            _phantom: std::marker::PhantomData,
         };
 
         let continuation = SSplitUntilContinuation {
             inner: self,
             queue,
-            predicate,
-            _phantom: std::marker::PhantomData,
+            predicate: Box::new(predicate),
         };
 
         (observer, continuation)
     }
+
+    fn split_collector_map<F, DM, PM>(
+        self,
+        transform: F,
+        queue_size: usize,
+    ) -> (
+        SSplitCollectorMapObserver<DM, PM>,
+        SSplitCollectorMapContinuation<Self, D, P, DM, PM>,
+    )
+    where
+        Self: Sized,
+        DM: Clone + Send + 'static,
+        PM: Clone + Send + 'static,
+        D: Clone,
+        P: Clone,
+        F: Fn(&Stream<D, P>) -> (bool, Option<Stream<DM, PM>>) + Send + 'static,
+    {
+        let queue = Arc::new(ConcurrentQueue::bounded(queue_size));
+        tracing::debug!(
+            "split_collector_map: creating observer and continuation with queue_size={}",
+            queue_size
+        );
+
+        let observer = SSplitCollectorMapObserver {
+            queue: Arc::clone(&queue),
+        };
+
+        let continuation = SSplitCollectorMapContinuation {
+            inner: self,
+            queue,
+            transform: Box::new(transform),
+        };
+
+        (observer, continuation)
+    }
+
+    fn split_collect_one_map<F, DM, PM>(
+        self,
+        transform: F,
+    ) -> (
+        SSplitCollectorMapObserver<DM, PM>,
+        SSplitCollectorMapContinuation<Self, D, P, DM, PM>,
+    )
+    where
+        Self: Sized,
+        DM: Clone + Send + 'static,
+        PM: Clone + Send + 'static,
+        D: Clone,
+        P: Clone,
+        F: Fn(&Stream<D, P>) -> (bool, Option<Stream<DM, PM>>) + Send + 'static,
+    {
+        self.split_collector_map(transform, 1)
+    }
 }
 
 /// Wrapper type that transforms Next (Done) values.
-pub struct MapDone<I, F, D, P> {
+pub struct MapDone<I: StreamIterator<D, P>, D, P, R> {
     inner: I,
-    mapper: F,
-    _phantom: std::marker::PhantomData<(D, P)>,
+    mapper: Box<dyn Fn(D) -> R + Send>,
+    _phantom: std::marker::PhantomData<P>,
 }
 
-impl<I, F, D, R, P> Iterator for MapDone<I, F, D, P>
+impl<I, D, R, P> Iterator for MapDone<I, D, P, R>
 where
     I: StreamIterator<D, P>,
-    F: Fn(D) -> R + Send + 'static,
     R: Send + 'static,
     P: Send + 'static,
 {
@@ -389,26 +450,24 @@ where
     }
 }
 
-impl<I, F, D, R, P> StreamIterator<R, P> for MapDone<I, F, D, P>
+impl<I, D, R, P> StreamIterator<R, P> for MapDone<I, D, P, R>
 where
     I: StreamIterator<D, P>,
-    F: Fn(D) -> R + Send + 'static,
     R: Send + 'static,
     P: Send + 'static,
 {
 }
 
 /// Wrapper type that transforms Pending values.
-pub struct MapPending<I, F, P, D> {
+pub struct MapPending<I: StreamIterator<D, P>, P, D, R> {
     inner: I,
-    mapper: F,
-    _phantom: std::marker::PhantomData<(P, D)>,
+    mapper: Box<dyn Fn(P) -> R + Send>,
+    _phantom: std::marker::PhantomData<D>,
 }
 
-impl<I, F, D, P, R> Iterator for MapPending<I, F, P, D>
+impl<I, D, P, R> Iterator for MapPending<I, P, D, R>
 where
     I: StreamIterator<D, P>,
-    F: Fn(P) -> R + Send + 'static,
     R: Send + 'static,
     D: Send + 'static,
 {
@@ -425,26 +484,23 @@ where
     }
 }
 
-impl<I, F, D, P, R> StreamIterator<D, R> for MapPending<I, F, P, D>
+impl<I, D, P, R> StreamIterator<D, R> for MapPending<I, P, D, R>
 where
     I: StreamIterator<D, P>,
-    F: Fn(P) -> R + Send + 'static,
     R: Send + 'static,
     D: Send + 'static,
 {
 }
 
 /// Wrapper type that transforms both Pending and Next values.
-pub struct MapPendingAndDone<I, F, D, P> {
+pub struct MapPendingAndDone<I: StreamIterator<D, P>, D, P, R> {
     inner: I,
-    mapper: F,
-    _phantom: std::marker::PhantomData<(D, P)>,
+    mapper: Box<dyn Fn(Stream<D, P>) -> R + Send>,
 }
 
-impl<I, F, D, P, R> Iterator for MapPendingAndDone<I, F, D, P>
+impl<I, D, P, R> Iterator for MapPendingAndDone<I, D, P, R>
 where
     I: StreamIterator<D, P>,
-    F: Fn(Stream<D, P>) -> R + Send + 'static,
     R: Send + 'static,
 {
     type Item = Stream<R, R>;
@@ -459,10 +515,9 @@ where
     }
 }
 
-impl<I, F, D, P, R> StreamIterator<R, R> for MapPendingAndDone<I, F, D, P>
+impl<I, D, P, R> StreamIterator<R, R> for MapPendingAndDone<I, D, P, R>
 where
     I: StreamIterator<D, P>,
-    F: Fn(Stream<D, P>) -> R + Send + 'static,
     R: Send + 'static,
 {
 }
@@ -470,16 +525,15 @@ where
 /// Wrapper type that filters Next (Done) values.
 ///
 /// Filtered-out Next values are returned as `Stream::Ignore` to avoid blocking.
-pub struct FilterDone<I, F, D, P> {
+pub struct FilterDone<I: StreamIterator<D, P>, D, P> {
     inner: I,
-    predicate: F,
-    _phantom: std::marker::PhantomData<(D, P)>,
+    predicate: Box<dyn Fn(&D) -> bool + Send>,
+    _phantom: std::marker::PhantomData<P>,
 }
 
-impl<I, F, D, P> Iterator for FilterDone<I, F, D, P>
+impl<I, D, P> Iterator for FilterDone<I, D, P>
 where
     I: StreamIterator<D, P>,
-    F: Fn(&D) -> bool + Send + 'static,
     D: Send + 'static,
     P: Send + 'static,
 {
@@ -500,26 +554,24 @@ where
     }
 }
 
-impl<I, F, D, P> StreamIterator<D, P> for FilterDone<I, F, D, P>
+impl<I, D, P> StreamIterator<D, P> for FilterDone<I, D, P>
 where
     I: StreamIterator<D, P>,
-    F: Fn(&D) -> bool + Send + 'static,
     D: Send + 'static,
     P: Send + 'static,
 {
 }
 
 /// Wrapper type that transforms Delayed durations.
-pub struct MapDelayed<I, F, D, P> {
+pub struct MapDelayed<I: StreamIterator<D, P>, D, P> {
     inner: I,
-    mapper: F,
+    mapper: Box<dyn Fn(std::time::Duration) -> std::time::Duration + Send>,
     _phantom: std::marker::PhantomData<(D, P)>,
 }
 
-impl<I, F, D, P> Iterator for MapDelayed<I, F, D, P>
+impl<I, D, P> Iterator for MapDelayed<I, D, P>
 where
     I: StreamIterator<D, P>,
-    F: Fn(std::time::Duration) -> std::time::Duration + Send + 'static,
     D: Send + 'static,
     P: Send + 'static,
 {
@@ -536,10 +588,9 @@ where
     }
 }
 
-impl<I, F, D, P> StreamIterator<D, P> for MapDelayed<I, F, D, P>
+impl<I, D, P> StreamIterator<D, P> for MapDelayed<I, D, P>
 where
     I: StreamIterator<D, P>,
-    F: Fn(std::time::Duration) -> std::time::Duration + Send + 'static,
     D: Send + 'static,
     P: Send + 'static,
 {
@@ -554,7 +605,7 @@ pub struct Collect<I, D, P> {
     inner: I,
     collected: Vec<D>,
     done: bool,
-    _phantom: std::marker::PhantomData<(D, P)>,
+    _phantom: std::marker::PhantomData<P>,
 }
 
 impl<I, D, P> Iterator for Collect<I, D, P>
@@ -612,7 +663,6 @@ where
 pub struct SCollectorStreamIterator<D, P> {
     /// Shared queue receiving copied items from the splitter
     queue: Arc<ConcurrentQueue<Stream<D, P>>>,
-    _phantom: std::marker::PhantomData<(D, P)>,
 }
 
 impl<D, P> Iterator for SCollectorStreamIterator<D, P>
@@ -659,25 +709,20 @@ where
 ///
 /// Wraps the original iterator, copying matched items to the observer queue
 /// while continuing the chain for further combinators.
-pub struct SSplitCollectorContinuation<I, Pred, D, P>
-where
-    I: StreamIterator<D, P>,
-{
+pub struct SSplitCollectorContinuation<I: StreamIterator<D, P>, D, P> {
     /// The wrapped iterator
     inner: I,
     /// Queue to send copied items to observer
     queue: Arc<ConcurrentQueue<Stream<D, P>>>,
     /// Predicate to determine which items to copy
-    predicate: Pred,
-    _phantom: std::marker::PhantomData<(D, P)>,
+    predicate: Box<dyn Fn(&Stream<D, P>) -> bool + Send>,
 }
 
-impl<I, Pred, D, P> Iterator for SSplitCollectorContinuation<I, Pred, D, P>
+impl<I, D, P> Iterator for SSplitCollectorContinuation<I, D, P>
 where
     I: StreamIterator<D, P>,
     D: Clone,
     P: Clone,
-    Pred: Fn(&Stream<D, P>) -> bool,
 {
     type Item = Stream<D, P>;
 
@@ -706,16 +751,15 @@ where
     }
 }
 
-impl<I, Pred, D, P> StreamIterator<D, P> for SSplitCollectorContinuation<I, Pred, D, P>
+impl<I, D, P> StreamIterator<D, P> for SSplitCollectorContinuation<I, D, P>
 where
     I: StreamIterator<D, P>,
     D: Clone,
     P: Clone,
-    Pred: Fn(&Stream<D, P>) -> bool,
 {
 }
 
-impl<I, Pred, D, P> Drop for SSplitCollectorContinuation<I, Pred, D, P>
+impl<I, D, P> Drop for SSplitCollectorContinuation<I, D, P>
 where
     I: StreamIterator<D, P>,
 {
@@ -737,7 +781,6 @@ where
 pub struct SSplitUntilObserver<D, P> {
     /// Shared queue receiving copied items from the splitter
     queue: Arc<ConcurrentQueue<Stream<D, P>>>,
-    _phantom: std::marker::PhantomData<(D, P)>,
 }
 
 impl<D, P> Iterator for SSplitUntilObserver<D, P>
@@ -780,27 +823,22 @@ where
 /// Continuation branch from split_collect_until() for StreamIterator.
 ///
 /// Wraps the original iterator, copying items to the observer queue
-/// until the predicate is met. When predicate returns true, that item
-/// is sent and the queue is closed (observer completes).
-pub struct SSplitUntilContinuation<I, Pred, D, P>
-where
-    I: StreamIterator<D, P>,
-{
+/// based on the predicate's `CollectionState`. When predicate returns
+/// `Close`, the queue is closed (observer completes).
+pub struct SSplitUntilContinuation<I: StreamIterator<D, P>, D, P> {
     /// The wrapped iterator
     inner: I,
     /// Queue to send copied items to observer
     queue: Arc<ConcurrentQueue<Stream<D, P>>>,
     /// Predicate to determine when to close observer
-    predicate: Pred,
-    _phantom: std::marker::PhantomData<(D, P)>,
+    predicate: Box<dyn Fn(&Stream<D, P>) -> CollectionState + Send>,
 }
 
-impl<I, Pred, D, P> Iterator for SSplitUntilContinuation<I, Pred, D, P>
+impl<I, D, P> Iterator for SSplitUntilContinuation<I, D, P>
 where
     I: StreamIterator<D, P>,
     D: Clone,
     P: Clone,
-    Pred: Fn(&Stream<D, P>) -> bool,
 {
     type Item = Stream<D, P>;
 
@@ -815,16 +853,34 @@ where
             }
         };
 
-        // Copy items to observer queue until predicate is met
-        if (self.predicate)(&item) {
-            if let Err(e) = self.queue.force_push(item.clone()) {
-                tracing::error!("SSplitUntilContinuation: failed to push to queue: {}", e);
-            } else {
-                tracing::trace!("SSplitUntilContinuation: predicate met, sending item and closing observer queue");
+        // Handle items based on CollectionState from predicate
+        match (self.predicate)(&item) {
+            CollectionState::Skip => {
+                // Skip this item - don't send to observer
+                tracing::trace!("SSplitUntilContinuation: skipping item (CollectionState::Skip)");
             }
-            // Close the queue after sending the matching item
-            self.queue.close();
-            tracing::debug!("SSplitUntilContinuation: observer queue closed after predicate met");
+            CollectionState::Collect => {
+                // Collect this item for the observer
+                if let Err(e) = self.queue.force_push(item.clone()) {
+                    tracing::error!("SSplitUntilContinuation: failed to push to queue: {}", e);
+                } else {
+                    tracing::trace!("SSplitUntilContinuation: collected item for observer");
+                }
+            }
+            CollectionState::Close(collect_this) => {
+                // Close the observer after optionally collecting this item
+                if collect_this {
+                    if let Err(e) = self.queue.force_push(item.clone()) {
+                        tracing::error!("SSplitUntilContinuation: failed to push to queue: {}", e);
+                    } else {
+                        tracing::trace!("SSplitUntilContinuation: collecting final item and closing observer queue");
+                    }
+                } else {
+                    tracing::trace!("SSplitUntilContinuation: closing observer queue without collecting final item");
+                }
+                self.queue.close();
+                tracing::debug!("SSplitUntilContinuation: observer queue closed after CollectionState::Close");
+            }
         }
 
         // Always forward to continuation
@@ -832,16 +888,15 @@ where
     }
 }
 
-impl<I, Pred, D, P> StreamIterator<D, P> for SSplitUntilContinuation<I, Pred, D, P>
+impl<I, D, P> StreamIterator<D, P> for SSplitUntilContinuation<I, D, P>
 where
     I: StreamIterator<D, P>,
     D: Clone,
     P: Clone,
-    Pred: Fn(&Stream<D, P>) -> bool,
 {
 }
 
-impl<I, Pred, D, P> Drop for SSplitUntilContinuation<I, Pred, D, P>
+impl<I, D, P> Drop for SSplitUntilContinuation<I, D, P>
 where
     I: StreamIterator<D, P>,
 {
@@ -849,6 +904,142 @@ where
         // Close the queue as backup if not already closed
         if !self.queue.is_closed() {
             tracing::debug!("SSplitUntilContinuation: dropped before completion, closing queue");
+            self.queue.close();
+        }
+    }
+}
+
+// ============================================================================
+// Split Collector Map Combinator
+// ============================================================================
+
+/// Observer branch from split_collector_map() for StreamIterator.
+///
+/// Receives transformed copies of matched items via a ConcurrentQueue.
+/// The observer yields `Stream<DM, PM>` where DM and PM are the mapped types
+/// from the transform function. This allows independent Done and Pending types.
+pub struct SSplitCollectorMapObserver<DM, PM> {
+    /// Shared queue receiving transformed items from the continuation
+    queue: Arc<ConcurrentQueue<Stream<DM, PM>>>,
+}
+
+impl<DM, PM> Iterator for SSplitCollectorMapObserver<DM, PM>
+where
+    DM: Clone + Send + 'static,
+    PM: Clone + Send + 'static,
+{
+    type Item = Stream<DM, PM>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        match self.queue.pop() {
+            Ok(item) => {
+                tracing::trace!("SSplitCollectorMapObserver: received item from queue");
+                Some(item)
+            }
+            Err(concurrent_queue::PopError::Empty) => {
+                if self.queue.is_closed() {
+                    tracing::debug!("SSplitCollectorMapObserver: queue closed, returning None");
+                    None
+                } else {
+                    tracing::trace!(
+                        "SSplitCollectorMapObserver: queue empty but not closed, returning Ignore"
+                    );
+                    Some(Stream::Ignore)
+                }
+            }
+            Err(concurrent_queue::PopError::Closed) => {
+                tracing::debug!("SSplitCollectorMapObserver: queue closed, returning None");
+                None
+            }
+        }
+    }
+}
+
+impl<DM, PM> StreamIterator<DM, PM> for SSplitCollectorMapObserver<DM, PM>
+where
+    DM: Clone + Send + 'static,
+    PM: Clone + Send + 'static,
+{
+}
+
+/// Continuation branch from split_collector_map() for StreamIterator.
+///
+/// Wraps the original iterator. The transform function returns `(bool, Option<Stream<DM, PM>>)`
+/// where DM and PM are independent Done and Pending types for the observer:
+/// - `true` + `Some(stream)` sends the stream to the observer queue
+/// - `false` or `None` skips sending to observer
+/// The continuation continues with original Stream<D, P> values unchanged.
+pub struct SSplitCollectorMapContinuation<I: StreamIterator<D, P>, D, P, DM, PM> {
+    /// The wrapped iterator
+    inner: I,
+    /// Queue to send transformed items to observer
+    queue: Arc<ConcurrentQueue<Stream<DM, PM>>>,
+    /// Combined predicate + transform function
+    transform: Box<dyn Fn(&Stream<D, P>) -> (bool, Option<Stream<DM, PM>>) + Send>,
+}
+
+impl<I, D, P, DM, PM> Iterator for SSplitCollectorMapContinuation<I, D, P, DM, PM>
+where
+    I: StreamIterator<D, P>,
+    D: Clone,
+    P: Clone,
+    DM: Clone + Send + 'static,
+    PM: Clone + Send + 'static,
+{
+    type Item = Stream<D, P>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        let item = match self.inner.next() {
+            Some(item) => item,
+            None => {
+                self.queue.close();
+                tracing::debug!(
+                    "SSplitCollectorMapContinuation: source exhausted, queue closed"
+                );
+                return None;
+            }
+        };
+
+        let (matched, transformed) = (self.transform)(&item);
+        if matched {
+            if let Some(transformed) = transformed {
+                if let Err(e) = self.queue.force_push(transformed) {
+                    tracing::error!(
+                        "SSplitCollectorMapContinuation: failed to push to queue: {}",
+                        e
+                    );
+                } else {
+                    tracing::trace!(
+                        "SSplitCollectorMapContinuation: copied transformed item to observer queue"
+                    );
+                }
+            }
+        }
+
+        Some(item)
+    }
+}
+
+impl<I, D, P, DM, PM> StreamIterator<D, P>
+    for SSplitCollectorMapContinuation<I, D, P, DM, PM>
+where
+    I: StreamIterator<D, P>,
+    D: Clone,
+    P: Clone,
+    DM: Clone + Send + 'static,
+    PM: Clone + Send + 'static,
+{
+}
+
+impl<I, D, P, DM, PM> Drop for SSplitCollectorMapContinuation<I, D, P, DM, PM>
+where
+    I: StreamIterator<D, P>,
+{
+    fn drop(&mut self) {
+        if !self.queue.is_closed() {
+            tracing::debug!(
+                "SSplitCollectorMapContinuation: dropped before completion, closing queue"
+            );
             self.queue.close();
         }
     }
@@ -952,7 +1143,7 @@ pub struct CollectAll<I, D, P> {
     sources: Vec<I>,
     collected: Vec<D>,
     done: bool,
-    _phantom: std::marker::PhantomData<(D, P)>,
+    _phantom: std::marker::PhantomData<P>,
 }
 
 impl<I, D, P> CollectAll<I, D, P>
@@ -1051,7 +1242,7 @@ pub struct MapAllDone<I, F, D, P, O> {
     mapper: F,
     buffer: Vec<Option<D>>,
     done: bool,
-    _phantom: std::marker::PhantomData<(D, P, O)>,
+    _phantom: std::marker::PhantomData<(P, O)>,
 }
 
 impl<I, F, D, P, O> MapAllDone<I, F, D, P, O>
@@ -1349,6 +1540,101 @@ mod tests {
             Iterator::next(&mut mapped),
             Some(Stream::Delayed(Duration::from_secs(2)))
         );
+    }
+
+    #[test]
+    fn test_split_collector_map_sends_transformed_items() {
+        let items = vec![
+            Stream::Pending("wait".to_string()),
+            Stream::Next(10),
+            Stream::Next(3),
+            Stream::Next(20),
+        ];
+        let stream = TestStream::new(items);
+
+        // Observer gets string representations of Next items > 5
+        let (observer, mut continuation) =
+            stream.split_collector_map::<_, String, ()>(
+                |item| match item {
+                    Stream::Next(v) if *v > 5 => {
+                        (true, Some(Stream::Next(format!("val:{}", v))))
+                    }
+                    _ => (false, None),
+                },
+                10,
+            );
+
+        // Drive the continuation to completion
+        while Iterator::next(&mut continuation).is_some() {}
+
+        let collected: Vec<_> = observer
+            .filter_map(|item| match item {
+                Stream::Next(v) => Some(v),
+                _ => None,
+            })
+            .collect();
+
+        assert_eq!(collected.len(), 2);
+        assert!(collected.contains(&"val:20".to_string()));
+        assert!(collected.contains(&"val:10".to_string()));
+    }
+
+    #[test]
+    fn test_split_collector_map_transform_returns_none_skips() {
+        let items = vec![Stream::Next(10), Stream::Next(5)];
+        let stream = TestStream::new(items);
+
+        // Matched but transform returns None for odd numbers → skipped
+        let (observer, mut continuation) =
+            stream.split_collector_map::<_, u64, ()>(
+                |item| match item {
+                    Stream::Next(v) if v % 2 == 0 => {
+                        (true, Some(Stream::Next(*v as u64)))
+                    }
+                    Stream::Next(_) => (true, None),
+                    _ => (false, None),
+                },
+                10,
+            );
+
+        while Iterator::next(&mut continuation).is_some() {}
+
+        let collected: Vec<_> = observer
+            .filter_map(|item| match item {
+                Stream::Next(v) => Some(v),
+                _ => None,
+            })
+            .collect();
+
+        assert_eq!(collected, vec![10u64]);
+    }
+
+    #[test]
+    fn test_split_collect_one_map() {
+        let items = vec![Stream::Next(3), Stream::Next(10), Stream::Next(20)];
+        let stream = TestStream::new(items);
+
+        let (observer, mut continuation) =
+            stream.split_collect_one_map::<_, String, ()>(
+                |item| match item {
+                    Stream::Next(v) if *v > 5 => {
+                        (true, Some(Stream::Next(v.to_string())))
+                    }
+                    _ => (false, None),
+                },
+            );
+
+        while Iterator::next(&mut continuation).is_some() {}
+
+        let collected: Vec<_> = observer
+            .filter_map(|item| match item {
+                Stream::Next(v) => Some(v),
+                _ => None,
+            })
+            .collect();
+
+        // Queue size 1, so only first match gets through
+        assert_eq!(collected.len(), 1);
     }
 
     #[test]

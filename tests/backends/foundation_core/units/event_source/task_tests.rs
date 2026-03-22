@@ -17,7 +17,7 @@ fn test_event_source_task_connect_creates_task() {
         EventSourceTask::connect(resolver.clone(), "http://test.invalid/events").unwrap();
 
     // First call: Init → Connecting (pool handles DNS internally)
-    let first = task.next();
+    let first = task.next_status();
     assert!(
         matches!(
             first,
@@ -29,7 +29,7 @@ fn test_event_source_task_connect_creates_task() {
     );
 
     // Second call: Connection fails (DNS has no response) → Closed → None
-    let result = task.next();
+    let result = task.next_status();
     assert!(
         result.is_none(),
         "Expected None when DNS resolver has no configured response"
@@ -48,7 +48,7 @@ fn test_event_source_task_dns_failure() {
     let mut task = EventSourceTask::connect(resolver, "http://test.invalid/events").unwrap();
 
     // First call: Init → Connecting (pool handles DNS internally)
-    let first = task.next();
+    let first = task.next_status();
     assert!(
         matches!(
             first,
@@ -60,12 +60,12 @@ fn test_event_source_task_dns_failure() {
     );
 
     // Second call: Connection fails → Closed → None
-    let result = task.next();
+    let result = task.next_status();
     assert!(result.is_none(), "Expected None after connection failure");
 
     // Subsequent calls should also return None (Closed state is terminal)
     assert!(
-        task.next().is_none(),
+        task.next_status().is_none(),
         "Expected None on repeated calls after close"
     );
 }
@@ -94,7 +94,7 @@ fn test_event_source_task_builder_chaining() {
         .with_last_event_id("last-event-42");
 
     // First call: Init → Connecting (pool handles DNS internally)
-    let first = task.next();
+    let first = task.next_status();
     assert!(
         matches!(
             first,
@@ -106,7 +106,7 @@ fn test_event_source_task_builder_chaining() {
     );
 
     // Second call: Connection fails → Closed → None
-    let result = task.next();
+    let result = task.next_status();
     assert!(
         result.is_none(),
         "Expected None when DNS resolver has no configured response"

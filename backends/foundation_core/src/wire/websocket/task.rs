@@ -395,7 +395,7 @@ where
     type Spawner = BoxedSendExecutionAction;
 
     #[allow(clippy::too_many_lines)]
-    fn next(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+    fn next_status(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
         let state = self.state.take()?;
 
         match state {

@@ -116,7 +116,7 @@ impl TaskIterator for GetRequestIntroTask {
     type Ready = RequestIntro;
     type Spawner = NoSpawner;
 
-    fn next(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+    fn next_status(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
         match self.0.take()? {
             GetRequestIntroState::Init(inner) => match inner {
                 Some(stream) => {

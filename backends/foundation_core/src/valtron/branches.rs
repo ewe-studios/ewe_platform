@@ -1,7 +1,10 @@
+use derive_more::Display;
+
 /// [`CollectionState`] defines the possible state different
 /// collect style operations can undergo, allowing us communicate
 /// the different behaviour to be applied when we see a given
 /// value or invocation.
+#[derive(Display)]
 pub enum CollectionState {
     /// Skip indicates we should skip the item/pass it on to the
     /// continuation task.
@@ -64,6 +67,7 @@ pub enum CollectionState {
 /// and in the case of [`StreamIterators`] a wrapper owns self and is wrapped with a Arc and shared
 /// with both the getting it to call some method like `tick()` which will call the predicate with
 /// the result from the main iterator and deliver it to the correct branch.
+#[derive(Display)]
 pub enum BranchPath<L, R> {
     /// indicates no branch gets value and should just get a ignore/skip status.
     SKIP,

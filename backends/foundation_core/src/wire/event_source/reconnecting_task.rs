@@ -230,14 +230,14 @@ where
     type Pending = ReconnectingProgress;
     type Spawner = BoxedSendExecutionAction;
 
-    fn next(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+    fn next_status(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
         let state = self.state.take()?;
 
         match state {
             ReconnectingState::Connected(mut inner) => {
                 trace!(state = "Connected", "Forwarding from inner task");
 
-                match inner.next() {
+                match inner.next_status() {
                     Some(TaskStatus::Ready(parse_result)) => {
                         trace!("Event received from inner task");
                         self.track_event_id(&parse_result);

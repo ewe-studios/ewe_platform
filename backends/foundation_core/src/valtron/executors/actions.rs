@@ -63,7 +63,7 @@ where
     type Ready = T;
     type Spawner = NoAction;
 
-    fn next(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+    fn next_status(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
         self.iter.next().map(TaskStatus::Ready)
     }
 }
@@ -122,7 +122,7 @@ where
     type Ready = D;
     type Spawner = S;
 
-    fn next(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+    fn next_status(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
         // Pass through TaskStatus as-is, preserving semantic meaning
         self.iter.next()
     }
@@ -280,7 +280,7 @@ where
     type Ready = ();
     type Spawner = NoAction;
 
-    fn next(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+    fn next_status(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
         if let Some(closure) = self.closure.take() {
             closure();
             Some(TaskStatus::Ready(()))
@@ -663,7 +663,7 @@ where
     type Ready = ();
     type Spawner = NoAction;
 
-    fn next(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+    fn next_status(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
         if let Some(value) = self.value.take() {
             // Call each callback with a clone
             for callback in self.callbacks.drain(..) {
@@ -808,25 +808,25 @@ mod tests {
         let mut task = WrapTask::new(items.into_iter());
 
         // First item should be Ready(1)
-        match task.next() {
+        match task.next_status() {
             Some(TaskStatus::Ready(1)) => {}
             other => panic!("Expected Ready(1), got {:?}", other),
         }
 
         // Second item should be Ready(2)
-        match task.next() {
+        match task.next_status() {
             Some(TaskStatus::Ready(2)) => {}
             other => panic!("Expected Ready(2), got {:?}", other),
         }
 
         // Third item should be Ready(3)
-        match task.next() {
+        match task.next_status() {
             Some(TaskStatus::Ready(3)) => {}
             other => panic!("Expected Ready(3), got {:?}", other),
         }
 
         // Iterator exhausted
-        assert!(task.next().is_none());
+        assert!(task.next_status().is_none());
     }
 
     /// WHY: WrapAction must wrap plain iterator in ExecutionAction for spawning
@@ -846,10 +846,10 @@ mod tests {
     fn test_wrap_task_with_range() {
         let mut task = WrapTask::new(0..3);
 
-        assert_eq!(task.next(), Some(TaskStatus::Ready(0)));
-        assert_eq!(task.next(), Some(TaskStatus::Ready(1)));
-        assert_eq!(task.next(), Some(TaskStatus::Ready(2)));
-        assert_eq!(task.next(), None);
+        assert_eq!(task.next_status(), Some(TaskStatus::Ready(0)));
+        assert_eq!(task.next_status(), Some(TaskStatus::Ready(1)));
+        assert_eq!(task.next_status(), Some(TaskStatus::Ready(2)));
+        assert_eq!(task.next_status(), None);
     }
 
     // ============================================================================
@@ -863,7 +863,7 @@ mod tests {
         let iter = vec![TaskStatus::<i32, (), NoAction>::Pending(())].into_iter();
         let mut task = LiftTask::new(iter);
 
-        match task.next() {
+        match task.next_status() {
             Some(TaskStatus::Pending(())) => {} // Correct! Not Ready(Pending(()))
             other => panic!("Expected Pending(()), got {:?}", other),
         }
@@ -877,7 +877,7 @@ mod tests {
         let iter = vec![TaskStatus::<i32, (), NoAction>::Delayed(dur)].into_iter();
         let mut task = LiftTask::new(iter);
 
-        match task.next() {
+        match task.next_status() {
             Some(TaskStatus::Delayed(d)) if d == dur => {} // Correct!
             other => panic!("Expected Delayed({:?}), got {:?}", dur, other),
         }
@@ -890,7 +890,7 @@ mod tests {
         let iter = vec![TaskStatus::<i32, (), NoAction>::Ready(42)].into_iter();
         let mut task = LiftTask::new(iter);
 
-        match task.next() {
+        match task.next_status() {
             Some(TaskStatus::Ready(42)) => {} // Correct! Not Ready(Ready(42))
             other => panic!("Expected Ready(42), got {:?}", other),
         }
@@ -911,11 +911,11 @@ mod tests {
 
         let mut task = LiftTask::new(iter);
 
-        assert!(matches!(task.next(), Some(TaskStatus::Pending(()))));
-        assert!(matches!(task.next(), Some(TaskStatus::Delayed(d)) if d == dur));
-        assert!(matches!(task.next(), Some(TaskStatus::Ready(100))));
-        assert!(matches!(task.next(), Some(TaskStatus::Pending(()))));
-        assert!(task.next().is_none());
+        assert!(matches!(task.next_status(), Some(TaskStatus::Pending(()))));
+        assert!(matches!(task.next_status(), Some(TaskStatus::Delayed(d)) if d == dur));
+        assert!(matches!(task.next_status(), Some(TaskStatus::Ready(100))));
+        assert!(matches!(task.next_status(), Some(TaskStatus::Pending(()))));
+        assert!(task.next_status().is_none());
     }
 
     /// WHY: SpawnWithLift must be spawnable with TaskStatus iterators
@@ -942,10 +942,10 @@ mod tests {
         // WrapTask wraps them in Ready
         let mut wrapped = WrapTask::new(plain);
 
-        assert_eq!(wrapped.next(), Some(TaskStatus::Ready(1)));
-        assert_eq!(wrapped.next(), Some(TaskStatus::Ready(2)));
-        assert_eq!(wrapped.next(), Some(TaskStatus::Ready(3)));
-        assert_eq!(wrapped.next(), None);
+        assert_eq!(wrapped.next_status(), Some(TaskStatus::Ready(1)));
+        assert_eq!(wrapped.next_status(), Some(TaskStatus::Ready(2)));
+        assert_eq!(wrapped.next_status(), Some(TaskStatus::Ready(3)));
+        assert_eq!(wrapped.next_status(), None);
     }
 
     /// WHY: LiftTask accepts iterators that ALREADY produce TaskStatus
@@ -963,10 +963,10 @@ mod tests {
         // LiftTask makes it a TaskIterator, forwarding states
         let mut lifted = LiftTask::new(status_iter);
 
-        assert_eq!(lifted.next(), Some(TaskStatus::Ready(1)));
-        assert_eq!(lifted.next(), Some(TaskStatus::Pending(())));
-        assert_eq!(lifted.next(), Some(TaskStatus::Ready(2)));
-        assert_eq!(lifted.next(), None);
+        assert_eq!(lifted.next_status(), Some(TaskStatus::Ready(1)));
+        assert_eq!(lifted.next_status(), Some(TaskStatus::Pending(())));
+        assert_eq!(lifted.next_status(), Some(TaskStatus::Ready(2)));
+        assert_eq!(lifted.next_status(), None);
     }
 
     /// WHY: Composition with wrappers (like TimeoutTask) should preserve states
@@ -982,10 +982,10 @@ mod tests {
         let mut timed = TimeoutTask::new(wrapped, Duration::from_secs(10));
 
         // Should get Ready states through the composition
-        assert_eq!(timed.next(), Some(TaskStatus::Ready(1.into())));
-        assert_eq!(timed.next(), Some(TaskStatus::Ready(2.into())));
-        assert_eq!(timed.next(), Some(TaskStatus::Ready(3.into())));
-        assert!(timed.next().is_none());
+        assert_eq!(timed.next_status(), Some(TaskStatus::Ready(1.into())));
+        assert_eq!(timed.next_status(), Some(TaskStatus::Ready(2.into())));
+        assert_eq!(timed.next_status(), Some(TaskStatus::Ready(3.into())));
+        assert!(timed.next_status().is_none());
     }
 
     /// WHY: The forwarding pattern enables multi-layer composition
@@ -1009,14 +1009,14 @@ mod tests {
         let mut timed = TimeoutTask::new(lifted, Duration::from_secs(10));
 
         // First should be Pending (wrapped in TimeoutState)
-        match timed.next() {
+        match timed.next_status() {
             Some(TaskStatus::Pending(_)) => {} // Correct! TimeoutTask wraps pending
             other => panic!("Expected Pending, got {:?}", other),
         }
 
         // Second should be Ready (forwarded as-is)
-        assert_eq!(timed.next(), Some(TaskStatus::Ready(42.into())));
-        assert!(timed.next().is_none());
+        assert_eq!(timed.next_status(), Some(TaskStatus::Ready(42.into())));
+        assert!(timed.next_status().is_none());
     }
 
     // ============================================================================
@@ -1035,7 +1035,7 @@ mod tests {
         });
 
         // First poll should execute and return Ready
-        match task.next() {
+        match task.next_status() {
             Some(TaskStatus::Ready(())) => {}
             other => panic!("Expected Ready(()), got {:?}", other),
         }
@@ -1043,7 +1043,7 @@ mod tests {
         assert_eq!(*executed.lock().unwrap(), true);
 
         // Task is done, should return None
-        assert!(task.next().is_none());
+        assert!(task.next_status().is_none());
     }
 
     /// WHY: SpawnWithSchedule must create spawnable one-shot tasks
@@ -1071,11 +1071,11 @@ mod tests {
             *counter_clone.lock().unwrap() += 1;
         });
 
-        assert!(task.next().is_some());
+        assert!(task.next_status().is_some());
         assert_eq!(*counter.lock().unwrap(), 1);
 
         // Second poll should return None and not execute again
-        assert!(task.next().is_none());
+        assert!(task.next_status().is_none());
         assert_eq!(*counter.lock().unwrap(), 1);
     }
 
@@ -1104,7 +1104,7 @@ mod tests {
         let mut task = BroadcastTask::new(42, callbacks);
 
         // First poll sends to all receivers
-        match task.next() {
+        match task.next_status() {
             Some(TaskStatus::Ready(())) => {}
             other => panic!("Expected Ready(()), got {:?}", other),
         }
@@ -1114,7 +1114,7 @@ mod tests {
         assert_eq!(*receiver3.lock().unwrap(), Some(42));
 
         // Task is done
-        assert!(task.next().is_none());
+        assert!(task.next_status().is_none());
     }
 
     /// WHY: SpawnWithBroadcast must be spawnable
@@ -1131,8 +1131,8 @@ mod tests {
     fn test_broadcast_task_with_no_callbacks() {
         let mut task = BroadcastTask::new(42, vec![]);
 
-        assert!(task.next().is_some());
-        assert!(task.next().is_none());
+        assert!(task.next_status().is_some());
+        assert!(task.next_status().is_none());
     }
 
     // ============================================================================
