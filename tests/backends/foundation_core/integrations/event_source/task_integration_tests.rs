@@ -52,7 +52,7 @@ fn test_event_source_task_connects_to_server() {
     let mut task = EventSourceTask::connect(resolver, &url).unwrap();
 
     // First call: Init → Connecting, returns Pending(Connecting)
-    let first = task.next();
+    let first = task.next_status();
     assert_eq!(
         first.as_ref().map(|s| match s {
             TaskStatus::Pending(p) => Some(*p),
@@ -63,7 +63,7 @@ fn test_event_source_task_connects_to_server() {
     );
 
     // Second call: Connecting → Reading, returns Pending(Reading)
-    let second = task.next();
+    let second = task.next_status();
     assert_eq!(
         second.as_ref().map(|s| match s {
             TaskStatus::Pending(p) => Some(*p),
@@ -74,7 +74,7 @@ fn test_event_source_task_connects_to_server() {
     );
 
     // Third call: Reading → parse event → Ready(ParseResult)
-    let third = task.next();
+    let third = task.next_status();
     match third {
         Some(TaskStatus::Ready(ParseResult {
             event: Event::Message { data, .. },
@@ -93,7 +93,7 @@ fn test_event_source_task_connects_to_server() {
     }
 
     // Fourth call: stream exhausted → None (Closed)
-    let fourth = task.next();
+    let fourth = task.next_status();
     assert!(fourth.is_none(), "Expected None after stream exhausted");
 }
 
@@ -111,7 +111,7 @@ fn test_event_source_task_dns_resolves_to_server() {
             .unwrap();
 
     // First call: Init → Connecting (pool handles DNS internally)
-    let first = task.next();
+    let first = task.next_status();
     assert_eq!(
         first.as_ref().map(|s| match s {
             TaskStatus::Pending(p) => Some(*p),
@@ -122,7 +122,7 @@ fn test_event_source_task_dns_resolves_to_server() {
     );
 
     // Second call: Connecting → Reading, returns Pending(Reading)
-    let second = task.next();
+    let second = task.next_status();
     assert_eq!(
         second.as_ref().map(|s| match s {
             TaskStatus::Pending(p) => Some(*p),
@@ -133,7 +133,7 @@ fn test_event_source_task_dns_resolves_to_server() {
     );
 
     // Third call: should yield the event
-    let third = task.next();
+    let third = task.next_status();
     match third {
         Some(TaskStatus::Ready(ParseResult {
             event: Event::Message { data, .. },
@@ -160,7 +160,7 @@ fn test_event_source_task_url_with_query() {
     let mut task = EventSourceTask::connect(resolver, &url).unwrap();
 
     // First call: Init → Connecting
-    let first = task.next();
+    let first = task.next_status();
     assert_eq!(
         first.as_ref().map(|s| match s {
             TaskStatus::Pending(p) => Some(*p),
@@ -171,7 +171,7 @@ fn test_event_source_task_url_with_query() {
     );
 
     // Second call: Connecting → Reading
-    let second = task.next();
+    let second = task.next_status();
     assert_eq!(
         second.as_ref().map(|s| match s {
             TaskStatus::Pending(p) => Some(*p),
@@ -182,7 +182,7 @@ fn test_event_source_task_url_with_query() {
     );
 
     // Third call: should receive the event
-    let third = task.next();
+    let third = task.next_status();
     match third {
         Some(TaskStatus::Ready(ParseResult {
             event: Event::Message { data, .. },
@@ -209,7 +209,7 @@ fn test_event_source_task_localhost_url() {
     let mut task = EventSourceTask::connect(resolver, &url).unwrap();
 
     // First call: Init → Connecting
-    let first = task.next();
+    let first = task.next_status();
     assert_eq!(
         first.as_ref().map(|s| match s {
             TaskStatus::Pending(p) => Some(*p),
@@ -220,7 +220,7 @@ fn test_event_source_task_localhost_url() {
     );
 
     // Second call: Connecting → Reading
-    let second = task.next();
+    let second = task.next_status();
     assert_eq!(
         second.as_ref().map(|s| match s {
             TaskStatus::Pending(p) => Some(*p),
@@ -231,7 +231,7 @@ fn test_event_source_task_localhost_url() {
     );
 
     // Third call: should receive the event
-    let third = task.next();
+    let third = task.next_status();
     match third {
         Some(TaskStatus::Ready(ParseResult {
             event: Event::Message { data, .. },
@@ -263,7 +263,7 @@ fn test_event_source_task_connection_refused() {
     .unwrap();
 
     // First call: Init → Connecting, returns Pending(Connecting)
-    let first = task.next();
+    let first = task.next_status();
     assert_eq!(
         first.as_ref().map(|s| match s {
             TaskStatus::Pending(p) => Some(*p),
@@ -274,7 +274,7 @@ fn test_event_source_task_connection_refused() {
     );
 
     // Second call: Connection fails → Closed → None
-    let second = task.next();
+    let second = task.next_status();
     assert!(
         second.is_none(),
         "Connection refused should return None (Closed)"
@@ -297,7 +297,7 @@ fn test_event_source_task_stream_exhaust() {
     let mut got_pending_reading = false;
     let mut got_event = false;
 
-    while let Some(status) = task.next() {
+    while let Some(status) = task.next_status() {
         match status {
             TaskStatus::Pending(EventSourceProgress::Connecting) => {
                 got_pending_connecting = true;
@@ -331,7 +331,7 @@ fn test_event_source_task_stream_exhaust() {
 
     // Task should be exhausted (Closed state is terminal)
     assert!(
-        task.next().is_none(),
+        task.next_status().is_none(),
         "Exhausted task should keep returning None"
     );
 }

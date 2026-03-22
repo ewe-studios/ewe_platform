@@ -102,7 +102,7 @@ fn test_fresh_task_pending_connecting() {
 
     // First next() should return Pending(Connecting) as it tries to connect
     // (connection will fail since port 1 is not listening)
-    let status = task.next();
+    let status = task.next_status();
     assert!(status.is_some(), "should return Some status");
 
     if let Some(TaskStatus::Pending(progress)) = status {
@@ -129,7 +129,7 @@ fn test_failing_connection_eventual_closed() {
 
     while iterations < max_iterations {
         iterations += 1;
-        match task.next() {
+        match task.next_status() {
             None => {
                 got_closed = true;
                 break;

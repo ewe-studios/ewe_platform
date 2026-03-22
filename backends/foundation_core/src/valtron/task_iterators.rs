@@ -33,7 +33,7 @@
 //! - [`super::stream_iterators`] - Contains `StreamIteratorExt` for post-execute combinators
 
 use crate::synca::mpp::Stream;
-use crate::valtron::{ExecutionAction, TaskIterator, TaskStatus};
+use crate::valtron::{branches::CollectionState, ExecutionAction, TaskIterator, TaskStatus};
 use std::sync::Arc;
 
 use concurrent_queue::ConcurrentQueue;
@@ -66,7 +66,7 @@ pub trait TaskIteratorExt: TaskIterator + Sized {
     /// Transform Ready values using the provided function.
     ///
     /// Pending, Delayed, Init, and Spawn states pass through unchanged.
-    fn map_ready<F, R>(self, f: F) -> TMapReady<Self, F>
+    fn map_ready<F, R>(self, f: F) -> TMapReady<Self, R>
     where
         F: Fn(Self::Ready) -> R + Send + 'static,
         R: Send + 'static;
@@ -74,7 +74,7 @@ pub trait TaskIteratorExt: TaskIterator + Sized {
     /// Transform Pending values using the provided function.
     ///
     /// Ready, Delayed, Init, and Spawn states pass through unchanged.
-    fn map_pending<F, R>(self, f: F) -> TMapPending<Self, F>
+    fn map_pending<F, R>(self, f: F) -> TMapPending<Self, R>
     where
         F: Fn(Self::Pending) -> R + Send + 'static,
         R: Send + 'static;
@@ -83,7 +83,7 @@ pub trait TaskIteratorExt: TaskIterator + Sized {
     ///
     /// Non-Ready states pass through unchanged. Ready values that don't
     /// satisfy the predicate are returned as `TaskStatus::Ignore`.
-    fn filter_ready<F>(self, f: F) -> TFilterReady<Self, F>
+    fn filter_ready<F>(self, f: F) -> TFilterReady<Self>
     where
         F: Fn(&Self::Ready) -> bool + Send + 'static;
 
@@ -133,7 +133,7 @@ pub trait TaskIteratorExt: TaskIterator + Sized {
         queue_size: usize,
     ) -> (
         CollectorStreamIterator<Self::Ready, Self::Pending>,
-        SplitCollectorContinuation<Self, P>,
+        SplitCollectorContinuation<Self>,
     )
     where
         Self: Sized,
@@ -157,7 +157,7 @@ pub trait TaskIteratorExt: TaskIterator + Sized {
         predicate: P,
     ) -> (
         CollectorStreamIterator<Self::Ready, Self::Pending>,
-        SplitCollectorContinuation<Self, P>,
+        SplitCollectorContinuation<Self>,
     )
     where
         Self: Sized,
@@ -166,11 +166,11 @@ pub trait TaskIteratorExt: TaskIterator + Sized {
         P: Fn(&Self::Ready) -> bool + Send + 'static;
 
     /// Split the iterator into an observer branch and a continuation branch,
-    /// closing the observer when the predicate is met.
+    /// closing the observer when the predicate returns a close signal.
     ///
-    /// The observer receives a copy of items until the predicate returns true.
-    /// When the predicate is met, that item is sent to the observer and the
-    /// queue is closed (observer completes). The continuation continues forwarding.
+    /// The observer receives a copy of items based on the predicate's returned
+    /// `CollectionState`. The predicate can decide to skip items, collect them,
+    /// or close the observer (with or without collecting the final item).
     ///
     /// ## Type Requirements
     ///
@@ -179,13 +179,13 @@ pub trait TaskIteratorExt: TaskIterator + Sized {
     ///
     /// ## Arguments
     ///
-    /// * `predicate` - Function determining when to close observer (returns true = close)
+    /// * `predicate` - Function returning `CollectionState` to control collection behavior
     /// * `queue_size` - Size of the ConcurrentQueue between branches
     ///
     /// ## Returns
     ///
     /// Tuple of:
-    /// - `SplitUntilObserver` - Observer that receives items until predicate is met
+    /// - `SplitUntilObserver` - Observer that receives items based on CollectionState
     /// - `SplitUntilContinuation` - Continuation that continues the chain
     ///
     /// ## Example
@@ -194,7 +194,10 @@ pub trait TaskIteratorExt: TaskIterator + Sized {
     /// // Observer gets items until first Success, then closes
     /// let (observer, continuation) = send_request_task
     ///     .split_collect_until(
-    ///         |item| matches!(item, RequestIntro::Success { .. }),
+    ///         |item| match item {
+    ///             RequestIntro::Success { .. } => CollectionState::Close(true),
+    ///             _ => CollectionState::Collect,
+    ///         },
     ///         1  // Queue size 1 for immediate delivery
     ///     );
     /// ```
@@ -204,19 +207,23 @@ pub trait TaskIteratorExt: TaskIterator + Sized {
         queue_size: usize,
     ) -> (
         SplitUntilObserver<Self::Ready, Self::Pending>,
-        SplitUntilContinuation<Self, P>,
+        SplitUntilContinuation<Self>,
     )
     where
         Self: Sized,
         Self::Ready: Clone,
         Self::Pending: Clone,
-        P: Fn(&Self::Ready) -> bool + Send + 'static;
+        P: Fn(&Self::Ready) -> CollectionState + Send + 'static;
 
     /// Split the iterator with transformation for observer.
     ///
-    /// Like split_collect_until but observer receives transformed data D (which must be Clone),
+    /// Like `split_collect_until` but observer receives transformed data D (which must be Clone),
     /// while continuation receives original Ready values. Useful when Ready is not Clone
     /// but extractable subset is.
+    ///
+    /// The single closure returns `(CollectionState, Option<D>)`:
+    /// - `CollectionState` controls whether to skip, collect, or close the observer
+    /// - `Option<D>` provides the transformed value (`None` skips sending to observer)
     ///
     /// ## Type Requirements
     ///
@@ -225,8 +232,7 @@ pub trait TaskIteratorExt: TaskIterator + Sized {
     ///
     /// ## Arguments
     ///
-    /// * `predicate` - Function determining when to close observer
-    /// * `transform` - Function to extract D from &Ready (returns None to skip sending to observer)
+    /// * `transform` - Function returning (CollectionState, Option<D>) to control collection and transform
     /// * `queue_size` - Size of the ConcurrentQueue between branches
     ///
     /// ## Returns
@@ -241,26 +247,96 @@ pub trait TaskIteratorExt: TaskIterator + Sized {
     /// // Observer gets RequestIntroData (cloneable), continuation gets full RequestIntro
     /// let (observer, continuation) = send_request_task
     ///     .split_collect_until_map(
-    ///         |item| matches!(item, RequestIntro::Success { .. }),
-    ///         |item| item.to_cloneable_data(),
+    ///         |item| match item {
+    ///             RequestIntro::Success { .. } => (CollectionState::Close(true), item.to_cloneable_data()),
+    ///             _ => (CollectionState::Collect, item.to_cloneable_data()),
+    ///         },
     ///         1
     ///     );
     /// ```
-    fn split_collect_until_map<P, F, D>(
+    fn split_collect_until_map<F, D>(
         self,
-        predicate: P,
         transform: F,
         queue_size: usize,
     ) -> (
         SplitUntilObserverMap<D, Self::Pending>,
-        SplitUntilContinuationMap<Self, P, F, D>,
+        SplitUntilContinuationMap<Self, D>,
     )
     where
         Self: Sized,
         D: Clone + Send + 'static,
         Self::Pending: Clone,
-        P: Fn(&Self::Ready) -> bool + Send + 'static,
-        F: Fn(&Self::Ready) -> Option<D> + Send + 'static;
+        F: Fn(&Self::Ready) -> (CollectionState, Option<D>) + Send + 'static;
+
+    /// Split the iterator into an observer branch and a continuation branch,
+    /// mapping matched Ready values to a different type before sending to the observer.
+    ///
+    /// Like `split_collector` but the observer receives transformed values of type `M`
+    /// instead of cloned `Ready` values. The continuation continues with original `Ready`.
+    /// Useful when `Ready` is not `Clone` but a subset can be extracted.
+    ///
+    /// The single closure returns `(bool, Option<M>)`:
+    /// - `bool` - whether this item matched (true = matched, false = skip)
+    /// - `Option<M>` - the transformed value (`None` skips sending to observer)
+    ///
+    /// ## Type Requirements
+    ///
+    /// - `M` must be `Clone + Send + 'static` (observer gets transformed copy)
+    /// - `Pending` must be `Clone` (observer gets a copy)
+    ///
+    /// ## Arguments
+    ///
+    /// * `transform` - Function returning (bool, Option<M>) to control matching and transform
+    /// * `queue_size` - Size of the ConcurrentQueue between branches
+    ///
+    /// ## Returns
+    ///
+    /// Tuple of:
+    /// - `SplitCollectorMapObserver` - Observer that receives transformed M values
+    /// - `SplitCollectorMapContinuation` - Continuation that continues with original Ready
+    ///
+    /// ## Example
+    ///
+    /// ```ignore
+    /// // Observer gets u64 ids, continuation gets full Item
+    /// let (observer, continuation) = task
+    ///     .split_collector_map(
+    ///         |item| (item.is_important(), Some(item.id())),
+    ///         10
+    ///     );
+    /// ```
+    fn split_collector_map<F, M>(
+        self,
+        transform: F,
+        queue_size: usize,
+    ) -> (
+        SplitCollectorMapObserver<M, Self::Pending>,
+        SplitCollectorMapContinuation<Self, M>,
+    )
+    where
+        Self: Sized,
+        M: Clone + Send + 'static,
+        Self::Pending: Clone,
+        F: Fn(&Self::Ready) -> (bool, Option<M>) + Send + 'static;
+
+    /// Convenience method: split_collector_map with queue_size = 1.
+    ///
+    /// Sends the first matching transformed item to the observer, then continues.
+    fn split_collect_one_map<F, M>(
+        self,
+        transform: F,
+    ) -> (
+        SplitCollectorMapObserver<M, Self::Pending>,
+        SplitCollectorMapContinuation<Self, M>,
+    )
+    where
+        Self: Sized,
+        M: Clone + Send + 'static,
+        Self::Pending: Clone,
+        F: Fn(&Self::Ready) -> (bool, Option<M>) + Send + 'static,
+    {
+        self.split_collector_map(transform, 1)
+    }
 }
 
 // Blanket implementation: anything implementing TaskIterator gets TaskIteratorExt
@@ -271,35 +347,35 @@ where
     I::Pending: Send + 'static,
     I::Spawner: ExecutionAction + Send + 'static,
 {
-    fn map_ready<F, R>(self, f: F) -> TMapReady<Self, F>
+    fn map_ready<F, R>(self, f: F) -> TMapReady<Self, R>
     where
         F: Fn(Self::Ready) -> R + Send + 'static,
         R: Send + 'static,
     {
         TMapReady {
             inner: self,
-            mapper: f,
+            mapper: Box::new(f),
         }
     }
 
-    fn map_pending<F, R>(self, f: F) -> TMapPending<Self, F>
+    fn map_pending<F, R>(self, f: F) -> TMapPending<Self, R>
     where
         F: Fn(Self::Pending) -> R + Send + 'static,
         R: Send + 'static,
     {
         TMapPending {
             inner: self,
-            mapper: f,
+            mapper: Box::new(f),
         }
     }
 
-    fn filter_ready<F>(self, f: F) -> TFilterReady<Self, F>
+    fn filter_ready<F>(self, f: F) -> TFilterReady<Self>
     where
         F: Fn(&Self::Ready) -> bool + Send + 'static,
     {
         TFilterReady {
             inner: self,
-            predicate: f,
+            predicate: Box::new(f),
         }
     }
 
@@ -320,7 +396,7 @@ where
         queue_size: usize,
     ) -> (
         CollectorStreamIterator<Self::Ready, Self::Pending>,
-        SplitCollectorContinuation<Self, P>,
+        SplitCollectorContinuation<Self>,
     )
     where
         Self: Sized,
@@ -336,14 +412,12 @@ where
 
         let observer = CollectorStreamIterator {
             queue: Arc::clone(&queue),
-            _phantom: std::marker::PhantomData,
         };
 
         let continuation = SplitCollectorContinuation {
             inner: self,
             queue,
-            predicate,
-            _phantom: std::marker::PhantomData,
+            predicate: Box::new(predicate),
         };
 
         (observer, continuation)
@@ -354,7 +428,7 @@ where
         predicate: P,
     ) -> (
         CollectorStreamIterator<Self::Ready, Self::Pending>,
-        SplitCollectorContinuation<Self, P>,
+        SplitCollectorContinuation<Self>,
     )
     where
         Self: Sized,
@@ -371,13 +445,13 @@ where
         queue_size: usize,
     ) -> (
         SplitUntilObserver<Self::Ready, Self::Pending>,
-        SplitUntilContinuation<Self, P>,
+        SplitUntilContinuation<Self>,
     )
     where
         Self: Sized,
         Self::Ready: Clone,
         Self::Pending: Clone,
-        P: Fn(&Self::Ready) -> bool + Send + 'static,
+        P: Fn(&Self::Ready) -> CollectionState + Send + 'static,
     {
         let queue = Arc::new(ConcurrentQueue::bounded(queue_size));
         tracing::debug!(
@@ -387,34 +461,30 @@ where
 
         let observer = SplitUntilObserver {
             queue: Arc::clone(&queue),
-            _phantom: std::marker::PhantomData,
         };
 
         let continuation = SplitUntilContinuation {
             inner: self,
             queue,
-            predicate,
-            _phantom: std::marker::PhantomData,
+            predicate: Box::new(predicate),
         };
 
         (observer, continuation)
     }
 
-    fn split_collect_until_map<P, F, D>(
+    fn split_collect_until_map<F, D>(
         self,
-        predicate: P,
         transform: F,
         queue_size: usize,
     ) -> (
         SplitUntilObserverMap<D, Self::Pending>,
-        SplitUntilContinuationMap<Self, P, F, D>,
+        SplitUntilContinuationMap<Self, D>,
     )
     where
         Self: Sized,
         D: Clone + Send + 'static,
         Self::Pending: Clone,
-        P: Fn(&Self::Ready) -> bool + Send + 'static,
-        F: Fn(&Self::Ready) -> Option<D> + Send + 'static,
+        F: Fn(&Self::Ready) -> (CollectionState, Option<D>) + Send + 'static,
     {
         let queue = Arc::new(ConcurrentQueue::bounded(queue_size));
         tracing::debug!(
@@ -424,37 +494,82 @@ where
 
         let observer = SplitUntilObserverMap {
             queue: Arc::clone(&queue),
-            _phantom: std::marker::PhantomData,
         };
 
         let continuation = SplitUntilContinuationMap {
             inner: self,
             queue,
-            predicate,
-            transform,
-            _phantom: std::marker::PhantomData,
+            transform: Box::new(transform),
         };
 
         (observer, continuation)
     }
+
+    fn split_collector_map<F, M>(
+        self,
+        transform: F,
+        queue_size: usize,
+    ) -> (
+        SplitCollectorMapObserver<M, Self::Pending>,
+        SplitCollectorMapContinuation<Self, M>,
+    )
+    where
+        Self: Sized,
+        M: Clone + Send + 'static,
+        Self::Pending: Clone,
+        F: Fn(&Self::Ready) -> (bool, Option<M>) + Send + 'static,
+    {
+        let queue = Arc::new(ConcurrentQueue::bounded(queue_size));
+        tracing::debug!(
+            "split_collector_map: creating observer and continuation with queue_size={}",
+            queue_size
+        );
+
+        let observer = SplitCollectorMapObserver {
+            queue: Arc::clone(&queue),
+        };
+
+        let continuation = SplitCollectorMapContinuation {
+            inner: self,
+            queue,
+            transform: Box::new(transform),
+        };
+
+        (observer, continuation)
+    }
+
+    fn split_collect_one_map<F, M>(
+        self,
+        transform: F,
+    ) -> (
+        SplitCollectorMapObserver<M, Self::Pending>,
+        SplitCollectorMapContinuation<Self, M>,
+    )
+    where
+        Self: Sized,
+        M: Clone + Send + 'static,
+        Self::Pending: Clone,
+        F: Fn(&Self::Ready) -> (bool, Option<M>) + Send + 'static,
+    {
+        self.split_collector_map(transform, 1)
+    }
 }
 
 /// Wrapper type that transforms Ready values.
-pub struct TMapReady<I, F> {
+pub struct TMapReady<I: TaskIterator, R> {
     inner: I,
-    mapper: F,
+    mapper: Box<dyn Fn(I::Ready) -> R + Send>,
 }
 
-impl<I, F, R> Iterator for TMapReady<I, F>
+impl<I, R> Iterator for TMapReady<I, R>
 where
     I: TaskIterator,
-    F: Fn(I::Ready) -> R + Send + 'static,
     R: Send + 'static,
 {
     type Item = TaskStatus<R, I::Pending, I::Spawner>;
 
     fn next(&mut self) -> Option<Self::Item> {
-        self.inner.next().map(|status| match status {
+        self.inner.next_status().map(|status| match status {
             TaskStatus::Ready(v) => TaskStatus::Ready((self.mapper)(v)),
             TaskStatus::Pending(v) => TaskStatus::Pending(v),
             TaskStatus::Delayed(d) => TaskStatus::Delayed(d),
@@ -465,37 +580,35 @@ where
     }
 }
 
-impl<I, F, R> TaskIterator for TMapReady<I, F>
+impl<I, R> TaskIterator for TMapReady<I, R>
 where
     I: TaskIterator,
-    F: Fn(I::Ready) -> R + Send + 'static,
     R: Send + 'static,
 {
     type Ready = R;
     type Pending = I::Pending;
     type Spawner = I::Spawner;
 
-    fn next(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+    fn next_status(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
         Iterator::next(self)
     }
 }
 
 /// Wrapper type that transforms Pending values.
-pub struct TMapPending<I, F> {
+pub struct TMapPending<I: TaskIterator, R> {
     inner: I,
-    mapper: F,
+    mapper: Box<dyn Fn(I::Pending) -> R + Send>,
 }
 
-impl<I, F, R> Iterator for TMapPending<I, F>
+impl<I, R> Iterator for TMapPending<I, R>
 where
     I: TaskIterator,
-    F: Fn(I::Pending) -> R + Send + 'static,
     R: Send + 'static,
 {
     type Item = TaskStatus<I::Ready, R, I::Spawner>;
 
     fn next(&mut self) -> Option<Self::Item> {
-        self.inner.next().map(|status| match status {
+        self.inner.next_status().map(|status| match status {
             TaskStatus::Ready(v) => TaskStatus::Ready(v),
             TaskStatus::Pending(v) => TaskStatus::Pending((self.mapper)(v)),
             TaskStatus::Delayed(d) => TaskStatus::Delayed(d),
@@ -506,17 +619,16 @@ where
     }
 }
 
-impl<I, F, R> TaskIterator for TMapPending<I, F>
+impl<I, R> TaskIterator for TMapPending<I, R>
 where
     I: TaskIterator,
-    F: Fn(I::Pending) -> R + Send + 'static,
     R: Send + 'static,
 {
     type Ready = I::Ready;
     type Pending = R;
     type Spawner = I::Spawner;
 
-    fn next(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+    fn next_status(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
         Iterator::next(self)
     }
 }
@@ -524,20 +636,19 @@ where
 /// Wrapper type that filters Ready values.
 ///
 /// Filtered-out Ready values are returned as `TaskStatus::Ignore` to avoid blocking.
-pub struct TFilterReady<I, F> {
+pub struct TFilterReady<I: TaskIterator> {
     inner: I,
-    predicate: F,
+    predicate: Box<dyn Fn(&I::Ready) -> bool + Send>,
 }
 
-impl<I, F> Iterator for TFilterReady<I, F>
+impl<I> Iterator for TFilterReady<I>
 where
     I: TaskIterator,
-    F: Fn(&I::Ready) -> bool + Send + 'static,
 {
     type Item = TaskStatus<I::Ready, I::Pending, I::Spawner>;
 
     fn next(&mut self) -> Option<Self::Item> {
-        let status = self.inner.next()?;
+        let status = self.inner.next_status()?;
         match &status {
             TaskStatus::Ready(v) => {
                 if (self.predicate)(v) {
@@ -551,16 +662,15 @@ where
     }
 }
 
-impl<I, F> TaskIterator for TFilterReady<I, F>
+impl<I> TaskIterator for TFilterReady<I>
 where
     I: TaskIterator,
-    F: Fn(&I::Ready) -> bool + Send + 'static,
 {
     type Ready = I::Ready;
     type Pending = I::Pending;
     type Spawner = I::Spawner;
 
-    fn next(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+    fn next_status(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
         Iterator::next(self)
     }
 }
@@ -590,7 +700,7 @@ where
             return None;
         }
 
-        match self.inner.next() {
+        match self.inner.next_status() {
             Some(TaskStatus::Ready(value)) => {
                 self.collected.push(value);
                 // Keep collecting, return Ignore to signal collected but continue
@@ -620,7 +730,7 @@ where
     type Pending = I::Pending;
     type Spawner = I::Spawner;
 
-    fn next(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+    fn next_status(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
         Iterator::next(self)
     }
 }
@@ -636,7 +746,6 @@ where
 pub struct CollectorStreamIterator<D, P> {
     /// Shared queue receiving copied items from the splitter
     queue: Arc<ConcurrentQueue<Stream<D, P>>>,
-    _phantom: std::marker::PhantomData<(D, P)>,
 }
 
 impl<D, P> Iterator for CollectorStreamIterator<D, P>
@@ -685,30 +794,25 @@ where
 ///
 /// Wraps the original iterator, copying matched items to the observer queue
 /// while continuing the chain for further combinators.
-pub struct SplitCollectorContinuation<I, P>
-where
-    I: TaskIterator,
-{
+pub struct SplitCollectorContinuation<I: TaskIterator> {
     /// The wrapped iterator
     inner: I,
     /// Queue to send copied items to observer
     queue: Arc<ConcurrentQueue<Stream<I::Ready, I::Pending>>>,
     /// Predicate to determine which items to copy
-    predicate: P,
-    _phantom: std::marker::PhantomData<P>,
+    predicate: Box<dyn Fn(&I::Ready) -> bool + Send>,
 }
 
-impl<I, P> Iterator for SplitCollectorContinuation<I, P>
+impl<I> Iterator for SplitCollectorContinuation<I>
 where
     I: TaskIterator,
     I::Ready: Clone,
     I::Pending: Clone,
-    P: Fn(&I::Ready) -> bool,
 {
     type Item = TaskStatus<I::Ready, I::Pending, I::Spawner>;
 
     fn next(&mut self) -> Option<Self::Item> {
-        let item = match self.inner.next() {
+        let item = match self.inner.next_status() {
             Some(item) => item,
             None => {
                 // Source iterator is naturally exhausted, close the queue
@@ -737,23 +841,22 @@ where
     }
 }
 
-impl<I, P> TaskIterator for SplitCollectorContinuation<I, P>
+impl<I> TaskIterator for SplitCollectorContinuation<I>
 where
     I: TaskIterator,
     I::Ready: Clone,
     I::Pending: Clone,
-    P: Fn(&I::Ready) -> bool,
 {
     type Ready = I::Ready;
     type Pending = I::Pending;
     type Spawner = I::Spawner;
 
-    fn next(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+    fn next_status(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
         Iterator::next(self)
     }
 }
 
-impl<I, P> Drop for SplitCollectorContinuation<I, P>
+impl<I> Drop for SplitCollectorContinuation<I>
 where
     I: TaskIterator,
 {
@@ -775,7 +878,6 @@ where
 pub struct SplitUntilObserver<D, P> {
     /// Shared queue receiving copied items from the splitter
     queue: Arc<ConcurrentQueue<Stream<D, P>>>,
-    _phantom: std::marker::PhantomData<(D, P)>,
 }
 
 impl<D, P> Iterator for SplitUntilObserver<D, P>
@@ -822,30 +924,25 @@ where
 /// Wraps the original iterator, copying items to the observer queue
 /// until the predicate is met. When predicate returns true, that item
 /// is sent and the queue is closed (observer completes).
-pub struct SplitUntilContinuation<I, P>
-where
-    I: TaskIterator,
-{
+pub struct SplitUntilContinuation<I: TaskIterator> {
     /// The wrapped iterator
     inner: I,
     /// Queue to send copied items to observer
     queue: Arc<ConcurrentQueue<Stream<I::Ready, I::Pending>>>,
     /// Predicate to determine when to close observer
-    predicate: P,
-    _phantom: std::marker::PhantomData<P>,
+    predicate: Box<dyn Fn(&I::Ready) -> CollectionState + Send>,
 }
 
-impl<I, P> Iterator for SplitUntilContinuation<I, P>
+impl<I> Iterator for SplitUntilContinuation<I>
 where
     I: TaskIterator,
     I::Ready: Clone,
     I::Pending: Clone,
-    P: Fn(&I::Ready) -> bool,
 {
     type Item = TaskStatus<I::Ready, I::Pending, I::Spawner>;
 
     fn next(&mut self) -> Option<Self::Item> {
-        let item = match self.inner.next() {
+        let item = match self.inner.next_status() {
             Some(item) => item,
             None => {
                 // Source iterator is naturally exhausted, close the queue
@@ -855,20 +952,42 @@ where
             }
         };
 
-        // Copy items to observer queue until predicate is met
+        // Handle items based on CollectionState from predicate
         if let TaskStatus::Ready(value) = &item {
-            if (self.predicate)(value) {
-                let stream_item = Stream::Next(value.clone());
-                if let Err(e) = self.queue.force_push(stream_item) {
-                    tracing::error!("SplitUntilContinuation: failed to push to queue: {}", e);
-                } else {
-                    tracing::trace!("SplitUntilContinuation: predicate met, sending item and closing observer queue");
+            match (self.predicate)(value) {
+                CollectionState::Skip => {
+                    // Skip this item - don't send to observer
+                    tracing::trace!(
+                        "SplitUntilContinuation: skipping item (CollectionState::Skip)"
+                    );
                 }
-                // Close the queue after sending the matching item
-                self.queue.close();
-                tracing::debug!(
-                    "SplitUntilContinuation: observer queue closed after predicate met"
-                );
+                CollectionState::Collect => {
+                    // Collect this item for the observer
+                    let stream_item = Stream::Next(value.clone());
+                    if let Err(e) = self.queue.force_push(stream_item) {
+                        tracing::error!("SplitUntilContinuation: failed to push to queue: {}", e);
+                    } else {
+                        tracing::trace!("SplitUntilContinuation: collected item for observer");
+                    }
+                }
+                CollectionState::Close(collect_this) => {
+                    // Close the observer after optionally collecting this item
+                    if collect_this {
+                        let stream_item = Stream::Next(value.clone());
+                        if let Err(e) = self.queue.force_push(stream_item) {
+                            tracing::error!(
+                                "SplitUntilContinuation: failed to push to queue: {}",
+                                e
+                            );
+                        } else {
+                            tracing::trace!("SplitUntilContinuation: collecting final item and closing observer queue");
+                        }
+                    } else {
+                        tracing::trace!("SplitUntilContinuation: closing observer queue without collecting final item");
+                    }
+                    self.queue.close();
+                    tracing::debug!("SplitUntilContinuation: observer queue closed after CollectionState::Close");
+                }
             }
         }
 
@@ -877,23 +996,22 @@ where
     }
 }
 
-impl<I, P> TaskIterator for SplitUntilContinuation<I, P>
+impl<I> TaskIterator for SplitUntilContinuation<I>
 where
     I: TaskIterator,
     I::Ready: Clone,
     I::Pending: Clone,
-    P: Fn(&I::Ready) -> bool,
 {
     type Ready = I::Ready;
     type Pending = I::Pending;
     type Spawner = I::Spawner;
 
-    fn next(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+    fn next_status(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
         Iterator::next(self)
     }
 }
 
-impl<I, P> Drop for SplitUntilContinuation<I, P>
+impl<I> Drop for SplitUntilContinuation<I>
 where
     I: TaskIterator,
 {
@@ -917,7 +1035,6 @@ where
 pub struct SplitUntilObserverMap<D, P> {
     /// Shared queue receiving transformed copied items from the splitter
     queue: Arc<ConcurrentQueue<Stream<D, P>>>,
-    _phantom: std::marker::PhantomData<(D, P)>,
 }
 
 impl<D, P> Iterator for SplitUntilObserverMap<D, P>
@@ -961,36 +1078,28 @@ where
 
 /// Continuation branch from split_collect_until_map().
 ///
-/// Wraps the original iterator, transforming and copying items to the observer queue
-/// until the predicate is met. When predicate returns true, that item
-/// is transformed, sent, and the queue is closed (observer completes).
-pub struct SplitUntilContinuationMap<I, P, F, D>
-where
-    I: TaskIterator,
-{
+/// Wraps the original iterator. The transform function returns
+/// `(CollectionState, Option<D>)` to control both collection behavior and transformation.
+/// The continuation continues with original Ready values unchanged.
+pub struct SplitUntilContinuationMap<I: TaskIterator, D> {
     /// The wrapped iterator
     inner: I,
     /// Queue to send transformed copied items to observer
     queue: Arc<ConcurrentQueue<Stream<D, I::Pending>>>,
-    /// Predicate to determine when to close observer
-    predicate: P,
-    /// Transform function to extract D from &Ready
-    transform: F,
-    _phantom: std::marker::PhantomData<(P, F, D)>,
+    /// Combined predicate + transform function
+    transform: Box<dyn Fn(&I::Ready) -> (CollectionState, Option<D>) + Send>,
 }
 
-impl<I, P, F, D> Iterator for SplitUntilContinuationMap<I, P, F, D>
+impl<I, D> Iterator for SplitUntilContinuationMap<I, D>
 where
     I: TaskIterator,
     I::Pending: Clone,
     D: Clone + Send + 'static,
-    P: Fn(&I::Ready) -> bool,
-    F: Fn(&I::Ready) -> Option<D>,
 {
     type Item = TaskStatus<I::Ready, I::Pending, I::Spawner>;
 
     fn next(&mut self) -> Option<Self::Item> {
-        let item = match self.inner.next() {
+        let item = match self.inner.next_status() {
             Some(item) => item,
             None => {
                 // Source iterator is naturally exhausted, close the queue
@@ -1000,26 +1109,50 @@ where
             }
         };
 
-        // Transform and copy items to observer queue until predicate is met
+        // Handle items based on (CollectionState, Option<D>) from transform
         if let TaskStatus::Ready(value) = &item {
-            if (self.predicate)(value) {
-                // Try to transform the value
-                if let Some(transformed) = (self.transform)(value) {
-                    let stream_item = Stream::Next(transformed);
-                    if let Err(e) = self.queue.force_push(stream_item) {
-                        tracing::error!(
-                            "SplitUntilContinuationMap: failed to push to queue: {}",
-                            e
-                        );
-                    } else {
-                        tracing::trace!("SplitUntilContinuationMap: predicate met, sending transformed item and closing observer queue");
+            let (state, transformed) = (self.transform)(value);
+            match state {
+                CollectionState::Skip => {
+                    // Skip this item - don't send to observer
+                    tracing::trace!(
+                        "SplitUntilContinuationMap: skipping item (CollectionState::Skip)"
+                    );
+                }
+                CollectionState::Collect => {
+                    // Collect this item for the observer (with transformation)
+                    if let Some(transformed) = transformed {
+                        let stream_item = Stream::Next(transformed);
+                        if let Err(e) = self.queue.force_push(stream_item) {
+                            tracing::error!(
+                                "SplitUntilContinuationMap: failed to push to queue: {}",
+                                e
+                            );
+                        } else {
+                            tracing::trace!("SplitUntilContinuationMap: collected transformed item for observer");
+                        }
                     }
                 }
-                // Close the queue after sending (or attempting to send) the matching item
-                self.queue.close();
-                tracing::debug!(
-                    "SplitUntilContinuationMap: observer queue closed after predicate met"
-                );
+                CollectionState::Close(collect_this) => {
+                    // Close the observer after optionally collecting this item
+                    if collect_this {
+                        if let Some(transformed) = transformed {
+                            let stream_item = Stream::Next(transformed);
+                            if let Err(e) = self.queue.force_push(stream_item) {
+                                tracing::error!(
+                                    "SplitUntilContinuationMap: failed to push to queue: {}",
+                                    e
+                                );
+                            } else {
+                                tracing::trace!("SplitUntilContinuationMap: collecting final transformed item and closing observer queue");
+                            }
+                        }
+                    } else {
+                        tracing::trace!("SplitUntilContinuationMap: closing observer queue without collecting final item");
+                    }
+                    self.queue.close();
+                    tracing::debug!("SplitUntilContinuationMap: observer queue closed after CollectionState::Close");
+                }
             }
         }
 
@@ -1028,24 +1161,22 @@ where
     }
 }
 
-impl<I, P, F, D> TaskIterator for SplitUntilContinuationMap<I, P, F, D>
+impl<I, D> TaskIterator for SplitUntilContinuationMap<I, D>
 where
     I: TaskIterator,
     I::Pending: Clone,
     D: Clone + Send + 'static,
-    P: Fn(&I::Ready) -> bool,
-    F: Fn(&I::Ready) -> Option<D>,
 {
     type Ready = I::Ready;
     type Pending = I::Pending;
     type Spawner = I::Spawner;
 
-    fn next(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+    fn next_status(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
         Iterator::next(self)
     }
 }
 
-impl<I, P, F, D> Drop for SplitUntilContinuationMap<I, P, F, D>
+impl<I, D> Drop for SplitUntilContinuationMap<I, D>
 where
     I: TaskIterator,
 {
@@ -1053,6 +1184,143 @@ where
         // Close the queue as backup if not already closed
         if !self.queue.is_closed() {
             tracing::debug!("SplitUntilContinuationMap: dropped before completion, closing queue");
+            self.queue.close();
+        }
+    }
+}
+
+// ============================================================================
+// Split Collector Map Combinator
+// ============================================================================
+
+/// Observer branch from split_collector_map().
+///
+/// Receives transformed copies of matched Ready items via a ConcurrentQueue.
+/// The observer yields `Stream<M, P>` where M is the mapped type from the transform function.
+pub struct SplitCollectorMapObserver<M, P> {
+    /// Shared queue receiving transformed items from the continuation
+    queue: Arc<ConcurrentQueue<Stream<M, P>>>,
+}
+
+impl<M, P> Iterator for SplitCollectorMapObserver<M, P>
+where
+    M: Clone + Send + 'static,
+    P: Clone + Send + 'static,
+{
+    type Item = Stream<M, P>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        match self.queue.pop() {
+            Ok(item) => {
+                tracing::trace!("SplitCollectorMapObserver: received item from queue");
+                Some(item)
+            }
+            Err(concurrent_queue::PopError::Empty) => {
+                if self.queue.is_closed() {
+                    tracing::debug!("SplitCollectorMapObserver: queue closed, returning None");
+                    None
+                } else {
+                    tracing::trace!(
+                        "SplitCollectorMapObserver: queue empty but not closed, returning Ignore"
+                    );
+                    Some(Stream::Ignore)
+                }
+            }
+            Err(concurrent_queue::PopError::Closed) => {
+                tracing::debug!("SplitCollectorMapObserver: queue closed, returning None");
+                None
+            }
+        }
+    }
+}
+
+impl<M, P> crate::synca::mpp::StreamIterator<M, P> for SplitCollectorMapObserver<M, P>
+where
+    M: Clone + Send + 'static,
+    P: Clone + Send + 'static,
+{
+}
+
+/// Continuation branch from split_collector_map().
+///
+/// Wraps the original iterator. The transform function returns `(bool, Option<M>)`:
+/// - `true` + `Some(m)` sends `m` to the observer queue
+/// - `false` or `None` skips sending to observer
+/// The continuation continues with original Ready values unchanged.
+pub struct SplitCollectorMapContinuation<I: TaskIterator, M> {
+    /// The wrapped iterator
+    inner: I,
+    /// Queue to send transformed items to observer
+    queue: Arc<ConcurrentQueue<Stream<M, I::Pending>>>,
+    /// Combined predicate + transform function
+    transform: Box<dyn Fn(&I::Ready) -> (bool, Option<M>) + Send>,
+}
+
+impl<I, M> Iterator for SplitCollectorMapContinuation<I, M>
+where
+    I: TaskIterator,
+    I::Pending: Clone,
+    M: Clone + Send + 'static,
+{
+    type Item = TaskStatus<I::Ready, I::Pending, I::Spawner>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        let item = match self.inner.next_status() {
+            Some(item) => item,
+            None => {
+                self.queue.close();
+                tracing::debug!("SplitCollectorMapContinuation: source exhausted, queue closed");
+                return None;
+            }
+        };
+
+        if let TaskStatus::Ready(value) = &item {
+            let (matched, transformed) = (self.transform)(value);
+            if matched {
+                if let Some(transformed) = transformed {
+                    let stream_item = Stream::Next(transformed);
+                    if let Err(e) = self.queue.force_push(stream_item) {
+                        tracing::error!(
+                            "SplitCollectorMapContinuation: failed to push to queue: {}",
+                            e
+                        );
+                    } else {
+                        tracing::trace!(
+                            "SplitCollectorMapContinuation: copied transformed item to observer queue"
+                        );
+                    }
+                }
+            }
+        }
+
+        Some(item)
+    }
+}
+
+impl<I, M> TaskIterator for SplitCollectorMapContinuation<I, M>
+where
+    I: TaskIterator,
+    I::Pending: Clone,
+    M: Clone + Send + 'static,
+{
+    type Ready = I::Ready;
+    type Pending = I::Pending;
+    type Spawner = I::Spawner;
+
+    fn next_status(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+        Iterator::next(self)
+    }
+}
+
+impl<I, M> Drop for SplitCollectorMapContinuation<I, M>
+where
+    I: TaskIterator,
+{
+    fn drop(&mut self) {
+        if !self.queue.is_closed() {
+            tracing::debug!(
+                "SplitCollectorMapContinuation: dropped before completion, closing queue"
+            );
             self.queue.close();
         }
     }
@@ -1086,7 +1354,7 @@ mod tests {
         type Pending = String;
         type Spawner = crate::valtron::NoAction;
 
-        fn next(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+        fn next_status(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
             Iterator::next(self)
         }
     }
@@ -1140,6 +1408,84 @@ mod tests {
         assert_eq!(Iterator::next(&mut filtered), Some(TaskStatus::Ready(10)));
         assert_eq!(Iterator::next(&mut filtered), Some(TaskStatus::Ignore)); // 3 was filtered out
         assert_eq!(Iterator::next(&mut filtered), None);
+    }
+
+    #[test]
+    fn test_split_collector_map_sends_transformed_items() {
+        let items = vec![
+            TaskStatus::Pending("wait".to_string()),
+            TaskStatus::Ready(10),
+            TaskStatus::Ready(3),
+            TaskStatus::Ready(20),
+        ];
+        let task = TestTask::new(items);
+
+        // Observer gets string representations of items > 5
+        let (observer, mut continuation) =
+            task.split_collector_map(|x| (*x > 5, Some(format!("val:{}", x))), 10);
+
+        // Drive the continuation to completion
+        while Iterator::next(&mut continuation).is_some() {}
+
+        // Observer should have transformed items
+        let collected: Vec<_> = observer
+            .filter_map(|item| match item {
+                Stream::Next(v) => Some(v),
+                _ => None,
+            })
+            .collect();
+
+        assert_eq!(collected.len(), 2);
+        assert!(collected.contains(&"val:20".to_string()));
+        assert!(collected.contains(&"val:10".to_string()));
+    }
+
+    #[test]
+    fn test_split_collector_map_transform_returns_none_skips() {
+        let items = vec![TaskStatus::Ready(10), TaskStatus::Ready(5)];
+        let task = TestTask::new(items);
+
+        // Matched but transform returns None for odd numbers → skipped
+        let (observer, mut continuation) = task.split_collector_map(
+            |x| (true, if x % 2 == 0 { Some(*x as u64) } else { None }),
+            10,
+        );
+
+        while Iterator::next(&mut continuation).is_some() {}
+
+        let collected: Vec<_> = observer
+            .filter_map(|item| match item {
+                Stream::Next(v) => Some(v),
+                _ => None,
+            })
+            .collect();
+
+        assert_eq!(collected, vec![10u64]);
+    }
+
+    #[test]
+    fn test_split_collect_one_map() {
+        let items = vec![
+            TaskStatus::Ready(3),
+            TaskStatus::Ready(10),
+            TaskStatus::Ready(20),
+        ];
+        let task = TestTask::new(items);
+
+        let (observer, mut continuation) =
+            task.split_collect_one_map(|x| (*x > 5, Some(x.to_string())));
+
+        while Iterator::next(&mut continuation).is_some() {}
+
+        let collected: Vec<_> = observer
+            .filter_map(|item| match item {
+                Stream::Next(v) => Some(v),
+                _ => None,
+            })
+            .collect();
+
+        // Queue size 1, so only first match gets through
+        assert_eq!(collected.len(), 1);
     }
 
     #[test]

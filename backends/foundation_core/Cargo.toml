@@ -19,7 +19,7 @@ foundation_nostd = {workspace = true }
 
 # -- Other dependencies
 futures-core = { version = "0.3", default-features = false }
-derive_more = { version = "2.0", features = ["from", "debug", "error"] }
+derive_more = { version = "2.0", features = ["from", "debug", "error", "display"] }
 serde = { version = "1", features = ["derive"] }
 concurrent-queue = { version = "2.5.0" }
 toml_datetime = { version = "0.7" }

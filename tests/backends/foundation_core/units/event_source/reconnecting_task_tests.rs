@@ -68,14 +68,14 @@ fn test_reconnecting_task_exhausts_after_max_retries() {
 
     // Drive the task until it exhausts
     let mut steps = 0;
-    while task.next().is_some() {
+    while task.next_status().is_some() {
         steps += 1;
         // Safety: prevent infinite loop
         assert!(steps < 100, "Task did not exhaust within 100 steps");
     }
 
     // Should be exhausted now
-    assert!(task.next().is_none(), "Task should stay exhausted");
+    assert!(task.next_status().is_none(), "Task should stay exhausted");
 }
 
 /// WHY: When DNS has no configured response, initial connection fails.
@@ -93,7 +93,7 @@ fn test_reconnecting_task_attempts_reconnection_on_failure() {
     let mut saw_delayed = false;
     let mut steps = 0;
 
-    while let Some(status) = task.next() {
+    while let Some(status) = task.next_status() {
         match status {
             foundation_core::valtron::TaskStatus::Delayed(_) => {
                 saw_delayed = true;

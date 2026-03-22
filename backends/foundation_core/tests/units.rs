@@ -252,7 +252,7 @@ impl TaskIterator for CounterTask {
     type Pending = u32;
     type Spawner = foundation_core::valtron::NoAction;
 
-    fn next(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+    fn next_status(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
         Iterator::next(self)
     }
 }
@@ -473,7 +473,7 @@ impl TaskIterator for SplitTestTask {
     type Pending = String;
     type Spawner = foundation_core::valtron::NoAction;
 
-    fn next(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+    fn next_status(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
         Iterator::next(self)
     }
 }
@@ -491,8 +491,7 @@ fn test_split_collector_observer_receives_matched_items() {
     ]);
 
     // Split: observer gets values > 7
-    let (mut observer, mut continuation) =
-        task.split_collector(|v| *v > 7, 10);
+    let (mut observer, mut continuation) = task.split_collector(|v| *v > 7, 10);
 
     // Continuation should produce all original values
     let mut continuation_values = Vec::new();
@@ -632,11 +631,7 @@ use foundation_core::valtron::StreamIteratorExt;
 #[test]
 fn test_stream_split_collector_observer_receives_matched_items() {
     // Create stream that produces: Next(5), Next(10), Next(15)
-    let stream = TestStream::new(vec![
-        Stream::Next(5),
-        Stream::Next(10),
-        Stream::Next(15),
-    ]);
+    let stream = TestStream::new(vec![Stream::Next(5), Stream::Next(10), Stream::Next(15)]);
 
     // Split: observer gets values > 7
     let (mut observer, continuation) =
@@ -679,7 +674,8 @@ fn test_stream_split_collect_one_first_match() {
     ]);
 
     // Split: observer gets first value > 2
-    let (mut observer, mut continuation) = stream.split_collect_one(|s| matches!(s, Stream::Next(v) if *v > 2));
+    let (mut observer, mut continuation) =
+        stream.split_collect_one(|s| matches!(s, Stream::Next(v) if *v > 2));
 
     // Continuation produces all original values
     let mut continuation_values = Vec::new();

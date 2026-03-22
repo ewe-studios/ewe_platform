@@ -2168,7 +2168,7 @@ mod test_local_thread_executor {
         type Spawner = NoSpawner;
         type Pending = time::Duration;
 
-        fn next(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+        fn next_status(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
             let old_count = self.1;
             let new_count = old_count + 1;
             self.1 = new_count;
@@ -2205,7 +2205,7 @@ mod test_local_thread_executor {
         type Pending = ();
         type Spawner = BoxedSendExecutionAction;
 
-        fn next(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+        fn next_status(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
             match self.1.take() {
                 Some(val) => match val {
                     ListItemInner::List(mut items) => {
@@ -3066,7 +3066,7 @@ mod test_local_thread_executor {
         type Pending = ();
         type Spawner = DaemonSpawner;
 
-        fn next(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+        fn next_status(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
             let current = self.0.load(Ordering::SeqCst);
             println!("Current state: {:?}", current);
             if current == 0 {
@@ -3101,7 +3101,7 @@ mod test_local_thread_executor {
         type Pending = ();
         type Spawner = NoSpawner;
 
-        fn next(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+        fn next_status(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
             let old_count = self.1;
             let new_count = old_count + 1;
             self.1 = new_count;

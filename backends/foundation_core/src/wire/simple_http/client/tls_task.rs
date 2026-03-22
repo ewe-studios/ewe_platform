@@ -124,7 +124,7 @@ impl TaskIterator for TlsHandshakeTask {
     type Ready = ();
     type Spawner = NoAction;
 
-    fn next(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+    fn next_status(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
         match self.state {
             TlsHandshakeState::Init => {
                 // Validate we have a connection

@@ -72,7 +72,7 @@ where
     type Spawner = BoxedSendExecutionAction;
     type Ready = super::HttpStreamReady;
 
-    fn next(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+    fn next_status(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
         match self.0.take()? {
             HttpOperationState::Init => {
                 if self.1.request.is_none() {
