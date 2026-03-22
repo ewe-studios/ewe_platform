@@ -1,3 +1,4 @@
+mod branches;
 mod drain;
 mod executors;
 mod funcs;
@@ -12,6 +13,7 @@ mod types;
 pub mod delayed_iterators;
 pub mod multi_iterator;
 
+pub use branches::*;
 pub use drain::*;
 pub use executors::*;
 pub use funcs::*;
