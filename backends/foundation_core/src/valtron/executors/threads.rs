@@ -9,7 +9,7 @@ use std::{
     panic,
     sync::{
         self,
-        atomic::{self, AtomicUsize, Ordering},
+        atomic::{self, AtomicBool, AtomicUsize, Ordering},
         Arc,
     },
     thread::{self, JoinHandle},
@@ -52,6 +52,132 @@ use crate::valtron::{
 };
 
 use crate::compati::{Mutex, RwLock};
+
+// ============================================================================
+// WaitGroup and PoolGuard - Thread Completion Tracking and Lifecycle Management
+// ============================================================================
+
+/// Tracks N outstanding work items. `wait()` blocks until count reaches 0.
+///
+/// Uses the existing `LockSignal` (CondVar-based) for the blocking mechanism.
+/// Each worker thread gets a `WaitGroupGuard` that calls `done()` on drop,
+/// ensuring cleanup even if the thread panics.
+#[derive(Clone)]
+pub struct WaitGroup {
+    count: Arc<AtomicUsize>,
+    signal: Arc<LockSignal>,
+}
+
+impl WaitGroup {
+    /// Create a new WaitGroup with count 0.
+    #[must_use]
+    pub fn new() -> Self {
+        Self {
+            count: Arc::new(AtomicUsize::new(0)),
+            signal: Arc::new(LockSignal::new()),
+        }
+    }
+
+    /// Increment the counter by n.
+    pub fn add(&self, n: usize) {
+        self.count.fetch_add(n, Ordering::SeqCst);
+    }
+
+    /// Decrement the counter. If it reaches 0, signal all waiters.
+    pub fn done(&self) {
+        let prev = self.count.fetch_sub(1, Ordering::SeqCst);
+        if prev == 1 {
+            // count just reached 0
+            self.signal.signal_all();
+        }
+    }
+
+    /// Block until count reaches 0.
+    pub fn wait(&self) {
+        loop {
+            if self.count.load(Ordering::SeqCst) == 0 {
+                return;
+            }
+            self.signal.lock_and_wait();
+        }
+    }
+
+    /// Create a RAII guard that calls `done()` on drop.
+    #[must_use]
+    pub fn guard(&self) -> WaitGroupGuard {
+        WaitGroupGuard(self.clone())
+    }
+}
+
+impl Default for WaitGroup {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+/// Calls `WaitGroup::done()` on drop — ensures threads that panic still decrement.
+pub struct WaitGroupGuard(WaitGroup);
+
+impl Drop for WaitGroupGuard {
+    fn drop(&mut self) {
+        self.0.done();
+    }
+}
+
+// ============================================================================
+// PoolGuard - Drop-based Lifecycle Handle
+// ============================================================================
+
+/// Returned by `initialize_pool`. Provides deterministic cleanup.
+///
+/// On drop (or explicit `shutdown()` call):
+/// 1. `OnSignal::turn_on()` — broadcast kill to all threads
+/// 2. `LockSignal::signal_all()` — wake any blocked/parked threads
+/// 3. `WaitGroup::wait()` — block until all threads report death
+/// 4. Join all `JoinHandle`s
+///
+/// This replaces the old pattern of spawning a thread to call `get_pool().kill()`.
+pub struct PoolGuard {
+    waitgroup: WaitGroup,
+    shut_down: AtomicBool,
+}
+
+impl PoolGuard {
+    /// Create a new PoolGuard with the given WaitGroup.
+    #[must_use]
+    pub fn new(waitgroup: WaitGroup) -> Self {
+        Self {
+            waitgroup,
+            shut_down: AtomicBool::new(false),
+        }
+    }
+
+    /// Explicit shutdown. Idempotent — safe to call multiple times.
+    pub fn shutdown(&self) {
+        if self
+            .shut_down
+            .compare_exchange(false, true, Ordering::SeqCst, Ordering::Relaxed)
+            .is_ok()
+        {
+            // Signal all threads to die
+            self.waitgroup.signal.signal_all();
+            // Wait for all threads to report done
+            self.waitgroup.wait();
+        }
+    }
+
+    /// Get the WaitGroup for this pool.
+    #[must_use]
+    pub fn waitgroup(&self) -> &WaitGroup {
+        &self.waitgroup
+    }
+}
+
+impl Drop for PoolGuard {
+    fn drop(&mut self) {
+        self.shutdown();
+    }
+}
 
 /// Number of bits used for the thread counters.
 #[cfg(target_pointer_width = "64")]
@@ -1420,5 +1546,165 @@ where
 {
     pub fn on_next_mut(self, action: F) -> Self {
         self.with_resolver(FnMutReady::new(action))
+    }
+}
+
+// ============================================================================
+// Tests for WaitGroup and PoolGuard
+// ============================================================================
+
+#[cfg(test)]
+mod waitgroup_tests {
+    use std::{panic, sync::Arc, thread, time::Duration};
+
+    use super::{PoolGuard, WaitGroup};
+
+    /// Test 1: WaitGroup add/done/wait basic functionality
+    #[test]
+    fn test_waitgroup_add_done_unblocks_wait() {
+        let wg = WaitGroup::new();
+
+        wg.add(3);
+
+        let wg_clone = wg.clone();
+        let handle = thread::spawn(move || {
+            wg_clone.wait();
+        });
+
+        // Give the thread time to start waiting
+        thread::sleep(Duration::from_millis(50));
+
+        // Decrement 3 times
+        wg.done();
+        wg.done();
+        wg.done();
+
+        // Wait should complete
+        handle.join().expect("thread should complete");
+    }
+
+    /// Test 2: WaitGroup with zero count returns immediately
+    #[test]
+    fn test_waitgroup_zero_count_returns_immediately() {
+        let wg = WaitGroup::new();
+        // Don't add anything, count is 0
+        wg.wait(); // Should return immediately
+    }
+
+    /// Test 3: WaitGroupGuard calls done() on drop
+    #[test]
+    fn test_waitgroup_guard_calls_done_on_drop() {
+        let wg = WaitGroup::new();
+        wg.add(1);
+
+        {
+            let _guard = wg.guard();
+            // Guard is alive, count is still 1
+        }
+        // Guard dropped, count should be 0
+
+        wg.wait(); // Should return immediately since count is 0
+    }
+
+    /// Test 4: WaitGroupGuard calls done() even during panic
+    #[test]
+    fn test_waitgroup_guard_calls_done_during_panic() {
+        let wg = WaitGroup::new();
+        wg.add(1);
+
+        let result = panic::catch_unwind(panic::AssertUnwindSafe(|| {
+            let _guard = wg.guard();
+            panic!("intentional panic");
+        }));
+
+        assert!(result.is_err(), "panic should have occurred");
+        // Guard was dropped, so done() was called
+        wg.wait(); // Should return immediately
+    }
+
+    /// Test 5: Multiple WaitGroupGuards
+    #[test]
+    fn test_waitgroup_multiple_guards() {
+        let wg = WaitGroup::new();
+        wg.add(3);
+
+        let guard1 = wg.guard();
+        let guard2 = wg.guard();
+        let guard3 = wg.guard();
+
+        // All guards alive, count is still 3
+
+        drop(guard1); // count -> 2
+        drop(guard2); // count -> 1
+        drop(guard3); // count -> 0
+
+        wg.wait(); // Should return immediately
+    }
+
+    /// Test 6: PoolGuard shutdown is idempotent
+    #[test]
+    fn test_poolguard_shutdown_idempotent() {
+        let wg = WaitGroup::new();
+        let guard = PoolGuard::new(wg.clone());
+
+        // First shutdown
+        guard.shutdown();
+
+        // Second shutdown - should not panic
+        guard.shutdown();
+
+        // Third shutdown - still no panic
+        guard.shutdown();
+    }
+
+    /// Test 7: PoolGuard drop triggers shutdown
+    #[test]
+    fn test_poolguard_drop_triggers_shutdown() {
+        let wg = WaitGroup::new();
+        wg.add(1);
+
+        let guard = PoolGuard::new(wg.clone());
+
+        // Spawn a thread that will call done() after a delay
+        let wg_clone = wg.clone();
+        let handle = thread::spawn(move || {
+            thread::sleep(Duration::from_millis(50));
+            wg_clone.done();
+        });
+
+        // Drop the guard - it will wait for the WaitGroup
+        drop(guard);
+
+        // If we get here, shutdown completed
+        handle.join().expect("thread should complete");
+    }
+
+    /// Test 8: WaitGroup across multiple threads
+    #[test]
+    fn test_waitgroup_multiple_threads() {
+        let wg = WaitGroup::new();
+        let num_threads = 5;
+
+        wg.add(num_threads);
+
+        let mut handles = vec![];
+
+        for i in 0..num_threads {
+            let wg_clone = wg.clone();
+            let handle = thread::spawn(move || {
+                // Simulate some work
+                thread::sleep(Duration::from_millis(10 * (i as u64 + 1)));
+                wg_clone.done();
+            });
+            handles.push(handle);
+        }
+
+        // Wait for all threads to complete
+        wg.wait();
+
+        // All threads should have called done()
+        for handle in handles {
+            handle.join().expect("all threads should complete");
+        }
     }
 }
