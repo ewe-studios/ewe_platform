@@ -341,16 +341,16 @@ where
 
 #[derive(Clone, Copy, Default)]
 pub enum InlineSendActionBehaviour {
-    /// [`Sequenced`] indicates we wish to sequenced the task with a [`ConsumingIter`].
+    /// `Sequenced` indicates we wish to sequenced the task with a [`ConsumingIter`].
     #[default]
     Sequenced,
-    /// [`Lift`] indicates we wish to lift the task with a [`ConsumingIter`].
+    /// `Lift` indicates we wish to lift the task with a [`ConsumingIter`].
     Lift,
-    /// [`LiftWithParent`] indicates we wish to lift the task with a [`ConsumingIter`].
+    /// `LiftWithParent` indicates we wish to lift the task with a [`ConsumingIter`].
     LiftWithParent,
-    /// [`Schedule`] indicates we wish to schedule the task with a [`ConsumingIter`].
+    /// `Schedule` indicates we wish to schedule the task with a [`ConsumingIter`].
     Schedule,
-    /// [`Broadcast`] indicates we wish to broadcast the task with a [`ConsumingIter`].
+    /// `Broadcast` indicates we wish to broadcast the task with a [`ConsumingIter`].
     Broadcast,
 }
 
@@ -488,14 +488,14 @@ where
 
 #[derive(Clone, Copy, Default)]
 pub enum InlineActionBehaviour {
-    /// [`Sequenced`] indicates we wish to sequenced the task with a [`ConsumingIter`].
+    /// `Sequenced` indicates we wish to sequenced the task with a [`ConsumingIter`].
     #[default]
     Sequenced,
-    /// [`Lift`] indicates we wish to lift the task with a [`ConsumingIter`].
+    /// `Lift` indicates we wish to lift the task with a [`ConsumingIter`].
     Lift,
-    /// [`LiftWithParent`] indicates we wish to lift the task with a [`ConsumingIter`].
+    /// `LiftWithParent` indicates we wish to lift the task with a [`ConsumingIter`].
     LiftWithParent,
-    /// [`Schedule`] indicates we wish to schedule the task with a [`ConsumingIter`].
+    /// `Schedule` indicates we wish to schedule the task with a [`ConsumingIter`].
     Schedule,
 }
 

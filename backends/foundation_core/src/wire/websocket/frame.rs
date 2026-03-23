@@ -342,7 +342,7 @@ impl WebSocketFrame {
 
     /// WHY: After decoding a frame, callers need to convert it to a high-level message.
     ///
-    /// WHAT: Converts this frame into a [`WebSocketMessage`] variant.
+    /// WHAT: Converts this frame into a `WebSocketMessage` variant.
     ///
     /// HOW: Matches on opcode and extracts payload. For Close frames, parses the
     /// 2-byte status code and UTF-8 reason. For Text frames, validates UTF-8.

@@ -13,7 +13,7 @@ use crate::valtron::{
 
 use crate::compati::Mutex;
 
-/// [`OnNext`] is unique in that you provided it a [`Resolver`]
+/// [`OnNext`] is unique in that you provided it a `Resolver`
 /// which is applied to every [`TaskStatus::Ready`] message received.
 ///
 /// It provides us a means to perform specific behaviours to the results

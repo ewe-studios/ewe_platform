@@ -595,7 +595,7 @@ impl ThreadPool {
         )
     }
 
-    /// [`new`] creates a new `ThreadPool` for you which you can use
+    /// `new` creates a new `ThreadPool` for you which you can use
     /// for concurrent execution of `LocalExecutorEngine` executors
     /// within the total number of threads you provided via `num_threads`
     /// the threads are spawned and ready to take on work.
@@ -696,7 +696,7 @@ impl core::fmt::Display for ThreadExecutionError {
 
 impl ThreadPool {
     #[allow(clippy::too_many_lines)]
-    /// [`create_thread_executor`] creates a new thread into the thread pool spawning
+    /// `create_thread_executor` creates a new thread into the thread pool spawning
     /// a [`LocalThreadExecutor`] into a owned thread that is managed by the executor.
     pub fn create_thread_executor(&self) -> ThreadExecutionResult<ThreadRef> {
         let span = tracing::trace_span!("ThreadPool::create_thread_executor");
@@ -898,7 +898,7 @@ impl ThreadPool {
 // -- core methods
 
 impl ThreadPool {
-    /// [`kill`] will deliver the kill signal to
+    /// `kill` will deliver the kill signal to
     /// all running `LocalExecutorEngine` running in
     /// all the threads, then block the current thread with
     /// a `CondVar` awaiting the signal from `Self::run_until()` that
@@ -962,7 +962,7 @@ impl ThreadPool {
         tracing::debug!("ThreadPool::await_threads: Finished");
     }
 
-    /// [`run_until`] will block the current thread
+    /// `run_until` will block the current thread
     /// and starts listening to both kill signal from the
     /// process via `Self::kill` and handle management operations
     /// from notifications sent by the execution threads when threads
@@ -1217,10 +1217,10 @@ impl<
         self
     }
 
-    /// [`ready_iter`] adds a task into execution queue but instead of depending
+    /// `ready_iter` adds a task into execution queue but instead of depending
     /// on a [`TaskReadyResolver`] to process the final state instead allows you
     /// to get back a wrapping iterator that allows you synchronously receive those
-    /// values from a [`RecvIterator`] which are only the [`TaskStatus::Ready`].
+    /// values from a `RecvIterator` which are only the [`TaskStatus::Ready`].
     /// values of the task.
     ///
     /// This makes it possible to build synchronous experiences in a async world.
@@ -1258,13 +1258,13 @@ impl<
         }
     }
 
-    /// [`stream_iter`] adds a task into execution queue but instead of depending
+    /// `stream_iter` adds a task into execution queue but instead of depending
     /// on a [`TaskReadyResolver`] to process the state streams instead allows you
     /// to get back a wrapper iterator that allows you synchronously receive those
-    /// values from a [`StreamRecvIterator`] that implements the [`Iterator`] trait.
+    /// values from a `StreamRecvIterator` that implements the [`Iterator`] trait.
     ///
-    /// But unlike [`schedule_iter`] returns [`Stream`] values that hide way the underling
-    /// value types of [`TaskStatus`] which simplifies the trait types your usage
+    /// But unlike `schedule_iter` returns [`Stream`] values that hide way the underling
+    /// value types of `TaskStatus` which simplifies the trait types your usage
     /// requires.
     ///
     /// This makes it possible to build synchronous experiences in a async world.
@@ -1304,10 +1304,10 @@ impl<
         }
     }
 
-    /// [`schedule_iter`] adds a task into execution queue but instead of depending
+    /// `schedule_iter` adds a task into execution queue but instead of depending
     /// on a [`TaskReadyResolver`] to process the final state instead allows you
     /// to get back a wrapper iterator that allows you synchronously receive those
-    /// values from a [`RecvIterator`] that implements the [`Iterator`] trait.
+    /// values from a `RecvIterator` that implements the [`Iterator`] trait.
     ///
     /// This makes it possible to build synchronous experiences in a async world.
     ///
@@ -1344,7 +1344,7 @@ impl<
         }
     }
 
-    /// [`schedule`] adds a task into the global execution queue which should
+    /// `schedule` adds a task into the global execution queue which should
     /// be processed by the underlying thread pool.
     pub fn schedule(self) -> AnyResult<(), ExecutorError> {
         let task: BoxedSendExecutionIterator = match self.task {

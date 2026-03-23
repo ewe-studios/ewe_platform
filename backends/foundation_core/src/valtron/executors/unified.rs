@@ -56,7 +56,7 @@ pub const DEFAULT_WAIT_CYCLE: std::time::Duration = std::time::Duration::from_mi
 ///
 /// # Returns
 ///
-/// Returns a [`GenericResult`] wrapping a [`RecvIterator`] over [`TaskStatus`]. On success the
+/// Returns a [`GenericResult`] wrapping a `RecvIterator` over `TaskStatus`. On success the
 /// `Ok` variant contains an iterator that yields `TaskStatus::Ready` / `TaskStatus::Pending`
 /// values produced by the scheduled task. On error the `Err` variant contains an error from the
 /// underlying scheduling/spawn operation.
@@ -115,8 +115,8 @@ where
     }
 }
 
-/// [`execute_stream`] unlike [`execute_as_task`] returns a [`StreamRecvIterator`]
-/// which hides the underlying mechanics of handling [`TaskStatus`]. The stream
+/// `execute_stream` unlike [`execute_as_task`] returns a `StreamRecvIterator`
+/// which hides the underlying mechanics of handling `TaskStatus`. The stream
 /// iterator will internally manage different task states, send any required
 /// spawn events to the executor as tasks request additional work, and present a
 /// simpler, higher-level sequence of produced values to the caller.
@@ -139,7 +139,7 @@ where
 ///
 /// # Returns
 ///
-/// Returns a [`GenericResult`] wrapping a [`StreamRecvIterator`] over the task's
+/// Returns a [`GenericResult`] wrapping a `StreamRecvIterator` over the task's
 /// produced values. On success the `Ok` variant contains a stream-style
 /// iterator that yields ready values (and may represent pending/ready events
 /// internally). On error the `Err` variant contains an error from the

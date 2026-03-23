@@ -10,7 +10,7 @@ pub(crate) struct LinkedParentChildTaskInner {
     pub child: Option<BoxedExecutionIterator>,
 }
 
-/// [`DependentLiftedTask`] defines a linked task where a parent [`ExecutionIterator`]
+/// `DependentLiftedTask` defines a linked task where a parent [`ExecutionIterator`]
 /// with a child [`ExecutionIterator`] where an execution of the child [`ExecutionIterator::next`]
 /// method requires a execution of the parent's [`ExecutionIterator::next`].
 ///
@@ -70,7 +70,7 @@ impl ExecutionIterator for DualSequeunceChildAndParentLinkedTask {
     }
 }
 
-/// [`FinishLiftedBeforeLifterTask`] defines a linked task where a parent [`ExecutionIterator`]
+/// `FinishLiftedBeforeLifterTask` defines a linked task where a parent [`ExecutionIterator`]
 /// with a child [`ExecutionIterator`] are mutually bound to each other but child task must
 /// first finish before the parent will continue to make any progress.
 ///

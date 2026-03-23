@@ -100,7 +100,7 @@ impl core::fmt::Debug for RawStream {
 // -- Basic constructors
 
 impl RawStream {
-    /// [`from_tcp`] creates a naked `RawStream` from a `TCPStream` connected to the relevant Endpoint
+    /// [`Self::from_tcp`] creates a naked `RawStream` from a `TCPStream` connected to the relevant Endpoint
     /// upgrade to TLS if required.
     ///
     /// How you take the returned `RawStream` is up to you but this allows you more control
@@ -115,7 +115,7 @@ impl RawStream {
         Ok(Self::AsPlain(reader, conn_addr))
     }
 
-    /// [`from_connection`] creates a naked `RawStream` which is not mapped to a specific
+    /// [`Self::from_connection`] creates a naked `RawStream` which is not mapped to a specific
     /// protocol version and simply is a `TCPStream` connected to the relevant Endpoint
     /// upgrade to TLS if required.
     ///
@@ -131,7 +131,7 @@ impl RawStream {
     }
 
     /// `from_server_tls` creates a `RawStream` from a server generated TLS Connection wrapped
-    /// by the [`ServerSSLStream`] type. Generally this is generated from a [`Listener`]
+    /// by the [`ServerSSLStream`] type. Generally this is generated from a `Listener`
     /// which outputs the necessary connection.
     #[cfg(any(
         feature = "ssl-rustls",

@@ -1,7 +1,7 @@
 //! WebSocket message types.
 //!
 //! WHY: Applications work with complete messages, not raw frames.
-//! WHAT: Defines [`WebSocketMessage`] enum representing high-level WebSocket message types.
+//! WHAT: Defines `WebSocketMessage` enum representing high-level WebSocket message types.
 
 /// WHY: Callers need a clean API for sending/receiving WebSocket messages without dealing
 /// with frame-level details like fragmentation or opcodes.
