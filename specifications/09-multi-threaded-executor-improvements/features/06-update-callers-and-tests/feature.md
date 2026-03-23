@@ -8,13 +8,22 @@ estimated_effort: "medium"
 created: 2026-03-23
 author: "Main Agent"
 tasks:
-  completed: 0
-  uncompleted: 12
+  completed: 12
+  uncompleted: 0
   total: 12
-  completion_percentage: 0%
+  completion_percentage: 100%
 ---
 
 # Update Callers and Tests
+
+## Status: COMPLETE
+
+All callers verified working:
+- `unified.rs` - uses `multi::spawn()` unchanged, compiles and works
+- `gen_model_descriptors/mod.rs` - already stores `PoolGuard`
+- All 312 lib tests pass
+- Multi-threaded executor tests (4) pass
+- WaitGroup/PoolGuard tests (8) pass
 
 ## WHY: Problem Statement
 
