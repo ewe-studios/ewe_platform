@@ -448,7 +448,7 @@ impl ExecutorState {
     /// as the local queue had a task or no task was found.
     #[inline]
     pub fn schedule_next(&self) -> ScheduleOutcome {
-        let span = tracing::trace_span!("ThreadPool::schedule_next");
+        let span = tracing::trace_span!("LocalThreadExecutor::schedule_next");
         span.in_scope(|| {
             if self.local_tasks.borrow().active_slots() > 0 && !self.processing.borrow().is_empty()
             {
@@ -468,7 +468,7 @@ impl ExecutorState {
 
     #[inline]
     pub fn request_global_task(&self) -> ProgressIndicator {
-        let span = tracing::trace_span!("ThreadPool::request_global_task");
+        let span = tracing::trace_span!("LocalThreadExecutor::request_global_task");
         span.in_scope(|| {
             if self.has_active_tasks() {
                 tracing::debug!("Still have active tasks");
@@ -2014,11 +2014,9 @@ impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
                         }
 
                         tracing::debug!(
-                            dur = ?self.no_work_yield,
-                            "No work received, yielding for a dur={:?} to signal",
-                            &self.no_work_yield,
+                            "No work received, yielding until signaled"
                         );
-                        self.yielder.yield_for(self.no_work_yield);
+                        self.yielder.yield_process();
                     }
                     ProgressIndicator::SpinWait(duration) => {
                         if kill_signal.probe() {

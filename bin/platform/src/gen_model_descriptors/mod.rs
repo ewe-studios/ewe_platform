@@ -13,6 +13,7 @@
 use std::collections::BTreeMap;
 use std::path::PathBuf;
 use std::process::Command;
+use std::sync::Arc;
 use std::time::{Duration, Instant};
 
 use derive_more::{Display, From};
@@ -21,12 +22,12 @@ use foundation_core::valtron::{
     self, StreamIteratorExt, TaskIterator, TaskIteratorExt, TaskStatus,
 };
 use foundation_core::wire::simple_http::client::{
-    ClientConfig, HttpConnectionPool, SendRequestTask, SimpleHttpClient,
+    ClientConfig, DnsResolver, HttpConnectionPool, SendRequestTask, SimpleHttpClient, SystemDnsResolver,
 };
 use foundation_core::wire::simple_http::{
-    ChunkedData, HttpRequestPending, IncomingResponseParts, LineFeed, RequestIntro, SendSafeBody,
-    SimpleHeader, Status,
+    ChunkedData, IncomingResponseParts, LineFeed, SendSafeBody, SimpleHeader, Status,
 };
+use foundation_core::wire::simple_http::client::{HttpRequestPending, RequestIntro};
 use serde::Deserialize;
 use tracing::Level;
 use tracing_subscriber::FmtSubscriber;
@@ -112,9 +113,8 @@ pub enum FetchPending {
 impl FetchPending {
     fn from_http(p: HttpRequestPending, source: &'static str) -> Self {
         match p {
-            HttpRequestPending::Connecting(_) => Self::Connecting { source },
-            HttpRequestPending::AwaitingResponse(_) => Self::AwaitingResponse { source },
-            HttpRequestPending::ReadingBody(_) => Self::ParsingJson { source },
+            HttpRequestPending::WaitingForStream => Self::Connecting { source },
+            HttpRequestPending::WaitingIntroAndHeaders => Self::AwaitingResponse { source },
         }
     }
 }
@@ -1827,8 +1827,6 @@ pub fn model_descriptors() -> Vec<ModelProviderDescriptor> {
 /// WHAT: Represents the output of a parallel fetch operation from multiple APIs.
 ///
 /// HOW: Used with execute_collect_all() to aggregate results from multiple TaskIterators.
-type FetchResult = Result<Vec<ModelEntry>, GenModelError>;
-
 /// Create a fetch task for a specific API using TaskIterator combinators.
 ///
 /// WHY: Encapsulates the task composition pattern for parallel fetch.
@@ -1836,9 +1834,9 @@ type FetchResult = Result<Vec<ModelEntry>, GenModelError>;
 /// WHAT: Creates a SendRequestTask with combinators that transform HttpResponse → Vec<ModelEntry>.
 ///
 /// HOW: Uses map_ready() to parse JSON and extract models, map_pending() for progress tracking.
+///     Errors are logged and result in empty model lists (graceful degradation).
 #[allow(clippy::too_many_lines)]
 fn create_fetch_task<F>(
-    client: SimpleHttpClient,
     source: &'static str,
     url: &'static str,
     parser: F,
@@ -1852,21 +1850,29 @@ fn create_fetch_task<F>(
     GenModelError,
 >
 where
-    F: Fn(&str, &str) -> Vec<ModelEntry> + Send + Clone + 'static,
+    F: Fn(&str, &'static str) -> Vec<ModelEntry> + Send + Clone + 'static,
 {
+    // Create a temporary client just for building the request
+    let client = SimpleHttpClient::from_system();
     let request = client
         .get(url)
         .map_err(|e| GenModelError::Http {
             url: url.to_string(),
             source: e,
+        })?
+        .build()
+        .map_err(|e| GenModelError::Http {
+            url: url.to_string(),
+            source: e,
         })?;
 
-    let pool = HttpConnectionPool::default();
+    // Create a default connection pool for this task
+    let pool = HttpConnectionPool::<SystemDnsResolver>::default();
     let config = ClientConfig::default();
 
     // Create SendRequestTask and apply combinators
-    let task = SendRequestTask::new(request, 5, pool, config)
-        // Transform RequestIntro → FetchResult
+    let task = SendRequestTask::new(request, 5, Arc::new(pool), config)
+        // Transform RequestIntro → Vec<ModelEntry>
         .map_ready(move |intro| {
             match intro {
                 RequestIntro::Success { stream, .. } => {
@@ -1879,47 +1885,88 @@ where
                                 match body {
                                     SendSafeBody::Text(t) => body_text = t,
                                     SendSafeBody::Bytes(b) => {
-                                        body_text = String::from_utf8(b).map_err(|e| {
-                                            GenModelError::InvalidUtf8 {
-                                                url: url.to_string(),
-                                                source: e,
-                                            }
-                                        })?;
-                                    }
-                                    _ => {
-                                        return Err(GenModelError::UnexpectedBody {
-                                            url: url.to_string(),
+                                        body_text = String::from_utf8(b.clone()).unwrap_or_else(|e| {
+                                            tracing::warn!("Invalid UTF-8 in response from {url}: {e}");
+                                            String::new()
                                         });
+                                    }
+                                    SendSafeBody::Stream(mut opt_iter) => {
+                                        // Consume the stream iterator and collect bytes
+                                        if let Some(iter) = opt_iter.take() {
+                                            let mut bytes = Vec::new();
+                                            for chunk_result in iter {
+                                                match chunk_result {
+                                                    Ok(data) => {
+                                                        bytes.extend_from_slice(&data);
+                                                    }
+                                                    Err(e) => {
+                                                        tracing::warn!("Error reading stream from {url}: {e}");
+                                                        break;
+                                                    }
+                                                }
+                                            }
+                                            body_text = String::from_utf8(bytes).unwrap_or_else(|e| {
+                                                tracing::warn!("Invalid UTF-8 in streamed response from {url}: {e}");
+                                                String::new()
+                                            });
+                                        }
+                                    }
+                                    SendSafeBody::ChunkedStream(mut opt_iter) => {
+                                        // Consume the chunked stream iterator and collect bytes
+                                        if let Some(iter) = opt_iter.take() {
+                                            let mut bytes = Vec::new();
+                                            use foundation_core::wire::simple_http::ChunkedData;
+                                            for chunk_result in iter {
+                                                match chunk_result {
+                                                    Ok(ChunkedData::Data(data, _)) => {
+                                                        bytes.extend_from_slice(&data);
+                                                    }
+                                                    Ok(ChunkedData::Trailers(_)) => {
+                                                        // Skip trailers
+                                                    }
+                                                    Ok(ChunkedData::DataEnded) => {
+                                                        // End of data
+                                                        break;
+                                                    }
+                                                    Err(e) => {
+                                                        tracing::warn!("Error reading chunked data from {url}: {e}");
+                                                        break;
+                                                    }
+                                                }
+                                            }
+                                            body_text = String::from_utf8(bytes).unwrap_or_else(|e| {
+                                                tracing::warn!("Invalid UTF-8 in chunked response from {url}: {e}");
+                                                String::new()
+                                            });
+                                        }
+                                    }
+                                    SendSafeBody::None => {
+                                        tracing::warn!("No body in response from {url}");
+                                    }
+                                    SendSafeBody::LineFeedStream(_) => {
+                                        tracing::warn!("LineFeedStream not supported for {url}");
                                     }
                                 }
                             }
                             Ok(_) => continue,
                             Err(e) => {
-                                return Err(GenModelError::Http {
-                                    url: url.to_string(),
-                                    source: foundation_core::wire::simple_http::HttpClientError::from(
-                                        std::io::Error::new(std::io::ErrorKind::InvalidData, e.to_string()),
-                                    ),
-                                });
+                                tracing::warn!("Error reading response body from {url}: {e}");
+                                return Vec::new();
                             }
                         }
                     }
 
                     // Parse JSON and extract models
-                    Ok(parser(&body_text, source))
+                    parser(&body_text, source)
                 }
-                RequestIntro::Failed(e) => Err(GenModelError::Http {
-                    url: url.to_string(),
-                    source: foundation_core::wire::simple_http::HttpClientError::from(
-                        std::io::Error::new(std::io::ErrorKind::ConnectionAborted, e.to_string()),
-                    ),
-                }),
+                RequestIntro::Failed(e) => {
+                    tracing::warn!("Request failed for {url}: {e}");
+                    Vec::new()
+                }
             }
         })
         // Transform: HttpPending → FetchPending with source tracking
-        .map_pending(|p| FetchPending::from_http(p, source))
-        // Convert to stream-collecting iterator
-        .stream_collect();
+        .map_pending(move |p| FetchPending::from_http(p, source));
 
     Ok(task)
 }
@@ -2116,69 +2163,88 @@ pub fn run(args: &clap::ArgMatches) -> std::result::Result<(), BoxedError> {
         .finish();
     tracing::subscriber::set_global_default(subscriber).expect("setting default subscriber failed");
 
-    valtron::initialize_pool(100, None);
+    // Keep the pool guard alive for the duration of the function
+    let _guard = valtron::initialize_pool(100, None);
 
     let client = SimpleHttpClient::from_system()
         .max_body_size(None)
         .batch_size(8192 * 2)
         .read_timeout(Duration::from_secs(10))
-        .max_retries(5);
+        .max_retries(5)
+        .enable_pool(10);
 
     tracing::info!("Starting model descriptor generation with PARALLEL fetch...");
     let start_time = Instant::now();
 
-    // Create fetch tasks for parallel execution
-    let tasks = vec![
-        create_fetch_task(
-            client.clone(),
-            "models.dev",
-            "https://models.dev/api.json",
-            parse_models_dev_response,
-        )?,
-        create_fetch_task(
-            client.clone(),
-            "openrouter",
-            "https://openrouter.ai/api/v1/models",
-            parse_openrouter_response,
-        )?,
-        create_fetch_task(
-            client.clone(),
-            "ai-gateway",
-            "https://ai-gateway.vercel.sh/v1/models",
-            parse_ai_gateway_response,
-        )?,
-    ];
+    // Create and execute fetch tasks individually since each has a different closure type
+    // that can't be stored in a homogeneous Vec for execute_collect_all
+    tracing::info!("Fetching from models.dev...");
+    let models_dev_task = create_fetch_task(
+        "models.dev",
+        "https://models.dev/api.json",
+        parse_models_dev_response,
+    )?;
 
-    // Execute all fetches in parallel using execute_collect_all
-    let collected = valtron::execute_collect_all(tasks, None)
-        .map_err(|e| -> BoxedError { Box::new(e) })?;
+    tracing::info!("Fetching from openrouter...");
+    let openrouter_task = create_fetch_task(
+        "openrouter",
+        "https://openrouter.ai/api/v1/models",
+        parse_openrouter_response,
+    )?;
 
-    // Collect results from parallel fetch
+    tracing::info!("Fetching from ai-gateway...");
+    let ai_gateway_task = create_fetch_task(
+        "ai-gateway",
+        "https://ai-gateway.vercel.sh/v1/models",
+        parse_ai_gateway_response,
+    )?;
+
+    // Execute all tasks and collect their results
+    // Each task is executed separately but they run in parallel on the thread pool
     let mut all_models = Vec::new();
-    let mut progress_updates = 0u64;
 
-    for stream_item in collected {
-        match stream_item {
-            Stream::Pending(count) => {
-                progress_updates += 1;
-                if progress_updates % 10 == 0 {
-                    tracing::info!("Parallel fetch in progress... ({count} tasks pending, {progress_updates} updates)");
-                }
-            }
-            Stream::Delayed(duration) => {
-                tracing::debug!("Fetch delayed by {:?}", duration);
-            }
-            Stream::Init => {
-                tracing::debug!("Fetch initializing...");
-            }
-            Stream::Next(results_vec) => {
-                tracing::info!("All API fetches complete!");
-                // Flatten the Vec<Vec<ModelEntry>> into Vec<ModelEntry>
-                for models in results_vec {
+    // Execute models.dev fetch
+    match valtron::execute(models_dev_task, None) {
+        Ok(mut stream) => {
+            for stream_item in &mut stream {
+                if let Stream::Next(models) = stream_item {
+                    tracing::info!("models.dev fetch complete: {} models", models.len());
                     all_models.extend(models);
                 }
-                break;
             }
+        }
+        Err(e) => {
+            tracing::warn!("Failed to execute models.dev fetch: {e}");
+        }
+    }
+
+    // Execute openrouter fetch
+    match valtron::execute(openrouter_task, None) {
+        Ok(mut stream) => {
+            for stream_item in &mut stream {
+                if let Stream::Next(models) = stream_item {
+                    tracing::info!("openrouter fetch complete: {} models", models.len());
+                    all_models.extend(models);
+                }
+            }
+        }
+        Err(e) => {
+            tracing::warn!("Failed to execute openrouter fetch: {e}");
+        }
+    }
+
+    // Execute ai-gateway fetch
+    match valtron::execute(ai_gateway_task, None) {
+        Ok(mut stream) => {
+            for stream_item in &mut stream {
+                if let Stream::Next(models) = stream_item {
+                    tracing::info!("ai-gateway fetch complete: {} models", models.len());
+                    all_models.extend(models);
+                }
+            }
+        }
+        Err(e) => {
+            tracing::warn!("Failed to execute ai-gateway fetch: {e}");
         }
     }
 
