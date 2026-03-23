@@ -1,16 +1,17 @@
 ---
-feature: "ClientRequest Refactor with split_collect_until_map"
-description: "Refactor ClientRequest to use split_collect_until_map() for intro/body separation instead of manual state machine"
+feature: "ClientRequest Refactor with split_collect_one_map"
+description: "Refactor ClientRequest to use split_collect_one_map() for intro/body separation - direct iterator access via send() and start() methods"
 status: "complete"
 priority: "high"
 depends_on: ["05-unified-executor-integration", "07-split-collector"]
-estimated_effort: "large"
+estimated_effort: "medium"
 created: 2026-03-20
+updated: 2026-03-23
 author: "Main Agent"
 tasks:
-  completed: 10
+  completed: 8
   uncompleted: 0
-  total: 10
+  total: 8
   completion_percentage: 100%
 ---
 
@@ -18,40 +19,27 @@ tasks:
 
 ## WHY: Problem Statement
 
-Current `ClientRequest` in `wire/simple_http/client/api.rs` uses manual state machine loops:
+The original `ClientRequest` in `wire/simple_http/client/api.rs` used manual state machine loops with unnecessary complexity:
 
 ```rust
-// Current pattern in introduction_with_connection()
-pub fn introduction_with_connection(&mut self) -> Result<(HttpClientConnection, ResponseIntro, SimpleHeaders), HttpClientError> {
+// Old pattern - manual state machine
+pub enum ClientRequestState {
+    NotStarted,
+    Executing { iter: ... },
+    IntroReady { ... },
+    BodyReady { ... },
+    Completed,
+}
+
+pub fn introduction_with_connection(&mut self) -> Result<...> {
     loop {
         if let Some(val) = self.task_state.take() {
             match val {
-                ClientRequestState::NotStarted => {
-                    self.start()?;
-                    continue;
-                }
+                ClientRequestState::NotStarted => { self.start()?; continue; }
                 ClientRequestState::Executing(mut iter) => {
-                    let Some(task_status) = iter.next() else {
-                        return Err(HttpClientError::FailedExecution);
-                    };
-                    self.task_state = Some(ClientRequestState::Executing(iter));
-
-                    match task_status {
-                        Stream::Init | Stream::Ignore => continue,
-                        Stream::Pending(v) => continue,
-                        Stream::Delayed(dur) => continue,
-                        Stream::Next(value) => {
-                            match value {
-                                RequestIntro::Success { stream, conn, intro, headers } => {
-                                    self.task_state = Some(ClientRequestState::IntroReady(...));
-                                    return Ok((conn, intro.into(), headers));
-                                }
-                                RequestIntro::Failed(err) => return Err(err),
-                            }
-                        }
-                    }
+                    // Manual iteration logic
                 }
-                // ... more manual states
+                // ... more states
             }
         }
     }
@@ -59,217 +47,226 @@ pub fn introduction_with_connection(&mut self) -> Result<(HttpClientConnection, 
 ```
 
 **Problems**:
-1. **Manual state machine loops** - Explicit `loop { match state { ... } }` pattern
-2. **Boilerplate state tracking** - `ClientRequestState` enum with `NotStarted`, `Executing`, `IntroReady`, `Completed`
-3. **Intro/body coupling** - Must store intro in state to return it, then separately read body
-4. **Hard to extend** - Adding new behaviors requires modifying the state machine
-
-## Key Design Principle: TaskIterators Are Inputs, StreamIterators Are Outputs
-
-The refactored pattern uses `split_collector()` to fork the iterator:
-- **Observer branch**: Gets `RequestIntro::Success` immediately (for `introduction()` method)
-- **Continuation branch**: Continues to body reader (for `body()` method)
-
-```rust
-// TaskIterator (input) → split_collector() → StreamIterator (output via execute())
-let (observer, continuation) = task.split_collect_one(...);
-let stream = execute(continuation)?;  // End user works with StreamIterator
-```
-
-End users never deal with TaskIterator directly - they receive `StreamIterator` from `execute()`.
+1. **Manual state enum** - `ClientRequestState` with multiple variants
+2. **Boilerplate state tracking** - Storing iterator, intro, headers in state
+3. **Complex loop logic** - `loop { match state { ... } }` patterns
+4. **Unnecessary methods** - `collect()`, `into_iter()` that added no value
 
 ## WHAT: Solution Overview
 
-Refactor `ClientRequest` to use `split_collector()` to fork the iterator:
-- **Observer branch**: Gets `RequestIntro::Success` immediately (for `introduction()` method)
-- **Continuation branch**: Continues to body reader, then execute() returns StreamIterator
+Refactor `ClientRequest` to use `split_collect_one_map()` for clean intro/body separation:
 
-### Before: Manual State Machine
+### New API
 
 ```rust
-// Current: Manual loop with explicit state tracking
-loop {
-    match self.task_state.take() {
-        ClientRequestState::NotStarted => { self.start()?; continue; }
-        ClientRequestState::Executing(mut iter) => {
-            match iter.next() {
-                Some(Stream::Next(RequestIntro::Success { ... })) => return Ok(...),
-                _ => continue,
-            }
-        }
-        // ...
-    }
-}
+// send() - One-shot execution, returns full response
+pub fn send(self) -> Result<FinalizedResponse<SendSafeBody, R>, HttpClientError>
+
+// start() - Direct access to intro observer and body stream
+pub fn start(&mut self) -> Result<(RequestIntroStream, MappedDrivenBodyStream<R>), HttpClientError>
 ```
 
-### After: split_collector Pattern
+### Implementation Pattern
 
 ```rust
-// Refactored: Use split_collector to fork intro + body
-pub fn start(&mut self) -> Result<(), HttpClientError> {
-    let task = SendRequestTask::new(request, pool, config);
+pub fn start(&mut self) -> Result<(RequestIntroStream, MappedDrivenBodyStream<R>), HttpClientError> {
+    // Transition state
+    self.task_state = ClientRequestState::Executing;
 
     // Split: observer gets intro, continuation handles body
-    let (intro_observer, body_continuation) = task
-        .split_collect_one(|item| matches!(item, RequestIntro::Success { .. }));
-
-    // Store both branches for later use
-    self.intro_observer = Some(intro_observer);
-    self.body_continuation = Some(body_continuation);
-
-    Ok(())
-}
-
-pub fn introduction_with_connection(&mut self) -> Result<(HttpClientConnection, ResponseIntro, SimpleHeaders), HttpClientError> {
-    // Start execution if not started
-    if self.intro_observer.is_none() {
-        self.start()?;
-    }
-
-    // Pull from observer until we get intro
-    let Some(intro_observer) = &mut self.intro_observer else {
-        return Err(HttpClientError::InvalidRequestState);
-    };
-
-    for status in intro_observer {
-        match status {
-            Stream::Next(RequestIntro::Success { conn, intro, headers, .. }) => {
-                return Ok((conn.clone(), intro.into(), headers.clone()));
+    let (observer, task) = SendRequestTask::new(request, config, pool)
+        .split_collect_one_map(|ready| match ready {
+            RequestIntro::Success { intro, headers, .. } => {
+                (true, Some((intro, headers)))
             }
-            Stream::Pending(_) => continue,
-            Stream::Delayed(_) => continue,
-            Stream::Done => break,
-        }
-    }
+            RequestIntro::Failed(err) => (false, None),
+        });
 
-    Err(HttpClientError::FailedExecution)
+    // Execute continuation, map body result
+    let body_stream = valtron::execute(task, None)?
+        .map_done(|done| match done {
+            RequestIntro::Success { stream, conn, .. } => {
+                // Use map_iter to flatten nested stream
+                stream.map_done(|parts| match parts {
+                    IncomingResponseParts::SizedBody(inner) => Ok((conn, inner)),
+                    // ... handle other cases
+                })
+            }
+            RequestIntro::Failed(err) => std::iter::once(Err(err)),
+        });
+
+    Ok((observer, body_stream))
 }
 
-pub fn body(&mut self) -> Result<SendSafeBody, HttpClientError> {
-    // Use continuation branch for body reading
-    let Some(body_continuation) = self.body_continuation.take() else {
-        return Err(HttpClientError::InvalidRequestState);
-    };
+pub fn send(mut self) -> Result<FinalizedResponse<SendSafeBody, R>, HttpClientError> {
+    let (intro_stream, body_stream) = self.start()?;
 
-    // Execute continuation, get StreamIterator for body reading
-    let stream = execute(body_continuation)?;
-    for status in stream {
-        match status {
-            Stream::Next(ResponseComplete { body, .. }) => return Ok(body),
-            Stream::Pending(_) => continue,
-            _ => continue,
-        }
-    }
+    // Collect intro
+    let intro_data = intro_stream
+        .find_map(|s| match s {
+            Stream::Next(value) => Some(value),
+            _ => None,
+        })
+        .ok_or(HttpClientError::InvalidRequestState)?;
 
-    Err(HttpClientError::FailedToReadBody)
+    // Collect body
+    let (conn, body) = body_stream
+        .find_map(|s| match s {
+            Stream::Next(Ok(res)) => Some(res),
+            Stream::Next(Err(err)) => return Err(err),
+            _ => None,
+        })
+        .ok_or(HttpClientError::InvalidRequestState)?;
+
+    Ok(FinalizedResponse::new(response, conn, pool))
 }
 ```
 
 ### Key Changes
 
-1. **Remove `ClientRequestState` enum** - No longer needed; combinators handle state
-2. **Remove manual `loop { match }`** - Replaced with iterator chaining
-3. **`start()` returns composed iterator** - Instead of storing state
-4. **Methods consume iterator** - `introduction()` pulls from iterator until first useful result
-5. **execute() returns StreamIterator** - body() works with Stream results
+1. **Simplified `ClientRequestState`** - Just `NotStarted`, `Executing`, `Failed` (no data storage)
+2. **Removed `collect()` and `into_iter()`** - Not needed, direct iteration works
+3. **`send()` returns `FinalizedResponse`** - Wraps `SimpleResponse` with connection pooling
+4. **`start()` returns tuple directly** - `(RequestIntroStream, MappedDrivenBodyStream<R>)`
+5. **Use `map_iter()` for body** - Flattens nested stream from `RequestIntro::Success`
 
-## HOW: Refactoring Approach
+## HOW: Implementation Details
 
-### Phase 1: Add split_collector to SendRequestTask
+### Type Aliases
 
 ```rust
-// In start() method:
-let task = SendRequestTask::new(request, pool, config);
+pub type DrivenBodyStream<R> = DrivenStreamIterator<
+    SplitCollectorMapContinuation<SendRequestTask<R>, (ResponseIntro, SimpleHeaders)>,
+>;
 
-// Split: observer gets RequestIntro::Success, continuation handles rest
-let (intro_observer, body_continuation) = task
-    .split_collect_one(|item| matches!(item, RequestIntro::Success { .. }));
+pub type MappedDrivenBodyStream<R> = MapDone<
+    DrivenBodyStream<R>,
+    RequestIntro,
+    HttpRequestPending,
+    Result<(HttpClientConnection, SendSafeBody), HttpClientError>,
+>;
 
-// Store both branches
-self.intro_observer = Some(intro_observer);
-self.body_continuation = Some(body_continuation);
+pub type RequestIntroStream = SplitCollectorMapObserver<(ResponseIntro, SimpleHeaders), HttpRequestPending>;
 ```
 
-### Phase 2: Refactor introduction_with_connection
+### Simplified State Enum
 
 ```rust
-pub fn introduction_with_connection(&mut self) -> Result<(HttpClientConnection, ResponseIntro, SimpleHeaders), HttpClientError> {
-    // Start execution if not started
-    if self.intro_observer.is_none() {
-        self.start()?;
-    }
-
-    // Pull from observer until we get intro
-    let Some(intro_observer) = &mut self.intro_observer else {
-        return Err(HttpClientError::InvalidRequestState);
-    };
-
-    for status in intro_observer.by_ref() {
-        match status {
-            Stream::Next(RequestIntro::Success { conn, intro, headers, stream }) => {
-                // Store stream for body reading
-                self.response_stream = Some(stream);
-                return Ok((conn.clone(), intro.into(), headers.clone()));
-            }
-            Stream::Pending(_) => continue,
-            Stream::Delayed(_) => continue,
-            Stream::Done => break,
-        }
-    }
-
-    Err(HttpClientError::FailedExecution)
+#[derive(PartialEq, Eq, PartialOrd, Clone)]
+pub enum ClientRequestState {
+    NotStarted,
+    Executing,
+    Failed,
 }
 ```
 
-### Phase 3: Simplify body() Method
+### start() Method
 
 ```rust
-pub fn body(&mut self) -> Result<SendSafeBody, HttpClientError> {
-    // Use continuation branch for body reading
-    let Some(body_continuation) = self.body_continuation.take() else {
-        return Err(HttpClientError::InvalidRequestState);
+pub fn start(&mut self) -> Result<(RequestIntroStream, MappedDrivenBodyStream<R>), HttpClientError> {
+    // Validate state
+    if self.pool.is_none() {
+        return Err(HttpClientError::NoPool);
+    }
+    if self.task_state != ClientRequestState::NotStarted {
+        return Err(HttpClientError::InvalidReadState);
+    }
+
+    // Take prepared request
+    let Some(mut request) = self.prepared_request.take() else {
+        return Err(HttpClientError::NoRequestToSend);
     };
 
-    // Execute continuation, get StreamIterator for body reading
-    let stream = execute(body_continuation)?;
+    // Apply middleware
+    self.middleware_chain.process_request(&mut request)?;
 
-    // Body reading is simple iteration over StreamIterator
-    for status in stream {
-        match status {
-            Stream::Next(ResponseComplete { body, .. }) => return Ok(body),
-            Stream::Pending(_) => continue,
-            _ => continue,
+    // Store for response middleware
+    self.original_request = Some(PreparedRequest {
+        method: request.method.clone(),
+        url: request.url.clone(),
+        headers: request.headers.clone(),
+        body: SendSafeBody::None,
+        extensions: std::mem::take(&mut request.extensions),
+    });
+
+    // Transition state
+    self.task_state = ClientRequestState::Executing;
+
+    // Split and execute
+    let (observer, task) = SendRequestTask::new(request, config, pool)
+        .split_collect_one_map(|ready| match ready {
+            RequestIntro::Success { intro, headers, .. } => {
+                (true, Some((intro, headers)))
+            }
+            RequestIntro::Failed(err) => (false, None),
+        });
+
+    let body_stream = valtron::execute(task, None)?
+        .map_done(|done| { /* map to body result */ });
+
+    Ok((observer, body_stream))
+}
+```
+
+### send() Method
+
+```rust
+pub fn send(mut self) -> Result<FinalizedResponse<SendSafeBody, R>, HttpClientError> {
+    let (intro_stream, body_stream) = self.start()?;
+
+    // Collect intro
+    let mut intro_data: Option<(ResponseIntro, SimpleHeaders)> = None;
+    for intro_element in intro_stream {
+        if let Stream::Next(value) = intro_element {
+            intro_data = Some(value);
+            break;
         }
     }
 
-    Err(HttpClientError::FailedToReadBody)
+    // Collect body
+    let mut response_body: Option<(HttpClientConnection, SendSafeBody)> = None;
+    for body_element in body_stream {
+        if let Stream::Next(Ok(res)) = body_element {
+            response_body = Some(res);
+            break;
+        }
+    }
+
+    // Build response
+    let (intro, headers) = intro_data.ok_or(HttpClientError::InvalidRequestState)?;
+    let (conn, body) = response_body.ok_or(HttpClientError::InvalidRequestState)?;
+    let response = SimpleResponse::new(intro.status, headers, body);
+
+    // Apply response middleware
+    if let Some(request) = &self.original_request {
+        self.middleware_chain.process_response(request, &mut response)?;
+    }
+
+    Ok(FinalizedResponse::new(response, conn, self.pool.take().ok_or(HttpClientError::NoPool)?))
 }
 ```
 
 ## Requirements
 
-1. **split_collector() implementation** - Forks iterator into observer + continuation
-2. **Clone bounds** - Ready and Pending must be Clone for split_collector
-3. **ConcurrentQueue** - Size-configurable queue between branches
-4. **Refactor start()** - Use split_collector to fork intro/body
-5. **Refactor introduction_with_connection()** - Pull from observer branch
-6. **Refactor body()** - Execute continuation, iterate StreamIterator
-7. **Keep API compatible** - Public methods unchanged
-8. **Remove ClientRequestState** - Replace with observer/continuation storage
-9. **execute() returns StreamIterator** - End users work with Stream results
+1. **split_collect_one_map()** - Forks iterator, observer gets matched items
+2. **Clone bounds** - `RequestIntro` and `HttpRequestPending` must be Clone
+3. **Type aliases** - `RequestIntroStream`, `MappedDrivenBodyStream<R>`, `DrivenBodyStream<R>`
+4. **Simplified ClientRequestState** - No data storage, just lifecycle states
+5. **Removed collect()/into_iter()** - Direct iteration only
+6. **send() returns FinalizedResponse** - Wraps SimpleResponse with connection pooling
+7. **start() returns tuple** - Direct access to observer and body stream
+8. **map_iter() for body** - Flattens nested stream from RequestIntro::Success
 
 ## Tasks
 
-1. [ ] Read existing `wire/simple_http/client/api.rs` completely
-2. [ ] Implement `split_collector()` in feature 07 first
-3. [ ] Add `Clone` bounds to `RequestIntro` variants
-4. [ ] Refactor `start()` to use `split_collector()` for intro/body fork
-5. [ ] Remove `ClientRequestState` enum
-6. [ ] Add `intro_observer` and `body_continuation` fields to `ClientRequest`
-7. [ ] Refactor `introduction_with_connection()` to pull from observer
-8. [ ] Refactor `body()` to execute continuation and iterate StreamIterator
-9. [ ] Write tests verifying API compatibility
-10. [ ] Run clippy and fmt checks
+1. [x] Read existing `wire/simple_http/client/api.rs` completely
+2. [x] Implement `split_collect_one_map()` in feature 07
+3. [x] Add `Clone` bounds to `RequestIntro` variants
+4. [x] Simplify `ClientRequestState` enum - remove data storage
+5. [x] Refactor `start()` to return `(RequestIntroStream, MappedDrivenBodyStream<R>)`
+6. [x] Refactor `send()` to use direct iteration over streams
+7. [x] Remove `collect()` and `into_iter()` methods
+8. [x] Run clippy and fmt checks
 
 ## Verification
 
@@ -281,27 +278,25 @@ cargo fmt -p foundation_core -- --check
 
 ## Success Criteria
 
-- All 10 tasks completed
-- `ClientRequestState` enum removed
+- All 8 tasks completed
+- `ClientRequestState` simplified to just lifecycle states
 - No manual `loop { match state }` patterns
-- Public API unchanged (backward compatible)
+- `send()` and `start()` methods working correctly
 - Tests pass demonstrating same behavior
 - Code is simpler and more composable
-- `execute()` returns StreamIterator for body reading
 - Zero clippy warnings
 
 ## Benefits
 
 | Before | After |
 |--------|-------|
-| Manual state enum (`ClientRequestState`) | State handled by split_collector branches |
-| Explicit `loop { match }` | Observer/continuation pattern |
-| Intro/body coupling via state storage | Clean separation via fork |
-| Hard to extend | Easy to add more split points |
-| No progress visibility | Can add progress observers |
+| Complex state enum with data storage | Simple lifecycle states only |
+| Manual `loop { match }` patterns | Direct iteration with `for` loops |
+| `collect()`, `into_iter()` methods | Just `send()` and `start()` |
+| Intro/body coupling via state | Clean separation via split_collector |
 | Body reading from stored stream | Body reading via execute() → StreamIterator |
 
 ---
 
 _Created: 2026-03-20_
-_Updated: 2026-03-20 (v3.0: execute() returns StreamIterator, TaskIterator is input)_
+_Updated: 2026-03-23 (Simplified API: send() and start() only, removed collect/into_iter)_

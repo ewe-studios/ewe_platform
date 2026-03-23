@@ -12,23 +12,17 @@
 //! to track progress through request lifecycle. Platform-aware executor driving
 //! (single-threaded on WASM/multi=off, multi-threaded with multi=on).
 
-use foundation_nostd::primitives::wait_duration;
-
-use crate::netcap::RawStream;
 use crate::valtron::{
     self, DrivenStreamIterator, MapDone, SplitCollectorMapContinuation, SplitCollectorMapObserver,
     Stream, StreamIteratorExt, TaskIteratorExt,
 };
 use crate::wire::simple_http::client::{
-    ClientConfig, DnsResolver, GetHttpRequestRedirectTask, HttpClientConnection,
-    HttpConnectionPool, HttpRequestPending, HttpRequestRedirectResponse, IncomingResponseMapper,
+    ClientConfig, DnsResolver, HttpClientConnection, HttpConnectionPool, HttpRequestPending,
     MiddlewareChain, PreparedRequest, RequestIntro, ResponseIntro, SendRequestTask,
 };
 use crate::wire::simple_http::{
-    HttpClientError, HttpResponseReader, IncomingResponseParts, SendSafeBody, SimpleHeaders,
-    SimpleHttpBody, SimpleResponse, Status,
+    HttpClientError, IncomingResponseParts, SendSafeBody, SimpleHeaders, SimpleResponse, Status,
 };
-use std::io::Write;
 use std::sync::Arc;
 
 pub type DrivenBodyStream<R> = DrivenStreamIterator<
@@ -264,7 +258,13 @@ impl<R: DnsResolver + 'static> ClientRequest<R> {
             }
         }
 
+        // If no intro data, check body stream for errors (e.g., TooManyRedirects)
         if intro_data.is_none() {
+            for body_element in body_stream {
+                if let Stream::Next(Err(err)) = body_element {
+                    return Err(err);
+                }
+            }
             return Err(HttpClientError::InvalidRequestState);
         }
 
