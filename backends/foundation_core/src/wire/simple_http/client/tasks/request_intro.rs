@@ -25,14 +25,14 @@ use crate::wire::simple_http::{
     SimpleHttpBody,
 };
 
-/// Cloneable subset of RequestIntro for observer patterns.
+/// Cloneable subset of `RequestIntro` for observer patterns.
 ///
-/// WHY: split_collect_until requires Clone on the data sent to observer,
-/// but RequestIntro::Success contains non-cloneable stream.
+/// WHY: `split_collect_until` requires Clone on the data sent to observer,
+/// but `RequestIntro::Success` contains non-cloneable stream.
 ///
 /// WHAT: Contains only the cloneable parts: conn, intro, headers.
 ///
-/// HOW: Extracted from RequestIntro::Success for observer, keeps stream for continuation.
+/// HOW: Extracted from `RequestIntro::Success` for observer, keeps stream for continuation.
 #[derive(Clone, Debug)]
 pub struct RequestIntroData {
     pub conn: HttpClientConnection,
@@ -59,6 +59,7 @@ impl RequestIntro {
     /// Extract cloneable data from Success variant.
     ///
     /// Returns None for Failed variant or if stream is not available.
+    #[must_use] 
     pub fn to_cloneable_data(&self) -> Option<RequestIntroData> {
         match self {
             RequestIntro::Success {

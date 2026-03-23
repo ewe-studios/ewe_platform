@@ -7,8 +7,8 @@ use crate::wire::simple_http::url::Scheme;
 /// WHAT: Provides proxy configuration (HTTP, HTTPS, SOCKS5), URL parsing,
 /// environment variable detection, and authentication support.
 ///
-/// HOW: Extends HttpConnectionPool with proxy connection methods that establish
-/// CONNECT tunnels through proxies, parse responses with HttpResponseReader,
+/// HOW: Extends `HttpConnectionPool` with proxy connection methods that establish
+/// CONNECT tunnels through proxies, parse responses with `HttpResponseReader`,
 /// and optionally upgrade to TLS for target servers.
 ///
 /// # Examples
@@ -56,7 +56,7 @@ pub enum ProxyProtocol {
 ///
 /// WHAT: Username and password for proxy authentication, with Base64 encoding for headers.
 ///
-/// HOW: Simple struct with two String fields, provides to_basic_auth() for header generation.
+/// HOW: Simple struct with two String fields, provides `to_basic_auth()` for header generation.
 ///
 /// # Examples
 ///
@@ -83,7 +83,7 @@ impl ProxyAuth {
     ///
     /// WHAT: Accepts username and password as any type convertible to String.
     ///
-    /// HOW: Converts inputs with .into() for flexibility.
+    /// HOW: Converts inputs with .`into()` for flexibility.
     ///
     /// # Examples
     ///
@@ -169,7 +169,7 @@ impl ProxyConfig {
     ///
     /// WHY: Constructor for manual proxy configuration.
     ///
-    /// WHAT: Creates ProxyConfig with specified protocol, host, and port (no auth).
+    /// WHAT: Creates `ProxyConfig` with specified protocol, host, and port (no auth).
     ///
     /// HOW: Simple struct construction with None for auth field.
     ///
@@ -197,9 +197,9 @@ impl ProxyConfig {
     ///
     /// WHY: Builder pattern for adding auth to proxy configuration.
     ///
-    /// WHAT: Adds ProxyAuth to this config, returns self for chaining.
+    /// WHAT: Adds `ProxyAuth` to this config, returns self for chaining.
     ///
-    /// HOW: Creates ProxyAuth from username/password, sets auth field.
+    /// HOW: Creates `ProxyAuth` from username/password, sets auth field.
     ///
     /// # Examples
     ///
@@ -218,11 +218,11 @@ impl ProxyConfig {
         self
     }
 
-    /// Parse proxy URL string into ProxyConfig.
+    /// Parse proxy URL string into `ProxyConfig`.
     ///
     /// WHY: Users configure proxies via URL strings (environment variables, config files).
     ///
-    /// WHAT: Parses various proxy URL formats into ProxyConfig struct.
+    /// WHAT: Parses various proxy URL formats into `ProxyConfig` struct.
     ///
     /// HOW: Split on :// for protocol, @ for auth, : for host:port.
     ///
@@ -272,8 +272,7 @@ impl ProxyConfig {
             }
             other => {
                 return Err(HttpClientError::InvalidProxyUrl(format!(
-                    "Unsupported proxy protocol: {}",
-                    other
+                    "Unsupported proxy protocol: {other}"
                 )))
             }
         };
@@ -298,7 +297,7 @@ impl ProxyConfig {
         })?;
 
         let port: u16 = port_str.parse().map_err(|_| {
-            HttpClientError::InvalidProxyUrl(format!("Invalid port number: {}", port_str))
+            HttpClientError::InvalidProxyUrl(format!("Invalid port number: {port_str}"))
         })?;
 
         Ok(ProxyConfig {
@@ -313,7 +312,7 @@ impl ProxyConfig {
     ///
     /// WHY: Standard Unix proxy configuration via environment variables.
     ///
-    /// WHAT: Checks HTTP_PROXY/HTTPS_PROXY based on target URL scheme.
+    /// WHAT: Checks `HTTP_PROXY/HTTPS_PROXY` based on target URL scheme.
     ///
     /// HOW: Match on scheme, try uppercase first, fallback to lowercase.
     ///
@@ -343,11 +342,11 @@ impl ProxyConfig {
         }
     }
 
-    /// Check if host should bypass proxy (NO_PROXY list).
+    /// Check if host should bypass proxy (`NO_PROXY` list).
     ///
     /// WHY: Some hosts should not go through proxy (localhost, internal hosts).
     ///
-    /// WHAT: Checks NO_PROXY/no_proxy comma-separated list for matches.
+    /// WHAT: Checks `NO_PROXY/no_proxy` comma-separated list for matches.
     ///
     /// HOW: Split on comma, check exact match or domain suffix match.
     ///
@@ -396,7 +395,7 @@ impl ProxyConfig {
             }
 
             // Domain suffix without leading dot (example.com matches api.example.com)
-            if host.ends_with(&format!(".{}", pattern)) {
+            if host.ends_with(&format!(".{pattern}")) {
                 return true;
             }
         }

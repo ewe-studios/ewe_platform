@@ -22,14 +22,14 @@ pub enum CollectionState {
 ///
 /// Shape:
 ///
-/// let (branch_one, branch_two) = iterator.map_branch(|item| {
+/// let (`branch_one`, `branch_two`) = `iterator.map_branch(|item`| {
 ///     if condition1 {
-///         return Branch::Left(item);
+///         return `Branch::Left(item)`;
 ///     }
 ///     if condition2 {
-///         return Branch::Right(item);
+///         return `Branch::Right(item)`;
 ///     }
-///     Branch::SKIP
+///     `Branch::SKIP`
 /// });
 ///
 /// Then people can use `branch_one` and `branch_two` wherever

@@ -1,14 +1,14 @@
 //! WebSocket connection and client APIs.
 //!
-//! WHY: Users need both a low-level TaskIterator API and a high-level blocking API
+//! WHY: Users need both a low-level `TaskIterator` API and a high-level blocking API
 //! for WebSocket communication.
 //!
 //! WHAT: Provides `WebSocketConnection` (blocking send/recv API) and `WebSocketClient`
-//! (consumer wrapper around TaskIterator using executor boundary with send capability).
+//! (consumer wrapper around `TaskIterator` using executor boundary with send capability).
 //!
-//! HOW: WebSocketConnection wraps the shared stream directly for blocking operations.
-//! WebSocketClient uses `execute_stream()` to integrate with valtron executor and
-//! provides `MessageDelivery` for sending messages via ConcurrentQueue.
+//! HOW: `WebSocketConnection` wraps the shared stream directly for blocking operations.
+//! `WebSocketClient` uses `execute_stream()` to integrate with valtron executor and
+//! provides `MessageDelivery` for sending messages via `ConcurrentQueue`.
 
 use crate::io::ioutils::SharedByteBufferStream;
 use crate::netcap::RawStream;
@@ -31,7 +31,7 @@ use super::task::WebSocketTask;
 /// WHAT: High-level WebSocket connection with send/recv/close methods.
 ///
 /// HOW: Wraps the shared stream and manages connection state.
-/// Uses BatchFrameWriter for efficient frame writing.
+/// Uses `BatchFrameWriter` for efficient frame writing.
 pub struct WebSocketConnection {
     stream: SharedByteBufferStream<RawStream>,
     writer: BatchFrameWriter<SharedByteBufferStream<RawStream>>,
@@ -49,7 +49,7 @@ enum ConnectionState {
 }
 
 impl WebSocketConnection {
-    /// Create a new WebSocketConnection from an established stream.
+    /// Create a new `WebSocketConnection` from an established stream.
     ///
     /// WHY: After successful handshake, user needs a connection object.
     /// WHAT: Wraps the stream for frame-based communication.
@@ -162,7 +162,7 @@ impl WebSocketConnection {
         }
 
         // Convert frame to message
-        return match frame.opcode {
+        match frame.opcode {
             Opcode::Text => {
                 let text = String::from_utf8(frame.payload).map_err(WebSocketError::InvalidUtf8)?;
                 Ok(WebSocketMessage::Text(text))
@@ -171,7 +171,7 @@ impl WebSocketConnection {
             _ => Err(WebSocketError::ProtocolError(
                 "Unexpected data frame opcode".to_string(),
             )),
-        };
+        }
     }
 
     fn handle_control_frame(
@@ -293,12 +293,12 @@ impl WebSocketConnection {
     }
 }
 
-/// Iterator over messages from a WebSocketConnection.
+/// Iterator over messages from a `WebSocketConnection`.
 pub struct ConnectionMessageIterator<'a> {
     conn: &'a mut WebSocketConnection,
 }
 
-impl<'a> Iterator for ConnectionMessageIterator<'a> {
+impl Iterator for ConnectionMessageIterator<'_> {
     type Item = Result<WebSocketMessage, WebSocketError>;
 
     fn next(&mut self) -> Option<Self::Item> {
@@ -334,14 +334,14 @@ fn parse_close_payload(payload: &[u8]) -> (u16, String) {
 ///
 /// WHAT: `MessageDelivery` provides thread-safe message sending via `ConcurrentQueue`.
 ///
-/// HOW: Wraps `Arc<ConcurrentQueue<WebSocketMessage>>` - cloned for WebSocketTask to read.
+/// HOW: Wraps `Arc<ConcurrentQueue<WebSocketMessage>>` - cloned for `WebSocketTask` to read.
 #[derive(Clone)]
 pub struct MessageDelivery {
     queue: Arc<ConcurrentQueue<WebSocketMessage>>,
 }
 
 impl MessageDelivery {
-    /// Create a new MessageDelivery with an unbounded queue.
+    /// Create a new `MessageDelivery` with an unbounded queue.
     #[must_use]
     pub fn new() -> Self {
         Self {
@@ -412,13 +412,13 @@ impl Default for MessageDelivery {
 pub enum WebSocketEvent {
     /// A WebSocket message is available.
     Message(WebSocketMessage),
-    /// Stream is still working, no message yet. User should call next() again.
+    /// Stream is still working, no message yet. User should call `next()` again.
     Skip,
 }
 
 /// A WebSocket client that uses the valtron executor.
 ///
-/// WHY: Users want to consume WebSocket messages without understanding TaskIterator internals.
+/// WHY: Users want to consume WebSocket messages without understanding `TaskIterator` internals.
 ///
 /// WHAT: Wraps the executor's stream and presents a simple iterator interface.
 /// Includes `MessageDelivery` for sending messages.
@@ -564,12 +564,12 @@ impl<R: DnsResolver + Send + 'static> WebSocketClient<R> {
     }
 }
 
-/// Iterator over messages from a WebSocketClient.
+/// Iterator over messages from a `WebSocketClient`.
 pub struct WebSocketMessageIterator<'a, R: DnsResolver + Send + 'static> {
     client: &'a mut WebSocketClient<R>,
 }
 
-impl<'a, R: DnsResolver + Send + 'static> Iterator for WebSocketMessageIterator<'a, R> {
+impl<R: DnsResolver + Send + 'static> Iterator for WebSocketMessageIterator<'_, R> {
     type Item = Result<WebSocketEvent, WebSocketError>;
 
     fn next(&mut self) -> Option<Self::Item> {

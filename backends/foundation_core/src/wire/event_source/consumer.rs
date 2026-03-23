@@ -1,6 +1,6 @@
 //! Simplified consumer-facing API for Server-Sent Events.
 //!
-//! WHY: Most users want to consume SSE streams without dealing with TaskIterator
+//! WHY: Most users want to consume SSE streams without dealing with `TaskIterator`
 //! mechanics. This module provides simple iterator-based APIs that hide the
 //! underlying executor complexity while still exposing state information.
 //!
@@ -30,7 +30,7 @@ use std::sync::Arc;
 pub enum SseStreamEvent {
     /// An actual SSE event is available.
     Event(Event),
-    /// Stream is still working, no event yet. User should call next() again.
+    /// Stream is still working, no event yet. User should call `next()` again.
     Skip,
 }
 
@@ -42,7 +42,7 @@ impl From<ParseResult> for SseStreamEvent {
 
 /// A simplified SSE event stream consumer.
 ///
-/// WHY: Users want to consume SSE events without understanding TaskIterator internals.
+/// WHY: Users want to consume SSE events without understanding `TaskIterator` internals.
 ///
 /// WHAT: Wraps the executor's stream iterator and presents a simple iterator interface
 /// that yields `SseEvent` to indicate when events are available vs. when to skip.
@@ -77,7 +77,7 @@ impl<R: DnsResolver + Send + 'static> SseStream<R> {
     pub fn connect(resolver: R, url: impl Into<String>) -> Result<Self, EventSourceError> {
         let task = EventSourceTask::connect(resolver, url)?;
         let inner = execute(task, None)
-            .map_err(|e| EventSourceError::Http(format!("Executor error: {}", e)))?;
+            .map_err(|e| EventSourceError::Http(format!("Executor error: {e}")))?;
         Ok(Self { inner })
     }
 
@@ -96,7 +96,7 @@ impl<R: DnsResolver + Send + 'static> SseStream<R> {
     ) -> Result<Self, EventSourceError> {
         let task = EventSourceTask::connect_with_pool(url, pool)?;
         let inner = execute(task, None)
-            .map_err(|e| EventSourceError::Http(format!("Executor error: {}", e)))?;
+            .map_err(|e| EventSourceError::Http(format!("Executor error: {e}")))?;
         Ok(Self { inner })
     }
 }
@@ -137,7 +137,7 @@ impl<R: DnsResolver + Clone + Send + 'static> ReconnectingSseStream<R> {
     pub fn connect(resolver: R, url: impl Into<String>) -> Result<Self, EventSourceError> {
         let task = ReconnectingEventSourceTask::connect(resolver, url)?;
         let inner = execute(task, None)
-            .map_err(|e| EventSourceError::Http(format!("Executor error: {}", e)))?;
+            .map_err(|e| EventSourceError::Http(format!("Executor error: {e}")))?;
         Ok(Self { inner })
     }
 }

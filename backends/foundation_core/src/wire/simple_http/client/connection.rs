@@ -220,7 +220,7 @@ impl HttpClientConnection {
     ///
     /// WHAT: Creates a plain TCP connection for HTTP (no TLS).
     ///
-    /// HOW: DNS resolution → TCP connection → wrap in SharedByteBufferStream.
+    /// HOW: DNS resolution → TCP connection → wrap in `SharedByteBufferStream`.
     ///
     /// # Arguments
     ///
@@ -302,7 +302,7 @@ impl HttpClientConnection {
     ///
     /// WHAT: Creates a TLS connection for HTTPS.
     ///
-    /// HOW: DNS resolution → TCP connection → TLS handshake → wrap in SharedByteBufferStream.
+    /// HOW: DNS resolution → TCP connection → TLS handshake → wrap in `SharedByteBufferStream`.
     ///
     /// # Arguments
     ///
@@ -504,7 +504,7 @@ impl<R: DnsResolver> HttpConnectionPool<R> {
     ///
     /// # Arguments
     ///
-    /// * `proxy` - Proxy configuration (must be ProxyProtocol::Http)
+    /// * `proxy` - Proxy configuration (must be `ProxyProtocol::Http`)
     /// * `target_host` - Target server hostname
     /// * `target_port` - Target server port
     /// * `timeout` - Optional connection timeout
@@ -577,7 +577,7 @@ impl<R: DnsResolver> HttpConnectionPool<R> {
 
         // Step 3: Wrap temporarily to send CONNECT and read response
         let raw_stream = RawStream::from_connection(connection.try_clone().map_err(|e| {
-            HttpClientError::ProxyConnectionFailed(format!("Failed to clone connection: {}", e))
+            HttpClientError::ProxyConnectionFailed(format!("Failed to clone connection: {e}"))
         })?)
         .map_err(|e| HttpClientError::ProxyConnectionFailed(e.to_string()))?;
 
@@ -598,10 +598,9 @@ impl<R: DnsResolver> HttpConnectionPool<R> {
             )
         } else {
             format!(
-                "CONNECT {}:{} HTTP/1.1\r\n\
-                 Host: {}:{}\r\n\
-                 \r\n",
-                target_host, target_port, target_host, target_port
+                "CONNECT {target_host}:{target_port} HTTP/1.1\r\n\
+                 Host: {target_host}:{target_port}\r\n\
+                 \r\n"
             )
         };
 
@@ -626,7 +625,7 @@ impl<R: DnsResolver> HttpConnectionPool<R> {
             })?
             .map_err(|e| HttpClientError::ProxyTunnelFailed {
                 status: 0,
-                message: format!("Failed to parse proxy response: {}", e),
+                message: format!("Failed to parse proxy response: {e}"),
             })?;
 
         // Extract status code from Intro variant
@@ -648,7 +647,7 @@ impl<R: DnsResolver> HttpConnectionPool<R> {
         if status_code != 200 {
             return Err(HttpClientError::ProxyTunnelFailed {
                 status: status_code,
-                message: format!("Proxy returned status {}", status_code),
+                message: format!("Proxy returned status {status_code}"),
             });
         }
 
@@ -676,7 +675,7 @@ impl<R: DnsResolver> HttpConnectionPool<R> {
     ///
     /// # Arguments
     ///
-    /// * `proxy` - Proxy configuration (must be ProxyProtocol::Https)
+    /// * `proxy` - Proxy configuration (must be `ProxyProtocol::Https`)
     /// * `target_host` - Target server hostname
     /// * `target_port` - Target server port
     /// * `timeout` - Optional connection timeout
@@ -739,10 +738,9 @@ impl<R: DnsResolver> HttpConnectionPool<R> {
             )
         } else {
             format!(
-                "CONNECT {}:{} HTTP/1.1\r\n\
-                 Host: {}:{}\r\n\
-                 \r\n",
-                target_host, target_port, target_host, target_port
+                "CONNECT {target_host}:{target_port} HTTP/1.1\r\n\
+                 Host: {target_host}:{target_port}\r\n\
+                 \r\n"
             )
         };
 
@@ -767,7 +765,7 @@ impl<R: DnsResolver> HttpConnectionPool<R> {
             })?
             .map_err(|e| HttpClientError::ProxyTunnelFailed {
                 status: 0,
-                message: format!("Failed to parse proxy response: {}", e),
+                message: format!("Failed to parse proxy response: {e}"),
             })?;
 
         // Extract status code from Intro variant
@@ -789,7 +787,7 @@ impl<R: DnsResolver> HttpConnectionPool<R> {
         if status_code != 200 {
             return Err(HttpClientError::ProxyTunnelFailed {
                 status: status_code,
-                message: format!("Proxy returned status {}", status_code),
+                message: format!("Proxy returned status {status_code}"),
             });
         }
 
@@ -820,13 +818,13 @@ impl<R: DnsResolver> HttpConnectionPool<R> {
     /// Creates an HTTP connection, optionally through a proxy.
     ///
     /// WHY: Provides unified connection creation that handles direct connections,
-    /// proxy tunnels, and NO_PROXY bypass logic.
+    /// proxy tunnels, and `NO_PROXY` bypass logic.
     ///
     /// WHAT: Determines effective connection strategy based on proxy config and
-    /// NO_PROXY settings, then establishes the appropriate connection type.
+    /// `NO_PROXY` settings, then establishes the appropriate connection type.
     ///
     /// HOW:
-    /// 1. Check NO_PROXY bypass list
+    /// 1. Check `NO_PROXY` bypass list
     /// 2. If bypassed, create direct connection
     /// 3. Otherwise, establish proxy tunnel based on protocol
     /// 4. For HTTPS targets through proxy, upgrade tunnel to TLS
@@ -913,7 +911,7 @@ impl<R: DnsResolver> HttpConnectionPool<R> {
                     );
                     Ok(HttpClientConnection {
                         stream,
-                        host: target_host.to_string(),
+                        host: target_host.clone(),
                         port: target_port,
                     })
                 }

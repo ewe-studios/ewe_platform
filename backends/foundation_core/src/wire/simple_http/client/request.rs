@@ -495,9 +495,9 @@ impl<R: DnsResolver + 'static> ClientRequestBuilder<R> {
     /// ```
     #[must_use]
     pub fn basic_auth(self, username: &str, password: &str) -> Self {
-        let credentials = format!("{}:{}", username, password);
+        let credentials = format!("{username}:{password}");
         let encoded = BASE64_STANDARD.encode(credentials.as_bytes());
-        self.header(SimpleHeader::AUTHORIZATION, format!("Basic {}", encoded))
+        self.header(SimpleHeader::AUTHORIZATION, format!("Basic {encoded}"))
     }
 
     /// Sets HTTP Basic Authentication header with optional password.
@@ -573,7 +573,7 @@ impl<R: DnsResolver + 'static> ClientRequestBuilder<R> {
     /// ```
     #[must_use]
     pub fn bearer_token(self, token: &str) -> Self {
-        self.header(SimpleHeader::AUTHORIZATION, format!("Bearer {}", token))
+        self.header(SimpleHeader::AUTHORIZATION, format!("Bearer {token}"))
     }
 
     /// Alias for `bearer_token()`.
@@ -581,7 +581,7 @@ impl<R: DnsResolver + 'static> ClientRequestBuilder<R> {
     /// # Purpose (WHY)
     ///
     /// Provides alternative method name for Bearer authentication.
-    /// Some users prefer "bearer_auth" naming convention.
+    /// Some users prefer "`bearer_auth`" naming convention.
     ///
     /// # Arguments (WHAT)
     ///
@@ -703,7 +703,7 @@ impl<R: DnsResolver + 'static> ClientRequestBuilder<R> {
     pub fn authorization(self, scheme: &str, credentials: &str) -> Self {
         self.header(
             SimpleHeader::AUTHORIZATION,
-            format!("{} {}", scheme, credentials),
+            format!("{scheme} {credentials}"),
         )
     }
 }

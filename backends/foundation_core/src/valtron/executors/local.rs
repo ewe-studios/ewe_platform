@@ -1749,7 +1749,7 @@ impl<T: ProcessController + Clone> Clone for LocalThreadExecutor<T> {
         LocalThreadExecutor {
             state: self.state.clone(),
             yielder: self.yielder.clone(),
-            no_work_yield: self.no_work_yield.clone(),
+            no_work_yield: self.no_work_yield,
             kill_signal: self.kill_signal.clone(),
         }
     }

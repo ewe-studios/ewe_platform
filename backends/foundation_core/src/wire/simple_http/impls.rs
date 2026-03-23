@@ -2859,9 +2859,7 @@ where
                 .do_once_mut(|binding| binding.read_line(&mut line))
                 .map_err(|err| HttpReaderError::LineReadFailed(Box::new(err)));
 
-            if let Err(e) = line_read_result {
-                return Err(e);
-            }
+            line_read_result?;
 
             tracing::debug!("HeaderLine: {:?}", &line);
 

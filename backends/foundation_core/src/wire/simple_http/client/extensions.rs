@@ -1,11 +1,11 @@
 /// WHY: Middleware needs type-safe storage to pass data between layers.
-/// TimingMiddleware stores Instant, RetryMiddleware stores RetryState, etc.
+/// `TimingMiddleware` stores Instant, `RetryMiddleware` stores `RetryState`, etc.
 ///
-/// WHAT: Type-safe extension storage using TypeId as key. Allows middleware
+/// WHAT: Type-safe extension storage using `TypeId` as key. Allows middleware
 /// to store arbitrary data in requests without coupling middleware implementations.
 ///
-/// HOW: Uses HashMap<TypeId, Box<dyn Any + Send + Sync>> for type-erased storage.
-/// Type safety restored via downcast_ref/downcast_mut at retrieval.
+/// HOW: Uses `HashMap`<`TypeId`, Box<dyn Any + Send + Sync>> for type-erased storage.
+/// Type safety restored via `downcast_ref/downcast_mut` at retrieval.
 ///
 /// # Examples
 ///
@@ -32,9 +32,9 @@ use std::collections::HashMap;
 /// WHY: Allows middleware to attach arbitrary typed data to requests
 /// without modifying the core request structure.
 ///
-/// WHAT: HashMap keyed by TypeId, storing boxed trait objects.
+/// WHAT: `HashMap` keyed by `TypeId`, storing boxed trait objects.
 ///
-/// HOW: insert() boxes the value, get()/get_mut() downcasts back to concrete type.
+/// HOW: `insert()` boxes the value, `get()/get_mut()` downcasts back to concrete type.
 #[derive(Default)]
 pub struct Extensions {
     map: HashMap<TypeId, Box<dyn Any + Send + Sync>>,
@@ -47,7 +47,7 @@ impl Extensions {
     ///
     /// WHAT: Returns empty Extensions with no stored values.
     ///
-    /// HOW: Creates default HashMap.
+    /// HOW: Creates default `HashMap`.
     ///
     /// # Panics
     ///
@@ -65,7 +65,7 @@ impl Extensions {
     ///
     /// WHAT: Stores value, replacing any existing value of same type.
     ///
-    /// HOW: Uses TypeId::of::<T>() as key, boxes value as trait object.
+    /// HOW: Uses `TypeId::of::`<T>() as key, boxes value as trait object.
     ///
     /// # Panics
     ///
@@ -80,7 +80,7 @@ impl Extensions {
     ///
     /// WHAT: Returns Some(&T) if value exists, None otherwise.
     ///
-    /// HOW: Looks up by TypeId, downcasts trait object to concrete type.
+    /// HOW: Looks up by `TypeId`, downcasts trait object to concrete type.
     ///
     /// # Panics
     ///
@@ -98,7 +98,7 @@ impl Extensions {
     ///
     /// WHAT: Returns Some(&mut T) if value exists, None otherwise.
     ///
-    /// HOW: Looks up by TypeId, downcasts trait object to concrete type.
+    /// HOW: Looks up by `TypeId`, downcasts trait object to concrete type.
     ///
     /// # Panics
     ///

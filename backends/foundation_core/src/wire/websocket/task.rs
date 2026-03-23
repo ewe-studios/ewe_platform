@@ -56,7 +56,7 @@ pub struct WebSocketConnectInfo {
 /// Open state data for WebSocket connection.
 ///
 /// WHY: Extract Open state data into a separate struct to avoid cloning
-/// when transitioning Open→Open. Uses Option.take() for zero-copy moves.
+/// when transitioning Open→Open. Uses `Option.take()` for zero-copy moves.
 ///
 /// Added buffer pool and reusable buffer for zero-copy frame parsing.
 pub struct WebSocketOpenState {
@@ -80,7 +80,7 @@ pub struct WebSocketConnectingState {
     pub read_timeout: Duration,
 }
 
-/// HandshakeSending state data.
+/// `HandshakeSending` state data.
 pub struct WebSocketHandshakeSendingState {
     pub connection: HttpClientConnection,
     pub request_bytes: Vec<Vec<u8>>,
@@ -91,7 +91,7 @@ pub struct WebSocketHandshakeSendingState {
     pub read_timeout: Duration,
 }
 
-/// HandshakeReading state data.
+/// `HandshakeReading` state data.
 pub struct WebSocketHandshakeReadingState {
     pub connection: HttpClientConnection,
     pub reader: HttpResponseReader<SimpleHttpBody, RawStream>,
@@ -101,7 +101,7 @@ pub struct WebSocketHandshakeReadingState {
     pub read_timeout: Duration,
 }
 
-/// HandshakeValidating state data.
+/// `HandshakeValidating` state data.
 pub struct WebSocketHandshakeValidatingState {
     pub connection: HttpClientConnection,
     pub headers: crate::wire::simple_http::SimpleHeaders,
@@ -114,7 +114,7 @@ pub struct WebSocketHandshakeValidatingState {
 /// [`WebSocketState`] represents the state machine states.
 ///
 /// WHY: Using Option<Box<T>> for each state allows zero-copy state transitions
-/// via Option::take() instead of cloning large data structures.
+/// via `Option::take()` instead of cloning large data structures.
 #[allow(dead_code)]
 enum WebSocketState {
     Init(Option<Box<WebSocketConnectInfo>>),
@@ -126,7 +126,7 @@ enum WebSocketState {
     Closed(Option<WebSocketError>),
 }
 
-/// WebSocket task that implements the TaskIterator pattern.
+/// WebSocket task that implements the `TaskIterator` pattern.
 ///
 /// WHY: Provides state-machine-based WebSocket client that integrates with
 /// valtron executor system.
@@ -134,8 +134,8 @@ enum WebSocketState {
 /// WHAT: Manages WebSocket connection lifecycle from initial connection through
 /// handshake to message reading.
 ///
-/// HOW: State machine with states: Init → Connecting → HandshakeSending →
-/// HandshakeReading → HandshakeValidating → Open → Closed
+/// HOW: State machine with states: Init → Connecting → `HandshakeSending` →
+/// `HandshakeReading` → `HandshakeValidating` → Open → Closed
 pub struct WebSocketTask<R>
 where
     R: DnsResolver + Send + 'static,
@@ -162,7 +162,7 @@ where
         // Validate URL upfront - must be a valid URI with ws/wss scheme
         let uri = Uri::parse(&url_str).map_err(|e| {
             error!(url = %url_str, error = ?e, "Failed to parse URL");
-            WebSocketError::InvalidUrl(format!("Failed to parse URL: {} - {:?}", url_str, e))
+            WebSocketError::InvalidUrl(format!("Failed to parse URL: {url_str} - {e:?}"))
         })?;
 
         // Check scheme is ws or wss
@@ -208,7 +208,7 @@ where
 
         let uri = Uri::parse(&url_str).map_err(|e| {
             error!(url = %url_str, error = ?e, "Failed to parse URL");
-            WebSocketError::InvalidUrl(format!("Failed to parse URL: {} - {:?}", url_str, e))
+            WebSocketError::InvalidUrl(format!("Failed to parse URL: {url_str} - {e:?}"))
         })?;
 
         if !uri.scheme().is_ws() && !uri.scheme().is_wss() {
@@ -241,7 +241,7 @@ where
     /// * `url` - WebSocket URL
     /// * `subprotocols` - Optional comma-separated subprotocols
     /// * `extra_headers` - Additional headers for handshake
-    /// * `delivery` - MessageDelivery queue for sending messages
+    /// * `delivery` - `MessageDelivery` queue for sending messages
     /// * `read_timeout` - Timeout for read operations
     ///
     /// # Errors
@@ -262,7 +262,7 @@ where
 
         let uri = Uri::parse(&url_str).map_err(|e| {
             error!(url = %url_str, error = ?e, "Failed to parse URL");
-            WebSocketError::InvalidUrl(format!("Failed to parse URL: {} - {:?}", url_str, e))
+            WebSocketError::InvalidUrl(format!("Failed to parse URL: {url_str} - {e:?}"))
         })?;
 
         if !uri.scheme().is_ws() && !uri.scheme().is_wss() {
@@ -312,7 +312,7 @@ where
 
         let uri = Uri::parse(&url_str).map_err(|e| {
             error!(url = %url_str, error = ?e, "Failed to parse URL");
-            WebSocketError::InvalidUrl(format!("Failed to parse URL: {} - {:?}", url_str, e))
+            WebSocketError::InvalidUrl(format!("Failed to parse URL: {url_str} - {e:?}"))
         })?;
 
         if !uri.scheme().is_ws() && !uri.scheme().is_wss() {

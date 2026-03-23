@@ -238,8 +238,7 @@ impl WebSocketFrame {
                         io_err
                     );
                     WebSocketError::ProtocolError(format!(
-                        "Partial frame read interrupted by I/O error (stream corrupted): {}",
-                        io_err
+                        "Partial frame read interrupted by I/O error (stream corrupted): {io_err}"
                     ))
                 }
                 _ => e,
@@ -409,7 +408,7 @@ impl WebSocketFrame {
     ///
     /// # Returns
     ///
-    /// Decoded WebSocketFrame with payload in the provided buffer.
+    /// Decoded `WebSocketFrame` with payload in the provided buffer.
     ///
     /// # Errors
     ///
@@ -461,8 +460,7 @@ impl WebSocketFrame {
                         io_err
                     );
                     WebSocketError::ProtocolError(format!(
-                        "Partial frame read interrupted by I/O error (stream corrupted): {}",
-                        io_err
+                        "Partial frame read interrupted by I/O error (stream corrupted): {io_err}"
                     ))
                 }
                 _ => e,

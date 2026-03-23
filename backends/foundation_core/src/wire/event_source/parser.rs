@@ -111,13 +111,13 @@ impl<R: Read> SseParser<R> {
         self.last_event_id.as_deref()
     }
 
-    /// Parse next complete event from the stream, returning ParseResult.
+    /// Parse next complete event from the stream, returning `ParseResult`.
     ///
     /// WHY: SSE events span multiple lines - need to accumulate until empty line or comment.
-    /// WHAT: Reads lines in a loop, accumulating into an [`EventBuilder`], returns ParseResult.
+    /// WHAT: Reads lines in a loop, accumulating into an [`EventBuilder`], returns `ParseResult`.
     ///
     /// Returns:
-    /// - `Ok(Some(ParseResult))` when a complete event is parsed (includes last_known_id).
+    /// - `Ok(Some(ParseResult))` when a complete event is parsed (includes `last_known_id`).
     /// - `Ok(None)` when EOF is reached with no more data.
     /// - `Err(EventSourceError)` on I/O read failure.
     ///
@@ -183,7 +183,7 @@ impl<R: Read> SseParser<R> {
         }
     }
 
-    /// Build a ParseResult from an event, updating last_event_id if needed.
+    /// Build a `ParseResult` from an event, updating `last_event_id` if needed.
     fn build_parse_result(&mut self, event: Event) -> ParseResult {
         // Update last_event_id if this event has an ID
         if let Event::Message { id: Some(id), .. } = &event {
@@ -200,7 +200,7 @@ impl<R: Read> Iterator for SseParser<R> {
     /// Get next event from parser.
     ///
     /// WHY: Provide standard Iterator interface for SSE event consumption.
-    /// WHAT: Parses and returns complete ParseResult with last_known_id.
+    /// WHAT: Parses and returns complete `ParseResult` with `last_known_id`.
     ///
     /// NOTE: Returns `None` only when EOF is reached.
     /// Returns `Some(Err(...))` on I/O or parse errors.

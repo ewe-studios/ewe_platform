@@ -1,11 +1,11 @@
 /// WHY: HTTP client needs request/response interception for cross-cutting concerns
 /// like logging, timing, retry, header injection without modifying core client logic.
 ///
-/// WHAT: Middleware trait defining handle_request/handle_response hooks, and
-/// MiddlewareChain implementing onion model execution (forward for requests, reverse for responses).
+/// WHAT: Middleware trait defining `handle_request/handle_response` hooks, and
+/// `MiddlewareChain` implementing onion model execution (forward for requests, reverse for responses).
 ///
-/// HOW: Middleware trait is Send + Sync for thread safety. MiddlewareChain stores Arc<dyn Middleware>
-/// for shared ownership. process_request iterates forward, process_response iterates reverse.
+/// HOW: Middleware trait is Send + Sync for thread safety. `MiddlewareChain` stores Arc<dyn Middleware>
+/// for shared ownership. `process_request` iterates forward, `process_response` iterates reverse.
 ///
 /// # Panics
 ///
@@ -21,10 +21,10 @@ use tracing::{debug, info};
 ///
 /// WHY: Enables custom processing of requests/responses without modifying core client.
 ///
-/// WHAT: Defines two hooks: handle_request (before sending) and handle_response (after receiving).
+/// WHAT: Defines two hooks: `handle_request` (before sending) and `handle_response` (after receiving).
 /// Implementations can modify request/response or return errors to abort/fail.
 ///
-/// HOW: Middleware stored in MiddlewareChain, called in order for requests, reverse for responses.
+/// HOW: Middleware stored in `MiddlewareChain`, called in order for requests, reverse for responses.
 /// Must be Send + Sync for thread safety across executors.
 ///
 /// # Examples
@@ -57,7 +57,7 @@ pub trait Middleware: Send + Sync {
     ///
     /// WHAT: Receives mutable request, can modify headers/body/url. Return Err to abort.
     ///
-    /// HOW: Called by MiddlewareChain::process_request in forward order.
+    /// HOW: Called by `MiddlewareChain::process_request` in forward order.
     ///
     /// # Errors
     ///
@@ -74,7 +74,7 @@ pub trait Middleware: Send + Sync {
     ///
     /// WHAT: Receives immutable request and mutable response. Return Err to fail the response.
     ///
-    /// HOW: Called by MiddlewareChain::process_response in reverse order (onion model).
+    /// HOW: Called by `MiddlewareChain::process_response` in reverse order (onion model).
     ///
     /// # Errors
     ///
@@ -95,7 +95,7 @@ pub trait Middleware: Send + Sync {
     ///
     /// WHAT: Returns static string identifying middleware type.
     ///
-    /// HOW: Default implementation uses type_name.
+    /// HOW: Default implementation uses `type_name`.
     ///
     /// # Panics
     ///
@@ -111,10 +111,10 @@ pub trait Middleware: Send + Sync {
 /// responses flow backward (last to first) creating symmetric onion layers.
 ///
 /// WHAT: Stores ordered list of middleware as Arc for shared ownership.
-/// Provides add() for registration and process_request/process_response for execution.
+/// Provides `add()` for registration and `process_request/process_response` for execution.
 ///
-/// HOW: Stores Vec<Arc<dyn Middleware>>. process_request iterates forward,
-/// process_response iterates with .iter().rev() for reverse order.
+/// HOW: Stores Vec<Arc<dyn Middleware>>. `process_request` iterates forward,
+/// `process_response` iterates with .`iter().rev()` for reverse order.
 ///
 /// # Examples
 ///
@@ -134,7 +134,7 @@ impl MiddlewareChain {
     ///
     /// WHY: Initialize storage for middleware registration.
     ///
-    /// WHAT: Returns empty MiddlewareChain with no registered middleware.
+    /// WHAT: Returns empty `MiddlewareChain` with no registered middleware.
     ///
     /// HOW: Creates empty Vec.
     ///
@@ -166,12 +166,12 @@ impl MiddlewareChain {
 
     /// Processes request through middleware chain.
     ///
-    /// WHY: Execute all middleware handle_request hooks before sending.
+    /// WHY: Execute all middleware `handle_request` hooks before sending.
     ///
-    /// WHAT: Iterates middleware in forward order (first to last), calling handle_request.
+    /// WHAT: Iterates middleware in forward order (first to last), calling `handle_request`.
     /// Stops on first error.
     ///
-    /// HOW: Iterates &self.middlewares, calls mw.handle_request(request)?, propagates errors.
+    /// HOW: Iterates &self.middlewares, calls `mw.handle_request(request)`?, propagates errors.
     ///
     /// # Errors
     ///
@@ -189,12 +189,12 @@ impl MiddlewareChain {
 
     /// Processes response through middleware chain.
     ///
-    /// WHY: Execute all middleware handle_response hooks after receiving response.
+    /// WHY: Execute all middleware `handle_response` hooks after receiving response.
     ///
-    /// WHAT: Iterates middleware in reverse order (last to first), calling handle_response.
+    /// WHAT: Iterates middleware in reverse order (last to first), calling `handle_response`.
     /// Stops on first error. This creates onion model symmetry.
     ///
-    /// HOW: Iterates self.middlewares.iter().rev(), calls mw.handle_response(request, response)?,
+    /// HOW: Iterates `self.middlewares.iter().rev()`, calls `mw.handle_response(request`, response)?,
     /// propagates errors.
     ///
     /// # Errors
@@ -257,11 +257,11 @@ impl std::fmt::Debug for MiddlewareChain {
 pub struct LoggingMiddleware;
 
 impl LoggingMiddleware {
-    /// Creates new LoggingMiddleware.
+    /// Creates new `LoggingMiddleware`.
     ///
     /// WHY: Initialize logging middleware for request/response logging.
     ///
-    /// WHAT: Returns LoggingMiddleware instance.
+    /// WHAT: Returns `LoggingMiddleware` instance.
     ///
     /// HOW: Simple struct construction.
     ///
@@ -330,11 +330,11 @@ impl Middleware for LoggingMiddleware {
 /// WHY: Performance monitoring requires measuring how long requests take
 /// without adding timing code throughout the client.
 ///
-/// WHAT: Records start time in handle_request, calculates and logs duration in
-/// handle_response. Stores Instant in request extensions.
+/// WHAT: Records start time in `handle_request`, calculates and logs duration in
+/// `handle_response`. Stores Instant in request extensions.
 ///
-/// HOW: Uses std::time::Instant for timing. Stores start time with type-safe
-/// Extensions in request. Logs duration using tracing::info.
+/// HOW: Uses `std::time::Instant` for timing. Stores start time with type-safe
+/// Extensions in request. Logs duration using `tracing::info`.
 ///
 /// # Examples
 ///
@@ -347,11 +347,11 @@ impl Middleware for LoggingMiddleware {
 pub struct TimingMiddleware;
 
 impl TimingMiddleware {
-    /// Creates new TimingMiddleware.
+    /// Creates new `TimingMiddleware`.
     ///
     /// WHY: Initialize timing middleware for request duration measurement.
     ///
-    /// WHAT: Returns TimingMiddleware instance.
+    /// WHAT: Returns `TimingMiddleware` instance.
     ///
     /// HOW: Simple struct construction.
     ///
@@ -403,7 +403,7 @@ impl Middleware for TimingMiddleware {
 /// WHAT: Adds configured headers to requests only if they don't already exist.
 /// Does not overwrite existing headers.
 ///
-/// HOW: Stores headers in BTreeMap, checks if header exists before inserting.
+/// HOW: Stores headers in `BTreeMap`, checks if header exists before inserting.
 ///
 /// # Examples
 ///
@@ -423,13 +423,13 @@ pub struct HeaderMiddleware {
 }
 
 impl HeaderMiddleware {
-    /// Creates new HeaderMiddleware with no default headers.
+    /// Creates new `HeaderMiddleware` with no default headers.
     ///
     /// WHY: Initialize middleware before adding headers via builder pattern.
     ///
-    /// WHAT: Returns empty HeaderMiddleware.
+    /// WHAT: Returns empty `HeaderMiddleware`.
     ///
-    /// HOW: Creates empty BTreeMap for headers.
+    /// HOW: Creates empty `BTreeMap` for headers.
     ///
     /// # Panics
     ///
@@ -497,7 +497,7 @@ impl Middleware for HeaderMiddleware {
 /// WHAT: Enum defining three strategies with their parameters. Each calculates
 /// delay based on attempt number.
 ///
-/// HOW: next_delay() takes attempt number and returns Duration based on formula
+/// HOW: `next_delay()` takes attempt number and returns Duration based on formula
 /// specific to each variant.
 ///
 /// # Examples
@@ -573,12 +573,12 @@ impl BackoffStrategy {
 
 /// Tracks retry state for a request.
 ///
-/// WHY: RetryMiddleware needs to track how many times a request has been retried
-/// to enforce max_retries limit.
+/// WHY: `RetryMiddleware` needs to track how many times a request has been retried
+/// to enforce `max_retries` limit.
 ///
 /// WHAT: Stores current attempt number. Stored in request Extensions.
 ///
-/// HOW: Incremented in handle_response when retry is needed. Checked against max_retries.
+/// HOW: Incremented in `handle_response` when retry is needed. Checked against `max_retries`.
 ///
 /// # Examples
 ///
@@ -595,11 +595,11 @@ pub struct RetryState {
 }
 
 impl RetryState {
-    /// Creates new RetryState with attempt counter at 0.
+    /// Creates new `RetryState` with attempt counter at 0.
     ///
     /// WHY: Initialize retry tracking for a new request.
     ///
-    /// WHAT: Returns RetryState with attempt = 0.
+    /// WHAT: Returns `RetryState` with attempt = 0.
     ///
     /// HOW: Simple struct construction.
     ///
@@ -620,8 +620,8 @@ impl RetryState {
 /// WHAT: Middleware that retries requests when response status matches configured codes.
 /// Uses configurable backoff strategy for delays between attempts.
 ///
-/// HOW: Stores RetryState in request extensions. On matching status code, increments
-/// attempt and returns error if max_retries not exceeded. Error signals retry needed.
+/// HOW: Stores `RetryState` in request extensions. On matching status code, increments
+/// attempt and returns error if `max_retries` not exceeded. Error signals retry needed.
 ///
 /// # Examples
 ///
@@ -637,13 +637,13 @@ pub struct RetryMiddleware {
 }
 
 impl RetryMiddleware {
-    /// Creates new RetryMiddleware with exponential backoff.
+    /// Creates new `RetryMiddleware` with exponential backoff.
     ///
     /// WHY: Configure retry behavior with max attempts and status codes.
     ///
-    /// WHAT: Returns RetryMiddleware with default exponential backoff (100ms base, 2x multiplier).
+    /// WHAT: Returns `RetryMiddleware` with default exponential backoff (100ms base, 2x multiplier).
     ///
-    /// HOW: Stores parameters, initializes default BackoffStrategy.
+    /// HOW: Stores parameters, initializes default `BackoffStrategy`.
     ///
     /// # Panics
     ///
