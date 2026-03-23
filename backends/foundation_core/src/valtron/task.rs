@@ -323,7 +323,10 @@ impl<D, P, S> TaskAsStreamIterator<D, P, S> {
     }
 }
 
-impl<D, P, S: ExecutionAction> StreamIterator<D, P> for TaskAsStreamIterator<D, P, S> {}
+impl<D, P, S: ExecutionAction> StreamIterator for TaskAsStreamIterator<D, P, S> {
+    type D = D;
+    type P = P;
+}
 
 impl<D, P, S: ExecutionAction> Iterator for TaskAsStreamIterator<D, P, S> {
     type Item = crate::valtron::Stream<D, P>;

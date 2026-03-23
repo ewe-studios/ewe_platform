@@ -337,6 +337,35 @@ pub trait TaskIteratorExt: TaskIterator + Sized {
     {
         self.split_collector_map(transform, 1)
     }
+
+    /// Flatten nested iterator patterns where outer yields inner iterators.
+    ///
+    /// The mapper function transforms each `Ready` value into an inner iterator.
+    /// The returned `TMapIter` drains each inner iterator until `None`, then polls
+    /// the outer for the next item.
+    ///
+    /// Non-Ready states (Pending, Spawn) from the outer iterator pass through via `Into`,
+    /// so `Self::Pending` must be convertible to `InnerP` and `Self::Spawner` to `InnerS`.
+    ///
+    /// ## Example
+    ///
+    /// ```ignore
+    /// // Outer yields Ready(Vec<u8>), mapper returns vec.into_iter()
+    /// let flattened = task.map_iter(|vec| vec.into_iter());
+    /// ```
+    fn map_iter<F, InnerIter, InnerR, InnerP, InnerS>(
+        self,
+        mapper: F,
+    ) -> TMapIter<Self, F, InnerIter, InnerR, InnerP, InnerS, Self::Ready, Self::Pending, Self::Spawner>
+    where
+        Self: Sized,
+        F: Fn(Self::Ready) -> InnerIter + Send + 'static,
+        InnerIter: Iterator<Item = TaskStatus<InnerR, InnerP, InnerS>> + Send + 'static,
+        InnerR: Send + 'static,
+        InnerP: Send + 'static,
+        InnerS: ExecutionAction + Send + 'static,
+        Self::Pending: Into<InnerP> + Send + 'static,
+        Self::Spawner: Into<InnerS> + Send + 'static;
 }
 
 // Blanket implementation: anything implementing TaskIterator gets TaskIteratorExt
@@ -553,6 +582,28 @@ where
     {
         self.split_collector_map(transform, 1)
     }
+
+    fn map_iter<F, InnerIter, InnerR, InnerP, InnerS>(
+        self,
+        mapper: F,
+    ) -> TMapIter<Self, F, InnerIter, InnerR, InnerP, InnerS, Self::Ready, Self::Pending, Self::Spawner>
+    where
+        Self: Sized,
+        F: Fn(Self::Ready) -> InnerIter + Send + 'static,
+        InnerIter: Iterator<Item = TaskStatus<InnerR, InnerP, InnerS>> + Send + 'static,
+        InnerR: Send + 'static,
+        InnerP: Send + 'static,
+        InnerS: ExecutionAction + Send + 'static,
+        Self::Pending: Into<InnerP> + Send + 'static,
+        Self::Spawner: Into<InnerS> + Send + 'static,
+    {
+        TMapIter {
+            outer: self,
+            mapper,
+            current_inner: None,
+            _phantom: std::marker::PhantomData,
+        }
+    }
 }
 
 /// Wrapper type that transforms Ready values.
@@ -675,6 +726,93 @@ where
     }
 }
 
+/// Wrapper type for `map_iter` combinator that flattens nested iterator patterns.
+///
+/// The outer iterator yields `TaskStatus::Ready(inner_iter)` values.
+/// The mapper function transforms each `Ready` value into an inner iterator.
+/// `TMapIter` drains each inner iterator until `None`, then polls the outer
+/// for the next item to continue flattening.
+///
+/// Non-Ready states (Pending, Spawn) from the outer iterator pass through via `Into`,
+/// so `P` must be convertible to `InnerP` and `S` to `InnerS`.
+pub struct TMapIter<I, F, InnerIter, InnerR, InnerP, InnerS, R, P, S>
+where
+    I: TaskIterator<Ready = R, Pending = P, Spawner = S>,
+    F: Fn(R) -> InnerIter,
+    InnerIter: Iterator<Item = TaskStatus<InnerR, InnerP, InnerS>>,
+    InnerS: ExecutionAction,
+    S: ExecutionAction,
+{
+    outer: I,
+    mapper: F,
+    current_inner: Option<InnerIter>,
+    _phantom: std::marker::PhantomData<(InnerR, InnerP, InnerS, R, P, S)>,
+}
+
+impl<I, F, InnerIter, InnerR, InnerP, InnerS, R, P, S> Iterator
+    for TMapIter<I, F, InnerIter, InnerR, InnerP, InnerS, R, P, S>
+where
+    I: TaskIterator<Ready = R, Pending = P, Spawner = S>,
+    F: Fn(R) -> InnerIter,
+    InnerIter: Iterator<Item = TaskStatus<InnerR, InnerP, InnerS>>,
+    InnerR: Send + 'static,
+    InnerP: Send + 'static,
+    InnerS: ExecutionAction + Send + 'static,
+    P: Into<InnerP> + Send + 'static,
+    S: Into<InnerS> + ExecutionAction + Send + 'static,
+{
+    type Item = TaskStatus<InnerR, InnerP, InnerS>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        loop {
+            // First, try to drain the current inner iterator
+            if let Some(ref mut inner) = self.current_inner {
+                if let Some(item) = inner.next() {
+                    return Some(item);
+                }
+                // Inner exhausted, clear it and continue to poll outer
+                self.current_inner = None;
+            }
+
+            // Poll outer for next item
+            match self.outer.next_status() {
+                Some(TaskStatus::Ready(d)) => {
+                    // Mapper returns a new inner iterator, start draining it
+                    let new_inner = (self.mapper)(d);
+                    self.current_inner = Some(new_inner);
+                }
+                Some(TaskStatus::Pending(p)) => return Some(TaskStatus::Pending(p.into())),
+                Some(TaskStatus::Delayed(d)) => return Some(TaskStatus::Delayed(d)),
+                Some(TaskStatus::Init) => return Some(TaskStatus::Init),
+                Some(TaskStatus::Ignore) => return Some(TaskStatus::Ignore),
+                Some(TaskStatus::Spawn(s)) => return Some(TaskStatus::Spawn(s.into())),
+                None => return None, // Outer exhausted
+            }
+        }
+    }
+}
+
+impl<I, F, InnerIter, InnerR, InnerP, InnerS, R, P, S> TaskIterator
+    for TMapIter<I, F, InnerIter, InnerR, InnerP, InnerS, R, P, S>
+where
+    I: TaskIterator<Ready = R, Pending = P, Spawner = S>,
+    F: Fn(R) -> InnerIter,
+    InnerIter: Iterator<Item = TaskStatus<InnerR, InnerP, InnerS>>,
+    InnerR: Send + 'static,
+    InnerP: Send + 'static,
+    InnerS: ExecutionAction + Send + 'static,
+    P: Into<InnerP> + Send + 'static,
+    S: Into<InnerS> + ExecutionAction + Send + 'static,
+{
+    type Ready = InnerR;
+    type Pending = InnerP;
+    type Spawner = InnerS;
+
+    fn next_status(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+        Iterator::next(self)
+    }
+}
+
 /// Wrapper type that collects all Ready values into a Vec.
 ///
 /// Passes through Pending, Delayed, Init, Spawn states unchanged.
@@ -783,11 +921,13 @@ where
     }
 }
 
-impl<D, P> crate::synca::mpp::StreamIterator<D, P> for CollectorStreamIterator<D, P>
+impl<D, P> crate::synca::mpp::StreamIterator for CollectorStreamIterator<D, P>
 where
     D: Clone + Send + 'static,
     P: Clone + Send + 'static,
 {
+    type D = D;
+    type P = P;
 }
 
 /// Continuation branch from `split_collector()`.
@@ -909,11 +1049,13 @@ where
     }
 }
 
-impl<D, P> crate::synca::mpp::StreamIterator<D, P> for SplitUntilObserver<D, P>
+impl<D, P> crate::synca::mpp::StreamIterator for SplitUntilObserver<D, P>
 where
     D: Clone + Send + 'static,
     P: Clone + Send + 'static,
 {
+    type D = D;
+    type P = P;
 }
 
 /// Continuation branch from `split_collect_until()`.
@@ -1063,11 +1205,13 @@ where
     }
 }
 
-impl<D, P> crate::synca::mpp::StreamIterator<D, P> for SplitUntilObserverMap<D, P>
+impl<D, P> crate::synca::mpp::StreamIterator for SplitUntilObserverMap<D, P>
 where
     D: Clone + Send + 'static,
     P: Clone + Send + 'static,
 {
+    type D = D;
+    type P = P;
 }
 
 /// Continuation branch from `split_collect_until_map()`.
@@ -1225,11 +1369,13 @@ where
     }
 }
 
-impl<M, P> crate::synca::mpp::StreamIterator<M, P> for SplitCollectorMapObserver<M, P>
+impl<M, P> crate::synca::mpp::StreamIterator for SplitCollectorMapObserver<M, P>
 where
     M: Clone + Send + 'static,
     P: Clone + Send + 'static,
 {
+    type D = M;
+    type P = P;
 }
 
 /// Continuation branch from `split_collector_map()`.
@@ -1510,5 +1656,106 @@ mod tests {
 
         // Should be done after yielding the collected result
         assert_eq!(Iterator::next(&mut collected), None);
+    }
+
+    #[test]
+    fn test_map_iter_flattens_nested_iterators() {
+        use crate::valtron::task::NoAction;
+
+        // Test using the extension method with a simple test task
+        struct VecTask {
+            items: std::vec::IntoIter<TaskStatus<Vec<u32>, String, NoAction>>,
+        }
+
+        impl Iterator for VecTask {
+            type Item = TaskStatus<Vec<u32>, String, NoAction>;
+
+            fn next(&mut self) -> Option<Self::Item> {
+                self.items.next()
+            }
+        }
+
+        impl TaskIterator for VecTask {
+            type Ready = Vec<u32>;
+            type Pending = String;
+            type Spawner = NoAction;
+
+            fn next_status(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+                Iterator::next(self)
+            }
+        }
+
+        let items = vec![
+            TaskStatus::Ready(vec![1u32, 2u32]),
+            TaskStatus::Ready(vec![3u32, 4u32, 5u32]),
+        ];
+        let task = VecTask { items: items.into_iter() };
+
+        let mut flattened: TMapIter<_, _, _, u32, String, NoAction, Vec<u32>, String, NoAction> = task.map_iter(|vec| {
+            vec.into_iter()
+                .map(TaskStatus::Ready)
+                .collect::<Vec<_>>()
+                .into_iter()
+        });
+
+        // Should flatten: 1, 2, 3, 4, 5
+        assert!(matches!(Iterator::next(&mut flattened), Some(TaskStatus::Ready(1))));
+        assert!(matches!(Iterator::next(&mut flattened), Some(TaskStatus::Ready(2))));
+        assert!(matches!(Iterator::next(&mut flattened), Some(TaskStatus::Ready(3))));
+        assert!(matches!(Iterator::next(&mut flattened), Some(TaskStatus::Ready(4))));
+        assert!(matches!(Iterator::next(&mut flattened), Some(TaskStatus::Ready(5))));
+        assert_eq!(Iterator::next(&mut flattened), None);
+    }
+
+    #[test]
+    fn test_map_iter_passes_through_pending() {
+        use crate::valtron::task::NoAction;
+
+        // Test using the extension method with a simple test task
+        struct VecTask {
+            items: std::vec::IntoIter<TaskStatus<Vec<u32>, String, NoAction>>,
+        }
+
+        impl Iterator for VecTask {
+            type Item = TaskStatus<Vec<u32>, String, NoAction>;
+
+            fn next(&mut self) -> Option<Self::Item> {
+                self.items.next()
+            }
+        }
+
+        impl TaskIterator for VecTask {
+            type Ready = Vec<u32>;
+            type Pending = String;
+            type Spawner = NoAction;
+
+            fn next_status(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+                Iterator::next(self)
+            }
+        }
+
+        let items = vec![
+            TaskStatus::Ready(vec![1u32]),
+            TaskStatus::Pending("wait".to_string()),
+            TaskStatus::Ready(vec![2u32, 3u32]),
+        ];
+        let task = VecTask { items: items.into_iter() };
+
+        let mut flattened: TMapIter<_, _, _, u32, String, NoAction, Vec<u32>, String, NoAction> = task.map_iter(|vec| {
+            vec.into_iter()
+                .map(TaskStatus::Ready)
+                .collect::<Vec<_>>()
+                .into_iter()
+        });
+
+        // Should flatten with pending passed through
+        assert!(matches!(Iterator::next(&mut flattened), Some(TaskStatus::Ready(1))));
+        assert!(matches!(
+            Iterator::next(&mut flattened),
+            Some(TaskStatus::Pending(ref s)) if s == "wait"
+        ));
+        assert!(matches!(Iterator::next(&mut flattened), Some(TaskStatus::Ready(2))));
+        assert!(matches!(Iterator::next(&mut flattened), Some(TaskStatus::Ready(3))));
+        assert_eq!(Iterator::next(&mut flattened), None);
     }
 }

@@ -31,8 +31,6 @@ pub type DrivenBodyStream<R> = DrivenStreamIterator<
 
 pub type MappedDrivenBodyStream<R> = MapDone<
     DrivenBodyStream<R>,
-    RequestIntro,
-    HttpRequestPending,
     Result<(HttpClientConnection, SendSafeBody), HttpClientError>,
 >;
 

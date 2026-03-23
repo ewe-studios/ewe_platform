@@ -72,41 +72,41 @@ use concurrent_queue::ConcurrentQueue;
 ///     .map_pending(|p| format!("Pending: {:?}", p))
 ///     .filter_done(|v| v > 10);
 /// ```
-pub trait StreamIteratorExt<D, P>: StreamIterator<D, P> + Sized {
+pub trait StreamIteratorExt: StreamIterator + Sized {
     /// Transform Next (Done) values using the provided function.
     ///
     /// Init, Ignore, Delayed, and Pending states pass through unchanged.
-    fn map_done<F, R>(self, f: F) -> MapDone<Self, D, P, R>
+    fn map_done<F, R>(self, f: F) -> MapDone<Self, R>
     where
-        F: Fn(D) -> R + Send + 'static,
+        F: Fn(Self::D) -> R + Send + 'static,
         R: Send + 'static;
 
     /// Transform Pending values using the provided function.
     ///
     /// Init, Ignore, Delayed, and Next states pass through unchanged.
-    fn map_pending<F, R>(self, f: F) -> MapPending<Self, P, D, R>
+    fn map_pending<F, R>(self, f: F) -> MapPending<Self, R>
     where
-        F: Fn(P) -> R + Send + 'static,
+        F: Fn(Self::P) -> R + Send + 'static,
         R: Send + 'static;
 
     /// Transform both Pending and Next values with a single function.
     ///
     /// Returns a unified output type for both states.
-    fn map_pending_and_done<F, R>(self, f: F) -> MapPendingAndDone<Self, D, P, R>
+    fn map_pending_and_done<F, R>(self, f: F) -> MapPendingAndDone<Self, R>
     where
-        F: Fn(Stream<D, P>) -> R + Send + 'static,
+        F: Fn(Stream<Self::D, Self::P>) -> R + Send + 'static,
         R: Send + 'static;
 
     /// Filter Next (Done) values using the provided predicate.
     ///
     /// Non-Next states pass through unchanged. Next values that don't
     /// satisfy the predicate are skipped.
-    fn filter_done<F>(self, f: F) -> FilterDone<Self, D, P>
+    fn filter_done<F>(self, f: F) -> FilterDone<Self>
     where
-        F: Fn(&D) -> bool + Send + 'static;
+        F: Fn(&Self::D) -> bool + Send + 'static;
 
     /// Transform Delayed durations.
-    fn map_delayed<F>(self, f: F) -> MapDelayed<Self, D, P>
+    fn map_delayed<F>(self, f: F) -> MapDelayed<Self>
     where
         F: Fn(std::time::Duration) -> std::time::Duration + Send + 'static;
 
@@ -115,9 +115,9 @@ pub trait StreamIteratorExt<D, P>: StreamIterator<D, P> + Sized {
     /// This is a non-blocking collect operation. It passes through
     /// Pending, Delayed, and Init states unchanged, and only yields
     /// the collected Vec<Done> when the stream completes.
-    fn collect(self) -> Collect<Self, D, P>
+    fn collect(self) -> Collect<Self>
     where
-        D: Clone;
+        Self::D: Clone;
 
     /// Split the iterator into an observer branch and a continuation branch.
     ///
@@ -154,28 +154,28 @@ pub trait StreamIteratorExt<D, P>: StreamIterator<D, P> + Sized {
         predicate: Pred,
         queue_size: usize,
     ) -> (
-        SCollectorStreamIterator<D, P>,
-        SSplitCollectorContinuation<Self, D, P>,
+        SCollectorStreamIterator<Self::D, Self::P>,
+        SSplitCollectorContinuation<Self, Self::D, Self::P>,
     )
     where
         Self: Sized,
-        D: Clone,
-        P: Clone,
-        Pred: Fn(&Stream<D, P>) -> bool + Send + 'static;
+        Self::D: Clone,
+        Self::P: Clone,
+        Pred: Fn(&Stream<Self::D, Self::P>) -> bool + Send + 'static;
 
     /// Convenience method: `split_collector` with `queue_size` = 1.
     fn split_collect_one<Pred>(
         self,
         predicate: Pred,
     ) -> (
-        SCollectorStreamIterator<D, P>,
-        SSplitCollectorContinuation<Self, D, P>,
+        SCollectorStreamIterator<Self::D, Self::P>,
+        SSplitCollectorContinuation<Self, Self::D, Self::P>,
     )
     where
         Self: Sized,
-        D: Clone,
-        P: Clone,
-        Pred: Fn(&Stream<D, P>) -> bool + Send + 'static,
+        Self::D: Clone,
+        Self::P: Clone,
+        Pred: Fn(&Stream<Self::D, Self::P>) -> bool + Send + 'static,
     {
         self.split_collector(predicate, 1)
     }
@@ -187,14 +187,14 @@ pub trait StreamIteratorExt<D, P>: StreamIterator<D, P> + Sized {
         predicate: Pred,
         queue_size: usize,
     ) -> (
-        SSplitUntilObserver<D, P>,
-        SSplitUntilContinuation<Self, D, P>,
+        SSplitUntilObserver<Self::D, Self::P>,
+        SSplitUntilContinuation<Self, Self::D, Self::P>,
     )
     where
         Self: Sized,
-        D: Clone,
-        P: Clone,
-        Pred: Fn(&Stream<D, P>) -> CollectionState + Send + 'static;
+        Self::D: Clone,
+        Self::P: Clone,
+        Pred: Fn(&Stream<Self::D, Self::P>) -> CollectionState + Send + 'static;
 
     /// Split the iterator into an observer branch and a continuation branch,
     /// mapping matched items to a different type before sending to the observer.
@@ -204,15 +204,15 @@ pub trait StreamIteratorExt<D, P>: StreamIterator<D, P> + Sized {
         queue_size: usize,
     ) -> (
         SSplitCollectorMapObserver<DM, PM>,
-        SSplitCollectorMapContinuation<Self, D, P, DM, PM>,
+        SSplitCollectorMapContinuation<Self, Self::D, Self::P, DM, PM>,
     )
     where
         Self: Sized,
         DM: Clone + Send + 'static,
         PM: Clone + Send + 'static,
-        D: Clone,
-        P: Clone,
-        F: Fn(&Stream<D, P>) -> (bool, Option<Stream<DM, PM>>) + Send + 'static;
+        Self::D: Clone,
+        Self::P: Clone,
+        F: Fn(&Stream<Self::D, Self::P>) -> (bool, Option<Stream<DM, PM>>) + Send + 'static;
 
     /// Convenience method: `split_collector_map` with `queue_size` = 1.
     fn split_collect_one_map<F, DM, PM>(
@@ -220,30 +220,50 @@ pub trait StreamIteratorExt<D, P>: StreamIterator<D, P> + Sized {
         transform: F,
     ) -> (
         SSplitCollectorMapObserver<DM, PM>,
-        SSplitCollectorMapContinuation<Self, D, P, DM, PM>,
+        SSplitCollectorMapContinuation<Self, Self::D, Self::P, DM, PM>,
     )
     where
         Self: Sized,
         DM: Clone + Send + 'static,
         PM: Clone + Send + 'static,
-        D: Clone,
-        P: Clone,
-        F: Fn(&Stream<D, P>) -> (bool, Option<Stream<DM, PM>>) + Send + 'static,
+        Self::D: Clone,
+        Self::P: Clone,
+        F: Fn(&Stream<Self::D, Self::P>) -> (bool, Option<Stream<DM, PM>>) + Send + 'static,
     {
         self.split_collector_map(transform, 1)
+    }
+
+    /// Flatten nested iterator patterns where outer yields inner iterators.
+    ///
+    /// The mapper function receives the full `Stream<Outer::D, Outer::P>` from the outer iterator
+    /// and returns an inner iterator. This allows the mapper to decide how to handle
+    /// outer's non-Next states (Pending, Delayed, etc.).
+    ///
+    /// The returned `MapIter` drains each inner iterator until `None`, then polls
+    /// the outer for the next item.
+    fn map_iter<F, InnerIter>(self, mapper: F) -> MapIter<Self, F, InnerIter>
+    where
+        Self: Sized,
+        F: Fn(Stream<Self::D, Self::P>) -> InnerIter + Send + 'static,
+        InnerIter: StreamIterator + Send + 'static,
+    {
+        MapIter {
+            outer: self,
+            mapper,
+            current_inner: None,
+            _phantom: std::marker::PhantomData,
+        }
     }
 }
 
 // Blanket implementation: anything implementing StreamIterator gets StreamIteratorExt
-impl<S, D, P> StreamIteratorExt<D, P> for S
+impl<S> StreamIteratorExt for S
 where
-    S: StreamIterator<D, P> + Send + 'static,
-    D: Send + 'static,
-    P: Send + 'static,
+    S: StreamIterator + Send + 'static,
 {
-    fn map_done<F, R>(self, f: F) -> MapDone<Self, D, P, R>
+    fn map_done<F, R>(self, f: F) -> MapDone<Self, R>
     where
-        F: Fn(D) -> R + Send + 'static,
+        F: Fn(Self::D) -> R + Send + 'static,
         R: Send + 'static,
     {
         MapDone {
@@ -253,9 +273,9 @@ where
         }
     }
 
-    fn map_pending<F, R>(self, f: F) -> MapPending<Self, P, D, R>
+    fn map_pending<F, R>(self, f: F) -> MapPending<Self, R>
     where
-        F: Fn(P) -> R + Send + 'static,
+        F: Fn(Self::P) -> R + Send + 'static,
         R: Send + 'static,
     {
         MapPending {
@@ -265,9 +285,9 @@ where
         }
     }
 
-    fn map_pending_and_done<F, R>(self, f: F) -> MapPendingAndDone<Self, D, P, R>
+    fn map_pending_and_done<F, R>(self, f: F) -> MapPendingAndDone<Self, R>
     where
-        F: Fn(Stream<D, P>) -> R + Send + 'static,
+        F: Fn(Stream<Self::D, Self::P>) -> R + Send + 'static,
         R: Send + 'static,
     {
         MapPendingAndDone {
@@ -276,9 +296,9 @@ where
         }
     }
 
-    fn filter_done<F>(self, f: F) -> FilterDone<Self, D, P>
+    fn filter_done<F>(self, f: F) -> FilterDone<Self>
     where
-        F: Fn(&D) -> bool + Send + 'static,
+        F: Fn(&Self::D) -> bool + Send + 'static,
     {
         FilterDone {
             inner: self,
@@ -287,7 +307,7 @@ where
         }
     }
 
-    fn map_delayed<F>(self, f: F) -> MapDelayed<Self, D, P>
+    fn map_delayed<F>(self, f: F) -> MapDelayed<Self>
     where
         F: Fn(std::time::Duration) -> std::time::Duration + Send + 'static,
     {
@@ -298,9 +318,9 @@ where
         }
     }
 
-    fn collect(self) -> Collect<Self, D, P>
+    fn collect(self) -> Collect<Self>
     where
-        D: Clone,
+        Self::D: Clone,
     {
         Collect {
             inner: self,
@@ -315,14 +335,14 @@ where
         predicate: Pred,
         queue_size: usize,
     ) -> (
-        SCollectorStreamIterator<D, P>,
-        SSplitCollectorContinuation<Self, D, P>,
+        SCollectorStreamIterator<Self::D, Self::P>,
+        SSplitCollectorContinuation<Self, Self::D, Self::P>,
     )
     where
         Self: Sized,
-        D: Clone,
-        P: Clone,
-        Pred: Fn(&Stream<D, P>) -> bool + Send + 'static,
+        Self::D: Clone,
+        Self::P: Clone,
+        Pred: Fn(&Stream<Self::D, Self::P>) -> bool + Send + 'static,
     {
         let queue = Arc::new(ConcurrentQueue::bounded(queue_size));
         tracing::debug!(
@@ -348,14 +368,14 @@ where
         predicate: Pred,
         queue_size: usize,
     ) -> (
-        SSplitUntilObserver<D, P>,
-        SSplitUntilContinuation<Self, D, P>,
+        SSplitUntilObserver<Self::D, Self::P>,
+        SSplitUntilContinuation<Self, Self::D, Self::P>,
     )
     where
         Self: Sized,
-        D: Clone,
-        P: Clone,
-        Pred: Fn(&Stream<D, P>) -> CollectionState + Send + 'static,
+        Self::D: Clone,
+        Self::P: Clone,
+        Pred: Fn(&Stream<Self::D, Self::P>) -> CollectionState + Send + 'static,
     {
         let queue = Arc::new(ConcurrentQueue::bounded(queue_size));
         tracing::debug!(
@@ -382,15 +402,15 @@ where
         queue_size: usize,
     ) -> (
         SSplitCollectorMapObserver<DM, PM>,
-        SSplitCollectorMapContinuation<Self, D, P, DM, PM>,
+        SSplitCollectorMapContinuation<Self, Self::D, Self::P, DM, PM>,
     )
     where
         Self: Sized,
         DM: Clone + Send + 'static,
         PM: Clone + Send + 'static,
-        D: Clone,
-        P: Clone,
-        F: Fn(&Stream<D, P>) -> (bool, Option<Stream<DM, PM>>) + Send + 'static,
+        Self::D: Clone,
+        Self::P: Clone,
+        F: Fn(&Stream<Self::D, Self::P>) -> (bool, Option<Stream<DM, PM>>) + Send + 'static,
     {
         let queue = Arc::new(ConcurrentQueue::bounded(queue_size));
         tracing::debug!(
@@ -416,34 +436,36 @@ where
         transform: F,
     ) -> (
         SSplitCollectorMapObserver<DM, PM>,
-        SSplitCollectorMapContinuation<Self, D, P, DM, PM>,
+        SSplitCollectorMapContinuation<Self, Self::D, Self::P, DM, PM>,
     )
     where
         Self: Sized,
         DM: Clone + Send + 'static,
         PM: Clone + Send + 'static,
-        D: Clone,
-        P: Clone,
-        F: Fn(&Stream<D, P>) -> (bool, Option<Stream<DM, PM>>) + Send + 'static,
+        Self::D: Clone,
+        Self::P: Clone,
+        F: Fn(&Stream<Self::D, Self::P>) -> (bool, Option<Stream<DM, PM>>) + Send + 'static,
     {
         self.split_collector_map(transform, 1)
     }
 }
 
 /// Wrapper type that transforms Next (Done) values.
-pub struct MapDone<I: StreamIterator<D, P>, D, P, R> {
+pub struct MapDone<I, R>
+where
+    I: StreamIterator,
+{
     inner: I,
-    mapper: Box<dyn Fn(D) -> R + Send>,
-    _phantom: std::marker::PhantomData<P>,
+    mapper: Box<dyn Fn(I::D) -> R + Send>,
+    _phantom: std::marker::PhantomData<(I::P, R)>,
 }
 
-impl<I, D, R, P> Iterator for MapDone<I, D, P, R>
+impl<I, R> Iterator for MapDone<I, R>
 where
-    I: StreamIterator<D, P>,
+    I: StreamIterator,
     R: Send + 'static,
-    P: Send + 'static,
 {
-    type Item = Stream<R, P>;
+    type Item = Stream<R, I::P>;
 
     fn next(&mut self) -> Option<Self::Item> {
         self.inner.next().map(|stream| match stream {
@@ -456,28 +478,31 @@ where
     }
 }
 
-impl<I, D, R, P> StreamIterator<R, P> for MapDone<I, D, P, R>
+impl<I, R> StreamIterator for MapDone<I, R>
 where
-    I: StreamIterator<D, P>,
+    I: StreamIterator,
     R: Send + 'static,
-    P: Send + 'static,
 {
+    type D = R;
+    type P = I::P;
 }
 
 /// Wrapper type that transforms Pending values.
-pub struct MapPending<I: StreamIterator<D, P>, P, D, R> {
+pub struct MapPending<I, R>
+where
+    I: StreamIterator,
+{
     inner: I,
-    mapper: Box<dyn Fn(P) -> R + Send>,
-    _phantom: std::marker::PhantomData<D>,
+    mapper: Box<dyn Fn(I::P) -> R + Send>,
+    _phantom: std::marker::PhantomData<(I::D, R)>,
 }
 
-impl<I, D, P, R> Iterator for MapPending<I, P, D, R>
+impl<I, R> Iterator for MapPending<I, R>
 where
-    I: StreamIterator<D, P>,
+    I: StreamIterator,
     R: Send + 'static,
-    D: Send + 'static,
 {
-    type Item = Stream<D, R>;
+    type Item = Stream<I::D, R>;
 
     fn next(&mut self) -> Option<Self::Item> {
         self.inner.next().map(|stream| match stream {
@@ -490,23 +515,27 @@ where
     }
 }
 
-impl<I, D, P, R> StreamIterator<D, R> for MapPending<I, P, D, R>
+impl<I, R> StreamIterator for MapPending<I, R>
 where
-    I: StreamIterator<D, P>,
+    I: StreamIterator,
     R: Send + 'static,
-    D: Send + 'static,
 {
+    type D = I::D;
+    type P = R;
 }
 
 /// Wrapper type that transforms both Pending and Next values.
-pub struct MapPendingAndDone<I: StreamIterator<D, P>, D, P, R> {
+pub struct MapPendingAndDone<I, R>
+where
+    I: StreamIterator,
+{
     inner: I,
-    mapper: Box<dyn Fn(Stream<D, P>) -> R + Send>,
+    mapper: Box<dyn Fn(Stream<I::D, I::P>) -> R + Send>,
 }
 
-impl<I, D, P, R> Iterator for MapPendingAndDone<I, D, P, R>
+impl<I, R> Iterator for MapPendingAndDone<I, R>
 where
-    I: StreamIterator<D, P>,
+    I: StreamIterator,
     R: Send + 'static,
 {
     type Item = Stream<R, R>;
@@ -521,29 +550,32 @@ where
     }
 }
 
-impl<I, D, P, R> StreamIterator<R, R> for MapPendingAndDone<I, D, P, R>
+impl<I, R> StreamIterator for MapPendingAndDone<I, R>
 where
-    I: StreamIterator<D, P>,
+    I: StreamIterator,
     R: Send + 'static,
 {
+    type D = R;
+    type P = R;
 }
 
 /// Wrapper type that filters Next (Done) values.
 ///
 /// Filtered-out Next values are returned as `Stream::Ignore` to avoid blocking.
-pub struct FilterDone<I: StreamIterator<D, P>, D, P> {
+pub struct FilterDone<I>
+where
+    I: StreamIterator,
+{
     inner: I,
-    predicate: Box<dyn Fn(&D) -> bool + Send>,
-    _phantom: std::marker::PhantomData<P>,
+    predicate: Box<dyn Fn(&I::D) -> bool + Send>,
+    _phantom: std::marker::PhantomData<I::P>,
 }
 
-impl<I, D, P> Iterator for FilterDone<I, D, P>
+impl<I> Iterator for FilterDone<I>
 where
-    I: StreamIterator<D, P>,
-    D: Send + 'static,
-    P: Send + 'static,
+    I: StreamIterator,
 {
-    type Item = Stream<D, P>;
+    type Item = Stream<I::D, I::P>;
 
     fn next(&mut self) -> Option<Self::Item> {
         let stream = self.inner.next()?;
@@ -560,28 +592,29 @@ where
     }
 }
 
-impl<I, D, P> StreamIterator<D, P> for FilterDone<I, D, P>
+impl<I> StreamIterator for FilterDone<I>
 where
-    I: StreamIterator<D, P>,
-    D: Send + 'static,
-    P: Send + 'static,
+    I: StreamIterator,
 {
+    type D = I::D;
+    type P = I::P;
 }
 
 /// Wrapper type that transforms Delayed durations.
-pub struct MapDelayed<I: StreamIterator<D, P>, D, P> {
+pub struct MapDelayed<I>
+where
+    I: StreamIterator,
+{
     inner: I,
     mapper: Box<dyn Fn(std::time::Duration) -> std::time::Duration + Send>,
-    _phantom: std::marker::PhantomData<(D, P)>,
+    _phantom: std::marker::PhantomData<(I::D, I::P)>,
 }
 
-impl<I, D, P> Iterator for MapDelayed<I, D, P>
+impl<I> Iterator for MapDelayed<I>
 where
-    I: StreamIterator<D, P>,
-    D: Send + 'static,
-    P: Send + 'static,
+    I: StreamIterator,
 {
-    type Item = Stream<D, P>;
+    type Item = Stream<I::D, I::P>;
 
     fn next(&mut self) -> Option<Self::Item> {
         self.inner.next().map(|stream| match stream {
@@ -594,12 +627,12 @@ where
     }
 }
 
-impl<I, D, P> StreamIterator<D, P> for MapDelayed<I, D, P>
+impl<I> StreamIterator for MapDelayed<I>
 where
-    I: StreamIterator<D, P>,
-    D: Send + 'static,
-    P: Send + 'static,
+    I: StreamIterator,
 {
+    type D = I::D;
+    type P = I::P;
 }
 
 /// Wrapper type that collects all Next (Done) values into a Vec.
@@ -607,20 +640,23 @@ where
 /// This is a non-blocking collect operation. It passes through
 /// Pending, Delayed, and Init states unchanged, and only yields
 /// the collected Vec<Done> when the stream completes.
-pub struct Collect<I, D, P> {
+pub struct Collect<I>
+where
+    I: StreamIterator,
+{
     inner: I,
-    collected: Vec<D>,
+    collected: Vec<I::D>,
     done: bool,
-    _phantom: std::marker::PhantomData<P>,
+    _phantom: std::marker::PhantomData<I::P>,
 }
 
-impl<I, D, P> Iterator for Collect<I, D, P>
+impl<I> Iterator for Collect<I>
 where
-    I: StreamIterator<D, P>,
-    D: Clone + Send + 'static,
-    P: Send + 'static,
+    I: StreamIterator,
+    I::D: Clone + Send + 'static,
+    I::P: Send + 'static,
 {
-    type Item = Stream<Vec<D>, P>;
+    type Item = Stream<Vec<I::D>, I::P>;
 
     fn next(&mut self) -> Option<Self::Item> {
         // If we've already yielded the collected result, we're done
@@ -650,12 +686,14 @@ where
     }
 }
 
-impl<I, D, P> StreamIterator<Vec<D>, P> for Collect<I, D, P>
+impl<I> StreamIterator for Collect<I>
 where
-    I: StreamIterator<D, P>,
-    D: Clone + Send + 'static,
-    P: Send + 'static,
+    I: StreamIterator,
+    I::D: Clone + Send + 'static,
+    I::P: Send + 'static,
 {
+    type D = Vec<I::D>;
+    type P = I::P;
 }
 
 // ============================================================================
@@ -706,18 +744,23 @@ where
     }
 }
 
-impl<D, P> StreamIterator<D, P> for SCollectorStreamIterator<D, P>
+impl<D, P> StreamIterator for SCollectorStreamIterator<D, P>
 where
     D: Clone + Send + 'static,
     P: Clone + Send + 'static,
 {
+    type D = D;
+    type P = P;
 }
 
 /// Continuation branch from `split_collector()` for `StreamIterator`.
 ///
 /// Wraps the original iterator, copying matched items to the observer queue
 /// while continuing the chain for further combinators.
-pub struct SSplitCollectorContinuation<I: StreamIterator<D, P>, D, P> {
+pub struct SSplitCollectorContinuation<I, D, P>
+where
+    I: StreamIterator<D = D, P = P>,
+{
     /// The wrapped iterator
     inner: I,
     /// Queue to send copied items to observer
@@ -728,14 +771,16 @@ pub struct SSplitCollectorContinuation<I: StreamIterator<D, P>, D, P> {
 
 impl<I, D, P> Iterator for SSplitCollectorContinuation<I, D, P>
 where
-    I: StreamIterator<D, P>,
+    I: StreamIterator<D = D, P = P>,
     D: Clone,
     P: Clone,
 {
     type Item = Stream<D, P>;
 
     fn next(&mut self) -> Option<Self::Item> {
-        let item = if let Some(item) = self.inner.next() { item } else {
+        let item = if let Some(item) = self.inner.next() {
+            item
+        } else {
             // Source iterator is naturally exhausted, close the queue
             self.queue.close();
             tracing::debug!("SSplitCollectorContinuation: source exhausted, queue closed");
@@ -761,17 +806,19 @@ where
     }
 }
 
-impl<I, D, P> StreamIterator<D, P> for SSplitCollectorContinuation<I, D, P>
+impl<I, D, P> StreamIterator for SSplitCollectorContinuation<I, D, P>
 where
-    I: StreamIterator<D, P>,
+    I: StreamIterator<D = D, P = P>,
     D: Clone,
     P: Clone,
 {
+    type D = D;
+    type P = P;
 }
 
 impl<I, D, P> Drop for SSplitCollectorContinuation<I, D, P>
 where
-    I: StreamIterator<D, P>,
+    I: StreamIterator<D = D, P = P>,
 {
     fn drop(&mut self) {
         // Close the queue to signal that the source is done
@@ -825,11 +872,13 @@ where
     }
 }
 
-impl<D, P> StreamIterator<D, P> for SSplitUntilObserver<D, P>
+impl<D, P> StreamIterator for SSplitUntilObserver<D, P>
 where
     D: Clone + Send + 'static,
     P: Clone + Send + 'static,
 {
+    type D = D;
+    type P = P;
 }
 
 /// Continuation branch from `split_collect_until()` for `StreamIterator`.
@@ -837,7 +886,7 @@ where
 /// Wraps the original iterator, copying items to the observer queue
 /// based on the predicate's `CollectionState`. When predicate returns
 /// `Close`, the queue is closed (observer completes).
-pub struct SSplitUntilContinuation<I: StreamIterator<D, P>, D, P> {
+pub struct SSplitUntilContinuation<I: StreamIterator<D = D, P = P>, D, P> {
     /// The wrapped iterator
     inner: I,
     /// Queue to send copied items to observer
@@ -848,14 +897,16 @@ pub struct SSplitUntilContinuation<I: StreamIterator<D, P>, D, P> {
 
 impl<I, D, P> Iterator for SSplitUntilContinuation<I, D, P>
 where
-    I: StreamIterator<D, P>,
+    I: StreamIterator<D = D, P = P>,
     D: Clone,
     P: Clone,
 {
     type Item = Stream<D, P>;
 
     fn next(&mut self) -> Option<Self::Item> {
-        let item = if let Some(item) = self.inner.next() { item } else {
+        let item = if let Some(item) = self.inner.next() {
+            item
+        } else {
             // Source iterator is naturally exhausted, close the queue
             self.queue.close();
             tracing::debug!("SSplitUntilContinuation: source exhausted, queue closed");
@@ -899,17 +950,19 @@ where
     }
 }
 
-impl<I, D, P> StreamIterator<D, P> for SSplitUntilContinuation<I, D, P>
+impl<I, D, P> StreamIterator for SSplitUntilContinuation<I, D, P>
 where
-    I: StreamIterator<D, P>,
+    I: StreamIterator<D = D, P = P>,
     D: Clone,
     P: Clone,
 {
+    type D = D;
+    type P = P;
 }
 
 impl<I, D, P> Drop for SSplitUntilContinuation<I, D, P>
 where
-    I: StreamIterator<D, P>,
+    I: StreamIterator<D = D, P = P>,
 {
     fn drop(&mut self) {
         // Close the queue as backup if not already closed
@@ -966,11 +1019,13 @@ where
     }
 }
 
-impl<DM, PM> StreamIterator<DM, PM> for SSplitCollectorMapObserver<DM, PM>
+impl<DM, PM> StreamIterator for SSplitCollectorMapObserver<DM, PM>
 where
     DM: Clone + Send + 'static,
     PM: Clone + Send + 'static,
 {
+    type D = DM;
+    type P = PM;
 }
 
 /// Continuation branch from `split_collector_map()` for `StreamIterator`.
@@ -980,7 +1035,7 @@ where
 /// - `true` + `Some(stream)` sends the stream to the observer queue
 /// - `false` or `None` skips sending to observer
 /// The continuation continues with original Stream<D, P> values unchanged.
-pub struct SSplitCollectorMapContinuation<I: StreamIterator<D, P>, D, P, DM, PM> {
+pub struct SSplitCollectorMapContinuation<I: StreamIterator<D = D, P = P>, D, P, DM, PM> {
     /// The wrapped iterator
     inner: I,
     /// Queue to send transformed items to observer
@@ -991,7 +1046,7 @@ pub struct SSplitCollectorMapContinuation<I: StreamIterator<D, P>, D, P, DM, PM>
 
 impl<I, D, P, DM, PM> Iterator for SSplitCollectorMapContinuation<I, D, P, DM, PM>
 where
-    I: StreamIterator<D, P>,
+    I: StreamIterator<D = D, P = P>,
     D: Clone,
     P: Clone,
     DM: Clone + Send + 'static,
@@ -1000,7 +1055,9 @@ where
     type Item = Stream<D, P>;
 
     fn next(&mut self) -> Option<Self::Item> {
-        let item = if let Some(item) = self.inner.next() { item } else {
+        let item = if let Some(item) = self.inner.next() {
+            item
+        } else {
             self.queue.close();
             tracing::debug!("SSplitCollectorMapContinuation: source exhausted, queue closed");
             return None;
@@ -1026,19 +1083,21 @@ where
     }
 }
 
-impl<I, D, P, DM, PM> StreamIterator<D, P> for SSplitCollectorMapContinuation<I, D, P, DM, PM>
+impl<I, D, P, DM, PM> StreamIterator for SSplitCollectorMapContinuation<I, D, P, DM, PM>
 where
-    I: StreamIterator<D, P>,
+    I: StreamIterator<D = D, P = P>,
     D: Clone,
     P: Clone,
     DM: Clone + Send + 'static,
     PM: Clone + Send + 'static,
 {
+    type D = D;
+    type P = P;
 }
 
 impl<I, D, P, DM, PM> Drop for SSplitCollectorMapContinuation<I, D, P, DM, PM>
 where
-    I: StreamIterator<D, P>,
+    I: StreamIterator<D = D, P = P>,
 {
     fn drop(&mut self) {
         if !self.queue.is_closed() {
@@ -1066,7 +1125,7 @@ pub trait MultiSourceStreamIteratorExt<D, P> {
     /// Yields `Stream::Next` with all collected values when all sources complete.
     fn collect_all<I>(iterators: Vec<I>) -> CollectAll<I, D, P>
     where
-        I: StreamIterator<D, P> + Send + 'static,
+        I: StreamIterator<D = D, P = P> + Send + 'static,
         D: Clone + Send + 'static,
         P: Send + 'static;
 
@@ -1076,7 +1135,7 @@ pub trait MultiSourceStreamIteratorExt<D, P> {
     /// Then applies the mapper to the collected Vec and yields the result.
     fn map_all_done<I, F, O>(iterators: Vec<I>, mapper: F) -> MapAllDone<I, F, D, P, O>
     where
-        I: StreamIterator<D, P> + Send + 'static,
+        I: StreamIterator<D = D, P = P> + Send + 'static,
         F: Fn(Vec<D>) -> O + Send + 'static,
         O: Send + 'static,
         D: Clone + Send + 'static,
@@ -1092,7 +1151,7 @@ pub trait MultiSourceStreamIteratorExt<D, P> {
         mapper: F,
     ) -> MapAllPendingAndDone<I, F, D, P, O>
     where
-        I: StreamIterator<D, P> + Send + 'static,
+        I: StreamIterator<D = D, P = P> + Send + 'static,
         F: Fn(Vec<Stream<D, P>>) -> O + Send + 'static,
         O: Send + 'static,
         D: Clone + Send + 'static,
@@ -1106,7 +1165,7 @@ where
 {
     fn collect_all<I>(iterators: Vec<I>) -> CollectAll<I, D, P>
     where
-        I: StreamIterator<D, P> + Send + 'static,
+        I: StreamIterator<D = D, P = P> + Send + 'static,
         D: Clone + Send + 'static,
         P: Send + 'static,
     {
@@ -1115,7 +1174,7 @@ where
 
     fn map_all_done<I, F, O>(iterators: Vec<I>, mapper: F) -> MapAllDone<I, F, D, P, O>
     where
-        I: StreamIterator<D, P> + Send + 'static,
+        I: StreamIterator<D = D, P = P> + Send + 'static,
         F: Fn(Vec<D>) -> O + Send + 'static,
         O: Send + 'static,
         D: Clone + Send + 'static,
@@ -1129,7 +1188,7 @@ where
         mapper: F,
     ) -> MapAllPendingAndDone<I, F, D, P, O>
     where
-        I: StreamIterator<D, P> + Send + 'static,
+        I: StreamIterator<D = D, P = P> + Send + 'static,
         F: Fn(Vec<Stream<D, P>>) -> O + Send + 'static,
         O: Send + 'static,
         D: Clone + Send + 'static,
@@ -1153,11 +1212,11 @@ pub struct CollectAll<I, D, P> {
 
 impl<I, D, P> CollectAll<I, D, P>
 where
-    I: StreamIterator<D, P>,
+    I: StreamIterator<D = D, P = P>,
     D: Clone + Send + 'static,
     P: Send + 'static,
 {
-    #[must_use] 
+    #[must_use]
     pub fn new(iterators: Vec<I>) -> Self {
         Self {
             sources: iterators,
@@ -1170,7 +1229,7 @@ where
 
 impl<I, D, P> Iterator for CollectAll<I, D, P>
 where
-    I: StreamIterator<D, P> + Send + 'static,
+    I: StreamIterator<D = D, P = P> + Send + 'static,
     D: Clone + Send + 'static,
     P: Send + 'static,
 {
@@ -1234,12 +1293,14 @@ where
     }
 }
 
-impl<I, D, P> StreamIterator<Vec<D>, usize> for CollectAll<I, D, P>
+impl<I, D, P> StreamIterator for CollectAll<I, D, P>
 where
-    I: StreamIterator<D, P> + Send + 'static,
+    I: StreamIterator<D = D, P = P> + Send + 'static,
     D: Clone + Send + 'static,
     P: Send + 'static,
 {
+    type D = Vec<D>;
+    type P = usize;
 }
 
 /// Multi-source mapper that applies a function when all sources reach Done.
@@ -1253,7 +1314,7 @@ pub struct MapAllDone<I, F, D, P, O> {
 
 impl<I, F, D, P, O> MapAllDone<I, F, D, P, O>
 where
-    I: StreamIterator<D, P>,
+    I: StreamIterator<D = D, P = P>,
     F: Fn(Vec<D>) -> O + Send + 'static,
     O: Send + 'static,
     D: Clone + Send + 'static,
@@ -1273,7 +1334,7 @@ where
 
 impl<I, F, D, P, O> Iterator for MapAllDone<I, F, D, P, O>
 where
-    I: StreamIterator<D, P> + Send + 'static,
+    I: StreamIterator<D = D, P = P> + Send + 'static,
     F: Fn(Vec<D>) -> O + Send + 'static,
     O: Send + 'static,
     D: Clone + Send + 'static,
@@ -1338,14 +1399,16 @@ where
     }
 }
 
-impl<I, F, D, P, O> StreamIterator<O, usize> for MapAllDone<I, F, D, P, O>
+impl<I, F, D, P, O> StreamIterator for MapAllDone<I, F, D, P, O>
 where
-    I: StreamIterator<D, P> + Send + 'static,
+    I: StreamIterator<D = D, P = P> + Send + 'static,
     F: Fn(Vec<D>) -> O + Send + 'static,
     O: Send + 'static,
     D: Clone + Send + 'static,
     P: Send + 'static,
 {
+    type D = O;
+    type P = usize;
 }
 
 /// Multi-source mapper that processes both Pending and Done states together.
@@ -1358,7 +1421,7 @@ pub struct MapAllPendingAndDone<I, F, D, P, O> {
 
 impl<I, F, D, P, O> MapAllPendingAndDone<I, F, D, P, O>
 where
-    I: StreamIterator<D, P>,
+    I: StreamIterator<D = D, P = P>,
     F: Fn(Vec<Stream<D, P>>) -> O + Send + 'static,
     O: Send + 'static,
     D: Clone + Send + 'static,
@@ -1376,7 +1439,7 @@ where
 
 impl<I, F, D, P, O> Iterator for MapAllPendingAndDone<I, F, D, P, O>
 where
-    I: StreamIterator<D, P> + Send + 'static,
+    I: StreamIterator<D = D, P = P> + Send + 'static,
     F: Fn(Vec<Stream<D, P>>) -> O + Send + 'static,
     O: Send + 'static,
     D: Clone + Send + 'static,
@@ -1409,14 +1472,70 @@ where
     }
 }
 
-impl<I, F, D, P, O> StreamIterator<O, P> for MapAllPendingAndDone<I, F, D, P, O>
+impl<I, F, D, P, O> StreamIterator for MapAllPendingAndDone<I, F, D, P, O>
 where
-    I: StreamIterator<D, P> + Send + 'static,
+    I: StreamIterator<D = D, P = P> + Send + 'static,
     F: Fn(Vec<Stream<D, P>>) -> O + Send + 'static,
     O: Send + 'static,
     D: Clone + Send + 'static,
     P: Send + 'static,
 {
+    type D = O;
+    type P = P;
+}
+
+/// Wrapper type for `map_iter` combinator that flattens nested iterator patterns.
+///
+/// The outer iterator yields `Stream` items which are transformed by the mapper
+/// into inner iterators. Each inner iterator is drained until `None` before polling
+/// the outer for the next item.
+pub struct MapIter<Outer, F, Inner>
+where
+    Outer: StreamIterator,
+    F: Fn(Stream<Outer::D, Outer::P>) -> Inner,
+    Inner: StreamIterator,
+{
+    outer: Outer,
+    mapper: F,
+    current_inner: Option<Inner>,
+    _phantom: std::marker::PhantomData<(Outer, Inner)>,
+}
+
+impl<Outer, F, Inner> Iterator for MapIter<Outer, F, Inner>
+where
+    Outer: StreamIterator,
+    F: Fn(Stream<Outer::D, Outer::P>) -> Inner,
+    Inner: StreamIterator,
+{
+    type Item = Stream<Inner::D, Inner::P>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        loop {
+            if let Some(ref mut inner) = self.current_inner {
+                if let Some(item) = inner.next() {
+                    return Some(item);
+                }
+                self.current_inner = None;
+            }
+
+            match self.outer.next() {
+                Some(item) => {
+                    self.current_inner = Some((self.mapper)(item));
+                }
+                None => return None,
+            }
+        }
+    }
+}
+
+impl<Outer, F, Inner> StreamIterator for MapIter<Outer, F, Inner>
+where
+    Outer: StreamIterator,
+    F: Fn(Stream<Outer::D, Outer::P>) -> Inner,
+    Inner: StreamIterator,
+{
+    type D = Inner::D;
+    type P = Inner::P;
 }
 
 #[cfg(test)]
@@ -1442,7 +1561,39 @@ mod tests {
         }
     }
 
-    impl StreamIterator<u32, String> for TestStream {}
+    impl StreamIterator for TestStream {
+        type D = u32;
+        type P = String;
+    }
+
+    // Simple stream iterator wrapper for Vec<Stream<D, P>>
+    struct SimpleStream<D, P> {
+        items: std::vec::IntoIter<Stream<D, P>>,
+    }
+
+    impl<D, P> SimpleStream<D, P> {
+        fn from_vec(vec: Vec<D>) -> Self {
+            let items = vec
+                .into_iter()
+                .map(Stream::Next)
+                .collect::<Vec<_>>()
+                .into_iter();
+            Self { items }
+        }
+    }
+
+    impl<D, P> Iterator for SimpleStream<D, P> {
+        type Item = Stream<D, P>;
+
+        fn next(&mut self) -> Option<Self::Item> {
+            self.items.next()
+        }
+    }
+
+    impl<D, P> StreamIterator for SimpleStream<D, P> {
+        type D = D;
+        type P = P;
+    }
 
     #[test]
     fn test_map_done() {
@@ -1468,7 +1619,7 @@ mod tests {
     fn test_map_pending() {
         let items = vec![Stream::Pending("wait".to_string()), Stream::Next(5)];
         let stream = TestStream::new(items);
-        let mut mapped = stream.map_pending(|s| s.len());
+        let mut mapped = stream.map_pending(|s: String| s.len());
 
         assert_eq!(Iterator::next(&mut mapped), Some(Stream::Next(5)));
         assert_eq!(Iterator::next(&mut mapped), Some(Stream::Pending(4)));
@@ -1705,5 +1856,173 @@ mod tests {
         }
 
         assert!(got_result, "Should have produced mapped result");
+    }
+
+    #[test]
+    fn test_map_iter_flattens_nested_iterators() {
+        // Test using the extension method with a simple test stream
+        struct VecStream {
+            items: std::vec::IntoIter<Stream<Vec<u32>, String>>,
+        }
+
+        impl Iterator for VecStream {
+            type Item = Stream<Vec<u32>, String>;
+
+            fn next(&mut self) -> Option<Self::Item> {
+                self.items.next()
+            }
+        }
+
+        impl StreamIterator for VecStream {
+            type D = Vec<u32>;
+            type P = String;
+        }
+
+        let items = vec![
+            Stream::Next(vec![1u32, 2u32]),
+            Stream::Next(vec![3u32, 4u32, 5u32]),
+        ];
+        let stream = VecStream {
+            items: items.into_iter(),
+        };
+
+        let mut flattened = stream.map_iter(|item: Stream<Vec<u32>, String>| {
+            let vec = match item {
+                Stream::Next(v) => v,
+                _ => vec![],
+            };
+            SimpleStream::<u32, String>::from_vec(vec)
+        });
+
+        // Should flatten: 1, 2, 3, 4, 5
+        assert!(matches!(
+            Iterator::next(&mut flattened),
+            Some(Stream::Next(1))
+        ));
+        assert!(matches!(
+            Iterator::next(&mut flattened),
+            Some(Stream::Next(2))
+        ));
+        assert!(matches!(
+            Iterator::next(&mut flattened),
+            Some(Stream::Next(3))
+        ));
+        assert!(matches!(
+            Iterator::next(&mut flattened),
+            Some(Stream::Next(4))
+        ));
+        assert!(matches!(
+            Iterator::next(&mut flattened),
+            Some(Stream::Next(5))
+        ));
+        assert_eq!(Iterator::next(&mut flattened), None);
+    }
+
+    #[test]
+    fn test_map_iter_passes_through_pending() {
+        // Test using the extension method with a simple test stream
+        struct VecStream {
+            items: std::vec::IntoIter<Stream<Vec<u32>, String>>,
+        }
+
+        impl Iterator for VecStream {
+            type Item = Stream<Vec<u32>, String>;
+
+            fn next(&mut self) -> Option<Self::Item> {
+                self.items.next()
+            }
+        }
+
+        impl StreamIterator for VecStream {
+            type D = Vec<u32>;
+            type P = String;
+        }
+
+        let items = vec![
+            Stream::Next(vec![1u32]),
+            Stream::Pending("wait".to_string()),
+            Stream::Next(vec![2u32, 3u32]),
+        ];
+        let stream = VecStream {
+            items: items.into_iter(),
+        };
+
+        let mut flattened = stream.map_iter(|item: Stream<Vec<u32>, String>| {
+            let vec = match item {
+                Stream::Next(v) => v,
+                // For non-Next items, return empty stream (they are consumed)
+                _ => vec![],
+            };
+            SimpleStream::<u32, String>::from_vec(vec)
+        });
+
+        // Outer's Pending is consumed by mapper (returns empty stream)
+        // Only Next values produce output
+        assert!(matches!(
+            Iterator::next(&mut flattened),
+            Some(Stream::Next(1))
+        ));
+        assert!(matches!(
+            Iterator::next(&mut flattened),
+            Some(Stream::Next(2))
+        ));
+        assert!(matches!(
+            Iterator::next(&mut flattened),
+            Some(Stream::Next(3))
+        ));
+        assert_eq!(Iterator::next(&mut flattened), None);
+    }
+
+    #[test]
+    fn test_map_iter_different_pending_types() {
+        // Mapper receives full Stream and can decide what to do with non-Next states
+        struct VecStream {
+            items: std::vec::IntoIter<Stream<Vec<u32>, String>>,
+        }
+
+        impl Iterator for VecStream {
+            type Item = Stream<Vec<u32>, String>;
+
+            fn next(&mut self) -> Option<Self::Item> {
+                self.items.next()
+            }
+        }
+
+        impl StreamIterator for VecStream {
+            type D = Vec<u32>;
+            type P = String;
+        }
+
+        let items = vec![
+            Stream::Next(vec![1u32, 2u32]),
+            Stream::Pending("outer_pending".to_string()),
+            Stream::Next(vec![3u32]),
+        ];
+        let stream = VecStream {
+            items: items.into_iter(),
+        };
+
+        let mut flattened = stream.map_iter(|item: Stream<Vec<u32>, String>| {
+            let vec = match item {
+                Stream::Next(v) => v,
+                _ => vec![],
+            };
+            SimpleStream::<u32, String>::from_vec(vec)
+        });
+
+        // Outer's Pending is consumed by mapper (returns empty stream, no output)
+        assert!(matches!(
+            Iterator::next(&mut flattened),
+            Some(Stream::Next(1))
+        ));
+        assert!(matches!(
+            Iterator::next(&mut flattened),
+            Some(Stream::Next(2))
+        ));
+        assert!(matches!(
+            Iterator::next(&mut flattened),
+            Some(Stream::Next(3))
+        ));
+        assert_eq!(Iterator::next(&mut flattened), None);
     }
 }

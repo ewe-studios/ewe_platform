@@ -771,13 +771,15 @@ where
     }
 }
 
-impl<T> StreamIterator<T::Ready, T::Pending> for DrivenNonSendStreamIterator<T>
+impl<T> StreamIterator for DrivenNonSendStreamIterator<T>
 where
     T: TaskIterator + 'static,
     T::Ready: 'static,
     T::Pending: 'static,
     T::Spawner: ExecutionAction + 'static,
 {
+    type D = T::Ready;
+    type P = T::Pending;
 }
 
 impl<T> Iterator for DrivenNonSendStreamIterator<T>
@@ -844,13 +846,15 @@ where
 {
 }
 
-impl<T> StreamIterator<T::Ready, T::Pending> for DrivenStreamIterator<T>
+impl<T> StreamIterator for DrivenStreamIterator<T>
 where
     T: TaskIterator + Send + 'static,
     T::Ready: Send + 'static,
     T::Pending: Send + 'static,
     T::Spawner: ExecutionAction + Send + 'static,
 {
+    type D = T::Ready;
+    type P = T::Pending;
 }
 
 impl<T> Iterator for DrivenStreamIterator<T>

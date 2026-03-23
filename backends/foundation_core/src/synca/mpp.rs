@@ -291,7 +291,13 @@ pub enum Stream<D, P> {
 /// [`StreamIterator`] defines a type which implements an
 /// iterator that returns a stream stream
 /// of values.
-pub trait StreamIterator<D, P>: Iterator<Item = Stream<D, P>> {}
+pub trait StreamIterator: Iterator<Item = Stream<Self::D, Self::P>> {
+    type D;
+    type P;
+}
+
+// Note: Types implement StreamIterator explicitly or via blanket impls
+// that are more specific than this would be.
 
 pub struct StreamRecvIterator<D, P>(RecvIterator<Stream<D, P>>);
 
@@ -327,7 +333,14 @@ impl<D, P> Iterator for StreamRecvIterator<D, P> {
     }
 }
 
-impl<D, P> StreamIterator<D, P> for StreamRecvIterator<D, P> {}
+impl<D, P> StreamIterator for StreamRecvIterator<D, P>
+where
+    D: Send + 'static,
+    P: Send + 'static,
+{
+    type D = D;
+    type P = P;
+}
 
 pub struct Sender<T> {
     chan: Arc<ConcurrentQueue<T>>,
