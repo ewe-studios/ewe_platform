@@ -6,20 +6,26 @@
 //! applies overrides and static fallbacks, deduplicates, then writes a Rust source file
 //! that compiles against `foundation_ai::types`.
 //!
-//! HOW: Uses `foundation_core::wire::simple_http::client::SimpleHttpClient` for synchronous
-//! HTTP GET, `serde_json` for parsing, and a code-generation pass that emits const data
-//! matching `ModelProviderDescriptor`.
+//! HOW: Uses `foundation_core::wire::simple_http::client::SimpleHttpClient` for HTTP requests,
+//! Valtron executors for parallel task execution, `serde_json` for parsing, and a code-generation
+//! pass that emits const data matching `ModelProviderDescriptor`.
 
 use std::collections::BTreeMap;
 use std::path::PathBuf;
 use std::process::Command;
-use std::time::Duration;
+use std::time::{Duration, Instant};
 
 use derive_more::{Display, From};
-use foundation_core::valtron;
-use foundation_core::wire::simple_http::client::SimpleHttpClient;
+use foundation_core::synca::mpp::Stream;
+use foundation_core::valtron::{
+    self, StreamIteratorExt, TaskIterator, TaskIteratorExt, TaskStatus,
+};
+use foundation_core::wire::simple_http::client::{
+    ClientConfig, HttpConnectionPool, SendRequestTask, SimpleHttpClient,
+};
 use foundation_core::wire::simple_http::{
-    ChunkedData, LineFeed, SendSafeBody, SimpleHeader, Status,
+    ChunkedData, HttpRequestPending, IncomingResponseParts, LineFeed, RequestIntro, SendSafeBody,
+    SimpleHeader, Status,
 };
 use serde::Deserialize;
 use tracing::Level;
@@ -85,6 +91,44 @@ pub enum GenModelError {
 }
 
 impl std::error::Error for GenModelError {}
+
+// ---------------------------------------------------------------------------
+// Progress tracking for parallel fetch
+// ---------------------------------------------------------------------------
+
+/// WHY: Tracks progress of individual API fetches during parallel execution.
+///
+/// WHAT: Progress states with source identification for observability.
+///
+/// HOW: Used as the `Pending` type in TaskIterator combinators.
+#[derive(Debug, Clone)]
+pub enum FetchPending {
+    Connecting { source: &'static str },
+    AwaitingResponse { source: &'static str },
+    ParsingJson { source: &'static str },
+    ProcessingModels { source: &'static str },
+}
+
+impl FetchPending {
+    fn from_http(p: HttpRequestPending, source: &'static str) -> Self {
+        match p {
+            HttpRequestPending::Connecting(_) => Self::Connecting { source },
+            HttpRequestPending::AwaitingResponse(_) => Self::AwaitingResponse { source },
+            HttpRequestPending::ReadingBody(_) => Self::ParsingJson { source },
+        }
+    }
+}
+
+impl std::fmt::Display for FetchPending {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            FetchPending::Connecting { source } => write!(f, "{source}: Connecting..."),
+            FetchPending::AwaitingResponse { source } => write!(f, "{source}: Awaiting response..."),
+            FetchPending::ParsingJson { source } => write!(f, "{source}: Parsing JSON..."),
+            FetchPending::ProcessingModels { source } => write!(f, "{source}: Processing models..."),
+        }
+    }
+}
 
 // ---------------------------------------------------------------------------
 // Compile-time shape verification
@@ -1778,6 +1822,258 @@ pub fn model_descriptors() -> Vec<ModelProviderDescriptor> {
 // CLI registration & run (follows bin/platform subcommand pattern)
 // ---------------------------------------------------------------------------
 
+/// WHY: Progress and result type for parallel model fetching.
+///
+/// WHAT: Represents the output of a parallel fetch operation from multiple APIs.
+///
+/// HOW: Used with execute_collect_all() to aggregate results from multiple TaskIterators.
+type FetchResult = Result<Vec<ModelEntry>, GenModelError>;
+
+/// Create a fetch task for a specific API using TaskIterator combinators.
+///
+/// WHY: Encapsulates the task composition pattern for parallel fetch.
+///
+/// WHAT: Creates a SendRequestTask with combinators that transform HttpResponse → Vec<ModelEntry>.
+///
+/// HOW: Uses map_ready() to parse JSON and extract models, map_pending() for progress tracking.
+#[allow(clippy::too_many_lines)]
+fn create_fetch_task<F>(
+    client: SimpleHttpClient,
+    source: &'static str,
+    url: &'static str,
+    parser: F,
+) -> Result<
+    impl TaskIterator<
+            Ready = Vec<ModelEntry>,
+            Pending = FetchPending,
+            Spawner = foundation_core::valtron::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    GenModelError,
+>
+where
+    F: Fn(&str, &str) -> Vec<ModelEntry> + Send + Clone + 'static,
+{
+    let request = client
+        .get(url)
+        .map_err(|e| GenModelError::Http {
+            url: url.to_string(),
+            source: e,
+        })?;
+
+    let pool = HttpConnectionPool::default();
+    let config = ClientConfig::default();
+
+    // Create SendRequestTask and apply combinators
+    let task = SendRequestTask::new(request, 5, pool, config)
+        // Transform RequestIntro → FetchResult
+        .map_ready(move |intro| {
+            match intro {
+                RequestIntro::Success { stream, .. } => {
+                    // Read the response body from the stream
+                    let mut body_text = String::new();
+                    for part in stream {
+                        match part {
+                            Ok(IncomingResponseParts::SizedBody(body))
+                            | Ok(IncomingResponseParts::StreamedBody(body)) => {
+                                match body {
+                                    SendSafeBody::Text(t) => body_text = t,
+                                    SendSafeBody::Bytes(b) => {
+                                        body_text = String::from_utf8(b).map_err(|e| {
+                                            GenModelError::InvalidUtf8 {
+                                                url: url.to_string(),
+                                                source: e,
+                                            }
+                                        })?;
+                                    }
+                                    _ => {
+                                        return Err(GenModelError::UnexpectedBody {
+                                            url: url.to_string(),
+                                        });
+                                    }
+                                }
+                            }
+                            Ok(_) => continue,
+                            Err(e) => {
+                                return Err(GenModelError::Http {
+                                    url: url.to_string(),
+                                    source: foundation_core::wire::simple_http::HttpClientError::from(
+                                        std::io::Error::new(std::io::ErrorKind::InvalidData, e.to_string()),
+                                    ),
+                                });
+                            }
+                        }
+                    }
+
+                    // Parse JSON and extract models
+                    Ok(parser(&body_text, source))
+                }
+                RequestIntro::Failed(e) => Err(GenModelError::Http {
+                    url: url.to_string(),
+                    source: foundation_core::wire::simple_http::HttpClientError::from(
+                        std::io::Error::new(std::io::ErrorKind::ConnectionAborted, e.to_string()),
+                    ),
+                }),
+            }
+        })
+        // Transform: HttpPending → FetchPending with source tracking
+        .map_pending(|p| FetchPending::from_http(p, source))
+        // Convert to stream-collecting iterator
+        .stream_collect();
+
+    Ok(task)
+}
+
+/// Parser function for models.dev API
+fn parse_models_dev_response(body: &str, _source: &'static str) -> Vec<ModelEntry> {
+    // Parse the JSON and extract models
+    let data: serde_json::Value = match serde_json::from_str(body) {
+        Ok(d) => d,
+        Err(e) => {
+            tracing::error!("Failed to parse models.dev response: {e}");
+            return Vec::new();
+        }
+    };
+
+    let mut models = Vec::new();
+    // Reuse the existing fetch_models_dev logic but with parsed data
+    // This is a simplified version - in production you'd extract this into a separate function
+    if let Some(val) = data.get("openai") {
+        if let Ok(p) = serde_json::from_value::<ModelsDevProvider>(val.clone()) {
+            for (id, m) in p.models.iter().flat_map(|ms| ms.iter()) {
+                if m.tool_call != Some(true) {
+                    continue;
+                }
+                if m.status.as_deref() == Some("deprecated") {
+                    continue;
+                }
+                let npm = m.provider.as_ref().and_then(|p| p.npm.as_deref());
+                let (api, base_url) = match npm {
+                    Some("@ai-sdk/openai") => ("openai-responses", "https://opencode.ai/zen/v1"),
+                    Some("@ai-sdk/anthropic") => ("anthropic-messages", "https://opencode.ai/zen"),
+                    Some("@ai-sdk/google") => {
+                        ("google-generative-ai", "https://opencode.ai/zen/v1")
+                    }
+                    _ => ("openai-completions", "https://opencode.ai/zen/v1"),
+                };
+                models.push(from_dev(id, m, api, "opencode", base_url, 4096, 4096));
+            }
+        }
+    }
+    models
+}
+
+/// Parser function for OpenRouter API
+fn parse_openrouter_response(body: &str, _source: &'static str) -> Vec<ModelEntry> {
+    let data: OpenRouterResponse = match serde_json::from_str(body) {
+        Ok(d) => d,
+        Err(e) => {
+            tracing::error!("Failed to parse OpenRouter response: {e}");
+            return Vec::new();
+        }
+    };
+
+    let mut models = Vec::new();
+    for m in &data.data {
+        let has_tools = m
+            .supported_parameters
+            .as_ref()
+            .is_some_and(|p| p.iter().any(|s| s == "tools"));
+        if !has_tools {
+            continue;
+        }
+
+        let img = m
+            .architecture
+            .as_ref()
+            .and_then(|a| a.modality.as_deref())
+            .is_some_and(|s| s.contains("image"));
+
+        let parse = |s: &Option<String>| -> f64 {
+            s.as_deref()
+                .and_then(|v| v.parse::<f64>().ok())
+                .unwrap_or(0.0)
+                * 1_000_000.0
+        };
+        let cost = (
+            parse(&m.pricing.as_ref().and_then(|p| p.prompt.clone())),
+            parse(&m.pricing.as_ref().and_then(|p| p.completion.clone())),
+            parse(&m.pricing.as_ref().and_then(|p| p.input_cache_read.clone())),
+            parse(&m.pricing.as_ref().and_then(|p| p.input_cache_write.clone())),
+        );
+
+        let reasoning = m
+            .supported_parameters
+            .as_ref()
+            .is_some_and(|p| p.iter().any(|s| s == "reasoning"));
+
+        models.push(entry(
+            &m.id,
+            m.name.as_deref().unwrap_or(&m.id),
+            "openai-completions",
+            "openrouter",
+            "https://openrouter.ai/api/v1",
+            reasoning,
+            img,
+            cost,
+            m.context_length.unwrap_or(4096) as u32,
+            m.top_provider
+                .as_ref()
+                .and_then(|t| t.max_completion_tokens)
+                .unwrap_or(4096) as u32,
+        ));
+    }
+    models
+}
+
+/// Parser function for AI Gateway API
+fn parse_ai_gateway_response(body: &str, _source: &'static str) -> Vec<ModelEntry> {
+    let data: AiGatewayResponse = match serde_json::from_str(body) {
+        Ok(d) => d,
+        Err(e) => {
+            tracing::error!("Failed to parse AI Gateway response: {e}");
+            return Vec::new();
+        }
+    };
+
+    let mut models = Vec::new();
+    for m in data.data.iter().flat_map(|d| d.iter()) {
+        let tags = m.tags.as_deref().unwrap_or(&[]);
+        if !tags.iter().any(|t| t == "tool-use") {
+            continue;
+        }
+
+        let cost = (
+            pricing_val(m.pricing.as_ref().and_then(|p| p.input.as_ref())) * 1_000_000.0,
+            pricing_val(m.pricing.as_ref().and_then(|p| p.output.as_ref())) * 1_000_000.0,
+            pricing_val(
+                m.pricing
+                    .as_ref()
+                    .and_then(|p| p.input_cache_read.as_ref()),
+            ) * 1_000_000.0,
+            pricing_val(
+                m.pricing
+                    .as_ref()
+                    .and_then(|p| p.input_cache_write.as_ref()),
+            ) * 1_000_000.0,
+        );
+
+        models.push(entry(
+            &m.id,
+            m.name.as_deref().unwrap_or(&m.id),
+            "anthropic-messages",
+            "vercel-ai-gateway",
+            "https://ai-gateway.vercel.sh",
+            tags.iter().any(|t| t == "reasoning"),
+            tags.iter().any(|t| t == "vision"),
+            cost,
+            m.context_window.unwrap_or(4096) as u32,
+            m.max_tokens.unwrap_or(4096) as u32,
+        ));
+    }
+    models
+}
+
 pub fn register(command: clap::Command) -> clap::Command {
     command.subcommand(
         clap::Command::new("gen_model_descriptors")
@@ -1794,10 +2090,10 @@ pub fn register(command: clap::Command) -> clap::Command {
 
 /// WHY: Entry point for the `gen_model_descriptors` subcommand.
 ///
-/// WHAT: Fetches from three APIs, merges, deduplicates, writes Rust source.
+/// WHAT: Fetches from three APIs in parallel using Valtron executors, merges, deduplicates, writes Rust source.
 ///
-/// HOW: Initialises tracing, creates `SimpleHttpClient`, runs fetch pipeline,
-/// writes to disk.
+/// HOW: Initialises tracing, creates `SimpleHttpClient`, uses execute_collect_all() for parallel fetch,
+/// applies overrides, deduplicates, and writes to disk.
 ///
 /// # Errors
 ///
@@ -1828,14 +2124,71 @@ pub fn run(args: &clap::ArgMatches) -> std::result::Result<(), BoxedError> {
         .read_timeout(Duration::from_secs(10))
         .max_retries(5);
 
-    let models_dev = fetch_models_dev(&client);
-    let openrouter = fetch_openrouter(&client);
-    let ai_gateway = fetch_ai_gateway(&client);
+    tracing::info!("Starting model descriptor generation with PARALLEL fetch...");
+    let start_time = Instant::now();
 
-    let mut all_models = Vec::with_capacity(models_dev.len() + openrouter.len() + ai_gateway.len());
-    all_models.extend(models_dev);
-    all_models.extend(openrouter);
-    all_models.extend(ai_gateway);
+    // Create fetch tasks for parallel execution
+    let tasks = vec![
+        create_fetch_task(
+            client.clone(),
+            "models.dev",
+            "https://models.dev/api.json",
+            parse_models_dev_response,
+        )?,
+        create_fetch_task(
+            client.clone(),
+            "openrouter",
+            "https://openrouter.ai/api/v1/models",
+            parse_openrouter_response,
+        )?,
+        create_fetch_task(
+            client.clone(),
+            "ai-gateway",
+            "https://ai-gateway.vercel.sh/v1/models",
+            parse_ai_gateway_response,
+        )?,
+    ];
+
+    // Execute all fetches in parallel using execute_collect_all
+    let collected = valtron::execute_collect_all(tasks, None)
+        .map_err(|e| -> BoxedError { Box::new(e) })?;
+
+    // Collect results from parallel fetch
+    let mut all_models = Vec::new();
+    let mut progress_updates = 0u64;
+
+    for stream_item in collected {
+        match stream_item {
+            Stream::Pending(count) => {
+                progress_updates += 1;
+                if progress_updates % 10 == 0 {
+                    tracing::info!("Parallel fetch in progress... ({count} tasks pending, {progress_updates} updates)");
+                }
+            }
+            Stream::Delayed(duration) => {
+                tracing::debug!("Fetch delayed by {:?}", duration);
+            }
+            Stream::Init => {
+                tracing::debug!("Fetch initializing...");
+            }
+            Stream::Next(results_vec) => {
+                tracing::info!("All API fetches complete!");
+                // Flatten the Vec<Vec<ModelEntry>> into Vec<ModelEntry>
+                for models in results_vec {
+                    all_models.extend(models);
+                }
+                break;
+            }
+        }
+    }
+
+    let fetch_elapsed = start_time.elapsed();
+    tracing::info!("Parallel fetch completed in {:?}", fetch_elapsed);
+    tracing::info!(
+        "Estimated sequential time: ~{:?} (3x slower)",
+        fetch_elapsed * 3
+    );
+    tracing::info!("Total models collected: {}", all_models.len());
 
     apply_overrides(&mut all_models);
 

@@ -142,5 +142,5 @@ pub trait AuthProviderEndpoint {
     /// Returns an [`AuthenticationErrors`] if authentication fails or an error occurs during the process.
     fn login<T>(&self, credential: AuthCredential) -> AuthenticationResult<T>
     where
-        T: StreamIterator<Authenticated, AuthenticationStates>;
+        T: StreamIterator<D = Authenticated, P = AuthenticationStates>;
 }
