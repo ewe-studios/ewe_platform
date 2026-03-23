@@ -29,10 +29,8 @@ pub type DrivenBodyStream<R> = DrivenStreamIterator<
     SplitCollectorMapContinuation<SendRequestTask<R>, (ResponseIntro, SimpleHeaders)>,
 >;
 
-pub type MappedDrivenBodyStream<R> = MapDone<
-    DrivenBodyStream<R>,
-    Result<(HttpClientConnection, SendSafeBody), HttpClientError>,
->;
+pub type MappedDrivenBodyStream<R> =
+    MapDone<DrivenBodyStream<R>, Result<(HttpClientConnection, SendSafeBody), HttpClientError>>;
 
 pub type RequestIntroStream =
     SplitCollectorMapObserver<(ResponseIntro, SimpleHeaders), HttpRequestPending>;
@@ -248,24 +246,15 @@ impl<R: DnsResolver + 'static> ClientRequest<R> {
     pub fn send(mut self) -> Result<FinalizedResponse<SendSafeBody, R>, HttpClientError> {
         let (intro_stream, body_stream) = self.start()?;
 
-        let mut intro_data: Option<(ResponseIntro, SimpleHeaders)> = None;
-        for intro_element in intro_stream {
-            if let Stream::Next(value) = intro_element {
-                intro_data = Some(value);
-                break;
-            }
-        }
-
-        // If no intro data, check body stream for errors (e.g., TooManyRedirects)
-        if intro_data.is_none() {
-            for body_element in body_stream {
-                if let Stream::Next(Err(err)) = body_element {
-                    return Err(err);
-                }
-            }
-            return Err(HttpClientError::InvalidRequestState);
-        }
-
+        // IMPORTANT: We need to drive the body_stream first has
+        // it determines if the observer ever gets the value
+        // in the first place.
+        //
+        // Due to the need to support synchronouse execution, we need to
+        // proces the body_stream first to ensure the intro observer
+        // also receives the intro headers and we can complete
+        // the request and easily also capture any errors that
+        // might occur later.
         let mut response_body: Option<(HttpClientConnection, SendSafeBody)> = None;
         for body_element in body_stream {
             if let Stream::Next(value) = body_element {
@@ -277,6 +266,25 @@ impl<R: DnsResolver + 'static> ClientRequest<R> {
                     Err(err) => return Err(err),
                 }
             }
+        }
+
+        // If no intro data, check body stream for errors (e.g., TooManyRedirects)
+        let mut intro_data: Option<(ResponseIntro, SimpleHeaders)> = None;
+
+        for intro_element in intro_stream {
+            if let Stream::Next(value) = intro_element {
+                intro_data = Some(value);
+                break;
+            }
+        }
+
+        if intro_data.is_none() {
+            // for body_element in body_stream {
+            //     if let Stream::Next(Err(err)) = body_element {
+            //         return Err(err);
+            //     }
+            // }
+            return Err(HttpClientError::InvalidRequestState);
         }
 
         // Build complete response

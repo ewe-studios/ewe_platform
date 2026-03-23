@@ -356,7 +356,17 @@ pub trait TaskIteratorExt: TaskIterator + Sized {
     fn map_iter<F, InnerIter, InnerR, InnerP, InnerS>(
         self,
         mapper: F,
-    ) -> TMapIter<Self, F, InnerIter, InnerR, InnerP, InnerS, Self::Ready, Self::Pending, Self::Spawner>
+    ) -> TMapIter<
+        Self,
+        F,
+        InnerIter,
+        InnerR,
+        InnerP,
+        InnerS,
+        Self::Ready,
+        Self::Pending,
+        Self::Spawner,
+    >
     where
         Self: Sized,
         F: Fn(Self::Ready) -> InnerIter + Send + 'static,
@@ -586,7 +596,17 @@ where
     fn map_iter<F, InnerIter, InnerR, InnerP, InnerS>(
         self,
         mapper: F,
-    ) -> TMapIter<Self, F, InnerIter, InnerR, InnerP, InnerS, Self::Ready, Self::Pending, Self::Spawner>
+    ) -> TMapIter<
+        Self,
+        F,
+        InnerIter,
+        InnerR,
+        InnerP,
+        InnerS,
+        Self::Ready,
+        Self::Pending,
+        Self::Spawner,
+    >
     where
         Self: Sized,
         F: Fn(Self::Ready) -> InnerIter + Send + 'static,
@@ -952,7 +972,9 @@ where
     type Item = TaskStatus<I::Ready, I::Pending, I::Spawner>;
 
     fn next(&mut self) -> Option<Self::Item> {
-        let item = if let Some(item) = self.inner.next_status() { item } else {
+        let item = if let Some(item) = self.inner.next_status() {
+            item
+        } else {
             // Source iterator is naturally exhausted, close the queue
             self.queue.close();
             tracing::debug!("SplitCollectorContinuation: source exhausted, queue closed");
@@ -1081,7 +1103,9 @@ where
     type Item = TaskStatus<I::Ready, I::Pending, I::Spawner>;
 
     fn next(&mut self) -> Option<Self::Item> {
-        let item = if let Some(item) = self.inner.next_status() { item } else {
+        let item = if let Some(item) = self.inner.next_status() {
+            item
+        } else {
             // Source iterator is naturally exhausted, close the queue
             self.queue.close();
             tracing::debug!("SplitUntilContinuation: source exhausted, queue closed");
@@ -1237,7 +1261,9 @@ where
     type Item = TaskStatus<I::Ready, I::Pending, I::Spawner>;
 
     fn next(&mut self) -> Option<Self::Item> {
-        let item = if let Some(item) = self.inner.next_status() { item } else {
+        let item = if let Some(item) = self.inner.next_status() {
+            item
+        } else {
             // Source iterator is naturally exhausted, close the queue
             self.queue.close();
             tracing::debug!("SplitUntilContinuationMap: source exhausted, queue closed");
@@ -1402,7 +1428,9 @@ where
     type Item = TaskStatus<I::Ready, I::Pending, I::Spawner>;
 
     fn next(&mut self) -> Option<Self::Item> {
-        let item = if let Some(item) = self.inner.next_status() { item } else {
+        let item = if let Some(item) = self.inner.next_status() {
+            item
+        } else {
             self.queue.close();
             tracing::debug!("SplitCollectorMapContinuation: source exhausted, queue closed");
             return None;
@@ -1452,9 +1480,6 @@ where
 {
     fn drop(&mut self) {
         if !self.queue.is_closed() {
-            tracing::debug!(
-                "SplitCollectorMapContinuation: dropped before completion, closing queue"
-            );
             self.queue.close();
         }
     }
@@ -1680,7 +1705,9 @@ mod tests {
             type Pending = String;
             type Spawner = NoAction;
 
-            fn next_status(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+            fn next_status(
+                &mut self,
+            ) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
                 Iterator::next(self)
             }
         }
@@ -1689,21 +1716,39 @@ mod tests {
             TaskStatus::Ready(vec![1u32, 2u32]),
             TaskStatus::Ready(vec![3u32, 4u32, 5u32]),
         ];
-        let task = VecTask { items: items.into_iter() };
+        let task = VecTask {
+            items: items.into_iter(),
+        };
 
-        let mut flattened: TMapIter<_, _, _, u32, String, NoAction, Vec<u32>, String, NoAction> = task.map_iter(|vec| {
-            vec.into_iter()
-                .map(TaskStatus::Ready)
-                .collect::<Vec<_>>()
-                .into_iter()
-        });
+        let mut flattened: TMapIter<_, _, _, u32, String, NoAction, Vec<u32>, String, NoAction> =
+            task.map_iter(|vec| {
+                vec.into_iter()
+                    .map(TaskStatus::Ready)
+                    .collect::<Vec<_>>()
+                    .into_iter()
+            });
 
         // Should flatten: 1, 2, 3, 4, 5
-        assert!(matches!(Iterator::next(&mut flattened), Some(TaskStatus::Ready(1))));
-        assert!(matches!(Iterator::next(&mut flattened), Some(TaskStatus::Ready(2))));
-        assert!(matches!(Iterator::next(&mut flattened), Some(TaskStatus::Ready(3))));
-        assert!(matches!(Iterator::next(&mut flattened), Some(TaskStatus::Ready(4))));
-        assert!(matches!(Iterator::next(&mut flattened), Some(TaskStatus::Ready(5))));
+        assert!(matches!(
+            Iterator::next(&mut flattened),
+            Some(TaskStatus::Ready(1))
+        ));
+        assert!(matches!(
+            Iterator::next(&mut flattened),
+            Some(TaskStatus::Ready(2))
+        ));
+        assert!(matches!(
+            Iterator::next(&mut flattened),
+            Some(TaskStatus::Ready(3))
+        ));
+        assert!(matches!(
+            Iterator::next(&mut flattened),
+            Some(TaskStatus::Ready(4))
+        ));
+        assert!(matches!(
+            Iterator::next(&mut flattened),
+            Some(TaskStatus::Ready(5))
+        ));
         assert_eq!(Iterator::next(&mut flattened), None);
     }
 
@@ -1729,7 +1774,9 @@ mod tests {
             type Pending = String;
             type Spawner = NoAction;
 
-            fn next_status(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+            fn next_status(
+                &mut self,
+            ) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
                 Iterator::next(self)
             }
         }
@@ -1739,23 +1786,35 @@ mod tests {
             TaskStatus::Pending("wait".to_string()),
             TaskStatus::Ready(vec![2u32, 3u32]),
         ];
-        let task = VecTask { items: items.into_iter() };
+        let task = VecTask {
+            items: items.into_iter(),
+        };
 
-        let mut flattened: TMapIter<_, _, _, u32, String, NoAction, Vec<u32>, String, NoAction> = task.map_iter(|vec| {
-            vec.into_iter()
-                .map(TaskStatus::Ready)
-                .collect::<Vec<_>>()
-                .into_iter()
-        });
+        let mut flattened: TMapIter<_, _, _, u32, String, NoAction, Vec<u32>, String, NoAction> =
+            task.map_iter(|vec| {
+                vec.into_iter()
+                    .map(TaskStatus::Ready)
+                    .collect::<Vec<_>>()
+                    .into_iter()
+            });
 
         // Should flatten with pending passed through
-        assert!(matches!(Iterator::next(&mut flattened), Some(TaskStatus::Ready(1))));
+        assert!(matches!(
+            Iterator::next(&mut flattened),
+            Some(TaskStatus::Ready(1))
+        ));
         assert!(matches!(
             Iterator::next(&mut flattened),
             Some(TaskStatus::Pending(ref s)) if s == "wait"
         ));
-        assert!(matches!(Iterator::next(&mut flattened), Some(TaskStatus::Ready(2))));
-        assert!(matches!(Iterator::next(&mut flattened), Some(TaskStatus::Ready(3))));
+        assert!(matches!(
+            Iterator::next(&mut flattened),
+            Some(TaskStatus::Ready(2))
+        ));
+        assert!(matches!(
+            Iterator::next(&mut flattened),
+            Some(TaskStatus::Ready(3))
+        ));
         assert_eq!(Iterator::next(&mut flattened), None);
     }
 }
