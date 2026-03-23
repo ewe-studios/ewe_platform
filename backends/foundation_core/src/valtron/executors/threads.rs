@@ -12,7 +12,7 @@ use std::{
         atomic::{self, AtomicBool, AtomicUsize, Ordering},
         Arc,
     },
-    thread::{self, JoinHandle},
+    thread::JoinHandle,
     time::{self, Instant},
 };
 
@@ -31,14 +31,14 @@ use crate::{
     retries::ExponentialBackoffDecider,
     synca::{
         mpp::{self, RecvIterator},
-        Entry, EntryList, IdleMan, LockSignal, OnSignal, RunOnDrop, SleepyMan,
+        Entry, EntryList, IdleMan, LockSignal, OnSignal, SleepyMan,
     },
     valtron::{AnyResult, LocalThreadExecutor},
 };
 
 use crate::valtron::{
     BoxedExecutionEngine, BoxedPanicHandler, BoxedSendExecutionIterator, ExecutionAction,
-    ExecutionIterator, ExecutorError, FnMutReady, FnReady, OnNext, PriorityOrder,
+    ExecutorError, FnMutReady, FnReady, OnNext, PriorityOrder,
     ProcessController, ReadyConsumingIter, SharedTaskQueue, TaskIterator, TaskReadyResolver,
     TaskStatus, TaskStatusMapper,
 };
@@ -138,17 +138,27 @@ impl Drop for WaitGroupGuard {
 ///
 /// This replaces the old pattern of spawning a thread to call `get_pool().kill()`.
 pub struct PoolGuard {
-    waitgroup: WaitGroup,
+    registry: Arc<ThreadRegistry>,
     shut_down: AtomicBool,
 }
 
 impl PoolGuard {
-    /// Create a new PoolGuard with the given WaitGroup.
+    /// Create a new PoolGuard with the given ThreadRegistry.
     #[must_use]
-    pub fn new(waitgroup: WaitGroup) -> Self {
+    pub fn new(registry: Arc<ThreadRegistry>) -> Self {
         Self {
-            waitgroup,
+            registry,
             shut_down: AtomicBool::new(false),
+        }
+    }
+
+    /// Create a dummy PoolGuard that does nothing on drop.
+    /// Used for single-threaded/wasm builds where no thread pool is created.
+    #[must_use]
+    pub fn dummy() -> Self {
+        Self {
+            registry: Arc::new(ThreadRegistry::with_seed_and_threads(0, 2)),
+            shut_down: AtomicBool::new(true),
         }
     }
 
@@ -159,17 +169,21 @@ impl PoolGuard {
             .compare_exchange(false, true, Ordering::SeqCst, Ordering::Relaxed)
             .is_ok()
         {
-            // Signal all threads to die
-            self.waitgroup.signal.signal_all();
+            // Signal kill to all threads
+            self.registry.kill_signal().turn_on();
+            // Wake all blocked/parked threads
+            self.registry.latch().signal_all();
             // Wait for all threads to report done
-            self.waitgroup.wait();
+            self.registry.waitgroup().wait();
+            // Join all thread handles
+            self.registry.join_all_threads();
         }
     }
 
     /// Get the WaitGroup for this pool.
     #[must_use]
     pub fn waitgroup(&self) -> &WaitGroup {
-        &self.waitgroup
+        self.registry.waitgroup()
     }
 }
 
@@ -639,161 +653,6 @@ impl ThreadPoolRegistryInner {
     }
 }
 
-// --- ThreadPool
-
-pub struct ThreadPool {
-    rng: Mutex<ChaCha8Rng>,
-    num_threads: usize,
-    latch: Arc<LockSignal>,
-    kill_latch: Arc<LockSignal>,
-    tasks: SharedTaskQueue,
-    priority: PriorityOrder,
-    op_read_time: time::Duration,
-    yield_wait_time: time::Duration,
-    parked_threads: Mutex<Vec<ThreadId>>,
-    blocked_threads: Mutex<Vec<ThreadId>>,
-    registry: SharedThreadRegistry,
-    thread_stack_size: Option<usize>,
-    global_kill_signal: sync::Arc<OnSignal>,
-    activity_sender: mpp::Sender<ThreadActivity>,
-    activity_receiver: mpp::Receiver<ThreadActivity>,
-
-    // thread config values
-    thread_max_idle_count: u32,
-    thread_max_sleep_before_end: u32,
-    thread_back_off_factor: u32,
-    thread_back_off_jitter: f32,
-    thread_back_min_duration: time::Duration,
-    thread_back_max_duration: time::Duration,
-
-    // atomics
-    live_threads: Arc<AtomicUsize>,
-    idle_threads: Arc<AtomicUsize>,
-
-    // thread mappings.
-    thread_map: RwLock<HashMap<ThreadId, ThreadRef>>,
-    thread_handles: RwLock<HashMap<ThreadId, JoinHandle<ThreadExecutionResult<()>>>>,
-}
-
-// -- Default
-
-// -- constructor
-
-impl ThreadPool {
-    /// `with_rng` allows you to provide a custom Random number generator
-    /// that can be used to generate as the initial seed the
-    /// `ThreadPool` uses for it's local execution threads.
-    ///
-    /// We use the default to max threads allowed per process via `get_num_threads()`.
-    pub fn with_rng<R: rand::Rng>(rng: &mut R) -> Self {
-        let num_threads = get_num_threads();
-        Self::with_seed_and_threads(rng.next_u64(), num_threads)
-    }
-
-    /// [`ThreadPool::with_seed`] generates a `ThreadPool` using
-    /// the provided seed and the default MAX threads allowed
-    /// per Process using `get_num_threads()`.
-    #[must_use]
-    pub fn with_seed(seed_from_rng: u64) -> Self {
-        let num_threads = get_num_threads();
-        Self::with_seed_and_threads(seed_from_rng, num_threads)
-    }
-
-    /// [`ThreadPool::with_seed_and_threads`] generates a
-    /// threadPool which uses the default values (see Constants section)
-    /// set out in this modules for all required configuration
-    /// which provide what we considered sensible defaults
-    #[must_use]
-    pub fn with_seed_and_threads(seed_from_rng: u64, num_threads: usize) -> Self {
-        Self::new(
-            seed_from_rng,
-            num_threads,
-            PriorityOrder::Top,
-            DEFAULT_OP_READ_TIME,
-            DEFAULT_YIELD_WAIT_TIME,
-            None,
-            MAX_ROUNDS_IDLE_COUNT,
-            MAX_ROUNDS_WHEN_SLEEPING_ENDS,
-            BACK_OFF_THREAD_FACTOR,
-            BACK_OFF_JITER,
-            BACK_OFF_MIN_DURATION,
-            BACK_OFF_MAX_DURATION,
-        )
-    }
-
-    /// `new` creates a new `ThreadPool` for you which you can use
-    /// for concurrent execution of `LocalExecutorEngine` executors
-    /// within the total number of threads you provided via `num_threads`
-    /// the threads are spawned and ready to take on work.
-    #[allow(clippy::too_many_arguments)]
-    #[must_use]
-    pub fn new(
-        seed_for_rng: u64,
-        num_threads: usize,
-        priority: PriorityOrder,
-        op_read_time: time::Duration,
-        yield_wait: time::Duration,
-        thread_stack_size: Option<usize>,
-        thread_max_idle_count: u32,
-        thread_max_sleep_before_end: u32,
-        thread_back_off_factor: u32,
-        thread_back_off_jitter: f32,
-        thread_back_min_duration: time::Duration,
-        thread_back_max_duration: time::Duration,
-    ) -> Self {
-        assert!(
-            (num_threads >= 2),
-            "Unable to create ThreadPool with 1 thread only, please specify >= 2"
-        );
-
-        assert!((num_threads <= THREADS_MAX),
-                "Unable to create ThreadPool with thread numbers of {num_threads}, must no go past {THREADS_MAX}"
-            );
-        let thread_latch = Arc::new(LockSignal::new());
-        let kill_latch = Arc::new(LockSignal::new());
-        let tasks: Arc<ConcurrentQueue<BoxedSendExecutionIterator>> =
-            Arc::new(ConcurrentQueue::unbounded());
-
-        let (sender, receiver) = mpp::unbounded::<ThreadActivity>();
-        let thread_pool = Self {
-            tasks,
-            priority,
-            kill_latch,
-            num_threads,
-            op_read_time,
-            thread_stack_size,
-            thread_max_idle_count,
-            thread_max_sleep_before_end,
-            thread_back_off_factor,
-            thread_back_off_jitter,
-            thread_back_min_duration,
-            thread_back_max_duration,
-            yield_wait_time: yield_wait,
-            activity_receiver: receiver,
-            latch: thread_latch.clone(),
-            activity_sender: sender.clone(),
-            parked_threads: Mutex::new(Vec::new()),
-            blocked_threads: Mutex::new(Vec::new()),
-            thread_map: RwLock::new(HashMap::new()),
-            registry: ThreadPoolRegistryInner::new(),
-            thread_handles: RwLock::new(HashMap::new()),
-            live_threads: Arc::new(AtomicUsize::new(0)),
-            idle_threads: Arc::new(AtomicUsize::new(0)),
-            global_kill_signal: sync::Arc::new(OnSignal::new()),
-            rng: Mutex::new(ChaCha8Rng::seed_from_u64(seed_for_rng)),
-        };
-
-        // spawn the number of threads requested.
-        for index in 1..num_threads {
-            let _ = thread_pool
-                .create_thread_executor()
-                .unwrap_or_else(|_| panic!("should successfully create thread for {index}"));
-        }
-
-        thread_pool
-    }
-}
-
 // -- ThreadExecutionError
 
 pub type ThreadExecutionResult<T> = AnyResult<T, ThreadExecutionError>;
@@ -815,459 +674,6 @@ impl core::fmt::Display for ThreadExecutionError {
             Self::Panicked(_) => write!(f, "ThreadExecutionError(_)"),
             _ => write!(f, "{self:?}"),
         }
-    }
-}
-
-// -- surface entry methods
-
-impl ThreadPool {
-    #[allow(clippy::too_many_lines)]
-    /// `create_thread_executor` creates a new thread into the thread pool spawning
-    /// a [`LocalThreadExecutor`] into a owned thread that is managed by the executor.
-    pub fn create_thread_executor(&self) -> ThreadExecutionResult<ThreadRef> {
-        let span = tracing::trace_span!("ThreadPool::create_thread_executor");
-        let _enter = span.enter();
-
-        let thread_name = format!("valtron_thread_{}", self.registry.executor_count() + 1);
-        let mut b = thread::Builder::new().name(thread_name.clone());
-        if let Some(thread_stack_size) = self.thread_stack_size {
-            b = b.stack_size(thread_stack_size);
-        }
-
-        let thread_seed = self.rng.lock().unwrap().next_u64();
-        let thread_id = self.registry.register_thread(
-            thread_name.clone(),
-            ThreadRef {
-                name: thread_name.clone(),
-                process: None,
-                registry_id: None,
-                seed: thread_seed,
-                tasks: self.tasks.clone(),
-                register: self.registry.clone(),
-                global_kill_signal: self.global_kill_signal.clone(),
-            },
-            self.latch.clone(),
-            self.activity_sender.clone(),
-        );
-
-        let thread_ref = self.registry.get_thread(thread_id.clone());
-
-        let priority = self.priority.clone();
-        let seed_clone = thread_ref.seed;
-        let task_clone = thread_ref.tasks.clone();
-        let process_clone = thread_ref.process.clone().unwrap();
-        let thread_kill_signal = thread_ref.global_kill_signal.clone();
-
-        let sender_id = thread_id.clone();
-        let sender = self.activity_sender.clone();
-
-        let thread_yield_wait_duration = self.yield_wait_time;
-        let thread_max_idle_count = self.thread_max_idle_count;
-        let thread_max_sleep_before_end = self.thread_max_sleep_before_end;
-        let thread_back_off_factor = self.thread_back_off_factor;
-        let thread_back_off_jitter = self.thread_back_off_jitter;
-        let thread_back_min_duration = self.thread_back_min_duration;
-        let thread_back_max_duration = self.thread_back_max_duration;
-
-        match b.spawn(move || {
-            let span =
-                tracing::trace_span!("ThreadPool::create_thread_executor.local_executor.thread");
-            let _enter = span.enter();
-
-            match panic::catch_unwind(|| {
-                sender
-                    .send(ThreadActivity::Started(sender_id.clone()))
-                    .expect("should sent event");
-
-                // create LocalExecutionEngine here and
-                // let it handle everything going forward.
-                let thread_executor = LocalThreadExecutor::from_seed(
-                    seed_clone,
-                    task_clone,
-                    IdleMan::new(
-                        thread_max_idle_count,
-                        None,
-                        SleepyMan::new(
-                            thread_max_sleep_before_end,
-                            ExponentialBackoffDecider::new(
-                                thread_back_off_factor,
-                                thread_back_off_jitter,
-                                thread_back_min_duration,
-                                Some(thread_back_max_duration),
-                            ),
-                        ),
-                    ),
-                    priority,
-                    process_clone,
-                    thread_yield_wait_duration,
-                    Some(thread_kill_signal),
-                    Some(sender.clone()),
-                );
-
-                thread_executor.block_on();
-
-                tracing::debug!(
-                    "Thread({:?}) has stopped executing, sending stop signal",
-                    sender_id
-                );
-                sender
-                    .send(ThreadActivity::Stopped(sender_id.clone()))
-                    .expect("should sent event");
-
-                tracing::debug!(
-                    "Thread executor has died: {:?} and sent stopped activity",
-                    sender_id
-                );
-            }) {
-                Ok(()) => Ok(()),
-                Err(err) => {
-                    tracing::debug!("Thread executor has panic: {:?}: {:?}", sender_id, err);
-                    sender
-                        .send(ThreadActivity::Panicked(sender_id.clone(), err))
-                        .expect("should sent event");
-                    sender
-                        .send(ThreadActivity::Stopped(sender_id))
-                        .expect("should sent event");
-                    Ok(())
-                }
-            }
-        }) {
-            Ok(handler) => {
-                self.thread_handles
-                    .write()
-                    .unwrap()
-                    .insert(thread_id.clone(), handler);
-
-                self.thread_map
-                    .write()
-                    .unwrap()
-                    .insert(thread_id.clone(), thread_ref.clone());
-
-                self.live_threads.fetch_add(1, atomic::Ordering::AcqRel);
-
-                Ok(thread_ref.clone())
-            }
-            Err(err) => Err(ThreadExecutionError::FailedStart(Box::new(err))),
-        }
-    }
-
-    /// schedule adds the provided task into the global queue after boxing.
-    /// This ensures we can sent the giving task into the global queue to be
-    /// engaged by one of the many thread specific `LocalExecutorEngine`.
-    pub fn schedule<T: ExecutionIterator + Send + 'static>(
-        &self,
-        task: T,
-    ) -> AnyResult<(), ExecutorError> {
-        let span = tracing::trace_span!("ThreadPool::schedule");
-        span.in_scope(|| match self.tasks.push(Box::new(task)) {
-            Ok(()) => {
-                match self.tasks.len() {
-                    1 => self.latch.signal_one(),
-                    _ => self.latch.signal_all(),
-                }
-                Ok(())
-            }
-            Err(err) => match err {
-                PushError::Full(_) => Err(ExecutorError::QueueFull),
-                PushError::Closed(_) => Err(ExecutorError::QueueClosed),
-            },
-        })
-    }
-}
-
-// -- spawn methods
-
-impl ThreadPool {
-    /// `spawn2` provides a builder which specifically allows you to build out
-    /// the underlying tasks to be scheduled into the global queue.
-    ///
-    /// It expects you to provide types for both Mapper and Resolver.
-    pub fn spawn2<Task, Action, Mapper, Resolver>(
-        &self,
-    ) -> ThreadPoolTaskBuilder<Task::Ready, Task::Pending, Action, Mapper, Resolver, Task>
-    where
-        Task::Ready: Send + 'static,
-        Task::Pending: Send + 'static,
-        Task: TaskIterator<Spawner = Action> + Send + 'static,
-        Action: ExecutionAction + Send + 'static,
-        Mapper: TaskStatusMapper<Task::Ready, Task::Pending, Action> + Send + 'static,
-        Resolver: TaskReadyResolver<Action, Task::Ready, Task::Pending> + Send + 'static,
-    {
-        ThreadPoolTaskBuilder::new(self.tasks.clone(), self.latch.clone())
-    }
-
-    /// `spawn` provides a builder which specifically allows you to build out
-    /// the underlying tasks to be scheduled into the global queue.
-    ///
-    /// It expects you infer the type of `Task` and `Action` from the
-    /// type implementing `TaskIterator`.
-    pub fn spawn<Task, Action>(
-        &self,
-    ) -> ThreadPoolTaskBuilder<
-        Task::Ready,
-        Task::Pending,
-        Task::Spawner,
-        Box<dyn TaskStatusMapper<Task::Ready, Task::Pending, Task::Spawner> + Send + 'static>,
-        Box<dyn TaskReadyResolver<Task::Spawner, Task::Ready, Task::Pending> + Send + 'static>,
-        Task,
-    >
-    where
-        Task::Ready: Send + 'static,
-        Task::Pending: Send + 'static,
-        Task: TaskIterator<Spawner = Action> + Send + 'static,
-        Action: ExecutionAction + Send + 'static,
-    {
-        ThreadPoolTaskBuilder::new(self.tasks.clone(), self.latch.clone())
-    }
-}
-
-// -- core methods
-
-impl ThreadPool {
-    /// `kill` will deliver the kill signal to
-    /// all running `LocalExecutorEngine` running in
-    /// all the threads, then block the current thread with
-    /// a `CondVar` awaiting the signal from `Self::run_until()` that
-    /// both the execution process and all threads have fully been
-    /// stopped and cleaned up at which point a signal is sent to awake
-    /// the thread where [`Self::kill`].
-    ///
-    /// Its very important to not call both [`Self::kill`] and [`Self::run_until`]
-    /// in the same thread as that will lead to a deadlock.
-    ///
-    /// Usually I would see you calling this method in a secondary thread listening
-    /// for the kill (KILL, SIGUP, ...etc) signal from a CLI process.
-    pub fn kill(&self) {
-        let span = tracing::trace_span!("ThreadPool::kill");
-        let _enter = span.enter();
-        self.global_kill_signal.turn_on();
-        self.latch.signal_all();
-        tracing::debug!("Wait for kill latch to awake");
-
-        let remaining_threads = self.live_threads.load(Ordering::Acquire);
-        let blocked_threads = self.blocked_threads.lock().unwrap().len();
-        if remaining_threads == 0 && blocked_threads == 0 {
-            tracing::debug!("No more live threads or blocked threads, so can die");
-            return;
-        }
-        self.kill_latch.lock_and_wait();
-    }
-
-    /// pulls all relevant threads `JoinHandle`
-    /// joining them all till they all have finished and exited.
-    pub fn await_threads(&self) {
-        let span = tracing::trace_span!("ThreadPool::await_threads");
-        let _enter = span.enter();
-
-        let thread_keys: Vec<ThreadId> = {
-            tracing::debug!("ThreadPool::await_threads: get handles");
-            let handle = self.thread_handles.read().unwrap();
-
-            tracing::debug!("ThreadPool::await_threads: clone handles");
-            handle.keys().cloned().collect()
-        };
-
-        tracing::debug!("ThreadPool::await_threads: get writer");
-        let mut handles = self.thread_handles.write().unwrap();
-        tracing::debug!("Thread handles: {:?}", &handles);
-
-        for thread_id in thread_keys {
-            match handles.remove(&thread_id) {
-                None => continue,
-                Some(thread_handle) => {
-                    tracing::debug!("Waiting for thread with id: {:?} to die", thread_id);
-                    thread_handle
-                        .join()
-                        .expect("should return result")
-                        .expect("finished");
-                    continue;
-                }
-            };
-        }
-
-        tracing::debug!("ThreadPool::await_threads: Finished");
-    }
-
-    /// `run_until` will block the current thread
-    /// and starts listening to both kill signal from the
-    /// process via `Self::kill` and handle management operations
-    /// from notifications sent by the execution threads when threads
-    /// become idle, get killed, are parked, ..etc.
-    ///
-    /// CAUTION: You must be careful not to call `Self::run_until` and `Self::kill`
-    /// in the same thread as a `CondVar` is used and will block the current thread
-    /// till `run_until` signals the `CondVar` to wake up the blocked thread when `Self::kill`
-    /// is ever called.
-    pub fn run_until(&self) {
-        let span = tracing::trace_span!("ThreadPool::run_until");
-        let _enter = span.enter();
-        self.block_until();
-        self.await_threads();
-        tracing::debug!("Signal death to kill latch");
-        self.kill_latch.signal_all();
-    }
-
-    fn block_until(&self) {
-        let span = tracing::trace_span!("ThreadPool::block_until");
-        let _enter = span.enter();
-
-        let _dropper = RunOnDrop::new(|| {
-            tracing::debug!("ThreadPool::block_until has reached dropper");
-            self.latch.signal_all();
-            tracing::debug!("ThreadPool::block_until sent signal_all via latch");
-        });
-
-        loop {
-            tracing::debug!("ThreadPool::block_until - Checking thread activity");
-            if self.listen_for_normal_activity().is_none() {
-                break;
-            }
-        }
-
-        tracing::debug!("ThreadPool::block_until - finished");
-    }
-
-    fn add_thread_id_from_packed_list(&self, thread_id: ThreadId) {
-        let mut thread_list = self.parked_threads.lock().unwrap();
-        thread_list.push(thread_id);
-    }
-
-    fn remove_thread_id_from_packed_list(&self, thread_id: ThreadId) {
-        let mut thread_list = self.parked_threads.lock().unwrap();
-        if let Some(index) = thread_list.iter().position(|item| *item == thread_id) {
-            thread_list.remove(index);
-        }
-    }
-
-    fn add_thread_id_from_blocked_list(&self, thread_id: ThreadId) {
-        let mut thread_list = self.blocked_threads.lock().unwrap();
-        thread_list.push(thread_id);
-    }
-
-    fn remove_thread_id_from_blocked_list(&self, thread_id: ThreadId) {
-        let mut thread_list = self.blocked_threads.lock().unwrap();
-        if let Some(index) = thread_list.iter().position(|item| *item == thread_id) {
-            thread_list.remove(index);
-        }
-    }
-
-    fn listen_for_normal_activity(&self) -> Option<()> {
-        let remaining_live = self.live_threads.load(atomic::Ordering::Acquire);
-        if remaining_live == 0 {
-            tracing::debug!("No more live threads, so returning");
-            self.latch.signal_all();
-            return None;
-        }
-
-        if self.global_kill_signal.probe() {
-            tracing::debug!("signal wakeup via latch");
-            self.latch.signal_all();
-        }
-
-        let thread_activity = match self.activity_receiver.recv_timeout(self.op_read_time) {
-            Ok(activity) => activity,
-            Err(err) => match err {
-                mpp::ReceiverError::Empty => return Some(()),
-                mpp::ReceiverError::Timeout => return Some(()),
-                mpp::ReceiverError::Closed(_) => return None,
-            },
-        };
-
-        match thread_activity {
-            ThreadActivity::BroadcastedTask if self.tasks.len() == 1 => {
-                self.latch.signal_one();
-            }
-            ThreadActivity::BroadcastedTask if self.tasks.len() > 1 => {
-                self.latch.signal_all();
-            }
-            ThreadActivity::BroadcastedTask => {
-                tracing::debug!("Broadcast task to global queue");
-            }
-            ThreadActivity::Started(thread_id) => {
-                tracing::debug!("Thread executor with id: {:?} started", thread_id);
-                // self.live_threads.fetch_add(1, atomic::Ordering::AcqRel);
-            }
-            ThreadActivity::Stopped(thread_id) => {
-                let _ = self.live_threads.fetch_sub(1, atomic::Ordering::AcqRel);
-                let remaining_live = self.live_threads.load(atomic::Ordering::Acquire);
-                tracing::debug!(
-                    "Thread executor with id: {:?} stopped with remaining: {}",
-                    thread_id,
-                    remaining_live
-                );
-
-                if self.global_kill_signal.probe() {
-                    tracing::debug!("Stopping: should kill set, send latch wakeup");
-                    self.latch.signal_all();
-                } else {
-                    tracing::debug!("Should kill signal not yet set");
-                }
-            }
-            ThreadActivity::Parked(thread_id) => {
-                tracing::debug!("Thread executor with id: {:?} has been parked", thread_id);
-                self.idle_threads.fetch_add(1, atomic::Ordering::SeqCst);
-                self.add_thread_id_from_packed_list(thread_id);
-            }
-            ThreadActivity::Unparked(thread_id) => {
-                tracing::debug!("Thread executor with id: {:?} has been unparked", thread_id);
-                self.idle_threads.fetch_sub(1, atomic::Ordering::SeqCst);
-                self.remove_thread_id_from_packed_list(thread_id);
-            }
-            ThreadActivity::Blocked(thread_id) => {
-                tracing::debug!("Thread executor with id: {:?} is blocked", thread_id);
-                self.add_thread_id_from_blocked_list(thread_id.clone());
-
-                if self.global_kill_signal.probe() {
-                    tracing::debug!("Blocked: should kill set, send latch wakeup");
-                    self.latch.signal_all();
-                } else {
-                    tracing::debug!("Should kill signal not yet set");
-                }
-            }
-            ThreadActivity::Unblocked(thread_id) => {
-                tracing::debug!("Thread executor with id: {:?} is unblocked", thread_id);
-                self.remove_thread_id_from_blocked_list(thread_id);
-            }
-            ThreadActivity::Panicked(thread_id, ctx) => {
-                tracing::debug!(
-                    "Thread executor with id: {:?} panic'ed {:?}",
-                    thread_id,
-                    ctx
-                );
-
-                self.remove_thread_id_from_packed_list(thread_id.clone());
-                self.remove_thread_id_from_blocked_list(thread_id.clone());
-
-                // remove thread's registered handler and ThreadRef.
-                if let Some(thread_ref) = self.thread_map.write().unwrap().remove(&thread_id) {
-                    std::mem::drop(thread_ref);
-                }
-
-                if let Some(thread_handler) =
-                    self.thread_handles.write().unwrap().remove(&thread_id)
-                {
-                    let thread_result = thread_handler.join();
-                    tracing::debug!("Panic'ed thread returned result: {:?}", &thread_result);
-                    std::mem::drop(thread_result);
-                }
-
-                let prev_thread_num = self.live_threads.fetch_sub(1, atomic::Ordering::AcqRel);
-
-                // spawn new thread for
-                if prev_thread_num - 1 < self.num_threads && !self.global_kill_signal.probe() {
-                    self.create_thread_executor()
-                        .expect("should create new executor");
-
-                    tracing::debug!(
-                        "Thread {:?} died but generated new thread to replace it due to {:?}",
-                        thread_id,
-                        ctx
-                    );
-                }
-            }
-        }
-
-        Some(())
     }
 }
 
@@ -1557,7 +963,7 @@ where
 mod waitgroup_tests {
     use std::{panic, sync::Arc, thread, time::Duration};
 
-    use super::{PoolGuard, WaitGroup};
+    use super::{PoolGuard, ThreadRegistry, WaitGroup};
 
     /// Test 1: WaitGroup add/done/wait basic functionality
     #[test]
@@ -1644,8 +1050,8 @@ mod waitgroup_tests {
     /// Test 6: PoolGuard shutdown is idempotent
     #[test]
     fn test_poolguard_shutdown_idempotent() {
-        let wg = WaitGroup::new();
-        let guard = PoolGuard::new(wg.clone());
+        let registry = Arc::new(ThreadRegistry::with_seed_and_threads(123, 2));
+        let guard = PoolGuard::new(registry.clone());
 
         // First shutdown
         guard.shutdown();
@@ -1660,23 +1066,16 @@ mod waitgroup_tests {
     /// Test 7: PoolGuard drop triggers shutdown
     #[test]
     fn test_poolguard_drop_triggers_shutdown() {
-        let wg = WaitGroup::new();
-        wg.add(1);
+        let registry = Arc::new(ThreadRegistry::with_seed_and_threads(123, 2));
+        let guard = PoolGuard::new(registry.clone());
 
-        let guard = PoolGuard::new(wg.clone());
+        // Spawn a worker thread
+        registry.spawn_worker().expect("should spawn worker");
 
-        // Spawn a thread that will call done() after a delay
-        let wg_clone = wg.clone();
-        let handle = thread::spawn(move || {
-            thread::sleep(Duration::from_millis(50));
-            wg_clone.done();
-        });
-
-        // Drop the guard - it will wait for the WaitGroup
+        // Drop the guard - it will kill all threads
         drop(guard);
 
         // If we get here, shutdown completed
-        handle.join().expect("thread should complete");
     }
 
     /// Test 8: WaitGroup across multiple threads
@@ -1733,7 +1132,7 @@ pub struct ThreadRegistry {
 
     // Thread management
     rng: Mutex<ChaCha8Rng>,
-    max_threads: usize,
+    pub(crate) max_threads: usize,
     pub(crate) live_threads: Arc<AtomicUsize>,
     idle_threads: Arc<AtomicUsize>,
 
@@ -1752,6 +1151,36 @@ pub struct ThreadRegistry {
     // Thread tracking
     registry: SharedThreadRegistry,
     thread_handles: RwLock<HashMap<ThreadId, JoinHandle<ThreadExecutionResult<()>>>>,
+}
+
+impl std::fmt::Debug for ThreadRegistry {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("ThreadRegistry")
+            .field("shared_tasks", &"<SharedTaskQueue>")
+            .field("latch", &"<LockSignal>")
+            .field("kill_signal", &"<OnSignal>")
+            .field("kill_latch", &"<LockSignal>")
+            .field("activity_sender", &"<Sender<ThreadActivity>>")
+            .field("activity_receiver", &"<Receiver<ThreadActivity>>")
+            .field("waitgroup", &"<WaitGroup>")
+            .field("rng", &"<Mutex<ChaCha8Rng>>")
+            .field("max_threads", &self.max_threads)
+            .field("live_threads", &self.live_threads)
+            .field("idle_threads", &self.idle_threads)
+            .field("priority", &self.priority)
+            .field("op_read_time", &self.op_read_time)
+            .field("yield_wait_time", &self.yield_wait_time)
+            .field("thread_stack_size", &self.thread_stack_size)
+            .field("thread_max_idle_count", &self.thread_max_idle_count)
+            .field("thread_max_sleep_before_end", &self.thread_max_sleep_before_end)
+            .field("thread_back_off_factor", &self.thread_back_off_factor)
+            .field("thread_back_off_jitter", &self.thread_back_off_jitter)
+            .field("thread_back_min_duration", &self.thread_back_min_duration)
+            .field("thread_back_max_duration", &self.thread_back_max_duration)
+            .field("registry", &"<SharedThreadRegistry>")
+            .field("thread_handles", &"<RwLock<HashMap>>")
+            .finish()
+    }
 }
 
 impl ThreadRegistry {
@@ -1871,7 +1300,7 @@ impl ThreadRegistry {
     }
 
     /// Join all thread handles.
-    fn join_all_threads(&self) {
+    pub fn join_all_threads(&self) {
         let handles = {
             let mut map = self.thread_handles.write().unwrap();
             std::mem::take(&mut *map)
@@ -2003,6 +1432,9 @@ impl ThreadRegistry {
             self.latch.clone(),
             self.activity_sender.clone(),
         );
+
+        // Get updated thread_ref from registry (process field is now populated)
+        let thread_ref = self.registry.get_thread(thread_id.clone());
 
         let priority = self.priority.clone();
         let seed_clone = thread_ref.seed;

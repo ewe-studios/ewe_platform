@@ -26,10 +26,17 @@ use crate::{
 
 /// [`initialize_pool`] provides a unified method to initialize the underlying
 /// thread pool for both the single and multi-threaded instances.
-pub fn initialize_pool(seed_for_rng: u64, _user_thread_num: Option<usize>) {
+///
+/// Returns a `PoolGuard` that must be kept alive for the pool to remain functional.
+/// When the guard is dropped, all threads are shut down.
+pub fn initialize_pool(
+    seed_for_rng: u64,
+    _user_thread_num: Option<usize>,
+) -> super::threads::PoolGuard {
     #[cfg(target_arch = "wasm32")]
     {
         single::initialize_pool(seed_for_rng);
+        return super::threads::PoolGuard::dummy();
     }
 
     #[cfg(not(target_arch = "wasm32"))]
@@ -37,13 +44,14 @@ pub fn initialize_pool(seed_for_rng: u64, _user_thread_num: Option<usize>) {
         #[cfg(feature = "multi")]
         {
             use crate::valtron::multi;
-            multi::initialize_pool(seed_for_rng, _user_thread_num);
+            return multi::initialize_pool(seed_for_rng, _user_thread_num);
         }
 
         #[cfg(not(feature = "multi"))]
         {
             use super::single;
             single::initialize_pool(seed_for_rng);
+            return super::threads::PoolGuard::dummy();
         }
     }
 }

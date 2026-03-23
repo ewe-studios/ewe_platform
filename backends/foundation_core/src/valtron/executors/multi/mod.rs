@@ -1,84 +1,161 @@
 #![allow(clippy::type_complexity)]
 
-#[cfg(not(target_arch = "wasm32"))]
-use std::sync::OnceLock;
-
-#[cfg(target_arch = "wasm32")]
-use foundation_nostd::primitives::OnceLock;
+use std::sync::{Arc, Mutex};
 
 use crate::valtron::{
     get_allocatable_thread_count, task::TaskIterator, ExecutionAction, TaskReadyResolver,
     TaskStatusMapper,
 };
 
-use crate::valtron::{ThreadPool, ThreadPoolTaskBuilder};
+use crate::valtron::{SharedTaskQueue, ThreadPoolTaskBuilder, ThreadRegistry};
+use crate::synca::{LockSignal, OnSignal};
 
-static CANCELATION_REGISTRATION: OnceLock<Option<()>> = OnceLock::new();
-static GLOBAL_THREAD_POOL: OnceLock<ThreadPool> = OnceLock::new();
+use super::PoolGuard;
 
-/// [`get_pool`] returns the initialized `thread_pool` for your use.
-pub fn get_pool() -> &'static ThreadPool {
-    match GLOBAL_THREAD_POOL.get() {
-        Some(pool) => pool,
-        None => panic!("Thread pool not initialized, ensure to call block_on first"),
+/// Global registry - stores the ThreadRegistry Arc.
+/// Uses Mutex<Option> to allow resetting between tests.
+static REGISTRY: Mutex<Option<Arc<ThreadRegistry>>> = Mutex::new(None);
+
+/// Handle for spawning tasks into the shared queue.
+///
+/// This is the new return type of `get_pool()`. It provides the same
+/// spawn API surface as the old `&ThreadPool` by constructing
+/// `ThreadPoolTaskBuilder` directly with the shared queue and latch.
+#[derive(Clone)]
+pub struct LocalPoolHandle {
+    shared_tasks: SharedTaskQueue,
+    latch: Arc<LockSignal>,
+    kill_signal: Arc<OnSignal>,
+}
+
+impl LocalPoolHandle {
+    fn new(registry: &Arc<ThreadRegistry>) -> Self {
+        Self {
+            shared_tasks: registry.shared_tasks(),
+            latch: registry.latch(),
+            kill_signal: registry.kill_signal(),
+        }
+    }
+
+    /// Create a task builder for scheduling work.
+    pub fn spawn<Task, Action>(&self) -> ThreadPoolTaskBuilder<
+        Task::Ready,
+        Task::Pending,
+        Task::Spawner,
+        Box<dyn TaskStatusMapper<Task::Ready, Task::Pending, Task::Spawner> + Send + 'static>,
+        Box<dyn TaskReadyResolver<Task::Spawner, Task::Ready, Task::Pending> + Send + 'static>,
+        Task,
+    >
+    where
+        Task::Ready: Send + 'static,
+        Task::Pending: Send + 'static,
+        Task: TaskIterator<Spawner = Action> + Send + 'static,
+        Action: ExecutionAction + Send + 'static,
+    {
+        ThreadPoolTaskBuilder::new(
+            self.shared_tasks.clone(),
+            self.latch.clone(),
+        )
+    }
+
+    /// Create a task builder with explicit Mapper and Resolver types.
+    pub fn spawn2<Task, Action, Mapper, Resolver>(
+        &self,
+    ) -> ThreadPoolTaskBuilder<Task::Ready, Task::Pending, Action, Mapper, Resolver, Task>
+    where
+        Task::Ready: Send + 'static,
+        Task::Pending: Send + 'static,
+        Task: TaskIterator<Spawner = Action> + Send + 'static,
+        Action: ExecutionAction + Send + 'static,
+        Mapper: TaskStatusMapper<Task::Ready, Task::Pending, Action> + Send + 'static,
+        Resolver: TaskReadyResolver<Action, Task::Ready, Task::Pending> + Send + 'static,
+    {
+        ThreadPoolTaskBuilder::new(
+            self.shared_tasks.clone(),
+            self.latch.clone(),
+        )
+    }
+
+    /// Signal all threads to die.
+    pub fn kill(&self) {
+        self.kill_signal.turn_on();
+        self.latch.signal_all();
     }
 }
 
-/// [`block_on`] instantiates the thread pool if it has not already
-/// then starts blocking the current thread executing the pool until all
-/// tasks are ready, but before it does so it calls the provided function
-/// once to allow you perform whatever instantiation of tasks or operations
-/// you require.
-pub fn block_on<F>(seed_from_rng: u64, thread_num: Option<usize>, setup: F)
+/// [`get_pool`] returns a handle for spawning tasks.
+pub fn get_pool() -> LocalPoolHandle {
+    let registry = REGISTRY
+        .lock()
+        .unwrap()
+        .clone()
+        .expect("Thread pool not initialized, ensure to call block_on or initialize_pool first");
+    LocalPoolHandle::new(&registry)
+}
+
+/// [`block_on`] instantiates the thread registry, spawns worker threads,
+///
+/// Returns a `PoolGuard` - when dropped, kills all threads and blocks
+/// until they're cleaned up. No Ctrl-C handler is registered automatically.
+pub fn block_on<F>(seed_from_rng: u64, thread_num: Option<usize>, setup: F) -> PoolGuard
 where
-    F: FnOnce(&ThreadPool),
+    F: FnOnce(LocalPoolHandle),
 {
-    let pool = initialize_pool(seed_from_rng, thread_num);
-    tracing::debug!("Executing ThreadPool with block_on function");
-    setup(pool);
-    tracing::debug!("Initialize and call ThreadPool::run_until");
-    pool.run_until();
+    let registry = Arc::new(ThreadRegistry::with_seed_and_threads(
+        seed_from_rng,
+        thread_num.unwrap_or_else(get_allocatable_thread_count),
+    ));
+
+    // Spawn worker threads
+    for _ in 0..registry.max_threads {
+        registry
+            .spawn_worker()
+            .expect("Failed to spawn worker thread");
+    }
+
+    *REGISTRY.lock().unwrap() = Some(registry.clone());
+
+    let guard = PoolGuard::new(registry.clone());
+    let handle = LocalPoolHandle::new(&registry);
+    setup(handle);
+    tracing::debug!("Initialize and call WaitGroup::wait");
+    registry.waitgroup().wait();
+    guard
 }
 
-/// `thread_pool` is the core function for initializing a thread pool which is
-/// then returned for scheduling tasks on the pool.
-pub fn initialize_pool(seed_for_rng: u64, user_thread_num: Option<usize>) -> &'static ThreadPool {
-    // register thread pool
-    let thread_pool = GLOBAL_THREAD_POOL.get_or_init(|| {
-        let thread_num = match user_thread_num {
-            None => get_allocatable_thread_count(),
-            Some(num) => num,
-        };
+/// `initialize_pool` creates a ThreadRegistry and spawns worker threads.
+///
+/// Returns a `PoolGuard` — when dropped, signals all threads to die,
+/// waits for them to complete via WaitGroup, and joins all handles.
+///
+/// The caller is responsible for signal handling via the PoolGuard.
+pub fn initialize_pool(seed_for_rng: u64, user_thread_num: Option<usize>) -> PoolGuard {
+    let thread_num = match user_thread_num {
+        None => get_allocatable_thread_count(),
+        Some(num) => num,
+    };
 
-        ThreadPool::with_seed_and_threads(seed_for_rng, thread_num)
-    });
+    let registry = Arc::new(ThreadRegistry::with_seed_and_threads(
+        seed_for_rng,
+        thread_num,
+    ));
 
-    // register cancellation handler
-    let _ = CANCELATION_REGISTRATION.get_or_init(|| {
-        use ctrlc;
-        ctrlc::set_handler(move || {
-            if let Some(pool) = GLOBAL_THREAD_POOL.get() {
-                tracing::info!("Killing thread pool due to signal");
-                pool.kill();
-            }
-        })
-        .expect("Error setting Ctrl-C handler");
+    // Spawn worker threads
+    for _ in 0..thread_num {
+        registry
+            .spawn_worker()
+            .expect("Failed to spawn worker thread");
+    }
 
-        Some(())
-    });
+    *REGISTRY.lock().unwrap() = Some(registry.clone());
 
-    thread_pool
+    PoolGuard::new(registry.clone())
 }
 
-/// [`spawn`] provides a builder which specifically allows you to build out
+/// [`spawn`] provides a builder which allows you to build out
 /// the underlying tasks to be scheduled into the global queue.
 ///
-/// It expects you infer the type of `Task` and `Action` from the
-/// type implementing `TaskIterator`.
-///
-/// ## Panics
-/// The following function will panic if the thread pool has not being initialized
-/// via call to `thread_pool` to setup global thread pool instance.
+/// Uses the global registry's shared queue and latch.
 pub fn spawn<Task, Action>() -> ThreadPoolTaskBuilder<
     Task::Ready,
     Task::Pending,
@@ -93,20 +170,11 @@ where
     Task: TaskIterator<Spawner = Action> + Send + 'static,
     Action: ExecutionAction + Send + 'static,
 {
-    match GLOBAL_THREAD_POOL.get() {
-        Some(pool) => pool.spawn(),
-        None => panic!("Thread pool not initialized, ensure to call block_on first"),
-    }
+    get_pool().spawn::<Task, Action>()
 }
 
-/// [`spawn2`] provides a builder which specifically allows you to build out
-/// the underlying tasks to be scheduled into the global queue.
-///
-/// It expects you to provide types for both Mapper and Resolver.
-///
-/// ## Panics
-/// The following function will panic if the thread pool has not being initialized
-/// via call to `thread_pool` to setup global thread pool instance.
+/// [`spawn2`] provides a builder which allows you to build out
+/// the underlying tasks with explicit Mapper and Resolver types.
 pub fn spawn2<Task, Action, Mapper, Resolver>(
 ) -> ThreadPoolTaskBuilder<Task::Ready, Task::Pending, Action, Mapper, Resolver, Task>
 where
@@ -117,10 +185,7 @@ where
     Mapper: TaskStatusMapper<Task::Ready, Task::Pending, Action> + Send + 'static,
     Resolver: TaskReadyResolver<Action, Task::Ready, Task::Pending> + Send + 'static,
 {
-    match GLOBAL_THREAD_POOL.get() {
-        Some(pool) => pool.spawn2(),
-        None => panic!("Thread pool not initialized, ensure to call block_on first"),
-    }
+    get_pool().spawn2::<Task, Action, Mapper, Resolver>()
 }
 
 #[cfg(test)]
@@ -132,12 +197,13 @@ mod multi_threaded_tests {
     };
 
     use rand::RngCore;
+    use serial_test::serial;
     use tracing_test::traced_test;
 
-    use super::{block_on, get_pool};
+    use super::{block_on, get_pool, initialize_pool};
     use crate::{
         synca::mpp,
-        valtron::{multi::initialize_pool, FnReady, NoSpawner, TaskIterator, TaskStatus},
+        valtron::{FnReady, NoSpawner, TaskIterator, TaskStatus},
     };
 
     struct DCounter(usize, Arc<Mutex<Vec<usize>>>);
@@ -234,12 +300,11 @@ mod multi_threaded_tests {
         }
     }
 
-    // Test show casing use of block_on as a central means of accessing
-    // the execution pool.
     mod blocked_on_execution {
         use super::*;
 
         #[test]
+        #[serial]
         #[traced_test]
         fn can_finish_even_when_task_panics() {
             let seed = rand::rng().next_u64();
@@ -253,7 +318,7 @@ mod multi_threaded_tests {
             });
 
             let (task_sent_sender, task_sent_receiver) = mpp::bounded(1);
-            block_on(seed, None, |pool| {
+            let _guard = block_on(seed, None, |pool| {
                 pool.spawn()
                     .with_task(PanicCounter)
                     .with_resolver(Box::new(FnReady::new(|item, _| {
@@ -274,6 +339,7 @@ mod multi_threaded_tests {
         }
 
         #[test]
+        #[serial]
         #[traced_test]
         fn can_queue_and_complete_task() {
             let seed = rand::rng().next_u64();
@@ -292,7 +358,7 @@ mod multi_threaded_tests {
             });
 
             let (task_sent_sender, task_sent_receiver) = mpp::bounded(1);
-            block_on(seed, None, |pool| {
+            let _guard = block_on(seed, None, |pool| {
                 tracing::debug!("Spawning new task into pool");
                 pool.spawn()
                     .with_task(counter)
@@ -315,13 +381,13 @@ mod multi_threaded_tests {
         }
     }
 
-    // Test showcasing direct inline execution as we execute a task.
     mod inline_execution {
         use crate::valtron::Stream;
 
         use super::*;
 
         #[test]
+        #[serial]
         #[traced_test]
         fn can_queue_and_complete_task_with_iterator() {
             let seed = rand::rng().next_u64();
@@ -329,9 +395,9 @@ mod multi_threaded_tests {
             let shared_list = Arc::new(Mutex::new(Vec::new()));
             let counter = DCounter::new(5, shared_list.clone());
 
-            let pool = initialize_pool(seed, None);
+            let _guard = initialize_pool(seed, None);
 
-            let iter = pool
+            let iter = get_pool()
                 .spawn()
                 .with_task(counter)
                 .schedule_iter(std::time::Duration::from_nanos(50))
@@ -342,14 +408,15 @@ mod multi_threaded_tests {
                     TaskStatus::Ready(value) => Some(value),
                     _ => None,
                 })
-                .take_while(|t| t.is_some())
-                .map(|t| t.unwrap())
+                .take_while(|t: &Option<usize>| t.is_some())
+                .map(|t: Option<usize>| t.unwrap())
                 .collect();
 
             assert_eq!(complete, vec![1, 2, 3, 4, 5]);
         }
 
         #[test]
+        #[serial]
         #[traced_test]
         fn can_queue_use_stream_iterator_from_task_iterator() {
             let seed = rand::rng().next_u64();
@@ -357,9 +424,9 @@ mod multi_threaded_tests {
             let shared_list = Arc::new(Mutex::new(Vec::new()));
             let counter = DCounter::new(5, shared_list.clone());
 
-            let pool = initialize_pool(seed, None);
+            let _guard = initialize_pool(seed, None);
 
-            let iter = pool
+            let iter = get_pool()
                 .spawn()
                 .with_task(counter)
                 .stream_iter(std::time::Duration::from_nanos(50))
