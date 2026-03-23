@@ -1708,3 +1708,389 @@ mod waitgroup_tests {
         }
     }
 }
+
+// ============================================================================
+// ThreadRegistry - Central coordination replacing ThreadPool
+// ============================================================================
+
+/// ThreadRegistry replaces ThreadPool as the coordination point.
+/// It holds the shared task queue, signals, activity channel, and thread handles.
+pub struct ThreadRegistry {
+    // Shared work distribution
+    pub(crate) shared_tasks: SharedTaskQueue,
+    pub(crate) latch: Arc<LockSignal>,
+
+    // Kill coordination
+    pub(crate) kill_signal: Arc<OnSignal>,
+    pub(crate) kill_latch: Arc<LockSignal>,
+
+    // Activity monitoring
+    activity_sender: mpp::Sender<ThreadActivity>,
+    pub(crate) activity_receiver: mpp::Receiver<ThreadActivity>,
+
+    // Shutdown coordination
+    pub(crate) waitgroup: WaitGroup,
+
+    // Thread management
+    rng: Mutex<ChaCha8Rng>,
+    max_threads: usize,
+    pub(crate) live_threads: Arc<AtomicUsize>,
+    idle_threads: Arc<AtomicUsize>,
+
+    // Worker thread config
+    priority: PriorityOrder,
+    op_read_time: time::Duration,
+    yield_wait_time: time::Duration,
+    thread_stack_size: Option<usize>,
+    thread_max_idle_count: u32,
+    thread_max_sleep_before_end: u32,
+    thread_back_off_factor: u32,
+    thread_back_off_jitter: f32,
+    thread_back_min_duration: time::Duration,
+    thread_back_max_duration: time::Duration,
+
+    // Thread tracking
+    registry: SharedThreadRegistry,
+    thread_handles: RwLock<HashMap<ThreadId, JoinHandle<ThreadExecutionResult<()>>>>,
+}
+
+impl ThreadRegistry {
+    /// Create a new ThreadRegistry with the given seed and thread count.
+    #[allow(clippy::too_many_arguments)]
+    pub fn new(
+        seed_for_rng: u64,
+        num_threads: usize,
+        priority: PriorityOrder,
+        op_read_time: time::Duration,
+        yield_wait: time::Duration,
+        thread_stack_size: Option<usize>,
+        thread_max_idle_count: u32,
+        thread_max_sleep_before_end: u32,
+        thread_back_off_factor: u32,
+        thread_back_off_jitter: f32,
+        thread_back_min_duration: time::Duration,
+        thread_back_max_duration: time::Duration,
+    ) -> Self {
+        assert!(
+            num_threads >= 2,
+            "Unable to create ThreadRegistry with < 2 threads"
+        );
+
+        assert!(
+            num_threads <= THREADS_MAX,
+            "Thread count must not exceed {THREADS_MAX}"
+        );
+
+        let latch = Arc::new(LockSignal::new());
+        let kill_latch = Arc::new(LockSignal::new());
+        let shared_tasks: Arc<ConcurrentQueue<BoxedSendExecutionIterator>> =
+            Arc::new(ConcurrentQueue::unbounded());
+        let (activity_sender, activity_receiver) = mpp::unbounded::<ThreadActivity>();
+
+        Self {
+            shared_tasks: shared_tasks.clone(),
+            latch: latch.clone(),
+            kill_signal: Arc::new(OnSignal::new()),
+            kill_latch,
+            activity_sender: activity_sender.clone(),
+            activity_receiver,
+            waitgroup: WaitGroup::new(),
+            rng: Mutex::new(ChaCha8Rng::seed_from_u64(seed_for_rng)),
+            max_threads: num_threads,
+            live_threads: Arc::new(AtomicUsize::new(0)),
+            idle_threads: Arc::new(AtomicUsize::new(0)),
+            priority,
+            op_read_time,
+            yield_wait_time: yield_wait,
+            thread_stack_size,
+            thread_max_idle_count,
+            thread_max_sleep_before_end,
+            thread_back_off_factor,
+            thread_back_off_jitter,
+            thread_back_min_duration,
+            thread_back_max_duration,
+            registry: SharedThreadRegistry::new(Arc::new(RwLock::new(
+                ThreadPoolRegistryInner {
+                    threads: EntryList::new(),
+                },
+            ))),
+            thread_handles: RwLock::new(HashMap::new()),
+        }
+    }
+
+    /// Create a ThreadRegistry with default configuration.
+    #[must_use]
+    pub fn with_seed_and_threads(seed_from_rng: u64, num_threads: usize) -> Self {
+        Self::new(
+            seed_from_rng,
+            num_threads,
+            PriorityOrder::Top,
+            DEFAULT_OP_READ_TIME,
+            DEFAULT_YIELD_WAIT_TIME,
+            None,
+            MAX_ROUNDS_IDLE_COUNT,
+            MAX_ROUNDS_WHEN_SLEEPING_ENDS,
+            BACK_OFF_THREAD_FACTOR,
+            BACK_OFF_JITER,
+            BACK_OFF_MIN_DURATION,
+            BACK_OFF_MAX_DURATION,
+        )
+    }
+
+    /// Accessor for shared_tasks queue.
+    #[must_use]
+    pub fn shared_tasks(&self) -> SharedTaskQueue {
+        self.shared_tasks.clone()
+    }
+
+    /// Accessor for latch.
+    #[must_use]
+    pub fn latch(&self) -> Arc<LockSignal> {
+        self.latch.clone()
+    }
+
+    /// Accessor for kill_signal.
+    #[must_use]
+    pub fn kill_signal(&self) -> Arc<OnSignal> {
+        self.kill_signal.clone()
+    }
+
+    /// Accessor for waitgroup.
+    #[must_use]
+    pub fn waitgroup(&self) -> &WaitGroup {
+        &self.waitgroup
+    }
+
+    /// Shutdown the registry - signals kill and waits for all threads.
+    pub fn shutdown(&self) {
+        self.kill_signal.turn_on();
+        self.latch.signal_all();
+        self.waitgroup.wait();
+        self.join_all_threads();
+        self.kill_latch.signal_all();
+    }
+
+    /// Join all thread handles.
+    fn join_all_threads(&self) {
+        let handles = {
+            let mut map = self.thread_handles.write().unwrap();
+            std::mem::take(&mut *map)
+        };
+
+        for (_id, handle) in handles {
+            let _ = handle.join();
+        }
+    }
+
+    /// Block until all threads are done.
+    pub fn block_until_done(&self) {
+        loop {
+            if self.listen_for_activity().is_none() {
+                break;
+            }
+        }
+        self.waitgroup.wait();
+        self.join_all_threads();
+        self.kill_latch.signal_all();
+    }
+
+    /// Listen for activity events from worker threads.
+    fn listen_for_activity(&self) -> Option<()> {
+        let remaining_live = self.live_threads.load(atomic::Ordering::Acquire);
+        if remaining_live == 0 {
+            tracing::debug!("No more live threads, returning");
+            self.latch.signal_all();
+            return None;
+        }
+
+        if self.kill_signal.probe() {
+            tracing::debug!("Kill signal detected, waking up");
+            self.latch.signal_all();
+        }
+
+        let thread_activity = match self.activity_receiver.recv_timeout(self.op_read_time) {
+            Ok(activity) => activity,
+            Err(err) => match err {
+                mpp::ReceiverError::Empty => return Some(()),
+                mpp::ReceiverError::Timeout => return Some(()),
+                mpp::ReceiverError::Closed(_) => return None,
+            },
+        };
+
+        match thread_activity {
+            ThreadActivity::BroadcastedTask => {
+                if self.shared_tasks.len() == 1 {
+                    self.latch.signal_one();
+                }
+            }
+            ThreadActivity::Started(_id) => {
+                tracing::debug!("Thread started: {:?}", _id);
+            }
+            ThreadActivity::Stopped(id) => {
+                tracing::debug!("Thread stopped: {:?}", id);
+                self.live_threads.fetch_sub(1, atomic::Ordering::AcqRel);
+                self.remove_thread_id(id);
+            }
+            ThreadActivity::Panicked(id, err) => {
+                tracing::debug!("Thread panicked: {:?}, err: {:?}", id, err);
+                self.live_threads.fetch_sub(1, atomic::Ordering::AcqRel);
+                self.remove_thread_id(id);
+
+                // Respawn if under max threads and not killed
+                if self.live_threads.load(atomic::Ordering::Acquire) < self.max_threads
+                    && !self.kill_signal.probe()
+                {
+                    tracing::debug!("Respawning thread after panic");
+                    let _ = self.spawn_worker();
+                }
+            }
+            ThreadActivity::Blocked(id) => {
+                tracing::debug!("Thread blocked: {:?}", id);
+                self.idle_threads.fetch_add(1, atomic::Ordering::AcqRel);
+            }
+            ThreadActivity::Unblocked(id) => {
+                tracing::debug!("Thread unblocked: {:?}", id);
+                self.idle_threads.fetch_sub(1, atomic::Ordering::AcqRel);
+            }
+            ThreadActivity::Parked(id) => {
+                tracing::debug!("Thread parked: {:?}", id);
+                self.idle_threads.fetch_add(1, atomic::Ordering::AcqRel);
+            }
+            ThreadActivity::Unparked(id) => {
+                tracing::debug!("Thread unparked: {:?}", id);
+                self.idle_threads.fetch_sub(1, atomic::Ordering::AcqRel);
+            }
+        }
+
+        Some(())
+    }
+
+    fn remove_thread_id(&self, thread_id: ThreadId) {
+        self.thread_handles
+            .write()
+            .unwrap()
+            .remove(&thread_id);
+    }
+
+    /// Spawn a worker thread with WaitGroup tracking.
+    pub fn spawn_worker(&self) -> ThreadExecutionResult<ThreadRef> {
+        use std::thread::Builder;
+
+        let mut rng = self.rng.lock().unwrap();
+        let seed = rng.next_u64();
+        drop(rng);
+
+        let b = Builder::new();
+        let b = if let Some(size) = self.thread_stack_size {
+            b.stack_size(size)
+        } else {
+            b
+        };
+
+        // Register thread in registry first
+        let thread_ref = ThreadRef::new(
+            seed,
+            format!("worker-{}", seed),
+            self.shared_tasks.clone(),
+            None,
+            self.registry.clone(),
+            self.kill_signal.clone(),
+        );
+
+        let thread_id = self.registry.register_thread(
+            thread_ref.name.clone(),
+            thread_ref.clone(),
+            self.latch.clone(),
+            self.activity_sender.clone(),
+        );
+
+        let priority = self.priority.clone();
+        let seed_clone = thread_ref.seed;
+        let task_clone = thread_ref.tasks.clone();
+        let process_clone = thread_ref.process.clone().unwrap();
+        let thread_kill_signal = thread_ref.global_kill_signal.clone();
+
+        let sender_id = thread_id.clone();
+        let sender = self.activity_sender.clone();
+
+        let thread_yield_wait_duration = self.yield_wait_time;
+        let thread_max_idle_count = self.thread_max_idle_count;
+        let thread_max_sleep_before_end = self.thread_max_sleep_before_end;
+        let thread_back_off_factor = self.thread_back_off_factor;
+        let thread_back_off_jitter = self.thread_back_off_jitter;
+        let thread_back_min_duration = self.thread_back_min_duration;
+        let thread_back_max_duration = self.thread_back_max_duration;
+
+        // Get WaitGroup guard BEFORE spawning
+        let wg_guard = self.waitgroup.guard();
+        self.waitgroup.add(1);
+
+        match b.spawn(move || {
+            let span = tracing::trace_span!("ThreadRegistry::spawn_worker.local_executor.thread");
+            let _enter = span.enter();
+
+            // Hold guard for lifetime of thread - dropped on exit (including panic)
+            let _wg = wg_guard;
+
+            match panic::catch_unwind(|| {
+                sender
+                    .send(ThreadActivity::Started(sender_id.clone()))
+                    .expect("should send event");
+
+                let thread_executor = LocalThreadExecutor::from_seed(
+                    seed_clone,
+                    task_clone,
+                    IdleMan::new(
+                        thread_max_idle_count,
+                        None,
+                        SleepyMan::new(
+                            thread_max_sleep_before_end,
+                            ExponentialBackoffDecider::new(
+                                thread_back_off_factor,
+                                thread_back_off_jitter,
+                                thread_back_min_duration,
+                                Some(thread_back_max_duration),
+                            ),
+                        ),
+                    ),
+                    priority,
+                    process_clone,
+                    thread_yield_wait_duration,
+                    Some(thread_kill_signal),
+                    Some(sender.clone()),
+                );
+
+                thread_executor.block_on();
+
+                sender
+                    .send(ThreadActivity::Stopped(sender_id.clone()))
+                    .expect("should send event");
+            }) {
+                Ok(()) => Ok(()),
+                Err(err) => {
+                    tracing::debug!("Thread panicked: {:?}: {:?}", sender_id, err);
+                    sender
+                        .send(ThreadActivity::Panicked(sender_id.clone(), err))
+                        .expect("should send event");
+                    sender
+                        .send(ThreadActivity::Stopped(sender_id))
+                        .expect("should send event");
+                    Ok(())
+                }
+            }
+            // _wg dropped here → WaitGroup::done()
+        }) {
+            Ok(handle) => {
+                self.thread_handles
+                    .write()
+                    .unwrap()
+                    .insert(thread_id.clone(), handle);
+
+                self.live_threads.fetch_add(1, atomic::Ordering::AcqRel);
+
+                Ok(thread_ref.clone())
+            }
+            Err(err) => Err(ThreadExecutionError::FailedStart(Box::new(err))),
+        }
+    }
+}
