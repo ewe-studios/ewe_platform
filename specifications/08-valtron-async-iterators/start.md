@@ -26,7 +26,10 @@ Consult the **Feature Index** in `requirements.md` to find which feature you're 
 | 4 | collection-combinators | `features/03-collection-combinators/start.md` |
 | 5 | mapping-combinators | `features/04-mapping-combinators/start.md` |
 | 6 | unified-executor-integration | `features/05-unified-executor-integration/start.md` |
-| 7 | gen-model-descriptors-refactor | `features/06-gen-model-descriptors-refactor/start.md` |
+| 6a | client-request-refactor | `features/06a-client-request-refactor/start.md` |
+| 6b | map-iter-combinator | `features/06b-map-iter-combinator/start.md` |
+| 6c | gen-model-descriptors-parallel-fetch | `features/06c-gen-model-descriptors-parallel-fetch/start.md` |
+| 7 | split-collector | `features/07-split-collector/start.md` |
 
 ### Step 3: Navigate to Feature Workflow
 Navigate to the corresponding `features/[feature-name]/start.md` file and follow that feature's complete workflow.

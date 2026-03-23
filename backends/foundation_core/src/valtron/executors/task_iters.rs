@@ -111,15 +111,16 @@ where
             return None;
         }
 
-        let task_response = match std::panic::catch_unwind(|| self.task.lock().unwrap().next_status()) {
-            Ok(inner) => inner,
-            Err(panic_error) => {
-                if let Some(panic_handler) = &self.panic_handler {
-                    (panic_handler)(panic_error);
+        let task_response =
+            match std::panic::catch_unwind(|| self.task.lock().unwrap().next_status()) {
+                Ok(inner) => inner,
+                Err(panic_error) => {
+                    if let Some(panic_handler) = &self.panic_handler {
+                        (panic_handler)(panic_error);
+                    }
+                    return Some(State::Panicked);
                 }
-                return Some(State::Panicked);
-            }
-        };
+            };
 
         if task_response.is_none() {
             // close the queue
@@ -333,15 +334,16 @@ where
         }
 
         tracing::debug!("Get next value from consuming iter: {entry:?}");
-        let task_response = match std::panic::catch_unwind(|| self.task.lock().unwrap().next_status()) {
-            Ok(inner) => inner,
-            Err(panic_error) => {
-                if let Some(panic_handler) = &self.panic_handler {
-                    (panic_handler)(panic_error);
+        let task_response =
+            match std::panic::catch_unwind(|| self.task.lock().unwrap().next_status()) {
+                Ok(inner) => inner,
+                Err(panic_error) => {
+                    if let Some(panic_handler) = &self.panic_handler {
+                        (panic_handler)(panic_error);
+                    }
+                    return Some(State::Panicked);
                 }
-                return Some(State::Panicked);
-            }
-        };
+            };
 
         tracing::debug!(
             "Response for next value: {entry:?} with value?: {}",
@@ -549,15 +551,16 @@ where
     fn next(&mut self, entry: Entry, executor: BoxedExecutionEngine) -> Option<State> {
         self.alive?;
 
-        let task_response = match std::panic::catch_unwind(|| self.task.lock().unwrap().next_status()) {
-            Ok(inner) => inner,
-            Err(panic_error) => {
-                if let Some(panic_handler) = &self.panic_handler {
-                    (panic_handler)(panic_error);
+        let task_response =
+            match std::panic::catch_unwind(|| self.task.lock().unwrap().next_status()) {
+                Ok(inner) => inner,
+                Err(panic_error) => {
+                    if let Some(panic_handler) = &self.panic_handler {
+                        (panic_handler)(panic_error);
+                    }
+                    return Some(State::Panicked);
                 }
-                return Some(State::Panicked);
-            }
-        };
+            };
 
         if task_response.is_none() {
             // close the queue

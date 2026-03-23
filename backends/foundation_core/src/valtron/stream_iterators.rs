@@ -325,7 +325,10 @@ where
         Pred: Fn(&Stream<D, P>) -> bool + Send + 'static,
     {
         let queue = Arc::new(ConcurrentQueue::bounded(queue_size));
-        tracing::debug!("split_collector: creating observer and continuation with queue_size={}", queue_size);
+        tracing::debug!(
+            "split_collector: creating observer and continuation with queue_size={}",
+            queue_size
+        );
 
         let observer = SCollectorStreamIterator {
             queue: Arc::clone(&queue),
@@ -355,7 +358,10 @@ where
         Pred: Fn(&Stream<D, P>) -> CollectionState + Send + 'static,
     {
         let queue = Arc::new(ConcurrentQueue::bounded(queue_size));
-        tracing::debug!("split_collect_until: creating observer and continuation with queue_size={}", queue_size);
+        tracing::debug!(
+            "split_collect_until: creating observer and continuation with queue_size={}",
+            queue_size
+        );
 
         let observer = SSplitUntilObserver {
             queue: Arc::clone(&queue),
@@ -686,7 +692,9 @@ where
                     None
                 } else {
                     // Still waiting for items - return Ignore to signal still pending
-                    tracing::trace!("SCollectorStreamIterator: queue empty but not closed, returning Ignore");
+                    tracing::trace!(
+                        "SCollectorStreamIterator: queue empty but not closed, returning Ignore"
+                    );
                     Some(Stream::Ignore)
                 }
             }
@@ -740,9 +748,14 @@ where
         // Copy matched items to observer queue
         if (self.predicate)(&item) {
             if let Err(e) = self.queue.force_push(item.clone()) {
-                tracing::error!("SSplitCollectorContinuation: failed to push to queue: {}", e);
+                tracing::error!(
+                    "SSplitCollectorContinuation: failed to push to queue: {}",
+                    e
+                );
             } else {
-                tracing::trace!("SSplitCollectorContinuation: copied matched item to observer queue");
+                tracing::trace!(
+                    "SSplitCollectorContinuation: copied matched item to observer queue"
+                );
             }
         }
 
@@ -801,7 +814,9 @@ where
                     tracing::debug!("SSplitUntilObserver: queue closed, returning None");
                     None
                 } else {
-                    tracing::trace!("SSplitUntilObserver: queue empty but not closed, returning Ignore");
+                    tracing::trace!(
+                        "SSplitUntilObserver: queue empty but not closed, returning Ignore"
+                    );
                     Some(Stream::Ignore)
                 }
             }
@@ -879,7 +894,9 @@ where
                     tracing::trace!("SSplitUntilContinuation: closing observer queue without collecting final item");
                 }
                 self.queue.close();
-                tracing::debug!("SSplitUntilContinuation: observer queue closed after CollectionState::Close");
+                tracing::debug!(
+                    "SSplitUntilContinuation: observer queue closed after CollectionState::Close"
+                );
             }
         }
 
@@ -993,9 +1010,7 @@ where
             Some(item) => item,
             None => {
                 self.queue.close();
-                tracing::debug!(
-                    "SSplitCollectorMapContinuation: source exhausted, queue closed"
-                );
+                tracing::debug!("SSplitCollectorMapContinuation: source exhausted, queue closed");
                 return None;
             }
         };
@@ -1020,8 +1035,7 @@ where
     }
 }
 
-impl<I, D, P, DM, PM> StreamIterator<D, P>
-    for SSplitCollectorMapContinuation<I, D, P, DM, PM>
+impl<I, D, P, DM, PM> StreamIterator<D, P> for SSplitCollectorMapContinuation<I, D, P, DM, PM>
 where
     I: StreamIterator<D, P>,
     D: Clone,
@@ -1553,16 +1567,13 @@ mod tests {
         let stream = TestStream::new(items);
 
         // Observer gets string representations of Next items > 5
-        let (observer, mut continuation) =
-            stream.split_collector_map::<_, String, ()>(
-                |item| match item {
-                    Stream::Next(v) if *v > 5 => {
-                        (true, Some(Stream::Next(format!("val:{}", v))))
-                    }
-                    _ => (false, None),
-                },
-                10,
-            );
+        let (observer, mut continuation) = stream.split_collector_map::<_, String, ()>(
+            |item| match item {
+                Stream::Next(v) if *v > 5 => (true, Some(Stream::Next(format!("val:{}", v)))),
+                _ => (false, None),
+            },
+            10,
+        );
 
         // Drive the continuation to completion
         while Iterator::next(&mut continuation).is_some() {}
@@ -1585,17 +1596,14 @@ mod tests {
         let stream = TestStream::new(items);
 
         // Matched but transform returns None for odd numbers → skipped
-        let (observer, mut continuation) =
-            stream.split_collector_map::<_, u64, ()>(
-                |item| match item {
-                    Stream::Next(v) if v % 2 == 0 => {
-                        (true, Some(Stream::Next(*v as u64)))
-                    }
-                    Stream::Next(_) => (true, None),
-                    _ => (false, None),
-                },
-                10,
-            );
+        let (observer, mut continuation) = stream.split_collector_map::<_, u64, ()>(
+            |item| match item {
+                Stream::Next(v) if v % 2 == 0 => (true, Some(Stream::Next(*v as u64))),
+                Stream::Next(_) => (true, None),
+                _ => (false, None),
+            },
+            10,
+        );
 
         while Iterator::next(&mut continuation).is_some() {}
 
@@ -1615,14 +1623,10 @@ mod tests {
         let stream = TestStream::new(items);
 
         let (observer, mut continuation) =
-            stream.split_collect_one_map::<_, String, ()>(
-                |item| match item {
-                    Stream::Next(v) if *v > 5 => {
-                        (true, Some(Stream::Next(v.to_string())))
-                    }
-                    _ => (false, None),
-                },
-            );
+            stream.split_collect_one_map::<_, String, ()>(|item| match item {
+                Stream::Next(v) if *v > 5 => (true, Some(Stream::Next(v.to_string()))),
+                _ => (false, None),
+            });
 
         while Iterator::next(&mut continuation).is_some() {}
 

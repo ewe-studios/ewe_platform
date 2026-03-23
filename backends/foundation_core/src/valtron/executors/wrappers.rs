@@ -309,7 +309,9 @@ mod tests {
             type Pending = ();
             type Spawner = NoAction;
 
-            fn next_status(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+            fn next_status(
+                &mut self,
+            ) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
                 thread::sleep(Duration::from_millis(50));
                 self.count += 1;
                 if self.count < 100 {
@@ -346,7 +348,9 @@ mod tests {
             type Pending = ();
             type Spawner = NoAction;
 
-            fn next_status(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+            fn next_status(
+                &mut self,
+            ) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
                 Some(TaskStatus::Pending(()))
             }
         }
@@ -356,7 +360,11 @@ mod tests {
 
         // Should allow 5 polls
         for i in 0..5 {
-            assert!(limited_task.next_status().is_some(), "Poll {} should succeed", i);
+            assert!(
+                limited_task.next_status().is_some(),
+                "Poll {} should succeed",
+                i
+            );
         }
 
         // 6th poll should return None

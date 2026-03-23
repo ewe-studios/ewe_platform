@@ -3,9 +3,9 @@ feature: "gen_model_descriptors Parallel Fetch"
 description: "Use execute_collect_all() for parallel API fetches in gen_model_descriptors"
 status: "pending"
 priority: "high"
-depends_on: ["05-unified-executor-integration"]
+depends_on: ["05-unified-executor-integration", "06b-map-iter-combinator"]
 estimated_effort: "medium"
-created: 2026-03-20
+created: 2026-03-23
 author: "Main Agent"
 tasks:
   completed: 0
@@ -29,7 +29,17 @@ all_models.extend(fetch_ai_gateway(&client));      // ~500ms, blocks
 // Total: ~1500ms
 ```
 
-**Key Design Principle: execute_collect_all() for Parallel Execution**
+Each fetch function uses blocking HTTP calls via `http_get()`, causing:
+
+1. **No parallelism** - Each fetch blocks until completion before the next begins
+2. **Underutilized Valtron** - The execution engine's async capabilities exist but are not leveraged
+3. **Wasted opportunity** - These are independent I/O operations that could run concurrently
+
+---
+
+## WHAT: Solution Overview
+
+Use `execute_collect_all()` from `unified.rs` to execute multiple fetch tasks in parallel:
 
 ```rust
 // TaskIterators go into execute_collect_all()...
@@ -53,9 +63,7 @@ for stream_item in collected {
 
 End users work with `StreamIterator` from `execute_collect_all()` - never dealing with TaskIterator directly.
 
-## WHAT: Solution Overview
-
-Use `execute_collect_all()` from `unified.rs` to execute multiple fetch tasks in parallel:
+---
 
 ### Pattern: create_fetch_task Helper
 
@@ -156,6 +164,8 @@ fn run(args: &clap::ArgMatches) -> Result<(), BoxedError> {
 }
 ```
 
+---
+
 ## HOW: Implementation Steps
 
 1. **Read unified.rs** - Understand execute_collect_all() pattern
@@ -165,6 +175,8 @@ fn run(args: &clap::ArgMatches) -> Result<(), BoxedError> {
 5. **Update `run()` function** - Use `execute_collect_all()` with composed tasks
 6. **Add benchmark timing** - Log fetch elapsed time
 
+---
+
 ## Requirements
 
 1. **FetchPending enum** - Progress states with source tracking, `from_http()` conversion
@@ -173,6 +185,8 @@ fn run(args: &clap::ArgMatches) -> Result<(), BoxedError> {
 4. **run() function** - Uses `execute_collect_all()` returning StreamIterator
 5. **Benchmark output** - Log elapsed time and estimated sequential equivalent
 6. **execute_collect_all()** - Takes TaskIterators, returns StreamIterator
+
+---
 
 ## Tasks
 
@@ -185,6 +199,8 @@ fn run(args: &clap::ArgMatches) -> Result<(), BoxedError> {
 7. [ ] Test: Verify ~3x speedup (1500ms → 500ms)
 8. [ ] Run clippy and fmt checks
 
+---
+
 ## Verification
 
 ```bash
@@ -194,6 +210,8 @@ diff backends/foundation_ai/src/models/model_descriptors.rs expected_output.rs
 cargo clippy -p ewe_platform -- -D warnings
 cargo fmt -p ewe_platform -- --check
 ```
+
+---
 
 ## Success Criteria
 
@@ -205,6 +223,8 @@ cargo fmt -p ewe_platform -- --check
 - `execute_collect_all()` takes TaskIterators, returns StreamIterator
 - Zero clippy warnings
 
+---
+
 ## Relationship to Other Features
 
 | Feature | Role |
@@ -212,7 +232,9 @@ cargo fmt -p ewe_platform -- --check
 | 05-unified-executor-integration | Provides `execute_collect_all()` helper |
 | 01-task-iterators | TaskIterator combinators for create_fetch_task() |
 | 02-stream-iterators | StreamIterator combinators for processing results |
-| 06a-client-request-refactor | Optional: Can use refactored ClientRequest |
+| 06b-map-iter-combinator | Can be used after parallel fetch for body processing |
+
+---
 
 ## Architecture Flow
 
@@ -230,5 +252,4 @@ create_fetch_task() → TaskIterator (input)
 
 ---
 
-_Created: 2026-03-20_
-_Updated: 2026-03-20 (v3.0: execute_collect_all() returns StreamIterator)_
+_Created: 2026-03-23 (split from 06b)_
