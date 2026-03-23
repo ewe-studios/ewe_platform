@@ -158,17 +158,17 @@ mod multi_threaded_tests {
         fn next_status(
             &mut self,
         ) -> Option<crate::valtron::TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
-            let item_size = self.1.lock().unwrap().len();
+            let mut items = self.1.lock().unwrap();
+            let item_size = items.len();
 
             if item_size == self.0 {
                 return None;
             }
 
-            self.1.lock().unwrap().push(item_size);
+            items.push(item_size);
+            let new_len = items.len();
 
-            Some(crate::valtron::TaskStatus::Ready(
-                self.1.lock().unwrap().len(),
-            ))
+            Some(crate::valtron::TaskStatus::Ready(new_len))
         }
     }
 
@@ -192,17 +192,27 @@ mod multi_threaded_tests {
             &mut self,
         ) -> Option<crate::valtron::TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
             tracing::debug!("Counter Task is running");
-            let mut items = self.1.lock().unwrap();
-            let item_size = items.len();
 
-            if item_size == self.0 {
-                tracing::debug!("Sending signal with sender");
-                self.2.send(()).expect("send signal");
-                return None;
+            let result = {
+                let mut items = self.1.lock().unwrap();
+                let item_size = items.len();
+
+                if item_size == self.0 {
+                    None // signal "done" — will send after lock release
+                } else {
+                    items.push(item_size);
+                    Some(crate::valtron::TaskStatus::Ready(items.len()))
+                }
+            }; // lock released here
+
+            match result {
+                None => {
+                    tracing::debug!("Sending signal with sender");
+                    self.2.send(()).expect("send signal");
+                    None
+                }
+                some => some,
             }
-            items.push(item_size);
-
-            Some(crate::valtron::TaskStatus::Ready(items.len()))
         }
     }
 
