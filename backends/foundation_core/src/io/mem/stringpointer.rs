@@ -42,7 +42,7 @@ impl<'a> StringPointer<'a> {
         (self.content[self.peek_pos..]).len()
     }
 
-    /// [`rem_len`] returns the remaining count of strings
+    /// [`Self::rem_len`] returns the remaining count of strings
     /// left from the current position's cursor
     /// regardless of where the peek cursor is at.
     #[inline]
@@ -332,7 +332,7 @@ impl<'a> StringPointer<'a> {
 
     /// `take_positional` returns the total string slice from the
     /// actual accumulators position cursor til the current
-    /// peek cursor position i.e str[`position_cursor...peek_cursor`].
+    /// peek cursor position i.e str`position_cursor...peek_cursor`.
     /// Allow you to collect the whole slice of strings that have been
     /// checked and peeked through.
     #[inline]
@@ -342,7 +342,7 @@ impl<'a> StringPointer<'a> {
 
     /// take returns the total string slice from the
     /// actual accumulators position cursor til the current
-    /// peek cursor position i.e str[`position_cursor...peek_cursor`].
+    /// peek cursor position i.e str`position_cursor...peek_cursor`.
     /// Allow you to collect the whole slice of strings that have been
     /// checked and peeked through.
     #[inline]

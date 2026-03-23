@@ -36,25 +36,25 @@ pub enum CollectionState {
 /// they care and want.
 ///
 /// This will allow us to support a `map_branch` combinative type
-/// for [`TaskIterators`] and [`StreamIterators`] where
-/// calling a function called [`map_branch`] can take a
-/// function which when giving a [`TaskStatus`] or [`Stream`]
+/// for `TaskIterator` and `StreamIterator` where
+/// calling a function called `map_branch` can take a
+/// function which when giving a `TaskStatus` or `Stream`
 /// will return a `BranchPath` which will decide if it goes
 /// to a left receiver or a right receiver.
 ///
-/// This means [`map_branch`] will return two iterators:
+/// This means `map_branch` will return two iterators:
 ///
-/// 1. [`TaskIterator`] - when built from a [`TaskIterator`], this will
+/// 1. `TaskIterator` - when built from a `TaskIterator`, this will
 ///    produce two task iterators that have been passed to the `execute`
 ///    method, producing the stream iterators necessary for these tasks.
 ///    The idea is that the two derived stream iterators represent the paths,
 ///    and hence you need not access the original you mapped from since its
 ///    result will go somewhere. Importantly, the main task iterator
-///    itself has also been passed to `execute` with the [`unified::send()`] method
-///    first before scheduling the branch iterators with [`unified::execute()`].
+///    itself has also been passed to `execute` with the `unified::send()` method
+///    first before scheduling the branch iterators with `unified::execute()`.
 ///
-/// 2. [`StreamIterator`] - when built from an existing [`StreamIterator`], this will
-///    produce two new stream iterators that each have their own [`ConcurrentQueue`].
+/// 2. `StreamIterator` - when built from an existing `StreamIterator`, this will
+///    produce two new stream iterators that each have their own `ConcurrentQueue`.
 ///    The original stream iterator will use these to send their branches, and the main
 ///    stream iterator will be owned by both via a shared `Arc<Wrapper>` of some kind
 ///    that the other stream iterators will be able to call to trigger the next
@@ -62,9 +62,9 @@ pub enum CollectionState {
 ///    two streams driving the operation of the first when triggered. Since `map_branch`
 ///    always consumes `self`, this should be easy to do.
 ///
-/// In both cases of [`TaskIterators`] and [`StreamIterators`], `self` is always owned and consumed.
-/// In the case of [`TaskIterators`], after setup and wrapping, it is scheduled off by [`unified::send`].
-/// and in the case of [`StreamIterators`] a wrapper owns self and is wrapped with a Arc and shared
+/// In both cases of `TaskIterator` and `StreamIterator`, `self` is always owned and consumed.
+/// In the case of `TaskIterator`, after setup and wrapping, it is scheduled off by `unified::send`.
+/// and in the case of `StreamIterator` a wrapper owns self and is wrapped with a Arc and shared
 /// with both the getting it to call some method like `tick()` which will call the predicate with
 /// the result from the main iterator and deliver it to the correct branch.
 #[derive(Display)]

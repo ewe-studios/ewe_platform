@@ -155,15 +155,15 @@ pub enum Body {
     /// then its used to limit the total read amount.
     FullBody(SimpleHeaders, Option<BodySizeLimit>),
 
-    /// [`LimitedBody`] returns a body which is limited by the size and will
-    /// attempt to read that exact size via [`Reader::read_exact`].
+    /// `LimitedBody` returns a body which is limited by the size and will
+    /// attempt to read that exact size via `Reader::read_exact`.
     LimitedBody(BodySize, SimpleHeaders),
 
-    /// [`ChunkedBody`] returns a chunked body for iterating through
+    /// `ChunkedBody` returns a chunked body for iterating through
     /// a chunked encoded body of data think transfer encoding style data.
     ChunkedBody(Vec<String>, SimpleHeaders),
 
-    /// [`LineFeedBody`] returns a body reader that iterating through
+    /// `LineFeedBody` returns a body reader that iterating through
     /// each line yielding each line to the reader.
     LineFeedBody(SimpleHeaders),
 }
@@ -5275,11 +5275,11 @@ impl<T: std::io::Read + Send + 'static> HttpResponseReader<SimpleHttpBody, T> {
 
 /// [`HTTPStreams`] is a http reader that can handle multiple streams of http requests/responses where
 /// it will yield an instance of [`HttpRequestReader`] or [`HttpResponseReader`] each time
-/// it's [`HTTPStreams::read`] method is called.
+/// it's `HTTPStreams::read` method is called.
 ///
 /// It is expected that the returned reader is fully exhausted before the next http reader
 /// is requested because the stream does not automatically know when the previous data of the last
-/// http request has been fully read from the underlying [`RawStream`], specifically due to cases
+/// http request has been fully read from the underlying `RawStream`, specifically due to cases
 /// where the underlying http request is a chunked or streaming body where we specifically do not
 /// know where it ends.
 pub struct HTTPStreams<T: std::io::Read + 'static> {
@@ -5298,7 +5298,7 @@ impl<T: std::io::Read + 'static> HTTPStreams<T> {
 // Methods
 
 impl<T: std::io::Read + Send + 'static> HTTPStreams<T> {
-    /// [`next_request`] returns a new [`HttpRequestReader`] to read the next read http request from the
+    /// `next_request` returns a new [`HttpRequestReader`] to read the next read http request from the
     /// underlying stream allowing you to stream each request as a consecutive unit containing all
     /// its data parts.
     #[must_use]
@@ -5306,7 +5306,7 @@ impl<T: std::io::Read + Send + 'static> HTTPStreams<T> {
         HttpRequestReader::<SimpleHttpBody, T>::new(self.source.clone(), SimpleHttpBody::default())
     }
 
-    /// [`next_response`] returns a new [`HttpResponse`] to read the next read http response from the
+    /// `next_response` returns a new `HttpResponse` to read the next read http response from the
     /// underlying stream allowing you to stream each response as a consecutive unit containing all
     /// its data parts.
     #[must_use]

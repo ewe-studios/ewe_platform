@@ -238,7 +238,7 @@ where
 }
 
 /// [`ConsumingIter`] provides an implementer of `ExecutionIterator` which is focused
-/// consuming the produced [`TaskStatus`] output values from the execution of actual tasks
+/// consuming the produced `TaskStatus` output values from the execution of actual tasks
 /// except for the [`TaskStatus::Spawn`] variant.
 ///
 /// This means you will only ever get the values from a [`TaskStatus::Ready`], [`TaskStatus::Init`]
@@ -466,7 +466,7 @@ where
 /// consuming the produced [`TaskStatus::Ready`] output values from the execution of actual tasks.
 ///
 /// This means unlike the [`ConsumingIter`] you will only ever get the values from a [`TaskStatus::Ready`]
-/// and not the plethoral of all the variants of a [`TaskStatus`] through a wrapped
+/// and not the plethoral of all the variants of a `TaskStatus` through a wrapped
 /// [`ConcurrentQueue`] via the [`crate::synca::mpp::RecvIterator`].
 ///
 /// This also means these types must be send-safe.

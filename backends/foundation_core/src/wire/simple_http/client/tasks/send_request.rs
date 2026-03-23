@@ -35,18 +35,18 @@ pub enum SendRequestState<R>
 where
     R: DnsResolver + Send + 'static,
 {
-    /// Init starts out with the request based on the provided [`GetHttpRequestStreamInner`]
-    /// which then moves to [`Self::Connecting`] and then [`Self::Pull`]
+    /// Init starts out with the request based on the provided `GetHttpRequestStreamInner`
+    /// which then moves to [`Self::Connecting`] and then `Self::Pull`
     /// to get the actual request response.
     Init(Option<Box<SendRequest<R>>>),
 
-    /// [`Connecting`] contains the read iterator to read the  response from the connection.
+    /// `Connecting` contains the read iterator to read the  response from the connection.
     Connecting(DrivenRecvIterator<GetHttpRequestRedirectTask<R>>),
 
-    /// [`Reading`] reads the introduction information from (Status + Headers) from the connection.
+    /// `Reading` reads the introduction information from (Status + Headers) from the connection.
     Reading(DrivenRecvIterator<GetRequestIntroTask>),
 
-    /// [`SkipReading`] skips the attempt to read the intro from the stream
+    /// `SkipReading` skips the attempt to read the intro from the stream
     /// as indicates the request intro has just being read already
     /// and provides the request response.
     SkipReading(Box<Option<RequestIntro>>),

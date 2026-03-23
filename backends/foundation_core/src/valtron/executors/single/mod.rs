@@ -40,7 +40,7 @@ thread_local! {
     static GLOBAL_LOCAL_EXECUTOR_ENGINE: OnceCell<LocalThreadExecutor<NoThreadController>> = OnceCell::new();
 }
 
-/// [`initialize`] initializes the local single-threaded
+/// `initialize` initializes the local single-threaded
 /// execution engine, and is required to call this as your
 /// first call when using this in WebAssembly or `SingleThreaded`
 /// environment.
@@ -75,7 +75,7 @@ pub fn initialize_pool(seed_for_rng: u64) {
     });
 }
 
-/// `run_until` calls the [`LocalExecution`] queue and processes
+/// `run_until` calls the `LocalExecution` queue and processes
 /// the next pending message by moving it forward just until
 /// the provided function returns true indicating it should stop.
 ///

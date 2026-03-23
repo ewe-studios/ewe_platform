@@ -1346,7 +1346,7 @@ impl<T: Read> ByteBufferPointer<T> {
         self.peek_pos = self.pos + distance;
     }
 
-    /// [`fill_up`] fills the internal buffer with the pull amount
+    /// [`Self::fill_up`] fills the internal buffer with the pull amount
     /// which allows you to continue to collect the relevant
     /// set of data which we match is right in the correct set of
     /// bytes until we indicate to the pointer to consume the data until
@@ -1381,7 +1381,7 @@ impl<T: Read> ByteBufferPointer<T> {
         Ok(read)
     }
 
-    /// [`fill_all`] reads the whole underlying reader into the underlying
+    /// [`Self::fill_all`] reads the whole underlying reader into the underlying
     /// buffer, allowing you to extract the remaining data within the stream
     /// as fully in-memory.
     ///
@@ -1428,7 +1428,7 @@ impl<T: Read> ByteBufferPointer<T> {
         self.forward_by(1)
     }
 
-    /// [`forward_by`] provides method to move the peek cursor by a certain amount.
+    /// [`Self::forward_by`] provides method to move the peek cursor by a certain amount.
     /// Generally this is used external as the logic is generally backed into the
     /// `next*` and `read*` methods but in cases where you intend to progress the
     /// cursor your seek using the `peek*` methods this provides that surface.
@@ -1457,7 +1457,7 @@ impl<T: Read> ByteBufferPointer<T> {
         self.unforward_by(1)
     }
 
-    /// [`unforward_by`] moves your peek position backwards at which if it moves
+    /// [`Self::unforward_by`] moves your peek position backwards at which if it moves
     /// all the way back, will forever stay at the last know position of
     /// the actual data cursor.
     ///
@@ -1475,7 +1475,7 @@ impl<T: Read> ByteBufferPointer<T> {
         }
     }
 
-    /// [`consume_some`] consumes the amount of data that has been peeked over-so far, returning
+    /// [`Self::consume_some`] consumes the amount of data that has been peeked over-so far, returning
     /// that to the caller, this also moves the position of the data cursor
     /// forward to the location of the skip cursor.
     pub fn consume_some(&mut self) -> Option<Vec<u8>> {
@@ -1495,7 +1495,7 @@ impl<T: Read> ByteBufferPointer<T> {
         Some(slice_copy)
     }
 
-    /// [`consume`] consumes the amount of data that has been peeked over-so far, returning
+    /// [`Self::consume`] consumes the amount of data that has been peeked over-so far, returning
     /// that to the caller, this also moves the position of the data cursor
     /// forward to the location of the skip cursor.
     ///
@@ -1508,7 +1508,7 @@ impl<T: Read> ByteBufferPointer<T> {
         }
     }
 
-    /// [`skip`] skip the amount of data that has been peeked over-so far, returning
+    /// [`Self::skip`] skip the amount of data that has been peeked over-so far, returning
     /// that to the caller, this also moves the position of the data cursor
     /// forward to the location of the skip cursor.
     pub fn skip(&mut self) {
@@ -1520,7 +1520,7 @@ impl<T: Read> ByteBufferPointer<T> {
         self.pos = self.peek_pos;
     }
 
-    /// [`peek`] peeks into the future by 1 position without actually permanently
+    /// [`Self::peek`] peeks into the future by 1 position without actually permanently
     /// change the peek cursor's position.
     ///
     /// # Errors
@@ -1530,7 +1530,7 @@ impl<T: Read> ByteBufferPointer<T> {
         self.peek_by(1)
     }
 
-    /// [`peek_by`] returns the available data if there is available within the forward movement
+    /// [`Self::peek_by`] returns the available data if there is available within the forward movement
     /// being requested, the peek cursor is never adjusted but only used to look forward.
     ///
     /// WARNING: Do not use this method and then call [`Self::consume`] has it has no effect
@@ -1558,7 +1558,7 @@ impl<T: Read> ByteBufferPointer<T> {
         Ok(PeekState::Request(&self.buffer[from..until_pos]))
     }
 
-    // [`peek_until`] returns the peek state for the requested data until the delimiter is seen
+    // [`Self::peek_until`] returns the peek state for the requested data until the delimiter is seen
     /// at which point the underlying reference to the data is either shared in a
     /// [`PeekState::Request`] if fully read else return [`PeekState::EndOfFile`] if the
     /// source returns EOF or if the data available is less than requested.
@@ -1623,7 +1623,7 @@ impl<T: Read> ByteBufferPointer<T> {
         Ok(PeekState::Request(slice))
     }
 
-    /// [`peekby2`] provides a friendly method which calls [`peek_size`] underneath
+    /// [`Self::peekby2`] provides a friendly method which calls [`Self::peekby`] underneath
     /// to peek into the distance without modifying cursor position.
     ///
     /// This means the cursor is at that position it was after peek into the need size from
@@ -1645,7 +1645,7 @@ impl<T: Read> ByteBufferPointer<T> {
         })?
     }
 
-    /// [`peekby`] returns a portion of the underlying buffer for the specified
+    /// [`Self::peekby`] returns a portion of the underlying buffer for the specified
     /// size using a tight loop until the requested size is of data has being pulled
     /// into the internal peek buffer for peeking .
     ///
@@ -1698,7 +1698,7 @@ impl<T: Read> ByteBufferPointer<T> {
         Ok(PeekState::Request(slice))
     }
 
-    /// [`next_size`] returns a portion of the underlying buffer for the specified
+    /// [`Self::nextby`] returns a portion of the underlying buffer for the specified
     /// size using a tight loop until the requested size is of data has being pulled
     /// into the internal peek buffer for peeking .
     ///
@@ -1784,7 +1784,7 @@ impl<T: Read> ByteBufferPointer<T> {
         Ok(PeekState::Request(slice))
     }
 
-    /// [`read_size`] reads the underlying size of the buffer provided data, consuming
+    /// [`Self::read_all`] reads the underlying size of the buffer provided data, consuming
     /// all that is requested which moves both the peek cursor and the actual data cursor
     /// which means that part of the internal buffer read from the underlying reader will
     /// at some point be discarded as it should be.
@@ -1844,7 +1844,7 @@ impl<T: Read> ByteBufferPointer<T> {
         }
     }
 
-    /// [`nextby`] provides a more friendly API ontop [`Self::next_size`] returning
+    /// [`Self::nextby`] provides a more friendly API ontop [`Self::nextby`] returning
     /// the slice `&[u8]` without the [`PeekState`] wrapper.
     ///
     /// # Errors
@@ -1858,7 +1858,7 @@ impl<T: Read> ByteBufferPointer<T> {
         })?
     }
 
-    /// [`next_until`] returns the peek state for the requested data until the delimiter is seen
+    /// [`Self::next_until`] returns the peek state for the requested data until the delimiter is seen
     /// at which point the underlying reference to the data is either shared in a
     /// [`PeekState::Request`] if fully read else return [`PeekState::EndOfFile`] if the
     /// source returns EOF or if the data available is less than requested.
@@ -1919,7 +1919,7 @@ impl<T: Read> ByteBufferPointer<T> {
         Ok(PeekState::Request(&self.buffer[self.pos..self.peek_pos]))
     }
 
-    /// [`next_line`] reads the provided line into a string without consuming the read content.
+    /// [`Self::next_line`] reads the provided line into a string without consuming the read content.
     /// Allowing you to perform further operation on the data.
     ///
     /// If the newline byte is not found then it reads all the bytes into the provided buffer ontil
@@ -1970,7 +1970,7 @@ impl<T: Read> ByteBufferPointer<T> {
         }
     }
 
-    /// [`next_bytes_until`] reads the provided bytes into a Vec without consuming the read cursor.
+    /// [`Self::next_bytes_until`] reads the provided bytes into a Vec without consuming the read cursor.
     /// Allowing you to perform further operation on the data.
     ///
     /// If the target byte is not found then it reads all the bytes into the provided buffer ontil
@@ -2018,7 +2018,7 @@ impl<T: Read> ByteBufferPointer<T> {
         }
     }
 
-    /// [`read_bytes_until`] reads the provided bytes into a Vec consuming read cursor, until it
+    /// [`Self::read_bytes_until`] reads the provided bytes into a Vec consuming read cursor, until it
     /// finds the relevant else stopping.
     ///
     /// If the new line byte is not found then everything read till that point is appended to the
@@ -2066,7 +2066,7 @@ impl<T: Read> ByteBufferPointer<T> {
         }
     }
 
-    /// [`read_line`] reads the provided line into a string and consumes the read data moving
+    /// [`Self::read_line`] reads the provided line into a string and consumes the read data moving
     /// the cusrsor forward.
     ///
     /// If the new line byte is not found then everything read till that point is appended to the
@@ -2131,7 +2131,7 @@ impl<T: Read> ByteBufferPointer<T> {
         }
     }
 
-    /// [`read_all`] pulls the whole data within the underlying stream into provided buffer
+    /// [`Self::read_all`] pulls the whole data within the underlying stream into provided buffer
     /// returning the total length of bytes read out after pulling all the data within the
     /// stream until EOF.
     ///

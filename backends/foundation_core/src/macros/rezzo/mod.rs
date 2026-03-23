@@ -1,6 +1,6 @@
 //! Module implementing custom helpers for working with results.
 
-/// [`on_result`] lets you inline the underline actions you want a result to
+/// `on_result` lets you inline the underline actions you want a result to
 /// be handled both for it's ok state and error state.
 ///
 /// # Example
@@ -41,7 +41,7 @@ mod test_on_result {
     }
 }
 
-/// [`unwrap_or_panic_log`] lets you unwrap the underlying OK value from a result, logging
+/// `unwrap_or_panic_log` lets you unwrap the underlying OK value from a result, logging
 /// and panicing on the error state.
 ///
 /// # Example
@@ -80,7 +80,7 @@ mod test_unwrap_or_panic_log {
     }
 }
 
-/// [`is_ok`] lets you perform an equality on the Ok value returning
+/// `is_ok` lets you perform an equality on the Ok value returning
 /// true or false if the values match or a definite false if its an Error
 /// and not a Ok value.
 ///

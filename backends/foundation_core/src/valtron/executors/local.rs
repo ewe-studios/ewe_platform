@@ -625,7 +625,7 @@ impl ExecutorState {
     /// # Panics
     ///
     /// 1. Will panic if when popping from the processing queue, we fail to get the top entry
-    ///    as at this point work should be in queue before [`do_work`] is called.
+    ///    as at this point work should be in queue before `do_work` is called.
     ///
     #[inline]
     #[tracing::instrument(skip(self, engine))]
@@ -1575,8 +1575,8 @@ impl ReferencedExecutorState {
 ///
 /// - Task Graph: internally the executor should keep a graph (`HashMap` really) that maps Task to it's
 ///   Dependents (the lifter) in this case, this allows us to do the following:
-///   1. Task A lifts Task B so we store in Map: {B: Vec[A]}
-///   2. Task B lifts Task C so we store in Map: {C: Vec[B], B: Vec[A]}
+///   1. Task A lifts Task B so we store in Map: {`B`: Vec<[`A`](crate::valtron::executors::actions::Action)>}
+///   2. Task B lifts Task C so we store in Map: {`C`: Vec<[`B`](crate::valtron::executors::actions::Action)>, `B`: Vec<[`A`](crate::valtron::executors::actions::Action)>}
 ///   3. With Above we can identify the dependency tree by going Task C -> Task B -> Task A to
 ///      understand the relationship graph and understand which tasks we need to move out of
 ///      processing since Task C is now sleeping for some period of time.
@@ -1863,7 +1863,7 @@ impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
 
 #[allow(unused)]
 impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
-    /// [`get_rng`] returns the `LocalThreadExecutor` random number
+    /// `get_rng` returns the `LocalThreadExecutor` random number
     /// generator that allows you generate predictable and repeatable
     /// random numbers consistently where such a property is very useful
     /// e.g When doing [DST](https://docs.tigerbeetle.com/about/vopr/).
@@ -1872,15 +1872,15 @@ impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
         self.state.get_rng()
     }
 
-    /// [`run_once`] provides a fine-grained control at what you can
+    /// `run_once` provides a fine-grained control at what you can
     /// think of as a single tick of progress by the executor.
     /// It will ask the executor to make one singular move in work time
     /// allowing the top task to make progress, this is super useful when
     /// you an an environment where fine-grained control is super important
     /// and you do not care about the `ProcessController` or wish to call
-    /// and handle that portion yourself unlike in [`block_on`].
+    /// and handle that portion yourself unlike in `block_on`.
     ///
-    /// [`block_on`] and [`block_until_finished`] call [`run_once`] internally
+    /// `block_on` and `block_until_finished` call `run_once` internally
     /// as well.
     #[inline]
     pub fn run_once(&self) -> ProgressIndicator {
@@ -1894,11 +1894,11 @@ impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
         self.state.schedule_and_do_work(Box::new(local_executor))
     }
 
-    /// [`run_until`] provides a fine-grained of the executor which allows
+    /// `run_until` provides a fine-grained of the executor which allows
     /// you to loop the executor until it reaches a giving [`ProgressIndicator`]
     /// state upon which you wish it to stop.
     ///
-    /// This keeps executing the [`schedule_and_do_work`] until the condition
+    /// This keeps executing the `schedule_and_do_work` until the condition
     /// with the function is true.
     #[inline]
     #[tracing::instrument(skip(self, checker))]
@@ -1939,7 +1939,7 @@ impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
         tracing::debug!("run_until: exited loop");
     }
 
-    /// [`block_until_finished`] defers from [`block_on`] in that it will
+    /// `block_until_finished` defers from `block_on` in that it will
     /// continue to execute the executor till the task is ideally finished
     /// and no more work remains in this task.
     ///
@@ -1950,7 +1950,7 @@ impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
     /// More so, this provides fine grained control to the user to decide at what
     /// point in time they will call the executor to begin progressing on tasks
     /// which allows them to add one or more tasks into the queue before triggering
-    /// processing via [`block_until_finished`].
+    /// processing via `block_until_finished`.
     #[inline]
     pub fn block_until_finished(&self) {
         let span = tracing::trace_span!("LocalThreadExecutor::block_until_finished");
@@ -1978,7 +1978,7 @@ impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
     ///
     /// # Panics
     ///
-    /// 1. Will panic if [`self.kill_signal`] is not instantiated or set.
+    /// 1. Will panic if `self.kill_signal` is not instantiated or set.
     ///
     #[inline]
     pub fn block_on(&self) {
@@ -2104,7 +2104,7 @@ where
     ExecutionTaskIteratorBuilder::new(engine)
 }
 
-/// `send_typed_task` will unlike [`type_task`] deliver the provided
+/// `send_typed_task` will unlike `type_task` deliver the provided
 /// typed task to the global queue instead of the local queue via the provided
 /// `ExecutionEngine`.
 #[must_use]

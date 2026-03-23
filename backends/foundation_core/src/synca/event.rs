@@ -128,7 +128,7 @@ impl LockSignal {
         self.signal(NotifyDirective::All);
     }
 
-    /// [`lock_and_wait`] will lock the `LockSignal` and
+    /// [`Self::lock_and_wait`] will lock the `LockSignal` and
     /// block the current thread till it gets a notification
     /// to wakeup.
     pub fn lock_and_wait(&self) {

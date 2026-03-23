@@ -95,7 +95,7 @@ impl<T> Receiver<T> {
     }
 
     /// `recv_timeout` attempts to read value from the channel within the specified duration.
-    /// It internally uses [`thread::park_timeout`] to block the current thread
+    /// It internally uses [`std::thread::park_timeout`] to block the current thread
     /// for a given duration until a value is received or the timeout is reached.
     pub fn recv_timeout(&self, dur: std::time::Duration) -> Result<T, ReceiverError> {
         let started = Instant::now();
@@ -141,7 +141,7 @@ impl<T> RecvIter<T> {
         Self { chan }
     }
 
-    /// [`as_iter`] returns a new iterator that will block for 50 nanoseconds
+    /// [`Self::as_iter`] returns a new iterator that will block for 50 nanoseconds
     /// if the channel is empty and will yield to the OS thread scheduler if no
     /// content is received.
     #[must_use]
@@ -149,7 +149,7 @@ impl<T> RecvIter<T> {
         RecvIterator::ten_nano(self)
     }
 
-    /// [`block_iter`] returns a new iterator that will block for provided duration
+    /// [`Self::block_iter`] returns a new iterator that will block for provided duration
     /// if the channel is empty and will yield to the OS thread scheduler if no
     /// content is received.
     #[must_use]
@@ -172,7 +172,7 @@ impl<T> RecvIter<T> {
         self.chan.len()
     }
 
-    /// [`recv`] returns a Result of the value from the underlying channel if
+    /// [`Self::recv`] returns a Result of the value from the underlying channel if
     /// there is a value or if empty or closed.
     pub fn recv(&self) -> Result<T, ReceiverError> {
         match self.chan.pop() {
@@ -184,7 +184,7 @@ impl<T> RecvIter<T> {
         }
     }
 
-    /// [`block_recv`] blocks the thread with a spinning loop waiting for an item
+    /// [`Self::block_recv`] blocks the thread with a spinning loop waiting for an item
     /// to be received on the channel.
     pub fn block_recv(&self, block_ts: time::Duration) -> Result<T, ReceiverError> {
         let mut yield_now = false;
@@ -212,7 +212,7 @@ impl<T> RecvIter<T> {
     }
 }
 
-/// [`RecvIterator`] implements an iterator for the [`RecvIter`] type.
+/// `RecvIterator` implements an iterator for the [`RecvIter`] type.
 ///
 /// The [`time::Duration`] received indicates how long it will block to get
 /// the next value upon which it will yield, if no value is received before

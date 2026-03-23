@@ -57,7 +57,7 @@ where
     }
 
     /// Creates a new HTTP request task with connection pool
-    /// from the provided [`GetHttpRequestStreamInner`].
+    /// from the provided `GetHttpRequestStreamInner`.
     #[must_use]
     pub fn from_data(data: SendRequest<R>) -> Self {
         Self(Some(HttpOperationState::Init), data)

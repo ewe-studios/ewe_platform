@@ -40,7 +40,7 @@ where
     pool.run_until();
 }
 
-/// [`thread_pool`] is the core function for initializing a thread pool which is
+/// `thread_pool` is the core function for initializing a thread pool which is
 /// then returned for scheduling tasks on the pool.
 pub fn initialize_pool(seed_for_rng: u64, user_thread_num: Option<usize>) -> &'static ThreadPool {
     // register thread pool
@@ -78,7 +78,7 @@ pub fn initialize_pool(seed_for_rng: u64, user_thread_num: Option<usize>) -> &'s
 ///
 /// ## Panics
 /// The following function will panic if the thread pool has not being initialized
-/// via call to [`thread_pool`] to setup global thread pool instance.
+/// via call to `thread_pool` to setup global thread pool instance.
 pub fn spawn<Task, Action>() -> ThreadPoolTaskBuilder<
     Task::Ready,
     Task::Pending,
@@ -106,7 +106,7 @@ where
 ///
 /// ## Panics
 /// The following function will panic if the thread pool has not being initialized
-/// via call to [`thread_pool`] to setup global thread pool instance.
+/// via call to `thread_pool` to setup global thread pool instance.
 pub fn spawn2<Task, Action, Mapper, Resolver>(
 ) -> ThreadPoolTaskBuilder<Task::Ready, Task::Pending, Action, Mapper, Resolver, Task>
 where

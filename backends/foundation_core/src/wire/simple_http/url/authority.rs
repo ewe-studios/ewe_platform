@@ -276,7 +276,7 @@ impl Host {
     ///
     /// WHAT: Returns a formatted string representation suitable for URIs:
     /// - IPv4: "192.168.1.1"
-    /// - IPv6: "[`::1`]" (with brackets for URI)
+    /// - IPv6: "`::1`" (with brackets for URI)
     /// - `RegName`: "example.com"
     ///
     /// HOW: Uses Rust's built-in Display implementations for IP addresses.

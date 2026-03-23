@@ -205,7 +205,7 @@ where
     stream
 }
 
-/// [`run_until`] provides a unified method to attempt to execute the `run_until`.
+/// `run_until` provides a unified method to attempt to execute the `run_until`.
 /// in a non cfg way by encapsulating that call and configuration into this method.
 ///
 /// This really only apply for single threaded situations (multi=off feature flag) and wasm context.
@@ -254,7 +254,7 @@ pub fn run_until_complete() {
     }
 }
 
-/// [`run_once`] provides a unified method to attempt to execute the `run_once`.
+/// `run_once` provides a unified method to attempt to execute the `run_once`.
 /// in a non cfg way by encapsulating that call and configuration into this method.
 ///
 /// This really only apply for single threaded situations (multi=off feature flag) and wasm context.
@@ -281,14 +281,14 @@ pub fn run_once() {
 // Future based iterators methods
 // ===========================================
 
-/// [`from_future`] creates a new [`DrivenSendTaskIterator<FutureTask<S>>`]
+/// `from_future` creates a new [`DrivenSendTaskIterator<FutureTask<S>>`]
 /// task iterator which will internally drive the state of the stream in single threaded
 /// environments or rely on the multi-threaded executor in multi-threaded environments.
 ///
-/// This makes it easy to hide away the need to litter your project codebase with [`run_until`]
+/// This makes it easy to hide away the need to litter your project codebase with `run_until`
 /// types of function calls and abstract out that portion.
 ///
-/// It relies on the [`drive_iter`] method to drive the state of the stream which internally
+/// It relies on the `drive_iter` method to drive the state of the stream which internally
 /// uses the [`run_until_next_state`] function.
 #[cfg(all(any(feature = "std", feature = "alloc"), target_arch = "wasm32"))]
 pub fn drive_future<F>(future: F) -> DrivenNonSendTaskIterator<FutureTask<F>>
@@ -299,14 +299,14 @@ where
     drive_non_send_iterator(crate::valtron::from_future(future))
 }
 
-/// [`from_future`] creates a new [`DrivenSendTaskIterator<FutureTask<S>>`]
+/// `from_future` creates a new [`DrivenSendTaskIterator<FutureTask<S>>`]
 /// task iterator which will internally drive the state of the stream in single threaded
 /// environments or rely on the multi-threaded executor in multi-threaded environments.
 ///
-/// This makes it easy to hide away the need to litter your project codebase with [`run_until`]
+/// This makes it easy to hide away the need to litter your project codebase with `run_until`
 /// types of function calls and abstract out that portion.
 ///
-/// It relies on the [`drive_iter`] method to drive the state of the stream which internally
+/// It relies on the `drive_iter` method to drive the state of the stream which internally
 /// uses the [`run_until_next_state`] function.
 #[cfg(all(any(feature = "std", feature = "alloc"), not(target_arch = "wasm32")))]
 pub fn drive_future<F>(future: F) -> DrivenSendTaskIterator<FutureTask<F>>
@@ -317,14 +317,14 @@ where
     drive_iterator(crate::valtron::from_future(future))
 }
 
-/// [`from_future_stream`] creates a new [`DrivenSendTaskIterator<StreamTask<S>>`]
+/// `from_future_stream` creates a new [`DrivenSendTaskIterator<StreamTask<S>>`]
 /// task iterator which will internally drive the state of the stream in single threaded
 /// environments or rely on the multi-threaded executor in multi-threaded environments.
 ///
-/// This makes it easy to hide away the need to litter your project codebase with [`run_until`]
+/// This makes it easy to hide away the need to litter your project codebase with `run_until`
 /// types of function calls and abstract out that portion.
 ///
-/// It relies on the [`drive_iter`] method to drive the state of the stream which internally
+/// It relies on the `drive_iter` method to drive the state of the stream which internally
 /// uses the [`run_until_next_state`] function.
 #[cfg(all(any(feature = "std", feature = "alloc"), not(target_arch = "wasm32")))]
 pub fn drive_future_stream<S>(stream: S) -> DrivenSendTaskIterator<StreamTask<S>>
@@ -335,14 +335,14 @@ where
     drive_iterator(crate::valtron::from_stream(stream))
 }
 
-/// [`from_future`] creates a new [`DrivenNonSendTaskIterator<FutureTask<S>>`]
+/// `from_future` creates a new [`DrivenNonSendTaskIterator<FutureTask<S>>`]
 /// task iterator which will internally drive the state of the stream in single threaded
 /// environments or rely on the multi-threaded executor in multi-threaded environments.
 ///
-/// This makes it easy to hide away the need to litter your project codebase with [`run_until`]
+/// This makes it easy to hide away the need to litter your project codebase with `run_until`
 /// types of function calls and abstract out that portion.
 ///
-/// It relies on the [`drive_iter`] method to drive the state of the stream which internally
+/// It relies on the `drive_iter` method to drive the state of the stream which internally
 /// uses the [`run_until_next_state`] function.
 #[cfg(all(any(feature = "std", feature = "alloc"), target_arch = "wasm32"))]
 pub fn drive_future_stream<S>(stream: S) -> DrivenNonSendTaskIterator<StreamTask<S>>
@@ -360,7 +360,7 @@ where
 /// [`inlined_non_send_mapped_task`] creates an inlined task you can use within another task that
 /// lets you forward the task as a action your main task can send for execution
 /// as part of it's process, allowing you to define the Spawner type for the parent
-/// task in a specific type or using [`BoxedTaskAction`]
+/// task in a specific type or using `BoxedTaskAction`
 ///
 /// You then are able to receive the output of that task from the returned
 /// channel [`RecvIterator<TaskStatus<Done, Pending, Action>>`].
@@ -424,7 +424,7 @@ where
 /// [`inlined_mapped_task`] creates an inlined task you can use within another task that
 /// lets you forward the task as a action your main task can send for execution
 /// as part of it's process, allowing you to define the Spawner type for the parent
-/// task in a specific type or using [`BoxedTaskAction`]
+/// task in a specific type or using `BoxedTaskAction`
 ///
 /// You then are able to receive the output of that task from the returned
 /// channel [`RecvIterator<TaskStatus<Done, Pending, Action>>`].
@@ -928,7 +928,7 @@ where
     }
 }
 
-// This is safe to send since it contains a type [`RecvIterator`]
+// This is safe to send since it contains a type `RecvIterator`
 // which is safe to send.
 unsafe impl<T> Send for DrivenRecvIterator<T>
 where

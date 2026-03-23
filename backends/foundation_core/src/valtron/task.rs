@@ -213,7 +213,7 @@ pub type BoxedTaskIterator<D, P, S> = Box<dyn Iterator<Item = TaskStatus<D, P, S
 /// those states both for either a singular result or multiple elements.
 ///
 /// This means this can keep producing elements as and the caller simply takes the
-/// [`TaskStatus::Done`] state results (if they only care about the final value)
+/// `TaskStatus::Done` state results (if they only care about the final value)
 /// else use the other state for whatever is sensible.
 ///
 /// One thing to note is, the same restrictions apply with these iterators, you do
@@ -266,7 +266,7 @@ pub trait TaskIterator {
         TaskAsIterator(Box::new(self))
     }
 
-    /// [`into_asstream`] returns a [`AsStream`] instance which takes ownership
+    /// `into_asstream` returns a [`AsStream`] instance which takes ownership
     /// of implementer of `TaskIterator` directly without boxing the underlying type
     /// within a [`Box`] essentially it is stack friendly but due to limitations for the
     /// iterator type, `self` is still boxed and wrapped with a [`TaskAsIterator`].
@@ -286,7 +286,7 @@ pub trait TaskIterator {
         AsStream::new(TaskAsIterator(Box::new(self)))
     }
 
-    /// [`into_ready_values`] returns a [`ReadyValues`] iterator implementing instance
+    /// `into_ready_values` returns a [`ReadyValues`] iterator implementing instance
     /// which takes ownership of implementer of `TaskIterator` directly without boxing
     /// the underlying type within a [`Box`] essentially it is stack friendly but
     /// due to limitations for the iterator type, `self` is still
@@ -586,7 +586,7 @@ pub enum ExecutorError {
     NotSupported,
 
     /// A given executor has no provided task in the case of a [`TaskIterator`]
-    /// based [`ExecutorIterator`].
+    /// based `ExecutorIterator`.
     TaskRequired,
 
     #[from(ignore)]
@@ -602,12 +602,12 @@ impl core::fmt::Display for ExecutorError {
     }
 }
 
-/// [`ExecutorEngine`] is the backbone of the valtron execution model
+/// `ExecutorEngine` is the backbone of the valtron execution model
 /// they can be spawned within threads or be the singular owner
 /// of a thread which the user/caller create to manage execution within the
 /// thread.
 pub trait ExecutionEngine {
-    /// [`sequenced`] prioritizes an incoming task to the top of the local
+    /// `sequenced` prioritizes an incoming task to the top of the local
     /// execution queue as a sequential operation that links both this task
     /// and parent into a execution loop where one execution of the task
     /// must lead to the execution of the parent as well.
@@ -620,7 +620,7 @@ pub trait ExecutionEngine {
         parent: Entry,
     ) -> AnyResult<SpawnInfo, ExecutorError>;
 
-    /// [`lift`] prioritizes an incoming task to the top of the local
+    /// `lift` prioritizes an incoming task to the top of the local
     /// execution queue which pauses all processing task till that
     /// point till the new task is done or goes to sleep (dependent on
     /// the internals of the `ExecutionEngine`).
@@ -637,22 +637,22 @@ pub trait ExecutionEngine {
         parent: Option<Entry>,
     ) -> AnyResult<SpawnInfo, ExecutorError>;
 
-    /// [`schedule`] adds provided incoming task to the bottom of the local
+    /// `schedule` adds provided incoming task to the bottom of the local
     /// execution queue which pauses all processing task till that
     /// point till the new task is done or goes to sleep (dependent on
     /// the internals of the `ExecutionEngine`).
     fn schedule(&self, task: BoxedExecutionIterator) -> AnyResult<SpawnInfo, ExecutorError>;
 
-    /// [`broadcast`] allows you to deliver a task to the global execution queue
+    /// `broadcast` allows you to deliver a task to the global execution queue
     /// which then lets the giving task to be sent of to the same or another
     /// executor in another thread for processing, which requires the type to be
     /// `Send` safe.
     fn broadcast(&self, task: BoxedSendExecutionIterator) -> AnyResult<SpawnInfo, ExecutorError>;
 
-    /// [`boxed_engine`] returns a instance of the engine as a [`BoxedExecutionEngine`].
+    /// `boxed_engine` returns a instance of the engine as a [`BoxedExecutionEngine`].
     fn boxed_engine(&self) -> BoxedExecutionEngine;
 
-    /// [`shared_queue`] returns access to the global queue.
+    /// `shared_queue` returns access to the global queue.
     fn shared_queue(&self) -> SharedTaskQueue;
 
     /// rng returns a shared thread-safe `ChaCha8Rng` random generation
@@ -1007,7 +1007,7 @@ mod test_fn_mapper {
     }
 }
 
-/// [`OnceCache`] implements a [`TaskStatus`] iterator that wraps
+/// [`OnceCache`] implements a `TaskStatus` iterator that wraps
 /// a provided iterator and provides a onetime read semantic
 /// on the iterator, where it ends its operation once the first
 /// value the iterator is received and returns None from then on.

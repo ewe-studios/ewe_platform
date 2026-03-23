@@ -15,7 +15,7 @@ pub trait ProcessController {
     /// to achive this. Think of this to be similar to `thread::yield_now()`.
     fn yield_process(&self);
 
-    /// [`yield_for`] specifically exits to block the relevant
+    /// `yield_for` specifically exits to block the relevant
     /// thread efficiently for the specified period of time which
     /// will allow the giving thread to be put on old by the CPU
     /// without spining uselessly, but this also depends on

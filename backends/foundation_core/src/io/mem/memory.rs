@@ -259,7 +259,7 @@ pub fn calculate_size_for<T>(by_multiple: Option<usize>) -> usize {
 /// `TypeArena<T>` provides a pre-allocated memory that can grow
 /// and store a specific element of a given type.
 /// It grows with usage and continuously keeps the memory
-/// available for the lifetime of the [`T`].
+/// available for the lifetime of the `T`.
 #[derive(Debug, Clone)]
 pub struct TypeArena<T> {
     limiter: SharedMemoryLimiter,

@@ -130,11 +130,11 @@ impl<T> Iterator for CanCloneSendIterator<T> {
 }
 
 /// [`BoxedIterator`] defines a type alias for a boxed iterator that always returns a object of type
-/// [`T`].
+/// `T`.
 pub type BoxedIterator<T> = Box<dyn Iterator<Item = T>>;
 
 /// [`BoxedSendIterator`] defines a type alias for a boxed iterator that always returns a object of type
-/// [`T`].
+/// `T`.
 pub type BoxedSendIterator<T> = Box<dyn Iterator<Item = T> + Send>;
 
 /// [`BoxedSendableIterator`] defines a type which is an iterator that can also be Send.

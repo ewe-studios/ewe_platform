@@ -100,10 +100,10 @@ impl<
         self
     }
 
-    /// [`scheduled_stream_iter`] adds a task into execution queue but instead of depending
+    /// `scheduled_stream_iter` adds a task into execution queue but instead of depending
     /// on a [`TaskReadyResolver`] to process the final state instead allows you
     /// to get back a wrapper iterator that allows you synchronously receive those
-    /// values from a [`StreamRecvIterator`] that implements the [`Iterator`] trait.
+    /// values from a `StreamRecvIterator` that implements the [`Iterator`] trait.
     ///
     /// This makes it possible to build synchronous experiences in a async world.
     ///
@@ -130,14 +130,14 @@ impl<
             .map(|_| StreamRecvIterator::new(RecvIterator::from_chan(iter_chan, wait_cycle)))
     }
 
-    /// [`schedule_iter`] adds a task into execution queue but instead of depending
+    /// `schedule_iter` adds a task into execution queue but instead of depending
     /// on a [`TaskReadyResolver`] to process the final state instead allows you
     /// to get back a wrapper iterator that allows you synchronously receive those
-    /// values from a [`RecvIterator`] that implements the [`Iterator`] trait.
+    /// values from a `RecvIterator` that implements the [`Iterator`] trait.
     ///
     /// This makes it possible to build synchronous experiences in a async world.
     ///
-    /// Following our naming: [`schedule_iter`] calls the `schedule` method to deliver
+    /// Following our naming: `schedule_iter` calls the `schedule` method to deliver
     /// a task to the bottom of the thread-local execution queue.
     #[must_use]
     pub fn schedule_iter(
@@ -161,7 +161,7 @@ impl<
             .map(|_| RecvIterator::from_chan(iter_chan, wait_cycle))
     }
 
-    /// [`schedule`] delivers a task to the bottom of the thread-local execution queue.
+    /// `schedule` delivers a task to the bottom of the thread-local execution queue.
     #[must_use]
     pub fn schedule(self) -> AnyResult<SpawnInfo, ExecutorError> {
         match self.task {
@@ -184,14 +184,14 @@ impl<
         }
     }
 
-    /// [`lift_iter`] adds a task into execution queue but instead of depending
+    /// `lift_iter` adds a task into execution queue but instead of depending
     /// on a [`TaskReadyResolver`] to process the final state instead allows you
     /// to get back a wrapper iterator that allows you synchronously receive those
-    /// values from a [`RecvIterator`] that implements the [`Iterator`] trait.
+    /// values from a `RecvIterator` that implements the [`Iterator`] trait.
     ///
     /// This makes it possible to build synchronous experiences in a async world.
     ///
-    /// Following our naming: [`lift_iter`] calls the `lift` method to deliver
+    /// Following our naming: `lift_iter` calls the `lift` method to deliver
     /// a task to the top of the thread-local execution queue.
     #[must_use]
     pub fn lift_iter(
@@ -216,8 +216,8 @@ impl<
             .map(|_| RecvIterator::from_chan(iter_chan, wait_cycle))
     }
 
-    /// [`stream_lift_iter`] similar to [`lift_iter`] returns a [`StreamRecvIterator`]
-    /// which returns a simplified representatiopn without the complexity of the [`Action`]
+    /// `stream_lift_iter` similar to `lift_iter` returns a `StreamRecvIterator`
+    /// which returns a simplified representatiopn without the complexity of the `Action`
     /// type providing easier usage within logic blocks.
     #[must_use]
     pub fn stream_lift_iter(
@@ -242,7 +242,7 @@ impl<
             .map(|_| StreamRecvIterator::new(RecvIterator::from_chan(iter_chan, wait_cycle)))
     }
 
-    /// [`lift`] delivers a task to the top of the thread-local execution queue.
+    /// `lift` delivers a task to the top of the thread-local execution queue.
     #[must_use]
     pub fn lift(self) -> AnyResult<SpawnInfo, ExecutorError> {
         let parent = self.parent;
@@ -266,7 +266,7 @@ impl<
         }
     }
 
-    /// [`sequenced_iter`] creates a iterator from a sequenced task allowing you
+    /// `sequenced_iter` creates a iterator from a sequenced task allowing you
     /// to use that to get the result.
     #[must_use]
     pub fn sequenced_iter(
@@ -361,7 +361,7 @@ impl<
         Task: TaskIterator<Pending = Pending, Ready = Done, Spawner = Action> + Send + 'static,
     > ExecutionTaskIteratorBuilder<Done, Pending, Action, Mapper, Resolver, Task>
 {
-    /// [`broadcast`] delivers a task to the bottom of the global execution queue.
+    /// `broadcast` delivers a task to the bottom of the global execution queue.
     #[must_use]
     pub fn broadcast(self) -> AnyResult<SpawnInfo, ExecutorError> {
         let task: AnyResult<BoxedSendExecutionIterator, ExecutorError> = match self.task {
@@ -379,8 +379,8 @@ impl<
         self.engine.broadcast(task?)
     }
 
-    /// [`stream_broadcast_iter`] similar to [`broasdcast_iter`] returns a [`StreamRecvIterator`]
-    /// which returns a simplified representatiopn without the complexity of the [`Action`]
+    /// `stream_broadcast_iter` similar to `broasdcast_iter` returns a `StreamRecvIterator`
+    /// which returns a simplified representatiopn without the complexity of the `Action`
     /// type providing easier usage within logic blocks.
     #[must_use]
     pub fn stream_broadcast_iter(
@@ -404,14 +404,14 @@ impl<
             .map(|_| StreamRecvIterator::new(RecvIterator::from_chan(iter_chan, wait_cycle)))
     }
 
-    /// [`broadcast_iter`] adds a task into execution queue but instead of depending
+    /// `broadcast_iter` adds a task into execution queue but instead of depending
     /// on a [`TaskReadyResolver`] to process the final state instead allows you
     /// to get back a wrapper iterator that allows you synchronously receive those
-    /// values from a [`RecvIterator`] that implements the [`Iterator`] trait.
+    /// values from a `RecvIterator` that implements the [`Iterator`] trait.
     ///
     /// This makes it possible to build synchronous experiences in a async world.
     ///
-    /// Following our naming: [`broadcast_iter`] calls the `broadcast` method to deliver
+    /// Following our naming: `broadcast_iter` calls the `broadcast` method to deliver
     /// a task to the bottom of the global execution queue.
     #[must_use]
     pub fn broadcast_iter(
