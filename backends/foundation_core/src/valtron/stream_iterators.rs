@@ -132,7 +132,7 @@ pub trait StreamIteratorExt<D, P>: StreamIterator<D, P> + Sized {
     /// ## Arguments
     ///
     /// * `predicate` - Function determining which items to send to observer
-    /// * `queue_size` - Size of the ConcurrentQueue between branches
+    /// * `queue_size` - Size of the `ConcurrentQueue` between branches
     ///
     /// ## Returns
     ///
@@ -163,7 +163,7 @@ pub trait StreamIteratorExt<D, P>: StreamIterator<D, P> + Sized {
         P: Clone,
         Pred: Fn(&Stream<D, P>) -> bool + Send + 'static;
 
-    /// Convenience method: split_collector with queue_size = 1.
+    /// Convenience method: `split_collector` with `queue_size` = 1.
     fn split_collect_one<Pred>(
         self,
         predicate: Pred,
@@ -214,7 +214,7 @@ pub trait StreamIteratorExt<D, P>: StreamIterator<D, P> + Sized {
         P: Clone,
         F: Fn(&Stream<D, P>) -> (bool, Option<Stream<DM, PM>>) + Send + 'static;
 
-    /// Convenience method: split_collector_map with queue_size = 1.
+    /// Convenience method: `split_collector_map` with `queue_size` = 1.
     fn split_collect_one_map<F, DM, PM>(
         self,
         transform: F,
@@ -662,10 +662,10 @@ where
 // Split Collector Combinators (Feature 07)
 // ============================================================================
 
-/// Observer branch from split_collector() for StreamIterator.
+/// Observer branch from `split_collector()` for `StreamIterator`.
 ///
-/// Receives copies of items matching the predicate via a ConcurrentQueue.
-/// Yields Stream::Next for matched items, forwards Pending/Delayed from source.
+/// Receives copies of items matching the predicate via a `ConcurrentQueue`.
+/// Yields `Stream::Next` for matched items, forwards Pending/Delayed from source.
 pub struct SCollectorStreamIterator<D, P> {
     /// Shared queue receiving copied items from the splitter
     queue: Arc<ConcurrentQueue<Stream<D, P>>>,
@@ -713,7 +713,7 @@ where
 {
 }
 
-/// Continuation branch from split_collector() for StreamIterator.
+/// Continuation branch from `split_collector()` for `StreamIterator`.
 ///
 /// Wraps the original iterator, copying matched items to the observer queue
 /// while continuing the chain for further combinators.
@@ -735,14 +735,11 @@ where
     type Item = Stream<D, P>;
 
     fn next(&mut self) -> Option<Self::Item> {
-        let item = match self.inner.next() {
-            Some(item) => item,
-            None => {
-                // Source iterator is naturally exhausted, close the queue
-                self.queue.close();
-                tracing::debug!("SSplitCollectorContinuation: source exhausted, queue closed");
-                return None;
-            }
+        let item = if let Some(item) = self.inner.next() { item } else {
+            // Source iterator is naturally exhausted, close the queue
+            self.queue.close();
+            tracing::debug!("SSplitCollectorContinuation: source exhausted, queue closed");
+            return None;
         };
 
         // Copy matched items to observer queue
@@ -787,7 +784,7 @@ where
 // Split Collect Until Combinator
 // ============================================================================
 
-/// Observer branch from split_collect_until() for StreamIterator.
+/// Observer branch from `split_collect_until()` for `StreamIterator`.
 ///
 /// Receives copies of items until the predicate is met, then the queue
 /// is closed and the observer completes.
@@ -835,7 +832,7 @@ where
 {
 }
 
-/// Continuation branch from split_collect_until() for StreamIterator.
+/// Continuation branch from `split_collect_until()` for `StreamIterator`.
 ///
 /// Wraps the original iterator, copying items to the observer queue
 /// based on the predicate's `CollectionState`. When predicate returns
@@ -858,14 +855,11 @@ where
     type Item = Stream<D, P>;
 
     fn next(&mut self) -> Option<Self::Item> {
-        let item = match self.inner.next() {
-            Some(item) => item,
-            None => {
-                // Source iterator is naturally exhausted, close the queue
-                self.queue.close();
-                tracing::debug!("SSplitUntilContinuation: source exhausted, queue closed");
-                return None;
-            }
+        let item = if let Some(item) = self.inner.next() { item } else {
+            // Source iterator is naturally exhausted, close the queue
+            self.queue.close();
+            tracing::debug!("SSplitUntilContinuation: source exhausted, queue closed");
+            return None;
         };
 
         // Handle items based on CollectionState from predicate
@@ -930,9 +924,9 @@ where
 // Split Collector Map Combinator
 // ============================================================================
 
-/// Observer branch from split_collector_map() for StreamIterator.
+/// Observer branch from `split_collector_map()` for `StreamIterator`.
 ///
-/// Receives transformed copies of matched items via a ConcurrentQueue.
+/// Receives transformed copies of matched items via a `ConcurrentQueue`.
 /// The observer yields `Stream<DM, PM>` where DM and PM are the mapped types
 /// from the transform function. This allows independent Done and Pending types.
 pub struct SSplitCollectorMapObserver<DM, PM> {
@@ -979,7 +973,7 @@ where
 {
 }
 
-/// Continuation branch from split_collector_map() for StreamIterator.
+/// Continuation branch from `split_collector_map()` for `StreamIterator`.
 ///
 /// Wraps the original iterator. The transform function returns `(bool, Option<Stream<DM, PM>>)`
 /// where DM and PM are independent Done and Pending types for the observer:
@@ -1006,13 +1000,10 @@ where
     type Item = Stream<D, P>;
 
     fn next(&mut self) -> Option<Self::Item> {
-        let item = match self.inner.next() {
-            Some(item) => item,
-            None => {
-                self.queue.close();
-                tracing::debug!("SSplitCollectorMapContinuation: source exhausted, queue closed");
-                return None;
-            }
+        let item = if let Some(item) = self.inner.next() { item } else {
+            self.queue.close();
+            tracing::debug!("SSplitCollectorMapContinuation: source exhausted, queue closed");
+            return None;
         };
 
         let (matched, transformed) = (self.transform)(&item);
@@ -1063,16 +1054,16 @@ where
 // Multi-Source Combinators (Feature 02)
 // ============================================================================
 
-/// Extension trait for multi-source StreamIterator combinators.
+/// Extension trait for multi-source `StreamIterator` combinators.
 ///
-/// These combinators work with multiple StreamIterators simultaneously,
+/// These combinators work with multiple `StreamIterators` simultaneously,
 /// aggregating their outputs or mapping them together.
 pub trait MultiSourceStreamIteratorExt<D, P> {
-    /// Collect all outputs from multiple StreamIterators into a single Vec.
+    /// Collect all outputs from multiple `StreamIterators` into a single Vec.
     ///
     /// Polls all sources in round-robin fashion, collecting Next values.
-    /// Yields Stream::Pending with count while any source is still producing.
-    /// Yields Stream::Next with all collected values when all sources complete.
+    /// Yields `Stream::Pending` with count while any source is still producing.
+    /// Yields `Stream::Next` with all collected values when all sources complete.
     fn collect_all<I>(iterators: Vec<I>) -> CollectAll<I, D, P>
     where
         I: StreamIterator<D, P> + Send + 'static,
@@ -1148,11 +1139,11 @@ where
     }
 }
 
-/// Multi-source collector that aggregates outputs from multiple StreamIterators.
+/// Multi-source collector that aggregates outputs from multiple `StreamIterators`.
 ///
 /// Polls all sources in round-robin, collecting Next values.
-/// Yields Stream::Pending(count) while gathering.
-/// Yields Stream::Next(Vec<D>) when all sources complete.
+/// Yields `Stream::Pending(count)` while gathering.
+/// Yields `Stream::Next(Vec`<D>) when all sources complete.
 pub struct CollectAll<I, D, P> {
     sources: Vec<I>,
     collected: Vec<D>,
@@ -1166,6 +1157,7 @@ where
     D: Clone + Send + 'static,
     P: Send + 'static,
 {
+    #[must_use] 
     pub fn new(iterators: Vec<I>) -> Self {
         Self {
             sources: iterators,
@@ -1324,9 +1316,9 @@ where
         }
 
         // Check if all sources have produced a value
-        if self.buffer.iter().all(|x| x.is_some()) {
+        if self.buffer.iter().all(std::option::Option::is_some) {
             self.done = true;
-            let values: Vec<D> = self.buffer.drain(..).filter_map(|x| x).collect();
+            let values: Vec<D> = self.buffer.drain(..).flatten().collect();
             let result = (self.mapper)(values);
             return Some(Stream::Next(result));
         }
@@ -1400,13 +1392,10 @@ where
         let mut states: Vec<Stream<D, P>> = Vec::with_capacity(self.sources.len());
 
         for source in &mut self.sources {
-            match source.next() {
-                Some(state) => {
-                    states.push(state);
-                }
-                None => {
-                    // Source exhausted
-                }
+            if let Some(state) = source.next() {
+                states.push(state);
+            } else {
+                // Source exhausted
             }
         }
 

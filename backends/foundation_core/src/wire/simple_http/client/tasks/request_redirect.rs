@@ -149,7 +149,7 @@ impl<R: DnsResolver + Send + 'static> TaskIterator for GetHttpRequestRedirectTas
                         None
                     };
 
-                    let proxy_config = env_proxy.as_ref().or_else(|| {
+                    let proxy_config = env_proxy.as_ref().or({
                         config.proxy.as_ref()
                     });
 

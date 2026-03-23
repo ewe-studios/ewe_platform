@@ -148,14 +148,14 @@ impl WebSocketUpgrade {
         }
 
         let response = builder.build().map_err(|e| {
-            WebSocketError::ProtocolError(format!("Failed to build response: {}", e))
+            WebSocketError::ProtocolError(format!("Failed to build response: {e}"))
         })?;
 
         // Render response to bytes
         let response_bytes_vec = Http11::response(response)
             .http_render_string()
             .map_err(|e| {
-                WebSocketError::ProtocolError(format!("Failed to render response: {}", e))
+                WebSocketError::ProtocolError(format!("Failed to render response: {e}"))
             })?;
 
         let response_bytes: Vec<Vec<u8>> = response_bytes_vec
@@ -176,7 +176,7 @@ impl WebSocketUpgrade {
 ///
 /// HOW: Wraps `SharedByteBufferStream<RawStream>` and manages connection state.
 /// Outgoing frames are encoded without masking.
-/// Uses BatchFrameWriter for efficient frame writing.
+/// Uses `BatchFrameWriter` for efficient frame writing.
 pub struct WebSocketServerConnection {
     stream: SharedByteBufferStream<RawStream>,
     writer: BatchFrameWriter<SharedByteBufferStream<RawStream>>,
@@ -231,7 +231,7 @@ impl WebSocketServerConnection {
         }
     }
 
-    /// Send a WebSocket message (convenience wrapper around send_frame).
+    /// Send a WebSocket message (convenience wrapper around `send_frame`).
     ///
     /// # Errors
     ///
@@ -407,12 +407,12 @@ impl WebSocketServerConnection {
     }
 }
 
-/// Iterator over messages from a WebSocketServerConnection.
+/// Iterator over messages from a `WebSocketServerConnection`.
 pub struct ServerMessageIterator<'a> {
     conn: &'a mut WebSocketServerConnection,
 }
 
-impl<'a> Iterator for ServerMessageIterator<'a> {
+impl Iterator for ServerMessageIterator<'_> {
     type Item = Result<WebSocketMessage, WebSocketError>;
 
     fn next(&mut self) -> Option<Self::Item> {
@@ -429,7 +429,8 @@ impl WebSocketError {
     ///
     /// # Errors
     ///
-    /// Returns a ProtocolError indicating the masking violation.
+    /// Returns a `ProtocolError` indicating the masking violation.
+    #[must_use] 
     pub fn unmasked_client_frame() -> Self {
         WebSocketError::ProtocolError("Client sent unmasked frame".to_string())
     }

@@ -110,7 +110,7 @@ pub trait TaskIteratorExt: TaskIterator + Sized {
     /// ## Arguments
     ///
     /// * `predicate` - Function determining which items to send to observer
-    /// * `queue_size` - Size of the ConcurrentQueue between branches
+    /// * `queue_size` - Size of the `ConcurrentQueue` between branches
     ///
     /// ## Returns
     ///
@@ -141,7 +141,7 @@ pub trait TaskIteratorExt: TaskIterator + Sized {
         Self::Pending: Clone,
         P: Fn(&Self::Ready) -> bool + Send + 'static;
 
-    /// Convenience method: split_collector with queue_size = 1.
+    /// Convenience method: `split_collector` with `queue_size` = 1.
     ///
     /// Sends the first matching item to the observer, then continues.
     /// Perfect for "get intro first, then body" patterns.
@@ -180,12 +180,12 @@ pub trait TaskIteratorExt: TaskIterator + Sized {
     /// ## Arguments
     ///
     /// * `predicate` - Function returning `CollectionState` to control collection behavior
-    /// * `queue_size` - Size of the ConcurrentQueue between branches
+    /// * `queue_size` - Size of the `ConcurrentQueue` between branches
     ///
     /// ## Returns
     ///
     /// Tuple of:
-    /// - `SplitUntilObserver` - Observer that receives items based on CollectionState
+    /// - `SplitUntilObserver` - Observer that receives items based on `CollectionState`
     /// - `SplitUntilContinuation` - Continuation that continues the chain
     ///
     /// ## Example
@@ -232,8 +232,8 @@ pub trait TaskIteratorExt: TaskIterator + Sized {
     ///
     /// ## Arguments
     ///
-    /// * `transform` - Function returning (CollectionState, Option<D>) to control collection and transform
-    /// * `queue_size` - Size of the ConcurrentQueue between branches
+    /// * `transform` - Function returning (`CollectionState`, Option<D>) to control collection and transform
+    /// * `queue_size` - Size of the `ConcurrentQueue` between branches
     ///
     /// ## Returns
     ///
@@ -287,7 +287,7 @@ pub trait TaskIteratorExt: TaskIterator + Sized {
     /// ## Arguments
     ///
     /// * `transform` - Function returning (bool, Option<M>) to control matching and transform
-    /// * `queue_size` - Size of the ConcurrentQueue between branches
+    /// * `queue_size` - Size of the `ConcurrentQueue` between branches
     ///
     /// ## Returns
     ///
@@ -319,7 +319,7 @@ pub trait TaskIteratorExt: TaskIterator + Sized {
         Self::Pending: Clone,
         F: Fn(&Self::Ready) -> (bool, Option<M>) + Send + 'static;
 
-    /// Convenience method: split_collector_map with queue_size = 1.
+    /// Convenience method: `split_collector_map` with `queue_size` = 1.
     ///
     /// Sends the first matching transformed item to the observer, then continues.
     fn split_collect_one_map<F, M>(
@@ -739,10 +739,10 @@ where
 // Split Collector Combinators (Feature 07)
 // ============================================================================
 
-/// Observer branch from split_collector().
+/// Observer branch from `split_collector()`.
 ///
-/// Receives copies of items matching the predicate via a ConcurrentQueue.
-/// Yields Stream::Next for matched items, forwards Pending/Delayed from source.
+/// Receives copies of items matching the predicate via a `ConcurrentQueue`.
+/// Yields `Stream::Next` for matched items, forwards Pending/Delayed from source.
 pub struct CollectorStreamIterator<D, P> {
     /// Shared queue receiving copied items from the splitter
     queue: Arc<ConcurrentQueue<Stream<D, P>>>,
@@ -790,7 +790,7 @@ where
 {
 }
 
-/// Continuation branch from split_collector().
+/// Continuation branch from `split_collector()`.
 ///
 /// Wraps the original iterator, copying matched items to the observer queue
 /// while continuing the chain for further combinators.
@@ -812,14 +812,11 @@ where
     type Item = TaskStatus<I::Ready, I::Pending, I::Spawner>;
 
     fn next(&mut self) -> Option<Self::Item> {
-        let item = match self.inner.next_status() {
-            Some(item) => item,
-            None => {
-                // Source iterator is naturally exhausted, close the queue
-                self.queue.close();
-                tracing::debug!("SplitCollectorContinuation: source exhausted, queue closed");
-                return None;
-            }
+        let item = if let Some(item) = self.inner.next_status() { item } else {
+            // Source iterator is naturally exhausted, close the queue
+            self.queue.close();
+            tracing::debug!("SplitCollectorContinuation: source exhausted, queue closed");
+            return None;
         };
 
         // Copy matched items to observer queue
@@ -871,7 +868,7 @@ where
 // Split Collect Until Combinator
 // ============================================================================
 
-/// Observer branch from split_collect_until().
+/// Observer branch from `split_collect_until()`.
 ///
 /// Receives copies of items until the predicate is met, then the queue
 /// is closed and the observer completes.
@@ -919,7 +916,7 @@ where
 {
 }
 
-/// Continuation branch from split_collect_until().
+/// Continuation branch from `split_collect_until()`.
 ///
 /// Wraps the original iterator, copying items to the observer queue
 /// until the predicate is met. When predicate returns true, that item
@@ -942,14 +939,11 @@ where
     type Item = TaskStatus<I::Ready, I::Pending, I::Spawner>;
 
     fn next(&mut self) -> Option<Self::Item> {
-        let item = match self.inner.next_status() {
-            Some(item) => item,
-            None => {
-                // Source iterator is naturally exhausted, close the queue
-                self.queue.close();
-                tracing::debug!("SplitUntilContinuation: source exhausted, queue closed");
-                return None;
-            }
+        let item = if let Some(item) = self.inner.next_status() { item } else {
+            // Source iterator is naturally exhausted, close the queue
+            self.queue.close();
+            tracing::debug!("SplitUntilContinuation: source exhausted, queue closed");
+            return None;
         };
 
         // Handle items based on CollectionState from predicate
@@ -1028,7 +1022,7 @@ where
 // Split Collect Until Map Combinator
 // ============================================================================
 
-/// Observer branch from split_collect_until_map().
+/// Observer branch from `split_collect_until_map()`.
 ///
 /// Receives transformed copies of items until the predicate is met, then the queue
 /// is closed and the observer completes.
@@ -1076,7 +1070,7 @@ where
 {
 }
 
-/// Continuation branch from split_collect_until_map().
+/// Continuation branch from `split_collect_until_map()`.
 ///
 /// Wraps the original iterator. The transform function returns
 /// `(CollectionState, Option<D>)` to control both collection behavior and transformation.
@@ -1099,14 +1093,11 @@ where
     type Item = TaskStatus<I::Ready, I::Pending, I::Spawner>;
 
     fn next(&mut self) -> Option<Self::Item> {
-        let item = match self.inner.next_status() {
-            Some(item) => item,
-            None => {
-                // Source iterator is naturally exhausted, close the queue
-                self.queue.close();
-                tracing::debug!("SplitUntilContinuationMap: source exhausted, queue closed");
-                return None;
-            }
+        let item = if let Some(item) = self.inner.next_status() { item } else {
+            // Source iterator is naturally exhausted, close the queue
+            self.queue.close();
+            tracing::debug!("SplitUntilContinuationMap: source exhausted, queue closed");
+            return None;
         };
 
         // Handle items based on (CollectionState, Option<D>) from transform
@@ -1193,9 +1184,9 @@ where
 // Split Collector Map Combinator
 // ============================================================================
 
-/// Observer branch from split_collector_map().
+/// Observer branch from `split_collector_map()`.
 ///
-/// Receives transformed copies of matched Ready items via a ConcurrentQueue.
+/// Receives transformed copies of matched Ready items via a `ConcurrentQueue`.
 /// The observer yields `Stream<M, P>` where M is the mapped type from the transform function.
 pub struct SplitCollectorMapObserver<M, P> {
     /// Shared queue receiving transformed items from the continuation
@@ -1241,7 +1232,7 @@ where
 {
 }
 
-/// Continuation branch from split_collector_map().
+/// Continuation branch from `split_collector_map()`.
 ///
 /// Wraps the original iterator. The transform function returns `(bool, Option<M>)`:
 /// - `true` + `Some(m)` sends `m` to the observer queue
@@ -1265,13 +1256,10 @@ where
     type Item = TaskStatus<I::Ready, I::Pending, I::Spawner>;
 
     fn next(&mut self) -> Option<Self::Item> {
-        let item = match self.inner.next_status() {
-            Some(item) => item,
-            None => {
-                self.queue.close();
-                tracing::debug!("SplitCollectorMapContinuation: source exhausted, queue closed");
-                return None;
-            }
+        let item = if let Some(item) = self.inner.next_status() { item } else {
+            self.queue.close();
+            tracing::debug!("SplitCollectorMapContinuation: source exhausted, queue closed");
+            return None;
         };
 
         if let TaskStatus::Ready(value) = &item {

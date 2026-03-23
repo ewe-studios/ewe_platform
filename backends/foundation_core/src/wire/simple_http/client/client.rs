@@ -582,11 +582,11 @@ impl<R: DnsResolver> SimpleHttpClient<R> {
     /// WHAT: Parses proxy URL and sets it in client configuration.
     ///
     /// HOW: Parses URL with `ProxyConfig::parse()`, supports authentication
-    /// in URL format (http://user:pass@proxy.com:8080).
+    /// in URL format (<http://user:pass@proxy.com:8080>).
     ///
     /// # Arguments
     ///
-    /// * `proxy_url` - Proxy URL (e.g., "http://proxy.example.com:8080")
+    /// * `proxy_url` - Proxy URL (e.g., "<http://proxy.example.com:8080>")
     ///
     /// # Returns
     ///
@@ -649,11 +649,11 @@ impl<R: DnsResolver> SimpleHttpClient<R> {
 
     /// Enables automatic proxy detection from environment variables.
     ///
-    /// WHY: Users often configure proxies via HTTP_PROXY/HTTPS_PROXY environment variables.
+    /// WHY: Users often configure proxies via `HTTP_PROXY/HTTPS_PROXY` environment variables.
     ///
     /// WHAT: Sets flag to automatically detect proxy from environment for each request.
     ///
-    /// HOW: When enabled, client checks HTTP_PROXY/HTTPS_PROXY/NO_PROXY environment
+    /// HOW: When enabled, client checks `HTTP_PROXY/HTTPS_PROXY/NO_PROXY` environment
     /// variables per-request based on target URL scheme.
     ///
     /// # Returns

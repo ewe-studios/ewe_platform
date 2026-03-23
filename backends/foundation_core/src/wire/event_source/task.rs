@@ -99,7 +99,7 @@ where
         // Validate URL upfront - must be a valid URI with http/https scheme
         let uri = Uri::parse(&url_str).map_err(|e| {
             error!(url = %url_str, error = ?e, "Failed to parse URL");
-            EventSourceError::InvalidUrl(format!("Failed to parse URL: {} - {:?}", url_str, e))
+            EventSourceError::InvalidUrl(format!("Failed to parse URL: {url_str} - {e:?}"))
         })?;
 
         // Check scheme is http or https using Scheme methods
@@ -148,7 +148,7 @@ where
         // Validate URL upfront - must be a valid URI with http/https scheme
         let uri = Uri::parse(&url_str).map_err(|e| {
             error!(url = %url_str, error = ?e, "Failed to parse URL");
-            EventSourceError::InvalidUrl(format!("Failed to parse URL: {} - {:?}", url_str, e))
+            EventSourceError::InvalidUrl(format!("Failed to parse URL: {url_str} - {e:?}"))
         })?;
 
         // Check scheme is http or https using Scheme methods
@@ -207,7 +207,7 @@ where
     ///
     /// WHY: Long-lived SSE connections may become stale if server stops sending events.
     /// Idle timeout triggers reconnection if no data received for specified duration.
-    /// WHAT: Returns Self with idle_timeout configured.
+    /// WHAT: Returns Self with `idle_timeout` configured.
     ///
     /// # Parameters
     ///
@@ -266,7 +266,7 @@ where
                     None => path.to_string(),
                 };
 
-                let host = url.host_str().map(|s| s.to_string()).unwrap_or_default();
+                let host = url.host_str().map(|s| s.clone()).unwrap_or_default();
 
                 // Build HTTP/1.1 GET request
                 let mut request = String::new();

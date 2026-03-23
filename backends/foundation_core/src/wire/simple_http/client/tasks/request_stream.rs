@@ -111,7 +111,7 @@ where
                 };
 
                 // Use env proxy if found, otherwise use configured proxy
-                let proxy_config = env_proxy.as_ref().or_else(|| self.1.config.proxy.as_ref());
+                let proxy_config = env_proxy.as_ref().or(self.1.config.proxy.as_ref());
 
                 // Try to get connection from pool or create new one (with proxy support)
                 let stream =

@@ -152,7 +152,7 @@ where
     ///
     /// WHY: Long-running WebSocket clients should give up after a certain total duration
     /// to avoid infinite reconnection loops in production systems.
-    /// WHAT: Returns Self with max_reconnect_duration configured.
+    /// WHAT: Returns Self with `max_reconnect_duration` configured.
     ///
     /// # Parameters
     ///

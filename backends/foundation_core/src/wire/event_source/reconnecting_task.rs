@@ -150,7 +150,7 @@ where
     ///
     /// WHY: Long-running SSE clients should give up after a certain total duration
     /// to avoid infinite reconnection loops in production systems.
-    /// WHAT: Returns Self with max_reconnect_duration configured.
+    /// WHAT: Returns Self with `max_reconnect_duration` configured.
     ///
     /// # Parameters
     ///
@@ -204,7 +204,7 @@ where
         Some(task)
     }
 
-    /// Track the last event ID from a received ParseResult.
+    /// Track the last event ID from a received `ParseResult`.
     fn track_event_id(&mut self, parse_result: &ParseResult) {
         if let Some(ref id) = parse_result.last_known_id {
             debug!(last_event_id = %id, "Tracking event ID");
@@ -275,54 +275,51 @@ where
                         let close_reason = inner.close_reason();
                         debug!(reason = ?close_reason, "Inner task closed");
 
-                        match close_reason {
-                            Some(crate::wire::event_source::EventSourceCloseReason::Eof) => {
-                                // Legitimate EOF - server closed connection normally
-                                // Don't retry, just exhaust
-                                info!("Server closed connection (EOF), not reconnecting");
-                                self.state = Some(ReconnectingState::Exhausted);
-                                None
-                            }
-                            Some(_) | None => {
-                                // Error (ParseError, IdleTimeout, ConnectionError) or unknown - attempt reconnection
-                                warn!(reason = ?close_reason, "Inner task closed with error, attempting reconnection");
+                        if let Some(crate::wire::event_source::EventSourceCloseReason::Eof) = close_reason {
+                            // Legitimate EOF - server closed connection normally
+                            // Don't retry, just exhaust
+                            info!("Server closed connection (EOF), not reconnecting");
+                            self.state = Some(ReconnectingState::Exhausted);
+                            None
+                        } else {
+                            // Error (ParseError, IdleTimeout, ConnectionError) or unknown - attempt reconnection
+                            warn!(reason = ?close_reason, "Inner task closed with error, attempting reconnection");
 
-                                // Check max reconnect duration first
-                                if let Some(max_duration) = self.config.max_reconnect_duration {
-                                    if let Some(start) = self.start_time {
-                                        if start.elapsed() > max_duration {
-                                            error!(
-                                                elapsed_secs = ?start.elapsed().as_secs(),
-                                                max_secs = ?max_duration.as_secs(),
-                                                "Max reconnect duration exceeded"
-                                            );
-                                            // Max duration exceeded - exhaust
-                                            self.state = Some(ReconnectingState::Exhausted);
-                                            return None;
-                                        }
+                            // Check max reconnect duration first
+                            if let Some(max_duration) = self.config.max_reconnect_duration {
+                                if let Some(start) = self.start_time {
+                                    if start.elapsed() > max_duration {
+                                        error!(
+                                            elapsed_secs = ?start.elapsed().as_secs(),
+                                            max_secs = ?max_duration.as_secs(),
+                                            "Max reconnect duration exceeded"
+                                        );
+                                        // Max duration exceeded - exhaust
+                                        self.state = Some(ReconnectingState::Exhausted);
+                                        return None;
                                     }
                                 }
+                            }
 
-                                // Use server retry duration if set, otherwise use backoff
-                                let next_state = self.backoff.decide(self.retry_state.clone());
+                            // Use server retry duration if set, otherwise use backoff
+                            let next_state = self.backoff.decide(self.retry_state.clone());
 
-                                if let Some(next_retry) = next_state {
-                                    let wait = self.config.server_retry.unwrap_or_else(|| {
-                                        next_retry.wait.unwrap_or(Duration::from_secs(1))
-                                    });
-                                    self.retry_state = next_retry;
-                                    self.state = Some(ReconnectingState::Waiting(wait));
-                                    Some(TaskStatus::Pending(ReconnectingProgress::Reconnecting))
-                                } else {
-                                    error!(
-                                        attempt = self.retry_state.attempt,
-                                        max_retries = self.config.max_retries,
-                                        "Max retries exhausted"
-                                    );
-                                    // Max retries exhausted
-                                    self.state = Some(ReconnectingState::Exhausted);
-                                    None
-                                }
+                            if let Some(next_retry) = next_state {
+                                let wait = self.config.server_retry.unwrap_or_else(|| {
+                                    next_retry.wait.unwrap_or(Duration::from_secs(1))
+                                });
+                                self.retry_state = next_retry;
+                                self.state = Some(ReconnectingState::Waiting(wait));
+                                Some(TaskStatus::Pending(ReconnectingProgress::Reconnecting))
+                            } else {
+                                error!(
+                                    attempt = self.retry_state.attempt,
+                                    max_retries = self.config.max_retries,
+                                    "Max retries exhausted"
+                                );
+                                // Max retries exhausted
+                                self.state = Some(ReconnectingState::Exhausted);
+                                None
                             }
                         }
                     }

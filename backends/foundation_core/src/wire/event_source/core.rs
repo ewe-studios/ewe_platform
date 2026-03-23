@@ -6,11 +6,11 @@
 //!
 //! Reference: W3C Server-Sent Events specification (<https://html.spec.whatwg.org/multipage/server-sent-events.html>)
 
-/// ParseResult represents a parsed SSE event with explicit last_known_id.
+/// `ParseResult` represents a parsed SSE event with explicit `last_known_id`.
 ///
 /// WHY: Reconnection logic needs last known event ID. Instead of hidden
 /// parser state, we return it explicitly with each event.
-/// WHAT: Tuple-like struct with event and last_known_id.
+/// WHAT: Tuple-like struct with event and `last_known_id`.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ParseResult {
     /// The parsed event.
@@ -23,7 +23,7 @@ pub struct ParseResult {
 }
 
 impl ParseResult {
-    /// Create a new ParseResult.
+    /// Create a new `ParseResult`.
     ///
     /// # Arguments
     /// * `event` - The parsed SSE event

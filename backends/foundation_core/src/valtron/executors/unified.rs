@@ -382,9 +382,9 @@ where
 // Feature 03: Collection Combinators
 // ============================================================================
 
-/// Execute multiple TaskIterators in parallel and collect their results.
+/// Execute multiple `TaskIterators` in parallel and collect their results.
 ///
-/// This function takes a vector of TaskIterators, executes them in parallel
+/// This function takes a vector of `TaskIterators`, executes them in parallel
 /// using `execute()`, and returns a `CollectAllStream` that aggregates their
 /// outputs. The returned iterator yields `Stream<Vec<D>, P>` variants:
 /// - `Stream::Pending(count)` while any sources are still pending
@@ -393,8 +393,8 @@ where
 ///
 /// # Arguments
 ///
-/// * `tasks` - Vector of TaskIterators to execute in parallel
-/// * `wait_cycle` - Optional polling duration (defaults to DEFAULT_WAIT_CYCLE)
+/// * `tasks` - Vector of `TaskIterators` to execute in parallel
+/// * `wait_cycle` - Optional polling duration (defaults to `DEFAULT_WAIT_CYCLE`)
 ///
 /// # Returns
 ///
@@ -432,7 +432,7 @@ where
     Ok(CollectAllStream::new(streams))
 }
 
-/// Collects outputs from multiple TaskIterators executed via `execute()`.
+/// Collects outputs from multiple `TaskIterators` executed via `execute()`.
 ///
 /// This type holds the `DrivenStreamIterator`s returned from `execute()` and
 /// polls them in round-robin fashion, yielding `Stream::Pending` while any
@@ -457,6 +457,7 @@ where
     T::Spawner: ExecutionAction + Send + 'static,
 {
     /// Create a new `CollectAllStream` from a vector of `DrivenStreamIterator`s.
+    #[must_use] 
     pub fn new(sources: Vec<DrivenStreamIterator<T>>) -> Self {
         Self {
             sources,
@@ -546,9 +547,9 @@ where
 // Feature 04: Mapping Combinators
 // ============================================================================
 
-/// Execute multiple TaskIterators and apply a mapper when all complete.
+/// Execute multiple `TaskIterators` and apply a mapper when all complete.
 ///
-/// This function takes a vector of TaskIterators and a mapper function,
+/// This function takes a vector of `TaskIterators` and a mapper function,
 /// executes them in parallel, and applies the mapper only when all sources
 /// have produced their values. The returned iterator yields:
 /// - `Stream::Pending(count)` while any sources are still pending
@@ -557,9 +558,9 @@ where
 ///
 /// # Arguments
 ///
-/// * `tasks` - Vector of TaskIterators to execute in parallel
+/// * `tasks` - Vector of `TaskIterators` to execute in parallel
 /// * `mapper` - Function that transforms `Vec<T::Ready>` into output type `O`
-/// * `wait_cycle` - Optional polling duration (defaults to DEFAULT_WAIT_CYCLE)
+/// * `wait_cycle` - Optional polling duration (defaults to `DEFAULT_WAIT_CYCLE`)
 ///
 /// # Returns
 ///
@@ -602,7 +603,7 @@ where
     Ok(MapAllDoneStream::new(streams, mapper))
 }
 
-/// Maps values from multiple TaskIterators only when all sources reach Done state.
+/// Maps values from multiple `TaskIterators` only when all sources reach Done state.
 ///
 /// This type holds the `DrivenStreamIterator`s returned from `execute()` and
 /// buffers values as they arrive. When all sources complete, it applies the
@@ -696,9 +697,9 @@ where
         }
 
         // Check if all sources have produced a value
-        if self.buffer.iter().all(|x| x.is_some()) {
+        if self.buffer.iter().all(std::option::Option::is_some) {
             self.done = true;
-            let values: Vec<T::Ready> = self.buffer.drain(..).filter_map(|x| x).collect();
+            let values: Vec<T::Ready> = self.buffer.drain(..).flatten().collect();
             let result = (self.mapper)(values);
             return Some(Stream::Next(result));
         }
@@ -731,17 +732,17 @@ where
 {
 }
 
-/// Execute multiple TaskIterators with state-aware mapping.
+/// Execute multiple `TaskIterators` with state-aware mapping.
 ///
-/// This function takes a vector of TaskIterators and a mapper function that
+/// This function takes a vector of `TaskIterators` and a mapper function that
 /// receives the current `Stream<D, P>` state from each source. This enables
 /// progress tracking and partial result visibility.
 ///
 /// # Arguments
 ///
-/// * `tasks` - Vector of TaskIterators to execute in parallel
+/// * `tasks` - Vector of `TaskIterators` to execute in parallel
 /// * `mapper` - Function that transforms `Vec<Stream<D, P>>` into output type `O`
-/// * `wait_cycle` - Optional polling duration (defaults to DEFAULT_WAIT_CYCLE)
+/// * `wait_cycle` - Optional polling duration (defaults to `DEFAULT_WAIT_CYCLE`)
 ///
 /// # Returns
 ///
@@ -777,7 +778,7 @@ where
     Ok(MapAllPendingAndDoneStream::new(streams, mapper))
 }
 
-/// Maps values from multiple TaskIterators with full state visibility.
+/// Maps values from multiple `TaskIterators` with full state visibility.
 ///
 /// This type holds the `DrivenStreamIterator`s and applies the mapper function
 /// to the current state of all sources on each poll. This enables progress
@@ -835,14 +836,11 @@ where
         let mut all_exhausted = true;
 
         for source in &mut self.sources {
-            match source.next() {
-                Some(state) => {
-                    states.push(state);
-                    all_exhausted = false;
-                }
-                None => {
-                    // Source exhausted
-                }
+            if let Some(state) = source.next() {
+                states.push(state);
+                all_exhausted = false;
+            } else {
+                // Source exhausted
             }
         }
 

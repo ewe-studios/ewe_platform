@@ -277,7 +277,7 @@ impl MessageAssembler {
     /// ```
     #[must_use]
     pub fn accumulated_size(&self) -> usize {
-        self.state.as_ref().map(|s| s.payload.len()).unwrap_or(0)
+        self.state.as_ref().map_or(0, |s| s.payload.len())
     }
 
     /// Reset the assembler state (abort any in-progress fragmentation).
