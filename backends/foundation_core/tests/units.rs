@@ -40,7 +40,10 @@ impl Iterator for TestStream {
     }
 }
 
-impl StreamIterator<u32, String> for TestStream {}
+impl StreamIterator for TestStream {
+    type D = u32;
+    type P = String;
+}
 
 // ============================================================================
 // CollectAll Tests

@@ -457,7 +457,7 @@ where
     T::Spawner: ExecutionAction + Send + 'static,
 {
     /// Create a new `CollectAllStream` from a vector of `DrivenStreamIterator`s.
-    #[must_use] 
+    #[must_use]
     pub fn new(sources: Vec<DrivenStreamIterator<T>>) -> Self {
         Self {
             sources,
@@ -534,13 +534,15 @@ where
     }
 }
 
-impl<T> crate::synca::mpp::StreamIterator<Vec<T::Ready>, usize> for CollectAllStream<T>
+impl<T> crate::synca::mpp::StreamIterator for CollectAllStream<T>
 where
     T: TaskIterator + Send + 'static,
     T::Ready: Send + 'static,
     T::Pending: Send + 'static,
     T::Spawner: ExecutionAction + Send + 'static,
 {
+    type D = Vec<T::Ready>;
+    type P = usize;
 }
 
 // ============================================================================
@@ -721,7 +723,7 @@ where
     }
 }
 
-impl<T, F, O> crate::synca::mpp::StreamIterator<O, usize> for MapAllDoneStream<T, F, O>
+impl<T, F, O> crate::synca::mpp::StreamIterator for MapAllDoneStream<T, F, O>
 where
     T: TaskIterator + Send + 'static,
     T::Ready: Send + 'static,
@@ -730,6 +732,8 @@ where
     F: Fn(Vec<T::Ready>) -> O + Send + 'static,
     O: Send + 'static,
 {
+    type D = O;
+    type P = usize;
 }
 
 /// Execute multiple `TaskIterators` with state-aware mapping.
@@ -870,7 +874,7 @@ where
     }
 }
 
-impl<T, F, O> crate::synca::mpp::StreamIterator<O, usize> for MapAllPendingAndDoneStream<T, F, O>
+impl<T, F, O> crate::synca::mpp::StreamIterator for MapAllPendingAndDoneStream<T, F, O>
 where
     T: TaskIterator + Send + 'static,
     T::Ready: Send + 'static,
@@ -879,4 +883,6 @@ where
     F: Fn(Vec<Stream<T::Ready, T::Pending>>) -> O + Send + 'static,
     O: Send + 'static,
 {
+    type D = O;
+    type P = usize;
 }
