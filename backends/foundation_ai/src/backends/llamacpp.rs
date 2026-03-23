@@ -48,8 +48,8 @@ impl Model for LlamaModels {
     ) -> crate::errors::GenerationResult<T>
     where
         T: foundation_core::valtron::StreamIterator<
-            crate::types::Messages,
-            crate::types::ModelState,
+            D = crate::types::Messages,
+            P = crate::types::ModelState,
         >,
     {
         todo!()

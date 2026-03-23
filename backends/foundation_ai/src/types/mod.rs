@@ -782,7 +782,7 @@ pub trait Model {
         specs: Option<ModelParams>,
     ) -> GenerationResult<T>
     where
-        T: StreamIterator<Messages, ModelState>;
+        T: StreamIterator<D = Messages, P = ModelState>;
 }
 
 pub trait ModelProvider {
