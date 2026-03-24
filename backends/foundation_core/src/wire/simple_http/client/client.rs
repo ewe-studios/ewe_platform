@@ -358,6 +358,11 @@ impl<R: DnsResolver + Clone> SimpleHttpClient<R> {
     pub fn client_config(&self) -> ClientConfig {
         self.config.clone()
     }
+
+    #[must_use]
+    pub fn client_pool(&self) -> Option<Arc<HttpConnectionPool<R>>> {
+        self.pool.clone()
+    }
 }
 
 impl<R: DnsResolver + Default + Clone> SimpleHttpClient<R> {

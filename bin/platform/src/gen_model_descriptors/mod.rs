@@ -22,12 +22,13 @@ use foundation_core::valtron::{
     self, StreamIteratorExt, TaskIterator, TaskIteratorExt, TaskStatus,
 };
 use foundation_core::wire::simple_http::client::{
-    ClientConfig, DnsResolver, HttpConnectionPool, SendRequestTask, SimpleHttpClient, SystemDnsResolver,
+    ClientConfig, DnsResolver, HttpConnectionPool, SendRequestTask, SimpleHttpClient,
+    SystemDnsResolver,
 };
+use foundation_core::wire::simple_http::client::{HttpRequestPending, RequestIntro};
 use foundation_core::wire::simple_http::{
     ChunkedData, IncomingResponseParts, LineFeed, SendSafeBody, SimpleHeader, Status,
 };
-use foundation_core::wire::simple_http::client::{HttpRequestPending, RequestIntro};
 use serde::Deserialize;
 use tracing::Level;
 use tracing_subscriber::FmtSubscriber;
@@ -123,9 +124,13 @@ impl std::fmt::Display for FetchPending {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             FetchPending::Connecting { source } => write!(f, "{source}: Connecting..."),
-            FetchPending::AwaitingResponse { source } => write!(f, "{source}: Awaiting response..."),
+            FetchPending::AwaitingResponse { source } => {
+                write!(f, "{source}: Awaiting response...")
+            }
             FetchPending::ParsingJson { source } => write!(f, "{source}: Parsing JSON..."),
-            FetchPending::ProcessingModels { source } => write!(f, "{source}: Processing models..."),
+            FetchPending::ProcessingModels { source } => {
+                write!(f, "{source}: Processing models...")
+            }
         }
     }
 }
@@ -1837,6 +1842,7 @@ pub fn model_descriptors() -> Vec<ModelProviderDescriptor> {
 ///     Errors are logged and result in empty model lists (graceful degradation).
 #[allow(clippy::too_many_lines)]
 fn create_fetch_task<F>(
+    client: &mut SimpleHttpClient,
     source: &'static str,
     url: &'static str,
     parser: F,
@@ -1853,7 +1859,6 @@ where
     F: Fn(&str, &'static str) -> Vec<ModelEntry> + Send + Clone + 'static,
 {
     // Create a temporary client just for building the request
-    let client = SimpleHttpClient::from_system();
     let request = client
         .get(url)
         .map_err(|e| GenModelError::Http {
@@ -1866,12 +1871,8 @@ where
             source: e,
         })?;
 
-    // Create a default connection pool for this task
-    let pool = HttpConnectionPool::<SystemDnsResolver>::default();
-    let config = ClientConfig::default();
-
     // Create SendRequestTask and apply combinators
-    let task = SendRequestTask::new(request, 5, Arc::new(pool), config)
+    let task = SendRequestTask::new(request, 5, client.client_pool().expect("should have pool"), client.client_config(),)
         // Transform RequestIntro → Vec<ModelEntry>
         .map_ready(move |intro| {
             match intro {
@@ -2093,11 +2094,7 @@ fn parse_ai_gateway_response(body: &str, _source: &'static str) -> Vec<ModelEntr
         let cost = (
             pricing_val(m.pricing.as_ref().and_then(|p| p.input.as_ref())) * 1_000_000.0,
             pricing_val(m.pricing.as_ref().and_then(|p| p.output.as_ref())) * 1_000_000.0,
-            pricing_val(
-                m.pricing
-                    .as_ref()
-                    .and_then(|p| p.input_cache_read.as_ref()),
-            ) * 1_000_000.0,
+            pricing_val(m.pricing.as_ref().and_then(|p| p.input_cache_read.as_ref())) * 1_000_000.0,
             pricing_val(
                 m.pricing
                     .as_ref()
@@ -2166,10 +2163,10 @@ pub fn run(args: &clap::ArgMatches) -> std::result::Result<(), BoxedError> {
     // Keep the pool guard alive for the duration of the function
     let _guard = valtron::initialize_pool(100, None);
 
-    let client = SimpleHttpClient::from_system()
+    let mut client = SimpleHttpClient::from_system()
         .max_body_size(None)
         .batch_size(8192 * 2)
-        .read_timeout(Duration::from_secs(10))
+        .read_timeout(Duration::from_secs(1))
         .max_retries(5)
         .enable_pool(10);
 
@@ -2180,6 +2177,7 @@ pub fn run(args: &clap::ArgMatches) -> std::result::Result<(), BoxedError> {
     // that can't be stored in a homogeneous Vec for execute_collect_all
     tracing::info!("Fetching from models.dev...");
     let models_dev_task = create_fetch_task(
+        &mut client,
         "models.dev",
         "https://models.dev/api.json",
         parse_models_dev_response,
@@ -2187,6 +2185,7 @@ pub fn run(args: &clap::ArgMatches) -> std::result::Result<(), BoxedError> {
 
     tracing::info!("Fetching from openrouter...");
     let openrouter_task = create_fetch_task(
+        &mut client,
         "openrouter",
         "https://openrouter.ai/api/v1/models",
         parse_openrouter_response,
@@ -2194,6 +2193,7 @@ pub fn run(args: &clap::ArgMatches) -> std::result::Result<(), BoxedError> {
 
     tracing::info!("Fetching from ai-gateway...");
     let ai_gateway_task = create_fetch_task(
+        &mut client,
         "ai-gateway",
         "https://ai-gateway.vercel.sh/v1/models",
         parse_ai_gateway_response,
@@ -2204,47 +2204,28 @@ pub fn run(args: &clap::ArgMatches) -> std::result::Result<(), BoxedError> {
     let mut all_models = Vec::new();
 
     // Execute models.dev fetch
-    match valtron::execute(models_dev_task, None) {
-        Ok(mut stream) => {
-            for stream_item in &mut stream {
-                if let Stream::Next(models) = stream_item {
-                    tracing::info!("models.dev fetch complete: {} models", models.len());
-                    all_models.extend(models);
-                }
-            }
-        }
-        Err(e) => {
-            tracing::warn!("Failed to execute models.dev fetch: {e}");
+    let mut models_dev_models = valtron::execute(models_dev_task, None).expect("return stream");
+    let mut openroute_models = valtron::execute(openrouter_task, None).expect("return stream");
+    let mut aigateway_models = valtron::execute(ai_gateway_task, None).expect("return stream");
+
+    for stream_item in models_dev_models {
+        if let Stream::Next(models) = stream_item {
+            tracing::info!("models.dev fetch complete: {} models", models.len());
+            all_models.extend(models);
         }
     }
 
-    // Execute openrouter fetch
-    match valtron::execute(openrouter_task, None) {
-        Ok(mut stream) => {
-            for stream_item in &mut stream {
-                if let Stream::Next(models) = stream_item {
-                    tracing::info!("openrouter fetch complete: {} models", models.len());
-                    all_models.extend(models);
-                }
-            }
-        }
-        Err(e) => {
-            tracing::warn!("Failed to execute openrouter fetch: {e}");
+    for stream_item in openroute_models {
+        if let Stream::Next(models) = stream_item {
+            tracing::info!("models.dev fetch complete: {} models", models.len());
+            all_models.extend(models);
         }
     }
 
-    // Execute ai-gateway fetch
-    match valtron::execute(ai_gateway_task, None) {
-        Ok(mut stream) => {
-            for stream_item in &mut stream {
-                if let Stream::Next(models) = stream_item {
-                    tracing::info!("ai-gateway fetch complete: {} models", models.len());
-                    all_models.extend(models);
-                }
-            }
-        }
-        Err(e) => {
-            tracing::warn!("Failed to execute ai-gateway fetch: {e}");
+    for stream_item in aigateway_models {
+        if let Stream::Next(models) = stream_item {
+            tracing::info!("models.dev fetch complete: {} models", models.len());
+            all_models.extend(models);
         }
     }
 
