@@ -7,8 +7,8 @@ use crate::valtron::{
     TaskStatusMapper,
 };
 
-use crate::valtron::{SharedTaskQueue, ThreadPoolTaskBuilder, ThreadRegistry};
 use crate::synca::{LockSignal, OnSignal};
+use crate::valtron::{SharedTaskQueue, ThreadPoolTaskBuilder, ThreadRegistry};
 
 use super::PoolGuard;
 
@@ -38,7 +38,9 @@ impl LocalPoolHandle {
     }
 
     /// Create a task builder for scheduling work.
-    pub fn spawn<Task, Action>(&self) -> ThreadPoolTaskBuilder<
+    pub fn spawn<Task, Action>(
+        &self,
+    ) -> ThreadPoolTaskBuilder<
         Task::Ready,
         Task::Pending,
         Task::Spawner,
@@ -52,10 +54,7 @@ impl LocalPoolHandle {
         Task: TaskIterator<Spawner = Action> + Send + 'static,
         Action: ExecutionAction + Send + 'static,
     {
-        ThreadPoolTaskBuilder::new(
-            self.shared_tasks.clone(),
-            self.latch.clone(),
-        )
+        ThreadPoolTaskBuilder::new(self.shared_tasks.clone(), self.latch.clone())
     }
 
     /// Create a task builder with explicit Mapper and Resolver types.
@@ -70,10 +69,7 @@ impl LocalPoolHandle {
         Mapper: TaskStatusMapper<Task::Ready, Task::Pending, Action> + Send + 'static,
         Resolver: TaskReadyResolver<Action, Task::Ready, Task::Pending> + Send + 'static,
     {
-        ThreadPoolTaskBuilder::new(
-            self.shared_tasks.clone(),
-            self.latch.clone(),
-        )
+        ThreadPoolTaskBuilder::new(self.shared_tasks.clone(), self.latch.clone())
     }
 
     /// Signal all threads to die.
@@ -85,15 +81,15 @@ impl LocalPoolHandle {
 
 /// [`get_pool`] returns a handle for spawning tasks.
 pub fn get_pool() -> LocalPoolHandle {
-    let registry = REGISTRY
-        .lock()
-        .unwrap()
-        .clone()
-        .expect("Thread pool not initialized, ensure to call block_on or initialize_pool first");
+    let registry =
+        REGISTRY.lock().unwrap().clone().expect(
+            "Thread pool not initialized, ensure to call block_on or initialize_pool first",
+        );
     LocalPoolHandle::new(&registry)
 }
 
 /// [`block_on`] instantiates the thread registry, spawns worker threads,
+/// runs the setup function, then blocks until all tasks complete.
 ///
 /// Returns a `PoolGuard` - when dropped, kills all threads and blocks
 /// until they're cleaned up. No Ctrl-C handler is registered automatically.
@@ -101,25 +97,11 @@ pub fn block_on<F>(seed_from_rng: u64, thread_num: Option<usize>, setup: F) -> P
 where
     F: FnOnce(LocalPoolHandle),
 {
-    let registry = Arc::new(ThreadRegistry::with_seed_and_threads(
-        seed_from_rng,
-        thread_num.unwrap_or_else(get_allocatable_thread_count),
-    ));
-
-    // Spawn worker threads
-    for _ in 0..registry.max_threads {
-        registry
-            .spawn_worker()
-            .expect("Failed to spawn worker thread");
-    }
-
-    *REGISTRY.lock().unwrap() = Some(registry.clone());
-
-    let guard = PoolGuard::new(registry.clone());
-    let handle = LocalPoolHandle::new(&registry);
+    let guard = initialize_pool(seed_from_rng, thread_num);
+    let handle = get_pool();
     setup(handle);
     tracing::debug!("Initialize and call WaitGroup::wait");
-    registry.waitgroup().wait();
+    guard.waitgroup().wait();
     guard
 }
 
