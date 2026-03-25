@@ -400,6 +400,12 @@ where
 ///
 /// Returns a `CollectAllStream` that aggregates outputs from all tasks.
 ///
+/// # Errors
+///
+/// Returns an error if scheduling any of the provided tasks fails. This includes
+/// executor initialization issues or errors returned by the spawn builder for
+/// any individual task in the vector.
+///
 /// # Example
 ///
 /// ```ignore
