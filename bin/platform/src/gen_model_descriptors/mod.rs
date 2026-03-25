@@ -1600,29 +1600,12 @@ pub fn run(args: &clap::ArgMatches) -> std::result::Result<(), BoxedError> {
         None,
     )
     .expect("return stream");
-    // let openroute_models = valtron::execute(openrouter_task, None).expect("return stream");
-    // let aigateway_models = valtron::execute(ai_gateway_task, None).expect("return stream");
 
     for stream_item in model_report_stream {
         if let Stream::Next(models) = stream_item {
-            tracing::info!("models.dev fetch complete: {} models", models.len());
-            all_models.extend(models);
+            all_models.extend(models.into_iter().flatten());
         }
     }
-
-    // for stream_item in openroute_models {
-    //     if let Stream::Next(models) = stream_item {
-    //         tracing::info!("models.dev fetch complete: {} models", models.len());
-    //         all_models.extend(models);
-    //     }
-    // }
-
-    // for stream_item in aigateway_models {
-    //     if let Stream::Next(models) = stream_item {
-    //         tracing::info!("models.dev fetch complete: {} models", models.len());
-    //         all_models.extend(models);
-    //     }
-    // }
 
     let fetch_elapsed = start_time.elapsed();
     tracing::info!("Parallel fetch completed in {:?}", fetch_elapsed);

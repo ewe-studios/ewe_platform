@@ -292,6 +292,7 @@ where
 ///
 /// WHY: WASM and minimal builds need single-threaded execution
 /// WHAT: Schedules task, returns a stream iterator.
+#[allow(dead_code)]
 #[allow(clippy::type_complexity)]
 fn execute_single_stream<T>(
     task: T,
