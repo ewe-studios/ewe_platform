@@ -254,6 +254,62 @@ pub trait StreamIteratorExt: StreamIterator + Sized {
             _phantom: std::marker::PhantomData,
         }
     }
+
+    /// Flatten Next (Done) values that implement IntoIterator.
+    ///
+    /// Input:  StreamIterator<D = Vec<M>, P = P>
+    /// Output: StreamIterator<D = M, P = P>
+    ///
+    /// The user's Done type implements IntoIterator. We store the inner iterator
+    /// and drain it over multiple next() calls. When exhausted (None), poll outer again.
+    ///
+    /// Returns Stream::Ignore when waiting for the inner iterator to produce more values.
+    fn flatten_next(self) -> SFlattenNext<Self>
+    where
+        Self: Sized,
+        Self::D: IntoIterator,
+        <Self::D as IntoIterator>::Item: Send + 'static;
+
+    /// Flatten Pending values that implement IntoIterator.
+    ///
+    /// Input:  StreamIterator<D = D, P = Vec<M>>
+    /// Output: StreamIterator<D = D, P = M>
+    ///
+    /// The user's Pending type implements IntoIterator. We store the inner iterator
+    /// and drain it over multiple next() calls. When exhausted (None), poll outer again.
+    fn flatten_pending(self) -> SFlattenPending<Self>
+    where
+        Self: Sized,
+        Self::P: IntoIterator,
+        <Self::P as IntoIterator>::Item: Send + 'static;
+
+    /// Flat map Next (Done) values - transform and flatten in one operation.
+    ///
+    /// Input:  StreamIterator<D = D, P = P>
+    /// Output: StreamIterator<D = U::Item, P = P>
+    ///
+    /// The mapper function transforms each Done value into an IntoIterator,
+    /// which is then flattened. Inner iterator is drained over multiple next() calls.
+    fn flat_map_next<F, U>(self, f: F) -> SFlatMapNext<Self, F, U>
+    where
+        Self: Sized,
+        F: Fn(Self::D) -> U + Send + 'static,
+        U: IntoIterator,
+        U::Item: Send + 'static;
+
+    /// Flat map Pending values - transform and flatten in one operation.
+    ///
+    /// Input:  StreamIterator<D = D, P = P>
+    /// Output: StreamIterator<D = D, P = U::Item>
+    ///
+    /// The mapper function transforms each Pending value into an IntoIterator,
+    /// which is then flattened. Inner iterator is drained over multiple next() calls.
+    fn flat_map_pending<F, U>(self, f: F) -> SFlatMapPending<Self, F, U>
+    where
+        Self: Sized,
+        F: Fn(Self::P) -> U + Send + 'static,
+        U: IntoIterator,
+        U::Item: Send + 'static;
 }
 
 // Blanket implementation: anything implementing StreamIterator gets StreamIteratorExt
@@ -447,6 +503,62 @@ where
         F: Fn(&Stream<Self::D, Self::P>) -> (bool, Option<Stream<DM, PM>>) + Send + 'static,
     {
         self.split_collector_map(transform, 1)
+    }
+
+    fn flatten_next(self) -> SFlattenNext<Self>
+    where
+        Self: Sized,
+        Self::D: IntoIterator,
+        <Self::D as IntoIterator>::Item: Send + 'static,
+    {
+        SFlattenNext {
+            inner: self,
+            current_inner: None,
+            _phantom: std::marker::PhantomData,
+        }
+    }
+
+    fn flatten_pending(self) -> SFlattenPending<Self>
+    where
+        Self: Sized,
+        Self::P: IntoIterator,
+        <Self::P as IntoIterator>::Item: Send + 'static,
+    {
+        SFlattenPending {
+            inner: self,
+            current_inner: None,
+            _phantom: std::marker::PhantomData,
+        }
+    }
+
+    fn flat_map_next<F, U>(self, f: F) -> SFlatMapNext<Self, F, U>
+    where
+        Self: Sized,
+        F: Fn(Self::D) -> U + Send + 'static,
+        U: IntoIterator,
+        U::Item: Send + 'static,
+    {
+        SFlatMapNext {
+            inner: self,
+            mapper: f,
+            current_inner: None,
+            _phantom: std::marker::PhantomData,
+        }
+    }
+
+    fn flat_map_pending<F, U>(self, f: F) -> SFlatMapPending<Self, F, U>
+    where
+        Self: Sized,
+        F: Fn(Self::P) -> U + Send + 'static,
+        U: IntoIterator,
+        U::Item: Send + 'static,
+    {
+        SFlatMapPending {
+            inner: self,
+            mapper: f,
+            current_inner: None,
+            _phantom: std::marker::PhantomData,
+        }
     }
 }
 
@@ -1510,20 +1622,23 @@ where
     type Item = Stream<Inner::D, Inner::P>;
 
     fn next(&mut self) -> Option<Self::Item> {
-        loop {
-            if let Some(ref mut inner) = self.current_inner {
-                if let Some(item) = inner.next() {
-                    return Some(item);
-                }
-                self.current_inner = None;
+        // First drain current inner iterator
+        if let Some(ref mut inner) = self.current_inner {
+            if let Some(item) = inner.next() {
+                return Some(item);
             }
+            self.current_inner = None;
+        }
 
-            match self.outer.next() {
-                Some(item) => {
-                    self.current_inner = Some((self.mapper)(item));
-                }
-                None => return None,
+        // Poll outer for next item
+        match self.outer.next() {
+            Some(item) => {
+                self.current_inner = Some((self.mapper)(item));
+                // Return Ignore to signal "still working, no value yet"
+                // The executor will call next() again to drain the new inner
+                Some(Stream::Ignore)
             }
+            None => None,
         }
     }
 }
@@ -1536,6 +1651,256 @@ where
 {
     type D = Inner::D;
     type P = Inner::P;
+}
+
+// ============================================================================
+// Flatten/FlatMap Combinators for StreamIterator
+// ============================================================================
+
+/// Wrapper struct that flattens Next (Done) values that implement IntoIterator.
+///
+/// Input:  StreamIterator<D = Vec<M>, P = P>
+/// Output: StreamIterator<D = M, P = P>
+pub struct SFlattenNext<I>
+where
+    I: StreamIterator,
+    I::D: IntoIterator,
+{
+    inner: I,
+    current_inner: Option<<I::D as IntoIterator>::IntoIter>,
+    _phantom: std::marker::PhantomData<I::P>,
+}
+
+impl<I> Iterator for SFlattenNext<I>
+where
+    I: StreamIterator,
+    I::D: IntoIterator,
+    <I::D as IntoIterator>::Item: Send + 'static,
+    I::P: Send + 'static,
+{
+    type Item = Stream<<I::D as IntoIterator>::Item, I::P>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        // First drain current inner iterator
+        if let Some(ref mut inner) = self.current_inner {
+            if let Some(item) = inner.next() {
+                return Some(Stream::Next(item));
+            }
+            self.current_inner = None;
+        }
+
+        // Poll outer for next item
+        match self.inner.next() {
+            Some(Stream::Next(iterable)) => {
+                self.current_inner = Some(iterable.into_iter());
+                // Return Ignore to signal "still working, setting up inner iterator"
+                Some(Stream::Ignore)
+            }
+            Some(Stream::Pending(p)) => Some(Stream::Pending(p)),
+            Some(Stream::Delayed(d)) => Some(Stream::Delayed(d)),
+            Some(Stream::Init) => Some(Stream::Init),
+            Some(Stream::Ignore) => Some(Stream::Ignore),
+            None => None,
+        }
+    }
+}
+
+impl<I> StreamIterator for SFlattenNext<I>
+where
+    I: StreamIterator,
+    I::D: IntoIterator,
+    <I::D as IntoIterator>::Item: Send + 'static,
+    I::P: Send + 'static,
+{
+    type D = <I::D as IntoIterator>::Item;
+    type P = I::P;
+}
+
+/// Wrapper struct that flattens Pending values that implement IntoIterator.
+///
+/// Input:  StreamIterator<D = D, P = Vec<M>>
+/// Output: StreamIterator<D = D, P = M>
+pub struct SFlattenPending<I>
+where
+    I: StreamIterator,
+    I::P: IntoIterator,
+{
+    inner: I,
+    current_inner: Option<<I::P as IntoIterator>::IntoIter>,
+    _phantom: std::marker::PhantomData<I::D>,
+}
+
+impl<I> Iterator for SFlattenPending<I>
+where
+    I: StreamIterator,
+    I::P: IntoIterator,
+    <I::P as IntoIterator>::Item: Send + 'static,
+    I::D: Send + 'static,
+{
+    type Item = Stream<I::D, <I::P as IntoIterator>::Item>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        // First drain current inner iterator
+        if let Some(ref mut inner) = self.current_inner {
+            if let Some(item) = inner.next() {
+                return Some(Stream::Pending(item));
+            }
+            self.current_inner = None;
+        }
+
+        // Poll outer for next item
+        match self.inner.next() {
+            Some(Stream::Pending(iterable)) => {
+                self.current_inner = Some(iterable.into_iter());
+                // Return Ignore to signal "still working, setting up inner iterator"
+                Some(Stream::Ignore)
+            }
+            Some(Stream::Next(d)) => Some(Stream::Next(d)),
+            Some(Stream::Delayed(d)) => Some(Stream::Delayed(d)),
+            Some(Stream::Init) => Some(Stream::Init),
+            Some(Stream::Ignore) => Some(Stream::Ignore),
+            None => None,
+        }
+    }
+}
+
+impl<I> StreamIterator for SFlattenPending<I>
+where
+    I: StreamIterator,
+    I::P: IntoIterator,
+    <I::P as IntoIterator>::Item: Send + 'static,
+    I::D: Send + 'static,
+{
+    type D = I::D;
+    type P = <I::P as IntoIterator>::Item;
+}
+
+/// Wrapper struct that flat maps Next (Done) values - transform and flatten.
+///
+/// Input:  StreamIterator<D = D, P = P>
+/// Output: StreamIterator<D = U::Item, P = P>
+pub struct SFlatMapNext<I, F, U>
+where
+    I: StreamIterator,
+    F: Fn(I::D) -> U,
+    U: IntoIterator,
+{
+    inner: I,
+    mapper: F,
+    current_inner: Option<U::IntoIter>,
+    _phantom: std::marker::PhantomData<(I::P, U)>,
+}
+
+impl<I, F, U> Iterator for SFlatMapNext<I, F, U>
+where
+    I: StreamIterator,
+    F: Fn(I::D) -> U,
+    U: IntoIterator,
+    U::Item: Send + 'static,
+    I::P: Send + 'static,
+{
+    type Item = Stream<U::Item, I::P>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        // First drain current inner iterator
+        if let Some(ref mut inner) = self.current_inner {
+            if let Some(item) = inner.next() {
+                return Some(Stream::Next(item));
+            }
+            self.current_inner = None;
+        }
+
+        // Poll outer for next item
+        match self.inner.next() {
+            Some(Stream::Next(d)) => {
+                let iterable = (self.mapper)(d);
+                self.current_inner = Some(iterable.into_iter());
+                // Return Ignore to signal "still working, setting up inner iterator"
+                Some(Stream::Ignore)
+            }
+            Some(Stream::Pending(p)) => Some(Stream::Pending(p)),
+            Some(Stream::Delayed(d)) => Some(Stream::Delayed(d)),
+            Some(Stream::Init) => Some(Stream::Init),
+            Some(Stream::Ignore) => Some(Stream::Ignore),
+            None => None,
+        }
+    }
+}
+
+impl<I, F, U> StreamIterator for SFlatMapNext<I, F, U>
+where
+    I: StreamIterator,
+    F: Fn(I::D) -> U,
+    U: IntoIterator,
+    U::Item: Send + 'static,
+    I::P: Send + 'static,
+{
+    type D = U::Item;
+    type P = I::P;
+}
+
+/// Wrapper struct that flat maps Pending values - transform and flatten.
+///
+/// Input:  StreamIterator<D = D, P = P>
+/// Output: StreamIterator<D = D, P = U::Item>
+pub struct SFlatMapPending<I, F, U>
+where
+    I: StreamIterator,
+    F: Fn(I::P) -> U,
+    U: IntoIterator,
+{
+    inner: I,
+    mapper: F,
+    current_inner: Option<U::IntoIter>,
+    _phantom: std::marker::PhantomData<(I::D, U)>,
+}
+
+impl<I, F, U> Iterator for SFlatMapPending<I, F, U>
+where
+    I: StreamIterator,
+    F: Fn(I::P) -> U,
+    U: IntoIterator,
+    U::Item: Send + 'static,
+    I::D: Send + 'static,
+{
+    type Item = Stream<I::D, U::Item>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        // First drain current inner iterator
+        if let Some(ref mut inner) = self.current_inner {
+            if let Some(item) = inner.next() {
+                return Some(Stream::Pending(item));
+            }
+            self.current_inner = None;
+        }
+
+        // Poll outer for next item
+        match self.inner.next() {
+            Some(Stream::Pending(p)) => {
+                let iterable = (self.mapper)(p);
+                self.current_inner = Some(iterable.into_iter());
+                // Return Ignore to signal "still working, setting up inner iterator"
+                Some(Stream::Ignore)
+            }
+            Some(Stream::Next(d)) => Some(Stream::Next(d)),
+            Some(Stream::Delayed(d)) => Some(Stream::Delayed(d)),
+            Some(Stream::Init) => Some(Stream::Init),
+            Some(Stream::Ignore) => Some(Stream::Ignore),
+            None => None,
+        }
+    }
+}
+
+impl<I, F, U> StreamIterator for SFlatMapPending<I, F, U>
+where
+    I: StreamIterator,
+    F: Fn(I::P) -> U,
+    U: IntoIterator,
+    U::Item: Send + 'static,
+    I::D: Send + 'static,
+{
+    type D = I::D;
+    type P = U::Item;
 }
 
 #[cfg(test)]
@@ -1894,7 +2259,11 @@ mod tests {
             SimpleStream::<u32, String>::from_vec(vec)
         });
 
-        // Should flatten: 1, 2, 3, 4, 5
+        // First inner setup returns Ignore, then 1, 2
+        assert!(matches!(
+            Iterator::next(&mut flattened),
+            Some(Stream::Ignore)
+        )); // Setting up first inner
         assert!(matches!(
             Iterator::next(&mut flattened),
             Some(Stream::Next(1))
@@ -1903,6 +2272,11 @@ mod tests {
             Iterator::next(&mut flattened),
             Some(Stream::Next(2))
         ));
+        // Second inner setup returns Ignore, then 3, 4, 5
+        assert!(matches!(
+            Iterator::next(&mut flattened),
+            Some(Stream::Ignore)
+        )); // Setting up second inner
         assert!(matches!(
             Iterator::next(&mut flattened),
             Some(Stream::Next(3))
@@ -1956,12 +2330,26 @@ mod tests {
             SimpleStream::<u32, String>::from_vec(vec)
         });
 
-        // Outer's Pending is consumed by mapper (returns empty stream)
-        // Only Next values produce output
+        // Ignore when setting up first inner, then 1
+        assert!(matches!(
+            Iterator::next(&mut flattened),
+            Some(Stream::Ignore)
+        ));
         assert!(matches!(
             Iterator::next(&mut flattened),
             Some(Stream::Next(1))
         ));
+        // Pending consumed by mapper (returns empty vec) = Ignore
+        assert!(matches!(
+            Iterator::next(&mut flattened),
+            Some(Stream::Ignore)
+        ));
+        // Empty inner exhausted, setup next inner from Next(vec![2,3]) = Ignore
+        assert!(matches!(
+            Iterator::next(&mut flattened),
+            Some(Stream::Ignore)
+        ));
+        // Then 2, 3 from second inner
         assert!(matches!(
             Iterator::next(&mut flattened),
             Some(Stream::Next(2))
@@ -2010,7 +2398,11 @@ mod tests {
             SimpleStream::<u32, String>::from_vec(vec)
         });
 
-        // Outer's Pending is consumed by mapper (returns empty stream, no output)
+        // Ignore for setup, then 1, 2 from first inner
+        assert!(matches!(
+            Iterator::next(&mut flattened),
+            Some(Stream::Ignore)
+        ));
         assert!(matches!(
             Iterator::next(&mut flattened),
             Some(Stream::Next(1))
@@ -2019,9 +2411,285 @@ mod tests {
             Iterator::next(&mut flattened),
             Some(Stream::Next(2))
         ));
+        // Outer's Pending consumed by mapper (returns empty stream) - setup = Ignore
+        assert!(matches!(
+            Iterator::next(&mut flattened),
+            Some(Stream::Ignore)
+        ));
+        // Then setup next inner = Ignore, then 3
+        assert!(matches!(
+            Iterator::next(&mut flattened),
+            Some(Stream::Ignore)
+        ));
         assert!(matches!(
             Iterator::next(&mut flattened),
             Some(Stream::Next(3))
+        ));
+        assert_eq!(Iterator::next(&mut flattened), None);
+    }
+
+    #[test]
+    fn test_flatten_next() {
+        struct VecStream {
+            items: std::vec::IntoIter<Stream<Vec<u32>, String>>,
+        }
+
+        impl Iterator for VecStream {
+            type Item = Stream<Vec<u32>, String>;
+
+            fn next(&mut self) -> Option<Self::Item> {
+                self.items.next()
+            }
+        }
+
+        impl StreamIterator for VecStream {
+            type D = Vec<u32>;
+            type P = String;
+        }
+
+        let items = vec![
+            Stream::Next(vec![1u32, 2u32]),
+            Stream::Pending("wait".to_string()),
+            Stream::Next(vec![3u32, 4u32, 5u32]),
+        ];
+        let stream = VecStream {
+            items: items.into_iter(),
+        };
+
+        let mut flattened = stream.flatten_next();
+
+        // First inner yields 1, 2 (with Ignore when setting up)
+        assert!(matches!(
+            Iterator::next(&mut flattened),
+            Some(Stream::Ignore)
+        )); // Setting up first inner
+        assert!(matches!(
+            Iterator::next(&mut flattened),
+            Some(Stream::Next(1))
+        ));
+        assert!(matches!(
+            Iterator::next(&mut flattened),
+            Some(Stream::Next(2))
+        ));
+        // Pending passes through
+        assert!(matches!(
+            Iterator::next(&mut flattened),
+            Some(Stream::Pending(_))
+        ));
+        // Setting up second inner
+        assert!(matches!(
+            Iterator::next(&mut flattened),
+            Some(Stream::Ignore)
+        ));
+        assert!(matches!(
+            Iterator::next(&mut flattened),
+            Some(Stream::Next(3))
+        ));
+        assert!(matches!(
+            Iterator::next(&mut flattened),
+            Some(Stream::Next(4))
+        ));
+        assert!(matches!(
+            Iterator::next(&mut flattened),
+            Some(Stream::Next(5))
+        ));
+        assert_eq!(Iterator::next(&mut flattened), None);
+    }
+
+    #[test]
+    fn test_flat_map_next() {
+        struct NumStream {
+            items: std::vec::IntoIter<Stream<u32, String>>,
+        }
+
+        impl Iterator for NumStream {
+            type Item = Stream<u32, String>;
+
+            fn next(&mut self) -> Option<Self::Item> {
+                self.items.next()
+            }
+        }
+
+        impl StreamIterator for NumStream {
+            type D = u32;
+            type P = String;
+        }
+
+        let items = vec![
+            Stream::Next(2u32),
+            Stream::Next(3u32),
+            Stream::Pending("wait".to_string()),
+        ];
+        let stream = NumStream {
+            items: items.into_iter(),
+        };
+
+        // Map each number to a range [0, n), then flatten
+        let mut flattened = stream.flat_map_next(|n| 0..n);
+
+        // 2 -> [0, 1]
+        assert!(matches!(
+            Iterator::next(&mut flattened),
+            Some(Stream::Ignore)
+        )); // Setting up inner for 2
+        assert!(matches!(
+            Iterator::next(&mut flattened),
+            Some(Stream::Next(0))
+        ));
+        assert!(matches!(
+            Iterator::next(&mut flattened),
+            Some(Stream::Next(1))
+        ));
+        // 3 -> [0, 1, 2]
+        assert!(matches!(
+            Iterator::next(&mut flattened),
+            Some(Stream::Ignore)
+        )); // Setting up inner for 3
+        assert!(matches!(
+            Iterator::next(&mut flattened),
+            Some(Stream::Next(0))
+        ));
+        assert!(matches!(
+            Iterator::next(&mut flattened),
+            Some(Stream::Next(1))
+        ));
+        assert!(matches!(
+            Iterator::next(&mut flattened),
+            Some(Stream::Next(2))
+        ));
+        // Pending passes through
+        assert!(matches!(
+            Iterator::next(&mut flattened),
+            Some(Stream::Pending(_))
+        ));
+        assert_eq!(Iterator::next(&mut flattened), None);
+    }
+
+    #[test]
+    fn test_flatten_pending() {
+        struct VecStream {
+            items: std::vec::IntoIter<Stream<u32, Vec<String>>>,
+        }
+
+        impl Iterator for VecStream {
+            type Item = Stream<u32, Vec<String>>;
+
+            fn next(&mut self) -> Option<Self::Item> {
+                self.items.next()
+            }
+        }
+
+        impl StreamIterator for VecStream {
+            type D = u32;
+            type P = Vec<String>;
+        }
+
+        let items = vec![
+            Stream::Pending(vec!["a".to_string(), "b".to_string()]),
+            Stream::Next(42u32),
+            Stream::Pending(vec!["c".to_string()]),
+        ];
+        let stream = VecStream {
+            items: items.into_iter(),
+        };
+
+        let mut flattened = stream.flatten_pending();
+
+        // First inner yields "a", "b"
+        assert!(matches!(
+            Iterator::next(&mut flattened),
+            Some(Stream::Ignore)
+        )); // Setting up first inner
+        assert!(matches!(
+            Iterator::next(&mut flattened),
+            Some(Stream::Pending(ref s)) if s == "a"
+        ));
+        assert!(matches!(
+            Iterator::next(&mut flattened),
+            Some(Stream::Pending(ref s)) if s == "b"
+        ));
+        // Next passes through
+        assert!(matches!(
+            Iterator::next(&mut flattened),
+            Some(Stream::Next(42))
+        ));
+        // Setting up second inner
+        assert!(matches!(
+            Iterator::next(&mut flattened),
+            Some(Stream::Ignore)
+        ));
+        assert!(matches!(
+            Iterator::next(&mut flattened),
+            Some(Stream::Pending(ref s)) if s == "c"
+        ));
+        assert_eq!(Iterator::next(&mut flattened), None);
+    }
+
+    #[test]
+    fn test_flat_map_pending() {
+        struct NumStream {
+            items: std::vec::IntoIter<Stream<u32, u32>>,
+        }
+
+        impl Iterator for NumStream {
+            type Item = Stream<u32, u32>;
+
+            fn next(&mut self) -> Option<Self::Item> {
+                self.items.next()
+            }
+        }
+
+        impl StreamIterator for NumStream {
+            type D = u32;
+            type P = u32;
+        }
+
+        let items = vec![
+            Stream::Pending(2u32),
+            Stream::Next(99u32),
+            Stream::Pending(3u32),
+        ];
+        let stream = NumStream {
+            items: items.into_iter(),
+        };
+
+        // Map each pending number to a range [0, n), then flatten
+        let mut flattened = stream.flat_map_pending(|n| 0..n);
+
+        // 2 -> [0, 1]
+        assert!(matches!(
+            Iterator::next(&mut flattened),
+            Some(Stream::Ignore)
+        ));
+        assert!(matches!(
+            Iterator::next(&mut flattened),
+            Some(Stream::Pending(0))
+        ));
+        assert!(matches!(
+            Iterator::next(&mut flattened),
+            Some(Stream::Pending(1))
+        ));
+        // Next passes through
+        assert!(matches!(
+            Iterator::next(&mut flattened),
+            Some(Stream::Next(99))
+        ));
+        // 3 -> [0, 1, 2]
+        assert!(matches!(
+            Iterator::next(&mut flattened),
+            Some(Stream::Ignore)
+        ));
+        assert!(matches!(
+            Iterator::next(&mut flattened),
+            Some(Stream::Pending(0))
+        ));
+        assert!(matches!(
+            Iterator::next(&mut flattened),
+            Some(Stream::Pending(1))
+        ));
+        assert!(matches!(
+            Iterator::next(&mut flattened),
+            Some(Stream::Pending(2))
         ));
         assert_eq!(Iterator::next(&mut flattened), None);
     }

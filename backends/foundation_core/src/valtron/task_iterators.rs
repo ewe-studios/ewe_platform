@@ -376,6 +376,48 @@ pub trait TaskIteratorExt: TaskIterator + Sized {
         InnerS: ExecutionAction + Send + 'static,
         Self::Pending: Into<InnerP> + Send + 'static,
         Self::Spawner: Into<InnerS> + Send + 'static;
+
+    /// Flatten Ready values that implement IntoIterator.
+    ///
+    /// Input:  TaskIterator<Ready = Vec<M>, Pending = P, Spawner = S>
+    /// Output: TaskIterator<Ready = M, Pending = P, Spawner = S>
+    fn flatten_ready(self) -> TFlattenReady<Self>
+    where
+        Self: Sized,
+        Self::Ready: IntoIterator,
+        <Self::Ready as IntoIterator>::Item: Send + 'static;
+
+    /// Flatten Pending values that implement IntoIterator.
+    ///
+    /// Input:  TaskIterator<Ready = D, Pending = Vec<M>, Spawner = S>
+    /// Output: TaskIterator<Ready = D, Pending = M, Spawner = S>
+    fn flatten_pending(self) -> TFlattenPending<Self>
+    where
+        Self: Sized,
+        Self::Pending: IntoIterator,
+        <Self::Pending as IntoIterator>::Item: Send + 'static;
+
+    /// Flat map Ready values - transform and flatten in one operation.
+    ///
+    /// Input:  TaskIterator<Ready = D, Pending = P, Spawner = S>
+    /// Output: TaskIterator<Ready = U::Item, Pending = P, Spawner = S>
+    fn flat_map_ready<F, U>(self, f: F) -> TFlatMapReady<Self, F, U>
+    where
+        Self: Sized,
+        F: Fn(Self::Ready) -> U + Send + 'static,
+        U: IntoIterator,
+        U::Item: Send + 'static;
+
+    /// Flat map Pending values - transform and flatten in one operation.
+    ///
+    /// Input:  TaskIterator<Ready = D, Pending = P, Spawner = S>
+    /// Output: TaskIterator<Ready = D, Pending = U::Item, Spawner = S>
+    fn flat_map_pending<F, U>(self, f: F) -> TFlatMapPending<Self, F, U>
+    where
+        Self: Sized,
+        F: Fn(Self::Pending) -> U + Send + 'static,
+        U: IntoIterator,
+        U::Item: Send + 'static;
 }
 
 // Blanket implementation: anything implementing TaskIterator gets TaskIteratorExt
@@ -622,6 +664,58 @@ where
             mapper,
             current_inner: None,
             _phantom: std::marker::PhantomData,
+        }
+    }
+
+    fn flatten_ready(self) -> TFlattenReady<Self>
+    where
+        Self: Sized,
+        Self::Ready: IntoIterator,
+        <Self::Ready as IntoIterator>::Item: Send + 'static,
+    {
+        TFlattenReady {
+            inner: self,
+            current_inner: None,
+        }
+    }
+
+    fn flatten_pending(self) -> TFlattenPending<Self>
+    where
+        Self: Sized,
+        Self::Pending: IntoIterator,
+        <Self::Pending as IntoIterator>::Item: Send + 'static,
+    {
+        TFlattenPending {
+            inner: self,
+            current_inner: None,
+        }
+    }
+
+    fn flat_map_ready<F, U>(self, f: F) -> TFlatMapReady<Self, F, U>
+    where
+        Self: Sized,
+        F: Fn(Self::Ready) -> U + Send + 'static,
+        U: IntoIterator,
+        U::Item: Send + 'static,
+    {
+        TFlatMapReady {
+            inner: self,
+            mapper: f,
+            current_inner: None,
+        }
+    }
+
+    fn flat_map_pending<F, U>(self, f: F) -> TFlatMapPending<Self, F, U>
+    where
+        Self: Sized,
+        F: Fn(Self::Pending) -> U + Send + 'static,
+        U: IntoIterator,
+        U::Item: Send + 'static,
+    {
+        TFlatMapPending {
+            inner: self,
+            mapper: f,
+            current_inner: None,
         }
     }
 }

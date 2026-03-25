@@ -80,6 +80,11 @@ impl LocalPoolHandle {
 }
 
 /// [`get_pool`] returns a handle for spawning tasks.
+///
+/// # Panics
+///
+/// Panics if the thread pool has not been initialized (ensure to call `block_on` or
+/// `initialize_pool` first), or if the internal registry mutex is poisoned.
 pub fn get_pool() -> LocalPoolHandle {
     let registry =
         REGISTRY.lock().unwrap().clone().expect(
