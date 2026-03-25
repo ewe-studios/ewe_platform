@@ -1,17 +1,17 @@
 ---
 feature: "map_iter Combinator"
 description: "Simple map_iter combinator for nested iterator patterns - outer iterator yields inner iterators"
-status: "pending"
+status: "complete"
 priority: "high"
 depends_on: ["01-task-iterators", "02-stream-iterators"]
 estimated_effort: "small"
 created: 2026-03-23
 author: "Main Agent"
 tasks:
-  completed: 0
-  uncompleted: 8
+  completed: 8
+  uncompleted: 0
   total: 8
-  completion_percentage: 0%
+  completion_percentage: 100%
 ---
 
 # map_iter Combinator Feature
