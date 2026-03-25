@@ -1,6 +1,6 @@
 // Integration tests for TaskIterator combinators
 use foundation_core::valtron::{
-    NoAction, SimpleTask, Stream, StreamIterator, TaskIterator, TaskIteratorExt, TaskStatus,
+    NoAction, Stream, TaskIterator, TaskIteratorExt, TaskStatus,
 };
 
 // Simple test task iterator for unit tests
@@ -232,7 +232,7 @@ fn test_map_iter_flattens_nested_iterators() {
         items: items.into_iter(),
     };
 
-    let mut flattened: foundation_core::valtron::task_iterators::TMapIter<
+    let mut flattened: foundation_core::valtron::TMapIter<
         _,
         _,
         _,
@@ -309,7 +309,7 @@ fn test_map_iter_passes_through_pending() {
         items: items.into_iter(),
     };
 
-    let mut flattened: foundation_core::valtron::task_iterators::TMapIter<
+    let mut flattened: foundation_core::valtron::TMapIter<
         _,
         _,
         _,
