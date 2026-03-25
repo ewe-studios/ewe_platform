@@ -308,6 +308,107 @@ pub trait TaskIterator {
     }
 }
 
+impl<M> TaskIterator for Box<M>
+where
+    M: TaskIterator + ?Sized,
+    M: TaskIterator,
+    M::Ready: 'static,
+    M::Pending: 'static,
+    M::Spawner: ExecutionAction + 'static,
+{
+    type Ready = M::Ready;
+    type Pending = M::Pending;
+    type Spawner = M::Spawner;
+
+    fn next_status(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+        (**self).next_status()
+    }
+}
+
+#[allow(clippy::needless_lifetimes)]
+impl<'a, M> TaskIterator for &'a mut M
+where
+    M: TaskIterator,
+    M::Ready: 'a,
+    M::Pending: 'a,
+    M::Spawner: ExecutionAction + 'a,
+{
+    type Ready = M::Ready;
+    type Pending = M::Pending;
+    type Spawner = M::Spawner;
+    fn next_status(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+        (**self).next_status()
+    }
+}
+
+impl<M> TaskIterator for RefCell<Box<M>>
+where
+    M: TaskIterator + ?Sized,
+    M: TaskIterator,
+    M::Ready: 'static,
+    M::Pending: 'static,
+    M::Spawner: ExecutionAction + 'static,
+{
+    type Ready = M::Ready;
+    type Pending = M::Pending;
+    type Spawner = M::Spawner;
+
+    fn next_status(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+        self.get_mut().next_status()
+    }
+}
+
+impl<M> TaskIterator for Rc<RefCell<Box<M>>>
+where
+    M: TaskIterator + ?Sized,
+    M: TaskIterator,
+    M::Ready: 'static,
+    M::Pending: 'static,
+    M::Spawner: ExecutionAction + 'static,
+{
+    type Ready = M::Ready;
+    type Pending = M::Pending;
+    type Spawner = M::Spawner;
+
+    fn next_status(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+        self.borrow_mut().next_status()
+    }
+}
+
+impl<M> TaskIterator for Mutex<Box<M>>
+where
+    M: TaskIterator + ?Sized,
+    M: TaskIterator,
+    M::Ready: 'static,
+    M::Pending: 'static,
+    M::Spawner: ExecutionAction + 'static,
+{
+    type Ready = M::Ready;
+    type Pending = M::Pending;
+    type Spawner = M::Spawner;
+
+    fn next_status(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+        self.get_mut().unwrap().next_status()
+    }
+}
+
+impl<M> TaskIterator for Arc<Mutex<Box<M>>>
+where
+    M: TaskIterator + ?Sized,
+    M: TaskIterator,
+    M::Ready: 'static,
+    M::Pending: 'static,
+    M::Spawner: ExecutionAction + 'static,
+{
+    type Ready = M::Ready;
+    type Pending = M::Pending;
+    type Spawner = M::Spawner;
+
+    fn next_status(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+        self.lock().unwrap().next_status()
+    }
+}
+
 pub struct TaskAsStreamIterator<D, P, S>(
     Box<dyn TaskIterator<Ready = D, Pending = P, Spawner = S>>,
 );
@@ -323,12 +424,16 @@ impl<D, P, S> TaskAsStreamIterator<D, P, S> {
     }
 }
 
-impl<D, P, S: ExecutionAction> StreamIterator for TaskAsStreamIterator<D, P, S> {
+impl<D: 'static, P: 'static, S: ExecutionAction + 'static> StreamIterator
+    for TaskAsStreamIterator<D, P, S>
+{
     type D = D;
     type P = P;
 }
 
-impl<D, P, S: ExecutionAction> Iterator for TaskAsStreamIterator<D, P, S> {
+impl<D: 'static, P: 'static, S: ExecutionAction + 'static> Iterator
+    for TaskAsStreamIterator<D, P, S>
+{
     type Item = crate::valtron::Stream<D, P>;
 
     fn next(&mut self) -> Option<Self::Item> {
@@ -349,7 +454,7 @@ impl<D, P, S> TaskAsIterator<D, P, S> {
     }
 }
 
-impl<D, P, S: ExecutionAction> Iterator for TaskAsIterator<D, P, S> {
+impl<D: 'static, P: 'static, S: ExecutionAction + 'static> Iterator for TaskAsIterator<D, P, S> {
     type Item = TaskStatus<D, P, S>;
 
     fn next(&mut self) -> Option<Self::Item> {
