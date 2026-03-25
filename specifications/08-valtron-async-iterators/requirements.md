@@ -27,10 +27,10 @@ builds_on: "specifications/02-build-http-client"
 related_specs:
   - "specifications/07-foundation-ai"
 features:
-  completed: 7
-  uncompleted: 2
+  completed: 8
+  uncompleted: 1
   total: 9
-  completion_percentage: 78%
+  completion_percentage: 89%
 ---
 
 # Overview
@@ -122,9 +122,10 @@ This allows users to:
 | 5 | [mapping-combinators](./features/04-mapping-combinators/feature.md) | ✅ COMPLETE - execute_map_all() returns StreamIterator | #3, #4 |
 | 6 | [unified-executor-integration](./features/05-unified-executor-integration/feature.md) | ✅ COMPLETE - execute() returns StreamIterator, execute_as_task() opt-in | #4, #5 |
 | 6a | [client-request-refactor](./features/06a-client-request-refactor/feature.md) | ✅ COMPLETE - Refactor ClientRequest to use split_collect_until_map() | #6, #7 |
-| 6b | [map-iter-combinator](./features/06b-map-iter-combinator/feature.md) | PENDING - map_iter() for nested iterator patterns (outer yields inners) | #2 |
-| 6c | [gen-model-descriptors-parallel-fetch](./features/06c-gen-model-descriptors-parallel-fetch/feature.md) | PENDING - Use execute_collect_all() for parallel API fetches | #5 |
+| 6b | [map-iter-combinator](./features/06b-map-iter-combinator/feature.md) | ✅ COMPLETE - map_iter() for nested iterator patterns (outer yields inners) | #2 |
+| 6c | [gen-model-descriptors-parallel-fetch](./features/06c-gen-model-descriptors-parallel-fetch/feature.md) | ✅ COMPLETE - Use valtron::execute() for parallel API fetches (~3x speedup) | #5 |
 | 7 | [split-collector](./features/07-split-collector/feature.md) | ✅ COMPLETE - split_collector() and split_collect_until() for observer + continuation pattern | #2, #3 |
+| 8 | [iterator-ext-completion](./features/08-iterator-ext-completion/feature.md) | PENDING - Standard Iterator trait methods for TaskIteratorExt and StreamIteratorExt | #1, #2, #3 |
 
 ## High-Level Architecture
 
