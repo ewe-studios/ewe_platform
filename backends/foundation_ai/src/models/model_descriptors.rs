@@ -3114,13 +3114,13 @@ pub fn model_descriptors() -> Vec<ModelProviderDescriptor> {
             base_url: Some("https://openrouter.ai/api/v1".to_string()),
             inputs: MessageType::Text,
             cost: ModelUsageCosting {
-                input: 0.55,
-                output: 2.2,
+                input: 0.5700000000000001,
+                output: 2.3,
                 cache_read: 0.0,
                 cache_write: 0.0,
             },
-            context_window: 131_000,
-            max_tokens: 4096,
+            context_window: 131_072,
+            max_tokens: 131_072,
         },
         ModelProviderDescriptor {
             id: "moonshotai/kimi-k2-0905".to_string(),
@@ -3182,8 +3182,8 @@ pub fn model_descriptors() -> Vec<ModelProviderDescriptor> {
             base_url: Some("https://openrouter.ai/api/v1".to_string()),
             inputs: MessageType::Text,
             cost: ModelUsageCosting {
-                input: 0.27,
-                output: 1.0,
+                input: 0.135,
+                output: 0.5,
                 cache_read: 0.0,
                 cache_write: 0.0,
             },

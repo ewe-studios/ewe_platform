@@ -200,6 +200,231 @@ Returning `TaskStatus<Vec<T>>` instead of `Vec<T>` allows the collection itself 
 _Created: 2026-03-20_
 _Updated: 2026-03-20 (v3.0: TaskIterator/StreamIterator separation)_
 
+---
+
+## Feature 06c: Parallel Fetch in gen_model_descriptors Learnings
+
+### PoolGuard Lifecycle is Critical
+
+**Problem**: Thread pool was shutting down immediately after initialization, causing tasks to never execute.
+
+**Root Cause**: The `PoolGuard` returned by `valtron::initialize_pool()` was being discarded:
+
+```rust
+// WRONG: Guard dropped immediately, threads shut down
+valtron::initialize_pool(100, None);
+// PoolGuard goes out of scope here, Drop impl kills all threads!
+
+// Tasks try to spawn into dead pool
+let task = valtron::execute(my_task, None)?; // Panics or hangs
+```
+
+**Solution**: Keep the `PoolGuard` alive for the entire duration of task execution:
+
+```rust
+// CORRECT: Keep guard alive via binding
+let _guard = valtron::initialize_pool(100, None);
+// ... execute tasks ...
+// Guard dropped here, after tasks complete
+```
+
+**Why this matters**: `PoolGuard::Drop` signals all worker threads to shut down and waits for them to exit. This is intentional - the guard is the lifecycle manager for the thread pool. If you don't hold it, the pool dies.
+
+**Pattern for binaries**:
+```rust
+pub fn run() -> Result<(), BoxedError> {
+    let _guard = valtron::initialize_pool(100, None);
+    // All valtron::execute() calls happen here
+    Ok(())
+}
+// Guard dropped when function returns
+```
+
+**Pattern for libraries**:
+```rust
+pub struct MyExecutor {
+    _guard: PoolGuard,
+}
+
+impl MyExecutor {
+    pub fn new() -> Self {
+        Self {
+            _guard: valtron::initialize_pool(100, None),
+        }
+    }
+
+    pub fn execute<T>(&self, task: T) -> Result<...> {
+        valtron::execute(task, None)
+    }
+}
+```
+
+---
+
+### Heterogeneous Closures Can't Use execute_collect_all()
+
+**Initial plan**: Use `execute_collect_all(vec![task1, task2, task3])` to run all fetches in parallel.
+
+**Problem**: `execute_collect_all()` requires `Vec<TaskIterator<...>>`, but each fetch task has a different closure type for its parser:
+
+```rust
+// Each closure is a unique type, even with same signature
+let task1 = create_fetch_task(client, "models.dev", parse_dev)?;  // Closure type A
+let task2 = create_fetch_task(client, "openrouter", parse_or)?;   // Closure type B
+let task3 = create_fetch_task(client, "ai-gateway", parse_ai)?;   // Closure type C
+
+// Can't store in Vec - different types!
+let tasks: Vec<_> = vec![task1, task2, task3]; // Compilation error
+```
+
+**Solution**: Execute each task individually via `valtron::execute()` - they still run in parallel on the thread pool:
+
+```rust
+// Execute separately - each returns StreamIterator
+let mut stream1 = valtron::execute(task1, None)?;
+let mut stream2 = valtron::execute(task2, None)?;
+let mut stream3 = valtron::execute(task3, None)?;
+
+// Tasks run concurrently on the thread pool
+// Collect results as they complete
+```
+
+**Key insight**: The executor schedules tasks concurrently regardless of whether you call `execute_collect_all()` or individual `execute()` calls. The thread pool is shared, so all tasks run in parallel.
+
+**When to use execute_collect_all()**: When you have homogeneous task types (same closure types, often via `Box<dyn TaskIterator>` or when tasks share the exact same type).
+
+**When to use individual execute() calls**: When tasks have heterogeneous types (different closures, different Mapper/Resolver types).
+
+---
+
+### Streaming Body Handling for SendSafeBody
+
+**Problem**: HTTP responses can have various body types depending on the server's transfer encoding, and the `.map_ready()` closure must handle all variants:
+
+- `Text` - Simple string body
+- `Bytes` - Raw bytes
+- `Stream` - Streaming body via iterator
+- `ChunkedStream` - Chunked transfer encoding
+- `LineFeedStream` - Line-by-line streaming
+- `None` - No body
+
+**Solution**: Pattern match on all variants in the `.map_ready()` closure:
+
+```rust
+.map_ready(move |intro| {
+    match intro {
+        RequestIntro::Success { stream, .. } => {
+            let body_text = match stream {
+                IncomingResponseParts::SizedBody(body)
+                | IncomingResponseParts::StreamedBody(body) => {
+                    match body {
+                        SendSafeBody::Text(t) => t,
+                        SendSafeBody::Bytes(b) => {
+                            String::from_utf8(b).unwrap_or_default()
+                        }
+                        SendSafeBody::Stream(mut opt_iter) => {
+                            // Consume stream iterator
+                            if let Some(iter) = opt_iter.take() {
+                                let mut bytes = Vec::new();
+                                for chunk_result in iter {
+                                    match chunk_result {
+                                        Ok(data) => bytes.extend(data),
+                                        Err(e) => {
+                                            tracing::warn!("Stream error: {e}");
+                                            break;
+                                        }
+                                    }
+                                }
+                                String::from_utf8(bytes).unwrap_or_default()
+                            } else {
+                                String::new()
+                            }
+                        }
+                        SendSafeBody::ChunkedStream(mut opt_iter) => {
+                            // Handle ChunkedData variants
+                            if let Some(iter) = opt_iter.take() {
+                                let mut bytes = Vec::new();
+                                for chunk_result in iter {
+                                    match chunk_result {
+                                        Ok(ChunkedData::Data(data, _)) => bytes.extend(data),
+                                        Ok(ChunkedData::Trailers(_)) => {}
+                                        Ok(ChunkedData::DataEnded) => break,
+                                        Err(e) => {
+                                            tracing::warn!("Chunked error: {e}");
+                                            break;
+                                        }
+                                    }
+                                }
+                                String::from_utf8(bytes).unwrap_or_default()
+                            } else {
+                                String::new()
+                            }
+                        }
+                        SendSafeBody::None => {
+                            tracing::warn!("No body in response");
+                            String::new()
+                        }
+                        SendSafeBody::LineFeedStream(_) => {
+                            tracing::warn!("LineFeedStream not supported");
+                            String::new()
+                        }
+                    }
+                }
+                _ => String::new(),
+            };
+            parser(&body_text, source)
+        }
+        RequestIntro::Failed(e) => {
+            tracing::warn!("Request failed: {e}");
+            Vec::new()
+        }
+    }
+})
+```
+
+**Key patterns**:
+1. Use `opt_iter.take()` to consume `Option<StreamIterator>` - takes ownership
+2. Collect bytes into `Vec<u8>` first, then convert to `String`
+3. Handle errors gracefully with `unwrap_or_default()` or logging
+4. Use `tracing::warn!` for unexpected cases, don't panic
+
+**Why this complexity**: The HTTP client uses non-blocking I/O with connection pooling. Streaming bodies allow processing large responses without buffering everything in memory at once.
+
+---
+
+### TaskIterator Combinators Apply Before execute()
+
+**Pattern**: All combinators (`.map_ready()`, `.map_pending()`, `.filter_ready()`, etc.) must be applied BEFORE calling `valtron::execute()`:
+
+```rust
+// CORRECT: Combinators before execute
+let task = SendRequestTask::new(request, pool, config)
+    .map_ready(|response| transform(response))
+    .map_pending(|pending| log(pending));
+
+let stream = valtron::execute(task, None)?;
+
+// WRONG: Can't apply combinators after execute
+let stream = valtron::execute(task, None)?;
+let stream = stream.map_ready(...); // Doesn't exist - StreamIterator has different API
+```
+
+**Why**: `execute()` is the boundary between TaskIterator (implementer space) and StreamIterator (end-user space). Combinators are trait methods on `TaskIteratorExt`, not `StreamIteratorExt`.
+
+**For StreamIterator processing**: Use standard iterator combinators after execute:
+
+```rust
+let stream = valtron::execute(task, None)?;
+let results: Vec<_> = stream
+    .filter_map(|item| match item {
+        Stream::Next(value) => Some(value),
+        _ => None,
+    })
+    .collect();
+```
+
+---
+
 ## Design Decisions
 
 ### Why TaskStatusIterator instead of modifying Iterator?

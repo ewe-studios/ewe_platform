@@ -13,22 +13,16 @@
 use std::collections::BTreeMap;
 use std::path::PathBuf;
 use std::process::Command;
-use std::sync::Arc;
 use std::time::{Duration, Instant};
 
 use derive_more::{Display, From};
 use foundation_core::synca::mpp::Stream;
-use foundation_core::valtron::{
-    self, StreamIteratorExt, TaskIterator, TaskIteratorExt, TaskStatus,
-};
-use foundation_core::wire::simple_http::client::{
-    ClientConfig, DnsResolver, HttpConnectionPool, SendRequestTask, SimpleHttpClient,
-    SystemDnsResolver,
-};
-use foundation_core::wire::simple_http::client::{HttpRequestPending, RequestIntro};
-use foundation_core::wire::simple_http::{
-    ChunkedData, IncomingResponseParts, LineFeed, SendSafeBody, SimpleHeader, Status,
-};
+use foundation_core::valtron::{self, TaskIterator, TaskIteratorExt};
+use foundation_core::wire::simple_http::client::HttpRequestPending;
+use foundation_core::wire::simple_http::client::RequestIntro;
+use foundation_core::wire::simple_http::client::{SendRequestTask, SimpleHttpClient};
+use foundation_core::wire::simple_http::ChunkedData;
+use foundation_core::wire::simple_http::{IncomingResponseParts, SendSafeBody};
 use serde::Deserialize;
 use tracing::Level;
 use tracing_subscriber::FmtSubscriber;
@@ -107,8 +101,6 @@ impl std::error::Error for GenModelError {}
 pub enum FetchPending {
     Connecting { source: &'static str },
     AwaitingResponse { source: &'static str },
-    ParsingJson { source: &'static str },
-    ProcessingModels { source: &'static str },
 }
 
 impl FetchPending {
@@ -126,10 +118,6 @@ impl std::fmt::Display for FetchPending {
             FetchPending::Connecting { source } => write!(f, "{source}: Connecting..."),
             FetchPending::AwaitingResponse { source } => {
                 write!(f, "{source}: Awaiting response...")
-            }
-            FetchPending::ParsingJson { source } => write!(f, "{source}: Parsing JSON..."),
-            FetchPending::ProcessingModels { source } => {
-                write!(f, "{source}: Processing models...")
             }
         }
     }
@@ -294,196 +282,6 @@ struct AiGatewayPricing {
 }
 
 // ---------------------------------------------------------------------------
-// HTTP helper
-// ---------------------------------------------------------------------------
-
-/// WHY: Centralises HTTP GET + JSON parse so each fetcher stays focused on
-/// its domain logic.
-///
-/// WHAT: Sends a GET request, checks for 200, extracts the body text, and
-/// deserialises into `T`.
-///
-/// HOW: Uses `SimpleHttpClient` from `foundation_core`.
-///
-/// # Errors
-///
-/// Returns `GenModelError::Http` on transport failure, `GenModelError::BadStatus`
-/// on non-200, `GenModelError::InvalidUtf8` / `GenModelError::UnexpectedBody` on
-/// body issues, and `GenModelError::Json` on parse failure.
-///
-/// # Panics
-///
-/// Never panics.
-fn http_get_json<T: serde::de::DeserializeOwned>(
-    client: &SimpleHttpClient,
-    url: &str,
-) -> Result<T, GenModelError> {
-    let mut response = client
-        .get(url)
-        .map_err(|e| GenModelError::Http {
-            url: url.to_string(),
-            source: e,
-        })?
-        .header(SimpleHeader::ACCEPT, "application/json")
-        .header(
-            SimpleHeader::USER_AGENT,
-            "gen_model_descriptors/0.1 (ewe-platform)",
-        )
-        .build_client()
-        .map_err(|e| GenModelError::Http {
-            url: url.to_string(),
-            source: e,
-        })?
-        .send()
-        .map_err(|e| GenModelError::Http {
-            url: url.to_string(),
-            source: e,
-        })?;
-
-    let status = response.get_status();
-    tracing::info!("Got response status: {:?} for: {}", &status, &url);
-
-    if status != Status::OK {
-        return Err(GenModelError::BadStatus {
-            url: url.to_string(),
-            status: status.into_usize(),
-        });
-    }
-
-    let body_text = match response.get_body_mut() {
-        SendSafeBody::Text(t) => t.clone(),
-        SendSafeBody::Bytes(b) => {
-            String::from_utf8(b.clone()).map_err(|e| GenModelError::InvalidUtf8 {
-                url: url.to_string(),
-                source: e,
-            })?
-        }
-        SendSafeBody::None => {
-            return Err(GenModelError::UnexpectedBody {
-                url: url.to_string(),
-            })
-        }
-        SendSafeBody::Stream(opt) => {
-            let Some(stream) = opt.take() else {
-                return Err(GenModelError::UnexpectedBody {
-                    url: url.to_string(),
-                });
-            };
-
-            let mut bytes = Vec::new();
-            for chunk_result in stream {
-                match chunk_result {
-                    Ok(chunk) => bytes.extend(chunk),
-                    Err(e) => {
-                        tracing::info!(
-                            "Stream: Failing response body read: {:?} for: {}",
-                            &e,
-                            &url
-                        );
-                        return Err(GenModelError::Http {
-                            url: url.to_string(),
-                            source: foundation_core::wire::simple_http::HttpClientError::from(
-                                std::io::Error::new(std::io::ErrorKind::InvalidData, e.to_string()),
-                            ),
-                        });
-                    }
-                }
-            }
-            String::from_utf8(bytes).map_err(|e| GenModelError::InvalidUtf8 {
-                url: url.to_string(),
-                source: e,
-            })?
-        }
-        SendSafeBody::ChunkedStream(opt) => {
-            let Some(stream) = opt.take() else {
-                return Err(GenModelError::UnexpectedBody {
-                    url: url.to_string(),
-                });
-            };
-            let mut bytes = Vec::new();
-            for chunk_result in stream {
-                match chunk_result {
-                    Ok(chunked_data) => match chunked_data {
-                        ChunkedData::Data(data, _) => {
-                            bytes.extend(data);
-                        }
-                        ChunkedData::Trailers(_) => {}
-                        ChunkedData::DataEnded => {}
-                    },
-                    Err(e) => {
-                        tracing::info!(
-                            "ChunkedStream: Failing response body read: {:?} for: {}",
-                            &e,
-                            &url
-                        );
-                        return Err(GenModelError::Http {
-                            url: url.to_string(),
-                            source: foundation_core::wire::simple_http::HttpClientError::from(
-                                std::io::Error::new(std::io::ErrorKind::InvalidData, e.to_string()),
-                            ),
-                        });
-                    }
-                }
-            }
-            String::from_utf8(bytes).map_err(|e| GenModelError::InvalidUtf8 {
-                url: url.to_string(),
-                source: e,
-            })?
-        }
-        SendSafeBody::LineFeedStream(opt) => {
-            let Some(stream) = opt.take() else {
-                return Err(GenModelError::UnexpectedBody {
-                    url: url.to_string(),
-                });
-            };
-            let mut bytes = Vec::new();
-            for line_result in stream {
-                match line_result {
-                    Ok(line_feed) => match line_feed {
-                        LineFeed::Line(line) => {
-                            bytes.extend(line.into_bytes());
-                            bytes.extend(b"\n");
-                        }
-                        LineFeed::SKIP | LineFeed::END => {}
-                    },
-                    Err(e) => {
-                        tracing::info!(
-                            "LineFeed: Failing response body read: {:?} for: {}",
-                            &e,
-                            &url
-                        );
-                        return Err(GenModelError::Http {
-                            url: url.to_string(),
-                            source: foundation_core::wire::simple_http::HttpClientError::from(
-                                std::io::Error::new(std::io::ErrorKind::InvalidData, e.to_string()),
-                            ),
-                        });
-                    }
-                }
-            }
-            String::from_utf8(bytes).map_err(|e| GenModelError::InvalidUtf8 {
-                url: url.to_string(),
-                source: e,
-            })?
-        }
-    };
-
-    tracing::info!(
-        "Received total body: len={} from={} -> {:?}",
-        body_text.len(),
-        &url,
-        &body_text
-    );
-    serde_json::from_str(&body_text).map_err(|e| {
-        tracing::error!("Failed to process read contents of body: {:?}", &e);
-        GenModelError::Json {
-            url: url.to_string(),
-            source: e,
-        }
-    })
-}
-
-// ---------------------------------------------------------------------------
 // Small helpers
 // ---------------------------------------------------------------------------
 
@@ -521,15 +319,6 @@ fn pricing_val(v: Option<&serde_json::Value>) -> f64 {
         Some(serde_json::Value::String(s)) => s.parse::<f64>().unwrap_or(0.0),
         _ => 0.0,
     }
-}
-
-struct Cfg {
-    key: &'static str,
-    api: &'static str,
-    provider: &'static str,
-    base_url: &'static str,
-    default_ctx: u32,
-    default_max: u32,
 }
 
 #[allow(clippy::too_many_arguments)]
@@ -584,406 +373,6 @@ fn from_dev(
         ctx(m.limit.as_ref(), default_ctx),
         max_tok(m.limit.as_ref(), default_max),
     )
-}
-
-// ---------------------------------------------------------------------------
-// Source fetchers
-// ---------------------------------------------------------------------------
-
-#[allow(clippy::too_many_lines)]
-fn fetch_models_dev(client: &SimpleHttpClient) -> Vec<ModelEntry> {
-    tracing::info!("Fetching models from models.dev API...");
-    let data: serde_json::Value = match http_get_json(client, "https://models.dev/api.json") {
-        Ok(d) => d,
-        Err(e) => {
-            tracing::error!("Failed to fetch models.dev: {e}");
-            return Vec::new();
-        }
-    };
-
-    let mut models = Vec::new();
-
-    let providers = [
-        Cfg {
-            key: "amazon-bedrock",
-            api: "bedrock-converse-stream",
-            provider: "amazon-bedrock",
-            base_url: "https://bedrock-runtime.us-east-1.amazonaws.com",
-            default_ctx: 4096,
-            default_max: 4096,
-        },
-        Cfg {
-            key: "anthropic",
-            api: "anthropic-messages",
-            provider: "anthropic",
-            base_url: "https://api.anthropic.com",
-            default_ctx: 4096,
-            default_max: 4096,
-        },
-        Cfg {
-            key: "google",
-            api: "google-generative-ai",
-            provider: "google",
-            base_url: "https://generativelanguage.googleapis.com/v1beta",
-            default_ctx: 4096,
-            default_max: 4096,
-        },
-        Cfg {
-            key: "openai",
-            api: "openai-responses",
-            provider: "openai",
-            base_url: "https://api.openai.com/v1",
-            default_ctx: 4096,
-            default_max: 4096,
-        },
-        Cfg {
-            key: "azure",
-            api: "azure-openai-responses",
-            provider: "azure",
-            base_url: "https://{YOUR_RESOURCE_NAME}.openai.azure.com/openai",
-            default_ctx: 4096,
-            default_max: 4096,
-        },
-        Cfg {
-            key: "groq",
-            api: "openai-completions",
-            provider: "groq",
-            base_url: "https://api.groq.com/openai/v1",
-            default_ctx: 4096,
-            default_max: 4096,
-        },
-        Cfg {
-            key: "cerebras",
-            api: "openai-completions",
-            provider: "cerebras",
-            base_url: "https://api.cerebras.ai/v1",
-            default_ctx: 4096,
-            default_max: 4096,
-        },
-        Cfg {
-            key: "xai",
-            api: "openai-completions",
-            provider: "xai",
-            base_url: "https://api.x.ai/v1",
-            default_ctx: 4096,
-            default_max: 4096,
-        },
-        Cfg {
-            key: "mistral",
-            api: "openai-completions",
-            provider: "mistral",
-            base_url: "https://api.mistral.ai/v1",
-            default_ctx: 4096,
-            default_max: 4096,
-        },
-        Cfg {
-            key: "huggingface",
-            api: "openai-completions",
-            provider: "huggingface",
-            base_url: "https://router.huggingface.co/v1",
-            default_ctx: 4096,
-            default_max: 4096,
-        },
-    ];
-
-    for cfg in &providers {
-        let Some(provider_val) = data.get(cfg.key) else {
-            continue;
-        };
-        let Ok(p) = serde_json::from_value::<ModelsDevProvider>(provider_val.clone()) else {
-            continue;
-        };
-        let Some(provider_models) = p.models else {
-            continue;
-        };
-
-        for (model_id, m) in &provider_models {
-            if m.tool_call != Some(true) {
-                continue;
-            }
-            if cfg.key == "amazon-bedrock" {
-                if model_id.starts_with("ai21.jamba") {
-                    continue;
-                }
-                if model_id.starts_with("mistral.mistral-7b-instruct-v0") {
-                    continue;
-                }
-            }
-            models.push(from_dev(
-                model_id,
-                m,
-                cfg.api,
-                cfg.provider,
-                cfg.base_url,
-                cfg.default_ctx,
-                cfg.default_max,
-            ));
-        }
-    }
-
-    // zAi
-    if let Some(val) = data.get("zai") {
-        if let Ok(p) = serde_json::from_value::<ModelsDevProvider>(val.clone()) {
-            for (id, m) in p.models.iter().flat_map(|ms| ms.iter()) {
-                if m.tool_call != Some(true) {
-                    continue;
-                }
-                models.push(from_dev(
-                    id,
-                    m,
-                    "openai-completions",
-                    "zai",
-                    "https://api.z.ai/api/coding/paas/v4",
-                    4096,
-                    4096,
-                ));
-            }
-        }
-    }
-
-    // OpenCode Zen
-    if let Some(val) = data.get("opencode") {
-        if let Ok(p) = serde_json::from_value::<ModelsDevProvider>(val.clone()) {
-            for (id, m) in p.models.iter().flat_map(|ms| ms.iter()) {
-                if m.tool_call != Some(true) {
-                    continue;
-                }
-                if m.status.as_deref() == Some("deprecated") {
-                    continue;
-                }
-                let npm = m.provider.as_ref().and_then(|p| p.npm.as_deref());
-                let (api, base_url) = match npm {
-                    Some("@ai-sdk/openai") => ("openai-responses", "https://opencode.ai/zen/v1"),
-                    Some("@ai-sdk/anthropic") => ("anthropic-messages", "https://opencode.ai/zen"),
-                    Some("@ai-sdk/google") => {
-                        ("google-generative-ai", "https://opencode.ai/zen/v1")
-                    }
-                    _ => ("openai-completions", "https://opencode.ai/zen/v1"),
-                };
-                models.push(from_dev(id, m, api, "opencode", base_url, 4096, 4096));
-            }
-        }
-    }
-
-    // GitHub Copilot
-    if let Some(val) = data.get("github-copilot") {
-        if let Ok(p) = serde_json::from_value::<ModelsDevProvider>(val.clone()) {
-            for (id, m) in p.models.iter().flat_map(|ms| ms.iter()) {
-                if m.tool_call != Some(true) {
-                    continue;
-                }
-                if m.status.as_deref() == Some("deprecated") {
-                    continue;
-                }
-                let is_claude4 = id.starts_with("claude-haiku-4")
-                    || id.starts_with("claude-sonnet-4")
-                    || id.starts_with("claude-opus-4");
-                let needs_responses = id.starts_with("gpt-5") || id.starts_with("oswe");
-                let api = if is_claude4 {
-                    "anthropic-messages"
-                } else if needs_responses {
-                    "openai-responses"
-                } else {
-                    "openai-completions"
-                };
-                models.push(from_dev(
-                    id,
-                    m,
-                    api,
-                    "github-copilot",
-                    "https://api.individual.githubcopilot.com",
-                    128_000,
-                    8192,
-                ));
-            }
-        }
-    }
-
-    // MiniMax variants
-    for (key, provider, base_url) in [
-        ("minimax", "minimax", "https://api.minimax.io/anthropic"),
-        (
-            "minimax-cn",
-            "minimax-cn",
-            "https://api.minimaxi.com/anthropic",
-        ),
-    ] {
-        if let Some(val) = data.get(key) {
-            if let Ok(p) = serde_json::from_value::<ModelsDevProvider>(val.clone()) {
-                for (id, m) in p.models.iter().flat_map(|ms| ms.iter()) {
-                    if m.tool_call != Some(true) {
-                        continue;
-                    }
-                    models.push(from_dev(
-                        id,
-                        m,
-                        "anthropic-messages",
-                        provider,
-                        base_url,
-                        4096,
-                        4096,
-                    ));
-                }
-            }
-        }
-    }
-
-    // Kimi For Coding
-    if let Some(val) = data.get("kimi-for-coding") {
-        if let Ok(p) = serde_json::from_value::<ModelsDevProvider>(val.clone()) {
-            for (id, m) in p.models.iter().flat_map(|ms| ms.iter()) {
-                if m.tool_call != Some(true) {
-                    continue;
-                }
-                models.push(from_dev(
-                    id,
-                    m,
-                    "anthropic-messages",
-                    "kimi-coding",
-                    "https://api.kimi.com/coding",
-                    4096,
-                    4096,
-                ));
-            }
-        }
-    }
-
-    tracing::info!(
-        "Loaded {} tool-capable models from models.dev",
-        models.len()
-    );
-    models
-}
-
-fn fetch_openrouter(client: &SimpleHttpClient) -> Vec<ModelEntry> {
-    tracing::info!("Fetching models from OpenRouter API...");
-    let data: OpenRouterResponse =
-        match http_get_json(client, "https://openrouter.ai/api/v1/models") {
-            Ok(d) => d,
-            Err(e) => {
-                tracing::error!("Failed to fetch OpenRouter: {e}");
-                return Vec::new();
-            }
-        };
-
-    let mut models = Vec::new();
-    for m in &data.data {
-        let has_tools = m
-            .supported_parameters
-            .as_ref()
-            .is_some_and(|p| p.iter().any(|s| s == "tools"));
-        if !has_tools {
-            continue;
-        }
-
-        let img = m
-            .architecture
-            .as_ref()
-            .and_then(|a| a.modality.as_deref())
-            .is_some_and(|s| s.contains("image"));
-
-        let parse = |s: &Option<String>| -> f64 {
-            s.as_deref()
-                .and_then(|v| v.parse::<f64>().ok())
-                .unwrap_or(0.0)
-                * 1_000_000.0
-        };
-        let cost = (
-            parse(&m.pricing.as_ref().and_then(|p| p.prompt.clone())),
-            parse(&m.pricing.as_ref().and_then(|p| p.completion.clone())),
-            parse(&m.pricing.as_ref().and_then(|p| p.input_cache_read.clone())),
-            parse(&m.pricing.as_ref().and_then(|p| p.input_cache_write.clone())),
-        );
-
-        let reasoning = m
-            .supported_parameters
-            .as_ref()
-            .is_some_and(|p| p.iter().any(|s| s == "reasoning"));
-
-        models.push(entry(
-            &m.id,
-            m.name.as_deref().unwrap_or(&m.id),
-            "openai-completions",
-            "openrouter",
-            "https://openrouter.ai/api/v1",
-            reasoning,
-            img,
-            cost,
-            #[allow(clippy::cast_possible_truncation)]
-            {
-                m.context_length.unwrap_or(4096) as u32
-            },
-            #[allow(clippy::cast_possible_truncation)]
-            {
-                m.top_provider
-                    .as_ref()
-                    .and_then(|t| t.max_completion_tokens)
-                    .unwrap_or(4096) as u32
-            },
-        ));
-    }
-
-    tracing::info!(
-        "Fetched {} tool-capable models from OpenRouter",
-        models.len()
-    );
-    models
-}
-
-fn fetch_ai_gateway(client: &SimpleHttpClient) -> Vec<ModelEntry> {
-    tracing::info!("Fetching models from Vercel AI Gateway API...");
-    let data: AiGatewayResponse =
-        match http_get_json(client, "https://ai-gateway.vercel.sh/v1/models") {
-            Ok(d) => d,
-            Err(e) => {
-                tracing::error!("Failed to fetch AI Gateway: {e}");
-                return Vec::new();
-            }
-        };
-
-    let mut models = Vec::new();
-    for m in data.data.iter().flat_map(|d| d.iter()) {
-        let tags = m.tags.as_deref().unwrap_or(&[]);
-        if !tags.iter().any(|t| t == "tool-use") {
-            continue;
-        }
-
-        let cost = (
-            pricing_val(m.pricing.as_ref().and_then(|p| p.input.as_ref())) * 1_000_000.0,
-            pricing_val(m.pricing.as_ref().and_then(|p| p.output.as_ref())) * 1_000_000.0,
-            pricing_val(m.pricing.as_ref().and_then(|p| p.input_cache_read.as_ref())) * 1_000_000.0,
-            pricing_val(
-                m.pricing
-                    .as_ref()
-                    .and_then(|p| p.input_cache_write.as_ref()),
-            ) * 1_000_000.0,
-        );
-
-        models.push(entry(
-            &m.id,
-            m.name.as_deref().unwrap_or(&m.id),
-            "anthropic-messages",
-            "vercel-ai-gateway",
-            "https://ai-gateway.vercel.sh",
-            tags.iter().any(|t| t == "reasoning"),
-            tags.iter().any(|t| t == "vision"),
-            cost,
-            #[allow(clippy::cast_possible_truncation)]
-            {
-                m.context_window.unwrap_or(4096) as u32
-            },
-            #[allow(clippy::cast_possible_truncation)]
-            {
-                m.max_tokens.unwrap_or(4096) as u32
-            },
-        ));
-    }
-
-    tracing::info!(
-        "Fetched {} tool-capable models from AI Gateway",
-        models.len()
-    );
-    models
 }
 
 // ---------------------------------------------------------------------------
@@ -1847,12 +1236,14 @@ fn create_fetch_task<F>(
     url: &'static str,
     parser: F,
 ) -> Result<
-    impl TaskIterator<
-            Ready = Vec<ModelEntry>,
-            Pending = FetchPending,
-            Spawner = foundation_core::valtron::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
+    Box<
+        dyn TaskIterator<
+                Ready = Vec<ModelEntry>,
+                Pending = FetchPending,
+                Spawner = foundation_core::valtron::BoxedSendExecutionAction,
+            > + Send
+            + 'static,
+    >,
     GenModelError,
 >
 where
@@ -1872,8 +1263,8 @@ where
         })?;
 
     // Create SendRequestTask and apply combinators
+    // Transform RequestIntro → Vec<ModelEntry>
     let task = SendRequestTask::new(request, 5, client.client_pool().expect("should have pool"), client.client_config(),)
-        // Transform RequestIntro → Vec<ModelEntry>
         .map_ready(move |intro| {
             match intro {
                 RequestIntro::Success { stream, .. } => {
@@ -1916,7 +1307,6 @@ where
                                         // Consume the chunked stream iterator and collect bytes
                                         if let Some(iter) = opt_iter.take() {
                                             let mut bytes = Vec::new();
-                                            use foundation_core::wire::simple_http::ChunkedData;
                                             for chunk_result in iter {
                                                 match chunk_result {
                                                     Ok(ChunkedData::Data(data, _)) => {
@@ -1969,7 +1359,7 @@ where
         // Transform: HttpPending → FetchPending with source tracking
         .map_pending(move |p| FetchPending::from_http(p, source));
 
-    Ok(task)
+    Ok(Box::new(task))
 }
 
 /// Parser function for models.dev API
@@ -2043,6 +1433,7 @@ fn parse_openrouter_response(body: &str, _source: &'static str) -> Vec<ModelEntr
                 .unwrap_or(0.0)
                 * 1_000_000.0
         };
+
         let cost = (
             parse(&m.pricing.as_ref().and_then(|p| p.prompt.clone())),
             parse(&m.pricing.as_ref().and_then(|p| p.completion.clone())),
@@ -2204,30 +1595,34 @@ pub fn run(args: &clap::ArgMatches) -> std::result::Result<(), BoxedError> {
     let mut all_models = Vec::new();
 
     // Execute models.dev fetch
-    let mut models_dev_models = valtron::execute(models_dev_task, None).expect("return stream");
-    let mut openroute_models = valtron::execute(openrouter_task, None).expect("return stream");
-    let mut aigateway_models = valtron::execute(ai_gateway_task, None).expect("return stream");
+    let model_report_stream = valtron::execute_collect_all(
+        vec![models_dev_task, openrouter_task, ai_gateway_task],
+        None,
+    )
+    .expect("return stream");
+    // let openroute_models = valtron::execute(openrouter_task, None).expect("return stream");
+    // let aigateway_models = valtron::execute(ai_gateway_task, None).expect("return stream");
 
-    for stream_item in models_dev_models {
+    for stream_item in model_report_stream {
         if let Stream::Next(models) = stream_item {
             tracing::info!("models.dev fetch complete: {} models", models.len());
             all_models.extend(models);
         }
     }
 
-    for stream_item in openroute_models {
-        if let Stream::Next(models) = stream_item {
-            tracing::info!("models.dev fetch complete: {} models", models.len());
-            all_models.extend(models);
-        }
-    }
+    // for stream_item in openroute_models {
+    //     if let Stream::Next(models) = stream_item {
+    //         tracing::info!("models.dev fetch complete: {} models", models.len());
+    //         all_models.extend(models);
+    //     }
+    // }
 
-    for stream_item in aigateway_models {
-        if let Stream::Next(models) = stream_item {
-            tracing::info!("models.dev fetch complete: {} models", models.len());
-            all_models.extend(models);
-        }
-    }
+    // for stream_item in aigateway_models {
+    //     if let Stream::Next(models) = stream_item {
+    //         tracing::info!("models.dev fetch complete: {} models", models.len());
+    //         all_models.extend(models);
+    //     }
+    // }
 
     let fetch_elapsed = start_time.elapsed();
     tracing::info!("Parallel fetch completed in {:?}", fetch_elapsed);
