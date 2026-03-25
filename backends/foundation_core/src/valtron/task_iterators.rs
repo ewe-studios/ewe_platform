@@ -833,6 +833,300 @@ where
     }
 }
 
+// ============================================================================
+// Flatten Ready / Pending
+// ============================================================================
+
+/// Wrapper type that flattens Ready values that implement `IntoIterator`.
+///
+/// The Ready type must implement `IntoIterator`. We store the inner iterator
+/// and drain it over multiple `next()` calls. When exhausted, poll outer again.
+///
+/// **Important**: Returns `TaskStatus::Ignore` when waiting for inner iterator,
+/// never blocks in a loop.
+pub struct TFlattenReady<I: TaskIterator>
+where
+    I::Ready: IntoIterator,
+{
+    inner: I,
+    current_inner: Option<<I::Ready as IntoIterator>::IntoIter>,
+}
+
+impl<I> Iterator for TFlattenReady<I>
+where
+    I: TaskIterator,
+    I::Ready: IntoIterator,
+    <I::Ready as IntoIterator>::Item: Send + 'static,
+    I::Pending: Send + 'static,
+    I::Spawner: Send + 'static,
+{
+    type Item = TaskStatus<<I::Ready as IntoIterator>::Item, I::Pending, I::Spawner>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        // First drain current inner iterator
+        if let Some(ref mut inner) = self.current_inner {
+            if let Some(item) = inner.next() {
+                return Some(TaskStatus::Ready(item));
+            }
+            // Inner exhausted - clear and fall through to poll outer
+            self.current_inner = None;
+        }
+
+        // Get next from outer iterator
+        let status = self.inner.next_status()?;
+
+        match status {
+            TaskStatus::Ready(iterable) => {
+                // Store iterator, drain on NEXT call
+                self.current_inner = Some(iterable.into_iter());
+                // Return Ignore to signal "still working, no Ready value yet"
+                Some(TaskStatus::Ignore)
+            }
+            // Pass through non-Ready states unchanged (Pending/Spawner type unchanged)
+            TaskStatus::Pending(p) => Some(TaskStatus::Pending(p)),
+            TaskStatus::Delayed(d) => Some(TaskStatus::Delayed(d)),
+            TaskStatus::Init => Some(TaskStatus::Init),
+            TaskStatus::Ignore => Some(TaskStatus::Ignore),
+            TaskStatus::Spawn(s) => Some(TaskStatus::Spawn(s)),
+        }
+    }
+}
+
+impl<I> TaskIterator for TFlattenReady<I>
+where
+    I: TaskIterator,
+    I::Ready: IntoIterator,
+    <I::Ready as IntoIterator>::Item: Send + 'static,
+    I::Pending: Send + 'static,
+    I::Spawner: Send + 'static,
+{
+    type Ready = <I::Ready as IntoIterator>::Item;
+    type Pending = I::Pending;
+    type Spawner = I::Spawner;
+
+    fn next_status(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+        Iterator::next(self)
+    }
+}
+
+// ============================================================================
+// Flatten Pending
+// ============================================================================
+
+/// Wrapper type that flattens Pending values that implement `IntoIterator`.
+///
+/// The Pending type must implement `IntoIterator`. We store the inner iterator
+/// and drain it over multiple `next()` calls. When exhausted, poll outer again.
+///
+/// **Important**: Returns `TaskStatus::Ignore` when waiting for inner iterator,
+/// never blocks in a loop.
+pub struct TFlattenPending<I: TaskIterator>
+where
+    I::Pending: IntoIterator,
+{
+    inner: I,
+    current_inner: Option<<I::Pending as IntoIterator>::IntoIter>,
+}
+
+impl<I> Iterator for TFlattenPending<I>
+where
+    I: TaskIterator,
+    I::Pending: IntoIterator,
+    <I::Pending as IntoIterator>::Item: Send + 'static,
+    I::Ready: Send + 'static,
+    I::Spawner: Send + 'static,
+{
+    type Item = TaskStatus<I::Ready, <I::Pending as IntoIterator>::Item, I::Spawner>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        // First drain current inner iterator
+        if let Some(ref mut inner) = self.current_inner {
+            if let Some(item) = inner.next() {
+                return Some(TaskStatus::Pending(item));
+            }
+            self.current_inner = None;
+        }
+
+        let status = self.inner.next_status()?;
+
+        match status {
+            TaskStatus::Pending(iterable) => {
+                self.current_inner = Some(iterable.into_iter());
+                Some(TaskStatus::Ignore)
+            }
+            // Pass through non-Pending states unchanged
+            TaskStatus::Ready(r) => Some(TaskStatus::Ready(r)),
+            TaskStatus::Delayed(d) => Some(TaskStatus::Delayed(d)),
+            TaskStatus::Init => Some(TaskStatus::Init),
+            TaskStatus::Ignore => Some(TaskStatus::Ignore),
+            TaskStatus::Spawn(s) => Some(TaskStatus::Spawn(s)),
+        }
+    }
+}
+
+impl<I> TaskIterator for TFlattenPending<I>
+where
+    I: TaskIterator,
+    I::Pending: IntoIterator,
+    <I::Pending as IntoIterator>::Item: Send + 'static,
+    I::Ready: Send + 'static,
+    I::Spawner: Send + 'static,
+{
+    type Ready = I::Ready;
+    type Pending = <I::Pending as IntoIterator>::Item;
+    type Spawner = I::Spawner;
+
+    fn next_status(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+        Iterator::next(self)
+    }
+}
+
+// ============================================================================
+// Flat Map Ready
+// ============================================================================
+
+/// Wrapper type that maps Ready to `IntoIterator`, then flattens.
+///
+/// User provides function `Ready -> IntoIterator`. We store the returned iterator
+/// and drain it over multiple `next()` calls.
+///
+/// **Important**: Returns `TaskStatus::Ignore` when waiting for inner iterator,
+/// never blocks in a loop.
+pub struct TFlatMapReady<I: TaskIterator, F, U: IntoIterator> {
+    inner: I,
+    mapper: F,
+    current_inner: Option<U::IntoIter>,
+}
+
+impl<I, F, U> Iterator for TFlatMapReady<I, F, U>
+where
+    I: TaskIterator,
+    F: Fn(I::Ready) -> U + Send + 'static,
+    U: IntoIterator,
+    U::Item: Send + 'static,
+    I::Pending: Send + 'static,
+    I::Spawner: Send + 'static,
+{
+    type Item = TaskStatus<U::Item, I::Pending, I::Spawner>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        // First drain current inner iterator
+        if let Some(ref mut inner) = self.current_inner {
+            if let Some(item) = inner.next() {
+                return Some(TaskStatus::Ready(item));
+            }
+            self.current_inner = None;
+        }
+
+        let status = self.inner.next_status()?;
+
+        match status {
+            TaskStatus::Ready(v) => {
+                let iterable = (self.mapper)(v);
+                self.current_inner = Some(iterable.into_iter());
+                Some(TaskStatus::Ignore)
+            }
+            // Pass through non-Ready states (Pending/Spawner type unchanged)
+            TaskStatus::Pending(p) => Some(TaskStatus::Pending(p)),
+            TaskStatus::Delayed(d) => Some(TaskStatus::Delayed(d)),
+            TaskStatus::Init => Some(TaskStatus::Init),
+            TaskStatus::Ignore => Some(TaskStatus::Ignore),
+            TaskStatus::Spawn(s) => Some(TaskStatus::Spawn(s)),
+        }
+    }
+}
+
+impl<I, F, U> TaskIterator for TFlatMapReady<I, F, U>
+where
+    I: TaskIterator,
+    F: Fn(I::Ready) -> U + Send + 'static,
+    U: IntoIterator,
+    U::Item: Send + 'static,
+    I::Pending: Send + 'static,
+    I::Spawner: Send + 'static,
+{
+    type Ready = U::Item;
+    type Pending = I::Pending;
+    type Spawner = I::Spawner;
+
+    fn next_status(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+        Iterator::next(self)
+    }
+}
+
+// ============================================================================
+// Flat Map Pending
+// ============================================================================
+
+/// Wrapper type that maps Pending to `IntoIterator`, then flattens.
+///
+/// User provides function `Pending -> IntoIterator`. We store the returned iterator
+/// and drain it over multiple `next()` calls.
+///
+/// **Important**: Returns `TaskStatus::Ignore` when waiting for inner iterator,
+/// never blocks in a loop.
+pub struct TFlatMapPending<I: TaskIterator, F, U: IntoIterator> {
+    inner: I,
+    mapper: F,
+    current_inner: Option<U::IntoIter>,
+}
+
+impl<I, F, U> Iterator for TFlatMapPending<I, F, U>
+where
+    I: TaskIterator,
+    F: Fn(I::Pending) -> U + Send + 'static,
+    U: IntoIterator,
+    U::Item: Send + 'static,
+    I::Ready: Send + 'static,
+    I::Spawner: Send + 'static,
+{
+    type Item = TaskStatus<I::Ready, U::Item, I::Spawner>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        // First drain current inner iterator
+        if let Some(ref mut inner) = self.current_inner {
+            if let Some(item) = inner.next() {
+                return Some(TaskStatus::Pending(item));
+            }
+            self.current_inner = None;
+        }
+
+        let status = self.inner.next_status()?;
+
+        match status {
+            TaskStatus::Pending(v) => {
+                let iterable = (self.mapper)(v);
+                self.current_inner = Some(iterable.into_iter());
+                Some(TaskStatus::Ignore)
+            }
+            // Pass through non-Pending states (Ready/Spawner type unchanged)
+            TaskStatus::Ready(r) => Some(TaskStatus::Ready(r)),
+            TaskStatus::Delayed(d) => Some(TaskStatus::Delayed(d)),
+            TaskStatus::Init => Some(TaskStatus::Init),
+            TaskStatus::Ignore => Some(TaskStatus::Ignore),
+            TaskStatus::Spawn(s) => Some(TaskStatus::Spawn(s)),
+        }
+    }
+}
+
+impl<I, F, U> TaskIterator for TFlatMapPending<I, F, U>
+where
+    I: TaskIterator,
+    F: Fn(I::Pending) -> U + Send + 'static,
+    U: IntoIterator,
+    U::Item: Send + 'static,
+    I::Ready: Send + 'static,
+    I::Spawner: Send + 'static,
+{
+    type Ready = I::Ready;
+    type Pending = U::Item;
+    type Spawner = I::Spawner;
+
+    fn next_status(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+        Iterator::next(self)
+    }
+}
+
 /// Wrapper type that collects all Ready values into a Vec.
 ///
 /// Passes through Pending, Delayed, Init, Spawn states unchanged.
