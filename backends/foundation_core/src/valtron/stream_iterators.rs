@@ -55,11 +55,11 @@ use concurrent_queue::ConcurrentQueue;
 ///
 /// ## Combinators
 ///
-/// - [`map_all_done`](StreamIteratorExt::map_all_done) - Transform Next (Done) values
-/// - [`map_all_pending`](StreamIteratorExt::map_all_pending) - Transform Pending values
-/// - [`map_all_pending_and_done`](StreamIteratorExt::map_all_pending_and_done) - Transform both
-/// - [`filter_all_done`](StreamIteratorExt::filter_all_done) - Filter Next values
-/// - [`map_all_delayed`](StreamIteratorExt::map_all_delayed) - Transform Delayed durations
+/// - `map_all_done()` - Transform Next (Done) values
+/// - `map_all_pending()` - Transform Pending values
+/// - `map_all_pending_and_done()` - Transform both
+/// - `filter_all_done()` - Filter Next values
+/// - `map_all_delayed()` - Transform Delayed durations
 /// - [`collect`](StreamIteratorExt::collect) - Collect all Next values (terminal)
 /// - [`split_collector`](StreamIteratorExt::split_collector) - Split into observer + continuation
 /// - [`split_collect_one`](StreamIteratorExt::split_collect_one) - Split for first match
@@ -114,7 +114,7 @@ pub trait StreamIteratorExt: StreamIterator + Sized {
     ///
     /// This is a non-blocking collect operation. It passes through
     /// Pending, Delayed, and Init states unchanged, and only yields
-    /// the collected Vec<Done> when the stream completes.
+    /// the collected `Vec<Done>` when the stream completes.
     fn collect(self) -> Collect<Self>
     where
         Self::D: Clone;
@@ -255,28 +255,28 @@ pub trait StreamIteratorExt: StreamIterator + Sized {
         }
     }
 
-    /// Flatten Next (Done) values that implement IntoIterator.
+    /// Flatten Next (Done) values that implement `IntoIterator`.
     ///
-    /// Input:  StreamIterator<D = Vec<M>, P = P>
-    /// Output: StreamIterator<D = M, P = P>
+    /// Input:  `StreamIterator`<D = `Vec<M>`, P = P>
+    /// Output: `StreamIterator`<D = M, P = P>
     ///
-    /// The user's Done type implements IntoIterator. We store the inner iterator
-    /// and drain it over multiple next() calls. When exhausted (None), poll outer again.
+    /// The user's Done type implements `IntoIterator`. We store the inner iterator
+    /// and drain it over multiple `next()` calls. When exhausted (None), poll outer again.
     ///
-    /// Returns Stream::Ignore when waiting for the inner iterator to produce more values.
+    /// Returns `Stream::Ignore` when waiting for the inner iterator to produce more values.
     fn flatten_next(self) -> SFlattenNext<Self>
     where
         Self: Sized,
         Self::D: IntoIterator,
         <Self::D as IntoIterator>::Item: Send + 'static;
 
-    /// Flatten Pending values that implement IntoIterator.
+    /// Flatten Pending values that implement `IntoIterator`.
     ///
-    /// Input:  StreamIterator<D = D, P = Vec<M>>
-    /// Output: StreamIterator<D = D, P = M>
+    /// Input:  `StreamIterator`<D = D, P = `Vec<M>`>
+    /// Output: `StreamIterator`<D = D, P = M>
     ///
-    /// The user's Pending type implements IntoIterator. We store the inner iterator
-    /// and drain it over multiple next() calls. When exhausted (None), poll outer again.
+    /// The user's Pending type implements `IntoIterator`. We store the inner iterator
+    /// and drain it over multiple `next()` calls. When exhausted (None), poll outer again.
     fn flatten_pending(self) -> SFlattenPending<Self>
     where
         Self: Sized,
@@ -285,11 +285,11 @@ pub trait StreamIteratorExt: StreamIterator + Sized {
 
     /// Flat map Next (Done) values - transform and flatten in one operation.
     ///
-    /// Input:  StreamIterator<D = D, P = P>
-    /// Output: StreamIterator<D = U::Item, P = P>
+    /// Input:  `StreamIterator`<D = D, P = P>
+    /// Output: `StreamIterator`<D = `U::Item`, P = P>
     ///
-    /// The mapper function transforms each Done value into an IntoIterator,
-    /// which is then flattened. Inner iterator is drained over multiple next() calls.
+    /// The mapper function transforms each Done value into an `IntoIterator`,
+    /// which is then flattened. Inner iterator is drained over multiple `next()` calls.
     fn flat_map_next<F, U>(self, f: F) -> SFlatMapNext<Self, F, U>
     where
         Self: Sized,
@@ -299,11 +299,11 @@ pub trait StreamIteratorExt: StreamIterator + Sized {
 
     /// Flat map Pending values - transform and flatten in one operation.
     ///
-    /// Input:  StreamIterator<D = D, P = P>
-    /// Output: StreamIterator<D = D, P = U::Item>
+    /// Input:  `StreamIterator`<D = D, P = P>
+    /// Output: `StreamIterator`<D = D, P = `U::Item`>
     ///
-    /// The mapper function transforms each Pending value into an IntoIterator,
-    /// which is then flattened. Inner iterator is drained over multiple next() calls.
+    /// The mapper function transforms each Pending value into an `IntoIterator`,
+    /// which is then flattened. Inner iterator is drained over multiple `next()` calls.
     fn flat_map_pending<F, U>(self, f: F) -> SFlatMapPending<Self, F, U>
     where
         Self: Sized,
@@ -324,7 +324,7 @@ pub trait StreamIteratorExt: StreamIterator + Sized {
     where
         F: Fn(&Stream<Self::D, Self::P>) + Send + 'static;
 
-    /// Filter based on full Stream state. Non-matching items return Stream::Ignore.
+    /// Filter based on full Stream state. Non-matching items return `Stream::Ignore`.
     fn filter_state<F>(self, f: F) -> SFilterState<Self, F>
     where
         F: Fn(&Stream<Self::D, Self::P>) -> bool + Send + 'static;
@@ -1055,7 +1055,7 @@ where
 ///
 /// This is a non-blocking collect operation. It passes through
 /// Pending, Delayed, and Init states unchanged, and only yields
-/// the collected Vec<Done> when the stream completes.
+/// the collected `Vec<Done>` when the stream completes.
 pub struct Collect<I>
 where
     I: StreamIterator,
@@ -1618,7 +1618,7 @@ where
 ///
 /// Polls all sources in round-robin, collecting Next values.
 /// Yields `Stream::Pending(count)` while gathering.
-/// Yields `Stream::Next(Vec`<D>) when all sources complete.
+/// Yields `Stream::Next(Vec<D>)` when all sources complete.
 pub struct CollectAll<I, D, P> {
     sources: Vec<I>,
     collected: Vec<D>,
@@ -1961,10 +1961,10 @@ where
 // Flatten/FlatMap Combinators for StreamIterator
 // ============================================================================
 
-/// Wrapper struct that flattens Next (Done) values that implement IntoIterator.
+/// Wrapper struct that flattens Next (Done) values that implement `IntoIterator`.
 ///
-/// Input:  StreamIterator<D = Vec<M>, P = P>
-/// Output: StreamIterator<D = M, P = P>
+/// Input:  `StreamIterator`<D = `Vec<M>`, P = P>
+/// Output: `StreamIterator`<D = M, P = P>
 pub struct SFlattenNext<I>
 where
     I: StreamIterator,
@@ -2020,10 +2020,10 @@ where
     type P = I::P;
 }
 
-/// Wrapper struct that flattens Pending values that implement IntoIterator.
+/// Wrapper struct that flattens Pending values that implement `IntoIterator`.
 ///
-/// Input:  StreamIterator<D = D, P = Vec<M>>
-/// Output: StreamIterator<D = D, P = M>
+/// Input:  `StreamIterator`<D = D, P = `Vec<M>`>
+/// Output: `StreamIterator`<D = D, P = M>
 pub struct SFlattenPending<I>
 where
     I: StreamIterator,
@@ -2081,8 +2081,8 @@ where
 
 /// Wrapper struct that flat maps Next (Done) values - transform and flatten.
 ///
-/// Input:  StreamIterator<D = D, P = P>
-/// Output: StreamIterator<D = U::Item, P = P>
+/// Input:  `StreamIterator`<D = D, P = P>
+/// Output: `StreamIterator`<D = `U::Item`, P = P>
 pub struct SFlatMapNext<I, F, U>
 where
     I: StreamIterator,
@@ -2145,8 +2145,8 @@ where
 
 /// Wrapper struct that flat maps Pending values - transform and flatten.
 ///
-/// Input:  StreamIterator<D = D, P = P>
-/// Output: StreamIterator<D = D, P = U::Item>
+/// Input:  `StreamIterator`<D = D, P = P>
+/// Output: `StreamIterator`<D = D, P = `U::Item`>
 pub struct SFlatMapPending<I, F, U>
 where
     I: StreamIterator,
@@ -2209,7 +2209,7 @@ where
 
 // ===== Feature 08: Wrapper Structs =====
 
-/// Wrapper for map_state() - transforms any Stream state
+/// Wrapper for `map_state()` - transforms any Stream state
 pub struct SMapState<I, F, R> {
     inner: I,
     mapper: F,
@@ -2239,7 +2239,7 @@ where
     type P = I::P;
 }
 
-/// Wrapper for inspect_state() - side-effect on any Stream state
+/// Wrapper for `inspect_state()` - side-effect on any Stream state
 pub struct SInspectState<I, F> {
     inner: I,
     inspector: F,
@@ -2266,7 +2266,7 @@ where
     type P = I::P;
 }
 
-/// Wrapper for filter_state() - filter based on full Stream state
+/// Wrapper for `filter_state()` - filter based on full Stream state
 pub struct SFilterState<I, F> {
     inner: I,
     predicate: F,
@@ -2280,13 +2280,12 @@ where
     type Item = Stream<I::D, I::P>;
 
     fn next(&mut self) -> Option<Self::Item> {
-        loop {
-            let item = self.inner.next()?;
-            if (self.predicate)(&item) {
-                return Some(item);
-            }
+        let item = self.inner.next()?;
+        if (self.predicate)(&item) {
+            Some(item)
+        } else {
             // Non-matching items return Ignore
-            return Some(Stream::Ignore);
+            Some(Stream::Ignore)
         }
     }
 }
@@ -2300,7 +2299,7 @@ where
     type P = I::P;
 }
 
-/// Wrapper for take_while_state() - take while state predicate true
+/// Wrapper for `take_while_state()` - take while state predicate true
 pub struct STakeWhileState<I, F> {
     inner: I,
     predicate: F,
@@ -2337,7 +2336,7 @@ where
     type P = I::P;
 }
 
-/// Wrapper for skip_while_state() - skip while state predicate true
+/// Wrapper for `skip_while_state()` - skip while state predicate true
 pub struct SSkipWhileState<I, F> {
     inner: I,
     predicate: F,
@@ -2375,7 +2374,7 @@ where
     type P = I::P;
 }
 
-/// Wrapper for take_state() - take at most n items matching state predicate
+/// Wrapper for `take_state()` - take at most n items matching state predicate
 pub struct STakeState<I, F> {
     inner: I,
     remaining: usize,
@@ -2412,7 +2411,7 @@ where
     type P = I::P;
 }
 
-/// Wrapper for skip_state() - skip first n items matching state predicate
+/// Wrapper for `skip_state()` - skip first n items matching state predicate
 pub struct SSkipState<I, F> {
     inner: I,
     to_skip: usize,
@@ -2447,7 +2446,7 @@ where
     type P = I::P;
 }
 
-/// Wrapper for enumerate() - adds index to Next items
+/// Wrapper for `enumerate()` - adds index to Next items
 pub struct SEnumerate<I> {
     inner: I,
     count: usize,
@@ -2478,7 +2477,7 @@ where
     type P = I::P;
 }
 
-/// Wrapper for find() - find first item matching predicate
+/// Wrapper for `find()` - find first item matching predicate
 pub struct SFind<I, F> {
     inner: I,
     predicate: F,
@@ -2523,7 +2522,7 @@ where
     type P = I::P;
 }
 
-/// Wrapper for find_map() - find first item mapping to Some
+/// Wrapper for `find_map()` - find first item mapping to Some
 pub struct SFindMap<I, F, R> {
     inner: I,
     mapper: F,
@@ -2571,7 +2570,7 @@ where
     type P = I::P;
 }
 
-/// Wrapper for fold() - accumulate values
+/// Wrapper for `fold()` - accumulate values
 pub struct SFold<I, F, R> {
     inner: I,
     acc: Option<R>,
@@ -2620,7 +2619,7 @@ impl<I, F, R> Drop for SFold<I, F, R> {
     }
 }
 
-/// Wrapper for all() - check if all Next items satisfy predicate
+/// Wrapper for `all()` - check if all Next items satisfy predicate
 pub struct SAll<I, F> {
     inner: I,
     predicate: F,
@@ -2666,7 +2665,7 @@ where
     type P = I::P;
 }
 
-/// Wrapper for any() - check if any Next item satisfies predicate
+/// Wrapper for `any()` - check if any Next item satisfies predicate
 pub struct SAny<I, F> {
     inner: I,
     predicate: F,
@@ -2712,7 +2711,7 @@ where
     type P = I::P;
 }
 
-/// Wrapper for count() - count Next items
+/// Wrapper for `count()` - count Next items
 pub struct SCount<I> {
     inner: I,
     count: usize,
@@ -2747,7 +2746,7 @@ where
     type P = I::P;
 }
 
-/// Wrapper for count_all() - count all items
+/// Wrapper for `count_all()` - count all items
 pub struct SCountAll<I> {
     inner: I,
     count: usize,

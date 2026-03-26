@@ -114,7 +114,7 @@ impl<R: Read> SseParser<R> {
     /// Parse next complete event from the stream, returning `ParseResult`.
     ///
     /// WHY: SSE events span multiple lines - need to accumulate until empty line or comment.
-    /// WHAT: Reads lines in a loop, accumulating into an [`EventBuilder`], returns `ParseResult`.
+    /// WHAT: Reads lines in a loop, accumulating into an `EventBuilder`, returns `ParseResult`.
     ///
     /// Returns:
     /// - `Ok(Some(ParseResult))` when a complete event is parsed (includes `last_known_id`).

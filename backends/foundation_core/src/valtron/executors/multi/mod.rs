@@ -12,7 +12,7 @@ use crate::valtron::{SharedTaskQueue, ThreadPoolTaskBuilder, ThreadRegistry};
 
 use super::PoolGuard;
 
-/// Global registry - stores the ThreadRegistry Arc.
+/// Global registry - stores the `ThreadRegistry` Arc.
 /// Uses Mutex<Option> to allow resetting between tests.
 static REGISTRY: Mutex<Option<Arc<ThreadRegistry>>> = Mutex::new(None);
 
@@ -38,6 +38,7 @@ impl LocalPoolHandle {
     }
 
     /// Create a task builder for scheduling work.
+    #[must_use] 
     pub fn spawn<Task, Action>(
         &self,
     ) -> ThreadPoolTaskBuilder<
@@ -58,6 +59,7 @@ impl LocalPoolHandle {
     }
 
     /// Create a task builder with explicit Mapper and Resolver types.
+    #[must_use] 
     pub fn spawn2<Task, Action, Mapper, Resolver>(
         &self,
     ) -> ThreadPoolTaskBuilder<Task::Ready, Task::Pending, Action, Mapper, Resolver, Task>
@@ -110,12 +112,12 @@ where
     guard
 }
 
-/// `initialize_pool` creates a ThreadRegistry and spawns worker threads.
+/// `initialize_pool` creates a `ThreadRegistry` and spawns worker threads.
 ///
 /// Returns a `PoolGuard` — when dropped, signals all threads to die,
-/// waits for them to complete via WaitGroup, and joins all handles.
+/// waits for them to complete via `WaitGroup`, and joins all handles.
 ///
-/// The caller is responsible for signal handling via the PoolGuard.
+/// The caller is responsible for signal handling via the `PoolGuard`.
 pub fn initialize_pool(seed_for_rng: u64, user_thread_num: Option<usize>) -> PoolGuard {
     let thread_num = match user_thread_num {
         None => get_allocatable_thread_count(),
@@ -143,6 +145,7 @@ pub fn initialize_pool(seed_for_rng: u64, user_thread_num: Option<usize>) -> Poo
 /// the underlying tasks to be scheduled into the global queue.
 ///
 /// Uses the global registry's shared queue and latch.
+#[must_use] 
 pub fn spawn<Task, Action>() -> ThreadPoolTaskBuilder<
     Task::Ready,
     Task::Pending,
@@ -162,6 +165,7 @@ where
 
 /// [`spawn2`] provides a builder which allows you to build out
 /// the underlying tasks with explicit Mapper and Resolver types.
+#[must_use] 
 pub fn spawn2<Task, Action, Mapper, Resolver>(
 ) -> ThreadPoolTaskBuilder<Task::Ready, Task::Pending, Action, Mapper, Resolver, Task>
 where

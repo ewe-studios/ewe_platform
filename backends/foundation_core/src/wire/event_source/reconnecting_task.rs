@@ -275,7 +275,9 @@ where
                         let close_reason = inner.close_reason();
                         debug!(reason = ?close_reason, "Inner task closed");
 
-                        if let Some(crate::wire::event_source::EventSourceCloseReason::Eof) = close_reason {
+                        if let Some(crate::wire::event_source::EventSourceCloseReason::Eof) =
+                            close_reason
+                        {
                             // Legitimate EOF - server closed connection normally
                             // Don't retry, just exhaust
                             info!("Server closed connection (EOF), not reconnecting");

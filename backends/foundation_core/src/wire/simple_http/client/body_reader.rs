@@ -133,11 +133,11 @@ pub enum ProcessStreamResult {
 ///
 /// WHAT: Returns `Result<String, StringBodyError>` with specific error information.
 ///
-/// HOW: Handles all SendSafeBody variants, propagates errors.
+/// HOW: Handles all `SendSafeBody` variants, propagates errors.
 ///
 /// # Arguments
 ///
-/// * `stream` - Iterator over IncomingResponseParts
+/// * `stream` - Iterator over `IncomingResponseParts`
 ///
 /// # Returns
 ///
@@ -163,8 +163,8 @@ pub fn collect_string_strict(
     for part in stream {
         match part {
             // Handle sized and streamed bodies
-            Ok(IncomingResponseParts::SizedBody(body))
-            | Ok(IncomingResponseParts::StreamedBody(body)) => {
+            Ok(IncomingResponseParts::SizedBody(body) |
+IncomingResponseParts::StreamedBody(body)) => {
                 return match body {
                     SendSafeBody::Text(t) => Ok(t),
                     SendSafeBody::Bytes(b) => {
@@ -214,7 +214,7 @@ pub fn collect_string_strict(
                             for line_result in iter {
                                 match line_result {
                                     Ok(LineFeed::Line(line)) => lines.push(line),
-                                    Ok(LineFeed::SKIP) | Ok(LineFeed::END) => continue,
+                                    Ok(LineFeed::SKIP | LineFeed::END) => continue,
                                     Err(e) => {
                                         return Err(StringBodyError::StreamIteratorError(
                                             e.to_string().into_boxed_str(),
@@ -229,9 +229,8 @@ pub fn collect_string_strict(
                 };
             }
             // Skip intro and headers - we want the body
-            Ok(IncomingResponseParts::Intro(_, _, _))
-            | Ok(IncomingResponseParts::Headers(_))
-            | Ok(IncomingResponseParts::SKIP) => continue,
+            Ok(IncomingResponseParts::Intro(_, _, _) | IncomingResponseParts::Headers(_) |
+IncomingResponseParts::SKIP) => continue,
             Ok(IncomingResponseParts::NoBody) => return Err(StringBodyError::NoBody),
             // Stream error
             Err(e) => return Err(StringBodyError::StreamRead(e)),
@@ -250,7 +249,7 @@ pub fn collect_string_strict(
 ///
 /// # Arguments
 ///
-/// * `stream` - Iterator over IncomingResponseParts
+/// * `stream` - Iterator over `IncomingResponseParts`
 ///
 /// # Returns
 ///
@@ -291,11 +290,11 @@ pub fn collect_string(
 ///
 /// WHAT: Returns `Result<Vec<u8>, BodyReaderError>` with specific error information.
 ///
-/// HOW: Handles all SendSafeBody variants, propagates errors.
+/// HOW: Handles all `SendSafeBody` variants, propagates errors.
 ///
 /// # Arguments
 ///
-/// * `stream` - Iterator over IncomingResponseParts
+/// * `stream` - Iterator over `IncomingResponseParts`
 ///
 /// # Returns
 ///
@@ -320,8 +319,8 @@ pub fn collect_bytes_strict(
 
     for part in stream {
         match part {
-            Ok(IncomingResponseParts::SizedBody(body))
-            | Ok(IncomingResponseParts::StreamedBody(body)) => {
+            Ok(IncomingResponseParts::SizedBody(body) |
+IncomingResponseParts::StreamedBody(body)) => {
                 return match body {
                     SendSafeBody::Text(t) => Ok(t.into_bytes()),
                     SendSafeBody::Bytes(b) => Ok(b.clone()),
@@ -366,9 +365,9 @@ pub fn collect_bytes_strict(
                             for line_result in iter {
                                 match line_result {
                                     Ok(LineFeed::Line(line)) => {
-                                        bytes.extend_from_slice(line.as_bytes())
+                                        bytes.extend_from_slice(line.as_bytes());
                                     }
-                                    Ok(LineFeed::SKIP) | Ok(LineFeed::END) => continue,
+                                    Ok(LineFeed::SKIP | LineFeed::END) => continue,
                                     Err(e) => {
                                         return Err(BodyReaderError::StreamIteratorError(
                                             e.to_string().into_boxed_str(),
@@ -382,9 +381,8 @@ pub fn collect_bytes_strict(
                     SendSafeBody::None => Err(BodyReaderError::NoBody),
                 };
             }
-            Ok(IncomingResponseParts::Intro(_, _, _))
-            | Ok(IncomingResponseParts::Headers(_))
-            | Ok(IncomingResponseParts::SKIP) => continue,
+            Ok(IncomingResponseParts::Intro(_, _, _) | IncomingResponseParts::Headers(_) |
+IncomingResponseParts::SKIP) => continue,
             Ok(IncomingResponseParts::NoBody) => return Err(BodyReaderError::NoBody),
             Err(e) => return Err(BodyReaderError::StreamRead(e)),
         }
@@ -406,7 +404,7 @@ pub fn collect_bytes_strict(
 ///
 /// # Returns
 ///
-/// Vec<u8> containing raw bytes. Returns empty vec on error or no body.
+/// `Vec<u8>` containing raw bytes. Returns empty vec on error or no body.
 ///
 /// # Examples
 ///
@@ -445,7 +443,7 @@ pub fn collect_bytes(
 ///
 /// # Returns
 ///
-/// Vec<u8> containing raw response bytes. Returns empty vec on error or no body.
+/// `Vec<u8>` containing raw response bytes. Returns empty vec on error or no body.
 ///
 /// # Examples
 ///
@@ -475,8 +473,8 @@ pub fn collect_bytes_direct(
 
     for part in stream {
         match part {
-            Ok(IncomingResponseParts::SizedBody(body))
-            | Ok(IncomingResponseParts::StreamedBody(body)) => match body {
+            Ok(IncomingResponseParts::SizedBody(body) |
+IncomingResponseParts::StreamedBody(body)) => match body {
                 SendSafeBody::Text(t) => return t.into_bytes(),
                 SendSafeBody::Bytes(b) => return b.clone(),
                 SendSafeBody::Stream(mut opt_iter) => {
@@ -521,7 +519,7 @@ pub fn collect_bytes_direct(
                                     bytes.extend_from_slice(line.as_bytes());
                                     bytes.push(b'\n');
                                 }
-                                Ok(LineFeed::SKIP) | Ok(LineFeed::END) => continue,
+                                Ok(LineFeed::SKIP | LineFeed::END) => continue,
                                 Err(e) => {
                                     tracing::warn!("Line stream error: {e}");
                                     break;
@@ -536,9 +534,8 @@ pub fn collect_bytes_direct(
                     return Vec::new();
                 }
             },
-            Ok(IncomingResponseParts::Intro(_, _, _))
-            | Ok(IncomingResponseParts::Headers(_))
-            | Ok(IncomingResponseParts::SKIP) => continue,
+            Ok(IncomingResponseParts::Intro(_, _, _) | IncomingResponseParts::Headers(_) |
+IncomingResponseParts::SKIP) => continue,
             Ok(IncomingResponseParts::NoBody) => return Vec::new(),
             Err(e) => {
                 tracing::warn!("Error reading stream for byte collection: {e}");
@@ -685,8 +682,8 @@ where
 {
     for part in stream {
         match part {
-            Ok(IncomingResponseParts::SizedBody(body))
-            | Ok(IncomingResponseParts::StreamedBody(body)) => {
+            Ok(IncomingResponseParts::SizedBody(body) |
+IncomingResponseParts::StreamedBody(body)) => {
                 return match body {
                     SendSafeBody::Text(t) => {
                         if processor(t.as_bytes()) {
@@ -751,7 +748,7 @@ where
                                             return Ok(ProcessStreamResult::StoppedByCallback);
                                         }
                                     }
-                                    Ok(LineFeed::SKIP) | Ok(LineFeed::END) => continue,
+                                    Ok(LineFeed::SKIP | LineFeed::END) => continue,
                                     Err(e) => {
                                         return Err(BodyReaderError::StreamIteratorError(
                                             e.to_string().into_boxed_str(),
@@ -765,9 +762,8 @@ where
                     SendSafeBody::None => Ok(ProcessStreamResult::NoBody),
                 };
             }
-            Ok(IncomingResponseParts::Intro(_, _, _))
-            | Ok(IncomingResponseParts::Headers(_))
-            | Ok(IncomingResponseParts::SKIP) => continue,
+            Ok(IncomingResponseParts::Intro(_, _, _) | IncomingResponseParts::Headers(_) |
+IncomingResponseParts::SKIP) => continue,
             Ok(IncomingResponseParts::NoBody) => return Ok(ProcessStreamResult::NoBody),
             Err(e) => return Err(BodyReaderError::StreamRead(e)),
         }
@@ -814,9 +810,8 @@ where
     F: FnMut(&[u8]) -> bool,
 {
     match process_streaming_body_strict(stream, processor) {
-        Ok(ProcessStreamResult::Completed)
-        | Ok(ProcessStreamResult::StoppedByCallback)
-        | Ok(ProcessStreamResult::NoBody) => true,
+        Ok(ProcessStreamResult::Completed | ProcessStreamResult::StoppedByCallback |
+ProcessStreamResult::NoBody) => true,
         Err(e) => {
             tracing::warn!("Stream processing error: {e}");
             false

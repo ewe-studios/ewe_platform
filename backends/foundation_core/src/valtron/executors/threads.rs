@@ -38,9 +38,9 @@ use crate::{
 
 use crate::valtron::{
     BoxedExecutionEngine, BoxedPanicHandler, BoxedSendExecutionIterator, ExecutionAction,
-    ExecutorError, FnMutReady, FnReady, OnNext, PriorityOrder,
-    ProcessController, ReadyConsumingIter, SharedTaskQueue, TaskIterator, TaskReadyResolver,
-    TaskStatus, TaskStatusMapper,
+    ExecutorError, FnMutReady, FnReady, OnNext, PriorityOrder, ProcessController,
+    ReadyConsumingIter, SharedTaskQueue, TaskIterator, TaskReadyResolver, TaskStatus,
+    TaskStatusMapper,
 };
 
 use crate::valtron::{
@@ -69,7 +69,7 @@ pub struct WaitGroup {
 }
 
 impl WaitGroup {
-    /// Create a new WaitGroup with count 0.
+    /// Create a new `WaitGroup` with count 0.
     #[must_use]
     pub fn new() -> Self {
         Self {
@@ -143,7 +143,7 @@ pub struct PoolGuard {
 }
 
 impl PoolGuard {
-    /// Create a new PoolGuard with the given ThreadRegistry.
+    /// Create a new `PoolGuard` with the given `ThreadRegistry`.
     #[must_use]
     pub fn new(registry: Arc<ThreadRegistry>) -> Self {
         Self {
@@ -152,7 +152,7 @@ impl PoolGuard {
         }
     }
 
-    /// Create a dummy PoolGuard that does nothing on drop.
+    /// Create a dummy `PoolGuard` that does nothing on drop.
     /// Used for single-threaded/wasm builds where no thread pool is created.
     #[must_use]
     pub fn dummy() -> Self {
@@ -180,7 +180,7 @@ impl PoolGuard {
         }
     }
 
-    /// Get the WaitGroup for this pool.
+    /// Get the `WaitGroup` for this pool.
     #[must_use]
     pub fn waitgroup(&self) -> &WaitGroup {
         self.registry.waitgroup()
@@ -1112,7 +1112,7 @@ mod waitgroup_tests {
 // ThreadRegistry - Central coordination replacing ThreadPool
 // ============================================================================
 
-/// ThreadRegistry replaces ThreadPool as the coordination point.
+/// `ThreadRegistry` replaces `ThreadPool` as the coordination point.
 /// It holds the shared task queue, signals, activity channel, and thread handles.
 pub struct ThreadRegistry {
     // Shared work distribution
@@ -1172,7 +1172,10 @@ impl std::fmt::Debug for ThreadRegistry {
             .field("yield_wait_time", &self.yield_wait_time)
             .field("thread_stack_size", &self.thread_stack_size)
             .field("thread_max_idle_count", &self.thread_max_idle_count)
-            .field("thread_max_sleep_before_end", &self.thread_max_sleep_before_end)
+            .field(
+                "thread_max_sleep_before_end",
+                &self.thread_max_sleep_before_end,
+            )
             .field("thread_back_off_factor", &self.thread_back_off_factor)
             .field("thread_back_off_jitter", &self.thread_back_off_jitter)
             .field("thread_back_min_duration", &self.thread_back_min_duration)
@@ -1184,8 +1187,9 @@ impl std::fmt::Debug for ThreadRegistry {
 }
 
 impl ThreadRegistry {
-    /// Create a new ThreadRegistry with the given seed and thread count.
+    /// Create a new `ThreadRegistry` with the given seed and thread count.
     #[allow(clippy::too_many_arguments)]
+    #[must_use] 
     pub fn new(
         seed_for_rng: u64,
         num_threads: usize,
@@ -1238,16 +1242,14 @@ impl ThreadRegistry {
             thread_back_off_jitter,
             thread_back_min_duration,
             thread_back_max_duration,
-            registry: SharedThreadRegistry::new(Arc::new(RwLock::new(
-                ThreadPoolRegistryInner {
-                    threads: EntryList::new(),
-                },
-            ))),
+            registry: SharedThreadRegistry::new(Arc::new(RwLock::new(ThreadPoolRegistryInner {
+                threads: EntryList::new(),
+            }))),
             thread_handles: RwLock::new(HashMap::new()),
         }
     }
 
-    /// Create a ThreadRegistry with default configuration.
+    /// Create a `ThreadRegistry` with default configuration.
     #[must_use]
     pub fn with_seed_and_threads(seed_from_rng: u64, num_threads: usize) -> Self {
         Self::new(
@@ -1266,7 +1268,7 @@ impl ThreadRegistry {
         )
     }
 
-    /// Accessor for shared_tasks queue.
+    /// Accessor for `shared_tasks` queue.
     #[must_use]
     pub fn shared_tasks(&self) -> SharedTaskQueue {
         self.shared_tasks.clone()
@@ -1278,7 +1280,7 @@ impl ThreadRegistry {
         self.latch.clone()
     }
 
-    /// Accessor for kill_signal.
+    /// Accessor for `kill_signal`.
     #[must_use]
     pub fn kill_signal(&self) -> Arc<OnSignal> {
         self.kill_signal.clone()
@@ -1395,13 +1397,10 @@ impl ThreadRegistry {
     }
 
     fn remove_thread_id(&self, thread_id: ThreadId) {
-        self.thread_handles
-            .write()
-            .unwrap()
-            .remove(&thread_id);
+        self.thread_handles.write().unwrap().remove(&thread_id);
     }
 
-    /// Spawn a worker thread with WaitGroup tracking.
+    /// Spawn a worker thread with `WaitGroup` tracking.
     pub fn spawn_worker(&self) -> ThreadExecutionResult<ThreadRef> {
         use std::thread::Builder;
 
@@ -1419,7 +1418,7 @@ impl ThreadRegistry {
         // Register thread in registry first
         let thread_ref = ThreadRef::new(
             seed,
-            format!("worker-{}", seed),
+            format!("worker-{seed}"),
             self.shared_tasks.clone(),
             None,
             self.registry.clone(),

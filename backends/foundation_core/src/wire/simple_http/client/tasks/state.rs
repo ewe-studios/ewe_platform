@@ -19,7 +19,7 @@ use std::sync::Arc;
 /// WHAT: Progress states with source identification for observability.
 /// Error states preserve source and error information for post-execution reporting.
 ///
-/// HOW: Used as the `Pending` type in TaskIterator combinators.
+/// HOW: Used as the `Pending` type in `TaskIterator` combinators.
 /// Errors are stored for post-execution inspection.
 ///
 /// # Type Parameters
@@ -56,7 +56,7 @@ impl<S, E> FetchPending<S, E> {
         Self::Connecting { source }
     }
 
-    /// Create an AwaitingResponse state
+    /// Create an `AwaitingResponse` state
     pub fn awaiting_response(source: S) -> Self {
         Self::AwaitingResponse { source }
     }
@@ -73,7 +73,7 @@ impl<S, E> FetchPending<S, E> {
 }
 
 impl<S: AsRef<str>, E: std::fmt::Display> FetchPending<S, E> {
-    /// Convert from HttpRequestPending with source context
+    /// Convert from `HttpRequestPending` with source context
     pub fn from_http_request(p: HttpRequestPending, source: S) -> Self {
         match p {
             HttpRequestPending::WaitingForStream => Self::connecting(source),
@@ -100,7 +100,6 @@ impl<S: AsRef<str>, E: std::fmt::Display> std::fmt::Display for FetchPending<S, 
         }
     }
 }
-
 
 /// HTTP request stream processing states.
 ///
@@ -242,11 +241,17 @@ mod tests {
 
         // Test AwaitingResponse state
         let awaiting: FetchPending<&str> = FetchPending::awaiting_response("api.example.com");
-        assert_eq!(format!("{awaiting}"), "api.example.com: Awaiting response...");
+        assert_eq!(
+            format!("{awaiting}"),
+            "api.example.com: Awaiting response..."
+        );
 
         // Test Failed state
         let failed = FetchPending::failed("api.example.com", "Connection refused".to_string());
-        assert_eq!(format!("{failed}"), "api.example.com: FAILED - Connection refused");
+        assert_eq!(
+            format!("{failed}"),
+            "api.example.com: FAILED - Connection refused"
+        );
 
         // Test Completed state
         let completed: FetchPending<&str> = FetchPending::completed("api.example.com");
@@ -256,16 +261,31 @@ mod tests {
     #[test]
     fn test_fetch_pending_constructors() {
         let connecting: FetchPending<&str> = FetchPending::connecting("test");
-        assert!(matches!(connecting, FetchPending::Connecting { source: "test" }));
+        assert!(matches!(
+            connecting,
+            FetchPending::Connecting { source: "test" }
+        ));
 
         let awaiting: FetchPending<&str> = FetchPending::awaiting_response("test");
-        assert!(matches!(awaiting, FetchPending::AwaitingResponse { source: "test" }));
+        assert!(matches!(
+            awaiting,
+            FetchPending::AwaitingResponse { source: "test" }
+        ));
 
         let failed: FetchPending<&str, &str> = FetchPending::failed("test", "error");
-        assert!(matches!(failed, FetchPending::Failed { source: "test", error: "error" }));
+        assert!(matches!(
+            failed,
+            FetchPending::Failed {
+                source: "test",
+                error: "error"
+            }
+        ));
 
         let completed: FetchPending<&str> = FetchPending::completed("test");
-        assert!(matches!(completed, FetchPending::Completed { source: "test" }));
+        assert!(matches!(
+            completed,
+            FetchPending::Completed { source: "test" }
+        ));
     }
 
     #[test]
@@ -274,11 +294,12 @@ mod tests {
             FetchPending::from_http_request(HttpRequestPending::WaitingForStream, "test");
         assert!(matches!(pending_stream, FetchPending::Connecting { .. }));
 
-        let pending_intro: FetchPending<&str> = FetchPending::from_http_request(
-            HttpRequestPending::WaitingIntroAndHeaders,
-            "test",
-        );
-        assert!(matches!(pending_intro, FetchPending::AwaitingResponse { .. }));
+        let pending_intro: FetchPending<&str> =
+            FetchPending::from_http_request(HttpRequestPending::WaitingIntroAndHeaders, "test");
+        assert!(matches!(
+            pending_intro,
+            FetchPending::AwaitingResponse { .. }
+        ));
     }
 
     #[test]
