@@ -31,7 +31,7 @@ use crate::{
     retries::ExponentialBackoffDecider,
     synca::{
         mpp::{self, RecvIterator},
-        Entry, EntryList, IdleMan, LockSignal, OnSignal, SleepyMan,
+        Entry, EntryList, IdleMan, LockSignal, OnSignal, SleepyMan, WaitGroup,
     },
     valtron::{AnyResult, LocalThreadExecutor},
 };
@@ -52,77 +52,6 @@ use crate::valtron::{
 };
 
 use crate::compati::{Mutex, RwLock};
-
-// ============================================================================
-// WaitGroup and PoolGuard - Thread Completion Tracking and Lifecycle Management
-// ============================================================================
-
-/// Tracks N outstanding work items. `wait()` blocks until count reaches 0.
-///
-/// Uses the existing `LockSignal` (CondVar-based) for the blocking mechanism.
-/// Each worker thread gets a `WaitGroupGuard` that calls `done()` on drop,
-/// ensuring cleanup even if the thread panics.
-#[derive(Clone)]
-pub struct WaitGroup {
-    count: Arc<AtomicUsize>,
-    signal: Arc<LockSignal>,
-}
-
-impl WaitGroup {
-    /// Create a new `WaitGroup` with count 0.
-    #[must_use]
-    pub fn new() -> Self {
-        Self {
-            count: Arc::new(AtomicUsize::new(0)),
-            signal: Arc::new(LockSignal::new()),
-        }
-    }
-
-    /// Increment the counter by n.
-    pub fn add(&self, n: usize) {
-        self.count.fetch_add(n, Ordering::SeqCst);
-    }
-
-    /// Decrement the counter. If it reaches 0, signal all waiters.
-    pub fn done(&self) {
-        let prev = self.count.fetch_sub(1, Ordering::SeqCst);
-        if prev == 1 {
-            // count just reached 0
-            self.signal.signal_all();
-        }
-    }
-
-    /// Block until count reaches 0.
-    pub fn wait(&self) {
-        loop {
-            if self.count.load(Ordering::SeqCst) == 0 {
-                return;
-            }
-            self.signal.lock_and_wait();
-        }
-    }
-
-    /// Create a RAII guard that calls `done()` on drop.
-    #[must_use]
-    pub fn guard(&self) -> WaitGroupGuard {
-        WaitGroupGuard(self.clone())
-    }
-}
-
-impl Default for WaitGroup {
-    fn default() -> Self {
-        Self::new()
-    }
-}
-
-/// Calls `WaitGroup::done()` on drop — ensures threads that panic still decrement.
-pub struct WaitGroupGuard(WaitGroup);
-
-impl Drop for WaitGroupGuard {
-    fn drop(&mut self) {
-        self.0.done();
-    }
-}
 
 // ============================================================================
 // PoolGuard - Drop-based Lifecycle Handle
@@ -963,7 +892,9 @@ where
 mod waitgroup_tests {
     use std::{panic, sync::Arc, thread, time::Duration};
 
-    use super::{PoolGuard, ThreadRegistry, WaitGroup};
+    use crate::synca::WaitGroup;
+
+    use super::{PoolGuard, ThreadRegistry};
 
     /// Test 1: WaitGroup add/done/wait basic functionality
     #[test]
