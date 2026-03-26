@@ -243,11 +243,11 @@ where
                         self.track_event_id(&parse_result);
                         // Reset retry state on successful event
                         self.retry_state = RetryState::new(0, self.config.max_retries, None);
-                        self.state = Some(ReconnectingState::Connected(Box::new(inner)));
+                        self.state = Some(ReconnectingState::Connected(inner));
                         Some(TaskStatus::Ready(parse_result))
                     }
                     Some(TaskStatus::Pending(progress)) => {
-                        self.state = Some(ReconnectingState::Connected(Box::new(inner)));
+                        self.state = Some(ReconnectingState::Connected(inner));
                         let mapped = match progress {
                             EventSourceProgress::Connecting => ReconnectingProgress::Connecting,
                             EventSourceProgress::Reading => ReconnectingProgress::Reading,
@@ -255,19 +255,19 @@ where
                         Some(TaskStatus::Pending(mapped))
                     }
                     Some(TaskStatus::Delayed(d)) => {
-                        self.state = Some(ReconnectingState::Connected(Box::new(inner)));
+                        self.state = Some(ReconnectingState::Connected(inner));
                         Some(TaskStatus::Delayed(d))
                     }
                     Some(TaskStatus::Spawn(s)) => {
-                        self.state = Some(ReconnectingState::Connected(Box::new(inner)));
+                        self.state = Some(ReconnectingState::Connected(inner));
                         Some(TaskStatus::Spawn(s))
                     }
                     Some(TaskStatus::Init) => {
-                        self.state = Some(ReconnectingState::Connected(Box::new(inner)));
+                        self.state = Some(ReconnectingState::Connected(inner));
                         Some(TaskStatus::Init)
                     }
                     Some(TaskStatus::Ignore) => {
-                        self.state = Some(ReconnectingState::Connected(Box::new(inner)));
+                        self.state = Some(ReconnectingState::Connected(inner));
                         Some(TaskStatus::Ignore)
                     }
                     None => {
