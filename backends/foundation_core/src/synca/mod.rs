@@ -4,6 +4,7 @@ mod event;
 mod idleman;
 mod signals;
 mod sleepers;
+mod waitgroup;
 
 pub mod mpp;
 pub use drops::*;
@@ -12,3 +13,4 @@ pub use event::*;
 pub use idleman::*;
 pub use signals::*;
 pub use sleepers::*;
+pub use waitgroup::*;
