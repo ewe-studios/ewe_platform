@@ -24,8 +24,8 @@ metadata:
 
 features:
   total: 9
-  completed: 0
-  pending: 9
+  completed: 9
+  pending: 0
 ---
 
 # Specification 10: simple_http Client Enhancements
@@ -71,43 +71,52 @@ The implementation contains battle-tested patterns for parallel HTTP execution t
 
 ## Feature Index
 
-### Pending Features (9)
+### Completed Features (9)
 
 1. **[Parallel Fetch Pattern](./features/01-parallel-fetch-pattern/feature.md)**
    - Description: Reusable parallel fetch task composition with progress tracking
    - Dependencies: 08-valtron-async-iterators/06b-map-iter-combinator
+   - Status: **COMPLETED** 2026-03-26
 
 2. **[TaskIterator Combinators for Response Parsing](./features/02-combinators-for-response-parsing/feature.md)**
    - Description: Document .map_ready() and .map_pending() patterns for HTTP response transformation
    - Dependencies: 08-valtron-async-iterators/06b-map-iter-combinator
+   - Status: **COMPLETED** 2026-03-26
 
 3. **[Multiple Response Body Handling](./features/03-multiple-response-body-handling/feature.md)**
    - Description: Document patterns for handling all SendSafeBody variants
    - Dependencies: None
+   - Status: **COMPLETED** 2026-03-26
 
 4. **[execute_collect_all Pattern](./features/04-execute-collect-all-pattern/feature.md)**
    - Description: Document parallel aggregation pattern for homogeneous task vectors
    - Dependencies: 08-valtron-async-iterators/05-unified-executor-integration
+   - Status: **COMPLETED** 2026-03-26
 
 5. **[Progress Tracking Design](./features/05-progress-tracking-design/feature.md)**
    - Description: Document FetchPending pattern for observable parallel fetch operations
    - Dependencies: None
+   - Status: **COMPLETED** 2026-03-26
 
 6. **[Parser Function Pattern](./features/06-parser-function-pattern/feature.md)**
    - Description: Document separate parser function pattern for API-specific response parsing
    - Dependencies: None
+   - Status: **COMPLETED** 2026-03-26
 
 7. **[Client Configuration Pattern](./features/07-client-configuration-pattern/feature.md)**
    - Description: Document fluent builder pattern for comprehensive HTTP client configuration
    - Dependencies: None
+   - Status: **COMPLETED** 2026-03-26
 
 8. **[Error Handling Pattern](./features/08-error-handling-pattern/feature.md)**
    - Description: Document structured error types with derive_more and graceful degradation
    - Dependencies: None
+   - Status: **COMPLETED** 2026-03-26
 
 9. **[Valtron Executor Integration](./features/09-valtron-executor-integration/feature.md)**
    - Description: Document valtron::initialize_pool, execute, and execute_collect_all usage patterns
    - Dependencies: 08-valtron-async-iterators/05-unified-executor-integration
+   - Status: **COMPLETED** 2026-03-26
 
 ## Implementation Guidelines
 
