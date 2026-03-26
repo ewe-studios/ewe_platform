@@ -1,7 +1,5 @@
 // Integration tests for TaskIterator combinators
-use foundation_core::valtron::{
-    NoAction, Stream, TaskIterator, TaskIteratorExt, TaskStatus,
-};
+use foundation_core::valtron::{NoAction, Stream, TaskIterator, TaskIteratorExt, TaskStatus};
 
 // Simple test task iterator for unit tests
 struct TestTask {
@@ -217,9 +215,7 @@ fn test_map_iter_flattens_nested_iterators() {
         type Pending = String;
         type Spawner = NoAction;
 
-        fn next_status(
-            &mut self,
-        ) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+        fn next_status(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
             Iterator::next(self)
         }
     }
@@ -293,9 +289,7 @@ fn test_map_iter_passes_through_pending() {
         type Pending = String;
         type Spawner = NoAction;
 
-        fn next_status(
-            &mut self,
-        ) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+        fn next_status(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
             Iterator::next(self)
         }
     }

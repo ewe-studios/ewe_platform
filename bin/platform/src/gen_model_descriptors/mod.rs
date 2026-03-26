@@ -20,9 +20,9 @@ use foundation_core::synca::mpp::Stream;
 use foundation_core::valtron::{self, TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::HttpRequestPending;
 use foundation_core::wire::simple_http::client::RequestIntro;
-use foundation_core::wire::simple_http::client::{SendRequestTask, SimpleHttpClient};
-use foundation_core::wire::simple_http::ChunkedData;
-use foundation_core::wire::simple_http::{IncomingResponseParts, SendSafeBody};
+use foundation_core::wire::simple_http::client::{
+    body_reader, SendRequestTask, SimpleHttpClient,
+};
 use serde::Deserialize;
 use tracing::Level;
 use tracing_subscriber::FmtSubscriber;
@@ -1268,84 +1268,8 @@ where
         .map_ready(move |intro| {
             match intro {
                 RequestIntro::Success { stream, .. } => {
-                    // Read the response body from the stream
-                    let mut body_text = String::new();
-                    for part in stream {
-                        match part {
-                            Ok(IncomingResponseParts::SizedBody(body))
-                            | Ok(IncomingResponseParts::StreamedBody(body)) => {
-                                match body {
-                                    SendSafeBody::Text(t) => body_text = t,
-                                    SendSafeBody::Bytes(b) => {
-                                        body_text = String::from_utf8(b.clone()).unwrap_or_else(|e| {
-                                            tracing::warn!("Invalid UTF-8 in response from {url}: {e}");
-                                            String::new()
-                                        });
-                                    }
-                                    SendSafeBody::Stream(mut opt_iter) => {
-                                        // Consume the stream iterator and collect bytes
-                                        if let Some(iter) = opt_iter.take() {
-                                            let mut bytes = Vec::new();
-                                            for chunk_result in iter {
-                                                match chunk_result {
-                                                    Ok(data) => {
-                                                        bytes.extend_from_slice(&data);
-                                                    }
-                                                    Err(e) => {
-                                                        tracing::warn!("Error reading stream from {url}: {e}");
-                                                        break;
-                                                    }
-                                                }
-                                            }
-                                            body_text = String::from_utf8(bytes).unwrap_or_else(|e| {
-                                                tracing::warn!("Invalid UTF-8 in streamed response from {url}: {e}");
-                                                String::new()
-                                            });
-                                        }
-                                    }
-                                    SendSafeBody::ChunkedStream(mut opt_iter) => {
-                                        // Consume the chunked stream iterator and collect bytes
-                                        if let Some(iter) = opt_iter.take() {
-                                            let mut bytes = Vec::new();
-                                            for chunk_result in iter {
-                                                match chunk_result {
-                                                    Ok(ChunkedData::Data(data, _)) => {
-                                                        bytes.extend_from_slice(&data);
-                                                    }
-                                                    Ok(ChunkedData::Trailers(_)) => {
-                                                        // Skip trailers
-                                                    }
-                                                    Ok(ChunkedData::DataEnded) => {
-                                                        // End of data
-                                                        break;
-                                                    }
-                                                    Err(e) => {
-                                                        tracing::warn!("Error reading chunked data from {url}: {e}");
-                                                        break;
-                                                    }
-                                                }
-                                            }
-                                            body_text = String::from_utf8(bytes).unwrap_or_else(|e| {
-                                                tracing::warn!("Invalid UTF-8 in chunked response from {url}: {e}");
-                                                String::new()
-                                            });
-                                        }
-                                    }
-                                    SendSafeBody::None => {
-                                        tracing::warn!("No body in response from {url}");
-                                    }
-                                    SendSafeBody::LineFeedStream(_) => {
-                                        tracing::warn!("LineFeedStream not supported for {url}");
-                                    }
-                                }
-                            }
-                            Ok(_) => continue,
-                            Err(e) => {
-                                tracing::warn!("Error reading response body from {url}: {e}");
-                                return Vec::new();
-                            }
-                        }
-                    }
+                    // Read the response body as a String using the body_reader convenience function
+                    let body_text = body_reader::collect_string(stream);
 
                     // Parse JSON and extract models
                     parser(&body_text, source)
