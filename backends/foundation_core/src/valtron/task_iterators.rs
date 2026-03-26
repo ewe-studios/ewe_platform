@@ -32,6 +32,8 @@
 //! - [`super::executors::unified`] - Contains `execute()` entry point
 //! - [`super::stream_iterators`] - Contains `StreamIteratorExt` for post-execute combinators
 
+#![allow(clippy::type_complexity)]
+
 use crate::synca::mpp::Stream;
 use crate::valtron::{branches::CollectionState, ExecutionAction, TaskIterator, TaskStatus};
 use std::sync::Arc;
