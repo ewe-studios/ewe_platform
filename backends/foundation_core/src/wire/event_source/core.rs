@@ -18,6 +18,7 @@ pub struct ParseResult {
     /// Last known event ID after parsing this event.
     /// - `None` if no ID has ever been seen
     /// - `Some(id)` if the current or a previous event had an ID
+    ///
     /// Updated when the parsed event contains an `id:` field.
     pub last_known_id: Option<String>,
 }

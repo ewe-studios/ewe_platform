@@ -2,7 +2,6 @@
 //! valtron iterators seamless and unseen.
 
 #![allow(clippy::type_complexity)]
-#![allow(clippy::unnecessary_wraps)]
 
 use core::future::Future;
 
@@ -46,7 +45,7 @@ pub fn initialize_pool(
         #[cfg(feature = "multi")]
         {
             use crate::valtron::multi;
-            return multi::initialize_pool(seed_for_rng, _user_thread_num);
+            multi::initialize_pool(seed_for_rng, _user_thread_num)
         }
 
         #[cfg(not(feature = "multi"))]
@@ -141,10 +140,10 @@ pub fn run_until_ready_state() {
 /// to report or the.
 ///
 /// This really only apply for single threaded situations (multi=off feature flag) and wasm context.
-#[tracing::instrument(skip(stream, checker))]
+#[tracing::instrument(skip(stream, _checker))]
 pub fn run_until_receiver_has_value<T, S>(
     stream: RecvIterator<TaskStatus<T::Ready, T::Pending, T::Spawner>>,
-    checker: S,
+    _checker: S,
 ) -> RecvIterator<TaskStatus<T::Ready, T::Pending, T::Spawner>>
 where
     S: Fn(ProgressIndicator) -> bool,
@@ -180,10 +179,10 @@ where
 /// to report or the.
 ///
 /// This really only apply for single threaded situations (multi=off feature flag) and wasm context.
-#[tracing::instrument(skip(stream, checker))]
+#[tracing::instrument(skip(stream, _checker))]
 pub fn run_until_stream_has_value<T, S>(
     stream: StreamRecvIterator<T::Ready, T::Pending>,
-    checker: S,
+    _checker: S,
 ) -> StreamRecvIterator<T::Ready, T::Pending>
 where
     S: Fn(ProgressIndicator) -> bool,
@@ -219,8 +218,8 @@ where
 /// in a non cfg way by encapsulating that call and configuration into this method.
 ///
 /// This really only apply for single threaded situations (multi=off feature flag) and wasm context.
-#[tracing::instrument(skip(checker))]
-pub fn run_until<T>(checker: T)
+#[tracing::instrument(skip(_checker))]
+pub fn run_until<T>(_checker: T)
 where
     T: Fn(ProgressIndicator) -> bool,
 {

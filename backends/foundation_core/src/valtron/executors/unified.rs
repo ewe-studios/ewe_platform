@@ -73,6 +73,7 @@ pub const DEFAULT_WAIT_CYCLE: std::time::Duration = std::time::Duration::from_mi
 /// This function does not panic under normal operation. However, panics can occur if:
 /// - The provided task implementation panics when polled or when executed by the executor.
 /// - The underlying executor implementation or thread pool panics internally.
+///
 /// In general, avoid panics in task implementations to prevent terminating worker threads or the
 /// host process.
 ///
@@ -152,6 +153,7 @@ where
 /// - Executor or thread pool initialization problems.
 /// - Errors returned by the spawn/schedule builder used by the executor
 ///   (for example failures constructing the iterator).
+///
 /// The concrete error type is the one used by [`GenericResult`] in this crate
 /// and will contain additional context about the failure.
 ///
@@ -161,6 +163,7 @@ where
 /// - The provided task implementation panics while being polled or executed by
 ///   the executor.
 /// - The underlying executor implementation or thread pool panics internally.
+///
 /// Avoid panics in task implementations to prevent terminating worker threads
 /// or the host process.
 ///

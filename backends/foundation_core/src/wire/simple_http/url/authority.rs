@@ -115,8 +115,8 @@ impl Authority {
 
             // Check for port after bracket
             let after_bracket = &s[close_bracket + 1..];
-            let port = if after_bracket.starts_with(':') {
-                Some(Self::parse_port(&after_bracket[1..])?)
+            let port = if let Some(stripped) = after_bracket.strip_prefix(':') {
+                Some(Self::parse_port(stripped)?)
             } else if after_bracket.is_empty() {
                 None
             } else {

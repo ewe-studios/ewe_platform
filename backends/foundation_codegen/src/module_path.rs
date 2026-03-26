@@ -166,6 +166,7 @@ impl ModulePathResolver {
     }
 }
 
+#[allow(clippy::uninlined_format_args)]
 #[cfg(test)]
 mod tests {
     use super::*;

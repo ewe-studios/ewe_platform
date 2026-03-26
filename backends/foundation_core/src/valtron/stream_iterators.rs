@@ -1452,6 +1452,7 @@ where
 /// where DM and PM are independent Done and Pending types for the observer:
 /// - `true` + `Some(stream)` sends the stream to the observer queue
 /// - `false` or `None` skips sending to observer
+///
 /// The continuation continues with original Stream<D, P> values unchanged.
 pub struct SSplitCollectorMapContinuation<I: StreamIterator<D = D, P = P>, D, P, DM, PM> {
     /// The wrapped iterator
