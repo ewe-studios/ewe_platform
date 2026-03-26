@@ -10,7 +10,7 @@
 //!
 //! # Example Usage
 //!
-//! ```rust
+//! ```rust,ignore
 //! // Strict error handling - caller decides what to do
 //! match collect_bytes_strict(stream) {
 //!     Ok(bytes) => process(bytes),
@@ -25,9 +25,8 @@
 //! }
 //! ```
 
-use crate::extensions::result_ext::{BoxedError, SendableBoxedError};
 use crate::wire::simple_http::{
-    ChunkedData, HttpReaderError, IncomingResponseParts, SendSafeBody,
+    ChunkedData, HttpReaderError, IncomingResponseParts, LineFeed, SendSafeBody,
 };
 use serde::de::DeserializeOwned;
 
@@ -53,9 +52,9 @@ pub enum StringBodyError {
     /// Invalid UTF-8 in response
     #[display("invalid UTF-8: {_0}")]
     InvalidUtf8(std::string::FromUtf8Error),
-    /// Nested iterator error (chunked/line streams) - wrapped to preserve context
+    /// Nested iterator error (chunked/line streams) - error message preserved
     #[display("stream iterator error: {_0}")]
-    StreamIteratorError(SendableBoxedError),
+    StreamIteratorError(Box<str>),
 }
 
 impl std::error::Error for StringBodyError {}
@@ -78,9 +77,9 @@ pub enum BodyReaderError {
     /// Unexpected body variant
     #[display("unexpected body variant")]
     UnexpectedVariant,
-    /// Nested iterator error (chunked/line streams) - wrapped to preserve context
+    /// Nested iterator error (chunked/line streams) - error message preserved
     #[display("stream iterator error: {_0}")]
-    StreamIteratorError(SendableBoxedError),
+    StreamIteratorError(Box<str>),
 }
 
 impl std::error::Error for BodyReaderError {}
@@ -96,7 +95,7 @@ impl std::error::Error for BodyReaderError {}
 pub enum JsonParseError {
     /// Failed to read response body
     #[display("failed to read body: {_0}")]
-    BodyRead(BodyReaderError),
+    BodyRead(StringBodyError),
     /// Failed to parse JSON
     #[display("failed to parse JSON: {_0}")]
     JsonParse(serde_json::Error),
@@ -149,7 +148,7 @@ pub enum ProcessStreamResult {
 ///
 /// # Examples
 ///
-/// ```rust
+/// ```rust,ignore,ignore
 /// // Strict error handling
 /// match collect_string_strict(stream) {
 ///     Ok(body) => process(body),
@@ -159,7 +158,7 @@ pub enum ProcessStreamResult {
 /// }
 /// ```
 pub fn collect_string_strict(
-    mut stream: Box<dyn Iterator<Item = Result<IncomingResponseParts, HttpReaderError>> + Send>,
+    stream: Box<dyn Iterator<Item = Result<IncomingResponseParts, HttpReaderError>> + Send>,
 ) -> Result<String, StringBodyError> {
     for part in stream {
         match part {
@@ -177,7 +176,11 @@ pub fn collect_string_strict(
                             for chunk_result in iter {
                                 match chunk_result {
                                     Ok(data) => bytes.extend_from_slice(&data),
-                                    Err(e) => return Err(StringBodyError::StreamIteratorError(SendableBoxedError::from(e))),
+                                    Err(e) => {
+                                        return Err(StringBodyError::StreamIteratorError(
+                                            e.to_string().into_boxed_str(),
+                                        ))
+                                    }
                                 }
                             }
                         }
@@ -195,7 +198,11 @@ pub fn collect_string_strict(
                                         // Silently ignore trailers
                                     }
                                     Ok(ChunkedData::DataEnded) => break,
-                                    Err(e) => return Err(StringBodyError::StreamIteratorError(SendableBoxedError::from(e))),
+                                    Err(e) => {
+                                        return Err(StringBodyError::StreamIteratorError(
+                                            e.to_string().into_boxed_str(),
+                                        ))
+                                    }
                                 }
                             }
                         }
@@ -206,8 +213,13 @@ pub fn collect_string_strict(
                         if let Some(iter) = opt_iter.take() {
                             for line_result in iter {
                                 match line_result {
-                                    Ok(line) => lines.push(line),
-                                    Err(e) => return Err(StringBodyError::StreamRead(e)),
+                                    Ok(LineFeed::Line(line)) => lines.push(line),
+                                    Ok(LineFeed::SKIP) | Ok(LineFeed::END) => continue,
+                                    Err(e) => {
+                                        return Err(StringBodyError::StreamIteratorError(
+                                            e.to_string().into_boxed_str(),
+                                        ))
+                                    }
                                 }
                             }
                         }
@@ -246,7 +258,7 @@ pub fn collect_string_strict(
 ///
 /// # Examples
 ///
-/// ```rust
+/// ```rust,ignore
 /// // Simple usage - errors logged, empty string returned on failure
 /// let body = collect_string(stream);
 /// if body.is_empty() {
@@ -293,7 +305,7 @@ pub fn collect_string(
 ///
 /// # Examples
 ///
-/// ```rust
+/// ```rust,ignore
 /// // Strict error handling for binary data
 /// match collect_bytes_strict(stream) {
 ///     Ok(bytes) => save_to_file(bytes),
@@ -302,7 +314,7 @@ pub fn collect_string(
 /// }
 /// ```
 pub fn collect_bytes_strict(
-    mut stream: Box<dyn Iterator<Item = Result<IncomingResponseParts, HttpReaderError>> + Send>,
+    stream: Box<dyn Iterator<Item = Result<IncomingResponseParts, HttpReaderError>> + Send>,
 ) -> Result<Vec<u8>, BodyReaderError> {
     let mut bytes = Vec::new();
 
@@ -318,7 +330,11 @@ pub fn collect_bytes_strict(
                             for chunk_result in iter {
                                 match chunk_result {
                                     Ok(data) => bytes.extend_from_slice(&data),
-                                    Err(e) => return Err(BodyReaderError::StreamRead(e)),
+                                    Err(e) => {
+                                        return Err(BodyReaderError::StreamIteratorError(
+                                            e.to_string().into_boxed_str(),
+                                        ))
+                                    }
                                 }
                             }
                         }
@@ -335,7 +351,11 @@ pub fn collect_bytes_strict(
                                         // Silently ignore trailers
                                     }
                                     Ok(ChunkedData::DataEnded) => break,
-                                    Err(e) => return Err(BodyReaderError::StreamRead(e)),
+                                    Err(e) => {
+                                        return Err(BodyReaderError::StreamIteratorError(
+                                            e.to_string().into_boxed_str(),
+                                        ))
+                                    }
                                 }
                             }
                         }
@@ -345,8 +365,15 @@ pub fn collect_bytes_strict(
                         if let Some(iter) = opt_iter.take() {
                             for line_result in iter {
                                 match line_result {
-                                    Ok(line) => bytes.extend_from_slice(line.as_bytes()),
-                                    Err(e) => return Err(BodyReaderError::StreamRead(e)),
+                                    Ok(LineFeed::Line(line)) => {
+                                        bytes.extend_from_slice(line.as_bytes())
+                                    }
+                                    Ok(LineFeed::SKIP) | Ok(LineFeed::END) => continue,
+                                    Err(e) => {
+                                        return Err(BodyReaderError::StreamIteratorError(
+                                            e.to_string().into_boxed_str(),
+                                        ))
+                                    }
                                 }
                             }
                         }
@@ -383,7 +410,7 @@ pub fn collect_bytes_strict(
 ///
 /// # Examples
 ///
-/// ```rust
+/// ```rust,ignore
 /// // Simple usage - errors logged, empty vec returned on failure
 /// let bytes = collect_bytes(stream);
 /// if bytes.is_empty() {
@@ -422,7 +449,7 @@ pub fn collect_bytes(
 ///
 /// # Examples
 ///
-/// ```rust
+/// ```rust,ignore
 /// // Download an image
 /// let task = SendRequestTask::new(request, 5, pool, config)
 ///     .map_ready(|intro| {
@@ -442,7 +469,7 @@ pub fn collect_bytes(
 /// }
 /// ```
 pub fn collect_bytes_direct(
-    mut stream: Box<dyn Iterator<Item = Result<IncomingResponseParts, HttpReaderError>> + Send>,
+    stream: Box<dyn Iterator<Item = Result<IncomingResponseParts, HttpReaderError>> + Send>,
 ) -> Vec<u8> {
     let mut bytes = Vec::new();
 
@@ -490,10 +517,11 @@ pub fn collect_bytes_direct(
                     if let Some(iter) = opt_iter.take() {
                         for line_result in iter {
                             match line_result {
-                                Ok(line) => {
+                                Ok(LineFeed::Line(line)) => {
                                     bytes.extend_from_slice(line.as_bytes());
                                     bytes.push(b'\n');
                                 }
+                                Ok(LineFeed::SKIP) | Ok(LineFeed::END) => continue,
                                 Err(e) => {
                                     tracing::warn!("Line stream error: {e}");
                                     break;
@@ -551,7 +579,7 @@ pub fn collect_bytes_direct(
 ///
 /// # Examples
 ///
-/// ```rust
+/// ```rust,ignore
 /// // Strict error handling
 /// match parse_json_strict::<ApiResponse>(stream) {
 ///     Ok(response) => process(response),
@@ -589,7 +617,7 @@ pub fn parse_json_strict<T: DeserializeOwned>(
 ///
 /// # Examples
 ///
-/// ```rust
+/// ```rust,ignore
 /// // Simple usage - errors logged, None returned on failure
 /// if let Some(response) = parse_json::<ApiResponse>(stream) {
 ///     println!("Got {} items", response.items.len());
@@ -636,7 +664,7 @@ pub fn parse_json<T: DeserializeOwned>(
 ///
 /// # Examples
 ///
-/// ```rust
+/// ```rust,ignore
 /// // Strict error handling
 /// match process_streaming_body_strict(stream, |chunk| {
 ///     println!("Received {} bytes", chunk.len());
@@ -649,7 +677,7 @@ pub fn parse_json<T: DeserializeOwned>(
 /// }
 /// ```
 pub fn process_streaming_body_strict<F>(
-    mut stream: Box<dyn Iterator<Item = Result<IncomingResponseParts, HttpReaderError>> + Send>,
+    stream: Box<dyn Iterator<Item = Result<IncomingResponseParts, HttpReaderError>> + Send>,
     mut processor: F,
 ) -> Result<ProcessStreamResult, BodyReaderError>
 where
@@ -683,7 +711,11 @@ where
                                             return Ok(ProcessStreamResult::StoppedByCallback);
                                         }
                                     }
-                                    Err(e) => return Err(BodyReaderError::StreamRead(e)),
+                                    Err(e) => {
+                                        return Err(BodyReaderError::StreamIteratorError(
+                                            e.to_string().into_boxed_str(),
+                                        ))
+                                    }
                                 }
                             }
                         }
@@ -700,7 +732,11 @@ where
                                     }
                                     Ok(ChunkedData::DataEnded) => break,
                                     Ok(ChunkedData::Trailers(_)) => {}
-                                    Err(e) => return Err(BodyReaderError::StreamRead(e)),
+                                    Err(e) => {
+                                        return Err(BodyReaderError::StreamIteratorError(
+                                            e.to_string().into_boxed_str(),
+                                        ))
+                                    }
                                 }
                             }
                         }
@@ -710,12 +746,17 @@ where
                         if let Some(iter) = opt_iter.take() {
                             for line_result in iter {
                                 match line_result {
-                                    Ok(line) => {
+                                    Ok(LineFeed::Line(line)) => {
                                         if !processor(line.as_bytes()) {
                                             return Ok(ProcessStreamResult::StoppedByCallback);
                                         }
                                     }
-                                    Err(e) => return Err(BodyReaderError::StreamRead(e)),
+                                    Ok(LineFeed::SKIP) | Ok(LineFeed::END) => continue,
+                                    Err(e) => {
+                                        return Err(BodyReaderError::StreamIteratorError(
+                                            e.to_string().into_boxed_str(),
+                                        ))
+                                    }
                                 }
                             }
                         }
@@ -754,7 +795,7 @@ where
 ///
 /// # Examples
 ///
-/// ```rust
+/// ```rust,ignore
 /// // Simple usage - errors logged, false returned on failure
 /// if process_streaming_body(stream, |chunk| {
 ///     println!("Received {} bytes", chunk.len());

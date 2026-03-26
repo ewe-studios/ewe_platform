@@ -4,9 +4,9 @@
 // patterns and pluggable DNS resolution.
 
 mod api;
+pub mod body_reader;
 #[allow(clippy::module_inception)]
 mod client;
-// mod body_reader;
 mod compression;
 mod connection;
 mod control;
@@ -23,7 +23,7 @@ mod tasks;
 mod tls_task;
 
 pub use api::*;
-// pub use body_reader::*;
+pub use body_reader::*;
 pub use client::*;
 pub use compression::*;
 pub use connection::*;
