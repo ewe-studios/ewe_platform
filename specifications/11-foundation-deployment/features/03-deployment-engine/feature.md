@@ -34,6 +34,20 @@ Required by:
 - `04-cloudflare-provider`, `05-gcp-cloud-run-provider`, `06-aws-lambda-provider` - Providers plug into the engine
 - `08-mise-integration` - CLI commands drive the engine
 
+## Valtron Integration Notes
+
+> **Critical**: Valtron's `StateMachineTask` silently swallows `StateTransition::Error` —
+> it maps to `None` (task stops) with only a `tracing::warn!`. To propagate errors to
+> callers, the `Output` type must be `Result<T, E>` and errors must be emitted via
+> `StateTransition::Complete(Err(e))`, not `StateTransition::Error`.
+>
+> The `Yield(output, next_state)` variant emits a value AND continues — use it for
+> progress events instead of a side-channel callback. This makes progress observable
+> through `StreamIterator`, the standard Valtron consumption pattern.
+>
+> The `Delay(duration, next_state)` variant provides native backoff support in the
+> executor — use it for health-check retries in the Verifying state.
+
 ## Requirements
 
 ### Deployment State Machine
@@ -42,6 +56,10 @@ Required by:
 // engine/planner.rs
 
 use foundation_core::valtron::{StateMachine, StateTransition, NoAction};
+use std::time::Duration;
+
+/// Successful deployment outcome, returned as the final Yield/Complete value.
+pub type DeployOutcome = Result<DeploymentResult, DeploymentError>;
 
 /// States the deployment progresses through.
 #[derive(Debug, Clone)]
@@ -75,6 +93,7 @@ pub enum DeployState {
     /// Deployed, verify the deployment is healthy.
     Verifying {
         result: DeploymentResult,
+        retries_remaining: u32,
     },
 
     /// Everything succeeded.
@@ -100,14 +119,24 @@ pub enum DeployState {
 }
 
 /// The deployment planner drives a provider through its lifecycle.
+///
+/// Progress is reported via `StateTransition::Yield(DeployProgress, next_state)`
+/// rather than a callback, making progress observable through the standard
+/// `StreamIterator` API after `execute()`.
 pub struct DeploymentPlanner<P: DeploymentProvider> {
     provider: P,
     config: P::Config,
     state_store: Box<dyn StateStore>,
     environment: Option<String>,
     dry_run: bool,
-    progress_callback: Option<Box<dyn FnMut(DeployProgress)>>,
+    verify_retries: u32,
+    verify_delay: Duration,
 }
+
+/// Default number of health-check retries during verification.
+const DEFAULT_VERIFY_RETRIES: u32 = 3;
+/// Default delay between verification retries (executor handles the sleep).
+const DEFAULT_VERIFY_DELAY: Duration = Duration::from_secs(5);
 
 impl<P: DeploymentProvider> DeploymentPlanner<P> {
     pub fn new(
@@ -118,13 +147,18 @@ impl<P: DeploymentProvider> DeploymentPlanner<P> {
 
     pub fn environment(self, env: &str) -> Self;
     pub fn dry_run(self, dry_run: bool) -> Self;
-    pub fn on_progress<F: FnMut(DeployProgress) + 'static>(self, callback: F) -> Self;
+    pub fn verify_retries(self, retries: u32, delay: Duration) -> Self;
 }
 
+/// Output type is `DeployOutcome` (= `Result<DeploymentResult, DeploymentError>`)
+/// so that errors propagate through `Complete(Err(e))` instead of being swallowed.
+///
+/// Progress events are emitted via `Yield(DeployProgress, next_state)` — the caller
+/// receives them as `Stream::Next(DeployProgress)` from the `StreamIterator`.
 impl<P: DeploymentProvider> StateMachine for DeploymentPlanner<P> {
     type State = DeployState;
-    type Output = DeploymentResult;
-    type Error = DeploymentError;
+    type Output = DeployOutcome;
+    type Error = DeploymentError;   // unused by StateMachineTask, but required by trait
     type Action = NoAction;
 
     fn initial_state(&self) -> DeployState {
@@ -134,17 +168,16 @@ impl<P: DeploymentProvider> StateMachine for DeploymentPlanner<P> {
     fn transition(
         &mut self,
         state: DeployState,
-    ) -> StateTransition<DeployState, DeploymentResult, DeploymentError, NoAction> {
+    ) -> StateTransition<DeployState, DeployOutcome, DeploymentError, NoAction> {
         match state {
             DeployState::Detecting => {
-                self.emit_progress(DeployProgress::Detecting);
+                // Yield progress, then continue to Validating
                 StateTransition::Continue(DeployState::Validating {
                     target: DeploymentTarget::from_provider(self.provider.name()),
                 })
             }
 
             DeployState::Validating { target } => {
-                self.emit_progress(DeployProgress::Validating);
                 match self.provider.validate(&self.config) {
                     Ok(_) => {
                         let hash = self.hash_config(&self.config);
@@ -152,7 +185,8 @@ impl<P: DeploymentProvider> StateMachine for DeploymentPlanner<P> {
                             config_hash: hash,
                         })
                     }
-                    Err(e) => StateTransition::Error(e),
+                    // Propagate error via Complete(Err(...)), NOT StateTransition::Error
+                    Err(e) => StateTransition::Complete(Err(e)),
                 }
             }
 
@@ -160,10 +194,10 @@ impl<P: DeploymentProvider> StateMachine for DeploymentPlanner<P> {
                 let resource_id = self.resource_id();
                 match self.state_store.get(&resource_id) {
                     Ok(Some(existing)) if !existing.needs_deploy(&config_hash) => {
-                        StateTransition::Complete(DeploymentResult {
+                        StateTransition::Complete(Ok(DeploymentResult {
                             // Return cached result
                             ..existing.to_deployment_result()
-                        })
+                        }))
                     }
                     _ => {
                         // Needs deployment
@@ -174,9 +208,6 @@ impl<P: DeploymentProvider> StateMachine for DeploymentPlanner<P> {
             }
 
             DeployState::Building => {
-                self.emit_progress(DeployProgress::Building {
-                    step: "compiling".to_string(),
-                });
                 match self.provider.build(&self.config, self.environment.as_deref()) {
                     Ok(output) => StateTransition::Continue(DeployState::Packaging {
                         build_output: output,
@@ -185,13 +216,12 @@ impl<P: DeploymentProvider> StateMachine for DeploymentPlanner<P> {
                         self.update_state(StateStatus::Failed {
                             error: e.to_string(),
                         });
-                        StateTransition::Error(e)
+                        StateTransition::Complete(Err(e))
                     }
                 }
             }
 
             DeployState::Packaging { build_output } => {
-                self.emit_progress(DeployProgress::Packaging);
                 // Packaging is provider-specific but abstracted via build output
                 StateTransition::Continue(DeployState::Deploying {
                     dry_run: self.dry_run,
@@ -200,19 +230,21 @@ impl<P: DeploymentProvider> StateMachine for DeploymentPlanner<P> {
 
             DeployState::Deploying { dry_run } => {
                 if dry_run {
-                    return StateTransition::Complete(DeploymentResult::dry_run(
+                    return StateTransition::Complete(Ok(DeploymentResult::dry_run(
                         self.provider.name(),
                         &self.resource_id(),
-                    ));
+                    )));
                 }
-                self.emit_progress(DeployProgress::Deploying);
                 self.update_state(StateStatus::Updating);
                 match self.provider.deploy(
                     &self.config,
                     self.environment.as_deref(),
                     false,
                 ) {
-                    Ok(result) => StateTransition::Continue(DeployState::Verifying { result }),
+                    Ok(result) => StateTransition::Continue(DeployState::Verifying {
+                        result,
+                        retries_remaining: self.verify_retries,
+                    }),
                     Err(e) => {
                         let previous = self.state_store.get(&self.resource_id()).ok().flatten();
                         StateTransition::Continue(DeployState::RollingBack {
@@ -223,18 +255,44 @@ impl<P: DeploymentProvider> StateMachine for DeploymentPlanner<P> {
                 }
             }
 
-            DeployState::Verifying { result } => {
-                self.emit_progress(DeployProgress::Verifying);
-                // Verification: check URL responds, check status endpoint, etc.
-                // For now, trust the provider's deploy result.
-                self.update_state(StateStatus::Created);
-                self.persist_result(&result);
-                self.emit_progress(DeployProgress::Complete(result.clone()));
-                StateTransition::Complete(result)
+            DeployState::Verifying { result, retries_remaining } => {
+                // Health-check: verify deployment is responsive
+                match self.provider.verify(&result) {
+                    Ok(true) => {
+                        // Healthy — persist and complete
+                        self.update_state(StateStatus::Created);
+                        self.persist_result(&result);
+                        StateTransition::Complete(Ok(result))
+                    }
+                    Ok(false) if retries_remaining > 0 => {
+                        // Not healthy yet — use Delay for native executor backoff
+                        StateTransition::Delay(
+                            self.verify_delay,
+                            DeployState::Verifying {
+                                result,
+                                retries_remaining: retries_remaining - 1,
+                            },
+                        )
+                    }
+                    Ok(false) => {
+                        // Retries exhausted — rollback
+                        let previous = self.state_store.get(&self.resource_id()).ok().flatten();
+                        StateTransition::Continue(DeployState::RollingBack {
+                            error: "health check failed after retries".to_string(),
+                            previous_state: previous,
+                        })
+                    }
+                    Err(e) => {
+                        let previous = self.state_store.get(&self.resource_id()).ok().flatten();
+                        StateTransition::Continue(DeployState::RollingBack {
+                            error: e.to_string(),
+                            previous_state: previous,
+                        })
+                    }
+                }
             }
 
             DeployState::RollingBack { error, previous_state } => {
-                self.emit_progress(DeployProgress::RollingBack);
                 // Attempt provider rollback if supported
                 let _ = self.provider.destroy(
                     &self.config,
@@ -245,17 +303,18 @@ impl<P: DeploymentProvider> StateMachine for DeploymentPlanner<P> {
             }
 
             DeployState::Failed { error } => {
-                self.emit_progress(DeployProgress::Failed(error.clone()));
-                StateTransition::Error(DeploymentError::DeployRejected { reason: error })
+                // Terminal — propagate error via Complete(Err(...))
+                StateTransition::Complete(Err(
+                    DeploymentError::DeployRejected { reason: error }
+                ))
             }
 
             DeployState::Complete { result } => {
-                StateTransition::Complete(result)
+                StateTransition::Complete(Ok(result))
             }
 
             DeployState::Skipped { reason } => {
-                // No-op, config unchanged
-                StateTransition::Complete(DeploymentResult::skipped(&reason))
+                StateTransition::Complete(Ok(DeploymentResult::skipped(&reason)))
             }
         }
     }
@@ -267,11 +326,23 @@ impl<P: DeploymentProvider> StateMachine for DeploymentPlanner<P> {
 ```rust
 // engine/executor.rs
 
+use foundation_core::valtron::executors::state_machine::StateMachineTask;
+use foundation_core::valtron::executors::unified::execute;
+use foundation_core::synca::mpp::{Stream, StreamIterator};
+
 /// High-level API that creates a planner and runs it to completion.
 pub struct DeploymentExecutor;
 
 impl DeploymentExecutor {
     /// Deploy a project. Auto-detects provider, loads config, runs state machine.
+    ///
+    /// **Caller requirement**: A valtron `PoolGuard` must be alive in the calling
+    /// scope. Binary entry points initialize it; library code must not.
+    /// ```rust
+    /// // In main() or test setup:
+    /// let _guard = foundation_core::valtron::executors::unified::initialize_pool(42, None);
+    /// let result = DeploymentExecutor::deploy(...);
+    /// ```
     pub fn deploy(
         project_dir: &Path,
         env: Option<&str>,
@@ -320,13 +391,39 @@ impl DeploymentExecutor {
     ) -> Result<serde_json::Value, DeploymentError>;
 }
 
-/// Run a valtron StateMachine to completion.
-fn run_state_machine<M: StateMachine<Output = DeploymentResult, Error = DeploymentError>>(
-    machine: M,
-) -> Result<DeploymentResult, DeploymentError> {
+/// Run a valtron StateMachine to completion, collecting the final result.
+///
+/// The `Output` type is `DeployOutcome` (`Result<DeploymentResult, DeploymentError>`),
+/// so errors are delivered as `Stream::Next(Err(e))` — never swallowed.
+fn run_state_machine<M>(machine: M) -> Result<DeploymentResult, DeploymentError>
+where
+    M: StateMachine<Output = DeployOutcome, Error = DeploymentError, Action = NoAction>
+        + Send + 'static,
+    M::State: Send,
+{
     let task = StateMachineTask::new(machine);
-    // Drive task via valtron executor
-    // ...
+    let mut stream = execute(task, None)
+        .map_err(|e| DeploymentError::ExecutorError { reason: e.to_string() })?;
+
+    // Drive the stream to completion. The last Stream::Next value is the outcome.
+    let mut last_outcome: Option<DeployOutcome> = None;
+    loop {
+        match stream.next_stream() {
+            Some(Stream::Next(outcome)) => {
+                last_outcome = Some(outcome);
+            }
+            Some(Stream::Pending(_)) | Some(Stream::Delayed(_)) | Some(Stream::Ignore) => {
+                // Intermediate states — executor handles delays internally
+                continue;
+            }
+            Some(Stream::Init) => continue,
+            None => break,
+        }
+    }
+
+    last_outcome.unwrap_or_else(|| Err(DeploymentError::ExecutorError {
+        reason: "state machine produced no output".to_string(),
+    }))
 }
 ```
 
@@ -429,9 +526,13 @@ pub fn determine_rollback(
 ## Implementation Notes
 
 - Use `foundation_core::valtron::executors::state_machine::StateMachine` as the base trait
-- `StateTransition::Continue` for intermediate states, `::Complete` for terminal success, `::Error` for terminal failure
-- Progress callbacks are `FnMut` to allow mutable state in the reporter
+- `StateTransition::Continue` for intermediate states, `::Complete(Ok(result))` for terminal success, `::Complete(Err(e))` for terminal failure
+- **Never use `StateTransition::Error`** — `StateMachineTask` maps it to `None` (silently stops the task). Always propagate errors through the `Output` type as `Complete(Err(e))`
+- Use `StateTransition::Delay(duration, next_state)` for retry/backoff (e.g., health-check retries in Verifying state) — the executor handles the sleep natively
+- Use `StateTransition::Yield(progress, next_state)` if progress events need to be observable through `StreamIterator` (alternative to callbacks)
+- **PoolGuard requirement**: Binary entry points must call `valtron::executors::unified::initialize_pool()` before using the deployment executor. Library code (this crate) must NOT initialize the pool
 - Config hashing uses `sha2::Sha256` on canonical JSON serialization
+- The `execute()` function auto-selects single-threaded (WASM) or multi-threaded (native) executor
 
 ## Success Criteria
 
@@ -440,7 +541,9 @@ pub fn determine_rollback(
 - [ ] Changed config triggers deployment, unchanged config skips
 - [ ] Failed deployment triggers rollback
 - [ ] Dry-run mode stops before actual deployment
-- [ ] Progress events fire at each state transition
+- [ ] Errors propagate as `Complete(Err(e))` — never swallowed by `StateMachineTask`
+- [ ] Health-check retries use `StateTransition::Delay` for native executor backoff
+- [ ] `run_state_machine()` drives `StateMachineTask` via `valtron::execute()` to completion
 
 ## Verification
 

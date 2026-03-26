@@ -85,22 +85,31 @@ pub trait DeploymentProvider {
 
 ### 5. Deployment Engine
 
-A valtron `StateMachine` orchestrates the deployment lifecycle:
+A valtron `StateMachine` orchestrates the deployment lifecycle. The planner implements
+`StateMachine` and is wrapped in `StateMachineTask` to produce a `TaskIterator`,
+then driven via `valtron::execute()`.
 
 ```
 Validate -> Build -> Deploy (API call) -> Capture State -> Verify -> Complete
-                                                             |
-                                                         [on failure]
-                                                             |
-                                                         Rollback -> Failed
+                                                             |        ^  |
+                                                             |   Delay/  [on failure]
+                                                             |   Retry   |
+                                                             +----------Rollback -> Failed
 ```
+
+**Key Valtron patterns used:**
+- `StateTransition::Continue(next)` — advance to next phase
+- `StateTransition::Complete(Ok(result))` — terminal success
+- `StateTransition::Complete(Err(e))` — terminal failure (NOT `StateTransition::Error`, which is silently swallowed by `StateMachineTask`)
+- `StateTransition::Delay(duration, next)` — health-check retries with native executor backoff
 
 The engine:
 - Hashes the config and checks state store for changes (skip if unchanged)
 - Calls `provider.build()` then `provider.deploy()` which makes API calls
 - Captures the API response into the state store
-- Verifies the deployment is healthy
+- Verifies the deployment is healthy (with configurable retries via `Delay`)
 - Rolls back on failure using provider-specific strategies
+- **Caller must hold a `PoolGuard`** (from `valtron::initialize_pool()`) — library code does not initialize the pool
 
 ---
 

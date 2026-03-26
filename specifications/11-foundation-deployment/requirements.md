@@ -68,7 +68,7 @@ Deployment state (what's deployed, where, what version) is persisted in a **stat
 | Backend | Description | Best For |
 |---------|-------------|----------|
 | **Turso** | Turso-hosted SQLite with embedded replicas | Teams, CI/CD, cross-machine sync |
-| **SQLite** | Plain local SQLite file | Single-machine, no external deps |
+| **SQLite** | Plain local SQLite file | Single-machine, no external deps (via turso sqlite) |
 | **JSON files** | One JSON file per resource in `.deployment/` | Simplest, git-friendly |
 
 All three implement the same `StateStore` trait. The user picks one via config or environment variables. There is no special relationship between any state store and any provider.
