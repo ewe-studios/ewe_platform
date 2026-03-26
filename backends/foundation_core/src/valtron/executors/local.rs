@@ -1758,6 +1758,7 @@ impl<T: ProcessController + Clone> Clone for LocalThreadExecutor<T> {
 // -- Constructors
 
 #[allow(unused)]
+#[allow(clippy::too_many_arguments)]
 impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
     pub fn new(
         tasks: sync::Arc<ConcurrentQueue<BoxedSendExecutionIterator>>,

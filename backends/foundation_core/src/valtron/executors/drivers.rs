@@ -2,6 +2,7 @@
 //! valtron iterators seamless and unseen.
 
 #![allow(clippy::type_complexity)]
+#![allow(clippy::unnecessary_wraps)]
 
 use core::future::Future;
 
