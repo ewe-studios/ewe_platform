@@ -55,7 +55,7 @@ pub enum ReconnectingProgress {
 
 enum ReconnectingState<R: DnsResolver + Send + 'static> {
     /// Active connection with inner task.
-    Connected(EventSourceTask<R>),
+    Connected(Box<EventSourceTask<R>>),
     /// Backoff wait before reconnection.
     Waiting(Duration),
     /// Creating new connection after backoff.
@@ -124,7 +124,7 @@ where
         info!("Reconnecting SSE client created");
 
         Ok(Self {
-            state: Some(ReconnectingState::Connected(inner)),
+            state: Some(ReconnectingState::Connected(Box::new(inner))),
             config,
             resolver,
             last_event_id: None,
@@ -243,11 +243,11 @@ where
                         self.track_event_id(&parse_result);
                         // Reset retry state on successful event
                         self.retry_state = RetryState::new(0, self.config.max_retries, None);
-                        self.state = Some(ReconnectingState::Connected(inner));
+                        self.state = Some(ReconnectingState::Connected(Box::new(inner)));
                         Some(TaskStatus::Ready(parse_result))
                     }
                     Some(TaskStatus::Pending(progress)) => {
-                        self.state = Some(ReconnectingState::Connected(inner));
+                        self.state = Some(ReconnectingState::Connected(Box::new(inner)));
                         let mapped = match progress {
                             EventSourceProgress::Connecting => ReconnectingProgress::Connecting,
                             EventSourceProgress::Reading => ReconnectingProgress::Reading,
@@ -255,19 +255,19 @@ where
                         Some(TaskStatus::Pending(mapped))
                     }
                     Some(TaskStatus::Delayed(d)) => {
-                        self.state = Some(ReconnectingState::Connected(inner));
+                        self.state = Some(ReconnectingState::Connected(Box::new(inner)));
                         Some(TaskStatus::Delayed(d))
                     }
                     Some(TaskStatus::Spawn(s)) => {
-                        self.state = Some(ReconnectingState::Connected(inner));
+                        self.state = Some(ReconnectingState::Connected(Box::new(inner)));
                         Some(TaskStatus::Spawn(s))
                     }
                     Some(TaskStatus::Init) => {
-                        self.state = Some(ReconnectingState::Connected(inner));
+                        self.state = Some(ReconnectingState::Connected(Box::new(inner)));
                         Some(TaskStatus::Init)
                     }
                     Some(TaskStatus::Ignore) => {
-                        self.state = Some(ReconnectingState::Connected(inner));
+                        self.state = Some(ReconnectingState::Connected(Box::new(inner)));
                         Some(TaskStatus::Ignore)
                     }
                     None => {
@@ -343,7 +343,7 @@ where
                 );
                 // Create new inner task
                 if let Some(inner) = self.create_inner_task() {
-                    self.state = Some(ReconnectingState::Connected(inner));
+                    self.state = Some(ReconnectingState::Connected(Box::new(inner)));
                     Some(TaskStatus::Pending(ReconnectingProgress::Connecting))
                 } else {
                     error!("Failed to create inner task");

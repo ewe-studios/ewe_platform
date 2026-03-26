@@ -17,13 +17,6 @@
 #![allow(clippy::module_name_repetitions)]
 #![allow(clippy::must_use_candidate)]
 #![allow(clippy::double_must_use)]
-#![allow(clippy::needless_return)]
-#![allow(clippy::doc_lazy_continuation)]
-#![allow(clippy::large_enum_variant)]
-#![allow(clippy::match_like_matches_macro)]
-#![allow(clippy::unnecessary_get_then_check)]
-#![allow(clippy::manual_strip)]
-#![allow(clippy::collapsible_match)]
 
 extern crate url;
 

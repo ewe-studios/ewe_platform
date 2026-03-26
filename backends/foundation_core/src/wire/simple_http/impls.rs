@@ -2054,7 +2054,7 @@ pub enum Http11RequestBodyState {
     ///
     /// Once done it moves state to the `Http11ReqState::BodyStream`
     ///  or `Http11ReqState::End` variant.
-    Intro(SimpleIncomingRequest),
+    Intro(Box<SimpleIncomingRequest>),
 
     /// Fourth state which starts or continues rendering of the body in
     /// the case of a streaming equivalent where we can accept an Iterator
@@ -2096,7 +2096,7 @@ pub struct Http11RequestBodyIterator(Option<Http11RequestBodyState>);
 impl Http11RequestBodyIterator {
     #[must_use]
     pub fn new(request: SimpleIncomingRequest) -> Self {
-        Self(Some(Http11RequestBodyState::Intro(request)))
+        Self(Some(Http11RequestBodyState::Intro(Box::new(request))))
     }
 }
 
@@ -2289,7 +2289,7 @@ pub enum Http11ReqState {
     /// as the next value.
     ///
     /// Once done it moves state to the `Http11ReqState::Body` variant.
-    Descriptor((SimpleIncomingRequest, Http11RequestDescriptorIterator)),
+    Descriptor(Box<(SimpleIncomingRequest, Http11RequestDescriptorIterator)>),
 
     /// Third state which starts rendering the body of the request
     /// this variant is unique because depending on the body type it can
@@ -2324,11 +2324,12 @@ impl Iterator for Http11RequestIterator {
                 let desc_iterator = Http11RequestDescriptorIterator::new(request.descriptor());
 
                 // switch state to headers
-                self.0 = Some(Http11ReqState::Descriptor((request, desc_iterator)));
+                self.0 = Some(Http11ReqState::Descriptor(Box::new((request, desc_iterator))));
 
                 Some(Ok(vec![]))
             }
-            Http11ReqState::Descriptor((request, mut descriptor_iterator)) => {
+            Http11ReqState::Descriptor(mut inner) => {
+                let (request, mut descriptor_iterator) = *inner;
                 let next = descriptor_iterator.next();
                 if next.is_none() {
                     self.0 = Some(Http11ReqState::Body(Http11RequestBodyIterator::new(
@@ -2337,7 +2338,7 @@ impl Iterator for Http11RequestIterator {
                     return Some(Ok(vec![]));
                 }
 
-                self.0 = Some(Http11ReqState::Descriptor((request, descriptor_iterator)));
+                self.0 = Some(Http11ReqState::Descriptor(Box::new((request, descriptor_iterator))));
 
                 next
             }
@@ -3245,10 +3246,7 @@ where
 
     fn next(&mut self) -> Option<Self::Item> {
         let _span = tracing::span!(tracing::Level::TRACE, "next").entered();
-        let no_body = match &self.state {
-            HttpReadState::OnlyHeaders => true,
-            _ => false,
-        };
+        let no_body = matches!(&self.state, HttpReadState::OnlyHeaders);
 
         match &self.state {
             HttpReadState::Intro => {
@@ -3403,7 +3401,7 @@ where
                         return Some(Err(HttpReaderError::UnknownTransferEncodingHeaderValue));
                     }
 
-                    if current_values.len() == 1 && current_values.get(CHUNKED_VALUE).is_none() {
+                    if current_values.len() == 1 && !current_values.contains(CHUNKED_VALUE) {
                         return Some(Err(HttpReaderError::UnsupportedTransferEncodingType));
                     }
 
@@ -3830,8 +3828,8 @@ where
 
                 // if no transfer encoding and content length provided then we wont fail but
                 // read the body till EOF
-                if headers.get(&SimpleHeader::TRANSFER_ENCODING).is_none()
-                    && headers.get(&SimpleHeader::CONTENT_LENGTH).is_none()
+                if !headers.contains_key(&SimpleHeader::TRANSFER_ENCODING)
+                    && !headers.contains_key(&SimpleHeader::CONTENT_LENGTH)
                 {
                     tracing::debug!(
                         "Response has neither content length nor transfer_encoding: {:?}",
@@ -3872,7 +3870,7 @@ where
                         return Some(Err(HttpReaderError::UnknownTransferEncodingHeaderValue));
                     }
 
-                    if current_values.len() == 1 && current_values.get(CHUNKED_VALUE).is_none() {
+                    if current_values.len() == 1 && !current_values.contains(CHUNKED_VALUE) {
                         return Some(Err(HttpReaderError::UnsupportedTransferEncodingType));
                     }
 

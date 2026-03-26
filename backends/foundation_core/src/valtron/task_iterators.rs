@@ -2126,6 +2126,7 @@ where
 /// Wraps the original iterator. The transform function returns `(bool, Option<M>)`:
 /// - `true` + `Some(m)` sends `m` to the observer queue
 /// - `false` or `None` skips sending to observer
+///
 /// The continuation continues with original Ready values unchanged.
 pub struct SplitCollectorMapContinuation<I: TaskIterator, M> {
     /// The wrapped iterator

@@ -348,10 +348,8 @@ where
     pub fn with_subprotocol(mut self, subprotocol: impl Into<String>) -> Self {
         let protocol_str = subprotocol.into();
         debug!(subprotocol = %protocol_str, "Adding subprotocol");
-        if let Some(WebSocketState::Init(ref mut info_opt)) = self.state {
-            if let Some(ref mut info) = *info_opt {
-                info.subprotocols = Some(protocol_str);
-            }
+        if let Some(WebSocketState::Init(Some(ref mut info))) = self.state {
+            info.subprotocols = Some(protocol_str);
         }
         self
     }
@@ -365,10 +363,8 @@ where
             .collect();
         let protocols_str = protocols.join(", ");
         debug!(protocols = %protocols_str, "Adding subprotocols");
-        if let Some(WebSocketState::Init(ref mut info_opt)) = self.state {
-            if let Some(ref mut info) = *info_opt {
-                info.subprotocols = Some(protocols_str);
-            }
+        if let Some(WebSocketState::Init(Some(ref mut info))) = self.state {
+            info.subprotocols = Some(protocols_str);
         }
         self
     }
@@ -377,10 +373,8 @@ where
     #[must_use]
     pub fn with_header(mut self, name: SimpleHeader, value: impl Into<String>) -> Self {
         debug!(?name, "Adding custom header");
-        if let Some(WebSocketState::Init(ref mut info_opt)) = self.state {
-            if let Some(ref mut info) = *info_opt {
-                info.extra_headers.push((name, value.into()));
-            }
+        if let Some(WebSocketState::Init(Some(ref mut info))) = self.state {
+            info.extra_headers.push((name, value.into()));
         }
         self
     }
