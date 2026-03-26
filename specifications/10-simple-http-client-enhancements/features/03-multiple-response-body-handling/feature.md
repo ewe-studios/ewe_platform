@@ -4,18 +4,18 @@ spec_directory: "specifications/10-simple-http-client-enhancements"
 feature_directory: "specifications/10-simple-http-client-enhancements/features/03-multiple-response-body-handling"
 this_file: "specifications/10-simple-http-client-enhancements/features/03-multiple-response-body-handling/feature.md"
 
-status: pending
+status: completed
 priority: high
 created: "2026-03-25"
-completed: null
+completed: "2026-03-26"
 
 depends_on: []
 
 tasks:
-  completed: 0
-  uncompleted: 5
+  completed: 5
+  uncompleted: 0
   total: 5
-  completion_percentage: 0
+  completion_percentage: 100
 ---
 
 # Multiple Response Body Handling
