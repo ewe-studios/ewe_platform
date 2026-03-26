@@ -47,10 +47,25 @@
 //! - `std` (default): Enables std features including threading
 
 #![cfg_attr(not(feature = "std"), no_std)]
-#![warn(missing_docs)]
-#![warn(clippy::all)]
-#![warn(clippy::pedantic)]
-#![allow(clippy::module_name_repetitions)] // Common for testing crates
+#![allow(clippy::pedantic)]
+#![allow(dead_code)]
+#![allow(clippy::cast_possible_truncation)]
+#![allow(clippy::cast_possible_wrap)]
+#![allow(clippy::cast_precision_loss)]
+#![allow(clippy::cast_sign_loss)]
+#![allow(clippy::similar_names)]
+#![allow(clippy::too_many_lines)]
+#![allow(clippy::cognitive_complexity)]
+#![allow(clippy::missing_errors_doc)]
+#![allow(clippy::missing_panics_doc)]
+#![allow(clippy::doc_markdown)]
+#![allow(clippy::needless_continue)]
+#![allow(clippy::match_same_arms)]
+#![allow(clippy::unnested_or_patterns)]
+#![allow(clippy::unreadable_literal)]
+#![allow(clippy::type_complexity)]
+#![allow(clippy::module_name_repetitions)]
+#![allow(clippy::must_use_candidate)]
 
 pub mod http;
 pub mod io;

@@ -1,3 +1,5 @@
+#![allow(dead_code)]
+
 //! `LlamaCPP` `ModelBackend` implementations.
 
 use crate::types::{Model, ModelProvider};
@@ -35,16 +37,16 @@ impl Model for LlamaModels {
 
     fn generate(
         &self,
-        interaction: crate::types::ModelInteraction,
-        specs: Option<crate::types::ModelParams>,
+        _interaction: crate::types::ModelInteraction,
+        _specs: Option<crate::types::ModelParams>,
     ) -> crate::errors::GenerationResult<Vec<crate::types::Messages>> {
         todo!()
     }
 
     fn stream<T>(
         &self,
-        interaction: crate::types::ModelInteraction,
-        specs: Option<crate::types::ModelParams>,
+        _interaction: crate::types::ModelInteraction,
+        _specs: Option<crate::types::ModelParams>,
     ) -> crate::errors::GenerationResult<T>
     where
         T: foundation_core::valtron::StreamIterator<
@@ -67,8 +69,8 @@ impl ModelProvider for LlamaBackends {
 
     fn create(
         self,
-        config: Option<Self::Config>,
-        credential: Option<foundation_auth::AuthCredential>,
+        _config: Option<Self::Config>,
+        _credential: Option<foundation_auth::AuthCredential>,
     ) -> crate::errors::ModelProviderResult<Self>
     where
         Self: Sized,
@@ -78,28 +80,28 @@ impl ModelProvider for LlamaBackends {
 
     fn get_model(
         &self,
-        model_id: crate::types::ModelId,
+        _model_id: crate::types::ModelId,
     ) -> crate::errors::ModelProviderResult<Self::Model> {
         todo!()
     }
 
     fn get_model_by_spec(
         &self,
-        model_spec: crate::types::ModelSpec,
+        _model_spec: crate::types::ModelSpec,
     ) -> crate::errors::ModelProviderResult<Self::Model> {
         todo!()
     }
 
     fn get_one(
         &self,
-        model_id: crate::types::ModelId,
+        _model_id: crate::types::ModelId,
     ) -> crate::errors::ModelProviderResult<crate::types::ModelSpec> {
         todo!()
     }
 
     fn get_all(
         &self,
-        model_id: crate::types::ModelId,
+        _model_id: crate::types::ModelId,
     ) -> crate::errors::ModelProviderResult<crate::types::ModelSpec> {
         todo!()
     }
