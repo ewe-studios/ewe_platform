@@ -321,6 +321,51 @@ where
 }
 
 // ============================================================================
+// run_future - Execute Future through unified executor
+// ============================================================================
+
+/// Execute a future using the unified executor (native - requires Send).
+///
+/// WHY: Simplest way to run async code through valtron
+/// WHAT: Wraps future in `FutureTask` and executes via unified executor
+///
+/// Note: This requires the unified executor to be available and properly configured.
+#[cfg(all(any(feature = "std", feature = "alloc"), not(target_arch = "wasm32")))]
+pub fn run_future<F>(future: F) -> crate::valtron::GenericResult<Vec<F::Output>>
+where
+    F: Future + Send + 'static,
+    F::Output: Send + 'static,
+{
+    use crate::valtron::ReadyValues;
+
+    use super::unified;
+    let task = FutureTask::new(future);
+    let values_iter = ReadyValues::new(unified::execute_as_task(task, None)?);
+    let values: Vec<F::Output> = values_iter
+        .filter_map(super::super::task::ReadyValue::inner)
+        .collect();
+
+    Ok(values)
+}
+
+/// Execute a future using the unified executor (WASM - no Send required).
+///
+/// WHY: WASM is single-threaded, Send not needed
+/// WHAT: Wraps future in FutureTask and executes via unified executor
+#[cfg(all(any(feature = "std", feature = "alloc"), target_arch = "wasm32"))]
+pub fn run_future<F>(future: F) -> crate::valtron::GenericResult<Vec<F::Output>>
+where
+    F: Future + 'static,
+    F::Output: 'static,
+{
+    use super::unified;
+    let task = FutureTask::new(future);
+    let values_iter = ReadyValues::new(unified::execute(task)?);
+    let values: Vec<F::Output> = values_iter.flat_map(|item| item.inner()).collect();
+    Ok(values)
+}
+
+// ============================================================================
 // Tests
 // ============================================================================
 
@@ -423,49 +468,4 @@ mod tests {
         let waker = get_noop_waker();
         waker.wake_by_ref();
     }
-}
-
-// ============================================================================
-// run_future - Execute Future through unified executor
-// ============================================================================
-
-/// Execute a future using the unified executor (native - requires Send).
-///
-/// WHY: Simplest way to run async code through valtron
-/// WHAT: Wraps future in `FutureTask` and executes via unified executor
-///
-/// Note: This requires the unified executor to be available and properly configured.
-#[cfg(all(any(feature = "std", feature = "alloc"), not(target_arch = "wasm32")))]
-pub fn run_future<F>(future: F) -> crate::valtron::GenericResult<Vec<F::Output>>
-where
-    F: Future + Send + 'static,
-    F::Output: Send + 'static,
-{
-    use crate::valtron::ReadyValues;
-
-    use super::unified;
-    let task = FutureTask::new(future);
-    let values_iter = ReadyValues::new(unified::execute_as_task(task, None)?);
-    let values: Vec<F::Output> = values_iter
-        .filter_map(super::super::task::ReadyValue::inner)
-        .collect();
-
-    Ok(values)
-}
-
-/// Execute a future using the unified executor (WASM - no Send required).
-///
-/// WHY: WASM is single-threaded, Send not needed
-/// WHAT: Wraps future in FutureTask and executes via unified executor
-#[cfg(all(any(feature = "std", feature = "alloc"), target_arch = "wasm32"))]
-pub fn run_future<F>(future: F) -> crate::valtron::GenericResult<Vec<F::Output>>
-where
-    F: Future + 'static,
-    F::Output: 'static,
-{
-    use super::unified;
-    let task = FutureTask::new(future);
-    let values_iter = ReadyValues::new(unified::execute(task)?);
-    let values: Vec<F::Output> = values_iter.flat_map(|item| item.inner()).collect();
-    Ok(values)
 }
