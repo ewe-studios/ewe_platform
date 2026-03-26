@@ -1,7 +1,6 @@
 // Integration tests for StreamIterator combinators
 use foundation_core::valtron::{
     CollectAll, MapAllDone, MapAllPendingAndDone, Stream, StreamIterator, StreamIteratorExt,
-    TaskStatus,
 };
 
 // Simple test stream iterator for unit tests

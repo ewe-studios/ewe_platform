@@ -27,10 +27,10 @@ builds_on: "specifications/02-build-http-client"
 related_specs:
   - "specifications/07-foundation-ai"
 features:
-  completed: 8
-  uncompleted: 1
+  completed: 9
+  uncompleted: 0
   total: 9
-  completion_percentage: 89%
+  completion_percentage: 100%
 ---
 
 # Overview
@@ -125,7 +125,7 @@ This allows users to:
 | 6b | [map-iter-combinator](./features/06b-map-iter-combinator/feature.md) | ✅ COMPLETE - map_iter() for nested iterator patterns (outer yields inners) | #2 |
 | 6c | [gen-model-descriptors-parallel-fetch](./features/06c-gen-model-descriptors-parallel-fetch/feature.md) | ✅ COMPLETE - Use valtron::execute() for parallel API fetches (~3x speedup) | #5 |
 | 7 | [split-collector](./features/07-split-collector/feature.md) | ✅ COMPLETE - split_collector() and split_collect_until() for observer + continuation pattern | #2, #3 |
-| 8 | [iterator-ext-completion](./features/08-iterator-ext-completion/feature.md) | PENDING - Standard Iterator trait methods for TaskIteratorExt and StreamIteratorExt | #1, #2, #3 |
+| 8 | [iterator-ext-completion](./features/08-iterator-ext-completion/feature.md) | ✅ COMPLETE - Standard Iterator trait methods for TaskIteratorExt and StreamIteratorExt (map_state, filter_state, take_while_state, enumerate, find, fold, all, any, count, etc.) | #1, #2, #3 |
 
 ## High-Level Architecture
 
@@ -238,5 +238,6 @@ Agents implementing features should read these files:
 ---
 
 _Created: 2026-03-20_
-_Last Updated: 2026-03-20 (v3.0: execute() returns StreamIterator, TaskIterator is input only)_
+_Last Updated: 2026-03-26 (v4.0: Feature 08 Iterator Extension Completion - all 82 methods implemented)_
 _Structure: Feature-based (has_features: true)_
+_Status: ✅ COMPLETE - All 9 features implemented and tested_
