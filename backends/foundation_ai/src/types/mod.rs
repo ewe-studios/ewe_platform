@@ -14,7 +14,6 @@ use serde::{Deserialize, Serialize};
 
 use crate::errors::GenerationResult;
 use crate::errors::ModelProviderResult;
-use crate::errors::ModelResult;
 
 /// Regex patterns to detect context overflow errors from different providers.
 ///

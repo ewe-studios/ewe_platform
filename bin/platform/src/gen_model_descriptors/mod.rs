@@ -96,7 +96,7 @@ impl std::error::Error for GenModelError {}
 ///
 /// WHAT: Progress states with source identification for observability.
 ///
-/// HOW: Used as the `Pending` type in TaskIterator combinators.
+/// HOW: Used as the `Pending` type in `TaskIterator` combinators.
 #[derive(Debug, Clone)]
 pub enum FetchPending {
     Connecting { source: &'static str },
@@ -1220,14 +1220,14 @@ pub fn model_descriptors() -> Vec<ModelProviderDescriptor> {
 ///
 /// WHAT: Represents the output of a parallel fetch operation from multiple APIs.
 ///
-/// HOW: Used with execute_collect_all() to aggregate results from multiple TaskIterators.
-/// Create a fetch task for a specific API using TaskIterator combinators.
+/// HOW: Used with `execute_collect_all()` to aggregate results from multiple `TaskIterators`.
+/// Create a fetch task for a specific API using `TaskIterator` combinators.
 ///
 /// WHY: Encapsulates the task composition pattern for parallel fetch.
 ///
-/// WHAT: Creates a SendRequestTask with combinators that transform HttpResponse → Vec<ModelEntry>.
+/// WHAT: Creates a `SendRequestTask` with combinators that transform `HttpResponse` → Vec<ModelEntry>.
 ///
-/// HOW: Uses map_ready() to parse JSON and extract models, map_pending() for progress tracking.
+/// HOW: Uses `map_ready()` to parse JSON and extract models, `map_pending()` for progress tracking.
 ///     Errors are logged and result in empty model lists (graceful degradation).
 #[allow(clippy::too_many_lines)]
 fn create_fetch_task<F>(
@@ -1325,7 +1325,7 @@ fn parse_models_dev_response(body: &str, _source: &'static str) -> Vec<ModelEntr
     models
 }
 
-/// Parser function for OpenRouter API
+/// Parser function for `OpenRouter` API
 fn parse_openrouter_response(body: &str, _source: &'static str) -> Vec<ModelEntry> {
     let data: OpenRouterResponse = match serde_json::from_str(body) {
         Ok(d) => d,
@@ -1451,7 +1451,7 @@ pub fn register(command: clap::Command) -> clap::Command {
 ///
 /// WHAT: Fetches from three APIs in parallel using Valtron executors, merges, deduplicates, writes Rust source.
 ///
-/// HOW: Initialises tracing, creates `SimpleHttpClient`, uses execute_collect_all() for parallel fetch,
+/// HOW: Initialises tracing, creates `SimpleHttpClient`, uses `execute_collect_all()` for parallel fetch,
 /// applies overrides, deduplicates, and writes to disk.
 ///
 /// # Errors

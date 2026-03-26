@@ -251,7 +251,7 @@ where
 ///
 /// WHY: WASM and minimal builds need single-threaded execution
 /// WHAT: Schedules task, runs until complete, returns first Ready value
-#[allow(clippy::type_complexity)]
+#[allow(clippy::type_complexity, dead_code)]
 fn execute_single_as_task<T>(
     task: T,
     wait_cycle: Option<std::time::Duration>,
@@ -272,7 +272,7 @@ where
     Ok(drive_receiver(iter))
 }
 
-#[allow(clippy::type_complexity)]
+#[allow(clippy::type_complexity, dead_code)]
 fn execute_single<T>(task: T) -> GenericResult<()>
 where
     T: TaskIterator + Send + 'static,
