@@ -1,3 +1,5 @@
+#![allow(clippy::unnecessary_wraps)]
+
 use core::str;
 
 use axum::{
@@ -54,7 +56,10 @@ async fn megatron_handler(req: Request) -> Response {
                 return Html(file_content).into_response();
             }
 
-            if request_path.ends_with(".wasm") {
+            if std::path::Path::new(&request_path)
+                .extension()
+                .is_some_and(|ext| ext.eq_ignore_ascii_case("wasm"))
+            {
                 if let Ok(response) = Response::builder()
                     .status(StatusCode::OK)
                     .header("CONTENT-TYPE", "application/wasm")
@@ -96,7 +101,10 @@ async fn public_handler(req: Request) -> Response {
                 return Html(file_content).into_response();
             }
 
-            if request_path.ends_with(".wasm") {
+            if std::path::Path::new(&request_path)
+                .extension()
+                .is_some_and(|ext| ext.eq_ignore_ascii_case("wasm"))
+            {
                 if let Ok(response) = Response::builder()
                     .status(StatusCode::OK)
                     .header("CONTENT-TYPE", "application/wasm")
