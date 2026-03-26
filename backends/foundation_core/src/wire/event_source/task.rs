@@ -266,7 +266,7 @@ where
                     None => path.to_string(),
                 };
 
-                let host = url.host_str().map(|s| s.clone()).unwrap_or_default();
+                let host = url.host_str().unwrap_or_default();
 
                 // Build HTTP/1.1 GET request
                 let mut request = String::new();

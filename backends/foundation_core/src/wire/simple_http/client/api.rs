@@ -401,8 +401,10 @@ impl<R: DnsResolver + 'static> ClientRequest<R> {
                                 Ok(IncomingResponseParts::SKIP) => {
                                     tracing::debug!("IncomingResponseParts::Skip seen");
                                 }
-                                Ok(IncomingResponseParts::Intro(_, _, _)
-                                | IncomingResponseParts::Headers(_)) => {
+                                Ok(
+                                    IncomingResponseParts::Intro(_, _, _)
+                                    | IncomingResponseParts::Headers(_),
+                                ) => {
                                     tracing::debug!(
                                         "IncomingResponseParts::Intro or Headers invalid state"
                                     );
@@ -412,8 +414,10 @@ impl<R: DnsResolver + 'static> ClientRequest<R> {
                                     tracing::debug!("IncomingResponseParts::NoBody seen");
                                     return Ok((conn, SendSafeBody::None));
                                 }
-                                Ok(IncomingResponseParts::SizedBody(inner)
-                                | IncomingResponseParts::StreamedBody(inner)) => {
+                                Ok(
+                                    IncomingResponseParts::SizedBody(inner)
+                                    | IncomingResponseParts::StreamedBody(inner),
+                                ) => {
                                     tracing::debug!(
                                         "IncomingResponseParts::Sized/Streamed body seen"
                                     );

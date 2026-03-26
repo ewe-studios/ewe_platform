@@ -147,9 +147,9 @@ impl WebSocketUpgrade {
             builder = builder.add_header(SimpleHeader::SEC_WEBSOCKET_PROTOCOL, protocol);
         }
 
-        let response = builder.build().map_err(|e| {
-            WebSocketError::ProtocolError(format!("Failed to build response: {e}"))
-        })?;
+        let response = builder
+            .build()
+            .map_err(|e| WebSocketError::ProtocolError(format!("Failed to build response: {e}")))?;
 
         // Render response to bytes
         let response_bytes_vec = Http11::response(response)
@@ -430,7 +430,7 @@ impl WebSocketError {
     /// # Errors
     ///
     /// Returns a `ProtocolError` indicating the masking violation.
-    #[must_use] 
+    #[must_use]
     pub fn unmasked_client_frame() -> Self {
         WebSocketError::ProtocolError("Client sent unmasked frame".to_string())
     }

@@ -29,6 +29,7 @@ use crate::{
 ///
 /// Returns a `PoolGuard` that must be kept alive for the pool to remain functional.
 /// When the guard is dropped, all threads are shut down.
+#[must_use] 
 pub fn initialize_pool(
     seed_for_rng: u64,
     _user_thread_num: Option<usize>,
@@ -51,7 +52,7 @@ pub fn initialize_pool(
         {
             use super::single;
             single::initialize_pool(seed_for_rng);
-            return super::threads::PoolGuard::dummy();
+            super::threads::PoolGuard::dummy()
         }
     }
 }

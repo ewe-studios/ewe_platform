@@ -59,7 +59,7 @@ impl RequestIntro {
     /// Extract cloneable data from Success variant.
     ///
     /// Returns None for Failed variant or if stream is not available.
-    #[must_use] 
+    #[must_use]
     pub fn to_cloneable_data(&self) -> Option<RequestIntroData> {
         match self {
             RequestIntro::Success {

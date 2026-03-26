@@ -232,7 +232,7 @@ pub trait TaskIteratorExt: TaskIterator + Sized {
     ///
     /// ## Arguments
     ///
-    /// * `transform` - Function returning (`CollectionState`, Option<D>) to control collection and transform
+    /// * `transform` - Function returning `(CollectionState, Option<D>)` to control collection and transform
     /// * `queue_size` - Size of the `ConcurrentQueue` between branches
     ///
     /// ## Returns
@@ -286,7 +286,7 @@ pub trait TaskIteratorExt: TaskIterator + Sized {
     ///
     /// ## Arguments
     ///
-    /// * `transform` - Function returning (bool, Option<M>) to control matching and transform
+    /// * `transform` - Function returning `(bool, Option<M>)` to control matching and transform
     /// * `queue_size` - Size of the `ConcurrentQueue` between branches
     ///
     /// ## Returns
@@ -377,20 +377,20 @@ pub trait TaskIteratorExt: TaskIterator + Sized {
         Self::Pending: Into<InnerP> + Send + 'static,
         Self::Spawner: Into<InnerS> + Send + 'static;
 
-    /// Flatten Ready values that implement IntoIterator.
+    /// Flatten Ready values that implement `IntoIterator`.
     ///
-    /// Input:  TaskIterator<Ready = Vec<M>, Pending = P, Spawner = S>
-    /// Output: TaskIterator<Ready = M, Pending = P, Spawner = S>
+    /// Input:  `TaskIterator`<Ready = `Vec<M>`, Pending = P, Spawner = S>
+    /// Output: `TaskIterator`<Ready = M, Pending = P, Spawner = S>
     fn flatten_ready(self) -> TFlattenReady<Self>
     where
         Self: Sized,
         Self::Ready: IntoIterator,
         <Self::Ready as IntoIterator>::Item: Send + 'static;
 
-    /// Flatten Pending values that implement IntoIterator.
+    /// Flatten Pending values that implement `IntoIterator`.
     ///
-    /// Input:  TaskIterator<Ready = D, Pending = Vec<M>, Spawner = S>
-    /// Output: TaskIterator<Ready = D, Pending = M, Spawner = S>
+    /// Input:  `TaskIterator`<Ready = D, Pending = `Vec<M>`, Spawner = S>
+    /// Output: `TaskIterator`<Ready = D, Pending = M, Spawner = S>
     fn flatten_pending(self) -> TFlattenPending<Self>
     where
         Self: Sized,
@@ -399,8 +399,8 @@ pub trait TaskIteratorExt: TaskIterator + Sized {
 
     /// Flat map Ready values - transform and flatten in one operation.
     ///
-    /// Input:  TaskIterator<Ready = D, Pending = P, Spawner = S>
-    /// Output: TaskIterator<Ready = U::Item, Pending = P, Spawner = S>
+    /// Input:  `TaskIterator`<Ready = D, Pending = P, Spawner = S>
+    /// Output: `TaskIterator`<Ready = `U::Item`, Pending = P, Spawner = S>
     fn flat_map_ready<F, U>(self, f: F) -> TFlatMapReady<Self, F, U>
     where
         Self: Sized,
@@ -410,8 +410,8 @@ pub trait TaskIteratorExt: TaskIterator + Sized {
 
     /// Flat map Pending values - transform and flatten in one operation.
     ///
-    /// Input:  TaskIterator<Ready = D, Pending = P, Spawner = S>
-    /// Output: TaskIterator<Ready = D, Pending = U::Item, Spawner = S>
+    /// Input:  `TaskIterator`<Ready = D, Pending = P, Spawner = S>
+    /// Output: `TaskIterator`<Ready = D, Pending = `U::Item`, Spawner = S>
     fn flat_map_pending<F, U>(self, f: F) -> TFlatMapPending<Self, F, U>
     where
         Self: Sized,
@@ -421,7 +421,7 @@ pub trait TaskIteratorExt: TaskIterator + Sized {
 
     // ===== Feature 08: Iterator Extension Completion =====
 
-    /// Transform any TaskStatus with full state access.
+    /// Transform any `TaskStatus` with full state access.
     fn map_state<F>(self, f: F) -> TMapState<Self, F>
     where
         F: Fn(
@@ -430,12 +430,12 @@ pub trait TaskIteratorExt: TaskIterator + Sized {
             + Send
             + 'static;
 
-    /// Side-effect on any TaskStatus.
+    /// Side-effect on any `TaskStatus`.
     fn inspect_state<F>(self, f: F) -> TInspectState<Self, F>
     where
         F: Fn(&TaskStatus<Self::Ready, Self::Pending, Self::Spawner>) + Send + 'static;
 
-    /// Filter based on full TaskStatus. Non-matching items return TaskStatus::Ignore.
+    /// Filter based on full `TaskStatus`. Non-matching items return `TaskStatus::Ignore`.
     fn filter_state<F>(self, f: F) -> TFilterState<Self, F>
     where
         F: Fn(&TaskStatus<Self::Ready, Self::Pending, Self::Spawner>) -> bool + Send + 'static;
@@ -2202,7 +2202,7 @@ where
 
 // ===== Feature 08: Iterator Extension Completion Wrapper Structs =====
 
-/// Wrapper for map_state() - transforms any TaskStatus
+/// Wrapper for `map_state()` - transforms any `TaskStatus`
 pub struct TMapState<I, F> {
     inner: I,
     mapper: F,
@@ -2242,7 +2242,7 @@ where
     }
 }
 
-/// Wrapper for inspect_state() - side-effect on any TaskStatus
+/// Wrapper for `inspect_state()` - side-effect on any `TaskStatus`
 pub struct TInspectState<I, F> {
     inner: I,
     inspector: F,
@@ -2276,7 +2276,7 @@ where
     }
 }
 
-/// Wrapper for filter_state() - filter based on full TaskStatus
+/// Wrapper for `filter_state()` - filter based on full `TaskStatus`
 pub struct TFilterState<I, F> {
     inner: I,
     predicate: F,
@@ -2313,7 +2313,7 @@ where
     }
 }
 
-/// Wrapper for take_while_state() - take while state predicate true
+/// Wrapper for `take_while_state()` - take while state predicate true
 pub struct TTakeWhileState<I, F> {
     inner: I,
     predicate: F,
@@ -2355,7 +2355,7 @@ where
     }
 }
 
-/// Wrapper for skip_while_state() - skip while state predicate true
+/// Wrapper for `skip_while_state()` - skip while state predicate true
 pub struct TSkipWhileState<I, F> {
     inner: I,
     predicate: F,
@@ -2395,7 +2395,7 @@ where
     }
 }
 
-/// Wrapper for take_state() - take at most n items matching predicate
+/// Wrapper for `take_state()` - take at most n items matching predicate
 pub struct TTakeState<I, F> {
     inner: I,
     remaining: usize,
@@ -2435,7 +2435,7 @@ where
     }
 }
 
-/// Wrapper for skip_state() - skip first n items matching predicate
+/// Wrapper for `skip_state()` - skip first n items matching predicate
 pub struct TSkipState<I, F> {
     inner: I,
     to_skip: usize,
@@ -2475,7 +2475,7 @@ where
     }
 }
 
-/// Wrapper for enumerate() - adds index to Ready items
+/// Wrapper for `enumerate()` - adds index to Ready items
 pub struct TEnumerate<I> {
     inner: I,
     count: usize,
@@ -2517,7 +2517,7 @@ where
     }
 }
 
-/// Wrapper for find() - find first Ready matching predicate
+/// Wrapper for `find()` - find first Ready matching predicate
 pub struct TFind<I, F> {
     inner: I,
     predicate: F,
@@ -2568,7 +2568,7 @@ where
     }
 }
 
-/// Wrapper for find_map() - find first Ready that maps to Some
+/// Wrapper for `find_map()` - find first Ready that maps to Some
 pub struct TFindMap<I, F, R> {
     inner: I,
     mapper: F,
@@ -2622,7 +2622,7 @@ where
     }
 }
 
-/// Wrapper for fold() - accumulate values
+/// Wrapper for `fold()` - accumulate values
 pub struct TFold<I, F, R> {
     inner: I,
     acc: Option<R>,
@@ -2677,7 +2677,7 @@ impl<I, F, R> Drop for TFold<I, F, R> {
     }
 }
 
-/// Wrapper for all() - check if all Ready satisfy predicate
+/// Wrapper for `all()` - check if all Ready satisfy predicate
 pub struct TAll<I, F> {
     inner: I,
     predicate: F,
@@ -2729,7 +2729,7 @@ where
     }
 }
 
-/// Wrapper for any() - check if any Ready satisfies predicate
+/// Wrapper for `any()` - check if any Ready satisfies predicate
 pub struct TAny<I, F> {
     inner: I,
     predicate: F,
@@ -2781,7 +2781,7 @@ where
     }
 }
 
-/// Wrapper for count() - count Ready items
+/// Wrapper for `count()` - count Ready items
 pub struct TCount<I> {
     inner: I,
     count: usize,
@@ -2822,7 +2822,7 @@ where
     }
 }
 
-/// Wrapper for count_all() - count all items
+/// Wrapper for `count_all()` - count all items
 pub struct TCountAll<I> {
     inner: I,
     count: usize,

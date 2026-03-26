@@ -65,7 +65,7 @@ impl Extensions {
     ///
     /// WHAT: Stores value, replacing any existing value of same type.
     ///
-    /// HOW: Uses `TypeId::of::`<T>() as key, boxes value as trait object.
+    /// HOW: Uses `TypeId::of::<T>()` as key, boxes value as trait object.
     ///
     /// # Panics
     ///

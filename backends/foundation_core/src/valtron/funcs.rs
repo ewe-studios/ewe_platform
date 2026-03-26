@@ -39,7 +39,7 @@ impl<I, R> WrappedCloneableFnMut<I, R> {
 }
 
 /// After much research, it turns out the 'static lifetime is actually
-/// implicit for all owned types. Box<T> is always equivalent to
+/// implicit for all owned types. `Box<T>` is always equivalent to
 /// Box<T + 'static>, since Box always owns its contents.
 /// Lifetimes only apply to references in rust.
 ///

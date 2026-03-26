@@ -39,7 +39,7 @@ pub enum Host {
 }
 
 impl Authority {
-    /// Parses authority and returns (Option<Authority>, remainder).
+    /// Parses authority and returns (`Option<Authority>`, remainder).
     ///
     /// # Arguments
     ///
@@ -47,7 +47,7 @@ impl Authority {
     ///
     /// # Returns
     ///
-    /// Tuple of (Option<Authority>, remainder after authority)
+    /// Tuple of (`Option<Authority>`, remainder after authority)
     ///
     /// # Errors
     ///

@@ -72,7 +72,7 @@ pub enum FuturePollState {
 /// WHY: Enables executing async code through valtron without async runtime
 /// WHAT: Polls the future on each `next()` call until Ready or exhausted
 ///
-/// Requires `std` or `alloc` feature for Box<Future>.
+/// Requires `std` or `alloc` feature for `Box<Future>`.
 #[cfg(any(feature = "std", feature = "alloc"))]
 pub struct FutureTask<F>
 where
@@ -211,7 +211,7 @@ pub enum StreamPollState {
 /// WHY: Enables processing async streams through valtron
 /// WHAT: Polls stream on each `next()`, yields Some(item) or None when exhausted
 ///
-/// Requires `std` or `alloc` feature for Box<Stream>.
+/// Requires `std` or `alloc` feature for `Box<Stream>`.
 #[cfg(any(feature = "std", feature = "alloc"))]
 pub struct StreamTask<S>
 where

@@ -1575,8 +1575,8 @@ impl ReferencedExecutorState {
 ///
 /// - Task Graph: internally the executor should keep a graph (`HashMap` really) that maps Task to it's
 ///   Dependents (the lifter) in this case, this allows us to do the following:
-///   1. Task A lifts Task B so we store in Map: {`B`: Vec<[`A`](crate::valtron::executors::actions::Action)>}
-///   2. Task B lifts Task C so we store in Map: {`C`: Vec<[`B`](crate::valtron::executors::actions::Action)>, `B`: Vec<[`A`](crate::valtron::executors::actions::Action)>}
+///   1. Task A lifts Task B so we store in Map: {`B`: Vec<`A`>}
+///   2. Task B lifts Task C so we store in Map: {`C`: Vec<`B`>, `B`: Vec<`A`>}
 ///   3. With Above we can identify the dependency tree by going Task C -> Task B -> Task A to
 ///      understand the relationship graph and understand which tasks we need to move out of
 ///      processing since Task C is now sleeping for some period of time.
@@ -2013,9 +2013,7 @@ impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
                             return;
                         }
 
-                        tracing::debug!(
-                            "No work received, yielding until signaled"
-                        );
+                        tracing::debug!("No work received, yielding until signaled");
                         self.yielder.yield_process();
                     }
                     ProgressIndicator::SpinWait(duration) => {

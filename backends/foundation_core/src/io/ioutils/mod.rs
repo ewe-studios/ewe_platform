@@ -2833,7 +2833,7 @@ impl Write for SharedBufferWriter {
 }
 
 impl SharedBufferWriter {
-    /// Create a new writer from a shared Arc<Mutex<Vec<u8>>>.
+    /// Create a new writer from a shared `Arc<Mutex<Vec<u8>>>`.
     pub fn new(inner: Arc<Mutex<Vec<u8>>>) -> Self {
         Self { inner }
     }
@@ -2874,7 +2874,7 @@ impl Read for SharedBufferReader {
 }
 
 impl SharedBufferReader {
-    /// Create a new reader from a shared Arc<Mutex<Vec<u8>>>.
+    /// Create a new reader from a shared `Arc<Mutex<Vec<u8>>>`.
     pub fn new(inner: Arc<Mutex<Vec<u8>>>) -> Self {
         Self { inner, position: 0 }
     }

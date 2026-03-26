@@ -113,8 +113,8 @@ pub trait Middleware: Send + Sync {
 /// WHAT: Stores ordered list of middleware as Arc for shared ownership.
 /// Provides `add()` for registration and `process_request/process_response` for execution.
 ///
-/// HOW: Stores Vec<Arc<dyn Middleware>>. `process_request` iterates forward,
-/// `process_response` iterates with .`iter().rev()` for reverse order.
+/// HOW: Stores `Vec<Arc<dyn Middleware>>`. `process_request` iterates forward,
+/// `process_response` iterates with `.iter().rev()` for reverse order.
 ///
 /// # Examples
 ///

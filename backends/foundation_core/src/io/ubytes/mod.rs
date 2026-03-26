@@ -502,7 +502,7 @@ impl<'a> BytesPointer<'a> {
 
     /// `take_positional` returns the total string slice from the
     /// actual accumulators position cursor til the current
-    /// peek cursor position, i.e. the range from position_cursor to peek_cursor.
+    /// peek cursor position, i.e. the range from `position_cursor` to `peek_cursor`.
     /// Allow you to collect the whole slice of strings that have been
     /// checked and peeked through.
     #[inline]
@@ -512,7 +512,7 @@ impl<'a> BytesPointer<'a> {
 
     /// take returns the total string slice from the
     /// actual accumulators position cursor til the current
-    /// peek cursor position, i.e. the range from position_cursor to peek_cursor.
+    /// peek cursor position, i.e. the range from `position_cursor` to `peek_cursor`.
     /// Allow you to collect the whole slice of strings that have been
     /// checked and peeked through.
     #[inline]
