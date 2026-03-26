@@ -310,6 +310,150 @@ pub trait StreamIteratorExt: StreamIterator + Sized {
         F: Fn(Self::P) -> U + Send + 'static,
         U: IntoIterator,
         U::Item: Send + 'static;
+
+    // ===== Feature 08: Iterator Extension Completion =====
+
+    /// Transform any Stream state with full state access.
+    fn map_state<F, R>(self, f: F) -> SMapState<Self, F, R>
+    where
+        F: Fn(Stream<Self::D, Self::P>) -> Stream<R, Self::P> + Send + 'static,
+        R: Send + 'static;
+
+    /// Side-effect on any Stream state.
+    fn inspect_state<F>(self, f: F) -> SInspectState<Self, F>
+    where
+        F: Fn(&Stream<Self::D, Self::P>) + Send + 'static;
+
+    /// Filter based on full Stream state. Non-matching items return Stream::Ignore.
+    fn filter_state<F>(self, f: F) -> SFilterState<Self, F>
+    where
+        F: Fn(&Stream<Self::D, Self::P>) -> bool + Send + 'static;
+
+    /// Take items while state predicate returns true.
+    fn take_while_state<F>(self, predicate: F) -> STakeWhileState<Self, F>
+    where
+        F: Fn(&Stream<Self::D, Self::P>) -> bool + Send + 'static;
+
+    /// Skip items while state predicate returns true.
+    fn skip_while_state<F>(self, predicate: F) -> SSkipWhileState<Self, F>
+    where
+        F: Fn(&Stream<Self::D, Self::P>) -> bool + Send + 'static;
+
+    /// Take at most n items matching state predicate.
+    fn take_state<F>(self, n: usize, state_predicate: F) -> STakeState<Self, F>
+    where
+        F: Fn(&Stream<Self::D, Self::P>) -> bool + Send + 'static;
+
+    /// Skip first n items matching state predicate.
+    fn skip_state<F>(self, n: usize, state_predicate: F) -> SSkipState<Self, F>
+    where
+        F: Fn(&Stream<Self::D, Self::P>) -> bool + Send + 'static;
+
+    /// Take at most n Next items.
+    fn take(self, n: usize) -> STakeState<Self, impl Fn(&Stream<Self::D, Self::P>) -> bool>
+    where
+        Self::D: Send + 'static,
+    {
+        self.take_state(n, |s| matches!(s, Stream::Next(_)))
+    }
+
+    /// Take at most n items of any state.
+    fn take_all(self, n: usize) -> STakeState<Self, impl Fn(&Stream<Self::D, Self::P>) -> bool> {
+        self.take_state(n, |_| true)
+    }
+
+    /// Skip first n Next items, return all others unchanged.
+    fn skip(self, n: usize) -> SSkipState<Self, impl Fn(&Stream<Self::D, Self::P>) -> bool>
+    where
+        Self::D: Send + 'static,
+    {
+        self.skip_state(n, |s| matches!(s, Stream::Next(_)))
+    }
+
+    /// Skip first n items of any state.
+    fn skip_all(self, n: usize) -> SSkipState<Self, impl Fn(&Stream<Self::D, Self::P>) -> bool> {
+        self.skip_state(n, |_| true)
+    }
+
+    /// Take while predicate true on Next values, pass through non-Next.
+    fn take_while<F>(
+        self,
+        f: F,
+    ) -> STakeWhileState<Self, impl Fn(&Stream<Self::D, Self::P>) -> bool>
+    where
+        F: Fn(&Self::D) -> bool + Send + 'static,
+    {
+        self.take_while_state(move |s| match s {
+            Stream::Next(v) => f(v),
+            _ => true,
+        })
+    }
+
+    /// Take while predicate true on ANY state.
+    fn take_while_any<F>(self, f: F) -> STakeWhileState<Self, F>
+    where
+        F: Fn(&Stream<Self::D, Self::P>) -> bool + Send + 'static,
+    {
+        self.take_while_state(f)
+    }
+
+    /// Skip while predicate true on Next values, return all others.
+    fn skip_while<F>(
+        self,
+        f: F,
+    ) -> SSkipWhileState<Self, impl Fn(&Stream<Self::D, Self::P>) -> bool>
+    where
+        F: Fn(&Self::D) -> bool + Send + 'static,
+    {
+        self.skip_while_state(move |s| match s {
+            Stream::Next(v) => f(v),
+            _ => false,
+        })
+    }
+
+    /// Skip while predicate true on ANY state.
+    fn skip_while_any<F>(self, f: F) -> SSkipWhileState<Self, F>
+    where
+        F: Fn(&Stream<Self::D, Self::P>) -> bool + Send + 'static,
+    {
+        self.skip_while_state(f)
+    }
+
+    /// Add index to Next items, changing Done type from D to (usize, D).
+    fn enumerate(self) -> SEnumerate<Self>;
+
+    /// Find first item matching predicate.
+    fn find<F>(self, predicate: F) -> SFind<Self, F>
+    where
+        F: Fn(&Self::D) -> bool + Send + 'static;
+
+    /// Find first item mapping to Some value.
+    fn find_map<F, R>(self, f: F) -> SFindMap<Self, F, R>
+    where
+        F: Fn(Self::D) -> Option<R> + Send + 'static,
+        R: Send + 'static;
+
+    /// Fold/accumulate values. Returns final accumulator when done.
+    fn fold<F, R>(self, init: R, f: F) -> SFold<Self, F, R>
+    where
+        F: Fn(R, Self::D) -> R + Send + 'static,
+        R: Send + 'static;
+
+    /// Check if all Next items satisfy predicate.
+    fn all<F>(self, f: F) -> SAll<Self, F>
+    where
+        F: Fn(Self::D) -> bool + Send + 'static;
+
+    /// Check if any Next item satisfies predicate.
+    fn any<F>(self, f: F) -> SAny<Self, F>
+    where
+        F: Fn(Self::D) -> bool + Send + 'static;
+
+    /// Count Next items.
+    fn count(self) -> SCount<Self>;
+
+    /// Count all items (any state).
+    fn count_all(self) -> SCountAll<Self>;
 }
 
 // Blanket implementation: anything implementing StreamIterator gets StreamIteratorExt
@@ -558,6 +702,166 @@ where
             mapper: f,
             current_inner: None,
             _phantom: std::marker::PhantomData,
+        }
+    }
+
+    // ===== Feature 08 implementations =====
+
+    fn map_state<F, R>(self, f: F) -> SMapState<Self, F, R>
+    where
+        F: Fn(Stream<Self::D, Self::P>) -> Stream<R, Self::P> + Send + 'static,
+        R: Send + 'static,
+    {
+        SMapState {
+            inner: self,
+            mapper: f,
+            _phantom: std::marker::PhantomData,
+        }
+    }
+
+    fn inspect_state<F>(self, f: F) -> SInspectState<Self, F>
+    where
+        F: Fn(&Stream<Self::D, Self::P>) + Send + 'static,
+    {
+        SInspectState {
+            inner: self,
+            inspector: f,
+        }
+    }
+
+    fn filter_state<F>(self, f: F) -> SFilterState<Self, F>
+    where
+        F: Fn(&Stream<Self::D, Self::P>) -> bool + Send + 'static,
+    {
+        SFilterState {
+            inner: self,
+            predicate: f,
+        }
+    }
+
+    fn take_while_state<F>(self, predicate: F) -> STakeWhileState<Self, F>
+    where
+        F: Fn(&Stream<Self::D, Self::P>) -> bool + Send + 'static,
+    {
+        STakeWhileState {
+            inner: self,
+            predicate,
+            done: false,
+        }
+    }
+
+    fn skip_while_state<F>(self, predicate: F) -> SSkipWhileState<Self, F>
+    where
+        F: Fn(&Stream<Self::D, Self::P>) -> bool + Send + 'static,
+    {
+        SSkipWhileState {
+            inner: self,
+            predicate,
+            done_skipping: false,
+        }
+    }
+
+    fn take_state<F>(self, n: usize, state_predicate: F) -> STakeState<Self, F>
+    where
+        F: Fn(&Stream<Self::D, Self::P>) -> bool + Send + 'static,
+    {
+        STakeState {
+            inner: self,
+            remaining: n,
+            state_predicate,
+        }
+    }
+
+    fn skip_state<F>(self, n: usize, state_predicate: F) -> SSkipState<Self, F>
+    where
+        F: Fn(&Stream<Self::D, Self::P>) -> bool + Send + 'static,
+    {
+        SSkipState {
+            inner: self,
+            to_skip: n,
+            state_predicate,
+        }
+    }
+
+    fn enumerate(self) -> SEnumerate<Self> {
+        SEnumerate {
+            inner: self,
+            count: 0,
+        }
+    }
+
+    fn find<F>(self, predicate: F) -> SFind<Self, F>
+    where
+        F: Fn(&Self::D) -> bool + Send + 'static,
+    {
+        SFind {
+            inner: self,
+            predicate,
+            found: false,
+        }
+    }
+
+    fn find_map<F, R>(self, f: F) -> SFindMap<Self, F, R>
+    where
+        F: Fn(Self::D) -> Option<R> + Send + 'static,
+        R: Send + 'static,
+    {
+        SFindMap {
+            inner: self,
+            mapper: f,
+            found: false,
+            _phantom: std::marker::PhantomData,
+        }
+    }
+
+    fn fold<F, R>(self, init: R, f: F) -> SFold<Self, F, R>
+    where
+        F: Fn(R, Self::D) -> R + Send + 'static,
+        R: Send + 'static,
+    {
+        SFold {
+            inner: self,
+            acc: Some(init),
+            folder: f,
+            _phantom: std::marker::PhantomData,
+        }
+    }
+
+    fn all<F>(self, f: F) -> SAll<Self, F>
+    where
+        F: Fn(Self::D) -> bool + Send + 'static,
+    {
+        SAll {
+            inner: self,
+            predicate: f,
+            all_true: true,
+            done: false,
+        }
+    }
+
+    fn any<F>(self, f: F) -> SAny<Self, F>
+    where
+        F: Fn(Self::D) -> bool + Send + 'static,
+    {
+        SAny {
+            inner: self,
+            predicate: f,
+            any_true: false,
+            done: false,
+        }
+    }
+
+    fn count(self) -> SCount<Self> {
+        SCount {
+            inner: self,
+            count: 0,
+        }
+    }
+
+    fn count_all(self) -> SCountAll<Self> {
+        SCountAll {
+            inner: self,
+            count: 0,
         }
     }
 }
@@ -1901,4 +2205,580 @@ where
 {
     type D = I::D;
     type P = U::Item;
+}
+
+// ===== Feature 08: Wrapper Structs =====
+
+/// Wrapper for map_state() - transforms any Stream state
+pub struct SMapState<I, F, R> {
+    inner: I,
+    mapper: F,
+    _phantom: std::marker::PhantomData<R>,
+}
+
+impl<I, F, R> Iterator for SMapState<I, F, R>
+where
+    I: StreamIterator,
+    F: Fn(Stream<I::D, I::P>) -> Stream<R, I::P> + Send + 'static,
+    R: Send + 'static,
+{
+    type Item = Stream<R, I::P>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        self.inner.next().map(&self.mapper)
+    }
+}
+
+impl<I, F, R> StreamIterator for SMapState<I, F, R>
+where
+    I: StreamIterator,
+    F: Fn(Stream<I::D, I::P>) -> Stream<R, I::P> + Send + 'static,
+    R: Send + 'static,
+{
+    type D = R;
+    type P = I::P;
+}
+
+/// Wrapper for inspect_state() - side-effect on any Stream state
+pub struct SInspectState<I, F> {
+    inner: I,
+    inspector: F,
+}
+
+impl<I, F> Iterator for SInspectState<I, F>
+where
+    I: StreamIterator,
+    F: Fn(&Stream<I::D, I::P>) + Send + 'static,
+{
+    type Item = Stream<I::D, I::P>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        self.inner.next().inspect(|item| (self.inspector)(item))
+    }
+}
+
+impl<I, F> StreamIterator for SInspectState<I, F>
+where
+    I: StreamIterator,
+    F: Fn(&Stream<I::D, I::P>) + Send + 'static,
+{
+    type D = I::D;
+    type P = I::P;
+}
+
+/// Wrapper for filter_state() - filter based on full Stream state
+pub struct SFilterState<I, F> {
+    inner: I,
+    predicate: F,
+}
+
+impl<I, F> Iterator for SFilterState<I, F>
+where
+    I: StreamIterator,
+    F: Fn(&Stream<I::D, I::P>) -> bool + Send + 'static,
+{
+    type Item = Stream<I::D, I::P>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        loop {
+            let item = self.inner.next()?;
+            if (self.predicate)(&item) {
+                return Some(item);
+            }
+            // Non-matching items return Ignore
+            return Some(Stream::Ignore);
+        }
+    }
+}
+
+impl<I, F> StreamIterator for SFilterState<I, F>
+where
+    I: StreamIterator,
+    F: Fn(&Stream<I::D, I::P>) -> bool + Send + 'static,
+{
+    type D = I::D;
+    type P = I::P;
+}
+
+/// Wrapper for take_while_state() - take while state predicate true
+pub struct STakeWhileState<I, F> {
+    inner: I,
+    predicate: F,
+    done: bool,
+}
+
+impl<I, F> Iterator for STakeWhileState<I, F>
+where
+    I: StreamIterator,
+    F: Fn(&Stream<I::D, I::P>) -> bool + Send + 'static,
+{
+    type Item = Stream<I::D, I::P>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.done {
+            return None;
+        }
+        let item = self.inner.next()?;
+        if (self.predicate)(&item) {
+            Some(item)
+        } else {
+            self.done = true;
+            None
+        }
+    }
+}
+
+impl<I, F> StreamIterator for STakeWhileState<I, F>
+where
+    I: StreamIterator,
+    F: Fn(&Stream<I::D, I::P>) -> bool + Send + 'static,
+{
+    type D = I::D;
+    type P = I::P;
+}
+
+/// Wrapper for skip_while_state() - skip while state predicate true
+pub struct SSkipWhileState<I, F> {
+    inner: I,
+    predicate: F,
+    done_skipping: bool,
+}
+
+impl<I, F> Iterator for SSkipWhileState<I, F>
+where
+    I: StreamIterator,
+    F: Fn(&Stream<I::D, I::P>) -> bool + Send + 'static,
+{
+    type Item = Stream<I::D, I::P>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        loop {
+            let item = self.inner.next()?;
+            if self.done_skipping {
+                return Some(item);
+            }
+            if !(self.predicate)(&item) {
+                self.done_skipping = true;
+                return Some(item);
+            }
+            // Still skipping, continue loop
+        }
+    }
+}
+
+impl<I, F> StreamIterator for SSkipWhileState<I, F>
+where
+    I: StreamIterator,
+    F: Fn(&Stream<I::D, I::P>) -> bool + Send + 'static,
+{
+    type D = I::D;
+    type P = I::P;
+}
+
+/// Wrapper for take_state() - take at most n items matching state predicate
+pub struct STakeState<I, F> {
+    inner: I,
+    remaining: usize,
+    state_predicate: F,
+}
+
+impl<I, F> Iterator for STakeState<I, F>
+where
+    I: StreamIterator,
+    F: Fn(&Stream<I::D, I::P>) -> bool + Send + 'static,
+{
+    type Item = Stream<I::D, I::P>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.remaining == 0 {
+            return None;
+        }
+        let item = self.inner.next()?;
+        if (self.state_predicate)(&item) {
+            self.remaining -= 1;
+            Some(item)
+        } else {
+            Some(item)
+        }
+    }
+}
+
+impl<I, F> StreamIterator for STakeState<I, F>
+where
+    I: StreamIterator,
+    F: Fn(&Stream<I::D, I::P>) -> bool + Send + 'static,
+{
+    type D = I::D;
+    type P = I::P;
+}
+
+/// Wrapper for skip_state() - skip first n items matching state predicate
+pub struct SSkipState<I, F> {
+    inner: I,
+    to_skip: usize,
+    state_predicate: F,
+}
+
+impl<I, F> Iterator for SSkipState<I, F>
+where
+    I: StreamIterator,
+    F: Fn(&Stream<I::D, I::P>) -> bool + Send + 'static,
+{
+    type Item = Stream<I::D, I::P>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        loop {
+            let item = self.inner.next()?;
+            if self.to_skip > 0 && (self.state_predicate)(&item) {
+                self.to_skip -= 1;
+                continue;
+            }
+            return Some(item);
+        }
+    }
+}
+
+impl<I, F> StreamIterator for SSkipState<I, F>
+where
+    I: StreamIterator,
+    F: Fn(&Stream<I::D, I::P>) -> bool + Send + 'static,
+{
+    type D = I::D;
+    type P = I::P;
+}
+
+/// Wrapper for enumerate() - adds index to Next items
+pub struct SEnumerate<I> {
+    inner: I,
+    count: usize,
+}
+
+impl<I> Iterator for SEnumerate<I>
+where
+    I: StreamIterator,
+{
+    type Item = Stream<(usize, I::D), I::P>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        self.inner.next().map(|item| match item {
+            Stream::Next(d) => Stream::Next((self.count, d)),
+            Stream::Pending(p) => Stream::Pending(p),
+            Stream::Delayed(d) => Stream::Delayed(d),
+            Stream::Init => Stream::Init,
+            Stream::Ignore => Stream::Ignore,
+        })
+    }
+}
+
+impl<I> StreamIterator for SEnumerate<I>
+where
+    I: StreamIterator,
+{
+    type D = (usize, I::D);
+    type P = I::P;
+}
+
+/// Wrapper for find() - find first item matching predicate
+pub struct SFind<I, F> {
+    inner: I,
+    predicate: F,
+    found: bool,
+}
+
+impl<I, F> Iterator for SFind<I, F>
+where
+    I: StreamIterator,
+    F: Fn(&I::D) -> bool + Send + 'static,
+{
+    type Item = Stream<Option<I::D>, I::P>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.found {
+            return None;
+        }
+        loop {
+            match self.inner.next()? {
+                Stream::Next(d) => {
+                    if (self.predicate)(&d) {
+                        self.found = true;
+                        return Some(Stream::Next(Some(d)));
+                    }
+                    // Continue searching
+                }
+                Stream::Pending(p) => return Some(Stream::Pending(p)),
+                Stream::Delayed(d) => return Some(Stream::Delayed(d)),
+                Stream::Init => return Some(Stream::Init),
+                Stream::Ignore => return Some(Stream::Ignore),
+            }
+        }
+    }
+}
+
+impl<I, F> StreamIterator for SFind<I, F>
+where
+    I: StreamIterator,
+    F: Fn(&I::D) -> bool + Send + 'static,
+{
+    type D = Option<I::D>;
+    type P = I::P;
+}
+
+/// Wrapper for find_map() - find first item mapping to Some
+pub struct SFindMap<I, F, R> {
+    inner: I,
+    mapper: F,
+    found: bool,
+    _phantom: std::marker::PhantomData<R>,
+}
+
+impl<I, F, R> Iterator for SFindMap<I, F, R>
+where
+    I: StreamIterator,
+    F: Fn(I::D) -> Option<R> + Send + 'static,
+    R: Send + 'static,
+{
+    type Item = Stream<Option<R>, I::P>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.found {
+            return None;
+        }
+        loop {
+            match self.inner.next()? {
+                Stream::Next(d) => {
+                    if let Some(r) = (self.mapper)(d) {
+                        self.found = true;
+                        return Some(Stream::Next(Some(r)));
+                    }
+                    // Continue searching
+                }
+                Stream::Pending(p) => return Some(Stream::Pending(p)),
+                Stream::Delayed(d) => return Some(Stream::Delayed(d)),
+                Stream::Init => return Some(Stream::Init),
+                Stream::Ignore => return Some(Stream::Ignore),
+            }
+        }
+    }
+}
+
+impl<I, F, R> StreamIterator for SFindMap<I, F, R>
+where
+    I: StreamIterator,
+    F: Fn(I::D) -> Option<R> + Send + 'static,
+    R: Send + 'static,
+{
+    type D = Option<R>;
+    type P = I::P;
+}
+
+/// Wrapper for fold() - accumulate values
+pub struct SFold<I, F, R> {
+    inner: I,
+    acc: Option<R>,
+    folder: F,
+    _phantom: std::marker::PhantomData<(I, R)>,
+}
+
+impl<I, F, R> Iterator for SFold<I, F, R>
+where
+    I: StreamIterator,
+    F: Fn(R, I::D) -> R + Send + 'static,
+    R: Send + 'static,
+{
+    type Item = Stream<R, I::P>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        loop {
+            match self.inner.next()? {
+                Stream::Next(v) => {
+                    if let Some(acc) = self.acc.take() {
+                        self.acc = Some((self.folder)(acc, v));
+                    }
+                }
+                Stream::Pending(p) => return Some(Stream::Pending(p)),
+                Stream::Delayed(d) => return Some(Stream::Delayed(d)),
+                Stream::Init => return Some(Stream::Init),
+                Stream::Ignore => {}
+            }
+        }
+    }
+}
+
+impl<I, F, R> StreamIterator for SFold<I, F, R>
+where
+    I: StreamIterator,
+    F: Fn(R, I::D) -> R + Send + 'static,
+    R: Send + 'static,
+{
+    type D = R;
+    type P = I::P;
+}
+
+impl<I, F, R> Drop for SFold<I, F, R> {
+    fn drop(&mut self) {
+        // Iterator was not fully consumed
+    }
+}
+
+/// Wrapper for all() - check if all Next items satisfy predicate
+pub struct SAll<I, F> {
+    inner: I,
+    predicate: F,
+    all_true: bool,
+    done: bool,
+}
+
+impl<I, F> Iterator for SAll<I, F>
+where
+    I: StreamIterator,
+    F: Fn(I::D) -> bool + Send + 'static,
+{
+    type Item = Stream<bool, I::P>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.done {
+            return None;
+        }
+        loop {
+            match self.inner.next()? {
+                Stream::Next(v) => {
+                    if !(self.predicate)(v) {
+                        self.all_true = false;
+                        self.done = true;
+                        return Some(Stream::Next(false));
+                    }
+                }
+                Stream::Pending(p) => return Some(Stream::Pending(p)),
+                Stream::Delayed(d) => return Some(Stream::Delayed(d)),
+                Stream::Init => return Some(Stream::Init),
+                Stream::Ignore => {}
+            }
+        }
+    }
+}
+
+impl<I, F> StreamIterator for SAll<I, F>
+where
+    I: StreamIterator,
+    F: Fn(I::D) -> bool + Send + 'static,
+{
+    type D = bool;
+    type P = I::P;
+}
+
+/// Wrapper for any() - check if any Next item satisfies predicate
+pub struct SAny<I, F> {
+    inner: I,
+    predicate: F,
+    any_true: bool,
+    done: bool,
+}
+
+impl<I, F> Iterator for SAny<I, F>
+where
+    I: StreamIterator,
+    F: Fn(I::D) -> bool + Send + 'static,
+{
+    type Item = Stream<bool, I::P>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.done {
+            return None;
+        }
+        loop {
+            match self.inner.next()? {
+                Stream::Next(v) => {
+                    if (self.predicate)(v) {
+                        self.any_true = true;
+                        self.done = true;
+                        return Some(Stream::Next(true));
+                    }
+                }
+                Stream::Pending(p) => return Some(Stream::Pending(p)),
+                Stream::Delayed(d) => return Some(Stream::Delayed(d)),
+                Stream::Init => return Some(Stream::Init),
+                Stream::Ignore => {}
+            }
+        }
+    }
+}
+
+impl<I, F> StreamIterator for SAny<I, F>
+where
+    I: StreamIterator,
+    F: Fn(I::D) -> bool + Send + 'static,
+{
+    type D = bool;
+    type P = I::P;
+}
+
+/// Wrapper for count() - count Next items
+pub struct SCount<I> {
+    inner: I,
+    count: usize,
+}
+
+impl<I> Iterator for SCount<I>
+where
+    I: StreamIterator,
+{
+    type Item = Stream<usize, I::P>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        loop {
+            match self.inner.next()? {
+                Stream::Next(_) => {
+                    self.count += 1;
+                }
+                Stream::Pending(p) => return Some(Stream::Pending(p)),
+                Stream::Delayed(d) => return Some(Stream::Delayed(d)),
+                Stream::Init => return Some(Stream::Init),
+                Stream::Ignore => {}
+            }
+        }
+    }
+}
+
+impl<I> StreamIterator for SCount<I>
+where
+    I: StreamIterator,
+{
+    type D = usize;
+    type P = I::P;
+}
+
+/// Wrapper for count_all() - count all items
+pub struct SCountAll<I> {
+    inner: I,
+    count: usize,
+}
+
+impl<I> Iterator for SCountAll<I>
+where
+    I: StreamIterator,
+{
+    type Item = Stream<usize, I::P>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        loop {
+            match self.inner.next()? {
+                Stream::Next(_) | Stream::Pending(_) | Stream::Delayed(_) | Stream::Init => {
+                    self.count += 1;
+                }
+                Stream::Ignore => {}
+            }
+            // Continue until inner is done, then yield final count
+            if self.inner.next().is_none() {
+                return Some(Stream::Next(self.count));
+            }
+        }
+    }
+}
+
+impl<I> StreamIterator for SCountAll<I>
+where
+    I: StreamIterator,
+{
+    type D = usize;
+    type P = I::P;
 }
