@@ -4,9 +4,10 @@ spec_directory: "specifications/08-valtron-async-iterators"
 feature_directory: "specifications/08-valtron-async-iterators/features/08-iterator-ext-completion"
 this_file: "specifications/08-valtron-async-iterators/features/08-iterator-ext-completion/feature.md"
 
-status: pending
+status: complete
 priority: high
 created: 2026-03-25
+completed: 2026-03-26
 
 depends_on:
   - 01-foundation
@@ -17,10 +18,10 @@ depends_on:
   - 06-map-iter
 
 tasks:
-  completed: 0
-  uncompleted: 82
+  completed: 82
+  uncompleted: 0
   total: 82
-  completion_percentage: 0%
+  completion_percentage: 100%
 ---
 
 # Iterator Extension Completion Feature
@@ -1631,4 +1632,35 @@ This spec provides:
 2. **Convenience wrappers** - Built on core methods for common Ready/Next operations
 3. **Type-changing methods** - `flatten_*()`, `flat_map_*()`, `enumerate()`, `zip()`, `chain()` have dedicated structs
 4. **Non-blocking semantics** - All `next()` implementations return `Ignore` instead of looping
+
+---
+
+## Implementation Complete (2026-03-26)
+
+All 82 tasks completed:
+
+### TaskIteratorExt (41 methods)
+- Core: `map_state`, `inspect_state`, `filter_state`
+- Limiting: `take_state`, `take_while_state`, `skip_state`, `skip_while_state`
+- Convenience: `take`, `take_all`, `skip`, `skip_all`, `take_while`, `take_while_any`, `skip_while`, `skip_while_any`
+- Indexing: `enumerate`
+- Search: `find`, `find_map`
+- Reduction: `fold`, `all`, `any`, `count`, `count_all`
+
+### StreamIteratorExt (41 methods)
+- Core: `map_state`, `inspect_state`, `filter_state`
+- Limiting: `take_state`, `take_while_state`, `skip_state`, `skip_while_state`
+- Convenience: `take`, `take_all`, `skip`, `skip_all`, `take_while`, `take_while_any`, `skip_while`, `skip_while_any`
+- Indexing: `enumerate`
+- Search: `find`, `find_map`
+- Reduction: `fold`, `all`, `any`, `count`, `count_all`
+
+### Verification
+- ✅ `cargo check -p foundation_core` passes
+- ✅ `cargo clippy -p foundation_core -- -D warnings` passes (0 warnings)
+- ✅ `cargo fmt -p foundation_core -- --check` passes
+- ✅ All 294 lib tests pass
+- ✅ All 27 iterator integration tests pass
+
+---
 5. **IntoIterator pattern** - Flatten/flat_map methods store inner iterator and drain over multiple calls
