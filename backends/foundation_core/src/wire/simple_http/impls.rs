@@ -2277,6 +2277,7 @@ impl Iterator for Http11RequestBodyIterator {
 /// because you can wrap the iterator in an async iterator if you want which is nice
 /// as iterator are pulled based nor pushed based, you need to call `Iterator::next` to
 /// get the next data anyway which in my view fits great with such a pattern.
+#[allow(clippy::large_enum_variant)]
 pub enum Http11ReqState {
     /// Stating variant of the rendering of a HTTP 1.1 request
     /// when this starts it renders the starting line of your request.
@@ -2324,11 +2325,14 @@ impl Iterator for Http11RequestIterator {
                 let desc_iterator = Http11RequestDescriptorIterator::new(request.descriptor());
 
                 // switch state to headers
-                self.0 = Some(Http11ReqState::Descriptor(Box::new((request, desc_iterator))));
+                self.0 = Some(Http11ReqState::Descriptor(Box::new((
+                    request,
+                    desc_iterator,
+                ))));
 
                 Some(Ok(vec![]))
             }
-            Http11ReqState::Descriptor(mut inner) => {
+            Http11ReqState::Descriptor(inner) => {
                 let (request, mut descriptor_iterator) = *inner;
                 let next = descriptor_iterator.next();
                 if next.is_none() {
@@ -2338,7 +2342,10 @@ impl Iterator for Http11RequestIterator {
                     return Some(Ok(vec![]));
                 }
 
-                self.0 = Some(Http11ReqState::Descriptor(Box::new((request, descriptor_iterator))));
+                self.0 = Some(Http11ReqState::Descriptor(Box::new((
+                    request,
+                    descriptor_iterator,
+                ))));
 
                 next
             }
