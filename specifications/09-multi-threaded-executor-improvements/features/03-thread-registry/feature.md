@@ -1,11 +1,12 @@
 ---
 feature: "ThreadRegistry"
 description: "Central coordination replacing ThreadPool — holds shared queue, signals, activity channel, thread entries"
-status: "pending"
+status: "completed"
 priority: "high"
 depends_on: ["02-waitgroup-and-pool-guard"]
 estimated_effort: "large"
 created: 2026-03-23
+completed: 2026-03-26
 author: "Main Agent"
 tasks:
   completed: 12

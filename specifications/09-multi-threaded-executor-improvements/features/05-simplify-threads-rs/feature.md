@@ -1,11 +1,12 @@
 ---
 feature: "Simplify threads.rs"
 description: "Remove ThreadPool struct and centralized management, keep reusable primitives"
-status: "pending"
+status: "completed"
 priority: "high"
 depends_on: ["03-thread-registry", "04-thread-local-executor-and-api"]
 estimated_effort: "medium"
 created: 2026-03-23
+completed: 2026-03-26
 author: "Main Agent"
 tasks:
   completed: 8
