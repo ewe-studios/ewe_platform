@@ -78,7 +78,6 @@ include = [
 [dependencies]
 
 [lints.clippy]
-unnecessary_transmute = "allow"
 
 [build-dependencies]
 bindgen = { workspace = true }
