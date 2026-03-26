@@ -40,6 +40,8 @@
 //! - [`super::executors::drivers`] - Contains `DrivenStreamIterator`
 //! - [`super::task_iterators`] - Contains `TaskIteratorExt` for pre-execute combinators
 
+#![allow(clippy::type_complexity)]
+
 use crate::synca::mpp::{Stream, StreamIterator};
 use crate::valtron::branches::CollectionState;
 use std::sync::Arc;

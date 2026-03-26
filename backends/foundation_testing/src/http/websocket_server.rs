@@ -8,6 +8,8 @@
 //! HOW: Uses stdlib's `TcpListener`, performs HTTP upgrade handshake, then echoes
 //! WebSocket frames back to the client.
 
+#![allow(clippy::type_complexity)]
+
 use std::io::{Read, Write};
 use std::net::{TcpListener, TcpStream};
 use std::sync::atomic::{AtomicBool, Ordering};
