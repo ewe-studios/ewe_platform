@@ -1,11 +1,12 @@
 ---
 feature: "Update Callers and Tests"
 description: "Update unified.rs, gen_model_descriptors, and all tests to use new API with PoolGuard"
-status: "pending"
+status: "completed"
 priority: "high"
 depends_on: ["04-thread-local-executor-and-api"]
 estimated_effort: "medium"
 created: 2026-03-23
+completed: 2026-03-26
 author: "Main Agent"
 tasks:
   completed: 12

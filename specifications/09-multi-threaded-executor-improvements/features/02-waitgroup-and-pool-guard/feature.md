@@ -1,11 +1,12 @@
 ---
 feature: "WaitGroup and PoolGuard"
 description: "Implement WaitGroup for thread completion tracking and PoolGuard as drop-based lifecycle handle"
-status: "pending"
+status: "completed"
 priority: "high"
 depends_on: []
 estimated_effort: "medium"
 created: 2026-03-23
+completed: 2026-03-26
 author: "Main Agent"
 tasks:
   completed: 7
