@@ -1,3 +1,5 @@
+#![allow(clippy::unnecessary_wraps)]
+
 use tracing::Level;
 use tracing_subscriber::FmtSubscriber;
 
