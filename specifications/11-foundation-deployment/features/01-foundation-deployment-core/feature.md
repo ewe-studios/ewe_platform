@@ -337,23 +337,135 @@ pub enum DeployProgress {
 
 use std::ffi::OsStr;
 use std::path::Path;
+use foundation_core::valtron::{StreamExecutor, StreamIteratorExt, StateMachine};
+use serde::{Deserialize, Serialize};
 
-/// Captured output from a process execution.
-#[derive(Debug, Clone)]
-pub struct ProcessOutput {
-    pub exit_code: Option<i32>,
-    pub stdout: String,
-    pub stderr: String,
-    pub success: bool,
+/// ProcessExecutor has a single execute() method returning StreamExecutor.
+/// The associated type `Output` defines what the StreamIterator's Stream yields for Next/Pending.
+///
+/// WHY: Streaming execution must support structured progress updates via Valtron's StateMachine.
+///      A single execute() method returning StreamExecutor provides a uniform async streaming interface.
+///
+/// WHAT: Execute external processes (wrangler, gcloud, aws, docker, etc.) and stream
+///       resource-centric events via the associated Output type.
+///
+/// HOW: Uses foundation_core::valtron::StreamExecutor with associated type for Output.
+
+// ===========================================================================
+// Associated Type: ProcessOutput (defines Stream Executor's Output type)
+// ===========================================================================
+
+/// The Output type for ProcessExecutor's StreamExecutor.
+/// Defines what the StreamIterator yields during process execution.
+///
+/// This is the associated type that tells the Stream what Next and Pending are.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub enum ProcessOutput {
+    // === Pending States (work in progress) ===
+
+    /// Process is spawning.
+    Spawning,
+
+    /// Process spawned successfully, waiting for output.
+    Running { pid: u32 },
+
+    /// Building step in progress.
+    BuildRunning { step: String, elapsed_ms: u64 },
+
+    /// Resource creation in progress.
+    ResourceCreating {
+        resource_type: String,
+        resource_name: String,
+    },
+
+    /// Resource update in progress.
+    ResourceUpdating {
+        resource_type: String,
+        resource_name: String,
+    },
+
+    /// Upload in progress.
+    Uploading {
+        bytes_sent: u64,
+        total_bytes: Option<u64>,
+    },
+
+    /// Verification in progress.
+    Verifying {
+        check: String,
+    },
+
+    // === Next States (completed items yielded by stream) ===
+
+    /// Build step completed.
+    BuildCompleted {
+        step: String,
+        duration_ms: u64,
+        success: bool,
+    },
+
+    /// Resource was created.
+    ResourceCreated {
+        resource_type: String,
+        resource_name: String,
+        resource_id: String,
+        metadata: serde_json::Value,
+    },
+
+    /// Resource was updated.
+    ResourceUpdated {
+        resource_type: String,
+        resource_name: String,
+        revision: String,
+    },
+
+    /// Resource was deleted.
+    ResourceDeleted {
+        resource_type: String,
+        resource_name: String,
+    },
+
+    /// Output line from stdout.
+    StdoutLine { line: String },
+
+    /// Output line from stderr.
+    StderrLine { line: String },
+
+    /// Process completed.
+    ProcessExited {
+        exit_code: Option<i32>,
+        success: bool,
+        stdout: String,
+        stderr: String,
+    },
+
+    /// Error occurred.
+    Error {
+        message: String,
+        source: Option<String>,
+    },
 }
 
+// ===========================================================================
+// ProcessExecutor Builder
+// ===========================================================================
+
 /// Builder for executing external processes (wrangler, gcloud, aws, docker, etc.).
+///
+/// The execute() method returns StreamExecutor<ProcessOutput> where:
+/// - ProcessOutput is the associated type defining stream output
+/// - Pending states: Spawning, Running, BuildRunning, ResourceCreating, etc.
+/// - Next states: BuildCompleted, ResourceCreated, StdoutLine, ProcessExited, etc.
 pub struct ProcessExecutor {
     command: String,
     args: Vec<String>,
     envs: Vec<(String, String)>,
     working_dir: Option<std::path::PathBuf>,
 }
+
+/// The StreamExecutor type returned by execute().
+/// ProcessOutput is the associated type - it defines what the Stream yields.
+pub type ProcessStreamExecutor = StreamExecutor<ProcessOutput>;
 
 impl ProcessExecutor {
     pub fn new(command: &str) -> Self;
@@ -365,13 +477,115 @@ impl ProcessExecutor {
     pub fn env<K: AsRef<OsStr>, V: AsRef<OsStr>>(self, key: K, val: V) -> Self;
     pub fn current_dir<P: AsRef<Path>>(self, dir: P) -> Self;
 
-    /// Execute and capture all output.
-    pub fn execute(self) -> Result<ProcessOutput, DeploymentError>;
+    /// Execute the process and return a StreamExecutor.
+    ///
+    /// The StreamExecutor implements foundation_core::valtron::StateMachine
+    /// and can be consumed via StreamIterator for async streaming.
+    ///
+    /// # Associated Type
+    ///
+    /// ProcessOutput defines what the StreamIterator's Stream yields:
+    /// - Pending: Spawning, Running, BuildRunning, ResourceCreating, Uploading, Verifying
+    /// - Next: BuildCompleted, ResourceCreated, StdoutLine, StderrLine, ProcessExited, Error
+    ///
+    /// # Example: Streaming consumption
+    ///
+    /// ```rust
+    /// use foundation_core::valtron::StreamIteratorExt;
+    ///
+    /// let executor = ProcessExecutor::new("wrangler")
+    ///     .args(["deploy", "--env", "staging"])
+    ///     .execute();
+    ///
+    /// // Consume via Valtron's StreamIterator
+    /// let results = executor
+    ///     .into_stream_iter()
+    ///     .map_with_progress(|output| async move {
+    ///         match output {
+    ///             ProcessOutput::ResourceCreated { name, id, .. } => {
+    ///                 println!("Created: {} ({})", name, id);
+    ///             }
+    ///             ProcessOutput::Uploading { bytes_sent, total_bytes } => {
+    ///                 let pct = (bytes_sent as f64 / total_bytes.unwrap_or(bytes_sent) as f64) * 100.0;
+    ///                 println!("Upload: {:.1}%", pct);
+    ///             }
+    ///             ProcessOutput::StdoutLine { line } => {
+    ///                 println!("> {}", line);
+    ///             }
+    ///             ProcessOutput::ProcessExited { exit_code, success, .. } => {
+    ///                 println!("Process finished: success={}", success);
+    ///             }
+    ///             _ => {}
+    ///         }
+    ///         output
+    ///     })
+    ///     .buffered(1)
+    ///     .collect::<Vec<_>>()
+    ///     .await;
+    /// ```
+    ///
+    /// # Example: Collecting final result only
+    ///
+    /// ```rust
+    /// let executor = ProcessExecutor::new("docker")
+    ///     .args(["build", "-t", "myapp", "."])
+    ///     .execute();
+    ///
+    /// // Just wait for completion, ignore intermediate events
+    /// let final_result = executor
+    ///     .into_stream_iter()
+    ///     .filter(|o| matches!(o, ProcessOutput::ProcessExited { .. }))
+    ///     .next()
+    ///     .await;
+    /// ```
+    pub fn execute(self) -> ProcessStreamExecutor;
+}
 
-    /// Execute with a callback for each line of output (for streaming logs).
-    pub fn execute_streaming<F>(self, on_line: F) -> Result<ProcessOutput, DeploymentError>
-    where
-        F: FnMut(&str);
+// ===========================================================================
+// Helper: Collect all output (for simple cases)
+// ===========================================================================
+
+/// Helper function to execute and collect all output into a single result.
+/// For simple cases where you don't need streaming.
+pub async fn execute_and_collect(executor: ProcessExecutor) -> Result<CollectedOutput, DeploymentError> {
+    let stream = executor.execute().into_stream_iter();
+
+    let mut stdout = String::new();
+    let mut stderr = String::new();
+    let mut exit_code: Option<i32> = None;
+    let mut success = false;
+
+    for await output in stream {
+        match output {
+            ProcessOutput::StdoutLine { line } => stdout.push_str(&line),
+            ProcessOutput::StderrLine { line } => stderr.push_str(&line),
+            ProcessOutput::ProcessExited { exit_code: code, success: s, .. } => {
+                exit_code = code;
+                success = s;
+                break;
+            }
+            ProcessOutput::Error { message, .. } => {
+                return Err(DeploymentError::ProcessFailed {
+                    command: "unknown".to_string(),
+                    exit_code,
+                    stdout,
+                    stderr,
+                });
+            }
+            _ => {}
+        }
+    }
+
+    Ok(CollectedOutput { exit_code, success, stdout, stderr })
+}
+
+/// Collected output from a process (for simple cases).
+#[derive(Debug, Clone)]
+pub struct CollectedOutput {
+    pub exit_code: Option<i32>,
+    pub stdout: String,
+    pub stderr: String,
+    pub success: bool,
 }
 ```
 
@@ -444,6 +658,28 @@ pub use state::traits::StateStore;
    - [ ] Create `src/core/traits.rs` with trait definition
    - [ ] Define associated types and all methods
    - [ ] Document each method with usage examples
+
+4. **Define shared types**
+   - [ ] Create `src/core/types.rs` with `BuildOutput`, `DeploymentResult`, `DeployProgress`
+   - [ ] Define `ArtifactType` enum
+   - [ ] Write unit tests for type conversions
+
+5. **Implement ProcessExecutor with Valtron StreamExecutor**
+   - [ ] Create `src/core/process.rs`
+   - [ ] Define `ProcessOutput` enum as the associated type for StreamExecutor
+   - [ ] Define Pending states: `Spawning`, `Running`, `BuildRunning`, `ResourceCreating`, `Uploading`, `Verifying`
+   - [ ] Define Next states: `BuildCompleted`, `ResourceCreated`, `StdoutLine`, `StderrLine`, `ProcessExited`, `Error`
+   - [ ] Implement `ProcessExecutor` builder pattern
+   - [ ] Implement single `execute()` method returning `StreamExecutor<ProcessOutput>`
+   - [ ] Ensure `StreamExecutor` integrates with Valtron's `StateMachine` and `StreamIterator`
+   - [ ] Write unit tests for process execution
+   - [ ] Add `execute_and_collect()` helper for simple non-streaming use cases
+
+6. **Implement ProjectScanner**
+   - [ ] Create `src/core/project.rs`
+   - [ ] Implement `ProjectInfo` struct
+   - [ ] Implement `scan()` method with provider detection
+   - [ ] Write unit tests for project scanning
 
 4. **Define shared types**
    - [ ] Create `src/core/types.rs` with `BuildOutput`, `DeploymentResult`, `DeployProgress`

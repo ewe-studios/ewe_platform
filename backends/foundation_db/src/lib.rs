@@ -1,9 +1,9 @@
 //! Foundation DB - Unified Storage Backend
 //!
 //! Provides a consistent abstraction layer for persisting data across multiple storage providers:
-//! - Turso (libsql) - Local/remote SQLite with edge sync
-//! - Cloudflare D1 - Edge SQLite for Cloudflare Workers
-//! - Cloudflare R2 - Object storage for larger blobs
+//! - Turso - SQLite-compatible embedded/remote database with sync API
+//! - Cloudflare D1 - Edge SQLite for Cloudflare Workers (TODO)
+//! - Cloudflare R2 - Object storage for larger blobs (TODO)
 //! - In-Memory - Ephemeral storage for development/testing
 
 mod backends;
