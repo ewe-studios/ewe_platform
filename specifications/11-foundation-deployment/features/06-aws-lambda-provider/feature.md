@@ -20,6 +20,15 @@ tasks:
 
 # AWS Lambda Provider
 
+## Iron Law: Zero Warnings
+
+> **All code must compile with zero warnings and pass all lints. No suppression. No exceptions.**
+>
+> - `cargo clippy -p foundation_deployment -- -D warnings -W clippy::pedantic` — zero warnings
+> - `cargo doc -p foundation_deployment --no-deps` — zero rustdoc warnings
+> - `cargo test -p foundation_deployment` — zero compilation warnings
+> - **No `#[allow(...)]`, `#[expect(...)]`, or `#![allow(...)]` anywhere.** Fix the code, never suppress.
+
 ## Overview
 
 Implement the AWS Lambda deployment provider. This provider is **API-first** — it deploys by calling the AWS Lambda API directly via `SimpleHttpClient` with SigV4 signing, with no CLI tools required.
@@ -486,6 +495,9 @@ pub struct LambdaFunctionInfo {
 ## Success Criteria
 
 - [ ] All 7 tasks completed
+- [ ] `cargo clippy -p foundation_deployment -- -D warnings -W clippy::pedantic` — zero warnings, zero suppression
+- [ ] `cargo doc -p foundation_deployment --no-deps` — zero rustdoc warnings
+- [ ] No `#[allow(...)]` or `#[expect(...)]` anywhere in the code
 - [ ] SAM template parsing handles common configurations
 - [ ] CLI deploy works with `sam deploy`
 - [ ] API mode deploys via Lambda API with SigV4 signing

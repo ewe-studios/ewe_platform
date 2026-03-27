@@ -173,6 +173,65 @@ sequenceDiagram
 
 The specification provides guidance, not rigid constraints. The **llama.cpp API and bindings are the authoritative source** for implementation decisions. Where the spec and the actual API diverge, prefer the API's natural patterns. The bindings can be updated to expose additional llama.cpp features as needed.
 
+## Iron Laws
+
+**These rules are MANDATORY and NON-NEGOTIABLE across all features in this specification. Any implementation that violates them MUST be rejected.**
+
+### Iron Law 1: No tokio, No async-trait in foundation_db and foundation_auth
+
+**`tokio` and `async-trait` are BANNED from `foundation_db` and `foundation_auth`.**
+
+All asynchronous operations in these crates MUST use Valtron's `TaskIterator`/`StreamIterator` patterns from `foundation_core`:
+- No `async fn` in trait definitions — use `TaskIterator` state machines
+- No `#[async_trait]` — use synchronous `Iterator`-style interfaces returning `TaskStatus`/`Stream`
+- No `#[tokio::test]` — use `valtron::initialize_pool` + `execute()` in tests
+- No `tokio::sync::Mutex` — use `std::sync::Mutex` or Valtron synchronization primitives
+
+**Rationale:** Valtron provides a unified executor framework for WASM (single-threaded) and native (multi-threaded). Mixing tokio breaks cross-platform portability and creates competing async runtimes.
+
+### Iron Law 2: Turso Sync Backend
+
+`foundation_db` uses the Turso crate (`https://crates.io/crates/turso`) as its primary SQL backend. Turso is a ground-up rewrite of SQLite with MVCC, concurrent writes, and both sync and async I/O APIs.
+
+The sync API MUST be used to maintain compatibility with the Valtron-only async pattern (Iron Law 3). All storage operations are synchronous, returning `StorageResult<T>` for single-value ops and `StorageResult<StorageItemStream<T>>` for multi-value ops.
+
+**Why Turso over libsql:**
+- libsql has hard sync dependencies that conflict with our async model
+- Turso provides a cleaner sync API via `https://github.com/tursodatabase/turso/blob/main/sdk-kit/README.md`
+- Turso supports MVCC and concurrent writes out of the box
+- Turso supports edge sync capabilities for distributed deployments
+
+### Iron Law 3: Valtron-Only Async Pattern
+
+All storage operations that hit a database are implemented as `TaskIterator` state machines:
+- Consumers call `execute(task, None)` to get a `StreamIterator`
+- No `async fn`, no `.await`, no `Future` — only Valtron patterns
+- See `LEARNINGS.md` for Valtron capabilities reference and best practices
+
+### Iron Law 4: Zero Warnings, Zero Suppression
+
+**All clippy, doc, and cargo warnings MUST be fixed, NEVER suppressed.**
+
+- `cargo clippy --package <crate> -- -D warnings` MUST pass with zero warnings for every crate in this spec
+- `cargo doc --package <crate> --no-deps` MUST produce zero warnings
+- **NO `#[allow(...)]` attributes** — every warning is a signal; fix the code, don't silence it
+- **NO `#![allow(...)]` crate-level suppression** — remove all existing suppression blocks
+- All public items have documentation, all match arms are covered, no dead code, no unused imports, no missing error docs, no clippy pedantic bypasses
+- Existing `#![allow(clippy::..., dead_code, unused, deprecated)]` blocks in `lib.rs` files MUST be removed and the underlying issues fixed
+
+### Iron Law 5: Error Convention — `derive_more::From` + Manual `Display`, No `thiserror`
+
+**All error types use `derive_more::From` for automatic conversions and manual `impl Display`. `thiserror` is BANNED.**
+
+- Each crate has a central `src/errors.rs` with all error enums defined there
+- Error enums use `#[derive(From, Debug)]` from `derive_more::From`
+- Nested error variants (e.g., `Io(std::io::Error)`) get automatic `From<T>` via the derive
+- String-wrapping variants use `#[from(ignore)]` to avoid conflicting `From<String>` impls
+- `Display` is implemented manually (`impl core::fmt::Display for ...`) — NOT via `derive_more::Display` or `#[display("...")]`
+- `Error` is implemented as a simple `impl std::error::Error for ... {}` — no `source()` override needed
+- Type alias: `pub type FooResult<T> = Result<T, FooError>;`
+- This is the established convention across `foundation_core`, `foundation_auth`, and all crates in the workspace
+
 ## Feature Index
 
 Features are listed in dependency order. Each feature contains detailed requirements, tasks, and verification steps in its respective `feature.md` file.
@@ -184,7 +243,7 @@ Features are listed in dependency order. Each feature contains detailed requirem
 
 | #  | Feature | Description | Dependencies | Status |
 |----|---------|-------------|--------------|--------|
-| 0a | [foundation-db](./features/00a-foundation-db/feature.md) | Unified storage backend wrapping Turso (libsql), Cloudflare D1, R2 with in-memory fallback | None | ⬜ Pending |
+| 0a | [foundation-db](./features/00a-foundation-db/feature.md) | Unified storage backend with Turso sync backend, D1, R2, in-memory — Valtron-only async | None | ⬜ Pending |
 | 0b | [auth-infrastructure](./features/00b-auth-infrastructure/feature.md) | Comprehensive authentication infrastructure for foundation_auth (JWT, OAuth 2.0, credential storage via foundation_db, auth state machine, 2FA) | 00a-foundation-db | ⬜ Pending |
 | 0c | [openai-provider](./features/00c-openai-provider/feature.md) | OpenAI-compatible HTTP provider for connecting to OpenAI, llama.cpp server, vLLM, Ollama | 00b-auth-infrastructure | ⬜ Pending |
 | 1  | [llamacpp-integration](./features/01-llamacpp-integration/feature.md) | Complete llama.cpp inference engine integration via `infrastructure_llama_cpp` | None | ⬜ Pending |
@@ -220,12 +279,13 @@ Create a comprehensive AI inference backend in `foundation_ai` that supports:
 13. **Feature Flags** - Mirror `infrastructure_llama_cpp` features (cuda, metal, vulkan, mtmd) + Candle features (candle-cuda, candle-metal)
 14. **f32 Params** - `temperature`, `top_k`, `top_p` as f32; map to i32 internally when llama.cpp API requires
 15. **Spec as Guidance** - The llama.cpp API and bindings are the authoritative source; spec is guidance that should be adapted to the actual API
-16. **Foundation DB** - Separate feature (00a) for unified storage backend (Turso/libsql, D1, R2, Memory) to enable persistent credential and state storage
+16. **Foundation DB** - Separate feature (00a) for unified storage backend with Turso sync backend, D1, R2, Memory — Valtron-only async
 17. **Authentication Infrastructure** - Separate feature (00b) for comprehensive auth infrastructure (JWT, OAuth, credential storage via foundation_db, state machine, 2FA)
 18. **OAuth with PKCE** - OAuth 2.0 implementation MUST use PKCE (S256) for public clients per RFC 7636
 19. **Zeroizing Secrets** - All secrets MUST use `Zeroizing<T>` for secure memory clearing on drop
 20. **State Parameter** - OAuth state parameter is MANDATORY for CSRF protection
-21. **Turso for Production** - Turso (libsql) is the default production backend for credential persistence with embedded SQLite mode for local development
+21. **Turso Sync Backend** - Turso crate used with sync API exclusively; no feature flags needed
+21a. **No tokio/async-trait** - BANNED in foundation_db and foundation_auth; all async uses Valtron TaskIterator/StreamIterator from foundation_core
 22. **Better-Auth Insights** - Database schema, OAuth implementation, and session management patterns inspired by better-auth library:
     - Complete auth schema with users, sessions, accounts, verification_tokens tables
     - OAuth account linking for multiple providers per user
@@ -285,5 +345,5 @@ cargo fmt --package foundation_ai -- --check
 ---
 
 _Created: 2026-03-16_
-_Last Updated: 2026-03-17 (revised: provider pattern, struct model, embeddings, interior mutability, owned errors)_
+_Last Updated: 2026-03-28 (Iron Laws: no tokio/async-trait, Turso sync backend, Valtron-only async)_
 _Structure: Feature-based (has_features: true)_

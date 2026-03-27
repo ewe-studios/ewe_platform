@@ -20,6 +20,15 @@ tasks:
 
 # Deployment Engine
 
+## Iron Law: Zero Warnings
+
+> **All code must compile with zero warnings and pass all lints. No suppression. No exceptions.**
+>
+> - `cargo clippy -p foundation_deployment -- -D warnings -W clippy::pedantic` — zero warnings
+> - `cargo doc -p foundation_deployment --no-deps` — zero rustdoc warnings
+> - `cargo test -p foundation_deployment` — zero compilation warnings
+> - **No `#[allow(...)]`, `#[expect(...)]`, or `#![allow(...)]` anywhere.** Fix the code, never suppress.
+
 ## Overview
 
 Build the deployment orchestration engine using valtron's `StateMachine` trait. The engine drives the deployment lifecycle (detect -> validate -> build -> deploy -> verify) for any provider, manages state transitions, handles rollback on failure, and reports progress events.
@@ -537,6 +546,9 @@ pub fn determine_rollback(
 ## Success Criteria
 
 - [ ] All 6 tasks completed
+- [ ] `cargo clippy -p foundation_deployment -- -D warnings -W clippy::pedantic` — zero warnings, zero suppression
+- [ ] `cargo doc -p foundation_deployment --no-deps` — zero rustdoc warnings
+- [ ] No `#[allow(...)]` or `#[expect(...)]` anywhere in the code
 - [ ] State machine drives correctly through happy path
 - [ ] Changed config triggers deployment, unchanged config skips
 - [ ] Failed deployment triggers rollback

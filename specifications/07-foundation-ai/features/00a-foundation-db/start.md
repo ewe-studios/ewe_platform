@@ -10,13 +10,20 @@ author: "Main Agent"
 
 ## Feature Overview
 
-Create `foundation_db` crate in `backends/foundation_db/` providing unified storage abstraction for Turso (libsql), Cloudflare D1, R2 object storage, and in-memory backend. This enables `foundation_auth` to persist credentials, tokens, and auth state.
+Create `foundation_db` crate in `backends/foundation_db/` providing unified storage abstraction with Turso sync backend, Cloudflare D1, R2 object storage, and in-memory fallback. This enables `foundation_auth` to persist credentials, tokens, and auth state.
+
+## Iron Laws (READ FIRST)
+
+**Before doing ANY work, read the Iron Laws in `feature.md`.** Summary:
+1. **No tokio, No async-trait** — BANNED. Storage traits are synchronous.
+2. **Turso sync backend** — Uses Turso crate with sync API (no feature flags needed)
+3. **Valtron Stream for multi-value** — `list_keys`, `query`, `get_blob` return `StorageItemStream` (Valtron `Stream`-based lazy iterator). Single-value ops return `StorageResult<T>` directly.
 
 ## Prerequisites
 
 Before starting, understand:
-1. `foundation_core::valtron` async patterns
-2. SQLite basics and libsql/Turso
+1. `foundation_core::valtron` async patterns (`TaskIterator`, `StreamIterator`, `execute()`)
+2. Turso crate sync API and SQL basics
 3. Encryption fundamentals for data at rest
 4. `Zeroizing` for secure memory handling
 
@@ -32,7 +39,9 @@ Before starting, understand:
 
 2. **Create Cargo.toml**
    - Create: `backends/foundation_db/Cargo.toml`
-   - Add dependencies: `libsql`, `serde`, `serde_json`, `zeroize`, `thiserror`, `tokio`
+   - Add dependencies: `serde`, `serde_json`, `zeroize`, `thiserror`, `derive_more`, `tracing`
+   - Add: `turso = "0.1"` (no feature flag needed - always available)
+   - **NO tokio, NO async-trait**
 
 3. **Create lib.rs**
    - Create: `backends/foundation_db/src/lib.rs`
@@ -42,11 +51,13 @@ Before starting, understand:
 
 4. **Create storage_provider.rs**
    - Create: `backends/foundation_db/src/storage_provider.rs`
-   - Define `StorageProvider` trait with `new(backend) -> Self`
-   - Define `StorageBackend` enum: `Turso { url }`, `D1 { binding }`, `R2 { bucket }`, `Memory`
-   - Define `KeyValueStore` trait: `get()`, `set()`, `delete()`, `exists()`
-   - Define `BlobStore` trait: `put_blob()`, `get_blob()`, `delete_blob()`
-   - Define `QueryStore` trait: `query()`, `execute()`
+   - Define `StorageProvider` struct with `new(backend) -> StorageResult<Self>` (synchronous)
+   - Define `StorageBackend` enum: `Turso { url }`, `D1 { binding }`, `R2 { bucket }`, `JsonFile { path }`, `Memory`
+   - Define `KeyValueStore` trait — synchronous methods, NO async-trait
+   - Define `BlobStore` trait — synchronous single-value ops, streamed `get_blob`
+   - Define `QueryStore` trait — with crate-owned `DataValue`/`DataRow` types (NO turso::Value leak)
+   - Multi-value ops (`query`, `list_keys`, `get_blob`) return `StorageItemStream` (Valtron `Stream`-based lazy iterator)
+   - Single-value ops (`get`, `set`, `delete`, `exists`, `execute`) return `StorageResult<T>` directly
 
 5. **Create errors.rs**
    - Create: `backends/foundation_db/src/errors.rs`
@@ -67,14 +78,13 @@ Before starting, understand:
    - Implement `Drop` to clear all data
    - Test: Basic CRUD, zeroizing on drop
 
-### Phase 4: Turso Backend
+### Phase 4: SQL Backends
 
-7. **Create turso.rs**
-   - Create: `backends/foundation_db/src/backends/turso.rs`
-   - Implement `TursoStorage` struct with `libsql::Connection`
-   - Implement connection function: `TursoStorage::connect(url) -> Result<Self>`
-   - Implement `KeyValueStore` trait using SQLite key-value table
-   - Implement `QueryStore` trait passthrough to libsql
+7. **Create turso_backend.rs**
+   - Create: `backends/foundation_db/src/backends/turso_backend.rs`
+   - Implement `TursoStorage` struct using `turso` crate with sync API
+   - Implement `KeyValueStore` and `QueryStore` traits (synchronous)
+   - Multi-value ops (`query`, `list_keys`) return `StorageItemStream` (Valtron `Stream`-based lazy iterator)
 
 8. **Create schema system**
    - Create: `backends/foundation_db/src/schema/mod.rs`
@@ -123,69 +133,51 @@ Before starting, understand:
 
 ## File Checklist
 
-- [ ] `backends/foundation_db/Cargo.toml`
+- [ ] `backends/foundation_db/Cargo.toml` (NO tokio, NO async-trait)
 - [ ] `backends/foundation_db/src/lib.rs`
-- [ ] `backends/foundation_db/src/storage_provider.rs`
+- [ ] `backends/foundation_db/src/storage_provider.rs` (Valtron-based traits)
 - [ ] `backends/foundation_db/src/errors.rs`
 - [ ] `backends/foundation_db/src/backends/mod.rs`
-- [ ] `backends/foundation_db/src/backends/memory.rs`
-- [ ] `backends/foundation_db/src/backends/turso.rs`
+- [ ] `backends/foundation_db/src/backends/memory.rs` (std::sync::Mutex)
+- [ ] `backends/foundation_db/src/backends/json_file.rs` (JSON-on-disk KV store)
+- [ ] `backends/foundation_db/src/backends/turso_backend.rs` (Turso sync backend)
 - [ ] `backends/foundation_db/src/schema/mod.rs`
 - [ ] `backends/foundation_db/src/schema/migrations.rs`
 - [ ] `backends/foundation_db/src/crypto/mod.rs`
-- [ ] `backends/foundation_db/tests/integration_tests.rs`
+- [ ] `backends/foundation_db/tests/foundation_db_tests.rs` (external tests)
 
 ## Key Implementation Details
 
-### StorageProvider Trait
+### StorageBackend Enum
 ```rust
-pub trait StorageProvider: Send + Sync {
-    type Config;
-
-    fn new(config: Self::Config) -> impl Future<Output = Result<Self>>;
-    fn backend(&self) -> &StorageBackend;
-}
-
 pub enum StorageBackend {
     Turso { url: String },
     D1 { binding: String },
     R2 { bucket: String },
+    JsonFile { path: std::path::PathBuf },
     Memory,
 }
 ```
 
-### KeyValueStore Trait
+### KeyValueStore Trait (Synchronous, NO async-trait)
 ```rust
-#[async_trait]
-pub trait KeyValueStore {
-    async fn get(&self, key: &str) -> Result<Option<Value>>;
-    async fn set(&self, key: &str, value: Value) -> Result<()>;
-    async fn delete(&self, key: &str) -> Result<()>;
-    async fn exists(&self, key: &str) -> Result<bool>;
-}
-
-pub enum Value {
-    Bytes(Vec<u8>),
-    Text(String),
-    Json(serde_json::Value),
+// All backends implement synchronous methods. Multi-value ops return
+// StorageItemStream (Valtron Stream-based lazy iterator). See feature.md
+// for full trait definitions including QueryStore and BlobStore.
+pub trait KeyValueStore: Send + Sync {
+    fn get<V: DeserializeOwned>(&self, key: &str) -> StorageResult<Option<V>>;
+    fn set<V: Serialize>(&self, key: &str, value: V) -> StorageResult<()>;
+    fn delete(&self, key: &str) -> StorageResult<()>;
+    fn exists(&self, key: &str) -> StorageResult<bool>;
+    fn list_keys(&self, prefix: Option<&str>) -> StorageResult<StorageItemStream<'_, String>>;
 }
 ```
 
-### Turso Connection
+### Turso Backend
 ```rust
-use libsql::{Connection, Database};
-
 pub struct TursoStorage {
-    conn: Connection,
+    conn: turso::Connection,
     encryption_key: Option<Zeroizing<Vec<u8>>>,
-}
-
-impl TursoStorage {
-    pub async fn connect(url: &str, auth_token: Option<&str>) -> Result<Self> {
-        let db = Database::open(url, auth_token)?;
-        let conn = db.connect()?;
-        Ok(Self { conn, encryption_key: None })
-    }
 }
 ```
 
@@ -221,19 +213,25 @@ pub fn encrypt(plaintext: &[u8], key: &[u8; 32]) -> Vec<u8> {
 
 ## Dependencies
 
-Add to `Cargo.toml`:
+Add to `Cargo.toml` (see feature.md Cargo.toml section for full details):
 ```toml
 [dependencies]
 foundation_core = { workspace = true }
-libsql = "0.4"
+turso = "0.1"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
-zeroize = { version = "1" }
-thiserror = "2.0"
-tokio = { version = "1", features = ["rt", "sync"] }
-async-trait = "0.1"
+zeroize = { version = "1", features = ["derive"] }
+derive_more = { version = "2.0", features = ["from", "error", "display"] }
 chacha20poly1305 = "0.10"
 rand = "0.8"
+tracing = "0.1"
+# NOTE: tokio, async-trait, thiserror are BANNED
+# Use foundation_core::valtron for async, derive_more::From + manual Display for errors
+
+[features]
+default = []
+d1 = []
+r2 = []
 ```
 
 ---

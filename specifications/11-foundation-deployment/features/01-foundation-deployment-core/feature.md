@@ -20,6 +20,15 @@ tasks:
 
 # Foundation Deployment Core
 
+## Iron Law: Zero Warnings
+
+> **All code must compile with zero warnings and pass all lints. No suppression. No exceptions.**
+>
+> - `cargo clippy -p foundation_deployment -- -D warnings -W clippy::pedantic` — zero warnings
+> - `cargo doc -p foundation_deployment --no-deps` — zero rustdoc warnings
+> - `cargo test -p foundation_deployment` — zero compilation warnings
+> - **No `#[allow(...)]`, `#[expect(...)]`, or `#![allow(...)]` anywhere.** Fix the code, never suppress.
+
 ## Overview
 
 Create the `foundation_deployment` crate with provider-agnostic primitives: the `DeploymentProvider` trait, unified error types, process execution, project scanning, and shared deployment types. Everything in this feature is cloud-agnostic.
@@ -468,8 +477,10 @@ pub use state::traits::StateStore;
 
 ## Success Criteria
 
-- [ ] `cargo check` passes with no warnings
-- [ ] `cargo clippy -- -D warnings` passes
+- [ ] `cargo clippy -p foundation_deployment -- -D warnings -W clippy::pedantic` — zero warnings, zero suppression
+- [ ] `cargo doc -p foundation_deployment --no-deps` — zero rustdoc warnings
+- [ ] `cargo test -p foundation_deployment` — zero compilation warnings
+- [ ] No `#[allow(...)]` or `#[expect(...)]` anywhere in the code
 - [ ] All unit tests pass
 - [ ] `DeploymentTarget::detect()` correctly identifies all 3 config file types
 - [ ] `ProcessExecutor` can run and capture `echo hello`

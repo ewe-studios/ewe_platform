@@ -20,6 +20,15 @@ tasks:
 
 # Mise Integration
 
+## Iron Law: Zero Warnings
+
+> **All code must compile with zero warnings and pass all lints. No suppression. No exceptions.**
+>
+> - `cargo clippy -p foundation_deployment -- -D warnings -W clippy::pedantic` — zero warnings
+> - `cargo doc -p foundation_deployment --no-deps` — zero rustdoc warnings
+> - `cargo test -p foundation_deployment` — zero compilation warnings
+> - **No `#[allow(...)]`, `#[expect(...)]`, or `#![allow(...)]` anywhere.** Fix the code, never suppress.
+
 ## Overview
 
 Define provider-agnostic mise.toml task definitions that work across all deployment targets. Task names are stable (`deploy`, `logs`, `status`) regardless of provider - the underlying commands detect the provider from the project's config file and dispatch accordingly.
@@ -257,6 +266,9 @@ jobs:
 ## Success Criteria
 
 - [ ] All 5 tasks completed
+- [ ] `cargo clippy -p foundation_deployment -- -D warnings -W clippy::pedantic` — zero warnings, zero suppression
+- [ ] `cargo doc -p foundation_deployment --no-deps` — zero rustdoc warnings
+- [ ] No `#[allow(...)]` or `#[expect(...)]` anywhere in the code
 - [ ] `mise run deploy` works identically across all templates
 - [ ] `ewe_platform deploy` auto-detects provider correctly
 - [ ] CI/CD workflow deploys to the correct provider

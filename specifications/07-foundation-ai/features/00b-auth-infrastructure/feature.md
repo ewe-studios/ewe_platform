@@ -48,10 +48,19 @@ The existing `foundation_auth` crate provides basic credential types (`OAuthCred
 
 This feature fills those gaps with reusable authentication infrastructure.
 
+## Iron Laws (inherited from spec-wide requirements.md)
+
+**These apply to foundation_auth — see `requirements.md` Iron Laws section for full details:**
+
+1. **No tokio, No async-trait** — All async operations use Valtron `TaskIterator`/`StreamIterator` from `foundation_core`
+2. **Valtron-Only Async** — No `async fn`, no `.await`, no `Future` — only Valtron patterns
+3. **Zero Warnings, Zero Suppression** — All clippy, doc, and cargo warnings MUST be fixed, NEVER suppressed. NO `#[allow(...)]` or `#![allow(...)]` — remove all existing suppression blocks and fix the underlying issues.
+4. **Error Convention** — `#[derive(From, Debug)]` from `derive_more::From` + manual `impl Display`. NO `thiserror`. Central `errors.rs` per crate. `#[from(ignore)]` on String variants.
+
 ## Dependencies
 
 **Required Crates:**
-- `foundation_core` - For `ConfidentialText`, `Cookie`, basic types
+- `foundation_core` - For `ConfidentialText`, `Cookie`, basic types, **Valtron async**
 - `foundation_db` - For persistent credential storage (Turso/Memory backends)
 - `zeroize` - For secure memory clearing (already in Cargo.toml)
 - `derive_more` - For error type derives (already in Cargo.toml)
@@ -62,6 +71,10 @@ This feature fills those gaps with reusable authentication infrastructure.
 - `time` - For timestamp handling (ADD to Cargo.toml)
 - `serde` + `serde_json` - For token serialization (ADD to Cargo.toml)
 - `url` - For URL encoding in OAuth flows (ADD to Cargo.toml)
+
+**BANNED Crates:**
+- `tokio` - Use `foundation_core::valtron` instead
+- `async-trait` - Use `TaskIterator`/`StreamIterator` patterns instead
 
 **Required By:**
 - `foundation_ai` - OpenAI provider, HuggingFace provider
@@ -95,12 +108,12 @@ This feature fills those gaps with reusable authentication infrastructure.
 ### Credential Storage (via foundation_db)
 
 14. **CredentialStore Trait** - Interface wrapping foundation_db StorageProvider
-15. **TursoCredentialStore** - Production storage using Turso (libsql)
+15. **TursoCredentialStore** - Production storage using Turso sync backend
 16. **MemoryCredentialStore** - Development/testing with zeroizing
 17. **Secure Deletion** - Zeroize credentials before drop
 18. **Credential Rotation** - Update credentials securely
 19. **Credential Validation** - Check if credentials are valid/present
-20. **Persistence** - Survive application restarts via Turso
+20. **Persistence** - Survive application restarts via data store (Turso/D1/R2/etc)
 
 ### Auth State Machine
 
@@ -293,25 +306,52 @@ All credential validation MUST use constant-time comparison:
 
 ```rust
 // Password verification - hash even for invalid emails
-let user = find_user_by_email(&email).await;
+// Database lookup uses Valtron TaskIterator (I/O operation)
+let find_task = FindUserByEmailTask::new(&email);
+let stream = execute(find_task, None)?;
+let user = collect_first(stream);
+
 if user.is_none() {
     // Hash anyway to prevent timing-based email enumeration
-    password_hasher.hash(&password).await;
+    // NOTE: hash_password is a plain synchronous function — Argon2id is
+    // CPU-bound computation, NOT I/O, so it does NOT need a TaskIterator.
+    let _ = hash_password(&password);
     return Err(AuthError::InvalidCredentials);
 }
 ```
+
+#### Valtron Task Boundary Guidance
+
+**Use Valtron `TaskIterator`** for operations that perform I/O (database, network, filesystem):
+- Database queries/writes: `FindUserByEmailTask`, `StoreOAuthStateTask`, credential store ops, session CRUD
+- HTTP requests: OAuth code exchange, token refresh, JWT refresh against external endpoints
+- Hooks that may do I/O: `AuthHook` trait (generic — implementations may hit DB for rate limiting, etc.)
+
+**Use plain synchronous functions** for CPU-bound or in-memory operations:
+- Password hashing: `hash_password()`, `verify_password()` — Argon2id is CPU-bound
+- PKCE generation: `PKCEChallenge::generate()` — SHA256 computation
+- TOTP: `TOTPSecret::now()`, `TOTPSecret::verify()` — HMAC computation
+- Token signing/verification: `MultiKeySigner::sign()`, `verify()` — crypto ops
+- JWT inspection: `JWTToken::is_expired()`, `expires_in()` — timestamp math
+- State machine transitions: `AuthStateMachine::transition_to()` — enum logic
+- URL construction: `OAuthManager::get_authorization_url()` — string building
+- State parameter: `generate_state()`, `validate_state()` — random gen + comparison
+- Serialization: token to/from JSON — parsing
+
+The Iron Law bans `tokio`/`async-trait` and requires Valtron for **async (I/O) operations**. It does not require wrapping synchronous computation in `TaskIterator` — doing so adds complexity for zero benefit.
 
 #### 2. OAuth State Storage
 
 OAuth states MUST be stored in database with automatic cleanup:
 
 ```rust
-// Store state with 10-minute expiration
+// Store state with 10-minute expiration — Valtron TaskIterator pattern
 let expires_at = Utc::now() + Duration::minutes(10);
-storage.store_oauth_state(&state, &code_verifier, expires_at).await?;
+let store_task = StoreOAuthStateTask::new(&state, &code_verifier, expires_at);
+execute(store_task, None)?;
 
-// Cleanup query (run periodically)
-DELETE FROM oauth_states WHERE expires_at < current_timestamp;
+// Cleanup query (run periodically via Valtron scheduled task)
+// DELETE FROM oauth_states WHERE expires_at < current_timestamp;
 ```
 
 #### 3. Hook System (Plugin Architecture)
@@ -319,15 +359,18 @@ DELETE FROM oauth_states WHERE expires_at < current_timestamp;
 Consider implementing before/after hooks for extensibility:
 
 ```rust
+// Hook system uses Valtron TaskIterator — NO async fn, NO async-trait
 pub trait AuthHook: Send + Sync {
-    async fn before_request(&self, ctx: &mut AuthContext) -> Result<()>;
-    async fn after_response(&self, ctx: &mut AuthContext, response: &mut Response) -> Result<()>;
+    /// Returns a TaskIterator that performs the pre-request check.
+    fn before_request(&self, ctx: &AuthContext) -> Box<dyn TaskIterator<Item = TaskStatus<(), (), ()>>>;
+    /// Returns a TaskIterator that performs the post-response action.
+    fn after_response(&self, ctx: &AuthContext) -> Box<dyn TaskIterator<Item = TaskStatus<(), (), ()>>>;
 }
 
 // Example: Rate limiting hook
 impl AuthHook for RateLimitHook {
-    async fn before_request(&self, ctx: &mut AuthContext) -> Result<()> {
-        check_rate_limit(ctx.path(), ctx.ip_address()).await
+    fn before_request(&self, ctx: &AuthContext) -> Box<dyn TaskIterator<Item = TaskStatus<(), (), ()>>> {
+        Box::new(CheckRateLimitTask::new(ctx.path(), ctx.ip_address()))
     }
 }
 ```
@@ -648,9 +691,8 @@ Add to `backends/foundation_auth/Cargo.toml`:
 foundation_core = { workspace = true }
 foundation_db = { workspace = true }
 
-# Error handling
-derive_more = { version = "2.0", features = ["from", "debug", "error"] }
-thiserror = "2.0"
+# Error handling (derive_more::From + manual Display, NO thiserror)
+derive_more = { version = "2.0", features = ["from", "error", "display"] }
 
 # Cryptography
 zeroize = { version = "1" }
@@ -680,9 +722,10 @@ chrono = "0.4"
 # Utilities
 uuid = { version = "1.0", features = ["v4"] }
 bytes = "1.5"
+tracing = "0.1"
 
-# Async
-tokio = { version = "1", features = ["sync", "time"] }
+# NOTE: tokio and async-trait are BANNED (Iron Law)
+# All async operations use foundation_core::valtron
 ```
 
 ## References

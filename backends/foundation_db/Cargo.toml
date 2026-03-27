@@ -6,60 +6,41 @@ rust-version.workspace = true
 license.workspace = true
 authors.workspace = true
 repository.workspace = true
-description = "central crate for all database"
-keywords = ["foundations_core", "ewe-platform-core"]
+description = "Unified storage backend with Turso sync API, D1, R2, and in-memory fallback"
+keywords = ["database", "storage", "turso", "foundation"]
 
 [dependencies]
-
 # -- Workspace dependencies
+foundation_core = { workspace = true }
 
-foundation_wasm = {workspace = true }
-foundation_nostd = {workspace = true }
+# Storage backends
+turso = "0.1"
 
-
-# -- Other dependencies
-derive_more = { version = "2.0", features = ["from", "debug", "error"] }
+# Serialization
 serde = { version = "1", features = ["derive"] }
-concurrent-queue = { version = "2.5.0" }
-toml_datetime = { version = "0.7" }
-serde_json = { version = "1" }
-serde_yml = { version = "0.0.12" }
-toml = { version = "0.9" }
-fastrand = "2.3.0"
-rand = "0.9"
-rand_chacha = "0.9"
+serde_json = "1"
 
-memchr = "2.7.4"
-tracing = { version = "0.1.41" }
-thiserror = { version = "2.0" }
+# Error handling
+derive_more = { version = "2.0", features = ["from", "error", "display"] }
 
-url = "2.5"
-regex = "1.12.2"
-ctrlc = { version = "3.4" }
+# Security
+zeroize = { version = "1.8", features = ["derive"] }
+chacha20poly1305 = "0.10"
+rand = "0.8"
+hex = "0.4"
 base64 = "0.22"
-sha1 = "0.10"
-bytes = "1.5"
 
-# optional
-zeroize = { version = "1", optional = true }
-native-tls = { version = "0.2", optional = true }
-
-# Compression dependencies
-flate2 = { version = "1.0", optional = true }
-brotli = { version = "6.0", optional = true }
+# Utilities
+tracing = "0.1"
 
 [dev-dependencies]
-serial_test = { workspace = true }
-tracing-test = { version = "0.2",  features = ["no-env-filter"] }
-reqwest = { version = "0.12.15", features = ["blocking"] }
+tracing-test = { version = "0.2", features = ["no-env-filter"] }
+tempfile = "3"
 
 [features]
-
-# Compression features
-compression = ["flate2", "brotli"]
-gzip = ["flate2"]
-deflate = ["flate2"]
-
+default = []
+d1 = []
+r2 = []
 
 [lints]
 workspace = true

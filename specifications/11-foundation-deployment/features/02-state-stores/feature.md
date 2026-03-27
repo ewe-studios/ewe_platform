@@ -20,6 +20,15 @@ tasks:
 
 # State Stores
 
+## Iron Law: Zero Warnings
+
+> **All code must compile with zero warnings and pass all lints. No suppression. No exceptions.**
+>
+> - `cargo clippy -p foundation_deployment -- -D warnings -W clippy::pedantic` — zero warnings
+> - `cargo doc -p foundation_deployment --no-deps` — zero rustdoc warnings
+> - `cargo test -p foundation_deployment` — zero compilation warnings
+> - **No `#[allow(...)]`, `#[expect(...)]`, or `#![allow(...)]` anywhere.** Fix the code, never suppress.
+
 ## Overview
 
 Implement the state management layer inspired by alchemy's `StateStore` interface. Five interchangeable backends:
@@ -724,6 +733,9 @@ sha2 = "0.10"
 ## Success Criteria
 
 - [ ] All 9 tasks completed
+- [ ] `cargo clippy -p foundation_deployment -- -D warnings -W clippy::pedantic` — zero warnings, zero suppression
+- [ ] `cargo doc -p foundation_deployment --no-deps` — zero rustdoc warnings
+- [ ] No `#[allow(...)]` or `#[expect(...)]` anywhere in the code
 - [ ] All five stores pass the same test suite (trait-based testing)
 - [ ] Change detection correctly skips unchanged resources
 - [ ] SQLite WAL mode works for concurrent reads

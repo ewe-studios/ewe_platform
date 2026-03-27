@@ -89,9 +89,26 @@ See: `features/04-cloudflare-provider/feature.md`
 | `rusqlite` / `libsql` | SQLite/Turso state store |
 | `mise` | Tooling and task management |
 
+## Iron Law: Zero Warnings
+
+> **All code must compile with zero warnings and pass all lints. No suppression. No exceptions.**
+> This is an iron law. It applies to every feature, every crate, every module.
+> No `#[allow(...)]`, no `#[expect(...)]`, no `#![allow(...)]` anywhere.
+> If clippy or the compiler flags something, fix the code — never suppress.
+>
+> **Verification (must pass before any commit):**
+> ```bash
+> cargo clippy -p foundation_deployment -- -D warnings -W clippy::pedantic
+> cargo doc -p foundation_deployment --no-deps 2>&1 | grep -c "warning" | grep -q "^0$"
+> cargo test -p foundation_deployment 2>&1 | grep -c "warning" | grep -q "^0$"
+> ```
+
 ## Success Criteria
 
 - [ ] All 9 features implemented and verified
+- [ ] `cargo clippy -p foundation_deployment -- -D warnings -W clippy::pedantic` — zero warnings, zero suppression
+- [ ] `cargo doc -p foundation_deployment --no-deps` — zero rustdoc warnings
+- [ ] No `#[allow(...)]` or `#[expect(...)]` anywhere in the codebase
 - [ ] `DeploymentProvider` trait works for all 3 providers
 - [ ] State stores persist and detect changes correctly
 - [ ] `mise run deploy` auto-detects provider and deploys

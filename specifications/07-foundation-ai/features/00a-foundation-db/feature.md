@@ -5,7 +5,7 @@ feature_directory: "specifications/07-foundation-ai/features/00a-foundation-db"
 this_file: "specifications/07-foundation-ai/features/00a-foundation-db/feature.md"
 
 feature: "Foundation DB - Unified Storage Backend"
-description: "Create foundation_db crate providing unified storage abstraction wrapping Turso (libsql), Cloudflare D1, and R2 object storage with in-memory fallback for credential and state persistence"
+description: "Create foundation_db crate providing unified storage abstraction with Turso sync backend, Cloudflare D1/R2, in-memory fallback — Valtron-only async, NO tokio"
 status: pending
 priority: high
 depends_on:
@@ -18,8 +18,8 @@ author: "Main Agent"
 
 tasks:
   completed: 0
-  uncompleted: 24
-  total: 24
+  uncompleted: 42
+  total: 42
   completion_percentage: 0%
 ---
 
@@ -29,10 +29,13 @@ tasks:
 
 `foundation_db` is a unified storage backend crate that provides a consistent abstraction layer for persisting data across multiple storage providers:
 
-1. **Turso (libsql)** - Local/remote SQLite with edge sync
+1. **Turso** - SQLite-compatible embedded/remote database with sync API and edge sync capabilities
+  Source code: /home/darkvoid/Boxxed/@formulas/src.rust/src.turso/turso
+  Documentation: https://github.com/tursodatabase/turso/blob/main/sdk-kit/README.md
 2. **Cloudflare D1** - Edge SQLite for Cloudflare Workers
 3. **Cloudflare R2** - Object storage for larger blobs
 4. **In-Memory** - Ephemeral storage for development/testing
+5. **JSON File** - Simple JSON-on-disk key-value store for lightweight persistence without SQL dependencies
 
 This crate enables `foundation_auth` to persist credentials, OAuth states, tokens, and authentication state machines reliably across application restarts.
 
@@ -50,7 +53,7 @@ Currently only in-memory storage exists, which loses all credentials on restart.
 ## Goals
 
 - Provide unified `StorageProvider` trait for all storage backends
-- Support Turso (libsql) for local/remote SQLite
+- Support Turso for local/remote SQLite with sync API
 - Support Cloudflare D1 for edge SQLite
 - Support Cloudflare R2 for blob storage
 - Provide in-memory backend for dev/test
@@ -59,15 +62,135 @@ Currently only in-memory storage exists, which loses all credentials on restart.
 - Maintain async-first API using `foundation_core::valtron`
 - Zeroize sensitive data on drop
 
+## Iron Laws
+
+These rules are **MANDATORY** and **NON-NEGOTIABLE**. Any implementation that violates them MUST be rejected.
+
+### 1. No tokio, No async-trait
+
+**`tokio` and `async-trait` are BANNED from `foundation_db` and `foundation_auth`.**
+
+All asynchronous operations MUST use Valtron's `TaskIterator`/`StreamIterator` patterns from `foundation_core`. This applies to:
+- All storage trait definitions (no `async fn`, no `#[async_trait]`)
+- All backend implementations
+- All tests (use `valtron::initialize_pool` + `execute()`, not `#[tokio::test]`)
+
+Rationale: Valtron provides a unified executor framework that works across WASM (single-threaded) and native (multi-threaded) platforms. Mixing in tokio breaks this portability guarantee and creates two competing async runtimes.
+
+### 2. Turso Sync Backend
+
+`foundation_db` uses the Turso crate (`https://crates.io/crates/turso`) as its primary SQL backend. Turso is a ground-up rewrite of SQLite with MVCC, concurrent writes, and both sync and async I/O APIs.
+
+The sync API MUST be used to maintain compatibility with the Valtron-only async pattern (Iron Law 3). All storage operations are synchronous, returning `StorageResult<T>` for single-value ops and `StorageResult<StorageItemStream<T>>` for multi-value ops.
+
+**Why Turso over libsql:**
+- libsql has hard sync dependencies that conflict with our async model
+- Turso provides a cleaner sync API via `https://github.com/tursodatabase/turso/blob/main/sdk-kit/README.md`
+- Turso supports MVCC and concurrent writes out of the box
+- Turso supports edge sync capabilities for distributed deployments
+
+### 3. Valtron-Only Async Pattern
+
+Storage traits return `StorageResult<T>` for single-value ops and `StorageResult<StorageItemStream<T>>` (Valtron `Stream`-based iterator) for multi-value ops:
+- Single-value: `get`, `set`, `delete`, `exists`, `execute`, `execute_batch` → `StorageResult<T>`
+- Multi-value: `query`, `list_keys`, `get_blob` → `StorageResult<StorageItemStream<'_, T>>`
+- No `async fn`, no `.await`, no `Future` — only Valtron patterns
+
+### 4. Zero Warnings, Zero Suppression
+
+**All clippy, doc, and cargo warnings MUST be fixed, NEVER suppressed.**
+
+- `cargo clippy --package foundation_db -- -D warnings` MUST pass with zero warnings
+- `cargo clippy --package foundation_auth -- -D warnings` MUST pass with zero warnings
+- `cargo doc --package foundation_db --no-deps` MUST produce zero warnings
+- `cargo doc --package foundation_auth --no-deps` MUST produce zero warnings
+- **NO `#[allow(...)]` attributes** — every warning is a signal; fix the code, don't silence it
+- **NO `#![allow(...)]` crate-level suppression** — remove all existing suppression blocks
+- This means: all public items have documentation, all match arms are covered, no dead code, no unused imports, no missing error docs, no clippy pedantic bypasses
+- The existing `#![allow(clippy::..., dead_code, unused, deprecated)]` blocks in `lib.rs` files MUST be removed and the underlying issues fixed
+
+### 5. Error Handling: `derive_more::From` + Manual `Display`, Central `errors.rs`
+
+**All error types follow the project-wide error convention. No `thiserror`.**
+
+The project defines custom errors in a central `errors.rs` file at the root of each module using `derive_more::From` for automatic `From` conversions and manual `impl Display` + `impl Error`. This is the established pattern across `foundation_core`, `foundation_auth`, and all other crates.
+
+**The pattern:**
+```rust
+use derive_more::From;
+
+/// WHY: Centralizes all storage error variants for consistent handling.
+///
+/// WHAT: Enum of all error conditions that can occur in storage operations.
+///
+/// HOW: Uses `derive_more::From` for automatic `From<T>` impls on nested
+/// error variants. String-wrapping variants use `#[from(ignore)]` since
+/// multiple String fields would conflict. Display is implemented manually
+/// for human-readable messages.
+#[derive(From, Debug)]
+pub enum StorageError {
+    /// Backend-specific error.
+    #[from(ignore)]
+    Backend(String),
+
+    /// Connection failed.
+    #[from(ignore)]
+    Connection(String),
+
+    // ... other #[from(ignore)] String variants ...
+
+    /// I/O error during filesystem operations.
+    Io(std::io::Error),                    // ← auto From<std::io::Error>
+
+    /// JSON serialization/deserialization error.
+    Json(serde_json::Error),               // ← auto From<serde_json::Error>
+
+    /// Turso error.
+    Turso(turso::Error),                   // ← auto From<turso::Error>
+}
+
+impl core::fmt::Display for StorageError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::Backend(s) => write!(f, "Backend error: {s}"),
+            Self::Connection(s) => write!(f, "Connection failed: {s}"),
+            Self::Io(e) => write!(f, "IO error: {e}"),
+            Self::Json(e) => write!(f, "JSON error: {e}"),
+            Self::Turso(e) => write!(f, "Turso error: {e}"),
+            // ...
+        }
+    }
+}
+
+impl std::error::Error for StorageError {}
+
+pub type StorageResult<T> = Result<T, StorageError>;
+```
+
+**Rules:**
+- **`#[derive(From, Debug)]`** on all error enums — `derive_more::From` generates `From<T>` for each variant with a single non-String field
+- **`#[from(ignore)]`** on all `String`-wrapping variants — required because multiple `(String)` variants would conflict
+- **`#[from]`** explicit attribute on nested error variants when disambiguation is needed
+- **Manual `impl Display`** — NOT `derive_more::Display` / `#[display("...")]`. This project uses manual Display for error messages.
+- **Manual `impl std::error::Error`** — simple empty impl (no `source()` override needed; `derive_more::From` handles conversions)
+- **`pub type FooResult<T> = Result<T, FooError>;`** — type alias for ergonomic Result usage
+- **NO `thiserror`** — the project uses `derive_more::From` + manual Display exclusively
+- **Central `errors.rs`** — one file per crate at `src/errors.rs`, all error types defined there
+- **Feature-gated variants** — backend-specific error variants gated behind their feature flag
+
 ## Dependencies
 
 **Required Crates:**
 - `foundation_core` - For `valtron` async patterns, `ConfidentialText`
-- `turso` - Turso/libsql client (add to Cargo.toml)
+- `turso` - Turso sync backend
 - `zeroize` - For secure memory clearing
 - `serde` + `serde_json` - For serialization
-- `thiserror` - For error handling
-- `tokio` or `valtron` runtime - Async execution
+- `derive_more` (features: `from`, `error`, `display`) - For `#[derive(From)]` on error types
+
+**BANNED Crates (in foundation_db and foundation_auth):**
+- `tokio` - Use `foundation_core::valtron` instead
+- `async-trait` - Use `TaskIterator`/`StreamIterator` patterns instead
+- `thiserror` - Use `derive_more::From` + manual `Display` per Iron Law 5
 
 **Required By:**
 - `foundation_auth` - Credential and state persistence
@@ -86,7 +209,7 @@ Currently only in-memory storage exists, which loses all credentials on restart.
 
 ### Turso Backend
 
-6. **TursoStorage Struct** - libsql implementation
+6. **TursoStorage Struct** - Turso implementation with sync API
 7. **Connection Pool** - Efficient connection management
 8. **Migration System** - Schema versioning and migrations with automatic cleanup tasks
 9. **Sync Support** - Turso edge sync capabilities
@@ -111,6 +234,14 @@ Currently only in-memory storage exists, which loses all credentials on restart.
 18. **MemoryStorage Struct** - Ephemeral in-memory storage
 19. **Zeroizing Storage** - Secure memory for sensitive data
 20. **Drop Cleanup** - Automatic cleanup on drop
+
+### JSON File Backend
+
+21. **JsonFileStorage Struct** - JSON-on-disk key-value persistence
+22. **Atomic Writes** - Write to temp file + rename for crash safety
+23. **Directory-Based Namespacing** - One JSON file per logical namespace (or single file for small datasets)
+24. **Lazy Loading** - Read from disk on access, not on construction
+25. **Zeroizing on Drop** - Clear in-memory cache of sensitive data
 
 ### Security Features
 
@@ -145,6 +276,7 @@ graph TD
         J[D1Storage]
         K[R2Storage]
         L[MemoryStorage]
+        M[JsonFileStorage]
     end
 
     A --> C
@@ -162,6 +294,7 @@ graph TD
     J --> H
     K --> F
     L --> E
+    M --> E
 ```
 
 ### Session Management Architecture
@@ -483,14 +616,15 @@ DELETE FROM audit_logs WHERE created_at < ((strftime('%s', 'now') * 1000) - (90 
 backends/foundation_db/
 ├── Cargo.toml
 ├── src/
-│   ├── lib.rs                     - Module declarations, StorageProvider trait
-│   ├── storage_provider.rs        - Core trait definitions
+│   ├── lib.rs                     - Module declarations, re-exports
+│   ├── storage_provider.rs        - Core trait definitions (Valtron-based, NO async-trait)
 │   ├── backends/
 │   │   ├── mod.rs                 - Backend module exports
-│   │   ├── turso.rs               - Turso/libsql implementation
+│   │   ├── turso_backend.rs       - Turso crate backend (sync API)
+│   │   ├── json_file.rs           - JSON-on-disk file backend (always available)
 │   │   ├── d1.rs                  - Cloudflare D1 implementation
 │   │   ├── r2.rs                  - Cloudflare R2 implementation
-│   │   └── memory.rs              - In-memory implementation
+│   │   └── memory.rs              - In-memory implementation (always available)
 │   ├── schema/
 │   │   ├── mod.rs                 - Schema definitions
 │   │   └── migrations.rs          - Migration system
@@ -499,9 +633,11 @@ backends/foundation_db/
 │   │   └── zeroize.rs             - Secure deletion helpers
 │   └── errors.rs                  - Error types
 └── tests/
-    ├── turso_tests.rs
-    ├── memory_tests.rs
-    └── integration_tests.rs
+    ├── foundation_db_tests.rs     - Test entry point
+    └── units/
+        ├── foundation_db_memory_tests.rs
+        ├── foundation_db_json_file_tests.rs
+        └── foundation_db_turso_tests.rs
 ```
 
 ### Cargo.toml
@@ -519,88 +655,1134 @@ authors.workspace = true
 foundation_core = { workspace = true }
 
 # Storage backends
-libsql = "0.4"           # Turso/libsql
-# d1 = "..."             # Cloudflare D1 (workers-rs)
-# r2 = "..."             # Cloudflare R2 (workers-rs)
-
-# Async
-tokio = { version = "1", features = ["rt", "sync"] }
+turso = "0.1"
 
 # Serialization
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 
-# Error handling
-thiserror = "2.0"
+# Error handling (derive_more::From + manual Display, NO thiserror)
+derive_more = { version = "2.0", features = ["from", "error", "display"] }
 
 # Security
-zeroize = { version = "1" }
-argon2 = "0.5"           # Password hashing
-chacha20poly1305 = "0.10" # Encryption
+zeroize = { version = "1", features = ["derive"] }
+chacha20poly1305 = "0.10"
+rand = "0.8"
+hex = "0.4"
+base64 = "0.22"
 
 # Utilities
-async-trait = "0.1"
+tracing = "0.1"
+
+[features]
+default = []
+d1 = []
+r2 = []
+
+# NOTE: tokio and async-trait are BANNED
+# All async operations use foundation_core::valtron
 ```
 
-## Tasks
+## Detailed Change Plan (File-by-File)
 
-### Task Group 1: Core Traits
+This section documents every change needed, at the function/struct level, with before/after patterns.
 
-- [ ] Create `backends/foundation_db/Cargo.toml`
-- [ ] Create `src/lib.rs` with module declarations
-- [ ] Create `src/storage_provider.rs` with `StorageProvider` trait
-- [ ] Define `StorageBackend` enum (Turso, D1, R2, Memory)
-- [ ] Define `KeyValueStore` trait: `get()`, `set()`, `delete()`, `exists()`
-- [ ] Define `BlobStore` trait: `put_blob()`, `get_blob()`, `delete_blob()`
-- [ ] Define `QueryStore` trait: `query()`, `execute()`
-- [ ] Create `src/errors.rs` with `StorageError` enum
+### Design Principle: Result for Operations, Stream for Multi-Value Output
 
-### Task Group 2: In-Memory Backend
+**Two return patterns based on the nature of the operation:**
 
-- [ ] Create `src/backends/memory.rs`
-- [ ] Implement `MemoryStorage` struct with `HashMap`
-- [ ] Wrap values in `Zeroizing` for sensitive data
-- [ ] Implement `KeyValueStore` trait
-- [ ] Implement `Drop` for secure cleanup
-- [ ] Test: Basic CRUD operations
-- [ ] Test: Zeroizing on drop
+1. **Single-value operations** → `StorageResult<T>` directly.
+   The `Result` wraps the operation (did it connect? did it parse? did the write succeed?). The `Ok(T)` is the value.
+   Examples: `get()`, `set()`, `delete()`, `exists()`, `execute()`, `execute_batch()`
 
-### Task Group 3: Turso Backend
+2. **Multi-value / streamed operations** → `StorageResult<impl Iterator<Item = Stream<T, P>>>`.
+   The `Result` wraps the operation setup (did the query prepare? did the connection open?). The `Ok` contains a **lazy Valtron Stream iterator** that yields values one at a time without allocating everything upfront.
+   Examples: `query()` (row-by-row), `list_keys()` (key-by-key), `get_blob()` (chunk-by-chunk)
 
-- [ ] Create `src/backends/turso.rs`
-- [ ] Implement `TursoStorage` struct with `libsql::Connection`
-- [ ] Implement connection pool
-- [ ] Create `src/schema/migrations.rs` with migration system
-- [ ] Implement schema initialization
-- [ ] Implement `KeyValueStore` trait
-- [ ] Implement `QueryStore` trait
-- [ ] Add encryption layer for sensitive columns
-- [ ] Test: Basic CRUD operations
-- [ ] Test: Migration execution
+**Why Stream and not just Iterator?**
+The `Stream<D, P>` type from `foundation_core::valtron` carries async semantics:
+```rust
+pub enum Stream<D, P> {
+    Init,              // Stream initializing
+    Ignore,            // Skip this item
+    Delayed(Duration), // Delay before next
+    Pending(P),        // Still working, here's progress context
+    Next(D),           // Here's a value
+}
+```
+This means streamed results are **fully Valtron-native** — consumers can compose them with Valtron combinators, feed them into `execute()`, or iterate directly. For in-memory backends, the iterator just yields `Stream::Next(value)` for each item. For network-backed or async-capable backends, it can yield `Stream::Pending(...)` between items.
 
-### Task Group 4: Cloudflare Backends (Optional/Phase 2)
+This also supports streaming bytes (`Stream<Vec<u8>, _>` or `Stream<Bytes, _>` for zero-copy) — consumers can merge, transform, or forward chunks without holding the entire blob in memory.
 
-- [ ] Create `src/backends/d1.rs`
-- [ ] Implement `D1Storage` for Cloudflare Workers
-- [ ] Create `src/backends/r2.rs`
-- [ ] Implement `R2Storage` for object storage
-- [ ] Implement `BlobStore` trait for R2
+**Type aliases (using `Stream` from `foundation_core::valtron`):**
+```rust
+use foundation_core::valtron::Stream;
 
-### Task Group 5: Security
+/// A Valtron stream of values from a storage operation.
+/// D = the item type, P = pending/progress type (unit () if no progress needed).
+pub type StorageItemStream<'a, T> = Box<dyn Iterator<Item = Stream<T, ()>> + 'a>;
+```
 
-- [ ] Create `src/crypto/mod.rs`
-- [ ] Implement encryption wrapper for sensitive values
-- [ ] Implement `src/crypto/zeroize.rs` helpers
-- [ ] Add optional encryption to all backends
-- [ ] Test: Encrypted storage and retrieval
+**NOTE:** `Stream<D, P>` is imported from `foundation_core::valtron` — do NOT redefine it. Use `()` for the `P` (pending) type parameter unless the backend has meaningful progress to report. If progress is needed later, a crate-level progress enum can be added as the `P` parameter.
 
-### Task Group 6: Integration
+### Crate-Owned Types for QueryStore
 
-- [ ] Create `tests/integration_tests.rs`
-- [ ] Test: Backend selection and switching
-- [ ] Test: Credential persistence across restarts
-- [ ] Run `cargo test --package foundation_db`
-- [ ] Run `cargo clippy --package foundation_db -- -D warnings`
+**Problem:** Current `QueryStore` leaks backend-specific types into public API. This couples all consumers to backend internals.
+
+**Solution:** Define crate-owned types:
+
+```rust
+/// A SQL parameter value (crate-owned, backend-agnostic).
+#[derive(Debug, Clone)]
+pub enum DataValue {
+    Null,
+    Integer(i64),
+    Real(f64),
+    Text(String),
+    Blob(Vec<u8>),
+}
+
+/// A single row from a SQL query result.
+#[derive(Debug, Clone)]
+pub struct DataRow {
+    columns: Vec<(String, DataValue)>,
+}
+
+impl DataRow {
+    pub fn get<T: FromDataValue>(&self, index: usize) -> StorageResult<T>;
+    pub fn get_by_name<T: FromDataValue>(&self, name: &str) -> StorageResult<T>;
+    pub fn column_count(&self) -> usize;
+}
+
+/// Trait for extracting typed values from DataValue.
+pub trait FromDataValue: Sized {
+    fn from_sql(value: &DataValue) -> StorageResult<Self>;
+}
+
+```
+
+Backend implementations convert from `turso::Value`/`turso::Row` into these owned types internally via private iterator wrappers.
+
+### Return Type Rules
+
+**`StorageResult<T>`** for single-value operations:
+- `get()`, `set()`, `delete()`, `exists()`, `execute()`, `execute_batch()`
+- These complete in one shot. The `Result` is the entire answer.
+
+**`StorageResult<StorageItemStream<'_, T>>`** for multi-value / streamed operations:
+- `query()` → stream of `DataRow` (row-by-row, lazy)
+- `list_keys()` → stream of `String` (key-by-key, lazy)
+- `get_blob()` → stream of `Vec<u8>` chunks (for zero-copy-friendly blob reads)
+
+The `StorageItemStream` is `Box<dyn Iterator<Item = Stream<T, ()>>>` — each item is a Valtron `Stream::Next(value)`. This means consumers can compose with Valtron combinators, merge streams, or iterate directly.
+
+**Where Vec is still correct:**
+- `Vec<u8>` for individual blob chunks — contiguous bytes
+- `SqlRow.columns: Vec<(String, DataValue)>` — small, bounded, random-access needed
+- `OAuthTokenRequest.form_params: Vec<(String, String)>` — small, bounded, consumed whole
+
+---
+
+### File: `Cargo.toml`
+
+**Current state:** Has `tokio`, `async-trait`, `turso` as direct deps.
+
+**Changes:**
+```
+REMOVE: tokio = { version = "1", features = ["rt", "sync", "time"] }
+REMOVE: async-trait = "0.1"
+REMOVE: thiserror = "2.0"  (BANNED — use derive_more::From + manual Display)
+KEEP: turso = "0.1"
+ADD:    turso = "0.1"
+
+REMOVE from [dev-dependencies]:
+  tokio = { version = "1", features = ["rt", "sync", "time", "macros", "test-util"] }
+
+ADD to [dev-dependencies]:
+  tracing-test = { version = "0.2", features = ["no-env-filter"] }
+  tempfile = "3"
+
+CHANGE [features]:
+  default = []
+  d1 = []
+  r2 = []
+```
+
+---
+
+### File: `src/errors.rs`
+
+**Current state:** Uses `derive_more::Display` with `#[display("...")]` attributes and manual `From` impls. Has manual `impl Error` with `source()`. This is **wrong** — the project convention is `derive_more::From` + manual `Display` (see Iron Law 5).
+
+**Changes — full rewrite to match project convention:**
+
+```rust
+use derive_more::From;
+
+/// WHY: Centralizes all storage error variants for consistent handling
+/// across all foundation_db backends.
+///
+/// WHAT: Enum of all error conditions in storage operations — connection,
+/// serialization, encryption, I/O, backend-specific, and SQL conversion.
+///
+/// HOW: `derive_more::From` auto-generates `From<T>` for nested error
+/// variants (Io, Json, Base64, Hex, Libsql, Turso). String-wrapping
+/// variants use `#[from(ignore)]` to avoid conflicting From impls.
+#[derive(From, Debug)]
+pub enum StorageError {
+    /// Backend-specific error.
+    #[from(ignore)]
+    Backend(String),
+
+    /// Connection failed.
+    #[from(ignore)]
+    Connection(String),
+
+    /// Key not found.
+    #[from(ignore)]
+    NotFound(String),
+
+    /// Serialization error.
+    #[from(ignore)]
+    Serialization(String),
+
+    /// Encryption error.
+    #[from(ignore)]
+    Encryption(String),
+
+    /// Migration error.
+    #[from(ignore)]
+    Migration(String),
+
+    /// SQL value conversion error.
+    #[from(ignore)]
+    SqlConversion(String),
+
+    /// Generic storage error.
+    #[from(ignore)]
+    Generic(String),
+
+    /// I/O error during filesystem operations.
+    Io(std::io::Error),
+
+    /// JSON serialization/deserialization error.
+    Json(serde_json::Error),
+
+    /// Base64 decoding error.
+    Base64(base64::DecodeError),
+
+    /// Hex decoding error.
+    Hex(hex::FromHexError),
+
+    /// Turso error.
+    Turso(turso::Error),
+}
+
+impl core::fmt::Display for StorageError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::Backend(s) => write!(f, "Backend error: {s}"),
+            Self::Connection(s) => write!(f, "Connection failed: {s}"),
+            Self::NotFound(s) => write!(f, "Key not found: {s}"),
+            Self::Serialization(s) => write!(f, "Serialization error: {s}"),
+            Self::Encryption(s) => write!(f, "Encryption error: {s}"),
+            Self::Migration(s) => write!(f, "Migration error: {s}"),
+            Self::SqlConversion(s) => write!(f, "SQL conversion error: {s}"),
+            Self::Generic(s) => write!(f, "Storage error: {s}"),
+            Self::Io(e) => write!(f, "IO error: {e}"),
+            Self::Json(e) => write!(f, "JSON error: {e}"),
+            Self::Base64(e) => write!(f, "Base64 error: {e}"),
+            Self::Hex(e) => write!(f, "Hex error: {e}"),
+            Self::Turso(e) => write!(f, "Turso error: {e}"),
+        }
+    }
+}
+
+impl std::error::Error for StorageError {}
+
+/// Result type alias for storage operations.
+pub type StorageResult<T> = Result<T, StorageError>;
+```
+
+**Key differences from current code:**
+- REMOVE: `use derive_more::Display;` — replaced by manual `impl Display`
+- REMOVE: all `#[display("...")]` attributes — manual Display handles formatting
+- REMOVE: all manual `From<T>` impls — `#[derive(From)]` auto-generates them
+- REMOVE: manual `source()` impl — not needed, simple `impl Error {}` suffices
+- ADD: `#[derive(From, Debug)]` on the enum
+- ADD: `#[from(ignore)]` on all `(String)` variants
+- ADD: `Turso(turso::Error)` variant (no feature gate needed — turso is always available)
+- ADD: `SqlConversion(String)` variant for `DataValue`/`SqlRow` conversion errors
+- ADD: manual `impl Display` matching all variants
+- REMOVE: `thiserror` from Cargo.toml (BANNED — see Iron Law 5)
+
+---
+
+### File: `src/storage_provider.rs`
+
+**Current state:**
+- All traits use `#[async_trait]` with `async fn`
+- `QueryStore::query()` returns `Vec<turso::Row>`, params are `Vec<turso::Value>`
+- `StorageProvider` has `async fn new()`
+- `StorageProvider` implements `KeyValueStore` via `#[async_trait]` with `.await`
+
+**Changes — Trait definitions (all become synchronous):**
+
+```rust
+// BEFORE:
+#[async_trait]
+pub trait KeyValueStore: Send + Sync {
+    async fn get<V: DeserializeOwned>(&self, key: &str) -> StorageResult<Option<V>>;
+    async fn set<V: Serialize + Send>(&self, key: &str, value: V) -> StorageResult<()>;
+    async fn delete(&self, key: &str) -> StorageResult<()>;
+    async fn exists(&self, key: &str) -> StorageResult<bool>;
+    async fn list_keys(&self, prefix: Option<&str>) -> StorageResult<Vec<String>>;
+}
+
+// AFTER — single-value ops return Result, multi-value ops return Result<Stream>:
+pub trait KeyValueStore: Send + Sync {
+    fn get<V: DeserializeOwned>(&self, key: &str) -> StorageResult<Option<V>>;
+    fn set<V: Serialize>(&self, key: &str, value: V) -> StorageResult<()>;
+    fn delete(&self, key: &str) -> StorageResult<()>;
+    fn exists(&self, key: &str) -> StorageResult<bool>;
+    fn list_keys(&self, prefix: Option<&str>) -> StorageResult<StorageItemStream<'_, String>>;
+}
+```
+
+```rust
+// BEFORE:
+#[async_trait]
+pub trait QueryStore: Send + Sync {
+    async fn query(&self, sql: &str, params: Vec<turso::Value>) -> StorageResult<Vec<turso::Row>>;
+    async fn execute(&self, sql: &str, params: Vec<turso::Value>) -> StorageResult<u64>;
+}
+
+// AFTER — query returns Result<Stream> (rows streamed), execute returns Result<u64>:
+pub trait QueryStore: Send + Sync {
+    fn query(&self, sql: &str, params: &[DataValue]) -> StorageResult<StorageItemStream<'_, SqlRow>>;
+    fn execute(&self, sql: &str, params: &[DataValue]) -> StorageResult<u64>;
+    fn execute_batch(&self, sql: &str) -> StorageResult<()>;
+}
+```
+
+```rust
+// BEFORE:
+#[async_trait]
+pub trait BlobStore: Send + Sync {
+    async fn put_blob(&self, key: &str, data: &[u8]) -> StorageResult<()>;
+    async fn get_blob(&self, key: &str) -> StorageResult<Option<Vec<u8>>>;
+    async fn delete_blob(&self, key: &str) -> StorageResult<()>;
+    async fn blob_exists(&self, key: &str) -> StorageResult<bool>;
+}
+
+// AFTER — put/delete/exists are single-value Results, get_blob streams chunks:
+pub trait BlobStore: Send + Sync {
+    fn put_blob(&self, key: &str, data: &[u8]) -> StorageResult<()>;
+    fn get_blob(&self, key: &str) -> StorageResult<Option<StorageItemStream<'_, Vec<u8>>>>;
+    fn delete_blob(&self, key: &str) -> StorageResult<()>;
+    fn blob_exists(&self, key: &str) -> StorageResult<bool>;
+}
+```
+
+```rust
+// BEFORE:
+#[async_trait]
+pub trait RateLimiterStore: Send + Sync { ... async fns ... }
+
+// AFTER — all single-value Results:
+pub trait RateLimiterStore: Send + Sync {
+    fn check_rate_limit(&self, key: &str, max_count: u32, window_seconds: u64) -> StorageResult<bool>;
+    fn record_rate_limit(&self, key: &str) -> StorageResult<u32>;
+    fn reset_rate_limit(&self, key: &str) -> StorageResult<()>;
+}
+```
+
+**Changes — StorageBackend enum:**
+
+```rust
+// BEFORE:
+pub enum StorageBackend {
+    Turso { url: String },
+    D1, R2 { bucket: String }, Memory,
+}
+
+// AFTER:
+pub enum StorageBackend {
+    Turso { url: String },
+    D1,
+    R2 { bucket: String },
+    /// JSON file on disk. `path` is the directory where JSON files are stored.
+    JsonFile { path: std::path::PathBuf },
+    Memory,
+}
+```
+
+**Changes — StorageProvider struct:**
+
+```rust
+// BEFORE:
+pub struct StorageProvider { inner: StorageProviderInner }
+enum StorageProviderInner {
+    Turso(Box<TursoStorage>),
+    D1, R2,
+    Memory(MemoryStorage),
+}
+impl StorageProvider {
+    pub async fn new(backend: StorageBackend) -> StorageResult<Self> { ... }
+}
+#[async_trait]
+impl KeyValueStore for StorageProvider { ... async fn ... .await ... }
+
+// AFTER:
+pub struct StorageProvider { inner: StorageProviderInner }
+enum StorageProviderInner {
+    Turso(Box<TursoStorage>),
+    D1, R2,
+    JsonFile(JsonFileStorage),
+    Memory(MemoryStorage),
+}
+impl StorageProvider {
+    pub fn new(backend: StorageBackend) -> StorageResult<Self> { ... } // SYNC
+    pub fn memory() -> Self { ... } // unchanged
+}
+impl KeyValueStore for StorageProvider {
+    fn get<V: DeserializeOwned>(&self, key: &str) -> StorageResult<Option<V>> {
+        match &self.inner {
+            StorageProviderInner::Turso(s) => s.get(key),
+            StorageProviderInner::JsonFile(s) => s.get(key),
+            StorageProviderInner::Memory(s) => s.get(key),
+            _ => Err(StorageError::Generic("Backend not implemented".into())),
+        }
+    }
+    // set, delete, exists: same pattern → StorageResult<T>
+    // list_keys: same pattern → StorageResult<StorageItemStream<'_, String>>
+}
+```
+
+**REMOVE:** `use async_trait::async_trait;` import
+
+---
+
+### File: `src/backends/mod.rs`
+
+**Current state:**
+```rust
+pub mod memory;
+pub mod turso;
+pub use memory::MemoryStorage;
+pub use turso::TursoStorage;
+```
+
+**After:**
+```rust
+pub mod json_file;
+pub mod memory;
+pub mod turso_backend;
+
+pub use json_file::JsonFileStorage;
+pub use memory::MemoryStorage;
+pub use turso_backend::TursoStorage;
+```
+
+---
+
+### File: `src/backends/memory.rs`
+
+**Current state:**
+- `data: tokio::sync::Mutex<HashMap<String, Zeroizing<Vec<u8>>>>`
+- All methods are `async fn` via `#[async_trait]`
+- `self.data.lock().await`
+- `QueryStore` impl returns `Err` with `turso::Value`/`turso::Row` in signature
+- Tests use `#[tokio::test]`
+
+**Changes:**
+```rust
+// BEFORE:
+use async_trait::async_trait;
+use crate::storage_provider::{KeyValueStore, QueryStore};
+pub struct MemoryStorage {
+    data: tokio::sync::Mutex<HashMap<String, Zeroizing<Vec<u8>>>>,
+}
+#[async_trait]
+impl KeyValueStore for MemoryStorage {
+    async fn get<V: DeserializeOwned>(&self, key: &str) -> StorageResult<Option<V>> {
+        let data = self.data.lock().await;
+        ...
+    }
+}
+#[async_trait]
+impl QueryStore for MemoryStorage {
+    async fn query(&self, _sql: &str, _params: Vec<turso::Value>) -> StorageResult<Vec<turso::Row>> {
+        Err(...)
+    }
+}
+
+// AFTER:
+use std::sync::Mutex;
+use foundation_core::valtron::Stream;
+use crate::storage_provider::{KeyValueStore, QueryStore, DataValue, SqlRow, StorageItemStream};
+pub struct MemoryStorage {
+    data: Mutex<HashMap<String, Zeroizing<Vec<u8>>>>,
+}
+impl KeyValueStore for MemoryStorage {
+    fn get<V: DeserializeOwned>(&self, key: &str) -> StorageResult<Option<V>> {
+        let data = self.data.lock().map_err(|e| StorageError::Generic(e.to_string()))?;
+        // direct Result — single value, no streaming needed
+        ...
+    }
+    fn list_keys(&self, prefix: Option<&str>) -> StorageResult<StorageItemStream<'_, String>> {
+        let data = self.data.lock().map_err(|e| StorageError::Generic(e.to_string()))?;
+        let keys: Vec<String> = data.keys()
+            .filter(|k| prefix.map(|p| k.starts_with(p)).unwrap_or(true))
+            .cloned().collect();
+        // Wrap collected keys as a Stream iterator — each key is Stream::Next(key)
+        Ok(Box::new(keys.into_iter().map(Stream::Next)))
+    }
+}
+impl QueryStore for MemoryStorage {
+    fn query(&self, _sql: &str, _params: &[DataValue]) -> StorageResult<StorageItemStream<'_, SqlRow>> {
+        Err(StorageError::Generic("QueryStore not supported for MemoryStorage".into()))
+    }
+    fn execute(&self, _sql: &str, _params: &[DataValue]) -> StorageResult<u64> {
+        Err(StorageError::Generic("QueryStore not supported for MemoryStorage".into()))
+    }
+    fn execute_batch(&self, _sql: &str) -> StorageResult<()> {
+        Err(StorageError::Generic("QueryStore not supported for MemoryStorage".into()))
+    }
+}
+```
+
+**Tests change:**
+```rust
+// BEFORE:
+#[tokio::test]
+async fn test_memory_storage_basic() {
+    let storage = MemoryStorage::new();
+    storage.set("test_key", "test_value").await.unwrap();
+    let value: String = storage.get("test_key").await.unwrap().unwrap();
+
+// AFTER:
+#[test]
+fn test_memory_storage_basic() {
+    let storage = MemoryStorage::new();
+    storage.set("test_key", "test_value").unwrap();
+    let value: String = storage.get("test_key").unwrap().unwrap();
+```
+
+---
+
+### File: `src/backends/json_file.rs` (NEW)
+
+**Status:** New file, always available (no feature flag — like `memory.rs`).
+
+**Purpose:** Simple JSON-on-disk key-value store for lightweight persistence. Useful when you need data to survive restarts but don't need SQL, edge sync, or a database dependency. Good for CLI tools, local config, small credential stores, and development.
+
+**Design:**
+- Single JSON file per `JsonFileStorage` instance (path provided at construction)
+- File stores a `HashMap<String, serde_json::Value>` serialized as a JSON object
+- Reads load the entire file into memory, writes flush the entire file back
+- Atomic writes: write to `{path}.tmp` then `std::fs::rename()` for crash safety
+- `Mutex<HashMap<...>>` in-memory cache — reads hit cache, writes flush to disk
+- Implements `KeyValueStore` only (no `QueryStore`, no `BlobStore`)
+- `Zeroizing` for in-memory values of sensitive data
+
+**Implementation:**
+
+```rust
+use std::collections::HashMap;
+use std::path::{Path, PathBuf};
+use std::sync::Mutex;
+
+use serde::{de::DeserializeOwned, Serialize};
+use zeroize::Zeroizing;
+
+use crate::errors::{StorageError, StorageResult};
+use crate::storage_provider::{KeyValueStore, StorageItemStream};
+use foundation_core::valtron::Stream;
+
+/// WHY: Provides lightweight persistent storage without SQL dependencies.
+///
+/// WHAT: A JSON-on-disk key-value store that reads/writes a single JSON file.
+/// Values are serialized as JSON and cached in memory with a Mutex.
+///
+/// HOW: On construction, loads the file if it exists. On write, flushes the
+/// entire HashMap to disk via atomic temp-file + rename.
+///
+/// # Errors
+/// Returns `StorageError::Io` for filesystem failures, `StorageError::Serialization`
+/// for JSON parse/write failures.
+///
+/// # Panics
+/// Never panics.
+pub struct JsonFileStorage {
+    path: PathBuf,
+    data: Mutex<HashMap<String, Zeroizing<Vec<u8>>>>,
+}
+
+impl JsonFileStorage {
+    /// Create or open a JSON file store at the given path.
+    /// If the file exists, its contents are loaded into memory.
+    /// If the file does not exist, starts with an empty store.
+    pub fn new(path: impl Into<PathBuf>) -> StorageResult<Self> {
+        let path = path.into();
+        let data = if path.exists() {
+            let bytes = std::fs::read(&path)?;
+            let map: HashMap<String, serde_json::Value> = serde_json::from_slice(&bytes)?;
+            map.into_iter()
+                .map(|(k, v)| {
+                    let bytes = serde_json::to_vec(&v)
+                        .map_err(|e| StorageError::Serialization(e.to_string()))?;
+                    Ok((k, Zeroizing::new(bytes)))
+                })
+                .collect::<StorageResult<HashMap<_, _>>>()?
+        } else {
+            HashMap::new()
+        };
+        Ok(Self {
+            path,
+            data: Mutex::new(data),
+        })
+    }
+
+    /// Flush in-memory state to disk atomically.
+    fn flush(&self, data: &HashMap<String, Zeroizing<Vec<u8>>>) -> StorageResult<()> {
+        // Rebuild as JSON object for human-readable file
+        let map: HashMap<&str, serde_json::Value> = data
+            .iter()
+            .map(|(k, v)| {
+                let val: serde_json::Value = serde_json::from_slice(v)
+                    .map_err(|e| StorageError::Serialization(e.to_string()))?;
+                Ok((k.as_str(), val))
+            })
+            .collect::<StorageResult<_>>()?;
+
+        let bytes = serde_json::to_vec_pretty(&map)?;
+
+        // Atomic write: temp file + rename
+        let tmp_path = self.path.with_extension("tmp");
+        std::fs::write(&tmp_path, &bytes)?;
+        std::fs::rename(&tmp_path, &self.path)?;
+        Ok(())
+    }
+}
+
+impl KeyValueStore for JsonFileStorage {
+    fn get<V: DeserializeOwned>(&self, key: &str) -> StorageResult<Option<V>> {
+        let data = self.data.lock()
+            .map_err(|e| StorageError::Generic(e.to_string()))?;
+        match data.get(key) {
+            Some(bytes) => Ok(Some(serde_json::from_slice(bytes)?)),
+            None => Ok(None),
+        }
+    }
+
+    fn set<V: Serialize>(&self, key: &str, value: V) -> StorageResult<()> {
+        let bytes = serde_json::to_vec(&value)?;
+        let mut data = self.data.lock()
+            .map_err(|e| StorageError::Generic(e.to_string()))?;
+        data.insert(key.to_string(), Zeroizing::new(bytes));
+        self.flush(&data)
+    }
+
+    fn delete(&self, key: &str) -> StorageResult<()> {
+        let mut data = self.data.lock()
+            .map_err(|e| StorageError::Generic(e.to_string()))?;
+        data.remove(key);
+        self.flush(&data)
+    }
+
+    fn exists(&self, key: &str) -> StorageResult<bool> {
+        let data = self.data.lock()
+            .map_err(|e| StorageError::Generic(e.to_string()))?;
+        Ok(data.contains_key(key))
+    }
+
+    fn list_keys(&self, prefix: Option<&str>) -> StorageResult<StorageItemStream<'_, String>> {
+        let data = self.data.lock()
+            .map_err(|e| StorageError::Generic(e.to_string()))?;
+        let keys: Vec<String> = data.keys()
+            .filter(|k| prefix.map_or(true, |p| k.starts_with(p)))
+            .cloned()
+            .collect();
+        Ok(Box::new(keys.into_iter().map(Stream::Next)))
+    }
+}
+
+impl Drop for JsonFileStorage {
+    fn drop(&mut self) {
+        // Zeroize all in-memory data (Zeroizing<Vec<u8>> handles this automatically)
+        if let Ok(mut data) = self.data.lock() {
+            data.clear();
+        }
+    }
+}
+```
+
+**Characteristics:**
+- **No feature flag** — always available, zero external dependencies beyond serde/serde_json (already required)
+- **No QueryStore** — returns `StorageError::Generic("QueryStore not supported")` if wired through `StorageProvider` (same pattern as `MemoryStorage`)
+- **Atomic writes** — crash during write leaves old file intact (rename is atomic on POSIX)
+- **Human-readable** — `to_vec_pretty` makes the on-disk file inspectable
+- **Flush on every write** — simple durability guarantee; no write buffering
+- **Parent directory** — caller is responsible for ensuring the parent directory exists
+
+**When to use over MemoryStorage:**
+- Data must survive process restarts
+- No SQL needed, just key-value
+- No external database dependency acceptable (e.g., CLI tools, local dev)
+- Small-to-medium dataset (entire store fits comfortably in memory)
+
+**When NOT to use:**
+- Large datasets (>100MB) — use Turso instead
+- Concurrent multi-process access — no file locking (single process only)
+- Need SQL queries — use Turso
+
+---
+
+### File: `src/backends/turso_backend.rs`
+
+**Current state:**
+- Struct `TursoStorage` with Turso connection
+- All methods `async fn` via `#[async_trait]`
+- Uses async API with `.await`
+- Returns `turso::Row` directly from `QueryStore::query()`
+- Tests use `#[tokio::test]`
+
+**Changes:**
+
+1. **Keep** file as `turso_backend.rs`
+2. **Keep** struct `TursoStorage`
+3. **Remove** `async_trait` import
+4. **All methods become synchronous** — Turso sync API:
+
+```rust
+// BEFORE:
+pub struct TursoStorage { conn: turso::Connection }
+impl TursoStorage {
+    pub async fn new(url: &str) -> StorageResult<Self> { ... }
+    pub async fn init_schema(&self) -> StorageResult<()> {
+        self.conn.execute_batch(schema_sql).await?;
+    }
+    pub async fn migrate(&self, migrations: &[(&str, &str)]) -> StorageResult<()> {
+        ...stmt.query([id.to_string()]).await?;
+        ...self.conn.execute_batch(sql).await?;
+    }
+}
+#[async_trait]
+impl KeyValueStore for TursoStorage {
+    async fn get<V: DeserializeOwned>(&self, key: &str) -> StorageResult<Option<V>> {
+        let mut stmt = self.conn.prepare("...").await?;
+        let mut rows = stmt.query([key.to_string()]).await?;
+        if let Some(row) = rows.next().await? { ... }
+    }
+}
+#[async_trait]
+impl QueryStore for TursoStorage {
+    async fn query(&self, sql: &str, params: Vec<turso::Value>) -> StorageResult<Vec<turso::Row>> {
+        let mut stmt = self.conn.prepare(sql).await?;
+        let mut rows = stmt.query(params_vec).await?;
+        while let Some(row) = rows.next().await? { results.push(row); }
+    }
+}
+
+// AFTER:
+use crate::storage_provider::{DataValue, SqlRow, FromDataValue};
+
+pub struct TursoStorage { conn: turso::Connection }
+
+impl TursoStorage {
+    pub fn new(url: &str) -> StorageResult<Self> {
+        let conn = turso::Connection::open(url)?;
+        Ok(Self { conn })
+    }
+    pub fn init_schema(&self) -> StorageResult<()> {
+        // Turso sync API - blocking execute_batch
+        self.conn.execute_batch(schema_sql).map_err(StorageError::from)?;
+        Ok(())
+    }
+}
+
+impl KeyValueStore for TursoStorage {
+    fn get<V: DeserializeOwned>(&self, key: &str) -> StorageResult<Option<V>> {
+        let mut stmt = self.conn.prepare("SELECT value FROM kv_store WHERE key = ?")?;
+        let mut rows = stmt.query([key.to_string()])?;
+        if let Some(row) = rows.next()? {
+            let value: String = row.get(0)?;
+            Ok(Some(serde_json::from_str(&value)?))
+        } else {
+            Ok(None)
+        }
+    }
+    // ... same pattern for set, delete, exists, list_keys
+}
+
+impl QueryStore for TursoStorage {
+    fn query(&self, sql: &str, params: &[DataValue]) -> StorageResult<StorageItemStream<'_, SqlRow>> {
+        let turso_params = to_turso_params(params);
+        let stmt = self.conn.prepare(sql)?;
+        let rows = stmt.query(turso_params)?;
+        // Wrap turso::Rows as a lazy Stream iterator — each row is Stream::Next(SqlRow)
+        Ok(Box::new(TursoRowIter::new(rows)))
+        // TursoRowIter implements Iterator<Item = Stream<SqlRow, ()>>
+        // Each next() call: rows.next()? → Some(row) → Stream::Next(turso_row_to_sql_row(row))
+        //                                → None → iterator ends
+    }
+    fn execute(&self, sql: &str, params: &[DataValue]) -> StorageResult<u64> {
+        let turso_params = to_turso_params(params);
+        Ok(self.conn.execute(sql, turso_params)? as u64)
+    }
+    fn execute_batch(&self, sql: &str) -> StorageResult<()> {
+        self.conn.execute_batch(sql)?;
+        Ok(())
+    }
+}
+
+/// Convert crate-owned DataValue to turso::Value (private helper).
+fn to_turso_params(params: &[DataValue]) -> Vec<turso::Value> { ... }
+
+/// Convert turso::Row to crate-owned SqlRow (private helper).
+fn turso_row_to_sql_row(row: turso::Row) -> StorageResult<SqlRow> { ... }
+```
+
+**NOTE on Turso sync API:** The Turso crate exposes both sync and async APIs. We use the sync API exclusively to maintain compatibility with the Valtron-only async pattern (Iron Law 3). See: https://github.com/tursodatabase/turso/blob/main/sdk-kit/README.md
+
+**Tests change:** Same as memory — `#[tokio::test]` → `#[test]`, remove `.await`.
+
+---
+
+### File: `src/schema/migrations.rs`
+
+**Current state:**
+- `MigrationRunner::run()` is `async fn` taking `&mut dyn QueryStore`
+- Uses `turso::Value::Text(...)` directly for params
+- Uses `.await` on `store.query()` and `store.execute()`
+
+**Changes:**
+```rust
+// BEFORE:
+pub async fn run(&self, store: &mut dyn QueryStore) -> StorageResult<usize> {
+    let rows = store.query("SELECT 1 FROM _migrations WHERE id = ?",
+        vec![turso::Value::Text(migration.id.to_string())]).await?;
+    store.execute(migration.sql, vec![]).await?;
+    store.execute("INSERT INTO _migrations (id, name) VALUES (?, ?)",
+        vec![turso::Value::Text(...), turso::Value::Text(...)]).await?;
+}
+
+// AFTER:
+pub fn run(&self, store: &dyn QueryStore) -> StorageResult<usize> {
+    let mut rows = store.query("SELECT 1 FROM _migrations WHERE id = ?",
+        &[DataValue::Text(migration.id.to_string())])?;
+    // rows is StorageItemStream<'_, SqlRow> — check if any Stream::Next exists
+    let exists = rows.any(|s| matches!(s, Stream::Next(_)));
+    if !exists {
+        store.execute_batch(migration.sql)?;
+        store.execute("INSERT INTO _migrations (id, name) VALUES (?, ?)",
+            &[DataValue::Text(...), DataValue::Text(...)])?;
+        count += 1;
+    }
+}
+```
+
+---
+
+### File: `src/lib.rs`
+
+**Current state:** Unconditional `mod backends; pub use backends::*;`
+
+**Changes:**
+- Keep `mod backends`, `mod crypto`, `mod errors`, `mod schema`, `mod storage_provider`
+- Add `pub use storage_provider::{DataValue, SqlRow, FromDataValue};` to public API
+- Remove any dead_code/unused allows that were for async artifacts
+- Conditional re-exports handled in `backends/mod.rs` already
+
+---
+
+### File: `src/crypto/` (encryption.rs, zeroize.rs, mod.rs)
+
+**No changes needed.** These are already synchronous with no tokio/async-trait dependency.
+
+---
+
+## foundation_auth Detailed Change Plan
+
+### File: `Cargo.toml`
+
+**Current state:** Has `tokio`, `async-trait`, `reqwest`.
+
+**Changes:**
+```
+REMOVE: tokio = { version = "1", features = ["sync", "time"] }
+REMOVE: async-trait = "0.1"
+REMOVE: reqwest = { version = "0.12", features = ["json"] }
+
+REMOVE from [dev-dependencies]:
+  tokio = { version = "1", features = ["rt", "rt-multi-thread", "macros"] }
+
+ADD to [dev-dependencies]:
+  tracing-test = { version = "0.2", features = ["no-env-filter"] }
+```
+
+**Note on reqwest removal:** OAuth `exchange_code`, `client_credentials`, `refresh_token` currently use `reqwest::Client`. These should be refactored to accept an HTTP client trait or use `foundation_core::wire::simple_http` — but the HTTP execution itself is the caller's responsibility. The OAuth module should **build the request** (URL, headers, body) and **parse the response**, not execute HTTP internally.
+
+---
+
+### File: `src/credential_store.rs`
+
+**Current state:**
+- `CredentialStore` trait: `#[async_trait]` with 5 `async fn` methods
+- `TursoCredentialStore::new()`: `async fn` calling `StorageProvider::new().await`
+- `TursoCredentialStore` impl: `#[async_trait]` with `.await` on every storage call
+- `MemoryCredentialStore` impl: same pattern
+- `OAuthTokenStore` trait: `#[async_trait]` with default `async fn` methods
+- `impl<T: CredentialStore> OAuthTokenStore for T {}` with `#[async_trait]`
+- Tests: 4x `#[tokio::test] async fn`
+
+**Changes — CredentialStore trait:**
+```rust
+// BEFORE:
+#[async_trait]
+pub trait CredentialStore: Send + Sync {
+    async fn get<V: for<'de> Deserialize<'de> + Send>(&self, key: &str) -> Result<Option<V>, CredentialStoreError>;
+    async fn set<V: Serialize + Send>(&self, key: &str, value: V) -> Result<(), CredentialStoreError>;
+    async fn delete(&self, key: &str) -> Result<(), CredentialStoreError>;
+    async fn exists(&self, key: &str) -> Result<bool, CredentialStoreError>;
+    async fn list_keys(&self, prefix: Option<&str>) -> Result<Vec<String>, CredentialStoreError>;
+}
+
+// AFTER — single-value ops are Result, list_keys returns Result<Stream iterator>:
+pub trait CredentialStore: Send + Sync {
+    fn get<V: for<'de> Deserialize<'de>>(&self, key: &str) -> Result<Option<V>, CredentialStoreError>;
+    fn set<V: Serialize>(&self, key: &str, value: V) -> Result<(), CredentialStoreError>;
+    fn delete(&self, key: &str) -> Result<(), CredentialStoreError>;
+    fn exists(&self, key: &str) -> Result<bool, CredentialStoreError>;
+    fn list_keys(&self, prefix: Option<&str>) -> Result<StorageItemStream<'_, String>, CredentialStoreError>;
+    // StorageItemStream<'_, String> = Box<dyn Iterator<Item = Stream<String, ()>> + '_>
+    // Re-exported from foundation_db
+}
+```
+
+**Changes — TursoCredentialStore:**
+```rust
+// BEFORE:
+impl TursoCredentialStore {
+    pub async fn new(url: &str) -> Result<Self, CredentialStoreError> {
+        let storage = StorageProvider::new(StorageBackend::Turso { url: url.to_string() }).await?;
+        Ok(Self { storage })
+    }
+}
+#[async_trait]
+impl CredentialStore for TursoCredentialStore {
+    async fn get<V: ...>(&self, key: &str) -> ... {
+        self.storage.get(key).await.map_err(...)
+    }
+}
+
+// AFTER:
+impl TursoCredentialStore {
+    pub fn new(url: &str) -> Result<Self, CredentialStoreError> {
+        let storage = StorageProvider::new(StorageBackend::Libsql { url: url.to_string() })?;
+        Ok(Self { storage })
+    }
+}
+impl CredentialStore for TursoCredentialStore {
+    fn get<V: ...>(&self, key: &str) -> ... {
+        self.storage.get(key).map_err(...)
+    }
+}
+```
+
+**Changes — MemoryCredentialStore:** Same pattern, remove `async`/`.await`.
+
+**Changes — OAuthTokenStore trait:**
+```rust
+// BEFORE:
+#[async_trait]
+pub trait OAuthTokenStore: CredentialStore {
+    async fn store_oauth_token(&self, provider: &str, token: &OAuthToken) -> Result<...> {
+        self.set(&key, token).await
+    }
+    // ... 5 more async fn ...
+}
+#[async_trait]
+impl<T: CredentialStore> OAuthTokenStore for T {}
+
+// AFTER:
+pub trait OAuthTokenStore: CredentialStore {
+    fn store_oauth_token(&self, provider: &str, token: &OAuthToken) -> Result<...> {
+        self.set(&key, token)
+    }
+    // ... 5 more sync fn ...
+}
+impl<T: CredentialStore> OAuthTokenStore for T {}
+```
+
+**Tests:** `#[tokio::test] async fn` → `#[test] fn`, remove all `.await`.
+
+---
+
+### File: `src/jwt.rs`
+
+**Current state:**
+- `JwtToken`, `Claims`, `JwtError` — all synchronous, no changes needed
+- `JwtManager::get_valid_token()` — `async fn` taking `F: FnOnce(String) -> Fut` where `Fut: Future`
+- `JwtManager::refresh_if_needed()` — same pattern
+- 1 test uses `#[tokio::test]`
+
+**Changes:**
+```rust
+// BEFORE:
+pub async fn get_valid_token<F, Fut>(&mut self, refresh_fn: F) -> Result<String, JwtError>
+where
+    F: FnOnce(String) -> Fut,
+    Fut: std::future::Future<Output = Result<JwtToken, JwtError>>,
+{
+    let new_token = refresh_fn(refresh_token).await?;
+}
+
+// AFTER:
+pub fn get_valid_token<F>(&mut self, refresh_fn: F) -> Result<String, JwtError>
+where
+    F: FnOnce(String) -> Result<JwtToken, JwtError>,
+{
+    let new_token = refresh_fn(refresh_token)?;
+}
+```
+
+Same for `refresh_if_needed()`.
+
+**Test change:**
+```rust
+// BEFORE:
+#[tokio::test]
+async fn test_jwt_manager_refresh() {
+    let refresh_fn = |_refresh_token: String| async { Ok(JwtToken::from_parts(...)) };
+    let refreshed = manager.refresh_if_needed(refresh_fn).await.unwrap();
+}
+
+// AFTER:
+#[test]
+fn test_jwt_manager_refresh() {
+    let refresh_fn = |_refresh_token: String| Ok(JwtToken::from_parts(...));
+    let refreshed = manager.refresh_if_needed(refresh_fn).unwrap();
+}
+```
+
+---
+
+### File: `src/oauth.rs`
+
+**Current state:**
+- `OAuthConfig`, `PkceChallenge`, `OAuthToken`, `OAuthError` — all synchronous, no changes needed
+- `OAuthManager::get_authorization_url()` — already sync, no changes
+- `OAuthManager::exchange_code()` — `async fn` using `reqwest::Client` internally
+- `OAuthManager::client_credentials()` — `async fn` using `reqwest::Client`
+- `OAuthManager::refresh_token()` — `async fn` using `reqwest::Client`
+- All sync tests — no changes needed
+
+**Changes — Refactor HTTP-dependent methods to build request, not execute it:**
+
+The three async methods (`exchange_code`, `client_credentials`, `refresh_token`) currently:
+1. Build form params
+2. Send HTTP request via reqwest
+3. Parse response
+
+After refactoring, they split into:
+- **Build:** returns a request struct (URL, method, form params)
+- **Parse:** takes response body, returns `OAuthToken`
+
+```rust
+// NEW: Request/Response types for OAuth token exchange
+pub struct OAuthTokenRequest {
+    pub url: String,
+    pub method: &'static str, // "POST"
+    pub form_params: Vec<(String, String)>,
+}
+
+// BEFORE:
+pub async fn exchange_code(&self, code: &str, code_verifier: Option<&str>) -> Result<OAuthToken, OAuthError> {
+    let client = reqwest::Client::new();
+    let response = client.post(&self.config.token_url).form(&params).send().await?;
+    let token_response: TokenResponse = response.json().await?;
+    Ok(OAuthToken { ... })
+}
+
+// AFTER:
+/// Build the token exchange request. Caller is responsible for HTTP execution.
+pub fn build_exchange_code_request(&self, code: &str, code_verifier: Option<&str>) -> Result<OAuthTokenRequest, OAuthError> {
+    self.config.validate()?;
+    let mut params = vec![
+        ("grant_type".into(), "authorization_code".into()),
+        ("code".into(), code.into()),
+        ("redirect_uri".into(), self.config.redirect_uri.clone()),
+        ("client_id".into(), self.config.client_id.clone()),
+    ];
+    if let Some(ref secret) = self.config.client_secret {
+        params.push(("client_secret".into(), secret.clone()));
+    }
+    if let Some(verifier) = code_verifier {
+        params.push(("code_verifier".into(), verifier.into()));
+    }
+    Ok(OAuthTokenRequest {
+        url: self.config.token_url.clone(),
+        method: "POST",
+        form_params: params,
+    })
+}
+
+/// Parse a token endpoint response body into an OAuthToken.
+pub fn parse_token_response(body: &[u8]) -> Result<OAuthToken, OAuthError> {
+    let token_response: TokenResponse = serde_json::from_slice(body)
+        .map_err(|e| OAuthError::TokenParseError(e.to_string()))?;
+    Ok(OAuthToken { ... })
+}
+```
+
+Same pattern for `client_credentials()` → `build_client_credentials_request()` and `refresh_token()` → `build_refresh_token_request()`.
+
+**REMOVE:** `use reqwest` import. Remove `reqwest` from Cargo.toml.
+
+---
+
+### File: `src/lib.rs`
+
+**Current state:** Already mostly fine. Uses `StreamIterator` from foundation_core.
+
+**Changes:**
+- Update `pub use credential_store::TursoCredentialStore` — struct name stays the same (it's the auth store that uses Turso, name doesn't need to match the DB backend)
+- No other changes needed — types, enums, traits are already sync
+
+---
+
+## Tasks (Implementation Order)
+
+### Phase 1: foundation_db (no code dependencies on foundation_auth)
+
+1. [ ] Update `Cargo.toml` — remove tokio/async-trait, add turso
+2. [ ] Add `DataValue`, `SqlRow`, `FromDataValue` types to `storage_provider.rs`
+3. [ ] Rewrite all traits in `storage_provider.rs` — remove async, use owned types
+4. [ ] Update `errors.rs` — add Turso error variant
+5. [ ] Rewrite `backends/memory.rs` — `std::sync::Mutex`, sync trait impls
+6. [ ] Update `backends/turso_backend.rs` — sync impls, conversion helpers
+7. [ ] Update `backends/mod.rs` — module exports
+8. [ ] Rewrite `schema/migrations.rs` — sync, use `DataValue` instead of `turso::Value`
+9. [ ] Update `lib.rs` — add new public type exports
+10. [ ] Verify: `cargo check --package foundation_db`
+
+### Phase 2: foundation_auth (depends on foundation_db changes)
+
+11. [ ] Update `Cargo.toml` — remove tokio/async-trait/reqwest
+12. [ ] Rewrite `credential_store.rs` — all traits and impls sync
+13. [ ] Rewrite `jwt.rs` — `get_valid_token`/`refresh_if_needed` take sync closures
+14. [ ] Refactor `oauth.rs` — split HTTP methods into build_request + parse_response
+15. [ ] Update `lib.rs` if needed
+16. [ ] Verify: `cargo check --package foundation_auth`
+
+### Phase 3: Verification
+
+17. [ ] `cargo clippy --package foundation_db -- -D warnings`
+18. [ ] `cargo clippy --package foundation_auth -- -D warnings`
+19. [ ] `cargo test --package foundation_db`
+20. [ ] `cargo test --package foundation_auth`
 
 ## Testing
 
@@ -685,18 +1867,22 @@ Example usage in foundation_auth:
 ```rust
 use foundation_db::{StorageProvider, StorageBackend};
 
-let storage = StorageProvider::new(StorageBackend::Turso {
+// StorageProvider::new is synchronous — opens DB connection directly
+let storage = StorageProvider::new(StorageBackend::Libsql {
     url: "file:auth.db".to_string(),
-}).await?;
+})?;
 
-let mut credential_store = TursoCredentialStore::new(storage);
-credential_store.store("oauth:provider1", credentials).await?;
+// CredentialStore wraps foundation_db's synchronous KeyValueStore/QueryStore traits.
+// No TaskIterator needed — storage operations are already synchronous.
+let credential_store = LibsqlCredentialStore::new(storage);
+credential_store.store("oauth:provider1", credentials)?;
+let cred = credential_store.get("oauth:provider1")?;
 ```
 
 ## References
 
 - [Turso Documentation](https://turso.tech/docs)
-- [libsql GitHub](https://github.com/libsql/libsql)
+- [Turso SDK](https://github.com/tursodatabase/turso/blob/main/sdk-kit/README.md)
 - [Cloudflare D1 Docs](https://developers.cloudflare.com/d1/)
 - [Cloudflare R2 Docs](https://developers.cloudflare.com/r2/)
 - [Zeroize Crate](https://docs.rs/zeroize/)
@@ -704,4 +1890,4 @@ credential_store.store("oauth:provider1", credentials).await?;
 ---
 
 _Created: 2026-03-20_
-_Last Updated: 2026-03-20_
+_Last Updated: 2026-03-28 (Iron Laws: no tokio/async-trait, Turso sync backend, Valtron-only async)_

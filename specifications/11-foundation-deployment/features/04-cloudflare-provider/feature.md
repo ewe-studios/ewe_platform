@@ -20,6 +20,15 @@ tasks:
 
 # Cloudflare Provider
 
+## Iron Law: Zero Warnings
+
+> **All code must compile with zero warnings and pass all lints. No suppression. No exceptions.**
+>
+> - `cargo clippy -p foundation_deployment -- -D warnings -W clippy::pedantic` — zero warnings
+> - `cargo doc -p foundation_deployment --no-deps` — zero rustdoc warnings
+> - `cargo test -p foundation_deployment` — zero compilation warnings
+> - **No `#[allow(...)]`, `#[expect(...)]`, or `#![allow(...)]` anywhere.** Fix the code, never suppress.
+
 ## Overview
 
 Implement the Cloudflare Workers deployment provider. This provider is **API-first** — it deploys by calling the Cloudflare REST API directly via `SimpleHttpClient`, with no CLI tools required.
@@ -496,6 +505,9 @@ pub struct CloudflareResources {
 ## Success Criteria
 
 - [ ] All 7 tasks completed
+- [ ] `cargo clippy -p foundation_deployment -- -D warnings -W clippy::pedantic` — zero warnings, zero suppression
+- [ ] `cargo doc -p foundation_deployment --no-deps` — zero rustdoc warnings
+- [ ] No `#[allow(...)]` or `#[expect(...)]` anywhere in the code
 - [ ] wrangler.toml parsing handles all common configurations
 - [ ] CLI mode deploys successfully
 - [ ] API mode deploys successfully
