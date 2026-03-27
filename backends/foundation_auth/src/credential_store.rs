@@ -1,28 +1,26 @@
 //! Credential storage module wrapping foundation_db.
 
-use async_trait::async_trait;
 use foundation_db::{KeyValueStore, StorageBackend, StorageProvider, StorageError};
 use serde::{Deserialize, Serialize};
 
 use crate::oauth::OAuthToken;
 
 /// Credential store trait for persistent credential storage.
-#[async_trait]
 pub trait CredentialStore: Send + Sync {
     /// Get a credential by key.
-    async fn get<V: for<'de> Deserialize<'de> + Send>(&self, key: &str) -> Result<Option<V>, CredentialStoreError>;
+    fn get<V: for<'de> Deserialize<'de>>(&self, key: &str) -> Result<Option<V>, CredentialStoreError>;
 
     /// Set a credential.
-    async fn set<V: Serialize + Send>(&self, key: &str, value: V) -> Result<(), CredentialStoreError>;
+    fn set<V: Serialize>(&self, key: &str, value: V) -> Result<(), CredentialStoreError>;
 
     /// Delete a credential.
-    async fn delete(&self, key: &str) -> Result<(), CredentialStoreError>;
+    fn delete(&self, key: &str) -> Result<(), CredentialStoreError>;
 
     /// Check if a credential exists.
-    async fn exists(&self, key: &str) -> Result<bool, CredentialStoreError>;
+    fn exists(&self, key: &str) -> Result<bool, CredentialStoreError>;
 
     /// List credentials with optional prefix.
-    async fn list_keys(&self, prefix: Option<&str>) -> Result<Vec<String>, CredentialStoreError>;
+    fn list_keys(&self, prefix: Option<&str>) -> Result<Vec<String>, CredentialStoreError>;
 }
 
 /// Credential store error type.
@@ -49,11 +47,10 @@ pub struct TursoCredentialStore {
 
 impl TursoCredentialStore {
     /// Create a new Turso credential store.
-    pub async fn new(url: &str) -> Result<Self, CredentialStoreError> {
+    pub fn new(url: &str) -> Result<Self, CredentialStoreError> {
         let storage = StorageProvider::new(StorageBackend::Turso {
             url: url.to_string(),
-        })
-        .await?;
+        })?;
 
         Ok(Self { storage })
     }
@@ -65,51 +62,45 @@ impl TursoCredentialStore {
     }
 
     /// Initialize the database schema.
-    #[allow(clippy::unused_async)]
-    pub async fn init_schema(&self) -> Result<(), CredentialStoreError> {
+    pub fn init_schema(&self) -> Result<(), CredentialStoreError> {
         // The Turso backend already creates the kv_store table
         // Additional auth-specific tables can be added via migrations
         Ok(())
     }
 }
 
-#[async_trait]
 impl CredentialStore for TursoCredentialStore {
-    async fn get<V: for<'de> Deserialize<'de> + Send>(&self, key: &str) -> Result<Option<V>, CredentialStoreError> {
+    fn get<V: for<'de> Deserialize<'de>>(&self, key: &str) -> Result<Option<V>, CredentialStoreError> {
         self.storage
             .get(key)
-            .await
             .map_err(|e| match e {
                 StorageError::NotFound(_) => CredentialStoreError::NotFound(key.to_string()),
                 _ => CredentialStoreError::Storage(e),
             })
     }
 
-    async fn set<V: Serialize + Send>(&self, key: &str, value: V) -> Result<(), CredentialStoreError> {
+    fn set<V: Serialize>(&self, key: &str, value: V) -> Result<(), CredentialStoreError> {
         self.storage
             .set(key, value)
-            .await
             .map_err(CredentialStoreError::Storage)
     }
 
-    async fn delete(&self, key: &str) -> Result<(), CredentialStoreError> {
+    fn delete(&self, key: &str) -> Result<(), CredentialStoreError> {
         self.storage
             .delete(key)
-            .await
             .map_err(CredentialStoreError::Storage)
     }
 
-    async fn exists(&self, key: &str) -> Result<bool, CredentialStoreError> {
+    fn exists(&self, key: &str) -> Result<bool, CredentialStoreError> {
         self.storage
             .exists(key)
-            .await
             .map_err(CredentialStoreError::Storage)
     }
 
-    async fn list_keys(&self, prefix: Option<&str>) -> Result<Vec<String>, CredentialStoreError> {
+    fn list_keys(&self, prefix: Option<&str>) -> Result<Vec<String>, CredentialStoreError> {
         self.storage
             .list_keys(prefix)
-            .await
+            .map(|stream| stream.collect())
             .map_err(CredentialStoreError::Storage)
     }
 }
@@ -135,74 +126,68 @@ impl Default for MemoryCredentialStore {
     }
 }
 
-#[async_trait]
 impl CredentialStore for MemoryCredentialStore {
-    async fn get<V: for<'de> Deserialize<'de> + Send>(&self, key: &str) -> Result<Option<V>, CredentialStoreError> {
+    fn get<V: for<'de> Deserialize<'de>>(&self, key: &str) -> Result<Option<V>, CredentialStoreError> {
         self.storage
             .get(key)
-            .await
             .map_err(|e| match e {
                 StorageError::NotFound(_) => CredentialStoreError::NotFound(key.to_string()),
                 _ => CredentialStoreError::Storage(e),
             })
     }
 
-    async fn set<V: Serialize + Send>(&self, key: &str, value: V) -> Result<(), CredentialStoreError> {
+    fn set<V: Serialize>(&self, key: &str, value: V) -> Result<(), CredentialStoreError> {
         self.storage
             .set(key, value)
-            .await
             .map_err(CredentialStoreError::Storage)
     }
 
-    async fn delete(&self, key: &str) -> Result<(), CredentialStoreError> {
+    fn delete(&self, key: &str) -> Result<(), CredentialStoreError> {
         self.storage
             .delete(key)
-            .await
             .map_err(CredentialStoreError::Storage)
     }
 
-    async fn exists(&self, key: &str) -> Result<bool, CredentialStoreError> {
+    fn exists(&self, key: &str) -> Result<bool, CredentialStoreError> {
         self.storage
             .exists(key)
-            .await
             .map_err(CredentialStoreError::Storage)
     }
 
-    async fn list_keys(&self, prefix: Option<&str>) -> Result<Vec<String>, CredentialStoreError> {
+    fn list_keys(&self, prefix: Option<&str>) -> Result<Vec<String>, CredentialStoreError> {
         self.storage
             .list_keys(prefix)
-            .await
+            .map(|stream| stream.collect())
             .map_err(CredentialStoreError::Storage)
     }
 }
 
 /// Helper methods for OAuth token storage.
-#[async_trait]
 pub trait OAuthTokenStore: CredentialStore {
     /// Store OAuth tokens for a provider.
-    async fn store_oauth_token(
+    fn store_oauth_token(
         &self,
         provider: &str,
         token: &OAuthToken,
     ) -> Result<(), CredentialStoreError> {
         let key = format!("oauth:token:{provider}");
-        self.set(&key, token).await
+        self.set(&key, token)
     }
 
     /// Get OAuth tokens for a provider.
-    async fn get_oauth_token(&self, provider: &str) -> Result<Option<OAuthToken>, CredentialStoreError> {
+    fn get_oauth_token(&self, provider: &str) -> Result<Option<OAuthToken>, CredentialStoreError> {
         let key = format!("oauth:token:{provider}");
-        self.get(&key).await
+        self.get(&key)
     }
 
     /// Delete OAuth tokens for a provider.
-    async fn delete_oauth_token(&self, provider: &str) -> Result<(), CredentialStoreError> {
+    fn delete_oauth_token(&self, provider: &str) -> Result<(), CredentialStoreError> {
         let key = format!("oauth:token:{provider}");
-        self.delete(&key).await
+        self.delete(&key)
     }
 
     /// Store OAuth state (for PKCE flow).
-    async fn store_oauth_state(
+    fn store_oauth_state(
         &self,
         state: &str,
         code_verifier: &str,
@@ -213,19 +198,19 @@ pub trait OAuthTokenStore: CredentialStore {
             code_verifier: code_verifier.to_string(),
             expires_at,
         };
-        self.set(&key, value).await
+        self.set(&key, value)
     }
 
     /// Get and validate OAuth state.
-    async fn get_oauth_state(&self, state: &str) -> Result<Option<OAuthState>, CredentialStoreError> {
+    fn get_oauth_state(&self, state: &str) -> Result<Option<OAuthState>, CredentialStoreError> {
         let key = format!("oauth:state:{state}");
-        self.get(&key).await
+        self.get(&key)
     }
 
     /// Delete OAuth state.
-    async fn delete_oauth_state(&self, state: &str) -> Result<(), CredentialStoreError> {
+    fn delete_oauth_state(&self, state: &str) -> Result<(), CredentialStoreError> {
         let key = format!("oauth:state:{state}");
-        self.delete(&key).await
+        self.delete(&key)
     }
 }
 
@@ -248,7 +233,6 @@ impl OAuthState {
 }
 
 // Implement OAuthTokenStore for all types that implement CredentialStore
-#[async_trait]
 impl<T: CredentialStore> OAuthTokenStore for T {}
 
 /// Credential wrapper for secure storage.
@@ -287,19 +271,17 @@ impl<T> StoredCredential<T> {
 mod tests {
     use super::*;
 
-    #[tokio::test]
-    async fn test_memory_credential_store_basic() {
+    #[test]
+    fn test_memory_credential_store_basic() {
         let store = MemoryCredentialStore::new();
 
         // Test set and get
         store
             .set("test_key", "test_value")
-            .await
             .expect("Failed to set credential");
 
         let value: String = store
             .get("test_key")
-            .await
             .expect("Failed to get credential")
             .expect("Credential not found");
 
@@ -308,26 +290,22 @@ mod tests {
         // Test exists
         assert!(store
             .exists("test_key")
-            .await
             .expect("Failed to check existence"));
         assert!(!store
             .exists("nonexistent")
-            .await
             .expect("Failed to check existence"));
 
         // Test delete
         store
             .delete("test_key")
-            .await
             .expect("Failed to delete credential");
         assert!(!store
             .exists("test_key")
-            .await
             .expect("Failed to check existence"));
     }
 
-    #[tokio::test]
-    async fn test_memory_credential_store_oauth() {
+    #[test]
+    fn test_memory_credential_store_oauth() {
         let store = MemoryCredentialStore::new();
 
         let token = OAuthToken {
@@ -342,13 +320,11 @@ mod tests {
         // Store OAuth token
         store
             .store_oauth_token("test_provider", &token)
-            .await
             .expect("Failed to store OAuth token");
 
         // Retrieve OAuth token
         let retrieved = store
             .get_oauth_token("test_provider")
-            .await
             .expect("Failed to get OAuth token")
             .expect("OAuth token not found");
 
@@ -358,12 +334,10 @@ mod tests {
         // Store and retrieve OAuth state
         store
             .store_oauth_state("test_state", "verifier_abc", 9999999999)
-            .await
             .expect("Failed to store OAuth state");
 
         let state = store
             .get_oauth_state("test_state")
-            .await
             .expect("Failed to get OAuth state")
             .expect("OAuth state not found");
 
@@ -371,27 +345,27 @@ mod tests {
         assert!(!state.is_expired());
     }
 
-    #[tokio::test]
-    async fn test_memory_credential_store_list_keys() {
+    #[test]
+    fn test_memory_credential_store_list_keys() {
         let store = MemoryCredentialStore::new();
 
-        store.set("oauth:provider1", "value1").await.unwrap();
-        store.set("oauth:provider2", "value2").await.unwrap();
-        store.set("jwt:token", "value3").await.unwrap();
+        store.set("oauth:provider1", "value1").unwrap();
+        store.set("oauth:provider2", "value2").unwrap();
+        store.set("jwt:token", "value3").unwrap();
 
         // List all keys
-        let keys = store.list_keys(None).await.unwrap();
+        let keys = store.list_keys(None).unwrap();
         assert_eq!(keys.len(), 3);
 
         // List keys with prefix
-        let keys = store.list_keys(Some("oauth:")).await.unwrap();
+        let keys = store.list_keys(Some("oauth:")).unwrap();
         assert_eq!(keys.len(), 2);
         assert!(keys.contains(&"oauth:provider1".to_string()));
         assert!(keys.contains(&"oauth:provider2".to_string()));
     }
 
-    #[tokio::test]
-    async fn test_stored_credential() {
+    #[test]
+    fn test_stored_credential() {
         let mut stored = StoredCredential::new("secret_data");
 
         assert!(stored.created_at > 0);

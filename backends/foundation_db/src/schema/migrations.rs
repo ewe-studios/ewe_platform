@@ -1,4 +1,9 @@
 //! Database migrations for foundation_db.
+//!
+//! Migration runner uses synchronous QueryStore trait with DataValue params.
+
+use crate::storage_provider::{DataValue, QueryStore};
+use crate::errors::StorageResult;
 
 /// A single database migration.
 pub struct Migration {
@@ -98,32 +103,31 @@ impl<'a> MigrationRunner<'a> {
     }
 
     /// Run all pending migrations.
-    pub async fn run(&self, store: &mut dyn crate::storage_provider::QueryStore) -> crate::errors::StorageResult<usize> {
+    pub fn run(&self, store: &dyn QueryStore) -> StorageResult<usize> {
         let mut count = 0;
 
         for migration in self.migrations {
             // Check if migration already applied
-            let rows = store
-                .query(
-                    "SELECT 1 FROM _migrations WHERE id = ?",
-                    vec![libsql::Value::Text(migration.id.to_string())],
-                )
-                .await?;
+            let mut rows = store.query(
+                "SELECT 1 FROM _migrations WHERE id = ?",
+                &[DataValue::Text(migration.id.to_string())],
+            )?;
 
-            if rows.is_empty() {
+            // Check if any rows returned (migration exists)
+            let exists = rows.next().is_some();
+
+            if !exists {
                 // Apply migration
-                store.execute(migration.sql, vec![]).await?;
+                store.execute_batch(migration.sql)?;
 
                 // Record migration
-                store
-                    .execute(
-                        "INSERT INTO _migrations (id, name) VALUES (?, ?)",
-                        vec![
-                            libsql::Value::Text(migration.id.to_string()),
-                            libsql::Value::Text(migration.name.to_string()),
-                        ],
-                    )
-                    .await?;
+                store.execute(
+                    "INSERT INTO _migrations (id, name) VALUES (?, ?)",
+                    &[
+                        DataValue::Text(migration.id.to_string()),
+                        DataValue::Text(migration.name.to_string()),
+                    ],
+                )?;
 
                 count += 1;
             }

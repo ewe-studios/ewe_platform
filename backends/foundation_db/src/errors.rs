@@ -1,107 +1,85 @@
 //! Error types for foundation_db storage operations.
+//!
+//! All error types use `derive_more::From` for automatic conversions
+//! and manual `impl Display` for error messages.
 
-use derive_more::Display;
+use derive_more::From;
 
 /// Main error type for storage operations.
-#[derive(Debug, Display)]
+///
+/// Uses `derive_more::From` for automatic `From<T>` impls on nested
+/// error variants. String-wrapping variants use `#[from(ignore)]`.
+#[derive(From, Debug)]
 pub enum StorageError {
     /// Backend-specific error.
-    #[display("Backend error: {_0}")]
+    #[from(ignore)]
     Backend(String),
 
     /// Connection failed.
-    #[display("Connection failed: {_0}")]
+    #[from(ignore)]
     Connection(String),
 
     /// Key not found.
-    #[display("Key not found: {_0}")]
+    #[from(ignore)]
     NotFound(String),
 
     /// Serialization error.
-    #[display("Serialization error: {_0}")]
+    #[from(ignore)]
     Serialization(String),
 
     /// Encryption error.
-    #[display("Encryption error: {_0}")]
+    #[from(ignore)]
     Encryption(String),
 
     /// Migration error.
-    #[display("Migration error: {_0}")]
+    #[from(ignore)]
     Migration(String),
 
     /// Generic storage error.
-    #[display("Storage error: {_0}")]
+    #[from(ignore)]
     Generic(String),
 
-    /// libsql error.
-    #[display("libsql error: {_0}")]
-    Libsql(libsql::Error),
+    /// SQL conversion error.
+    #[from(ignore)]
+    SqlConversion(String),
 
-    /// std io error.
-    #[display("IO error: {_0}")]
+    /// I/O error during filesystem operations.
     Io(std::io::Error),
 
-    /// JSON error.
-    #[display("JSON error: {_0}")]
+    /// JSON serialization/deserialization error.
     Json(serde_json::Error),
 
-    /// Conversion error for base64.
-    #[display("Base64 error: {_0}")]
+    /// Base64 decoding error.
     Base64(base64::DecodeError),
 
-    /// Hex conversion error.
-    #[display("Hex error: {_0}")]
+    /// Hex decoding error.
     Hex(hex::FromHexError),
+
+    /// Turso error.
+    Turso(turso::Error),
 }
 
-impl std::error::Error for StorageError {
-    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
+impl core::fmt::Display for StorageError {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         match self {
-            StorageError::Libsql(e) => Some(e),
-            StorageError::Io(e) => Some(e),
-            StorageError::Json(e) => Some(e),
-            StorageError::Base64(e) => Some(e),
-            StorageError::Hex(e) => Some(e),
-            _ => None,
+            Self::Backend(s) => write!(f, "Backend error: {s}"),
+            Self::Connection(s) => write!(f, "Connection failed: {s}"),
+            Self::NotFound(s) => write!(f, "Key not found: {s}"),
+            Self::Serialization(s) => write!(f, "Serialization error: {s}"),
+            Self::Encryption(s) => write!(f, "Encryption error: {s}"),
+            Self::Migration(s) => write!(f, "Migration error: {s}"),
+            Self::Generic(s) => write!(f, "Storage error: {s}"),
+            Self::SqlConversion(s) => write!(f, "SQL conversion error: {s}"),
+            Self::Io(e) => write!(f, "IO error: {e}"),
+            Self::Json(e) => write!(f, "JSON error: {e}"),
+            Self::Base64(e) => write!(f, "Base64 error: {e}"),
+            Self::Hex(e) => write!(f, "Hex error: {e}"),
+            Self::Turso(e) => write!(f, "Turso error: {e}"),
         }
     }
 }
 
-impl From<libsql::Error> for StorageError {
-    fn from(e: libsql::Error) -> Self {
-        StorageError::Libsql(e)
-    }
-}
-
-impl From<std::io::Error> for StorageError {
-    fn from(e: std::io::Error) -> Self {
-        StorageError::Io(e)
-    }
-}
-
-impl From<serde_json::Error> for StorageError {
-    fn from(e: serde_json::Error) -> Self {
-        StorageError::Json(e)
-    }
-}
-
-impl From<base64::DecodeError> for StorageError {
-    fn from(e: base64::DecodeError) -> Self {
-        StorageError::Base64(e)
-    }
-}
-
-impl From<hex::FromHexError> for StorageError {
-    fn from(e: hex::FromHexError) -> Self {
-        StorageError::Hex(e)
-    }
-}
-
-impl From<chacha20poly1305::Error> for StorageError {
-    fn from(e: chacha20poly1305::Error) -> Self {
-        StorageError::Encryption(e.to_string())
-    }
-}
+impl std::error::Error for StorageError {}
 
 /// Result type alias for storage operations.
 pub type StorageResult<T> = Result<T, StorageError>;
