@@ -552,16 +552,16 @@ backends/foundation_core/src/wire/simple_http/client/tasks/
 
 ## Success Criteria
 
-- [ ] `FetchPending` enum defined with source tracking
-- [ ] Display impl provides human-readable output
-- [ ] Conversion from `HttpRequestPending` implemented
-- [ ] Integration with `map_pending()` demonstrated
-- [ ] Parallel fetch progress reporting shown
-- [ ] Progress callback pattern documented
-- [ ] **Error tracking states added (`Failed`, `Completed`)**
-- [ ] **Error collection pattern for parallel fetches documented**
-- [ ] **`FetchResult` pattern for outcome aggregation documented**
-- [ ] Module exported in `client::tasks::mod.rs`
+- [x] `FetchPending` enum defined with source tracking
+- [x] Display impl provides human-readable output
+- [x] Conversion from `HttpRequestPending` implemented
+- [x] Integration with `map_pending()` demonstrated
+- [x] Parallel fetch progress reporting shown
+- [x] Progress callback pattern documented
+- [x] **Error tracking states added (`Failed`, `Completed`)**
+- [x] **Error collection pattern for parallel fetches documented**
+- [x] **`FetchResult` pattern for outcome aggregation documented**
+- [x] Module exported in `client::tasks::mod.rs`
 
 ## Verification Commands
 

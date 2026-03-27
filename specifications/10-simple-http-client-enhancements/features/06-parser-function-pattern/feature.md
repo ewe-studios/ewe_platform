@@ -450,16 +450,16 @@ let task = create_fetch_task(
 
 ## Success Criteria
 
-- [ ] Parser signature documented: `fn(&str, &'static str) -> T`
-- [ ] Graceful error handling with logging demonstrated
-- [ ] Empty/default return on error (not panic)
-- [ ] Source parameter for debugging shown
-- [ ] Multiple parser examples provided (different APIs)
-- [ ] Strongly-typed parsing demonstrated
-- [ ] Optional fields handling shown
-- [ ] Validation logic pattern covered
-- [ ] `ResponseParser` trait documented
-- [ ] `parse_json` helper documented
+- [x] Parser signature documented: `fn(&str, &'static str) -> T`
+- [x] Graceful error handling with logging demonstrated
+- [x] Empty/default return on error (not panic)
+- [x] Source parameter for debugging shown
+- [x] Multiple parser examples provided (different APIs)
+- [x] Strongly-typed parsing demonstrated
+- [x] Optional fields handling shown
+- [x] Validation logic pattern covered
+- [ ] `ResponseParser` trait documented (optional pattern, not implemented)
+- [x] `parse_json` helper documented
 
 ## Verification Commands
 
