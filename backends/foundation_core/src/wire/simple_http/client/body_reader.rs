@@ -635,6 +635,139 @@ pub fn parse_json<T: DeserializeOwned>(
 }
 
 // ============================================================================
+// Parser Trait and Helpers
+// ============================================================================
+
+/// Parser trait for HTTP response bodies.
+///
+/// WHY: Provides a reusable abstraction for parsing HTTP responses with
+/// consistent error handling and source identification.
+///
+/// WHAT: Trait for types that can be parsed from HTTP response bodies.
+///
+/// HOW: Implement for your response types, use with `parse_json` helper.
+/// Graceful degradation - returns empty/default on error, never panics.
+///
+/// # Examples
+///
+/// ```rust,ignore
+/// use foundation_core::wire::simple_http::client::body_reader::ResponseParser;
+///
+/// #[derive(serde::Deserialize)]
+/// struct ApiResponse {
+///     data: Vec<Item>,
+/// }
+///
+/// impl ResponseParser for ApiResponse {
+///     type Output = Vec<Item>;
+///
+///     fn parse(body: &str, source: &str) -> Self::Output {
+///         match serde_json::from_str::<Self>(body) {
+///             Ok(response) => response.data,
+///             Err(e) => {
+///                 tracing::error!("Failed to parse {source}: {e}");
+///                 Vec::new()
+///             }
+///         }
+///     }
+/// }
+/// ```
+pub trait ResponseParser: Sized {
+    /// The output type after parsing.
+    type Output;
+
+    /// Parse a response body.
+    ///
+    /// # Arguments
+    /// * `body` - Response body to parse
+    /// * `source` - Source identifier for logging
+    ///
+    /// # Returns
+    /// Parsed output. Returns default/empty on error (graceful degradation).
+    fn parse(body: &str, source: &str) -> Self::Output;
+}
+
+/// Generic JSON parser helper for string bodies.
+///
+/// WHY: Convenience helper for parsing JSON from string bodies with logging.
+///
+/// WHAT: Parses JSON from a string body with source identification.
+///
+/// HOW: Wraps `serde_json::from_str` with error logging.
+///
+/// # Type Parameters
+/// * `T` - Target type for deserialization
+///
+/// # Arguments
+/// * `body` - Response body to parse
+/// * `source` - Source identifier for logging
+///
+/// # Returns
+/// `Some(T)` on success, `None` on error.
+///
+/// # Examples
+///
+/// ```rust,ignore
+/// if let Some(data) = parse_json::<MyType>(&body, "api.example.com") {
+///     // Process parsed data
+/// } else {
+///     // Handle parse failure (already logged)
+/// }
+/// ```
+pub fn parse_json_str<T: DeserializeOwned>(body: &str, source: &str) -> Option<T> {
+    match serde_json::from_str::<T>(body) {
+        Ok(data) => Some(data),
+        Err(e) => {
+            tracing::error!("Failed to parse JSON from {source}: {e}");
+            None
+        }
+    }
+}
+
+/// Parse with fallback on error.
+///
+/// WHY: Sometimes you need a custom fallback value instead of None/default.
+///
+/// WHAT: Parses JSON, calling fallback function on error.
+///
+/// HOW: Wraps `serde_json::from_str` with custom fallback.
+///
+/// # Type Parameters
+/// * `T` - Target type for deserialization
+/// * `F` - Fallback function type
+///
+/// # Arguments
+/// * `body` - Response body to parse
+/// * `source` - Source identifier for logging
+/// * `fallback` - Function to produce fallback value on error
+///
+/// # Returns
+/// Parsed value or fallback result.
+///
+/// # Examples
+///
+/// ```rust,ignore
+/// let config = parse_with_fallback(
+///     &body,
+///     "config-api",
+///     || Config::default(),
+/// );
+/// ```
+pub fn parse_with_fallback<T, F>(body: &str, source: &str, fallback: F) -> T
+where
+    T: DeserializeOwned,
+    F: FnOnce() -> T,
+{
+    match serde_json::from_str::<T>(body) {
+        Ok(data) => data,
+        Err(e) => {
+            tracing::warn!("Failed to parse {source}: {e}");
+            fallback()
+        }
+    }
+}
+
+// ============================================================================
 // Streaming Body Processing
 // ============================================================================
 
@@ -826,11 +959,116 @@ ProcessStreamResult::NoBody) => true,
 #[cfg(test)]
 mod tests {
     use super::*;
+    use serde::Deserialize;
 
     #[test]
     fn test_process_stream_result_debug() {
         // Basic smoke test for the Result type
         let result = ProcessStreamResult::Completed;
         assert_eq!(result, ProcessStreamResult::Completed);
+    }
+
+    #[test]
+    fn test_parse_json_str() {
+        let json = r#"{"name": "test", "value": 42}"#;
+
+        #[derive(Deserialize, Debug, PartialEq)]
+        struct TestObj {
+            name: String,
+            value: i32,
+        }
+
+        let result: Option<TestObj> = parse_json_str(json, "test-source");
+        assert!(result.is_some());
+        let obj = result.unwrap();
+        assert_eq!(obj.name, "test");
+        assert_eq!(obj.value, 42);
+    }
+
+    #[test]
+    fn test_parse_json_str_invalid() {
+        let invalid_json = r#"{"name": "test", invalid}"#;
+
+        #[derive(Deserialize, Debug, PartialEq)]
+        struct TestObj {
+            name: String,
+            value: i32,
+        }
+
+        let result: Option<TestObj> = parse_json_str(invalid_json, "test-source");
+        assert!(result.is_none());
+    }
+
+    #[test]
+    fn test_parse_with_fallback_success() {
+        let json = r#"{"items": [1, 2, 3]}"#;
+
+        #[derive(Deserialize, Debug, PartialEq)]
+        struct TestResponse {
+            items: Vec<i32>,
+        }
+
+        let fallback_called = std::cell::RefCell::new(false);
+        let result = parse_with_fallback(
+            json,
+            "test-source",
+            || {
+                *fallback_called.borrow_mut() = true;
+                TestResponse { items: vec![] }
+            },
+        );
+
+        assert!(!*fallback_called.borrow());
+        assert_eq!(result.items, vec![1, 2, 3]);
+    }
+
+    #[test]
+    fn test_parse_with_fallback_error() {
+        let invalid_json = r#"{"items": invalid}"#;
+
+        #[derive(Deserialize, Debug, PartialEq)]
+        struct TestResponse {
+            items: Vec<i32>,
+        }
+
+        let fallback_called = std::cell::RefCell::new(false);
+        let result = parse_with_fallback(
+            invalid_json,
+            "test-source",
+            || {
+                *fallback_called.borrow_mut() = true;
+                TestResponse { items: vec![0] }
+            },
+        );
+
+        assert!(*fallback_called.borrow());
+        assert_eq!(result.items, vec![0]);
+    }
+
+    #[test]
+    fn test_response_parser_trait() {
+        #[derive(Deserialize, Debug, PartialEq)]
+        struct ApiResponse {
+            data: Vec<String>,
+        }
+
+        impl ResponseParser for ApiResponse {
+            type Output = Vec<String>;
+
+            fn parse(body: &str, _source: &str) -> Self::Output {
+                match serde_json::from_str::<Self>(body) {
+                    Ok(response) => response.data,
+                    Err(_) => Vec::new(),
+                }
+            }
+        }
+
+        let valid_json = r#"{"data": ["a", "b", "c"]}"#;
+        let result = ApiResponse::parse(valid_json, "test");
+        assert_eq!(result, vec!["a", "b", "c"]);
+
+        let invalid_json = r#"{"data": invalid}"#;
+        let result = ApiResponse::parse(invalid_json, "test");
+        assert_eq!(result, Vec::<String>::new());
     }
 }

@@ -458,7 +458,7 @@ let task = create_fetch_task(
 - [x] Strongly-typed parsing demonstrated
 - [x] Optional fields handling shown
 - [x] Validation logic pattern covered
-- [ ] `ResponseParser` trait documented (optional pattern, not implemented)
+- [x] `ResponseParser` trait documented
 - [x] `parse_json` helper documented
 
 ## Verification Commands
