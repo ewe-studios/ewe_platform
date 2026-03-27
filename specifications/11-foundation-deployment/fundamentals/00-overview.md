@@ -5,6 +5,46 @@
 
 ---
 
+## Iron Law: Zero Warnings
+
+> **All code must compile with zero warnings and pass all lints. No suppression. No exceptions.**
+>
+> This is an iron law of the project. It applies to every feature, every crate, every module.
+>
+> - `cargo build` — zero warnings
+> - `cargo clippy -- -D warnings` — zero clippy warnings (all treated as errors)
+> - `cargo clippy -- -W clippy::pedantic` — pedantic lints enabled, all resolved without suppression
+> - `cargo doc --no-deps` — zero rustdoc warnings
+> - `cargo test` — zero warnings during compilation
+>
+> **No `#[allow(...)]`, no `#[expect(...)]`, no `#![allow(...)]` anywhere.**
+> If clippy or the compiler flags something, fix the code. If a lint is genuinely wrong
+> for a specific case, refactor until it isn't — do not suppress it.
+>
+> **Verification (must pass before any commit):**
+> ```bash
+> cargo clippy -p foundation_deployment -- -D warnings -W clippy::pedantic
+> cargo doc -p foundation_deployment --no-deps 2>&1 | grep -c "warning" | grep -q "^0$"
+> cargo test -p foundation_deployment 2>&1 | grep -c "warning" | grep -q "^0$"
+> ```
+
+## Async Runtime Policy
+
+> **Valtron is the only async runtime used by `foundation_deployment`.**
+> tokio, async-std, smol, and all other async runtimes are **banned** from the
+> deployment tool crate. No `async fn`, no `.await`, no `#[tokio::main]` in
+> `foundation_deployment` or any of its workspace dependencies.
+>
+> **Generated template code** (feature 07) and **standalone example crates** (feature 09)
+> are the user's deployed applications — they use whatever async runtime their target
+> framework requires (axum→tokio, lambda_http→tokio, worker→wasm async). These are:
+> - Feature-gated behind `template-cloudflare`, `template-gcp`, `template-aws`
+> - In isolated modules with `#[cfg(feature = "...")]` at the module level
+> - Example crates are standalone (not workspace members), never compiled by default
+>
+> **Verification**: `cargo build -p foundation_deployment` (no features) must produce
+> zero tokio symbols. `cargo tree -p foundation_deployment` must show no tokio dependency.
+
 ## Core Concepts
 
 ### 1. API-First Deployment

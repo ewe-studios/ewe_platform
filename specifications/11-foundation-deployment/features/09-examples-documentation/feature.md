@@ -20,6 +20,18 @@ tasks:
 
 # Examples and Documentation
 
+## Iron Law: Zero Warnings
+
+> **All code must compile with zero warnings and pass all lints. No suppression. No exceptions.**
+>
+> - `cargo clippy -p foundation_deployment -- -D warnings -W clippy::pedantic` — zero warnings
+> - `cargo doc -p foundation_deployment --no-deps` — zero rustdoc warnings
+> - `cargo test -p foundation_deployment` — zero compilation warnings
+> - **No `#[allow(...)]`, `#[expect(...)]`, or `#![allow(...)]` anywhere.** Fix the code, never suppress.
+>
+> Standalone example crates (not workspace members) follow their own lint rules,
+> but should aspire to the same standard.
+
 ## Overview
 
 Create working example projects for each provider and comprehensive documentation covering deployment workflows, state management, troubleshooting, and migration guides.
@@ -27,6 +39,38 @@ Create working example projects for each provider and comprehensive documentatio
 ## Dependencies
 
 Depends on all previous features (complete implementation required for working examples).
+
+## Async Runtime Policy
+
+> **tokio and async/await are banned from the deployment tool itself.** All deployment
+> orchestration uses valtron exclusively.
+>
+> Example projects are standalone crates with their own `Cargo.toml` files. They are
+> **not workspace members by default** — they live outside the workspace `members` list
+> and are only compiled when explicitly requested. Each example provider directory is a
+> self-contained project that the user `cd`s into and builds independently.
+>
+> Examples that depend on tokio (GCP/axum, AWS/lambda_http) must:
+> 1. Be in their own crate with their own `Cargo.toml` (not a workspace member)
+> 2. Never be referenced from `foundation_deployment`'s `Cargo.toml`
+> 3. Be clearly documented as requiring tokio for the target framework
+
+### Example Isolation
+
+```toml
+# Workspace Cargo.toml — examples are NOT listed here
+[workspace]
+members = [
+    "backends/foundation_deployment",
+    # ... other workspace crates
+    # examples/* are NOT workspace members
+]
+
+# Each example is self-contained:
+# examples/gcp/rust-cloud-run/Cargo.toml      → depends on tokio, axum
+# examples/aws/rust-lambda/Cargo.toml          → depends on tokio, lambda_http
+# examples/cloudflare/rust-worker/Cargo.toml   → depends on worker (wasm async, no tokio)
+```
 
 ## Requirements
 
@@ -90,10 +134,17 @@ mise run deploy
 
 ### Example: Lambda with Turso State
 
-Demonstrates the Turso state store integration:
+Demonstrates the Turso state store integration.
+
+> **Note**: This is a standalone example crate (not a workspace member). The `async`
+> and tokio usage is required by `lambda_http` — the deployed Lambda runtime, not the
+> deployment tool. This crate has its own `Cargo.toml` with `tokio` and `lambda_http`
+> as direct dependencies.
 
 ```rust
 // examples/aws/rust-lambda-turso/src/main.rs
+// Standalone crate — NOT part of foundation_deployment.
+// async/tokio required by lambda_http framework.
 
 use lambda_http::{run, service_fn, Body, Error, Request, Response};
 use libsql::Database;
@@ -229,8 +280,12 @@ mise run deploy  # State automatically uses Turso
 
 ### Integration Tests
 
+Integration tests for the deployment tool itself use **valtron only** — no tokio.
+The `PoolGuard` is initialized in test setup for valtron executor tests.
+
 ```rust
-// examples/integration-tests/src/main.rs
+// tests/integration/deployment_tests.rs
+// Part of foundation_deployment — valtron only, no tokio.
 
 use foundation_deployment::{
     DeploymentExecutor, DeploymentTarget,
@@ -291,24 +346,29 @@ fn test_state_round_trip() {
 
 ## Tasks
 
-1. **Create Cloudflare examples**
-   - [ ] `examples/cloudflare/rust-worker/` - REST API
-   - [ ] `examples/cloudflare/rust-wasm-worker/` - WASM compute
+1. **Create Cloudflare examples** (standalone crate, `worker` crate — wasm async, no tokio)
+   - [ ] `examples/cloudflare/rust-worker/` - REST API with own `Cargo.toml`
+   - [ ] `examples/cloudflare/rust-wasm-worker/` - WASM compute with own `Cargo.toml`
    - [ ] Each with wrangler.toml, mise.toml, README.md
+   - [ ] Verify NOT listed in workspace `members`
    - [ ] Verify build with `mise run build`
 
-2. **Create GCP examples**
-   - [ ] `examples/gcp/rust-cloud-run/` - HTTP service
-   - [ ] `examples/gcp/rust-cloud-run-job/` - Batch job
+2. **Create GCP examples** (standalone crate, tokio + axum)
+   - [ ] `examples/gcp/rust-cloud-run/` - HTTP service with own `Cargo.toml`
+   - [ ] `examples/gcp/rust-cloud-run-job/` - Batch job with own `Cargo.toml`
    - [ ] Each with service.yaml, Dockerfile, mise.toml, README.md
+   - [ ] Verify NOT listed in workspace `members`
+   - [ ] Document that tokio is required by axum (framework requirement)
 
-3. **Create AWS examples**
-   - [ ] `examples/aws/rust-lambda/` - HTTP API
-   - [ ] `examples/aws/rust-lambda-turso/` - Lambda with Turso state
+3. **Create AWS examples** (standalone crate, tokio + lambda_http)
+   - [ ] `examples/aws/rust-lambda/` - HTTP API with own `Cargo.toml`
+   - [ ] `examples/aws/rust-lambda-turso/` - Lambda with Turso state, own `Cargo.toml`
    - [ ] Each with template.yaml, mise.toml, README.md
+   - [ ] Verify NOT listed in workspace `members`
+   - [ ] Document that tokio is required by lambda_http (framework requirement)
 
-4. **Create multi-provider example**
-   - [ ] `examples/multi-provider/rust-api/` - Same code, 3 configs
+4. **Create multi-provider example** (standalone crate)
+   - [ ] `examples/multi-provider/rust-api/` - Same code, 3 configs, own `Cargo.toml`
    - [ ] Demonstrate provider switching via config file
 
 5. **Create documentation**
@@ -317,19 +377,26 @@ fn test_state_round_trip() {
    - [ ] State management documentation
    - [ ] CI/CD workflow guide
    - [ ] Troubleshooting guide
+   - [ ] Document async runtime policy: valtron-only for deployment tool, framework-required for examples
 
-6. **Write integration tests**
+6. **Write integration tests** (valtron only — no tokio)
    - [ ] Provider detection tests
    - [ ] State store round-trip tests
-   - [ ] Dry-run deployment tests for each provider
+   - [ ] Dry-run deployment tests for each provider (use valtron `PoolGuard` in test setup)
    - [ ] Live deployment tests (mark `#[ignore]`)
+   - [ ] Verify `cargo build -p foundation_deployment` has zero tokio deps
 
 ## Success Criteria
 
 - [ ] All 6 tasks completed
-- [ ] All examples build with `mise run build`
+- [ ] `cargo clippy -p foundation_deployment -- -D warnings -W clippy::pedantic` — zero warnings, zero suppression
+- [ ] `cargo doc -p foundation_deployment --no-deps` — zero rustdoc warnings
+- [ ] No `#[allow(...)]` or `#[expect(...)]` anywhere in the code
+- [ ] All examples build with `mise run build` (from their own directory)
+- [ ] No example crate is a workspace member
+- [ ] `cargo build -p foundation_deployment` pulls in zero tokio/async runtime deps
 - [ ] Multi-provider example works with all 3 configs
-- [ ] Integration tests pass (dry-run)
+- [ ] Integration tests pass (dry-run) using valtron executor only
 - [ ] Documentation renders correctly and is accurate
 
 ## Verification

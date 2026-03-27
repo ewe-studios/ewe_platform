@@ -12,13 +12,25 @@ depends_on: ["04-cloudflare-provider", "05-gcp-cloud-run-provider", "06-aws-lamb
 
 tasks:
   completed: 0
-  uncompleted: 6
-  total: 6
+  uncompleted: 7
+  total: 7
   completion_percentage: 0%
 ---
 
 
 # Composable Templates
+
+## Iron Law: Zero Warnings
+
+> **All code must compile with zero warnings and pass all lints. No suppression. No exceptions.**
+>
+> - `cargo clippy -p foundation_deployment -- -D warnings -W clippy::pedantic` — zero warnings
+> - `cargo doc -p foundation_deployment --no-deps` — zero rustdoc warnings
+> - `cargo test -p foundation_deployment` — zero compilation warnings
+> - **No `#[allow(...)]`, `#[expect(...)]`, or `#![allow(...)]` anywhere.** Fix the code, never suppress.
+>
+> This applies to the template generation code in `foundation_deployment`. Standalone
+> generated projects (the user's code) follow their own lint rules after generation.
 
 ## Overview
 
@@ -38,6 +50,66 @@ Depends on:
 Required by:
 - `08-mise-integration` - Templates include mise.toml
 - `09-examples-documentation` - Examples derived from templates
+
+## Async Runtime Policy
+
+> **tokio and async/await are banned from the deployment tool itself.** All deployment
+> orchestration uses valtron exclusively.
+>
+> However, **generated template code** (the user's deployed application) must use whatever
+> async runtime the target framework requires (e.g., axum requires tokio, worker crate
+> requires wasm_bindgen async). These are the user's projects, not the deployment tool.
+>
+> To ensure tokio is never compiled as part of `foundation_deployment` unless explicitly
+> requested, all template modules that reference tokio-dependent frameworks are
+> feature-gated and isolated behind `#[cfg(feature = "...")]` at the module level.
+
+### Feature Gates (Cargo.toml)
+
+```toml
+[features]
+default = []
+
+# Template feature gates — each pulls in only what that provider's
+# generated code needs. None are enabled by default.
+template-cloudflare = []          # worker crate (wasm async, no tokio)
+template-gcp = ["dep:tokio", "dep:axum"]  # axum requires tokio
+template-aws = ["dep:tokio", "dep:lambda_http"]  # lambda_http requires tokio
+
+# Convenience
+templates-all = ["template-cloudflare", "template-gcp", "template-aws"]
+
+[dependencies]
+# Only compiled when the corresponding feature is enabled
+tokio = { version = "1", features = ["full"], optional = true }
+axum = { version = "0.7", optional = true }
+lambda_http = { version = "0.13", optional = true }
+worker = { version = "0.4", optional = true }
+```
+
+### Module Isolation
+
+Template modules that contain or validate tokio/async code must be behind
+a feature gate at the module declaration level:
+
+```rust
+// src/template/mod.rs
+
+pub mod compose;          // Always available — template matrix logic
+
+#[cfg(feature = "template-cloudflare")]
+pub mod cloudflare;       // Cloudflare Workers templates (worker crate, wasm async)
+
+#[cfg(feature = "template-gcp")]
+pub mod gcp;              // GCP Cloud Run templates (axum + tokio)
+
+#[cfg(feature = "template-aws")]
+pub mod aws;              // AWS Lambda templates (lambda_http + tokio)
+```
+
+Template text files (MiniJinja `.rs.j2` / `.toml.j2` etc.) are always present on
+disk — they are plain strings. The feature gate controls whether the Rust modules
+that embed, validate, or test-compile those templates are built.
 
 ## Requirements
 
@@ -281,33 +353,49 @@ ewe_platform generate --lang rust-wasm --target cloudflare -p my-wasm-worker -o 
    - [ ] Implement matrix validation (which combos are valid)
    - [ ] Implement `generate()` function that composes language + provider files
 
-2. **Create Cloudflare templates**
+2. **Set up feature gates**
+   - [ ] Add `template-cloudflare`, `template-gcp`, `template-aws` features to `Cargo.toml`
+   - [ ] Gate `tokio`, `axum`, `lambda_http`, `worker` as optional deps behind their features
+   - [ ] Gate provider template modules in `src/template/mod.rs` with `#[cfg(feature = "...")]`
+   - [ ] Verify `cargo build` without features pulls in zero async runtime deps
+   - [ ] Verify `cargo build --features template-gcp` pulls in tokio
+
+3. **Create Cloudflare templates** (`#[cfg(feature = "template-cloudflare")]`)
    - [ ] `templates/cf-rust-app/` - Rust worker (worker crate)
    - [ ] `templates/cf-rust-wasm-app/` - Rust WASM (wasm-pack)
    - [ ] Include wrangler.toml, mise.toml, src/main.rs, .gitignore, README.md, deploy.yml
+   - [ ] All Cloudflare template code in `src/template/cloudflare.rs`
 
-3. **Create GCP Cloud Run templates**
+4. **Create GCP Cloud Run templates** (`#[cfg(feature = "template-gcp")]`)
    - [ ] `templates/gcp-rust-app/` - Rust container (axum + Docker)
    - [ ] Include service.yaml, Dockerfile, mise.toml, src/main.rs, .gitignore, README.md, deploy.yml
+   - [ ] All GCP template code in `src/template/gcp.rs`
 
-4. **Create AWS Lambda templates**
+5. **Create AWS Lambda templates** (`#[cfg(feature = "template-aws")]`)
    - [ ] `templates/aws-rust-lambda/` - Rust Lambda (cargo-lambda)
    - [ ] Include template.yaml, mise.toml, src/main.rs, .gitignore, README.md, deploy.yml
+   - [ ] All AWS template code in `src/template/aws.rs`
 
-5. **Integrate with ewe_temple**
+6. **Integrate with ewe_temple**
    - [ ] Register templates with `PackageDirectorate`
    - [ ] Implement MiniJinja variable substitution
    - [ ] Handle file renaming (e.g., `gitignore` -> `.gitignore`)
 
-6. **Write tests**
-   - [ ] Test template generation for each combo
+7. **Write tests**
+   - [ ] Test template generation for each combo (gated: `#[cfg(feature = "template-*")]`)
    - [ ] Verify generated projects have correct config files
    - [ ] Verify template variables are substituted
    - [ ] Test invalid combo rejection (e.g., `rust-lambda --target gcp`)
+   - [ ] Verify no tokio symbols in `cargo build` without features
 
 ## Success Criteria
 
-- [ ] All 6 tasks completed
+- [ ] All 7 tasks completed
+- [ ] `cargo clippy -p foundation_deployment -- -D warnings -W clippy::pedantic` — zero warnings, zero suppression
+- [ ] `cargo doc -p foundation_deployment --no-deps` — zero rustdoc warnings
+- [ ] No `#[allow(...)]` or `#[expect(...)]` anywhere in the code
+- [ ] `cargo build` (no features) compiles with zero tokio/async runtime deps
+- [ ] `cargo build --features template-gcp` pulls in tokio; `template-aws` likewise
 - [ ] `ewe_platform generate --lang rust --target cloudflare` produces working project
 - [ ] `ewe_platform generate --lang rust --target gcp` produces working project
 - [ ] `ewe_platform generate --lang rust-lambda --target aws` produces working project

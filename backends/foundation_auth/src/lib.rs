@@ -1,8 +1,35 @@
+//! Foundation Auth - Comprehensive authentication infrastructure.
+//!
+//! This crate provides authentication flows, credential management, and token handling
+//! for use with AI inference providers and other services requiring authentication.
+
+#![allow(
+    clippy::missing_errors_doc,
+    clippy::missing_panics_doc,
+    clippy::must_use_candidate,
+    clippy::doc_markdown,
+    clippy::cast_possible_wrap,
+    clippy::map_unwrap_or,
+    clippy::redundant_closure_for_method_calls
+)]
+
+pub mod credential_store;
+pub mod jwt;
+pub mod oauth;
+
 use std::error::Error;
 
 use derive_more::From;
 use foundation_core::{valtron::StreamIterator, wire::simple_http::client::Cookie};
+use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use zeroize::Zeroizing;
+
+pub use credential_store::{
+    CredentialStore, CredentialStoreError, MemoryCredentialStore, OAuthTokenStore,
+    StoredCredential, TursoCredentialStore,
+};
+pub use jwt::{JwtError, JwtManager, JwtToken};
+pub use oauth::{OAuthConfig, OAuthError, OAuthManager, OAuthToken, PkceChallenge};
 
 #[derive(From, Clone)]
 pub struct ConfidentialText(Zeroizing<String>);
@@ -16,6 +43,19 @@ impl ConfidentialText {
     #[must_use]
     pub fn get(&self) -> String {
         (*self.0).clone()
+    }
+}
+
+impl Serialize for ConfidentialText {
+    fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+        self.get().serialize(serializer)
+    }
+}
+
+impl<'de> Deserialize<'de> for ConfidentialText {
+    fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
+        let value = String::deserialize(deserializer)?;
+        Ok(Self::new(value))
     }
 }
 
@@ -56,14 +96,14 @@ pub struct SessionCredential {
     pub cookie: Option<Cookie>,
 }
 
-#[derive(From, Debug, Clone)]
+#[derive(From, Debug)]
 pub enum Authenticated {
     OAuth(OAuthCredential),
     JWt(JwtCredential),
     Session(SessionCredential),
 }
 
-#[derive(From, Debug, Clone)]
+#[derive(From, Debug)]
 pub enum AuthCredential {
     OAuth(OAuthCredential),
     SecretOnly(ConfidentialText),
@@ -89,6 +129,12 @@ pub enum AuthenticationErrors {
     RequestErrors,
     FailedToConnect,
     InvalidEndpoint,
+    /// OAuth error.
+    OAuth(#[from] OAuthError),
+    /// JWT error.
+    Jwt(#[from] JwtError),
+    /// Credential store error.
+    CredentialStore(#[from] CredentialStoreError),
 }
 
 impl core::fmt::Display for AuthenticationErrors {
@@ -98,6 +144,9 @@ impl core::fmt::Display for AuthenticationErrors {
             AuthenticationErrors::RequestErrors => write!(f, "Request errors"),
             AuthenticationErrors::FailedToConnect => write!(f, "Failed to connect"),
             AuthenticationErrors::InvalidEndpoint => write!(f, "Invalid endpoint"),
+            AuthenticationErrors::OAuth(e) => write!(f, "OAuth error: {e}"),
+            AuthenticationErrors::Jwt(e) => write!(f, "JWT error: {e}"),
+            AuthenticationErrors::CredentialStore(e) => write!(f, "Credential store error: {e}"),
         }
     }
 }

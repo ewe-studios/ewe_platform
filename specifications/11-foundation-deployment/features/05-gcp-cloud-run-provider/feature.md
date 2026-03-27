@@ -20,6 +20,15 @@ tasks:
 
 # GCP Cloud Run Provider
 
+## Iron Law: Zero Warnings
+
+> **All code must compile with zero warnings and pass all lints. No suppression. No exceptions.**
+>
+> - `cargo clippy -p foundation_deployment -- -D warnings -W clippy::pedantic` — zero warnings
+> - `cargo doc -p foundation_deployment --no-deps` — zero rustdoc warnings
+> - `cargo test -p foundation_deployment` — zero compilation warnings
+> - **No `#[allow(...)]`, `#[expect(...)]`, or `#![allow(...)]` anywhere.** Fix the code, never suppress.
+
 ## Overview
 
 Implement the GCP Cloud Run deployment provider. This provider is **API-first** — it deploys by calling the Cloud Run Admin API v2 directly via `SimpleHttpClient`, with no CLI tools required.
@@ -521,6 +530,9 @@ impl GcpCloudRunProvider {
 ## Success Criteria
 
 - [ ] All 7 tasks completed
+- [ ] `cargo clippy -p foundation_deployment -- -D warnings -W clippy::pedantic` — zero warnings, zero suppression
+- [ ] `cargo doc -p foundation_deployment --no-deps` — zero rustdoc warnings
+- [ ] No `#[allow(...)]` or `#[expect(...)]` anywhere in the code
 - [ ] service.yaml parsing handles Services and Jobs
 - [ ] CLI deploy works with `gcloud run services replace`
 - [ ] Image tag substitution works correctly

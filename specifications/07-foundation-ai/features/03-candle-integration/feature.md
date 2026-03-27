@@ -42,6 +42,15 @@ This provides an alternative to the llama.cpp backend (feature 01) with differen
 
 Users can choose the backend that best fits their use case — llama.cpp for quantized GGUF models, Candle for safetensors models and pure-Rust deployments.
 
+## Iron Laws (inherited from spec-wide requirements.md)
+
+**These apply to all crates in this spec — see `requirements.md` Iron Laws section for full details:**
+
+1. **No tokio, No async-trait** — All async operations use Valtron `TaskIterator`/`StreamIterator` from `foundation_core`
+2. **Valtron-Only Async** — No `async fn`, no `.await`, no `Future` — only Valtron patterns
+3. **Zero Warnings, Zero Suppression** — All clippy, doc, and cargo warnings MUST be fixed, NEVER suppressed. NO `#[allow(...)]` or `#![allow(...)]` — remove all existing suppression blocks and fix the underlying issues.
+4. **Error Convention** — `#[derive(From, Debug)]` from `derive_more::From` + manual `impl Display`. NO `thiserror`. Central `errors.rs` per crate. `#[from(ignore)]` on String variants.
+
 ## Dependencies
 
 **Required Crates (to add to Cargo.toml):**
