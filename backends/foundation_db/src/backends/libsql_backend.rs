@@ -155,14 +155,14 @@ impl LibsqlStorage {
 }
 
 impl KeyValueStore for LibsqlStorage {
-    fn get<V: DeserializeOwned + Send>(
-        &self,
+    fn get<'a, V: DeserializeOwned + Send + 'static>(
+        &'a self,
         key: &str,
-    ) -> StorageResult<StorageItemStream<'_, Option<V>>> {
+    ) -> StorageResult<StorageItemStream<'a, Option<V>>> {
         let key = key.to_string();
         let conn = Arc::clone(&self.conn);
 
-        let raw_stream = schedule_future::<_, _, _, _>(async move {
+        let stream = schedule_future(async move {
             let mut stmt = conn
                 .prepare("SELECT value FROM kv_store WHERE key = ?")
                 .await?;
@@ -176,13 +176,27 @@ impl KeyValueStore for LibsqlStorage {
             }
         })?;
 
-        let mapped = raw_stream
-            .map_done(|opt_json| {
-                opt_json.and_then(|json_str| serde_json::from_str::<V>(&json_str).ok())
-            })
-            .map_pending(|_| ());
+        // Use map_circuit to short-circuit on error, yielding error in stream
+        let circuit_stream = stream.map_circuit(|stream_item| {
+            use foundation_core::valtron::ShortCircuit;
+            match stream_item {
+                Stream::Next(result) => match result {
+                    Ok(opt) => ShortCircuit::Continue(Stream::Next(Ok(opt))),
+                    Err(e) => ShortCircuit::ReturnAndStop(Stream::Next(Err(StorageError::Backend(e.to_string())))),
+                },
+                _ => ShortCircuit::Continue(Stream::Ignore),
+            }
+        });
 
-        Ok(Box::new(mapped))
+        Ok(Box::new(circuit_stream.map_done(|opt_result| {
+            match opt_result {
+                Ok(Some(json_str)) => serde_json::from_str::<V>(&json_str)
+                    .map(Some)
+                    .map_err(|e| StorageError::Serialization(e.to_string())),
+                Ok(None) => Ok(None),
+                Err(e) => Err(e),
+            }
+        })))
     }
 
     fn set<V: Serialize>(&self, key: &str, value: V) -> StorageResult<StorageItemStream<'_, ()>> {
@@ -191,7 +205,7 @@ impl KeyValueStore for LibsqlStorage {
         let key = key.to_string();
         let conn = Arc::clone(&self.conn);
 
-        let raw_stream = schedule_future(async move {
+        let stream = schedule_future(async move {
             conn.execute(
                 "INSERT INTO kv_store (key, value, updated_at) VALUES (?, ?, strftime('%s', 'now') * 1000) ON CONFLICT(key) DO UPDATE SET value = ?, updated_at = strftime('%s', 'now') * 1000",
                 [key.clone(), serialized.clone(), serialized],
@@ -199,36 +213,70 @@ impl KeyValueStore for LibsqlStorage {
             .await
         })?;
 
-        let mapped = raw_stream.map_done(|_rows| ()).map_pending(|_| ());
+        // Use map_circuit to yield errors in stream, then map_done to transform u64 -> ()
+        let circuit_stream = stream.map_circuit(|stream_item| {
+            use foundation_core::valtron::ShortCircuit;
+            match stream_item {
+                Stream::Next(result) => match result {
+                    Ok(rows) => ShortCircuit::Continue(Stream::Next(Ok(rows))),
+                    Err(e) => ShortCircuit::ReturnAndStop(Stream::Next(Err(StorageError::Backend(e.to_string())))),
+                },
+                _ => ShortCircuit::Continue(Stream::Ignore),
+            }
+        });
 
-        Ok(Box::new(mapped))
+        Ok(Box::new(circuit_stream.map_done(|result| result.map(|_rows| ()))))
     }
 
     fn delete(&self, key: &str) -> StorageResult<StorageItemStream<'_, ()>> {
         let key = key.to_string();
         let conn = Arc::clone(&self.conn);
 
-        let raw_stream = schedule_future(async move {
+        let stream = schedule_future(async move {
             conn.execute("DELETE FROM kv_store WHERE key = ?", [key])
                 .await
         })?;
 
-        let mapped = raw_stream.map_done(|_rows| ()).map_pending(|_| ());
+        // Use map_circuit to yield errors in stream, then map_done to transform u64 -> ()
+        let circuit_stream = stream.map_circuit(|stream_item| {
+            use foundation_core::valtron::ShortCircuit;
+            match stream_item {
+                Stream::Next(result) => match result {
+                    Ok(rows) => ShortCircuit::Continue(Stream::Next(Ok(rows))),
+                    Err(e) => ShortCircuit::ReturnAndStop(Stream::Next(Err(StorageError::Backend(e.to_string())))),
+                },
+                _ => ShortCircuit::Continue(Stream::Ignore),
+            }
+        });
 
-        Ok(Box::new(mapped))
+        Ok(Box::new(circuit_stream.map_done(|result| result.map(|_rows| ()))))
     }
 
     fn exists(&self, key: &str) -> StorageResult<StorageItemStream<'_, bool>> {
         let key = key.to_string();
         let conn = Arc::clone(&self.conn);
 
-        schedule_future::<_, libsql::Error, _>(async move {
+        let stream = schedule_future(async move {
             let mut stmt = conn
                 .prepare("SELECT 1 FROM kv_store WHERE key = ? LIMIT 1")
                 .await?;
             let mut rows = stmt.query([key]).await?;
             Ok(rows.next().await?.is_some())
-        })
+        })?;
+
+        // Use map_circuit to yield errors in stream
+        let circuit_stream = stream.map_circuit(|stream_item| {
+            use foundation_core::valtron::ShortCircuit;
+            match stream_item {
+                Stream::Next(result) => match result {
+                    Ok(b) => ShortCircuit::Continue(Stream::Next(Ok(b))),
+                    Err(e) => ShortCircuit::ReturnAndStop(Stream::Next(Err(StorageError::Backend(e.to_string())))),
+                },
+                _ => ShortCircuit::Continue(Stream::Ignore),
+            }
+        });
+
+        Ok(Box::new(circuit_stream))
     }
 
     fn list_keys(&self, prefix: Option<&str>) -> StorageResult<StorageItemStream<'_, String>> {
@@ -242,7 +290,7 @@ impl KeyValueStore for LibsqlStorage {
 
         let conn = Arc::clone(&self.conn);
 
-        let keys_stream = schedule_future(async move {
+        let stream = schedule_future(async move {
             let mut stmt = conn.prepare(sql).await?;
             let mut rows = if param.is_empty() {
                 stmt.query([libsql::Value::Null; 0]).await?
@@ -259,19 +307,22 @@ impl KeyValueStore for LibsqlStorage {
             Ok::<_, libsql::Error>(keys)
         })?;
 
-        // Flatten Vec<String> stream into individual String items
-        let mapped = keys_stream.flat_map(|s| match s {
-            Stream::Next(keys) => {
-                let items: Vec<Stream<String, ()>> = keys.into_iter().map(Stream::Next).collect();
-                items.into_iter()
+        // Use map_circuit to yield errors, then flat_map_next to expand Vec into iterator
+        let circuit_stream = stream.map_circuit(|stream_item| {
+            use foundation_core::valtron::ShortCircuit;
+            match stream_item {
+                Stream::Next(result) => match result {
+                    Ok(keys) => ShortCircuit::Continue(Stream::Next(Ok(keys))),
+                    Err(e) => ShortCircuit::ReturnAndStop(Stream::Next(Err(StorageError::Backend(e.to_string())))),
+                },
+                _ => ShortCircuit::Continue(Stream::Ignore),
             }
-            Stream::Pending(p) => vec![Stream::Pending(p)].into_iter(),
-            Stream::Init => vec![Stream::Init].into_iter(),
-            Stream::Ignore => vec![Stream::Ignore].into_iter(),
-            Stream::Delayed(d) => vec![Stream::Delayed(d)].into_iter(),
         });
 
-        Ok(Box::new(mapped))
+        Ok(Box::new(circuit_stream.flat_map_next(|keys_result| match keys_result {
+            Ok(keys) => keys.into_iter().map(Ok).collect(),
+            Err(e) => vec![Err(e)],
+        })))
     }
 }
 
@@ -281,27 +332,32 @@ impl QueryStore for LibsqlStorage {
         sql: &str,
         params: &[DataValue],
     ) -> StorageResult<StorageItemStream<'_, SqlRow>> {
+        use crate::rows_stream::LibsqlRowsIterator;
+        use foundation_core::valtron::{ThreadedFuture, ThreadedValue};
+        use foundation_core::synca::mpp::Stream;
+
         let libsql_params = Self::to_libsql_params(params);
         let sql = sql.to_string();
         let conn = Arc::clone(&self.conn);
 
-        let rows_stream = schedule_future::<_, _, _, _>(async move {
-            let mut stmt = conn.prepare(&sql).await?;
-            let mut rows = stmt.query(libsql_params).await?;
+        // Use ThreadedFuture to spawn worker thread that owns !Send libsql::Rows
+        let threaded = ThreadedFuture::new(move || async move {
+            let mut stmt = conn.prepare(&sql).await
+                .map_err(|e| StorageError::Backend(e.to_string()))?;
+            let rows = stmt.query(libsql_params).await
+                .map_err(|e| StorageError::Backend(e.to_string()))?;
+            Ok::<_, StorageError>(LibsqlRowsIterator::new(rows))
+        });
 
-            let column_count = rows.column_count();
-            let mut rows_data = Vec::new();
-            while let Some(row) = rows.next().await? {
-                let sql_row = Self::libsql_row_to_sql_row(&row, column_count)
-                    .map_err(|e| libsql::Error::ToSqlConversionFailure(Box::new(e)))?;
-                rows_data.push(sql_row);
-            }
-            Ok::<_, libsql::Error>(rows_data)
-        })?;
+        let (_handle, receiver) = threaded.execute();
 
-        let mapped = rows_stream.flat_map_next(|rows| rows);
+        // Convert Receiver to blocking iterator, then map ThreadedValue to Stream
+        let block_iter = receiver.into_recv_iter();
+        let stream = block_iter.map(|threaded_value| match threaded_value {
+            ThreadedValue::Value(result) => Stream::Next(result),
+        });
 
-        Ok(Box::new(mapped))
+        Ok(Box::new(stream))
     }
 
     fn execute(
@@ -313,22 +369,42 @@ impl QueryStore for LibsqlStorage {
         let sql = sql.to_string();
         let conn = Arc::clone(&self.conn);
 
-        let raw_stream = schedule_future(async move { conn.execute(&sql, libsql_params).await })?;
+        let stream = schedule_future(async move { conn.execute(&sql, libsql_params).await })?;
 
-        let mapped = raw_stream.map_done(|rows| rows as u64).map_pending(|_| ());
+        // Use map_circuit to yield errors in stream
+        let circuit_stream = stream.map_circuit(|stream_item| {
+            use foundation_core::valtron::ShortCircuit;
+            match stream_item {
+                Stream::Next(result) => match result {
+                    Ok(rows) => ShortCircuit::Continue(Stream::Next(Ok(rows as u64))),
+                    Err(e) => ShortCircuit::ReturnAndStop(Stream::Next(Err(StorageError::Backend(e.to_string())))),
+                },
+                _ => ShortCircuit::Continue(Stream::Ignore),
+            }
+        });
 
-        Ok(Box::new(mapped))
+        Ok(Box::new(circuit_stream))
     }
 
     fn execute_batch(&self, sql: &str) -> StorageResult<StorageItemStream<'_, ()>> {
         let sql = sql.to_string();
         let conn = Arc::clone(&self.conn);
 
-        let raw_stream = schedule_future(async move { conn.execute_batch(&sql).await })?;
+        let stream = schedule_future(async move { conn.execute_batch(&sql).await })?;
 
-        let mapped = raw_stream.map_done(|_rows| ()).map_pending(|_| ());
+        // Use map_circuit to yield errors in stream, then map_done to transform Result<(), libsql::Error> -> Result<(), StorageError>
+        let circuit_stream = stream.map_circuit(|stream_item| {
+            use foundation_core::valtron::ShortCircuit;
+            match stream_item {
+                Stream::Next(result) => match result {
+                    Ok(_) => ShortCircuit::Continue(Stream::Next(Ok(()))),
+                    Err(e) => ShortCircuit::ReturnAndStop(Stream::Next(Err(StorageError::Backend(e.to_string())))),
+                },
+                _ => ShortCircuit::Continue(Stream::Ignore),
+            }
+        });
 
-        Ok(Box::new(mapped))
+        Ok(Box::new(circuit_stream))
     }
 }
 
@@ -358,7 +434,7 @@ impl RateLimiterStore for LibsqlStorage {
         let key = key.to_string();
         let conn = Arc::clone(&self.conn);
 
-        schedule_future::<_, _, _, _>(async move {
+        let stream = schedule_future(async move {
             let mut stmt = conn
                 .prepare("SELECT count, window_start FROM rate_limits WHERE key = ?")
                 .await?;
@@ -376,7 +452,21 @@ impl RateLimiterStore for LibsqlStorage {
                 }
                 None => Ok::<_, libsql::Error>(true),
             }
-        })
+        })?;
+
+        // Use map_circuit to yield errors in stream
+        let circuit_stream = stream.map_circuit(|stream_item| {
+            use foundation_core::valtron::ShortCircuit;
+            match stream_item {
+                Stream::Next(result) => match result {
+                    Ok(b) => ShortCircuit::Continue(Stream::Next(Ok(b))),
+                    Err(e) => ShortCircuit::ReturnAndStop(Stream::Next(Err(StorageError::Backend(e.to_string())))),
+                },
+                _ => ShortCircuit::Continue(Stream::Ignore),
+            }
+        });
+
+        Ok(Box::new(circuit_stream))
     }
 
     fn record_rate_limit(&self, key: &str) -> StorageResult<StorageItemStream<'_, u32>> {
@@ -389,7 +479,7 @@ impl RateLimiterStore for LibsqlStorage {
         let key = key.to_string();
         let conn = Arc::clone(&self.conn);
 
-        schedule_future::<_, _, _, _>(async move {
+        let stream = schedule_future(async move {
             conn.execute(
                 "INSERT INTO rate_limits (key, count, window_start) VALUES (?, 1, ?) ON CONFLICT(key) DO UPDATE SET count = count + 1, window_start = excluded.window_start",
                 [key.clone(), now.to_string()],
@@ -410,21 +500,45 @@ impl RateLimiterStore for LibsqlStorage {
                 }
                 None => Ok::<_, libsql::Error>(1),
             }
-        })
+        })?;
+
+        // Use map_circuit to yield errors in stream
+        let circuit_stream = stream.map_circuit(|stream_item| {
+            use foundation_core::valtron::ShortCircuit;
+            match stream_item {
+                Stream::Next(result) => match result {
+                    Ok(count) => ShortCircuit::Continue(Stream::Next(Ok(count))),
+                    Err(e) => ShortCircuit::ReturnAndStop(Stream::Next(Err(StorageError::Backend(e.to_string())))),
+                },
+                _ => ShortCircuit::Continue(Stream::Ignore),
+            }
+        });
+
+        Ok(Box::new(circuit_stream))
     }
 
     fn reset_rate_limit(&self, key: &str) -> StorageResult<StorageItemStream<'_, ()>> {
         let key = key.to_string();
         let conn = Arc::clone(&self.conn);
 
-        let raw_stream = schedule_future(async move {
+        let stream = schedule_future(async move {
             conn.execute("DELETE FROM rate_limits WHERE key = ?", [key])
                 .await
         })?;
 
-        let mapped = raw_stream.map_done(|_rows| ()).map_pending(|_| ());
+        // Use map_circuit to yield errors in stream, then map_done to transform
+        let circuit_stream = stream.map_circuit(|stream_item| {
+            use foundation_core::valtron::ShortCircuit;
+            match stream_item {
+                Stream::Next(result) => match result {
+                    Ok(_) => ShortCircuit::Continue(Stream::Next(Ok(()))),
+                    Err(e) => ShortCircuit::ReturnAndStop(Stream::Next(Err(StorageError::Backend(e.to_string())))),
+                },
+                _ => ShortCircuit::Continue(Stream::Ignore),
+            }
+        });
 
-        Ok(Box::new(mapped))
+        Ok(Box::new(circuit_stream))
     }
 }
 
@@ -448,16 +562,16 @@ mod tests {
         let storage = LibsqlStorage::new(url).unwrap();
         storage.init_schema().unwrap();
 
-        storage.set("test_key", "test_value").unwrap();
+        storage.set("test_key", "test_value").unwrap().next().unwrap().unwrap().unwrap();
 
-        let value: String = storage.get("test_key").unwrap().unwrap();
+        let value: String = storage.get("test_key").unwrap().next().unwrap().unwrap().unwrap().unwrap();
         assert_eq!(value, "test_value");
 
-        assert!(storage.exists("test_key").unwrap());
-        assert!(!storage.exists("nonexistent").unwrap());
+        assert!(storage.exists("test_key").unwrap().next().unwrap().unwrap().unwrap());
+        assert!(!storage.exists("nonexistent").unwrap().next().unwrap().unwrap().unwrap());
 
-        storage.delete("test_key").unwrap();
-        assert!(!storage.exists("test_key").unwrap());
+        storage.delete("test_key").unwrap().next().unwrap().unwrap().unwrap();
+        assert!(!storage.exists("test_key").unwrap().next().unwrap().unwrap().unwrap());
     }
 
     #[test]
@@ -470,29 +584,25 @@ mod tests {
         let storage = LibsqlStorage::new(url).unwrap();
         storage.init_schema().unwrap();
 
-        storage.set("prefix:key1", "value1").unwrap();
-        storage.set("prefix:key2", "value2").unwrap();
-        storage.set("other:key3", "value3").unwrap();
+        storage.set("prefix:key1", "value1").unwrap().next().unwrap().unwrap().unwrap();
+        storage.set("prefix:key2", "value2").unwrap().next().unwrap().unwrap().unwrap();
+        storage.set("other:key3", "value3").unwrap().next().unwrap().unwrap().unwrap();
 
-        let keys: Vec<String> = storage
+        // List all keys - flatten Stream<Result<T, E>, ()> into Result<T, E>, then collect
+        let keys: Result<Vec<String>, _> = storage
             .list_keys(None)
             .unwrap()
-            .filter_map(|s| match s {
-                Stream::Next(key) => Some(key),
-                _ => None,
-            })
+            .flatten()
             .collect();
-        assert_eq!(keys.len(), 3);
+        assert_eq!(keys.unwrap().len(), 3);
 
-        let keys: Vec<String> = storage
+        // List keys with prefix
+        let keys: Result<Vec<String>, _> = storage
             .list_keys(Some("prefix:"))
             .unwrap()
-            .filter_map(|s| match s {
-                Stream::Next(key) => Some(key),
-                _ => None,
-            })
+            .flatten()
             .collect();
-        assert_eq!(keys.len(), 2);
+        assert_eq!(keys.unwrap().len(), 2);
     }
 
     #[test]

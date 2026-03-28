@@ -6,7 +6,7 @@
 
 use crate::backends::async_utils::{exec_future, schedule_future};
 use crate::errors::StorageResult;
-use foundation_core::valtron::{Stream, StreamIteratorExt};
+use foundation_core::valtron::{Stream, StreamIteratorExt, ThreadedFuture, ThreadedValue};
 use serde::{de::DeserializeOwned, Serialize};
 use std::sync::Arc;
 use turso::Builder;
@@ -131,38 +131,13 @@ impl TursoStorage {
             DataValue::Blob(b) => turso::Value::Blob(b.clone()),
         }
     }
-
-    /// Convert `turso::Row` to crate-owned [`SqlRow`].
-    fn turso_row_to_sql_row(row: &turso::Row) -> StorageResult<SqlRow> {
-        let column_count = row.column_count();
-        let mut columns = Vec::with_capacity(column_count);
-
-        for i in 0..column_count {
-            let name = format!("col{i}");
-            let value = Self::turso_value_to_data_value(row.get_value(i)?);
-            columns.push((name, value));
-        }
-
-        Ok(SqlRow::new(columns))
-    }
-
-    /// Convert `turso::Value` to crate-owned [`DataValue`].
-    fn turso_value_to_data_value(value: turso::Value) -> DataValue {
-        match value {
-            turso::Value::Null => DataValue::Null,
-            turso::Value::Integer(i) => DataValue::Integer(i),
-            turso::Value::Real(r) => DataValue::Real(r),
-            turso::Value::Text(s) => DataValue::Text(s),
-            turso::Value::Blob(b) => DataValue::Blob(b),
-        }
-    }
 }
 
 impl KeyValueStore for TursoStorage {
-    fn get<V: DeserializeOwned + Send>(
-        &self,
+    fn get<'a, V: DeserializeOwned + Send + 'static>(
+        &'a self,
         key: &str,
-    ) -> StorageResult<StorageItemStream<'_, Option<V>>> {
+    ) -> StorageResult<StorageItemStream<'a, Option<V>>> {
         let key = key.to_string();
         let conn = Arc::clone(&self.conn);
 
@@ -178,13 +153,30 @@ impl KeyValueStore for TursoStorage {
                 }
                 None => Ok::<_, turso::Error>(None),
             }
-        }, |e| {
-            tracing::error!("get error: {e}");
-            None
         })?;
 
-        Ok(Box::new(stream.map_done(|opt_json| {
-            opt_json.and_then(|json_str| serde_json::from_str::<V>(&json_str).ok())
+        // Use map_circuit to short-circuit on error, yielding error in stream
+        let circuit_stream = stream.map_circuit(|stream_item| {
+            use foundation_core::valtron::ShortCircuit;
+            match stream_item {
+                Stream::Next(result) => match result {
+                    Ok(opt) => ShortCircuit::Continue(Stream::Next(Ok(opt))),
+                    Err(e) => ShortCircuit::ReturnAndStop(Stream::Next(Err(StorageError::Backend(e.to_string())))),
+                },
+                _ => ShortCircuit::Continue(Stream::Ignore),
+            }
+        });
+
+        Ok(Box::new(circuit_stream.map_done(|opt_result| {
+            // opt_result: Result<Option<String>, StorageError>
+            // We want: Result<Option<V>, StorageError>
+            match opt_result {
+                Ok(Some(json_str)) => serde_json::from_str::<V>(&json_str)
+                    .map(Some)
+                    .map_err(|e| StorageError::Serialization(e.to_string())),
+                Ok(None) => Ok(None),
+                Err(e) => Err(e),
+            }
         })))
     }
 
@@ -200,9 +192,22 @@ impl KeyValueStore for TursoStorage {
                 [key.clone(), serialized.clone(), serialized],
             )
             .await
-        }, |_| 0u64)?;
+        })?;
 
-        Ok(Box::new(stream.map_done(|_rows| ())))
+        // Use map_circuit to short-circuit on error, yielding error in stream
+        // Then map_done to transform Ok(u64) -> Ok(())
+        let circuit_stream = stream.map_circuit(|stream_item| {
+            use foundation_core::valtron::ShortCircuit;
+            match stream_item {
+                Stream::Next(result) => match result {
+                    Ok(_rows) => ShortCircuit::Continue(Stream::Next(Ok(_rows))),
+                    Err(e) => ShortCircuit::ReturnAndStop(Stream::Next(Err(StorageError::Backend(e.to_string())))),
+                },
+                _ => ShortCircuit::Continue(Stream::Ignore),
+            }
+        });
+
+        Ok(Box::new(circuit_stream.map_done(|result| result.map(|_rows| ()))))
     }
 
     fn delete(&self, key: &str) -> StorageResult<StorageItemStream<'_, ()>> {
@@ -212,9 +217,21 @@ impl KeyValueStore for TursoStorage {
         let stream = schedule_future(async move {
             conn.execute("DELETE FROM kv_store WHERE key = ?", [key])
                 .await
-        }, |_| 0u64)?;
+        })?;
 
-        Ok(Box::new(stream.map_done(|_rows| ())))
+        // Use map_circuit to short-circuit on error, yielding error in stream
+        let circuit_stream = stream.map_circuit(|stream_item| {
+            use foundation_core::valtron::ShortCircuit;
+            match stream_item {
+                Stream::Next(result) => match result {
+                    Ok(_rows) => ShortCircuit::Continue(Stream::Next(Ok(_rows))),
+                    Err(e) => ShortCircuit::ReturnAndStop(Stream::Next(Err(StorageError::Backend(e.to_string())))),
+                },
+                _ => ShortCircuit::Continue(Stream::Ignore),
+            }
+        });
+
+        Ok(Box::new(circuit_stream.map_done(|result| result.map(|_rows| ()))))
     }
 
     fn exists(&self, key: &str) -> StorageResult<StorageItemStream<'_, bool>> {
@@ -226,16 +243,27 @@ impl KeyValueStore for TursoStorage {
                 .prepare("SELECT 1 FROM kv_store WHERE key = ? LIMIT 1")
                 .await?;
             let mut rows = stmt.query([key]).await?;
-            Ok(rows.next().await?.is_some())
-        }, |e| {
-            tracing::error!("exists error: {e}");
-            false
+            Ok::<_, turso::Error>(rows.next().await?.is_some())
         })?;
 
-        Ok(Box::new(stream))
+        // Use map_circuit to short-circuit on error, yielding error in stream
+        let circuit_stream = stream.map_circuit(|stream_item| {
+            use foundation_core::valtron::ShortCircuit;
+            match stream_item {
+                Stream::Next(result) => match result {
+                    Ok(val) => ShortCircuit::Continue(Stream::Next(Ok(val))),
+                    Err(e) => ShortCircuit::ReturnAndStop(Stream::Next(Err(StorageError::Backend(e.to_string())))),
+                },
+                _ => ShortCircuit::Continue(Stream::Ignore),
+            }
+        });
+
+        Ok(Box::new(circuit_stream))
     }
 
     fn list_keys(&self, prefix: Option<&str>) -> StorageResult<StorageItemStream<'_, String>> {
+        use crate::rows_stream::RowsIterator;
+
         let (sql, param): (&str, String) = match prefix {
             Some(p) => (
                 "SELECT key FROM kv_store WHERE key LIKE ? ORDER BY key",
@@ -244,25 +272,41 @@ impl KeyValueStore for TursoStorage {
             None => ("SELECT key FROM kv_store ORDER BY key", String::new()),
         };
 
+        let turso_params = Self::to_turso_params(&[DataValue::Text(param.clone())]);
         let conn = Arc::clone(&self.conn);
 
-        let stream = schedule_future(async move {
-            let mut stmt = conn.prepare(sql).await?;
-            let mut rows = if param.is_empty() {
-                stmt.query([turso::Value::Null; 0]).await?
+        // Use ThreadedFuture for streaming query results
+        let threaded = ThreadedFuture::new(move || async move {
+            let mut stmt = conn.prepare(sql).await
+                .map_err(|e| StorageError::Backend(e.to_string()))?;
+            let rows = if param.is_empty() {
+                stmt.query([turso::Value::Null; 0]).await
             } else {
-                stmt.query([param]).await?
-            };
-
-            let mut keys = Vec::new();
-            while let Some(row) = rows.next().await? {
-                let key: String = row.get(0)?;
-                keys.push(key);
+                stmt.query(turso_params).await
             }
-            Ok::<_, turso::Error>(keys)
-        }, Vec::new)?;
+            .map_err(|e| StorageError::Backend(e.to_string()))?;
 
-        Ok(Box::new(stream.flat_map_next(|keys| keys)))
+            Ok::<_, StorageError>(RowsIterator::new(rows))
+        });
+
+        let (_handle, receiver) = threaded.execute();
+
+        // RowsIterator yields Result<SqlRow, StorageError>
+        // Convert ThreadedValue to Stream
+        let block_iter = receiver.into_recv_iter();
+        let stream = block_iter.map(|threaded_value| match threaded_value {
+            ThreadedValue::Value(row_result) => match row_result {
+                Ok(row) => {
+                    match row.get::<String>(0) {
+                        Ok(key) => Stream::Next(Ok(key)),
+                        Err(e) => Stream::Next(Err(StorageError::SqlConversion(e.to_string()))),
+                    }
+                }
+                Err(e) => Stream::Next(Err(e)),
+            },
+        });
+
+        Ok(Box::new(stream))
     }
 }
 
@@ -272,24 +316,33 @@ impl QueryStore for TursoStorage {
         sql: &str,
         params: &[DataValue],
     ) -> StorageResult<StorageItemStream<'_, SqlRow>> {
+        use crate::rows_stream::RowsIterator;
+        use foundation_core::valtron::ThreadedFuture;
+
         let turso_params = Self::to_turso_params(params);
         let sql = sql.to_string();
         let conn = Arc::clone(&self.conn);
 
-        let rows_stream = schedule_future(async move {
-            let mut stmt = conn.prepare(&sql).await?;
-            let mut rows = stmt.query(turso_params).await?;
+        // Use ThreadedFuture to spawn worker thread that owns !Send turso::Rows
+        // RowsIterator already converts turso::Error to StorageError internally
+        let threaded = ThreadedFuture::new(move || async move {
+            let mut stmt = conn.prepare(&sql).await
+                .map_err(|e| StorageError::Backend(e.to_string()))?;
+            let rows = stmt.query(turso_params).await
+                .map_err(|e| StorageError::Backend(e.to_string()))?;
+            Ok::<_, StorageError>(RowsIterator::new(rows))
+        });
 
-            let mut rows_data = Vec::new();
-            while let Some(row) = rows.next().await? {
-                let sql_row = Self::turso_row_to_sql_row(&row)
-                    .map_err(|e| turso::Error::ConversionFailure(e.to_string()))?;
-                rows_data.push(sql_row);
-            }
-            Ok::<_, turso::Error>(rows_data)
-        }, Vec::new)?;
+        let (_handle, receiver) = threaded.execute();
 
-        Ok(Box::new(rows_stream.flat_map_next(|rows| rows)))
+        // RowsIterator yields Result<SqlRow, StorageError>
+        // Convert ThreadedValue to Stream
+        let block_iter = receiver.into_recv_iter();
+        let stream = block_iter.map(|threaded_value| match threaded_value {
+            ThreadedValue::Value(result) => Stream::Next(result),
+        });
+
+        Ok(Box::new(stream))
     }
 
     fn execute(
@@ -301,17 +354,42 @@ impl QueryStore for TursoStorage {
         let sql = sql.to_string();
         let conn = Arc::clone(&self.conn);
 
-        let raw_stream = schedule_future(async move { conn.execute(&sql, turso_params).await }, |_| 0)?;
+        let raw_stream = schedule_future(async move { conn.execute(&sql, turso_params).await })?;
 
-        Ok(Box::new(raw_stream.map_done(|rows| rows as u64)))
+        // Use map_circuit to yield Ok(rows) or Err(e)
+        let circuit_stream = raw_stream.map_circuit(|stream_item| {
+            use foundation_core::valtron::ShortCircuit;
+            match stream_item {
+                Stream::Next(result) => match result {
+                    Ok(rows) => ShortCircuit::Continue(Stream::Next(Ok(rows as u64))),
+                    Err(e) => ShortCircuit::ReturnAndStop(Stream::Next(Err(StorageError::Backend(e.to_string())))),
+                },
+                _ => ShortCircuit::Continue(Stream::Ignore),
+            }
+        });
+
+        Ok(Box::new(circuit_stream))
     }
 
     fn execute_batch(&self, sql: &str) -> StorageResult<StorageItemStream<'_, ()>> {
         let sql = sql.to_string();
         let conn = Arc::clone(&self.conn);
 
-        let stream = schedule_future(async move { conn.execute_batch(&sql).await }, |_| ())?;
-        Ok(Box::new(stream))
+        let stream = schedule_future(async move { conn.execute_batch(&sql).await })?;
+
+        // Use map_circuit to yield Ok(()) or Err(e)
+        let circuit_stream = stream.map_circuit(|stream_item| {
+            use foundation_core::valtron::ShortCircuit;
+            match stream_item {
+                Stream::Next(result) => match result {
+                    Ok(_) => ShortCircuit::Continue(Stream::Next(Ok(()))),
+                    Err(e) => ShortCircuit::ReturnAndStop(Stream::Next(Err(StorageError::Backend(e.to_string())))),
+                },
+                _ => ShortCircuit::Continue(Stream::Ignore),
+            }
+        });
+
+        Ok(Box::new(circuit_stream))
     }
 }
 
@@ -360,12 +438,21 @@ impl RateLimiterStore for TursoStorage {
                 }
                 None => Ok::<_, turso::Error>(true),
             }
-        }, |e| {
-            tracing::error!("check_rate_limit error: {e}");
-            false
         })?;
 
-        Ok(Box::new(stream))
+        // Use map_circuit to yield Ok(value) or Err(e)
+        let circuit_stream = stream.map_circuit(|stream_item| {
+            use foundation_core::valtron::ShortCircuit;
+            match stream_item {
+                Stream::Next(result) => match result {
+                    Ok(val) => ShortCircuit::Continue(Stream::Next(Ok(val))),
+                    Err(e) => ShortCircuit::ReturnAndStop(Stream::Next(Err(StorageError::Backend(e.to_string())))),
+                },
+                _ => ShortCircuit::Continue(Stream::Ignore),
+            }
+        });
+
+        Ok(Box::new(circuit_stream))
     }
 
     fn record_rate_limit(&self, key: &str) -> StorageResult<StorageItemStream<'_, u32>> {
@@ -379,7 +466,7 @@ impl RateLimiterStore for TursoStorage {
         let conn = Arc::clone(&self.conn);
 
         // Combine insert + read into one async block for atomicity
-        schedule_future(async move {
+        let stream = schedule_future(async move {
             conn.execute(
                 "INSERT INTO rate_limits (key, count, window_start) VALUES (?, 1, ?) ON CONFLICT(key) DO UPDATE SET count = count + 1, window_start = excluded.window_start",
                 [key.clone(), now.to_string()],
@@ -399,12 +486,21 @@ impl RateLimiterStore for TursoStorage {
                 }
                 None => Ok::<_, turso::Error>(1),
             }
-        }, |e| {
-            tracing::error!("record_rate_limit error: {e}");
-            0
         })?;
 
-        Ok(Box::new(stream))
+        // Use map_circuit to yield Ok(value) or Err(e)
+        let circuit_stream = stream.map_circuit(|stream_item| {
+            use foundation_core::valtron::ShortCircuit;
+            match stream_item {
+                Stream::Next(result) => match result {
+                    Ok(val) => ShortCircuit::Continue(Stream::Next(Ok(val))),
+                    Err(e) => ShortCircuit::ReturnAndStop(Stream::Next(Err(StorageError::Backend(e.to_string())))),
+                },
+                _ => ShortCircuit::Continue(Stream::Ignore),
+            }
+        });
+
+        Ok(Box::new(circuit_stream))
     }
 
     fn reset_rate_limit(&self, key: &str) -> StorageResult<StorageItemStream<'_, ()>> {
@@ -414,9 +510,19 @@ impl RateLimiterStore for TursoStorage {
         let stream = schedule_future(async move {
             conn.execute("DELETE FROM rate_limits WHERE key = ?", [key])
                 .await
-        }, |_| ())?;
+        })?;
 
-        Ok(Box::new(stream))
+        // Use map_circuit for error propagation, then map_done to transform u64 -> ()
+        let circuit_stream = stream.map_circuit(|stream_item| {
+            use foundation_core::valtron::ShortCircuit;
+            match stream_item {
+                Stream::Next(Ok(rows)) => ShortCircuit::Continue(Stream::Next(Ok(rows))),
+                Stream::Next(Err(e)) => ShortCircuit::ReturnAndStop(Stream::Next(Err(StorageError::Backend(e.to_string())))),
+                _ => ShortCircuit::Continue(Stream::Ignore),
+            }
+        });
+
+        Ok(Box::new(circuit_stream.map_done(|result| result.map(|_| ()))))
     }
 }
 
@@ -441,16 +547,16 @@ mod tests {
         let storage = TursoStorage::new(url).unwrap();
         storage.init_schema().unwrap();
 
-        collect_one(storage.set("test_key", "test_value").unwrap()).unwrap();
+        collect_one(storage.set("test_key", "test_value").unwrap()).unwrap().unwrap();
 
-        let value: Option<String> = collect_one(storage.get("test_key").unwrap()).unwrap();
+        let value: Option<String> = collect_one(storage.get("test_key").unwrap()).unwrap().unwrap();
         assert_eq!(value, Some("test_value".to_string()));
 
-        assert!(collect_one(storage.exists("test_key").unwrap()).unwrap());
-        assert!(!collect_one(storage.exists("nonexistent").unwrap()).unwrap());
+        assert!(collect_one(storage.exists("test_key").unwrap()).unwrap().unwrap());
+        assert!(!collect_one(storage.exists("nonexistent").unwrap()).unwrap().unwrap());
 
-        collect_one(storage.delete("test_key").unwrap()).unwrap();
-        assert!(!collect_one(storage.exists("test_key").unwrap()).unwrap());
+        collect_one(storage.delete("test_key").unwrap()).unwrap().unwrap();
+        assert!(!collect_one(storage.exists("test_key").unwrap()).unwrap().unwrap());
     }
 
     #[test]
@@ -463,15 +569,17 @@ mod tests {
         let storage = TursoStorage::new(url).unwrap();
         storage.init_schema().unwrap();
 
-        collect_one(storage.set("prefix:key1", "value1").unwrap()).unwrap();
-        collect_one(storage.set("prefix:key2", "value2").unwrap()).unwrap();
-        collect_one(storage.set("other:key3", "value3").unwrap()).unwrap();
+        collect_one(storage.set("prefix:key1", "value1").unwrap()).unwrap().unwrap();
+        collect_one(storage.set("prefix:key2", "value2").unwrap()).unwrap().unwrap();
+        collect_one(storage.set("other:key3", "value3").unwrap()).unwrap().unwrap();
 
-        let keys = collect_result(storage.list_keys(None).unwrap());
-        assert_eq!(keys.len(), 3);
+        // List all keys - flatten Stream<Result<T, E>, ()> into Result<T, E>, then collect
+        let keys: Result<Vec<String>, _> = storage.list_keys(None).unwrap().flatten().collect();
+        assert_eq!(keys.unwrap().len(), 3);
 
-        let keys = collect_result(storage.list_keys(Some("prefix:")).unwrap());
-        assert_eq!(keys.len(), 2);
+        // List keys with prefix
+        let keys: Result<Vec<String>, _> = storage.list_keys(Some("prefix:")).unwrap().flatten().collect();
+        assert_eq!(keys.unwrap().len(), 2);
     }
 
     #[test]

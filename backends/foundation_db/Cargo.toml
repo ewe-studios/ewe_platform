@@ -15,7 +15,7 @@ foundation_core = { workspace = true }
 
 # Storage backends (feature-gated)
 turso = { version = "0.1", optional = true }
-libsql = { version = "0.3", optional = true }
+libsql = { version = "0.6", optional = true }
 
 # Serialization
 serde = { version = "1", features = ["derive"] }
@@ -34,6 +34,7 @@ base64 = "0.22"
 # Utilities
 tracing = "0.1"
 futures-core = "0.3"
+futures-lite = "2"
 
 [dev-dependencies]
 tracing-test = { version = "0.2", features = ["no-env-filter"] }

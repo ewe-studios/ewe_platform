@@ -40,11 +40,6 @@ impl Iterator for TestStream {
     }
 }
 
-impl StreamIterator for TestStream {
-    type D = u32;
-    type P = String;
-}
-
 // ============================================================================
 // CollectAll Tests
 // ============================================================================
@@ -247,16 +242,6 @@ impl Iterator for CounterTask {
         } else {
             None
         }
-    }
-}
-
-impl TaskIterator for CounterTask {
-    type Ready = u32;
-    type Pending = u32;
-    type Spawner = foundation_core::valtron::NoAction;
-
-    fn next_status(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
-        Iterator::next(self)
     }
 }
 
@@ -468,16 +453,6 @@ impl Iterator for SplitTestTask {
         } else {
             None
         }
-    }
-}
-
-impl TaskIterator for SplitTestTask {
-    type Ready = u32;
-    type Pending = String;
-    type Spawner = foundation_core::valtron::NoAction;
-
-    fn next_status(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
-        Iterator::next(self)
     }
 }
 

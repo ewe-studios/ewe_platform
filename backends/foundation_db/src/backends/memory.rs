@@ -35,7 +35,7 @@ impl Default for MemoryStorage {
 }
 
 impl KeyValueStore for MemoryStorage {
-    fn get<V: DeserializeOwned + Send>(&self, key: &str) -> StorageResult<StorageItemStream<'_, Option<V>>> {
+    fn get<'a, V: DeserializeOwned + Send + 'static>(&'a self, key: &str) -> StorageResult<StorageItemStream<'a, Option<V>>> {
         let data = self.data.lock().map_err(|e| {
             StorageError::Backend(format!("Mutex poisoned: {e}"))
         })?;
@@ -48,7 +48,7 @@ impl KeyValueStore for MemoryStorage {
             }
             None => None,
         };
-        Ok(Box::new(std::iter::once(Stream::Next(result))))
+        Ok(Box::new(std::iter::once(Stream::Next(Ok(result)))))
     }
 
     fn set<V: Serialize>(&self, key: &str, value: V) -> StorageResult<StorageItemStream<'_, ()>> {
@@ -60,7 +60,7 @@ impl KeyValueStore for MemoryStorage {
         })?;
 
         data.insert(key.to_string(), Zeroizing::new(bytes));
-        Ok(Box::new(std::iter::once(Stream::Next(()))))
+        Ok(Box::new(std::iter::once(Stream::Next(Ok(())))))
     }
 
     fn delete(&self, key: &str) -> StorageResult<StorageItemStream<'_, ()>> {
@@ -68,14 +68,14 @@ impl KeyValueStore for MemoryStorage {
             StorageError::Backend(format!("Mutex poisoned: {e}"))
         })?;
         data.remove(key);
-        Ok(Box::new(std::iter::once(Stream::Next(()))))
+        Ok(Box::new(std::iter::once(Stream::Next(Ok(())))))
     }
 
     fn exists(&self, key: &str) -> StorageResult<StorageItemStream<'_, bool>> {
         let data = self.data.lock().map_err(|e| {
             StorageError::Backend(format!("Mutex poisoned: {e}"))
         })?;
-        Ok(Box::new(std::iter::once(Stream::Next(data.contains_key(key)))))
+        Ok(Box::new(std::iter::once(Stream::Next(Ok(data.contains_key(key))))))
     }
 
     fn list_keys(&self, prefix: Option<&str>) -> StorageResult<StorageItemStream<'_, String>> {
@@ -89,7 +89,7 @@ impl KeyValueStore for MemoryStorage {
             .cloned()
             .collect();
 
-        Ok(Box::new(keys.into_iter().map(Stream::Next)))
+        Ok(Box::new(keys.into_iter().map(|key| Stream::Next(Ok(key)))))
     }
 }
 
@@ -153,7 +153,7 @@ impl RateLimiterStore for MemoryStorage {
             }
             None => true,
         };
-        Ok(Box::new(std::iter::once(Stream::Next(allowed))))
+        Ok(Box::new(std::iter::once(Stream::Next(Ok(allowed)))))
     }
 
     fn record_rate_limit(&self, key: &str) -> StorageResult<StorageItemStream<'_, u32>> {
@@ -185,7 +185,7 @@ impl RateLimiterStore for MemoryStorage {
             1
         };
 
-        Ok(Box::new(std::iter::once(Stream::Next(new_count))))
+        Ok(Box::new(std::iter::once(Stream::Next(Ok(new_count)))))
     }
 
     fn reset_rate_limit(&self, key: &str) -> StorageResult<StorageItemStream<'_, ()>> {
@@ -194,51 +194,51 @@ impl RateLimiterStore for MemoryStorage {
             StorageError::Backend(format!("Mutex poisoned: {e}"))
         })?;
         data.remove(&rate_key);
-        Ok(Box::new(std::iter::once(Stream::Next(()))))
+        Ok(Box::new(std::iter::once(Stream::Next(Ok(())))))
     }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use foundation_core::valtron::{collect_one, collect_result};
+    use foundation_core::valtron::collect_one;
 
     #[test]
     fn test_memory_storage_basic() {
         let storage = MemoryStorage::new();
 
         // Test set and get
-        collect_one(storage.set("test_key", "test_value").unwrap()).unwrap();
+        collect_one(storage.set("test_key", "test_value").unwrap()).unwrap().unwrap();
 
-        let value: Option<String> = collect_one(storage.get("test_key").unwrap()).unwrap();
+        let value: Option<String> = collect_one(storage.get("test_key").unwrap()).unwrap().unwrap();
         assert_eq!(value, Some("test_value".to_string()));
 
         // Test exists
-        assert!(collect_one(storage.exists("test_key").unwrap()).unwrap());
-        assert!(!collect_one(storage.exists("nonexistent").unwrap()).unwrap());
+        assert!(collect_one(storage.exists("test_key").unwrap()).unwrap().unwrap());
+        assert!(!collect_one(storage.exists("nonexistent").unwrap()).unwrap().unwrap());
 
         // Test delete
-        collect_one(storage.delete("test_key").unwrap()).unwrap();
-        assert!(!collect_one(storage.exists("test_key").unwrap()).unwrap());
+        collect_one(storage.delete("test_key").unwrap()).unwrap().unwrap();
+        assert!(!collect_one(storage.exists("test_key").unwrap()).unwrap().unwrap());
     }
 
     #[test]
     fn test_memory_storage_list_keys() {
         let storage = MemoryStorage::new();
 
-        collect_one(storage.set("prefix:key1", "value1").unwrap()).unwrap();
-        collect_one(storage.set("prefix:key2", "value2").unwrap()).unwrap();
-        collect_one(storage.set("other:key3", "value3").unwrap()).unwrap();
+        collect_one(storage.set("prefix:key1", "value1").unwrap()).unwrap().unwrap();
+        collect_one(storage.set("prefix:key2", "value2").unwrap()).unwrap().unwrap();
+        collect_one(storage.set("other:key3", "value3").unwrap()).unwrap().unwrap();
 
-        // List all keys
-        let keys = collect_result(storage.list_keys(None).unwrap());
-        assert_eq!(keys.len(), 3);
+        // List all keys - flatten Stream<Result<T, E>, ()> into Result<T, E>, then collect
+        let keys: Result<Vec<String>, _> = storage.list_keys(None).unwrap().flatten().collect();
+        assert_eq!(keys.unwrap().len(), 3);
 
         // List keys with prefix
-        let keys = collect_result(storage.list_keys(Some("prefix:")).unwrap());
-        assert_eq!(keys.len(), 2);
-        assert!(keys.contains(&"prefix:key1".to_string()));
-        assert!(keys.contains(&"prefix:key2".to_string()));
+        let keys: Result<Vec<String>, _> = storage.list_keys(Some("prefix:")).unwrap().flatten().collect();
+        assert_eq!(keys.unwrap().len(), 2);
+        assert!(keys.as_ref().unwrap().contains(&"prefix:key1".to_string()));
+        assert!(keys.as_ref().unwrap().contains(&"prefix:key2".to_string()));
     }
 
     #[test]
@@ -256,9 +256,9 @@ mod tests {
             count: 42,
         };
 
-        collect_one(storage.set("complex", &data).unwrap()).unwrap();
+        collect_one(storage.set("complex", &data).unwrap()).unwrap().unwrap();
 
-        let retrieved: Option<TestData> = collect_one(storage.get("complex").unwrap()).unwrap();
+        let retrieved: Option<TestData> = collect_one(storage.get("complex").unwrap()).unwrap().unwrap();
         assert_eq!(retrieved, Some(data));
     }
 }

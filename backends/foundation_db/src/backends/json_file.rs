@@ -59,13 +59,11 @@ impl JsonFileStorage {
     ///
     /// Returns a `StorageError` if file I/O or parsing fails.
     fn load_from_file(file_path: &Path) -> StorageResult<HashMap<String, Zeroizing<Vec<u8>>>> {
-        let file = File::open(file_path).map_err(|e| {
-            StorageError::Io(e)
-        })?;
+        let file = File::open(file_path).map_err(|e| StorageError::Io(e))?;
 
         let reader = BufReader::new(file);
-        let raw_data: HashMap<String, Vec<u8>> = serde_json::from_reader(reader)
-            .map_err(StorageError::Json)?;
+        let raw_data: HashMap<String, Vec<u8>> =
+            serde_json::from_reader(reader).map_err(StorageError::Json)?;
 
         // Convert to Zeroizing wrappers
         Ok(raw_data
@@ -82,9 +80,10 @@ impl JsonFileStorage {
     ///
     /// Returns a `StorageError` if file I/O or serialization fails.
     fn flush_to_disk(&self) -> StorageResult<()> {
-        let data = self.data.lock().map_err(|e| {
-            StorageError::Backend(format!("Mutex poisoned: {e}"))
-        })?;
+        let data = self
+            .data
+            .lock()
+            .map_err(|e| StorageError::Backend(format!("Mutex poisoned: {e}")))?;
 
         // Serialize to Vec<u8> first (without Zeroizing for disk storage)
         let raw_data: HashMap<String, Vec<u8>> = data
@@ -92,39 +91,36 @@ impl JsonFileStorage {
             .map(|(k, v)| (k.clone(), (**v).clone()))
             .collect();
 
-        let json_bytes = serde_json::to_vec(&raw_data)
-            .map_err(StorageError::Json)?;
+        let json_bytes = serde_json::to_vec(&raw_data).map_err(StorageError::Json)?;
 
         // Write to temp file first
         let temp_path = self.file_path.with_extension("json.tmp");
 
-        let mut temp_file = File::create(&temp_path).map_err(|e| {
-            StorageError::Io(e)
-        })?;
+        let mut temp_file = File::create(&temp_path).map_err(|e| StorageError::Io(e))?;
 
-        temp_file.write_all(&json_bytes).map_err(|e| {
-            StorageError::Io(e)
-        })?;
+        temp_file
+            .write_all(&json_bytes)
+            .map_err(|e| StorageError::Io(e))?;
 
         // Ensure data is flushed to disk
-        temp_file.sync_all().map_err(|e| {
-            StorageError::Io(e)
-        })?;
+        temp_file.sync_all().map_err(|e| StorageError::Io(e))?;
 
         // Atomic rename
-        fs::rename(&temp_path, &self.file_path).map_err(|e| {
-            StorageError::Io(e)
-        })?;
+        fs::rename(&temp_path, &self.file_path).map_err(|e| StorageError::Io(e))?;
 
         Ok(())
     }
 }
 
 impl KeyValueStore for JsonFileStorage {
-    fn get<V: DeserializeOwned + Send>(&self, key: &str) -> StorageResult<StorageItemStream<'_, Option<V>>> {
-        let data = self.data.lock().map_err(|e| {
-            StorageError::Backend(format!("Mutex poisoned: {e}"))
-        })?;
+    fn get<'a, V: DeserializeOwned + Send + 'static>(
+        &'a self,
+        key: &str,
+    ) -> StorageResult<StorageItemStream<'a, Option<V>>> {
+        let data = self
+            .data
+            .lock()
+            .map_err(|e| StorageError::Backend(format!("Mutex poisoned: {e}")))?;
 
         let result = match data.get(key) {
             Some(bytes) => {
@@ -134,49 +130,55 @@ impl KeyValueStore for JsonFileStorage {
             }
             None => None,
         };
-        Ok(Box::new(std::iter::once(Stream::Next(result))))
+        Ok(Box::new(std::iter::once(Stream::Next(Ok(result)))))
     }
 
     fn set<V: Serialize>(&self, key: &str, value: V) -> StorageResult<StorageItemStream<'_, ()>> {
-        let bytes = serde_json::to_vec(&value)
-            .map_err(|e| StorageError::Serialization(e.to_string()))?;
+        let bytes =
+            serde_json::to_vec(&value).map_err(|e| StorageError::Serialization(e.to_string()))?;
 
-        let mut data = self.data.lock().map_err(|e| {
-            StorageError::Backend(format!("Mutex poisoned: {e}"))
-        })?;
+        let mut data = self
+            .data
+            .lock()
+            .map_err(|e| StorageError::Backend(format!("Mutex poisoned: {e}")))?;
 
         data.insert(key.to_string(), Zeroizing::new(bytes));
         drop(data); // Release lock before flushing
 
         self.flush_to_disk()?;
 
-        Ok(Box::new(std::iter::once(Stream::Next(()))))
+        Ok(Box::new(std::iter::once(Stream::Next(Ok(())))))
     }
 
     fn delete(&self, key: &str) -> StorageResult<StorageItemStream<'_, ()>> {
-        let mut data = self.data.lock().map_err(|e| {
-            StorageError::Backend(format!("Mutex poisoned: {e}"))
-        })?;
+        let mut data = self
+            .data
+            .lock()
+            .map_err(|e| StorageError::Backend(format!("Mutex poisoned: {e}")))?;
 
         data.remove(key);
         drop(data); // Release lock before flushing
 
         self.flush_to_disk()?;
 
-        Ok(Box::new(std::iter::once(Stream::Next(()))))
+        Ok(Box::new(std::iter::once(Stream::Next(Ok(())))))
     }
 
     fn exists(&self, key: &str) -> StorageResult<StorageItemStream<'_, bool>> {
-        let data = self.data.lock().map_err(|e| {
-            StorageError::Backend(format!("Mutex poisoned: {e}"))
-        })?;
-        Ok(Box::new(std::iter::once(Stream::Next(data.contains_key(key)))))
+        let data = self
+            .data
+            .lock()
+            .map_err(|e| StorageError::Backend(format!("Mutex poisoned: {e}")))?;
+        Ok(Box::new(std::iter::once(Stream::Next(Ok(
+            data.contains_key(key)
+        )))))
     }
 
     fn list_keys(&self, prefix: Option<&str>) -> StorageResult<StorageItemStream<'_, String>> {
-        let data = self.data.lock().map_err(|e| {
-            StorageError::Backend(format!("Mutex poisoned: {e}"))
-        })?;
+        let data = self
+            .data
+            .lock()
+            .map_err(|e| StorageError::Backend(format!("Mutex poisoned: {e}")))?;
 
         let keys: Vec<String> = data
             .keys()
@@ -184,7 +186,7 @@ impl KeyValueStore for JsonFileStorage {
             .cloned()
             .collect();
 
-        Ok(Box::new(keys.into_iter().map(Stream::Next)))
+        Ok(Box::new(keys.into_iter().map(|k| Stream::Next(Ok(k)))))
     }
 }
 
@@ -217,7 +219,7 @@ impl RateLimiterStore for JsonFileStorage {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use foundation_core::valtron::{collect_one, collect_result};
+    use foundation_core::valtron::collect_one;
     use tempfile::TempDir;
 
     #[test]
@@ -228,18 +230,18 @@ mod tests {
         let storage = JsonFileStorage::new(&file_path).unwrap();
 
         // Test set and get
-        collect_one(storage.set("test_key", "test_value").unwrap()).unwrap();
+        collect_one(storage.set("test_key", "test_value").unwrap()).unwrap().unwrap();
 
-        let value: Option<String> = collect_one(storage.get("test_key").unwrap()).unwrap();
+        let value: Option<String> = collect_one(storage.get("test_key").unwrap()).unwrap().unwrap();
         assert_eq!(value, Some("test_value".to_string()));
 
         // Test exists
-        assert!(collect_one(storage.exists("test_key").unwrap()).unwrap());
-        assert!(!collect_one(storage.exists("nonexistent").unwrap()).unwrap());
+        assert!(collect_one(storage.exists("test_key").unwrap()).unwrap().unwrap());
+        assert!(!collect_one(storage.exists("nonexistent").unwrap()).unwrap().unwrap());
 
         // Test delete
-        collect_one(storage.delete("test_key").unwrap()).unwrap();
-        assert!(!collect_one(storage.exists("test_key").unwrap()).unwrap());
+        collect_one(storage.delete("test_key").unwrap()).unwrap().unwrap();
+        assert!(!collect_one(storage.exists("test_key").unwrap()).unwrap().unwrap());
     }
 
     #[test]
@@ -249,19 +251,19 @@ mod tests {
 
         let storage = JsonFileStorage::new(&file_path).unwrap();
 
-        collect_one(storage.set("prefix:key1", "value1").unwrap()).unwrap();
-        collect_one(storage.set("prefix:key2", "value2").unwrap()).unwrap();
-        collect_one(storage.set("other:key3", "value3").unwrap()).unwrap();
+        collect_one(storage.set("prefix:key1", "value1").unwrap()).unwrap().unwrap();
+        collect_one(storage.set("prefix:key2", "value2").unwrap()).unwrap().unwrap();
+        collect_one(storage.set("other:key3", "value3").unwrap()).unwrap().unwrap();
 
-        // List all keys
-        let keys = collect_result(storage.list_keys(None).unwrap());
-        assert_eq!(keys.len(), 3);
+        // List all keys - flatten Stream<Result<T, E>, ()> into Result<T, E>, then collect
+        let keys: Result<Vec<String>, _> = storage.list_keys(None).unwrap().flatten().collect();
+        assert_eq!(keys.unwrap().len(), 3);
 
         // List keys with prefix
-        let keys = collect_result(storage.list_keys(Some("prefix:")).unwrap());
-        assert_eq!(keys.len(), 2);
-        assert!(keys.contains(&"prefix:key1".to_string()));
-        assert!(keys.contains(&"prefix:key2".to_string()));
+        let keys: Result<Vec<String>, _> = storage.list_keys(Some("prefix:")).unwrap().flatten().collect();
+        assert_eq!(keys.unwrap().len(), 2);
+        assert!(keys.as_ref().unwrap().contains(&"prefix:key1".to_string()));
+        assert!(keys.as_ref().unwrap().contains(&"prefix:key2".to_string()));
     }
 
     #[test]
@@ -271,8 +273,8 @@ mod tests {
 
         // Create storage and add data
         let storage = JsonFileStorage::new(&file_path).unwrap();
-        collect_one(storage.set("key1", "value1").unwrap()).unwrap();
-        collect_one(storage.set("key2", "value2").unwrap()).unwrap();
+        collect_one(storage.set("key1", "value1").unwrap()).unwrap().unwrap();
+        collect_one(storage.set("key2", "value2").unwrap()).unwrap().unwrap();
 
         // Verify file was created
         assert!(file_path.exists());
@@ -281,10 +283,10 @@ mod tests {
         let storage2 = JsonFileStorage::new(&file_path).unwrap();
 
         // Data should persist
-        let value1: Option<String> = collect_one(storage2.get("key1").unwrap()).unwrap();
+        let value1: Option<String> = collect_one(storage2.get("key1").unwrap()).unwrap().unwrap();
         assert_eq!(value1, Some("value1".to_string()));
 
-        let value2: Option<String> = collect_one(storage2.get("key2").unwrap()).unwrap();
+        let value2: Option<String> = collect_one(storage2.get("key2").unwrap()).unwrap().unwrap();
         assert_eq!(value2, Some("value2".to_string()));
     }
 
@@ -306,9 +308,9 @@ mod tests {
             count: 42,
         };
 
-        collect_one(storage.set("complex", &data).unwrap()).unwrap();
+        collect_one(storage.set("complex", &data).unwrap()).unwrap().unwrap();
 
-        let retrieved: Option<TestData> = collect_one(storage.get("complex").unwrap()).unwrap();
+        let retrieved: Option<TestData> = collect_one(storage.get("complex").unwrap()).unwrap().unwrap();
         assert_eq!(retrieved, Some(data));
     }
 
@@ -320,7 +322,7 @@ mod tests {
         let storage = JsonFileStorage::new(&file_path).unwrap();
 
         // Add initial data
-        collect_one(storage.set("key1", "value1").unwrap()).unwrap();
+        collect_one(storage.set("key1", "value1").unwrap()).unwrap().unwrap();
 
         // Verify no temp file left behind
         let temp_path = file_path.with_extension("json.tmp");

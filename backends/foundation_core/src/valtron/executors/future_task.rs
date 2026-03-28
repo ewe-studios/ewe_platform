@@ -4,8 +4,10 @@
 //! to be executed through the valtron executor system without requiring a full
 //! async runtime.
 
+use crate::synca::mpp::{self, Receiver, SenderError};
 use crate::valtron::{NoAction, TaskIterator, TaskStatus};
 use core::future::Future;
+use core::marker::PhantomData;
 use core::pin::Pin;
 use core::task::{Context, Poll, RawWaker, RawWakerVTable, Waker};
 
@@ -143,7 +145,7 @@ where
     type Pending = FuturePollState;
     type Spawner = NoAction;
 
-    fn next(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+    fn next_status(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
         if self.completed {
             return None;
         }
@@ -363,6 +365,221 @@ where
     let values_iter = ReadyValues::new(unified::execute(task)?);
     let values: Vec<F::Output> = values_iter.flat_map(|item| item.inner()).collect();
     Ok(values)
+}
+
+// ============================================================================
+// ThreadedFuture - Execute !Send operations on dedicated worker thread
+// ============================================================================
+
+/// Result value sent across thread boundary from ThreadedFuture worker.
+///
+/// Note: Iterator loops internally until Ready, so we always get Value.
+/// The Waiting variant is kept for future flexibility but currently unused.
+#[derive(Debug)]
+pub enum ThreadedValue<T, E> {
+    Value(Result<T, E>),
+}
+
+/// A future executor that spawns a dedicated thread for !Send operations.
+///
+/// This allows streaming large result sets without loading all rows into memory
+/// while handling !Send types (like turso::Rows) that cannot cross thread boundaries.
+///
+/// # How It Works
+///
+/// 1. ThreadedFuture wraps an async function that produces an Iterator
+/// 2. execute() spawns a worker thread that:
+///    - Polls the async future using no-op waker
+///    - Gets the Iterator (which stays on worker thread forever)
+///    - Streams results through mpp::Sender into ConcurrentQueue
+/// 3. Receiver on main thread pops from queue and converts to Stream
+///
+/// # Example
+///
+/// ```ignore
+/// let threaded = ThreadedFuture::new(|| async {
+///     let rows = db.query("SELECT * FROM large_table").await?;
+///     Ok::<_, Error>(RowsIterator::new(rows))
+/// });
+///
+/// let (_handle, receiver) = threaded.execute();
+/// for value in receiver {
+///     match value {
+///         ThreadedValue::Value(Ok(row)) => { /* process row */ }
+///         ThreadedValue::Value(Err(e)) => { /* handle error */ }
+///     }
+/// }
+/// ```
+#[cfg(feature = "std")]
+pub struct ThreadedFuture<F, Fut, I, T, E>
+where
+    F: FnOnce() -> Fut + Send + 'static,
+    Fut: Future<Output = Result<I, E>> + 'static,
+    I: Iterator<Item = Result<T, E>> + 'static,
+    T: Send + 'static,
+    E: Send + 'static,
+{
+    /// Async function that produces the Iterator
+    future_fn: F,
+    /// Queue size (configurable, minimum 2)
+    queue_size: usize,
+    /// Backpressure sleep duration when queue is full (std feature)
+    /// Falls back to spin_loop if not std or Duration is None
+    backpressure_sleep: Option<std::time::Duration>,
+    _phantom: PhantomData<(Fut, I, T, E)>,
+}
+
+/// Worker handle - joins the worker thread on drop
+#[cfg(feature = "std")]
+pub struct WorkerHandle {
+    handle: Option<std::thread::JoinHandle<()>>,
+}
+
+#[cfg(feature = "std")]
+impl Drop for WorkerHandle {
+    fn drop(&mut self) {
+        self.handle.take().map(|h| h.join());
+    }
+}
+
+#[cfg(feature = "std")]
+impl<F, Fut, I, T, E> ThreadedFuture<F, Fut, I, T, E>
+where
+    F: FnOnce() -> Fut + Send + 'static,
+    Fut: Future<Output = Result<I, E>> + 'static,
+    I: Iterator<Item = Result<T, E>> + 'static,
+    T: Send + 'static,
+    E: Send + 'static,
+{
+    /// Create a new ThreadedFuture with default settings.
+    ///
+    /// Default queue size: 16
+    /// Default backpressure sleep: 10ms
+    pub fn new(future_fn: F) -> Self {
+        Self {
+            future_fn,
+            queue_size: 16,
+            backpressure_sleep: Some(std::time::Duration::from_millis(10)),
+            _phantom: PhantomData,
+        }
+    }
+
+    /// Create a new ThreadedFuture with custom queue size.
+    pub fn with_queue_size(future_fn: F, queue_size: usize) -> Self {
+        Self {
+            future_fn,
+            queue_size: queue_size.max(2),
+            backpressure_sleep: Some(std::time::Duration::from_millis(10)),
+            _phantom: PhantomData,
+        }
+    }
+
+    /// Create a new ThreadedFuture with custom queue size and backpressure sleep.
+    ///
+    /// Set `backpressure_sleep` to `None` to use spin_loop instead of thread::sleep.
+    pub fn with_backpressure_sleep(
+        future_fn: F,
+        queue_size: usize,
+        backpressure_sleep: Option<std::time::Duration>,
+    ) -> Self {
+        Self {
+            future_fn,
+            queue_size: queue_size.max(2),
+            backpressure_sleep,
+            _phantom: PhantomData,
+        }
+    }
+
+    /// Execute the future on a dedicated worker thread.
+    ///
+    /// Returns a tuple of (WorkerHandle, Receiver) where:
+    /// - WorkerHandle: Joins the worker thread on drop
+    /// - Receiver: Receives ThreadedValue<T, E> from the worker
+    ///
+    /// The worker thread:
+    /// 1. Polls the async future using no-op waker until Ready
+    /// 2. Gets the Iterator and loops through its results
+    /// 3. Sends each result through the mpp channel
+    /// 4. Handles closed queue (receiver dropped) by exiting cleanly
+    pub fn execute(self) -> (WorkerHandle, Receiver<ThreadedValue<T, E>>) {
+        let (sender, receiver) = mpp::bounded::<ThreadedValue<T, E>>(self.queue_size);
+        let backpressure_sleep = self.backpressure_sleep;
+
+        let handle = std::thread::spawn(move || {
+            tracing::debug!("ThreadedFuture worker started");
+            let waker = create_noop_waker();
+            let mut cx = Context::from_waker(&waker);
+            let mut future = Box::pin((self.future_fn)());
+
+            tracing::debug!("Polling future...");
+            // Poll the future until it produces the iterator or an error
+            let iterator = loop {
+                match future.as_mut().poll(&mut cx) {
+                    Poll::Ready(Ok(iter)) => {
+                        tracing::debug!("Future ready with iterator");
+                        break Some(iter);
+                    }
+                    Poll::Ready(Err(e)) => {
+                        tracing::debug!("Future ready with error");
+                        // Try to send error, but receiver might be dropped
+                        let _ = sender.send(ThreadedValue::Value(Err(e)));
+                        break None;
+                    }
+                    Poll::Pending => {
+                        tracing::debug!("Future pending, yielding...");
+                        std::thread::yield_now();
+                        continue;
+                    }
+                }
+            };
+
+            // Stream iterator results through the queue
+            if let Some(iter) = iterator {
+                tracing::debug!("Streaming iterator results...");
+                for result in iter {
+                    let mut value = ThreadedValue::Value(result);
+                    tracing::debug!("Sending value to channel");
+
+                    // Try to send with backpressure handling
+                    loop {
+                        match sender.send(value) {
+                            Ok(()) => {
+                                tracing::debug!("Value sent successfully");
+                                break;
+                            }
+                            Err(SenderError::Full(v)) => {
+                                tracing::debug!("Queue full, applying backpressure");
+                                // Queue full - apply backpressure
+                                value = v;
+                                if let Some(sleep_dur) = backpressure_sleep {
+                                    std::thread::sleep(sleep_dur);
+                                } else {
+                                    // std::thread::yield_now();
+                                    std::hint::spin_loop();
+                                }
+                            }
+                            Err(SenderError::Closed(_)) => {
+                                tracing::debug!("Queue closed, exiting");
+                                // Receiver dropped, queue closed - exit cleanly
+                                return;
+                            }
+                        }
+                    }
+                }
+            }
+
+            tracing::debug!("Worker completed");
+            let _ = sender.close();
+            // Worker exits cleanly - sender dropped, queue closed
+        });
+
+        (
+            WorkerHandle {
+                handle: Some(handle),
+            },
+            receiver,
+        )
+    }
 }
 
 // ============================================================================

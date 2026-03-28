@@ -7,8 +7,8 @@
 //! 4. Combinators work correctly with boxed and mutex-wrapped iterators
 
 use foundation_core::valtron::{
-    NoAction, ShortCircuit, Stream, StreamIterator, StreamIteratorExt, TaskIterator,
-    TaskIteratorExt, TaskShortCircuit, TaskStatus,
+    NoAction, ShortCircuit, Stream, StreamIteratorExt, TaskIteratorExt, TaskShortCircuit,
+    TaskStatus,
 };
 use std::sync::{Arc, Mutex};
 
@@ -40,11 +40,6 @@ impl Iterator for CountingStreamIterator {
         self.current += 1;
         Some(Stream::Next(val))
     }
-}
-
-impl StreamIterator for CountingStreamIterator {
-    type D = usize;
-    type P = &'static str;
 }
 
 #[test]
@@ -170,16 +165,6 @@ impl Iterator for CountingTaskIterator {
     }
 }
 
-impl TaskIterator for CountingTaskIterator {
-    type Ready = usize;
-    type Pending = &'static str;
-    type Spawner = NoAction;
-
-    fn next_status(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
-        Iterator::next(self)
-    }
-}
-
 #[test]
 fn test_task_map_circuit_continue() {
     let iter = CountingTaskIterator::new(5);
@@ -273,11 +258,6 @@ impl Iterator for FallibleIterator {
         self.index += 1;
         Some(Stream::Next(item))
     }
-}
-
-impl StreamIterator for FallibleIterator {
-    type D = ResultValue;
-    type P = &'static str;
 }
 
 #[test]

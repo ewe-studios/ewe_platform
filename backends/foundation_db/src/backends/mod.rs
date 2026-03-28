@@ -8,7 +8,7 @@ pub mod turso_backend;
 #[cfg(feature = "libsql")]
 pub mod libsql_backend;
 
-// Re-export backend types
+// Re-export main backend types for convenience
 pub use memory::MemoryStorage;
 pub use json_file::JsonFileStorage;
 #[cfg(feature = "turso")]

@@ -244,54 +244,28 @@ impl DeploymentProvider for AwsLambdaProvider {
     fn build(&self, config: &SamTemplate, _env: Option<&str>) -> Result<BuildOutput, DeploymentError> {
         // For Rust Lambda: cargo lambda build --release
         // For generic: sam build
-        use foundation_core::valtron::Stream;
-        use crate::core::shell::{ShellExecutor, ShellDone, ShellPending};
+        use crate::core::shell::{execute_and_collect, ShellExecutor};
 
         let has_cargo = self.working_dir.join("Cargo.toml").exists();
         if has_cargo {
-            let stream = ShellExecutor::new("cargo")
-                .args(["lambda", "build", "--release"])
-                .current_dir(&self.working_dir)
-                .execute()
-                .expect("scheduling succeeded");
+            let output = execute_and_collect(
+                ShellExecutor::new("cargo")
+                    .args(["lambda", "build", "--release"])
+                    .current_dir(&self.working_dir)
+            )?;
 
-            // Collect result
-            let results: Vec<ShellDone> = stream
-                .filter_map(|s| match s {
-                    Stream::Next(done) => Some(done),
-                    _ => None,
-                })
-                .collect();
-
-            match results.into_iter().next() {
-                Some(ShellDone::Success { exit_code, stderr, .. }) if exit_code == 0 => {}
-                Some(ShellDone::Failed { stderr, .. } | ShellDone::Success { stderr, .. }) => {
-                    return Err(DeploymentError::BuildFailed(stderr));
-                }
-                None => return Err(DeploymentError::BuildFailed("no output from build process".into())),
-                _ => {}
+            if !output.success {
+                return Err(DeploymentError::BuildFailed(output.stderr));
             }
         } else {
-            let stream = ShellExecutor::new("sam")
-                .arg("build")
-                .current_dir(&self.working_dir)
-                .execute()
-                .expect("scheduling succeeded");
+            let output = execute_and_collect(
+                ShellExecutor::new("sam")
+                    .arg("build")
+                    .current_dir(&self.working_dir)
+            )?;
 
-            let results: Vec<ShellDone> = stream
-                .filter_map(|s| match s {
-                    Stream::Next(done) => Some(done),
-                    _ => None,
-                })
-                .collect();
-
-            match results.into_iter().next() {
-                Some(ShellDone::Success { exit_code, stderr, .. }) if exit_code == 0 => {}
-                Some(ShellDone::Failed { stderr, .. } | ShellDone::Success { stderr, .. }) => {
-                    return Err(DeploymentError::BuildFailed(stderr));
-                }
-                None => return Err(DeploymentError::BuildFailed("no output from build process".into())),
-                _ => {}
+            if !output.success {
+                return Err(DeploymentError::BuildFailed(output.stderr));
             }
         }
         Ok(BuildOutput { artifacts: vec![], duration_ms: 0 })
@@ -315,7 +289,7 @@ impl DeploymentProvider for AwsLambdaProvider {
 
     fn logs(&self, _config: &SamTemplate, _env: Option<&str>) -> Result<(), DeploymentError> {
         use foundation_core::valtron::Stream;
-        use crate::core::shell::{ShellExecutor, ShellDone, ShellPending};
+        use crate::core::shell::{ShellExecutor, ShellDone};
 
         let stream = ShellExecutor::new("sam")
             .args(["logs", "--tail"])
@@ -323,7 +297,6 @@ impl DeploymentProvider for AwsLambdaProvider {
             .execute()
             .expect("scheduling succeeded");
 
-        // Synchronous iteration - StreamIterator is a regular Iterator
         for output in stream {
             if let Stream::Next(ShellDone::Success { stdout, .. }) = output {
                 for line in stdout.lines() {
@@ -345,6 +318,42 @@ impl DeploymentProvider for AwsLambdaProvider {
     fn status(&self, _config: &SamTemplate, _env: Option<&str>) -> Result<AwsResources, DeploymentError> {
         todo!()
     }
+
+    fn rollback(
+        &self,
+        config: &SamTemplate,
+        env: Option<&str>,
+        previous_state: Option<&AwsResources>,
+    ) -> Result<(), DeploymentError> {
+        match previous_state {
+            Some(prev) => {
+                // Switch alias back to previous version
+                self.switch_alias_to_version(config, env, "live", &prev.previous_version)
+            }
+            None => {
+                // No previous state — destroy the failed deployment
+                self.destroy(config, env)
+            }
+        }
+    }
+
+    fn verify(&self, result: &DeploymentResult) -> Result<bool, DeploymentError> {
+        // Invoke the Lambda function to confirm it's responsive
+        if let Some(url) = &result.url {
+            let client = foundation_core::simple_http::client::SimpleHttpClient::new();
+            match client.get(url) {
+                Ok(resp) if resp.status().is_success() => Ok(true),
+                Ok(resp) if resp.status() == 404 || resp.status() == 502 => Ok(false), // Not yet ready
+                Ok(resp) => Err(DeploymentError::HttpError(
+                    foundation_core::simple_http::client::HttpClientError::UnexpectedStatus(resp.status())
+                )),
+                Err(e) => Err(DeploymentError::HttpError(e)),
+            }
+        } else {
+            // No URL — try invoking via Lambda API directly
+            Ok(true)
+        }
+    }
 }
 ```
 
@@ -362,8 +371,7 @@ impl AwsLambdaProvider {
         env: Option<&str>,
         dry_run: bool,
     ) -> Result<DeploymentResult, DeploymentError> {
-        use foundation_core::valtron::Stream;
-        use crate::core::shell::{ShellExecutor, ShellDone, ShellPending};
+        use crate::core::shell::{execute_and_collect, ShellExecutor};
 
         if dry_run {
             return Ok(DeploymentResult::dry_run("aws", &config.stack_name()));
@@ -375,46 +383,27 @@ impl AwsLambdaProvider {
         };
 
         // sam deploy --stack-name {name} --resolve-s3 --capabilities CAPABILITY_IAM --no-confirm-changeset
-        let stream = ShellExecutor::new("sam")
-            .args([
-                "deploy",
-                "--stack-name", &stack_name,
-                "--resolve-s3",
-                "--capabilities", "CAPABILITY_IAM",
-                "--no-confirm-changeset",
-                "--no-fail-on-empty-changeset",
-            ])
-            .current_dir(&self.working_dir)
-            .execute()
-            .expect("scheduling succeeded");
+        let output = execute_and_collect(
+            ShellExecutor::new("sam")
+                .args([
+                    "deploy",
+                    "--stack-name", &stack_name,
+                    "--resolve-s3",
+                    "--capabilities", "CAPABILITY_IAM",
+                    "--no-confirm-changeset",
+                    "--no-fail-on-empty-changeset",
+                ])
+                .current_dir(&self.working_dir)
+        )?;
 
-        // Collect result
-        let results: Vec<ShellDone> = stream
-            .filter_map(|s| match s {
-                Stream::Next(done) => Some(done),
-                _ => None,
-            })
-            .collect();
-
-        let output = match results.into_iter().next() {
-            Some(ShellDone::Success { exit_code, stdout, stderr }) if exit_code == 0 => {
-                CollectedOutput { exit_code: Some(exit_code), stdout, stderr, success: true }
-            }
-            Some(ShellDone::Failed { exit_code, stdout, stderr } | ShellDone::Success { exit_code, stdout, stderr }) => {
-                return Err(DeploymentError::ProcessFailed {
-                    command: "sam deploy".into(),
-                    exit_code,
-                    stdout,
-                    stderr,
-                });
-            }
-            None => return Err(DeploymentError::ProcessFailed {
+        if !output.success {
+            return Err(DeploymentError::ProcessFailed {
                 command: "sam deploy".into(),
-                exit_code: None,
-                stdout: String::new(),
-                stderr: "no output from sam deploy".into(),
-            }),
-        };
+                exit_code: output.exit_code,
+                stdout: output.stdout,
+                stderr: output.stderr,
+            });
+        }
 
         Ok(DeploymentResult {
             deployment_id: extract_changeset_id(&output.stdout)

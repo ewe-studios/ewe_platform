@@ -10,18 +10,21 @@
 
 use serde::{de::DeserializeOwned, Serialize};
 
-use crate::backends::MemoryStorage;
-use crate::backends::JsonFileStorage;
 #[cfg(feature = "turso")]
-use crate::backends::TursoStorage;
+use crate::backends::turso_backend::TursoStorage;
 #[cfg(feature = "libsql")]
-use crate::backends::LibsqlStorage;
+use crate::backends::libsql_backend::LibsqlStorage;
+use crate::backends::memory::MemoryStorage;
+use crate::backends::json_file::JsonFileStorage;
 use crate::errors::StorageResult;
+pub use crate::errors::StorageError;
 use foundation_core::valtron::Stream;
 
 /// Type alias for streamed storage items.
 /// This is a Valtron Stream-based lazy iterator that yields items one at a time.
-pub type StorageItemStream<'a, T> = Box<dyn Iterator<Item = Stream<T, ()>> + Send + 'a>;
+/// Errors are yielded in the stream as Stream::Next(Err(e)) - callers can use
+/// .flatten() to extract only successful values or collect into Result to propagate errors.
+pub type StorageItemStream<'a, T> = Box<dyn Iterator<Item = Stream<Result<T, StorageError>, ()>> + Send + 'a>;
 
 /// A single SQL parameter value (crate-owned, backend-agnostic).
 #[derive(Debug, Clone)]
@@ -188,7 +191,7 @@ pub trait KeyValueStore: Send + Sync {
     /// # Errors
     ///
     /// Returns an error if scheduling fails or deserialization fails.
-    fn get<V: DeserializeOwned + Send>(&self, key: &str) -> StorageResult<StorageItemStream<'_, Option<V>>>;
+    fn get<'a, V: DeserializeOwned + Send + 'static>(&'a self, key: &str) -> StorageResult<StorageItemStream<'a, Option<V>>>;
 
     /// Set a key-value pair. Yields one `Next(())`.
     ///
@@ -254,7 +257,7 @@ pub trait BlobStore: Send + Sync {
 /// SQL query operations for relational backends (Turso, D1).
 pub trait QueryStore: Send + Sync {
     /// Execute a query that returns rows.
-    /// Yields multiple `Next(SqlRow)` items.
+    /// Returns a stream of `Next(SqlRow)` items.
     ///
     /// # Errors
     ///
@@ -413,7 +416,7 @@ impl StorageProvider {
 }
 
 impl KeyValueStore for StorageProvider {
-    fn get<V: DeserializeOwned + Send>(&self, key: &str) -> StorageResult<StorageItemStream<'_, Option<V>>> {
+    fn get<'a, V: DeserializeOwned + Send + 'static>(&'a self, key: &str) -> StorageResult<StorageItemStream<'a, Option<V>>> {
         match &self.inner {
             #[cfg(feature = "turso")]
             StorageProviderInner::Turso(storage) => storage.get(key),

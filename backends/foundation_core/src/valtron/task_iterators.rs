@@ -413,10 +413,55 @@ pub trait TaskIteratorExt: TaskIterator + Sized {
     fn map_circuit<F>(self, f: F) -> TMapCircuit<Self>
     where
         Self: Sized,
-        F: Fn(TaskStatus<Self::Ready, Self::Pending, Self::Spawner>)
-                -> TaskShortCircuit<Self::Ready, Self::Pending, Self::Spawner>
+        F: Fn(
+                TaskStatus<Self::Ready, Self::Pending, Self::Spawner>,
+            ) -> TaskShortCircuit<Self::Ready, Self::Pending, Self::Spawner>
             + Send
             + 'static;
+
+    /// Returns the first `Ready` value from the iterator, short-circuiting after finding it.
+    ///
+    /// Uses `map_circuit` internally to stop iteration after the first `Ready` value.
+    /// Returns `None` if no `Ready` value is found before the iterator is exhausted.
+    fn first_ready(self) -> Option<Self::Ready>
+    where
+        Self: Sized + Send + 'static,
+        Self::Ready: Send + 'static,
+        Self::Pending: Send + 'static,
+        Self::Spawner: ExecutionAction + Send + 'static,
+    {
+        self.map_circuit(|status| match status {
+            TaskStatus::Ready(value) => TaskShortCircuit::ReturnAndStop(TaskStatus::Ready(value)),
+            _ => TaskShortCircuit::Continue(status),
+        })
+        .next()
+        .and_then(|status| match status {
+            TaskStatus::Ready(value) => Some(value),
+            _ => None,
+        })
+    }
+
+    /// Returns the first `Pending` value from the iterator, short-circuiting after finding it.
+    ///
+    /// Uses `map_circuit` internally to stop iteration after the first `Pending` value.
+    /// Returns `None` if no `Pending` value is found before the iterator is exhausted.
+    fn first_pending(self) -> Option<Self::Pending>
+    where
+        Self: Sized + Send + 'static,
+        Self::Ready: Send + 'static,
+        Self::Pending: Send + 'static,
+        Self::Spawner: ExecutionAction + Send + 'static,
+    {
+        self.map_circuit(|status| match status {
+            TaskStatus::Pending(value) => TaskShortCircuit::ReturnAndStop(TaskStatus::Pending(value)),
+            _ => TaskShortCircuit::Continue(status),
+        })
+        .next()
+        .and_then(|status| match status {
+            TaskStatus::Pending(value) => Some(value),
+            _ => None,
+        })
+    }
 
     /// Flatten nested iterator patterns where outer yields inner iterators.
     ///
@@ -890,8 +935,9 @@ where
     fn map_circuit<F>(self, f: F) -> TMapCircuit<Self>
     where
         Self: Sized,
-        F: Fn(TaskStatus<Self::Ready, Self::Pending, Self::Spawner>)
-                -> TaskShortCircuit<Self::Ready, Self::Pending, Self::Spawner>
+        F: Fn(
+                TaskStatus<Self::Ready, Self::Pending, Self::Spawner>,
+            ) -> TaskShortCircuit<Self::Ready, Self::Pending, Self::Spawner>
             + Send
             + 'static,
     {
@@ -1168,20 +1214,6 @@ where
     }
 }
 
-impl<I, R> TaskIterator for TMapReady<I, R>
-where
-    I: TaskIterator,
-    R: Send + 'static,
-{
-    type Ready = R;
-    type Pending = I::Pending;
-    type Spawner = I::Spawner;
-
-    fn next_status(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
-        Iterator::next(self)
-    }
-}
-
 /// Wrapper type that transforms Pending values.
 pub struct TMapPending<I: TaskIterator, R> {
     inner: I,
@@ -1204,20 +1236,6 @@ where
             TaskStatus::Ignore => TaskStatus::Ignore,
             TaskStatus::Spawn(s) => TaskStatus::Spawn(s),
         })
-    }
-}
-
-impl<I, R> TaskIterator for TMapPending<I, R>
-where
-    I: TaskIterator,
-    R: Send + 'static,
-{
-    type Ready = I::Ready;
-    type Pending = R;
-    type Spawner = I::Spawner;
-
-    fn next_status(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
-        Iterator::next(self)
     }
 }
 
@@ -1247,19 +1265,6 @@ where
             }
             _ => Some(status), // Pass through non-Ready states
         }
-    }
-}
-
-impl<I> TaskIterator for TFilterReady<I>
-where
-    I: TaskIterator,
-{
-    type Ready = I::Ready;
-    type Pending = I::Pending;
-    type Spawner = I::Spawner;
-
-    fn next_status(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
-        Iterator::next(self)
     }
 }
 
@@ -1329,26 +1334,26 @@ where
     }
 }
 
-impl<I, F, InnerIter, InnerR, InnerP, InnerS, R, P, S> TaskIterator
-    for TMapIter<I, F, InnerIter, InnerR, InnerP, InnerS, R, P, S>
-where
-    I: TaskIterator<Ready = R, Pending = P, Spawner = S>,
-    F: Fn(R) -> InnerIter,
-    InnerIter: Iterator<Item = TaskStatus<InnerR, InnerP, InnerS>>,
-    InnerR: Send + 'static,
-    InnerP: Send + 'static,
-    InnerS: ExecutionAction + Send + 'static,
-    P: Into<InnerP> + Send + 'static,
-    S: Into<InnerS> + ExecutionAction + Send + 'static,
-{
-    type Ready = InnerR;
-    type Pending = InnerP;
-    type Spawner = InnerS;
+// impl<I, F, InnerIter, InnerR, InnerP, InnerS, R, P, S> TaskIterator
+//     for TMapIter<I, F, InnerIter, InnerR, InnerP, InnerS, R, P, S>
+// where
+//     I: TaskIterator<Ready = R, Pending = P, Spawner = S>,
+//     F: Fn(R) -> InnerIter,
+//     InnerIter: Iterator<Item = TaskStatus<InnerR, InnerP, InnerS>>,
+//     InnerR: Send + 'static,
+//     InnerP: Send + 'static,
+//     InnerS: ExecutionAction + Send + 'static,
+//     P: Into<InnerP> + Send + 'static,
+//     S: Into<InnerS> + ExecutionAction + Send + 'static,
+// {
+//     type Ready = InnerR;
+//     type Pending = InnerP;
+//     type Spawner = InnerS;
 
-    fn next_status(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
-        Iterator::next(self)
-    }
-}
+//     fn next_status(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+//         Iterator::next(self)
+//     }
+// }
 
 // ============================================================================
 // Flatten Ready / Pending
@@ -1409,23 +1414,6 @@ where
     }
 }
 
-impl<I> TaskIterator for TFlattenReady<I>
-where
-    I: TaskIterator,
-    I::Ready: IntoIterator,
-    <I::Ready as IntoIterator>::Item: Send + 'static,
-    I::Pending: Send + 'static,
-    I::Spawner: Send + 'static,
-{
-    type Ready = <I::Ready as IntoIterator>::Item;
-    type Pending = I::Pending;
-    type Spawner = I::Spawner;
-
-    fn next_status(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
-        Iterator::next(self)
-    }
-}
-
 // ============================================================================
 // Flatten Pending
 // ============================================================================
@@ -1478,23 +1466,6 @@ where
             TaskStatus::Ignore => Some(TaskStatus::Ignore),
             TaskStatus::Spawn(s) => Some(TaskStatus::Spawn(s)),
         }
-    }
-}
-
-impl<I> TaskIterator for TFlattenPending<I>
-where
-    I: TaskIterator,
-    I::Pending: IntoIterator,
-    <I::Pending as IntoIterator>::Item: Send + 'static,
-    I::Ready: Send + 'static,
-    I::Spawner: Send + 'static,
-{
-    type Ready = I::Ready;
-    type Pending = <I::Pending as IntoIterator>::Item;
-    type Spawner = I::Spawner;
-
-    fn next_status(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
-        Iterator::next(self)
     }
 }
 
@@ -1553,24 +1524,6 @@ where
     }
 }
 
-impl<I, F, U> TaskIterator for TFlatMapReady<I, F, U>
-where
-    I: TaskIterator,
-    F: Fn(I::Ready) -> U + Send + 'static,
-    U: IntoIterator,
-    U::Item: Send + 'static,
-    I::Pending: Send + 'static,
-    I::Spawner: Send + 'static,
-{
-    type Ready = U::Item;
-    type Pending = I::Pending;
-    type Spawner = I::Spawner;
-
-    fn next_status(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
-        Iterator::next(self)
-    }
-}
-
 // ============================================================================
 // Flat Map Pending
 // ============================================================================
@@ -1626,24 +1579,6 @@ where
     }
 }
 
-impl<I, F, U> TaskIterator for TFlatMapPending<I, F, U>
-where
-    I: TaskIterator,
-    F: Fn(I::Pending) -> U + Send + 'static,
-    U: IntoIterator,
-    U::Item: Send + 'static,
-    I::Ready: Send + 'static,
-    I::Spawner: Send + 'static,
-{
-    type Ready = I::Ready;
-    type Pending = U::Item;
-    type Spawner = I::Spawner;
-
-    fn next_status(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
-        Iterator::next(self)
-    }
-}
-
 /// Wrapper type that collects all Ready values into a Vec.
 ///
 /// Passes through Pending, Delayed, Init, Spawn states unchanged.
@@ -1687,20 +1622,6 @@ where
                 Some(TaskStatus::Ready(collected))
             }
         }
-    }
-}
-
-impl<I> TaskIterator for TStreamCollect<I>
-where
-    I: TaskIterator,
-    I::Ready: Send + 'static,
-{
-    type Ready = Vec<I::Ready>;
-    type Pending = I::Pending;
-    type Spawner = I::Spawner;
-
-    fn next_status(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
-        Iterator::next(self)
     }
 }
 
@@ -1752,15 +1673,6 @@ where
     }
 }
 
-impl<D, P> crate::synca::mpp::StreamIterator for CollectorStreamIterator<D, P>
-where
-    D: Clone + Send + 'static,
-    P: Clone + Send + 'static,
-{
-    type D = D;
-    type P = P;
-}
-
 /// Continuation branch from `split_collector()`.
 ///
 /// Wraps the original iterator, copying matched items to the observer queue
@@ -1808,21 +1720,6 @@ where
 
         // Always forward to continuation
         Some(item)
-    }
-}
-
-impl<I> TaskIterator for SplitCollectorContinuation<I>
-where
-    I: TaskIterator,
-    I::Ready: Clone,
-    I::Pending: Clone,
-{
-    type Ready = I::Ready;
-    type Pending = I::Pending;
-    type Spawner = I::Spawner;
-
-    fn next_status(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
-        Iterator::next(self)
     }
 }
 
@@ -1880,15 +1777,6 @@ where
             }
         }
     }
-}
-
-impl<D, P> crate::synca::mpp::StreamIterator for SplitUntilObserver<D, P>
-where
-    D: Clone + Send + 'static,
-    P: Clone + Send + 'static,
-{
-    type D = D;
-    type P = P;
 }
 
 /// Continuation branch from `split_collect_until()`.
@@ -1967,21 +1855,6 @@ where
     }
 }
 
-impl<I> TaskIterator for SplitUntilContinuation<I>
-where
-    I: TaskIterator,
-    I::Ready: Clone,
-    I::Pending: Clone,
-{
-    type Ready = I::Ready;
-    type Pending = I::Pending;
-    type Spawner = I::Spawner;
-
-    fn next_status(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
-        Iterator::next(self)
-    }
-}
-
 impl<I> Drop for SplitUntilContinuation<I>
 where
     I: TaskIterator,
@@ -2038,15 +1911,6 @@ where
             }
         }
     }
-}
-
-impl<D, P> crate::synca::mpp::StreamIterator for SplitUntilObserverMap<D, P>
-where
-    D: Clone + Send + 'static,
-    P: Clone + Send + 'static,
-{
-    type D = D;
-    type P = P;
 }
 
 /// Continuation branch from `split_collect_until_map()`.
@@ -2133,21 +1997,6 @@ where
     }
 }
 
-impl<I, D> TaskIterator for SplitUntilContinuationMap<I, D>
-where
-    I: TaskIterator,
-    I::Pending: Clone,
-    D: Clone + Send + 'static,
-{
-    type Ready = I::Ready;
-    type Pending = I::Pending;
-    type Spawner = I::Spawner;
-
-    fn next_status(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
-        Iterator::next(self)
-    }
-}
-
 impl<I, D> Drop for SplitUntilContinuationMap<I, D>
 where
     I: TaskIterator,
@@ -2206,15 +2055,6 @@ where
     }
 }
 
-impl<M, P> crate::synca::mpp::StreamIterator for SplitCollectorMapObserver<M, P>
-where
-    M: Clone + Send + 'static,
-    P: Clone + Send + 'static,
-{
-    type D = M;
-    type P = P;
-}
-
 /// Continuation branch from `split_collector_map()`.
 ///
 /// Wraps the original iterator. The transform function returns `(bool, Option<M>)`:
@@ -2271,21 +2111,6 @@ where
     }
 }
 
-impl<I, M> TaskIterator for SplitCollectorMapContinuation<I, M>
-where
-    I: TaskIterator,
-    I::Pending: Clone,
-    M: Clone + Send + 'static,
-{
-    type Ready = I::Ready;
-    type Pending = I::Pending;
-    type Spawner = I::Spawner;
-
-    fn next_status(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
-        Iterator::next(self)
-    }
-}
-
 impl<I, M> Drop for SplitCollectorMapContinuation<I, M>
 where
     I: TaskIterator,
@@ -2321,24 +2146,6 @@ where
     }
 }
 
-impl<I, F> TaskIterator for TMapState<I, F>
-where
-    I: TaskIterator,
-    F: Fn(
-            TaskStatus<I::Ready, I::Pending, I::Spawner>,
-        ) -> TaskStatus<I::Ready, I::Pending, I::Spawner>
-        + Send
-        + 'static,
-{
-    type Ready = I::Ready;
-    type Pending = I::Pending;
-    type Spawner = I::Spawner;
-
-    fn next_status(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
-        Iterator::next(self)
-    }
-}
-
 /// Wrapper for `inspect_state()` - side-effect on any `TaskStatus`
 pub struct TInspectState<I, F> {
     inner: I,
@@ -2356,20 +2163,6 @@ where
         let status = self.inner.next_status()?;
         (self.inspector)(&status);
         Some(status)
-    }
-}
-
-impl<I, F> TaskIterator for TInspectState<I, F>
-where
-    I: TaskIterator,
-    F: Fn(&TaskStatus<I::Ready, I::Pending, I::Spawner>) + Send + 'static,
-{
-    type Ready = I::Ready;
-    type Pending = I::Pending;
-    type Spawner = I::Spawner;
-
-    fn next_status(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
-        Iterator::next(self)
     }
 }
 
@@ -2393,20 +2186,6 @@ where
         } else {
             Some(TaskStatus::Ignore)
         }
-    }
-}
-
-impl<I, F> TaskIterator for TFilterState<I, F>
-where
-    I: TaskIterator,
-    F: Fn(&TaskStatus<I::Ready, I::Pending, I::Spawner>) -> bool + Send + 'static,
-{
-    type Ready = I::Ready;
-    type Pending = I::Pending;
-    type Spawner = I::Spawner;
-
-    fn next_status(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
-        Iterator::next(self)
     }
 }
 
@@ -2438,20 +2217,6 @@ where
     }
 }
 
-impl<I, F> TaskIterator for TTakeWhileState<I, F>
-where
-    I: TaskIterator,
-    F: Fn(&TaskStatus<I::Ready, I::Pending, I::Spawner>) -> bool + Send + 'static,
-{
-    type Ready = I::Ready;
-    type Pending = I::Pending;
-    type Spawner = I::Spawner;
-
-    fn next_status(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
-        Iterator::next(self)
-    }
-}
-
 /// Wrapper for `skip_while_state()` - skip while state predicate true
 pub struct TSkipWhileState<I, F> {
     inner: I,
@@ -2475,20 +2240,6 @@ where
             self.done_skipping = true;
             return Some(status);
         }
-    }
-}
-
-impl<I, F> TaskIterator for TSkipWhileState<I, F>
-where
-    I: TaskIterator,
-    F: Fn(&TaskStatus<I::Ready, I::Pending, I::Spawner>) -> bool + Send + 'static,
-{
-    type Ready = I::Ready;
-    type Pending = I::Pending;
-    type Spawner = I::Spawner;
-
-    fn next_status(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
-        Iterator::next(self)
     }
 }
 
@@ -2518,20 +2269,6 @@ where
     }
 }
 
-impl<I, F> TaskIterator for TTakeState<I, F>
-where
-    I: TaskIterator,
-    F: Fn(&TaskStatus<I::Ready, I::Pending, I::Spawner>) -> bool + Send + 'static,
-{
-    type Ready = I::Ready;
-    type Pending = I::Pending;
-    type Spawner = I::Spawner;
-
-    fn next_status(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
-        Iterator::next(self)
-    }
-}
-
 /// Wrapper for `skip_state()` - skip first n items matching predicate
 pub struct TSkipState<I, F> {
     inner: I,
@@ -2555,20 +2292,6 @@ where
             }
             return Some(status);
         }
-    }
-}
-
-impl<I, F> TaskIterator for TSkipState<I, F>
-where
-    I: TaskIterator,
-    F: Fn(&TaskStatus<I::Ready, I::Pending, I::Spawner>) -> bool + Send + 'static,
-{
-    type Ready = I::Ready;
-    type Pending = I::Pending;
-    type Spawner = I::Spawner;
-
-    fn next_status(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
-        Iterator::next(self)
     }
 }
 
@@ -2598,19 +2321,6 @@ where
             TaskStatus::Spawn(s) => Some(TaskStatus::Spawn(s)),
             TaskStatus::Ignore => Some(TaskStatus::Ignore),
         }
-    }
-}
-
-impl<I> TaskIterator for TEnumerate<I>
-where
-    I: TaskIterator,
-{
-    type Ready = (usize, I::Ready);
-    type Pending = I::Pending;
-    type Spawner = I::Spawner;
-
-    fn next_status(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
-        Iterator::next(self)
     }
 }
 
@@ -2648,20 +2358,6 @@ where
                 TaskStatus::Ignore => {}
             }
         }
-    }
-}
-
-impl<I, F> TaskIterator for TFind<I, F>
-where
-    I: TaskIterator,
-    F: Fn(&I::Ready) -> bool + Send + 'static,
-{
-    type Ready = Option<I::Ready>;
-    type Pending = I::Pending;
-    type Spawner = I::Spawner;
-
-    fn next_status(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
-        Iterator::next(self)
     }
 }
 
@@ -2704,21 +2400,6 @@ where
     }
 }
 
-impl<I, F, R> TaskIterator for TFindMap<I, F, R>
-where
-    I: TaskIterator,
-    F: Fn(I::Ready) -> Option<R> + Send + 'static,
-    R: Send + 'static,
-{
-    type Ready = Option<R>;
-    type Pending = I::Pending;
-    type Spawner = I::Spawner;
-
-    fn next_status(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
-        Iterator::next(self)
-    }
-}
-
 /// Wrapper for `fold()` - accumulate values
 pub struct TFold<I, F, R> {
     inner: I,
@@ -2750,21 +2431,6 @@ where
                 TaskStatus::Ignore => {}
             }
         }
-    }
-}
-
-impl<I, F, R> TaskIterator for TFold<I, F, R>
-where
-    I: TaskIterator,
-    F: Fn(R, I::Ready) -> R + Send + 'static,
-    R: Send + 'static,
-{
-    type Ready = R;
-    type Pending = I::Pending;
-    type Spawner = I::Spawner;
-
-    fn next_status(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
-        Iterator::next(self)
     }
 }
 
@@ -2812,20 +2478,6 @@ where
     }
 }
 
-impl<I, F> TaskIterator for TAll<I, F>
-where
-    I: TaskIterator,
-    F: Fn(I::Ready) -> bool + Send + 'static,
-{
-    type Ready = bool;
-    type Pending = I::Pending;
-    type Spawner = I::Spawner;
-
-    fn next_status(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
-        Iterator::next(self)
-    }
-}
-
 /// Wrapper for `any()` - check if any Ready satisfies predicate
 pub struct TAny<I, F> {
     inner: I,
@@ -2864,20 +2516,6 @@ where
     }
 }
 
-impl<I, F> TaskIterator for TAny<I, F>
-where
-    I: TaskIterator,
-    F: Fn(I::Ready) -> bool + Send + 'static,
-{
-    type Ready = bool;
-    type Pending = I::Pending;
-    type Spawner = I::Spawner;
-
-    fn next_status(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
-        Iterator::next(self)
-    }
-}
-
 /// Wrapper for `count()` - count Ready items
 pub struct TCount<I> {
     inner: I,
@@ -2903,19 +2541,6 @@ where
                 TaskStatus::Ignore => {}
             }
         }
-    }
-}
-
-impl<I> TaskIterator for TCount<I>
-where
-    I: TaskIterator,
-{
-    type Ready = usize;
-    type Pending = I::Pending;
-    type Spawner = I::Spawner;
-
-    fn next_status(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
-        Iterator::next(self)
     }
 }
 
@@ -2951,19 +2576,6 @@ where
     }
 }
 
-impl<I> TaskIterator for TCountAll<I>
-where
-    I: TaskIterator,
-{
-    type Ready = usize;
-    type Pending = I::Pending;
-    type Spawner = I::Spawner;
-
-    fn next_status(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
-        Iterator::next(self)
-    }
-}
-
 // ============================================================================
 // TaskIterator implementations for wrapped types
 // ============================================================================
@@ -2978,8 +2590,9 @@ where
 pub struct TMapCircuit<I: TaskIterator> {
     inner: I,
     circuit: Box<
-        dyn Fn(TaskStatus<I::Ready, I::Pending, I::Spawner>)
-                -> TaskShortCircuit<I::Ready, I::Pending, I::Spawner>
+        dyn Fn(
+                TaskStatus<I::Ready, I::Pending, I::Spawner>,
+            ) -> TaskShortCircuit<I::Ready, I::Pending, I::Spawner>
             + Send,
     >,
     stopped: bool,
@@ -3020,20 +2633,3 @@ where
         }
     }
 }
-
-impl<I> TaskIterator for TMapCircuit<I>
-where
-    I: TaskIterator + Send + 'static,
-    I::Ready: Send + 'static,
-    I::Pending: Send + 'static,
-    I::Spawner: ExecutionAction + Send + 'static,
-{
-    type Ready = I::Ready;
-    type Pending = I::Pending;
-    type Spawner = I::Spawner;
-
-    fn next_status(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
-        Iterator::next(self)
-    }
-}
-
