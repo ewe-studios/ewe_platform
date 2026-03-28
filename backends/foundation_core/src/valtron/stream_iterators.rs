@@ -48,6 +48,43 @@ use std::sync::Arc;
 
 use concurrent_queue::ConcurrentQueue;
 
+/// Control enum for the `map_circuit` combinator.
+///
+/// Allows short-circuiting iterator chains with three possible outcomes:
+/// - `Continue(item)` - Continue iteration with the transformed item
+/// - `ReturnAndStop(item)` - Return this item and then stop iteration permanently
+/// - `Stop` - Stop iteration without returning anything
+///
+/// This is useful for error handling patterns where you want to:
+/// - Return an error value and immediately stop when an error is encountered
+/// - Stop silently without returning anything in certain conditions
+/// - Continue normal iteration otherwise
+///
+/// ## Example
+///
+/// ```ignore
+/// let stream = execute(my_task)?
+///     .map_circuit(|item| {
+///         match item {
+///             Stream::Next(err_result) if err_result.is_error() => {
+///                 ShortCircuit::ReturnAndStop(Stream::Next(err_result))
+///             }
+///             Stream::Pending(_) | Stream::Next(_) => {
+///                 ShortCircuit::Continue(item)
+///             }
+///             _ => ShortCircuit::Stop,
+///         }
+///     });
+/// ```
+pub enum ShortCircuit<D, P> {
+    /// Continue iteration with the wrapped item
+    Continue(Stream<D, P>),
+    /// Return this item and then stop iteration permanently
+    ReturnAndStop(Stream<D, P>),
+    /// Stop iteration without returning anything
+    Stop,
+}
+
 /// Extension trait providing combinator methods for any `StreamIterator`.
 ///
 /// This trait is automatically implemented for any type that implements
@@ -197,6 +234,38 @@ pub trait StreamIteratorExt: StreamIterator + Sized {
         Self::D: Clone,
         Self::P: Clone,
         Pred: Fn(&Stream<Self::D, Self::P>) -> CollectionState + Send + 'static;
+
+    /// Short-circuit the iterator based on a circuit function.
+    ///
+    /// The circuit function receives each item and returns a `ShortCircuit` enum
+    /// that determines whether to:
+    /// - `Continue(item)` - Continue iteration with the transformed item
+    /// - `ReturnAndStop(item)` - Return this item and then stop permanently
+    /// - `Stop` - Stop iteration without returning anything
+    ///
+    /// This is useful for error handling patterns where you want to return
+    /// an error value and immediately stop when an error is encountered.
+    ///
+    /// ## Example
+    ///
+    /// ```ignore
+    /// let stream = execute(my_task)?
+    ///     .map_circuit(|item| {
+    ///         match item {
+    ///             Stream::Next(err_result) if err_result.is_error() => {
+    ///                 ShortCircuit::ReturnAndStop(Stream::Next(err_result))
+    ///             }
+    ///             Stream::Pending(_) | Stream::Next(_) => {
+    ///                 ShortCircuit::Continue(item)
+    ///             }
+    ///             _ => ShortCircuit::Stop,
+    ///         }
+    ///     });
+    /// ```
+    fn map_circuit<F>(self, f: F) -> MapCircuit<Self>
+    where
+        Self: Sized,
+        F: Fn(Stream<Self::D, Self::P>) -> ShortCircuit<Self::D, Self::P> + Send + 'static;
 
     /// Split the iterator into an observer branch and a continuation branch,
     /// mapping matched items to a different type before sending to the observer.
@@ -596,6 +665,19 @@ where
         };
 
         (observer, continuation)
+    }
+
+    fn map_circuit<F>(self, f: F) -> MapCircuit<Self>
+    where
+        Self: Sized,
+        F: Fn(Stream<Self::D, Self::P>) -> ShortCircuit<Self::D, Self::P> + Send + 'static,
+    {
+        MapCircuit {
+            inner: self,
+            circuit: Box::new(f),
+            stopped: false,
+            _phantom: std::marker::PhantomData,
+        }
     }
 
     fn split_collector_map<F, DM, PM>(
@@ -1111,6 +1193,64 @@ where
     I::P: Send + 'static,
 {
     type D = Vec<I::D>;
+    type P = I::P;
+}
+
+/// Wrapper type that applies a circuit function to each item.
+///
+/// The circuit function determines whether to continue iteration,
+/// return a value and stop, or just stop.
+pub struct MapCircuit<I>
+where
+    I: StreamIterator,
+{
+    inner: I,
+    circuit: Box<dyn Fn(Stream<I::D, I::P>) -> ShortCircuit<I::D, I::P> + Send>,
+    stopped: bool,
+    _phantom: std::marker::PhantomData<I::P>,
+}
+
+impl<I> Iterator for MapCircuit<I>
+where
+    I: StreamIterator,
+    I::D: Send + 'static,
+    I::P: Send + 'static,
+{
+    type Item = Stream<I::D, I::P>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        // If we've stopped, return None permanently
+        if self.stopped {
+            return None;
+        }
+
+        // Get the next item from the inner iterator
+        let stream = self.inner.next()?;
+
+        // Apply the circuit function
+        match (self.circuit)(stream) {
+            ShortCircuit::Continue(item) => Some(item),
+            ShortCircuit::ReturnAndStop(item) => {
+                // Mark as stopped so future calls return None
+                self.stopped = true;
+                Some(item)
+            }
+            ShortCircuit::Stop => {
+                // Mark as stopped and return None
+                self.stopped = true;
+                None
+            }
+        }
+    }
+}
+
+impl<I> StreamIterator for MapCircuit<I>
+where
+    I: StreamIterator,
+    I::D: Send + 'static,
+    I::P: Send + 'static,
+{
+    type D = I::D;
     type P = I::P;
 }
 
