@@ -115,12 +115,6 @@ pub enum DeployState {
         reason: String,
     },
 
-    /// Something failed, attempt rollback.
-    RollingBack {
-        error: String,
-        previous_state: Option<ResourceState>,
-    },
-
     /// Terminal failure state.
     Failed {
         error: String,
@@ -143,7 +137,7 @@ pub struct DeploymentPlanner<P: DeploymentProvider> {
 }
 
 /// Default number of health-check retries during verification.
-const DEFAULT_VERIFY_RETRIES: u32 = 3;
+const DEFAULT_VERIFY_RETRIES: u32 = 5;
 /// Default delay between verification retries (executor handles the sleep).
 const DEFAULT_VERIFY_DELAY: Duration = Duration::from_secs(5);
 
@@ -255,11 +249,20 @@ impl<P: DeploymentProvider> StateMachine for DeploymentPlanner<P> {
                         retries_remaining: self.verify_retries,
                     }),
                     Err(e) => {
+                        // Attempt rollback via provider — errors from rollback are logged but
+                        // the original deploy error is what gets propagated to the caller.
                         let previous = self.state_store.get(&self.resource_id()).ok().flatten();
-                        StateTransition::Continue(DeployState::RollingBack {
+                        if let Err(rollback_err) = self.provider.rollback(
+                            &self.config,
+                            self.environment.as_deref(),
+                            previous.as_ref(),
+                        ) {
+                            tracing::warn!("Rollback failed: {rollback_err}");
+                        }
+                        self.update_state(StateStatus::Failed {
                             error: e.to_string(),
-                            previous_state: previous,
-                        })
+                        });
+                        StateTransition::Complete(Err(e))
                     }
                 }
             }
@@ -284,19 +287,38 @@ impl<P: DeploymentProvider> StateMachine for DeploymentPlanner<P> {
                         )
                     }
                     Ok(false) => {
-                        // Retries exhausted — rollback
+                        // Retries exhausted — rollback then propagate error
                         let previous = self.state_store.get(&self.resource_id()).ok().flatten();
-                        StateTransition::Continue(DeployState::RollingBack {
+                        if let Err(rollback_err) = self.provider.rollback(
+                            &self.config,
+                            self.environment.as_deref(),
+                            previous.as_ref(),
+                        ) {
+                            tracing::warn!("Rollback failed: {rollback_err}");
+                        }
+                        self.update_state(StateStatus::Failed {
                             error: "health check failed after retries".to_string(),
-                            previous_state: previous,
-                        })
+                        });
+                        StateTransition::Complete(Err(DeploymentError::DeployRejected {
+                            reason: "health check failed after retries".to_string(),
+                        }))
                     }
                     Err(e) => {
+                        // Verify itself failed — rollback then propagate error
                         let previous = self.state_store.get(&self.resource_id()).ok().flatten();
-                        StateTransition::Continue(DeployState::RollingBack {
+                        if let Err(rollback_err) = self.provider.rollback(
+                            &self.config,
+                            self.environment.as_deref(),
+                            previous.as_ref(),
+                        ) {
+                            tracing::warn!("Rollback failed: {rollback_err}");
+                        }
+                        self.update_state(StateStatus::Failed {
                             error: e.to_string(),
-                            previous_state: previous,
-                        })
+                        });
+                        StateTransition::Complete(Err(DeploymentError::DeployRejected {
+                            reason: e.to_string(),
+                        }))
                     }
                 }
             }
@@ -436,63 +458,6 @@ where
 }
 ```
 
-### Rollback Handling
-
-```rust
-// engine/rollback.rs
-
-/// Provider-specific rollback strategies.
-pub enum RollbackStrategy {
-    /// Cloudflare: redeploy previous version.
-    RedeployPrevious { version_id: String },
-
-    /// GCP Cloud Run: route traffic back to previous revision.
-    TrafficShift { previous_revision: String },
-
-    /// AWS Lambda: update alias to point to previous version.
-    AliasSwitch { alias: String, previous_version: String },
-
-    /// Generic: destroy the failed deployment.
-    Destroy,
-
-    /// No rollback available.
-    None,
-}
-
-pub fn determine_rollback(
-    provider: &str,
-    previous_state: Option<&ResourceState>,
-) -> RollbackStrategy {
-    match (provider, previous_state) {
-        ("cloudflare", Some(state)) => {
-            if let Some(version_id) = state.output.get("version_id").and_then(|v| v.as_str()) {
-                RollbackStrategy::RedeployPrevious { version_id: version_id.to_string() }
-            } else {
-                RollbackStrategy::Destroy
-            }
-        }
-        ("gcp", Some(state)) => {
-            if let Some(revision) = state.output.get("revision").and_then(|v| v.as_str()) {
-                RollbackStrategy::TrafficShift { previous_revision: revision.to_string() }
-            } else {
-                RollbackStrategy::Destroy
-            }
-        }
-        ("aws", Some(state)) => {
-            if let Some(version) = state.output.get("version").and_then(|v| v.as_str()) {
-                RollbackStrategy::AliasSwitch {
-                    alias: "live".to_string(),
-                    previous_version: version.to_string(),
-                }
-            } else {
-                RollbackStrategy::Destroy
-            }
-        }
-        _ => RollbackStrategy::None,
-    }
-}
-```
-
 ## Tasks
 
 1. **Define deployment states**
@@ -513,11 +478,10 @@ pub fn determine_rollback(
    - [ ] Implement `destroy()` and `status()`
    - [ ] Wire up valtron executor for running the state machine
 
-4. **Implement rollback**
-   - [ ] Create `src/engine/rollback.rs`
-   - [ ] Define `RollbackStrategy` enum
-   - [ ] Implement `determine_rollback()` for each provider
-   - [ ] Wire into `RollingBack` state transition
+4. **Implement rollback support**
+   - [ ] Each provider implements `rollback()` method
+   - [ ] Engine calls `provider.rollback()` on deploy/verify failure
+   - [ ] Rollback errors are logged but don't mask original error
 
 5. **State persistence integration**
    - [ ] Read existing state on deploy start

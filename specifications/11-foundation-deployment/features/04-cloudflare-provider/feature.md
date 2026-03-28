@@ -510,32 +510,18 @@ impl DeploymentProvider for CloudflareProvider {
     }
 
     fn build(&self, config: &WranglerConfig, env: Option<&str>) -> Result<BuildOutput, DeploymentError> {
-        use foundation_core::valtron::Stream;
-        use crate::core::shell::{ShellExecutor, ShellDone, ShellPending};
+        use crate::core::shell::{execute_and_collect, ShellExecutor};
 
         if let Some(build_config) = &config.build {
             if let Some(command) = &build_config.command {
-                let stream = ShellExecutor::new("sh")
-                    .args(["-c", command])
-                    .current_dir(&self.working_dir)
-                    .execute()
-                    .expect("scheduling succeeded");
+                let output = execute_and_collect(
+                    ShellExecutor::new("sh")
+                        .args(["-c", command])
+                        .current_dir(&self.working_dir)
+                )?;
 
-                // Collect result
-                let results: Vec<ShellDone> = stream
-                    .filter_map(|s| match s {
-                        Stream::Next(done) => Some(done),
-                        _ => None,
-                    })
-                    .collect();
-
-                match results.into_iter().next() {
-                    Some(ShellDone::Success { exit_code, stderr, .. }) if exit_code == 0 => {}
-                    Some(ShellDone::Failed { stderr, .. } | ShellDone::Success { stderr, .. }) => {
-                        return Err(DeploymentError::BuildFailed(stderr));
-                    }
-                    None => return Err(DeploymentError::BuildFailed("no output from build process".into())),
-                    _ => {}
+                if !output.success {
+                    return Err(DeploymentError::BuildFailed(output.stderr));
                 }
             }
         }
@@ -600,6 +586,42 @@ impl DeploymentProvider for CloudflareProvider {
         // Query Cloudflare API for worker status, routes, bindings
         todo!()
     }
+
+    fn rollback(
+        &self,
+        config: &WranglerConfig,
+        env: Option<&str>,
+        previous_state: Option<&CloudflareResources>,
+    ) -> Result<(), DeploymentError> {
+        match previous_state {
+            Some(prev) => {
+                // Redeploy the previous known-good version
+                self.redeploy_version(config, env, &prev.version_id)
+            }
+            None => {
+                // No previous state — destroy the failed deployment
+                self.destroy(config, env)
+            }
+        }
+    }
+
+    fn verify(&self, result: &DeploymentResult) -> Result<bool, DeploymentError> {
+        // Hit the deployment URL to confirm it's responsive
+        if let Some(url) = &result.url {
+            let client = foundation_core::simple_http::client::SimpleHttpClient::new();
+            match client.get(url) {
+                Ok(resp) if resp.status().is_success() => Ok(true),
+                Ok(resp) if resp.status() == 404 => Ok(false), // Not yet deployed
+                Ok(resp) => Err(DeploymentError::HttpError(
+                    foundation_core::simple_http::client::HttpClientError::UnexpectedStatus(resp.status())
+                )),
+                Err(e) => Err(DeploymentError::HttpError(e)),
+            }
+        } else {
+            // No URL to verify — assume healthy
+            Ok(true)
+        }
+    }
 }
 ```
 
@@ -617,8 +639,7 @@ impl CloudflareProvider {
         env: Option<&str>,
         dry_run: bool,
     ) -> Result<DeploymentResult, DeploymentError> {
-        use foundation_core::valtron::Stream;
-        use crate::core::shell::{ShellExecutor, ShellDone, ShellPending};
+        use crate::core::shell::{execute_and_collect, ShellExecutor};
 
         let mut cmd = ShellExecutor::new("wrangler").arg("deploy");
         if let Some(env_name) = env {
@@ -628,37 +649,18 @@ impl CloudflareProvider {
             cmd = cmd.arg("--dry-run");
         }
 
-        let stream = cmd.current_dir(&self.working_dir)
-            .execute()
-            .expect("scheduling succeeded");
+        let output = execute_and_collect(
+            cmd.current_dir(&self.working_dir)
+        )?;
 
-        // Collect result
-        let results: Vec<ShellDone> = stream
-            .filter_map(|s| match s {
-                Stream::Next(done) => Some(done),
-                _ => None,
-            })
-            .collect();
-
-        let output = match results.into_iter().next() {
-            Some(ShellDone::Success { exit_code, stdout, stderr }) if exit_code == 0 => {
-                CollectedOutput { exit_code: Some(exit_code), stdout, stderr, success: true }
-            }
-            Some(ShellDone::Failed { exit_code, stdout, stderr } | ShellDone::Success { exit_code, stdout, stderr }) => {
-                return Err(DeploymentError::ProcessFailed {
-                    command: "wrangler deploy".into(),
-                    exit_code,
-                    stdout,
-                    stderr,
-                });
-            }
-            None => return Err(DeploymentError::ProcessFailed {
+        if !output.success {
+            return Err(DeploymentError::ProcessFailed {
                 command: "wrangler deploy".into(),
-                exit_code: None,
-                stdout: String::new(),
-                stderr: "no output from wrangler".into(),
-            }),
-        };
+                exit_code: output.exit_code,
+                stdout: output.stdout,
+                stderr: output.stderr,
+            });
+        }
 
         parse_wrangler_deploy_output(&output.stdout, &output.stderr, config, env)
     }

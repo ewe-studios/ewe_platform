@@ -820,22 +820,32 @@ impl DeploymentProvider for GcpCloudRunProvider {
         // 2. docker build -t {image_tag} .
         // 3. docker push {image_tag}
         // OR: gcloud builds submit --tag {image_tag}
+        use crate::core::shell::{execute_and_collect, ShellExecutor};
+
         let image = config.container_image();
         if image == "IMAGE_PLACEHOLDER" {
             // Build from Dockerfile
             let tag = format!("gcr.io/{}/{}", self.project_id_or_detect(), config.service_name());
-            let output = ShellExecutor::new("docker")
-                .args(["build", "-t", &tag, "."])
-                .current_dir(&self.working_dir)
-                .execute()?;
+            let output = execute_and_collect(
+                ShellExecutor::new("docker")
+                    .args(["build", "-t", &tag, "."])
+                    .current_dir(&self.working_dir)
+            )?;
+
             if !output.success {
                 return Err(DeploymentError::BuildFailed(output.stderr));
             }
+
             // Push
-            ShellExecutor::new("docker")
-                .args(["push", &tag])
-                .current_dir(&self.working_dir)
-                .execute()?;
+            let output = execute_and_collect(
+                ShellExecutor::new("docker")
+                    .args(["push", &tag])
+                    .current_dir(&self.working_dir)
+            )?;
+
+            if !output.success {
+                return Err(DeploymentError::BuildFailed(output.stderr));
+            }
         }
         Ok(BuildOutput { artifacts: vec![], duration_ms: 0 })
     }
@@ -856,7 +866,7 @@ impl DeploymentProvider for GcpCloudRunProvider {
 
     fn logs(&self, config: &CloudRunServiceConfig, _env: Option<&str>) -> Result<(), DeploymentError> {
         use foundation_core::valtron::Stream;
-        use crate::core::shell::{ShellExecutor, ShellDone, ShellPending};
+        use crate::core::shell::{ShellExecutor, ShellDone};
 
         let stream = ShellExecutor::new("gcloud")
             .args(["run", "services", "logs", "read", config.service_name(), "--limit=100"])
@@ -864,7 +874,6 @@ impl DeploymentProvider for GcpCloudRunProvider {
             .execute()
             .expect("scheduling succeeded");
 
-        // Synchronous iteration - StreamIterator is a regular Iterator
         for output in stream {
             if let Stream::Next(ShellDone::Success { stdout, .. }) = output {
                 for line in stdout.lines() {
@@ -885,6 +894,41 @@ impl DeploymentProvider for GcpCloudRunProvider {
 
     fn status(&self, config: &CloudRunServiceConfig, _env: Option<&str>) -> Result<GcpResources, DeploymentError> {
         todo!()
+    }
+
+    fn rollback(
+        &self,
+        config: &CloudRunServiceConfig,
+        env: Option<&str>,
+        previous_state: Option<&GcpResources>,
+    ) -> Result<(), DeploymentError> {
+        match previous_state {
+            Some(prev) => {
+                // Route traffic back to previous revision
+                self.traffic_shift_to_revision(config, env, &prev.previous_revision)
+            }
+            None => {
+                // No previous state — destroy the failed deployment
+                self.destroy(config, env)
+            }
+        }
+    }
+
+    fn verify(&self, result: &DeploymentResult) -> Result<bool, DeploymentError> {
+        // Hit the Cloud Run URL to confirm it's responsive
+        if let Some(url) = &result.url {
+            let client = foundation_core::simple_http::client::SimpleHttpClient::new();
+            match client.get(url) {
+                Ok(resp) if resp.status().is_success() => Ok(true),
+                Ok(resp) if resp.status() == 404 || resp.status() == 503 => Ok(false), // Not yet ready
+                Ok(resp) => Err(DeploymentError::HttpError(
+                    foundation_core::simple_http::client::HttpClientError::UnexpectedStatus(resp.status())
+                )),
+                Err(e) => Err(DeploymentError::HttpError(e)),
+            }
+        } else {
+            Ok(true)
+        }
     }
 }
 ```

@@ -4,9 +4,8 @@
 //! `from_future` + `execute` pattern:
 //!
 //! - **`schedule_future`** (preferred): Schedules work and returns a stream.
-//!   The future's `Result<T, E>` is unwrapped (errors logged), and the
-//!   `FuturePollState` is erased to `()`. Callers collect at boundaries
-//!   using `collect_one`, `collect_result`, etc.
+//!   Errors are preserved via `map_circuit` at the task level, yielding
+//!   `Stream::Next(Err(e))` so callers can handle them.
 //!
 //! - **`exec_future`** (legacy): Blocks immediately at the leaf. Use only for
 //!   one-shot initialization (DB connection, migrations), not for trait methods.
@@ -15,43 +14,33 @@ use foundation_core::valtron::{execute, from_future, StreamIteratorExt};
 
 use crate::errors::StorageError;
 
-/// WHY: Enables non-blocking, composable storage operations.
+/// WHY: Enables non-blocking, composable storage operations with error preservation.
 ///
 /// WHAT: Schedules a future for execution via Valtron, returning a stream.
-/// Uses `map_done` to unwrap `Result<T, E>` and `map_pending` to erase
-/// `FuturePollState` → `()`, yielding a clean `StorageItemStream<T>`.
+/// Errors are preserved in the stream as `Stream::Next(Err(e))` rather than
+/// logging and swallowing them. Backend errors are converted to `StorageError`.
 ///
-/// HOW: `from_future` → `execute` → `map_done(unwrap result)` → `map_pending(erase)` → box.
-/// Errors from the future are logged via tracing and mapped to a sentinel value
-/// using the caller-provided `on_err` function (commonly returns a type's default
-/// or `None`). For methods where there's no meaningful fallback value, the error
-/// path yields the sentinel which the caller can check.
+/// HOW: `from_future` → `execute` → `map_done(convert errors)` → `map_pending(erase)` → box.
 ///
 /// # Errors
 ///
 /// Returns a `StorageError` if Valtron scheduling fails.
-pub fn schedule_future<T, E, F, H>(
+pub fn schedule_future<T, E, F>(
     future: F,
-    on_err: H,
-) -> Result<impl foundation_core::valtron::StreamIterator<D = T, P = ()> + Send + 'static, StorageError>
+) -> Result<impl foundation_core::valtron::StreamIterator<D = Result<T, StorageError>, P = ()> + Send + 'static, StorageError>
 where
     F: std::future::Future<Output = Result<T, E>> + Send + 'static,
     T: Send + 'static,
-    E: std::fmt::Display + Send + 'static,
-    H: Fn(E) -> T + Send + 'static,
+    E: Into<StorageError> + Send + 'static,
 {
     let task = from_future(future);
+
     let stream = execute(task, None)
         .map_err(|e| StorageError::Backend(format!("Valtron scheduling failed: {e}")))?;
 
+    // Convert backend errors to StorageError while preserving them in the stream
     Ok(stream
-        .map_done(move |result| match result {
-            Ok(v) => v,
-            Err(e) => {
-                tracing::error!("Async execution error: {e}");
-                on_err(e)
-            }
-        })
+        .map_done(|result: Result<T, E>| result.map_err(|e| e.into()))
         .map_pending(|_| ()))
 }
 
@@ -75,7 +64,7 @@ where
     F: std::future::Future<Output = Result<T, E>> + Send + 'static,
     F::Output: Send + 'static,
     T: Send + 'static,
-    E: std::fmt::Display + Send + 'static,
+    E: Into<StorageError> + Send + 'static,
 {
     use foundation_core::valtron::Stream;
 
@@ -83,17 +72,17 @@ where
     let stream = execute(task, None)
         .map_err(|e| StorageError::Backend(format!("Valtron execution failed: {e}")))?;
 
-    let mut result: Option<Result<T, E>> = None;
+    let mut result: Option<Result<T, StorageError>> = None;
     for item in stream.into_iter() {
         if let Stream::Next(v) = item {
-            result = Some(v);
+            result = Some(v.map_err(|e| e.into()));
             break;
         }
     }
 
     match result {
         Some(Ok(v)) => Ok(v),
-        Some(Err(e)) => Err(StorageError::Backend(format!("SQL error: {e}"))),
+        Some(Err(e)) => Err(e),
         None => Err(StorageError::Generic("No result from future execution".into())),
     }
 }

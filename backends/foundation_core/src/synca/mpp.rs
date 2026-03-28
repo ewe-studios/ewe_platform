@@ -1,6 +1,6 @@
 use std::{
     sync::Arc,
-    time::{self, Instant},
+    time::{self, Duration, Instant},
 };
 
 use concurrent_queue::{ConcurrentQueue, ForcePushError, PopError, PushError, TryIter};
@@ -50,6 +50,12 @@ impl<T> Receiver<T> {
         Receiver { chan }
     }
 
+    /// Get a clone of the underlying channel Arc
+    #[must_use]
+    pub fn chan(&self) -> Arc<ConcurrentQueue<T>> {
+        self.chan.clone()
+    }
+
     #[must_use]
     pub fn capacity(&self) -> Option<usize> {
         self.chan.capacity()
@@ -82,6 +88,14 @@ impl<T> Receiver<T> {
 
     pub fn try_iter(&self) -> TryIter<'_, T> {
         self.chan.try_iter()
+    }
+
+    pub fn into_recv_iter_timeout(&self, duration: Duration) -> RecvIterator<T> {
+        RecvIterator::from_chan(self.chan.clone(), duration)
+    }
+
+    pub fn into_recv_iter(&self) -> RecvIterator<T> {
+        RecvIterator::from_hundred_millis(self.chan.clone())
     }
 
     pub fn recv(&self) -> Result<T, ReceiverError> {
@@ -190,7 +204,8 @@ impl<T> RecvIter<T> {
         let mut yield_now = false;
         loop {
             // if not parking then
-            match self.chan.pop() {
+            let val = self.chan.pop();
+            match val {
                 Ok(value) => return Ok(value),
                 Err(err) => match err {
                     PopError::Empty => {
@@ -200,6 +215,8 @@ impl<T> RecvIter<T> {
                             continue;
                         }
 
+                        // noticed this was way slower than std::hint::spin_loop
+                        // or std::thread::sleep.
                         std::thread::park_timeout(block_ts);
                         yield_now = true;
                     }
@@ -230,6 +247,10 @@ const DEFAULT_BLOCK_DURATION: time::Duration = time::Duration::from_nanos(50);
 impl<T> RecvIterator<T> {
     pub fn from_chan(item: Arc<ConcurrentQueue<T>>, dur: time::Duration) -> Self {
         Self::new(RecvIter::new(item), dur)
+    }
+
+    pub fn from_hundred_millis(item: Arc<ConcurrentQueue<T>>) -> Self {
+        Self::new(RecvIter::new(item), Duration::from_millis(100))
     }
 
     pub fn from_ten_nano(item: Arc<ConcurrentQueue<T>>) -> Self {
@@ -297,22 +318,15 @@ pub trait StreamIterator: Iterator<Item = Stream<Self::D, Self::P>> {
 }
 
 // StreamIterator implementations for wrapper types
-
-#[allow(clippy::needless_lifetimes)]
-impl<'a, M> StreamIterator for &'a mut M
+//
+impl<M, D, P> StreamIterator for M
 where
-    M: StreamIterator,
+    M: Iterator<Item = Stream<D, P>> + ?Sized,
+    D: Send + 'static,
+    P: Send + 'static,
 {
-    type D = M::D;
-    type P = M::P;
-}
-
-impl<M> StreamIterator for Box<M>
-where
-    M: StreamIterator + ?Sized,
-{
-    type D = M::D;
-    type P = M::P;
+    type D = D;
+    type P = P;
 }
 
 // Note: Types implement StreamIterator explicitly or via blanket impls
@@ -352,23 +366,16 @@ impl<D, P> Iterator for StreamRecvIterator<D, P> {
     }
 }
 
-impl<D, P> StreamIterator for StreamRecvIterator<D, P>
-where
-    D: Send + 'static,
-    P: Send + 'static,
-{
-    type D = D;
-    type P = P;
-}
-
 pub struct Sender<T> {
     chan: Arc<ConcurrentQueue<T>>,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, From)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum SenderError<T> {
-    SendError(PushError<T>),
-    ForceSendError(ForcePushError<T>),
+    /// Queue is full - retry with backpressure
+    Full(T),
+    /// Queue is closed (receiver dropped) - stop sending
+    Closed(T),
 }
 
 impl<T: core::fmt::Debug> core::error::Error for SenderError<T> {}
@@ -376,8 +383,8 @@ impl<T: core::fmt::Debug> core::error::Error for SenderError<T> {}
 impl<T: core::fmt::Debug> core::fmt::Display for SenderError<T> {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         match self {
-            SenderError::SendError(err) => write!(f, "SenderError::SendError({err:?})"),
-            SenderError::ForceSendError(err) => write!(f, "SenderError::ForceSendError({err:?})"),
+            SenderError::Full(_) => write!(f, "SenderError::Full"),
+            SenderError::Closed(_) => write!(f, "SenderError::Closed"),
         }
     }
 }
@@ -427,15 +434,16 @@ impl<T> Sender<T> {
 
     pub fn send(&self, value: T) -> Result<(), SenderError<T>> {
         match self.chan.push(value) {
-            Ok(v) => Ok(v),
-            Err(err) => Err(SenderError::SendError(err)),
+            Ok(()) => Ok(()),
+            Err(PushError::Full(v)) => Err(SenderError::Full(v)),
+            Err(PushError::Closed(v)) => Err(SenderError::Closed(v)),
         }
     }
 
     pub fn force_send(&self, value: T) -> Result<Option<T>, SenderError<T>> {
         match self.chan.force_push(value) {
             Ok(v) => Ok(v),
-            Err(err) => Err(SenderError::ForceSendError(err)),
+            Err(ForcePushError(v)) => Err(SenderError::Closed(v)),
         }
     }
 }

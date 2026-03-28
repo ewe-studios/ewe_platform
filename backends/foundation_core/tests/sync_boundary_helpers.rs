@@ -54,16 +54,6 @@ impl Iterator for CounterTask {
     }
 }
 
-impl TaskIterator for CounterTask {
-    type Ready = u32;
-    type Pending = u32;
-    type Spawner = NoAction;
-
-    fn next_status(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
-        Iterator::next(self)
-    }
-}
-
 // ---------------------------------------------------------------------------
 // Test task: produces multiple Ready values
 // ---------------------------------------------------------------------------
@@ -98,16 +88,6 @@ impl Iterator for MultiValueTask {
     }
 }
 
-impl TaskIterator for MultiValueTask {
-    type Ready = u32;
-    type Pending = ();
-    type Spawner = NoAction;
-
-    fn next_status(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
-        Iterator::next(self)
-    }
-}
-
 // ============================================================================
 // collect_result tests
 // ============================================================================
@@ -123,11 +103,7 @@ fn test_collect_result_single_next() {
 /// collect_result on a stream with multiple Next values collects all of them.
 #[test]
 fn test_collect_result_multiple_next() {
-    let stream: Vec<Stream<u32, ()>> = vec![
-        Stream::Next(1),
-        Stream::Next(2),
-        Stream::Next(3),
-    ];
+    let stream: Vec<Stream<u32, ()>> = vec![Stream::Next(1), Stream::Next(2), Stream::Next(3)];
     let results = collect_result(stream.into_iter());
     assert_eq!(results, vec![1, 2, 3]);
 }
@@ -159,11 +135,8 @@ fn test_collect_result_empty_stream() {
 /// collect_result on a stream with no Next values returns an empty Vec.
 #[test]
 fn test_collect_result_no_next_values() {
-    let stream: Vec<Stream<u32, &str>> = vec![
-        Stream::Init,
-        Stream::Pending("waiting"),
-        Stream::Ignore,
-    ];
+    let stream: Vec<Stream<u32, &str>> =
+        vec![Stream::Init, Stream::Pending("waiting"), Stream::Ignore];
     let results = collect_result(stream.into_iter());
     assert!(results.is_empty());
 }
@@ -249,10 +222,10 @@ fn test_sync_all_varying_pending_counts() {
     let _guard = initialize_pool(42, None);
 
     let tasks = vec![
-        CounterTask::new(0, 1),   // immediate
-        CounterTask::new(5, 2),   // 5 pending states
-        CounterTask::new(10, 3),  // 10 pending states
-        CounterTask::new(1, 4),   // 1 pending state
+        CounterTask::new(0, 1),  // immediate
+        CounterTask::new(5, 2),  // 5 pending states
+        CounterTask::new(10, 3), // 10 pending states
+        CounterTask::new(1, 4),  // 1 pending state
     ];
     let results = sync_all(tasks).expect("sync_all should succeed");
     assert_eq!(results.len(), 4);
@@ -277,11 +250,7 @@ fn test_collect_one_single_next() {
 /// collect_one returns the first Next, ignoring subsequent ones.
 #[test]
 fn test_collect_one_returns_first_next_only() {
-    let stream: Vec<Stream<u32, ()>> = vec![
-        Stream::Next(1),
-        Stream::Next(2),
-        Stream::Next(3),
-    ];
+    let stream: Vec<Stream<u32, ()>> = vec![Stream::Next(1), Stream::Next(2), Stream::Next(3)];
     let result = collect_one(stream.into_iter());
     assert_eq!(result, Some(1));
 }
@@ -311,11 +280,8 @@ fn test_collect_one_empty_stream() {
 /// collect_one on a stream with no Next values returns None.
 #[test]
 fn test_collect_one_no_next_values() {
-    let stream: Vec<Stream<u32, &str>> = vec![
-        Stream::Init,
-        Stream::Pending("waiting"),
-        Stream::Ignore,
-    ];
+    let stream: Vec<Stream<u32, &str>> =
+        vec![Stream::Init, Stream::Pending("waiting"), Stream::Ignore];
     let result = collect_one(stream.into_iter());
     assert_eq!(result, None);
 }

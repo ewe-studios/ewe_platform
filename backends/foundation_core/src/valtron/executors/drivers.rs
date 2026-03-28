@@ -7,7 +7,6 @@ use core::future::Future;
 
 #[cfg(any(feature = "std", feature = "alloc"))]
 use crate::valtron::FutureTask;
-use crate::valtron::StreamIterator;
 #[cfg(any(feature = "std", feature = "alloc"))]
 use crate::valtron::StreamTask;
 
@@ -29,7 +28,7 @@ use crate::{
 ///
 /// Returns a `PoolGuard` that must be kept alive for the pool to remain functional.
 /// When the guard is dropped, all threads are shut down.
-#[must_use] 
+#[must_use]
 pub fn initialize_pool(
     seed_for_rng: u64,
     _user_thread_num: Option<usize>,
@@ -623,22 +622,6 @@ where
     }
 }
 
-impl<T> TaskIterator for DrivenNonSendTaskIterator<T>
-where
-    T: TaskIterator + 'static,
-    T::Ready: 'static,
-    T::Pending: 'static,
-    T::Spawner: ExecutionAction + 'static,
-{
-    type Ready = T::Ready;
-    type Pending = T::Pending;
-    type Spawner = T::Spawner;
-
-    fn next_status(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
-        Iterator::next(self)
-    }
-}
-
 impl<T> Iterator for DrivenNonSendTaskIterator<T>
 where
     T: TaskIterator + 'static,
@@ -705,22 +688,6 @@ where
 {
 }
 
-impl<T> TaskIterator for DrivenSendTaskIterator<T>
-where
-    T: TaskIterator + Send + 'static,
-    T::Ready: Send + 'static,
-    T::Pending: Send + 'static,
-    T::Spawner: ExecutionAction + Send + 'static,
-{
-    type Ready = T::Ready;
-    type Pending = T::Pending;
-    type Spawner = T::Spawner;
-
-    fn next_status(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
-        Iterator::next(self)
-    }
-}
-
 impl<T> Iterator for DrivenSendTaskIterator<T>
 where
     T: TaskIterator + Send + 'static,
@@ -779,17 +746,6 @@ where
     pub fn new(task_iterator: StreamRecvIterator<T::Ready, T::Pending>) -> Self {
         Self(Some(task_iterator))
     }
-}
-
-impl<T> StreamIterator for DrivenNonSendStreamIterator<T>
-where
-    T: TaskIterator + 'static,
-    T::Ready: 'static,
-    T::Pending: 'static,
-    T::Spawner: ExecutionAction + 'static,
-{
-    type D = T::Ready;
-    type P = T::Pending;
 }
 
 impl<T> Iterator for DrivenNonSendStreamIterator<T>
@@ -854,17 +810,6 @@ where
     T::Pending: Send + 'static,
     T::Spawner: ExecutionAction + Send + 'static,
 {
-}
-
-impl<T> StreamIterator for DrivenStreamIterator<T>
-where
-    T: TaskIterator + Send + 'static,
-    T::Ready: Send + 'static,
-    T::Pending: Send + 'static,
-    T::Spawner: ExecutionAction + Send + 'static,
-{
-    type D = T::Ready;
-    type P = T::Pending;
 }
 
 impl<T> Iterator for DrivenStreamIterator<T>
@@ -953,22 +898,6 @@ where
 {
 }
 
-impl<T> TaskIterator for DrivenRecvIterator<T>
-where
-    T: TaskIterator + Send + 'static,
-    T::Ready: Send + 'static,
-    T::Pending: Send + 'static,
-    T::Spawner: ExecutionAction + Send + 'static,
-{
-    type Ready = T::Ready;
-    type Pending = T::Pending;
-    type Spawner = T::Spawner;
-
-    fn next_status(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
-        Iterator::next(self)
-    }
-}
-
 impl<T> Iterator for DrivenRecvIterator<T>
 where
     T: TaskIterator + Send + 'static,
@@ -1038,22 +967,6 @@ where
     #[must_use]
     pub fn new(task_iterator: RecvIterator<TaskStatus<T::Ready, T::Pending, T::Spawner>>) -> Self {
         Self(Some(task_iterator))
-    }
-}
-
-impl<T> TaskIterator for DrivenNonSendRecvIterator<T>
-where
-    T: TaskIterator + 'static,
-    T::Ready: 'static,
-    T::Pending: 'static,
-    T::Spawner: ExecutionAction + 'static,
-{
-    type Ready = T::Ready;
-    type Pending = T::Pending;
-    type Spawner = T::Spawner;
-
-    fn next_status(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
-        Iterator::next(self)
     }
 }
 

@@ -52,20 +52,6 @@ where
     }
 }
 
-impl<R, P> TaskIterator for TestTaskIterator<R, P>
-where
-    R: Clone + Send + 'static,
-    P: Clone + Send + 'static,
-{
-    type Ready = R;
-    type Pending = P;
-    type Spawner = NoAction;
-
-    fn next_status(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
-        Iterator::next(self)
-    }
-}
-
 /// Simple StreamIterator for testing that yields predefined Stream values
 struct TestStreamIterator<D, P> {
     items: Vec<Stream<D, P>>,
@@ -98,15 +84,6 @@ where
             None
         }
     }
-}
-
-impl<D, P> StreamIterator for TestStreamIterator<D, P>
-where
-    D: Clone + Send + 'static,
-    P: Clone + Send + 'static,
-{
-    type D = D;
-    type P = P;
 }
 
 // ============================================================================

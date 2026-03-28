@@ -9,11 +9,13 @@
 mod backends;
 mod crypto;
 mod errors;
+mod rows_stream;
 mod schema;
 mod storage_provider;
 
 pub use backends::*;
 pub use crypto::*;
 pub use errors::*;
+pub use rows_stream::*;
 pub use schema::*;
 pub use storage_provider::*;

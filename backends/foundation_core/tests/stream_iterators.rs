@@ -22,11 +22,6 @@ impl Iterator for TestStream {
     }
 }
 
-impl StreamIterator for TestStream {
-    type D = u32;
-    type P = String;
-}
-
 // Simple stream iterator wrapper for Vec<Stream<D, P>>
 struct SimpleStream<D, P> {
     items: std::vec::IntoIter<Stream<D, P>>,
@@ -49,11 +44,6 @@ impl<D, P> Iterator for SimpleStream<D, P> {
     fn next(&mut self) -> Option<Self::Item> {
         self.items.next()
     }
-}
-
-impl<D, P> StreamIterator for SimpleStream<D, P> {
-    type D = D;
-    type P = P;
 }
 
 #[test]
@@ -334,11 +324,6 @@ fn test_map_iter_flattens_nested_iterators() {
         }
     }
 
-    impl StreamIterator for VecStream {
-        type D = Vec<u32>;
-        type P = String;
-    }
-
     let items = vec![
         Stream::Next(vec![1u32, 2u32]),
         Stream::Next(vec![3u32, 4u32, 5u32]),
@@ -401,11 +386,6 @@ fn test_map_iter_passes_through_pending() {
         fn next(&mut self) -> Option<Self::Item> {
             self.items.next()
         }
-    }
-
-    impl StreamIterator for VecStream {
-        type D = Vec<u32>;
-        type P = String;
     }
 
     let items = vec![
@@ -472,11 +452,6 @@ fn test_map_iter_different_pending_types() {
         }
     }
 
-    impl StreamIterator for VecStream {
-        type D = Vec<u32>;
-        type P = String;
-    }
-
     let items = vec![
         Stream::Next(vec![1u32, 2u32]),
         Stream::Pending("outer_pending".to_string()),
@@ -536,11 +511,6 @@ fn test_flatten_next() {
         fn next(&mut self) -> Option<Self::Item> {
             self.items.next()
         }
-    }
-
-    impl StreamIterator for VecStream {
-        type D = Vec<u32>;
-        type P = String;
     }
 
     let items = vec![
@@ -604,11 +574,6 @@ fn test_flat_map_next() {
         fn next(&mut self) -> Option<Self::Item> {
             self.items.next()
         }
-    }
-
-    impl StreamIterator for NumStream {
-        type D = u32;
-        type P = String;
     }
 
     let items = vec![
@@ -675,11 +640,6 @@ fn test_flatten_pending() {
         }
     }
 
-    impl StreamIterator for VecStream {
-        type D = u32;
-        type P = Vec<String>;
-    }
-
     let items = vec![
         Stream::Pending(vec!["a".to_string(), "b".to_string()]),
         Stream::Next(42u32),
@@ -733,11 +693,6 @@ fn test_flat_map_pending() {
         fn next(&mut self) -> Option<Self::Item> {
             self.items.next()
         }
-    }
-
-    impl StreamIterator for NumStream {
-        type D = u32;
-        type P = u32;
     }
 
     let items = vec![

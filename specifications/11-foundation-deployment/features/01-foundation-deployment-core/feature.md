@@ -105,6 +105,21 @@ pub trait DeploymentProvider {
         dry_run: bool,
     ) -> Result<DeploymentResult, DeploymentError>;
 
+    /// Rollback a failed deployment.
+    ///
+    /// Called when `deploy()` fails after partially completing.
+    /// The provider is responsible for determining how to revert
+    /// to the previous known-good state.
+    ///
+    /// `previous_state` contains the last known-good deployment state
+    /// from the state store, if one exists.
+    fn rollback(
+        &self,
+        config: &Self::Config,
+        env: Option<&str>,
+        previous_state: Option<&Self::Resources>,
+    ) -> Result<(), DeploymentError>;
+
     /// Tail logs from the deployed service.
     fn logs(
         &self,
@@ -125,6 +140,20 @@ pub trait DeploymentProvider {
         config: &Self::Config,
         env: Option<&str>,
     ) -> Result<Self::Resources, DeploymentError>;
+
+    /// Verify a deployment is healthy and responsive.
+    ///
+    /// Called after deploy to confirm the deployment succeeded.
+    /// Returns `Ok(true)` if healthy, `Ok(false)` if not yet healthy
+    /// (may be retried), or `Err(e)` if verification itself fails.
+    fn verify(
+        &self,
+        result: &DeploymentResult,
+    ) -> Result<bool, DeploymentError> {
+        // Default no-op implementation — providers can override
+        let _ = result;
+        Ok(true)
+    }
 }
 ```
 
@@ -499,28 +528,21 @@ pub fn execute_and_collect(
         }
     })?;
 
-    // Use Valtron's collect_result pattern - drains stream, collects all Next values
-    let results: Vec<ShellDone> = stream
-        .filter_map(|s| match s {
-            Stream::Next(done) => Some(done),
-            _ => None,
-        })
-        .collect();
+    // Use collect_one - extracts first Stream::Next value
+    let result = collect_one(stream).ok_or_else(|| DeploymentError::ProcessFailed {
+        command: "shell".to_string(),
+        exit_code: None,
+        stdout: String::new(),
+        stderr: "no result from stream".to_string(),
+    })?;
 
-    // For shell execution, we expect exactly one result
-    match results.into_iter().next() {
-        Some(ShellDone::Success { exit_code, stdout, stderr }) => {
+    match result {
+        ShellDone::Success { exit_code, stdout, stderr } => {
             Ok(CollectedOutput { exit_code: Some(exit_code), stdout, stderr, success: true })
         }
-        Some(ShellDone::Failed { exit_code, stdout, stderr }) => {
+        ShellDone::Failed { exit_code, stdout, stderr } => {
             Ok(CollectedOutput { exit_code, stdout, stderr, success: false })
         }
-        None => Err(DeploymentError::ProcessFailed {
-            command: "shell".to_string(),
-            exit_code: None,
-            stdout: String::new(),
-            stderr: "no result from stream".to_string(),
-        }),
     }
 }
 
@@ -531,6 +553,33 @@ pub struct CollectedOutput {
     pub stdout: String,
     pub stderr: String,
     pub success: bool,
+}
+
+// ===========================================================================
+// Helper: collect_one (boundary collection)
+// ===========================================================================
+
+/// Extract the first `Stream::Next` value from a stream.
+/// Returns `None` if the stream exhausts without producing a value.
+///
+/// Use this at sync boundaries when you need a single result.
+/// For tasks that produce multiple values, use `collect_result` instead.
+pub fn collect_one<D, P>(stream: impl Iterator<Item = Stream<D, P>>) -> Option<D> {
+    stream.find_map(|s| match s {
+        Stream::Next(v) => Some(v),
+        _ => None,
+    })
+}
+
+/// Drain a stream and collect all `Next` values.
+/// Use this at sync boundaries when the task produces multiple values.
+pub fn collect_result<D, P>(stream: impl Iterator<Item = Stream<D, P>>) -> Vec<D> {
+    stream
+        .filter_map(|s| match s {
+            Stream::Next(v) => Some(v),
+            _ => None,
+        })
+        .collect()
 }
 ```
 

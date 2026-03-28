@@ -20,16 +20,6 @@ impl Iterator for TestTask {
     }
 }
 
-impl TaskIterator for TestTask {
-    type Ready = u32;
-    type Pending = String;
-    type Spawner = NoAction;
-
-    fn next_status(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
-        Iterator::next(self)
-    }
-}
-
 #[test]
 fn test_map_ready() {
     let items = vec![
@@ -210,16 +200,6 @@ fn test_map_iter_flattens_nested_iterators() {
         }
     }
 
-    impl TaskIterator for VecTask {
-        type Ready = Vec<u32>;
-        type Pending = String;
-        type Spawner = NoAction;
-
-        fn next_status(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
-            Iterator::next(self)
-        }
-    }
-
     let items = vec![
         TaskStatus::Ready(vec![1u32, 2u32]),
         TaskStatus::Ready(vec![3u32, 4u32, 5u32]),
@@ -281,16 +261,6 @@ fn test_map_iter_passes_through_pending() {
 
         fn next(&mut self) -> Option<Self::Item> {
             self.items.next()
-        }
-    }
-
-    impl TaskIterator for VecTask {
-        type Ready = Vec<u32>;
-        type Pending = String;
-        type Spawner = NoAction;
-
-        fn next_status(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
-            Iterator::next(self)
         }
     }
 
