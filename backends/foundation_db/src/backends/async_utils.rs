@@ -27,7 +27,10 @@ use crate::errors::StorageError;
 /// Returns a `StorageError` if Valtron scheduling fails.
 pub fn schedule_future<T, E, F>(
     future: F,
-) -> Result<impl foundation_core::valtron::StreamIterator<D = Result<T, StorageError>, P = ()> + Send + 'static, StorageError>
+) -> Result<
+    impl foundation_core::valtron::StreamIterator<D = Result<T, StorageError>, P = ()> + Send + 'static,
+    StorageError,
+>
 where
     F: std::future::Future<Output = Result<T, E>> + Send + 'static,
     T: Send + 'static,
@@ -40,7 +43,7 @@ where
 
     // Convert backend errors to StorageError while preserving them in the stream
     Ok(stream
-        .map_done(|result: Result<T, E>| result.map_err(|e| e.into()))
+        .map_done(|result: Result<T, E>| result.map_err(Into::into))
         .map_pending(|_| ()))
 }
 
@@ -73,9 +76,9 @@ where
         .map_err(|e| StorageError::Backend(format!("Valtron execution failed: {e}")))?;
 
     let mut result: Option<Result<T, StorageError>> = None;
-    for item in stream.into_iter() {
+    for item in stream {
         if let Stream::Next(v) = item {
-            result = Some(v.map_err(|e| e.into()));
+            result = Some(v.map_err(Into::into));
             break;
         }
     }
@@ -83,6 +86,8 @@ where
     match result {
         Some(Ok(v)) => Ok(v),
         Some(Err(e)) => Err(e),
-        None => Err(StorageError::Generic("No result from future execution".into())),
+        None => Err(StorageError::Generic(
+            "No result from future execution".into(),
+        )),
     }
 }
