@@ -1,8 +1,8 @@
 //! JSON file storage backend integration tests.
 
 use foundation_core::valtron::collect_one;
-use foundation_db::backends::JsonFileStorage;
-use foundation_db::storage_provider::KeyValueStore;
+use foundation_db::{JsonFileStorage, KeyValueStore};
+use serde::{Deserialize, Serialize};
 use tempfile::TempDir;
 
 #[test]
@@ -13,7 +13,7 @@ fn test_json_file_storage_basic() {
     let storage = JsonFileStorage::new(&file_path).unwrap();
 
     // Test set and get
-    collect_one(storage.set("test_key", "test_value").unwrap())
+    let _: () = collect_one(storage.set("test_key", "test_value").unwrap())
         .unwrap()
         .unwrap();
 
@@ -23,20 +23,25 @@ fn test_json_file_storage_basic() {
     assert_eq!(value, Some("test_value".to_string()));
 
     // Test exists
-    assert!(collect_one(storage.exists("test_key").unwrap())
-        .unwrap()
-        .unwrap());
-    assert!(!collect_one(storage.exists("nonexistent").unwrap())
-        .unwrap()
-        .unwrap());
-
-    // Test delete
-    collect_one(storage.delete("test_key").unwrap())
+    let exists: bool = collect_one(storage.exists("test_key").unwrap())
         .unwrap()
         .unwrap();
-    assert!(!collect_one(storage.exists("test_key").unwrap())
+    assert!(exists);
+
+    let not_exists: bool = collect_one(storage.exists("nonexistent").unwrap())
         .unwrap()
-        .unwrap());
+        .unwrap();
+    assert!(!not_exists);
+
+    // Test delete
+    let _: () = collect_one(storage.delete("test_key").unwrap())
+        .unwrap()
+        .unwrap();
+
+    let deleted: bool = collect_one(storage.exists("test_key").unwrap())
+        .unwrap()
+        .unwrap();
+    assert!(!deleted);
 }
 
 #[test]
@@ -46,39 +51,39 @@ fn test_json_file_storage_list_keys() {
 
     let storage = JsonFileStorage::new(&file_path).unwrap();
 
-    collect_one(storage.set("prefix:key1", "value1").unwrap())
+    let _: () = collect_one(storage.set("prefix:key1", "value1").unwrap())
         .unwrap()
         .unwrap();
-    collect_one(storage.set("prefix:key2", "value2").unwrap())
+    let _: () = collect_one(storage.set("prefix:key2", "value2").unwrap())
         .unwrap()
         .unwrap();
-    collect_one(storage.set("other:key3", "value3").unwrap())
+    let _: () = collect_one(storage.set("other:key3", "value3").unwrap())
         .unwrap()
         .unwrap();
 
     // List all keys - flat_map to extract Result from Stream, then collect
-    let keys: Result<Vec<String>, _> = storage
+    let keys: Vec<String> = storage
         .list_keys(None)
         .unwrap()
         .flat_map(|stream_item| match stream_item {
-            foundation_core::valtron::Stream::Next(result) => vec![result],
+            foundation_core::valtron::Stream::Next(Ok(result)) => vec![result],
             _ => vec![],
         })
         .collect();
-    assert_eq!(keys.unwrap().len(), 3);
+    assert_eq!(keys.len(), 3);
 
     // List keys with prefix
-    let keys: Result<Vec<String>, _> = storage
+    let keys: Vec<String> = storage
         .list_keys(Some("prefix:"))
         .unwrap()
         .flat_map(|stream_item| match stream_item {
-            foundation_core::valtron::Stream::Next(result) => vec![result],
+            foundation_core::valtron::Stream::Next(Ok(result)) => vec![result],
             _ => vec![],
         })
         .collect();
-    assert_eq!(keys.unwrap().len(), 2);
-    assert!(keys.as_ref().unwrap().contains(&"prefix:key1".to_string()));
-    assert!(keys.as_ref().unwrap().contains(&"prefix:key2".to_string()));
+    assert_eq!(keys.len(), 2);
+    assert!(keys.contains(&"prefix:key1".to_string()));
+    assert!(keys.contains(&"prefix:key2".to_string()));
 }
 
 #[test]
@@ -88,10 +93,10 @@ fn test_json_file_storage_persistence() {
 
     // Create storage and add data
     let storage = JsonFileStorage::new(&file_path).unwrap();
-    collect_one(storage.set("key1", "value1").unwrap())
+    let _: () = collect_one(storage.set("key1", "value1").unwrap())
         .unwrap()
         .unwrap();
-    collect_one(storage.set("key2", "value2").unwrap())
+    let _: () = collect_one(storage.set("key2", "value2").unwrap())
         .unwrap()
         .unwrap();
 
@@ -120,7 +125,7 @@ fn test_json_file_storage_complex_value() {
 
     let storage = JsonFileStorage::new(&file_path).unwrap();
 
-    #[derive(Serialize, serde::Deserialize, Debug, PartialEq)]
+    #[derive(Serialize, Deserialize, Debug, PartialEq)]
     struct TestData {
         name: String,
         count: u32,
@@ -131,7 +136,7 @@ fn test_json_file_storage_complex_value() {
         count: 42,
     };
 
-    collect_one(storage.set("complex", &data).unwrap())
+    let _: () = collect_one(storage.set("complex", &data).unwrap())
         .unwrap()
         .unwrap();
 
@@ -149,7 +154,7 @@ fn test_json_file_storage_atomic_writes() {
     let storage = JsonFileStorage::new(&file_path).unwrap();
 
     // Add initial data
-    collect_one(storage.set("key1", "value1").unwrap())
+    let _: () = collect_one(storage.set("key1", "value1").unwrap())
         .unwrap()
         .unwrap();
 

@@ -59,7 +59,7 @@ impl JsonFileStorage {
     ///
     /// Returns a `StorageError` if file I/O or parsing fails.
     fn load_from_file(file_path: &Path) -> StorageResult<HashMap<String, Zeroizing<Vec<u8>>>> {
-        let file = File::open(file_path).map_err(|e| StorageError::Io(e))?;
+        let file = File::open(file_path).map_err(StorageError::Io)?;
 
         let reader = BufReader::new(file);
         let raw_data: HashMap<String, Vec<u8>> =
@@ -96,17 +96,15 @@ impl JsonFileStorage {
         // Write to temp file first
         let temp_path = self.file_path.with_extension("json.tmp");
 
-        let mut temp_file = File::create(&temp_path).map_err(|e| StorageError::Io(e))?;
+        let mut temp_file = File::create(&temp_path).map_err(StorageError::Io)?;
 
-        temp_file
-            .write_all(&json_bytes)
-            .map_err(|e| StorageError::Io(e))?;
+        temp_file.write_all(&json_bytes).map_err(StorageError::Io)?;
 
         // Ensure data is flushed to disk
-        temp_file.sync_all().map_err(|e| StorageError::Io(e))?;
+        temp_file.sync_all().map_err(StorageError::Io)?;
 
         // Atomic rename
-        fs::rename(&temp_path, &self.file_path).map_err(|e| StorageError::Io(e))?;
+        fs::rename(&temp_path, &self.file_path).map_err(StorageError::Io)?;
 
         Ok(())
     }

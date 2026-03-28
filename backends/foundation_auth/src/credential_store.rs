@@ -1,5 +1,6 @@
 //! Credential storage module wrapping foundation_db.
 
+use foundation_core::valtron::Stream;
 use foundation_db::{KeyValueStore, StorageBackend, StorageProvider, StorageError};
 use serde::{Deserialize, Serialize};
 
@@ -8,10 +9,10 @@ use crate::oauth::OAuthToken;
 /// Credential store trait for persistent credential storage.
 pub trait CredentialStore: Send + Sync {
     /// Get a credential by key.
-    fn get<V: for<'de> Deserialize<'de>>(&self, key: &str) -> Result<Option<V>, CredentialStoreError>;
+    fn get<V: for<'de> Deserialize<'de> + Send + 'static>(&self, key: &str) -> Result<Option<V>, CredentialStoreError>;
 
     /// Set a credential.
-    fn set<V: Serialize>(&self, key: &str, value: V) -> Result<(), CredentialStoreError>;
+    fn set<V: Serialize + Send + 'static>(&self, key: &str, value: V) -> Result<(), CredentialStoreError>;
 
     /// Delete a credential.
     fn delete(&self, key: &str) -> Result<(), CredentialStoreError>;
@@ -70,38 +71,71 @@ impl TursoCredentialStore {
 }
 
 impl CredentialStore for TursoCredentialStore {
-    fn get<V: for<'de> Deserialize<'de>>(&self, key: &str) -> Result<Option<V>, CredentialStoreError> {
-        self.storage
-            .get(key)
-            .map_err(|e| match e {
-                StorageError::NotFound(_) => CredentialStoreError::NotFound(key.to_string()),
-                _ => CredentialStoreError::Storage(e),
+    fn get<V: for<'de> Deserialize<'de> + Send + 'static>(&self, key: &str) -> Result<Option<V>, CredentialStoreError> {
+        let stream = self.storage.get(key).map_err(|e| match e {
+            StorageError::NotFound(_) => CredentialStoreError::NotFound(key.to_string()),
+            _ => CredentialStoreError::Storage(e),
+        })?;
+
+        // Consume the stream to get the value
+        stream
+            .flat_map(|stream_item| match stream_item {
+                Stream::Next(result) => vec![result],
+                _ => vec![],
             })
+            .next()
+            .ok_or_else(|| CredentialStoreError::NotFound(key.to_string()))?
+            .map_err(CredentialStoreError::Storage)
     }
 
-    fn set<V: Serialize>(&self, key: &str, value: V) -> Result<(), CredentialStoreError> {
-        self.storage
-            .set(key, value)
-            .map_err(CredentialStoreError::Storage)
+    fn set<V: Serialize + Send + 'static>(&self, key: &str, value: V) -> Result<(), CredentialStoreError> {
+        let stream = self.storage.set(key, value).map_err(CredentialStoreError::Storage)?;
+
+        // Consume the stream and return the result
+        Ok(stream
+            .flat_map(|stream_item| match stream_item {
+                Stream::Next(result) => vec![result],
+                _ => vec![],
+            })
+            .next()
+            .ok_or_else(|| CredentialStoreError::Generic("Stream ended without result".to_string()))??)
     }
 
     fn delete(&self, key: &str) -> Result<(), CredentialStoreError> {
-        self.storage
-            .delete(key)
-            .map_err(CredentialStoreError::Storage)
+        let stream = self.storage.delete(key).map_err(CredentialStoreError::Storage)?;
+
+        Ok(stream
+            .flat_map(|stream_item| match stream_item {
+                Stream::Next(result) => vec![result],
+                _ => vec![],
+            })
+            .next()
+            .ok_or_else(|| CredentialStoreError::Generic("Stream ended without result".to_string()))??)
     }
 
     fn exists(&self, key: &str) -> Result<bool, CredentialStoreError> {
-        self.storage
-            .exists(key)
+        let stream = self.storage.exists(key).map_err(CredentialStoreError::Storage)?;
+
+        stream
+            .flat_map(|stream_item| match stream_item {
+                Stream::Next(result) => vec![result],
+                _ => vec![],
+            })
+            .next()
+            .ok_or_else(|| CredentialStoreError::Generic("Stream ended without result".to_string()))?
             .map_err(CredentialStoreError::Storage)
     }
 
     fn list_keys(&self, prefix: Option<&str>) -> Result<Vec<String>, CredentialStoreError> {
-        self.storage
-            .list_keys(prefix)
-            .map(|stream| stream.collect())
-            .map_err(CredentialStoreError::Storage)
+        let stream = self.storage.list_keys(prefix).map_err(CredentialStoreError::Storage)?;
+
+        Ok(stream
+            .flat_map(|stream_item| match stream_item {
+                Stream::Next(Ok(result)) => vec![Ok(result)],
+                Stream::Next(Err(e)) => vec![Err(CredentialStoreError::Storage(e))],
+                _ => vec![],
+            })
+            .collect::<Result<Vec<_>, _>>()?)
     }
 }
 
@@ -127,38 +161,69 @@ impl Default for MemoryCredentialStore {
 }
 
 impl CredentialStore for MemoryCredentialStore {
-    fn get<V: for<'de> Deserialize<'de>>(&self, key: &str) -> Result<Option<V>, CredentialStoreError> {
-        self.storage
-            .get(key)
-            .map_err(|e| match e {
-                StorageError::NotFound(_) => CredentialStoreError::NotFound(key.to_string()),
-                _ => CredentialStoreError::Storage(e),
+    fn get<V: for<'de> Deserialize<'de> + Send + 'static>(&self, key: &str) -> Result<Option<V>, CredentialStoreError> {
+        let stream = self.storage.get(key).map_err(|e| match e {
+            StorageError::NotFound(_) => CredentialStoreError::NotFound(key.to_string()),
+            _ => CredentialStoreError::Storage(e),
+        })?;
+
+        stream
+            .flat_map(|stream_item| match stream_item {
+                Stream::Next(result) => vec![result],
+                _ => vec![],
             })
+            .next()
+            .ok_or_else(|| CredentialStoreError::NotFound(key.to_string()))?
+            .map_err(CredentialStoreError::Storage)
     }
 
-    fn set<V: Serialize>(&self, key: &str, value: V) -> Result<(), CredentialStoreError> {
-        self.storage
-            .set(key, value)
-            .map_err(CredentialStoreError::Storage)
+    fn set<V: Serialize + Send + 'static>(&self, key: &str, value: V) -> Result<(), CredentialStoreError> {
+        let stream = self.storage.set(key, value).map_err(CredentialStoreError::Storage)?;
+
+        Ok(stream
+            .flat_map(|stream_item| match stream_item {
+                Stream::Next(result) => vec![result],
+                _ => vec![],
+            })
+            .next()
+            .ok_or_else(|| CredentialStoreError::Generic("Stream ended without result".to_string()))??)
     }
 
     fn delete(&self, key: &str) -> Result<(), CredentialStoreError> {
-        self.storage
-            .delete(key)
-            .map_err(CredentialStoreError::Storage)
+        let stream = self.storage.delete(key).map_err(CredentialStoreError::Storage)?;
+
+        Ok(stream
+            .flat_map(|stream_item| match stream_item {
+                Stream::Next(result) => vec![result],
+                _ => vec![],
+            })
+            .next()
+            .ok_or_else(|| CredentialStoreError::Generic("Stream ended without result".to_string()))??)
     }
 
     fn exists(&self, key: &str) -> Result<bool, CredentialStoreError> {
-        self.storage
-            .exists(key)
+        let stream = self.storage.exists(key).map_err(CredentialStoreError::Storage)?;
+
+        stream
+            .flat_map(|stream_item| match stream_item {
+                Stream::Next(result) => vec![result],
+                _ => vec![],
+            })
+            .next()
+            .ok_or_else(|| CredentialStoreError::Generic("Stream ended without result".to_string()))?
             .map_err(CredentialStoreError::Storage)
     }
 
     fn list_keys(&self, prefix: Option<&str>) -> Result<Vec<String>, CredentialStoreError> {
-        self.storage
-            .list_keys(prefix)
-            .map(|stream| stream.collect())
-            .map_err(CredentialStoreError::Storage)
+        let stream = self.storage.list_keys(prefix).map_err(CredentialStoreError::Storage)?;
+
+        Ok(stream
+            .flat_map(|stream_item| match stream_item {
+                Stream::Next(Ok(result)) => vec![Ok(result)],
+                Stream::Next(Err(e)) => vec![Err(CredentialStoreError::Storage(e))],
+                _ => vec![],
+            })
+            .collect::<Result<Vec<_>, _>>()?)
     }
 }
 
@@ -171,7 +236,7 @@ pub trait OAuthTokenStore: CredentialStore {
         token: &OAuthToken,
     ) -> Result<(), CredentialStoreError> {
         let key = format!("oauth:token:{provider}");
-        self.set(&key, token)
+        self.set(&key, token.clone())
     }
 
     /// Get OAuth tokens for a provider.
@@ -276,9 +341,7 @@ mod tests {
         let store = MemoryCredentialStore::new();
 
         // Test set and get
-        store
-            .set("test_key", "test_value")
-            .expect("Failed to set credential");
+        store.set("test_key", "test_value").expect("Failed to set credential");
 
         let value: String = store
             .get("test_key")
