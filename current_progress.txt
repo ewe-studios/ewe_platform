@@ -1,0 +1,1892 @@
+ ▐▛███▜▌   Claude Code v2.1.86
+▝▜█████▛▘  Sonnet 4.6 · Claude Pro
+  ▘▘ ▝▝    ~/Boxxed/@dev/ewe_platform
+
+✻ Conversation compacted (ctrl+o for history)
+
+  ⎿  Referenced file .agents/skills/rust-valtron-usage/skill.md
+  ⎿  Read backends/foundation_core/tests/sync_boundary_helpers.rs (356 lines)
+  ⎿  Referenced file backends/foundation_core/src/valtron/executors/unified.rs
+  ⎿  Read 
+     specifications/07-foundation-ai/features/00a-foundation-db/LEARNINGS.md 
+     (179 lines)
+  ⎿  Read specifications/07-foundation-ai/LEARNINGS.md (318 lines)
+
+  Read 3 files (ctrl+o to expand)
+
+● Now let me read the turso and libsql backends, the json_file backend, and the
+  callers.
+
+  Read 4 files (ctrl+o to expand)
+
+● Good — crypto/zeroize.rs doesn't call storage methods, it's just a utility
+  type. Let me check for actual callers of the storage traits.
+
+  Searched for 1 pattern, read 3 files (ctrl+o to expand)
+
+● Let me check if BlobStore is implemented anywhere.
+
+  Searched for 1 pattern, read 1 file (ctrl+o to expand)
+
+● Good. BlobStore has no implementations — I'll update its trait signatures but
+  don't need to implement them. Now let me check what Valtron exports are
+  available.
+
+  Searched for 3 patterns, read 1 file (ctrl+o to expand)
+
+● Let me check the execute function signature to understand what it returns.
+
+  Searched for 3 patterns (ctrl+o to expand)
+
+● Good. DrivenStreamIterator<T> implements Iterator<Item = Stream<T::Ready, 
+  T::Pending>>. For FutureTask<F> where F: Future<Output = Result<T, E>>,
+  T::Ready = Result<T, E> and T::Pending = FuturePollState.
+
+  So the stream yields Stream<Result<T, E>, FuturePollState>. Now let me also
+  check if DrivenStreamIterator is Send.
+
+  Searched for 3 patterns (ctrl+o to expand)
+
+● Now I have full context. Let me implement the refactor systematically.
+  Starting with the helper function and trait changes.
+
+  Searched for 1 pattern (ctrl+o to expand)
+
+● Good. Now let me implement all the changes. I'll start with async_utils.rs
+  (add schedule_future), then the trait signatures, then each backend, then
+  callers.
+
+● Update(backends/foundation_db/src/backends/async_utils.rs)
+  ⎿  Added 55 lines, removed 9 lines
+       1  //! Shared async utilities for SQL backends (Turso, libsql).
+       2  //!
+       3 -//! Provides a common pattern for wrapping async futures using 
+         -Valtron's                                                      
+       4 -//! `from_future` + `execute` pattern.                         
+       3 +//! Provides two patterns for wrapping async futures using Valt
+         +ron's                                                          
+       4 +//! `from_future` + `execute` pattern:                         
+       5 +//!                                                            
+       6 +//! - **`schedule_future`** (preferred): Schedules work and ret
+         +urns a stream.                                                 
+       7 +//!   Callers collect at boundaries using `collect_one`, `colle
+         +ct_result`, etc.                                               
+       8 +//!   Enables composability and parallel scheduling.           
+       9 +//!                                                            
+      10 +//! - **`exec_future`** (legacy): Blocks immediately at the lea
+         +f. Use only for                                                
+      11 +//!   one-shot initialization (DB connection, migrations), not 
+         +for trait methods.                                             
+      12  
+      13  use foundation_core::valtron::{execute, from_future, Stream};
+      14  
+      15  use crate::errors::StorageError;
+      16 +use crate::storage_provider::StorageItemStream;                
+      17  
+      10 -/// Helper function for single-value results from futures that 
+         -return Result types.                                           
+      18 +/// WHY: Enables non-blocking, composable storage operations.  
+      19  ///
+      12 -/// Wraps a future using Valtron's `from_future` + `execute` pa
+         -ttern,                                                         
+      13 -/// extracting the result from the stream iterator.            
+      20 +/// WHAT: Schedules a future for execution via Valtron's `from_
+         +future` + `execute`,                                           
+      21 +/// returning a mapped stream of results. The future runs on th
+         +e Valtron worker pool;                                         
+      22 +/// the returned stream lazily yields results when drained by t
+         +he caller.                                                     
+      23  ///
+      15 -/// # Type Parameters                                          
+      24 +/// HOW: Wraps the future with `from_future`, schedules via `ex
+         +ecute`, then maps                                              
+      25 +/// `Stream<Result<T, E>, FuturePollState>` to `Stream<T, ()>`.
+         + Errors from the                                               
+      26 +/// future are logged via tracing and result in no `Next` items
+         + being yielded.                                                
+      27  ///
+      17 -/// * `T` - The success type (must be `Send + 'static`)        
+      18 -/// * `E` - The error type (must implement `Display + Send + 's
+         -tatic`)                                                        
+      19 -/// * `F` - The future type (must output `Result<T, E>` and be 
+         -`Send + 'static`)                                              
+      28 +/// # Errors                                                   
+      29  ///
+      30 +/// Returns a `StorageError` if Valtron scheduling fails (pool 
+         +not initialized, etc.).                                        
+      31 +/// Execution errors from the future are logged and yield an em
+         +pty stream — callers                                           
+      32 +/// should treat `None` from `collect_one` as an execution fail
+         +ure.                                                           
+      33 +pub fn schedule_future<T, E, F>(future: F) -> Result<StorageIte
+         +mStream<'static, T>, StorageError>                             
+      34 +where                                                          
+      35 +    F: std::future::Future<Output = Result<T, E>> + Send + 'sta
+         +tic,                                                           
+      36 +    T: Send + 'static,                                         
+      37 +    E: std::fmt::Display + Send + 'static,                     
+      38 +{                                                              
+      39 +    let task = from_future(future);                            
+      40 +    let stream = execute(task, None)                           
+      41 +        .map_err(|e| StorageError::Backend(format!("Valtron sch
+         +eduling failed: {e}")))?;                                      
+      42 +                                                               
+      43 +    let mapped = stream.into_iter().filter_map(|s| match s {   
+      44 +        Stream::Next(Ok(v)) => Some(Stream::Next(v)),          
+      45 +        Stream::Next(Err(e)) => {                              
+      46 +            tracing::error!("Async execution error: {e}");     
+      47 +            None                                               
+      48 +        }                                                      
+      49 +        Stream::Pending(_) => Some(Stream::Pending(())),       
+      50 +        Stream::Init => Some(Stream::Init),                    
+      51 +        Stream::Ignore => Some(Stream::Ignore),                
+      52 +        Stream::Delayed(d) => Some(Stream::Delayed(d)),        
+      53 +    });                                                        
+      54 +                                                               
+      55 +    Ok(Box::new(mapped))                                       
+      56 +}                                                              
+      57 +                                                               
+      58 +/// WHY: One-shot blocking bridge for initialization and migrat
+         +ions.                                                          
+      59 +///                                                            
+      60 +/// WHAT: Wraps a future using Valtron's `from_future` + `execu
+         +te` pattern,                                                   
+      61 +/// blocking until the result is available. **Use sparingly** —
+         + prefer                                                        
+      62 +/// `schedule_future` for trait methods to preserve composabili
+         +ty.                                                            
+      63 +///                                                            
+      64 +/// HOW: Schedules the future, then eagerly drains the stream t
+         +o extract                                                      
+      65 +/// the single result.                                         
+      66 +///                                                            
+      67  /// # Errors
+      68  ///
+      69  /// Returns a `StorageError` if:
+
+● Now update the trait signatures in storage_provider.rs.
+
+● Update(backends/foundation_db/src/storage_provider.rs)
+  ⎿  Added 7 lines, removed 3 lines
+       1  //! Core storage provider traits and abstractions.
+       2  //!
+       3 -//! All storage traits are synchronous. Multi-value operations 
+         -return                                                         
+       4 -//! `StorageItemStream` (a Valtron Stream-based lazy iterator) 
+         -instead                                                        
+       5 -//! of allocating Vecs. Single-value operations return `Storage
+         -Result<T>` directly.                                           
+       3 +//! All storage operations return `StorageItemStream` (a Valtro
+         +n Stream-based                                                 
+       4 +//! lazy iterator) wrapped in `StorageResult`. Single-value ope
+         +rations yield                                                  
+       5 +//! exactly one `Stream::Next` item; multi-value operations yie
+         +ld many.                                                       
+       6 +//!                                                            
+       7 +//! Callers collect at sync boundaries using Valtron helpers:  
+       8 +//! - `collect_one(stream)` — extract first `Next` value       
+       9 +//! - `collect_result(stream)` — drain all `Next` values into `
+         +Vec<T>`                                                        
+      10  
+      11  use serde::{de::DeserializeOwned, Serialize};
+      12  
+
+● Now update KeyValueStore trait.
+
+● Update(backends/foundation_db/src/storage_provider.rs)
+  ⎿  Added 14 lines, removed 13 lines
+      179  
+      180  /// Key-value store operations available on all backends.
+      181  ///
+      182 -/// All methods are synchronous. Multi-value operations return
+      183 -/// `StorageItemStream` for lazy iteration.                   
+      182 +/// All methods return `StorageItemStream` for composable, non
+          +-blocking I/O.                                                
+      183 +/// Single-value operations yield exactly one `Stream::Next` i
+          +tem.                                                          
+      184 +/// Use `collect_one` / `collect_result` at sync boundaries to
+          + extract values.                                              
+      185  pub trait KeyValueStore: Send + Sync {
+      185 -    /// Get a value by key.                                   
+      186 +    /// Get a value by key. Yields one `Next(Option<V>)`.     
+      187      ///
+      188      /// # Errors
+      189      ///
+      189 -    /// Returns an error if deserialization fails or the backe
+          -nd encounters an error.                                       
+      190 -    fn get<V: DeserializeOwned>(&self, key: &str) -> StorageRe
+          -sult<Option<V>>;                                              
+      190 +    /// Returns an error if scheduling fails or deserializatio
+          +n fails.                                                      
+      191 +    fn get<V: DeserializeOwned + Send>(&self, key: &str) -> St
+          +orageResult<StorageItemStream<'_, Option<V>>>;                
+      192  
+      192 -    /// Set a key-value pair.                                 
+      193 +    /// Set a key-value pair. Yields one `Next(())`.          
+      194      ///
+      195      /// # Errors
+      196      ///
+      196 -    /// Returns an error if serialization fails or the backend
+          - encounters an error.                                         
+      197 -    fn set<V: Serialize>(&self, key: &str, value: V) -> Storag
+          -eResult<()>;                                                  
+      197 +    /// Returns an error if serialization or scheduling fails.
+      198 +    fn set<V: Serialize>(&self, key: &str, value: V) -> Storag
+          +eResult<StorageItemStream<'_, ()>>;                           
+      199  
+      199 -    /// Delete a key.                                         
+      200 +    /// Delete a key. Yields one `Next(())`.                  
+      201      ///
+      202      /// # Errors
+      203      ///
+      204      /// Returns an error if the backend encounters an error.
+      204 -    fn delete(&self, key: &str) -> StorageResult<()>;         
+      205 +    fn delete(&self, key: &str) -> StorageResult<StorageItemSt
+          +ream<'_, ()>>;                                                
+      206  
+      206 -    /// Check if a key exists.                                
+      207 +    /// Check if a key exists. Yields one `Next(bool)`.       
+      208      ///
+      209      /// # Errors
+      210      ///
+      211      /// Returns an error if the backend encounters an error.
+      211 -    fn exists(&self, key: &str) -> StorageResult<bool>;       
+      212 +    fn exists(&self, key: &str) -> StorageResult<StorageItemSt
+          +ream<'_, bool>>;                                              
+      213  
+      214      /// List all keys with optional prefix filter.
+      214 -    /// Returns a stream for lazy iteration over keys.        
+      215 +    /// Yields multiple `Next(String)` items.                 
+      216      ///
+      217      /// # Errors
+      218      ///
+
+● Now update BlobStore trait.
+
+● Update(backends/foundation_db/src/storage_provider.rs)
+  ⎿  Added 8 lines, removed 8 lines
+      222  
+      223  /// Blob storage operations for binary large objects.
+      224  pub trait BlobStore: Send + Sync {
+      225 -    /// Put a blob into storage.                              
+      225 +    /// Put a blob into storage. Yields one `Next(())`.       
+      226      ///
+      227      /// # Errors
+      228      ///
+      229      /// Returns an error if the backend encounters an error.
+      230 -    fn put_blob(&self, key: &str, data: &[u8]) -> StorageResul
+          -t<()>;                                                        
+      230 +    fn put_blob(&self, key: &str, data: &[u8]) -> StorageResul
+          +t<StorageItemStream<'_, ()>>;                                 
+      231  
+      232 -    /// Get a blob from storage.                              
+      232 +    /// Get a blob from storage. Yields one `Next(Option<Vec<u
+          +8>>)`.                                                        
+      233      ///
+      234      /// # Errors
+      235      ///
+      236      /// Returns an error if the backend encounters an error.
+      237 -    fn get_blob(&self, key: &str) -> StorageResult<Option<Vec<
+          -u8>>>;                                                        
+      237 +    fn get_blob(&self, key: &str) -> StorageResult<StorageItem
+          +Stream<'_, Option<Vec<u8>>>>;                                 
+      238  
+      239 -    /// Delete a blob.                                        
+      239 +    /// Delete a blob. Yields one `Next(())`.                 
+      240      ///
+      241      /// # Errors
+      242      ///
+      243      /// Returns an error if the backend encounters an error.
+      244 -    fn delete_blob(&self, key: &str) -> StorageResult<()>;    
+      244 +    fn delete_blob(&self, key: &str) -> StorageResult<StorageI
+          +temStream<'_, ()>>;                                           
+      245  
+      246 -    /// Check if a blob exists.                               
+      246 +    /// Check if a blob exists. Yields one `Next(bool)`.      
+      247      ///
+      248      /// # Errors
+      249      ///
+      250      /// Returns an error if the backend encounters an error.
+      251 -    fn blob_exists(&self, key: &str) -> StorageResult<bool>;  
+      251 +    fn blob_exists(&self, key: &str) -> StorageResult<StorageI
+          +temStream<'_, bool>>;                                         
+      252  }
+      253  
+      254  /// SQL query operations for relational backends (Turso, D1).
+● Now update QueryStore trait.
+
+● Update(backends/foundation_db/src/storage_provider.rs)
+  ⎿  Added 5 lines, removed 4 lines
+      254  /// SQL query operations for relational backends (Turso, D1).
+      255  pub trait QueryStore: Send + Sync {
+      256      /// Execute a query that returns rows.
+      257 -    /// Returns a stream for lazy iteration over rows.        
+      257 +    /// Yields multiple `Next(SqlRow)` items.                 
+      258      ///
+      259      /// # Errors
+      260      ///
+     ...
+      262      fn query(&self, sql: &str, params: &[DataValue]) -> Storag
+           eResult<StorageItemStream<'_, SqlRow>>;
+      263  
+      264      /// Execute a statement that returns number of rows affect
+           ed.
+      265 +    /// Yields one `Next(u64)`.                               
+      266      ///
+      267      /// # Errors
+      268      ///
+      269      /// Returns an error if the statement fails or parameter c
+           onversion fails.
+      269 -    fn execute(&self, sql: &str, params: &[DataValue]) -> Stor
+          -ageResult<u64>;                                               
+      270 +    fn execute(&self, sql: &str, params: &[DataValue]) -> Stor
+          +ageResult<StorageItemStream<'_, u64>>;                        
+      271  
+      271 -    /// Execute a batch of SQL statements.                    
+      272 +    /// Execute a batch of SQL statements. Yields one `Next(()
+          +)`.                                                           
+      273      ///
+      274      /// # Errors
+      275      ///
+      276      /// Returns an error if any statement in the batch fails.
+      276 -    fn execute_batch(&self, sql: &str) -> StorageResult<()>;  
+      277 +    fn execute_batch(&self, sql: &str) -> StorageResult<Storag
+          +eItemStream<'_, ()>>;                                         
+      278  }
+      279  
+      280  /// Rate limiting operations.
+
+● Now update RateLimiterStore trait.
+
+● Update(backends/foundation_db/src/storage_provider.rs)
+  ⎿  Added 6 lines, removed 6 lines
+      279  
+      280  /// Rate limiting operations.
+      281  pub trait RateLimiterStore: Send + Sync {
+      282 -    /// Check if a rate limit key is allowed.                 
+      282 +    /// Check if a rate limit key is allowed. Yields one `Next
+          +(bool)`.                                                      
+      283      ///
+      284      /// # Errors
+      285      ///
+     ...
+      289          key: &str,
+      290          max_count: u32,
+      291          window_seconds: u64,
+      292 -    ) -> StorageResult<bool>;                                 
+      292 +    ) -> StorageResult<StorageItemStream<'_, bool>>;          
+      293  
+      294 -    /// Record a rate-limited action.                         
+      294 +    /// Record a rate-limited action. Yields one `Next(u32)`. 
+      295      ///
+      296      /// # Errors
+      297      ///
+      298      /// Returns an error if the backend encounters an error.
+      299 -    fn record_rate_limit(&self, key: &str) -> StorageResult<u3
+          -2>;                                                           
+      299 +    fn record_rate_limit(&self, key: &str) -> StorageResult<St
+          +orageItemStream<'_, u32>>;                                    
+      300  
+      301 -    /// Reset a rate limit key.                               
+      301 +    /// Reset a rate limit key. Yields one `Next(())`.        
+      302      ///
+      303      /// # Errors
+      304      ///
+      305      /// Returns an error if the backend encounters an error.
+      306 -    fn reset_rate_limit(&self, key: &str) -> StorageResult<()>
+          -;                                                             
+      306 +    fn reset_rate_limit(&self, key: &str) -> StorageResult<Sto
+          +rageItemStream<'_, ()>>;                                      
+      307  }
+      308  
+      309  /// Storage backend enumeration for runtime selection.
+
+● Now update the StorageProvider impl blocks — the dispatch methods.
+
+● Update(backends/foundation_db/src/storage_provider.rs)
+  ⎿  Added 4 lines, removed 4 lines
+      413  }
+      414  
+      415  impl KeyValueStore for StorageProvider {
+      416 -    fn get<V: DeserializeOwned>(&self, key: &str) -> StorageRe
+          -sult<Option<V>> {                                             
+      416 +    fn get<V: DeserializeOwned + Send>(&self, key: &str) -> St
+          +orageResult<StorageItemStream<'_, Option<V>>> {               
+      417          match &self.inner {
+      418              #[cfg(feature = "turso")]
+      419              StorageProviderInner::Turso(storage) => storage.ge
+           t(key),
+     ...
+      427          }
+      428      }
+      429  
+      430 -    fn set<V: Serialize>(&self, key: &str, value: V) -> Storag
+          -eResult<()> {                                                 
+      430 +    fn set<V: Serialize>(&self, key: &str, value: V) -> Storag
+          +eResult<StorageItemStream<'_, ()>> {                          
+      431          match &self.inner {
+      432              #[cfg(feature = "turso")]
+      433              StorageProviderInner::Turso(storage) => storage.se
+           t(key, value),
+     ...
+      441          }
+      442      }
+      443  
+      444 -    fn delete(&self, key: &str) -> StorageResult<()> {        
+      444 +    fn delete(&self, key: &str) -> StorageResult<StorageItemSt
+          +ream<'_, ()>> {                                               
+      445          match &self.inner {
+      446              #[cfg(feature = "turso")]
+      447              StorageProviderInner::Turso(storage) => storage.de
+           lete(key),
+     ...
+      455          }
+      456      }
+      457  
+      458 -    fn exists(&self, key: &str) -> StorageResult<bool> {      
+      458 +    fn exists(&self, key: &str) -> StorageResult<StorageItemSt
+          +ream<'_, bool>> {                                             
+      459          match &self.inner {
+      460              #[cfg(feature = "turso")]
+      461              StorageProviderInner::Turso(storage) => storage.ex
+           ists(key),
+
+● Now update the RateLimiterStore impl for StorageProvider.
+
+● Update(backends/foundation_db/src/storage_provider.rs)
+  ⎿  Added 3 lines, removed 3 lines
+      490          key: &str,
+      491          max_count: u32,
+      492          window_seconds: u64,
+      493 -    ) -> StorageResult<bool> {                                
+      493 +    ) -> StorageResult<StorageItemStream<'_, bool>> {         
+      494          match &self.inner {
+      495              #[cfg(feature = "turso")]
+      496              StorageProviderInner::Turso(storage) => storage.ch
+           eck_rate_limit(key, max_count, window_seconds),
+     ...
+      504          }
+      505      }
+      506  
+      507 -    fn record_rate_limit(&self, key: &str) -> StorageResult<u3
+          -2> {                                                          
+      507 +    fn record_rate_limit(&self, key: &str) -> StorageResult<St
+          +orageItemStream<'_, u32>> {                                   
+      508          match &self.inner {
+      509              #[cfg(feature = "turso")]
+      510              StorageProviderInner::Turso(storage) => storage.re
+           cord_rate_limit(key),
+     ...
+      518          }
+      519      }
+      520  
+      521 -    fn reset_rate_limit(&self, key: &str) -> StorageResult<()>
+          - {                                                            
+      521 +    fn reset_rate_limit(&self, key: &str) -> StorageResult<Sto
+          +rageItemStream<'_, ()>> {                                     
+      522          match &self.inner {
+      523              #[cfg(feature = "turso")]
+      524              StorageProviderInner::Turso(storage) => storage.re
+           set_rate_limit(key),
+
+● Now update memory.rs — wrap sync results in streams.
+
+● Update(backends/foundation_db/src/backends/memory.rs)
+  ⎿  Added 12 lines, removed 12 lines
+      35  }
+      36  
+      37  impl KeyValueStore for MemoryStorage {
+      38 -    fn get<V: DeserializeOwned>(&self, key: &str) -> StorageRes
+         -ult<Option<V>> {                                               
+      38 +    fn get<V: DeserializeOwned + Send>(&self, key: &str) -> Sto
+         +rageResult<StorageItemStream<'_, Option<V>>> {                 
+      39          let data = self.data.lock().map_err(|e| {
+      40              StorageError::Backend(format!("Mutex poisoned: {e}"
+          ))
+      41          })?;
+      42  
+      43 -        match data.get(key) {                                  
+      43 +        let result = match data.get(key) {                     
+      44              Some(bytes) => {
+      45                  let value: V = serde_json::from_slice(bytes)
+      46                      .map_err(|e| StorageError::Serialization(e.
+          to_string()))?;
+      47 -                Ok(Some(value))                                
+      47 +                Some(value)                                    
+      48              }
+      49 -            None => Ok(None),                                  
+      50 -        }                                                      
+      49 +            None => None,                                      
+      50 +        };                                                     
+      51 +        Ok(Box::new(std::iter::once(Stream::Next(result))))    
+      52      }
+      53  
+      53 -    fn set<V: Serialize>(&self, key: &str, value: V) -> Storage
+         -Result<()> {                                                   
+      54 +    fn set<V: Serialize>(&self, key: &str, value: V) -> Storage
+         +Result<StorageItemStream<'_, ()>> {                            
+      55          let bytes = serde_json::to_vec(&value)
+      56              .map_err(|e| StorageError::Serialization(e.to_strin
+          g()))?;
+      57  
+     ...
+      59              StorageError::Backend(format!("Mutex poisoned: {e}"
+          ))
+      60          })?;
+      61  
+      61 -        // Use Zeroizing to ensure secure memory handling      
+      62          data.insert(key.to_string(), Zeroizing::new(bytes));
+      63 -        Ok(())                                                 
+      63 +        Ok(Box::new(std::iter::once(Stream::Next(()))))        
+      64      }
+      65  
+      66 -    fn delete(&self, key: &str) -> StorageResult<()> {         
+      66 +    fn delete(&self, key: &str) -> StorageResult<StorageItemStr
+         +eam<'_, ()>> {                                                 
+      67          let mut data = self.data.lock().map_err(|e| {
+      68              StorageError::Backend(format!("Mutex poisoned: {e}"
+          ))
+      69          })?;
+      70          data.remove(key);
+      71 -        Ok(())                                                 
+      71 +        Ok(Box::new(std::iter::once(Stream::Next(()))))        
+      72      }
+      73  
+      74 -    fn exists(&self, key: &str) -> StorageResult<bool> {       
+      74 +    fn exists(&self, key: &str) -> StorageResult<StorageItemStr
+         +eam<'_, bool>> {                                               
+      75          let data = self.data.lock().map_err(|e| {
+      76              StorageError::Backend(format!("Mutex poisoned: {e}"
+          ))
+      77          })?;
+      78 -        Ok(data.contains_key(key))                             
+      78 +        Ok(Box::new(std::iter::once(Stream::Next(data.contains_
+         +key(key)))))                                                   
+      79      }
+      80  
+      81      fn list_keys(&self, prefix: Option<&str>) -> StorageResult<
+          StorageItemStream<'_, String>> {
+
+● Now update the QueryStore impl for MemoryStorage.
+
+● Update(backends/foundation_db/src/backends/memory.rs)
+  ⎿  Added 2 lines, removed 2 lines
+      102          ))
+      103      }
+      104  
+      105 -    fn execute(&self, _sql: &str, _params: &[DataValue]) -> St
+          -orageResult<u64> {                                            
+      105 +    fn execute(&self, _sql: &str, _params: &[DataValue]) -> St
+          +orageResult<StorageItemStream<'_, u64>> {                     
+      106          Err(StorageError::Generic(
+      107              "QueryStore not supported for MemoryStorage".to_st
+           ring(),
+      108          ))
+      109      }
+      110  
+      111 -    fn execute_batch(&self, _sql: &str) -> StorageResult<()> {
+      111 +    fn execute_batch(&self, _sql: &str) -> StorageResult<Stora
+          +geItemStream<'_, ()>> {                                       
+      112          Err(StorageError::Generic(
+      113              "QueryStore not supported for MemoryStorage".to_st
+           ring(),
+      114          ))
+
+● Now update RateLimiterStore for MemoryStorage.
+
+● Update(backends/foundation_db/src/backends/memory.rs)
+  ⎿  Added 12 lines, removed 14 lines
+      129          key: &str,
+      130          max_count: u32,
+      131          window_seconds: u64,
+      132 -    ) -> StorageResult<bool> {                                
+      132 +    ) -> StorageResult<StorageItemStream<'_, bool>> {         
+      133          let now = std::time::SystemTime::now()
+      134              .duration_since(std::time::UNIX_EPOCH)
+      135              .unwrap()
+      136              .as_secs();
+      137  
+      138 -        // Get rate limit data from storage                   
+      138          let data = self.data.lock().map_err(|e| {
+      139              StorageError::Backend(format!("Mutex poisoned: {e}
+           "))
+      140          })?;
+      141  
+      142          let rate_key = format!("_rate_limit:{key}");
+      144 -        match data.get(&rate_key) {                           
+      143 +        let allowed = match data.get(&rate_key) {             
+      144              Some(bytes) => {
+      145                  let entry: RateLimitEntry = serde_json::from_s
+           lice(bytes)
+      146                      .map_err(|e| StorageError::Serialization(e
+           .to_string()))?;
+      147  
+      149 -                // Check if window has expired                
+      148                  if entry.window_start < now - window_seconds {
+      151 -                    return Ok(true);                          
+      149 +                    true                                      
+      150 +                } else {                                      
+      151 +                    entry.count < max_count                   
+      152                  }
+      153 -                                                              
+      154 -                // Check if within limit                      
+      155 -                Ok(entry.count < max_count)                   
+      153              }
+      157 -            None => Ok(true), // No record yet, allow         
+      158 -        }                                                     
+      154 +            None => true,                                     
+      155 +        };                                                    
+      156 +        Ok(Box::new(std::iter::once(Stream::Next(allowed))))  
+      157      }
+      158  
+      161 -    fn record_rate_limit(&self, key: &str) -> StorageResult<u3
+          -2> {                                                          
+      159 +    fn record_rate_limit(&self, key: &str) -> StorageResult<St
+          +orageItemStream<'_, u32>> {                                   
+      160          let now = std::time::SystemTime::now()
+      161              .duration_since(std::time::UNIX_EPOCH)
+      162              .unwrap()
+     ...
+      185              1
+      186          };
+      187  
+      190 -        Ok(new_count)                                         
+      188 +        Ok(Box::new(std::iter::once(Stream::Next(new_count))))
+      189      }
+      190  
+      193 -    fn reset_rate_limit(&self, key: &str) -> StorageResult<()>
+          - {                                                            
+      191 +    fn reset_rate_limit(&self, key: &str) -> StorageResult<Sto
+          +rageItemStream<'_, ()>> {                                     
+      192          let rate_key = format!("_rate_limit:{key}");
+      193          let mut data = self.data.lock().map_err(|e| {
+      194              StorageError::Backend(format!("Mutex poisoned: {e}
+           "))
+      195          })?;
+      196          data.remove(&rate_key);
+      199 -        Ok(())                                                
+      197 +        Ok(Box::new(std::iter::once(Stream::Next(()))))       
+      198      }
+      199  }
+      200  
+
+● Now update the memory.rs tests to use collect_one/collect_result.
+
+● Update(backends/foundation_db/src/backends/memory.rs)
+  ⎿  Added 17 lines, removed 28 lines
+      201  #[cfg(test)]
+      202  mod tests {
+      203      use super::*;
+      204 +    use foundation_core::valtron::{collect_one, collect_result
+          +};                                                            
+      205  
+      206      #[test]
+      207      fn test_memory_storage_basic() {
+      208          let storage = MemoryStorage::new();
+      209  
+      210          // Test set and get
+      210 -        storage.set("test_key", "test_value").unwrap();       
+      211 +        collect_one(storage.set("test_key", "test_value").unwr
+          +ap()).unwrap();                                               
+      212  
+      212 -        let value: String = storage.get("test_key").unwrap().u
+          -nwrap();                                                      
+      213 -        assert_eq!(value, "test_value");                      
+      213 +        let value: Option<String> = collect_one(storage.get("t
+          +est_key").unwrap()).unwrap();                                 
+      214 +        assert_eq!(value, Some("test_value".to_string()));    
+      215  
+      216          // Test exists
+      216 -        assert!(storage.exists("test_key").unwrap());         
+      217 -        assert!(!storage.exists("nonexistent").unwrap());     
+      217 +        assert!(collect_one(storage.exists("test_key").unwrap(
+          +)).unwrap());                                                 
+      218 +        assert!(!collect_one(storage.exists("nonexistent").unw
+          +rap()).unwrap());                                             
+      219  
+      220          // Test delete
+      220 -        storage.delete("test_key").unwrap();                  
+      221 -        assert!(!storage.exists("test_key").unwrap());        
+      221 +        collect_one(storage.delete("test_key").unwrap()).unwra
+          +p();                                                          
+      222 +        assert!(!collect_one(storage.exists("test_key").unwrap
+          +()).unwrap());                                                
+      223      }
+      224  
+      225      #[test]
+      226      fn test_memory_storage_list_keys() {
+      226 -        use foundation_core::valtron::Stream;                 
+      227 -                                                              
+      227          let storage = MemoryStorage::new();
+      228  
+      230 -        storage.set("prefix:key1", "value1").unwrap();        
+      231 -        storage.set("prefix:key2", "value2").unwrap();        
+      232 -        storage.set("other:key3", "value3").unwrap();         
+      229 +        collect_one(storage.set("prefix:key1", "value1").unwra
+          +p()).unwrap();                                                
+      230 +        collect_one(storage.set("prefix:key2", "value2").unwra
+          +p()).unwrap();                                                
+      231 +        collect_one(storage.set("other:key3", "value3").unwrap
+          +()).unwrap();                                                 
+      232  
+      234 -        // List all keys - need to extract values from Stream:
+          -:Next                                                         
+      235 -        let keys: Vec<String> = storage.list_keys(None).unwrap
+          -()                                                            
+      236 -            .filter_map(|s| match s {                         
+      237 -                Stream::Next(key) => Some(key),               
+      238 -                _ => None,                                    
+      239 -            })                                                
+      240 -            .collect();                                       
+      233 +        // List all keys                                      
+      234 +        let keys = collect_result(storage.list_keys(None).unwr
+          +ap());                                                        
+      235          assert_eq!(keys.len(), 3);
+      236  
+      237          // List keys with prefix
+      244 -        let keys: Vec<String> = storage.list_keys(Some("prefix
+          -:")).unwrap()                                                 
+      245 -            .filter_map(|s| match s {                         
+      246 -                Stream::Next(key) => Some(key),               
+      247 -                _ => None,                                    
+      248 -            })                                                
+      249 -            .collect();                                       
+      238 +        let keys = collect_result(storage.list_keys(Some("pref
+          +ix:")).unwrap());                                             
+      239          assert_eq!(keys.len(), 2);
+      240          assert!(keys.contains(&"prefix:key1".to_string()));
+      241          assert!(keys.contains(&"prefix:key2".to_string()));
+     ...
+      256              count: 42,
+      257          };
+      258  
+      270 -        storage.set("complex", &data).unwrap();               
+      259 +        collect_one(storage.set("complex", &data).unwrap()).un
+          +wrap();                                                       
+      260  
+      272 -        let retrieved: TestData = storage.get("complex").unwra
+          -p().unwrap();                                                 
+      273 -        assert_eq!(data, retrieved);                          
+      261 +        let retrieved: Option<TestData> = collect_one(storage.
+          +get("complex").unwrap()).unwrap();                            
+      262 +        assert_eq!(retrieved, Some(data));                    
+      263      }
+      264  }
+
+● Now update json_file.rs.
+
+● Update(backends/foundation_db/src/backends/json_file.rs)
+  ⎿  Added 12 lines, removed 13 lines
+      121  }
+      122  
+      123  impl KeyValueStore for JsonFileStorage {
+      124 -    fn get<V: DeserializeOwned>(&self, key: &str) -> StorageRe
+          -sult<Option<V>> {                                             
+      124 +    fn get<V: DeserializeOwned + Send>(&self, key: &str) -> St
+          +orageResult<StorageItemStream<'_, Option<V>>> {               
+      125          let data = self.data.lock().map_err(|e| {
+      126              StorageError::Backend(format!("Mutex poisoned: {e}
+           "))
+      127          })?;
+      128  
+      129 -        match data.get(key) {                                 
+      129 +        let result = match data.get(key) {                    
+      130              Some(bytes) => {
+      131                  let value: V = serde_json::from_slice(bytes)
+      132                      .map_err(|e| StorageError::Serialization(e
+           .to_string()))?;
+      133 -                Ok(Some(value))                               
+      133 +                Some(value)                                   
+      134              }
+      135 -            None => Ok(None),                                 
+      136 -        }                                                     
+      135 +            None => None,                                     
+      136 +        };                                                    
+      137 +        Ok(Box::new(std::iter::once(Stream::Next(result))))   
+      138      }
+      139  
+      139 -    fn set<V: Serialize>(&self, key: &str, value: V) -> Storag
+          -eResult<()> {                                                 
+      140 +    fn set<V: Serialize>(&self, key: &str, value: V) -> Storag
+          +eResult<StorageItemStream<'_, ()>> {                          
+      141          let bytes = serde_json::to_vec(&value)
+      142              .map_err(|e| StorageError::Serialization(e.to_stri
+           ng()))?;
+      143  
+     ...
+      148          data.insert(key.to_string(), Zeroizing::new(bytes));
+      149          drop(data); // Release lock before flushing
+      150  
+      150 -        // Flush to disk atomically                           
+      151          self.flush_to_disk()?;
+      152  
+      153 -        Ok(())                                                
+      153 +        Ok(Box::new(std::iter::once(Stream::Next(()))))       
+      154      }
+      155  
+      156 -    fn delete(&self, key: &str) -> StorageResult<()> {        
+      156 +    fn delete(&self, key: &str) -> StorageResult<StorageItemSt
+          +ream<'_, ()>> {                                               
+      157          let mut data = self.data.lock().map_err(|e| {
+      158              StorageError::Backend(format!("Mutex poisoned: {e}
+           "))
+      159          })?;
+     ...
+      161          data.remove(key);
+      162          drop(data); // Release lock before flushing
+      163  
+      164 -        // Flush to disk atomically                           
+      164          self.flush_to_disk()?;
+      165  
+      167 -        Ok(())                                                
+      166 +        Ok(Box::new(std::iter::once(Stream::Next(()))))       
+      167      }
+      168  
+      170 -    fn exists(&self, key: &str) -> StorageResult<bool> {      
+      169 +    fn exists(&self, key: &str) -> StorageResult<StorageItemSt
+          +ream<'_, bool>> {                                             
+      170          let data = self.data.lock().map_err(|e| {
+      171              StorageError::Backend(format!("Mutex poisoned: {e}
+           "))
+      172          })?;
+      174 -        Ok(data.contains_key(key))                            
+      173 +        Ok(Box::new(std::iter::once(Stream::Next(data.contains
+          +_key(key)))))                                                 
+      174      }
+      175  
+      176      fn list_keys(&self, prefix: Option<&str>) -> StorageResult
+           <StorageItemStream<'_, String>> {
+
+● Now update RateLimiterStore for JsonFileStorage.
+
+● Update(backends/foundation_db/src/backends/json_file.rs)
+  ⎿  Added 3 lines, removed 3 lines
+      195          _key: &str,
+      196          _max_count: u32,
+      197          _window_seconds: u64,
+      198 -    ) -> StorageResult<bool> {                                
+      198 +    ) -> StorageResult<StorageItemStream<'_, bool>> {         
+      199          Err(StorageError::Generic(
+      200              "RateLimiterStore not supported for JsonFileStorag
+           e".to_string(),
+      201          ))
+      202      }
+      203  
+      204 -    fn record_rate_limit(&self, _key: &str) -> StorageResult<u
+          -32> {                                                         
+      204 +    fn record_rate_limit(&self, _key: &str) -> StorageResult<S
+          +torageItemStream<'_, u32>> {                                  
+      205          Err(StorageError::Generic(
+      206              "RateLimiterStore not supported for JsonFileStorag
+           e".to_string(),
+      207          ))
+      208      }
+      209  
+      210 -    fn reset_rate_limit(&self, _key: &str) -> StorageResult<()
+          -> {                                                           
+      210 +    fn reset_rate_limit(&self, _key: &str) -> StorageResult<St
+          +orageItemStream<'_, ()>> {                                    
+      211          Err(StorageError::Generic(
+      212              "RateLimiterStore not supported for JsonFileStorag
+           e".to_string(),
+      213          ))
+
+● Now update json_file.rs tests.
+
+● Update(backends/foundation_db/src/backends/json_file.rs)
+  ⎿  Added 24 lines, removed 36 lines
+      217  #[cfg(test)]
+      218  mod tests {
+      219      use super::*;
+      220 +    use foundation_core::valtron::{collect_one, collect_result
+          +};                                                            
+      221      use tempfile::TempDir;
+      222  
+      223      #[test]
+     ...
+      228          let storage = JsonFileStorage::new(&file_path).unwrap(
+           );
+      229  
+      230          // Test set and get
+      230 -        storage.set("test_key", "test_value").unwrap();       
+      231 +        collect_one(storage.set("test_key", "test_value").unwr
+          +ap()).unwrap();                                               
+      232  
+      232 -        let value: String = storage.get("test_key").unwrap().u
+          -nwrap();                                                      
+      233 -        assert_eq!(value, "test_value");                      
+      233 +        let value: Option<String> = collect_one(storage.get("t
+          +est_key").unwrap()).unwrap();                                 
+      234 +        assert_eq!(value, Some("test_value".to_string()));    
+      235  
+      236          // Test exists
+      236 -        assert!(storage.exists("test_key").unwrap());         
+      237 -        assert!(!storage.exists("nonexistent").unwrap());     
+      237 +        assert!(collect_one(storage.exists("test_key").unwrap(
+          +)).unwrap());                                                 
+      238 +        assert!(!collect_one(storage.exists("nonexistent").unw
+          +rap()).unwrap());                                             
+      239  
+      240          // Test delete
+      240 -        storage.delete("test_key").unwrap();                  
+      241 -        assert!(!storage.exists("test_key").unwrap());        
+      241 +        collect_one(storage.delete("test_key").unwrap()).unwra
+          +p();                                                          
+      242 +        assert!(!collect_one(storage.exists("test_key").unwrap
+          +()).unwrap());                                                
+      243      }
+      244  
+      245      #[test]
+      246      fn test_json_file_storage_list_keys() {
+      246 -        use foundation_core::valtron::Stream;                 
+      247 -                                                              
+      247          let temp_dir = TempDir::new().unwrap();
+      248          let file_path = temp_dir.path().join("test.json");
+      249  
+      250          let storage = JsonFileStorage::new(&file_path).unwrap(
+           );
+      251  
+      253 -        storage.set("prefix:key1", "value1").unwrap();        
+      254 -        storage.set("prefix:key2", "value2").unwrap();        
+      255 -        storage.set("other:key3", "value3").unwrap();         
+      252 +        collect_one(storage.set("prefix:key1", "value1").unwra
+          +p()).unwrap();                                                
+      253 +        collect_one(storage.set("prefix:key2", "value2").unwra
+          +p()).unwrap();                                                
+      254 +        collect_one(storage.set("other:key3", "value3").unwrap
+          +()).unwrap();                                                 
+      255  
+      257 -        // List all keys - need to extract values from Stream:
+          -:Next                                                         
+      258 -        let keys: Vec<String> = storage.list_keys(None).unwrap
+          -()                                                            
+      259 -            .filter_map(|s| match s {                         
+      260 -                Stream::Next(key) => Some(key),               
+      261 -                _ => None,                                    
+      262 -            })                                                
+      263 -            .collect();                                       
+      256 +        // List all keys                                      
+      257 +        let keys = collect_result(storage.list_keys(None).unwr
+          +ap());                                                        
+      258          assert_eq!(keys.len(), 3);
+      259  
+      260          // List keys with prefix
+      267 -        let keys: Vec<String> = storage.list_keys(Some("prefix
+          -:")).unwrap()                                                 
+      268 -            .filter_map(|s| match s {                         
+      269 -                Stream::Next(key) => Some(key),               
+      270 -                _ => None,                                    
+      271 -            })                                                
+      272 -            .collect();                                       
+      261 +        let keys = collect_result(storage.list_keys(Some("pref
+          +ix:")).unwrap());                                             
+      262          assert_eq!(keys.len(), 2);
+      263          assert!(keys.contains(&"prefix:key1".to_string()));
+      264          assert!(keys.contains(&"prefix:key2".to_string()));
+     ...
+      271  
+      272          // Create storage and add data
+      273          let storage = JsonFileStorage::new(&file_path).unwrap(
+           );
+      285 -        storage.set("key1", "value1").unwrap();               
+      286 -        storage.set("key2", "value2").unwrap();               
+      274 +        collect_one(storage.set("key1", "value1").unwrap()).un
+          +wrap();                                                       
+      275 +        collect_one(storage.set("key2", "value2").unwrap()).un
+          +wrap();                                                       
+      276  
+      277          // Verify file was created
+      278          assert!(file_path.exists());
+     ...
+      281          let storage2 = JsonFileStorage::new(&file_path).unwrap
+           ();
+      282  
+      283          // Data should persist
+      295 -        let value1: String = storage2.get("key1").unwrap().unw
+          -rap();                                                        
+      296 -        assert_eq!(value1, "value1");                         
+      284 +        let value1: Option<String> = collect_one(storage2.get(
+          +"key1").unwrap()).unwrap();                                   
+      285 +        assert_eq!(value1, Some("value1".to_string()));       
+      286  
+      298 -        let value2: String = storage2.get("key2").unwrap().unw
+          -rap();                                                        
+      299 -        assert_eq!(value2, "value2");                         
+      287 +        let value2: Option<String> = collect_one(storage2.get(
+          +"key2").unwrap()).unwrap();                                   
+      288 +        assert_eq!(value2, Some("value2".to_string()));       
+      289      }
+      290  
+      291      #[test]
+     ...
+      306              count: 42,
+      307          };
+      308  
+      320 -        storage.set("complex", &data).unwrap();               
+      309 +        collect_one(storage.set("complex", &data).unwrap()).un
+          +wrap();                                                       
+      310  
+      322 -        // Verify persistence                                 
+      323 -        let retrieved: TestData = storage.get("complex").unwra
+          -p().unwrap();                                                 
+      324 -        assert_eq!(data, retrieved);                          
+      311 +        let retrieved: Option<TestData> = collect_one(storage.
+          +get("complex").unwrap()).unwrap();                            
+      312 +        assert_eq!(retrieved, Some(data));                    
+      313      }
+      314  
+      315      #[test]
+     ...
+      320          let storage = JsonFileStorage::new(&file_path).unwrap(
+           );
+      321  
+      322          // Add initial data
+      335 -        storage.set("key1", "value1").unwrap();               
+      323 +        collect_one(storage.set("key1", "value1").unwrap()).un
+          +wrap();                                                       
+      324  
+      325          // Verify no temp file left behind
+      326          let temp_path = file_path.with_extension("json.tmp");
+
+● Now the big one — update turso_backend.rs to use schedule_future for trait
+  methods.
+
+● Update(backends/foundation_db/src/backends/turso_backend.rs)
+  ⎿  Added 60 lines, removed 22 lines
+      159  }
+      160  
+      161  impl KeyValueStore for TursoStorage {
+      162 -    fn get<V: DeserializeOwned>(&self, key: &str) -> StorageRe
+          -sult<Option<V>> {                                             
+      162 +    fn get<V: DeserializeOwned + Send>(&self, key: &str) -> St
+          +orageResult<StorageItemStream<'_, Option<V>>> {               
+      163          let key = key.to_string();
+      164          let conn = Arc::clone(&self.conn);
+      165  
+      166 -        let result: Option<String> = exec_future(async move { 
+      166 +        // Schedule async work — returns a stream yielding Opt
+          +ion<String>                                                   
+      167 +        let raw_stream = schedule_future(async move {         
+      168              let mut stmt = conn
+      169                  .prepare("SELECT value FROM kv_store WHERE key
+            = ?")
+      170                  .await?;
+     ...
+      178              }
+      179          })?;
+      180  
+      180 -        match result {                                        
+      181 -            Some(value) => {                                  
+      182 -                let deserialized: V = serde_json::from_str(&va
+          -lue)                                                          
+      183 -                    .map_err(|e| StorageError::Serialization(e
+          -.to_string()))?;                                              
+      184 -                Ok(Some(deserialized))                        
+      185 -            }                                                 
+      186 -            None => Ok(None),                                 
+      187 -        }                                                     
+      181 +        // Map raw JSON string to deserialized V              
+      182 +        let mapped = raw_stream.filter_map(|s| match s {      
+      183 +            Stream::Next(Some(json_str)) => match serde_json::
+          +from_str::<V>(&json_str) {                                    
+      184 +                Ok(v) => Some(Stream::Next(Some(v))),         
+      185 +                Err(e) => {                                   
+      186 +                    tracing::error!("Deserialization error in 
+          +get: {e}");                                                   
+      187 +                    None                                      
+      188 +                }                                             
+      189 +            },                                                
+      190 +            Stream::Next(None) => Some(Stream::Next(None)),   
+      191 +            Stream::Pending(p) => Some(Stream::Pending(p)),   
+      192 +            Stream::Init => Some(Stream::Init),               
+      193 +            Stream::Ignore => Some(Stream::Ignore),           
+      194 +            Stream::Delayed(d) => Some(Stream::Delayed(d)),   
+      195 +        });                                                   
+      196 +                                                              
+      197 +        Ok(Box::new(mapped))                                  
+      198      }
+      199  
+      190 -    fn set<V: Serialize>(&self, key: &str, value: V) -> Storag
+          -eResult<()> {                                                 
+      200 +    fn set<V: Serialize>(&self, key: &str, value: V) -> Storag
+          +eResult<StorageItemStream<'_, ()>> {                          
+      201          let serialized = serde_json::to_string(&value)
+      202              .map_err(|e| StorageError::Serialization(e.to_stri
+           ng()))?;
+      203          let key = key.to_string();
+      204          let conn = Arc::clone(&self.conn);
+      205  
+      196 -        exec_future(async move {                              
+      206 +        let raw_stream = schedule_future(async move {         
+      207              conn.execute(
+      208                  "INSERT INTO kv_store (key, value, updated_at)
+            VALUES (?, ?, strftime('%s', 'now') * 1000) ON CONFLICT(key) 
+           DO UPDATE SET value = ?, updated_at = strftime('%s', 'now') * 
+           1000",
+      209                  [key.clone(), serialized.clone(), serialized],
+     ...
+      211              .await
+      212          })?;
+      213  
+      204 -        Ok(())                                                
+      214 +        // Map usize (rows affected) to ()                    
+      215 +        let mapped = raw_stream.filter_map(|s| match s {      
+      216 +            Stream::Next(_rows) => Some(Stream::Next(())),    
+      217 +            Stream::Pending(p) => Some(Stream::Pending(p)),   
+      218 +            Stream::Init => Some(Stream::Init),               
+      219 +            Stream::Ignore => Some(Stream::Ignore),           
+      220 +            Stream::Delayed(d) => Some(Stream::Delayed(d)),   
+      221 +        });                                                   
+      222 +                                                              
+      223 +        Ok(Box::new(mapped))                                  
+      224      }
+      225  
+      207 -    fn delete(&self, key: &str) -> StorageResult<()> {        
+      226 +    fn delete(&self, key: &str) -> StorageResult<StorageItemSt
+          +ream<'_, ()>> {                                               
+      227          let key = key.to_string();
+      228          let conn = Arc::clone(&self.conn);
+      229  
+      211 -        exec_future(async move {                              
+      230 +        let raw_stream = schedule_future(async move {         
+      231              conn.execute("DELETE FROM kv_store WHERE key = ?",
+            [key])
+      232                  .await
+      233          })?;
+      234  
+      216 -        Ok(())                                                
+      235 +        let mapped = raw_stream.filter_map(|s| match s {      
+      236 +            Stream::Next(_rows) => Some(Stream::Next(())),    
+      237 +            Stream::Pending(p) => Some(Stream::Pending(p)),   
+      238 +            Stream::Init => Some(Stream::Init),               
+      239 +            Stream::Ignore => Some(Stream::Ignore),           
+      240 +            Stream::Delayed(d) => Some(Stream::Delayed(d)),   
+      241 +        });                                                   
+      242 +                                                              
+      243 +        Ok(Box::new(mapped))                                  
+      244      }
+      245  
+      219 -    fn exists(&self, key: &str) -> StorageResult<bool> {      
+      246 +    fn exists(&self, key: &str) -> StorageResult<StorageItemSt
+          +ream<'_, bool>> {                                             
+      247          let key = key.to_string();
+      248          let conn = Arc::clone(&self.conn);
+      249  
+      223 -        exec_future::<_, turso::Error, _>(async move {        
+      250 +        schedule_future::<_, turso::Error, _>(async move {    
+      251              let mut stmt = conn
+      252                  .prepare("SELECT 1 FROM kv_store WHERE key = ?
+            LIMIT 1")
+      253                  .await?;
+     ...
+      267  
+      268          let conn = Arc::clone(&self.conn);
+      269  
+      243 -        // Collect all keys upfront since turso::Rows is !Send
+          - and can't be used                                            
+      244 -        // in Valtron's async pattern from an Iterator        
+      245 -        let keys: Vec<String> = exec_future(async move {      
+      270 +        // Collect all keys inside async block since turso::Ro
+          +ws is !Send                                                   
+      271 +        let keys_stream = schedule_future(async move {        
+      272              let mut stmt = conn.prepare(sql).await?;
+      273              let mut rows = if param.is_empty() {
+      274                  stmt.query([turso::Value::Null; 0]).await?
+     ...
+      284              Ok::<_, turso::Error>(keys)
+      285          })?;
+      286  
+      261 -        Ok(Box::new(keys.into_iter().map(Stream::Next)))      
+      287 +        // Flatten Vec<String> stream into individual String i
+          +tems                                                          
+      288 +        let mapped = keys_stream.flat_map(|s| match s {       
+      289 +            Stream::Next(keys) => {                           
+      290 +                let items: Vec<Stream<String, ()>> = keys.into
+          +_iter().map(Stream::Next).collect();                          
+      291 +                items.into_iter()                             
+      292 +            }                                                 
+      293 +            Stream::Pending(p) => vec![Stream::Pending(p)].int
+          +o_iter(),                                                     
+      294 +            Stream::Init => vec![Stream::Init].into_iter(),   
+      295 +            Stream::Ignore => vec![Stream::Ignore].into_iter()
+          +,                                                             
+      296 +            Stream::Delayed(d) => vec![Stream::Delayed(d)].int
+          +o_iter(),                                                     
+      297 +        });                                                   
+      298 +                                                              
+      299 +        Ok(Box::new(mapped))                                  
+      300      }
+      301  }
+      302  
+
+● Now update the QueryStore and RateLimiterStore impls for TursoStorage.
+
+● Update(backends/foundation_db/src/backends/turso_backend.rs)
+  ⎿  Added 30 lines, removed 9 lines
+      310          let sql = sql.to_string();
+      311          let conn = Arc::clone(&self.conn);
+      312  
+      313 -        // Collect all rows upfront since turso::Rows is !Send
+      314 -        let rows_data: Vec<SqlRow> = exec_future(async move { 
+      313 +        // Collect all rows inside async block since turso::Ro
+          +ws is !Send                                                   
+      314 +        let rows_stream = schedule_future(async move {        
+      315              let mut stmt = conn.prepare(&sql).await?;
+      316              let mut rows = stmt.query(turso_params).await?;
+      317  
+     ...
+      324              Ok::<_, turso::Error>(rows_data)
+      325          })?;
+      326  
+      327 -        Ok(Box::new(rows_data.into_iter().map(Stream::Next))) 
+      327 +        // Flatten Vec<SqlRow> stream into individual SqlRow i
+          +tems                                                          
+      328 +        let mapped = rows_stream.flat_map(|s| match s {       
+      329 +            Stream::Next(rows) => {                           
+      330 +                let items: Vec<Stream<SqlRow, ()>> = rows.into
+          +_iter().map(Stream::Next).collect();                          
+      331 +                items.into_iter()                             
+      332 +            }                                                 
+      333 +            Stream::Pending(p) => vec![Stream::Pending(p)].int
+          +o_iter(),                                                     
+      334 +            Stream::Init => vec![Stream::Init].into_iter(),   
+      335 +            Stream::Ignore => vec![Stream::Ignore].into_iter()
+          +,                                                             
+      336 +            Stream::Delayed(d) => vec![Stream::Delayed(d)].int
+          +o_iter(),                                                     
+      337 +        });                                                   
+      338 +                                                              
+      339 +        Ok(Box::new(mapped))                                  
+      340      }
+      341  
+      330 -    fn execute(&self, sql: &str, params: &[DataValue]) -> Stor
+          -ageResult<u64> {                                              
+      342 +    fn execute(&self, sql: &str, params: &[DataValue]) -> Stor
+          +ageResult<StorageItemStream<'_, u64>> {                       
+      343          let turso_params = Self::to_turso_params(params);
+      344          let sql = sql.to_string();
+      345          let conn = Arc::clone(&self.conn);
+      346  
+      335 -        let rows: u64 = exec_future(async move { conn.execute(
+          -&sql, turso_params).await })? as u64;                         
+      336 -        Ok(rows)                                              
+      347 +        let raw_stream = schedule_future(async move { conn.exe
+          +cute(&sql, turso_params).await })?;                           
+      348 +                                                              
+      349 +        // Map usize to u64                                   
+      350 +        let mapped = raw_stream.filter_map(|s| match s {      
+      351 +            Stream::Next(rows) => Some(Stream::Next(rows as u6
+          +4)),                                                          
+      352 +            Stream::Pending(p) => Some(Stream::Pending(p)),   
+      353 +            Stream::Init => Some(Stream::Init),               
+      354 +            Stream::Ignore => Some(Stream::Ignore),           
+      355 +            Stream::Delayed(d) => Some(Stream::Delayed(d)),   
+      356 +        });                                                   
+      357 +                                                              
+      358 +        Ok(Box::new(mapped))                                  
+      359      }
+      360  
+      339 -    fn execute_batch(&self, sql: &str) -> StorageResult<()> { 
+      361 +    fn execute_batch(&self, sql: &str) -> StorageResult<Storag
+          +eItemStream<'_, ()>> {                                        
+      362          let sql = sql.to_string();
+      363          let conn = Arc::clone(&self.conn);
+      364  
+      343 -        exec_future(async move { conn.execute_batch(&sql).awai
+          -t })?;                                                        
+      344 -        Ok(())                                                
+      365 +        schedule_future(async move { conn.execute_batch(&sql).
+          +await })                                                      
+      366      }
+      367  }
+      368  
+
+● Now update RateLimiterStore for TursoStorage.
+● Update(backends/foundation_db/src/backends/turso_backend.rs)
+  ⎿  Added 21 lines, removed 14 lines
+      372          key: &str,
+      373          max_count: u32,
+      374          window_seconds: u64,
+      375 -    ) -> StorageResult<bool> {                                
+      375 +    ) -> StorageResult<StorageItemStream<'_, bool>> {         
+      376 +        // Ensure rate_limits table exists (one-shot init — ex
+          +ec_future is acceptable)                                      
+      377          let create_table = r"
+      378              CREATE TABLE IF NOT EXISTS rate_limits (
+      379                  key TEXT PRIMARY KEY,
+     ...
+      393          let key = key.to_string();
+      394          let conn = Arc::clone(&self.conn);
+      395  
+      395 -        exec_future(async move {                              
+      396 +        schedule_future(async move {                          
+      397              let mut stmt = conn
+      398                  .prepare("SELECT count, window_start FROM rate
+           _limits WHERE key = ?")
+      399                  .await?;
+     ...
+      414          })
+      415      }
+      416  
+      416 -    fn record_rate_limit(&self, key: &str) -> StorageResult<u3
+          -2> {                                                          
+      417 +    fn record_rate_limit(&self, key: &str) -> StorageResult<St
+          +orageItemStream<'_, u32>> {                                   
+      418          let now = std::time::SystemTime::now()
+      419              .duration_since(std::time::UNIX_EPOCH)
+      420              .unwrap()
+     ...
+      422              .cast_signed();
+      423  
+      424          let key = key.to_string();
+      424 -        let key2 = key.clone();                               
+      425          let conn = Arc::clone(&self.conn);
+      426  
+      427 -        exec_future(async move {                              
+      427 +        // Combine insert + read into one async block for atom
+          +icity                                                         
+      428 +        schedule_future(async move {                          
+      429              conn.execute(
+      430                  "INSERT INTO rate_limits (key, count, window_s
+           tart) VALUES (?, 1, ?) ON CONFLICT(key) DO UPDATE SET count = 
+           count + 1, window_start = excluded.window_start",
+      430 -                [key, now.to_string()],                       
+      431 +                [key.clone(), now.to_string()],               
+      432              )
+      432 -            .await                                            
+      433 -        })?;                                                  
+      433 +            .await?;                                          
+      434  
+      435 -        let conn = Arc::clone(&self.conn);                    
+      436 -        exec_future(async move {                              
+      435              let mut stmt = conn
+      436                  .prepare("SELECT count FROM rate_limits WHERE 
+           key = ?")
+      437                  .await?;
+      440 -            let mut rows = stmt.query([key2]).await?;         
+      438 +            let mut rows = stmt.query([key]).await?;          
+      439              match rows.next().await? {
+      440                  Some(row) => {
+      441                      let count: i64 = row.get(0)?;
+     ...
+      448          })
+      449      }
+      450  
+      453 -    fn reset_rate_limit(&self, key: &str) -> StorageResult<()>
+          - {                                                            
+      451 +    fn reset_rate_limit(&self, key: &str) -> StorageResult<Sto
+          +rageItemStream<'_, ()>> {                                     
+      452          let key = key.to_string();
+      453          let conn = Arc::clone(&self.conn);
+      454  
+      457 -        exec_future(async move {                              
+      455 +        let raw_stream = schedule_future(async move {         
+      456              conn.execute("DELETE FROM rate_limits WHERE key = 
+           ?", [key])
+      457                  .await
+      458          })?;
+      461 -        Ok(())                                                
+      459 +                                                              
+      460 +        let mapped = raw_stream.filter_map(|s| match s {      
+      461 +            Stream::Next(_rows) => Some(Stream::Next(())),    
+      462 +            Stream::Pending(p) => Some(Stream::Pending(p)),   
+      463 +            Stream::Init => Some(Stream::Init),               
+      464 +            Stream::Ignore => Some(Stream::Ignore),           
+      465 +            Stream::Delayed(d) => Some(Stream::Delayed(d)),   
+      466 +        });                                                   
+      467 +                                                              
+      468 +        Ok(Box::new(mapped))                                  
+      469      }
+      470  }
+      471  
+
+● Now update the import at the top of turso_backend.rs to add schedule_future.
+
+● Update(backends/foundation_db/src/backends/turso_backend.rs)
+  ⎿  Added 1 line, removed 1 line
+       4  //! `from_future` + `execute` pattern to provide Valtron-native
+           integration.
+       5  //! Multi-value operations return `StorageItemStream` for lazy 
+          iteration.
+       6  
+       7 -use crate::backends::async_utils::exec_future;                 
+       7 +use crate::backends::async_utils::{exec_future, schedule_future
+         +};                                                             
+       8  use crate::errors::StorageResult;
+       9  use foundation_core::valtron::Stream;
+      10  use serde::{de::DeserializeOwned, Serialize};
+
+● Now update turso_backend.rs tests.
+
+● Update(backends/foundation_db/src/backends/turso_backend.rs)
+  ⎿  Added 19 lines, removed 38 lines
+      472  #[cfg(test)]
+      473  mod tests {
+      474      use super::*;
+      475 +    use foundation_core::valtron::{collect_one, collect_result
+          +};                                                            
+      476      use tempfile::TempDir;
+      477  
+      478      /// Initialize the Valtron executor for tests.
+     ...
+      490          let storage = TursoStorage::new(url).unwrap();
+      491          storage.init_schema().unwrap();
+      492  
+      492 -        storage.set("test_key", "test_value").unwrap();       
+      493 +        collect_one(storage.set("test_key", "test_value").unwr
+          +ap()).unwrap();                                               
+      494  
+      494 -        let value: String = storage.get("test_key").unwrap().u
+          -nwrap();                                                      
+      495 -        assert_eq!(value, "test_value");                      
+      495 +        let value: Option<String> = collect_one(storage.get("t
+          +est_key").unwrap()).unwrap();                                 
+      496 +        assert_eq!(value, Some("test_value".to_string()));    
+      497  
+      497 -        assert!(storage.exists("test_key").unwrap());         
+      498 -        assert!(!storage.exists("nonexistent").unwrap());     
+      498 +        assert!(collect_one(storage.exists("test_key").unwrap(
+          +)).unwrap());                                                 
+      499 +        assert!(!collect_one(storage.exists("nonexistent").unw
+          +rap()).unwrap());                                             
+      500  
+      500 -        storage.delete("test_key").unwrap();                  
+      501 -        assert!(!storage.exists("test_key").unwrap());        
+      501 +        collect_one(storage.delete("test_key").unwrap()).unwra
+          +p();                                                          
+      502 +        assert!(!collect_one(storage.exists("test_key").unwrap
+          +()).unwrap());                                                
+      503      }
+      504  
+      505      #[test]
+     ...
+      512          let storage = TursoStorage::new(url).unwrap();
+      513          storage.init_schema().unwrap();
+      514  
+      514 -        storage.set("prefix:key1", "value1").unwrap();        
+      515 -        storage.set("prefix:key2", "value2").unwrap();        
+      516 -        storage.set("other:key3", "value3").unwrap();         
+      515 +        collect_one(storage.set("prefix:key1", "value1").unwra
+          +p()).unwrap();                                                
+      516 +        collect_one(storage.set("prefix:key2", "value2").unwra
+          +p()).unwrap();                                                
+      517 +        collect_one(storage.set("other:key3", "value3").unwrap
+          +()).unwrap();                                                 
+      518  
+      518 -        let keys: Vec<String> = storage                       
+      519 -            .list_keys(None)                                  
+      520 -            .unwrap()                                         
+      521 -            .filter_map(|s| match s {                         
+      522 -                Stream::Next(key) => Some(key),               
+      523 -                _ => None,                                    
+      524 -            })                                                
+      525 -            .collect();                                       
+      519 +        let keys = collect_result(storage.list_keys(None).unwr
+          +ap());                                                        
+      520          assert_eq!(keys.len(), 3);
+      521  
+      528 -        let keys: Vec<String> = storage                       
+      529 -            .list_keys(Some("prefix:"))                       
+      530 -            .unwrap()                                         
+      531 -            .filter_map(|s| match s {                         
+      532 -                Stream::Next(key) => Some(key),               
+      533 -                _ => None,                                    
+      534 -            })                                                
+      535 -            .collect();                                       
+      522 +        let keys = collect_result(storage.list_keys(Some("pref
+          +ix:")).unwrap());                                             
+      523          assert_eq!(keys.len(), 2);
+      524      }
+      525  
+     ...
+      545  
+      546          storage.migrate(migrations).unwrap();
+      547  
+      561 -        let users_exist = storage                             
+      548 +        let users_exist = !collect_result(storage             
+      549              .query(
+      550                  "SELECT 1 FROM sqlite_master WHERE type='table
+           ' AND name='users'",
+      551                  &[],
+      552              )
+      566 -            .unwrap()                                         
+      567 -            .next()                                           
+      568 -            .is_some();                                       
+      553 +            .unwrap()).is_empty();                            
+      554  
+      570 -        let sessions_exist = storage                          
+      555 +        let sessions_exist = !collect_result(storage          
+      556              .query(
+      557                  "SELECT 1 FROM sqlite_master WHERE type='table
+           ' AND name='sessions'",
+      558                  &[],
+      559              )
+      575 -            .unwrap()                                         
+      576 -            .next()                                           
+      577 -            .is_some();                                       
+      560 +            .unwrap()).is_empty();                            
+      561  
+      579 -        let migrations_exist = storage                        
+      562 +        let migrations_exist = !collect_result(storage        
+      563              .query(
+      564                  "SELECT 1 FROM sqlite_master WHERE type='table
+           ' AND name='_migrations'",
+      565                  &[],
+      566              )
+      584 -            .unwrap()                                         
+      585 -            .next()                                           
+      586 -            .is_some();                                       
+      567 +            .unwrap()).is_empty();                            
+      568  
+      569          assert!(users_exist, "users table should be accessible
+           ");
+      570          assert!(sessions_exist, "sessions table should be acce
+           ssible");
+
+● Now update libsql_backend.rs — same pattern as turso.
+
+● Update(backends/foundation_db/src/backends/libsql_backend.rs)
+  ⎿  Added 1 line, removed 1 line
+       4  //! `from_future` + `execute` pattern to provide Valtron-native
+           integration.
+       5  //! Multi-value operations return `StorageItemStream` for lazy 
+          iteration.
+       6  
+       7 -use crate::backends::async_utils::exec_future;                 
+       7 +use crate::backends::async_utils::{exec_future, schedule_future
+         +};                                                             
+       8  use crate::errors::StorageResult;
+       9  use foundation_core::valtron::Stream;
+      10  use serde::{de::DeserializeOwned, Serialize};
+
+● Now update the KeyValueStore impl for LibsqlStorage.
+
+● Update(backends/foundation_db/src/backends/libsql_backend.rs)
+  ⎿  Added 57 lines, removed 20 lines
+      149  }
+      150  
+      151  impl KeyValueStore for LibsqlStorage {
+      152 -    fn get<V: DeserializeOwned>(&self, key: &str) -> StorageRe
+          -sult<Option<V>> {                                             
+      152 +    fn get<V: DeserializeOwned + Send>(&self, key: &str) -> St
+          +orageResult<StorageItemStream<'_, Option<V>>> {               
+      153          let key = key.to_string();
+      154          let conn = Arc::clone(&self.conn);
+      155  
+      156 -        let result: Option<String> = exec_future(async move { 
+      156 +        let raw_stream = schedule_future(async move {         
+      157              let mut stmt = conn.prepare("SELECT value FROM kv_
+           store WHERE key = ?").await?;
+      158              let mut rows = stmt.query([key]).await?;
+      159              match rows.next().await? {
+     ...
+      165              }
+      166          })?;
+      167  
+      168 -        match result {                                        
+      169 -            Some(value) => {                                  
+      170 -                let deserialized: V = serde_json::from_str(&va
+          -lue)                                                          
+      171 -                    .map_err(|e| StorageError::Serialization(e
+          -.to_string()))?;                                              
+      172 -                Ok(Some(deserialized))                        
+      173 -            }                                                 
+      174 -            None => Ok(None),                                 
+      175 -        }                                                     
+      168 +        // Map raw JSON string to deserialized V              
+      169 +        let mapped = raw_stream.filter_map(|s| match s {      
+      170 +            Stream::Next(Some(json_str)) => match serde_json::
+          +from_str::<V>(&json_str) {                                    
+      171 +                Ok(v) => Some(Stream::Next(Some(v))),         
+      172 +                Err(e) => {                                   
+      173 +                    tracing::error!("Deserialization error in 
+          +get: {e}");                                                   
+      174 +                    None                                      
+      175 +                }                                             
+      176 +            },                                                
+      177 +            Stream::Next(None) => Some(Stream::Next(None)),   
+      178 +            Stream::Pending(p) => Some(Stream::Pending(p)),   
+      179 +            Stream::Init => Some(Stream::Init),               
+      180 +            Stream::Ignore => Some(Stream::Ignore),           
+      181 +            Stream::Delayed(d) => Some(Stream::Delayed(d)),   
+      182 +        });                                                   
+      183 +                                                              
+      184 +        Ok(Box::new(mapped))                                  
+      185      }
+      186  
+      178 -    fn set<V: Serialize>(&self, key: &str, value: V) -> Storag
+          -eResult<()> {                                                 
+      187 +    fn set<V: Serialize>(&self, key: &str, value: V) -> Storag
+          +eResult<StorageItemStream<'_, ()>> {                          
+      188          let serialized = serde_json::to_string(&value)
+      189              .map_err(|e| StorageError::Serialization(e.to_stri
+           ng()))?;
+      190          let key = key.to_string();
+      191          let conn = Arc::clone(&self.conn);
+      192  
+      184 -        exec_future(async move {                              
+      193 +        let raw_stream = schedule_future(async move {         
+      194              conn.execute(
+      195                  "INSERT INTO kv_store (key, value, updated_at)
+            VALUES (?, ?, strftime('%s', 'now') * 1000) ON CONFLICT(key) 
+           DO UPDATE SET value = ?, updated_at = strftime('%s', 'now') * 
+           1000",
+      196                  [key.clone(), serialized.clone(), serialized],
+     ...
+      198              .await
+      199          })?;
+      200  
+      192 -        Ok(())                                                
+      201 +        let mapped = raw_stream.filter_map(|s| match s {      
+      202 +            Stream::Next(_rows) => Some(Stream::Next(())),    
+      203 +            Stream::Pending(p) => Some(Stream::Pending(p)),   
+      204 +            Stream::Init => Some(Stream::Init),               
+      205 +            Stream::Ignore => Some(Stream::Ignore),           
+      206 +            Stream::Delayed(d) => Some(Stream::Delayed(d)),   
+      207 +        });                                                   
+      208 +                                                              
+      209 +        Ok(Box::new(mapped))                                  
+      210      }
+      211  
+      195 -    fn delete(&self, key: &str) -> StorageResult<()> {        
+      212 +    fn delete(&self, key: &str) -> StorageResult<StorageItemSt
+          +ream<'_, ()>> {                                               
+      213          let key = key.to_string();
+      214          let conn = Arc::clone(&self.conn);
+      215  
+      199 -        exec_future(async move {                              
+      216 +        let raw_stream = schedule_future(async move {         
+      217              conn.execute("DELETE FROM kv_store WHERE key = ?",
+            [key])
+      218                  .await
+      219          })?;
+      220  
+      204 -        Ok(())                                                
+      221 +        let mapped = raw_stream.filter_map(|s| match s {      
+      222 +            Stream::Next(_rows) => Some(Stream::Next(())),    
+      223 +            Stream::Pending(p) => Some(Stream::Pending(p)),   
+      224 +            Stream::Init => Some(Stream::Init),               
+      225 +            Stream::Ignore => Some(Stream::Ignore),           
+      226 +            Stream::Delayed(d) => Some(Stream::Delayed(d)),   
+      227 +        });                                                   
+      228 +                                                              
+      229 +        Ok(Box::new(mapped))                                  
+      230      }
+      231  
+      207 -    fn exists(&self, key: &str) -> StorageResult<bool> {      
+      232 +    fn exists(&self, key: &str) -> StorageResult<StorageItemSt
+          +ream<'_, bool>> {                                             
+      233          let key = key.to_string();
+      234          let conn = Arc::clone(&self.conn);
+      235  
+      211 -        exec_future::<_, libsql::Error, _>(async move {       
+      236 +        schedule_future::<_, libsql::Error, _>(async move {   
+      237              let mut stmt = conn.prepare("SELECT 1 FROM kv_stor
+           e WHERE key = ? LIMIT 1").await?;
+      238              let mut rows = stmt.query([key]).await?;
+      239              Ok(rows.next().await?.is_some())
+     ...
+      251  
+      252          let conn = Arc::clone(&self.conn);
+      253  
+      229 -        let keys: Vec<String> = exec_future(async move {      
+      254 +        let keys_stream = schedule_future(async move {        
+      255              let mut stmt = conn.prepare(sql).await?;
+      256              let mut rows = if param.is_empty() {
+      257                  stmt.query([libsql::Value::Null; 0]).await?
+     ...
+      268              Ok::<_, libsql::Error>(keys)
+      269          })?;
+      270  
+      246 -        Ok(Box::new(keys.into_iter().map(Stream::Next)))      
+      271 +        // Flatten Vec<String> stream into individual String i
+          +tems                                                          
+      272 +        let mapped = keys_stream.flat_map(|s| match s {       
+      273 +            Stream::Next(keys) => {                           
+      274 +                let items: Vec<Stream<String, ()>> = keys.into
+          +_iter().map(Stream::Next).collect();                          
+      275 +                items.into_iter()                             
+      276 +            }                                                 
+      277 +            Stream::Pending(p) => vec![Stream::Pending(p)].int
+          +o_iter(),                                                     
+      278 +            Stream::Init => vec![Stream::Init].into_iter(),   
+      279 +            Stream::Ignore => vec![Stream::Ignore].into_iter()
+          +,                                                             
+      280 +            Stream::Delayed(d) => vec![Stream::Delayed(d)].int
+          +o_iter(),                                                     
+      281 +        });                                                   
+      282 +                                                              
+      283 +        Ok(Box::new(mapped))                                  
+      284      }
+      285  }
+      286  
+
+❯ I find these unecessary verbose:                                             
+                                                                               
+   182 +        let mapped = raw_stream.filter_map(|s| match s {               
+      183 +            Stream::Next(Some(json_str)) => match                   
+serde_json::from_str::<V>(&json_str) {                                         
+      184 +                Ok(v) => Some(Stream::Next(Some(v))),               
+      185 +                Err(e) => {                                         
+      186 +                    tracing::error!("Deserialization error in get:  
+{e}");                                                                         
+      187 +                    None                                            
+      188 +                }                                                   
+      189 +            },                                                      
+      190 +            Stream::Next(None) => Some(Stream::Next(None)),         
+      191 +            Stream::Pending(p) => Some(Stream::Pending(p)),         
+      192 +            Stream::Init => Some(Stream::Init),                     
+      193 +            Stream::Ignore => Some(Stream::Ignore),                 
+      194 +            Stream::Delayed(d) => Some(Stream::Delayed(d)),         
+      195 +        });                                                         
+      196 +                                                                    
+                                                                               
+                                                                               
+StreamIteratorExt has map_ready, map_pending, which would make these all       
+cleaner                                                                        
+
+● The user is right — let me check what StreamIterator combinators are available
+   to eliminate the verbose matching.
+
+  Searched for 2 patterns, read 1 file (ctrl+o to expand)
+
+● MapDone implements both Iterator<Item = Stream<R, I::P>> and StreamIterator.
+  So I can chain .map_done(...) then .map_pending(|_| ()) and the result is
+  Iterator<Item = Stream<NewD, ()>> — exactly what StorageItemStream needs.
+
+  Let me also check if MapDone and MapPending are Send.
+
+  Searched for 3 patterns (ctrl+o to expand)
+
+● RecvIterator wraps RecvIter which wraps Arc<ConcurrentQueue<T>>.
+  ConcurrentQueue is from the concurrent-queue crate which is Send + Sync. So
+  DrivenStreamIterator is Send when T's types are Send.
+
+  Now let me refactor the approach. Instead of schedule_future returning a boxed
+   stream with manual matching, I'll change it to return the raw
+  DrivenStreamIterator, and backends use .map_done() and .map_pending()
+  combinators. But that makes schedule_future return a complex type...
+
+  Actually, the cleaner approach: don't use schedule_future at all for cases
+  where we need to transform. Use from_future + execute directly, then chain
+  combinators, then box. Let me refactor schedule_future to be simpler and use
+  combinators where needed.
+
+● Update(backends/foundation_db/src/backends/async_utils.rs)
+  ⎿  Added 27 lines, removed 24 lines
+       4  //! `from_future` + `execute` pattern:
+       5  //!
+       6  //! - **`schedule_future`** (preferred): Schedules work and ret
+          urns a stream.
+       7 -//!   Callers collect at boundaries using `collect_one`, `colle
+         -ct_result`, etc.                                               
+       8 -//!   Enables composability and parallel scheduling.           
+       7 +//!   Uses `StreamIteratorExt::map_done` and `map_pending` to t
+         +ransform the                                                   
+       8 +//!   raw `DrivenStreamIterator` into `StorageItemStream`. Call
+         +ers collect at                                                 
+       9 +//!   boundaries using `collect_one`, `collect_result`, etc.   
+      10  //!
+      11  //! - **`exec_future`** (legacy): Blocks immediately at the lea
+          f. Use only for
+      12  //!   one-shot initialization (DB connection, migrations), not 
+          for trait methods.
+      13  
+      13 -use foundation_core::valtron::{execute, from_future, Stream};  
+      14 +use foundation_core::valtron::{execute, from_future, Stream, St
+         +reamIteratorExt};                                              
+      15  
+      16  use crate::errors::StorageError;
+      17  use crate::storage_provider::StorageItemStream;
+      18  
+      19  /// WHY: Enables non-blocking, composable storage operations.
+      20  ///
+      20 -/// WHAT: Schedules a future for execution via Valtron's `from_
+         -future` + `execute`,                                           
+      21 -/// returning a mapped stream of results. The future runs on th
+         -e Valtron worker pool;                                         
+      22 -/// the returned stream lazily yields results when drained by t
+         -he caller.                                                     
+      21 +/// WHAT: Schedules a future for execution via Valtron, returni
+         +ng a stream.                                                   
+      22 +/// Uses `map_done` to unwrap `Result<T, E>` and `map_pending` 
+         +to erase                                                       
+      23 +/// `FuturePollState` → `()`, yielding a clean `StorageItemStre
+         +am<T>`.                                                        
+      24  ///
+      24 -/// HOW: Wraps the future with `from_future`, schedules via `ex
+         -ecute`, then maps                                              
+      25 -/// `Stream<Result<T, E>, FuturePollState>` to `Stream<T, ()>`.
+         - Errors from the                                               
+      26 -/// future are logged via tracing and result in no `Next` items
+         - being yielded.                                                
+      25 +/// HOW: `from_future` → `execute` → `map_done(unwrap result)` 
+         +→ `map_pending(erase)` → box.                                  
+      26 +/// Errors from the future are logged via tracing and mapped to
+         + a sentinel value                                              
+      27 +/// using the caller-provided `on_err` function (commonly retur
+         +ns a type's default                                            
+      28 +/// or `None`). For methods where there's no meaningful fallbac
+         +k value, the error                                             
+      29 +/// path yields the sentinel which the caller can check.       
+      30  ///
+      31  /// # Errors
+      32  ///
+      30 -/// Returns a `StorageError` if Valtron scheduling fails (pool 
+         -not initialized, etc.).                                        
+      31 -/// Execution errors from the future are logged and yield an em
+         -pty stream — callers                                           
+      32 -/// should treat `None` from `collect_one` as an execution fail
+         -ure.                                                           
+      33 -pub fn schedule_future<T, E, F>(future: F) -> Result<StorageIte
+         -mStream<'static, T>, StorageError>                             
+      33 +/// Returns a `StorageError` if Valtron scheduling fails.      
+      34 +pub fn schedule_future<T, E, F, H>(                            
+      35 +    future: F,                                                 
+      36 +    on_err: H,                                                 
+      37 +) -> Result<StorageItemStream<'static, T>, StorageError>       
+      38  where
+      39      F: std::future::Future<Output = Result<T, E>> + Send + 'sta
+          tic,
+      40      T: Send + 'static,
+      41      E: std::fmt::Display + Send + 'static,
+      42 +    H: Fn(E) -> T + Send + 'static,                            
+      43  {
+      44      let task = from_future(future);
+      45      let stream = execute(task, None)
+      46          .map_err(|e| StorageError::Backend(format!("Valtron sch
+          eduling failed: {e}")))?;
+      47  
+      43 -    let mapped = stream.into_iter().filter_map(|s| match s {   
+      44 -        Stream::Next(Ok(v)) => Some(Stream::Next(v)),          
+      45 -        Stream::Next(Err(e)) => {                              
+      46 -            tracing::error!("Async execution error: {e}");     
+      47 -            None                                               
+      48 -        }                                                      
+      49 -        Stream::Pending(_) => Some(Stream::Pending(())),       
+      50 -        Stream::Init => Some(Stream::Init),                    
+      51 -        Stream::Ignore => Some(Stream::Ignore),                
+      52 -        Stream::Delayed(d) => Some(Stream::Delayed(d)),        
+      53 -    });                                                        
+      48 +    let mapped = stream                                        
+      49 +        .map_done(move |result| match result {                 
+      50 +            Ok(v) => v,                                        
+      51 +            Err(e) => {                                        
+      52 +                tracing::error!("Async execution error: {e}"); 
+      53 +                on_err(e)                                      
+      54 +            }                                                  
+      55 +        })                                                     
+      56 +        .map_pending(|_| ());                                  
+      57  
+      58      Ok(Box::new(mapped))
+      59  }
+
+  Searched for 1 pattern (ctrl+o to expand)
+
+● Let me check if Stream has a map or map_next method.
+
+  Searched for 1 pattern (ctrl+o to expand)
+  ⎿  You've hit your limit · resets 7pm (Asia/Hong_Kong)
+     /upgrade or /extra-usage to finish what you’re working on.
+
+✻ Brewed for 21m 2s

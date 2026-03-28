@@ -171,8 +171,9 @@ backends/foundation_deployment/
 |   |-- state/                    # State management
 |   |   |-- mod.rs                # StateStore trait + factory
 |   |   |-- types.rs              # ResourceState, StateStatus
-|   |   |-- turso.rs              # TursoStateStore (libsql)
-|   |   |-- sqlite.rs             # SqliteStateStore (rusqlite)
+|   |   |-- sqlite.rs             # SqliteStateStore (libsql, local-only)
+|   |   |-- libsql.rs             # LibSQLStateStore (embedded with optional Turso sync)
+|   |   |-- turso.rs              # TursoStateStore (remote-first with replica cache)
 |   |   |-- file.rs               # JsonFileStateStore
 |   |   |-- r2.rs                 # R2StateStore (Cloudflare R2 via API)
 |   |   +-- d1.rs                 # D1StateStore (Cloudflare D1 via API)

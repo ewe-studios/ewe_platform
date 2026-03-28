@@ -12,6 +12,12 @@ author: "Main Agent"
 
 This feature extends `foundation_auth` with comprehensive authentication infrastructure including JWT management, OAuth 2.0 flows, secure credential storage, authentication state machine, and two-factor authentication support.
 
+## Required Reading (Before Implementation)
+
+1. **Read `.agents/skills/rust-valtron-usage/skill.md`** — Valtron execution model, stream-returning patterns, sync boundary helpers. MANDATORY before writing any I/O code. Most auth operations are CPU-bound (sync), but DB storage and HTTP OAuth calls use Valtron streams.
+2. **Read `feature.md`** — Full requirements, Iron Laws, task list.
+3. **Read `../../LEARNINGS.md`** — Spec-level learnings including `from_future` patterns.
+
 ## Prerequisites
 
 Before starting, ensure you understand:

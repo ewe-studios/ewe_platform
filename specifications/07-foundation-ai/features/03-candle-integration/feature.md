@@ -51,6 +51,45 @@ Users can choose the backend that best fits their use case — llama.cpp for qua
 3. **Zero Warnings, Zero Suppression** — All clippy, doc, and cargo warnings MUST be fixed, NEVER suppressed. NO `#[allow(...)]` or `#![allow(...)]` — remove all existing suppression blocks and fix the underlying issues.
 4. **Error Convention** — `#[derive(From, Debug)]` from `derive_more::From` + manual `impl Display`. NO `thiserror`. Central `errors.rs` per crate. `#[from(ignore)]` on String variants.
 
+## Valtron Async Guidance (Learned from Feature 00a)
+
+**MANDATORY:** Read `.agents/skills/rust-valtron-usage/skill.md` before implementing any I/O code.
+**Reference:** See `specifications/07-foundation-ai/LEARNINGS.md` for the full `exec_future` pattern and all constraints.
+
+### This Feature is Mostly Synchronous
+
+Candle operations (tensor computation, forward passes, sampling) are **CPU/GPU-bound synchronous Rust calls**. They do NOT need Valtron wrapping.
+
+### Where Valtron IS Needed
+
+- **Streaming** — `CandleCppStream` implements `StreamIterator` to yield tokens one-by-one. This is Valtron's native pattern (not `from_future`).
+- **Model downloads** — If downloading safetensors from HuggingFace Hub via async API, wrap with `from_future`. Check if `hf_hub::api::sync::Api` suffices first.
+
+### Where Valtron is NOT Needed
+
+- Model loading from local safetensors files — synchronous
+- Tokenization via `tokenizers` crate — synchronous
+- Forward pass (tensor operations) — synchronous
+- Sampling (temperature, top-k, top-p) — synchronous
+- Embeddings extraction from hidden states — synchronous
+- Chat template application — synchronous
+
+### StreamIterator for Streaming (NOT from_future)
+
+Same pattern as feature 01 (llama.cpp):
+
+```rust
+impl StreamIterator for CandleStream {
+    type Item = Messages;
+    type Pending = ModelState;
+
+    fn next(&mut self) -> Stream<Self::Item, Self::Pending> {
+        // One forward pass + sample, return Stream::Next(token) or Stream::Init if done
+        // NEVER use loop {} here — return Stream::Ignore if no token ready
+    }
+}
+```
+
 ## Dependencies
 
 **Required Crates (to add to Cargo.toml):**

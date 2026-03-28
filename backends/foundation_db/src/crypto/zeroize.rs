@@ -72,11 +72,13 @@ pub type ZeroizingString = ZeroizingSecret<String>;
 
 impl ZeroizingString {
     /// Create a new zeroizing string.
+    #[must_use]
     pub fn from_string(s: String) -> Self {
         Self::new(s)
     }
 
     /// Get the string reference.
+    #[must_use]
     pub fn as_str(&self) -> &str {
         &self.0
     }

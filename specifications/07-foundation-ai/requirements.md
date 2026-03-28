@@ -21,6 +21,7 @@ metadata:
   skills:
     - specifications-management
     - rust-patterns
+    - rust-valtron-usage
   tools:
     - Rust
     - cargo

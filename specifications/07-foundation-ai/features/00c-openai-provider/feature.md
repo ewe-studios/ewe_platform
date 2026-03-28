@@ -45,6 +45,64 @@ This feature provides the **foundation for all HTTP-based AI inference** with co
 3. **Zero Warnings, Zero Suppression** — All clippy, doc, and cargo warnings MUST be fixed, NEVER suppressed. NO `#[allow(...)]` or `#![allow(...)]` — remove all existing suppression blocks and fix the underlying issues.
 4. **Error Convention** — `#[derive(From, Debug)]` from `derive_more::From` + manual `impl Display`. NO `thiserror`. Central `errors.rs` per crate. `#[from(ignore)]` on String variants.
 
+## Valtron Async Guidance (Learned from Feature 00a)
+
+**MANDATORY:** Read `.agents/skills/rust-valtron-usage/skill.md` before implementing any I/O code.
+**Reference:** See `specifications/07-foundation-ai/LEARNINGS.md` for the full `exec_future` pattern and all constraints.
+
+### This Feature Heavily Uses `from_future` + `execute`
+
+The OpenAI provider makes HTTP requests via `foundation_core::simple_http` and streams SSE via `foundation_core::event_source`. **All HTTP I/O must be wrapped with Valtron's `from_future` pattern** — this is the primary use case for this feature.
+
+### The `exec_future` Pattern for HTTP Calls
+
+```rust
+use foundation_core::valtron::{execute, from_future, Stream};
+
+pub fn exec_future<T, E, F>(future: F) -> Result<T, GenerationError>
+where
+    F: std::future::Future<Output = Result<T, E>> + Send + 'static,
+    T: Send + 'static,
+    E: std::fmt::Display + Send + 'static,
+{
+    let task = from_future(future);
+    let stream = execute(task, None)
+        .map_err(|e| GenerationError::Backend(format!("Valtron execution failed: {e}")))?;
+    let result: Result<T, E> = stream
+        .into_iter()
+        .find_map(|s| match s { Stream::Next(v) => Some(v), _ => None })
+        .ok_or_else(|| GenerationError::Generic("No result from future execution".into()))?;
+    result.map_err(|e| GenerationError::Backend(format!("{e}")))
+}
+```
+
+### Example: Making an API Request
+
+```rust
+fn chat_completion(&self, request: &ChatRequest) -> Result<ChatResponse, GenerationError> {
+    let url = self.base_url.clone();
+    let body = serde_json::to_string(request)?;
+    let headers = self.auth_headers();
+
+    let response: String = exec_future(async move {
+        let resp = simple_http::post(&url, &body, &headers).await?;
+        Ok::<_, HttpError>(resp.body)
+    })?;
+
+    serde_json::from_str(&response).map_err(|e| GenerationError::Parse(e.to_string()))
+}
+```
+
+### SSE Streaming with `StreamIterator`
+
+For streaming responses, `OpenAIStream` should implement `StreamIterator` directly (the natural Valtron pattern for token-by-token output). SSE events from `event_source` may need to be collected or bridged via `from_future` if the event source API is async.
+
+### Critical Constraints
+
+- All data captured by async blocks must be `Send + 'static` — own strings, clone Arcs
+- HTTP response body/stream iterators may be `!Send` — parse/consume them fully inside the async block before returning
+- Use turbo-fish `Ok::<_, ErrorType>(value)` when the compiler can't infer error types
+
 ## Dependencies
 
 **Required Crates:**

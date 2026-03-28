@@ -34,6 +34,10 @@ tasks:
 
 Implement the GCP Cloud Run deployment provider. This provider is **API-first** — it deploys by calling the Cloud Run Admin API v2 directly via `SimpleHttpClient`, with no CLI tools required.
 
+The provider supports two modes:
+- **API mode (default)** - deploys directly via the Cloud Run Admin API, no external dependencies
+- **CLI mode (fallback)** - shells out to `gcloud` when API mode is not available or explicitly requested
+
 The provider:
 - **Deploys via API** - creates/updates Cloud Run services and jobs via `run.googleapis.com/v2`
 - **Captures state from API responses** - revision names, service URLs, traffic splits stored in state store
@@ -59,7 +63,7 @@ Resource types are **generated from the GCP OpenAPI spec** (Feature 14 merged in
 ## Dependencies
 
 Depends on:
-- `01-foundation-deployment-core` - `DeploymentProvider` trait, `ProcessExecutor`
+- `01-foundation-deployment-core` - `DeploymentProvider` trait, `ShellExecutor`
 - `02-state-stores` - `StateStore` for persistence
 - `03-deployment-engine` - `DeploymentPlanner` for orchestration
 - **`10-provider-spec-fetcher-core`** - OpenAPI spec fetching infrastructure (for resource generation)
@@ -492,102 +496,77 @@ fn main() {
 }
 ```
 
-## Streaming Deployment with ProcessOutput
+## Streaming Deployment with ShellExecutor
 
-The provider uses `ProcessExecutor::execute()` which returns a `StreamExecutor<ProcessOutput>`. The associated type `ProcessOutput` defines what the StreamIterator yields.
+The provider uses `ShellExecutor::execute()` which returns `impl Iterator<Item = Stream<ShellDone, ShellPending>>`.
+
+Resource-centric events (like `CloudRunServiceCreated`, `JobExecuted`) are generated at the **provider level**, not in the shell executor. The shell executor only handles process lifecycle.
 
 ```rust
 // providers/gcp/mod.rs - Streaming deployment example
 
-use foundation_core::valtron::StreamIteratorExt;
-use crate::core::process::{ProcessExecutor, ProcessOutput};
+use foundation_core::valtron::Stream;
+use crate::core::shell::{ShellExecutor, ShellDone, ShellPending};
 
 impl GcpCloudRunProvider {
-    /// Deploy with streaming progress.
-    /// Returns StreamExecutor<ProcessOutput> where ProcessOutput is the associated type.
+    /// Deploy with streaming process output.
+    /// Returns a StreamIterator yielding Stream<ShellDone, ShellPending>.
     pub fn deploy_streaming(
         &self,
         config: &CloudRunServiceConfig,
         env: Option<&str>,
-    ) -> impl Stream<Item = ProcessOutput> {
-        if config.is_job() {
+    ) -> impl Iterator<Item = Stream<ShellDone, ShellPending>> {
+        let cmd = if config.is_job() {
             // Deploy Cloud Run Job
-            ProcessExecutor::new("gcloud")
+            ShellExecutor::new("gcloud")
                 .args(["run", "jobs", "deploy", config.service_name()])
-                .current_dir(&self.working_dir)
-                .execute()
         } else {
             // Deploy Cloud Run Service
-            ProcessExecutor::new("gcloud")
+            ShellExecutor::new("gcloud")
                 .args(["run", "services", "deploy", config.service_name()])
-                .current_dir(&self.working_dir)
-                .execute()
-        }
+        };
+
+        cmd.current_dir(&self.working_dir)
+            .execute()
+            .expect("scheduling succeeded")
     }
 }
 
 // Example consumer code:
 let stream = provider.deploy_streaming(&config, Some("production"));
 
-for await output in stream.into_stream_iter() {
+// StreamIterator is a synchronous Iterator - use regular for loop
+for output in stream {
     match output {
-        // Pending states
-        ProcessOutput::Spawning => {
+        Stream::Pending(ShellPending::Spawning) => {
             println!("Spawning gcloud process...");
         }
-        ProcessOutput::Running { pid } => {
+        Stream::Pending(ShellPending::Running { pid }) => {
             println!("gcloud running (PID: {})", pid);
         }
-        ProcessOutput::ResourceCreating { resource_type, resource_name } => {
-            // "Creating Cloud Run Service 'my-service'..."
-            println!("Creating {}: {}", resource_type, resource_name);
+        Stream::Next(ShellDone::Success { exit_code, stdout, stderr }) => {
+            println!("Deployment completed! Exit code: {}", exit_code);
+            // Parse stdout/stderr for resource-centric events
+            // (CloudRunServiceCreated, JobExecuted, etc.) at provider level
         }
-        ProcessOutput::Verifying { check } => {
-            // "Checking traffic..."
-            println!("Verifying: {}", check);
+        Stream::Next(ShellDone::Failed { exit_code, stderr, .. }) => {
+            eprintln!("Deployment failed! Exit code: {:?}", exit_code);
+            eprintln!("stderr: {}", stderr);
         }
-
-        // Next states (completed items)
-        ProcessOutput::ResourceCreated { resource_type, name, id, metadata } => {
-            // Service created successfully
-            println!("Created {} '{}' with URL: {}", resource_type, name, id);
-            state_store.set("last_deployment", &metadata).await?;
-        }
-        ProcessOutput::StdoutLine { line } => {
-            println!("> {}", line);
-        }
-        ProcessOutput::ProcessExited { exit_code, success, .. } => {
-            if success {
-                println!("Deployment completed successfully!");
-            } else {
-                eprintln!("Deployment failed with exit code: {:?}", exit_code);
-            }
-            break;  // Stream ends
-        }
-        ProcessOutput::Error { message, .. } => {
-            eprintln!("Error: {}", message);
-            break;
-        }
-        _ => {}
     }
 }
 ```
 
-### ProcessOutput States for GCP Cloud Run
+### ShellPending and ShellDone States
 
-| State Type | Variant | Description |
-|------------|---------|-------------|
-| **Pending** | `Spawning` | Starting gcloud process |
-| **Pending** | `Running { pid }` | gcloud is running |
-| **Pending** | `ResourceCreating { type, name }` | Creating Service/Job |
-| **Pending** | `ResourceUpdating { type, name }` | Updating existing resource |
-| **Pending** | `Verifying { check }` | Traffic/health verification |
-| **Next** | `ResourceCreated { type, name, id, metadata }` | Service/Job created |
-| **Next** | `ResourceUpdated { type, name, revision }` | Revision deployed |
-| **Next** | `StdoutLine { line }` | Output line from gcloud |
-| **Next** | `StderrLine { line }` | Error line from gcloud |
-| **Next** | `ProcessExited { exit_code, success, ... }` | Process finished |
-| **Next** | `Error { message, source }` | Error occurred |
+| Type | State | Variant | Description |
+|------|-------|---------|-------------|
+| **ShellPending** | `Spawning` | Starting gcloud process |
+| **ShellPending** | `Running { pid }` | gcloud is running |
+| **ShellDone** | `Success { exit_code, stdout, stderr }` | Process completed successfully |
+| **ShellDone** | `Failed { exit_code, stdout, stderr }` | Process failed |
+
+**Note:** Resource-centric events (CloudRunServiceCreated, JobExecuted, etc.) are parsed from stdout/stderr or returned from API calls at the provider level, not emitted by ShellExecutor.
 
 ### Job vs Service Deployment
 
@@ -597,12 +576,13 @@ The provider handles both Cloud Run Services and Jobs:
 match config.kind.as_str() {
     "Service" => {
         // Long-running HTTP service
-        // Streams: ResourceCreating(Service) -> ResourceCreated -> Verifying -> ProcessExited
+        // ShellExecutor only emits: Spawning -> Running -> Success/Failed
+        // Provider parses stdout for "Cloud Run Service created" messages
     }
     "Job" => {
         // Batch/scheduled job
-        // Streams: ResourceCreating(Job) -> ResourceCreated -> ProcessExited
-        // Note: Job execution is separate from job deployment
+        // ShellExecutor only emits: Spawning -> Running -> Success/Failed
+        // Provider parses stdout for "Job created" messages
     }
     _ => unreachable!()
 }
@@ -614,11 +594,12 @@ For Job executions (running a job, not deploying):
 pub fn execute_job_streaming(
     &self,
     job_name: &str,
-) -> impl Stream<Item = ProcessOutput> {
-    ProcessExecutor::new("gcloud")
+) -> impl Iterator<Item = Stream<ShellDone, ShellPending>> {
+    ShellExecutor::new("gcloud")
         .args(["run", "jobs", "execute", job_name, "--wait"])
         .current_dir(&self.working_dir)
         .execute()
+        .expect("scheduling succeeded")
 }
 ```
 
@@ -843,7 +824,7 @@ impl DeploymentProvider for GcpCloudRunProvider {
         if image == "IMAGE_PLACEHOLDER" {
             // Build from Dockerfile
             let tag = format!("gcr.io/{}/{}", self.project_id_or_detect(), config.service_name());
-            let output = ProcessExecutor::new("docker")
+            let output = ShellExecutor::new("docker")
                 .args(["build", "-t", &tag, "."])
                 .current_dir(&self.working_dir)
                 .execute()?;
@@ -851,7 +832,7 @@ impl DeploymentProvider for GcpCloudRunProvider {
                 return Err(DeploymentError::BuildFailed(output.stderr));
             }
             // Push
-            ProcessExecutor::new("docker")
+            ShellExecutor::new("docker")
                 .args(["push", &tag])
                 .current_dir(&self.working_dir)
                 .execute()?;
@@ -874,15 +855,28 @@ impl DeploymentProvider for GcpCloudRunProvider {
     }
 
     fn logs(&self, config: &CloudRunServiceConfig, _env: Option<&str>) -> Result<(), DeploymentError> {
-        ProcessExecutor::new("gcloud")
+        use foundation_core::valtron::Stream;
+        use crate::core::shell::{ShellExecutor, ShellDone, ShellPending};
+
+        let stream = ShellExecutor::new("gcloud")
             .args(["run", "services", "logs", "read", config.service_name(), "--limit=100"])
             .current_dir(&self.working_dir)
-            .execute_streaming(|line| println!("{}", line))?;
+            .execute()
+            .expect("scheduling succeeded");
+
+        // Synchronous iteration - StreamIterator is a regular Iterator
+        for output in stream {
+            if let Stream::Next(ShellDone::Success { stdout, .. }) = output {
+                for line in stdout.lines() {
+                    println!("{}", line);
+                }
+            }
+        }
         Ok(())
     }
 
     fn destroy(&self, config: &CloudRunServiceConfig, _env: Option<&str>) -> Result<(), DeploymentError> {
-        ProcessExecutor::new("gcloud")
+        ShellExecutor::new("gcloud")
             .args(["run", "services", "delete", config.service_name(), "--quiet"])
             .current_dir(&self.working_dir)
             .execute()?;
@@ -919,7 +913,7 @@ impl GcpCloudRunProvider {
             })?;
 
         // gcloud run services replace service.yaml --region {region}
-        let mut cmd = ProcessExecutor::new("gcloud")
+        let mut cmd = ShellExecutor::new("gcloud")
             .args(["run", "services", "replace", "-"]) // Read from stdin
             .current_dir(&self.working_dir);
 
@@ -1023,7 +1017,7 @@ impl GcpCloudRunProvider {
         config: &CloudRunServiceConfig,
         env: Option<&str>,
     ) -> Result<DeploymentResult, DeploymentError> {
-        ProcessExecutor::new("gcloud")
+        ShellExecutor::new("gcloud")
             .args(["run", "jobs", "replace", "service.yaml"])
             .current_dir(&self.working_dir)
             .execute()?;
@@ -1034,7 +1028,7 @@ impl GcpCloudRunProvider {
         &self,
         config: &CloudRunServiceConfig,
     ) -> Result<(), DeploymentError> {
-        ProcessExecutor::new("gcloud")
+        ShellExecutor::new("gcloud")
             .args(["run", "jobs", "execute", config.service_name()])
             .current_dir(&self.working_dir)
             .execute()?;

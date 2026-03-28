@@ -896,3 +896,169 @@ where
     type D = O;
     type P = usize;
 }
+
+// ============================================================================
+// Sync boundary helpers
+// ============================================================================
+
+/// WHY: Callers need a way to drain a Valtron stream at sync boundaries
+/// without losing any `Next` values.
+///
+/// WHAT: Blocks the calling thread until the stream is exhausted, collecting
+/// every `Stream::Next(value)` into a `Vec<D>`. Non-`Next` items
+/// (`Pending`, `Delayed`, `Init`, `Ignore`) are consumed and discarded.
+///
+/// HOW: Uses `Iterator::filter_map` + `collect` on the stream.
+///
+/// Use this at **sync boundaries only** — never between composable stream
+/// operations where `StreamIteratorExt` combinators should be used instead.
+///
+/// # Examples
+///
+/// ```ignore
+/// // Launch work, collect at boundary
+/// let stream = execute(task, None)?;
+/// let results: Vec<MyValue> = collect_result(stream);
+/// ```
+pub fn collect_result<D, P>(stream: impl Iterator<Item = Stream<D, P>>) -> Vec<D> {
+    stream
+        .filter_map(|s| match s {
+            Stream::Next(v) => Some(v),
+            _ => None,
+        })
+        .collect()
+}
+
+/// WHY: Single-value operations (like `get`) produce one `Next` value. Callers
+/// want `Option<D>`, not `Vec<D>`.
+///
+/// WHAT: Blocks the calling thread until the first `Stream::Next(value)` is
+/// found, then returns it. Skips `Pending`, `Delayed`, `Init`, `Ignore`.
+/// Returns `None` if the stream exhausts without producing a `Next`.
+///
+/// HOW: Uses `Iterator::find_map` on the stream.
+///
+/// Use this at **sync boundaries only** for streams known to produce exactly
+/// one value. For multi-value streams, use `collect_result` instead.
+///
+/// # Examples
+///
+/// ```ignore
+/// let stream = execute(task, None)?;
+/// let value: Option<MyValue> = collect_one(stream);
+/// ```
+pub fn collect_one<D, P>(mut stream: impl Iterator<Item = Stream<D, P>>) -> Option<D> {
+    stream.find_map(|s| match s {
+        Stream::Next(v) => Some(v),
+        _ => None,
+    })
+}
+
+/// WHY: Many operations produce a single result. Callers want `Result<T>`,
+/// not `Result<Vec<T>>`.
+///
+/// WHAT: Schedules a `TaskIterator` on the Valtron executor, blocks until
+/// the first `Stream::Next` value, and returns it directly.
+///
+/// HOW: Calls `execute(task, None)` to schedule, then `collect_one` to
+/// extract the first result.
+///
+/// Use sparingly — prefer returning streams to callers. This is the
+/// single-value counterpart to `sync_one` (which returns `Vec`).
+///
+/// # Errors
+///
+/// Returns an error if the task could not be scheduled, or if the stream
+/// exhausted without producing any `Next` value.
+///
+/// # Examples
+///
+/// ```ignore
+/// let value: MyValue = sync_collect_one(my_task)?;
+/// ```
+pub fn sync_collect_one<T>(task: T) -> GenericResult<T::Ready>
+where
+    T: TaskIterator + Send + 'static,
+    T::Ready: Send + 'static,
+    T::Pending: Send + 'static,
+    T::Spawner: ExecutionAction + Send + 'static,
+{
+    let stream = execute(task, None)?;
+    collect_one(stream).ok_or_else(|| "sync_collect_one: stream produced no result".into())
+}
+
+/// WHY: Provides an ergonomic sync escape hatch for executing a single task
+/// and blocking until all results are collected.
+///
+/// WHAT: Schedules a `TaskIterator` on the Valtron executor via `execute()`,
+/// then drains the returned stream with `collect_result`.
+///
+/// HOW: Calls `execute(task, None)` to schedule, then `collect_result` to
+/// block and collect all `Stream::Next` values.
+///
+/// Use sparingly — prefer returning streams to callers so they can compose
+/// and parallelize. This is appropriate for one-shot initializations,
+/// migrations, or CLI tools where there is nothing to parallelize.
+///
+/// # Errors
+///
+/// Returns an error if the task could not be scheduled on the executor
+/// (e.g., pool not initialized).
+///
+/// # Examples
+///
+/// ```ignore
+/// let results: Vec<MyValue> = sync_one(my_task)?;
+/// ```
+pub fn sync_one<T>(task: T) -> GenericResult<Vec<T::Ready>>
+where
+    T: TaskIterator + Send + 'static,
+    T::Ready: Send + 'static,
+    T::Pending: Send + 'static,
+    T::Spawner: ExecutionAction + Send + 'static,
+{
+    let stream = execute(task, None)?;
+    Ok(collect_result(stream))
+}
+
+/// WHY: Enables parallel execution of multiple homogeneous tasks with a
+/// single blocking collection point.
+///
+/// WHAT: Schedules all tasks in parallel via `execute_collect_all`, then
+/// blocks until every task has produced its result.
+///
+/// HOW: `execute_collect_all` buffers results internally and yields a single
+/// `Stream::Next(Vec<T::Ready>)` when all tasks complete. We drain with
+/// `collect_result` and flatten into the final `Vec<T::Ready>`.
+///
+/// For heterogeneous tasks (different `Ready` types), call `execute()`
+/// on each individually — they still run in parallel on the pool — then
+/// `collect_result` each stream at the boundary.
+///
+/// # Errors
+///
+/// Returns an error if any task could not be scheduled on the executor.
+///
+/// # Examples
+///
+/// ```ignore
+/// let tasks = vec![task_a, task_b, task_c];
+/// let all_results: Vec<MyValue> = sync_all(tasks)?;
+/// ```
+pub fn sync_all<T>(tasks: Vec<T>) -> GenericResult<Vec<T::Ready>>
+where
+    T: TaskIterator + Send + 'static,
+    T::Ready: Send + 'static,
+    T::Pending: Send + 'static,
+    T::Spawner: ExecutionAction + Send + 'static,
+{
+    let mut stream = execute_collect_all(tasks, None)?;
+    // execute_collect_all yields Pending(count) while in flight, then a single
+    // Next(Vec<T::Ready>) when all complete. find_map skips Pending items.
+    stream
+        .find_map(|s| match s {
+            Stream::Next(v) => Some(v),
+            _ => None,
+        })
+        .ok_or_else(|| "sync_all: no results produced by execute_collect_all".into())
+}

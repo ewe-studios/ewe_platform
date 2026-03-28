@@ -10,7 +10,8 @@ use serde::{de::DeserializeOwned, Serialize};
 use zeroize::Zeroizing;
 
 use crate::errors::{StorageError, StorageResult};
-use crate::storage_provider::{DataValue, KeyValueStore, QueryStore, SqlRow, StorageItemStream};
+use crate::storage_provider::{DataValue, KeyValueStore, QueryStore, RateLimiterStore, SqlRow, StorageItemStream};
+use foundation_core::valtron::Stream;
 
 /// In-memory storage with zeroizing support for sensitive data.
 pub struct MemoryStorage {
@@ -34,22 +35,23 @@ impl Default for MemoryStorage {
 }
 
 impl KeyValueStore for MemoryStorage {
-    fn get<V: DeserializeOwned>(&self, key: &str) -> StorageResult<Option<V>> {
+    fn get<V: DeserializeOwned + Send>(&self, key: &str) -> StorageResult<StorageItemStream<'_, Option<V>>> {
         let data = self.data.lock().map_err(|e| {
             StorageError::Backend(format!("Mutex poisoned: {e}"))
         })?;
 
-        match data.get(key) {
+        let result = match data.get(key) {
             Some(bytes) => {
                 let value: V = serde_json::from_slice(bytes)
                     .map_err(|e| StorageError::Serialization(e.to_string()))?;
-                Ok(Some(value))
+                Some(value)
             }
-            None => Ok(None),
-        }
+            None => None,
+        };
+        Ok(Box::new(std::iter::once(Stream::Next(result))))
     }
 
-    fn set<V: Serialize>(&self, key: &str, value: V) -> StorageResult<()> {
+    fn set<V: Serialize>(&self, key: &str, value: V) -> StorageResult<StorageItemStream<'_, ()>> {
         let bytes = serde_json::to_vec(&value)
             .map_err(|e| StorageError::Serialization(e.to_string()))?;
 
@@ -57,24 +59,23 @@ impl KeyValueStore for MemoryStorage {
             StorageError::Backend(format!("Mutex poisoned: {e}"))
         })?;
 
-        // Use Zeroizing to ensure secure memory handling
         data.insert(key.to_string(), Zeroizing::new(bytes));
-        Ok(())
+        Ok(Box::new(std::iter::once(Stream::Next(()))))
     }
 
-    fn delete(&self, key: &str) -> StorageResult<()> {
+    fn delete(&self, key: &str) -> StorageResult<StorageItemStream<'_, ()>> {
         let mut data = self.data.lock().map_err(|e| {
             StorageError::Backend(format!("Mutex poisoned: {e}"))
         })?;
         data.remove(key);
-        Ok(())
+        Ok(Box::new(std::iter::once(Stream::Next(()))))
     }
 
-    fn exists(&self, key: &str) -> StorageResult<bool> {
+    fn exists(&self, key: &str) -> StorageResult<StorageItemStream<'_, bool>> {
         let data = self.data.lock().map_err(|e| {
             StorageError::Backend(format!("Mutex poisoned: {e}"))
         })?;
-        Ok(data.contains_key(key))
+        Ok(Box::new(std::iter::once(Stream::Next(data.contains_key(key)))))
     }
 
     fn list_keys(&self, prefix: Option<&str>) -> StorageResult<StorageItemStream<'_, String>> {
@@ -84,11 +85,11 @@ impl KeyValueStore for MemoryStorage {
 
         let keys: Vec<String> = data
             .keys()
-            .filter(|k| prefix.map_or(true, |p| k.starts_with(p)))
+            .filter(|k| prefix.is_none_or(|p| k.starts_with(p)))
             .cloned()
             .collect();
 
-        Ok(Box::new(keys.into_iter()))
+        Ok(Box::new(keys.into_iter().map(Stream::Next)))
     }
 }
 
@@ -101,56 +102,140 @@ impl QueryStore for MemoryStorage {
         ))
     }
 
-    fn execute(&self, _sql: &str, _params: &[DataValue]) -> StorageResult<u64> {
+    fn execute(&self, _sql: &str, _params: &[DataValue]) -> StorageResult<StorageItemStream<'_, u64>> {
         Err(StorageError::Generic(
             "QueryStore not supported for MemoryStorage".to_string(),
         ))
     }
 
-    fn execute_batch(&self, _sql: &str) -> StorageResult<()> {
+    fn execute_batch(&self, _sql: &str) -> StorageResult<StorageItemStream<'_, ()>> {
         Err(StorageError::Generic(
             "QueryStore not supported for MemoryStorage".to_string(),
         ))
     }
 }
 
+/// Rate limit entry for in-memory storage.
+#[derive(Serialize, serde::Deserialize)]
+struct RateLimitEntry {
+    count: u32,
+    window_start: u64,
+}
+
+/// In-memory implementation of [`RateLimiterStore`].
+impl RateLimiterStore for MemoryStorage {
+    fn check_rate_limit(
+        &self,
+        key: &str,
+        max_count: u32,
+        window_seconds: u64,
+    ) -> StorageResult<StorageItemStream<'_, bool>> {
+        let now = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .unwrap()
+            .as_secs();
+
+        let data = self.data.lock().map_err(|e| {
+            StorageError::Backend(format!("Mutex poisoned: {e}"))
+        })?;
+
+        let rate_key = format!("_rate_limit:{key}");
+        let allowed = match data.get(&rate_key) {
+            Some(bytes) => {
+                let entry: RateLimitEntry = serde_json::from_slice(bytes)
+                    .map_err(|e| StorageError::Serialization(e.to_string()))?;
+
+                if entry.window_start < now - window_seconds {
+                    true
+                } else {
+                    entry.count < max_count
+                }
+            }
+            None => true,
+        };
+        Ok(Box::new(std::iter::once(Stream::Next(allowed))))
+    }
+
+    fn record_rate_limit(&self, key: &str) -> StorageResult<StorageItemStream<'_, u32>> {
+        let now = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .unwrap()
+            .as_secs();
+
+        let rate_key = format!("_rate_limit:{key}");
+        let mut data = self.data.lock().map_err(|e| {
+            StorageError::Backend(format!("Mutex poisoned: {e}"))
+        })?;
+
+        let new_count = if let Some(bytes) = data.get(&rate_key) {
+            let mut entry: RateLimitEntry = serde_json::from_slice(bytes)
+                .map_err(|e| StorageError::Serialization(e.to_string()))?;
+            entry.count += 1;
+            entry.window_start = now;
+            data.insert(rate_key.clone(), Zeroizing::new(serde_json::to_vec(&entry)
+                .map_err(|e| StorageError::Serialization(e.to_string()))?));
+            entry.count
+        } else {
+            let entry = RateLimitEntry {
+                count: 1,
+                window_start: now,
+            };
+            data.insert(rate_key.clone(), Zeroizing::new(serde_json::to_vec(&entry)
+                .map_err(|e| StorageError::Serialization(e.to_string()))?));
+            1
+        };
+
+        Ok(Box::new(std::iter::once(Stream::Next(new_count))))
+    }
+
+    fn reset_rate_limit(&self, key: &str) -> StorageResult<StorageItemStream<'_, ()>> {
+        let rate_key = format!("_rate_limit:{key}");
+        let mut data = self.data.lock().map_err(|e| {
+            StorageError::Backend(format!("Mutex poisoned: {e}"))
+        })?;
+        data.remove(&rate_key);
+        Ok(Box::new(std::iter::once(Stream::Next(()))))
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+    use foundation_core::valtron::{collect_one, collect_result};
 
     #[test]
     fn test_memory_storage_basic() {
         let storage = MemoryStorage::new();
 
         // Test set and get
-        storage.set("test_key", "test_value").unwrap();
+        collect_one(storage.set("test_key", "test_value").unwrap()).unwrap();
 
-        let value: String = storage.get("test_key").unwrap().unwrap();
-        assert_eq!(value, "test_value");
+        let value: Option<String> = collect_one(storage.get("test_key").unwrap()).unwrap();
+        assert_eq!(value, Some("test_value".to_string()));
 
         // Test exists
-        assert!(storage.exists("test_key").unwrap());
-        assert!(!storage.exists("nonexistent").unwrap());
+        assert!(collect_one(storage.exists("test_key").unwrap()).unwrap());
+        assert!(!collect_one(storage.exists("nonexistent").unwrap()).unwrap());
 
         // Test delete
-        storage.delete("test_key").unwrap();
-        assert!(!storage.exists("test_key").unwrap());
+        collect_one(storage.delete("test_key").unwrap()).unwrap();
+        assert!(!collect_one(storage.exists("test_key").unwrap()).unwrap());
     }
 
     #[test]
     fn test_memory_storage_list_keys() {
         let storage = MemoryStorage::new();
 
-        storage.set("prefix:key1", "value1").unwrap();
-        storage.set("prefix:key2", "value2").unwrap();
-        storage.set("other:key3", "value3").unwrap();
+        collect_one(storage.set("prefix:key1", "value1").unwrap()).unwrap();
+        collect_one(storage.set("prefix:key2", "value2").unwrap()).unwrap();
+        collect_one(storage.set("other:key3", "value3").unwrap()).unwrap();
 
         // List all keys
-        let keys: Vec<String> = storage.list_keys(None).unwrap().collect();
+        let keys = collect_result(storage.list_keys(None).unwrap());
         assert_eq!(keys.len(), 3);
 
         // List keys with prefix
-        let keys: Vec<String> = storage.list_keys(Some("prefix:")).unwrap().collect();
+        let keys = collect_result(storage.list_keys(Some("prefix:")).unwrap());
         assert_eq!(keys.len(), 2);
         assert!(keys.contains(&"prefix:key1".to_string()));
         assert!(keys.contains(&"prefix:key2".to_string()));
@@ -171,9 +256,9 @@ mod tests {
             count: 42,
         };
 
-        storage.set("complex", &data).unwrap();
+        collect_one(storage.set("complex", &data).unwrap()).unwrap();
 
-        let retrieved: TestData = storage.get("complex").unwrap().unwrap();
-        assert_eq!(data, retrieved);
+        let retrieved: Option<TestData> = collect_one(storage.get("complex").unwrap()).unwrap();
+        assert_eq!(retrieved, Some(data));
     }
 }

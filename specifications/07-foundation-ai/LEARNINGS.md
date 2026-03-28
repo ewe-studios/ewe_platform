@@ -183,6 +183,120 @@ if let Err(e) = self.queue.force_push(item) {
 - Simple `impl std::error::Error for ... {}`
 - `pub type FooResult<T> = Result<T, FooError>;`
 
+## Wrapping Async Libraries with `from_future` + `execute` (Learned from Feature 00a)
+
+**Discovery:** Many Rust crates (Turso, libsql, hf-hub, HTTP clients) only expose async APIs. Valtron's `from_future` bridges these into the Valtron executor without needing tokio.
+
+**IMPORTANT:** Read `.agents/skills/rust-valtron-usage/skill.md` for the full guidance on when and how to use these patterns.
+
+### Primary Pattern: Return Streams (Non-Blocking)
+
+Methods that perform I/O should schedule work via `execute()` and **return the stream** to the caller. This preserves composability and enables parallelism:
+
+```rust
+fn get<V: DeserializeOwned + Send + 'static>(
+    &self, key: &str,
+) -> StorageResult<impl Iterator<Item = Stream<Option<V>, ()>>> {
+    let key = key.to_string();
+    let conn = Arc::clone(&self.conn);
+    let task = from_future(async move {
+        // ... async DB work, collect results inside async block ...
+        Ok::<_, BackendError>(result)
+    });
+    let stream = execute(task, None)
+        .map_err(|e| StorageError::Backend(format!("Valtron scheduling failed: {e}")))?;
+    Ok(stream)
+}
+```
+
+Callers collect at boundaries using `collect_result()`, `sync_one()`, or standard `Iterator` methods.
+
+### Sync Boundary Helpers (Available in Valtron)
+
+These are real functions in `foundation_core::valtron`:
+
+- **`collect_result(stream)`** — Drains a stream, collects all `Next` values into `Vec<D>`. Use at sync boundaries only.
+- **`sync_one(task)`** — Execute a single task, block until complete. Escape hatch — use sparingly.
+- **`sync_all(tasks)`** — Execute multiple tasks in parallel, block until all complete.
+
+### Legacy Pattern: `exec_future` (Blocking — Use Sparingly)
+
+The `exec_future` helper wraps a future and blocks immediately. This turns async into sync at the leaf and **prevents parallelism**. Use only for one-shot initialization or migrations:
+
+```rust
+pub fn exec_future<T, E, F>(future: F) -> Result<T, YourError> { /* ... */ }
+```
+
+### Critical Constraint: `Send + 'static`
+
+All data captured by the async block must be `Send + 'static`:
+- Convert `&str` to `String` before the async block
+- Clone `Arc<T>` before moving into the async block
+- The future itself must be `Send + 'static`
+
+### Critical Constraint: `!Send` Iterators
+
+Many database crates return row iterators that are `!Send`. These **cannot cross the Valtron execution boundary**. All iteration must happen inside the async block, collecting into `Vec<T>` before returning.
+
+```rust
+// CORRECT: Collect inside async, return Vec
+let rows: Vec<MyRow> = exec_future(async move {
+    let mut rows = stmt.query([]).await?;
+    let mut result = Vec::new();
+    while let Some(row) = rows.next().await? {
+        result.push(convert_row(&row)?);
+    }
+    Ok::<_, BackendError>(result)
+})?;
+
+// WRONG: Cannot return !Send row iterators from exec_future
+```
+
+### When Valtron Is NOT Needed
+
+Purely synchronous/CPU-bound operations do NOT need Valtron wrapping:
+- In-memory storage (HashMap + Mutex)
+- Password hashing (Argon2id)
+- Token signing/verification (JWT, HMAC)
+- PKCE code generation
+- Tokenization and model inference (llama.cpp, Candle)
+
+Only use `from_future`/`exec_future` for genuinely async I/O: database queries, HTTP requests, file downloads.
+
+### Three-Level Error Handling
+
+Every `exec_future` call handles errors at three distinct levels:
+1. **Valtron execution failure** — `execute()` itself fails (pool not initialized, runtime error)
+2. **Empty stream** — Future ran but produced no `Stream::Next` item
+3. **Backend error** — The future's `Result` was `Err` (SQL error, HTTP error, etc.)
+
+### Multi-Value Returns: `StorageItemStream`
+
+For operations returning multiple items, collect into `Vec<T>` then wrap:
+
+```rust
+type ItemStream<'a, T> = Box<dyn Iterator<Item = Stream<T, ()>> + Send + 'a>;
+
+// After exec_future collects Vec<T>:
+Ok(Box::new(results.into_iter().map(Stream::Next)))
+
+// Consumer side:
+let items: Vec<T> = stream
+    .filter_map(|s| match s { Stream::Next(v) => Some(v), _ => None })
+    .collect();
+```
+
+### Turbo-fish for Async Block Error Types
+
+When the compiler can't infer the error type in an async block, annotate explicitly:
+
+```rust
+exec_future(async move {
+    conn.execute_batch(&sql).await?;
+    Ok::<_, turso::Error>(true)  // Turbo-fish needed
+})?;
+```
+
 ## Key Takeaways
 
 1. **TaskIterator is Input, StreamIterator is Output** - `execute()` takes TaskIterator, returns StreamIterator
@@ -194,7 +308,10 @@ if let Err(e) = self.queue.force_push(item) {
 7. **Queue Closing** - Use `ConcurrentQueue::close()` on natural completion, not just in Drop
 8. **Use #[traced_test]** - Invaluable for debugging async iterator behavior
 9. **Heterogeneous Closures** - Cannot use `execute_collect_all()` for heterogeneous tasks; execute each individually
+10. **`from_future` bridges async crates** - Any async-only library can be used via `from_future` + `execute` without tokio
+11. **Collect !Send types inside async blocks** - Database row iterators are typically `!Send` and must be consumed before crossing the Valtron boundary
+12. **Sync code stays sync** - CPU-bound operations (hashing, signing, inference) should NOT be wrapped in Valtron
 
 ---
 
-_Last Updated: 2026-03-28 (Iron laws: no tokio/async-trait, Turso sync backend, derive_more::From error convention)_
+_Last Updated: 2026-03-28 (Added: from_future/exec_future patterns from foundation_db implementation)_
