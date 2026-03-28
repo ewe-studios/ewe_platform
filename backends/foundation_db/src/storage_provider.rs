@@ -73,9 +73,13 @@ impl SqlRow {
     }
 }
 
-/// Trait for extracting typed values from DataValue.
+/// Trait for extracting typed values from [`DataValue`].
 pub trait FromDataValue: Sized {
-    /// Convert from a DataValue.
+    /// Convert from a [`DataValue`].
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the conversion fails.
     fn from_data_value(value: &DataValue) -> StorageResult<Self>;
 }
 
@@ -238,8 +242,10 @@ pub struct StorageProvider {
 
 enum StorageProviderInner {
     Turso(Box<TursoStorage>),
-    D1,      // TODO: Implement D1 backend
-    R2,      // TODO: Implement R2 backend
+    #[allow(dead_code)] // TODO: Implement D1 backend
+    D1,
+    #[allow(dead_code)] // TODO: Implement R2 backend
+    R2,
     Memory(MemoryStorage),
 }
 
