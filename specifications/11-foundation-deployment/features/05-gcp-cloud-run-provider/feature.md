@@ -492,6 +492,136 @@ fn main() {
 }
 ```
 
+## Streaming Deployment with ProcessOutput
+
+The provider uses `ProcessExecutor::execute()` which returns a `StreamExecutor<ProcessOutput>`. The associated type `ProcessOutput` defines what the StreamIterator yields.
+
+```rust
+// providers/gcp/mod.rs - Streaming deployment example
+
+use foundation_core::valtron::StreamIteratorExt;
+use crate::core::process::{ProcessExecutor, ProcessOutput};
+
+impl GcpCloudRunProvider {
+    /// Deploy with streaming progress.
+    /// Returns StreamExecutor<ProcessOutput> where ProcessOutput is the associated type.
+    pub fn deploy_streaming(
+        &self,
+        config: &CloudRunServiceConfig,
+        env: Option<&str>,
+    ) -> impl Stream<Item = ProcessOutput> {
+        if config.is_job() {
+            // Deploy Cloud Run Job
+            ProcessExecutor::new("gcloud")
+                .args(["run", "jobs", "deploy", config.service_name()])
+                .current_dir(&self.working_dir)
+                .execute()
+        } else {
+            // Deploy Cloud Run Service
+            ProcessExecutor::new("gcloud")
+                .args(["run", "services", "deploy", config.service_name()])
+                .current_dir(&self.working_dir)
+                .execute()
+        }
+    }
+}
+
+// Example consumer code:
+let stream = provider.deploy_streaming(&config, Some("production"));
+
+for await output in stream.into_stream_iter() {
+    match output {
+        // Pending states
+        ProcessOutput::Spawning => {
+            println!("Spawning gcloud process...");
+        }
+        ProcessOutput::Running { pid } => {
+            println!("gcloud running (PID: {})", pid);
+        }
+        ProcessOutput::ResourceCreating { resource_type, resource_name } => {
+            // "Creating Cloud Run Service 'my-service'..."
+            println!("Creating {}: {}", resource_type, resource_name);
+        }
+        ProcessOutput::Verifying { check } => {
+            // "Checking traffic..."
+            println!("Verifying: {}", check);
+        }
+
+        // Next states (completed items)
+        ProcessOutput::ResourceCreated { resource_type, name, id, metadata } => {
+            // Service created successfully
+            println!("Created {} '{}' with URL: {}", resource_type, name, id);
+            state_store.set("last_deployment", &metadata).await?;
+        }
+        ProcessOutput::StdoutLine { line } => {
+            println!("> {}", line);
+        }
+        ProcessOutput::ProcessExited { exit_code, success, .. } => {
+            if success {
+                println!("Deployment completed successfully!");
+            } else {
+                eprintln!("Deployment failed with exit code: {:?}", exit_code);
+            }
+            break;  // Stream ends
+        }
+        ProcessOutput::Error { message, .. } => {
+            eprintln!("Error: {}", message);
+            break;
+        }
+        _ => {}
+    }
+}
+```
+
+### ProcessOutput States for GCP Cloud Run
+
+| State Type | Variant | Description |
+|------------|---------|-------------|
+| **Pending** | `Spawning` | Starting gcloud process |
+| **Pending** | `Running { pid }` | gcloud is running |
+| **Pending** | `ResourceCreating { type, name }` | Creating Service/Job |
+| **Pending** | `ResourceUpdating { type, name }` | Updating existing resource |
+| **Pending** | `Verifying { check }` | Traffic/health verification |
+| **Next** | `ResourceCreated { type, name, id, metadata }` | Service/Job created |
+| **Next** | `ResourceUpdated { type, name, revision }` | Revision deployed |
+| **Next** | `StdoutLine { line }` | Output line from gcloud |
+| **Next** | `StderrLine { line }` | Error line from gcloud |
+| **Next** | `ProcessExited { exit_code, success, ... }` | Process finished |
+| **Next** | `Error { message, source }` | Error occurred |
+
+### Job vs Service Deployment
+
+The provider handles both Cloud Run Services and Jobs:
+
+```rust
+match config.kind.as_str() {
+    "Service" => {
+        // Long-running HTTP service
+        // Streams: ResourceCreating(Service) -> ResourceCreated -> Verifying -> ProcessExited
+    }
+    "Job" => {
+        // Batch/scheduled job
+        // Streams: ResourceCreating(Job) -> ResourceCreated -> ProcessExited
+        // Note: Job execution is separate from job deployment
+    }
+    _ => unreachable!()
+}
+```
+
+For Job executions (running a job, not deploying):
+
+```rust
+pub fn execute_job_streaming(
+    &self,
+    job_name: &str,
+) -> impl Stream<Item = ProcessOutput> {
+    ProcessExecutor::new("gcloud")
+        .args(["run", "jobs", "execute", job_name, "--wait"])
+        .current_dir(&self.working_dir)
+        .execute()
+}
+```
+
 ## Requirements
 
 ### service.yaml Config Parsing
