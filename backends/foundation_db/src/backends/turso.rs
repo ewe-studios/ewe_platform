@@ -19,6 +19,10 @@ pub struct TursoStorage {
 
 impl TursoStorage {
     /// Create a new Turso storage connection.
+    ///
+    /// # Errors
+    ///
+    /// Returns a `StorageError` if the database connection fails.
     pub fn new(url: &str) -> StorageResult<Self> {
         // Turso uses Builder pattern: Builder::new_local(path).build()
         let db = block_on(async {
@@ -29,8 +33,12 @@ impl TursoStorage {
     }
 
     /// Initialize the database schema.
+    ///
+    /// # Errors
+    ///
+    /// Returns a `StorageError` if schema creation fails.
     pub fn init_schema(&self) -> StorageResult<()> {
-        let schema_sql = r#"
+        let schema_sql = r"
             CREATE TABLE IF NOT EXISTS kv_store (
                 key TEXT PRIMARY KEY,
                 value TEXT NOT NULL,
@@ -45,13 +53,17 @@ impl TursoStorage {
                 name TEXT NOT NULL,
                 applied_at INTEGER DEFAULT (strftime('%s', 'now') * 1000)
             );
-        "#;
+        ";
 
         block_on(async { self.conn.execute_batch(schema_sql).await })?;
         Ok(())
     }
 
     /// Run database migrations.
+    ///
+    /// # Errors
+    ///
+    /// Returns a `StorageError` if migration execution fails.
     pub fn migrate(&self, migrations: &[(&str, &str)]) -> StorageResult<()> {
         // Create migrations table if it doesn't exist
         block_on(async {
@@ -99,12 +111,12 @@ impl TursoStorage {
         Ok(())
     }
 
-    /// Convert crate-owned DataValue slice to turso::Value Vec.
+    /// Convert crate-owned [`DataValue`] slice to `turso::Value` Vec.
     fn to_turso_params(params: &[DataValue]) -> Vec<turso::Value> {
         params.iter().map(Self::data_value_to_turso).collect()
     }
 
-    /// Convert a single DataValue to turso::Value.
+    /// Convert a single [`DataValue`] to `turso::Value`.
     fn data_value_to_turso(value: &DataValue) -> turso::Value {
         match value {
             DataValue::Null => turso::Value::Null,
@@ -115,7 +127,7 @@ impl TursoStorage {
         }
     }
 
-    /// Convert turso::Row to crate-owned SqlRow.
+    /// Convert `turso::Row` to crate-owned [`SqlRow`].
     fn turso_row_to_sql_row(row: &turso::Row) -> StorageResult<SqlRow> {
         let column_count = row.column_count();
         let mut columns = Vec::with_capacity(column_count);
@@ -129,7 +141,7 @@ impl TursoStorage {
         Ok(SqlRow::new(columns))
     }
 
-    /// Convert turso::Value to crate-owned DataValue.
+    /// Convert `turso::Value` to crate-owned [`DataValue`].
     fn turso_value_to_data_value(value: turso::Value) -> StorageResult<DataValue> {
         Ok(match value {
             turso::Value::Null => DataValue::Null,

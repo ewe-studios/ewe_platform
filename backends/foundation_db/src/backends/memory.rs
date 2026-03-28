@@ -19,6 +19,7 @@ pub struct MemoryStorage {
 
 impl MemoryStorage {
     /// Create a new in-memory storage instance.
+    #[must_use]
     pub fn new() -> Self {
         Self {
             data: Arc::new(Mutex::new(HashMap::new())),
@@ -83,11 +84,7 @@ impl KeyValueStore for MemoryStorage {
 
         let keys: Vec<String> = data
             .keys()
-            .filter(|k| {
-                prefix
-                    .map(|p| k.starts_with(p))
-                    .unwrap_or(true)
-            })
+            .filter(|k| prefix.map_or(true, |p| k.starts_with(p)))
             .cloned()
             .collect();
 
@@ -95,7 +92,7 @@ impl KeyValueStore for MemoryStorage {
     }
 }
 
-/// In-memory implementation of QueryStore for testing.
+/// In-memory implementation of [`QueryStore`] for testing.
 /// Note: This is a simplified implementation for testing purposes.
 impl QueryStore for MemoryStorage {
     fn query(&self, _sql: &str, _params: &[DataValue]) -> StorageResult<StorageItemStream<'_, SqlRow>> {

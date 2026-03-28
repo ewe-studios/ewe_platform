@@ -85,6 +85,7 @@ pub fn run_until_next_acceptable_state<T>(checker: T)
 where
     T: Fn(&State) -> bool,
 {
+    #[cfg_attr(not(feature = "multi"), allow(unused_variables))]
     run_until(|indicator: ProgressIndicator| {
         if let ProgressIndicator::CanProgress(Some(state)) = indicator {
             if checker(&state) {
@@ -143,7 +144,7 @@ pub fn run_until_ready_state() {
 #[tracing::instrument(skip(stream, checker))]
 pub fn run_until_receiver_has_value<T, S>(
     stream: RecvIterator<TaskStatus<T::Ready, T::Pending, T::Spawner>>,
-    checker: S,
+    #[allow(unused_variables)] checker: S,
 ) -> RecvIterator<TaskStatus<T::Ready, T::Pending, T::Spawner>>
 where
     S: Fn(ProgressIndicator) -> bool,
@@ -182,7 +183,7 @@ where
 #[tracing::instrument(skip(stream, checker))]
 pub fn run_until_stream_has_value<T, S>(
     stream: StreamRecvIterator<T::Ready, T::Pending>,
-    checker: S,
+    #[allow(unused_variables)] checker: S,
 ) -> StreamRecvIterator<T::Ready, T::Pending>
 where
     S: Fn(ProgressIndicator) -> bool,
@@ -219,7 +220,7 @@ where
 ///
 /// This really only apply for single threaded situations (multi=off feature flag) and wasm context.
 #[tracing::instrument(skip(checker))]
-pub fn run_until<T>(checker: T)
+pub fn run_until<T>(#[allow(unused_variables)] checker: T)
 where
     T: Fn(ProgressIndicator) -> bool,
 {

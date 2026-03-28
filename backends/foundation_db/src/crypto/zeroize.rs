@@ -67,9 +67,6 @@ impl<T: Zeroize + Clone + core::fmt::Debug> core::fmt::Debug for ZeroizingSecret
     }
 }
 
-/// Type alias for zeroizing byte vectors.
-pub type ZeroizingBytes = ZeroizingSecret<Vec<u8>>;
-
 /// Type alias for zeroizing strings.
 pub type ZeroizingString = ZeroizingSecret<String>;
 
