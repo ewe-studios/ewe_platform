@@ -8,6 +8,10 @@ created: 2026-03-16
 
 # Start: llama.cpp Integration Feature
 
+## Required Reading (Before Implementation)
+
+1. **Read `.agents/skills/rust-valtron-usage/skill.md`** — Valtron execution model. Most llama.cpp ops are synchronous FFI — Valtron is only needed for `StreamIterator` streaming. Understand when NOT to use Valtron.
+
 ## Agent Workflow
 
 1. Read `feature.md` (detailed requirements + tasks)

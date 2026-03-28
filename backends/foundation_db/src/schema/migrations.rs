@@ -1,6 +1,6 @@
-//! Database migrations for foundation_db.
+//! Database migrations for `foundation_db`.
 //!
-//! Migration runner uses synchronous QueryStore trait with DataValue params.
+//! Migration runner uses synchronous [`QueryStore`] trait with [`DataValue`] params.
 
 use crate::storage_provider::{DataValue, QueryStore};
 use crate::errors::StorageResult;
@@ -98,11 +98,16 @@ pub struct MigrationRunner<'a> {
 
 impl<'a> MigrationRunner<'a> {
     /// Create a new migration runner.
+    #[must_use]
     pub fn new(migrations: &'a [Migration]) -> Self {
         Self { migrations }
     }
 
     /// Run all pending migrations.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if any migration SQL statement fails.
     pub fn run(&self, store: &dyn QueryStore) -> StorageResult<usize> {
         let mut count = 0;
 

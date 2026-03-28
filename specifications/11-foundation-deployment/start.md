@@ -86,7 +86,7 @@ See: `features/04-cloudflare-provider/feature.md`
 | `foundation_core::simple_http::client::SimpleHttpClient` | API clients for all providers |
 | `foundation_core::valtron` | Deployment state machine, async execution |
 | `ewe_temple` | Template generation system |
-| `rusqlite` / `libsql` | SQLite/Turso state store |
+| `libsql` | SQLite/Turso state stores (all backends use libsql) |
 | `mise` | Tooling and task management |
 
 ## Iron Law: Zero Warnings

@@ -8,6 +8,10 @@ created: 2026-03-17
 
 # Start: Candle Integration Feature
 
+## Required Reading (Before Implementation)
+
+1. **Read `.agents/skills/rust-valtron-usage/skill.md`** — Valtron execution model. Most Candle ops are synchronous Rust — Valtron is only needed for `StreamIterator` streaming and possibly model downloads. Understand when NOT to use Valtron.
+
 ## Agent Workflow
 
 1. Read `feature.md` (detailed requirements + tasks)

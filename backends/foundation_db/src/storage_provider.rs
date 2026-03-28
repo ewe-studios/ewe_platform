@@ -1,17 +1,27 @@
 //! Core storage provider traits and abstractions.
 //!
-//! All storage traits are synchronous. Multi-value operations return
-//! `StorageItemStream` (a Valtron Stream-based lazy iterator) instead
-//! of allocating Vecs. Single-value operations return `StorageResult<T>` directly.
+//! All storage operations return `StorageItemStream` (a Valtron Stream-based
+//! lazy iterator) wrapped in `StorageResult`. Single-value operations yield
+//! exactly one `Stream::Next` item; multi-value operations yield many.
+//!
+//! Callers collect at sync boundaries using Valtron helpers:
+//! - `collect_one(stream)` — extract first `Next` value
+//! - `collect_result(stream)` — drain all `Next` values into `Vec<T>`
 
 use serde::{de::DeserializeOwned, Serialize};
 
-use crate::backends::{MemoryStorage, TursoStorage};
+use crate::backends::MemoryStorage;
+use crate::backends::JsonFileStorage;
+#[cfg(feature = "turso")]
+use crate::backends::TursoStorage;
+#[cfg(feature = "libsql")]
+use crate::backends::LibsqlStorage;
 use crate::errors::StorageResult;
+use foundation_core::valtron::Stream;
 
 /// Type alias for streamed storage items.
 /// This is a Valtron Stream-based lazy iterator that yields items one at a time.
-pub type StorageItemStream<'a, T> = Box<dyn Iterator<Item = T> + Send + 'a>;
+pub type StorageItemStream<'a, T> = Box<dyn Iterator<Item = Stream<T, ()>> + Send + 'a>;
 
 /// A single SQL parameter value (crate-owned, backend-agnostic).
 #[derive(Debug, Clone)]
@@ -35,35 +45,43 @@ pub struct SqlRow {
 }
 
 impl SqlRow {
-    /// Create a new SqlRow from column data.
+    /// Create a new [`SqlRow`] from column data.
     #[must_use]
     pub fn new(columns: Vec<(String, DataValue)>) -> Self {
         Self { columns }
     }
 
     /// Get a value by column index.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the column index is out of bounds or conversion fails.
     pub fn get<T: FromDataValue>(&self, index: usize) -> StorageResult<T> {
         self.columns
             .get(index)
-            .map(|(_, v)| T::from_data_value(v))
-            .unwrap_or_else(|| {
-                Err(crate::errors::StorageError::SqlConversion(format!(
+            .ok_or_else(|| {
+                crate::errors::StorageError::SqlConversion(format!(
                     "Column index {index} out of bounds"
-                )))
+                ))
             })
+            .and_then(|(_, v)| T::from_data_value(v))
     }
 
     /// Get a value by column name.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the column name is not found or conversion fails.
     pub fn get_by_name<T: FromDataValue>(&self, name: &str) -> StorageResult<T> {
         self.columns
             .iter()
             .find(|(col_name, _)| col_name == name)
-            .map(|(_, v)| T::from_data_value(v))
-            .unwrap_or_else(|| {
-                Err(crate::errors::StorageError::SqlConversion(format!(
+            .ok_or_else(|| {
+                crate::errors::StorageError::SqlConversion(format!(
                     "Column '{name}' not found"
-                )))
+                ))
             })
+            .and_then(|(_, v)| T::from_data_value(v))
     }
 
     /// Get the number of columns in this row.
@@ -110,7 +128,11 @@ impl FromDataValue for i64 {
 impl FromDataValue for i32 {
     fn from_data_value(value: &DataValue) -> StorageResult<Self> {
         match value {
-            DataValue::Integer(i) => Ok(*i as i32),
+            DataValue::Integer(i) => {
+                // Allow truncation - caller is responsible for ensuring value fits
+                #[allow(clippy::cast_possible_truncation)]
+                return Ok(*i as i32);
+            }
             DataValue::Null => Ok(0),
             _ => Err(crate::errors::StorageError::SqlConversion(
                 "Cannot convert to i32".to_string(),
@@ -157,80 +179,148 @@ impl FromDataValue for bool {
 
 /// Key-value store operations available on all backends.
 ///
-/// All methods are synchronous. Multi-value operations return
-/// `StorageItemStream` for lazy iteration.
+/// All methods return `StorageItemStream` for composable, non-blocking I/O.
+/// Single-value operations yield exactly one `Stream::Next` item.
+/// Use `collect_one` / `collect_result` at sync boundaries to extract values.
 pub trait KeyValueStore: Send + Sync {
-    /// Get a value by key.
-    fn get<V: DeserializeOwned>(&self, key: &str) -> StorageResult<Option<V>>;
+    /// Get a value by key. Yields one `Next(Option<V>)`.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if scheduling fails or deserialization fails.
+    fn get<V: DeserializeOwned + Send>(&self, key: &str) -> StorageResult<StorageItemStream<'_, Option<V>>>;
 
-    /// Set a key-value pair.
-    fn set<V: Serialize>(&self, key: &str, value: V) -> StorageResult<()>;
+    /// Set a key-value pair. Yields one `Next(())`.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if serialization or scheduling fails.
+    fn set<V: Serialize>(&self, key: &str, value: V) -> StorageResult<StorageItemStream<'_, ()>>;
 
-    /// Delete a key.
-    fn delete(&self, key: &str) -> StorageResult<()>;
+    /// Delete a key. Yields one `Next(())`.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the backend encounters an error.
+    fn delete(&self, key: &str) -> StorageResult<StorageItemStream<'_, ()>>;
 
-    /// Check if a key exists.
-    fn exists(&self, key: &str) -> StorageResult<bool>;
+    /// Check if a key exists. Yields one `Next(bool)`.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the backend encounters an error.
+    fn exists(&self, key: &str) -> StorageResult<StorageItemStream<'_, bool>>;
 
     /// List all keys with optional prefix filter.
-    /// Returns a stream for lazy iteration over keys.
+    /// Yields multiple `Next(String)` items.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the backend encounters an error.
     fn list_keys(&self, prefix: Option<&str>) -> StorageResult<StorageItemStream<'_, String>>;
 }
 
 /// Blob storage operations for binary large objects.
 pub trait BlobStore: Send + Sync {
-    /// Put a blob into storage.
-    fn put_blob(&self, key: &str, data: &[u8]) -> StorageResult<()>;
+    /// Put a blob into storage. Yields one `Next(())`.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the backend encounters an error.
+    fn put_blob(&self, key: &str, data: &[u8]) -> StorageResult<StorageItemStream<'_, ()>>;
 
-    /// Get a blob from storage.
-    fn get_blob(&self, key: &str) -> StorageResult<Option<Vec<u8>>>;
+    /// Get a blob from storage. Yields one `Next(Option<Vec<u8>>)`.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the backend encounters an error.
+    fn get_blob(&self, key: &str) -> StorageResult<StorageItemStream<'_, Option<Vec<u8>>>>;
 
-    /// Delete a blob.
-    fn delete_blob(&self, key: &str) -> StorageResult<()>;
+    /// Delete a blob. Yields one `Next(())`.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the backend encounters an error.
+    fn delete_blob(&self, key: &str) -> StorageResult<StorageItemStream<'_, ()>>;
 
-    /// Check if a blob exists.
-    fn blob_exists(&self, key: &str) -> StorageResult<bool>;
+    /// Check if a blob exists. Yields one `Next(bool)`.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the backend encounters an error.
+    fn blob_exists(&self, key: &str) -> StorageResult<StorageItemStream<'_, bool>>;
 }
 
 /// SQL query operations for relational backends (Turso, D1).
 pub trait QueryStore: Send + Sync {
     /// Execute a query that returns rows.
-    /// Returns a stream for lazy iteration over rows.
+    /// Yields multiple `Next(SqlRow)` items.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the query fails or parameter conversion fails.
     fn query(&self, sql: &str, params: &[DataValue]) -> StorageResult<StorageItemStream<'_, SqlRow>>;
 
     /// Execute a statement that returns number of rows affected.
-    fn execute(&self, sql: &str, params: &[DataValue]) -> StorageResult<u64>;
+    /// Yields one `Next(u64)`.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the statement fails or parameter conversion fails.
+    fn execute(&self, sql: &str, params: &[DataValue]) -> StorageResult<StorageItemStream<'_, u64>>;
 
-    /// Execute a batch of SQL statements.
-    fn execute_batch(&self, sql: &str) -> StorageResult<()>;
+    /// Execute a batch of SQL statements. Yields one `Next(())`.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if any statement in the batch fails.
+    fn execute_batch(&self, sql: &str) -> StorageResult<StorageItemStream<'_, ()>>;
 }
 
 /// Rate limiting operations.
 pub trait RateLimiterStore: Send + Sync {
-    /// Check if a rate limit key is allowed.
+    /// Check if a rate limit key is allowed. Yields one `Next(bool)`.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the backend encounters an error.
     fn check_rate_limit(
         &self,
         key: &str,
         max_count: u32,
         window_seconds: u64,
-    ) -> StorageResult<bool>;
+    ) -> StorageResult<StorageItemStream<'_, bool>>;
 
-    /// Record a rate-limited action.
-    fn record_rate_limit(&self, key: &str) -> StorageResult<u32>;
+    /// Record a rate-limited action. Yields one `Next(u32)`.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the backend encounters an error.
+    fn record_rate_limit(&self, key: &str) -> StorageResult<StorageItemStream<'_, u32>>;
 
-    /// Reset a rate limit key.
-    fn reset_rate_limit(&self, key: &str) -> StorageResult<()>;
+    /// Reset a rate limit key. Yields one `Next(())`.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the backend encounters an error.
+    fn reset_rate_limit(&self, key: &str) -> StorageResult<StorageItemStream<'_, ()>>;
 }
 
 /// Storage backend enumeration for runtime selection.
 #[derive(Debug, Clone)]
 pub enum StorageBackend {
     /// Turso backend with database URL.
+    #[cfg(feature = "turso")]
     Turso { url: String },
+    /// libsql backend with database URL.
+    #[cfg(feature = "libsql")]
+    Libsql { url: String },
     /// Cloudflare D1 backend.
     D1,
     /// Cloudflare R2 backend with bucket configuration.
     R2 { bucket: String },
+    /// JSON file backend with file path.
+    JsonFile { path: String },
     /// In-memory backend for development/testing.
     Memory,
 }
@@ -241,22 +331,39 @@ pub struct StorageProvider {
 }
 
 enum StorageProviderInner {
+    #[cfg(feature = "turso")]
     Turso(Box<TursoStorage>),
+    #[cfg(feature = "libsql")]
+    Libsql(Box<LibsqlStorage>),
     #[allow(dead_code)] // TODO: Implement D1 backend
     D1,
     #[allow(dead_code)] // TODO: Implement R2 backend
     R2,
+    JsonFile(JsonFileStorage),
     Memory(MemoryStorage),
 }
 
 impl StorageProvider {
     /// Create a new storage provider with the specified backend.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the backend initialization fails or if the requested
+    /// backend is not yet implemented.
     pub fn new(backend: StorageBackend) -> StorageResult<Self> {
         match backend {
+            #[cfg(feature = "turso")]
             StorageBackend::Turso { url } => {
                 let storage = TursoStorage::new(&url)?;
                 Ok(Self {
                     inner: StorageProviderInner::Turso(Box::new(storage)),
+                })
+            }
+            #[cfg(feature = "libsql")]
+            StorageBackend::Libsql { url } => {
+                let storage = LibsqlStorage::new(&url)?;
+                Ok(Self {
+                    inner: StorageProviderInner::Libsql(Box::new(storage)),
                 })
             }
             StorageBackend::D1 => {
@@ -268,6 +375,12 @@ impl StorageProvider {
                 Err(crate::errors::StorageError::Generic(
                     "R2 backend not yet implemented".to_string(),
                 ))
+            }
+            StorageBackend::JsonFile { path } => {
+                let storage = JsonFileStorage::new(&path)?;
+                Ok(Self {
+                    inner: StorageProviderInner::JsonFile(storage),
+                })
             }
             StorageBackend::Memory => {
                 let storage = MemoryStorage::new();
@@ -285,12 +398,28 @@ impl StorageProvider {
             inner: StorageProviderInner::Memory(MemoryStorage::new()),
         }
     }
+
+    /// Create a JSON file storage provider.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the file cannot be read or parsed.
+    pub fn json_file<P: AsRef<std::path::Path>>(path: P) -> StorageResult<Self> {
+        let storage = JsonFileStorage::new(path)?;
+        Ok(Self {
+            inner: StorageProviderInner::JsonFile(storage),
+        })
+    }
 }
 
 impl KeyValueStore for StorageProvider {
-    fn get<V: DeserializeOwned>(&self, key: &str) -> StorageResult<Option<V>> {
+    fn get<V: DeserializeOwned + Send>(&self, key: &str) -> StorageResult<StorageItemStream<'_, Option<V>>> {
         match &self.inner {
+            #[cfg(feature = "turso")]
             StorageProviderInner::Turso(storage) => storage.get(key),
+            #[cfg(feature = "libsql")]
+            StorageProviderInner::Libsql(storage) => storage.get(key),
+            StorageProviderInner::JsonFile(storage) => storage.get(key),
             StorageProviderInner::Memory(storage) => storage.get(key),
             _ => Err(crate::errors::StorageError::Generic(
                 "Backend not implemented".to_string(),
@@ -298,9 +427,13 @@ impl KeyValueStore for StorageProvider {
         }
     }
 
-    fn set<V: Serialize>(&self, key: &str, value: V) -> StorageResult<()> {
+    fn set<V: Serialize>(&self, key: &str, value: V) -> StorageResult<StorageItemStream<'_, ()>> {
         match &self.inner {
+            #[cfg(feature = "turso")]
             StorageProviderInner::Turso(storage) => storage.set(key, value),
+            #[cfg(feature = "libsql")]
+            StorageProviderInner::Libsql(storage) => storage.set(key, value),
+            StorageProviderInner::JsonFile(storage) => storage.set(key, value),
             StorageProviderInner::Memory(storage) => storage.set(key, value),
             _ => Err(crate::errors::StorageError::Generic(
                 "Backend not implemented".to_string(),
@@ -308,9 +441,13 @@ impl KeyValueStore for StorageProvider {
         }
     }
 
-    fn delete(&self, key: &str) -> StorageResult<()> {
+    fn delete(&self, key: &str) -> StorageResult<StorageItemStream<'_, ()>> {
         match &self.inner {
+            #[cfg(feature = "turso")]
             StorageProviderInner::Turso(storage) => storage.delete(key),
+            #[cfg(feature = "libsql")]
+            StorageProviderInner::Libsql(storage) => storage.delete(key),
+            StorageProviderInner::JsonFile(storage) => storage.delete(key),
             StorageProviderInner::Memory(storage) => storage.delete(key),
             _ => Err(crate::errors::StorageError::Generic(
                 "Backend not implemented".to_string(),
@@ -318,9 +455,13 @@ impl KeyValueStore for StorageProvider {
         }
     }
 
-    fn exists(&self, key: &str) -> StorageResult<bool> {
+    fn exists(&self, key: &str) -> StorageResult<StorageItemStream<'_, bool>> {
         match &self.inner {
+            #[cfg(feature = "turso")]
             StorageProviderInner::Turso(storage) => storage.exists(key),
+            #[cfg(feature = "libsql")]
+            StorageProviderInner::Libsql(storage) => storage.exists(key),
+            StorageProviderInner::JsonFile(storage) => storage.exists(key),
             StorageProviderInner::Memory(storage) => storage.exists(key),
             _ => Err(crate::errors::StorageError::Generic(
                 "Backend not implemented".to_string(),
@@ -330,8 +471,61 @@ impl KeyValueStore for StorageProvider {
 
     fn list_keys(&self, prefix: Option<&str>) -> StorageResult<StorageItemStream<'_, String>> {
         match &self.inner {
+            #[cfg(feature = "turso")]
             StorageProviderInner::Turso(storage) => storage.list_keys(prefix),
+            #[cfg(feature = "libsql")]
+            StorageProviderInner::Libsql(storage) => storage.list_keys(prefix),
+            StorageProviderInner::JsonFile(storage) => storage.list_keys(prefix),
             StorageProviderInner::Memory(storage) => storage.list_keys(prefix),
+            _ => Err(crate::errors::StorageError::Generic(
+                "Backend not implemented".to_string(),
+            )),
+        }
+    }
+}
+
+impl RateLimiterStore for StorageProvider {
+    fn check_rate_limit(
+        &self,
+        key: &str,
+        max_count: u32,
+        window_seconds: u64,
+    ) -> StorageResult<StorageItemStream<'_, bool>> {
+        match &self.inner {
+            #[cfg(feature = "turso")]
+            StorageProviderInner::Turso(storage) => storage.check_rate_limit(key, max_count, window_seconds),
+            #[cfg(feature = "libsql")]
+            StorageProviderInner::Libsql(storage) => storage.check_rate_limit(key, max_count, window_seconds),
+            StorageProviderInner::JsonFile(storage) => storage.check_rate_limit(key, max_count, window_seconds),
+            StorageProviderInner::Memory(storage) => storage.check_rate_limit(key, max_count, window_seconds),
+            _ => Err(crate::errors::StorageError::Generic(
+                "Backend not implemented".to_string(),
+            )),
+        }
+    }
+
+    fn record_rate_limit(&self, key: &str) -> StorageResult<StorageItemStream<'_, u32>> {
+        match &self.inner {
+            #[cfg(feature = "turso")]
+            StorageProviderInner::Turso(storage) => storage.record_rate_limit(key),
+            #[cfg(feature = "libsql")]
+            StorageProviderInner::Libsql(storage) => storage.record_rate_limit(key),
+            StorageProviderInner::JsonFile(storage) => storage.record_rate_limit(key),
+            StorageProviderInner::Memory(storage) => storage.record_rate_limit(key),
+            _ => Err(crate::errors::StorageError::Generic(
+                "Backend not implemented".to_string(),
+            )),
+        }
+    }
+
+    fn reset_rate_limit(&self, key: &str) -> StorageResult<StorageItemStream<'_, ()>> {
+        match &self.inner {
+            #[cfg(feature = "turso")]
+            StorageProviderInner::Turso(storage) => storage.reset_rate_limit(key),
+            #[cfg(feature = "libsql")]
+            StorageProviderInner::Libsql(storage) => storage.reset_rate_limit(key),
+            StorageProviderInner::JsonFile(storage) => storage.reset_rate_limit(key),
+            StorageProviderInner::Memory(storage) => storage.reset_rate_limit(key),
             _ => Err(crate::errors::StorageError::Generic(
                 "Backend not implemented".to_string(),
             )),

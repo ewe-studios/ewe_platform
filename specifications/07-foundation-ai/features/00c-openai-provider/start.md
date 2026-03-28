@@ -12,6 +12,12 @@ author: "Main Agent"
 
 This feature implements an OpenAI-compatible HTTP provider with comprehensive authentication infrastructure including JWT, OAuth 2.0, API keys, and session-based authentication.
 
+## Required Reading (Before Implementation)
+
+1. **Read `.agents/skills/rust-valtron-usage/skill.md`** — Valtron execution model, stream-returning patterns, sync boundary helpers. MANDATORY — this feature heavily uses `from_future` + `execute` for all HTTP I/O. Methods must return streams, not block.
+2. **Read `feature.md`** — Full requirements, Iron Laws, task list.
+3. **Read `../../LEARNINGS.md`** — Spec-level learnings including `from_future` patterns.
+
 ## Prerequisites
 
 Before starting, ensure you understand:

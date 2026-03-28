@@ -8,6 +8,10 @@ created: 2026-03-17
 
 # Start: HuggingFace Provider Feature
 
+## Required Reading (Before Implementation)
+
+1. **Read `.agents/skills/rust-valtron-usage/skill.md`** — Valtron execution model. Model downloads may need `from_future` if `hf-hub` only offers async APIs. Check sync API first. Methods must return streams, not block.
+
 ## Agent Workflow
 
 1. Read `feature.md` (detailed requirements + tasks)

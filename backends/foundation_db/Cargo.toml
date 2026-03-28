@@ -13,8 +13,9 @@ keywords = ["database", "storage", "turso", "foundation"]
 # -- Workspace dependencies
 foundation_core = { workspace = true }
 
-# Storage backends
-turso = "0.1"
+# Storage backends (feature-gated)
+turso = { version = "0.1", optional = true }
+libsql = { version = "0.3", optional = true }
 
 # Serialization
 serde = { version = "1", features = ["derive"] }
@@ -32,14 +33,16 @@ base64 = "0.22"
 
 # Utilities
 tracing = "0.1"
-futures-lite = "2.6"
+futures-core = "0.3"
 
 [dev-dependencies]
 tracing-test = { version = "0.2", features = ["no-env-filter"] }
 tempfile = "3"
 
 [features]
-default = []
+default = ["turso"]
+turso = ["dep:turso"]
+libsql = ["dep:libsql"]
 d1 = []
 r2 = []
 

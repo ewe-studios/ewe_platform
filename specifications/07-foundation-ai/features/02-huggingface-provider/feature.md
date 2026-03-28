@@ -39,6 +39,44 @@ The provider enables users to specify models by HuggingFace repository ID (e.g.,
 3. **Zero Warnings, Zero Suppression** — All clippy, doc, and cargo warnings MUST be fixed, NEVER suppressed. NO `#[allow(...)]` or `#![allow(...)]` — remove all existing suppression blocks and fix the underlying issues.
 4. **Error Convention** — `#[derive(From, Debug)]` from `derive_more::From` + manual `impl Display`. NO `thiserror`. Central `errors.rs` per crate. `#[from(ignore)]` on String variants.
 
+## Valtron Async Guidance (Learned from Feature 00a)
+
+**MANDATORY:** Read `.agents/skills/rust-valtron-usage/skill.md` before implementing any I/O code.
+**Reference:** See `specifications/07-foundation-ai/LEARNINGS.md` for the full `exec_future` pattern and all constraints.
+
+### Where Valtron IS Needed
+
+- **Model downloads** — `hf-hub` may expose async download APIs. Wrap with `from_future` + `execute` via an `exec_future` helper.
+- **HuggingFace API calls** — Model discovery/metadata fetching if async.
+
+**Note:** Check `hf_hub::api::sync::Api` first — if the sync API is sufficient, no Valtron wrapping is needed for downloads. Only use `from_future` if forced to use async APIs.
+
+### Where Valtron is NOT Needed
+
+- Quantization matching and GGUF filename parsing — pure computation
+- ModelSpec construction from metadata — synchronous
+- Path resolution and cache lookups — synchronous
+- Delegation to `LlamaBackends` for inference — handled by feature 01
+
+### The `exec_future` Pattern (if needed)
+
+```rust
+use foundation_core::valtron::{execute, from_future, Stream};
+
+// Adapt error type to your crate's error
+pub fn exec_future<T, E, F>(future: F) -> Result<T, HuggingFaceError>
+where
+    F: std::future::Future<Output = Result<T, E>> + Send + 'static,
+    T: Send + 'static,
+    E: std::fmt::Display + Send + 'static,
+{ /* same pattern — see LEARNINGS.md */ }
+```
+
+### Critical Constraints
+
+- All data captured by async blocks must be `Send + 'static`
+- Download progress callbacks or stream iterators may be `!Send` — collect results inside the async block
+
 ## Dependencies
 
 **Required Crates:**

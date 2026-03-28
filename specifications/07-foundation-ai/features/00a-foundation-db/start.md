@@ -19,6 +19,13 @@ Create `foundation_db` crate in `backends/foundation_db/` providing unified stor
 2. **Turso sync backend** — Uses Turso crate with sync API (no feature flags needed)
 3. **Valtron Stream for multi-value** — `list_keys`, `query`, `get_blob` return `StorageItemStream` (Valtron `Stream`-based lazy iterator). Single-value ops return `StorageResult<T>` directly.
 
+## Required Reading (Before Implementation)
+
+1. **Read `.agents/skills/rust-valtron-usage/skill.md`** — Valtron execution model, stream-returning patterns, sync boundary helpers. This is MANDATORY before writing any async/I/O code.
+2. **Read `feature.md`** — Full requirements, Iron Laws, task list.
+3. **Read `../../LEARNINGS.md`** — Spec-level learnings including `from_future` patterns.
+4. **Read `./LEARNINGS.md`** — Feature-specific learnings (exec_future, !Send constraints, StorageItemStream).
+
 ## Prerequisites
 
 Before starting, understand:

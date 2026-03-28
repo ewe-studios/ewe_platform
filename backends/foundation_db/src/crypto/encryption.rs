@@ -14,6 +14,7 @@ pub struct EncryptionKey([u8; 32]);
 
 impl EncryptionKey {
     /// Generate a new random encryption key.
+    #[must_use]
     pub fn generate() -> Self {
         let mut key_bytes = [0u8; 32];
         OsRng.fill_bytes(&mut key_bytes);
@@ -21,11 +22,13 @@ impl EncryptionKey {
     }
 
     /// Create a key from raw bytes.
+    #[must_use]
     pub fn from_bytes(bytes: [u8; 32]) -> Self {
         Self(bytes)
     }
 
     /// Get the raw key bytes.
+    #[must_use]
     pub fn as_bytes(&self) -> &[u8; 32] {
         &self.0
     }
@@ -41,6 +44,10 @@ impl Drop for EncryptionKey {
 /// Encrypt data using ChaCha20-Poly1305.
 ///
 /// Returns: nonce (12 bytes) || ciphertext || tag (16 bytes)
+///
+/// # Errors
+///
+/// Returns an error if cipher initialization fails or encryption fails.
 pub fn encrypt(key: &EncryptionKey, plaintext: &[u8]) -> StorageResult<Vec<u8>> {
     let cipher = ChaCha20Poly1305::new_from_slice(key.as_bytes())
         .map_err(|e| StorageError::Encryption(e.to_string()))?;
@@ -66,6 +73,10 @@ pub fn encrypt(key: &EncryptionKey, plaintext: &[u8]) -> StorageResult<Vec<u8>> 
 /// Decrypt data using ChaCha20-Poly1305.
 ///
 /// Expects: nonce (12 bytes) || ciphertext || tag (16 bytes)
+///
+/// # Errors
+///
+/// Returns an error if the data is too short, cipher initialization fails, or decryption fails.
 pub fn decrypt(key: &EncryptionKey, encrypted: &[u8]) -> StorageResult<Vec<u8>> {
     if encrypted.len() < 12 {
         return Err(StorageError::Encryption(

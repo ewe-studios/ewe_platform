@@ -57,6 +57,55 @@ This feature fills those gaps with reusable authentication infrastructure.
 3. **Zero Warnings, Zero Suppression** — All clippy, doc, and cargo warnings MUST be fixed, NEVER suppressed. NO `#[allow(...)]` or `#![allow(...)]` — remove all existing suppression blocks and fix the underlying issues.
 4. **Error Convention** — `#[derive(From, Debug)]` from `derive_more::From` + manual `impl Display`. NO `thiserror`. Central `errors.rs` per crate. `#[from(ignore)]` on String variants.
 
+## Valtron Async Guidance (Learned from Feature 00a)
+
+**MANDATORY:** Read `.agents/skills/rust-valtron-usage/skill.md` before implementing any I/O code.
+**Reference:** See `specifications/07-foundation-ai/LEARNINGS.md` for the full `exec_future` pattern and all constraints.
+
+### When to Use `from_future` + `execute`
+
+foundation_auth will call foundation_db for credential storage. foundation_db's `StorageProvider` trait methods are **synchronous** (they internally use Valtron), so most foundation_auth code does NOT need `from_future` directly. Use it only for:
+- **HTTP requests** — OAuth code exchange, token refresh endpoints (via `foundation_core::simple_http`)
+- **Any other external I/O** — network calls to identity providers
+
+### When NOT to Use Valtron
+
+These are CPU-bound and should remain synchronous:
+- Password hashing (Argon2id)
+- PKCE code generation (SHA256 + base64)
+- TOTP generation/verification (HMAC)
+- JWT signing and verification
+- Token construction and serialization
+- Constant-time comparison
+
+### The `exec_future` Pattern
+
+```rust
+use foundation_core::valtron::{execute, from_future, Stream};
+
+pub fn exec_future<T, E, F>(future: F) -> Result<T, AuthError>
+where
+    F: std::future::Future<Output = Result<T, E>> + Send + 'static,
+    T: Send + 'static,
+    E: std::fmt::Display + Send + 'static,
+{
+    let task = from_future(future);
+    let stream = execute(task, None)
+        .map_err(|e| AuthError::Backend(format!("Valtron execution failed: {e}")))?;
+    let result: Result<T, E> = stream
+        .into_iter()
+        .find_map(|s| match s { Stream::Next(v) => Some(v), _ => None })
+        .ok_or_else(|| AuthError::Generic("No result from future execution".into()))?;
+    result.map_err(|e| AuthError::Backend(format!("{e}")))
+}
+```
+
+### Critical Constraints
+
+- All data captured by async blocks must be `Send + 'static` — own strings, clone Arcs
+- Response body iterators may be `!Send` — consume them fully inside the async block
+- Use turbo-fish `Ok::<_, ErrorType>(value)` when the compiler can't infer error types
+
 ## Dependencies
 
 **Required Crates:**

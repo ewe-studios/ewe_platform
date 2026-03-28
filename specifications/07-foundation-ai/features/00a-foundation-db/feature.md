@@ -77,17 +77,49 @@ All asynchronous operations MUST use Valtron's `TaskIterator`/`StreamIterator` p
 
 Rationale: Valtron provides a unified executor framework that works across WASM (single-threaded) and native (multi-threaded) platforms. Mixing in tokio breaks this portability guarantee and creates two competing async runtimes.
 
-### 2. Turso Sync Backend
+### 2. Turso and libsql Backends
 
-`foundation_db` uses the Turso crate (`https://crates.io/crates/turso`) as its primary SQL backend. Turso is a ground-up rewrite of SQLite with MVCC, concurrent writes, and both sync and async I/O APIs.
+`foundation_db` supports both Turso (`https://crates.io/crates/turso`) and libsql (`https://crates.io/crates/libsql`) as SQL backends. Both provide SQLite-compatible storage with MVCC and concurrent writes.
 
-The sync API MUST be used to maintain compatibility with the Valtron-only async pattern (Iron Law 3). All storage operations are synchronous, returning `StorageResult<T>` for single-value ops and `StorageResult<StorageItemStream<T>>` for multi-value ops.
+**Important: Async API Handling**
 
-**Why Turso over libsql:**
-- libsql has hard sync dependencies that conflict with our async model
-- Turso provides a cleaner sync API via `https://github.com/tursodatabase/turso/blob/main/sdk-kit/README.md`
-- Turso supports MVCC and concurrent writes out of the box
-- Turso supports edge sync capabilities for distributed deployments
+Both Turso 0.1.x and libsql expose **async-only APIs**. To maintain compatibility with the Valtron-only async pattern (Iron Law 3), we wrap their async operations using Valtron's `from_future` + `execute` pattern:
+
+```rust
+use foundation_core::valtron::{from_future, execute};
+
+// Pattern: Wrap async backend call with from_future and execute via Valtron
+let mut task = from_future(async {
+    conn.execute("SELECT ...", params).await
+});
+let mut stream = execute(task, None)?;
+let result = stream.next().and_then(|s| match s {
+    foundation_core::valtron::Stream::Next(v) => Some(v),
+    _ => None,
+}).ok_or(StorageError::Generic("No result".into()))?;
+```
+
+**Why `from_future` + `execute`:**
+- `from_future` wraps any Future into a Valtron `TaskIterator`
+- `execute` runs the task through Valtron's executor (multi-threaded or single-threaded based on platform)
+- Returns a `DrivenStreamIterator` that yields `Stream::Next(result)` when complete
+- This integrates with Valtron's full ecosystem: combinators, merging, parallel execution
+- `valtron::multi::block_on` is ONLY for bootstrapping the Valtron executor at application entry points (`main()`)
+
+**Implementation requirements:**
+1. Storage trait methods are synchronous (`fn` not `async fn`)
+2. Internal implementation wraps async calls with `from_future` + `execute`
+3. Multi-value operations return `StorageResult<StorageItemStream<'_, T>>` with lazy iterators
+4. All async wrapping happens **inside** the backend — the public API is sync
+5. Pool initialization happens at application entry point via `valtron::initialize_pool()`
+
+**Detailed patterns and lessons:** See `features/00a-foundation-db/LEARNINGS.md` for the full `exec_future` helper, `!Send` row iterator constraints, multi-value `StorageItemStream` patterns, and three-level error handling.
+
+**Why both Turso and libsql:**
+- **Turso** - Edge sync capabilities, newer codebase, actively developed
+- **libsql** - More mature, stable API, wider adoption
+- Both support the same core SQLite protocol
+- Feature flags allow users to choose: `turso` or `libsql`
 
 ### 3. Valtron-Only Async Pattern
 
@@ -620,7 +652,8 @@ backends/foundation_db/
 │   ├── storage_provider.rs        - Core trait definitions (Valtron-based, NO async-trait)
 │   ├── backends/
 │   │   ├── mod.rs                 - Backend module exports
-│   │   ├── turso_backend.rs       - Turso crate backend (sync API)
+│   │   ├── turso_backend.rs       - Turso crate backend (async wrapped with Valtron)
+│   │   ├── libsql_backend.rs      - libsql crate backend (async wrapped with Valtron)
 │   │   ├── json_file.rs           - JSON-on-disk file backend (always available)
 │   │   ├── d1.rs                  - Cloudflare D1 implementation
 │   │   ├── r2.rs                  - Cloudflare R2 implementation
@@ -654,8 +687,9 @@ authors.workspace = true
 [dependencies]
 foundation_core = { workspace = true }
 
-# Storage backends
-turso = "0.1"
+# Storage backends (choose one or both via features)
+turso = { version = "0.1", optional = true }
+libsql = { version = "0.3", optional = true }
 
 # Serialization
 serde = { version = "1.0", features = ["derive"] }
@@ -673,14 +707,18 @@ base64 = "0.22"
 
 # Utilities
 tracing = "0.1"
+futures-lite = "2.6"  # For block_on when wrapping async backends
 
 [features]
-default = []
+default = ["turso"]  # Turso is default, can switch to libsql
+turso = ["dep:turso"]
+libsql = ["dep:libsql"]
 d1 = []
 r2 = []
 
 # NOTE: tokio and async-trait are BANNED
 # All async operations use foundation_core::valtron
+# Backend async APIs (turso/libsql) are wrapped with Valtron's block_on or from_future
 ```
 
 ## Detailed Change Plan (File-by-File)
@@ -1341,72 +1379,53 @@ impl Drop for JsonFileStorage {
 
 ### File: `src/backends/turso_backend.rs`
 
-**Current state:**
-- Struct `TursoStorage` with Turso connection
-- All methods `async fn` via `#[async_trait]`
-- Uses async API with `.await`
-- Returns `turso::Row` directly from `QueryStore::query()`
-- Tests use `#[tokio::test]`
+**Implementation note:** Turso 0.1.x exposes async-only APIs. We wrap them with Valtron's `from_future` + `execute` pattern.
 
-**Changes:**
-
-1. **Keep** file as `turso_backend.rs`
-2. **Keep** struct `TursoStorage`
-3. **Remove** `async_trait` import
-4. **All methods become synchronous** — Turso sync API:
+**Important:** Use `from_future` + `execute` for all async operations. Valtron's `multi::block_on` is ONLY for bootstrapping the executor at application entry points.
 
 ```rust
-// BEFORE:
-pub struct TursoStorage { conn: turso::Connection }
-impl TursoStorage {
-    pub async fn new(url: &str) -> StorageResult<Self> { ... }
-    pub async fn init_schema(&self) -> StorageResult<()> {
-        self.conn.execute_batch(schema_sql).await?;
-    }
-    pub async fn migrate(&self, migrations: &[(&str, &str)]) -> StorageResult<()> {
-        ...stmt.query([id.to_string()]).await?;
-        ...self.conn.execute_batch(sql).await?;
-    }
-}
-#[async_trait]
-impl KeyValueStore for TursoStorage {
-    async fn get<V: DeserializeOwned>(&self, key: &str) -> StorageResult<Option<V>> {
-        let mut stmt = self.conn.prepare("...").await?;
-        let mut rows = stmt.query([key.to_string()]).await?;
-        if let Some(row) = rows.next().await? { ... }
-    }
-}
-#[async_trait]
-impl QueryStore for TursoStorage {
-    async fn query(&self, sql: &str, params: Vec<turso::Value>) -> StorageResult<Vec<turso::Row>> {
-        let mut stmt = self.conn.prepare(sql).await?;
-        let mut rows = stmt.query(params_vec).await?;
-        while let Some(row) = rows.next().await? { results.push(row); }
-    }
-}
-
-// AFTER:
-use crate::storage_provider::{DataValue, SqlRow, FromDataValue};
+use foundation_core::valtron::{from_future, execute};
 
 pub struct TursoStorage { conn: turso::Connection }
 
 impl TursoStorage {
     pub fn new(url: &str) -> StorageResult<Self> {
-        let conn = turso::Connection::open(url)?;
+        // Wrap async Turso API with from_future + execute
+        let mut task = from_future(async {
+            turso::Builder::new_local(url).build().await
+        });
+        let mut stream = execute(task, None)?;
+        let db = stream.next().and_then(|s| match s {
+            Stream::Next(v) => Some(v),
+            _ => None,
+        }).ok_or(StorageError::Generic("No result".into()))?;
+        let conn = db.connect()?;
         Ok(Self { conn })
-    }
-    pub fn init_schema(&self) -> StorageResult<()> {
-        // Turso sync API - blocking execute_batch
-        self.conn.execute_batch(schema_sql).map_err(StorageError::from)?;
-        Ok(())
     }
 }
 
 impl KeyValueStore for TursoStorage {
     fn get<V: DeserializeOwned>(&self, key: &str) -> StorageResult<Option<V>> {
-        let mut stmt = self.conn.prepare("SELECT value FROM kv_store WHERE key = ?")?;
-        let mut rows = stmt.query([key.to_string()])?;
-        if let Some(row) = rows.next()? {
+        let mut task = from_future(async {
+            self.conn.prepare("SELECT value FROM kv_store WHERE key = ?").await
+        });
+        let mut stream = execute(task, None)?;
+        let mut stmt = stream.next().and_then(|s| match s {
+            Stream::Next(v) => Some(v),
+            _ => None,
+        }).ok_or(StorageError::Generic("No result".into()))?;
+
+        let mut rows_task = from_future(async { stmt.query([key.to_string()]).await });
+        let mut rows_stream = execute(rows_task, None)?;
+        let mut rows = rows_stream.next().and_then(|s| match s {
+            Stream::Next(v) => Some(v),
+            _ => None,
+        }).ok_or(StorageError::Generic("No result".into()))?;
+
+        if let Some(row) = rows.next().and_then(|s| match s {
+            Stream::Next(v) => Some(v),
+            _ => None,
+        }).ok_or(StorageError::Generic("No result".into()))? {
             let value: String = row.get(0)?;
             Ok(Some(serde_json::from_str(&value)?))
         } else {
@@ -1419,34 +1438,92 @@ impl KeyValueStore for TursoStorage {
 impl QueryStore for TursoStorage {
     fn query(&self, sql: &str, params: &[DataValue]) -> StorageResult<StorageItemStream<'_, SqlRow>> {
         let turso_params = to_turso_params(params);
-        let stmt = self.conn.prepare(sql)?;
-        let rows = stmt.query(turso_params)?;
-        // Wrap turso::Rows as a lazy Stream iterator — each row is Stream::Next(SqlRow)
-        Ok(Box::new(TursoRowIter::new(rows)))
-        // TursoRowIter implements Iterator<Item = Stream<SqlRow, ()>>
-        // Each next() call: rows.next()? → Some(row) → Stream::Next(turso_row_to_sql_row(row))
-        //                                → None → iterator ends
+        let mut task = from_future(async { self.conn.prepare(sql).await });
+        let mut stream = execute(task, None)?;
+        let mut stmt = stream.next().and_then(|s| match s {
+            Stream::Next(v) => Some(v),
+            _ => None,
+        }).ok_or(StorageError::Generic("No result".into()))?;
+
+        let rows_task = from_future(async { stmt.query(turso_params).await });
+        let rows_stream = execute(rows_task, None)?;
+        // Wrap rows in lazy iterator that yields Stream::Next(SqlRow) for each row
+        Ok(Box::new(TursoRowIter::new(rows_stream)))
     }
     fn execute(&self, sql: &str, params: &[DataValue]) -> StorageResult<u64> {
         let turso_params = to_turso_params(params);
-        Ok(self.conn.execute(sql, turso_params)? as u64)
+        let mut task = from_future(async {
+            self.conn.execute(sql, turso_params).await
+        });
+        let mut stream = execute(task, None)?;
+        let rows = stream.next().and_then(|s| match s {
+            Stream::Next(v) => Some(v),
+            _ => None,
+        }).ok_or(StorageError::Generic("No result".into()))?;
+        Ok(rows as u64)
     }
     fn execute_batch(&self, sql: &str) -> StorageResult<()> {
-        self.conn.execute_batch(sql)?;
+        let mut task = from_future(async { self.conn.execute_batch(sql).await });
+        let mut stream = execute(task, None)?;
+        stream.next().and_then(|s| match s {
+            Stream::Next(_) => Some(()),
+            _ => None,
+        }).ok_or(StorageError::Generic("No result".into()))?;
         Ok(())
     }
 }
-
-/// Convert crate-owned DataValue to turso::Value (private helper).
-fn to_turso_params(params: &[DataValue]) -> Vec<turso::Value> { ... }
-
-/// Convert turso::Row to crate-owned SqlRow (private helper).
-fn turso_row_to_sql_row(row: turso::Row) -> StorageResult<SqlRow> { ... }
 ```
 
-**NOTE on Turso sync API:** The Turso crate exposes both sync and async APIs. We use the sync API exclusively to maintain compatibility with the Valtron-only async pattern (Iron Law 3). See: https://github.com/tursodatabase/turso/blob/main/sdk-kit/README.md
-
 **Tests change:** Same as memory — `#[tokio::test]` → `#[test]`, remove `.await`.
+
+---
+
+### File: `src/backends/libsql_backend.rs` (NEW)
+
+**Status:** New file, feature-gated behind `libsql` feature flag.
+
+**Purpose:** Alternative SQL backend using libsql crate. libsql is a fork of SQLite with added replication and encryption features.
+
+**Implementation pattern:** Same as Turso - wrap async libsql APIs with Valtron's `from_future` + `execute`:
+
+```rust
+use foundation_core::valtron::{from_future, execute};
+use libsql::{Builder, Connection};
+
+pub struct LibsqlStorage {
+    conn: Connection,
+}
+
+impl LibsqlStorage {
+    pub fn new(url: &str) -> StorageResult<Self> {
+        let conn = block_on(async {
+            Builder::new_local(url).build().await
+        })?.connect()?;
+        Ok(Self { conn })
+    }
+    // ... same pattern as TursoStorage for init_schema, migrate, etc.
+}
+
+impl KeyValueStore for LibsqlStorage {
+    // ... same pattern as TursoStorage
+}
+
+impl QueryStore for LibsqlStorage {
+    // ... same pattern as TursoStorage
+}
+```
+
+**Feature flag usage:**
+```toml
+# Use Turso (default)
+foundation_db = { version = "0.1", features = ["turso"] }
+
+# Or use libsql
+foundation_db = { version = "0.1", features = ["libsql"] }
+
+# Or both (choose at runtime via StorageBackend enum)
+foundation_db = { version = "0.1", features = ["turso", "libsql"] }
+```
 
 ---
 

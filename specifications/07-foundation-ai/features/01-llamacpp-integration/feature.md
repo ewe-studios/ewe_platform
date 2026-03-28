@@ -45,6 +45,44 @@ The integration provides:
 3. **Zero Warnings, Zero Suppression** — All clippy, doc, and cargo warnings MUST be fixed, NEVER suppressed. NO `#[allow(...)]` or `#![allow(...)]` — remove all existing suppression blocks and fix the underlying issues.
 4. **Error Convention** — `#[derive(From, Debug)]` from `derive_more::From` + manual `impl Display`. NO `thiserror`. Central `errors.rs` per crate. `#[from(ignore)]` on String variants.
 
+## Valtron Async Guidance (Learned from Feature 00a)
+
+**MANDATORY:** Read `.agents/skills/rust-valtron-usage/skill.md` before implementing any I/O code.
+**Reference:** See `specifications/07-foundation-ai/LEARNINGS.md` for the full `exec_future` pattern and all constraints.
+
+### This Feature is Mostly Synchronous
+
+llama.cpp operations (tokenize, batch, decode, sample) are **CPU-bound synchronous FFI calls** through `infrastructure_llama_cpp`. They do NOT need Valtron wrapping. The generation loop, sampler chain, and embeddings extraction are all synchronous.
+
+### Where Valtron IS Needed
+
+- **Streaming** — `LlamaCppStream` implements `StreamIterator` to yield tokens one-by-one. This is Valtron's native pattern (not `from_future`).
+- **Model file I/O** — If model loading from disk is async (unlikely for llama.cpp's `load_from_file`), wrap with `from_future`. Otherwise, leave synchronous.
+
+### Where Valtron is NOT Needed
+
+- Model loading via `LlamaModel::load_from_file()` — synchronous FFI
+- Tokenization, batch creation, decode loop — synchronous FFI
+- Sampler chain construction and sampling — synchronous
+- Chat template application — synchronous
+- Embeddings extraction — synchronous
+
+### StreamIterator for Streaming (NOT from_future)
+
+The streaming use case uses Valtron's `StreamIterator` trait directly, not the `from_future` bridge:
+
+```rust
+impl StreamIterator for LlamaCppStream {
+    type Item = Messages;
+    type Pending = ModelState;
+
+    fn next(&mut self) -> Stream<Self::Item, Self::Pending> {
+        // Decode one token, return Stream::Next(token) or Stream::Init if done
+        // NEVER use loop {} here — return Stream::Ignore if no token ready
+    }
+}
+```
+
 ## Dependencies
 
 **Required Crates:**

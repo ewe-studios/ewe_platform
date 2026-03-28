@@ -34,6 +34,10 @@ tasks:
 
 Implement the Cloudflare Workers deployment provider. This provider is **API-first** — it deploys by calling the Cloudflare REST API directly via `SimpleHttpClient`, with no CLI tools required.
 
+The provider supports two modes:
+- **API mode (default)** - deploys directly via the Cloudflare REST API, no external dependencies
+- **CLI mode (fallback)** - shells out to `wrangler` when API mode is not available or explicitly requested
+
 The provider:
 - **Deploys via API** - uploads worker scripts, manages secrets, configures routes via `api.cloudflare.com/client/v4`
 - **Captures state from API responses** - deployment IDs, URLs, version tags stored in state store
@@ -61,7 +65,7 @@ Resource types are **generated from the Cloudflare OpenAPI spec** (Feature 13 me
 ## Dependencies
 
 Depends on:
-- `01-foundation-deployment-core` - `DeploymentProvider` trait, `ProcessExecutor`
+- `01-foundation-deployment-core` - `DeploymentProvider` trait, `ShellExecutor`
 - `02-state-stores` - `StateStore` for persistence
 - `03-deployment-engine` - `DeploymentPlanner` for orchestration
 - **`10-provider-spec-fetcher-core`** - OpenAPI spec fetching infrastructure (for resource generation)
@@ -246,96 +250,77 @@ fn generate_cloudflare_resources(spec_path: &Path) {
 }
 ```
 
-## Streaming Deployment with ProcessOutput
+## Streaming Deployment with ShellExecutor
 
-The provider uses `ProcessExecutor::execute()` which returns a `StreamExecutor<ProcessOutput>`. The associated type `ProcessOutput` defines what the StreamIterator yields - both pending states and completed items.
+The provider uses `ShellExecutor::execute()` which returns a stream yielding `Stream<ShellDone, ShellPending>`. The stream carries:
+- `Stream::Pending(state)` - progress updates (Spawning, Running)
+- `Stream::Next(result)` - final completion (Success, Failed)
+
+Resource-centric events (like `WorkerCreated`, `KVNamespaceBound`) are generated at the **provider level**, not in the shell executor. The shell executor only handles process lifecycle.
 
 ```rust
 // providers/cloudflare/mod.rs - Streaming deployment example
 
-use foundation_core::valtron::StreamIteratorExt;
-use crate::core::process::{ProcessExecutor, ProcessOutput};
+use foundation_core::valtron::Stream;
+use crate::core::shell::{ShellExecutor, ShellDone, ShellPending};
 
 impl CloudflareProvider {
-    /// Deploy with streaming progress.
-    /// Returns StreamExecutor<ProcessOutput> where ProcessOutput is the associated type.
+    /// Deploy with streaming process output.
+    /// Returns a stream yielding Stream<ShellDone, ShellPending>.
     pub fn deploy_streaming(
         &self,
         config: &WranglerConfig,
         env: Option<&str>,
-    ) -> impl Stream<Item = ProcessOutput> {
-        ProcessExecutor::new("wrangler")
+    ) -> impl Iterator<Item = Stream<ShellDone, ShellPending>> {
+        ShellExecutor::new("wrangler")
             .args(["deploy", "--env", env.unwrap_or("production")])
             .current_dir(&self.working_dir)
-            .execute()  // Single method, returns StreamExecutor<ProcessOutput>
+            .execute()
+            .expect("scheduling succeeded")
     }
 }
 
 // Example consumer code:
 let stream = provider.deploy_streaming(&config, Some("staging"));
 
-for await output in stream.into_stream_iter() {
-    match output {
-        // Pending states (work in progress)
-        ProcessOutput::Spawning => {
+// StreamIterator is a synchronous Iterator - use regular for loop
+// Blocking happens at the boundary (this for loop), not inside the executor
+for item in stream {
+    match item {
+        Stream::Pending(ShellPending::Spawning) => {
             println!("Spawning wrangler process...");
         }
-        ProcessOutput::Running { pid } => {
+        Stream::Pending(ShellPending::Running { pid }) => {
             println!("wrangler running (PID: {})", pid);
         }
-        ProcessOutput::ResourceCreating { resource_type, resource_name } => {
-            println!("Creating {}: {}", resource_type, resource_name);
+        Stream::Next(ShellDone::Success { exit_code, stdout, stderr }) => {
+            println!("Deployment completed successfully! Exit code: {}", exit_code);
+            // Parse stdout/stderr for resource-centric events
+            // (WorkerCreated, KVNamespaceBound, etc.) at provider level
         }
-        ProcessOutput::Uploading { bytes_sent, total_bytes } => {
-            let pct = total_bytes.map(|t| (bytes_sent as f64 / t as f64) * 100.0)
-                .unwrap_or(0.0);
-            println!("Upload: {:.1}%", pct);
+        Stream::Next(ShellDone::Failed { exit_code, stderr, .. }) => {
+            eprintln!("Deployment failed! Exit code: {:?}", exit_code);
+            eprintln!("stderr: {}", stderr);
         }
-
-        // Next states (completed items)
-        ProcessOutput::BuildCompleted { step, duration_ms, success } => {
-            println!("Build '{}' completed in {}ms: success={}", step, duration_ms, success);
-        }
-        ProcessOutput::ResourceCreated { resource_type, name, id, metadata } => {
-            println!("Created {} '{}' with ID: {}", resource_type, name, id);
-            // Store in state store
-            state_store.set("last_deployment", &metadata).await?;
-        }
-        ProcessOutput::StdoutLine { line } => {
-            println!("> {}", line);
-        }
-        ProcessOutput::ProcessExited { exit_code, success, .. } => {
-            if success {
-                println!("Deployment completed successfully!");
-            } else {
-                eprintln!("Deployment failed with exit code: {:?}", exit_code);
-            }
-            break;  // Stream ends
-        }
-        ProcessOutput::Error { message, .. } => {
-            eprintln!("Error: {}", message);
-            break;
-        }
-        _ => {}
     }
 }
 ```
 
-### ProcessOutput States for Cloudflare
+### ShellPending States
 
-| State Type | Variant | Description |
-|------------|---------|-------------|
+| State | Variant | Description |
+|-------|---------|-------------|
 | **Pending** | `Spawning` | Starting wrangler process |
 | **Pending** | `Running { pid }` | wrangler is running |
-| **Pending** | `ResourceCreating { type, name }` | Creating worker/secret/etc. |
-| **Pending** | `Uploading { bytes_sent, total }` | Script upload in progress |
-| **Pending** | `Verifying { check }` | Health check running |
-| **Next** | `BuildCompleted { step, duration, success }` | Build step finished |
-| **Next** | `ResourceCreated { type, name, id, metadata }` | Resource created |
-| **Next** | `StdoutLine { line }` | Output line from wrangler |
-| **Next** | `StderrLine { line }` | Error line from wrangler |
-| **Next** | `ProcessExited { exit_code, success, stdout, stderr }` | Process finished |
-| **Next** | `Error { message, source }` | Error occurred |
+
+### ShellDone States
+
+| State | Variant | Description |
+|-------|---------|-------------|
+| **Next** | `Success { exit_code, stdout, stderr }` | Process completed successfully |
+| **Next** | `Failed { exit_code, stdout, stderr }` | Process failed |
+
+**Note:** Resource-centric events (WorkerCreated, KVNamespaceBound, etc.) are parsed from stdout/stderr or returned from API calls at the provider level, not emitted by ShellExecutor.
 
 ## Requirements
 
@@ -525,14 +510,32 @@ impl DeploymentProvider for CloudflareProvider {
     }
 
     fn build(&self, config: &WranglerConfig, env: Option<&str>) -> Result<BuildOutput, DeploymentError> {
+        use foundation_core::valtron::Stream;
+        use crate::core::shell::{ShellExecutor, ShellDone, ShellPending};
+
         if let Some(build_config) = &config.build {
             if let Some(command) = &build_config.command {
-                let output = ProcessExecutor::new("sh")
+                let stream = ShellExecutor::new("sh")
                     .args(["-c", command])
                     .current_dir(&self.working_dir)
-                    .execute()?;
-                if !output.success {
-                    return Err(DeploymentError::BuildFailed(output.stderr));
+                    .execute()
+                    .expect("scheduling succeeded");
+
+                // Collect result
+                let results: Vec<ShellDone> = stream
+                    .filter_map(|s| match s {
+                        Stream::Next(done) => Some(done),
+                        _ => None,
+                    })
+                    .collect();
+
+                match results.into_iter().next() {
+                    Some(ShellDone::Success { exit_code, stderr, .. }) if exit_code == 0 => {}
+                    Some(ShellDone::Failed { stderr, .. } | ShellDone::Success { stderr, .. }) => {
+                        return Err(DeploymentError::BuildFailed(stderr));
+                    }
+                    None => return Err(DeploymentError::BuildFailed("no output from build process".into())),
+                    _ => {}
                 }
             }
         }
@@ -557,20 +560,30 @@ impl DeploymentProvider for CloudflareProvider {
     }
 
     fn logs(&self, config: &WranglerConfig, env: Option<&str>) -> Result<(), DeploymentError> {
-        let mut cmd = ProcessExecutor::new("wrangler").arg("tail");
-        if let Some(env_name) = env {
-            cmd = cmd.args(["--env", env_name]);
+        use foundation_core::valtron::Stream;
+
+        let stream = ShellExecutor::new("wrangler")
+            .arg("tail")
+            .args(env.map(|e| vec!["--env", e]).unwrap_or_default())
+            .current_dir(&self.working_dir)
+            .execute()
+            .expect("scheduling succeeded");
+
+        // Synchronous iteration - StreamIterator is a regular Iterator
+        for item in stream {
+            if let Stream::Next(ShellDone::Success { stdout, .. }) = item {
+                for line in stdout.lines() {
+                    println!("{}", line);
+                }
+            }
         }
-        cmd.current_dir(&self.working_dir).execute_streaming(|line| {
-            println!("{}", line);
-        })?;
         Ok(())
     }
 
     fn destroy(&self, config: &WranglerConfig, env: Option<&str>) -> Result<(), DeploymentError> {
         match &self.mode {
             CloudflareMode::Cli => {
-                let mut cmd = ProcessExecutor::new("wrangler").arg("delete");
+                let mut cmd = ShellExecutor::new("wrangler").arg("delete");
                 if let Some(env_name) = env {
                     cmd = cmd.args(["--env", env_name]);
                 }
@@ -592,6 +605,8 @@ impl DeploymentProvider for CloudflareProvider {
 
 ### Wrangler CLI Wrapper
 
+**Note:** This section describes the **CLI mode** implementation, which shells out to `wrangler`. The provider also supports **API mode** (next section) which deploys directly via the Cloudflare REST API.
+
 ```rust
 // providers/cloudflare/wrangler.rs
 
@@ -602,22 +617,49 @@ impl CloudflareProvider {
         env: Option<&str>,
         dry_run: bool,
     ) -> Result<DeploymentResult, DeploymentError> {
-        let mut cmd = ProcessExecutor::new("wrangler").arg("deploy");
+        use foundation_core::valtron::Stream;
+        use crate::core::shell::{ShellExecutor, ShellDone, ShellPending};
+
+        let mut cmd = ShellExecutor::new("wrangler").arg("deploy");
         if let Some(env_name) = env {
             cmd = cmd.args(["--env", env_name]);
         }
         if dry_run {
             cmd = cmd.arg("--dry-run");
         }
-        let output = cmd.current_dir(&self.working_dir).execute()?;
-        if !output.success {
-            return Err(DeploymentError::ProcessFailed {
+
+        let stream = cmd.current_dir(&self.working_dir)
+            .execute()
+            .expect("scheduling succeeded");
+
+        // Collect result
+        let results: Vec<ShellDone> = stream
+            .filter_map(|s| match s {
+                Stream::Next(done) => Some(done),
+                _ => None,
+            })
+            .collect();
+
+        let output = match results.into_iter().next() {
+            Some(ShellDone::Success { exit_code, stdout, stderr }) if exit_code == 0 => {
+                CollectedOutput { exit_code: Some(exit_code), stdout, stderr, success: true }
+            }
+            Some(ShellDone::Failed { exit_code, stdout, stderr } | ShellDone::Success { exit_code, stdout, stderr }) => {
+                return Err(DeploymentError::ProcessFailed {
+                    command: "wrangler deploy".into(),
+                    exit_code,
+                    stdout,
+                    stderr,
+                });
+            }
+            None => return Err(DeploymentError::ProcessFailed {
                 command: "wrangler deploy".into(),
-                exit_code: output.exit_code,
-                stdout: output.stdout,
-                stderr: output.stderr,
-            });
-        }
+                exit_code: None,
+                stdout: String::new(),
+                stderr: "no output from wrangler".into(),
+            }),
+        };
+
         parse_wrangler_deploy_output(&output.stdout, &output.stderr, config, env)
     }
 }

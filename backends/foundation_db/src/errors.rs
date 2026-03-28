@@ -1,4 +1,4 @@
-//! Error types for foundation_db storage operations.
+//! Error types for `foundation_db` storage operations.
 //!
 //! All error types use `derive_more::From` for automatic conversions
 //! and manual `impl Display` for error messages.
@@ -56,7 +56,12 @@ pub enum StorageError {
     Hex(hex::FromHexError),
 
     /// Turso error.
+    #[cfg(feature = "turso")]
     Turso(turso::Error),
+
+    /// libsql error.
+    #[cfg(feature = "libsql")]
+    Libsql(libsql::Error),
 }
 
 impl core::fmt::Display for StorageError {
@@ -74,7 +79,10 @@ impl core::fmt::Display for StorageError {
             Self::Json(e) => write!(f, "JSON error: {e}"),
             Self::Base64(e) => write!(f, "Base64 error: {e}"),
             Self::Hex(e) => write!(f, "Hex error: {e}"),
+            #[cfg(feature = "turso")]
             Self::Turso(e) => write!(f, "Turso error: {e}"),
+            #[cfg(feature = "libsql")]
+            Self::Libsql(e) => write!(f, "libsql error: {e}"),
         }
     }
 }
