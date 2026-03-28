@@ -40,6 +40,49 @@ use std::sync::Arc;
 
 use concurrent_queue::ConcurrentQueue;
 
+/// Control enum for the `map_circuit` combinator on `TaskIterator`.
+///
+/// Allows short-circuiting task iterator chains with three possible outcomes:
+/// - `Continue(item)` - Continue iteration with the transformed item
+/// - `ReturnAndStop(item)` - Return this item and then stop iteration permanently
+/// - `Stop` - Stop iteration without returning anything
+///
+/// This is useful for error handling patterns where you want to:
+/// - Return an error value and immediately stop when an error is encountered
+/// - Stop silently without returning anything in certain conditions
+/// - Continue normal iteration otherwise
+///
+/// ## Type Parameters
+///
+/// - `D`: The Ready/done value type
+/// - `P`: The Pending value type
+/// - `S`: The ExecutionAction/Spawn type (must implement `ExecutionAction`)
+///
+/// ## Example
+///
+/// ```ignore
+/// let task = my_task
+///     .map_circuit(|status| {
+///         match status {
+///             TaskStatus::Ready(err) if err.is_error() => {
+///                 TaskShortCircuit::ReturnAndStop(TaskStatus::Ready(err))
+///             }
+///             TaskStatus::Pending(_) | TaskStatus::Ready(_) => {
+///                 TaskShortCircuit::Continue(status)
+///             }
+///             _ => TaskShortCircuit::Stop,
+///         }
+///     });
+/// ```
+pub enum TaskShortCircuit<D, P, S: ExecutionAction> {
+    /// Continue iteration with the wrapped item
+    Continue(TaskStatus<D, P, S>),
+    /// Return this item and then stop iteration permanently
+    ReturnAndStop(TaskStatus<D, P, S>),
+    /// Stop iteration without returning anything
+    Stop,
+}
+
 /// Extension trait providing builder-style combinator methods for any `TaskIterator`.
 ///
 /// This trait is automatically implemented for any type that implements `TaskIterator`
@@ -339,6 +382,41 @@ pub trait TaskIteratorExt: TaskIterator + Sized {
     {
         self.split_collector_map(transform, 1)
     }
+
+    /// Short-circuit the iterator based on a circuit function.
+    ///
+    /// The circuit function receives each item and returns a `TaskShortCircuit` enum
+    /// that determines whether to:
+    /// - `Continue(item)` - Continue iteration with the transformed item
+    /// - `ReturnAndStop(item)` - Return this item and then stop permanently
+    /// - `Stop` - Stop iteration without returning anything
+    ///
+    /// This is useful for error handling patterns where you want to return
+    /// an error value and immediately stop when an error is encountered.
+    ///
+    /// ## Example
+    ///
+    /// ```ignore
+    /// let task = my_task
+    ///     .map_circuit(|status| {
+    ///         match status {
+    ///             TaskStatus::Ready(err) if err.is_error() => {
+    ///                 TaskShortCircuit::ReturnAndStop(TaskStatus::Ready(err))
+    ///             }
+    ///             TaskStatus::Pending(_) | TaskStatus::Ready(_) => {
+    ///                 TaskShortCircuit::Continue(status)
+    ///             }
+    ///             _ => TaskShortCircuit::Stop,
+    ///         }
+    ///     });
+    /// ```
+    fn map_circuit<F>(self, f: F) -> TMapCircuit<Self>
+    where
+        Self: Sized,
+        F: Fn(TaskStatus<Self::Ready, Self::Pending, Self::Spawner>)
+                -> TaskShortCircuit<Self::Ready, Self::Pending, Self::Spawner>
+            + Send
+            + 'static;
 
     /// Flatten nested iterator patterns where outer yields inner iterators.
     ///
@@ -807,6 +885,22 @@ where
         F: Fn(&Self::Ready) -> (bool, Option<M>) + Send + 'static,
     {
         self.split_collector_map(transform, 1)
+    }
+
+    fn map_circuit<F>(self, f: F) -> TMapCircuit<Self>
+    where
+        Self: Sized,
+        F: Fn(TaskStatus<Self::Ready, Self::Pending, Self::Spawner>)
+                -> TaskShortCircuit<Self::Ready, Self::Pending, Self::Spawner>
+            + Send
+            + 'static,
+    {
+        TMapCircuit {
+            inner: self,
+            circuit: Box::new(f),
+            stopped: false,
+            _phantom: std::marker::PhantomData,
+        }
     }
 
     fn map_iter<F, InnerIter, InnerR, InnerP, InnerS>(
@@ -2869,3 +2963,77 @@ where
         Iterator::next(self)
     }
 }
+
+// ============================================================================
+// TaskIterator implementations for wrapped types
+// ============================================================================
+
+// Note: Implementations for &, &mut, Box, Rc, RefCell, Arc, Mutex are in task.rs
+// ===== map_circuit combinator =====
+
+/// Wrapper for `map_circuit()` - applies a circuit function to each `TaskStatus`.
+///
+/// The circuit function determines whether to continue iteration,
+/// return a value and stop, or just stop.
+pub struct TMapCircuit<I: TaskIterator> {
+    inner: I,
+    circuit: Box<
+        dyn Fn(TaskStatus<I::Ready, I::Pending, I::Spawner>)
+                -> TaskShortCircuit<I::Ready, I::Pending, I::Spawner>
+            + Send,
+    >,
+    stopped: bool,
+    _phantom: std::marker::PhantomData<I>,
+}
+
+impl<I> Iterator for TMapCircuit<I>
+where
+    I: TaskIterator + Send + 'static,
+    I::Ready: Send + 'static,
+    I::Pending: Send + 'static,
+    I::Spawner: ExecutionAction + Send + 'static,
+{
+    type Item = TaskStatus<I::Ready, I::Pending, I::Spawner>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        // If we've stopped, return None permanently
+        if self.stopped {
+            return None;
+        }
+
+        // Get the next item from the inner iterator
+        let status = self.inner.next_status()?;
+
+        // Apply the circuit function
+        match (self.circuit)(status) {
+            TaskShortCircuit::Continue(item) => Some(item),
+            TaskShortCircuit::ReturnAndStop(item) => {
+                // Mark as stopped so future calls return None
+                self.stopped = true;
+                Some(item)
+            }
+            TaskShortCircuit::Stop => {
+                // Mark as stopped and return None
+                self.stopped = true;
+                None
+            }
+        }
+    }
+}
+
+impl<I> TaskIterator for TMapCircuit<I>
+where
+    I: TaskIterator + Send + 'static,
+    I::Ready: Send + 'static,
+    I::Pending: Send + 'static,
+    I::Spawner: ExecutionAction + Send + 'static,
+{
+    type Ready = I::Ready;
+    type Pending = I::Pending;
+    type Spawner = I::Spawner;
+
+    fn next_status(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+        Iterator::next(self)
+    }
+}
+

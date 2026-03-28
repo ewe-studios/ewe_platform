@@ -296,6 +296,25 @@ pub trait StreamIterator: Iterator<Item = Stream<Self::D, Self::P>> {
     type P;
 }
 
+// StreamIterator implementations for wrapper types
+
+#[allow(clippy::needless_lifetimes)]
+impl<'a, M> StreamIterator for &'a mut M
+where
+    M: StreamIterator,
+{
+    type D = M::D;
+    type P = M::P;
+}
+
+impl<M> StreamIterator for Box<M>
+where
+    M: StreamIterator + ?Sized,
+{
+    type D = M::D;
+    type P = M::P;
+}
+
 // Note: Types implement StreamIterator explicitly or via blanket impls
 // that are more specific than this would be.
 
