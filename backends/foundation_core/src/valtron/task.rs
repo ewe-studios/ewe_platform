@@ -326,120 +326,80 @@ where
     }
 }
 
-impl<R, P, S> TaskIterator for Box<dyn TaskIterator<Ready = R, Pending = P, Spawner = S> + '_>
+// 1. Implementation for standard trait objects
+impl<R, P, S> Iterator for Box<dyn TaskIterator<Ready = R, Pending = P, Spawner = S> + '_>
 where
     R: 'static,
     P: 'static,
     S: ExecutionAction + 'static,
 {
-    type Ready = R;
-    type Pending = P;
-    type Spawner = S;
+    type Item = TaskStatus<R, P, S>;
 
-    fn next_status(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
-        (**self).next_status()
+    fn next(&mut self) -> Option<Self::Item> {
+        // Use as_mut() to access the trait method on the inner dyn object
+        // to avoid the blanket Iterator -> TaskIterator loop
+        self.as_mut().next_status()
     }
 }
 
-// impl<M, R, P, S> TaskIterator for &mut M
-// where
-//     M: Iterator<Item = TaskStatus<R, P, S>> + ?Sized,
-//     R: 'static,
-//     P: 'static,
-//     S: ExecutionAction + 'static,
-// {
-//     type Ready = R;
-//     type Pending = P;
-//     type Spawner = S;
+// 2. Implementation for Send trait objects (Crucial for your error message!)
+//
+// This was added to resolve below error:
+//
+//  But i got this error:error[E0277]:
+// `dyn TaskIterator<Pending = gen_model_descriptors::FetchPending, Ready = Vec<ModelEntry>, Spawner = Box<(dyn ExecutionAction + Send + 'static)>> + Send` is not an iterator
+//
+// Why as_mut()?
+// By calling self.as_mut().next_status(), you are explicitly telling Rust to use
+// the next_status method defined on the dyn TaskIterator trait itself, rather than
+// the one provided by the blanket Iterator implementation. This prevents the infinite loop.
+//
+// Why the Send block?
+//
+// In Rust, Box<dyn Trait> and Box<dyn Trait + Send> are different types. Since your
+// error specifically mentioned a + Send trait object, you must provide the
+// Iterator implementation for that specific variant.
+//
+// Does valtron::execute require the iterator to be Sync as well, or is Send
+// enough for your current setup?
+//
+// You are on the right track by implementing Iterator for the Box, but you’ve
+// actually hit a coherence and recursion loop because of how your blanket
+// implementation works.
+//
+// Here is what is happening:
+//
+// You have a blanket impl: impl TaskIterator for M where M: Iterator.
+// You implemented Iterator for Box<dyn TaskIterator>.
+//
+// Because of #2, the compiler sees that Box<dyn TaskIterator> is now an Iterator.
+// Because of #1, the compiler says: "Oh, since it's an Iterator, I will automatically
+// implement TaskIterator for it!"
+//
+// The Problem:
+//
+// Since the TaskIterator impl for the box is now "automatic" via the blanket impl,
+// your Iterator::next call to self.next_status() calls the blanket next_status,
+// which calls Iterator::next... resulting in infinite recursion.
+//
+// The Fix:
+//
+// To break the loop and satisfy the Send requirement from your error message,
+// you need to explicitly implement Iterator for the Send version of the box and
+// call the inner trait method directly.
+//
+impl<R, P, S> Iterator for Box<dyn TaskIterator<Ready = R, Pending = P, Spawner = S> + Send + '_>
+where
+    R: Send + 'static,
+    P: Send + 'static,
+    S: ExecutionAction + Send + 'static,
+{
+    type Item = TaskStatus<R, P, S>;
 
-//     fn next_status(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
-//         Iterator::next(self)
-//     }
-// }
-
-// #[allow(clippy::needless_lifetimes)]
-// impl<'a, M> TaskIterator for &'a mut M
-// where
-//     M: TaskIterator,
-//     M::Ready: 'a,
-//     M::Pending: 'a,
-//     M::Spawner: ExecutionAction + 'a,
-// {
-//     type Ready = M::Ready;
-//     type Pending = M::Pending;
-//     type Spawner = M::Spawner;
-//     fn next_status(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
-//         (**self).next_status()
-//     }
-// }
-
-// impl<M> TaskIterator for RefCell<Box<M>>
-// where
-//     M: TaskIterator + ?Sized,
-//     M: TaskIterator,
-//     M::Ready: 'static,
-//     M::Pending: 'static,
-//     M::Spawner: ExecutionAction + 'static,
-// {
-//     type Ready = M::Ready;
-//     type Pending = M::Pending;
-//     type Spawner = M::Spawner;
-
-//     fn next_status(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
-//         self.get_mut().next_status()
-//     }
-// }
-
-// impl<M> TaskIterator for Rc<RefCell<Box<M>>>
-// where
-//     M: TaskIterator + ?Sized,
-//     M: TaskIterator,
-//     M::Ready: 'static,
-//     M::Pending: 'static,
-//     M::Spawner: ExecutionAction + 'static,
-// {
-//     type Ready = M::Ready;
-//     type Pending = M::Pending;
-//     type Spawner = M::Spawner;
-
-//     fn next_status(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
-//         self.borrow_mut().next_status()
-//     }
-// }
-
-// impl<M> TaskIterator for Mutex<Box<M>>
-// where
-//     M: TaskIterator + ?Sized,
-//     M: TaskIterator,
-//     M::Ready: 'static,
-//     M::Pending: 'static,
-//     M::Spawner: ExecutionAction + 'static,
-// {
-//     type Ready = M::Ready;
-//     type Pending = M::Pending;
-//     type Spawner = M::Spawner;
-
-//     fn next_status(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
-//         self.get_mut().unwrap().next_status()
-//     }
-// }
-
-// impl<M> TaskIterator for Arc<Mutex<Box<M>>>
-// where
-//     M: TaskIterator + ?Sized,
-//     M: TaskIterator,
-//     M::Ready: 'static,
-//     M::Pending: 'static,
-//     M::Spawner: ExecutionAction + 'static,
-// {
-//     type Ready = M::Ready;
-//     type Pending = M::Pending;
-//     type Spawner = M::Spawner;
-
-//     fn next_status(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
-//         self.lock().unwrap().next_status()
-//     }
-// }
+    fn next(&mut self) -> Option<Self::Item> {
+        self.as_mut().next_status()
+    }
+}
 
 pub struct TaskAsStreamIterator<D, P, S>(
     Box<dyn TaskIterator<Ready = D, Pending = P, Spawner = S>>,

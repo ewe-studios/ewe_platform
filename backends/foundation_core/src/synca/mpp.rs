@@ -329,6 +329,24 @@ where
     type P = P;
 }
 
+// impl<D, P> StreamIterator for Box<dyn StreamIterator<D = D, P = P, Item = Stream<D, P>> + Send + '_>
+// where
+//     D: Send + 'static,
+//     P: Send + 'static,
+// {
+//     type D = D;
+//     type P = P;
+// }
+
+// impl<D, P> StreamIterator for Box<dyn StreamIterator<D = D, P = P, Item = Stream<D, P>> + '_>
+// where
+//     D: Send + 'static,
+//     P: Send + 'static,
+// {
+//     type D = D;
+//     type P = P;
+// }
+
 // Note: Types implement StreamIterator explicitly or via blanket impls
 // that are more specific than this would be.
 
