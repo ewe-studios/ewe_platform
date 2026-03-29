@@ -161,7 +161,9 @@ impl KeyValueStore for TursoStorage {
             match stream_item {
                 Stream::Next(result) => match result {
                     Ok(opt) => ShortCircuit::Continue(Stream::Next(Ok(opt))),
-                    Err(e) => ShortCircuit::ReturnAndStop(Stream::Next(Err(StorageError::Backend(e.to_string())))),
+                    Err(e) => ShortCircuit::ReturnAndStop(Stream::Next(Err(
+                        StorageError::Backend(e.to_string()),
+                    ))),
                 },
                 _ => ShortCircuit::Continue(Stream::Ignore),
             }
@@ -200,14 +202,18 @@ impl KeyValueStore for TursoStorage {
             use foundation_core::valtron::ShortCircuit;
             match stream_item {
                 Stream::Next(result) => match result {
-                    Ok(_rows) => ShortCircuit::Continue(Stream::Next(Ok(_rows))),
-                    Err(e) => ShortCircuit::ReturnAndStop(Stream::Next(Err(StorageError::Backend(e.to_string())))),
+                    Ok(rows) => ShortCircuit::Continue(Stream::Next(Ok(rows))),
+                    Err(e) => ShortCircuit::ReturnAndStop(Stream::Next(Err(
+                        StorageError::Backend(e.to_string()),
+                    ))),
                 },
                 _ => ShortCircuit::Continue(Stream::Ignore),
             }
         });
 
-        Ok(Box::new(circuit_stream.map_done(|result| result.map(|_rows| ()))))
+        Ok(Box::new(
+            circuit_stream.map_done(|result| result.map(|_rows| ())),
+        ))
     }
 
     fn delete(&self, key: &str) -> StorageResult<StorageItemStream<'_, ()>> {
@@ -225,13 +231,17 @@ impl KeyValueStore for TursoStorage {
             match stream_item {
                 Stream::Next(result) => match result {
                     Ok(_rows) => ShortCircuit::Continue(Stream::Next(Ok(_rows))),
-                    Err(e) => ShortCircuit::ReturnAndStop(Stream::Next(Err(StorageError::Backend(e.to_string())))),
+                    Err(e) => ShortCircuit::ReturnAndStop(Stream::Next(Err(
+                        StorageError::Backend(e.to_string()),
+                    ))),
                 },
                 _ => ShortCircuit::Continue(Stream::Ignore),
             }
         });
 
-        Ok(Box::new(circuit_stream.map_done(|result| result.map(|_rows| ()))))
+        Ok(Box::new(
+            circuit_stream.map_done(|result| result.map(|_rows| ())),
+        ))
     }
 
     fn exists(&self, key: &str) -> StorageResult<StorageItemStream<'_, bool>> {
@@ -252,7 +262,9 @@ impl KeyValueStore for TursoStorage {
             match stream_item {
                 Stream::Next(result) => match result {
                     Ok(val) => ShortCircuit::Continue(Stream::Next(Ok(val))),
-                    Err(e) => ShortCircuit::ReturnAndStop(Stream::Next(Err(StorageError::Backend(e.to_string())))),
+                    Err(e) => ShortCircuit::ReturnAndStop(Stream::Next(Err(
+                        StorageError::Backend(e.to_string()),
+                    ))),
                 },
                 _ => ShortCircuit::Continue(Stream::Ignore),
             }
@@ -277,7 +289,9 @@ impl KeyValueStore for TursoStorage {
 
         // Use ThreadedFuture for streaming query results
         let threaded = ThreadedFuture::new(move || async move {
-            let mut stmt = conn.prepare(sql).await
+            let mut stmt = conn
+                .prepare(sql)
+                .await
                 .map_err(|e| StorageError::Backend(e.to_string()))?;
             let rows = if param.is_empty() {
                 stmt.query([turso::Value::Null; 0]).await
@@ -296,12 +310,10 @@ impl KeyValueStore for TursoStorage {
         let block_iter = receiver.into_recv_iter();
         let stream = block_iter.map(|threaded_value| match threaded_value {
             ThreadedValue::Value(row_result) => match row_result {
-                Ok(row) => {
-                    match row.get::<String>(0) {
-                        Ok(key) => Stream::Next(Ok(key)),
-                        Err(e) => Stream::Next(Err(StorageError::SqlConversion(e.to_string()))),
-                    }
-                }
+                Ok(row) => match row.get::<String>(0) {
+                    Ok(key) => Stream::Next(Ok(key)),
+                    Err(e) => Stream::Next(Err(StorageError::SqlConversion(e.to_string()))),
+                },
                 Err(e) => Stream::Next(Err(e)),
             },
         });
@@ -326,9 +338,13 @@ impl QueryStore for TursoStorage {
         // Use ThreadedFuture to spawn worker thread that owns !Send turso::Rows
         // RowsIterator already converts turso::Error to StorageError internally
         let threaded = ThreadedFuture::new(move || async move {
-            let mut stmt = conn.prepare(&sql).await
+            let mut stmt = conn
+                .prepare(&sql)
+                .await
                 .map_err(|e| StorageError::Backend(e.to_string()))?;
-            let rows = stmt.query(turso_params).await
+            let rows = stmt
+                .query(turso_params)
+                .await
                 .map_err(|e| StorageError::Backend(e.to_string()))?;
             Ok::<_, StorageError>(RowsIterator::new(rows))
         });
@@ -362,7 +378,9 @@ impl QueryStore for TursoStorage {
             match stream_item {
                 Stream::Next(result) => match result {
                     Ok(rows) => ShortCircuit::Continue(Stream::Next(Ok(rows as u64))),
-                    Err(e) => ShortCircuit::ReturnAndStop(Stream::Next(Err(StorageError::Backend(e.to_string())))),
+                    Err(e) => ShortCircuit::ReturnAndStop(Stream::Next(Err(
+                        StorageError::Backend(e.to_string()),
+                    ))),
                 },
                 _ => ShortCircuit::Continue(Stream::Ignore),
             }
@@ -383,7 +401,9 @@ impl QueryStore for TursoStorage {
             match stream_item {
                 Stream::Next(result) => match result {
                     Ok(_) => ShortCircuit::Continue(Stream::Next(Ok(()))),
-                    Err(e) => ShortCircuit::ReturnAndStop(Stream::Next(Err(StorageError::Backend(e.to_string())))),
+                    Err(e) => ShortCircuit::ReturnAndStop(Stream::Next(Err(
+                        StorageError::Backend(e.to_string()),
+                    ))),
                 },
                 _ => ShortCircuit::Continue(Stream::Ignore),
             }
@@ -446,7 +466,9 @@ impl RateLimiterStore for TursoStorage {
             match stream_item {
                 Stream::Next(result) => match result {
                     Ok(val) => ShortCircuit::Continue(Stream::Next(Ok(val))),
-                    Err(e) => ShortCircuit::ReturnAndStop(Stream::Next(Err(StorageError::Backend(e.to_string())))),
+                    Err(e) => ShortCircuit::ReturnAndStop(Stream::Next(Err(
+                        StorageError::Backend(e.to_string()),
+                    ))),
                 },
                 _ => ShortCircuit::Continue(Stream::Ignore),
             }
@@ -494,7 +516,9 @@ impl RateLimiterStore for TursoStorage {
             match stream_item {
                 Stream::Next(result) => match result {
                     Ok(val) => ShortCircuit::Continue(Stream::Next(Ok(val))),
-                    Err(e) => ShortCircuit::ReturnAndStop(Stream::Next(Err(StorageError::Backend(e.to_string())))),
+                    Err(e) => ShortCircuit::ReturnAndStop(Stream::Next(Err(
+                        StorageError::Backend(e.to_string()),
+                    ))),
                 },
                 _ => ShortCircuit::Continue(Stream::Ignore),
             }
@@ -517,11 +541,15 @@ impl RateLimiterStore for TursoStorage {
             use foundation_core::valtron::ShortCircuit;
             match stream_item {
                 Stream::Next(Ok(rows)) => ShortCircuit::Continue(Stream::Next(Ok(rows))),
-                Stream::Next(Err(e)) => ShortCircuit::ReturnAndStop(Stream::Next(Err(StorageError::Backend(e.to_string())))),
+                Stream::Next(Err(e)) => ShortCircuit::ReturnAndStop(Stream::Next(Err(
+                    StorageError::Backend(e.to_string()),
+                ))),
                 _ => ShortCircuit::Continue(Stream::Ignore),
             }
         });
 
-        Ok(Box::new(circuit_stream.map_done(|result| result.map(|_| ()))))
+        Ok(Box::new(
+            circuit_stream.map_done(|result| result.map(|_| ())),
+        ))
     }
 }
