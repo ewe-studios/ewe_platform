@@ -326,20 +326,34 @@ where
     }
 }
 
-// impl<M> TaskIterator for Box<M>
+impl<R, P, S> TaskIterator for Box<dyn TaskIterator<Ready = R, Pending = P, Spawner = S> + '_>
+where
+    R: 'static,
+    P: 'static,
+    S: ExecutionAction + 'static,
+{
+    type Ready = R;
+    type Pending = P;
+    type Spawner = S;
+
+    fn next_status(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+        (**self).next_status()
+    }
+}
+
+// impl<M, R, P, S> TaskIterator for &mut M
 // where
-//     M: TaskIterator + ?Sized,
-//     M: TaskIterator,
-//     M::Ready: 'static,
-//     M::Pending: 'static,
-//     M::Spawner: ExecutionAction + 'static,
+//     M: Iterator<Item = TaskStatus<R, P, S>> + ?Sized,
+//     R: 'static,
+//     P: 'static,
+//     S: ExecutionAction + 'static,
 // {
-//     type Ready = M::Ready;
-//     type Pending = M::Pending;
-//     type Spawner = M::Spawner;
+//     type Ready = R;
+//     type Pending = P;
+//     type Spawner = S;
 
 //     fn next_status(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
-//         (**self).next_status()
+//         Iterator::next(self)
 //     }
 // }
 

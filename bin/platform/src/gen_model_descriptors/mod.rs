@@ -20,9 +20,7 @@ use foundation_core::synca::mpp::Stream;
 use foundation_core::valtron::{self, TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::HttpRequestPending;
 use foundation_core::wire::simple_http::client::RequestIntro;
-use foundation_core::wire::simple_http::client::{
-    body_reader, SendRequestTask, SimpleHttpClient,
-};
+use foundation_core::wire::simple_http::client::{body_reader, SendRequestTask, SimpleHttpClient};
 use serde::Deserialize;
 use tracing::Level;
 use tracing_subscriber::FmtSubscriber;
@@ -1264,24 +1262,29 @@ where
 
     // Create SendRequestTask and apply combinators
     // Transform RequestIntro → Vec<ModelEntry>
-    let task = SendRequestTask::new(request, 5, client.client_pool().expect("should have pool"), client.client_config(),)
-        .map_ready(move |intro| {
-            match intro {
-                RequestIntro::Success { stream, .. } => {
-                    // Read the response body as a String using the body_reader convenience function
-                    let body_text = body_reader::collect_string(stream);
+    let task = SendRequestTask::new(
+        request,
+        5,
+        client.client_pool().expect("should have pool"),
+        client.client_config(),
+    )
+    .map_ready(move |intro| {
+        match intro {
+            RequestIntro::Success { stream, .. } => {
+                // Read the response body as a String using the body_reader convenience function
+                let body_text = body_reader::collect_string(stream);
 
-                    // Parse JSON and extract models
-                    parser(&body_text, source)
-                }
-                RequestIntro::Failed(e) => {
-                    tracing::warn!("Request failed for {url}: {e}");
-                    Vec::new()
-                }
+                // Parse JSON and extract models
+                parser(&body_text, source)
             }
-        })
-        // Transform: HttpPending → FetchPending with source tracking
-        .map_pending(move |p| FetchPending::from_http(p, source));
+            RequestIntro::Failed(e) => {
+                tracing::warn!("Request failed for {url}: {e}");
+                Vec::new()
+            }
+        }
+    })
+    // Transform: HttpPending → FetchPending with source tracking
+    .map_pending(move |p| FetchPending::from_http(p, source));
 
     Ok(Box::new(task))
 }

@@ -149,6 +149,26 @@ impl<R: DnsResolver + Default + 'static> ClientRequestBuilder<R> {
             .unwrap_or_else(|| Arc::new(MiddlewareChain::new()));
         Ok(ClientRequest::new(prepared, config, pool, middleware_chain))
     }
+
+    pub fn build_send_request(self) -> Result<super::SendRequestTask<R>, HttpClientError> {
+        let prepared_request = PreparedRequest {
+            method: self.method,
+            url: self.url,
+            headers: self.headers,
+            body: self.body.unwrap_or(SendSafeBody::None),
+            extensions: Extensions::new(),
+        };
+
+        let pool = self.pool.unwrap_or_default();
+        let config = self.config.unwrap_or_default();
+
+        Ok(super::SendRequestTask::new(
+            prepared_request,
+            config.max_redirects,
+            pool,
+            config,
+        ))
+    }
 }
 
 impl<R: DnsResolver + 'static> ClientRequestBuilder<R> {
