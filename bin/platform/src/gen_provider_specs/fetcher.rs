@@ -9,7 +9,7 @@
 //! Valtron's `execute_collect_all` for parallel execution, and blocking `std::fs`
 //! for file I/O at sync boundaries.
 
-use foundation_core::valtron::{self, Stream, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{self, Stream, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{
     body_reader, SendRequestTask, SimpleHttpClient,
 };
@@ -56,6 +56,13 @@ impl ProviderSpecFetcher {
     ) -> Result<BTreeMap<String, DistilledSpec>, SpecFetchError> {
         let providers = Self::configured_providers();
 
+        // Artefacts directory for raw JSON specs
+        let artefacts_dir = std::path::PathBuf::from("artefacts/cloud_providers");
+        std::fs::create_dir_all(&artefacts_dir).map_err(|e| SpecFetchError::WriteFile {
+            path: artefacts_dir.display().to_string(),
+            source: e,
+        })?;
+
         tracing::info!("Fetching {} provider specs in parallel...", providers.len());
         let start_time = Instant::now();
 
@@ -98,13 +105,38 @@ impl ProviderSpecFetcher {
                 .expect("execute should return stream");
 
             for stream_item in results_stream {
-                if let Stream::Next(result) = stream_item {
-                    match result {
-                        Ok(spec) => {
-                            specs.insert(spec.provider.clone(), spec);
-                        }
-                        Err(e) => {
-                            tracing::warn!("Failed to fetch spec for {provider}: {e}");
+                if let Stream::Next(result_box) = stream_item {
+                    // Iterate over the Box<[Result<...>]>
+                    for result in result_box.into_iter() {
+                        match result {
+                            Ok(spec) => {
+                                // Save raw JSON to artefacts directory in provider-named folder
+                                let provider_dir = artefacts_dir.join(provider);
+                                std::fs::create_dir_all(&provider_dir).map_err(|e| {
+                                    SpecFetchError::WriteFile {
+                                        path: provider_dir.display().to_string(),
+                                        source: e,
+                                    }
+                                })?;
+                                let json_path = provider_dir.join("openapi.json");
+                                let json = serde_json::to_string_pretty(&spec.raw_spec)
+                                    .map_err(|e| SpecFetchError::Json {
+                                        provider: provider.to_string(),
+                                        source: e,
+                                    })?;
+                                std::fs::write(&json_path, json).map_err(|e| {
+                                    SpecFetchError::WriteFile {
+                                        path: json_path.display().to_string(),
+                                        source: e,
+                                    }
+                                })?;
+                                tracing::info!("Saved raw spec: {}", json_path.display());
+
+                                specs.insert(spec.provider.clone(), spec.clone());
+                            }
+                            Err(e) => {
+                                tracing::warn!("Failed to fetch spec for {provider}: {e}");
+                            }
                         }
                     }
                 }
@@ -128,10 +160,10 @@ impl ProviderSpecFetcher {
         client: &mut SimpleHttpClient,
         provider: &str,
     ) -> Result<DistilledSpec, SpecFetchError> {
-        let url = Self::configured_providers()
+        let (provider_static, url) = Self::configured_providers()
             .iter()
             .find(|(name, _)| *name == provider)
-            .map(|(_, url)| *url)
+            .map(|&(p, u)| (p, u))
             .ok_or_else(|| SpecFetchError::Http {
                 provider: provider.to_string(),
                 source: HttpClientError::InvalidUrl(
@@ -139,13 +171,44 @@ impl ProviderSpecFetcher {
                 ),
             })?;
 
-        let task = create_fetch_task(client, provider, url)?;
+        // Build the request
+        let request = client.get(url).map_err(|e| SpecFetchError::Http {
+            provider: provider.to_string(),
+            source: e,
+        })?
+        .build().map_err(|e| SpecFetchError::Http {
+            provider: provider.to_string(),
+            source: e,
+        })?;
+
+        // Create and execute the task inline to avoid boxing/lifetime issues
+        let task = SendRequestTask::new(
+            request, 5,
+            client.client_pool().expect("should have pool"),
+            client.client_config(),
+        )
+        .map_ready(move |intro| {
+            match intro {
+                RequestIntro::Success { stream, .. } => {
+                    let body_text = body_reader::collect_string(stream);
+                    parse_spec_response(&body_text, provider_static, url)
+                }
+                RequestIntro::Failed(e) => {
+                    tracing::warn!("HTTP request failed for {provider_static}: {e}");
+                    Box::new([]) as Box<[Result<DistilledSpec, SpecFetchError>]>
+                }
+            }
+        })
+        .map_pending(move |p| SpecFetchPending::from_http(p, provider_static));
+
         let results_stream = valtron::execute(task, None)
             .expect("execute should return stream");
 
         for stream_item in results_stream {
-            if let Stream::Next(result) = stream_item {
-                return result;
+            if let Stream::Next(result_box) = stream_item {
+                for result in result_box.iter() {
+                    return result.clone();
+                }
             }
         }
 
@@ -263,66 +326,6 @@ impl ProviderSpecFetcher {
     }
 }
 
-/// Create a Valtron fetch task for a single provider.
-///
-/// Uses `SendRequestTask` with combinators to transform HTTP response → DistilledSpec.
-fn create_fetch_task(
-    client: &mut SimpleHttpClient,
-    provider: &'static str,
-    url: &'static str,
-) -> Result<
-    Box<
-        dyn TaskIterator<
-                Ready = FetchResult,
-                Pending = SpecFetchPending,
-                Spawner = foundation_core::valtron::BoxedSendExecutionAction,
-            > + Send
-            + 'static,
-    >,
-    SpecFetchError,
-> {
-    let provider_name = provider.to_string();
-
-    // Build the HTTP request
-    let request = client
-        .get(url)
-        .map_err(|e| SpecFetchError::Http {
-            provider: provider_name.clone(),
-            source: e,
-        })?
-        .build()
-        .map_err(|e| SpecFetchError::Http {
-            provider: provider_name.clone(),
-            source: e,
-        })?;
-
-    // Create SendRequestTask and apply combinators
-    let task = SendRequestTask::new(
-        request,
-        5, // max_retries
-        client.client_pool().expect("should have pool"),
-        client.client_config(),
-    )
-    .map_ready(move |intro| {
-        match intro {
-            RequestIntro::Success { stream, .. } => {
-                // Read the response body as a String
-                let body_text = body_reader::collect_string(stream);
-
-                // Parse JSON and extract spec
-                parse_spec_response(&body_text, provider, url)
-            }
-            RequestIntro::Failed(e) => {
-                tracing::warn!("HTTP request failed for {provider}: {e}");
-                Vec::new()
-            }
-        }
-    })
-    .map_pending(move |p| SpecFetchPending::from_http(p, provider));
-
-    Ok(Box::new(task))
-}
-
 /// Parse HTTP response body and extract DistilledSpec.
 fn parse_spec_response(
     body_text: &str,
@@ -400,7 +403,7 @@ fn extract_stripe_endpoints(spec: &Value) -> Option<Vec<SpecEndpoint>> {
         .map(|paths_obj| {
             paths_obj
                 .keys()
-                .map(|path| super::core::SpecEndpoint {
+                .map(|path| SpecEndpoint {
                     path: path.clone(),
                     methods: vec![],
                     operation_id: None,

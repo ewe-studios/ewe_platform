@@ -20,7 +20,7 @@ use foundation_core::wire::simple_http::client::SimpleHttpClient;
 use std::path::PathBuf;
 use std::time::Duration;
 
-pub use core::{DistilledSpec, SpecEndpoint, SpecFetchPending};
+pub use core::DistilledSpec;
 pub use errors::SpecFetchError;
 pub use fetcher::ProviderSpecFetcher;
 
