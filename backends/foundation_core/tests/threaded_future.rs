@@ -1,8 +1,8 @@
-//! Tests for ThreadedFuture executor.
+//! Tests for ThreadedIterFuture executor.
 
 #![cfg(feature = "multi")]
 
-use foundation_core::valtron::{ThreadedFuture, ThreadedValue};
+use foundation_core::valtron::{ThreadedIterFuture, ThreadedValue};
 use tracing_test::traced_test;
 
 #[test]
@@ -10,7 +10,7 @@ use tracing_test::traced_test;
 fn test_threaded_future_basic() {
     let _guard = foundation_core::valtron::initialize_pool(42, Some(4));
 
-    let threaded = ThreadedFuture::new(|| async {
+    let threaded = ThreadedIterFuture::new(|| async {
         Ok::<_, ()>(vec![Ok::<i32, ()>(1), Ok(2), Ok(3)].into_iter())
     });
 
@@ -30,7 +30,7 @@ fn test_threaded_future_basic() {
 fn test_threaded_future_future_error() {
     let _guard = foundation_core::valtron::initialize_pool(42, Some(4));
 
-    let threaded = ThreadedFuture::new(|| async {
+    let threaded = ThreadedIterFuture::new(|| async {
         Err::<std::vec::IntoIter<Result<i32, &'static str>>, &'static str>("future failed")
     });
 
@@ -50,7 +50,7 @@ fn test_threaded_future_future_error() {
 fn test_threaded_future_empty_iterator() {
     let _guard = foundation_core::valtron::initialize_pool(42, Some(4));
 
-    let threaded = ThreadedFuture::new(|| async { Ok::<_, ()>(vec![].into_iter()) });
+    let threaded = ThreadedIterFuture::new(|| async { Ok::<_, ()>(vec![].into_iter()) });
 
     let iter = threaded.execute().expect("should submit job");
     let results: Vec<Result<i32, ()>> = iter
@@ -69,7 +69,7 @@ fn test_threaded_future_custom_queue_size() {
 
     // Use a queue size of 100 to hold all items, avoiding backpressure issues
     // in the test environment where thread scheduling may differ from production
-    let threaded = ThreadedFuture::with_queue_size(
+    let threaded = ThreadedIterFuture::with_queue_size(
         || async { Ok::<_, ()>((0..100).map(Ok).collect::<Vec<_>>().into_iter()) },
         100,
     );
@@ -99,7 +99,7 @@ fn test_threaded_future_backpressure() {
 
     // Small queue forces backpressure: 100 items with queue size 4
     // means ~96 backpressure cycles
-    let threaded = ThreadedFuture::with_queue_size(
+    let threaded = ThreadedIterFuture::with_queue_size(
         || async { Ok::<_, ()>((0..100).map(Ok).collect::<Vec<_>>().into_iter()) },
         4,
     );
