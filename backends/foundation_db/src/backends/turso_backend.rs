@@ -303,13 +303,18 @@ impl KeyValueStore for TursoStorage {
             Ok::<_, StorageError>(RowsIterator::new(rows))
         });
 
-        let receiver = threaded.execute()
+        // execute() returns Result<impl Iterator, Error> in multi mode,
+        // or impl Iterator directly in single-threaded mode
+        #[cfg(feature = "multi")]
+        let iter = threaded
+            .execute()
             .map_err(|e| StorageError::Backend(e.to_string()))?;
 
-        // RowsIterator yields Result<SqlRow, StorageError>
+        #[cfg(not(feature = "multi"))]
+        let iter = threaded.execute();
+
         // Convert ThreadedValue to Stream
-        let block_iter = receiver.into_recv_iter();
-        let stream = block_iter.map(|threaded_value| match threaded_value {
+        let stream = iter.map(|threaded_value| match threaded_value {
             ThreadedValue::Value(row_result) => match row_result {
                 Ok(row) => match row.get::<String>(0) {
                     Ok(key) => Stream::Next(Ok(key)),
@@ -350,13 +355,18 @@ impl QueryStore for TursoStorage {
             Ok::<_, StorageError>(RowsIterator::new(rows))
         });
 
-        let receiver = threaded.execute()
+        // execute() returns Result<impl Iterator, Error> in multi mode,
+        // or impl Iterator directly in single-threaded mode
+        #[cfg(feature = "multi")]
+        let iter = threaded
+            .execute()
             .map_err(|e| StorageError::Backend(e.to_string()))?;
 
-        // RowsIterator yields Result<SqlRow, StorageError>
+        #[cfg(not(feature = "multi"))]
+        let iter = threaded.execute();
+
         // Convert ThreadedValue to Stream
-        let block_iter = receiver.into_recv_iter();
-        let stream = block_iter.map(|threaded_value| match threaded_value {
+        let stream = iter.map(|threaded_value| match threaded_value {
             ThreadedValue::Value(result) => Stream::Next(result),
         });
 

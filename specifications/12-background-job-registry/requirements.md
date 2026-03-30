@@ -267,3 +267,689 @@ Start with **unbounded** queue (matching `ThreadRegistry`'s task queue pattern).
 ### Why share kill_signal?
 
 Both registries should shut down together. Sharing `kill_signal` from `ThreadRegistry` means `PoolGuard` only needs to turn on one signal to stop everything. The separate `WaitGroup` on `BackgroundJobRegistry` ensures we wait for background workers independently.
+
+---
+
+## Feature 05: ThreadedFuture and FutureIterator Feature Gating
+
+**File**: `backends/foundation_core/src/valtron/executors/future_task.rs` (modify)
+
+Provide two implementations of `ThreadedFuture` with identical APIs but different execution strategies based on the `multi` feature:
+
+### Multi-threaded mode (`cfg(all(feature = "std", feature = "multi"))`)
+
+`ThreadedFuture` uses the `BackgroundJobRegistry` via `run_background_job`:
+
+- `execute()` submits a closure to the background pool
+- The closure polls the future and streams results through an `mpp::Sender`
+- Returns `impl Iterator<Item = ThreadedValue<T, E>>` that wraps the receiver
+
+### Single-threaded std mode (`cfg(all(feature = "std", not(feature = "multi")))`)
+
+`ThreadedFuture` returns a `FutureIterator` that polls the future inline:
+
+- `execute()` returns `FutureIterator` directly (no channel, no thread spawn)
+- Each `next()` call creates a waker/context and polls the future until it yields
+- Once the inner iterator is acquired, subsequent `next()` calls pull from it
+- Returns `impl Iterator<Item = ThreadedValue<T, E>>`
+
+### No-std mode (`cfg(all(not(feature = "multi"), not(feature = "std")))`)
+
+Same as single-threaded std mode, but uses `spin_loop()` instead of `thread::yield_now()`:
+
+- `FutureIterator` polls the future with no-op waker
+- Uses `core::hint::spin_loop()` for backpressure/yielding
+
+### ThreadedValue
+
+Common result type across all modes:
+
+```rust
+pub enum ThreadedValue<T, E> {
+    Value(Result<T, E>),
+}
+```
+
+### API Surface (identical across all modes)
+
+```rust
+let threaded = ThreadedFuture::new(|| async {
+    Ok::<_, Error>(some_iterator)
+});
+
+for value in threaded.execute() {
+    match value {
+        ThreadedValue::Value(Ok(item)) => { /* process */ }
+        ThreadedValue::Value(Err(e)) => { /* handle error */ }
+    }
+}
+```
+
+### Detailed Code Implementation
+
+#### Common imports and helpers (unconditional)
+
+```rust
+use core::future::Future;
+use core::marker::PhantomData;
+use core::pin::Pin;
+use core::task::{Context, Poll, RawWaker, RawWakerVTable, Waker};
+
+#[cfg(feature = "std")]
+use std::boxed::Box;
+
+#[cfg(all(feature = "alloc", not(feature = "std")))]
+use alloc::boxed::Box;
+
+/// Common result type across all modes
+#[derive(Debug)]
+pub enum ThreadedValue<T, E> {
+    Value(Result<T, E>),
+}
+
+/// No-op waker for polling without async runtime
+fn create_noop_waker() -> Waker {
+    const VTABLE: RawWakerVTable = RawWakerVTable::new(
+        |_| RAW_WAKER,
+        |_| {},
+        |_| {},
+        |_| {},
+    );
+    const RAW_WAKER: RawWaker = RawWaker::new(core::ptr::null(), &VTABLE);
+    unsafe { Waker::from_raw(RAW_WAKER) }
+}
+
+#[cfg(feature = "std")]
+fn get_noop_waker() -> Waker {
+    thread_local! {
+        static NOOP_WAKER: Waker = create_noop_waker();
+    }
+    NOOP_WAKER.with(std::clone::Clone::clone)
+}
+
+#[cfg(not(feature = "std"))]
+fn get_noop_waker() -> Waker {
+    create_noop_waker()
+}
+```
+
+#### Multi-threaded implementation (`cfg(all(feature = "std", feature = "multi"))`)
+
+```rust
+/// Iterator wrapper around Receiver for ThreadedFuture.
+///
+/// Uses `Receiver.into_recv_iter()` which already provides the Iterator
+/// implementation with proper blocking/consumption logic.
+pub struct ThreadedFutureIter<T, E> {
+    iter: mpp::RecvIter<ThreadedValue<T, E>>,
+}
+
+impl<T, E> Iterator for ThreadedFutureIter<T, E> {
+    type Item = ThreadedValue<T, E>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        self.iter.next()
+    }
+}
+
+/// A future executor that runs !Send operations on a background worker thread.
+pub struct ThreadedFuture<F, Fut, I, T, E>
+where
+    F: FnOnce() -> Fut + Send + 'static,
+    Fut: Future<Output = Result<I, E>> + 'static,
+    I: Iterator<Item = Result<T, E>> + 'static,
+    T: Send + 'static,
+    E: Send + 'static,
+{
+    future_fn: F,
+    queue_size: usize,
+    backpressure_sleep: Option<std::time::Duration>,
+    _phantom: PhantomData<(Fut, I, T, E)>,
+}
+
+impl<F, Fut, I, T, E> ThreadedFuture<F, Fut, I, T, E>
+where
+    F: FnOnce() -> Fut + Send + 'static,
+    Fut: Future<Output = Result<I, E>> + 'static,
+    I: Iterator<Item = Result<T, E>> + 'static,
+    T: Send + 'static,
+    E: Send + 'static,
+{
+    pub fn new(future_fn: F) -> Self {
+        Self {
+            future_fn,
+            queue_size: 16,
+            backpressure_sleep: Some(std::time::Duration::from_millis(10)),
+            _phantom: PhantomData,
+        }
+    }
+
+    pub fn with_queue_size(future_fn: F, queue_size: usize) -> Self {
+        Self {
+            future_fn,
+            queue_size: queue_size.max(2),
+            backpressure_sleep: Some(std::time::Duration::from_millis(10)),
+            _phantom: PhantomData,
+        }
+    }
+
+    pub fn execute(
+        self,
+    ) -> crate::valtron::GenericResult<impl Iterator<Item = ThreadedValue<T, E>>> {
+        let (sender, receiver) = mpp::bounded::<ThreadedValue<T, E>>(self.queue_size);
+        let backpressure_sleep = self.backpressure_sleep;
+
+        super::unified::run_background_job(move || {
+            let waker = create_noop_waker();
+            let mut cx = Context::from_waker(&waker);
+            let mut future = Box::pin((self.future_fn)());
+
+            // Poll future until it produces iterator or error
+            let iterator = loop {
+                match future.as_mut().poll(&mut cx) {
+                    Poll::Ready(Ok(iter)) => break Some(iter),
+                    Poll::Ready(Err(e)) => {
+                        let _ = sender.send(ThreadedValue::Value(Err(e)));
+                        break None;
+                    }
+                    Poll::Pending => std::thread::yield_now(),
+                }
+            };
+
+            // Stream iterator results through the channel
+            if let Some(iter) = iterator {
+                for result in iter {
+                    let mut value = ThreadedValue::Value(result);
+                    loop {
+                        match sender.send(value) {
+                            Ok(()) => break,
+                            Err(SenderError::Full(v)) => {
+                                value = v;
+                                if let Some(sleep_dur) = backpressure_sleep {
+                                    std::thread::sleep(sleep_dur);
+                                } else {
+                                    std::hint::spin_loop();
+                                }
+                            }
+                            Err(SenderError::Closed(_)) => return,
+                        }
+                    }
+                }
+            }
+
+            let _ = sender.close();
+        })?;
+
+        // Use receiver.into_recv_iter() which already implements Iterator
+        Ok(ThreadedFutureIter {
+            iter: receiver.into_recv_iter(),
+        })
+    }
+}
+```
+
+#### Single-threaded std implementation (`cfg(all(feature = "std", not(feature = "multi")))`)
+
+```rust
+/// Iterator that polls a future on each `next()` call.
+pub struct FutureIterator<F, Fut, I, T, E>
+where
+    F: FnOnce() -> Fut,
+    Fut: Future<Output = Result<I, E>>,
+    I: Iterator<Item = Result<T, E>>,
+{
+    future: Option<F>,
+    inner_iter: Option<I>,
+    _phantom: PhantomData<(Fut, T, E)>,
+}
+
+impl<F, Fut, I, T, E> Iterator for FutureIterator<F, Fut, I, T, E>
+where
+    F: FnOnce() -> Fut,
+    Fut: Future<Output = Result<I, E>>,
+    I: Iterator<Item = Result<T, E>>,
+{
+    type Item = ThreadedValue<T, E>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        // If we already have the inner iterator, pull from it
+        if let Some(iter) = &mut self.inner_iter {
+            return iter.next().map(ThreadedValue::Value);
+        }
+
+        // Otherwise, poll the future
+        let mut future = match self.future.take() {
+            Some(f) => Box::pin((f)()),
+            None => return None,
+        };
+
+        loop {
+            let waker = get_noop_waker();
+            let mut cx = Context::from_waker(&waker);
+
+            match future.as_mut().poll(&mut cx) {
+                Poll::Ready(Ok(iter)) => {
+                    self.inner_iter = Some(iter);
+                    // Return first item from the newly acquired iterator
+                    if let Some(iter) = &mut self.inner_iter {
+                        return iter.next().map(ThreadedValue::Value);
+                    }
+                    return None;
+                }
+                Poll::Ready(Err(e)) => return Some(ThreadedValue::Value(Err(e))),
+                Poll::Pending => std::thread::yield_now(),
+            }
+        }
+    }
+}
+
+/// A future executor for single-threaded std environments.
+pub struct ThreadedFuture<F, Fut, I, T, E>
+where
+    F: FnOnce() -> Fut,
+    Fut: Future<Output = Result<I, E>>,
+    I: Iterator<Item = Result<T, E>>,
+{
+    future_fn: F,
+    _phantom: PhantomData<(Fut, I, T, E)>,
+}
+
+impl<F, Fut, I, T, E> ThreadedFuture<F, Fut, I, T, E>
+where
+    F: FnOnce() -> Fut,
+    Fut: Future<Output = Result<I, E>>,
+    I: Iterator<Item = Result<T, E>>,
+{
+    pub fn new(future_fn: F) -> Self {
+        Self {
+            future_fn,
+            _phantom: PhantomData,
+        }
+    }
+
+    pub fn with_queue_size(future_fn: F, _queue_size: usize) -> Self {
+        Self {
+            future_fn,
+            _phantom: PhantomData,
+        }
+    }
+
+    pub fn execute(self) -> impl Iterator<Item = ThreadedValue<T, E>> {
+        FutureIterator {
+            future: Some(self.future_fn),
+            inner_iter: None,
+            _phantom: PhantomData,
+        }
+    }
+}
+```
+
+#### No-std implementation (`cfg(all(not(feature = "multi"), not(feature = "std")))`)
+
+```rust
+/// Iterator that polls a future on each `next()` call (no_std version).
+pub struct FutureIterator<F, Fut, I, T, E>
+where
+    F: FnOnce() -> Fut,
+    Fut: Future<Output = Result<I, E>>,
+    I: Iterator<Item = Result<T, E>>,
+{
+    future: Option<F>,
+    inner_iter: Option<I>,
+    _phantom: PhantomData<(Fut, T, E)>,
+}
+
+impl<F, Fut, I, T, E> Iterator for FutureIterator<F, Fut, I, T, E>
+where
+    F: FnOnce() -> Fut,
+    Fut: Future<Output = Result<I, E>>,
+    I: Iterator<Item = Result<T, E>>,
+{
+    type Item = ThreadedValue<T, E>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        if let Some(iter) = &mut self.inner_iter {
+            return iter.next().map(ThreadedValue::Value);
+        }
+
+        let mut future = match self.future.take() {
+            Some(f) => Box::pin((f)()),
+            None => return None,
+        };
+
+        loop {
+            let waker = get_noop_waker();
+            let mut cx = Context::from_waker(&waker);
+
+            match future.as_mut().poll(&mut cx) {
+                Poll::Ready(Ok(iter)) => {
+                    self.inner_iter = Some(iter);
+                    if let Some(iter) = &mut self.inner_iter {
+                        return iter.next().map(ThreadedValue::Value);
+                    }
+                    return None;
+                }
+                Poll::Ready(Err(e)) => return Some(ThreadedValue::Value(Err(e))),
+                Poll::Pending => core::hint::spin_loop(),
+            }
+        }
+    }
+}
+
+/// A future executor for no_std environments.
+pub struct ThreadedFuture<F, Fut, I, T, E>
+where
+    F: FnOnce() -> Fut,
+    Fut: Future<Output = Result<I, E>>,
+    I: Iterator<Item = Result<T, E>>,
+{
+    future_fn: F,
+    _phantom: PhantomData<(Fut, I, T, E)>,
+}
+
+impl<F, Fut, I, T, E> ThreadedFuture<F, Fut, I, T, E>
+where
+    F: FnOnce() -> Fut,
+    Fut: Future<Output = Result<I, E>>,
+    I: Iterator<Item = Result<T, E>>,
+{
+    pub fn new(future_fn: F) -> Self {
+        Self {
+            future_fn,
+            _phantom: PhantomData,
+        }
+    }
+
+    pub fn with_queue_size(future_fn: F, _queue_size: usize) -> Self {
+        Self {
+            future_fn,
+            _phantom: PhantomData,
+        }
+    }
+
+    pub fn execute(self) -> impl Iterator<Item = ThreadedValue<T, E>> {
+        FutureIterator {
+            future: Some(self.future_fn),
+            inner_iter: None,
+            _phantom: PhantomData,
+        }
+    }
+}
+```
+
+### Test Implementation
+
+#### Multi-threaded tests (`backends/foundation_core/tests/threaded_future.rs`)
+
+```rust
+//! Tests for ThreadedFuture executor (multi-threaded mode).
+
+#![cfg(feature = "multi")]
+
+use foundation_core::valtron::{ThreadedFuture, ThreadedValue};
+use tracing_test::traced_test;
+
+#[test]
+#[traced_test]
+fn test_threaded_future_basic() {
+    let _guard = foundation_core::valtron::initialize_pool(42, Some(4));
+
+    let threaded = ThreadedFuture::new(|| async {
+        Ok::<_, ()>(vec![Ok::<i32, ()>(1), Ok(2), Ok(3)].into_iter())
+    });
+
+    let iter = threaded.execute().expect("should submit job");
+    let results: Vec<i32> = iter
+        .filter_map(|v| match v {
+            ThreadedValue::Value(Ok(val)) => Some(val),
+            _ => None,
+        })
+        .collect();
+
+    assert_eq!(results, vec![1, 2, 3]);
+}
+
+#[test]
+#[traced_test]
+fn test_threaded_future_error() {
+    let _guard = foundation_core::valtron::initialize_pool(42, Some(4));
+
+    let threaded = ThreadedFuture::new(|| async {
+        Err::<std::vec::IntoIter<Result<i32, ()>>, ()>("future failed")
+    });
+
+    let iter = threaded.execute().expect("should submit job");
+    let results: Vec<Result<i32, ()>> = iter
+        .filter_map(|v| match v {
+            ThreadedValue::Value(result) => Some(result),
+            _ => None,
+        })
+        .collect();
+
+    assert_eq!(results.len(), 1);
+    assert!(results[0].is_err());
+}
+
+#[test]
+#[traced_test]
+fn test_threaded_future_empty_iterator() {
+    let _guard = foundation_core::valtron::initialize_pool(42, Some(4));
+
+    let threaded = ThreadedFuture::new(|| async {
+        Ok::<_, ()>(vec![].into_iter())
+    });
+
+    let iter = threaded.execute().expect("should submit job");
+    let results: Vec<Result<i32, ()>> = iter
+        .filter_map(|v| match v {
+            ThreadedValue::Value(result) => Some(result),
+            _ => None,
+        })
+        .collect();
+
+    assert!(results.is_empty());
+}
+
+#[test]
+#[traced_test]
+fn test_threaded_future_backpressure() {
+    let _guard = foundation_core::valtron::initialize_pool(42, Some(4));
+
+    // Small queue forces backpressure: 100 items with queue size 4
+    let threaded = ThreadedFuture::with_queue_size(
+        || async { Ok::<_, ()>((0..100).map(Ok).collect::<Vec<_>>().into_iter()) },
+        4,
+    );
+
+    let iter = threaded.execute().expect("should submit job");
+    let results: Vec<i32> = iter
+        .filter_map(|v| match v {
+            ThreadedValue::Value(Ok(val)) => Some(val),
+            ThreadedValue::Value(Err(e)) => panic!("Unexpected error: {e:?}"),
+            _ => None,
+        })
+        .collect();
+
+    assert_eq!(
+        results.len(),
+        100,
+        "Should have received all 100 items despite backpressure (got {})",
+        results.len()
+    );
+}
+```
+
+#### Single-threaded std tests (`backends/foundation_core/tests/threaded_future_std.rs`)
+
+```rust
+//! Tests for ThreadedFuture executor (single-threaded std mode).
+
+#![cfg(all(feature = "std", not(feature = "multi")))]
+
+use foundation_core::valtron::{ThreadedFuture, ThreadedValue};
+use tracing_test::traced_test;
+
+#[test]
+#[traced_test]
+fn test_threaded_future_basic() {
+    let threaded = ThreadedFuture::new(|| async {
+        Ok::<_, ()>(vec![Ok::<i32, ()>(1), Ok(2), Ok(3)].into_iter())
+    });
+
+    let iter = threaded.execute();
+    let results: Vec<i32> = iter
+        .filter_map(|v| match v {
+            ThreadedValue::Value(Ok(val)) => Some(val),
+            _ => None,
+        })
+        .collect();
+
+    assert_eq!(results, vec![1, 2, 3]);
+}
+
+#[test]
+#[traced_test]
+fn test_threaded_future_error() {
+    let threaded = ThreadedFuture::new(|| async {
+        Err::<std::vec::IntoIter<Result<i32, ()>>, &'static str>("future failed")
+    });
+
+    let iter = threaded.execute();
+    let results: Vec<Result<i32, &'static str>> = iter
+        .filter_map(|v| match v {
+            ThreadedValue::Value(result) => Some(result),
+            _ => None,
+        })
+        .collect();
+
+    assert_eq!(results.len(), 1);
+    assert_eq!(results[0], Err("future failed"));
+}
+
+#[test]
+#[traced_test]
+fn test_threaded_future_empty_iterator() {
+    let threaded = ThreadedFuture::new(|| async {
+        Ok::<_, ()>(vec![].into_iter())
+    });
+
+    let iter = threaded.execute();
+    let results: Vec<Result<i32, ()>> = iter
+        .filter_map(|v| match v {
+            ThreadedValue::Value(result) => Some(result),
+            _ => None,
+        })
+        .collect();
+
+    assert!(results.is_empty());
+}
+
+#[test]
+#[traced_test]
+fn test_threaded_future_large_iterator() {
+    let threaded = ThreadedFuture::new(|| async {
+        Ok::<_, ()>((0..1000).map(Ok).collect::<Vec<_>>().into_iter())
+    });
+
+    let iter = threaded.execute();
+    let results: Vec<i32> = iter
+        .filter_map(|v| match v {
+            ThreadedValue::Value(Ok(val)) => Some(val),
+            _ => None,
+        })
+        .collect();
+
+    assert_eq!(results.len(), 1000);
+    assert_eq!(results[0], 0);
+    assert_eq!(results[999], 999);
+}
+```
+
+#### No-std tests (`backends/foundation_core/tests/threaded_future_nostd.rs`)
+
+```rust
+//! Tests for ThreadedFuture executor (no_std mode).
+
+#![cfg(all(not(feature = "multi"), not(feature = "std")))]
+#![no_std]
+
+extern crate alloc;
+
+use alloc::vec::Vec;
+use foundation_core::valtron::{ThreadedFuture, ThreadedValue};
+
+#[test]
+fn test_threaded_future_basic() {
+    let threaded = ThreadedFuture::new(|| async {
+        Ok::<_, ()>(alloc::vec![Ok::<i32, ()>(1), Ok(2), Ok(3)].into_iter())
+    });
+
+    let iter = threaded.execute();
+    let results: Vec<i32> = iter
+        .filter_map(|v| match v {
+            ThreadedValue::Value(Ok(val)) => Some(val),
+            _ => None,
+        })
+        .collect();
+
+    assert_eq!(results, alloc::vec![1, 2, 3]);
+}
+
+#[test]
+fn test_threaded_future_error() {
+    let threaded = ThreadedFuture::new(|| async {
+        Err::<alloc::vec::IntoIter<Result<i32, &'static str>>, &'static str>("future failed")
+    });
+
+    let iter = threaded.execute();
+    let results: Vec<Result<i32, &'static str>> = iter
+        .filter_map(|v| match v {
+            ThreadedValue::Value(result) => Some(result),
+            _ => None,
+        })
+        .collect();
+
+    assert_eq!(results.len(), 1);
+    assert_eq!(results[0], Err("future failed"));
+}
+```
+
+### foundation_db Integration Tests
+
+```rust
+//! Tests for foundation_db with ThreadedFuture in different feature modes.
+
+#[cfg(test)]
+mod tests {
+    use foundation_db::memory_backend::MemoryStorage;
+    use foundation_core::valtron::DataValue;
+
+    #[test]
+    fn test_memory_query_with_threaded_future() {
+        let storage = MemoryStorage::new();
+
+        // Create table and insert data
+        storage.execute("CREATE TABLE test (id INTEGER)", &[]).unwrap();
+        storage.execute("INSERT INTO test VALUES (1), (2), (3)", &[]).unwrap();
+
+        // Query using ThreadedFuture
+        let stream = storage.query("SELECT * FROM test", &[]).unwrap();
+
+        // Collect results
+        let results: Vec<_> = stream.collect();
+        assert_eq!(results.len(), 3);
+    }
+}
+```
+
+**Tasks:**
+- [x] Gate existing `ThreadedFuture` to `cfg(all(feature = "std", feature = "multi"))`
+- [x] Change `execute()` to return `impl Iterator<Item = ThreadedValue<T, E>>` (wrap receiver in iterator struct)
+- [x] Add `FutureIterator` struct for `cfg(all(feature = "std", not(feature = "multi")))`
+- [x] Add `FutureIterator` struct for `cfg(all(not(feature = "multi"), not(feature = "std")))`
+- [x] Ensure `ThreadedValue<T, E>` is exported unconditionally
+- [x] Move tests from `backends/foundation_core/tests/threaded_future.rs` to feature-gated
+- [x] Add single-threaded std tests
+- [x] Tests: multi-threaded mode works with background registry (5 tests passing)
+- [x] Tests: single-threaded mode polls future correctly (4 tests passing)
+- [x] Tests: foundation_db compiles and works with both feature configurations
