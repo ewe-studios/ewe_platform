@@ -3,9 +3,9 @@
 //! This module provides a streaming iterator that yields rows one at a time
 //! through the Valtron executor system without loading all rows into memory.
 //!
-//! WHY: Database row iterators (turso::Rows, libsql::Rows) are !Send, so they
-//! cannot cross async boundaries. The ThreadedFuture executor spawns a dedicated
-//! worker thread that owns the !Send type forever, streaming results back through
+//! WHY: Database row iterators (`turso::Rows`, `libsql::Rows`) are `!Send`, so they
+//! cannot cross async boundaries. The `ThreadedFuture` executor spawns a dedicated
+//! worker thread that owns the `!Send` type forever, streaming results back through
 //! an mpp channel. This allows streaming large result sets with O(1) memory per row.
 
 use crate::errors::{StorageError, StorageResult};
@@ -16,11 +16,11 @@ use futures_lite::future::block_on;
 // RowsIterator - Stream rows without collecting into Vec
 // ============================================================================
 
-/// Iterator that yields SqlRow values one at a time from a database query.
+/// Iterator that yields [`SqlRow`] values one at a time from a database query.
 ///
-/// Owns turso::Rows directly (no Arc<Mutex<>>). Stays on worker thread.
-/// Uses futures-lite polling since turso::Rows::next() returns a future that
-/// borrows &mut self - we can't store both in a struct.
+/// Owns `turso::Rows` directly (no `Arc<Mutex<>>`). Stays on worker thread.
+/// Uses `futures-lite` polling since `turso::Rows::next()` returns a future that
+/// borrows `&mut self` - we can't store both in a struct.
 #[cfg(feature = "turso")]
 pub struct RowsIterator {
     rows: turso::Rows,
@@ -28,6 +28,7 @@ pub struct RowsIterator {
 
 #[cfg(feature = "turso")]
 impl RowsIterator {
+    #[must_use]
     pub fn new(rows: turso::Rows) -> Self {
         Self { rows }
     }

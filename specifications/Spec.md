@@ -107,13 +107,30 @@ This directory contains all project specifications and requirements. Each specif
 
 ---
 
+### [12: Background Job Registry](./12-background-job-registry/)
+**Status:** ⏳ Pending
+**Description:** Add a BackgroundJobRegistry to valtron that owns a fixed pool of background worker threads for executing blocking closures, replacing ad-hoc thread spawning in ThreadedFuture and exposing a unified `run_background_job` API.
+**Has Features:** Yes (4 features)
+**Builds On:** [09-multi-threaded-executor-improvements](./09-multi-threaded-executor-improvements/)
+
+| Feature | Description | Tasks |
+|---------|-------------|-------|
+| 01: Core | BackgroundJobRegistry struct, worker loop, panic protection | 8 |
+| 02: Pool Integration | Thread allocation formula, multi/mod.rs integration | 7 |
+| 03: Single/Unified API | run_background_job in single + unified modules | 4 |
+| 04: ThreadedFuture Migration | Replace std::thread::spawn with run_background_job | 4 |
+
+**Total Tasks:** 23
+
+---
+
 ## Status Dashboard
 
 ### Summary
-- **Total Specifications:** 5
-- **Completed:** 3 (60%)
-- **In Progress:** 1 (20%)
-- **Pending:** 1 (20%)
+- **Total Specifications:** 6
+- **Completed:** 3 (50%)
+- **In Progress:** 1 (17%)
+- **Pending:** 2 (33%)
 
 ### Completed ✅
 - 01: Fix Rust Lints, Checks, and Styling
@@ -125,6 +142,7 @@ This directory contains all project specifications and requirements. Each specif
 
 ### Pending ⏳
 - 07: TCP-Resilient Batch Readers
+- 12: Background Job Registry
 
 ## Specification Guidelines
 

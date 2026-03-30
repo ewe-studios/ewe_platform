@@ -51,6 +51,7 @@ infrastructure_llama_cpp = { path = "./infrastructure/llama-cpp", version = "0.0
 # --- foundation crates
 foundation_auth = { path = "./backends/foundation_auth", version = "0.0.1" }
 foundation_db = { path = "./backends/foundation_db", version = "0.0.1" }
+foundation_deployment = { path = "./backends/foundation_deployment", version = "0.0.1" }
 foundation_macros = { path = "./backends/foundation_macros", version = "0.0.4" }
 foundation_testing = { path = "./backends/foundation_testing", version = "0.0.1" }
 foundation_nostd = { path = "./backends/foundation_nostd", version = "0.0.4" }
@@ -87,6 +88,8 @@ toml_edit = { version = "0.22" }
 anyhow = { version = "1.0" }
 concurrent-queue = { version = "2.5" }
 derive_more = { version = ">=2.0", features = ["full"] }
+serde = { version = "1.0.197", features = ["derive"] }
+serde_json = { version = "1.0.114" }
 
 regex = "1.12.2"
 # core library dependencies
@@ -104,6 +107,7 @@ pprof = { version = "0.13.0" }
 bindgen = { version = "0.72.1" }
 cc = { version = "1.2.49" }
 clap = { version = "4.5.54" }
+chrono = { version = "0.4", features = ["serde"] }
 encoding_rs = { version = "0.8.35" }
 tracing-subscriber = { version = "0.3", features = ["json"] }
 

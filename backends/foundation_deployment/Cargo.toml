@@ -1,0 +1,29 @@
+[package]
+name = "foundation_deployment"
+version = "0.0.1"
+description = "Foundation deployment providers for multi-cloud deployments"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+keywords = ["ewe-platform", "deployment", "cloud", "infrastructure"]
+
+[dependencies]
+# -- workspace dependencies
+foundation_core = { workspace = true, features = ["ssl", "multi"] }
+serde = { workspace = true }
+serde_json = { workspace = true }
+derive_more = { workspace = true }
+tracing = { workspace = true }
+chrono = { workspace = true }
+
+# -- http client - direct versions (not in workspace deps)
+bytes = "1.6.1"
+http = "1.1"
+
+[features]
+default = []
+
+[lints]
+workspace = true

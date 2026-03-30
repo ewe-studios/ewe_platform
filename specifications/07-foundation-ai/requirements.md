@@ -35,7 +35,8 @@ related_specs:
   - "specifications/04-wasm-entrypoint-toolchain"
 features:
   completed: 0
-  uncompleted: 7
+  uncompleted: 6
+  in_progress: 1
   total: 7
   completion_percentage: 0%
 ---
@@ -244,7 +245,7 @@ Features are listed in dependency order. Each feature contains detailed requirem
 
 | #  | Feature | Description | Dependencies | Status |
 |----|---------|-------------|--------------|--------|
-| 0a | [foundation-db](./features/00a-foundation-db/feature.md) | Unified storage backend with Turso sync backend, D1, R2, in-memory — Valtron-only async | None | ⬜ Pending |
+| 0a | [foundation-db](./features/00a-foundation-db/feature.md) | Unified storage backend with Turso sync backend, D1, R2, in-memory — Valtron-only async | None | 🔄 In Progress |
 | 0b | [auth-infrastructure](./features/00b-auth-infrastructure/feature.md) | Comprehensive authentication infrastructure for foundation_auth (JWT, OAuth 2.0, credential storage via foundation_db, auth state machine, 2FA) | 00a-foundation-db | ⬜ Pending |
 | 0c | [openai-provider](./features/00c-openai-provider/feature.md) | OpenAI-compatible HTTP provider for connecting to OpenAI, llama.cpp server, vLLM, Ollama | 00b-auth-infrastructure | ⬜ Pending |
 | 1  | [llamacpp-integration](./features/01-llamacpp-integration/feature.md) | Complete llama.cpp inference engine integration via `infrastructure_llama_cpp` | None | ⬜ Pending |

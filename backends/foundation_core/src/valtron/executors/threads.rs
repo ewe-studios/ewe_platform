@@ -62,12 +62,14 @@ use crate::compati::{Mutex, RwLock};
 /// On drop (or explicit `shutdown()` call):
 /// 1. `OnSignal::turn_on()` — broadcast kill to all threads
 /// 2. `LockSignal::signal_all()` — wake any blocked/parked threads
-/// 3. `WaitGroup::wait()` — block until all threads report death
-/// 4. Join all `JoinHandle`s
+/// 3. `BackgroundJobRegistry::shutdown()` — wait for background workers
+/// 4. `WaitGroup::wait()` — block until all task threads report death
+/// 5. Join all `JoinHandle`s
 ///
 /// This replaces the old pattern of spawning a thread to call `get_pool().kill()`.
 pub struct PoolGuard {
     registry: Arc<ThreadRegistry>,
+    bg_registry: Option<Arc<super::BackgroundJobRegistry>>,
     shut_down: AtomicBool,
 }
 
@@ -77,6 +79,20 @@ impl PoolGuard {
     pub fn new(registry: Arc<ThreadRegistry>) -> Self {
         Self {
             registry,
+            bg_registry: None,
+            shut_down: AtomicBool::new(false),
+        }
+    }
+
+    /// Create a new `PoolGuard` with both registries.
+    #[must_use]
+    pub fn with_bg_registry(
+        registry: Arc<ThreadRegistry>,
+        bg_registry: Arc<super::BackgroundJobRegistry>,
+    ) -> Self {
+        Self {
+            registry,
+            bg_registry: Some(bg_registry),
             shut_down: AtomicBool::new(false),
         }
     }
@@ -87,6 +103,7 @@ impl PoolGuard {
     pub fn dummy() -> Self {
         Self {
             registry: Arc::new(ThreadRegistry::with_seed_and_threads(0, 2)),
+            bg_registry: None,
             shut_down: AtomicBool::new(true),
         }
     }
@@ -98,13 +115,17 @@ impl PoolGuard {
             .compare_exchange(false, true, Ordering::SeqCst, Ordering::Relaxed)
             .is_ok()
         {
-            // Signal kill to all threads
+            // Signal kill to all threads (shared signal stops both registries)
             self.registry.kill_signal().turn_on();
-            // Wake all blocked/parked threads
+            // Wake all blocked/parked task threads
             self.registry.latch().signal_all();
-            // Wait for all threads to report done
+            // Shut down background workers first (they share the kill signal)
+            if let Some(ref bg) = self.bg_registry {
+                bg.shutdown();
+            }
+            // Wait for all task threads to report done
             self.registry.waitgroup().wait();
-            // Join all thread handles
+            // Join all task thread handles
             self.registry.join_all_threads();
         }
     }

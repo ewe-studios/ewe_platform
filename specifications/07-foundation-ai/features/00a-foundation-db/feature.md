@@ -6,21 +6,21 @@ this_file: "specifications/07-foundation-ai/features/00a-foundation-db/feature.m
 
 feature: "Foundation DB - Unified Storage Backend"
 description: "Create foundation_db crate providing unified storage abstraction with Turso sync backend, Cloudflare D1/R2, in-memory fallback — Valtron-only async, NO tokio"
-status: pending
+status: in-progress
 priority: high
 depends_on:
   - "00-foundation"
   - "foundation_core"
 estimated_effort: "medium"
 created: 2026-03-20
-last_updated: 2026-03-20
+last_updated: 2026-03-29
 author: "Main Agent"
 
 tasks:
-  completed: 0
-  uncompleted: 42
-  total: 42
-  completion_percentage: 0%
+  completed: 10
+  uncompleted: 10
+  total: 20
+  completion_percentage: 50%
 ---
 
 # Foundation DB - Unified Storage Backend
@@ -964,74 +964,44 @@ pub type StorageResult<T> = Result<T, StorageError>;
 - `StorageProvider` has `async fn new()`
 - `StorageProvider` implements `KeyValueStore` via `#[async_trait]` with `.await`
 
-**Changes — Trait definitions (all become synchronous):**
+**Design Decision: All Operations Return `StorageItemStream`**
+
+All trait methods — both single-value and multi-value — return `StorageResult<StorageItemStream<'_, T>>`.
+This unified approach makes all operations composable with Valtron combinators, enables parallel execution
+of multiple storage operations, and keeps the API consistent. Single-value ops yield exactly one
+`Stream::Next(Ok(value))` item; multi-value ops yield many.
+
+Errors within the stream are wrapped as `Stream::Next(Err(e))`, so callers can use standard iterator
+methods to collect or filter results. The outer `StorageResult` captures setup errors (scheduling failure,
+mutex poisoning) while inner `Result`s capture operation errors (SQL errors, serialization failures).
 
 ```rust
-// BEFORE:
-#[async_trait]
+// All traits are synchronous (no async, no async-trait) and return StorageItemStream:
 pub trait KeyValueStore: Send + Sync {
-    async fn get<V: DeserializeOwned>(&self, key: &str) -> StorageResult<Option<V>>;
-    async fn set<V: Serialize + Send>(&self, key: &str, value: V) -> StorageResult<()>;
-    async fn delete(&self, key: &str) -> StorageResult<()>;
-    async fn exists(&self, key: &str) -> StorageResult<bool>;
-    async fn list_keys(&self, prefix: Option<&str>) -> StorageResult<Vec<String>>;
-}
-
-// AFTER — single-value ops return Result, multi-value ops return Result<Stream>:
-pub trait KeyValueStore: Send + Sync {
-    fn get<V: DeserializeOwned>(&self, key: &str) -> StorageResult<Option<V>>;
-    fn set<V: Serialize>(&self, key: &str, value: V) -> StorageResult<()>;
-    fn delete(&self, key: &str) -> StorageResult<()>;
-    fn exists(&self, key: &str) -> StorageResult<bool>;
+    fn get<'a, V: DeserializeOwned + Send + 'static>(&'a self, key: &str) -> StorageResult<StorageItemStream<'a, Option<V>>>;
+    fn set<V: Serialize>(&self, key: &str, value: V) -> StorageResult<StorageItemStream<'_, ()>>;
+    fn delete(&self, key: &str) -> StorageResult<StorageItemStream<'_, ()>>;
+    fn exists(&self, key: &str) -> StorageResult<StorageItemStream<'_, bool>>;
     fn list_keys(&self, prefix: Option<&str>) -> StorageResult<StorageItemStream<'_, String>>;
 }
-```
 
-```rust
-// BEFORE:
-#[async_trait]
-pub trait QueryStore: Send + Sync {
-    async fn query(&self, sql: &str, params: Vec<turso::Value>) -> StorageResult<Vec<turso::Row>>;
-    async fn execute(&self, sql: &str, params: Vec<turso::Value>) -> StorageResult<u64>;
-}
-
-// AFTER — query returns Result<Stream> (rows streamed), execute returns Result<u64>:
 pub trait QueryStore: Send + Sync {
     fn query(&self, sql: &str, params: &[DataValue]) -> StorageResult<StorageItemStream<'_, SqlRow>>;
-    fn execute(&self, sql: &str, params: &[DataValue]) -> StorageResult<u64>;
-    fn execute_batch(&self, sql: &str) -> StorageResult<()>;
+    fn execute(&self, sql: &str, params: &[DataValue]) -> StorageResult<StorageItemStream<'_, u64>>;
+    fn execute_batch(&self, sql: &str) -> StorageResult<StorageItemStream<'_, ()>>;
 }
-```
 
-```rust
-// BEFORE:
-#[async_trait]
 pub trait BlobStore: Send + Sync {
-    async fn put_blob(&self, key: &str, data: &[u8]) -> StorageResult<()>;
-    async fn get_blob(&self, key: &str) -> StorageResult<Option<Vec<u8>>>;
-    async fn delete_blob(&self, key: &str) -> StorageResult<()>;
-    async fn blob_exists(&self, key: &str) -> StorageResult<bool>;
+    fn put_blob(&self, key: &str, data: &[u8]) -> StorageResult<StorageItemStream<'_, ()>>;
+    fn get_blob(&self, key: &str) -> StorageResult<StorageItemStream<'_, Option<Vec<u8>>>>;
+    fn delete_blob(&self, key: &str) -> StorageResult<StorageItemStream<'_, ()>>;
+    fn blob_exists(&self, key: &str) -> StorageResult<StorageItemStream<'_, bool>>;
 }
 
-// AFTER — put/delete/exists are single-value Results, get_blob streams chunks:
-pub trait BlobStore: Send + Sync {
-    fn put_blob(&self, key: &str, data: &[u8]) -> StorageResult<()>;
-    fn get_blob(&self, key: &str) -> StorageResult<Option<StorageItemStream<'_, Vec<u8>>>>;
-    fn delete_blob(&self, key: &str) -> StorageResult<()>;
-    fn blob_exists(&self, key: &str) -> StorageResult<bool>;
-}
-```
-
-```rust
-// BEFORE:
-#[async_trait]
-pub trait RateLimiterStore: Send + Sync { ... async fns ... }
-
-// AFTER — all single-value Results:
 pub trait RateLimiterStore: Send + Sync {
-    fn check_rate_limit(&self, key: &str, max_count: u32, window_seconds: u64) -> StorageResult<bool>;
-    fn record_rate_limit(&self, key: &str) -> StorageResult<u32>;
-    fn reset_rate_limit(&self, key: &str) -> StorageResult<()>;
+    fn check_rate_limit(&self, key: &str, max_count: u32, window_seconds: u64) -> StorageResult<StorageItemStream<'_, bool>>;
+    fn record_rate_limit(&self, key: &str) -> StorageResult<StorageItemStream<'_, u32>>;
+    fn reset_rate_limit(&self, key: &str) -> StorageResult<StorageItemStream<'_, ()>>;
 }
 ```
 
@@ -1074,8 +1044,10 @@ impl KeyValueStore for StorageProvider { ... async fn ... .await ... }
 // AFTER:
 pub struct StorageProvider { inner: StorageProviderInner }
 enum StorageProviderInner {
+    #[cfg(feature = "turso")]
     Turso(Box<TursoStorage>),
-    D1, R2,
+    #[cfg(feature = "libsql")]
+    Libsql(Box<LibsqlStorage>),
     JsonFile(JsonFileStorage),
     Memory(MemoryStorage),
 }
@@ -1083,18 +1055,10 @@ impl StorageProvider {
     pub fn new(backend: StorageBackend) -> StorageResult<Self> { ... } // SYNC
     pub fn memory() -> Self { ... } // unchanged
 }
-impl KeyValueStore for StorageProvider {
-    fn get<V: DeserializeOwned>(&self, key: &str) -> StorageResult<Option<V>> {
-        match &self.inner {
-            StorageProviderInner::Turso(s) => s.get(key),
-            StorageProviderInner::JsonFile(s) => s.get(key),
-            StorageProviderInner::Memory(s) => s.get(key),
-            _ => Err(StorageError::Generic("Backend not implemented".into())),
-        }
-    }
-    // set, delete, exists: same pattern → StorageResult<T>
-    // list_keys: same pattern → StorageResult<StorageItemStream<'_, String>>
-}
+// StorageProvider dispatches ALL traits (KeyValueStore, QueryStore,
+// RateLimiterStore) uniformly to the inner backend. Each backend implements
+// all traits — unsupported operations return StorageError::Generic.
+// No special-casing in StorageProvider.
 ```
 
 **REMOVE:** `use async_trait::async_trait;` import
@@ -1834,32 +1798,44 @@ Same pattern for `client_credentials()` → `build_client_credentials_request()`
 
 ### Phase 1: foundation_db (no code dependencies on foundation_auth)
 
-1. [ ] Update `Cargo.toml` — remove tokio/async-trait, add turso
-2. [ ] Add `DataValue`, `SqlRow`, `FromDataValue` types to `storage_provider.rs`
-3. [ ] Rewrite all traits in `storage_provider.rs` — remove async, use owned types
-4. [ ] Update `errors.rs` — add Turso error variant
-5. [ ] Rewrite `backends/memory.rs` — `std::sync::Mutex`, sync trait impls
-6. [ ] Update `backends/turso_backend.rs` — sync impls, conversion helpers
-7. [ ] Update `backends/mod.rs` — module exports
-8. [ ] Rewrite `schema/migrations.rs` — sync, use `DataValue` instead of `turso::Value`
-9. [ ] Update `lib.rs` — add new public type exports
-10. [ ] Verify: `cargo check --package foundation_db`
+1. [x] Update `Cargo.toml` — remove tokio/async-trait, add turso/libsql
+2. [x] Add `DataValue`, `SqlRow`, `FromDataValue` types to `storage_provider.rs`
+3. [x] Rewrite all traits in `storage_provider.rs` — all return `StorageItemStream` (Valtron-native)
+4. [x] Update `errors.rs` — `derive_more::From` + manual Display, Turso/libsql error variants
+5. [x] Rewrite `backends/memory.rs` — `std::sync::Mutex`, sync trait impls (KeyValueStore, QueryStore, RateLimiterStore)
+6. [x] Implement `backends/turso_backend.rs` — Valtron `from_future`/`schedule_future` wrapping, `ThreadedFuture` for streaming queries
+7. [x] Implement `backends/libsql_backend.rs` — same Valtron wrapping pattern as turso
+8. [x] Implement `backends/json_file.rs` — atomic writes, zeroizing, KeyValueStore + QueryStore + RateLimiterStore stubs
+9. [x] Update `backends/mod.rs` — module exports, feature-gated re-exports
+10. [x] Implement `rows_stream.rs` — `RowsIterator` (turso) and `LibsqlRowsIterator` for streaming !Send row iterators via `ThreadedFuture`
+11. [x] Implement `schema/migrations.rs` — migration runner with version tracking
+12. [x] Implement `crypto/` — encryption (ChaCha20-Poly1305) + zeroize helpers
+13. [x] Update `lib.rs` — module declarations and re-exports
+14. [x] Add `StorageProvider` as unified dispatch (KeyValueStore, QueryStore, RateLimiterStore)
+15. [x] Remove `#[allow(dead_code)]` — D1/R2 removed from `StorageProviderInner`
+16. [x] Fix all clippy warnings — doc backticks, unused bindings, unnecessary casts
+17. [x] Verify: `cargo check --package foundation_db` ✓
+18. [x] Verify: `cargo clippy --package foundation_db -- -D warnings` ✓
+19. [x] Verify: `cargo test --package foundation_db` ✓ (17 tests passing)
 
-### Phase 2: foundation_auth (depends on foundation_db changes)
+### Phase 2: Remaining foundation_db Work
 
-11. [ ] Update `Cargo.toml` — remove tokio/async-trait/reqwest
-12. [ ] Rewrite `credential_store.rs` — all traits and impls sync
-13. [ ] Rewrite `jwt.rs` — `get_valid_token`/`refresh_if_needed` take sync closures
-14. [ ] Refactor `oauth.rs` — split HTTP methods into build_request + parse_response
-15. [ ] Update `lib.rs` if needed
-16. [ ] Verify: `cargo check --package foundation_auth`
+20. [ ] Add encryption integration to Turso/libsql backends — encrypt sensitive columns on store, decrypt on retrieve
+21. [ ] Add `BlobStore` trait implementations for backends that support it
+22. [ ] Add D1 backend (`d1.rs`) behind `d1` feature flag (when Cloudflare Workers support is needed)
+23. [ ] Add R2 backend (`r2.rs`) behind `r2` feature flag (when object storage is needed)
+24. [ ] Add more comprehensive integration tests — backend switching, QueryStore operations, rate limiting
+25. [ ] Add cleanup/maintenance queries as methods (expired sessions, tokens, rate limits)
 
-### Phase 3: Verification
+### Phase 3: foundation_auth Integration (depends on foundation_db)
 
-17. [ ] `cargo clippy --package foundation_db -- -D warnings`
-18. [ ] `cargo clippy --package foundation_auth -- -D warnings`
-19. [ ] `cargo test --package foundation_db`
-20. [ ] `cargo test --package foundation_auth`
+26. [ ] Update foundation_auth `Cargo.toml` — add `foundation_db` dependency
+27. [ ] Implement `TursoCredentialStore` / `LibsqlCredentialStore` wrapping `StorageProvider`
+28. [ ] Migrate credential storage from in-memory to foundation_db
+29. [ ] Test integration: store credential via foundation_db, retrieve via foundation_auth
+30. [ ] Verify: `cargo check --package foundation_auth`
+31. [ ] Verify: `cargo clippy --package foundation_auth -- -D warnings`
+32. [ ] Verify: `cargo test --package foundation_auth`
 
 ## Testing
 
@@ -1906,13 +1882,15 @@ Same pattern for `client_credentials()` → `build_client_credentials_request()`
 
 ## Success Criteria
 
-- [ ] All storage backends compile
-- [ ] `StorageProvider` trait implemented consistently
-- [ ] In-memory backend fully functional with zeroizing
-- [ ] Turso backend with migrations functional
-- [ ] Encryption wrapper for sensitive data working
-- [ ] `cargo test --package foundation_db` passes
-- [ ] `cargo clippy --package foundation_db -- -D warnings` passes
+- [x] All storage backends compile
+- [x] `StorageProvider` dispatches uniformly to all backends (KeyValueStore, QueryStore, RateLimiterStore)
+- [x] In-memory backend fully functional with zeroizing
+- [x] Turso backend with migrations functional
+- [x] libsql backend functional
+- [x] JSON file backend with atomic writes functional
+- [ ] Encryption integration with SQL backends for sensitive columns
+- [x] `cargo test --package foundation_db` passes (17 tests)
+- [x] `cargo clippy --package foundation_db -- -D warnings` passes
 - [ ] foundation_auth can use foundation_db for credential storage
 
 ## Verification Commands
@@ -1967,4 +1945,4 @@ let cred = credential_store.get("oauth:provider1")?;
 ---
 
 _Created: 2026-03-20_
-_Last Updated: 2026-03-28 (Iron Laws: no tokio/async-trait, Turso sync backend, Valtron-only async)_
+_Last Updated: 2026-03-29 (Updated: task status, all-streams design, removed D1/R2 from inner enum, added QueryStore dispatch)_

@@ -250,6 +250,44 @@ where
     }
 }
 
+/// Submit a blocking closure for execution on the appropriate background executor.
+///
+/// WHY: Unified API for background work across all platforms/configurations
+/// WHAT: Delegates to `multi::run_background_job` or `single::run_background_job`
+/// HOW: Uses the same `#[cfg]` dispatch pattern as `execute()` and `send()`
+///
+/// ## Platform Selection
+///
+/// | Platform | Feature | Behavior |
+/// |----------|---------|----------|
+/// | WASM     | any     | Inline execution (single-threaded) |
+/// | Native   | none    | Inline execution (single-threaded) |
+/// | Native   | `multi` | Submitted to `BackgroundJobRegistry` pool |
+///
+/// # Errors
+///
+/// Returns an error if the job cannot be submitted (pool not initialized or shut down),
+/// or if the closure panics in single-threaded mode.
+pub fn run_background_job(job: impl FnOnce() + Send + 'static) -> GenericResult<()> {
+    #[cfg(target_arch = "wasm32")]
+    {
+        super::single::run_background_job(job)
+    }
+
+    #[cfg(not(target_arch = "wasm32"))]
+    {
+        #[cfg(feature = "multi")]
+        {
+            super::multi::run_background_job(job)
+        }
+
+        #[cfg(not(feature = "multi"))]
+        {
+            super::single::run_background_job(job)
+        }
+    }
+}
+
 /// Execute using single-threaded executor.
 ///
 /// WHY: WASM and minimal builds need single-threaded execution

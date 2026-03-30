@@ -22,8 +22,8 @@ use foundation_core::valtron::Stream;
 
 /// Type alias for streamed storage items.
 /// This is a Valtron Stream-based lazy iterator that yields items one at a time.
-/// Errors are yielded in the stream as Stream::Next(Err(e)) - callers can use
-/// .flatten() to extract only successful values or collect into Result to propagate errors.
+/// Errors are yielded in the stream as `Stream::Next(Err(e))` - callers can use
+/// `.flatten()` to extract only successful values or collect into `Result` to propagate errors.
 pub type StorageItemStream<'a, T> = Box<dyn Iterator<Item = Stream<Result<T, StorageError>, ()>> + Send + 'a>;
 
 /// A single SQL parameter value (crate-owned, backend-agnostic).
@@ -338,10 +338,6 @@ enum StorageProviderInner {
     Turso(Box<TursoStorage>),
     #[cfg(feature = "libsql")]
     Libsql(Box<LibsqlStorage>),
-    #[allow(dead_code)] // TODO: Implement D1 backend
-    D1,
-    #[allow(dead_code)] // TODO: Implement R2 backend
-    R2,
     JsonFile(JsonFileStorage),
     Memory(MemoryStorage),
 }
@@ -424,9 +420,6 @@ impl KeyValueStore for StorageProvider {
             StorageProviderInner::Libsql(storage) => storage.get(key),
             StorageProviderInner::JsonFile(storage) => storage.get(key),
             StorageProviderInner::Memory(storage) => storage.get(key),
-            _ => Err(crate::errors::StorageError::Generic(
-                "Backend not implemented".to_string(),
-            )),
         }
     }
 
@@ -438,9 +431,6 @@ impl KeyValueStore for StorageProvider {
             StorageProviderInner::Libsql(storage) => storage.set(key, value),
             StorageProviderInner::JsonFile(storage) => storage.set(key, value),
             StorageProviderInner::Memory(storage) => storage.set(key, value),
-            _ => Err(crate::errors::StorageError::Generic(
-                "Backend not implemented".to_string(),
-            )),
         }
     }
 
@@ -452,9 +442,6 @@ impl KeyValueStore for StorageProvider {
             StorageProviderInner::Libsql(storage) => storage.delete(key),
             StorageProviderInner::JsonFile(storage) => storage.delete(key),
             StorageProviderInner::Memory(storage) => storage.delete(key),
-            _ => Err(crate::errors::StorageError::Generic(
-                "Backend not implemented".to_string(),
-            )),
         }
     }
 
@@ -466,9 +453,6 @@ impl KeyValueStore for StorageProvider {
             StorageProviderInner::Libsql(storage) => storage.exists(key),
             StorageProviderInner::JsonFile(storage) => storage.exists(key),
             StorageProviderInner::Memory(storage) => storage.exists(key),
-            _ => Err(crate::errors::StorageError::Generic(
-                "Backend not implemented".to_string(),
-            )),
         }
     }
 
@@ -480,9 +464,41 @@ impl KeyValueStore for StorageProvider {
             StorageProviderInner::Libsql(storage) => storage.list_keys(prefix),
             StorageProviderInner::JsonFile(storage) => storage.list_keys(prefix),
             StorageProviderInner::Memory(storage) => storage.list_keys(prefix),
-            _ => Err(crate::errors::StorageError::Generic(
-                "Backend not implemented".to_string(),
-            )),
+        }
+    }
+}
+
+impl QueryStore for StorageProvider {
+    fn query(&self, sql: &str, params: &[DataValue]) -> StorageResult<StorageItemStream<'_, SqlRow>> {
+        match &self.inner {
+            #[cfg(feature = "turso")]
+            StorageProviderInner::Turso(storage) => storage.query(sql, params),
+            #[cfg(feature = "libsql")]
+            StorageProviderInner::Libsql(storage) => storage.query(sql, params),
+            StorageProviderInner::JsonFile(storage) => storage.query(sql, params),
+            StorageProviderInner::Memory(storage) => storage.query(sql, params),
+        }
+    }
+
+    fn execute(&self, sql: &str, params: &[DataValue]) -> StorageResult<StorageItemStream<'_, u64>> {
+        match &self.inner {
+            #[cfg(feature = "turso")]
+            StorageProviderInner::Turso(storage) => storage.execute(sql, params),
+            #[cfg(feature = "libsql")]
+            StorageProviderInner::Libsql(storage) => storage.execute(sql, params),
+            StorageProviderInner::JsonFile(storage) => storage.execute(sql, params),
+            StorageProviderInner::Memory(storage) => storage.execute(sql, params),
+        }
+    }
+
+    fn execute_batch(&self, sql: &str) -> StorageResult<StorageItemStream<'_, ()>> {
+        match &self.inner {
+            #[cfg(feature = "turso")]
+            StorageProviderInner::Turso(storage) => storage.execute_batch(sql),
+            #[cfg(feature = "libsql")]
+            StorageProviderInner::Libsql(storage) => storage.execute_batch(sql),
+            StorageProviderInner::JsonFile(storage) => storage.execute_batch(sql),
+            StorageProviderInner::Memory(storage) => storage.execute_batch(sql),
         }
     }
 }
@@ -501,9 +517,6 @@ impl RateLimiterStore for StorageProvider {
             StorageProviderInner::Libsql(storage) => storage.check_rate_limit(key, max_count, window_seconds),
             StorageProviderInner::JsonFile(storage) => storage.check_rate_limit(key, max_count, window_seconds),
             StorageProviderInner::Memory(storage) => storage.check_rate_limit(key, max_count, window_seconds),
-            _ => Err(crate::errors::StorageError::Generic(
-                "Backend not implemented".to_string(),
-            )),
         }
     }
 
@@ -515,9 +528,6 @@ impl RateLimiterStore for StorageProvider {
             StorageProviderInner::Libsql(storage) => storage.record_rate_limit(key),
             StorageProviderInner::JsonFile(storage) => storage.record_rate_limit(key),
             StorageProviderInner::Memory(storage) => storage.record_rate_limit(key),
-            _ => Err(crate::errors::StorageError::Generic(
-                "Backend not implemented".to_string(),
-            )),
         }
     }
 
@@ -529,9 +539,6 @@ impl RateLimiterStore for StorageProvider {
             StorageProviderInner::Libsql(storage) => storage.reset_rate_limit(key),
             StorageProviderInner::JsonFile(storage) => storage.reset_rate_limit(key),
             StorageProviderInner::Memory(storage) => storage.reset_rate_limit(key),
-            _ => Err(crate::errors::StorageError::Generic(
-                "Backend not implemented".to_string(),
-            )),
         }
     }
 }

@@ -1558,6 +1558,7 @@ dependencies = [
  "ewe_watchers",
  "foundation_ai",
  "foundation_core",
+ "foundation_deployment",
  "foundation_macros",
  "foundation_nostd",
  "foundation_runtimes",
@@ -2016,6 +2017,20 @@ dependencies = [
  "tracing-test",
  "turso",
  "zeroize",
+]
+
+[[package]]
+name = "foundation_deployment"
+version = "0.0.1"
+dependencies = [
+ "bytes",
+ "chrono",
+ "derive_more",
+ "foundation_core",
+ "http 1.4.0",
+ "serde",
+ "serde_json",
+ "tracing",
 ]
 
 [[package]]
