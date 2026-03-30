@@ -1,7 +1,6 @@
 #![allow(clippy::type_complexity)]
 
 use crate::valtron::Stream;
-use crate::valtron::StreamIterator;
 use concurrent_queue::ConcurrentQueue;
 use derive_more::From;
 

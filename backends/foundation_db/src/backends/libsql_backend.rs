@@ -349,7 +349,8 @@ impl QueryStore for LibsqlStorage {
             Ok::<_, StorageError>(LibsqlRowsIterator::new(rows))
         });
 
-        let (_handle, receiver) = threaded.execute();
+        let receiver = threaded.execute()
+            .map_err(|e| StorageError::Backend(e.to_string()))?;
 
         // Convert Receiver to blocking iterator, then map ThreadedValue to Stream
         let block_iter = receiver.into_recv_iter();

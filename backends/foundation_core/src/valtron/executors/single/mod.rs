@@ -203,6 +203,26 @@ where
     })
 }
 
+/// Execute a blocking closure inline on the current thread.
+///
+/// WHY: Single-threaded environments have no background threads — run immediately
+/// WHAT: Executes the closure with `catch_unwind` for consistency with multi behavior
+/// HOW: Wraps in `AssertUnwindSafe` and calls `catch_unwind`
+///
+/// # Errors
+///
+/// Returns an error if the closure panics.
+pub fn run_background_job(job: impl FnOnce() + Send + 'static) -> crate::valtron::GenericResult<()> {
+    let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(job));
+    match result {
+        Ok(()) => Ok(()),
+        Err(panic_info) => {
+            tracing::error!("Background job panicked (single-threaded): {panic_info:?}");
+            Err("Background job panicked".into())
+        }
+    }
+}
+
 #[cfg(test)]
 mod single_threaded_tests {
     use std::{cell::RefCell, rc::Rc};

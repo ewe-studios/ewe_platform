@@ -1,4 +1,5 @@
 mod actions;
+mod background;
 mod builders;
 mod collect_next;
 mod constants;
@@ -16,6 +17,7 @@ mod unified;
 mod wrappers;
 
 pub use actions::*;
+pub use background::*;
 pub use builders::*;
 pub use collect_next::*;
 pub use constants::*;
@@ -32,8 +34,10 @@ pub use threads::*;
 pub use unified::*;
 pub use wrappers::*;
 
-pub mod multi;
 pub mod single;
+
+#[cfg(feature = "multi")]
+pub mod multi;
 
 // re-exported external libraries
 pub use rand::SeedableRng;

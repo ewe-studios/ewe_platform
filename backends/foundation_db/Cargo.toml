@@ -11,7 +11,8 @@ keywords = ["database", "storage", "turso", "foundation"]
 
 [dependencies]
 # -- Workspace dependencies
-foundation_core = { workspace = true }
+# Multi-threaded support is optional - enable with `multi` feature
+foundation_core = { workspace = true, features = ["std"] }
 
 # Storage backends (feature-gated)
 turso = { version = "0.1", optional = true }
@@ -46,6 +47,9 @@ turso = ["dep:turso"]
 libsql = ["dep:libsql"]
 d1 = []
 r2 = []
+
+# Multi-threaded support - enables foundation_core's multi feature
+multi = ["foundation_core/multi"]
 
 [lints]
 workspace = true

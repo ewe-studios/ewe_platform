@@ -230,7 +230,7 @@ impl KeyValueStore for TursoStorage {
             use foundation_core::valtron::ShortCircuit;
             match stream_item {
                 Stream::Next(result) => match result {
-                    Ok(_rows) => ShortCircuit::Continue(Stream::Next(Ok(_rows))),
+                    Ok(rows) => ShortCircuit::Continue(Stream::Next(Ok(rows))),
                     Err(e) => ShortCircuit::ReturnAndStop(Stream::Next(Err(
                         StorageError::Backend(e.to_string()),
                     ))),
@@ -240,7 +240,7 @@ impl KeyValueStore for TursoStorage {
         });
 
         Ok(Box::new(
-            circuit_stream.map_done(|result| result.map(|_rows| ())),
+            circuit_stream.map_done(|result| result.map(|_| ())),
         ))
     }
 
@@ -303,7 +303,8 @@ impl KeyValueStore for TursoStorage {
             Ok::<_, StorageError>(RowsIterator::new(rows))
         });
 
-        let (_handle, receiver) = threaded.execute();
+        let receiver = threaded.execute()
+            .map_err(|e| StorageError::Backend(e.to_string()))?;
 
         // RowsIterator yields Result<SqlRow, StorageError>
         // Convert ThreadedValue to Stream
@@ -349,7 +350,8 @@ impl QueryStore for TursoStorage {
             Ok::<_, StorageError>(RowsIterator::new(rows))
         });
 
-        let (_handle, receiver) = threaded.execute();
+        let receiver = threaded.execute()
+            .map_err(|e| StorageError::Backend(e.to_string()))?;
 
         // RowsIterator yields Result<SqlRow, StorageError>
         // Convert ThreadedValue to Stream
@@ -377,7 +379,7 @@ impl QueryStore for TursoStorage {
             use foundation_core::valtron::ShortCircuit;
             match stream_item {
                 Stream::Next(result) => match result {
-                    Ok(rows) => ShortCircuit::Continue(Stream::Next(Ok(rows as u64))),
+                    Ok(rows) => ShortCircuit::Continue(Stream::Next(Ok(rows))),
                     Err(e) => ShortCircuit::ReturnAndStop(Stream::Next(Err(
                         StorageError::Backend(e.to_string()),
                     ))),
@@ -400,7 +402,7 @@ impl QueryStore for TursoStorage {
             use foundation_core::valtron::ShortCircuit;
             match stream_item {
                 Stream::Next(result) => match result {
-                    Ok(_) => ShortCircuit::Continue(Stream::Next(Ok(()))),
+                    Ok(()) => ShortCircuit::Continue(Stream::Next(Ok(()))),
                     Err(e) => ShortCircuit::ReturnAndStop(Stream::Next(Err(
                         StorageError::Backend(e.to_string()),
                     ))),

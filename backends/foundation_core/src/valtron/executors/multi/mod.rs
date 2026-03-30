@@ -3,18 +3,23 @@
 use std::sync::{Arc, Mutex};
 
 use crate::valtron::{
-    get_allocatable_thread_count, task::TaskIterator, ExecutionAction, TaskReadyResolver,
-    TaskStatusMapper,
+    get_allocatable_thread_count, split_thread_count, task::TaskIterator, BackgroundJobRegistry,
+    ExecutionAction, GenericResult, TaskReadyResolver, TaskStatusMapper,
 };
 
 use crate::synca::{LockSignal, OnSignal};
 use crate::valtron::{SharedTaskQueue, ThreadPoolTaskBuilder, ThreadRegistry};
 
+use super::background::DEFAULT_BG_YIELD_DURATION;
 use super::PoolGuard;
 
 /// Global registry - stores the `ThreadRegistry` Arc.
 /// Uses Mutex<Option> to allow resetting between tests.
 static REGISTRY: Mutex<Option<Arc<ThreadRegistry>>> = Mutex::new(None);
+
+/// Global background job registry.
+/// Uses Mutex<Option> to allow resetting between tests.
+static BG_REGISTRY: Mutex<Option<Arc<BackgroundJobRegistry>>> = Mutex::new(None);
 
 /// Handle for spawning tasks into the shared queue.
 ///
@@ -112,7 +117,8 @@ where
     guard
 }
 
-/// `initialize_pool` creates a `ThreadRegistry` and spawns worker threads.
+/// `initialize_pool` creates a `ThreadRegistry` and `BackgroundJobRegistry`,
+/// splitting the available threads between them.
 ///
 /// Returns a `PoolGuard` — when dropped, signals all threads to die,
 /// waits for them to complete via `WaitGroup`, and joins all handles.
@@ -124,21 +130,57 @@ pub fn initialize_pool(seed_for_rng: u64, user_thread_num: Option<usize>) -> Poo
         Some(num) => num,
     };
 
+    let (task_threads, bg_threads) = split_thread_count(thread_num);
+
+    tracing::debug!(
+        "Splitting {thread_num} threads: {task_threads} for tasks, {bg_threads} for background jobs"
+    );
+
     let registry = Arc::new(ThreadRegistry::with_seed_and_threads(
         seed_for_rng,
-        thread_num,
+        task_threads,
     ));
 
-    // Spawn worker threads
-    for _ in 0..thread_num {
+    // Spawn task worker threads
+    for _ in 0..task_threads {
         registry
             .spawn_worker()
             .expect("Failed to spawn worker thread");
     }
 
-    *REGISTRY.lock().unwrap() = Some(registry.clone());
+    // Create background job registry sharing the kill signal
+    let bg_registry = BackgroundJobRegistry::new(
+        bg_threads,
+        registry.kill_signal(),
+        DEFAULT_BG_YIELD_DURATION,
+    );
 
-    PoolGuard::new(registry.clone())
+    *REGISTRY.lock().unwrap() = Some(registry.clone());
+    *BG_REGISTRY.lock().unwrap() = Some(bg_registry.clone());
+
+    PoolGuard::with_bg_registry(registry, bg_registry)
+}
+
+/// Submit a blocking closure for execution on the background job pool.
+///
+/// WHY: Provides managed background thread execution without spawning new OS threads
+/// WHAT: Pushes the closure onto the `BackgroundJobRegistry` queue
+/// HOW: Acquires the global `BG_REGISTRY` and calls `submit()`
+///
+/// # Errors
+///
+/// Returns an error if the background registry is not initialized or the queue is closed.
+///
+/// # Panics
+///
+/// Panics if the background job pool has not been initialized.
+pub fn run_background_job(job: impl FnOnce() + Send + 'static) -> GenericResult<()> {
+    let bg_registry = BG_REGISTRY
+        .lock()
+        .unwrap()
+        .clone()
+        .expect("Background job pool not initialized, ensure to call initialize_pool first");
+    bg_registry.submit(job)
 }
 
 /// [`spawn`] provides a builder which allows you to build out

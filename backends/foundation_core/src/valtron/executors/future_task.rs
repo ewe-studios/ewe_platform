@@ -11,7 +11,7 @@ use core::marker::PhantomData;
 use core::pin::Pin;
 use core::task::{Context, Poll, RawWaker, RawWakerVTable, Waker};
 
-#[cfg(feature = "std")]
+#[cfg(feature = "multi")]
 use std::boxed::Box;
 
 #[cfg(all(feature = "alloc", not(feature = "std")))]
@@ -277,7 +277,7 @@ where
     type Pending = StreamPollState;
     type Spawner = NoAction;
 
-    fn next(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+    fn next_status(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
         if self.exhausted {
             return None;
         }
@@ -380,19 +380,22 @@ pub enum ThreadedValue<T, E> {
     Value(Result<T, E>),
 }
 
-/// A future executor that spawns a dedicated thread for !Send operations.
+/// A future executor that runs !Send operations on a background worker thread.
 ///
-/// This allows streaming large result sets without loading all rows into memory
-/// while handling !Send types (like turso::Rows) that cannot cross thread boundaries.
+/// WHY: Some types (like turso::Rows) are !Send and cannot cross thread boundaries,
+/// but we still need to stream their results to the calling thread
 ///
-/// # How It Works
+/// WHAT: Wraps an async function that produces an Iterator, submits the work to
+/// the `BackgroundJobRegistry` via `run_background_job`, and streams results
+/// through an `mpp` channel
 ///
-/// 1. ThreadedFuture wraps an async function that produces an Iterator
-/// 2. execute() spawns a worker thread that:
+/// HOW:
+/// 1. `ThreadedFuture` wraps an async function that produces an Iterator
+/// 2. `execute()` submits a closure to the background job pool that:
 ///    - Polls the async future using no-op waker
-///    - Gets the Iterator (which stays on worker thread forever)
-///    - Streams results through mpp::Sender into ConcurrentQueue
-/// 3. Receiver on main thread pops from queue and converts to Stream
+///    - Gets the Iterator (which stays on the worker thread)
+///    - Streams results through `mpp::Sender` into `ConcurrentQueue`
+/// 3. Receiver on the calling thread pops from queue
 ///
 /// # Example
 ///
@@ -402,7 +405,7 @@ pub enum ThreadedValue<T, E> {
 ///     Ok::<_, Error>(RowsIterator::new(rows))
 /// });
 ///
-/// let (_handle, receiver) = threaded.execute();
+/// let receiver = threaded.execute()?;
 /// for value in receiver {
 ///     match value {
 ///         ThreadedValue::Value(Ok(row)) => { /* process row */ }
@@ -410,7 +413,7 @@ pub enum ThreadedValue<T, E> {
 ///     }
 /// }
 /// ```
-#[cfg(feature = "std")]
+#[cfg(feature = "multi")]
 pub struct ThreadedFuture<F, Fut, I, T, E>
 where
     F: FnOnce() -> Fut + Send + 'static,
@@ -429,20 +432,7 @@ where
     _phantom: PhantomData<(Fut, I, T, E)>,
 }
 
-/// Worker handle - joins the worker thread on drop
-#[cfg(feature = "std")]
-pub struct WorkerHandle {
-    handle: Option<std::thread::JoinHandle<()>>,
-}
-
-#[cfg(feature = "std")]
-impl Drop for WorkerHandle {
-    fn drop(&mut self) {
-        self.handle.take().map(|h| h.join());
-    }
-}
-
-#[cfg(feature = "std")]
+#[cfg(feature = "multi")]
 impl<F, Fut, I, T, E> ThreadedFuture<F, Fut, I, T, E>
 where
     F: FnOnce() -> Fut + Send + 'static,
@@ -490,22 +480,21 @@ where
         }
     }
 
-    /// Execute the future on a dedicated worker thread.
+    /// Execute the future on a background worker thread.
     ///
-    /// Returns a tuple of (WorkerHandle, Receiver) where:
-    /// - WorkerHandle: Joins the worker thread on drop
-    /// - Receiver: Receives ThreadedValue<T, E> from the worker
+    /// WHY: Submits the work to the managed background pool instead of spawning a new thread
+    /// WHAT: Returns a `Receiver` that yields `ThreadedValue<T, E>` from the worker
+    /// HOW: Creates an mpp channel, submits the worker closure via `run_background_job`
     ///
-    /// The worker thread:
-    /// 1. Polls the async future using no-op waker until Ready
-    /// 2. Gets the Iterator and loops through its results
-    /// 3. Sends each result through the mpp channel
-    /// 4. Handles closed queue (receiver dropped) by exiting cleanly
-    pub fn execute(self) -> (WorkerHandle, Receiver<ThreadedValue<T, E>>) {
+    /// # Errors
+    ///
+    /// Returns an error if the background job could not be submitted (pool not initialized
+    /// or shut down).
+    pub fn execute(self) -> crate::valtron::GenericResult<Receiver<ThreadedValue<T, E>>> {
         let (sender, receiver) = mpp::bounded::<ThreadedValue<T, E>>(self.queue_size);
         let backpressure_sleep = self.backpressure_sleep;
 
-        let handle = std::thread::spawn(move || {
+        super::unified::run_background_job(move || {
             tracing::debug!("ThreadedFuture worker started");
             let waker = create_noop_waker();
             let mut cx = Context::from_waker(&waker);
@@ -554,7 +543,6 @@ where
                                 if let Some(sleep_dur) = backpressure_sleep {
                                     std::thread::sleep(sleep_dur);
                                 } else {
-                                    // std::thread::yield_now();
                                     std::hint::spin_loop();
                                 }
                             }
@@ -570,15 +558,9 @@ where
 
             tracing::debug!("Worker completed");
             let _ = sender.close();
-            // Worker exits cleanly - sender dropped, queue closed
-        });
+        })?;
 
-        (
-            WorkerHandle {
-                handle: Some(handle),
-            },
-            receiver,
-        )
+        Ok(receiver)
     }
 }
 

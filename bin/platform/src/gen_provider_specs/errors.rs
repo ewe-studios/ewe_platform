@@ -98,4 +98,41 @@ impl SpecFetchError {
     }
 }
 
+impl Clone for SpecFetchError {
+    fn clone(&self) -> Self {
+        match self {
+            SpecFetchError::Http { provider, source } => SpecFetchError::Http {
+                provider: provider.clone(),
+                source: foundation_core::wire::simple_http::HttpClientError::FailedWith(
+                    source.to_string().into(),
+                ),
+            },
+            SpecFetchError::BadStatus { provider, status } => SpecFetchError::BadStatus {
+                provider: provider.clone(),
+                status: *status,
+            },
+            SpecFetchError::Json { provider, source } => SpecFetchError::Json {
+                provider: provider.clone(),
+                source: serde_json::Error::io(std::io::Error::new(
+                    std::io::ErrorKind::Other,
+                    source.to_string(),
+                )),
+            },
+            SpecFetchError::Hash { provider, source } => SpecFetchError::Hash {
+                provider: provider.clone(),
+                source: std::io::Error::new(source.kind(), source.to_string()),
+            },
+            SpecFetchError::WriteFile { path, source } => SpecFetchError::WriteFile {
+                path: path.clone(),
+                source: std::io::Error::new(source.kind(), source.to_string()),
+            },
+            SpecFetchError::Git { repo, reason } => SpecFetchError::Git {
+                repo: repo.clone(),
+                reason: reason.clone(),
+            },
+            SpecFetchError::Generic(msg) => SpecFetchError::Generic(msg.clone()),
+        }
+    }
+}
+
 impl std::error::Error for SpecFetchError {}
