@@ -373,7 +373,7 @@ where
 // ThreadedValue - Common result type (unconditional)
 // ============================================================================
 
-/// Result value sent from ThreadedFuture worker or FutureIterator.
+/// Result value sent from ThreadedIterFuture worker or iterator.
 #[derive(Debug)]
 pub enum ThreadedValue<T, E> {
     Value(Result<T, E>),
@@ -383,17 +383,17 @@ pub enum ThreadedValue<T, E> {
 // Multi-threaded implementation (std + multi)
 // ============================================================================
 
-/// Iterator wrapper around Receiver for ThreadedFuture.
+/// Iterator wrapper around Receiver for ThreadedIterFuture.
 ///
 /// Uses `Receiver.into_recv_iter()` which already provides the Iterator
 /// implementation with proper blocking/consumption logic.
 #[cfg(all(feature = "std", feature = "multi"))]
-pub struct ThreadedFutureIter<T, E> {
+pub struct FutureIterator<T, E> {
     iter: mpp::RecvIterator<ThreadedValue<T, E>>,
 }
 
 #[cfg(all(feature = "std", feature = "multi"))]
-impl<T, E> Iterator for ThreadedFutureIter<T, E> {
+impl<T, E> Iterator for FutureIterator<T, E> {
     type Item = ThreadedValue<T, E>;
 
     fn next(&mut self) -> Option<Self::Item> {
@@ -402,8 +402,11 @@ impl<T, E> Iterator for ThreadedFutureIter<T, E> {
 }
 
 /// A future executor that runs !Send operations on a background worker thread.
+///
+/// In multi-threaded mode, this submits work to the BackgroundJobRegistry.
+/// In single-threaded mode, this polls the future inline on each next() call.
 #[cfg(all(feature = "std", feature = "multi"))]
-pub struct ThreadedFuture<F, Fut, I, T, E>
+pub struct ThreadedIterFuture<F, Fut, I, T, E>
 where
     F: FnOnce() -> Fut + Send + 'static,
     Fut: Future<Output = Result<I, E>> + 'static,
@@ -418,7 +421,7 @@ where
 }
 
 #[cfg(all(feature = "std", feature = "multi"))]
-impl<F, Fut, I, T, E> ThreadedFuture<F, Fut, I, T, E>
+impl<F, Fut, I, T, E> ThreadedIterFuture<F, Fut, I, T, E>
 where
     F: FnOnce() -> Fut + Send + 'static,
     Fut: Future<Output = Result<I, E>> + 'static,
@@ -426,7 +429,7 @@ where
     T: Send + 'static,
     E: Send + 'static,
 {
-    /// Create a new ThreadedFuture with default settings.
+    /// Create a new ThreadedIterFuture with default settings.
     pub fn new(future_fn: F) -> Self {
         Self {
             future_fn,
@@ -436,7 +439,7 @@ where
         }
     }
 
-    /// Create a new ThreadedFuture with custom queue size.
+    /// Create a new ThreadedIterFuture with custom queue size.
     pub fn with_queue_size(future_fn: F, queue_size: usize) -> Self {
         Self {
             future_fn,
@@ -494,12 +497,12 @@ where
             let _ = sender.close();
         })?;
 
-        Ok(ThreadedFutureIter {
+        Ok(FutureIterator {
             iter: receiver.into_recv_iter(),
         })
     }
 
-    /// Create a new ThreadedFuture with custom queue size and backpressure sleep.
+    /// Create a new ThreadedIterFuture with custom queue size and backpressure sleep.
     pub fn with_backpressure_sleep(
         future_fn: F,
         queue_size: usize,
@@ -573,8 +576,10 @@ where
 }
 
 /// A future executor for single-threaded std environments.
+///
+/// Polls the future inline on each `next()` call without spawning threads.
 #[cfg(all(feature = "std", not(feature = "multi")))]
-pub struct ThreadedFuture<F, Fut, I, T, E>
+pub struct ThreadedIterFuture<F, Fut, I, T, E>
 where
     F: FnOnce() -> Fut,
     Fut: Future<Output = Result<I, E>>,
@@ -585,7 +590,7 @@ where
 }
 
 #[cfg(all(feature = "std", not(feature = "multi")))]
-impl<F, Fut, I, T, E> ThreadedFuture<F, Fut, I, T, E>
+impl<F, Fut, I, T, E> ThreadedIterFuture<F, Fut, I, T, E>
 where
     F: FnOnce() -> Fut,
     Fut: Future<Output = Result<I, E>>,
@@ -670,8 +675,10 @@ where
 }
 
 /// A future executor for no_std environments.
+///
+/// Polls the future inline on each `next()` call without spawning threads.
 #[cfg(all(not(feature = "multi"), not(feature = "std")))]
-pub struct ThreadedFuture<F, Fut, I, T, E>
+pub struct ThreadedIterFuture<F, Fut, I, T, E>
 where
     F: FnOnce() -> Fut,
     Fut: Future<Output = Result<I, E>>,
@@ -682,7 +689,7 @@ where
 }
 
 #[cfg(all(not(feature = "multi"), not(feature = "std")))]
-impl<F, Fut, I, T, E> ThreadedFuture<F, Fut, I, T, E>
+impl<F, Fut, I, T, E> ThreadedIterFuture<F, Fut, I, T, E>
 where
     F: FnOnce() -> Fut,
     Fut: Future<Output = Result<I, E>>,
@@ -708,6 +715,57 @@ where
             inner_iter: None,
             _phantom: PhantomData,
         }
+    }
+}
+
+// ============================================================================
+// run_future_iter - Unified Future executor (all feature configurations)
+// ============================================================================
+
+/// Execute a future that produces an iterator, returning results as an Iterator.
+///
+/// WHY: Single unified API across all feature configurations (multi, std, no_std)
+/// WHAT: Creates ThreadedIterFuture with configured queue_size and backpressure,
+///       calls execute(), and returns the resulting iterator
+///
+/// In multi-threaded mode: Spawns background job, returns Result<Iterator, Error>
+/// In single-threaded/no-std mode: Polls inline, returns Ok(Iterator)
+pub fn run_future_iter<F, Fut, I, T, E>(
+    future_fn: F,
+    queue_size: Option<usize>,
+    backpressure_sleep: Option<std::time::Duration>,
+) -> crate::valtron::GenericResult<impl Iterator<Item = ThreadedValue<T, E>>>
+where
+    F: FnOnce() -> Fut + Send + 'static,
+    Fut: Future<Output = Result<I, E>> + 'static,
+    I: Iterator<Item = Result<T, E>> + 'static,
+    T: Send + 'static,
+    E: Send + 'static,
+{
+    #[cfg(feature = "multi")]
+    {
+        tracing::debug!("Executing as a multi-threaded future iterator");
+        let threaded = ThreadedIterFuture::with_backpressure_sleep(
+            future_fn,
+            queue_size.unwrap_or(16),
+            backpressure_sleep.or(Some(std::time::Duration::from_millis(10))),
+        );
+        threaded.execute()
+    }
+
+    #[cfg(not(feature = "multi"))]
+    {
+        #[cfg(feature = "std")]
+        {
+            tracing::debug!("Executing as a single-threaded std future iterator");
+        }
+        #[cfg(not(feature = "std"))]
+        {
+            tracing::debug!("Executing as a no_std future iterator");
+        }
+        // Single-threaded and no_std modes don't use queue_size or backpressure_sleep
+        let _ = (queue_size, backpressure_sleep);
+        Ok(ThreadedIterFuture::new(future_fn).execute())
     }
 }
 

@@ -6,7 +6,7 @@
 
 use crate::backends::async_utils::{exec_future, schedule_future};
 use crate::errors::StorageResult;
-use foundation_core::valtron::{Stream, StreamIteratorExt, ThreadedFuture, ThreadedValue};
+use foundation_core::valtron::{run_future_iter, Stream, StreamIteratorExt, ThreadedValue};
 use serde::{de::DeserializeOwned, Serialize};
 use std::sync::Arc;
 use turso::Builder;
@@ -287,31 +287,26 @@ impl KeyValueStore for TursoStorage {
         let turso_params = Self::to_turso_params(&[DataValue::Text(param.clone())]);
         let conn = Arc::clone(&self.conn);
 
-        // Use ThreadedFuture for streaming query results
-        let threaded = ThreadedFuture::new(move || async move {
-            let mut stmt = conn
-                .prepare(sql)
-                .await
+        // Use run_future_iter for streaming query results
+        let iter = run_future_iter(
+            move || async move {
+                let mut stmt = conn
+                    .prepare(sql)
+                    .await
+                    .map_err(|e| StorageError::Backend(e.to_string()))?;
+                let rows = if param.is_empty() {
+                    stmt.query([turso::Value::Null; 0]).await
+                } else {
+                    stmt.query(turso_params).await
+                }
                 .map_err(|e| StorageError::Backend(e.to_string()))?;
-            let rows = if param.is_empty() {
-                stmt.query([turso::Value::Null; 0]).await
-            } else {
-                stmt.query(turso_params).await
-            }
-            .map_err(|e| StorageError::Backend(e.to_string()))?;
 
-            Ok::<_, StorageError>(RowsIterator::new(rows))
-        });
-
-        // execute() returns Result<impl Iterator, Error> in multi mode,
-        // or impl Iterator directly in single-threaded mode
-        #[cfg(feature = "multi")]
-        let iter = threaded
-            .execute()
-            .map_err(|e| StorageError::Backend(e.to_string()))?;
-
-        #[cfg(not(feature = "multi"))]
-        let iter = threaded.execute();
+                Ok::<_, StorageError>(RowsIterator::new(rows))
+            },
+            None, // default queue size
+            None, // default backpressure sleep
+        )
+        .map_err(|e| StorageError::Backend(e.to_string()))?;
 
         // Convert ThreadedValue to Stream
         let stream = iter.map(|threaded_value| match threaded_value {
@@ -335,35 +330,28 @@ impl QueryStore for TursoStorage {
         params: &[DataValue],
     ) -> StorageResult<StorageItemStream<'_, SqlRow>> {
         use crate::rows_stream::RowsIterator;
-        use foundation_core::valtron::ThreadedFuture;
 
         let turso_params = Self::to_turso_params(params);
         let sql = sql.to_string();
         let conn = Arc::clone(&self.conn);
 
-        // Use ThreadedFuture to spawn worker thread that owns !Send turso::Rows
-        // RowsIterator already converts turso::Error to StorageError internally
-        let threaded = ThreadedFuture::new(move || async move {
-            let mut stmt = conn
-                .prepare(&sql)
-                .await
-                .map_err(|e| StorageError::Backend(e.to_string()))?;
-            let rows = stmt
-                .query(turso_params)
-                .await
-                .map_err(|e| StorageError::Backend(e.to_string()))?;
-            Ok::<_, StorageError>(RowsIterator::new(rows))
-        });
-
-        // execute() returns Result<impl Iterator, Error> in multi mode,
-        // or impl Iterator directly in single-threaded mode
-        #[cfg(feature = "multi")]
-        let iter = threaded
-            .execute()
-            .map_err(|e| StorageError::Backend(e.to_string()))?;
-
-        #[cfg(not(feature = "multi"))]
-        let iter = threaded.execute();
+        // Use run_future_iter to spawn worker thread that owns !Send turso::Rows
+        let iter = run_future_iter(
+            move || async move {
+                let mut stmt = conn
+                    .prepare(&sql)
+                    .await
+                    .map_err(|e| StorageError::Backend(e.to_string()))?;
+                let rows = stmt
+                    .query(turso_params)
+                    .await
+                    .map_err(|e| StorageError::Backend(e.to_string()))?;
+                Ok::<_, StorageError>(RowsIterator::new(rows))
+            },
+            None, // default queue size
+            None, // default backpressure sleep
+        )
+        .map_err(|e| StorageError::Backend(e.to_string()))?;
 
         // Convert ThreadedValue to Stream
         let stream = iter.map(|threaded_value| match threaded_value {

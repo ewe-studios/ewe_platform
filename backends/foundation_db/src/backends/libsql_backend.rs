@@ -6,7 +6,7 @@
 
 use crate::backends::async_utils::{exec_future, schedule_future};
 use crate::errors::StorageResult;
-use foundation_core::valtron::{Stream, StreamIteratorExt};
+use foundation_core::valtron::{run_future_iter, Stream, StreamIteratorExt, ThreadedValue};
 use libsql::Builder;
 use serde::{de::DeserializeOwned, Serialize};
 use std::sync::Arc;
@@ -333,31 +333,25 @@ impl QueryStore for LibsqlStorage {
         params: &[DataValue],
     ) -> StorageResult<StorageItemStream<'_, SqlRow>> {
         use crate::rows_stream::LibsqlRowsIterator;
-        use foundation_core::valtron::{ThreadedFuture, ThreadedValue};
         use foundation_core::synca::mpp::Stream;
 
         let libsql_params = Self::to_libsql_params(params);
         let sql = sql.to_string();
         let conn = Arc::clone(&self.conn);
 
-        // Use ThreadedFuture to spawn worker thread that owns !Send libsql::Rows
-        let threaded = ThreadedFuture::new(move || async move {
-            let mut stmt = conn.prepare(&sql).await
-                .map_err(|e| StorageError::Backend(e.to_string()))?;
-            let rows = stmt.query(libsql_params).await
-                .map_err(|e| StorageError::Backend(e.to_string()))?;
-            Ok::<_, StorageError>(LibsqlRowsIterator::new(rows))
-        });
-
-        // execute() returns Result<impl Iterator, Error> in multi mode,
-        // or impl Iterator directly in single-threaded mode
-        #[cfg(feature = "multi")]
-        let iter = threaded
-            .execute()
-            .map_err(|e| StorageError::Backend(e.to_string()))?;
-
-        #[cfg(not(feature = "multi"))]
-        let iter = threaded.execute();
+        // Use run_future_iter to spawn worker thread that owns !Send libsql::Rows
+        let iter = run_future_iter(
+            move || async move {
+                let mut stmt = conn.prepare(&sql).await
+                    .map_err(|e| StorageError::Backend(e.to_string()))?;
+                let rows = stmt.query(libsql_params).await
+                    .map_err(|e| StorageError::Backend(e.to_string()))?;
+                Ok::<_, StorageError>(LibsqlRowsIterator::new(rows))
+            },
+            None, // default queue size
+            None, // default backpressure sleep
+        )
+        .map_err(|e| StorageError::Backend(e.to_string()))?;
 
         // Convert ThreadedValue to Stream
         let stream = iter.map(|threaded_value| match threaded_value {
