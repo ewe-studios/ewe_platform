@@ -683,6 +683,17 @@ pub use state::traits::StateStore;
 
 ## Implementation Notes
 
+### Valtron Async Bridge Policy (MANDATORY)
+
+Read `fundamentals/00-overview.md` § Valtron Async Bridge Policy before implementing.
+
+- **`run_future_iter` is the default** for all async I/O — returns composable, lazy iterators. No upfront `Vec` allocation.
+- **`exec_future` only for one-shot bootstrap** — connection init, schema setup. Never in trait methods.
+- **`ShellExecutor` already follows this** — returns `impl Iterator<Item = Stream<ShellDone, ShellPending>>` via Valtron's `TaskIterator` + `execute()`.
+- **Error types** — `derive_more::From` + manual `Display`, central `errors.rs`. No `thiserror`.
+
+### General
+
 - Use `foundation_core::simple_http::client::SimpleHttpClient` as the HTTP base for API providers
 - Follow error patterns from `foundation_ai`
 - Use `derive_more` for `From` implementations
