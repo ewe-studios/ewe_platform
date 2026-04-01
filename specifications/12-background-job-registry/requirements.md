@@ -953,3 +953,151 @@ mod tests {
 - [x] Tests: multi-threaded mode works with background registry (5 tests passing)
 - [x] Tests: single-threaded mode polls future correctly (4 tests passing)
 - [x] Tests: foundation_db compiles and works with both feature configurations
+
+---
+
+## Feature 06: Unified run_future_iter API
+
+**File**: `backends/foundation_core/src/valtron/executors/future_task.rs` (modify)
+
+Consolidate the three feature-gated `run_future_iter` functions into a single unified function that uses internal `cfg` blocks to select the correct implementation, following the same pattern as `unified::send()` and `unified::execute()`:
+
+### Unified Function Signature
+
+```rust
+/// Execute a future that produces an iterator, returning results as an Iterator.
+///
+/// WHY: Single unified API across all feature configurations (multi, std, no_std)
+/// WHAT: Creates ThreadedIterFuture with configured queue_size and backpressure,
+///       calls execute(), and returns the resulting iterator
+///
+/// In multi-threaded mode: Spawns background job, returns Result<Iterator, Error>
+/// In single-threaded/no-std mode: Polls inline, returns Ok(Iterator)
+pub fn run_future_iter<F, Fut, I, T, E>(
+    future_fn: F,
+    queue_size: Option<usize>,
+    backpressure_sleep: Option<std::time::Duration>,
+) -> crate::valtron::GenericResult<impl Iterator<Item = ThreadedValue<T, E>>>
+where
+    F: FnOnce() -> Fut + Send + 'static,
+    Fut: Future<Output = Result<I, E>> + 'static,
+    I: Iterator<Item = Result<T, E>> + 'static,
+    T: Send + 'static,
+    E: Send + 'static,
+{
+    #[cfg(feature = "multi")]
+    {
+        tracing::debug!("Executing as a multi-threaded future iterator");
+        let threaded = ThreadedIterFuture::with_backpressure_sleep(
+            future_fn,
+            queue_size.unwrap_or(16),
+            backpressure_sleep.or(Some(std::time::Duration::from_millis(10))),
+        );
+        threaded.execute()
+    }
+
+    #[cfg(not(feature = "multi"))]
+    {
+        #[cfg(feature = "std")]
+        {
+            tracing::debug!("Executing as a single-threaded std future iterator");
+        }
+        #[cfg(not(feature = "std"))]
+        {
+            tracing::debug!("Executing as a no_std future iterator");
+        }
+        // Single-threaded and no_std modes don't use queue_size or backpressure_sleep
+        let _ = (queue_size, backpressure_sleep);
+        Ok(ThreadedIterFuture::new(future_fn).execute())
+    }
+}
+```
+
+### Key Design Decisions
+
+**1. Consistent return type across all modes**
+
+All modes return `GenericResult<impl Iterator<Item = ThreadedValue<T, E>>>`:
+- Multi-threaded: Can fail when submitting to background job registry (queue closed during shutdown)
+- Single-threaded/no_std: Always returns `Ok(iterator)` since there's no failure mode
+
+This allows callers to use identical error handling code without `#[cfg]` blocks.
+
+**2. Internal cfg dispatch, not feature-gated functions**
+
+Instead of three separate functions gated by `#[cfg(...)]`, use a single function with internal `cfg` blocks:
+
+```rust
+// BEFORE: Three separate functions
+#[cfg(all(feature = "std", feature = "multi"))]
+pub fn run_future_iter(...) { ... }
+
+#[cfg(all(feature = "std", not(feature = "multi")))]
+pub fn run_future_iter(...) { ... }
+
+#[cfg(all(not(feature = "multi"), not(feature = "std")))]
+pub fn run_future_iter(...) { ... }
+
+// AFTER: Single unified function
+pub fn run_future_iter(...) {
+    #[cfg(feature = "multi")]
+    { ... }
+
+    #[cfg(not(feature = "multi"))]
+    { ... }
+}
+```
+
+This pattern:
+- Provides a single API surface for all users
+- Follows the established pattern from `unified::send()` and `unified::execute()`
+- Makes code easier to discover and document
+
+**3. Renaming ThreadedFuture to ThreadedIterFuture**
+
+The type was renamed from `ThreadedFuture` to `ThreadedIterFuture` to better reflect its behavior:
+- It doesn't return a `Future` - it returns an `impl Iterator`
+- The name clarifies that it's an adapter that produces an iterator of results
+
+### foundation_db Integration
+
+With the unified `run_future_iter` API, foundation_db backends can use a single code path:
+
+```rust
+// BEFORE: Required cfg blocks for different return types
+#[cfg(feature = "multi")]
+let iter = threaded.execute().map_err(|e| StorageError::Backend(e.to_string()))?;
+
+#[cfg(not(feature = "multi"))]
+let iter = threaded.execute();
+
+// AFTER: Single unified call
+let iter = run_future_iter(
+    move || async move {
+        // ... async database operation ...
+        Ok::<_, StorageError>(RowsIterator::new(rows))
+    },
+    None, // default queue size
+    None, // default backpressure sleep
+)
+.map_err(|e| StorageError::Backend(e.to_string()))?;
+```
+
+### Test Results
+
+| Test Suite | Mode | Tests | Status |
+|------------|------|-------|--------|
+| `threaded_future.rs` | multi | 5 | Passing |
+| `threaded_future_std.rs` | std (no multi) | 4 | Passing |
+| `foundation_db` | default | 11 | Passing |
+
+**Tasks:**
+- [x] Consolidate three feature-gated `run_future_iter` functions into one
+- [x] Use internal `cfg` blocks following `unified::send()` pattern
+- [x] Return `GenericResult<impl Iterator>` from all modes for consistent API
+- [x] Add tracing debug logs for execution path selection
+- [x] Update foundation_db backends (turso, libsql) to use unified API
+- [x] Remove `#[cfg(feature = "multi")]` blocks from foundation_db code
+- [x] Rename `ThreadedFuture` to `ThreadedIterFuture` throughout codebase
+- [x] Rename `ThreadedFutureIter` to `FutureIterator` for clarity
+- [x] Tests: All existing tests pass with unified API
