@@ -1803,11 +1803,11 @@ Same pattern for `client_credentials()` → `build_client_credentials_request()`
 3. [x] Rewrite all traits in `storage_provider.rs` — all return `StorageItemStream` (Valtron-native)
 4. [x] Update `errors.rs` — `derive_more::From` + manual Display, Turso/libsql error variants
 5. [x] Rewrite `backends/memory.rs` — `std::sync::Mutex`, sync trait impls (KeyValueStore, QueryStore, RateLimiterStore)
-6. [x] Implement `backends/turso_backend.rs` — Valtron `from_future`/`schedule_future` wrapping, `ThreadedFuture` for streaming queries
+6. [x] Implement `backends/turso_backend.rs` — Valtron `run_future_iter` for streaming queries
 7. [x] Implement `backends/libsql_backend.rs` — same Valtron wrapping pattern as turso
 8. [x] Implement `backends/json_file.rs` — atomic writes, zeroizing, KeyValueStore + QueryStore + RateLimiterStore stubs
 9. [x] Update `backends/mod.rs` — module exports, feature-gated re-exports
-10. [x] Implement `rows_stream.rs` — `RowsIterator` (turso) and `LibsqlRowsIterator` for streaming !Send row iterators via `ThreadedFuture`
+10. [x] Implement `rows_stream.rs` — `RowsIterator` (turso) and `LibsqlRowsIterator` for streaming !Send row iterators via `run_future_iter`
 11. [x] Implement `schema/migrations.rs` — migration runner with version tracking
 12. [x] Implement `crypto/` — encryption (ChaCha20-Poly1305) + zeroize helpers
 13. [x] Update `lib.rs` — module declarations and re-exports

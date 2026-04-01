@@ -109,8 +109,8 @@ This directory contains all project specifications and requirements. Each specif
 
 ### [12: Background Job Registry](./12-background-job-registry/)
 **Status:** ⏳ Pending
-**Description:** Add a BackgroundJobRegistry to valtron that owns a fixed pool of background worker threads for executing blocking closures, replacing ad-hoc thread spawning in ThreadedFuture and exposing a unified `run_background_job` API.
-**Has Features:** Yes (4 features)
+**Description:** Add a BackgroundJobRegistry to valtron that owns a fixed pool of background worker threads for executing blocking closures, replacing ad-hoc thread spawning in ThreadedIterFuture and exposing a unified `run_background_job` API.
+**Has Features:** Yes (6 features)
 **Builds On:** [09-multi-threaded-executor-improvements](./09-multi-threaded-executor-improvements/)
 
 | Feature | Description | Tasks |
@@ -118,9 +118,11 @@ This directory contains all project specifications and requirements. Each specif
 | 01: Core | BackgroundJobRegistry struct, worker loop, panic protection | 8 |
 | 02: Pool Integration | Thread allocation formula, multi/mod.rs integration | 7 |
 | 03: Single/Unified API | run_background_job in single + unified modules | 4 |
-| 04: ThreadedFuture Migration | Replace std::thread::spawn with run_background_job | 4 |
+| 04: ThreadedIterFuture Migration | Replace std::thread::spawn with run_background_job | 4 |
+| 05: Feature Gating | Feature-gated ThreadedIterFuture implementations (multi, std, no_std) | 11 |
+| 06: Unified run_future_iter API | Consolidate into single unified function | 10 |
 
-**Total Tasks:** 23
+**Total Tasks:** 44
 
 ---
 
