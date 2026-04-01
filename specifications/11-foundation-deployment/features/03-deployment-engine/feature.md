@@ -195,12 +195,16 @@ impl<P: DeploymentProvider> StateMachine for DeploymentPlanner<P> {
 
             DeployState::CheckingState { config_hash } => {
                 let resource_id = self.resource_id();
-                match self.state_store.get(&resource_id) {
-                    Ok(Some(existing)) if !existing.needs_deploy(&config_hash) => {
-                        StateTransition::Complete(Ok(DeploymentResult {
-                            // Return cached result
-                            ..existing.to_deployment_result()
-                        }))
+                // StateStore::get returns StateStoreStream — consume at boundary
+                let existing = match self.state_store.get(&resource_id) {
+                    Ok(stream) => collect_first(stream).unwrap_or(None),
+                    Err(e) => return StateTransition::Complete(Err(e)),
+                };
+                match existing {
+                    Some(Some(state)) if !state.needs_deploy(&config_hash) => {
+                        StateTransition::Complete(Ok(
+                            state.to_deployment_result()
+                        ))
                     }
                     _ => {
                         // Needs deployment
@@ -251,7 +255,10 @@ impl<P: DeploymentProvider> StateMachine for DeploymentPlanner<P> {
                     Err(e) => {
                         // Attempt rollback via provider — errors from rollback are logged but
                         // the original deploy error is what gets propagated to the caller.
-                        let previous = self.state_store.get(&self.resource_id()).ok().flatten();
+                        let previous = self.state_store.get(&self.resource_id())
+                            .ok()
+                            .and_then(|stream| collect_first(stream).ok())
+                            .flatten();
                         if let Err(rollback_err) = self.provider.rollback(
                             &self.config,
                             self.environment.as_deref(),
@@ -288,7 +295,10 @@ impl<P: DeploymentProvider> StateMachine for DeploymentPlanner<P> {
                     }
                     Ok(false) => {
                         // Retries exhausted — rollback then propagate error
-                        let previous = self.state_store.get(&self.resource_id()).ok().flatten();
+                        let previous = self.state_store.get(&self.resource_id())
+                            .ok()
+                            .and_then(|stream| collect_first(stream).ok())
+                            .flatten();
                         if let Err(rollback_err) = self.provider.rollback(
                             &self.config,
                             self.environment.as_deref(),
@@ -305,7 +315,10 @@ impl<P: DeploymentProvider> StateMachine for DeploymentPlanner<P> {
                     }
                     Err(e) => {
                         // Verify itself failed — rollback then propagate error
-                        let previous = self.state_store.get(&self.resource_id()).ok().flatten();
+                        let previous = self.state_store.get(&self.resource_id())
+                            .ok()
+                            .and_then(|stream| collect_first(stream).ok())
+                            .flatten();
                         if let Err(rollback_err) = self.provider.rollback(
                             &self.config,
                             self.environment.as_deref(),
@@ -498,6 +511,7 @@ where
 
 ## Implementation Notes
 
+- **State store streams** — `StateStore` methods return `StateStoreStream<T>` (lazy iterators). The engine consumes these at the sync boundary using `collect_first()` for single values and `drive_to_completion()` for writes. Import helpers from `state/helpers.rs`. The `update_state()` helper method should call `drive_to_completion(self.state_store.set(...)?)?` internally.
 - Use `foundation_core::valtron::executors::state_machine::StateMachine` as the base trait
 - `StateTransition::Continue` for intermediate states, `::Complete(Ok(result))` for terminal success, `::Complete(Err(e))` for terminal failure
 - **Never use `StateTransition::Error`** — `StateMachineTask` maps it to `None` (silently stops the task). Always propagate errors through the `Output` type as `Complete(Err(e))`

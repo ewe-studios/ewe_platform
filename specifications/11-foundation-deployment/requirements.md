@@ -192,7 +192,25 @@ Each provider is an API client built with `SimpleHttpClient`. The tool calls pro
 
 Config files like `wrangler.toml` or `service.yaml` are **generated artifacts** when the user needs them (e.g., for `wrangler dev` or `gcloud run services replace`). They are not the deployment source of truth.
 
-### 2. State Store as Source of Truth
+### 2. Valtron Async Bridge: `run_future_iter` by Default
+
+**`run_future_iter` is the default pattern for ALL async I/O** — single-value AND multi-value operations. `exec_future` is reserved for one-shot bootstrap only (connection init, schema setup).
+
+**WHY** (learned from `foundation_db` — see `specifications/07-foundation-ai/features/00a-foundation-db/LEARNINGS.md`):
+- **Memory efficiency** — `exec_future` eagerly collects into `Vec<T>` inside the async block. `run_future_iter` streams lazily — you only allocate for what you pull.
+- **Composability** — all methods return `Iterator<Item = ThreadedValue<T, E>>`. Callers chain, filter, merge. The blocking decision lives at the caller's boundary, not buried in storage.
+- **Uniformity** — one pattern for everything, fewer code paths to maintain.
+
+**Key constraints** (from `foundation_db` and `specifications/12-background-job-registry`):
+- `!Send` row iterators (`libsql::Rows`) stay on the worker thread. `run_future_iter` handles this via channel-based bridging.
+- `Send + 'static` — own all data before the async block (`Arc::clone`, `&str` → `String`).
+- `BackgroundJobRegistry` manages the thread pool — no raw `std::thread::spawn`.
+
+**StateStore trait methods return `StateStoreStream<T>`** — a `Box<dyn Iterator<Item = ThreadedValue<T, E>> + Send>`. Sync backends (JSON files) build this from `Vec::into_iter()`.
+
+See `fundamentals/00-overview.md` § Valtron Async Bridge Policy for full reference.
+
+### 3. State Store as Source of Truth
 
 The **state store** is the source of truth for what's deployed. It records:
 - Resource identity (name, provider, kind)
@@ -200,9 +218,9 @@ The **state store** is the source of truth for what's deployed. It records:
 - Config hash (for change detection)
 - API response data (deployment IDs, URLs, versions, bindings)
 
-Three interchangeable backends — Turso, SQLite, JSON files — all implement the same trait.
+Six interchangeable backends — Turso, LibSQL, SQLite, JSON files, Cloudflare R2, Cloudflare D1 — all implement the same trait.
 
-### 3. Provider Trait
+### 4. Provider Trait
 
 ```rust
 pub trait DeploymentProvider {
@@ -223,7 +241,7 @@ pub trait DeploymentProvider {
 }
 ```
 
-### 4. Config File Generation
+### 5. Config File Generation
 
 The tool can **generate** provider config files when needed:
 

@@ -45,6 +45,70 @@
 > **Verification**: `cargo build -p foundation_deployment` (no features) must produce
 > zero tokio symbols. `cargo tree -p foundation_deployment` must show no tokio dependency.
 
+## Valtron Async Bridge Policy
+
+> **`run_future_iter` is the default pattern for ALL async operations.**
+>
+> Both `turso` and `libsql` expose async-only APIs. To bridge these into Valtron's
+> synchronous `Iterator`-based world, two patterns exist. **`run_future_iter` is the
+> default; `exec_future` is the exception.**
+>
+> | Pattern | When to Use |
+> |---------|-------------|
+> | **`run_future_iter`** | **Default for all async operations** — single-value AND multi-value. Returns `impl Iterator<Item = ThreadedValue<T, E>>`. Callers compose, chain, and lazily consume. No upfront `Vec` allocation. |
+> | **`exec_future`** | **Only for one-shot bootstrap** — DB connection init, migrations, schema setup at startup. Never in trait methods. |
+>
+> **WHY `run_future_iter` even for single-value ops:**
+> 1. **Memory efficiency** — `exec_future` collects all results into a `Vec<T>` inside the
+>    async block before returning. `run_future_iter` streams results lazily — you only
+>    pull what you need, when you need it. No wasted allocation.
+> 2. **Composability** — callers get a consistent `Iterator` interface they can chain with
+>    `map`, `filter`, `take`, `zip`, etc. Blocking decisions are pushed to the caller's
+>    boundary (`collect()`, `next()`, `for` loop), not buried in the storage layer.
+> 3. **Uniformity** — one pattern for everything means less cognitive overhead and fewer
+>    code paths to maintain.
+>
+> **Applying `run_future_iter` (reference: `foundation_db` LEARNINGS.md):**
+>
+> ```rust
+> use foundation_core::valtron::{run_future_iter, ThreadedValue};
+>
+> fn get(&self, resource_id: &str) -> Result<impl Iterator<Item = ThreadedValue<Option<ResourceState>, DeploymentError>>, DeploymentError> {
+>     let id = resource_id.to_string();       // Own the data before async boundary
+>     let conn = Arc::clone(&self.conn);       // Clone the Arc
+>
+>     let iter = run_future_iter(
+>         move || async move {
+>             let mut stmt = conn.prepare("SELECT * FROM resources WHERE id = ?").await?;
+>             let rows = stmt.query([id]).await?;
+>             Ok::<_, libsql::Error>(RowsIterator::new(rows))  // !Send stays on worker thread
+>         },
+>         None, // default queue size (16)
+>         None, // default backpressure sleep (10ms)
+>     ).map_err(|e| DeploymentError::StateFailed(format!("Valtron scheduling failed: {e}")))?;
+>
+>     Ok(iter)
+> }
+> ```
+>
+> **Hard constraints from `foundation_db` learnings:**
+> - **`!Send` row iterators** (`turso::Rows`, `libsql::Rows`) must stay on the worker
+>   thread. They never cross the async boundary. `run_future_iter` handles this: the
+>   `RowsIterator` lives on the worker, only `Send` values cross the channel.
+> - **`Send + 'static`** — all data captured by the async block must be owned. Clone
+>   `Arc<Connection>` and convert `&str` → `String` before the async block.
+> - **Three-level errors** — Valtron scheduling failure, empty stream, backend error.
+>   Map all to `DeploymentError` variants.
+>
+> **Sync backends bypass Valtron entirely:**
+> `JsonFileStateStore` uses direct `Mutex` locks and `std::fs` operations. No Valtron
+> needed. It still returns iterators for multi-value methods (trait consistency), built
+> from `Vec::into_iter().map(...)`.
+>
+> **Connection sharing:**
+> SQL backends wrap the connection in `Arc<Connection>`, created once in `new()`, cloned
+> into each async block.
+
 ## Core Concepts
 
 ### 1. API-First Deployment
@@ -215,15 +279,64 @@ backends/foundation_deployment/
 
 ### StateStore Trait
 
+All methods that touch async I/O return `StateStoreStream<T>` — a lazy iterator
+backed by `run_future_iter`. Callers pull results on demand; no upfront `Vec`
+allocation. The stream type aliases are defined in `state/types.rs`:
+
 ```rust
+use foundation_core::valtron::ThreadedValue;
+
+/// Lazy stream of state store results. Backed by `run_future_iter` for SQL/HTTP
+/// backends, or `Vec::into_iter().map(...)` for sync backends (JSON files).
+pub type StateStoreStream<T> = Box<dyn Iterator<Item = ThreadedValue<T, DeploymentError>> + Send>;
+
 pub trait StateStore: Send + Sync {
+    /// Initialize the store (create tables, directories, etc.).
+    /// Uses `exec_future` internally — this is one-shot bootstrap, not a trait query.
     fn init(&self) -> Result<(), DeploymentError>;
-    fn list(&self) -> Result<Vec<String>, DeploymentError>;
-    fn get(&self, resource_id: &str) -> Result<Option<ResourceState>, DeploymentError>;
-    fn set(&self, resource_id: &str, state: &ResourceState) -> Result<(), DeploymentError>;
-    fn delete(&self, resource_id: &str) -> Result<(), DeploymentError>;
-    fn all(&self) -> Result<Vec<ResourceState>, DeploymentError>;
+
+    /// List all resource IDs. Returns a lazy stream.
+    fn list(&self) -> Result<StateStoreStream<String>, DeploymentError>;
+
+    /// Get state for a single resource. Returns a stream yielding 0 or 1 items.
+    fn get(&self, resource_id: &str) -> Result<StateStoreStream<Option<ResourceState>>, DeploymentError>;
+
+    /// Set (create or update) state. Returns a stream signaling completion.
+    fn set(&self, resource_id: &str, state: &ResourceState) -> Result<StateStoreStream<()>, DeploymentError>;
+
+    /// Delete state. Returns a stream signaling completion.
+    fn delete(&self, resource_id: &str) -> Result<StateStoreStream<()>, DeploymentError>;
+
+    /// Get all resource states. Returns a lazy stream of resources.
+    fn all(&self) -> Result<StateStoreStream<ResourceState>, DeploymentError>;
+
+    /// Sync state to a remote location (no-op for FileStateStore).
+    fn sync_remote(&self) -> Result<(), DeploymentError> {
+        Ok(()) // Default: no remote sync
+    }
 }
+```
+
+**Consuming streams at the boundary:**
+
+```rust
+use foundation_core::valtron::ThreadedValue;
+
+// Single-value: pull first result
+let state = store.get("my-worker")?
+    .find_map(|v| match v {
+        ThreadedValue::Value(Ok(val)) => Some(val),
+        _ => None,
+    })
+    .flatten(); // Option<Option<ResourceState>> → Option<ResourceState>
+
+// Multi-value: collect lazily
+let ids: Vec<String> = store.list()?
+    .filter_map(|v| match v {
+        ThreadedValue::Value(Ok(id)) => Some(id),
+        ThreadedValue::Value(Err(e)) => { tracing::warn!("stream error: {e}"); None }
+    })
+    .collect();
 ```
 
 ### ResourceState

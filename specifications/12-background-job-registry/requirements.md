@@ -1,12 +1,12 @@
 ---
-description: "Add a BackgroundJobRegistry to valtron that owns a fixed pool of background worker threads for executing blocking closures via a ConcurrentQueue, replacing ad-hoc thread spawning in ThreadedFuture and exposing a unified run_background_job API across single/multi/unified modules."
-status: "pending"
+description: "Add a BackgroundJobRegistry to valtron that owns a fixed pool of background worker threads for executing blocking closures via a ConcurrentQueue, replacing ad-hoc thread spawning in ThreadedIterFuture and exposing a unified run_background_job API across single/multi/unified modules."
+status: "completed"
 priority: "high"
 created: 2026-03-29
 author: "Main Agent"
 metadata:
   version: "1.0"
-  last_updated: 2026-03-29
+  last_updated: 2026-04-01
   estimated_effort: "medium"
   tags:
     - valtron
