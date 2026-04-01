@@ -7,4 +7,7 @@
 //!
 //! HOW: Uses `SimpleHttpClient` for API-first deployments, with optional CLI fallback.
 
+pub mod config;
+pub mod core;
+pub mod error;
 pub mod providers;

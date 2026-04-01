@@ -368,6 +368,50 @@ pub trait StreamIteratorExt: StreamIterator + Sized {
         }
     }
 
+    /// Map only Next (Done) values to a new StreamIterator, passing through
+    /// other states as Stream::Ignore.
+    ///
+    /// The returned `MapIter` drains each inner iterator until `None`, then polls
+    /// the outer for the next item.
+    fn map_iter_done<F, InnerIter, InnerD>(
+        self,
+        mapper: F,
+    ) -> MapIterDone<Self, F, InnerIter, InnerD>
+    where
+        Self: Sized,
+        F: Fn(Self::D) -> InnerIter + Send + 'static,
+        InnerIter: StreamIterator<D = InnerD, P = Self::P> + Send + 'static,
+    {
+        MapIterDone {
+            outer: self,
+            mapper,
+            current_inner: None,
+            _phantom: std::marker::PhantomData,
+        }
+    }
+
+    /// Map only Pending values to a new StreamIterator, passing through
+    /// other states as Stream::Ignore.
+    ///
+    /// The returned `MapIter` drains each inner iterator until `None`, then polls
+    /// the outer for the next item.
+    fn map_iter_pending<F, InnerIter, InnerP>(
+        self,
+        mapper: F,
+    ) -> MapIterPending<Self, F, InnerIter, InnerP>
+    where
+        Self: Sized,
+        F: Fn(Self::P) -> InnerIter + Send + 'static,
+        InnerIter: StreamIterator<D = Self::D, P = InnerP> + Send + 'static,
+    {
+        MapIterPending {
+            outer: self,
+            mapper,
+            current_inner: None,
+            _phantom: std::marker::PhantomData,
+        }
+    }
+
     /// Flatten Next (Done) values that implement `IntoIterator`.
     ///
     /// Input:  `StreamIterator`<D = `Vec<M>`, P = P>
@@ -1961,6 +2005,110 @@ where
 
         let result = (self.mapper)(states);
         Some(Stream::Next(result))
+    }
+}
+
+/// Wrapper type for `map_iter` combinator that flattens nested iterator patterns.
+///
+/// Focused on mapping the Pending value.
+///
+/// The outer iterator yields `Stream` items which are transformed by the mapper
+/// into inner iterators. Each inner iterator is drained until `None` before polling
+/// the outer for the next item.
+pub struct MapIterPending<Outer, F, Inner, InnerP>
+where
+    F: Fn(Outer::P) -> Inner,
+    Outer: StreamIterator,
+    Inner: StreamIterator<D = Outer::D, P = InnerP>,
+{
+    outer: Outer,
+    mapper: F,
+    current_inner: Option<Inner>,
+    _phantom: std::marker::PhantomData<(Outer, Inner, InnerP)>,
+}
+
+impl<Outer, F, Inner, InnerP> Iterator for MapIterPending<Outer, F, Inner, InnerP>
+where
+    F: Fn(Outer::P) -> Inner,
+    Outer: StreamIterator,
+    Inner: StreamIterator<D = Outer::D, P = InnerP>,
+{
+    type Item = Stream<Outer::D, Inner::P>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        // First drain current inner iterator
+        if let Some(ref mut inner) = self.current_inner {
+            if let Some(item) = inner.next() {
+                return Some(item);
+            }
+            self.current_inner = None;
+        }
+
+        // Poll outer for next item
+        match self.outer.next() {
+            Some(item) => match item {
+                Stream::Pending(inner) => {
+                    self.current_inner = Some((self.mapper)(inner));
+                    Some(Stream::Ignore)
+                }
+                Stream::Next(inner) => Some(Stream::Next(inner)),
+                Stream::Delayed(inner) => Some(Stream::Delayed(inner)),
+                Stream::Init => Some(Stream::Init),
+                Stream::Ignore => Some(Stream::Ignore),
+            },
+            None => None,
+        }
+    }
+}
+
+/// Wrapper type for `map_iter` combinator that flattens nested iterator patterns.
+///
+/// The outer iterator yields `Stream` items which are transformed by the mapper
+/// into inner iterators. Each inner iterator is drained until `None` before polling
+/// the outer for the next item.
+pub struct MapIterDone<Outer, F, Inner, InnerD>
+where
+    F: Fn(Outer::D) -> Inner,
+    Outer: StreamIterator,
+    Inner: StreamIterator<D = InnerD, P = Outer::P>,
+{
+    outer: Outer,
+    mapper: F,
+    current_inner: Option<Inner>,
+    _phantom: std::marker::PhantomData<(Outer, Inner, InnerD)>,
+}
+
+impl<Outer, F, Inner, InnerD> Iterator for MapIterDone<Outer, F, Inner, InnerD>
+where
+    F: Fn(Outer::D) -> Inner,
+    Outer: StreamIterator,
+    Inner: StreamIterator<D = InnerD, P = Outer::P>,
+{
+    type Item = Stream<Inner::D, Outer::P>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        // First drain current inner iterator
+        if let Some(ref mut inner) = self.current_inner {
+            if let Some(item) = inner.next() {
+                return Some(item);
+            }
+            self.current_inner = None;
+        }
+
+        // Poll outer for next item
+        match self.outer.next() {
+            Some(item) => match item {
+                Stream::Next(inner) => {
+                    self.current_inner = Some((self.mapper)(inner));
+                    Some(Stream::Ignore)
+                }
+                Stream::Pending(inner) => Some(Stream::Pending(inner)),
+                Stream::Delayed(inner) => Some(Stream::Delayed(inner)),
+                Stream::Init => Some(Stream::Init),
+                Stream::Ignore => Some(Stream::Ignore),
+            },
+            None => None,
+        }
     }
 }
 

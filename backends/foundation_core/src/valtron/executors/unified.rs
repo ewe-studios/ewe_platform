@@ -14,7 +14,7 @@
 
 use crate::valtron::{
     drive_receiver, drive_stream, DrivenRecvIterator, DrivenStreamIterator, ExecutionAction,
-    TaskIterator,
+    StreamIterator, TaskIterator,
 };
 
 use crate::synca::mpp::Stream;
@@ -592,6 +592,200 @@ where
 //     type D = Vec<T::Ready>;
 //     type P = usize;
 // }
+
+// ============================================================================
+// StreamIterator collect_all
+// ============================================================================
+
+/// Collect results from multiple `StreamIterator`s executed in parallel.
+///
+/// This function takes a vector of `StreamIterator`s and combines them into
+/// a single stream that yields all results when complete. The returned iterator
+/// yields:
+/// - `Stream::Pending(count)` while any sources are still pending
+/// - `Stream::Next(Vec<D>)` when all sources complete
+/// - `Stream::Delayed(duration)` if any source is delayed
+///
+/// # Arguments
+///
+/// * `streams` - Vector of `StreamIterator`s to execute in parallel
+///
+/// # Returns
+///
+/// Returns a `CollectAllStreams` that combines all sources.
+///
+/// # Example
+///
+/// ```ignore
+/// let streams = vec![stream1, stream2, stream3];
+/// let combined = collect_all_streams(streams);
+///
+/// for item in combined {
+///     match item {
+///         Stream::Pending(count) => println!("{count} still pending..."),
+///         Stream::Next(results) => process(results),
+///         Stream::Delayed(dur) => continue,
+///     }
+/// }
+/// ```
+pub fn collect_all_streams<S>(streams: Vec<S>) -> CollectAllStreams<S>
+where
+    S: StreamIterator<P = usize> + Send + 'static,
+    S::D: Send + 'static,
+{
+    CollectAllStreams::new(streams)
+}
+
+/// Create a StreamIterator that yields a single value and then completes.
+///
+/// This is useful for creating error streams or wrapping a single result
+/// in a StreamIterator for combinator chains.
+///
+/// # Arguments
+///
+/// * `value` - The value to yield as Stream::Next
+///
+/// # Returns
+///
+/// Returns a OneShotStream that yields the value once then completes.
+///
+/// # Example
+///
+/// ```ignore
+/// let stream = one_shot(Ok::<_, MyError>(path_buf));
+/// for item in stream {
+///     match item {
+///         Stream::Next(v) => println!("Got value: {:?}", v),
+///         _ => {}
+///     }
+/// }
+/// ```
+pub fn one_shot<D, P>(value: D) -> OneShotStream<D, P>
+where
+    D: Send + 'static,
+    P: Send + 'static,
+{
+    OneShotStream { value: Some(value), _phantom: std::marker::PhantomData }
+}
+
+/// A StreamIterator that yields a single value and then completes.
+pub struct OneShotStream<D, P> {
+    value: Option<D>,
+    _phantom: std::marker::PhantomData<P>,
+}
+
+impl<D, P> Iterator for OneShotStream<D, P>
+where
+    D: Send + 'static,
+    P: Send + 'static,
+{
+    type Item = Stream<D, P>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        self.value.take().map(Stream::Next)
+    }
+}
+
+// Note: StreamIterator impl is provided by the blanket impl in synca/mpp.rs
+
+/// Collects outputs from multiple `StreamIterator`s in parallel.
+///
+/// This type holds the `StreamIterator`s and polls them in round-robin fashion,
+/// yielding `Stream::Pending` while any sources are pending, and
+/// `Stream::Next(Vec<D>)` when all complete.
+pub struct CollectAllStreams<S>
+where
+    S: StreamIterator<P = usize> + Send + 'static,
+    S::D: Send + 'static,
+{
+    sources: Vec<S>,
+    collected: Vec<S::D>,
+    done: bool,
+}
+
+impl<S> CollectAllStreams<S>
+where
+    S: StreamIterator<P = usize> + Send + 'static,
+    S::D: Send + 'static,
+{
+    /// Create a new `CollectAllStreams` from a vector of `StreamIterator`s.
+    #[must_use]
+    pub fn new(sources: Vec<S>) -> Self {
+        Self {
+            sources,
+            collected: Vec::new(),
+            done: false,
+        }
+    }
+}
+
+impl<S> Iterator for CollectAllStreams<S>
+where
+    S: StreamIterator<P = usize> + Send + 'static,
+    S::D: Send + 'static,
+{
+    type Item = Stream<Vec<S::D>, usize>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.done {
+            return None;
+        }
+
+        let mut all_done = true;
+        let mut has_pending = false;
+        let mut max_delayed: Option<std::time::Duration> = None;
+
+        // Poll all sources in round-robin
+        for source in &mut self.sources {
+            match source.next() {
+                Some(Stream::Next(value)) => {
+                    self.collected.push(value);
+                    all_done = false;
+                }
+                Some(Stream::Pending(p)) => {
+                    all_done = false;
+                    has_pending = true;
+                    let _ = p;
+                }
+                Some(Stream::Delayed(d)) => {
+                    all_done = false;
+                    max_delayed = Some(match max_delayed {
+                        Some(current) => current.max(d),
+                        None => d,
+                    });
+                }
+                Some(Stream::Init) => {
+                    all_done = false;
+                }
+                Some(Stream::Ignore) => {
+                    all_done = false;
+                }
+                None => {
+                    // This source is exhausted
+                }
+            }
+        }
+
+        if all_done {
+            self.done = true;
+            if self.collected.is_empty() {
+                return None;
+            }
+            Some(Stream::Next(std::mem::take(&mut self.collected)))
+        } else if let Some(delay) = max_delayed {
+            Some(Stream::Delayed(delay))
+        } else if has_pending {
+            Some(Stream::Pending(
+                self.sources.len() - self.collected.len(),
+            ))
+        } else {
+            Some(Stream::Pending(
+                self.sources.len() - self.collected.len(),
+            ))
+        }
+    }
+}
+// Note: StreamIterator is auto-implemented via blanket impl for Iterator<Item = Stream<D, P>>
 
 // ============================================================================
 // Feature 04: Mapping Combinators

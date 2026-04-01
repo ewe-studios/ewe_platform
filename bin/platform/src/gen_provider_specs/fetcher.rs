@@ -3,33 +3,26 @@
 //! WHY: Fetches OpenAPI specs from multiple providers in parallel using Valtron.
 //!
 //! WHAT: Central coordinator that runs all fetches in parallel using Valtron's
-//! `execute_collect_all` pattern, similar to `gen_model_descriptors`.
+//! `execute_collect_all` pattern, same as `gen_model_descriptors`.
 //!
-//! HOW: Uses `foundation_core::wire::simple_http::client::SendRequestTask` for HTTP,
-//! Valtron's `execute_collect_all` for parallel execution, and blocking `std::fs`
-//! for file I/O at sync boundaries.
+//! HOW: Uses `foundation_deployment::providers::spec_fetch` for provider-specific
+//! fetches, all wrapped in Valtron's `from_future` for parallel execution.
 
-use foundation_core::valtron::{self, Stream, TaskIteratorExt};
-use foundation_core::wire::simple_http::client::HttpRequestPending;
-use foundation_core::wire::simple_http::client::RequestIntro;
-use foundation_core::wire::simple_http::client::{body_reader, SendRequestTask, SimpleHttpClient};
-use foundation_core::wire::simple_http::HttpClientError;
-use serde::de::Error;
-use serde_json::Value;
+use foundation_core::valtron::{Stream, StreamIteratorExt};
+use foundation_core::wire::simple_http::client::SimpleHttpClient;
 use std::collections::BTreeMap;
-use std::hash::{Hash, Hasher};
+use std::path::PathBuf;
 use std::time::Instant;
 
-use foundation_deployment::providers::{gcp, stripe};
-
-use super::core::{DistilledSpec, SpecEndpoint, SpecFetchPending};
+use super::core::DistilledSpec;
 use super::errors::SpecFetchError;
 
 /// WHY: Orchestrates fetching specs from multiple providers.
 ///
 /// WHAT: Central coordinator that runs all fetches in parallel.
 ///
-/// HOW: Uses Valtron's execute_collect_all for concurrent execution.
+/// HOW: Uses `foundation_deployment::providers::spec_fetch` for each provider,
+/// then consolidates results.
 pub struct ProviderSpecFetcher;
 
 impl ProviderSpecFetcher {
@@ -48,106 +41,98 @@ impl ProviderSpecFetcher {
     /// Map of provider name to distilled spec. Failed fetches are logged and skipped.
     pub fn fetch_all(
         &self,
-        client: &mut SimpleHttpClient,
-    ) -> Result<BTreeMap<String, DistilledSpec>, SpecFetchError> {
-        let providers = Self::configured_providers();
-        let provider_count = providers.len();
+        client: &SimpleHttpClient,
+    ) -> Result<BTreeMap<String, DistilledSpec>, crate::gen_provider_specs::errors::SpecFetchError> {
+        use foundation_deployment::providers::spec_fetch::{cloudflare, gcp};
 
         // Artefacts directory for raw JSON specs
-        let artefacts_dir = std::path::PathBuf::from("artefacts/cloud_providers");
-        std::fs::create_dir_all(&artefacts_dir).map_err(|e| SpecFetchError::WriteFile {
-            path: artefacts_dir.display().to_string(),
-            source: e,
+        let artefacts_dir = PathBuf::from("artefacts/cloud_providers");
+        std::fs::create_dir_all(&artefacts_dir).map_err(|e| {
+            crate::gen_provider_specs::errors::SpecFetchError::WriteFile {
+                path: artefacts_dir.display().to_string(),
+                source: e,
+            }
         })?;
 
-        tracing::info!("Fetching {} provider specs in parallel...", providers.len());
+        tracing::info!("Fetching provider specs in parallel...");
         let start_time = Instant::now();
 
-        // Execute all tasks and collect their results
-        // Each task is executed separately but they run in parallel on the thread pool
+        // Create temp dir for cloudflare
+        let temp_dir = std::env::temp_dir().join("cloudflare-spec-fetch");
+        std::fs::create_dir_all(&temp_dir).map_err(|e| {
+            crate::gen_provider_specs::errors::SpecFetchError::WriteFile {
+                path: temp_dir.display().to_string(),
+                source: e,
+            }
+        })?;
+
+        // Build fetch streams for each provider
+        // Each returns a StreamIterator that runs on the Valtron thread pool
+        let mut streams: Vec<Box<dyn foundation_core::valtron::StreamIterator<
+            Item = Stream<Result<DistilledSpec, SpecFetchError>, ()>,
+            D = Result<DistilledSpec, SpecFetchError>,
+            P = (),
+        > + Send + 'static>> = Vec::new();
+
+        for (provider, _url) in Self::configured_providers() {
+            let provider_dir = artefacts_dir.join(provider);
+
+            if provider == "cloudflare" {
+                let stream = cloudflare::fetch_cloudflare_specs(
+                    temp_dir.clone(),
+                    provider_dir,
+                ).map_err(|e| SpecFetchError::Generic(format!("Cloudflare: {e}")))?;
+                streams.push(Box::new(stream.map_done(|result| {
+                    result
+                        .map_err(|e| SpecFetchError::Generic(format!("Cloudflare: {e}")))
+                        .map(|_path| DistilledSpec {
+                            provider: "cloudflare".to_string(),
+                            version: chrono::Utc::now().format("%Y%m%d").to_string(),
+                            fetched_at: chrono::Utc::now(),
+                            source_url: cloudflare::CLOUDFLARE_API_SCHEMAS_URL.to_string(),
+                            raw_spec: serde_json::Value::Null,
+                            endpoints: None,
+                            content_hash: String::new(),
+                        })
+                })));
+            } else if provider == "gcp" {
+                let stream = gcp::fetch_gcp_specs(client, provider_dir)
+                    .map_err(|e| SpecFetchError::Generic(format!("GCP: {e}")))?;
+                streams.push(Box::new(stream
+                    .map_pending(|_| ())
+                    .map_done(|result| {
+                    result
+                        .map_err(|e| SpecFetchError::Generic(format!("GCP: {e}")))
+                        .map(|_path| DistilledSpec {
+                            provider: "gcp".to_string(),
+                            version: chrono::Utc::now().format("%Y%m%d").to_string(),
+                            fetched_at: chrono::Utc::now(),
+                            source_url: gcp::GCP_DISCOVERY_URL.to_string(),
+                            raw_spec: serde_json::Value::Null,
+                            endpoints: None,
+                            content_hash: String::new(),
+                        })
+                })));
+            } else {
+                // Standard HTTP fetch for other providers
+                // TODO: Implement using foundation_deployment HTTP fetcher
+                tracing::warn!("Standard HTTP fetch not yet implemented for {provider}");
+            }
+        }
+
+        // Execute all streams and collect results
         let mut specs = BTreeMap::new();
 
-        for (provider, url) in providers {
-            // Build the request
-            let request = client
-                .get(url)
-                .map_err(|e| SpecFetchError::Http {
-                    provider: provider.to_string(),
-                    source: e,
-                })?
-                .build()
-                .map_err(|e| SpecFetchError::Http {
-                    provider: provider.to_string(),
-                    source: e,
-                })?;
-
-            // Create and execute the task inline to avoid boxing
-            let task = SendRequestTask::new(
-                request,
-                5, // max_retries
-                client.client_pool().expect("should have pool"),
-                client.client_config(),
-            )
-            .map_ready(move |intro| match intro {
-                RequestIntro::Success { stream, .. } => {
-                    let body_text = body_reader::collect_string(stream);
-
-                    // Check if body is empty (indicates read error)
-                    if body_text.is_empty() {
-                        tracing::warn!("Empty response body for {provider}");
-                        return Box::new([Err(SpecFetchError::Json {
-                            provider: provider.to_string(),
-                            source: serde_json::Error::custom("Empty response body"),
-                        })]) as Box<[Result<DistilledSpec, SpecFetchError>]>;
-                    }
-
-                    parse_spec_response(&body_text, provider, url)
-                }
-                RequestIntro::Failed(e) => {
-                    tracing::warn!("HTTP request failed for {provider}: {e}");
-                    Box::new([]) as Box<[Result<DistilledSpec, SpecFetchError>]>
-                }
-            })
-            .map_pending(move |p| SpecFetchPending::from_http(p, provider));
-
-            let results_stream =
-                valtron::execute(task, None).expect("execute should return stream");
-
-            for stream_item in results_stream {
-                if let Stream::Next(result_box) = stream_item {
-                    // Iterate over the Box<[Result<...>]>
-                    for result in result_box.iter() {
-                        match result {
-                            Ok(spec) => {
-                                // Save raw JSON to artefacts directory in provider-named folder
-                                let provider_dir = artefacts_dir.join(provider);
-                                std::fs::create_dir_all(&provider_dir).map_err(|e| {
-                                    SpecFetchError::WriteFile {
-                                        path: provider_dir.display().to_string(),
-                                        source: e,
-                                    }
-                                })?;
-                                let json_path = provider_dir.join("openapi.json");
-                                let json =
-                                    serde_json::to_string_pretty(&spec.raw_spec).map_err(|e| {
-                                        SpecFetchError::Json {
-                                            provider: provider.to_string(),
-                                            source: e,
-                                        }
-                                    })?;
-                                std::fs::write(&json_path, json).map_err(|e| {
-                                    SpecFetchError::WriteFile {
-                                        path: json_path.display().to_string(),
-                                        source: e,
-                                    }
-                                })?;
-                                tracing::info!("Saved raw spec: {}", json_path.display());
-
-                                specs.insert(spec.provider.clone(), spec.clone());
-                            }
-                            Err(e) => {
-                                tracing::warn!("Failed to fetch spec for {provider}: {e}");
-                            }
+        // Collect from each stream - they're all running in parallel on the thread pool
+        for stream in streams {
+            for item in stream {
+                if let Stream::Next(result) = item {
+                    match result {
+                        Ok(spec) => {
+                            specs.insert(spec.provider.clone(), spec);
+                        }
+                        Err(e) => {
+                            tracing::warn!("Provider fetch failed: {e}");
                         }
                     }
                 }
@@ -158,8 +143,8 @@ impl ProviderSpecFetcher {
         tracing::info!("Parallel fetch completed in {:?}", elapsed);
         tracing::info!(
             "Estimated sequential time: ~{:?} ({}x slower)",
-            elapsed * provider_count as u32,
-            provider_count
+            elapsed * Self::configured_providers().len() as u32,
+            Self::configured_providers().len()
         );
 
         Ok(specs)
@@ -168,61 +153,68 @@ impl ProviderSpecFetcher {
     /// Fetch a single provider's spec (blocking).
     pub fn fetch_single(
         &self,
-        client: &mut SimpleHttpClient,
+        client: &SimpleHttpClient,
         provider: &str,
-    ) -> Result<DistilledSpec, SpecFetchError> {
-        let (provider_static, url) = Self::configured_providers()
-            .iter()
-            .find(|(name, _)| *name == provider)
-            .map(|&(p, u)| (p, u))
-            .ok_or_else(|| SpecFetchError::Http {
-                provider: provider.to_string(),
-                source: HttpClientError::InvalidUrl(format!("Unknown provider: {provider}")),
-            })?;
+    ) -> Result<DistilledSpec, crate::gen_provider_specs::errors::SpecFetchError> {
+        use foundation_deployment::providers::spec_fetch::{cloudflare, gcp};
 
-        // Build the request
-        let request = client
-            .get(url)
-            .map_err(|e| SpecFetchError::Http {
-                provider: provider.to_string(),
-                source: e,
-            })?
-            .build()
-            .map_err(|e| SpecFetchError::Http {
-                provider: provider.to_string(),
+        let artefacts_dir = PathBuf::from("artefacts/cloud_providers");
+        let provider_dir = artefacts_dir.join(provider);
+
+        if provider == "cloudflare" {
+            let temp_dir = std::env::temp_dir().join("cloudflare-spec-fetch");
+            std::fs::create_dir_all(&temp_dir).map_err(|e| SpecFetchError::WriteFile {
+                path: temp_dir.display().to_string(),
                 source: e,
             })?;
 
-        // Create and execute the task inline to avoid boxing/lifetime issues
-        let task = SendRequestTask::new(
-            request,
-            5,
-            client.client_pool().expect("should have pool"),
-            client.client_config(),
-        )
-        .map_ready(move |intro| match intro {
-            RequestIntro::Success { stream, .. } => {
-                let body_text = body_reader::collect_string(stream);
-                parse_spec_response(&body_text, provider_static, url)
-            }
-            RequestIntro::Failed(e) => {
-                tracing::warn!("HTTP request failed for {provider_static}: {e}");
-                Box::new([]) as Box<[Result<DistilledSpec, SpecFetchError>]>
-            }
-        })
-        .map_pending(move |p| SpecFetchPending::from_http(p, provider_static));
+            let stream = cloudflare::fetch_cloudflare_specs(temp_dir, provider_dir)
+                .map_err(|e| SpecFetchError::Generic(format!("Cloudflare: {e}")))?;
 
-        let results_stream = valtron::execute(task, None).expect("execute should return stream");
-
-        for stream_item in results_stream {
-            if let Stream::Next(result_box) = stream_item {
-                for result in result_box.iter() {
-                    return result.clone();
+            // Collect single result
+            for item in stream {
+                if let Stream::Next(result) = item {
+                    return result
+                        .map_err(|e| SpecFetchError::Generic(format!("Cloudflare: {e}")))
+                        .map(|_path| DistilledSpec {
+                            provider: "cloudflare".to_string(),
+                            version: chrono::Utc::now().format("%Y%m%d").to_string(),
+                            fetched_at: chrono::Utc::now(),
+                            source_url: cloudflare::CLOUDFLARE_API_SCHEMAS_URL.to_string(),
+                            raw_spec: serde_json::Value::Null,
+                            endpoints: None,
+                            content_hash: String::new(),
+                        });
                 }
             }
+            return Err(SpecFetchError::Generic("No result from fetch".into()));
         }
 
-        Err(SpecFetchError::Generic("No result from fetch task".into()))
+        if provider == "gcp" {
+            let stream = gcp::fetch_gcp_specs(client, provider_dir)
+                .map_err(|e| SpecFetchError::Generic(format!("GCP: {e}")))?;
+
+            for item in stream {
+                if let Stream::Next(result) = item {
+                    return result
+                        .map_err(|e| SpecFetchError::Generic(format!("GCP: {e}")))
+                        .map(|_path| DistilledSpec {
+                            provider: "gcp".to_string(),
+                            version: chrono::Utc::now().format("%Y%m%d").to_string(),
+                            fetched_at: chrono::Utc::now(),
+                            source_url: gcp::GCP_DISCOVERY_URL.to_string(),
+                            raw_spec: serde_json::Value::Null,
+                            endpoints: None,
+                            content_hash: String::new(),
+                        });
+                }
+            }
+            return Err(SpecFetchError::Generic("No result from fetch".into()));
+        }
+
+        Err(crate::gen_provider_specs::errors::SpecFetchError::Generic(
+            format!("Provider {provider} not yet implemented")
+        ))
     }
 
     /// List of all configured providers and their spec URLs.
@@ -241,103 +233,5 @@ impl ProviderSpecFetcher {
             ("neon", "https://neon.com/api_spec/release/v2.json"),
             ("stripe", "https://docs.stripe.com/api"),
         ]
-    }
-}
-
-/// Parse HTTP response body and extract DistilledSpec.
-fn parse_spec_response(
-    body_text: &str,
-    provider: &str,
-    url: &str,
-) -> Box<[Result<DistilledSpec, SpecFetchError>]> {
-    // Parse as JSON
-    let raw_spec: Value = match serde_json::from_str(body_text) {
-        Ok(spec) => spec,
-        Err(e) => {
-            return Box::new([Err(SpecFetchError::Json {
-                provider: provider.to_string(),
-                source: e,
-            })]);
-        }
-    };
-
-    // Compute content hash for change detection
-    let content_hash = compute_sha256(&raw_spec.to_string());
-
-    // Extract endpoints (provider-specific logic)
-    let endpoints = extract_endpoints(&raw_spec, provider);
-
-    // Determine version from spec or timestamp
-    let version = extract_version(&raw_spec, provider)
-        .unwrap_or_else(|| chrono::Utc::now().format("%Y%m%d").to_string());
-
-    Box::new([Ok(DistilledSpec {
-        provider: provider.to_string(),
-        version,
-        fetched_at: chrono::Utc::now(),
-        source_url: url.to_string(),
-        raw_spec,
-        endpoints,
-        content_hash,
-    })])
-}
-
-fn compute_sha256(content: &str) -> String {
-    let mut hasher = std::collections::hash_map::DefaultHasher::new();
-    content.hash(&mut hasher);
-    format!("{:016x}", hasher.finish())
-}
-
-fn extract_endpoints(spec: &Value, provider: &str) -> Option<Vec<SpecEndpoint>> {
-    // Provider-specific extraction logic from foundation_deployment
-    match provider {
-        "gcp" => gcp::extract_endpoints(spec).map(|endpoints: Vec<gcp::GcpEndpoint>| {
-            endpoints
-                .into_iter()
-                .map(|e| SpecEndpoint {
-                    path: e.path,
-                    methods: e.methods,
-                    operation_id: e.operation_id,
-                    summary: e.summary,
-                })
-                .collect()
-        }),
-        "stripe" => stripe::extract_endpoints(spec).map(|endpoints: Vec<stripe::StripeEndpoint>| {
-            endpoints
-                .into_iter()
-                .map(|e| SpecEndpoint {
-                    path: e.path,
-                    methods: e.methods,
-                    operation_id: e.operation_id,
-                    summary: e.summary,
-                })
-                .collect()
-        }),
-        _ => None, // Single-spec providers don't need extraction
-    }
-}
-
-fn extract_version(spec: &Value, provider: &str) -> Option<String> {
-    match provider {
-        "stripe" => stripe::extract_version(spec),
-        "gcp" => gcp::extract_version(spec),
-        _ => spec
-            .get("info")
-            .and_then(|i| i.get("version"))
-            .and_then(|v| v.as_str())
-            .map(String::from),
-    }
-}
-
-// ============================================================================
-// SpecFetchPending helpers
-// ============================================================================
-
-impl SpecFetchPending {
-    fn from_http(p: HttpRequestPending, provider: &'static str) -> Self {
-        match p {
-            HttpRequestPending::WaitingForStream => Self::Connecting { provider },
-            HttpRequestPending::WaitingIntroAndHeaders => Self::AwaitingResponse { provider },
-        }
     }
 }

@@ -47,6 +47,8 @@ The provider:
 
 Supports both **Cloud Run Services** (long-running HTTP) and **Cloud Run Jobs** (batch/scheduled).
 
+**Implementation Status:** The current implementation (`GcpCliProvider`) is CLI-based, using `gcloud` for all operations. API-first implementation is planned for a future iteration.
+
 ## GCP Resource Types
 
 The provider supports deploying the following GCP Cloud Run resources (generated from OpenAPI spec):

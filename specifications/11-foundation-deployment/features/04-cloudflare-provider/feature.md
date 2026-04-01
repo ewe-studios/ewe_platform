@@ -45,6 +45,8 @@ The provider:
 - **Falls back to CLI** - can optionally shell out to `wrangler` if the user prefers
 - **Uses OpenAPI spec for resource types** - Cloudflare API schemas from `cloudflare/api-schemas` generate strongly-typed resource definitions
 
+**Implementation Status:** The current implementation (`CloudflareCliProvider`) is CLI-based, using `wrangler` for all operations. API-first implementation is planned for a future iteration.
+
 ## Cloudflare Resource Types
 
 The provider supports deploying the following Cloudflare resources (generated from OpenAPI spec):

@@ -45,6 +45,8 @@ The provider:
 
 State is stored in whichever state store the user configures (Turso, SQLite, or JSON files) — there is no special relationship between this provider and any particular state backend.
 
+**Implementation Status:** The current implementation (`AwsCliProvider`) is CLI-based, using `sam` and `aws` CLI for all operations. API-first implementation with SigV4 signing is planned for a future iteration.
+
 ## Dependencies
 
 Depends on:
