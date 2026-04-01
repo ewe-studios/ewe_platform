@@ -1,6 +1,5 @@
-//! Provider-specific fetcher implementations.
+//! Provider-specific fetcher module.
 //!
-//! Each provider module implements custom extraction logic for their
-//! specific OpenAPI spec format.
-
-// Provider implementations will be added here by Features 11-19
+//! Note: Provider-specific fetch implementations live in
+//! `foundation_deployment::providers::spec_fetch`. This module is a placeholder
+//! for any bin/platform specific provider utilities.

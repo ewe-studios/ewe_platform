@@ -22,6 +22,13 @@ chrono = { workspace = true }
 bytes = "1.6.1"
 http = "1.1"
 
+# -- config parsing
+toml = "0.8"
+serde_yaml = "0.9"
+
+# -- file system utilities (for spec fetcher)
+walkdir = "2.5"
+
 [features]
 default = []
 

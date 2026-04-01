@@ -1,7 +1,9 @@
-//! Provider-specific spec fetcher implementations.
+//! Provider-specific deployment implementations.
 //!
-//! Each provider module implements custom extraction logic for their
-//! specific OpenAPI spec format.
+//! Each provider module implements the `DeploymentProvider` trait for a specific
+//! cloud platform (Cloudflare, GCP, AWS).
 
+pub mod aws;
+pub mod cloudflare;
 pub mod gcp;
-pub mod stripe;
+pub mod spec_fetch;
