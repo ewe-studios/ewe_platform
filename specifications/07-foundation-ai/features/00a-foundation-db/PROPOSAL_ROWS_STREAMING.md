@@ -31,14 +31,14 @@ RowsIterator { rows: turso::Rows }: !Send
        ↓
 Arc<Mutex<RowsIterator>>: !Send  (Mutex<T> requires T: Send)
        ↓
-Cannot return from async block (FutureTask requires F::Output: Send)
+Cannot return from async block (run_future_iter requires F::Output: Send)
 ```
 
 **Why wrapping doesn't help:** `Arc<Mutex<T>>` is only `Send` if `T: Send`. Wrapping `!Send` in `Arc<Mutex<>>` doesn't make it `Send` - the mutex can't protect thread-safety if the inner type itself can't cross threads.
 
 **Valtron's constraint:** Combinator methods require `Send` bounds, so we can't just keep `!Send` types on one thread without a bridge.
 
-## Proposed Solution: ThreadedFuture with Channel-Based Bridging
+## Proposed Solution: run_future_iter with Channel-Based Bridging
 
 ### Key Insight
 
@@ -47,19 +47,19 @@ Use a **dedicated worker thread** that owns the `!Send` type, with a **channel-b
 ```
 ┌─────────────────────────────────────────────────────────────────────────┐
 │                         MAIN THREAD                                     │
-│  ThreadedFuture::new(async {                                            │
+│  run_future_iter(|| async {                                             │
 │      let rows = get_rows().await;                                       │
 │      RowsIterator::new(rows)  // !Send, created on worker               │
 │  })                                                                     │
 │                                                                         │
-│  execute() → Receiver<RowValue<T>>                                      │
+│  Returns Result<impl Iterator<ThreadedValue<T, E>>, Error>              │
 │      ↓                                                                  │
-│  recv() → RowValue::Next(row)  // T crosses via queue                   │
-│  recv() → RowValue::Waiting  // or block until available                │
+│  iter.next() → ThreadedValue::Value(Ok(row))  // T crosses via queue    │
+│  iter.next() → ThreadedValue::Value(Err(e))   // or error               │
 └─────────────────────────────────────────────────────────────────────────┘
                               ↕ ConcurrentQueue (MPMC)
 ┌─────────────────────────────────────────────────────────────────────────┐
-│                         WORKER THREAD                                   │
+│                         WORKER THREAD (multi mode)                      │
 │  Spawns and owns:                                                       │
 │  - async runtime (for the initial future)                               │
 │  - RowsIterator (!Send, stays here forever)                             │
@@ -67,37 +67,65 @@ Use a **dedicated worker thread** that owns the `!Send` type, with a **channel-b
 │                                                                         │
 │  Loop:                                                                  │
 │  1. Poll async future → get RowsIterator                                │
-│  2. Call iterator.next() → get RowValue<T>                              │
-│  3. queue.send(item)  // Blocks if queue full (backpressure)            │
+│  2. Call iterator.next() → get Result<T, E>                             │
+│  3. queue.send(ThreadedValue::Value(result))  // Blocks if full         │
 │  4. Repeat until iterator exhausted                                     │
 └─────────────────────────────────────────────────────────────────────────┘
 ```
 
+In single-threaded mode (no `multi` feature), the future is polled inline on each `next()` call - no thread spawn, no channel.
+
 ### Architecture Overview
 
-**ThreadedFuture** - A new executor type for `!Send` async operations:
+**run_future_iter** - Unified API across all feature configurations:
 
 ```rust
-pub struct ThreadedFuture<F, Fut, I, T, E>
-where
-    F: FnOnce() -> Fut,
-    Fut: Future<Output = I>,
-    I: Iterator<Item = Result<T, E>> + 'static,
-{
-    /// Async function that produces the Iterator
-    /// This is called ONCE on the worker thread
+/// Execute a future that produces an iterator, returning results as an Iterator.
+///
+/// In multi-threaded mode: Spawns background job via BackgroundJobRegistry
+/// In single-threaded/no-std mode: Polls inline on each next() call
+pub fn run_future_iter<F, Fut, I, T, E>(
     future_fn: F,
+    queue_size: Option<usize>,
+    backpressure_sleep: Option<Duration>,
+) -> GenericResult<impl Iterator<Item = ThreadedValue<T, E>>>
+where
+    F: FnOnce() -> Fut + Send + 'static,
+    Fut: Future<Output = Result<I, E>> + 'static,
+    I: Iterator<Item = Result<T, E>> + 'static,
+    T: Send + 'static,
+    E: Send + 'static,
+{
+    #[cfg(feature = "multi")]
+    {
+        // Uses BackgroundJobRegistry with worker thread pool
+        let threaded = ThreadedIterFuture::with_backpressure_sleep(...);
+        threaded.execute()  // Returns Result<Iterator, Error>
+    }
 
-    /// Queue size (configurable, minimum 2)
-    queue_size: usize,
-
-    _phantom: PhantomData<(Fut, I, T, E)>,
+    #[cfg(not(feature = "multi"))]
+    {
+        // Single-threaded: polls future inline on each next() call
+        Ok(ThreadedIterFuture::new(future_fn).execute())  // Always Ok
+    }
 }
+```
 
-/// The internal worker that runs on the spawned thread
-struct ThreadedFutureWorker<T, E> {
-    /// Receiving end - given to caller
-    receiver: Receiver<ThreadedValue<T, E>>,
+**ThreadedIterFuture** - Internal type with feature-gated implementations:
+
+| Mode | Implementation | execute() returns |
+|------|---------------|-------------------|
+| `std + multi` | BackgroundJobRegistry worker | `Result<FutureIterator, Error>` |
+| `std, no multi` | Inline polling | `FutureIterator` (via Ok) |
+| `no_std` | Inline polling with spin_loop | `FutureIterator` (via Ok) |
+
+**ThreadedValue<T, E>** - Common result type:
+
+```rust
+pub enum ThreadedValue<T, E> {
+    Value(Result<T, E>),
+}
+```
 
     /// Worker handle - joins on drop
     handle: Option<std::thread::JoinHandle<()>>,
@@ -250,55 +278,36 @@ where
                         let _ = sender.send(ThreadedValue::Value(Err(e)));
                         break None;
                     }
-                    Poll::Pending => continue,
+                    Poll::Pending => std::thread::yield_now(),
                 }
             };
 
             // Stream iterator results through the queue
-            if let Some(mut iter) = iterator {
-                loop {
-                    match iter.next() {
-                        Some(result) => {
-                            let value = ThreadedValue::Value(result);
-
-                            // Try to send with backpressure handling
-                            loop {
-                                match sender.send(value) {
-                                    Ok(()) => break,
-                                    Err(SenderError::Full(_)) => {
-                                        // Queue full - apply backpressure
-                                        if let Some(sleep_dur) = backpressure_sleep {
-                                            thread::sleep(sleep_dur);
-                                        } else {
-                                            std::hint::spin_loop();
-                                        }
-                                    }
-                                    Err(SenderError::Closed(_)) => {
-                                        // Receiver dropped, queue closed - exit cleanly
-                                        return;
-                                    }
+            if let Some(iter) = iterator {
+                for result in iter {
+                    let mut value = ThreadedValue::Value(result);
+                    loop {
+                        match sender.send(value) {
+                            Ok(()) => break,
+                            Err(SenderError::Full(v)) => {
+                                value = v;
+                                if let Some(sleep_dur) = backpressure_sleep {
+                                    std::thread::sleep(sleep_dur);
+                                } else {
+                                    std::hint::spin_loop();
                                 }
                             }
+                            Err(SenderError::Closed(_)) => return,
                         }
-                        None => break,  // Iterator exhausted
                     }
                 }
             }
             // Worker exits cleanly - sender dropped, queue closed
-        });
+        })?;
 
-        (WorkerHandle { handle: Some(handle) }, receiver)
-    }
-}
-
-/// Worker handle - joins the worker thread on drop
-pub struct WorkerHandle {
-    handle: Option<thread::JoinHandle<()>>,
-}
-
-impl Drop for WorkerHandle {
-    fn drop(&mut self) {
-        self.handle.take().map(|h| h.join());
+        Ok(FutureIterator {
+            iter: receiver.into_recv_iter(),
+        })
     }
 }
 ```
@@ -307,42 +316,97 @@ impl Drop for WorkerHandle {
 1. **Handles closed queue**: When `sender.send()` fails because receiver is dropped (queue closed), the worker exits cleanly
 2. **Configurable backpressure**: `backpressure_sleep: Option<Duration>` lets caller tune the sleep duration when queue is full
 3. **std vs no_std**: Uses `thread::sleep()` when std is enabled and sleep duration is set, falls back to `spin_loop()` otherwise
+4. **Unified API**: `run_future_iter()` provides a single function that works across all feature configurations
 
-**Why this is cleaner:** `execute()` returns `(WorkerHandle, Receiver)` directly using the existing `mpp` module. `Receiver` wraps the `ConcurrentQueue` and provides `recv()`, `recv_timeout()`, and iterator adapters.
+**Why this is cleaner:** The unified `run_future_iter()` function handles all the complexity internally. Callers don't need to worry about feature flags or different return types.
 
 ### Usage in query()
 
 ```rust
+use foundation_core::valtron::run_future_iter;
+
 fn query(&self, sql: &str, params: &[DataValue]) -> StorageResult<StorageItemStream<'_, SqlRow>> {
     let turso_params = Self::to_turso_params(params);
     let sql = sql.to_string();
     let conn = Arc::clone(&self.conn);
 
-    let threaded = ThreadedFuture::new(move || async move {
-        let mut stmt = conn.prepare(&sql).await?;
-        let rows = stmt.query(turso_params).await?;
-        Ok::<_, turso::Error>(RowsIterator::new(rows))
+    // run_future_iter returns Result<impl Iterator<ThreadedValue<T, E>>, Error>
+    // In multi mode: uses BackgroundJobRegistry worker thread
+    // In single-threaded mode: polls inline on each next() call
+    let iter = run_future_iter(
+        move || async move {
+            let mut stmt = conn.prepare(&sql).await?;
+            let rows = stmt.query(turso_params).await?;
+            Ok::<_, turso::Error>(RowsIterator::new(rows))
+        },
+        None, // default queue size (16)
+        None, // default backpressure sleep (10ms)
+    )?;
+
+    // Convert ThreadedValue to Stream
+    let stream = iter.map(|threaded_value| match threaded_value {
+        ThreadedValue::Value(result) => Stream::Next(result),
     });
-
-    // Execute returns (WorkerHandle, Receiver<ThreadedValue<SqlRow, StorageError>>)
-    let (_handle, receiver) = threaded.execute();
-
-    // Convert Receiver to Iterator using RecvIter + RecvIterator
-    let recv_iter = receiver.into_iter_recv();
-    
-    // Convert to Stream via Valtron combinator
-    let stream = foundation_core::valtron::map_iter_with_status(recv_iter);
 
     Ok(Box::new(stream))
 }
 ```
 
-**Note:** Added `receiver.chan()` method to `Receiver` to get the underlying `Arc<ConcurrentQueue>`. The `mpp::RecvIter::block_iter()` provides the blocking iterator behavior we need.
-
 **Error flow:**
-1. **Future errors** (e.g., `prepare()` fails): Error sent through queue, worker exits, receiver gets `Err(e)` then `None`
-2. **Iterator errors** (e.g., `convert_row()` fails): `Err(e)` sent through queue, worker continues to next row
-3. **Receiver gets all errors** - nothing is swallowed
+1. **Future errors** (e.g., `prepare()` fails): Error returned from `run_future_iter` iterator
+2. **Iterator errors** (e.g., `convert_row()` fails): `Err(e)` yielded by iterator, continues to next row
+3. **All errors propagated** - nothing is swallowed
+
+### Single-Threaded Mode Implementation
+
+In single-threaded mode (`cfg(all(feature = "std", not(feature = "multi")))`), `ThreadedIterFuture` polls the future inline:
+
+```rust
+/// Iterator that polls a future on each `next()` call.
+pub struct FutureIterator<F, Fut, I, T, E>
+where
+    F: FnOnce() -> Fut,
+    Fut: Future<Output = Result<I, E>>,
+    I: Iterator<Item = Result<T, E>>,
+{
+    future: Option<F>,
+    inner_iter: Option<I>,
+    _phantom: PhantomData<(Fut, T, E)>,
+}
+
+impl<F, Fut, I, T, E> Iterator for FutureIterator<F, Fut, I, T, E> {
+    type Item = ThreadedValue<T, E>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        // If we already have the inner iterator, pull from it
+        if let Some(iter) = &mut self.inner_iter {
+            return iter.next().map(ThreadedValue::Value);
+        }
+
+        // Otherwise, poll the future
+        let mut future = match self.future.take() {
+            Some(f) => Box::pin((f)()),
+            None => return None,
+        };
+
+        loop {
+            let waker = get_noop_waker();
+            let mut cx = Context::from_waker(&waker);
+
+            match future.as_mut().poll(&mut cx) {
+                Poll::Ready(Ok(iter)) => {
+                    self.inner_iter = Some(iter);
+                    return self.inner_iter.as_mut().unwrap().next().map(ThreadedValue::Value);
+                }
+                Poll::Ready(Err(e)) => return Some(ThreadedValue::Value(Err(e))),
+                Poll::Pending => std::thread::yield_now(),
+            }
+        }
+    }
+}
+```
+
+**No thread spawn, no channel** - the future is polled directly on each `next()` call until it produces the inner iterator.
 
 ### RowsIterator - Owned on Worker Thread
 
@@ -533,18 +597,18 @@ pub struct LibsqlRowsIterator {
   - [ ] Returns `ThreadedFutureReceiver<T>` that implements Iterator
 - [ ] Create `ThreadedFutureReceiver<T>` struct
   - [ ] Holds `Arc<ArrayQueue>` and `JoinHandle`
-  - [ ] Implements `Iterator<Item = RowValue<T>>`
-  - [ ] Spins until item available or worker done
-- [ ] Update `query()` in `turso_backend.rs` to use `ThreadedFuture`
-- [ ] Update `query()` in `libsql_backend.rs` to use `ThreadedFuture`
-- [ ] Add module to `backends/mod.rs`
-- [ ] Update tests
+  - [ ] Implements `Iterator<Item = ThreadedValue<T, E>>`
+  - [ ] Polls future inline on each next() call
+- [x] Update `query()` in `turso_backend.rs` to use `run_future_iter`
+- [x] Update `query()` in `libsql_backend.rs` to use `run_future_iter`
+- [x] Add module to `backends/mod.rs`
+- [x] Update tests
 
 ## Why This Works
 
 1. **Worker thread owns !Send type**: `RowsIterator` with `turso::Rows` lives entirely on worker thread, never crosses boundaries
 
-2. **Channel bridges the thread boundary**: `ArrayQueue` is `Send + Sync` - only the `RowValue<SqlRow>` results (which are `Send`) cross threads
+2. **Channel bridges the thread boundary**: `mpp::ConcurrentQueue` is `Send + Sync` - only the `ThreadedValue<SqlRow>` results (which are `Send`) cross threads
 
 3. **Backpressure via blocking queue**: When queue is full, worker blocks on `send()`, preventing memory buildup
 
@@ -552,22 +616,29 @@ pub struct LibsqlRowsIterator {
 
 5. **Clean separation**: Worker thread handles async + !Send complexity, main thread receives `Send` data via standard Iterator
 
+6. **Unified API**: `run_future_iter()` provides a single function that works across all feature configurations (multi, std, no_std)
+
 ## Key Architecture Pattern
 
 ```rust
-// 1. ThreadedFuture wraps the !Send operation
-let threaded = ThreadedFuture::new(|| async {
-    // Runs on worker thread - !Send types OK here
-    let rows = db.query().await?;
-    Ok(RowsIterator::new(rows))  // !Send Iterator
+// 1. run_future_iter wraps the !Send operation
+let iter = run_future_iter(
+    || async {
+        // Runs on worker thread (multi mode) or inline (single-threaded mode)
+        let rows = db.query().await?;
+        Ok(RowsIterator::new(rows))  // !Send Iterator
+    },
+    None, // default queue size
+    None, // default backpressure sleep
+)?;
+
+// 2. Returns Result<impl Iterator<Item = ThreadedValue<T, E>>, Error>
+// iter: impl Iterator<Item = ThreadedValue<SqlRow, StorageError>>
+
+// 3. Use with standard Iterator operations
+let stream = iter.map(|threaded_value| match threaded_value {
+    ThreadedValue::Value(result) => Stream::Next(result),
 });
-
-// 2. Execute spawns worker, returns Receiver
-let receiver = threaded.execute();
-// receiver: impl Iterator<Item = RowValue<SqlRow>> + Send
-
-// 3. Use with Valtron combinators
-let stream = valtron::map_iter_with_status(receiver);
 ```
 
 ## Risks / Considerations
@@ -578,11 +649,11 @@ let stream = valtron::map_iter_with_status(receiver);
 
 3. **Spin-loop contention**: Receiver spins when queue empty, worker spins when queue full. For high-throughput scenarios, consider adding `std::thread::yield_now()` or using a smarter wait strategy.
 
-4. **Worker thread panic**: If worker panics, `JoinHandle` propagates the panic. Receiver should handle this gracefully (currently just marks `done = true`).
+4. **Worker thread panic**: If worker panics, the BackgroundJobRegistry catches it and continues. The iterator yields errors gracefully.
 
-5. **Shutdown behavior**: On `Drop`, receiver joins the worker thread. If worker is blocked on `send()`, it may take time to unwind. Consider adding a shutdown signal channel.
+5. **Shutdown behavior**: On shutdown, the BackgroundJobRegistry signals all workers to stop. In-flight queries complete cleanly.
 
-6. **Runtime dependency**: Uses `tokio::runtime::Builder::new_current_thread()` for async execution on worker. Adds tokio dependency (already present in project?).
+6. **No external runtime**: Uses Valtron's BackgroundJobRegistry - no tokio dependency required.
 
 ## Alternative Considered (Rejected)
 
@@ -598,5 +669,5 @@ Please review and approve this approach before implementation proceeds.
 
 ---
 Created: 2026-03-28
-Updated: 2026-03-28 (ThreadedFuture with channel-based bridging)
-Status: pending_approval
+Updated: 2026-04-01 (run_future_iter unified API, ThreadedIterFuture renaming)
+Status: implemented

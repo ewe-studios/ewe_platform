@@ -27,10 +27,10 @@ related_specs:
 has_features: true
 has_fundamentals: false
 features:
-  completed: 0
-  uncompleted: 4
-  total: 4
-  completion_percentage: 0%
+  completed: 6
+  uncompleted: 0
+  total: 6
+  completion_percentage: 100%
 ---
 
 # Background Job Registry
@@ -177,14 +177,14 @@ Implement the `BackgroundJobRegistry` struct:
 - `WaitGroup` integration for clean shutdown
 
 **Tasks:**
-- [ ] Define `BackgroundJob` type alias
-- [ ] Implement `BackgroundJobRegistry` struct with fields
-- [ ] Implement `new()` — spawn worker threads with WaitGroup tracking
-- [ ] Implement worker loop with panic protection and idle yielding
-- [ ] Implement `submit()` — push to ConcurrentQueue
-- [ ] Implement `shutdown()` — kill signal + waitgroup + join
-- [ ] Add module to `executors/mod.rs` and re-export
-- [ ] Unit tests: submit and execute a job, panic recovery, shutdown semantics
+- [x] Define `BackgroundJob` type alias
+- [x] Implement `BackgroundJobRegistry` struct with fields
+- [x] Implement `new()` — spawn worker threads with WaitGroup tracking
+- [x] Implement worker loop with panic protection and idle yielding
+- [x] Implement `submit()` — push to ConcurrentQueue
+- [x] Implement `shutdown()` — kill signal + waitgroup + join
+- [x] Add module to `executors/mod.rs` and re-export
+- [x] Unit tests: submit and execute a job, panic recovery, shutdown semantics
 
 ### Feature 02: Thread Allocation and Pool Integration
 
@@ -202,13 +202,13 @@ Integrate `BackgroundJobRegistry` into the multi-threaded pool:
 - Add `run_background_job()` function in `multi` module that calls `BG_REGISTRY.submit()`
 
 **Tasks:**
-- [ ] Add thread allocation formula function: `split_thread_count(total) -> (task_threads, bg_threads)`
-- [ ] Add `BG_REGISTRY` static
-- [ ] Modify `initialize_pool` to create and store both registries
-- [ ] Modify `PoolGuard` to shut down `BackgroundJobRegistry` on drop
-- [ ] Add `pub fn run_background_job(job) -> Result<()>` to multi module
-- [ ] Tests: verify thread split at various `thread_num` values
-- [ ] Tests: verify both registries start and stop correctly
+- [x] Add thread allocation formula function: `split_thread_count(total) -> (task_threads, bg_threads)`
+- [x] Add `BG_REGISTRY` static
+- [x] Modify `initialize_pool` to create and store both registries
+- [x] Modify `PoolGuard` to shut down `BackgroundJobRegistry` on drop
+- [x] Add `pub fn run_background_job(job) -> Result<()>` to multi module
+- [x] Tests: verify thread split at various `thread_num` values
+- [x] Tests: verify both registries start and stop correctly
 
 ### Feature 03: Single-Threaded and Unified API
 
@@ -230,27 +230,27 @@ Provide `run_background_job` across all execution modes:
 - Follows the exact same `#[cfg]` dispatch pattern as existing `execute()`, `send()`, etc.
 
 **Tasks:**
-- [ ] Add `run_background_job` to `single/mod.rs` (inline execution + catch_unwind)
-- [ ] Add `run_background_job` to `unified.rs` with cfg-based dispatch
-- [ ] Tests: single-threaded execution works correctly
-- [ ] Tests: unified dispatch selects correct backend
+- [x] Add `run_background_job` to `single/mod.rs` (inline execution + catch_unwind)
+- [x] Add `run_background_job` to `unified.rs` with cfg-based dispatch
+- [x] Tests: single-threaded execution works correctly
+- [x] Tests: unified dispatch selects correct backend
 
-### Feature 04: ThreadedFuture Migration
+### Feature 04: ThreadedIterFuture Migration
 
 **File**: `backends/foundation_core/src/valtron/executors/future_task.rs` (modify)
 
-Replace `std::thread::spawn` in `ThreadedFuture::execute()` with `unified::run_background_job`:
+Replace `std::thread::spawn` in `ThreadedIterFuture::execute()` with `unified::run_background_job`:
 
 - The worker closure currently passed to `std::thread::spawn` becomes the closure passed to `run_background_job`
 - `execute()` return type changes: no more `WorkerHandle` (the background registry owns the thread). Returns only the `Receiver<ThreadedValue<T, E>>`
 - `WorkerHandle` struct can be removed (or kept as a no-op wrapper for API compatibility if needed, decision left to implementer)
-- The `queue_size` and `backpressure_sleep` configuration remains on `ThreadedFuture` — these control the `mpp::bounded` channel behavior inside the submitted closure, not thread management
+- The `queue_size` and `backpressure_sleep` configuration remains on `ThreadedIterFuture` — these control the `mpp::bounded` channel behavior inside the submitted closure, not thread management
 
 **Tasks:**
-- [ ] Replace `std::thread::spawn` call with `unified::run_background_job`
-- [ ] Update `execute()` return type (remove or adapt `WorkerHandle`)
-- [ ] Update existing `ThreadedFuture` tests
-- [ ] Verify `ThreadedFuture` works correctly with background registry
+- [x] Replace `std::thread::spawn` call with `unified::run_background_job`
+- [x] Update `execute()` return type (remove or adapt `WorkerHandle`)
+- [x] Update existing `ThreadedIterFuture` tests
+- [x] Verify `ThreadedIterFuture` works correctly with background registry
 
 ---
 
