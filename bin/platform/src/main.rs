@@ -20,6 +20,7 @@
 
 mod gen_model_descriptors;
 mod gen_provider_specs;
+mod gen_resource_types;
 mod generate;
 mod local;
 mod sandbox;
@@ -33,15 +34,17 @@ type BoxedError = Box<dyn std::error::Error + Send + Sync + 'static>;
 async fn main() -> std::result::Result<(), BoxedError> {
     let commander = wasm_bins::register(
         gen_model_descriptors::register(
-            sandbox::register(
-                sandbox_app::register(
-                    watchful::register(
-                        local::register(
-                            gen_provider_specs::register(
-                                clap::Command::new("platform")
-                                    .about("The Ewe platform toolset")
-                                    .arg_required_else_help(true)
-                                    .allow_external_subcommands(true),
+            gen_resource_types::register(
+                sandbox::register(
+                    sandbox_app::register(
+                        watchful::register(
+                            local::register(
+                                gen_provider_specs::register(
+                                    clap::Command::new("platform")
+                                        .about("The Ewe platform toolset")
+                                        .arg_required_else_help(true)
+                                        .allow_external_subcommands(true),
+                                ),
                             ),
                         ),
                     ),
@@ -58,6 +61,7 @@ async fn main() -> std::result::Result<(), BoxedError> {
         Some(("generate", arguments)) => generate::run(arguments)?,
         Some(("gen_model_descriptors", arguments)) => gen_model_descriptors::run(arguments)?,
         Some(("gen_provider_specs", arguments)) => gen_provider_specs::run(arguments)?,
+        Some(("gen_resource_types", arguments)) => gen_resource_types::run(arguments)?,
         Some(("wasm_bins", arguments)) => wasm_bins::run(arguments)?,
         Some(("watch", arguments)) => watchful::run(arguments)?,
         _ => {}

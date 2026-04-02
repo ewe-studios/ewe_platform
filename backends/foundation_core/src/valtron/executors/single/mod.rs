@@ -23,10 +23,6 @@ use concurrent_queue::ConcurrentQueue;
 pub struct NoThreadController;
 
 impl ProcessController for NoThreadController {
-    fn yield_process(&self) {
-        tracing::info!("Called to yield process but NoThreadController does nothing");
-    }
-
     fn yield_for(&self, dur: std::time::Duration) {
         tracing::info!(
             "Called to yield process for duration({:?}) but NoThreadController does nothing",
@@ -212,7 +208,9 @@ where
 /// # Errors
 ///
 /// Returns an error if the closure panics.
-pub fn run_background_job(job: impl FnOnce() + Send + 'static) -> crate::valtron::GenericResult<()> {
+pub fn run_background_job(
+    job: impl FnOnce() + Send + 'static,
+) -> crate::valtron::GenericResult<()> {
     let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(job));
     match result {
         Ok(()) => Ok(()),

@@ -106,6 +106,7 @@ impl<R: DnsResolver + Send + 'static> TaskIterator for GetHttpRequestRedirectTas
     fn next_status(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
         let trace_span = tracing::info_span!("GetHttpRequestRedirectTask");
         trace_span.in_scope(|| {
+            tracing::debug!("next_status called, state: {:?}", self.0.as_ref().map(|s| std::mem::discriminant(s)));
             match self.0.take()? {
                 HttpRequestRedirectState::Init(mut inner_opt) => {
                     if let Some(inner) = inner_opt.take() {
@@ -404,6 +405,7 @@ impl<R: DnsResolver + Send + 'static> TaskIterator for GetHttpRequestRedirectTas
                         let (optional_starters, data, _pool, mut connection, reader) = *inner;
                         let body_renderer = Http11::request_body(data);
 
+                        tracing::debug!("WriteBody: Writing request body...");
                         if let Err(err) = body_renderer.http_render_to_writer(connection.stream_mut()) {
                             tracing::error!("Failed to write request body: {}", err);
 
@@ -413,16 +415,23 @@ impl<R: DnsResolver + Send + 'static> TaskIterator for GetHttpRequestRedirectTas
                             )));
                         }
 
+                        tracing::debug!("WriteBody: Flushing...");
                         self.0 = Some(HttpRequestRedirectState::Done);
                         return match connection.stream_mut().flush() {
-                            Ok(()) => Some(TaskStatus::Ready(HttpRequestRedirectResponse::Done(
-                                connection,
-                                reader,
-                                Box::new(optional_starters),
-                            ))),
-                            Err(e) => Some(TaskStatus::Ready(
-                                HttpRequestRedirectResponse::FlushFailed(connection, e),
-                            )),
+                            Ok(()) => {
+                                tracing::debug!("WriteBody: Flush successful, returning Done");
+                                Some(TaskStatus::Ready(HttpRequestRedirectResponse::Done(
+                                    connection,
+                                    reader,
+                                    Box::new(optional_starters),
+                                )))
+                            }
+                            Err(e) => {
+                                tracing::error!("WriteBody: Flush failed: {}", e);
+                                Some(TaskStatus::Ready(
+                                    HttpRequestRedirectResponse::FlushFailed(connection, e),
+                                ))
+                            }
                         };
                     }
 

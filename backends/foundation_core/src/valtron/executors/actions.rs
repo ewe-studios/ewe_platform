@@ -982,9 +982,9 @@ mod tests {
         let mut timed = TimeoutTask::new(wrapped, Duration::from_secs(10));
 
         // Should get Ready states through the composition
-        assert_eq!(timed.next_status(), Some(TaskStatus::Ready(1.into())));
-        assert_eq!(timed.next_status(), Some(TaskStatus::Ready(2.into())));
-        assert_eq!(timed.next_status(), Some(TaskStatus::Ready(3.into())));
+        assert_eq!(timed.next_status(), Some(TaskStatus::Ready(1)));
+        assert_eq!(timed.next_status(), Some(TaskStatus::Ready(2)));
+        assert_eq!(timed.next_status(), Some(TaskStatus::Ready(3)));
         assert!(timed.next_status().is_none());
     }
 
@@ -1015,7 +1015,7 @@ mod tests {
         }
 
         // Second should be Ready (forwarded as-is)
-        assert_eq!(timed.next_status(), Some(TaskStatus::Ready(42.into())));
+        assert_eq!(timed.next_status(), Some(TaskStatus::Ready(42)));
         assert!(timed.next_status().is_none());
     }
 
@@ -1040,7 +1040,7 @@ mod tests {
             other => panic!("Expected Ready(()), got {:?}", other),
         }
 
-        assert_eq!(*executed.lock().unwrap(), true);
+        assert!(*executed.lock().unwrap());
 
         // Task is done, should return None
         assert!(task.next_status().is_none());

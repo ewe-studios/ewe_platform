@@ -18,9 +18,7 @@ derive_more = { workspace = true }
 tracing = { workspace = true }
 chrono = { workspace = true }
 
-# -- http client - direct versions (not in workspace deps)
-bytes = "1.6.1"
-http = "1.1"
+# -- http client - use foundation_core's SimpleHttpClient
 
 # -- config parsing
 toml = "0.8"
@@ -28,6 +26,7 @@ serde_yaml = "0.9"
 
 # -- file system utilities (for spec fetcher)
 walkdir = "2.5"
+
 
 [features]
 default = []

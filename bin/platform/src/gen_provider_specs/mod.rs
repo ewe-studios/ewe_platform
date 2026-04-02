@@ -46,6 +46,13 @@ pub fn register(cmd: Command) -> Command {
                     .long("force")
                     .help("Write specs even if content hasn't changed")
                     .action(clap::ArgAction::SetTrue),
+            )
+            .arg(
+                clap::Arg::new("debug")
+                    .long("debug")
+                    .default_value("false")
+                    .action(clap::ArgAction::SetTrue)
+                    .help("Enables debug logs (default: false)"),
             ),
     )
 }
@@ -56,12 +63,17 @@ pub fn register(cmd: Command) -> Command {
 ///
 /// Panics if Valtron pool initialization fails.
 pub fn run(matches: &ArgMatches) -> Result<(), SpecFetchError> {
+    let logging_level = if matches.get_flag("debug") {
+        Level::DEBUG
+    } else {
+        Level::INFO
+    };
+
     // Initialize tracing
     let subscriber = FmtSubscriber::builder()
-        .with_max_level(Level::INFO)
+        .with_max_level(logging_level)
         .finish();
-    tracing::subscriber::set_global_default(subscriber)
-        .expect("setting default subscriber failed");
+    tracing::subscriber::set_global_default(subscriber).expect("setting default subscriber failed");
 
     // Initialize Valtron pool - keep guard alive for duration of function
     let _guard = valtron::initialize_pool(100, None);
@@ -69,10 +81,11 @@ pub fn run(matches: &ArgMatches) -> Result<(), SpecFetchError> {
     let fetcher = ProviderSpecFetcher::new();
 
     // Create HTTP client with system defaults
+    // Enable non-blocking TLS handshake for GCP compatibility
     let mut client = SimpleHttpClient::from_system()
         .max_body_size(None)
         .batch_size(8192 * 2)
-        .read_timeout(Duration::from_secs(30))
+        .read_timeout(Duration::from_secs(5))
         .max_retries(3)
         .enable_pool(10);
 
@@ -96,7 +109,9 @@ fn fetch_all_providers(
 
     for (provider, _spec) in specs {
         if !dry_run {
-            tracing::info!("Fetched: {provider} -> artefacts/cloud_providers/{provider}/openapi.json");
+            tracing::info!(
+                "Fetched: {provider} -> artefacts/cloud_providers/{provider}/openapi.json"
+            );
         } else {
             tracing::info!("Would fetch: {provider} (dry-run)");
         }

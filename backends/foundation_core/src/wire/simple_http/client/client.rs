@@ -58,6 +58,10 @@ pub struct ClientConfig {
     pub batch_size: usize,
     /// Maximum consecutive retries for WouldBlock/TimedOut errors (default: 100)
     pub max_retries: usize,
+    /// Set underlying TCP stream to non-blocking mode before TLS handshake.
+    /// This is required for proper rustls handling of WouldBlock during handshake.
+    /// Enable for servers that have issues with TLS handshake completion.
+    pub tls_nonblocking_handshake: bool,
 }
 
 impl ClientConfig {
@@ -219,6 +223,23 @@ impl ClientConfig {
         self.write_timeout = timeout;
         self
     }
+
+    /// Sets whether to use non-blocking mode for TLS handshake.
+    ///
+    /// WHY: Some servers have issues with TLS handshake completion when the underlying
+    /// TCP stream is in blocking mode. This option enables proper rustls handling of
+    /// WouldBlock errors during the handshake process.
+    ///
+    /// WHAT: Builder method to enable non-blocking TLS handshake.
+    ///
+    /// # Arguments
+    ///
+    /// * `enabled` - Whether to enable non-blocking TLS handshake
+    #[must_use]
+    pub fn with_tls_nonblocking_handshake(mut self, enabled: bool) -> Self {
+        self.tls_nonblocking_handshake = enabled;
+        self
+    }
 }
 
 impl Default for ClientConfig {
@@ -244,6 +265,7 @@ impl Default for ClientConfig {
             full_body_threshold: 512 * 1024, // 512 KB
             batch_size: 8192,
             max_retries: 100,
+            tls_nonblocking_handshake: false,
         }
     }
 }
@@ -376,6 +398,19 @@ impl<R: DnsResolver + Default + Clone> SimpleHttpClient<R> {
             ConnectionPool::default(),
             R::default(),
         )));
+        self
+    }
+
+    /// Enables non-blocking mode for TLS handshake.
+    ///
+    /// WHY: Some servers (like GCP APIs) have issues with TLS handshake completion
+    /// when the underlying TCP stream is in blocking mode. This enables proper
+    /// rustls handling of WouldBlock errors during the handshake.
+    ///
+    /// WHAT: Builder method to enable non-blocking TLS handshake.
+    #[must_use]
+    pub fn tls_nonblocking_handshake(mut self, enabled: bool) -> Self {
+        self.config.tls_nonblocking_handshake = enabled;
         self
     }
 }
