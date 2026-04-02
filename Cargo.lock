@@ -2024,11 +2024,9 @@ dependencies = [
 name = "foundation_deployment"
 version = "0.0.1"
 dependencies = [
- "bytes",
  "chrono",
  "derive_more",
  "foundation_core",
- "http 1.4.0",
  "serde",
  "serde_json",
  "serde_yaml",

@@ -104,7 +104,7 @@ impl<T: ReadTimeoutOperations> ReadTimeoutOperations for BufferedReader<T> {
         &mut self,
         timeout: std::time::Duration,
     ) -> std::result::Result<(), std::io::Error> {
-        tracing::debug!(
+        tracing::trace!(
             "BufferedReader::set_read_timeout_as: Received instruction to set read timeout to: {:?}",
             &timeout,
         );
@@ -1365,7 +1365,7 @@ impl<T: Read> ByteBufferPointer<T> {
         let mut copied = vec![0; self.pull_amount];
         let read = match self.reader.read(&mut copied) {
             Ok(read_size) => {
-                tracing::debug!("FillUp: read total size of data from reader: {}", read_size);
+                tracing::trace!("FillUp: read total size of data from reader: {}", read_size);
                 read_size
             }
             Err(err) => {
@@ -1764,7 +1764,7 @@ impl<T: Read> ByteBufferPointer<T> {
         }
 
         let slice = &self.buffer[original_peek..self.peek_pos];
-        tracing::debug!(
+        tracing::trace!(
             "Read from {} to {} buffer_len={} and slice_len={}",
             original_peek,
             self.peek_pos,
@@ -1795,7 +1795,7 @@ impl<T: Read> ByteBufferPointer<T> {
         let read = match self.nextby(buf.len()) {
             Ok(state) => match state {
                 PeekState::Request(data) => {
-                    tracing::debug!(
+                    tracing::trace!(
                         "read_size: read next data: {} into target buf_len={}",
                         data.len(),
                         buf.len()
@@ -1806,7 +1806,7 @@ impl<T: Read> ByteBufferPointer<T> {
                         buf.len()
                     };
 
-                    tracing::debug!(
+                    tracing::trace!(
                         "read_size: read next data ending: {} from buf_len={}, data_len={}",
                         ending,
                         buf.len(),
@@ -1876,14 +1876,14 @@ impl<T: Read> ByteBufferPointer<T> {
         }
         loop {
             let state = self.peek_by(signal.len())?;
-            // tracing::debug!(
+            // tracing::trace!(
             //     "Next_Until: using signal: {:?} against {:?}",
             //     &signal,
             //     &state,
             // );
             match state {
                 PeekState::Request(data) => {
-                    // tracing::debug!(
+                    // tracing::trace!(
                     //     "Next_Until: using signal: {:?}(len={}) against {:?} as {:?}",
                     //     &signal,
                     //     signal.len(),

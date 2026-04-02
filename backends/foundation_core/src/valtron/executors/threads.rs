@@ -317,24 +317,6 @@ impl Clone for ThreadYielder {
 }
 
 impl ProcessController for ThreadYielder {
-    fn yield_process(&self) {
-        if self.latch.try_lock() {
-            tracing::debug!("Thread successfully locked thread");
-        } else {
-            tracing::debug!("Thread is already locked");
-        }
-
-        self.sender
-            .send(ThreadActivity::Blocked(self.thread_id.clone()))
-            .expect("should sent event");
-        tracing::debug!("Sent blocked signal");
-        self.latch.wait();
-        self.sender
-            .send(ThreadActivity::Unblocked(self.thread_id.clone()))
-            .expect("should sent event");
-        tracing::debug!("Sent unblocked signal");
-    }
-
     fn yield_for(&self, dur: std::time::Duration) {
         // will request that the current thread be
         // parked for the giving duration though parking
@@ -1141,7 +1123,7 @@ impl std::fmt::Debug for ThreadRegistry {
 impl ThreadRegistry {
     /// Create a new `ThreadRegistry` with the given seed and thread count.
     #[allow(clippy::too_many_arguments)]
-    #[must_use] 
+    #[must_use]
     pub fn new(
         seed_for_rng: u64,
         num_threads: usize,

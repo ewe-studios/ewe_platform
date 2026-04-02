@@ -201,6 +201,40 @@ impl ReadTimeoutOperations for RustlsStream<rustls::ClientConnection> {
     }
 }
 
+impl RustlsStream<rustls::ClientConnection> {
+    /// Complete the TLS handshake explicitly.
+    ///
+    /// WHY: rustls performs handshakes lazily on first I/O. For non-blocking sockets,
+    /// we need to complete the handshake in blocking mode before switching to non-blocking.
+    ///
+    /// # Errors
+    /// Returns an error if the handshake fails.
+    pub fn complete_handshake(&mut self) -> std::io::Result<()> {
+        let mut guard = self
+            .0
+            .lock()
+            .map_err(|e| std::io::Error::other(format!("Mutex poisoned: {e}")))?;
+
+        // For rustls, the handshake completes on the first I/O operation.
+        // We use flush() which will drive the handshake to completion without
+        // consuming any application data.
+        guard.flush()
+    }
+
+    /// Set non-blocking mode on the underlying socket.
+    ///
+    /// WHY: After completing the TLS handshake, we may want to switch to non-blocking
+    /// mode for subsequent I/O operations.
+    pub fn set_nonblocking(&self, nonblocking: bool) -> std::io::Result<()> {
+        let guard = self
+            .0
+            .lock()
+            .map_err(|e| std::io::Error::other(format!("Mutex poisoned: {e}")))?;
+        // guard.sock is the Connection enum, call set_nonblocking on it
+        guard.sock.set_nonblocking(nonblocking)
+    }
+}
+
 impl ReadTimeoutOperations for RustlsStream<rustls::ServerConnection> {
     fn read_timeout_into(
         &mut self,

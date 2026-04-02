@@ -6,4 +6,4 @@
 pub mod aws;
 pub mod cloudflare;
 pub mod gcp;
-pub mod spec_fetch;
+pub mod resources;

@@ -325,6 +325,7 @@ where
     Task: TaskIterator<Pending = Pending, Ready = Done, Spawner = Action>,
 {
     fn next(&mut self, entry: Entry, executor: BoxedExecutionEngine) -> Option<State> {
+        tracing::debug!("ConsumingIter::next() called for entry: {:?}", entry);
         tracing::debug!("Are ConsumingIter alive?: {:?} -> {:?}", &self.alive, entry);
 
         if self.alive.is_none() {

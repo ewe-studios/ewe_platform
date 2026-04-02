@@ -11,15 +11,16 @@
 use crate::error::DeploymentError;
 use foundation_core::valtron::{
     collect_all_streams, execute, one_shot, Stream, StreamIterator, StreamIteratorExt,
-    TaskIteratorExt,
+    TaskIteratorExt, TaskShortCircuit, TaskStatus,
 };
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientConfig, HttpConnectionPool, RequestIntro, SendRequestTask, SimpleHttpClient,
     SystemDnsResolver,
 };
 use serde_json::Value;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::sync::Arc;
+use tracing::{debug, error, info, warn};
 
 /// GCP Discovery Service URL.
 pub const GCP_DISCOVERY_URL: &str = "https://discovery.googleapis.com/discovery/v1/apis";
@@ -43,6 +44,18 @@ pub struct GcpDirectoryResponse {
     pub items: Vec<GcpApiEntry>,
 }
 
+/// List of relevant GCP API names to fetch (filters down from 510+ APIs).
+/// Add more APIs here as needed for your use case.
+const RELEVANT_GCP_APIS: &[&str] = &[
+    // Core infrastructure - most commonly used
+    "compute", // Compute Engine
+              // "container", // GKE
+              // "iam",        // IAM
+              // "logging",    // Cloud Logging
+              // "monitoring", // Cloud Monitoring
+              // "storage",    // Cloud Storage
+];
+
 /// Progress states for GCP fetch.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum GcpFetchPending {
@@ -51,7 +64,40 @@ pub enum GcpFetchPending {
     WritingFiles,
 }
 
+type ApiFetchStream = Box<
+    dyn StreamIterator<
+            D = Result<PathBuf, DeploymentError>,
+            P = GcpFetchPending,
+            Item = Stream<Result<PathBuf, DeploymentError>, GcpFetchPending>,
+        > + Send,
+>;
+
 /// Fetch ALL GCP specs using two-stage approach with combinators.
+/// Fetch ALL GCP specs using two-stage approach with combinators.
+///
+/// # Arguments
+///
+/// * `client` - The HTTP client to use for fetching API specs
+/// * `output_dir` - Directory where fetched specs will be written
+///
+/// # Returns
+///
+/// A stream iterator that yields results of writing API spec files to disk.
+///
+/// # Errors
+///
+/// Returns `DeploymentError` if:
+/// - Failed to build the HTTP request for the discovery directory
+/// - Valtron scheduling fails during execution
+/// - JSON parsing fails for the directory or API spec responses
+/// - HTTP request fails during directory or spec fetch
+/// - File system operations fail when writing output
+///
+/// # Panics
+///
+/// Panics if the client does not have an associated connection pool.
+/// This should not occur in normal usage as the client is expected
+/// to be properly initialized with a pool.
 pub fn fetch_gcp_specs(
     client: &SimpleHttpClient,
     output_dir: PathBuf,
@@ -62,7 +108,7 @@ pub fn fetch_gcp_specs(
     let pool = client.client_pool().expect("should have pool");
     let config = client.client_config();
 
-    tracing::debug!("GCP fetch: output_dir={:?}", output_dir);
+    debug!("GCP fetch: output_dir={:?}", output_dir);
 
     // Stage 1: Build directory fetch request
     let request = client
@@ -75,13 +121,13 @@ pub fn fetch_gcp_specs(
     let directory_stream = SendRequestTask::new(request, 5, pool.clone(), config.clone())
         .map_ready(|intro| match intro {
             RequestIntro::Success { stream, .. } => {
-                tracing::debug!("GCP directory response received, parsing");
+                info!("GCP directory response received, parsing");
                 let body_text = body_reader::collect_string(stream);
                 serde_json::from_str::<GcpDirectoryResponse>(&body_text)
                     .map_err(|e| DeploymentError::Generic(format!("JSON parse error: {e}")))
             }
             RequestIntro::Failed(e) => {
-                tracing::error!("GCP directory fetch failed: {e}");
+                error!("GCP directory fetch failed: {e}");
                 Err(DeploymentError::Generic(format!(
                     "HTTP request failed: {e}"
                 )))
@@ -93,32 +139,37 @@ pub fn fetch_gcp_specs(
     let executed = execute(directory_stream, None)
         .map_err(|e| DeploymentError::Generic(format!("Valtron scheduling failed: {e}")))?;
 
-    // Stage 2: Transform directory result into API spec fetch stream using map_iter
-    let api_fetch_stream: Box<
-        dyn StreamIterator<
-                D = Result<PathBuf, DeploymentError>,
-                P = GcpFetchPending,
-                Item = Stream<Result<PathBuf, DeploymentError>, GcpFetchPending>,
-            > + Send,
-    > = Box::new(executed.map_iter(move |dir_result| {
-        match dir_result {
-            Stream::Next(Ok(directory)) => {
-                tracing::info!(
-                    "Found {} GCP APIs, fetching all specs in parallel",
-                    directory.items.len()
+    // Stage 2: Transform directory result into API spec fetch stream using map_iter_done
+    let api_fetch_stream = executed.map_iter_done(move |directory_result| {
+        match directory_result {
+            Ok(directory) => {
+                let total_apis = directory.items.len();
+                debug!("gcp: Found {} APIs in directory", total_apis);
+
+                // Filter to only relevant APIs
+                let filtered_items: Vec<GcpApiEntry> = directory
+                    .items
+                    .into_iter()
+                    .filter(|item| RELEVANT_GCP_APIS.contains(&item.name.as_str()))
+                    .collect();
+
+                info!(
+                    "Found {} GCP APIs in directory, filtered to {} relevant APIs",
+                    total_apis,
+                    filtered_items.len()
                 );
 
                 // Create fetch streams for all APIs - execute each task immediately
                 let mut streams: Vec<Box<dyn StreamIterator<D = _, P = _, Item = _> + Send>> =
                     Vec::new();
 
-                for entry in directory.items {
+                for entry in filtered_items {
                     match create_api_fetch_task(entry, pool.clone(), config.clone()) {
                         Ok(task) => match execute(task, None) {
                             Ok(stream) => streams.push(Box::new(stream)),
-                            Err(e) => tracing::warn!("Failed to execute fetch task: {}", e),
+                            Err(e) => warn!("Failed to execute fetch task: {}", e),
                         },
-                        Err(e) => tracing::warn!("Failed to create fetch task: {}", e),
+                        Err(e) => warn!("Failed to create fetch task: {}", e),
                     }
                 }
 
@@ -132,54 +183,28 @@ pub fn fetch_gcp_specs(
                             let mut specs = Vec::new();
                             for result in results {
                                 if let Some(Ok((entry, spec))) = result {
-                                    tracing::info!(
-                                        "  Loaded: {} ({})",
-                                        entry.name,
-                                        entry.version
-                                    );
+                                    info!("  Loaded: {} ({})", entry.name, entry.version);
                                     specs.push((entry, spec));
                                 } else if let Some(Err(e)) = result {
-                                    tracing::warn!("Spec fetch failed: {}", e);
+                                    warn!("Spec fetch failed for all streams: {}", e);
                                 }
                             }
 
-                            tracing::info!(
-                                "Fetched {} API specs, writing output",
-                                specs.len()
-                            );
+                            info!("Fetched {} API specs, writing output", specs.len());
                             write_output(&output_dir, total_tasks, &specs)
                         })
                         .map_pending(|_| GcpFetchPending::FetchingApiSpecs { remaining: 0 }),
-                ) as Box<
-                    dyn StreamIterator<
-                            D = Result<PathBuf, DeploymentError>,
-                            P = GcpFetchPending,
-                            Item = Stream<Result<PathBuf, DeploymentError>, GcpFetchPending>,
-                        > + Send,
-                >
+                ) as ApiFetchStream
             }
-            Stream::Next(Err(e)) => {
-                Box::new(one_shot(Err(e)).map_pending(|_| GcpFetchPending::FetchingApiSpecs {
-                    remaining: 0,
-                })) as Box<
-                    dyn StreamIterator<
-                            D = Result<PathBuf, DeploymentError>,
-                            P = GcpFetchPending,
-                            Item = Stream<Result<PathBuf, DeploymentError>, GcpFetchPending>,
-                        > + Send,
-                >
-            }
-            Stream::Pending(_) | Stream::Delayed(_) | Stream::Init | Stream::Ignore => {
-                Box::new(Stream::Ignore) as Box<
-                    dyn StreamIterator<
-                            D = Result<PathBuf, DeploymentError>,
-                            P = GcpFetchPending,
-                            Item = Stream<Result<PathBuf, DeploymentError>, GcpFetchPending>,
-                        > + Send,
-                >
+            Err(e) => {
+                error!("Failed to successfully fetch GCP API specs: {}", e);
+                Box::new(
+                    one_shot::<_, GcpFetchPending>(Err(e))
+                        .map_pending(|_| GcpFetchPending::FetchingApiSpecs { remaining: 0 }),
+                ) as ApiFetchStream
             }
         }
-    }));
+    });
 
     Ok(api_fetch_stream)
 }
@@ -208,26 +233,38 @@ fn create_api_fetch_task(
     let task = SendRequestTask::new(request, 5, pool, config)
         .map_ready(move |intro| match intro {
             RequestIntro::Success { stream, .. } => {
-                tracing::debug!("gcp/{}: Response received", name);
+                debug!("gcp/{}: Response received", name);
                 let body = body_reader::collect_string(stream);
-                tracing::debug!("gcp/{}: Body length: {}", name, body.len());
-                match serde_json::from_str::<Value>(&body) {
+                debug!("gcp/{}: Body length: {}", name, body.len());
+                debug!("gcp/{}: Body: {}", name, &body);
+
+                let output_path = Path::new("response_api.json");
+                std::fs::write(output_path, &body).expect("write out to disk");
+
+                match serde_json::from_str::<Value>(body.trim()) {
                     Ok(spec) => {
-                        tracing::debug!("gcp/{}: JSON parsed", name);
+                        debug!("gcp/{}/{}: JSON parsed", name, entry.discovery_rest_url);
                         Some(Ok((entry.clone(), spec)))
                     }
                     Err(e) => {
-                        tracing::error!("gcp/{}: JSON error: {}", name, e);
+                        error!(
+                            "gcp/{}/{}: JSON error: {}",
+                            name, entry.discovery_rest_url, e
+                        );
                         Some(Err(DeploymentError::Generic(format!("JSON error: {e}"))))
                     }
                 }
             }
             RequestIntro::Failed(e) => {
-                tracing::error!("gcp/{}: Request failed: {}", name, e);
+                error!("gcp/{}: Request failed: {}", name, e);
                 Some(Err(DeploymentError::Generic(format!("HTTP error: {e}"))))
             }
         })
-        .map_pending(|_| 0);
+        .map_pending(|_| 0)
+        .map_circuit(|item| match &item {
+            TaskStatus::Ready(Some(Err(_))) => TaskShortCircuit::ReturnAndStop(item),
+            _ => TaskShortCircuit::Continue(item),
+        });
 
     Ok(task)
 }
@@ -274,6 +311,6 @@ fn write_output(
     std::fs::write(&manifest_path, serde_json::to_string_pretty(&manifest)?)
         .map_err(|e| DeploymentError::Generic(format!("Failed to write manifest: {e}")))?;
 
-    tracing::info!("GCP spec saved to: {}", output_path.display());
+    info!("GCP spec saved to: {}", output_path.display());
     Ok(output_path)
 }

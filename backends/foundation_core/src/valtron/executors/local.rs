@@ -655,9 +655,10 @@ impl ExecutorState {
 
         let remaining_tasks = self.processing.borrow().len();
         tracing::debug!(
-            "Top entry: {:?} with remaining: {}",
+            "do_work: Popped top entry: {:?} with remaining: {} (queue empty: {})",
             top_entry,
-            remaining_tasks
+            remaining_tasks,
+            self.processing.borrow().is_empty()
         );
 
         if self.is_packed(&top_entry) {
@@ -1014,7 +1015,13 @@ impl ExecutorState {
                     ProgressIndicator::SpinWait(inner)
                 } else {
                     // push back to top
+                    tracing::debug!("State::Pending(None): pushing entry {:?} back to front of processing queue (queue len before: {})", top_entry, self.processing.borrow().len());
                     self.processing.borrow_mut().push_front(top_entry);
+                    tracing::debug!(
+                        "State::Pending(None): entry {:?} pushed, queue len after: {}",
+                        top_entry,
+                        self.processing.borrow().len()
+                    );
                     ProgressIndicator::CanProgress(None)
                 };
 
@@ -1935,7 +1942,7 @@ impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
                     break;
                 }
             }
-            self.yielder.yield_process();
+            self.yielder.yield_for(self.no_work_yield);
         }
         tracing::debug!("run_until: exited loop");
     }
@@ -1969,7 +1976,7 @@ impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
                     ProgressIndicator::CanProgress(_) => {}
                 }
             }
-            self.yielder.yield_process();
+            self.yielder.yield_for(self.no_work_yield);
         }
     }
 
@@ -2015,7 +2022,7 @@ impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
                         }
 
                         tracing::debug!("No work received, yielding until signaled");
-                        self.yielder.yield_process();
+                        self.yielder.yield_for(self.no_work_yield);
                     }
                     ProgressIndicator::SpinWait(duration) => {
                         if kill_signal.probe() {
@@ -2153,8 +2160,6 @@ mod test_local_thread_executor {
     struct NoYielder;
 
     impl ProcessController for NoYielder {
-        fn yield_process(&self) {}
-
         fn yield_for(&self, _: time::Duration) {}
     }
 

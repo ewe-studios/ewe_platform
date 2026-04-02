@@ -324,6 +324,28 @@ impl Connection {
     ) -> std::result::Result<Self, Box<dyn std::error::Error + Send + Sync + 'static>> {
         Ok(Self::Tcp(TcpStream::connect_timeout(&addr, timeout)?))
     }
+
+    /// Set non-blocking mode on the underlying socket.
+    ///
+    /// # Errors
+    /// Returns an error if setting non-blocking mode fails.
+    pub fn set_nonblocking(&self, nonblocking: bool) -> std::io::Result<()> {
+        match self {
+            Self::Tcp(tcp) => tcp.set_nonblocking(nonblocking),
+            #[cfg(unix)]
+            Self::Unix(unix) => unix.set_nonblocking(nonblocking),
+            #[cfg(any(
+                feature = "ssl-rustls",
+                feature = "ssl-openssl",
+                feature = "ssl-native-tls"
+            ))]
+            Self::Tls(_) => {
+                // TLS streams don't support setting non-blocking directly
+                // The underlying socket should already be set appropriately
+                Ok(())
+            }
+        }
+    }
 }
 
 impl ReadTimeoutOperations for Connection {

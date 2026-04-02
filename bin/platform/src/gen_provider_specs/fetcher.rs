@@ -10,6 +10,7 @@
 
 use foundation_core::valtron::{Stream, StreamIteratorExt};
 use foundation_core::wire::simple_http::client::SimpleHttpClient;
+use foundation_deployment::providers::resources::{cloudflare, gcp};
 use std::collections::BTreeMap;
 use std::path::PathBuf;
 use std::time::Instant;
@@ -42,9 +43,8 @@ impl ProviderSpecFetcher {
     pub fn fetch_all(
         &self,
         client: &SimpleHttpClient,
-    ) -> Result<BTreeMap<String, DistilledSpec>, crate::gen_provider_specs::errors::SpecFetchError> {
-        use foundation_deployment::providers::spec_fetch::{cloudflare, gcp};
-
+    ) -> Result<BTreeMap<String, DistilledSpec>, crate::gen_provider_specs::errors::SpecFetchError>
+    {
         // Artefacts directory for raw JSON specs
         let artefacts_dir = PathBuf::from("artefacts/cloud_providers");
         std::fs::create_dir_all(&artefacts_dir).map_err(|e| {
@@ -68,20 +68,24 @@ impl ProviderSpecFetcher {
 
         // Build fetch streams for each provider
         // Each returns a StreamIterator that runs on the Valtron thread pool
-        let mut streams: Vec<Box<dyn foundation_core::valtron::StreamIterator<
-            Item = Stream<Result<DistilledSpec, SpecFetchError>, ()>,
-            D = Result<DistilledSpec, SpecFetchError>,
-            P = (),
-        > + Send + 'static>> = Vec::new();
+        let mut streams: Vec<
+            Box<
+                dyn foundation_core::valtron::StreamIterator<
+                        Item = Stream<Result<DistilledSpec, SpecFetchError>, ()>,
+                        D = Result<DistilledSpec, SpecFetchError>,
+                        P = (),
+                    > + Send
+                    + 'static,
+            >,
+        > = Vec::new();
 
         for (provider, _url) in Self::configured_providers() {
             let provider_dir = artefacts_dir.join(provider);
 
             if provider == "cloudflare" {
-                let stream = cloudflare::fetch_cloudflare_specs(
-                    temp_dir.clone(),
-                    provider_dir,
-                ).map_err(|e| SpecFetchError::Generic(format!("Cloudflare: {e}")))?;
+                let stream =
+                    cloudflare::fetch::fetch_cloudflare_specs(temp_dir.clone(), provider_dir)
+                        .map_err(|e| SpecFetchError::Generic(format!("Cloudflare: {e}")))?;
                 streams.push(Box::new(stream.map_done(|result| {
                     result
                         .map_err(|e| SpecFetchError::Generic(format!("Cloudflare: {e}")))
@@ -89,25 +93,23 @@ impl ProviderSpecFetcher {
                             provider: "cloudflare".to_string(),
                             version: chrono::Utc::now().format("%Y%m%d").to_string(),
                             fetched_at: chrono::Utc::now(),
-                            source_url: cloudflare::CLOUDFLARE_API_SCHEMAS_URL.to_string(),
+                            source_url: cloudflare::fetch::CLOUDFLARE_API_SCHEMAS_URL.to_string(),
                             raw_spec: serde_json::Value::Null,
                             endpoints: None,
                             content_hash: String::new(),
                         })
                 })));
             } else if provider == "gcp" {
-                let stream = gcp::fetch_gcp_specs(client, provider_dir)
+                let stream = gcp::fetch::fetch_gcp_specs(client, provider_dir)
                     .map_err(|e| SpecFetchError::Generic(format!("GCP: {e}")))?;
-                streams.push(Box::new(stream
-                    .map_pending(|_| ())
-                    .map_done(|result| {
+                streams.push(Box::new(stream.map_pending(|_| ()).map_done(|result| {
                     result
                         .map_err(|e| SpecFetchError::Generic(format!("GCP: {e}")))
                         .map(|_path| DistilledSpec {
                             provider: "gcp".to_string(),
                             version: chrono::Utc::now().format("%Y%m%d").to_string(),
                             fetched_at: chrono::Utc::now(),
-                            source_url: gcp::GCP_DISCOVERY_URL.to_string(),
+                            source_url: gcp::fetch::GCP_DISCOVERY_URL.to_string(),
                             raw_spec: serde_json::Value::Null,
                             endpoints: None,
                             content_hash: String::new(),
@@ -156,8 +158,6 @@ impl ProviderSpecFetcher {
         client: &SimpleHttpClient,
         provider: &str,
     ) -> Result<DistilledSpec, crate::gen_provider_specs::errors::SpecFetchError> {
-        use foundation_deployment::providers::spec_fetch::{cloudflare, gcp};
-
         let artefacts_dir = PathBuf::from("artefacts/cloud_providers");
         let provider_dir = artefacts_dir.join(provider);
 
@@ -168,7 +168,7 @@ impl ProviderSpecFetcher {
                 source: e,
             })?;
 
-            let stream = cloudflare::fetch_cloudflare_specs(temp_dir, provider_dir)
+            let stream = cloudflare::fetch::fetch_cloudflare_specs(temp_dir, provider_dir)
                 .map_err(|e| SpecFetchError::Generic(format!("Cloudflare: {e}")))?;
 
             // Collect single result
@@ -180,7 +180,7 @@ impl ProviderSpecFetcher {
                             provider: "cloudflare".to_string(),
                             version: chrono::Utc::now().format("%Y%m%d").to_string(),
                             fetched_at: chrono::Utc::now(),
-                            source_url: cloudflare::CLOUDFLARE_API_SCHEMAS_URL.to_string(),
+                            source_url: cloudflare::fetch::CLOUDFLARE_API_SCHEMAS_URL.to_string(),
                             raw_spec: serde_json::Value::Null,
                             endpoints: None,
                             content_hash: String::new(),
@@ -191,7 +191,7 @@ impl ProviderSpecFetcher {
         }
 
         if provider == "gcp" {
-            let stream = gcp::fetch_gcp_specs(client, provider_dir)
+            let stream = gcp::fetch::fetch_gcp_specs(client, provider_dir)
                 .map_err(|e| SpecFetchError::Generic(format!("GCP: {e}")))?;
 
             for item in stream {
@@ -202,7 +202,7 @@ impl ProviderSpecFetcher {
                             provider: "gcp".to_string(),
                             version: chrono::Utc::now().format("%Y%m%d").to_string(),
                             fetched_at: chrono::Utc::now(),
-                            source_url: gcp::GCP_DISCOVERY_URL.to_string(),
+                            source_url: gcp::fetch::GCP_DISCOVERY_URL.to_string(),
                             raw_spec: serde_json::Value::Null,
                             endpoints: None,
                             content_hash: String::new(),
@@ -213,7 +213,7 @@ impl ProviderSpecFetcher {
         }
 
         Err(crate::gen_provider_specs::errors::SpecFetchError::Generic(
-            format!("Provider {provider} not yet implemented")
+            format!("Provider {provider} not yet implemented"),
         ))
     }
 
