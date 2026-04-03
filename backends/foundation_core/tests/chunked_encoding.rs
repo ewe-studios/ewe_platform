@@ -263,3 +263,84 @@ fn test_gcp_chunked_fixture_from_file() {
         "Field name should be restored (CR removed from middle)"
     );
 }
+
+/// Integration test using real captured GCP Discovery API response.
+///
+/// This test loads a raw chunked HTTP response captured from the actual
+/// GCP Discovery API endpoint and verifies our parser handles it correctly.
+///
+/// Fixture: `gcp_real_chunked_response.bin` - 5.8MB raw chunked response body
+/// from https://www.googleapis.com/discovery/v1/apis/compute/v1/rest
+///
+/// The captured response contains ~384 CR bytes embedded in JSON content
+/// (not just framing) that must be stripped for valid JSON parsing.
+#[test]
+fn test_real_gcp_captured_response() {
+    // Load the real captured GCP response (body only, with chunked encoding)
+    let fixture_bytes = include_bytes!("gcp_real_chunked_response.bin");
+
+    // Verify fixture contains CR bytes (proves this is real GCP data with issues)
+    let fixture_cr_count = fixture_bytes
+        .iter()
+        .filter(|&&b| b == b'\r')
+        .count();
+    assert!(
+        fixture_cr_count > 100,
+        "Fixture should contain many CR bytes. Found: {}",
+        fixture_cr_count
+    );
+
+    // Parse through SimpleHttpChunkIterator
+    let cursor = Cursor::new(fixture_bytes);
+    let stream = SharedByteBufferStream::ref_cell(cursor);
+
+    let headers = SimpleHeaders::new();
+    let mut iterator = SimpleHttpChunkIterator::new(vec![], headers, stream);
+
+    let mut collected_bytes = Vec::new();
+
+    for result in &mut iterator {
+        match result {
+            Ok(ChunkedData::Data(data, _)) => {
+                collected_bytes.extend_from_slice(&data);
+            }
+            Ok(ChunkedData::DataEnded) => break,
+            Ok(ChunkedData::Trailers(_)) => {}
+            Err(e) => panic!("Chunk iterator error: {e}"),
+        }
+    }
+
+    // Verify all CR bytes are stripped from output
+    let output_cr_count = collected_bytes
+        .iter()
+        .filter(|&&b| b == b'\r')
+        .count();
+    assert_eq!(
+        output_cr_count, 0,
+        "All CR bytes should be stripped from real GCP response. Found: {output_cr_count}"
+    );
+
+    // Verify output is valid JSON structure
+    let output_str = String::from_utf8_lossy(&collected_bytes);
+    assert!(
+        output_str.starts_with('{'),
+        "Should be valid JSON object starting with {{"
+    );
+
+    // Verify key GCP fields are present and correctly parsed
+    assert!(
+        output_str.contains("\"name\": \"compute\""),
+        "Should contain compute API name"
+    );
+    assert!(
+        output_str.contains("\"description\": \"Creates and runs virtual machines"),
+        "Should contain compute API description"
+    );
+
+    // Verify size is reasonable (should be ~5.8MB minus CR bytes)
+    assert!(
+        collected_bytes.len() > 5_000_000,
+        "Output should be ~5.8MB, got: {}",
+        collected_bytes.len()
+    );
+}
