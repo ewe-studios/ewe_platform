@@ -69,11 +69,15 @@ pub fn default_client_config() -> Arc<ClientConfig> {
     root_store.extend(TLS_SERVER_ROOTS.iter().cloned());
 
     let provider = Arc::new(initialize_tls_provider().expect("should generate provider"));
-    let config = rustls::ClientConfig::builder_with_provider(provider)
+    let mut config = rustls::ClientConfig::builder_with_provider(provider)
         .with_protocol_versions(ALL_VERSIONS)
         .expect("correct versions")
         .with_root_certificates(root_store)
         .with_no_client_auth();
+
+    // Configure ALPN to prefer HTTP/1.1
+    // This ensures servers that support both HTTP/1.1 and HTTP/2 will use HTTP/1.1
+    config.alpn_protocols = vec![b"http/1.1".to_vec()];
 
     Arc::new(config)
 }

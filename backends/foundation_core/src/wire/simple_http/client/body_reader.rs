@@ -206,7 +206,10 @@ IncomingResponseParts::StreamedBody(body)) => {
                                 }
                             }
                         }
-                        String::from_utf8(bytes).map_err(StringBodyError::InvalidUtf8)
+                        // Normalize line endings: some servers send LF-only but may have
+                        // stray \r characters from chunk boundary handling. Remove them.
+                        let normalized = bytes.into_iter().filter(|&b| b != b'\r').collect::<Vec<_>>();
+                        String::from_utf8(normalized).map_err(StringBodyError::InvalidUtf8)
                     }
                     SendSafeBody::LineFeedStream(mut opt_iter) => {
                         let mut lines = Vec::new();
@@ -358,7 +361,8 @@ IncomingResponseParts::StreamedBody(body)) => {
                                 }
                             }
                         }
-                        Ok(bytes)
+                        // Normalize line endings: remove stray \r from LF-only servers
+                        Ok(bytes.into_iter().filter(|&b| b != b'\r').collect())
                     }
                     SendSafeBody::LineFeedStream(mut opt_iter) => {
                         if let Some(iter) = opt_iter.take() {
@@ -509,7 +513,8 @@ IncomingResponseParts::StreamedBody(body)) => match body {
                             }
                         }
                     }
-                    return bytes;
+                    // Normalize line endings: remove stray \r from LF-only servers
+                    return bytes.into_iter().filter(|&b| b != b'\r').collect();
                 }
                 SendSafeBody::LineFeedStream(mut opt_iter) => {
                     if let Some(iter) = opt_iter.take() {
@@ -856,7 +861,9 @@ IncomingResponseParts::StreamedBody(body)) => {
                             for chunk_result in iter {
                                 match chunk_result {
                                     Ok(ChunkedData::Data(data, _)) => {
-                                        if !processor(&data) {
+                                        // Normalize: filter out stray \r from LF-only servers
+                                        let normalized: Vec<u8> = data.into_iter().filter(|&b| b != b'\r').collect();
+                                        if !processor(&normalized) {
                                             return Ok(ProcessStreamResult::StoppedByCallback);
                                         }
                                     }
