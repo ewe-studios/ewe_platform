@@ -17,6 +17,7 @@ use clap::{ArgMatches, Command};
 use std::fs::File;
 use std::io::{Read, Write};
 use std::net::TcpStream;
+use std::net::ToSocketAddrs;
 use std::time::Duration;
 use tracing::{error, info, Level};
 use tracing_subscriber::FmtSubscriber;
@@ -100,8 +101,12 @@ pub fn run(
     info!("Connecting to {}:{}...", host, port);
 
     let timeout = Duration::from_secs(timeout_secs);
-    let mut stream =
-        TcpStream::connect_timeout(&format!("{}:{}", host, port).parse()?, timeout)?;
+    let addr = format!("{}:{}", host, port);
+    let socket_addr = addr
+        .to_socket_addrs()?
+        .next()
+        .ok_or_else(|| format!("Could not resolve {}", addr))?;
+    let mut stream = TcpStream::connect_timeout(&socket_addr, timeout)?;
     stream.set_read_timeout(Some(timeout))?;
     stream.set_write_timeout(Some(timeout))?;
 
