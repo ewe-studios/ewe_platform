@@ -46,7 +46,7 @@ fn test_chunked_json_no_crlf_in_data() {
     let stream = SharedByteBufferStream::ref_cell(cursor);
 
     let headers = SimpleHeaders::new();
-    let mut iterator = SimpleHttpChunkIterator::new(vec![], headers, stream);
+    let mut iterator = SimpleHttpChunkIterator::new(vec![], headers, stream, 100);
 
     let mut collected_bytes = Vec::new();
 
@@ -107,7 +107,7 @@ fn test_chunked_exact_content_preservation() {
     let stream = SharedByteBufferStream::ref_cell(cursor);
 
     let headers = SimpleHeaders::new();
-    let mut iterator = SimpleHttpChunkIterator::new(vec![], headers, stream);
+    let mut iterator = SimpleHttpChunkIterator::new(vec![], headers, stream, 100);
 
     let mut collected_bytes = Vec::new();
 
@@ -162,7 +162,7 @@ fn test_many_small_chunks() {
     let stream = SharedByteBufferStream::ref_cell(cursor);
 
     let headers = SimpleHeaders::new();
-    let mut iterator = SimpleHttpChunkIterator::new(vec![], headers, stream);
+    let mut iterator = SimpleHttpChunkIterator::new(vec![], headers, stream, 100);
 
     let mut collected_bytes = Vec::new();
 
@@ -218,7 +218,7 @@ fn test_chunked_content_with_embedded_newlines() {
     let stream = SharedByteBufferStream::ref_cell(cursor);
 
     let headers = SimpleHeaders::new();
-    let mut iterator = SimpleHttpChunkIterator::new(vec![], headers, stream);
+    let mut iterator = SimpleHttpChunkIterator::new(vec![], headers, stream, 100);
 
     let mut collected_bytes = Vec::new();
 
@@ -280,7 +280,7 @@ fn test_chunk_boundary_crlf_consumption() {
     let stream = SharedByteBufferStream::ref_cell(cursor);
 
     let headers = SimpleHeaders::new();
-    let mut iterator = SimpleHttpChunkIterator::new(vec![], headers, stream);
+    let mut iterator = SimpleHttpChunkIterator::new(vec![], headers, stream, 100);
 
     let mut collected_bytes = Vec::new();
     let mut chunk_count = 0;
