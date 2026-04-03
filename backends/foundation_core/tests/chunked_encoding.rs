@@ -12,6 +12,7 @@
 use foundation_core::io::ioutils::SharedByteBufferStream;
 use foundation_core::wire::simple_http::{ChunkedData, SimpleHeaders, SimpleHttpChunkIterator};
 use std::io::Cursor;
+use tracing_test::traced_test;
 
 /// Test fixture: Simulated GCP-like response with CR bytes embedded
 /// in JSON content.
@@ -275,7 +276,9 @@ fn test_gcp_chunked_fixture_from_file() {
 /// The captured response contains ~384 CR bytes embedded in JSON content
 /// (not just framing) that must be stripped for valid JSON parsing.
 #[test]
+#[traced_test]
 fn test_real_gcp_captured_response() {
+
     // Load the real captured GCP response (body only, with chunked encoding)
     let fixture_bytes = include_bytes!("gcp_real_chunked_response.bin");
 
@@ -298,17 +301,28 @@ fn test_real_gcp_captured_response() {
     let mut iterator = SimpleHttpChunkIterator::new(vec![], headers, stream);
 
     let mut collected_bytes = Vec::new();
+    let mut chunk_count = 0;
 
     for result in &mut iterator {
         match result {
             Ok(ChunkedData::Data(data, _)) => {
                 collected_bytes.extend_from_slice(&data);
+                chunk_count += 1;
+                tracing::info!("Chunk {}: collected {} bytes (total: {})",
+                    chunk_count, data.len(), collected_bytes.len());
             }
-            Ok(ChunkedData::DataEnded) => break,
-            Ok(ChunkedData::Trailers(_)) => {}
+            Ok(ChunkedData::DataEnded) => {
+                tracing::info!("DataEnd after {} chunks, {} bytes", chunk_count, collected_bytes.len());
+                break;
+            }
+            Ok(ChunkedData::Trailers(_)) => {
+                tracing::info!("Trailers received");
+            }
             Err(e) => panic!("Chunk iterator error: {e}"),
         }
     }
+
+    tracing::info!("Final: {} chunks, {} bytes", chunk_count, collected_bytes.len());
 
     // Verify all CR bytes are stripped from output
     let output_cr_count = collected_bytes
@@ -342,5 +356,166 @@ fn test_real_gcp_captured_response() {
         collected_bytes.len() > 5_000_000,
         "Output should be ~5.8MB, got: {}",
         collected_bytes.len()
+    );
+}
+
+/// Test: Non-standard chunked encoding with LF-only line endings (\n instead of \r\n).
+///
+/// Some servers may send chunked responses with LF-only line endings instead of
+/// the standard CRLF. This test verifies the parser handles such non-standard
+/// but functional responses correctly.
+#[test]
+fn test_lf_only_line_endings() {
+    // Build a chunked response with LF-only line endings (no CR bytes)
+    let chunk1: &[u8] = b"Hello, ";
+    let chunk2: &[u8] = b"World!";
+
+    let mut raw_response = Vec::new();
+
+    // Chunk 1 with LF-only framing
+    raw_response.extend(format!("{:x}\n", chunk1.len()).as_bytes());
+    raw_response.extend_from_slice(chunk1);
+    raw_response.extend_from_slice(b"\n");
+
+    // Chunk 2 with LF-only framing
+    raw_response.extend(format!("{:x}\n", chunk2.len()).as_bytes());
+    raw_response.extend_from_slice(chunk2);
+    raw_response.extend_from_slice(b"\n");
+
+    // Final chunk with LF-only framing
+    raw_response.extend_from_slice(b"0\n\n");
+
+    let cursor = Cursor::new(raw_response);
+    let stream = SharedByteBufferStream::ref_cell(cursor);
+
+    let headers = SimpleHeaders::new();
+    let mut iterator = SimpleHttpChunkIterator::new(vec![], headers, stream);
+
+    let mut collected_bytes = Vec::new();
+
+    for result in &mut iterator {
+        match result {
+            Ok(ChunkedData::Data(data, _)) => {
+                collected_bytes.extend_from_slice(&data);
+            }
+            Ok(ChunkedData::DataEnded) => break,
+            Ok(ChunkedData::Trailers(_)) => {}
+            Err(e) => panic!("Chunk iterator error: {e}"),
+        }
+    }
+
+    // Verify content is correct
+    let expected = b"Hello, World!";
+    assert_eq!(
+        &collected_bytes, expected,
+        "Content should be correctly parsed with LF-only line endings"
+    );
+}
+
+/// Test: Mixed line endings - some chunks with CRLF, some with LF-only.
+///
+/// This test verifies the parser handles inconsistent line endings across
+/// different chunks within the same response.
+#[test]
+fn test_mixed_line_endings() {
+    let chunk1: &[u8] = b"Chunk1-";
+    let chunk2: &[u8] = b"Chunk2-";
+    let chunk3: &[u8] = b"Chunk3";
+
+    let mut raw_response = Vec::new();
+
+    // Chunk 1 with standard CRLF framing
+    raw_response.extend(format!("{:x}\r\n", chunk1.len()).as_bytes());
+    raw_response.extend_from_slice(chunk1);
+    raw_response.extend_from_slice(b"\r\n");
+
+    // Chunk 2 with LF-only framing
+    raw_response.extend(format!("{:x}\n", chunk2.len()).as_bytes());
+    raw_response.extend_from_slice(chunk2);
+    raw_response.extend_from_slice(b"\n");
+
+    // Chunk 3 with standard CRLF framing
+    raw_response.extend(format!("{:x}\r\n", chunk3.len()).as_bytes());
+    raw_response.extend_from_slice(chunk3);
+    raw_response.extend_from_slice(b"\r\n");
+
+    // Final chunk with CRLF
+    raw_response.extend_from_slice(b"0\r\n\r\n");
+
+    let cursor = Cursor::new(raw_response);
+    let stream = SharedByteBufferStream::ref_cell(cursor);
+
+    let headers = SimpleHeaders::new();
+    let mut iterator = SimpleHttpChunkIterator::new(vec![], headers, stream);
+
+    let mut collected_bytes = Vec::new();
+
+    for result in &mut iterator {
+        match result {
+            Ok(ChunkedData::Data(data, _)) => {
+                collected_bytes.extend_from_slice(&data);
+            }
+            Ok(ChunkedData::DataEnded) => break,
+            Ok(ChunkedData::Trailers(_)) => {}
+            Err(e) => panic!("Chunk iterator error: {e}"),
+        }
+    }
+
+    // Verify content is correct
+    let expected = b"Chunk1-Chunk2-Chunk3";
+    assert_eq!(
+        &collected_bytes, expected,
+        "Content should be correctly parsed with mixed line endings"
+    );
+}
+
+/// Test: Double LF line endings (\n\n) as mentioned in edge case testing.
+///
+/// Some servers might use double-LF as chunk terminators. This test validates
+/// the parser handles such edge cases correctly.
+#[test]
+fn test_double_lf_line_endings() {
+    let chunk1: &[u8] = b"Data part 1, ";
+    let chunk2: &[u8] = b"Data part 2.";
+
+    let mut raw_response = Vec::new();
+
+    // Chunk 1 with double-LF framing
+    raw_response.extend(format!("{:x}\n\n", chunk1.len()).as_bytes());
+    raw_response.extend_from_slice(chunk1);
+    raw_response.extend_from_slice(b"\n\n");
+
+    // Chunk 2 with double-LF framing
+    raw_response.extend(format!("{:x}\n\n", chunk2.len()).as_bytes());
+    raw_response.extend_from_slice(chunk2);
+    raw_response.extend_from_slice(b"\n\n");
+
+    // Final chunk with double-LF
+    raw_response.extend_from_slice(b"0\n\n\n");
+
+    let cursor = Cursor::new(raw_response);
+    let stream = SharedByteBufferStream::ref_cell(cursor);
+
+    let headers = SimpleHeaders::new();
+    let mut iterator = SimpleHttpChunkIterator::new(vec![], headers, stream);
+
+    let mut collected_bytes = Vec::new();
+
+    for result in &mut iterator {
+        match result {
+            Ok(ChunkedData::Data(data, _)) => {
+                collected_bytes.extend_from_slice(&data);
+            }
+            Ok(ChunkedData::DataEnded) => break,
+            Ok(ChunkedData::Trailers(_)) => {}
+            Err(e) => panic!("Chunk iterator error: {e}"),
+        }
+    }
+
+    // Verify content is correct
+    let expected = b"Data part 1, Data part 2.";
+    assert_eq!(
+        &collected_bytes, expected,
+        "Content should be correctly parsed with double-LF line endings"
     );
 }

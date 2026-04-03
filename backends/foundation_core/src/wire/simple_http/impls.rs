@@ -4552,7 +4552,8 @@ impl ChunkState {
 
         Self::eat_space(pointer.clone())?;
         Self::eat_crlf(pointer.clone())?;
-        Self::eat_escaped_crlf(pointer.clone())?;
+        // Note: eat_escaped_crlf removed - was consuming legitimate JSON content
+        // that contained literal \n sequences as part of escaped strings
         Self::eat_newlines(pointer.clone())?;
 
         // do w have the extension starter marker (a semicolon)
@@ -4762,19 +4763,6 @@ impl ChunkState {
         Ok(())
     }
 
-    fn eat_escaped_crlf_pointer<T: Read>(
-        acc: &mut ByteBufferPointer<T>,
-    ) -> Result<(), ChunkStateError> {
-        while let Ok(b) = acc.nextby2(2) {
-            if b != b"\\r" && b != b"\\n" {
-                let _ = acc.unforward_by(2);
-                acc.skip();
-                break;
-            }
-        }
-        Ok(())
-    }
-
     fn eat_crlf_pointer<T: Read>(acc: &mut ByteBufferPointer<T>) -> Result<(), ChunkStateError> {
         while let Ok(b) = acc.nextby2(1) {
             if b[0] != b'\r' && b[0] != b'\n' {
@@ -4802,12 +4790,6 @@ impl ChunkState {
 
     fn eat_newlines<T: Read>(pointer: SharedByteBufferStream<T>) -> Result<(), ChunkStateError> {
         pointer.do_once_mut(|binding| Self::eat_newlines_pointer(binding))
-    }
-
-    fn eat_escaped_crlf<T: Read>(
-        pointer: SharedByteBufferStream<T>,
-    ) -> Result<(), ChunkStateError> {
-        pointer.do_once_mut(|binding| Self::eat_escaped_crlf_pointer(binding))
     }
 
     fn eat_crlf<T: Read>(pointer: SharedByteBufferStream<T>) -> Result<(), ChunkStateError> {

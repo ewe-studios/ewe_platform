@@ -62,6 +62,7 @@ brotli = { version = "6.0", optional = true }
 [dev-dependencies]
 serial_test = { workspace = true }
 tracing-test = { version = "0.2",  features = ["no-env-filter"] }
+tracing-subscriber = "0.3"
 reqwest = { version = "0.12.15", features = ["blocking"] }
 
 [features]
