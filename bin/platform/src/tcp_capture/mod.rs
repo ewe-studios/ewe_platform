@@ -1,16 +1,17 @@
 //! TCP capture utility for recording raw HTTP responses.
 //!
-//! WHY: To debug HTTP chunked transfer encoding issues, we need to capture
-//! the exact bytes sent by servers like GCP Discovery API.
+//! This module provides a CLI subcommand that captures raw TCP/HTTP responses
+//! for debugging HTTP chunked transfer encoding issues.
 //!
-//! WHAT: A CLI subcommand that fetches a URL and saves the raw TCP response
-//! (headers + body) to a file for later analysis and regression testing.
+//! # Usage
 //!
-//! HOW: Uses raw TCP connection to capture all bytes from the HTTP response
-//! without any parsing - exactly what the server sent over the wire.
-
-#![allow(clippy::uninlined_format_args)]
-#![allow(clippy::missing_errors_doc)]
+//! ```bash
+//! ewe_platform tcp_capture http://example.com/api -o capture.bin
+//! ```
+//!
+//! This creates:
+//! - `capture.bin` - Raw TCP response (headers + body)
+//! - `capture.bin.analysis` - Human-readable analysis with hex dump
 
 use clap::{ArgMatches, Command};
 use std::fs::File;
@@ -56,14 +57,20 @@ pub fn register(cmd: Command) -> Command {
 }
 
 /// Run the `tcp_capture` command.
-pub fn run(matches: &ArgMatches) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+///
+/// # Errors
+///
+/// Returns an error if the TCP connection fails, the HTTP request fails,
+/// or file writing fails.
+pub fn run(
+    matches: &ArgMatches,
+) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     let logging_level = if matches.get_flag("debug") {
         Level::DEBUG
     } else {
         Level::INFO
     };
 
-    // Initialize tracing
     let subscriber = FmtSubscriber::builder()
         .with_max_level(logging_level)
         .finish();
@@ -80,7 +87,6 @@ pub fn run(matches: &ArgMatches) -> Result<(), Box<dyn std::error::Error + Send 
     info!("Capturing raw HTTP response from: {}", url);
     info!("Output file: {}", output_path);
 
-    // Parse URL (simple parsing for http://host:port/path)
     let url_trimmed = url.trim_start_matches("http://");
     let (host_port, path) = url_trimmed.split_once('/').unwrap_or((url_trimmed, ""));
     let path = format!("/{}", path);
@@ -93,13 +99,12 @@ pub fn run(matches: &ArgMatches) -> Result<(), Box<dyn std::error::Error + Send 
 
     info!("Connecting to {}:{}...", host, port);
 
-    // Connect via TCP
     let timeout = Duration::from_secs(timeout_secs);
-    let mut stream = TcpStream::connect_timeout(&format!("{}:{}", host, port).parse()?, timeout)?;
+    let mut stream =
+        TcpStream::connect_timeout(&format!("{}:{}", host, port).parse()?, timeout)?;
     stream.set_read_timeout(Some(timeout))?;
     stream.set_write_timeout(Some(timeout))?;
 
-    // Build HTTP/1.1 request
     let request = format!(
         "GET {} HTTP/1.1\r\nHost: {}\r\nAccept: */*\r\nConnection: close\r\n\r\n",
         path, host
@@ -109,7 +114,6 @@ pub fn run(matches: &ArgMatches) -> Result<(), Box<dyn std::error::Error + Send 
     stream.write_all(request.as_bytes())?;
     stream.flush()?;
 
-    // Read ALL response bytes until connection closed
     info!("Reading response...");
     let mut raw_bytes = Vec::new();
     let mut buffer = vec![0u8; 8192];
@@ -137,44 +141,50 @@ pub fn run(matches: &ArgMatches) -> Result<(), Box<dyn std::error::Error + Send 
 
     info!("Total bytes captured: {}", raw_bytes.len());
 
-    // Write raw bytes to output file
     let mut output = File::create(output_path)?;
     output.write_all(&raw_bytes)?;
     output.flush()?;
 
     info!("Raw TCP response written to: {}", output_path);
 
-    // Also write analysis file with hex dump
+    write_analysis(&raw_bytes, output_path)?;
+
+    Ok(())
+}
+
+fn write_analysis(raw_bytes: &[u8], output_path: &str) -> std::io::Result<()> {
     let analysis_path = format!("{}.analysis", output_path);
     let mut analysis = File::create(&analysis_path)?;
 
     writeln!(analysis, "=== TCP Capture Analysis ===")?;
-    writeln!(analysis, "URL: {}", url)?;
     writeln!(analysis, "Total bytes: {}", raw_bytes.len())?;
     writeln!(analysis)?;
 
-    // Find end of headers
-    if let Some(header_end) = find_header_end(&raw_bytes) {
+    if let Some(header_end) = find_header_end(raw_bytes) {
         writeln!(analysis, "=== HTTP HEADERS ===")?;
         let headers = &raw_bytes[..header_end];
         writeln!(analysis, "{}", String::from_utf8_lossy(headers))?;
         writeln!(analysis)?;
 
-        // Check for chunked encoding
         let headers_str = String::from_utf8_lossy(headers);
-        let is_chunked = headers_str
-            .lines()
-            .any(|l| l.to_lowercase().contains("transfer-encoding") && l.to_lowercase().contains("chunked"));
+        let is_chunked = headers_str.lines().any(|l| {
+            let lower = l.to_lowercase();
+            lower.contains("transfer-encoding") && lower.contains("chunked")
+        });
 
         writeln!(analysis, "=== BODY ===")?;
-        writeln!(analysis, "Transfer-Encoding: {}", if is_chunked { "chunked" } else { "identity/content-length" })?;
+        writeln!(
+            analysis,
+            "Transfer-Encoding: {}",
+            if is_chunked { "chunked" } else { "identity/content-length" }
+        )?;
         writeln!(analysis, "Body size: {} bytes", raw_bytes.len() - header_end)?;
         writeln!(analysis)?;
 
-        // Hex dump of body (first 2KB)
         let body = &raw_bytes[header_end..];
         let dump_len = body.len().min(2048);
         writeln!(analysis, "=== HEX DUMP (first {} bytes) ===", dump_len)?;
+
         for (i, chunk) in body[..dump_len].chunks(16).enumerate() {
             let offset = header_end + i * 16;
             let hex_str: String = chunk
@@ -189,7 +199,6 @@ pub fn run(matches: &ArgMatches) -> Result<(), Box<dyn std::error::Error + Send 
             writeln!(analysis, "{:08x} {:<48} {}", offset, hex_str, ascii_str)?;
         }
 
-        // Count CR/LF bytes
         let cr_count = body.iter().filter(|&&b| b == b'\r').count();
         let lf_count = body.iter().filter(|&&b| b == b'\n').count();
         writeln!(analysis)?;
@@ -202,7 +211,12 @@ pub fn run(matches: &ArgMatches) -> Result<(), Box<dyn std::error::Error + Send 
             writeln!(analysis, "=== CR BYTE POSITIONS ===")?;
             for (i, &b) in body.iter().enumerate() {
                 if b == b'\r' {
-                    writeln!(analysis, "CR at absolute position {} (body offset {})", header_end + i, i)?;
+                    writeln!(
+                        analysis,
+                        "CR at absolute position {} (body offset {})",
+                        header_end + i,
+                        i
+                    )?;
                 }
             }
         }
@@ -213,13 +227,16 @@ pub fn run(matches: &ArgMatches) -> Result<(), Box<dyn std::error::Error + Send 
 }
 
 fn find_header_end(data: &[u8]) -> Option<usize> {
-    // Look for \r\n\r\n (CRLFCRLF) which marks end of HTTP headers
     for i in 3..data.len() {
-        if data[i] == b'\n' && data[i - 1] == b'\r' && data[i - 2] == b'\n' && data[i - 3] == b'\r' {
+        if data[i] == b'\n'
+            && data[i - 1] == b'\r'
+            && data[i - 2] == b'\n'
+            && data[i - 3] == b'\r'
+        {
             return Some(i + 1);
         }
     }
-    // Also try LF-only (some servers use \n\n)
+
     for i in 1..data.len() {
         if data[i] == b'\n' && data[i - 1] == b'\n' {
             return Some(i + 1);
