@@ -4148,8 +4148,6 @@ impl LineFeed {
         Ok(())
     }
 
-    /// Consume all consecutive CR/LF bytes. Used for inter-chunk spacing and
-    /// chunk header parsing where servers may send extra newlines.
     fn eat_crlf_pointer<T: Read>(acc: &mut ByteBufferPointer<T>) -> Result<(), LineFeedError> {
         while let Ok(b) = acc.nextby2(1) {
             if b[0] != b'\r' && b[0] != b'\n' {
@@ -4546,50 +4544,16 @@ impl ChunkState {
             return Err(ChunkStateError::ChunkSizeTooLarge(chunk_size as usize));
         }
 
-        // DEBUG: Log raw chunk size bytes and parsed value
-        tracing::debug!(
-            "CHUNK DEBUG: Raw chunk_size_octet={:?}, parsed_size={}, chunk_string={:?}",
-            &chunk_size_octet.as_ref().map(|b| String::from_utf8_lossy(b)),
-            chunk_size,
-            &chunk_string
-        );
-
         tracing::debug!(
             "Reading chunk size: {:?} to {:?}",
             &chunk_size,
             &chunk_string
         );
 
-        tracing::debug!("CHUNK DEBUG: About to call eat_space");
         Self::eat_space(pointer.clone())?;
-        tracing::debug!("CHUNK DEBUG: eat_space returned");
-        tracing::debug!("CHUNK DEBUG: About to call eat_crlf");
         Self::eat_crlf(pointer.clone())?;
-        tracing::debug!("CHUNK DEBUG: eat_crlf returned");
-
-        // Only eat escaped CRLF if chunk extensions are present (indicated by semicolon)
-        // RFC 7230 Section 4.1.1: chunk-extension = token [ "=" ( token / quoted-string ) ]
-        tracing::debug!("CHUNK DEBUG: Checking for chunk extensions (semicolon)");
-        let has_extensions = pointer.do_once_mut(|acc| {
-            if let Ok(b) = acc.peekby2(1) {
-                b[0] == b';'
-            } else {
-                false
-            }
-        });
-        tracing::debug!("CHUNK DEBUG: has_extensions={}", has_extensions);
-
-        if has_extensions {
-            tracing::debug!("CHUNK DEBUG: About to call eat_escaped_crlf (extensions present)");
-            Self::eat_escaped_crlf(pointer.clone())?;
-            tracing::debug!("CHUNK DEBUG: eat_escaped_crlf returned");
-        } else {
-            tracing::debug!("CHUNK DEBUG: Skipping eat_escaped_crlf (no extensions)");
-        }
-
-        tracing::debug!("CHUNK DEBUG: About to call eat_newlines");
+        Self::eat_escaped_crlf(pointer.clone())?;
         Self::eat_newlines(pointer.clone())?;
-        tracing::debug!("CHUNK DEBUG: eat_newlines returned");
 
         // do w have the extension starter marker (a semicolon)
         let extensions: Extensions = pointer.do_once_mut(|acc| {
@@ -4612,20 +4576,32 @@ impl ChunkState {
 
         tracing::debug!("Extensions : {:?}", &extensions);
 
-        // Note: CRLFs after the chunk size header are already consumed by eat_crlf above.
-        // We don't need to consume additional CRLFs here - the chunk data starts immediately
-        // after the header CRLF.
-        tracing::debug!("CHUNK DEBUG: Inside do_once_mut, chunk_size={}", chunk_size);
-        if chunk_size == 0 {
-            tracing::debug!("CHUNK DEBUG: Returning LastChunk for size 0");
-            return Ok(Self::LastChunk);
-        }
+        // are we starting out with a CRLF, if so, skip it
+        pointer.do_once_mut(|acc| {
+            if crate::is_ok!(acc.peekby2(2), b"\r\n") {
+                let _ = acc.nextby(2);
+                acc.skip();
+            }
 
-        if extensions.is_empty() {
-            return Ok(Self::Chunk(chunk_size, chunk_string, None));
-        }
+            if crate::is_ok!(acc.peekby2(2), b"\n\n") {
+                let _ = acc.nextby2(2);
+                acc.skip();
+            }
 
-        Ok(Self::Chunk(chunk_size, chunk_string, Some(extensions)))
+            // eat all the space
+            Self::eat_crlf_pointer(acc)?;
+            Self::eat_newlines_pointer(acc)?;
+
+            if chunk_size == 0 {
+                return Ok(Self::LastChunk);
+            }
+
+            if extensions.is_empty() {
+                return Ok(Self::Chunk(chunk_size, chunk_string, None));
+            }
+
+            Ok(Self::Chunk(chunk_size, chunk_string, Some(extensions)))
+        })
     }
 
     pub fn parse_http_chunk_extension<T: Read>(
@@ -4799,19 +4775,14 @@ impl ChunkState {
         Ok(())
     }
 
-    /// Consume all consecutive CR/LF bytes. Used for inter-chunk spacing and
-    /// chunk header parsing where servers may send extra newlines.
     fn eat_crlf_pointer<T: Read>(acc: &mut ByteBufferPointer<T>) -> Result<(), ChunkStateError> {
-        tracing::debug!("CHUNK DEBUG: eat_crlf_pointer START");
         while let Ok(b) = acc.nextby2(1) {
-            tracing::debug!("CHUNK DEBUG: eat_crlf_pointer got byte: {:02x}", b[0]);
             if b[0] != b'\r' && b[0] != b'\n' {
                 let _ = acc.unforward();
                 acc.skip();
                 break;
             }
         }
-        tracing::debug!("CHUNK DEBUG: eat_crlf_pointer END");
         Ok(())
     }
 
@@ -4942,8 +4913,6 @@ pub struct SimpleHttpChunkIterator<T: std::io::Read + Send>(
     SimpleHeaders,
     SharedByteBufferStream<T>,
     Arc<AtomicBool>,
-    usize, // max_retries for WouldBlock/TimedOut errors
-    usize, // consecutive_retries counter
 );
 
 impl<T: std::io::Read + Send> Clone for SimpleHttpChunkIterator<T> {
@@ -4953,8 +4922,6 @@ impl<T: std::io::Read + Send> Clone for SimpleHttpChunkIterator<T> {
             self.1.clone(),
             self.2.clone(),
             self.3.clone(),
-            self.4,
-            self.5,
         )
     }
 }
@@ -4965,15 +4932,12 @@ impl<T: std::io::Read + Send> SimpleHttpChunkIterator<T> {
         transfer_encoding: Vec<String>,
         headers: SimpleHeaders,
         stream: SharedByteBufferStream<T>,
-        max_retries: usize,
     ) -> Self {
         Self(
             transfer_encoding,
             headers,
             stream,
             Arc::new(AtomicBool::new(false)),
-            max_retries,
-            0,
         )
     }
 }
@@ -5016,37 +4980,11 @@ impl<T: std::io::Read + Send> Iterator for SimpleHttpChunkIterator<T> {
             };
         }
 
-        // Consume any leading CRLFs between chunks (servers may send extra newlines)
-        // This is different from the strict CRLF after chunk data - here we accept any
-        // number of consecutive CR/LF bytes as inter-chunk spacing.
-        tracing::debug!("CHUNK DEBUG: Consuming inter-chunk CRLFs");
-        let _ = self.2.do_once_mut(|reader| {
-            while let Ok(b) = reader.nextby2(1) {
-                if b[0] == b'\r' || b[0] == b'\n' {
-                    tracing::debug!("CHUNK DEBUG: Consumed inter-chunk byte: {:02x}", b[0]);
-                    continue;
-                }
-                // Non-CRLF byte, put it back
-                let _ = reader.unforward();
-                reader.skip();
-                break;
-            }
-            Ok::<(), ChunkStateError>(())
-        });
-
         tracing::debug!("ChunKState::StillParsingChunks");
         match ChunkState::parse_http_chunk_from_pointer(self.2.clone()) {
             Ok(chunk) => {
-                tracing::debug!("CHUNK DEBUG: parse_http_chunk_from_pointer returned: {:?}",
-                    match &chunk {
-                        ChunkState::Chunk(s, _, _) => format!("Chunk(size={})", s),
-                        ChunkState::LastChunk => "LastChunk".to_string(),
-                        ChunkState::Trailer(_) => "Trailer".to_string(),
-                    });
                 match chunk {
                     ChunkState::Chunk(size, _, opt_exts) => {
-                        tracing::debug!("CHUNK DEBUG: Got Chunk state, size={}, has_exts={}", size, opt_exts.is_some());
-
                         // // calculate whats left in our in-mem pointer
                         // let remaining_bytes = head_pointer.rem_len();
                         //
@@ -5058,148 +4996,18 @@ impl<T: std::io::Read + Send> Iterator for SimpleHttpChunkIterator<T> {
                         // let bytes_we_need = total_header_bytes_used + (size as usize);
 
                         match self.2.do_once_mut(|reader| {
-                            tracing::debug!("CHUNK DEBUG: About to read {} bytes of chunk data", size);
+                            tracing::debug!("ChunkState::Chunk::GetSize: {:?}", size);
 
                             #[allow(clippy::cast_possible_truncation)]
                             let mut chunk_data = vec![0; size as usize];
-
-                            // Read chunk data with retry logic for WouldBlock/TimedOut
-                            let mut bytes_read = 0;
-                            while bytes_read < chunk_data.len() {
-                                match reader.read(&mut chunk_data[bytes_read..]) {
-                                    Ok(0) => {
-                                        // EOF before reading all bytes
-                                        return Err(Box::new(std::io::Error::new(
-                                            std::io::ErrorKind::UnexpectedEof,
-                                            format!("unexpected EOF while reading chunk data: read {} of {} bytes", bytes_read, chunk_data.len()),
-                                        )));
-                                    }
-                                    Ok(n) => {
-                                        bytes_read += n;
-                                        self.5 = 0; // Reset retry counter on successful read
-                                        tracing::debug!("CHUNK DEBUG: read {} bytes, total bytes_read={}/{}", n, bytes_read, chunk_data.len());
-                                    }
-                                    Err(e) if e.kind() == std::io::ErrorKind::WouldBlock || e.kind() == std::io::ErrorKind::TimedOut => {
-                                        self.5 += 1;
-                                        if self.5 > self.4 {
-                                            return Err(Box::new(std::io::Error::new(
-                                                e.kind(),
-                                                format!("max consecutive retries ({}) exceeded while reading chunk data", self.4),
-                                            )));
-                                        }
-                                        tracing::debug!("CHUNK DEBUG: WouldBlock/TimedOut during chunk data read, retry {}/{}", self.5, self.4);
-                                        continue;
-                                    }
-                                    Err(e) => {
-                                        tracing::error!("CHUNK DEBUG: read failed for chunk data: {:?}", e);
-                                        return Err(Box::new(e));
-                                    }
-                                }
+                            if let Err(err) = reader.read_exact(&mut chunk_data) {
+                                return Err(Box::new(err));
                             }
 
                             tracing::debug!(
-                                "ChunkState::Chunk::DataRead: bytes_read={}/{}",
-                                bytes_read, chunk_data.len(),
+                                "ChunkState::Chunk::DataRead: len={:?}",
+                                chunk_data.len(),
                             );
-
-                            // Consume the trailing CRLF after chunk data (RFC 7230 Section 4.1)
-                            // chunk = chunk-size CRLF chunk-data CRLF
-                            tracing::debug!("CHUNK DEBUG: About to consume trailing CRLF");
-
-                            // Handle CRLF consumption with support for LF-only terminators.
-                            // Use peek first to avoid consuming bytes we need to put back.
-                            let mut crlf_consumed = false;
-                            let mut bytes_consumed = 0;
-
-                            while !crlf_consumed {
-                                // Peek at first byte without advancing cursor
-                                let first_byte = match reader.peekby2(1) {
-                                    Ok(b) => b[0],
-                                    Err(e) => {
-                                        if e.kind() == std::io::ErrorKind::WouldBlock || e.kind() == std::io::ErrorKind::TimedOut {
-                                            self.5 += 1;
-                                            if self.5 > self.4 {
-                                                return Err(Box::new(std::io::Error::new(
-                                                    e.kind(),
-                                                    format!("max retries exceeded reading CRLF"),
-                                                )));
-                                            }
-                                            tracing::debug!("CHUNK DEBUG: WouldBlock/TimedOut, retry {}/{}", self.5, self.4);
-                                            continue;
-                                        }
-                                        return Err(Box::new(e));
-                                    }
-                                };
-
-                                if first_byte == b'\r' {
-                                    // Peek at second byte
-                                    let second_byte = match reader.peekby2(2) {
-                                        Ok(b) if b.len() >= 2 => b[1],
-                                        Ok(_) => {
-                                            // Only got 1 byte, need to peek more
-                                            let _ = reader.nextby2(1);
-                                            let b2 = match reader.nextby2(1) {
-                                                Ok(b) => b[0],
-                                                Err(e) => return Err(Box::new(e)),
-                                            };
-                                            let _ = reader.unforward_by(2);
-                                            b2
-                                        }
-                                        Err(e) => return Err(Box::new(e)),
-                                    };
-
-                                    if second_byte == b'\n' {
-                                        // Standard CRLF - consume both bytes
-                                        let _ = reader.nextby2(2);
-                                        reader.skip();
-                                        crlf_consumed = true;
-                                        bytes_consumed = 2;
-                                        tracing::debug!("CHUNK DEBUG: Consumed CRLF (2 bytes)");
-                                    } else {
-                                        // \r not followed by \n - error
-                                        return Err(Box::new(std::io::Error::new(
-                                            std::io::ErrorKind::InvalidData,
-                                            format!("Invalid chunked encoding: \\r not followed by \\n"),
-                                        )));
-                                    }
-                                } else if first_byte == b'\n' {
-                                    // LF terminator - peek at second byte
-                                    let second_byte_opt = reader.peekby2(2).ok().and_then(|b| b.get(1).copied());
-
-                                    if let Some(second_byte) = second_byte_opt {
-                                        if second_byte.is_ascii_hexdigit() || second_byte == b'\r' || second_byte == b'\n' {
-                                            // LF followed by chunk size or another line ending - only consume the LF
-                                            let _ = reader.nextby2(1);
-                                            reader.skip();
-                                            crlf_consumed = true;
-                                            bytes_consumed = 1;
-                                            tracing::debug!("CHUNK DEBUG: Consumed LF-only (1 byte), next is {:02x}", second_byte);
-                                        } else {
-                                            // LF followed by something else - consume both
-                                            let _ = reader.nextby2(2);
-                                            reader.skip();
-                                            crlf_consumed = true;
-                                            bytes_consumed = 2;
-                                            tracing::debug!("CHUNK DEBUG: Consumed LF + {:02x} (2 bytes)", second_byte);
-                                        }
-                                    } else {
-                                        // Can't peek second byte, just consume the LF
-                                        let _ = reader.nextby2(1);
-                                        reader.skip();
-                                        crlf_consumed = true;
-                                        bytes_consumed = 1;
-                                        tracing::debug!("CHUNK DEBUG: Consumed lone LF (1 byte)");
-                                    }
-                                } else {
-                                    // Not a line terminator - error
-                                    return Err(Box::new(std::io::Error::new(
-                                        std::io::ErrorKind::InvalidData,
-                                        format!("Expected CRLF after chunk data, got {:02x}", first_byte),
-                                    )));
-                                }
-                            }
-
-                            tracing::debug!("CHUNK DEBUG: CRLF consumed ({} bytes)", bytes_consumed);
 
                             Ok(ChunkedData::Data(chunk_data, opt_exts))
                         }) {
@@ -5387,7 +5195,6 @@ impl BodyExtractor for SimpleHttpBody {
                     transfer_encoding,
                     headers,
                     stream,
-                    self.3, // max_retries
                 ));
                 Ok(SendSafeBody::ChunkedStream(Some(chunked_iterator)))
             }
@@ -5883,470 +5690,5 @@ impl ServiceActionBuilder {
             route,
             body,
         })
-    }
-}
-
-// ============================================================================
-// Tests
-// ============================================================================
-
-#[cfg(test)]
-mod chunked_tests {
-    use super::*;
-    use crate::io::ioutils::SharedByteBufferStream;
-    use std::io::Cursor;
-
-    /// Test: Multi-chunk JSON body - verifies CRLFs are not included in data.
-    ///
-    /// This test creates a valid HTTP chunked response containing JSON data
-    /// split across multiple chunks. If the CRLF after each chunk's data is
-    /// not properly consumed, the output will contain extra newlines.
-    #[test]
-    fn test_chunked_json_no_crlf_in_data() {
-        // JSON payload split into 3 chunks
-        let chunk1_data = b"{\"users\": [";
-        let chunk2_data = b"{\"id\": 1, \"name\": \"Alice\"}";
-        let chunk3_data = b"]}";
-
-        // Build properly formatted HTTP chunked response
-        // Format: <size>\r\n<data>\r\n for each chunk, then 0\r\n\r\n for end
-        let mut raw_response = Vec::new();
-
-        // Chunk 1
-        raw_response.extend(format!("{:x}\r\n", chunk1_data.len()).as_bytes());
-        raw_response.extend_from_slice(chunk1_data);
-        raw_response.extend_from_slice(b"\r\n");
-
-        // Chunk 2
-        raw_response.extend(format!("{:x}\r\n", chunk2_data.len()).as_bytes());
-        raw_response.extend_from_slice(chunk2_data);
-        raw_response.extend_from_slice(b"\r\n");
-
-        // Chunk 3
-        raw_response.extend(format!("{:x}\r\n", chunk3_data.len()).as_bytes());
-        raw_response.extend_from_slice(chunk3_data);
-        raw_response.extend_from_slice(b"\r\n");
-
-        // Final chunk (size 0)
-        raw_response.extend_from_slice(b"0\r\n\r\n");
-
-        let cursor = Cursor::new(raw_response);
-        let stream = SharedByteBufferStream::ref_cell(cursor);
-
-        let headers = SimpleHeaders::new();
-        let mut iterator = SimpleHttpChunkIterator::new(vec![], headers, stream, 100);
-
-        let mut collected_bytes = Vec::new();
-
-        for result in &mut iterator {
-            match result {
-                Ok(ChunkedData::Data(data, _)) => {
-                    collected_bytes.extend_from_slice(&data);
-                }
-                Ok(ChunkedData::DataEnded) => break,
-                Ok(ChunkedData::Trailers(_)) => {}
-                Err(e) => panic!("Chunk iterator error: {:?}", e),
-            }
-        }
-
-        // Expected: concatenated chunk data without any CRLFs
-        let expected = b"{\"users\": [{\"id\": 1, \"name\": \"Alice\"}]}";
-
-        assert_eq!(
-            &collected_bytes,
-            expected,
-            "Chunked data should not include CRLF markers. Got: {:?}, Expected: {:?}",
-            String::from_utf8_lossy(&collected_bytes),
-            String::from_utf8_lossy(expected)
-        );
-
-        // Verify no stray carriage returns in output
-        for (i, byte) in collected_bytes.iter().enumerate() {
-            assert_ne!(
-                *byte,
-                b'\r',
-                "Found carriage return (\\r) at position {} in chunk data - CRLF was not properly stripped",
-                i
-            );
-        }
-    }
-
-    /// Test: Verify exact byte-for-byte output matches input content.
-    #[test]
-    fn test_chunked_exact_content_preservation() {
-        let test_content = b"{\"message\": \"hello\\nworld\", \"count\": 42}";
-
-        let mut raw_response = Vec::new();
-
-        raw_response.extend(format!("{:x}\r\n", test_content.len()).as_bytes());
-        raw_response.extend_from_slice(test_content);
-        raw_response.extend_from_slice(b"\r\n");
-        raw_response.extend_from_slice(b"0\r\n\r\n");
-
-        let cursor = Cursor::new(raw_response);
-        let stream = SharedByteBufferStream::ref_cell(cursor);
-
-        let headers = SimpleHeaders::new();
-        let mut iterator = SimpleHttpChunkIterator::new(vec![], headers, stream, 100);
-
-        let mut collected_bytes = Vec::new();
-
-        for result in &mut iterator {
-            match result {
-                Ok(ChunkedData::Data(data, _)) => {
-                    collected_bytes.extend_from_slice(&data);
-                }
-                Ok(ChunkedData::DataEnded) => break,
-                Err(e) => panic!("Chunk iterator error: {:?}", e),
-                _ => {}
-            }
-        }
-
-        assert_eq!(
-            &collected_bytes,
-            test_content,
-            "Output must exactly match input content. Got: {:?}, Expected: {:?}",
-            String::from_utf8_lossy(&collected_bytes),
-            String::from_utf8_lossy(test_content)
-        );
-    }
-
-    /// Test: Multiple small chunks - catches CRLF accumulation issues.
-    #[test]
-    fn test_many_small_chunks() {
-        let chunks: Vec<&[u8]> = vec![b"{\"", b"key", b"\":", b"\"", b"value", b"\"", b"}"];
-
-        let mut raw_response = Vec::new();
-
-        for chunk_data in &chunks {
-            raw_response.extend(format!("{:x}\r\n", chunk_data.len()).as_bytes());
-            raw_response.extend_from_slice(chunk_data);
-            raw_response.extend_from_slice(b"\r\n");
-        }
-
-        raw_response.extend_from_slice(b"0\r\n\r\n");
-
-        let cursor = Cursor::new(raw_response);
-        let stream = SharedByteBufferStream::ref_cell(cursor);
-
-        let headers = SimpleHeaders::new();
-        let mut iterator = SimpleHttpChunkIterator::new(vec![], headers, stream, 100);
-
-        let mut collected_bytes = Vec::new();
-
-        for result in &mut iterator {
-            match result {
-                Ok(ChunkedData::Data(data, _)) => {
-                    collected_bytes.extend_from_slice(&data);
-                }
-                Ok(ChunkedData::DataEnded) => break,
-                Err(e) => panic!("Chunk iterator error: {:?}", e),
-                _ => {}
-            }
-        }
-
-        let expected: Vec<u8> = chunks.iter().flat_map(|c| c.iter().copied()).collect();
-
-        assert_eq!(
-            &collected_bytes,
-            &expected,
-            "Multi-chunk output corrupted. Got: {:?}, Expected: {:?}",
-            String::from_utf8_lossy(&collected_bytes),
-            String::from_utf8_lossy(&expected)
-        );
-
-        let cr_count = collected_bytes.iter().filter(|&&b| b == b'\r').count();
-        assert_eq!(
-            cr_count, 0,
-            "Found {} stray \\r characters in output - CRLFs not being consumed",
-            cr_count
-        );
-    }
-
-    /// Test: Chunk with embedded newlines in content.
-    #[test]
-    fn test_chunked_content_with_embedded_newlines() {
-        // Content with actual embedded \n bytes (not escaped)
-        let content = b"{\"lines\": [\"line1\n\", \"line2\n\", \"line3\"]}";
-
-        let mut raw_response = Vec::new();
-
-        raw_response.extend(format!("{:x}\r\n", content.len()).as_bytes());
-        raw_response.extend_from_slice(content);
-        raw_response.extend_from_slice(b"\r\n");
-        raw_response.extend_from_slice(b"0\r\n\r\n");
-
-        let cursor = Cursor::new(raw_response);
-        let stream = SharedByteBufferStream::ref_cell(cursor);
-
-        let headers = SimpleHeaders::new();
-        let mut iterator = SimpleHttpChunkIterator::new(vec![], headers, stream, 100);
-
-        let mut collected_bytes = Vec::new();
-
-        for result in &mut iterator {
-            match result {
-                Ok(ChunkedData::Data(data, _)) => {
-                    collected_bytes.extend_from_slice(&data);
-                }
-                Ok(ChunkedData::DataEnded) => break,
-                Err(e) => panic!("Chunk iterator error: {:?}", e),
-                _ => {}
-            }
-        }
-
-        // Debug: show what we actually got
-        let expected_str = String::from_utf8_lossy(content);
-        let got_str = String::from_utf8_lossy(&collected_bytes);
-        println!("Expected: {:?}", expected_str);
-        println!("Got:      {:?}", got_str);
-        println!("Expected len: {}, Got len: {}", content.len(), collected_bytes.len());
-
-        // Check for stray CR characters
-        let cr_positions: Vec<usize> = collected_bytes.iter()
-            .enumerate()
-            .filter(|(_, b)| **b == b'\r')
-            .map(|(i, _)| i)
-            .collect();
-        println!("CR found at positions: {:?}", cr_positions);
-
-        assert_eq!(
-            &collected_bytes,
-            content,
-            "Content with embedded newlines should be preserved exactly.\nExpected: {:?}\nGot:      {:?}",
-            expected_str,
-            got_str
-        );
-
-        let newline_count = collected_bytes.iter().filter(|&&b| b == b'\n').count();
-        assert_eq!(
-            newline_count, 2,
-            "Should have exactly 2 \\n from the JSON content (not counting framing). Got: {}",
-            newline_count
-        );
-
-        let cr_count = collected_bytes.iter().filter(|&&b| b == b'\r').count();
-        assert_eq!(cr_count, 0, "Should have no \\r characters in output. Got: {} at {:?}", cr_count, cr_positions);
-    }
-
-    /// Test: Empty chunk followed by non-empty chunk.
-    #[test]
-    fn test_chunk_boundary_crlf_consumption() {
-        let chunk1 = b"first";
-        let chunk2 = b"second";
-
-        let mut raw_response = Vec::new();
-
-        raw_response.extend(format!("{:x}\r\n", chunk1.len()).as_bytes());
-        raw_response.extend_from_slice(chunk1);
-        raw_response.extend_from_slice(b"\r\n");
-
-        raw_response.extend(format!("{:x}\r\n", chunk2.len()).as_bytes());
-        raw_response.extend_from_slice(chunk2);
-        raw_response.extend_from_slice(b"\r\n");
-
-        raw_response.extend_from_slice(b"0\r\n\r\n");
-
-        let cursor = Cursor::new(raw_response);
-        let stream = SharedByteBufferStream::ref_cell(cursor);
-
-        let headers = SimpleHeaders::new();
-        let mut iterator = SimpleHttpChunkIterator::new(vec![], headers, stream, 100);
-
-        let mut collected_bytes = Vec::new();
-        let mut chunk_count = 0;
-
-        for result in &mut iterator {
-            match result {
-                Ok(ChunkedData::Data(data, _)) => {
-                    chunk_count += 1;
-                    collected_bytes.extend_from_slice(&data);
-                }
-                Ok(ChunkedData::DataEnded) => break,
-                Err(e) => panic!("Chunk iterator error: {:?}", e),
-                _ => {}
-            }
-        }
-
-        assert_eq!(chunk_count, 2, "Should have received exactly 2 data chunks");
-
-        let expected = b"firstsecond";
-        assert_eq!(
-            &collected_bytes,
-            expected,
-            "Chunk boundaries should not introduce extra characters"
-        );
-    }
-
-    /// Test: Simulates streaming where chunk header and data arrive separately.
-    ///
-    /// This test simulates a real-world scenario where the HTTP chunked response
-    /// arrives in multiple TCP packets - the chunk header might arrive first,
-    /// then the data, then the CRLF terminator.
-    #[test]
-    fn test_chunked_streaming_boundaries() {
-        // Large JSON content that would typically arrive in multiple packets
-        let json_content = b"{\"apiVersion\": \"v1\", \"kind\": \"List\", \"items\": [{\"name\": \"resource-1\", \"status\": \"ready\"}, {\"name\": \"resource-2\", \"status\": \"pending\"}]}";
-
-        let mut raw_response = Vec::new();
-
-        // First chunk
-        raw_response.extend(format!("{:x}\r\n", json_content.len()).as_bytes());
-        raw_response.extend_from_slice(json_content);
-        raw_response.extend_from_slice(b"\r\n");
-
-        // Second chunk with different content
-        let chunk2 = b"extra-data";
-        raw_response.extend(format!("{:x}\r\n", chunk2.len()).as_bytes());
-        raw_response.extend_from_slice(chunk2);
-        raw_response.extend_from_slice(b"\r\n");
-
-        // Final chunk
-        raw_response.extend_from_slice(b"0\r\n\r\n");
-
-        let cursor = Cursor::new(raw_response);
-        let stream = SharedByteBufferStream::ref_cell(cursor);
-
-        let headers = SimpleHeaders::new();
-        let mut iterator = SimpleHttpChunkIterator::new(vec![], headers, stream, 100);
-
-        let mut all_data = Vec::new();
-        let mut chunk_count = 0;
-
-        for result in &mut iterator {
-            match result {
-                Ok(ChunkedData::Data(data, _)) => {
-                    chunk_count += 1;
-                    all_data.extend_from_slice(&data);
-                }
-                Ok(ChunkedData::DataEnded) => break,
-                Err(e) => panic!("Chunk iterator error: {:?}", e),
-                _ => {}
-            }
-        }
-
-        // Verify we got both chunks
-        assert_eq!(chunk_count, 2, "Should have received 2 chunks");
-
-        // Verify data is correct
-        let mut expected = Vec::new();
-        expected.extend_from_slice(json_content);
-        expected.extend_from_slice(chunk2);
-
-        assert_eq!(
-            &all_data, &expected,
-            "Data mismatch.\nExpected: {:?}\nGot:      {:?}",
-            String::from_utf8_lossy(&expected),
-            String::from_utf8_lossy(&all_data)
-        );
-
-        assert_eq!(
-            all_data.iter().filter(|&&b| b == b'\r').count(),
-            0,
-            "Found stray \\r in output"
-        );
-    }
-
-    /// Test: Catches the CRLF consumption bug with partial/simulated reads.
-    ///
-    /// This test uses a custom reader that only provides partial data on each read,
-    /// simulating real network conditions where data arrives in multiple packets.
-    /// This catches the bug where the trailing CRLF after chunk-data is not consumed.
-    #[test]
-    fn test_chunked_crlf_consumption_bug() {
-        use std::io::{Read, Result as IoResult};
-
-        // Custom reader that limits bytes per read to simulate streaming
-        struct PartialReader {
-            data: Vec<u8>,
-            pos: usize,
-            max_per_read: usize,
-        }
-
-        impl PartialReader {
-            fn new(data: Vec<u8>, max_per_read: usize) -> Self {
-                Self {
-                    data,
-                    pos: 0,
-                    max_per_read,
-                }
-            }
-        }
-
-        impl Read for PartialReader {
-            fn read(&mut self, buf: &mut [u8]) -> IoResult<usize> {
-                if self.pos >= self.data.len() {
-                    return Ok(0);
-                }
-                let available = self.data.len() - self.pos;
-                let to_read = buf.len().min(available).min(self.max_per_read);
-                buf[..to_read].copy_from_slice(&self.data[self.pos..self.pos + to_read]);
-                self.pos += to_read;
-                Ok(to_read)
-            }
-        }
-
-        // Build chunked response with 2 chunks
-        let chunk1 = b"{\"key\": \"value1\"}";
-        let chunk2 = b"{\"key\": \"value2\"}";
-        let mut raw = Vec::new();
-
-        raw.extend(format!("{:x}\r\n", chunk1.len()).as_bytes());
-        raw.extend_from_slice(chunk1);
-        raw.extend_from_slice(b"\r\n");
-
-        raw.extend(format!("{:x}\r\n", chunk2.len()).as_bytes());
-        raw.extend_from_slice(chunk2);
-        raw.extend_from_slice(b"\r\n");
-
-        raw.extend_from_slice(b"0\r\n\r\n");
-
-        // Use PartialReader to simulate streaming (only 4 bytes per read)
-        let reader = PartialReader::new(raw, 4);
-        let stream = SharedByteBufferStream::ref_cell(reader);
-
-        let headers = SimpleHeaders::new();
-        let mut iterator = SimpleHttpChunkIterator::new(vec![], headers, stream, 100);
-
-        let mut all_data = Vec::new();
-        let mut chunk_count = 0;
-
-        for result in &mut iterator {
-            match result {
-                Ok(ChunkedData::Data(data, _)) => {
-                    chunk_count += 1;
-                    all_data.extend_from_slice(&data);
-                }
-                Ok(ChunkedData::DataEnded) => break,
-                Err(e) => panic!("Chunk iterator error: {:?}", e),
-                _ => {}
-            }
-        }
-
-        // Verify we got both chunks
-        assert_eq!(chunk_count, 2, "Should have received 2 chunks");
-
-        // Verify data is correct
-        let mut expected = Vec::new();
-        expected.extend_from_slice(chunk1);
-        expected.extend_from_slice(chunk2);
-
-        // This assertion FAILS without the fix because CRLFs leak into data
-        let got_str = String::from_utf8_lossy(&all_data);
-        let expected_str = String::from_utf8_lossy(&expected);
-
-        assert_eq!(
-            &all_data, &expected,
-            "CRLF not consumed - data corrupted.\nExpected: {:?}\nGot:      {:?}",
-            expected_str, got_str
-        );
-
-        // Also check for stray CR characters
-        let cr_count = all_data.iter().filter(|&&b| b == b'\r').count();
-        assert_eq!(
-            cr_count, 0,
-            "Found {} stray \\r characters - CRLF not consumed after chunk data",
-            cr_count
-        );
     }
 }
