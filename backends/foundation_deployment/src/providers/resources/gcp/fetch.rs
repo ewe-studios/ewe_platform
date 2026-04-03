@@ -6,11 +6,11 @@
 //! WHAT: Fetches the API directory, then fetches ALL API specs in parallel.
 //!
 //! HOW: Uses combinators to chain: directory fetch → create API tasks →
-//! `collect_all_streams` → write output. No blocking, no from_future.
+//! `collect_all_streams` → write output. No blocking, no `from_future`.
 
 use crate::error::DeploymentError;
 use foundation_core::valtron::{
-    collect_all_streams, execute, one_shot, Stream, StreamIterator, StreamIteratorExt,
+    collect_next_from_streams, execute, one_shot, Stream, StreamIterator, StreamIteratorExt,
     TaskIteratorExt, TaskShortCircuit, TaskStatus,
 };
 use foundation_core::wire::simple_http::client::{
@@ -97,6 +97,9 @@ pub fn fetch_gcp_specs(
     let pool = client.client_pool().expect("should have pool");
     let config = client.client_config();
 
+    // Wrap output_dir in Arc for use across closure boundaries
+    let output_dir = Arc::new(output_dir);
+
     debug!("GCP fetch: output_dir={:?}", output_dir);
 
     // Stage 1: Build directory fetch request
@@ -133,7 +136,7 @@ pub fn fetch_gcp_specs(
         match directory_result {
             Ok(directory) => {
                 let total_apis = directory.items.len();
-                debug!("gcp: Found {} APIs in directory", total_apis);
+                info!("gcp: Found {} APIs in directory", total_apis);
 
                 // Filter APIs based on provided filter, or fetch all if no filter specified
                 let filtered_items: Vec<GcpApiEntry> = if let Some(ref filter) = api_filter {
@@ -145,7 +148,10 @@ pub fn fetch_gcp_specs(
                         .collect()
                 } else {
                     // No filter specified - fetch ALL APIs
-                    debug!("gcp: No API filter specified, fetching all {} APIs", total_apis);
+                    info!(
+                        "gcp: No API filter specified, fetching all {} APIs",
+                        total_apis
+                    );
                     directory.items
                 };
 
@@ -160,35 +166,50 @@ pub fn fetch_gcp_specs(
                     Vec::new();
 
                 for entry in filtered_items {
+                    let output_dir = Arc::clone(&output_dir);
                     match create_api_fetch_task(entry, pool.clone(), config.clone()) {
                         Ok(task) => match execute(task, None) {
-                            Ok(stream) => streams.push(Box::new(stream)),
+                            Ok(stream) => streams.push(Box::new(stream.map_done(move |result| {
+                                info!("Receiving result from stream: {:?}", &result);
+                                match result {
+                                    Some(Ok((entry, spec))) => {
+                                        info!("Fetched: {} ({})", entry.name, entry.version);
+                                        // Write this single spec immediately
+                                        let write_result =
+                                            write_single_spec(&output_dir, &entry, &spec);
+                                        match write_result {
+                                            Ok(path) => {
+                                                info!(
+                                                    "Written to: {} ({}) - {:?}",
+                                                    entry.name, entry.version, &path
+                                                );
+                                                Ok(path)
+                                            }
+                                            Err(e) => {
+                                                error!("Failed to write {}: {}", entry.name, e);
+                                                Err(e)
+                                            }
+                                        }
+                                    }
+                                    Some(Err(e)) => {
+                                        warn!("Spec fetch failed for API: {}", e);
+                                        Err(e)
+                                    }
+                                    None => unreachable!(
+                                        "collect_next_from_streams should not produce None"
+                                    ),
+                                }
+                            }))),
                             Err(e) => warn!("Failed to execute fetch task: {}", e),
                         },
                         Err(e) => warn!("Failed to create fetch task: {}", e),
                     }
                 }
 
-                let total_tasks = streams.len();
-                let output_dir = output_dir.clone();
-
-                // Collect all API fetches and write output
+                // Write each API spec as soon as it's fetched to avoid OOM.
+                // Each stream produces one (entry, spec) result, which we write immediately.
                 Box::new(
-                    collect_all_streams(streams)
-                        .map_done(move |results| {
-                            let mut specs = Vec::new();
-                            for result in results {
-                                if let Some(Ok((entry, spec))) = result {
-                                    info!("  Loaded: {} ({})", entry.name, entry.version);
-                                    specs.push((entry, spec));
-                                } else if let Some(Err(e)) = result {
-                                    warn!("Spec fetch failed for all streams: {}", e);
-                                }
-                            }
-
-                            info!("Fetched {} API specs, writing output", specs.len());
-                            write_output(&output_dir, total_tasks, &specs)
-                        })
+                    collect_next_from_streams(streams)
                         .map_pending(|_| GcpFetchPending::FetchingApiSpecs { remaining: 0 }),
                 ) as ApiFetchStream
             }
@@ -236,7 +257,7 @@ fn create_api_fetch_task(
 
                 match serde_json::from_str::<Value>(body.trim()) {
                     Ok(spec) => {
-                        debug!("gcp/{}: JSON parsed", name);
+                        info!("gcp/{}: JSON parsed", name);
                         Some(Ok((entry.clone(), spec)))
                     }
                     Err(e) => {
@@ -259,48 +280,26 @@ fn create_api_fetch_task(
     Ok(Box::new(task))
 }
 
-fn write_output(
-    output_dir: &PathBuf,
-    total_apis: usize,
-    specs: &[(GcpApiEntry, Value)],
+fn write_single_spec(
+    output_dir: &std::path::Path,
+    entry: &GcpApiEntry,
+    spec: &Value,
 ) -> Result<PathBuf, DeploymentError> {
-    std::fs::create_dir_all(output_dir)
-        .map_err(|e| DeploymentError::Generic(format!("Failed to create output directory: {e}")))?;
+    let api_dir = output_dir.join(&entry.name);
+    std::fs::create_dir_all(&api_dir).map_err(|e| {
+        DeploymentError::Generic(format!(
+            "Failed to create directory for {}: {e}",
+            entry.name
+        ))
+    })?;
 
-    let mut consolidated = serde_json::Map::new();
-    let mut spec_names = Vec::new();
-
-    for (entry, spec) in specs {
-        consolidated.insert(entry.id.clone(), spec.clone());
-        spec_names.push(format!("{}-{}.json", entry.name, entry.version));
-    }
-
-    let output_path = output_dir.join("openapi.json");
-    let json = serde_json::to_string_pretty(&Value::Object(consolidated))
+    let api_path = api_dir.join("openapi.json");
+    let json = serde_json::to_string_pretty(spec)
         .map_err(|e| DeploymentError::Generic(format!("Failed to serialize JSON: {e}")))?;
 
-    std::fs::write(&output_path, json)
-        .map_err(|e| DeploymentError::Generic(format!("Failed to write output file: {e}")))?;
+    std::fs::write(&api_path, json).map_err(|e| {
+        DeploymentError::Generic(format!("Failed to write {}: {e}", api_path.display()))
+    })?;
 
-    let manifest = serde_json::json!({
-        "source": GCP_DISCOVERY_URL,
-        "fetched_at": chrono::Utc::now().to_rfc3339(),
-        "total_apis": total_apis,
-        "fetched": specs.len(),
-        "apis": specs.iter().zip(spec_names.iter()).map(|((entry, _), filename)| serde_json::json!({
-            "filename": filename,
-            "id": &entry.id,
-            "name": &entry.name,
-            "version": &entry.version,
-            "title": &entry.title,
-            "preferred": entry.preferred,
-        })).collect::<Vec<_>>(),
-    });
-
-    let manifest_path = output_dir.join("_manifest.json");
-    std::fs::write(&manifest_path, serde_json::to_string_pretty(&manifest)?)
-        .map_err(|e| DeploymentError::Generic(format!("Failed to write manifest: {e}")))?;
-
-    info!("GCP spec saved to: {}", output_path.display());
-    Ok(output_path)
+    Ok(api_path)
 }
