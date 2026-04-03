@@ -25,6 +25,7 @@ mod generate;
 mod local;
 mod sandbox;
 mod sandbox_app;
+mod tcp_capture;
 mod wasm_bins;
 mod watchful;
 
@@ -40,10 +41,12 @@ async fn main() -> std::result::Result<(), BoxedError> {
                         watchful::register(
                             local::register(
                                 gen_provider_specs::register(
-                                    clap::Command::new("platform")
-                                        .about("The Ewe platform toolset")
-                                        .arg_required_else_help(true)
-                                        .allow_external_subcommands(true),
+                                    tcp_capture::register(
+                                        clap::Command::new("platform")
+                                            .about("The Ewe platform toolset")
+                                            .arg_required_else_help(true)
+                                            .allow_external_subcommands(true),
+                                    ),
                                 ),
                             ),
                         ),
@@ -64,6 +67,7 @@ async fn main() -> std::result::Result<(), BoxedError> {
         Some(("gen_resource_types", arguments)) => gen_resource_types::run(arguments)?,
         Some(("wasm_bins", arguments)) => wasm_bins::run(arguments)?,
         Some(("watch", arguments)) => watchful::run(arguments)?,
+        Some(("tcp_capture", arguments)) => tcp_capture::run(arguments)?,
         _ => {}
     }
 
