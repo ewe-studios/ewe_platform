@@ -48,12 +48,12 @@ pub struct GcpDirectoryResponse {
 /// Add more APIs here as needed for your use case.
 const RELEVANT_GCP_APIS: &[&str] = &[
     // Core infrastructure - most commonly used
-    "compute", // Compute Engine
-              // "container", // GKE
-              // "iam",        // IAM
-              // "logging",    // Cloud Logging
-              // "monitoring", // Cloud Monitoring
-              // "storage",    // Cloud Storage
+    "compute",    // Compute Engine
+    "container",  // GKE
+    "iam",        // IAM
+    "logging",    // Cloud Logging
+    "monitoring", // Cloud Monitoring
+    "storage",    // Cloud Storage
 ];
 
 /// Progress states for GCP fetch.
@@ -210,19 +210,18 @@ pub fn fetch_gcp_specs(
 }
 
 /// Create a task to fetch a single API spec.
+type ApiFetchTask = impl foundation_core::valtron::TaskIterator<
+        Ready = Option<Result<(GcpApiEntry, Value), DeploymentError>>,
+        Pending = usize,
+        Spawner = foundation_core::valtron::BoxedSendExecutionAction,
+    > + Send
+    + 'static;
+
 fn create_api_fetch_task(
     entry: GcpApiEntry,
     pool: Arc<HttpConnectionPool<SystemDnsResolver>>,
     config: ClientConfig,
-) -> Result<
-    impl foundation_core::valtron::TaskIterator<
-            Ready = Option<Result<(GcpApiEntry, Value), DeploymentError>>,
-            Pending = usize,
-            Spawner = foundation_core::valtron::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    DeploymentError,
-> {
+) -> Result<ApiFetchTask, DeploymentError> {
     let request = SimpleHttpClient::new(config.clone(), pool.clone())
         .get(&entry.discovery_rest_url)
         .map_err(|e| DeploymentError::Generic(format!("Failed to build request: {e}")))?
@@ -237,19 +236,13 @@ fn create_api_fetch_task(
                 let body = body_reader::collect_string(stream);
                 debug!("gcp/{}: Body length: {}", name, body.len());
 
-                let output_path = Path::new("response_api.json");
-                std::fs::write(output_path, &body).expect("write out to disk");
-
                 match serde_json::from_str::<Value>(body.trim()) {
                     Ok(spec) => {
-                        debug!("gcp/{}/{}: JSON parsed", name, entry.discovery_rest_url);
+                        debug!("gcp/{}: JSON parsed", name);
                         Some(Ok((entry.clone(), spec)))
                     }
                     Err(e) => {
-                        error!(
-                            "gcp/{}/{}: JSON error: {}",
-                            name, entry.discovery_rest_url, e
-                        );
+                        error!("gcp/{}: JSON error: {}", name, e);
                         Some(Err(DeploymentError::Generic(format!("JSON error: {e}"))))
                     }
                 }
