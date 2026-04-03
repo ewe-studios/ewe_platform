@@ -1,32 +1,7 @@
 {
-  "apis": [
-    {
-      "filename": "compute-alpha.json",
-      "id": "compute:alpha",
-      "name": "compute",
-      "preferred": false,
-      "title": "Compute Engine API",
-      "version": "alpha"
-    },
-    {
-      "filename": "compute-beta.json",
-      "id": "compute:beta",
-      "name": "compute",
-      "preferred": false,
-      "title": "Compute Engine API",
-      "version": "beta"
-    },
-    {
-      "filename": "compute-v1.json",
-      "id": "compute:v1",
-      "name": "compute",
-      "preferred": true,
-      "title": "Compute Engine API",
-      "version": "v1"
-    }
-  ],
-  "fetched": 3,
-  "fetched_at": "2026-04-02T19:47:44.215575517+00:00",
+  "apis": [],
+  "fetched": 0,
+  "fetched_at": "2026-04-03T10:16:22.011516420+00:00",
   "source": "https://discovery.googleapis.com/discovery/v1/apis",
   "total_apis": 3
 }

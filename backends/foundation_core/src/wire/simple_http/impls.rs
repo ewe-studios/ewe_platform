@@ -4956,14 +4956,14 @@ impl<T: std::io::Read + Send> Iterator for SimpleHttpChunkIterator<T> {
                 Ok(value) => match value {
                     Some(item) => match item {
                         ChunkState::Trailer(inner) => {
-                            tracing::debug!("Processing::Chunk::Trailer: {:?} ", &inner);
+                            tracing::trace!("Processing::Chunk::Trailer: {:?} ", &inner);
                             let trailers: Vec<(String, Option<String>)> = inner
                                     .split('\n')
                                     .filter(|item| !item.trim().is_empty())
                                     .map(|item| match item.find(':') {
                                         Some(index) => {
                                             let (key, value) = item.split_at(index);
-                                            tracing::debug!("Processing::Chunk::Trailer::parts: key={:?} value={:?}", &key, value);
+                                            tracing::trace!("Processing::Chunk::Trailer::parts: key={:?} value={:?}", &key, value);
                                             (key.into(), Some(value[1..].trim().into()))
                                         }
                                         None => (item.into(), None),
@@ -5002,6 +5002,21 @@ impl<T: std::io::Read + Send> Iterator for SimpleHttpChunkIterator<T> {
                             let mut chunk_data = vec![0; size as usize];
                             if let Err(err) = reader.read_exact(&mut chunk_data) {
                                 return Err(Box::new(err));
+                            }
+
+                            // WORKAROUND: Strip any CR bytes from chunk data.
+                            // Some servers (notably GCP Discovery API) include stray CR bytes
+                            // in response content that break downstream parsing (e.g., JSON).
+                            // Per RFC 7230, chunked transfer coding uses CRLF as delimiters,
+                            // and raw CR bytes in chunk data are unexpected control characters.
+                            // This ensures protocol-level correctness for all chunked responses.
+                            // See: specifications/11-foundation-deployment/features/05-gcp-cloud-run-provider/CR_BYTE_INVESTIGATION.md
+                            if size > 0 {
+                                let cr_count = chunk_data.iter().filter(|&&b| b == b'\r').count();
+                                if cr_count > 0 {
+                                    tracing::debug!("Chunk parser: stripping {} CR bytes from chunk data", cr_count);
+                                    chunk_data.retain(|&b| b != b'\r');
+                                }
                             }
 
                             tracing::debug!(

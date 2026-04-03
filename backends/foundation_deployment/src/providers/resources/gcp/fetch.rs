@@ -236,7 +236,6 @@ fn create_api_fetch_task(
                 debug!("gcp/{}: Response received", name);
                 let body = body_reader::collect_string(stream);
                 debug!("gcp/{}: Body length: {}", name, body.len());
-                debug!("gcp/{}: Body: {}", name, &body);
 
                 let output_path = Path::new("response_api.json");
                 std::fs::write(output_path, &body).expect("write out to disk");

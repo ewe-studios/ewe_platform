@@ -1,4 +1,6 @@
 // Test modules for foundation_core
+mod chunked_encoding;
+mod chunked_tests;
 mod flatten_combinators;
 mod map_circuit;
 mod stream_iterators;
