@@ -306,3 +306,263 @@ fn test_chunk_boundary_crlf_consumption() {
         "Chunk boundaries should not introduce extra characters"
     );
 }
+
+// ============================================================================
+// LF-Only Chunked Encoding Tests (GCP Discovery API compatibility)
+// ============================================================================
+// These tests verify handling of non-standard LF-only line endings used by
+// GCP Discovery API. RFC 7230 requires CRLF, but GCP sends LF-only terminators.
+
+/// Test: GCP-style LF-only chunk terminators.
+///
+/// GCP Discovery API sends chunked responses with LF-only (\n) instead of
+/// proper CRLF (\r\n). This test verifies the parser handles this correctly.
+///
+/// Format sent by GCP:
+///   <chunk-size>\n
+///   <chunk-data>\n
+///   0\n
+///   \n
+#[test]
+fn test_gcp_lf_only_chunk_terminators() {
+    let chunk1_data = b"{\"apis\": [";
+    let chunk2_data = b"{\"name\": \"compute\"}";
+    let chunk3_data = b"]}";
+
+    // Build GCP-style LF-only chunked response (no \r characters)
+    let mut raw_response = Vec::new();
+
+    // Chunk 1 - LF only
+    raw_response.extend(format!("{:x}\n", chunk1_data.len()).as_bytes());
+    raw_response.extend_from_slice(chunk1_data);
+    raw_response.extend_from_slice(b"\n");
+
+    // Chunk 2 - LF only
+    raw_response.extend(format!("{:x}\n", chunk2_data.len()).as_bytes());
+    raw_response.extend_from_slice(chunk2_data);
+    raw_response.extend_from_slice(b"\n");
+
+    // Chunk 3 - LF only
+    raw_response.extend(format!("{:x}\n", chunk3_data.len()).as_bytes());
+    raw_response.extend_from_slice(chunk3_data);
+    raw_response.extend_from_slice(b"\n");
+
+    // Final chunk - LF only
+    raw_response.extend_from_slice(b"0\n\n");
+
+    let cursor = Cursor::new(raw_response);
+    let stream = SharedByteBufferStream::ref_cell(cursor);
+
+    let headers = SimpleHeaders::new();
+    let mut iterator = SimpleHttpChunkIterator::new(vec![], headers, stream, 100);
+
+    let mut collected_bytes = Vec::new();
+
+    for result in &mut iterator {
+        match result {
+            Ok(ChunkedData::Data(data, _)) => {
+                collected_bytes.extend_from_slice(&data);
+            }
+            Ok(ChunkedData::DataEnded) => break,
+            Ok(ChunkedData::Trailers(_)) => {}
+            Err(e) => panic!("Chunk iterator error: {:?}", e),
+        }
+    }
+
+    // Expected: concatenated chunk data without any line endings
+    let expected = b"{\"apis\": [{\"name\": \"compute\"}]}";
+
+    assert_eq!(
+        &collected_bytes,
+        expected,
+        "LF-only chunked data should not include line terminators. Got: {:?}, Expected: {:?}",
+        String::from_utf8_lossy(&collected_bytes),
+        String::from_utf8_lossy(expected)
+    );
+
+    // Verify no stray CR or LF in output
+    for (i, byte) in collected_bytes.iter().enumerate() {
+        assert_ne!(
+            *byte, b'\r',
+            "Found \\r at position {} - corruption in LF-only parsing",
+            i
+        );
+    }
+}
+
+/// Test: Multiple chunks with LF-only terminators.
+///
+/// Stresses the LF-only handling with many small chunks to catch
+/// cumulative corruption from improper line ending consumption.
+#[test]
+fn test_lf_only_multi_chunk() {
+    let chunks: Vec<&[u8]> = vec![
+        b"{\"", b"key", b"\":", b"\"", "value\nwith\nnewlines", b"\"", b"}",
+    ];
+
+    let mut raw_response = Vec::new();
+
+    for chunk_data in &chunks {
+        // LF-only chunk framing
+        raw_response.extend(format!("{:x}\n", chunk_data.len()).as_bytes());
+        raw_response.extend_from_slice(chunk_data);
+        raw_response.extend_from_slice(b"\n");
+    }
+
+    // Final chunk - LF only
+    raw_response.extend_from_slice(b"0\n\n");
+
+    let cursor = Cursor::new(raw_response);
+    let stream = SharedByteBufferStream::ref_cell(cursor);
+
+    let headers = SimpleHeaders::new();
+    let mut iterator = SimpleHttpChunkIterator::new(vec![], headers, stream, 100);
+
+    let mut collected_bytes = Vec::new();
+
+    for result in &mut iterator {
+        match result {
+            Ok(ChunkedData::Data(data, _)) => {
+                collected_bytes.extend_from_slice(&data);
+            }
+            Ok(ChunkedData::DataEnded) => break,
+            Err(e) => panic!("Chunk iterator error: {:?}", e),
+            _ => {}
+        }
+    }
+
+    let expected: Vec<u8> = chunks.iter().flat_map(|c| c.iter().copied()).collect();
+
+    assert_eq!(
+        &collected_bytes,
+        &expected,
+        "LF-only multi-chunk output corrupted. Got: {:?}, Expected: {:?}",
+        String::from_utf8_lossy(&collected_bytes),
+        String::from_utf8_lossy(&expected)
+    );
+
+    // Embedded newlines should be preserved
+    let expected_newline_count = expected.iter().filter(|&&b| b == b'\n').count();
+    let actual_newline_count = collected_bytes.iter().filter(|&&b| b == b'\n').count();
+    assert_eq!(
+        actual_newline_count, expected_newline_count,
+        "Embedded newlines should be preserved"
+    );
+}
+
+/// Test: Mixed CRLF and LF terminators in same stream.
+///
+/// Some servers may use inconsistent line endings. The parser should
+/// handle both CRLF and LF terminators within the same response.
+#[test]
+fn test_mixed_crlf_and_lf() {
+    let chunk1_data = b"first";   // Will use CRLF
+    let chunk2_data = b"second";  // Will use LF
+    let chunk3_data = b"third";   // Will use CRLF
+
+    let mut raw_response = Vec::new();
+
+    // Chunk 1 - standard CRLF
+    raw_response.extend(format!("{:x}\r\n", chunk1_data.len()).as_bytes());
+    raw_response.extend_from_slice(chunk1_data);
+    raw_response.extend_from_slice(b"\r\n");
+
+    // Chunk 2 - non-standard LF
+    raw_response.extend(format!("{:x}\n", chunk2_data.len()).as_bytes());
+    raw_response.extend_from_slice(chunk2_data);
+    raw_response.extend_from_slice(b"\n");
+
+    // Chunk 3 - back to CRLF
+    raw_response.extend(format!("{:x}\r\n", chunk3_data.len()).as_bytes());
+    raw_response.extend_from_slice(chunk3_data);
+    raw_response.extend_from_slice(b"\r\n");
+
+    // Final chunk - CRLF
+    raw_response.extend_from_slice(b"0\r\n\r\n");
+
+    let cursor = Cursor::new(raw_response);
+    let stream = SharedByteBufferStream::ref_cell(cursor);
+
+    let headers = SimpleHeaders::new();
+    let mut iterator = SimpleHttpChunkIterator::new(vec![], headers, stream, 100);
+
+    let mut collected_bytes = Vec::new();
+
+    for result in &mut iterator {
+        match result {
+            Ok(ChunkedData::Data(data, _)) => {
+                collected_bytes.extend_from_slice(&data);
+            }
+            Ok(ChunkedData::DataEnded) => break,
+            Err(e) => panic!("Chunk iterator error: {:?}", e),
+            _ => {}
+        }
+    }
+
+    let expected = b"firstsecondthird";
+    assert_eq!(
+        &collected_bytes,
+        expected,
+        "Mixed CRLF/LF output corrupted. Got: {:?}, Expected: {:?}",
+        String::from_utf8_lossy(&collected_bytes),
+        String::from_utf8_lossy(expected)
+    );
+}
+
+/// Test: Chunk data ending with \r character (content, not framing).
+///
+/// Verifies that \r characters that are part of the actual content
+/// are preserved, while \r from HTTP framing is stripped.
+#[test]
+fn test_chunk_data_ending_with_cr() {
+    // Content includes \r as actual data (like old Mac line endings)
+    let chunk1_data = b"line1\rline2";
+    let chunk2_data = b"line3";
+
+    let mut raw_response = Vec::new();
+
+    // Chunk 1 with LF-only framing (content has \r)
+    raw_response.extend(format!("{:x}\n", chunk1_data.len()).as_bytes());
+    raw_response.extend_from_slice(chunk1_data);
+    raw_response.extend_from_slice(b"\n");
+
+    // Chunk 2
+    raw_response.extend(format!("{:x}\n", chunk2_data.len()).as_bytes());
+    raw_response.extend_from_slice(chunk2_data);
+    raw_response.extend_from_slice(b"\n");
+
+    // Final chunk
+    raw_response.extend_from_slice(b"0\n\n");
+
+    let cursor = Cursor::new(raw_response);
+    let stream = SharedByteBufferStream::ref_cell(cursor);
+
+    let headers = SimpleHeaders::new();
+    let mut iterator = SimpleHttpChunkIterator::new(vec![], headers, stream, 100);
+
+    let mut collected_bytes = Vec::new();
+
+    for result in &mut iterator {
+        match result {
+            Ok(ChunkedData::Data(data, _)) => {
+                collected_bytes.extend_from_slice(&data);
+            }
+            Ok(ChunkedData::DataEnded) => break,
+            Err(e) => panic!("Chunk iterator error: {:?}", e),
+            _ => {}
+        }
+    }
+
+    let expected = b"line1\rline2line3";
+    assert_eq!(
+        &collected_bytes,
+        expected,
+        "Content \\r must be preserved. Got: {:?}, Expected: {:?}",
+        String::from_utf8_lossy(&collected_bytes),
+        String::from_utf8_lossy(expected)
+    );
+
+    // Verify the \r from content is preserved (exactly 1)
+    let cr_count = collected_bytes.iter().filter(|&&b| b == b'\r').count();
+    assert_eq!(cr_count, 1, "Content \\r should be preserved (found {})", cr_count);
+}
