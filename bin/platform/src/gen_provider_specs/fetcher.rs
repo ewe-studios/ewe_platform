@@ -36,6 +36,7 @@ impl ProviderSpecFetcher {
     /// # Arguments
     ///
     /// * `client` - HTTP client (must be created by caller with pool guard alive)
+    /// * `gcp_api_filter` - Optional list of GCP API names to fetch. If None, fetches all.
     ///
     /// # Returns
     ///
@@ -43,6 +44,7 @@ impl ProviderSpecFetcher {
     pub fn fetch_all(
         &self,
         client: &SimpleHttpClient,
+        gcp_api_filter: Option<Vec<String>>,
     ) -> Result<BTreeMap<String, DistilledSpec>, crate::gen_provider_specs::errors::SpecFetchError>
     {
         // Artefacts directory for raw JSON specs
@@ -100,7 +102,7 @@ impl ProviderSpecFetcher {
                         })
                 })));
             } else if provider == "gcp" {
-                let stream = gcp::fetch::fetch_gcp_specs(client, provider_dir)
+                let stream = gcp::fetch::fetch_gcp_specs(client, provider_dir, gcp_api_filter.clone())
                     .map_err(|e| SpecFetchError::Generic(format!("GCP: {e}")))?;
                 streams.push(Box::new(stream.map_pending(|_| ()).map_done(|result| {
                     result
@@ -153,10 +155,17 @@ impl ProviderSpecFetcher {
     }
 
     /// Fetch a single provider's spec (blocking).
+    ///
+    /// # Arguments
+    ///
+    /// * `client` - HTTP client
+    /// * `provider` - Provider name to fetch
+    /// * `gcp_api_filter` - Optional list of GCP API names to fetch. If None, fetches all.
     pub fn fetch_single(
         &self,
         client: &SimpleHttpClient,
         provider: &str,
+        gcp_api_filter: Option<Vec<String>>,
     ) -> Result<DistilledSpec, crate::gen_provider_specs::errors::SpecFetchError> {
         let artefacts_dir = PathBuf::from("artefacts/cloud_providers");
         let provider_dir = artefacts_dir.join(provider);
@@ -191,7 +200,7 @@ impl ProviderSpecFetcher {
         }
 
         if provider == "gcp" {
-            let stream = gcp::fetch::fetch_gcp_specs(client, provider_dir)
+            let stream = gcp::fetch::fetch_gcp_specs(client, provider_dir, gcp_api_filter)
                 .map_err(|e| SpecFetchError::Generic(format!("GCP: {e}")))?;
 
             for item in stream {

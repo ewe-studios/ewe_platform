@@ -19,7 +19,7 @@ use clap::{ArgMatches, Command};
 use foundation_core::netcap::Connection;
 use foundation_core::netcap::ssl::SSLConnector;
 use foundation_core::netcap::RawStream;
-use foundation_core::io::ioutils::SharedByteBufferStream;
+use foundation_core::io::ioutils::{SharedByteBufferStream, ReadTimeoutOperations};
 use std::fs::File;
 use std::io::{Read, Write};
 use std::net::ToSocketAddrs;
@@ -166,7 +166,7 @@ pub fn run(
     let mut buffer = vec![0u8; 8192];
 
     // Set read timeout
-    stream.set_read_timeout(Some(timeout))
+    stream.set_read_timeout_as(timeout)
         .map_err(|e| format!("Failed to set read timeout: {}", e))?;
 
     loop {
