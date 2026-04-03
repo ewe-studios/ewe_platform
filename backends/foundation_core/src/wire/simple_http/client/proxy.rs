@@ -14,7 +14,7 @@ use crate::wire::simple_http::url::Scheme;
 /// # Examples
 ///
 /// ```
-/// use foundation_core::wire::simple_http::client::proxy::{ProxyConfig, ProxyProtocol};
+/// use foundation_core::wire::simple_http::client::{ProxyConfig, ProxyProtocol};
 ///
 /// // Parse proxy URL
 /// let proxy = ProxyConfig::parse("http://proxy.example.com:8080").unwrap();
@@ -61,7 +61,7 @@ pub enum ProxyProtocol {
 /// # Examples
 ///
 /// ```
-/// use foundation_core::wire::simple_http::client::proxy::ProxyAuth;
+/// use foundation_core::wire::simple_http::client::ProxyAuth;
 ///
 /// let auth = ProxyAuth::new("user", "password");
 /// let header_value = auth.to_basic_auth();
@@ -88,7 +88,7 @@ impl ProxyAuth {
     /// # Examples
     ///
     /// ```
-    /// use foundation_core::wire::simple_http::client::proxy::ProxyAuth;
+    /// use foundation_core::wire::simple_http::client::ProxyAuth;
     ///
     /// let auth = ProxyAuth::new("user", "password");
     /// assert_eq!(auth.username, "user");
@@ -113,7 +113,7 @@ impl ProxyAuth {
     /// # Examples
     ///
     /// ```
-    /// use foundation_core::wire::simple_http::client::proxy::ProxyAuth;
+    /// use foundation_core::wire::simple_http::client::ProxyAuth;
     ///
     /// let auth = ProxyAuth::new("user", "password");
     /// assert_eq!(auth.to_basic_auth(), "dXNlcjpwYXNzd29yZA==");
@@ -137,7 +137,7 @@ impl ProxyAuth {
 /// # Examples
 ///
 /// ```
-/// use foundation_core::wire::simple_http::client::proxy::{ProxyConfig, ProxyProtocol};
+/// use foundation_core::wire::simple_http::client::{ProxyConfig, ProxyProtocol};
 ///
 /// // Simple proxy
 /// let proxy = ProxyConfig::new(ProxyProtocol::Http, "proxy.example.com", 8080);
@@ -176,7 +176,7 @@ impl ProxyConfig {
     /// # Examples
     ///
     /// ```
-    /// use foundation_core::wire::simple_http::client::proxy::{ProxyConfig, ProxyProtocol};
+    /// use foundation_core::wire::simple_http::client::{ProxyConfig, ProxyProtocol};
     ///
     /// let proxy = ProxyConfig::new(ProxyProtocol::Http, "proxy.example.com", 8080);
     /// assert_eq!(proxy.host, "proxy.example.com");
@@ -204,7 +204,7 @@ impl ProxyConfig {
     /// # Examples
     ///
     /// ```
-    /// use foundation_core::wire::simple_http::client::proxy::{ProxyConfig, ProxyProtocol};
+    /// use foundation_core::wire::simple_http::client::{ProxyConfig, ProxyProtocol};
     ///
     /// let proxy = ProxyConfig::new(ProxyProtocol::Http, "proxy.example.com", 8080)
     ///     .with_auth("user", "password");
@@ -244,7 +244,7 @@ impl ProxyConfig {
     /// # Examples
     ///
     /// ```
-    /// use foundation_core::wire::simple_http::client::proxy::ProxyConfig;
+    /// use foundation_core::wire::simple_http::client::ProxyConfig;
     ///
     /// let proxy = ProxyConfig::parse("http://proxy.com:8080").unwrap();
     /// assert_eq!(proxy.host, "proxy.com");
@@ -323,11 +323,11 @@ impl ProxyConfig {
     /// # Examples
     ///
     /// ```
-    /// use foundation_core::wire::simple_http::client::proxy::ProxyConfig;
+    /// use foundation_core::wire::simple_http::client::ProxyConfig;
     /// use foundation_core::wire::simple_http::url::Scheme;
     ///
     /// std::env::set_var("HTTP_PROXY", "http://proxy.com:8080");
-    /// let proxy = ProxyConfig::from_env(&Scheme::Http);
+    /// let proxy = ProxyConfig::from_env(&Scheme::HTTP);
     /// assert!(proxy.is_some());
     /// std::env::remove_var("HTTP_PROXY");
     /// ```
@@ -358,7 +358,7 @@ impl ProxyConfig {
     /// # Examples
     ///
     /// ```
-    /// use foundation_core::wire::simple_http::client::proxy::ProxyConfig;
+    /// use foundation_core::wire::simple_http::client::ProxyConfig;
     ///
     /// std::env::set_var("NO_PROXY", "localhost,.example.com");
     /// assert!(ProxyConfig::should_bypass("localhost"));

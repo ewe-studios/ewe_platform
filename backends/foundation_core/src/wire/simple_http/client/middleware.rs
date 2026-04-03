@@ -31,13 +31,13 @@ use tracing::{debug, info};
 ///
 /// ```
 /// use foundation_core::wire::simple_http::client::{Middleware, PreparedRequest};
-/// use foundation_core::wire::simple_http::{HttpClientError, SimpleResponse};
+/// use foundation_core::wire::simple_http::{HttpClientError, SendSafeBody, SimpleHeader, SimpleResponse};
 ///
 /// struct HeaderMiddleware;
 ///
 /// impl Middleware for HeaderMiddleware {
 ///     fn handle_request(&self, request: &mut PreparedRequest) -> Result<(), HttpClientError> {
-///         request.headers.insert("X-Custom".to_string(), "value".to_string());
+///         request.headers.insert(SimpleHeader::Custom("X-Custom".to_string()), vec!["value".to_string()]);
 ///         Ok(())
 ///     }
 ///
