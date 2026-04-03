@@ -36,6 +36,12 @@ pub fn register(cmd: Command) -> Command {
                     .value_name("PROVIDER"),
             )
             .arg(
+                clap::Arg::new("gcp-apis")
+                    .long("gcp-apis")
+                    .help("Comma-separated list of GCP API names to fetch (default: all APIs)")
+                    .value_name("APIS"),
+            )
+            .arg(
                 clap::Arg::new("dry-run")
                     .long("dry-run")
                     .help("Fetch specs but don't write to disk")
@@ -105,7 +111,12 @@ fn fetch_all_providers(
 ) -> Result<(), SpecFetchError> {
     let dry_run = matches.get_flag("dry-run");
 
-    let specs = fetcher.fetch_all(client)?;
+    // Parse GCP API filter if provided
+    let gcp_api_filter = matches
+        .get_one::<String>("gcp-apis")
+        .map(|s| s.split(',').map(|api| api.trim().to_string()).collect());
+
+    let specs = fetcher.fetch_all(client, gcp_api_filter)?;
 
     for (provider, _spec) in specs {
         if !dry_run {
@@ -128,7 +139,12 @@ fn fetch_single_provider(
 ) -> Result<(), SpecFetchError> {
     let dry_run = matches.get_flag("dry-run");
 
-    let _spec = fetcher.fetch_single(client, provider)?;
+    // Parse GCP API filter if provided (only used when fetching GCP)
+    let gcp_api_filter = matches
+        .get_one::<String>("gcp-apis")
+        .map(|s| s.split(',').map(|api| api.trim().to_string()).collect());
+
+    let _spec = fetcher.fetch_single(client, provider, gcp_api_filter)?;
 
     if !dry_run {
         tracing::info!("Fetched: {provider} -> artefacts/cloud_providers/{provider}/openapi.json");

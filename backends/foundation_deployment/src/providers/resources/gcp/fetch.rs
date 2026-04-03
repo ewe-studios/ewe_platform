@@ -18,7 +18,7 @@ use foundation_core::wire::simple_http::client::{
     SystemDnsResolver,
 };
 use serde_json::Value;
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 use std::sync::Arc;
 use tracing::{debug, error, info, warn};
 
@@ -44,18 +44,6 @@ pub struct GcpDirectoryResponse {
     pub items: Vec<GcpApiEntry>,
 }
 
-/// List of relevant GCP API names to fetch (filters down from 510+ APIs).
-/// Add more APIs here as needed for your use case.
-const RELEVANT_GCP_APIS: &[&str] = &[
-    // Core infrastructure - most commonly used
-    "compute",    // Compute Engine
-    "container",  // GKE
-    "iam",        // IAM
-    "logging",    // Cloud Logging
-    "monitoring", // Cloud Monitoring
-    "storage",    // Cloud Storage
-];
-
 /// Progress states for GCP fetch.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum GcpFetchPending {
@@ -73,12 +61,12 @@ type ApiFetchStream = Box<
 >;
 
 /// Fetch ALL GCP specs using two-stage approach with combinators.
-/// Fetch ALL GCP specs using two-stage approach with combinators.
 ///
 /// # Arguments
 ///
 /// * `client` - The HTTP client to use for fetching API specs
 /// * `output_dir` - Directory where fetched specs will be written
+/// * `api_filter` - Optional list of API names to filter. If None, fetches ALL APIs.
 ///
 /// # Returns
 ///
@@ -101,6 +89,7 @@ type ApiFetchStream = Box<
 pub fn fetch_gcp_specs(
     client: &SimpleHttpClient,
     output_dir: PathBuf,
+    api_filter: Option<Vec<String>>,
 ) -> Result<
     impl StreamIterator<D = Result<PathBuf, DeploymentError>, P = GcpFetchPending> + Send + 'static,
     DeploymentError,
@@ -146,15 +135,22 @@ pub fn fetch_gcp_specs(
                 let total_apis = directory.items.len();
                 debug!("gcp: Found {} APIs in directory", total_apis);
 
-                // Filter to only relevant APIs
-                let filtered_items: Vec<GcpApiEntry> = directory
-                    .items
-                    .into_iter()
-                    .filter(|item| RELEVANT_GCP_APIS.contains(&item.name.as_str()))
-                    .collect();
+                // Filter APIs based on provided filter, or fetch all if no filter specified
+                let filtered_items: Vec<GcpApiEntry> = if let Some(ref filter) = api_filter {
+                    // Use provided filter - only fetch specified APIs
+                    directory
+                        .items
+                        .into_iter()
+                        .filter(|item| filter.contains(&item.name))
+                        .collect()
+                } else {
+                    // No filter specified - fetch ALL APIs
+                    debug!("gcp: No API filter specified, fetching all {} APIs", total_apis);
+                    directory.items
+                };
 
                 info!(
-                    "Found {} GCP APIs in directory, filtered to {} relevant APIs",
+                    "Found {} GCP APIs in directory, {} after filter",
                     total_apis,
                     filtered_items.len()
                 );
@@ -210,12 +206,14 @@ pub fn fetch_gcp_specs(
 }
 
 /// Create a task to fetch a single API spec.
-type ApiFetchTask = impl foundation_core::valtron::TaskIterator<
-        Ready = Option<Result<(GcpApiEntry, Value), DeploymentError>>,
-        Pending = usize,
-        Spawner = foundation_core::valtron::BoxedSendExecutionAction,
-    > + Send
-    + 'static;
+type ApiFetchTask = Box<
+    dyn foundation_core::valtron::TaskIterator<
+            Ready = Option<Result<(GcpApiEntry, Value), DeploymentError>>,
+            Pending = usize,
+            Spawner = foundation_core::valtron::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+>;
 
 fn create_api_fetch_task(
     entry: GcpApiEntry,
@@ -258,7 +256,7 @@ fn create_api_fetch_task(
             _ => TaskShortCircuit::Continue(item),
         });
 
-    Ok(task)
+    Ok(Box::new(task))
 }
 
 fn write_output(
