@@ -79,21 +79,6 @@ impl HttpClientConnection {
         resolver: &R,
         timeout: Option<Duration>,
     ) -> Result<Self, HttpClientError> {
-        Self::connect_with_tls(url, resolver, timeout)
-    }
-
-    /// Connects to a URL with configurable non-blocking TLS handshake.
-    ///
-    /// WHY: Some servers (like GCP APIs) require non-blocking mode for proper TLS handshake.
-    ///
-    /// WHAT: Variant of `connect` that accepts `tls_nonblocking_handshake` parameter.
-    ///
-    /// HOW: Passes the flag through to `upgrade_to_tls`.
-    pub fn connect_with_tls<R: DnsResolver>(
-        url: &ParsedUrl,
-        resolver: &R,
-        timeout: Option<Duration>,
-    ) -> Result<Self, HttpClientError> {
         // Get host as string (required for DNS resolution)
         let host = url
             .host_str()
@@ -172,10 +157,6 @@ impl HttpClientConnection {
                 HttpClientError::TlsHandshakeFailed(e.to_string())
             })?;
 
-        // Note: We no longer explicitly complete the handshake here.
-        // Rustls completes the handshake lazily on first I/O, which works correctly
-        // with the blocking TCP socket.
-
         // Create RawStream from ClientSSLStream (which is the return type from from_tcp_stream)
         let stream = SharedByteBufferStream::rwrite(
             RawStream::from_client_tls(tls_stream)
@@ -194,11 +175,7 @@ impl HttpClientConnection {
         feature = "ssl-openssl",
         feature = "ssl-native-tls"
     )))]
-    fn upgrade_to_tls(
-        _connection: Connection,
-        _host: &str,
-        _port: u16,
-    ) -> Result<Self, HttpClientError> {
+    fn upgrade_to_tls(_connection: Connection, _host: &str) -> Result<Self, HttpClientError> {
         Err(HttpClientError::NotSupported)
     }
 
@@ -503,11 +480,7 @@ impl<R: DnsResolver> HttpConnectionPool<R> {
         }
 
         // No pooled connection available, create a fresh one.
-        HttpClientConnection::connect_with_tls(
-            url,
-            &*self.resolver,
-            timeout,
-        )
+        HttpClientConnection::connect(url, &*self.resolver, timeout)
     }
 
     /// Return a `RawStream` back into the pool for reuse.
