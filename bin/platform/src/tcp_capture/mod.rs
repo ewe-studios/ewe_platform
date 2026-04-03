@@ -3,20 +3,25 @@
 //! This module provides a CLI subcommand that captures raw TCP/HTTP responses
 //! for debugging HTTP chunked transfer encoding issues.
 //!
+//! Uses foundation_core's wire module for both HTTP and HTTPS support.
+//!
 //! # Usage
 //!
 //! ```bash
-//! ewe_platform tcp_capture http://example.com/api -o capture.bin
+//! ewe_platform tcp_capture https://example.com/api -o capture.bin
 //! ```
 //!
 //! This creates:
-//! - `capture.bin` - Raw TCP response (headers + body)
+//! - `capture.bin` - Raw response (headers + body)
 //! - `capture.bin.analysis` - Human-readable analysis with hex dump
 
 use clap::{ArgMatches, Command};
+use foundation_core::netcap::Connection;
+use foundation_core::netcap::ssl::SSLConnector;
+use foundation_core::netcap::RawStream;
+use foundation_core::io::ioutils::SharedByteBufferStream;
 use std::fs::File;
 use std::io::{Read, Write};
-use std::net::TcpStream;
 use std::net::ToSocketAddrs;
 use std::time::Duration;
 use tracing::{error, info, Level};
@@ -26,10 +31,10 @@ use tracing_subscriber::FmtSubscriber;
 pub fn register(cmd: Command) -> Command {
     cmd.subcommand(
         Command::new("tcp_capture")
-            .about("Capture raw TCP/HTTP response from a URL")
+            .about("Capture raw TCP/HTTP response from a URL (supports HTTP and HTTPS)")
             .arg(
                 clap::Arg::new("url")
-                    .help("URL to fetch (must be HTTP, not HTTPS)")
+                    .help("URL to fetch (http:// or https://)")
                     .required(true)
                     .index(1),
             )
@@ -61,7 +66,7 @@ pub fn register(cmd: Command) -> Command {
 ///
 /// # Errors
 ///
-/// Returns an error if the TCP connection fails, the HTTP request fails,
+/// Returns an error if the connection fails, the HTTP request fails,
 /// or file writing fails.
 pub fn run(
     matches: &ArgMatches,
@@ -88,40 +93,81 @@ pub fn run(
     info!("Capturing raw HTTP response from: {}", url);
     info!("Output file: {}", output_path);
 
-    let url_trimmed = url.trim_start_matches("http://");
+    // Parse URL
+    let is_https = url.starts_with("https://");
+    let url_trimmed = url.trim_start_matches("http://").trim_start_matches("https://");
     let (host_port, path) = url_trimmed.split_once('/').unwrap_or((url_trimmed, ""));
     let path = format!("/{}", path);
 
     let (host, port) = if let Some((h, p)) = host_port.split_once(':') {
         (h.to_string(), p.parse::<u16>()?)
     } else {
-        (host_port.to_string(), 80)
+        (host_port.to_string(), if is_https { 443 } else { 80 })
     };
 
-    info!("Connecting to {}:{}...", host, port);
+    info!("Connecting to {}:{} (HTTPS: {})...", host, port, is_https);
 
     let timeout = Duration::from_secs(timeout_secs);
+
+    // Resolve DNS and connect
     let addr = format!("{}:{}", host, port);
     let socket_addr = addr
         .to_socket_addrs()?
         .next()
         .ok_or_else(|| format!("Could not resolve {}", addr))?;
-    let mut stream = TcpStream::connect_timeout(&socket_addr, timeout)?;
-    stream.set_read_timeout(Some(timeout))?;
-    stream.set_write_timeout(Some(timeout))?;
 
+    // Connect using foundation_core's Connection
+    let connection = Connection::with_timeout(socket_addr, timeout)
+        .map_err(|e| format!("Connection failed: {}", e))?;
+
+    info!("TCP connected, {} TLS", if is_https { "upgrading to" } else { "plain" });
+
+    // Create RawStream with or without TLS
+    let mut stream = if is_https {
+        // Upgrade to TLS using SSLConnector from wire module
+        let connector = SSLConnector::new();
+        let (tls_stream, _addr) = connector
+            .from_tcp_stream(host.clone(), connection)
+            .map_err(|e| format!("TLS handshake failed: {}", e))?;
+
+        let raw_stream = RawStream::from_client_tls(tls_stream)
+            .map_err(|e| format!("Failed to create TLS stream: {}", e))?;
+
+        SharedByteBufferStream::rwrite(raw_stream)
+    } else {
+        // Plain HTTP
+        let raw_stream = RawStream::from_connection(connection)
+            .map_err(|e| format!("Failed to create stream: {}", e))?;
+
+        SharedByteBufferStream::rwrite(raw_stream)
+    };
+
+    // Build HTTP/1.1 request
     let request = format!(
         "GET {} HTTP/1.1\r\nHost: {}\r\nAccept: */*\r\nConnection: close\r\n\r\n",
         path, host
     );
 
     info!("Sending request...");
-    stream.write_all(request.as_bytes())?;
-    stream.flush()?;
+
+    // Write request
+    let request_bytes = request.as_bytes();
+    let mut written = 0;
+    while written < request_bytes.len() {
+        let n = stream.write(&request_bytes[written..])
+            .map_err(|e| format!("Write error: {}", e))?;
+        written += n;
+    }
+    stream.flush()
+        .map_err(|e| format!("Flush error: {}", e))?;
 
     info!("Reading response...");
     let mut raw_bytes = Vec::new();
     let mut buffer = vec![0u8; 8192];
+
+    // Set read timeout
+    stream.set_read_timeout(Some(timeout))
+        .map_err(|e| format!("Failed to set read timeout: {}", e))?;
 
     loop {
         match stream.read(&mut buffer) {
@@ -146,11 +192,12 @@ pub fn run(
 
     info!("Total bytes captured: {}", raw_bytes.len());
 
+    // Write raw bytes to output file
     let mut output = File::create(output_path)?;
     output.write_all(&raw_bytes)?;
     output.flush()?;
 
-    info!("Raw TCP response written to: {}", output_path);
+    info!("Raw response written to: {}", output_path);
 
     write_analysis(&raw_bytes, output_path)?;
 
