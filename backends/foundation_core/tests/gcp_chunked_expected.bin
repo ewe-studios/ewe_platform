@@ -1,0 +1,5 @@
+{
+ "kind": "discovery#restDescription",
+ "required": ["name"]
+, "enumDescriptions": ["testvalue", "anotherline"]
+, "items": [{"name": "compute", "status": "ok"}]

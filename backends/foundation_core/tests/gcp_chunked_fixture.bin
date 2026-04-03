@@ -1,0 +1,13 @@
+42
+{
+ "kind": "discovery#restDescription",
+ "required": ["name"]
+
+36
+, "enumDescriptions": ["testvalue", "anotherline"]
+
+33
+, "items": [{"name": "compute", "status": "ok"}]
+
+0
+

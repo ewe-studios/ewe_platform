@@ -204,3 +204,62 @@ fn test_cr_stripping_at_various_positions() {
         "Content should be concatenated without CRs"
     );
 }
+
+/// Integration test using binary fixture files captured from real HTTP responses.
+///
+/// This test loads pre-captured chunked encoding data from binary files
+/// and verifies the parser correctly handles the response.
+///
+/// Fixture files:
+/// - `gcp_chunked_fixture.bin` - Raw chunked HTTP body (as received over TCP)
+/// - `gcp_chunked_expected.bin` - Expected output after parsing (CR stripped)
+///
+/// These fixtures simulate GCP Discovery API responses that contain stray
+/// CR bytes in JSON string values.
+#[test]
+fn test_gcp_chunked_fixture_from_file() {
+    // Load fixture data from binary file
+    let fixture_bytes = include_bytes!("gcp_chunked_fixture.bin");
+    let expected_bytes = include_bytes!("gcp_chunked_expected.bin");
+
+    // Parse through SimpleHttpChunkIterator
+    let cursor = Cursor::new(fixture_bytes);
+    let stream = SharedByteBufferStream::ref_cell(cursor);
+
+    let headers = SimpleHeaders::new();
+    let mut iterator = SimpleHttpChunkIterator::new(vec![], headers, stream);
+
+    let mut collected_bytes = Vec::new();
+
+    for result in &mut iterator {
+        match result {
+            Ok(ChunkedData::Data(data, _)) => {
+                collected_bytes.extend_from_slice(&data);
+            }
+            Ok(ChunkedData::DataEnded) => break,
+            Ok(ChunkedData::Trailers(_)) => {}
+            Err(e) => panic!("Chunk iterator error: {e}"),
+        }
+    }
+
+    // Verify no CR bytes in output
+    let cr_count = collected_bytes
+        .iter()
+        .filter(|&&b| b == b'\r')
+        .count();
+    assert_eq!(cr_count, 0, "All CR bytes should be stripped. Found: {cr_count}");
+
+    // Verify output matches expected
+    assert_eq!(
+        &collected_bytes, expected_bytes,
+        "Output should match expected fixture (CRs stripped)"
+    );
+
+    // Verify JSON structure is valid
+    let output_str = String::from_utf8_lossy(&collected_bytes);
+    assert!(output_str.starts_with('{'), "Should be valid JSON object");
+    assert!(
+        output_str.contains("\"required\""),
+        "Field name should be restored (CR removed from middle)"
+    );
+}
