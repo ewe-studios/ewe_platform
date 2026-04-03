@@ -779,9 +779,7 @@ where
                 self.sources.len() - self.collected.len(),
             ))
         } else {
-            Some(Stream::Pending(
-                self.sources.len() - self.collected.len(),
-            ))
+            None
         }
     }
 }

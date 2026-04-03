@@ -2920,11 +2920,11 @@ impl std::io::Read for SharedBufferReadStream {
 /// # Examples
 ///
 /// ```rust
-/// use crate::io::ioutils::SharedBuffer;
-/// use std::io::Write;
+/// use foundation_core::io::ioutils::SharedBuffer;
+/// use std::io::{Read, Write};
 ///
 /// // Create writer and reader handles
-/// let (mut writer, reader) = SharedBuffer::split();
+/// let (mut writer, mut reader) = SharedBuffer::split();
 ///
 /// // Write data
 /// writer.write_all(b"hello").unwrap();
@@ -2948,8 +2948,8 @@ impl SharedBuffer {
     /// # Examples
     ///
     /// ```rust
-    /// use crate::io::ioutils::SharedBuffer;
-    /// use std::io::Write;
+    /// use foundation_core::io::ioutils::SharedBuffer;
+    /// use std::io::{Read, Write};
     ///
     /// let (mut writer, mut reader) = SharedBuffer::split();
     /// writer.write_all(b"hello").unwrap();
