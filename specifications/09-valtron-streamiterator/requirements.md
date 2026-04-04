@@ -158,7 +158,7 @@ impl<D, P> Iterator for ConcurrentQueueStreamIterator<D, P> {
                     std::hint::spin_loop();
                 }
                 Err(PopError::Closed) => {
-                    tracing::info!("queue closed, ending iteration");
+                    tracing::debug!("queue closed, ending iteration");
                     return None;
                 }
             }

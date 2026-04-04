@@ -304,7 +304,7 @@ impl<D, P> Iterator for ConcurrentQueueStreamIterator<D, P> {
                     std::hint::spin_loop();
                 }
                 Err(PopError::Closed) => {
-                    tracing::info!("queue closed, ending iteration");
+                    tracing::debug!("queue closed, ending iteration");
                     return None;
                 }
             }
@@ -3197,7 +3197,7 @@ where
         // Sort in descending order so swap_remove doesn't invalidate subsequent indices
         exhausted_indices.sort_by(|a, b| b.cmp(a));
         for idx in exhausted_indices {
-            tracing::info!("Source is exhausted: {:?}", &idx);
+            tracing::debug!("Source is exhausted: {:?}", &idx);
             self.sources.swap_remove(idx);
         }
 

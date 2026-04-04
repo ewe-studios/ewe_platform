@@ -8,6 +8,7 @@
 //! `components/schemas`, maps OpenAPI types to Rust types, and generates Rust source files
 //! using string templates.
 
+use regex::Regex;
 use std::collections::{BTreeMap, BTreeSet, HashMap};
 use std::fmt::Write;
 use std::path::PathBuf;
@@ -224,6 +225,56 @@ pub struct FieldDef {
 }
 
 // ---------------------------------------------------------------------------
+// Doc comment sanitization
+// ---------------------------------------------------------------------------
+
+/// Helper function to convert fmt::Error to GenResourceError.
+fn write_fmt_error(_e: std::fmt::Error) -> GenResourceError {
+    GenResourceError::WriteFile {
+        path: "generated mod.rs".to_string(),
+        source: std::io::Error::new(std::io::ErrorKind::Other, "fmt error"),
+    }
+}
+
+/// Sanitize a description string for use as a rustdoc comment.
+///
+/// This function:
+/// 1. Converts HTML tags like `<code>` to backticks
+/// 2. Wraps code-like patterns in backticks (paths, types, values)
+/// 3. Converts bare URLs to angle-bracket links
+/// 4. Escapes stray angle brackets not in URLs or backticks
+/// 5. Truncates to first line for field-level comments (if `first_line_only` is true)
+fn sanitize_doc_comment(description: &str, first_line_only: bool) -> String {
+    if description.is_empty() {
+        return String::new();
+    }
+
+    let mut result = description.to_string();
+
+    // 1. Strip ALL backticks to avoid issues with rustdoc parsing
+    // We don't re-add backticks because unbalanced backticks or backticks
+    // containing special characters (like single quotes) break rustdoc
+    result = result.replace('`', "");
+
+    // 2. Convert HTML <code> tags to plain text (no backticks)
+    let code_tag_re = Regex::new(r"<code>([^<]+)</code>").unwrap();
+    result = code_tag_re.replace_all(&result, "$1").to_string();
+
+    // 3. Remove other HTML tags but keep content
+    let html_tag_re = Regex::new(r"</?[^>]+>").unwrap();
+    result = html_tag_re.replace_all(&result, "").to_string();
+
+    // 4. For field comments, use only first line
+    if first_line_only {
+        if let Some(first) = result.lines().next() {
+            result = first.to_string();
+        }
+    }
+
+    result
+}
+
+// ---------------------------------------------------------------------------
 // Resource type generator
 // ---------------------------------------------------------------------------
 
@@ -260,36 +311,40 @@ impl ResourceGenerator {
     ///
     /// If the provider directory has subdirectories with `openapi.json` files
     /// (e.g. `gcp/compute/openapi.json`), generates one file per sub-API.
-    /// Otherwise generates a single `resources.rs` from the top-level spec.
+    /// Otherwise generates a single `mod.rs` from the top-level spec.
     pub fn generate_for_provider(&self, provider: &str) -> Result<(), GenResourceError> {
         let provider_dir = self.artefacts_dir.join(provider);
 
         // Discover sub-API directories (e.g. gcp/compute/, gcp/run/)
         let sub_apis = self.discover_sub_apis(&provider_dir);
 
+        // Output goes to providers/{provider}/resources/
+        // self.output_dir is already backends/foundation_deployment/src/providers
+        let provider_output_dir = self.output_dir.join(provider).join("resources");
+        std::fs::create_dir_all(&provider_output_dir)?;
+
         if sub_apis.is_empty() {
-            // Single spec: provider/openapi.json -> resources.rs
+            // Single spec: provider/openapi.json -> resources/mod.rs (all types in one file)
             self.generate_from_spec(
                 provider,
                 &provider_dir.join("openapi.json"),
-                &self.output_dir.join(provider).join("resources.rs"),
+                &provider_output_dir.join("mod.rs"),
             )?;
         } else {
-            // Per-API specs: provider/{api}/openapi.json -> {api}/resources.rs
+            // Per-API specs: provider/{api}/openapi.json -> resources/{api}.rs
             tracing::info!(
                 "Generating resource types for {provider} ({} sub-APIs)...",
                 sub_apis.len()
             );
             for api_name in &sub_apis {
                 let spec_path = provider_dir.join(api_name).join("openapi.json");
-                let output_path = self
-                    .output_dir
-                    .join(provider)
-                    .join(api_name)
-                    .join("resources.rs");
+                // Output to resources/{api}.rs (not resources/{api}/resources.rs)
+                let output_path = provider_output_dir.join(format!("{api_name}.rs"));
                 let label = format!("{provider}/{api_name}");
                 self.generate_from_spec(&label, &spec_path, &output_path)?;
             }
+            // Generate mod.rs for multi-API provider
+            self.generate_mod_rs(provider, &sub_apis)?;
         }
 
         Ok(())
@@ -779,22 +834,21 @@ impl ResourceGenerator {
 
         writeln!(
             out,
-            r#"//! Auto-generated resource types for {provider_display}.
-//!
-//! This file is generated by `cargo run --bin ewe_platform gen_resource_types`.
-//! DO NOT EDIT MANUALLY.
-//!
-//! Generated from OpenAPI spec in `artefacts/cloud_providers/{provider}/openapi.json`.
-
-#![allow(clippy::too_many_lines)]
-#![allow(clippy::cognitive_complexity)]
-#![allow(dead_code)]
-#![allow(unused_imports)]
-
-use serde::{{Deserialize, Serialize}};
-use serde_json::Value;
-
-"#
+            "//! Auto-generated resource types for {provider_display}.\n\
+             //!\n\
+             //! This file is generated by `cargo run --bin ewe_platform gen_resource_types`.\n\
+             //! DO NOT EDIT MANUALLY.\n\
+             //!\n\
+             //! Generated from OpenAPI spec in `artefacts/cloud_providers/{provider}/openapi.json`.\n\
+             \n\
+             #![allow(clippy::too_many_lines)]\n\
+             #![allow(clippy::cognitive_complexity)]\n\
+             #![allow(dead_code)]\n\
+             #![allow(unused_imports)]\n\
+             \n\
+             use serde::{{Deserialize, Serialize}};\n\
+             use serde_json::Value;\n\
+             "
         )
         .map_err(|e| GenResourceError::WriteFile {
             path: format!("generated code for {provider}"),
@@ -815,9 +869,10 @@ use serde_json::Value;
         out: &mut String,
         resource: &ResourceDef,
     ) -> Result<(), GenResourceError> {
-        // Write doc comment
+        // Write struct-level doc comment (full description, sanitized)
         if let Some(desc) = &resource.description {
-            writeln!(out, "/// {desc}").map_err(|e| GenResourceError::WriteFile {
+            let sanitized = sanitize_doc_comment(desc, false);
+            writeln!(out, "/// {sanitized}").map_err(|e| GenResourceError::WriteFile {
                 path: format!("struct {}", resource.name),
                 source: std::io::Error::new(std::io::ErrorKind::Other, e),
             })?;
@@ -846,8 +901,9 @@ use serde_json::Value;
         // Write fields
         for field in &resource.fields {
             if let Some(desc) = &field.description {
-                let desc_line = desc.lines().next().unwrap_or(desc);
-                writeln!(out, "    /// {desc_line}").map_err(|e| GenResourceError::WriteFile {
+                // Field-level comments: first line only, sanitized
+                let sanitized = sanitize_doc_comment(desc, true);
+                writeln!(out, "    /// {sanitized}").map_err(|e| GenResourceError::WriteFile {
                     path: format!("field {}.{}", resource.name, field.name),
                     source: std::io::Error::new(std::io::ErrorKind::Other, e),
                 })?;
@@ -901,6 +957,57 @@ use serde_json::Value;
 
         Ok(())
     }
+
+    /// Generate mod.rs for a resources directory.
+    fn generate_mod_rs(
+        &self,
+        provider: &str,
+        apis: &[String],
+    ) -> Result<(), GenResourceError> {
+        let mut out = String::new();
+
+        let provider_display = match provider.split('/').next().unwrap_or(provider) {
+            "gcp" => "Google Cloud Platform",
+            "cloudflare" => "Cloudflare",
+            "fly-io" => "Fly.io",
+            "neon" => "Neon",
+            "supabase" => "Supabase",
+            "stripe" => "Stripe",
+            "mongodb-atlas" => "MongoDB Atlas",
+            "prisma-postgres" => "Prisma Postgres",
+            "planetscale" => "PlanetScale",
+            other => other,
+        };
+
+        writeln!(out, "//! Auto-generated resource types for {provider_display}.")
+            .map_err(|e| write_fmt_error(e))?;
+        writeln!(out, "//!")
+            .map_err(|e| write_fmt_error(e))?;
+        writeln!(out, "//! Generated by `cargo run --bin ewe_platform gen_resource_types`.")
+            .map_err(|e| write_fmt_error(e))?;
+        writeln!(out, "//! DO NOT EDIT MANUALLY.")
+            .map_err(|e| write_fmt_error(e))?;
+        writeln!(out)
+            .map_err(|e| write_fmt_error(e))?;
+
+        // Multi-API - declare submodules and re-exports
+        // Each API is a file: resources/{api}.rs
+        for api in apis {
+            writeln!(out, "pub mod {api};")
+                .map_err(|e| write_fmt_error(e))?;
+        }
+        writeln!(out)
+            .map_err(|e| write_fmt_error(e))?;
+        for api in apis {
+            writeln!(out, "pub use {api}::*;")
+                .map_err(|e| write_fmt_error(e))?;
+        }
+
+        // Output to providers/{provider}/resources/mod.rs
+        let mod_path = self.output_dir.join(provider).join("resources").join("mod.rs");
+        std::fs::write(&mod_path, out)?;
+        Ok(())
+    }
 }
 
 // ---------------------------------------------------------------------------
@@ -924,7 +1031,7 @@ pub fn register(cmd: clap::Command) -> clap::Command {
                     .long("output-dir")
                     .help("Output directory for generated files")
                     .value_name("DIR")
-                    .default_value("backends/foundation_deployment/src/providers/resources"),
+                    .default_value("backends/foundation_deployment/src/providers"),
             ),
     )
 }
@@ -941,7 +1048,7 @@ pub fn run(matches: &clap::ArgMatches) -> Result<(), BoxedError> {
     let output_dir = matches
         .get_one::<String>("output-dir")
         .map(PathBuf::from)
-        .unwrap_or_else(|| PathBuf::from("backends/foundation_deployment/src/providers/resources"));
+        .unwrap_or_else(|| PathBuf::from("backends/foundation_deployment/src/providers"));
 
     // Create output directory
     std::fs::create_dir_all(&output_dir).map_err(|e| GenResourceError::WriteFile {

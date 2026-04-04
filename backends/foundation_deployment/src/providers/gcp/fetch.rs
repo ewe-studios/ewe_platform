@@ -18,6 +18,7 @@ use foundation_core::wire::simple_http::client::{
     SystemDnsResolver,
 };
 use serde_json::Value;
+use std::collections::HashMap;
 use std::path::PathBuf;
 use std::sync::Arc;
 use tracing::{debug, error, info, warn};
@@ -138,26 +139,31 @@ pub fn fetch_gcp_specs(
                 let total_apis = directory.items.len();
                 info!("gcp: Found {} APIs in directory", total_apis);
 
-                // Filter APIs based on provided filter, or fetch all if no filter specified
+                // Select only the latest version of each API.
+                // The directory lists multiple versions per API (e.g. compute:v1,
+                // compute:beta, compute:alpha). We group by name and pick the best
+                // version for each using: preferred flag > stable > beta > alpha,
+                // then highest version number within each tier.
+                let latest_items = select_latest_versions(directory.items);
+
+                info!(
+                    "gcp: {} total entries, {} unique APIs (latest versions only)",
+                    total_apis,
+                    latest_items.len()
+                );
+
+                // Apply optional name filter
                 let filtered_items: Vec<GcpApiEntry> = if let Some(ref filter) = api_filter {
-                    // Use provided filter - only fetch specified APIs
-                    directory
-                        .items
+                    latest_items
                         .into_iter()
                         .filter(|item| filter.contains(&item.name))
                         .collect()
                 } else {
-                    // No filter specified - fetch ALL APIs
-                    info!(
-                        "gcp: No API filter specified, fetching all {} APIs",
-                        total_apis
-                    );
-                    directory.items
+                    latest_items
                 };
 
                 info!(
-                    "Found {} GCP APIs in directory, {} after filter",
-                    total_apis,
+                    "gcp: Fetching {} APIs after filter",
                     filtered_items.len()
                 );
 
@@ -291,6 +297,75 @@ fn create_api_fetch_task(
     Ok(Box::new(task))
 }
 
+/// Select the latest version of each API from the directory listing.
+///
+/// Groups entries by API name, then picks the best version for each group.
+/// Selection priority:
+/// 1. If an entry is marked `preferred`, it wins immediately
+/// 2. Otherwise, rank by version tier: stable > beta > alpha
+/// 3. Within the same tier, pick the highest version number
+///
+/// GCP version strings follow patterns like:
+/// - `v1`, `v2`, `v3` (stable)
+/// - `v1beta1`, `v2beta1` (beta)
+/// - `v1alpha1`, `v1alpha2` (alpha)
+/// - `datatransfer:v1` (stable, id-style)
+fn select_latest_versions(items: Vec<GcpApiEntry>) -> Vec<GcpApiEntry> {
+    let mut by_name: HashMap<String, Vec<GcpApiEntry>> = HashMap::new();
+
+    for item in items {
+        by_name.entry(item.name.clone()).or_default().push(item);
+    }
+
+    let mut result: Vec<GcpApiEntry> = Vec::with_capacity(by_name.len());
+
+    for (_name, mut versions) in by_name {
+        if versions.len() == 1 {
+            result.push(versions.remove(0));
+            continue;
+        }
+
+        // If exactly one is marked preferred, use it
+        let preferred: Vec<&GcpApiEntry> = versions.iter().filter(|v| v.preferred).collect();
+        if preferred.len() == 1 {
+            let idx = versions.iter().position(|v| v.preferred).unwrap();
+            result.push(versions.remove(idx));
+            continue;
+        }
+
+        // Rank all versions and pick the best
+        versions.sort_by(|a, b| version_rank(&b.version).cmp(&version_rank(&a.version)));
+        result.push(versions.remove(0));
+    }
+
+    result.sort_by(|a, b| a.name.cmp(&b.name));
+    result
+}
+
+/// Rank a GCP version string for comparison.
+///
+/// Returns `(tier, major, minor)` where:
+/// - tier: 2 = stable, 1 = beta, 0 = alpha
+/// - major: the leading version number (e.g. 2 from "v2beta1")
+/// - minor: the trailing number in beta/alpha (e.g. 1 from "v2beta1")
+fn version_rank(version: &str) -> (u32, u32, u32) {
+    let v = version.trim_start_matches('v');
+
+    if let Some(pos) = v.find("alpha") {
+        let major = v[..pos].parse::<u32>().unwrap_or(0);
+        let minor = v[pos + 5..].parse::<u32>().unwrap_or(0);
+        (0, major, minor)
+    } else if let Some(pos) = v.find("beta") {
+        let major = v[..pos].parse::<u32>().unwrap_or(0);
+        let minor = v[pos + 4..].parse::<u32>().unwrap_or(0);
+        (1, major, minor)
+    } else {
+        // Stable: "v1", "v2", etc.
+        let major = v.parse::<u32>().unwrap_or(0);
+        (2, major, 0)
+    }
+}
+
 fn write_single_spec(
     output_dir: &std::path::Path,
     entry: &GcpApiEntry,
@@ -313,4 +388,111 @@ fn write_single_spec(
     })?;
 
     Ok(api_path)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn entry(name: &str, version: &str, preferred: bool) -> GcpApiEntry {
+        GcpApiEntry {
+            id: format!("{name}:{version}"),
+            name: name.to_string(),
+            version: version.to_string(),
+            title: name.to_string(),
+            discovery_rest_url: format!("https://example.com/{name}/{version}"),
+            preferred,
+        }
+    }
+
+    #[test]
+    fn version_rank_stable_over_beta_over_alpha() {
+        assert!(version_rank("v1") > version_rank("v1beta1"));
+        assert!(version_rank("v1beta1") > version_rank("v1alpha1"));
+        assert!(version_rank("v2") > version_rank("v1"));
+    }
+
+    #[test]
+    fn version_rank_higher_major_wins() {
+        assert!(version_rank("v2") > version_rank("v1"));
+        assert!(version_rank("v2beta1") > version_rank("v1beta1"));
+        assert!(version_rank("v3alpha1") > version_rank("v2alpha1"));
+    }
+
+    #[test]
+    fn version_rank_higher_minor_wins_within_tier() {
+        assert!(version_rank("v1beta2") > version_rank("v1beta1"));
+        assert!(version_rank("v1alpha2") > version_rank("v1alpha1"));
+    }
+
+    #[test]
+    fn version_rank_stable_v1_beats_v2beta() {
+        // Stable v1 should beat v2beta because stable tier (2) > beta tier (1)
+        assert!(version_rank("v1") > version_rank("v2beta1"));
+    }
+
+    #[test]
+    fn selects_preferred_entry() {
+        let items = vec![
+            entry("compute", "v1", true),
+            entry("compute", "v1beta1", false),
+            entry("compute", "alpha", false),
+        ];
+        let result = select_latest_versions(items);
+        assert_eq!(result.len(), 1);
+        assert_eq!(result[0].version, "v1");
+    }
+
+    #[test]
+    fn selects_stable_over_beta_when_no_preferred() {
+        let items = vec![
+            entry("storage", "v1beta2", false),
+            entry("storage", "v1", false),
+        ];
+        let result = select_latest_versions(items);
+        assert_eq!(result.len(), 1);
+        assert_eq!(result[0].version, "v1");
+    }
+
+    #[test]
+    fn selects_highest_beta_when_no_stable() {
+        let items = vec![
+            entry("newapi", "v1beta1", false),
+            entry("newapi", "v2beta1", false),
+        ];
+        let result = select_latest_versions(items);
+        assert_eq!(result.len(), 1);
+        assert_eq!(result[0].version, "v2beta1");
+    }
+
+    #[test]
+    fn handles_single_version_api() {
+        let items = vec![entry("simple", "v1", false)];
+        let result = select_latest_versions(items);
+        assert_eq!(result.len(), 1);
+        assert_eq!(result[0].name, "simple");
+    }
+
+    #[test]
+    fn deduplicates_across_multiple_apis() {
+        let items = vec![
+            entry("compute", "v1", true),
+            entry("compute", "v1beta1", false),
+            entry("storage", "v1", false),
+            entry("storage", "v1beta2", false),
+            entry("run", "v2", true),
+            entry("run", "v1", false),
+            entry("run", "v1alpha1", false),
+        ];
+        let result = select_latest_versions(items);
+        assert_eq!(result.len(), 3);
+
+        let by_name: HashMap<String, String> = result
+            .into_iter()
+            .map(|e| (e.name, e.version))
+            .collect();
+        assert_eq!(by_name["compute"], "v1");
+        assert_eq!(by_name["storage"], "v1");
+        assert_eq!(by_name["run"], "v2");
+    }
 }

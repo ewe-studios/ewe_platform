@@ -1,0 +1,6683 @@
+{
+  "components": {
+    "schemas": {
+      "AcmeChallenge": {
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "target": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "App": {
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "internal_numeric_id": {
+            "type": "integer"
+          },
+          "machine_count": {
+            "type": "integer"
+          },
+          "name": {
+            "type": "string"
+          },
+          "network": {
+            "type": "string"
+          },
+          "organization": {
+            "$ref": "#/components/schemas/AppOrganizationInfo"
+          },
+          "status": {
+            "type": "string"
+          },
+          "volume_count": {
+            "type": "integer"
+          }
+        },
+        "type": "object"
+      },
+      "AppOrganizationInfo": {
+        "properties": {
+          "internal_numeric_id": {
+            "type": "integer"
+          },
+          "name": {
+            "type": "string"
+          },
+          "slug": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "AppSecret": {
+        "properties": {
+          "created_at": {
+            "type": "string"
+          },
+          "digest": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "updated_at": {
+            "type": "string"
+          },
+          "value": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "AppSecrets": {
+        "properties": {
+          "secrets": {
+            "items": {
+              "$ref": "#/components/schemas/AppSecret"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "AppSecretsUpdateRequest": {
+        "properties": {
+          "values": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "type": "object"
+          }
+        },
+        "type": "object"
+      },
+      "AppSecretsUpdateResp": {
+        "properties": {
+          "Version": {
+            "description": "DEPRECATED",
+            "type": "integer"
+          },
+          "secrets": {
+            "items": {
+              "$ref": "#/components/schemas/AppSecret"
+            },
+            "type": "array"
+          },
+          "version": {
+            "type": "integer"
+          }
+        },
+        "type": "object"
+      },
+      "CertificateCheckResponse": {
+        "properties": {
+          "acme_requested": {
+            "type": "boolean"
+          },
+          "certificates": {
+            "items": {
+              "$ref": "#/components/schemas/CertificateEntry"
+            },
+            "type": "array"
+          },
+          "configured": {
+            "type": "boolean"
+          },
+          "dns_provider": {
+            "type": "string"
+          },
+          "dns_records": {
+            "$ref": "#/components/schemas/DNSRecords"
+          },
+          "dns_requirements": {
+            "$ref": "#/components/schemas/DNSRequirements"
+          },
+          "hostname": {
+            "type": "string"
+          },
+          "rate_limited_until": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "validation": {
+            "$ref": "#/components/schemas/CertificateValidation"
+          },
+          "validation_errors": {
+            "items": {
+              "$ref": "#/components/schemas/CertificateValidationError"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "CertificateDetail": {
+        "properties": {
+          "acme_requested": {
+            "type": "boolean"
+          },
+          "certificates": {
+            "items": {
+              "$ref": "#/components/schemas/CertificateEntry"
+            },
+            "type": "array"
+          },
+          "configured": {
+            "type": "boolean"
+          },
+          "dns_provider": {
+            "type": "string"
+          },
+          "dns_requirements": {
+            "$ref": "#/components/schemas/DNSRequirements"
+          },
+          "hostname": {
+            "type": "string"
+          },
+          "rate_limited_until": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "validation": {
+            "$ref": "#/components/schemas/CertificateValidation"
+          },
+          "validation_errors": {
+            "items": {
+              "$ref": "#/components/schemas/CertificateValidationError"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "CertificateEntry": {
+        "properties": {
+          "created_at": {
+            "type": "string"
+          },
+          "expires_at": {
+            "type": "string"
+          },
+          "issued": {
+            "items": {
+              "$ref": "#/components/schemas/IssuedCertificate"
+            },
+            "type": "array"
+          },
+          "issuer": {
+            "type": "string"
+          },
+          "source": {
+            "enum": [
+              "custom",
+              "fly"
+            ],
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "active",
+              "pending_ownership",
+              "pending_validation"
+            ],
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "CertificateSummary": {
+        "properties": {
+          "acme_alpn_configured": {
+            "type": "boolean"
+          },
+          "acme_dns_configured": {
+            "type": "boolean"
+          },
+          "acme_http_configured": {
+            "type": "boolean"
+          },
+          "acme_requested": {
+            "type": "boolean"
+          },
+          "configured": {
+            "type": "boolean"
+          },
+          "created_at": {
+            "type": "string"
+          },
+          "dns_provider": {
+            "type": "string"
+          },
+          "has_custom_certificate": {
+            "type": "boolean"
+          },
+          "has_fly_certificate": {
+            "type": "boolean"
+          },
+          "hostname": {
+            "type": "string"
+          },
+          "ownership_txt_configured": {
+            "type": "boolean"
+          },
+          "status": {
+            "type": "string"
+          },
+          "updated_at": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "CertificateValidation": {
+        "properties": {
+          "alpn_configured": {
+            "type": "boolean"
+          },
+          "dns_configured": {
+            "type": "boolean"
+          },
+          "http_configured": {
+            "type": "boolean"
+          },
+          "ownership_txt_configured": {
+            "type": "boolean"
+          }
+        },
+        "type": "object"
+      },
+      "CertificateValidationError": {
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          },
+          "remediation": {
+            "type": "string"
+          },
+          "timestamp": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "CheckStatus": {
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "output": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "updated_at": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "CreateAppDeployTokenRequest": {
+        "properties": {
+          "expiry": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "CreateAppRequest": {
+        "properties": {
+          "enable_subdomains": {
+            "type": "boolean"
+          },
+          "name": {
+            "type": "string"
+          },
+          "network": {
+            "type": "string"
+          },
+          "org_slug": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "CreateAppResponse": {
+        "properties": {
+          "token": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "CreateLeaseRequest": {
+        "properties": {
+          "description": {
+            "type": "string"
+          },
+          "ttl": {
+            "description": "seconds lease will be valid",
+            "type": "integer"
+          }
+        },
+        "type": "object"
+      },
+      "CreateMachineRequest": {
+        "properties": {
+          "config": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/fly.MachineConfig"
+              }
+            ],
+            "description": "An object defining the Machine configuration",
+            "type": "object"
+          },
+          "lease_ttl": {
+            "type": "integer"
+          },
+          "lsvd": {
+            "type": "boolean"
+          },
+          "min_secrets_version": {
+            "type": "integer"
+          },
+          "name": {
+            "description": "Unique name for this Machine. If omitted, one is generated for you",
+            "type": "string"
+          },
+          "region": {
+            "description": "The target region. Omitting this param launches in the same region as your WireGuard peer connection (somewhere near you).",
+            "type": "string"
+          },
+          "skip_launch": {
+            "type": "boolean"
+          },
+          "skip_secrets": {
+            "type": "boolean"
+          },
+          "skip_service_registration": {
+            "type": "boolean"
+          }
+        },
+        "type": "object"
+      },
+      "CreateOIDCTokenRequest": {
+        "description": "Optional parameters",
+        "properties": {
+          "aud": {
+            "example": "https://fly.io/org-slug",
+            "type": "string"
+          },
+          "aws_principal_tags": {
+            "type": "boolean"
+          }
+        },
+        "type": "object"
+      },
+      "CreateVolumeRequest": {
+        "properties": {
+          "auto_backup_enabled": {
+            "description": "enable scheduled automatic snapshots. Defaults to `true`",
+            "type": "boolean"
+          },
+          "compute": {
+            "$ref": "#/components/schemas/fly.MachineGuest"
+          },
+          "compute_image": {
+            "type": "string"
+          },
+          "encrypted": {
+            "type": "boolean"
+          },
+          "fstype": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "region": {
+            "type": "string"
+          },
+          "require_unique_zone": {
+            "type": "boolean"
+          },
+          "size_gb": {
+            "type": "integer"
+          },
+          "snapshot_id": {
+            "description": "restore from snapshot",
+            "type": "string"
+          },
+          "snapshot_retention": {
+            "type": "integer"
+          },
+          "source_volume_id": {
+            "description": "fork from remote volume",
+            "type": "string"
+          },
+          "unique_zone_app_wide": {
+            "type": "boolean"
+          }
+        },
+        "type": "object"
+      },
+      "CurrentTokenResponse": {
+        "properties": {
+          "tokens": {
+            "items": {
+              "$ref": "#/components/schemas/main.tokenInfo"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "DNSRecords": {
+        "properties": {
+          "a": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "aaaa": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "acme_challenge_cname": {
+            "type": "string"
+          },
+          "cname": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "ownership_txt": {
+            "type": "string"
+          },
+          "resolved_addresses": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "soa": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "DNSRequirements": {
+        "properties": {
+          "a": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "aaaa": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "acme_challenge": {
+            "$ref": "#/components/schemas/AcmeChallenge"
+          },
+          "cname": {
+            "type": "string"
+          },
+          "ownership": {
+            "$ref": "#/components/schemas/OwnershipVerification"
+          }
+        },
+        "type": "object"
+      },
+      "DecryptSecretkeyRequest": {
+        "properties": {
+          "associated_data": {
+            "items": {
+              "type": "integer"
+            },
+            "type": "array"
+          },
+          "ciphertext": {
+            "items": {
+              "type": "integer"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "DecryptSecretkeyResponse": {
+        "properties": {
+          "plaintext": {
+            "items": {
+              "type": "integer"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "DeleteAppSecretResponse": {
+        "properties": {
+          "Version": {
+            "description": "DEPRECATED",
+            "type": "integer"
+          },
+          "version": {
+            "type": "integer"
+          }
+        },
+        "type": "object"
+      },
+      "DeleteSecretkeyResponse": {
+        "properties": {
+          "Version": {
+            "description": "DEPRECATED",
+            "type": "integer"
+          },
+          "version": {
+            "type": "integer"
+          }
+        },
+        "type": "object"
+      },
+      "EncryptSecretkeyRequest": {
+        "properties": {
+          "associated_data": {
+            "items": {
+              "type": "integer"
+            },
+            "type": "array"
+          },
+          "plaintext": {
+            "items": {
+              "type": "integer"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "EncryptSecretkeyResponse": {
+        "properties": {
+          "ciphertext": {
+            "items": {
+              "type": "integer"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "ErrorResponse": {
+        "properties": {
+          "details": {
+            "description": "Deprecated",
+            "type": "object"
+          },
+          "error": {
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/main.statusCode"
+          }
+        },
+        "type": "object"
+      },
+      "ExtendVolumeRequest": {
+        "properties": {
+          "size_gb": {
+            "type": "integer"
+          }
+        },
+        "type": "object"
+      },
+      "ExtendVolumeResponse": {
+        "properties": {
+          "needs_restart": {
+            "type": "boolean"
+          },
+          "volume": {
+            "$ref": "#/components/schemas/Volume"
+          }
+        },
+        "type": "object"
+      },
+      "IPAssignment": {
+        "properties": {
+          "created_at": {
+            "type": "string"
+          },
+          "ip": {
+            "type": "string"
+          },
+          "region": {
+            "type": "string"
+          },
+          "service_name": {
+            "type": "string"
+          },
+          "shared": {
+            "type": "boolean"
+          }
+        },
+        "type": "object"
+      },
+      "ImageRef": {
+        "properties": {
+          "digest": {
+            "type": "string"
+          },
+          "labels": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "type": "object"
+          },
+          "registry": {
+            "type": "string"
+          },
+          "repository": {
+            "type": "string"
+          },
+          "tag": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "IssuedCertificate": {
+        "properties": {
+          "certificate_authority": {
+            "type": "string"
+          },
+          "expires_at": {
+            "type": "string"
+          },
+          "type": {
+            "enum": [
+              "rsa",
+              "ecdsa"
+            ],
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "Lease": {
+        "properties": {
+          "description": {
+            "description": "Description or reason for the Lease.",
+            "type": "string"
+          },
+          "expires_at": {
+            "description": "ExpiresAt is the unix timestamp in UTC to denote when the Lease will no longer be valid.",
+            "type": "integer"
+          },
+          "nonce": {
+            "description": "Nonce is the unique ID autogenerated and associated with the Lease.",
+            "type": "string"
+          },
+          "owner": {
+            "description": "Owner is the user identifier which acquired the Lease.",
+            "type": "string"
+          },
+          "version": {
+            "description": "Machine version",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "ListAppsResponse": {
+        "properties": {
+          "apps": {
+            "items": {
+              "$ref": "#/components/schemas/App"
+            },
+            "type": "array"
+          },
+          "total_apps": {
+            "type": "integer"
+          }
+        },
+        "type": "object"
+      },
+      "ListenSocket": {
+        "properties": {
+          "address": {
+            "type": "string"
+          },
+          "proto": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "Machine": {
+        "properties": {
+          "checks": {
+            "items": {
+              "$ref": "#/components/schemas/CheckStatus"
+            },
+            "type": "array"
+          },
+          "config": {
+            "$ref": "#/components/schemas/fly.MachineConfig"
+          },
+          "created_at": {
+            "type": "string"
+          },
+          "events": {
+            "items": {
+              "$ref": "#/components/schemas/MachineEvent"
+            },
+            "type": "array"
+          },
+          "host_status": {
+            "enum": [
+              "ok",
+              "unknown",
+              "unreachable"
+            ],
+            "type": "string"
+          },
+          "id": {
+            "type": "string"
+          },
+          "image_ref": {
+            "$ref": "#/components/schemas/ImageRef"
+          },
+          "incomplete_config": {
+            "$ref": "#/components/schemas/fly.MachineConfig"
+          },
+          "instance_id": {
+            "description": "InstanceID is unique for each version of the machine",
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "nonce": {
+            "description": "Nonce is only every returned on machine creation if a lease_duration was provided.",
+            "type": "string"
+          },
+          "private_ip": {
+            "description": "PrivateIP is the internal 6PN address of the machine.",
+            "type": "string"
+          },
+          "region": {
+            "type": "string"
+          },
+          "state": {
+            "type": "string"
+          },
+          "updated_at": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "MachineEvent": {
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "request": {
+            "type": "object"
+          },
+          "source": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "timestamp": {
+            "type": "integer"
+          },
+          "type": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "MachineExecRequest": {
+        "properties": {
+          "cmd": {
+            "description": "Deprecated: use Command instead",
+            "type": "string"
+          },
+          "command": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "container": {
+            "type": "string"
+          },
+          "stdin": {
+            "type": "string"
+          },
+          "timeout": {
+            "type": "integer"
+          }
+        },
+        "type": "object"
+      },
+      "MachineOverviewConfig": {
+        "properties": {
+          "guest": {
+            "$ref": "#/components/schemas/fly.MachineGuest"
+          },
+          "image": {
+            "type": "string"
+          },
+          "metadata": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "type": "object"
+          }
+        },
+        "type": "object"
+      },
+      "MachineVersion": {
+        "properties": {
+          "user_config": {
+            "$ref": "#/components/schemas/fly.MachineConfig"
+          },
+          "version": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "OrgMachine": {
+        "properties": {
+          "app_name": {
+            "type": "string"
+          },
+          "config": {
+            "$ref": "#/components/schemas/MachineOverviewConfig"
+          },
+          "created_at": {
+            "type": "string"
+          },
+          "id": {
+            "type": "string"
+          },
+          "instance_id": {
+            "description": "Deprecated: use Version.",
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "private_ip": {
+            "type": "string"
+          },
+          "region": {
+            "type": "string"
+          },
+          "state": {
+            "type": "string"
+          },
+          "updated_at": {
+            "type": "string"
+          },
+          "version": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "OrgMachinesResponse": {
+        "properties": {
+          "last_machine_id": {
+            "type": "string"
+          },
+          "last_updated_at": {
+            "type": "string"
+          },
+          "machines": {
+            "items": {
+              "$ref": "#/components/schemas/OrgMachine"
+            },
+            "type": "array"
+          },
+          "next_cursor": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "OrgVolume": {
+        "properties": {
+          "app_name": {
+            "type": "string"
+          },
+          "attached_alloc_id": {
+            "type": "string"
+          },
+          "attached_machine_id": {
+            "type": "string"
+          },
+          "auto_backup_enabled": {
+            "type": "boolean"
+          },
+          "block_size": {
+            "type": "integer"
+          },
+          "blocks": {
+            "type": "integer"
+          },
+          "blocks_avail": {
+            "type": "integer"
+          },
+          "blocks_free": {
+            "type": "integer"
+          },
+          "bytes_total": {
+            "type": "integer"
+          },
+          "bytes_used": {
+            "type": "integer"
+          },
+          "created_at": {
+            "type": "string"
+          },
+          "encrypted": {
+            "type": "boolean"
+          },
+          "fstype": {
+            "type": "string"
+          },
+          "host_status": {
+            "enum": [
+              "ok",
+              "unknown",
+              "unreachable"
+            ],
+            "type": "string"
+          },
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "region": {
+            "type": "string"
+          },
+          "size_gb": {
+            "type": "integer"
+          },
+          "snapshot_retention": {
+            "type": "integer"
+          },
+          "state": {
+            "type": "string"
+          },
+          "type": {
+            "enum": [
+              "local",
+              "cache"
+            ],
+            "type": "string"
+          },
+          "updated_at": {
+            "type": "string"
+          },
+          "zone": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "OrgVolumesResponse": {
+        "properties": {
+          "last_updated_at": {
+            "type": "string"
+          },
+          "last_volume_id": {
+            "type": "string"
+          },
+          "next_cursor": {
+            "type": "string"
+          },
+          "volumes": {
+            "items": {
+              "$ref": "#/components/schemas/OrgVolume"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "OwnershipVerification": {
+        "properties": {
+          "app_value": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "org_value": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "ProcessStat": {
+        "properties": {
+          "command": {
+            "type": "string"
+          },
+          "cpu": {
+            "type": "integer"
+          },
+          "directory": {
+            "type": "string"
+          },
+          "listen_sockets": {
+            "items": {
+              "$ref": "#/components/schemas/ListenSocket"
+            },
+            "type": "array"
+          },
+          "pid": {
+            "type": "integer"
+          },
+          "rss": {
+            "type": "integer"
+          },
+          "rtime": {
+            "type": "integer"
+          },
+          "stime": {
+            "type": "integer"
+          }
+        },
+        "type": "object"
+      },
+      "SecretKey": {
+        "properties": {
+          "created_at": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "public_key": {
+            "items": {
+              "type": "integer"
+            },
+            "type": "array"
+          },
+          "type": {
+            "type": "string"
+          },
+          "updated_at": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "SecretKeys": {
+        "properties": {
+          "secret_keys": {
+            "items": {
+              "$ref": "#/components/schemas/SecretKey"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "SetAppSecretRequest": {
+        "properties": {
+          "value": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "SetAppSecretResponse": {
+        "properties": {
+          "Version": {
+            "description": "DEPRECATED",
+            "type": "integer"
+          },
+          "created_at": {
+            "type": "string"
+          },
+          "digest": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "updated_at": {
+            "type": "string"
+          },
+          "value": {
+            "type": "string"
+          },
+          "version": {
+            "type": "integer"
+          }
+        },
+        "type": "object"
+      },
+      "SetSecretkeyRequest": {
+        "properties": {
+          "type": {
+            "type": "string"
+          },
+          "value": {
+            "items": {
+              "type": "integer"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "SetSecretkeyResponse": {
+        "properties": {
+          "Version": {
+            "description": "DEPRECATED",
+            "type": "integer"
+          },
+          "created_at": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "public_key": {
+            "items": {
+              "type": "integer"
+            },
+            "type": "array"
+          },
+          "type": {
+            "type": "string"
+          },
+          "updated_at": {
+            "type": "string"
+          },
+          "version": {
+            "type": "integer"
+          }
+        },
+        "type": "object"
+      },
+      "SignSecretkeyRequest": {
+        "properties": {
+          "plaintext": {
+            "items": {
+              "type": "integer"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "SignSecretkeyResponse": {
+        "properties": {
+          "signature": {
+            "items": {
+              "type": "integer"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "SignalRequest": {
+        "properties": {
+          "signal": {
+            "enum": [
+              "SIGABRT",
+              "SIGALRM",
+              "SIGFPE",
+              "SIGHUP",
+              "SIGILL",
+              "SIGINT",
+              "SIGKILL",
+              "SIGPIPE",
+              "SIGQUIT",
+              "SIGSEGV",
+              "SIGTERM",
+              "SIGTRAP",
+              "SIGUSR1"
+            ],
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "StopRequest": {
+        "properties": {
+          "signal": {
+            "type": "string"
+          },
+          "timeout": {
+            "$ref": "#/components/schemas/fly.Duration"
+          }
+        },
+        "type": "object"
+      },
+      "UpdateMachineRequest": {
+        "properties": {
+          "config": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/fly.MachineConfig"
+              }
+            ],
+            "description": "An object defining the Machine configuration",
+            "type": "object"
+          },
+          "current_version": {
+            "type": "string"
+          },
+          "lease_ttl": {
+            "type": "integer"
+          },
+          "lsvd": {
+            "type": "boolean"
+          },
+          "min_secrets_version": {
+            "type": "integer"
+          },
+          "name": {
+            "description": "Unique name for this Machine. If omitted, one is generated for you",
+            "type": "string"
+          },
+          "region": {
+            "description": "The target region. Omitting this param launches in the same region as your WireGuard peer connection (somewhere near you).",
+            "type": "string"
+          },
+          "skip_launch": {
+            "type": "boolean"
+          },
+          "skip_secrets": {
+            "type": "boolean"
+          },
+          "skip_service_registration": {
+            "type": "boolean"
+          }
+        },
+        "type": "object"
+      },
+      "UpdateVolumeRequest": {
+        "properties": {
+          "auto_backup_enabled": {
+            "type": "boolean"
+          },
+          "snapshot_retention": {
+            "type": "integer"
+          }
+        },
+        "type": "object"
+      },
+      "VerifySecretkeyRequest": {
+        "properties": {
+          "plaintext": {
+            "items": {
+              "type": "integer"
+            },
+            "type": "array"
+          },
+          "signature": {
+            "items": {
+              "type": "integer"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "Volume": {
+        "properties": {
+          "attached_alloc_id": {
+            "type": "string"
+          },
+          "attached_machine_id": {
+            "type": "string"
+          },
+          "auto_backup_enabled": {
+            "type": "boolean"
+          },
+          "block_size": {
+            "type": "integer"
+          },
+          "blocks": {
+            "type": "integer"
+          },
+          "blocks_avail": {
+            "type": "integer"
+          },
+          "blocks_free": {
+            "type": "integer"
+          },
+          "bytes_total": {
+            "type": "integer"
+          },
+          "bytes_used": {
+            "type": "integer"
+          },
+          "created_at": {
+            "type": "string"
+          },
+          "encrypted": {
+            "type": "boolean"
+          },
+          "fstype": {
+            "type": "string"
+          },
+          "host_status": {
+            "enum": [
+              "ok",
+              "unknown",
+              "unreachable"
+            ],
+            "type": "string"
+          },
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "region": {
+            "type": "string"
+          },
+          "size_gb": {
+            "type": "integer"
+          },
+          "snapshot_retention": {
+            "type": "integer"
+          },
+          "state": {
+            "type": "string"
+          },
+          "type": {
+            "enum": [
+              "local",
+              "cache"
+            ],
+            "type": "string"
+          },
+          "zone": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "VolumeSnapshot": {
+        "properties": {
+          "created_at": {
+            "type": "string"
+          },
+          "digest": {
+            "type": "string"
+          },
+          "id": {
+            "type": "string"
+          },
+          "retention_days": {
+            "type": "integer"
+          },
+          "size": {
+            "type": "integer"
+          },
+          "status": {
+            "type": "string"
+          },
+          "volume_size": {
+            "type": "integer"
+          }
+        },
+        "type": "object"
+      },
+      "WaitMachineResponse": {
+        "properties": {
+          "event_id": {
+            "type": "string"
+          },
+          "ok": {
+            "type": "boolean"
+          },
+          "state": {
+            "type": "string"
+          },
+          "version": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "assignIPRequest": {
+        "properties": {
+          "network": {
+            "type": "string"
+          },
+          "org_slug": {
+            "type": "string"
+          },
+          "region": {
+            "type": "string"
+          },
+          "service_name": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "createAcmeCertificateRequest": {
+        "properties": {
+          "hostname": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "createCustomCertificateRequest": {
+        "properties": {
+          "fullchain": {
+            "type": "string"
+          },
+          "hostname": {
+            "type": "string"
+          },
+          "private_key": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "destroyCustomCertificateResponse": {
+        "properties": {
+          "acme_requested": {
+            "type": "boolean"
+          },
+          "certificates": {
+            "items": {
+              "$ref": "#/components/schemas/CertificateEntry"
+            },
+            "type": "array"
+          },
+          "configured": {
+            "type": "boolean"
+          },
+          "dns_provider": {
+            "type": "string"
+          },
+          "dns_requirements": {
+            "$ref": "#/components/schemas/DNSRequirements"
+          },
+          "hostname": {
+            "type": "string"
+          },
+          "rate_limited_until": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "validation": {
+            "$ref": "#/components/schemas/CertificateValidation"
+          },
+          "validation_errors": {
+            "items": {
+              "$ref": "#/components/schemas/CertificateValidationError"
+            },
+            "type": "array"
+          },
+          "warning": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "fly.ContainerConfig": {
+        "properties": {
+          "cmd": {
+            "description": "CmdOverride is used to override the default command of the image.",
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "depends_on": {
+            "description": "DependsOn can be used to define dependencies between containers. The container will only be\nstarted after all of its dependent conditions have been satisfied.",
+            "items": {
+              "$ref": "#/components/schemas/fly.ContainerDependency"
+            },
+            "type": "array"
+          },
+          "entrypoint": {
+            "description": "EntrypointOverride is used to override the default entrypoint of the image.",
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "env": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "ExtraEnv is used to add additional environment variables to the container.",
+            "type": "object"
+          },
+          "env_from": {
+            "description": "EnvFrom can be provided to set environment variables from machine fields.",
+            "items": {
+              "$ref": "#/components/schemas/fly.EnvFrom"
+            },
+            "type": "array"
+          },
+          "exec": {
+            "description": "Image Config overrides - these fields are used to override the image configuration.\nIf not provided, the image configuration will be used.\nExecOverride is used to override the default command of the image.",
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "files": {
+            "description": "Files are files that will be written to the container file system.",
+            "items": {
+              "$ref": "#/components/schemas/fly.File"
+            },
+            "type": "array"
+          },
+          "healthchecks": {
+            "description": "Healthchecks determine the health of your containers. Healthchecks can use HTTP, TCP or an Exec command.",
+            "items": {
+              "$ref": "#/components/schemas/fly.ContainerHealthcheck"
+            },
+            "type": "array"
+          },
+          "image": {
+            "description": "Image is the docker image to run.",
+            "type": "string"
+          },
+          "name": {
+            "description": "Name is used to identify the container in the machine.",
+            "type": "string"
+          },
+          "restart": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/fly.MachineRestart"
+              }
+            ],
+            "description": "Restart is used to define the restart policy for the container. NOTE: spot-price is not\nsupported for containers.",
+            "type": "object"
+          },
+          "secrets": {
+            "description": "Secrets can be provided at the process level to explicitly indicate which secrets should be\nused for the process. If not provided, the secrets provided at the machine level will be used.",
+            "items": {
+              "$ref": "#/components/schemas/fly.MachineSecret"
+            },
+            "type": "array"
+          },
+          "stop": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/fly.StopConfig"
+              }
+            ],
+            "description": "Stop is used to define the signal and timeout for stopping the container.",
+            "type": "object"
+          },
+          "user": {
+            "description": "UserOverride is used to override the default user of the image.",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "fly.ContainerDependency": {
+        "properties": {
+          "condition": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/fly.ContainerDependencyCondition"
+              }
+            ],
+            "type": "object"
+          },
+          "name": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "fly.ContainerDependencyCondition": {
+        "enum": [
+          "exited_successfully",
+          "healthy",
+          "started"
+        ],
+        "type": "string",
+        "x-enum-varnames": [
+          "ExitedSuccessfully",
+          "Healthy",
+          "Started"
+        ]
+      },
+      "fly.ContainerHealthcheck": {
+        "properties": {
+          "exec": {
+            "$ref": "#/components/schemas/fly.ExecHealthcheck"
+          },
+          "failure_threshold": {
+            "description": "The number of times the check must fail before considering the container unhealthy.",
+            "type": "integer"
+          },
+          "grace_period": {
+            "description": "The time in seconds to wait after a container starts before checking its health.",
+            "type": "integer"
+          },
+          "http": {
+            "$ref": "#/components/schemas/fly.HTTPHealthcheck"
+          },
+          "interval": {
+            "description": "The time in seconds between executing the defined check.",
+            "type": "integer"
+          },
+          "kind": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/fly.ContainerHealthcheckKind"
+              }
+            ],
+            "description": "Kind of healthcheck (readiness, liveness)",
+            "type": "object"
+          },
+          "name": {
+            "description": "The name of the check. Must be unique within the container.",
+            "type": "string"
+          },
+          "success_threshold": {
+            "description": "The number of times the check must succeeed before considering the container healthy.",
+            "type": "integer"
+          },
+          "tcp": {
+            "$ref": "#/components/schemas/fly.TCPHealthcheck"
+          },
+          "timeout": {
+            "description": "The time in seconds to wait for the check to complete.",
+            "type": "integer"
+          },
+          "unhealthy": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/fly.UnhealthyPolicy"
+              }
+            ],
+            "description": "Unhealthy policy that determines what action to take if a container is deemed unhealthy",
+            "type": "object"
+          }
+        },
+        "type": "object"
+      },
+      "fly.ContainerHealthcheckKind": {
+        "enum": [
+          "readiness",
+          "liveness"
+        ],
+        "type": "string",
+        "x-enum-varnames": [
+          "Readiness",
+          "Liveness"
+        ]
+      },
+      "fly.ContainerHealthcheckScheme": {
+        "enum": [
+          "http",
+          "https"
+        ],
+        "type": "string",
+        "x-enum-varnames": [
+          "HTTP",
+          "HTTPS"
+        ]
+      },
+      "fly.DNSConfig": {
+        "properties": {
+          "dns_forward_rules": {
+            "items": {
+              "$ref": "#/components/schemas/fly.dnsForwardRule"
+            },
+            "type": "array"
+          },
+          "hostname": {
+            "type": "string"
+          },
+          "hostname_fqdn": {
+            "type": "string"
+          },
+          "nameservers": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "options": {
+            "items": {
+              "$ref": "#/components/schemas/fly.dnsOption"
+            },
+            "type": "array"
+          },
+          "searches": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "skip_registration": {
+            "type": "boolean"
+          }
+        },
+        "type": "object"
+      },
+      "fly.Duration": {
+        "properties": {
+          "time.Duration": {
+            "type": "integer",
+            "x-enum-varnames": [
+              "minDuration",
+              "maxDuration",
+              "Nanosecond",
+              "Microsecond",
+              "Millisecond",
+              "Second",
+              "Minute",
+              "Hour",
+              "minDuration",
+              "maxDuration",
+              "Nanosecond",
+              "Microsecond",
+              "Millisecond",
+              "Second",
+              "Minute",
+              "Hour",
+              "minDuration",
+              "maxDuration",
+              "Nanosecond",
+              "Microsecond",
+              "Millisecond",
+              "Second",
+              "Minute",
+              "Hour",
+              "minDuration",
+              "maxDuration",
+              "Nanosecond",
+              "Microsecond",
+              "Millisecond",
+              "Second",
+              "Minute",
+              "Hour",
+              "Nanosecond",
+              "Microsecond",
+              "Millisecond",
+              "Second"
+            ]
+          }
+        },
+        "type": "object"
+      },
+      "fly.EnvFrom": {
+        "description": "EnvVar defines an environment variable to be populated from a machine field, env_var",
+        "properties": {
+          "env_var": {
+            "description": "EnvVar is required and is the name of the environment variable that will be set from the\nsecret. It must be a valid environment variable name.",
+            "type": "string"
+          },
+          "field_ref": {
+            "description": "FieldRef selects a field of the Machine: supports id, version, app_name, private_ip, region, image.",
+            "enum": [
+              "id",
+              "version",
+              "app_name",
+              "private_ip",
+              "region",
+              "image"
+            ],
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "fly.ExecHealthcheck": {
+        "properties": {
+          "command": {
+            "description": "The command to run to check the health of the container (e.g. [\"cat\", \"/tmp/healthy\"])",
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "fly.File": {
+        "description": "A file that will be written to the Machine. One of RawValue or SecretName must be set.",
+        "properties": {
+          "guest_path": {
+            "description": "GuestPath is the path on the machine where the file will be written and must be an absolute path.\nFor example: /full/path/to/file.json",
+            "type": "string"
+          },
+          "image_config": {
+            "description": "The name of an image to use the OCI image config as the file contents.",
+            "type": "string"
+          },
+          "mode": {
+            "description": "Mode bits used to set permissions on this file as accepted by chmod(2).",
+            "type": "integer"
+          },
+          "raw_value": {
+            "description": "The base64 encoded string of the file contents.",
+            "type": "string"
+          },
+          "secret_name": {
+            "description": "The name of the secret that contains the base64 encoded file contents.",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "fly.HTTPHealthcheck": {
+        "properties": {
+          "headers": {
+            "description": "Additional headers to send with the request",
+            "items": {
+              "$ref": "#/components/schemas/fly.MachineHTTPHeader"
+            },
+            "type": "array"
+          },
+          "method": {
+            "description": "The HTTP method to use to when making the request",
+            "type": "string"
+          },
+          "path": {
+            "description": "The path to send the request to",
+            "type": "string"
+          },
+          "port": {
+            "description": "The port to connect to, often the same as internal_port",
+            "type": "integer"
+          },
+          "scheme": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/fly.ContainerHealthcheckScheme"
+              }
+            ],
+            "description": "Whether to use http or https",
+            "type": "object"
+          },
+          "tls_server_name": {
+            "description": "If the protocol is https, the hostname to use for TLS certificate validation",
+            "type": "string"
+          },
+          "tls_skip_verify": {
+            "description": "If the protocol is https, whether or not to verify the TLS certificate",
+            "type": "boolean"
+          }
+        },
+        "type": "object"
+      },
+      "fly.HTTPOptions": {
+        "properties": {
+          "compress": {
+            "type": "boolean"
+          },
+          "h2_backend": {
+            "type": "boolean"
+          },
+          "headers_read_timeout": {
+            "type": "integer"
+          },
+          "idle_timeout": {
+            "type": "integer"
+          },
+          "replay_cache": {
+            "items": {
+              "$ref": "#/components/schemas/fly.ReplayCache"
+            },
+            "type": "array"
+          },
+          "response": {
+            "$ref": "#/components/schemas/fly.HTTPResponseOptions"
+          }
+        },
+        "type": "object"
+      },
+      "fly.HTTPResponseOptions": {
+        "properties": {
+          "headers": {
+            "additionalProperties": {
+              "type": "object"
+            },
+            "type": "object"
+          },
+          "pristine": {
+            "type": "boolean"
+          }
+        },
+        "type": "object"
+      },
+      "fly.MachineCheck": {
+        "properties": {
+          "grace_period": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/fly.Duration"
+              }
+            ],
+            "description": "The time to wait after a VM starts before checking its health",
+            "type": "object"
+          },
+          "headers": {
+            "items": {
+              "$ref": "#/components/schemas/fly.MachineHTTPHeader"
+            },
+            "type": "array"
+          },
+          "interval": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/fly.Duration"
+              }
+            ],
+            "description": "The time between connectivity checks",
+            "type": "object"
+          },
+          "kind": {
+            "description": "Kind of the check (informational, readiness)",
+            "enum": [
+              "informational",
+              "readiness"
+            ],
+            "type": "string"
+          },
+          "method": {
+            "description": "For http checks, the HTTP method to use to when making the request",
+            "type": "string"
+          },
+          "path": {
+            "description": "For http checks, the path to send the request to",
+            "type": "string"
+          },
+          "port": {
+            "description": "The port to connect to, often the same as internal_port",
+            "type": "integer"
+          },
+          "protocol": {
+            "description": "For http checks, whether to use http or https",
+            "type": "string"
+          },
+          "timeout": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/fly.Duration"
+              }
+            ],
+            "description": "The maximum time a connection can take before being reported as failing its health check",
+            "type": "object"
+          },
+          "tls_server_name": {
+            "description": "If the protocol is https, the hostname to use for TLS certificate validation",
+            "type": "string"
+          },
+          "tls_skip_verify": {
+            "description": "For http checks with https protocol, whether or not to verify the TLS certificate",
+            "type": "boolean"
+          },
+          "type": {
+            "description": "tcp or http",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "fly.MachineConfig": {
+        "properties": {
+          "auto_destroy": {
+            "description": "Optional boolean telling the Machine to destroy itself once it’s complete (default false)",
+            "type": "boolean"
+          },
+          "checks": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/fly.MachineCheck"
+            },
+            "description": "An optional object that defines one or more named top-level checks. The key for each check is the check name.",
+            "type": "object"
+          },
+          "containers": {
+            "description": "Containers are a list of containers that will run in the machine. Currently restricted to\nonly specific organizations.",
+            "items": {
+              "$ref": "#/components/schemas/fly.ContainerConfig"
+            },
+            "type": "array"
+          },
+          "disable_machine_autostart": {
+            "description": "Deprecated: use Service.Autostart instead",
+            "type": "boolean"
+          },
+          "dns": {
+            "$ref": "#/components/schemas/fly.DNSConfig"
+          },
+          "env": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "An object filled with key/value pairs to be set as environment variables",
+            "type": "object"
+          },
+          "files": {
+            "items": {
+              "$ref": "#/components/schemas/fly.File"
+            },
+            "type": "array"
+          },
+          "guest": {
+            "$ref": "#/components/schemas/fly.MachineGuest"
+          },
+          "image": {
+            "description": "The docker image to run",
+            "type": "string"
+          },
+          "init": {
+            "$ref": "#/components/schemas/fly.MachineInit"
+          },
+          "metadata": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "type": "object"
+          },
+          "metrics": {
+            "$ref": "#/components/schemas/fly.MachineMetrics"
+          },
+          "mounts": {
+            "items": {
+              "$ref": "#/components/schemas/fly.MachineMount"
+            },
+            "type": "array"
+          },
+          "processes": {
+            "items": {
+              "$ref": "#/components/schemas/fly.MachineProcess"
+            },
+            "type": "array"
+          },
+          "restart": {
+            "$ref": "#/components/schemas/fly.MachineRestart"
+          },
+          "rootfs": {
+            "$ref": "#/components/schemas/fly.MachineRootfs"
+          },
+          "schedule": {
+            "type": "string"
+          },
+          "services": {
+            "items": {
+              "$ref": "#/components/schemas/fly.MachineService"
+            },
+            "type": "array"
+          },
+          "size": {
+            "description": "Deprecated: use Guest instead",
+            "type": "string"
+          },
+          "standbys": {
+            "description": "Standbys enable a machine to be a standby for another. In the event of a hardware failure,\nthe standby machine will be started.",
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "statics": {
+            "items": {
+              "$ref": "#/components/schemas/fly.Static"
+            },
+            "type": "array"
+          },
+          "stop_config": {
+            "$ref": "#/components/schemas/fly.StopConfig"
+          }
+        },
+        "type": "object"
+      },
+      "fly.MachineGuest": {
+        "properties": {
+          "cpu_kind": {
+            "type": "string"
+          },
+          "cpus": {
+            "type": "integer"
+          },
+          "gpu_kind": {
+            "type": "string"
+          },
+          "gpus": {
+            "type": "integer"
+          },
+          "host_dedication_id": {
+            "type": "string"
+          },
+          "kernel_args": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "max_memory_mb": {
+            "type": "integer"
+          },
+          "memory_mb": {
+            "type": "integer"
+          },
+          "persist_rootfs": {
+            "description": "Deprecated: use MachineConfig.Rootfs instead",
+            "enum": [
+              "never",
+              "always",
+              "restart"
+            ],
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "fly.MachineHTTPHeader": {
+        "description": "For http checks, an array of objects with string field Name and array of strings field Values. The key/value pairs specify header and header values that will get passed with the check call.",
+        "properties": {
+          "name": {
+            "description": "The header name",
+            "type": "string"
+          },
+          "values": {
+            "description": "The header value",
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "fly.MachineInit": {
+        "properties": {
+          "cmd": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "entrypoint": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "exec": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "kernel_args": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "swap_size_mb": {
+            "type": "integer"
+          },
+          "tty": {
+            "type": "boolean"
+          }
+        },
+        "type": "object"
+      },
+      "fly.MachineMetrics": {
+        "properties": {
+          "https": {
+            "type": "boolean"
+          },
+          "path": {
+            "type": "string"
+          },
+          "port": {
+            "type": "integer"
+          }
+        },
+        "type": "object"
+      },
+      "fly.MachineMount": {
+        "properties": {
+          "add_size_gb": {
+            "type": "integer"
+          },
+          "encrypted": {
+            "type": "boolean"
+          },
+          "extend_threshold_percent": {
+            "type": "integer"
+          },
+          "name": {
+            "type": "string"
+          },
+          "path": {
+            "type": "string"
+          },
+          "size_gb": {
+            "type": "integer"
+          },
+          "size_gb_limit": {
+            "type": "integer"
+          },
+          "volume": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "fly.MachinePort": {
+        "properties": {
+          "end_port": {
+            "type": "integer"
+          },
+          "force_https": {
+            "type": "boolean"
+          },
+          "handlers": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "http_options": {
+            "$ref": "#/components/schemas/fly.HTTPOptions"
+          },
+          "port": {
+            "type": "integer"
+          },
+          "proxy_proto_options": {
+            "$ref": "#/components/schemas/fly.ProxyProtoOptions"
+          },
+          "start_port": {
+            "type": "integer"
+          },
+          "tls_options": {
+            "$ref": "#/components/schemas/fly.TLSOptions"
+          }
+        },
+        "type": "object"
+      },
+      "fly.MachineProcess": {
+        "properties": {
+          "cmd": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "entrypoint": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "env": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "type": "object"
+          },
+          "env_from": {
+            "description": "EnvFrom can be provided to set environment variables from machine fields.",
+            "items": {
+              "$ref": "#/components/schemas/fly.EnvFrom"
+            },
+            "type": "array"
+          },
+          "exec": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "ignore_app_secrets": {
+            "description": "IgnoreAppSecrets can be set to true to ignore the secrets for the App the Machine belongs to\nand only use the secrets provided at the process level. The default/legacy behavior is to use\nthe secrets provided at the App level.",
+            "type": "boolean"
+          },
+          "secrets": {
+            "description": "Secrets can be provided at the process level to explicitly indicate which secrets should be\nused for the process. If not provided, the secrets provided at the machine level will be used.",
+            "items": {
+              "$ref": "#/components/schemas/fly.MachineSecret"
+            },
+            "type": "array"
+          },
+          "user": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "fly.MachineRestart": {
+        "description": "The Machine restart policy defines whether and how flyd restarts a Machine after its main process exits. See https://fly.io/docs/machines/guides-examples/machine-restart-policy/.",
+        "properties": {
+          "gpu_bid_price": {
+            "description": "GPU bid price for spot Machines.",
+            "type": "number"
+          },
+          "max_retries": {
+            "description": "When policy is on-failure, the maximum number of times to attempt to restart the Machine before letting it stop.",
+            "type": "integer"
+          },
+          "policy": {
+            "description": "* no - Never try to restart a Machine automatically when its main process exits, whether that’s on purpose or on a crash.\n* always - Always restart a Machine automatically and never let it enter a stopped state, even when the main process exits cleanly.\n* on-failure - Try up to MaxRetries times to automatically restart the Machine if it exits with a non-zero exit code. Default when no explicit policy is set, and for Machines with schedules.\n* spot-price - Starts the Machine only when there is capacity and the spot price is less than or equal to the bid price.",
+            "enum": [
+              "no",
+              "always",
+              "on-failure",
+              "spot-price"
+            ],
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "fly.MachineRootfs": {
+        "properties": {
+          "fs_size_gb": {
+            "type": "integer"
+          },
+          "persist": {
+            "enum": [
+              "never",
+              "always",
+              "restart"
+            ],
+            "type": "string"
+          },
+          "size_gb": {
+            "type": "integer"
+          }
+        },
+        "type": "object"
+      },
+      "fly.MachineSecret": {
+        "description": "A Secret needing to be set in the environment of the Machine. env_var is required",
+        "properties": {
+          "env_var": {
+            "description": "EnvVar is required and is the name of the environment variable that will be set from the\nsecret. It must be a valid environment variable name.",
+            "type": "string"
+          },
+          "name": {
+            "description": "Name is optional and when provided is used to reference a secret name where the EnvVar is\ndifferent from what was set as the secret name.",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "fly.MachineService": {
+        "properties": {
+          "autostart": {
+            "type": "boolean"
+          },
+          "autostop": {
+            "description": "Accepts a string (new format) or a boolean (old format). For backward compatibility with older clients, the API continues to use booleans for \"off\" and \"stop\" in responses.\n* \"off\" or false - Do not autostop the Machine.\n* \"stop\" or true - Automatically stop the Machine.\n* \"suspend\" - Automatically suspend the Machine, falling back to a full stop if this is not possible.",
+            "enum": [
+              "off",
+              "stop",
+              "suspend"
+            ],
+            "type": "string"
+          },
+          "checks": {
+            "description": "An optional list of service checks",
+            "items": {
+              "$ref": "#/components/schemas/fly.MachineServiceCheck"
+            },
+            "type": "array"
+          },
+          "concurrency": {
+            "$ref": "#/components/schemas/fly.MachineServiceConcurrency"
+          },
+          "force_instance_description": {
+            "type": "string"
+          },
+          "force_instance_key": {
+            "type": "string"
+          },
+          "internal_port": {
+            "type": "integer"
+          },
+          "min_machines_running": {
+            "type": "integer"
+          },
+          "ports": {
+            "items": {
+              "$ref": "#/components/schemas/fly.MachinePort"
+            },
+            "type": "array"
+          },
+          "protocol": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "fly.MachineServiceCheck": {
+        "properties": {
+          "grace_period": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/fly.Duration"
+              }
+            ],
+            "description": "The time to wait after a VM starts before checking its health",
+            "type": "object"
+          },
+          "headers": {
+            "items": {
+              "$ref": "#/components/schemas/fly.MachineHTTPHeader"
+            },
+            "type": "array"
+          },
+          "interval": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/fly.Duration"
+              }
+            ],
+            "description": "The time between connectivity checks",
+            "type": "object"
+          },
+          "method": {
+            "description": "For http checks, the HTTP method to use to when making the request",
+            "type": "string"
+          },
+          "path": {
+            "description": "For http checks, the path to send the request to",
+            "type": "string"
+          },
+          "port": {
+            "description": "The port to connect to, often the same as internal_port",
+            "type": "integer"
+          },
+          "protocol": {
+            "description": "For http checks, whether to use http or https",
+            "type": "string"
+          },
+          "timeout": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/fly.Duration"
+              }
+            ],
+            "description": "The maximum time a connection can take before being reported as failing its health check",
+            "type": "object"
+          },
+          "tls_server_name": {
+            "description": "If the protocol is https, the hostname to use for TLS certificate validation",
+            "type": "string"
+          },
+          "tls_skip_verify": {
+            "description": "For http checks with https protocol, whether or not to verify the TLS certificate",
+            "type": "boolean"
+          },
+          "type": {
+            "description": "tcp or http",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "fly.MachineServiceConcurrency": {
+        "properties": {
+          "hard_limit": {
+            "type": "integer"
+          },
+          "soft_limit": {
+            "type": "integer"
+          },
+          "type": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "fly.ProxyProtoOptions": {
+        "properties": {
+          "version": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "fly.ReplayCache": {
+        "properties": {
+          "allow_bypass": {
+            "type": "boolean"
+          },
+          "name": {
+            "description": "Name of the cookie or header to key the cache on",
+            "type": "string"
+          },
+          "path_prefix": {
+            "type": "string"
+          },
+          "ttl_seconds": {
+            "type": "integer"
+          },
+          "type": {
+            "description": "Currently either \"cookie\" or \"header\"",
+            "enum": [
+              "cookie",
+              "header"
+            ],
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "fly.Static": {
+        "properties": {
+          "guest_path": {
+            "type": "string"
+          },
+          "index_document": {
+            "type": "string"
+          },
+          "tigris_bucket": {
+            "type": "string"
+          },
+          "url_prefix": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "guest_path",
+          "url_prefix"
+        ],
+        "type": "object"
+      },
+      "fly.StopConfig": {
+        "properties": {
+          "signal": {
+            "type": "string"
+          },
+          "timeout": {
+            "$ref": "#/components/schemas/fly.Duration"
+          }
+        },
+        "type": "object"
+      },
+      "fly.TCPHealthcheck": {
+        "properties": {
+          "port": {
+            "description": "The port to connect to, often the same as internal_port",
+            "type": "integer"
+          }
+        },
+        "type": "object"
+      },
+      "fly.TLSOptions": {
+        "properties": {
+          "alpn": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "default_self_signed": {
+            "type": "boolean"
+          },
+          "versions": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "fly.UnhealthyPolicy": {
+        "enum": [
+          "stop"
+        ],
+        "type": "string",
+        "x-enum-varnames": [
+          "UnhealthyPolicyStop"
+        ]
+      },
+      "fly.dnsForwardRule": {
+        "properties": {
+          "addr": {
+            "type": "string"
+          },
+          "basename": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "fly.dnsOption": {
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "value": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "flydv1.ExecResponse": {
+        "properties": {
+          "exit_code": {
+            "type": "integer"
+          },
+          "exit_signal": {
+            "type": "integer"
+          },
+          "stderr": {
+            "type": "string"
+          },
+          "stdout": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "listCertificatesResponse": {
+        "properties": {
+          "certificates": {
+            "items": {
+              "$ref": "#/components/schemas/CertificateSummary"
+            },
+            "type": "array"
+          },
+          "next_cursor": {
+            "type": "string"
+          },
+          "total_count": {
+            "type": "integer"
+          }
+        },
+        "type": "object"
+      },
+      "listIPAssignmentsResponse": {
+        "properties": {
+          "ips": {
+            "items": {
+              "$ref": "#/components/schemas/IPAssignment"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "main.getPlacementsRequest": {
+        "properties": {
+          "compute": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/fly.MachineGuest"
+              }
+            ],
+            "description": "Resource requirements for the Machine to simulate. Defaults to a performance-1x machine",
+            "type": "object"
+          },
+          "count": {
+            "description": "Number of machines to simulate placement.\nDefaults to 0, which returns the org-specific limit for each region.",
+            "type": "integer"
+          },
+          "org_slug": {
+            "example": "personal",
+            "type": "string"
+          },
+          "region": {
+            "description": "Region expression for placement as a comma-delimited set of regions or aliases.\nDefaults to \"[region],any\", to prefer the API endpoint's local region with any other region as fallback.",
+            "example": "lhr,eu",
+            "type": "string"
+          },
+          "volume_name": {
+            "example": "",
+            "type": "string"
+          },
+          "volume_size_bytes": {
+            "type": "integer"
+          },
+          "weights": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/placement.Weights"
+              }
+            ],
+            "description": "Optional weights to override default placement preferences.",
+            "example": {
+              "region": 1000,
+              "spread": 0
+            },
+            "type": "object"
+          }
+        },
+        "required": [
+          "org_slug"
+        ],
+        "type": "object"
+      },
+      "main.getPlacementsResponse": {
+        "properties": {
+          "regions": {
+            "items": {
+              "$ref": "#/components/schemas/placement.RegionPlacement"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "main.memoryResponse": {
+        "properties": {
+          "available_mb": {
+            "type": "integer"
+          },
+          "limit_mb": {
+            "type": "integer"
+          }
+        },
+        "type": "object"
+      },
+      "main.reclaimMemoryRequest": {
+        "properties": {
+          "amount_mb": {
+            "type": "integer"
+          }
+        },
+        "type": "object"
+      },
+      "main.reclaimMemoryResponse": {
+        "properties": {
+          "actual_mb": {
+            "type": "integer"
+          }
+        },
+        "type": "object"
+      },
+      "main.regionResponse": {
+        "properties": {
+          "nearest": {
+            "type": "string"
+          },
+          "regions": {
+            "items": {
+              "$ref": "#/components/schemas/main.regionRow"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "main.regionRow": {
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "deprecated": {
+            "type": "boolean"
+          },
+          "gateway_available": {
+            "type": "boolean"
+          },
+          "geo_region": {
+            "type": "string"
+          },
+          "latitude": {
+            "type": "number"
+          },
+          "longitude": {
+            "type": "number"
+          },
+          "name": {
+            "type": "string"
+          },
+          "requires_paid_plan": {
+            "type": "boolean"
+          }
+        },
+        "type": "object"
+      },
+      "main.setMemoryLimitRequest": {
+        "properties": {
+          "limit_mb": {
+            "type": "integer"
+          }
+        },
+        "type": "object"
+      },
+      "main.statusCode": {
+        "enum": [
+          "unknown",
+          "insufficient_capacity"
+        ],
+        "type": "string",
+        "x-enum-varnames": [
+          "unknown",
+          "capacityErr"
+        ]
+      },
+      "main.tokenInfo": {
+        "properties": {
+          "apps": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "org_slug": {
+            "type": "string"
+          },
+          "organization": {
+            "type": "string"
+          },
+          "restricted_to_machine": {
+            "description": "Machine the token is restricted to (FromMachine caveat)",
+            "type": "string"
+          },
+          "source_machine_id": {
+            "description": "Machine making the request",
+            "type": "string"
+          },
+          "token_id": {
+            "type": "string"
+          },
+          "user": {
+            "description": "User identifier if token is for a user",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "metadataValueResponse": {
+        "properties": {
+          "value": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "placement.RegionPlacement": {
+        "properties": {
+          "concurrency": {
+            "type": "integer"
+          },
+          "count": {
+            "type": "integer"
+          },
+          "region": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "placement.Weights": {
+        "additionalProperties": {
+          "type": "integer"
+        },
+        "type": "object"
+      },
+      "updateMetadataRequest": {
+        "properties": {
+          "machine_version": {
+            "type": "string"
+          },
+          "metadata": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "type": "object"
+          },
+          "updated_at": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "upsertMetadataKeyRequest": {
+        "properties": {
+          "updated_at": {
+            "type": "string"
+          },
+          "value": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      }
+    }
+  },
+  "externalDocs": {
+    "url": "https://fly.io/docs/machines/working-with-machines/"
+  },
+  "info": {
+    "contact": {},
+    "description": "This site hosts documentation generated from the Fly.io Machines API OpenAPI specification. Visit our complete [Machines API docs](https://fly.io/docs/machines/api/) for how to get started, more information about each endpoint, parameter descriptions, and examples.",
+    "license": {
+      "name": "Apache 2.0",
+      "url": "http://www.apache.org/licenses/LICENSE-2.0.html"
+    },
+    "title": "Machines API",
+    "version": "1.0"
+  },
+  "openapi": "3.0.1",
+  "paths": {
+    "/apps": {
+      "get": {
+        "description": "List all apps with the ability to filter by organization slug.\n",
+        "operationId": "Apps_list",
+        "parameters": [
+          {
+            "description": "The org slug, or 'personal', to filter apps",
+            "in": "query",
+            "name": "org_slug",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Filter apps by role",
+            "in": "query",
+            "name": "app_role",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ListAppsResponse"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "List Apps",
+        "tags": [
+          "Apps"
+        ]
+      },
+      "post": {
+        "description": "Create an app with the specified details in the request body.\n",
+        "operationId": "Apps_create",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateAppRequest"
+              }
+            }
+          },
+          "description": "App body",
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {},
+            "description": "Created"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          }
+        },
+        "summary": "Create App",
+        "tags": [
+          "Apps"
+        ],
+        "x-codegen-request-body-name": "request"
+      }
+    },
+    "/apps/{app_name}": {
+      "delete": {
+        "description": "Delete an app by its name.\n",
+        "operationId": "Apps_delete",
+        "parameters": [
+          {
+            "description": "Fly App Name",
+            "in": "path",
+            "name": "app_name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "202": {
+            "content": {},
+            "description": "Accepted"
+          }
+        },
+        "summary": "Destroy App",
+        "tags": [
+          "Apps"
+        ]
+      },
+      "get": {
+        "description": "Retrieve details about a specific app by its name.\n",
+        "operationId": "Apps_show",
+        "parameters": [
+          {
+            "description": "Fly App Name",
+            "in": "path",
+            "name": "app_name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/App"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "Get App",
+        "tags": [
+          "Apps"
+        ]
+      }
+    },
+    "/apps/{app_name}/certificates": {
+      "get": {
+        "operationId": "App_Certificates_list",
+        "parameters": [
+          {
+            "description": "Fly App Name",
+            "in": "path",
+            "name": "app_name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Hostname filter (substring match)",
+            "in": "query",
+            "name": "filter",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Pagination cursor from previous response",
+            "in": "query",
+            "name": "cursor",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Number of results per page (default 25, max 500)",
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/listCertificatesResponse"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "List certificates for app",
+        "tags": [
+          "TLS Certificates"
+        ]
+      }
+    },
+    "/apps/{app_name}/certificates/acme": {
+      "post": {
+        "operationId": "App_Certificates_acme_create",
+        "parameters": [
+          {
+            "description": "Fly App Name",
+            "in": "path",
+            "name": "app_name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/createAcmeCertificateRequest"
+              }
+            }
+          },
+          "description": "ACME certificate request",
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CertificateDetail"
+                }
+              }
+            },
+            "description": "Created"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          }
+        },
+        "summary": "Request ACME certificate",
+        "tags": [
+          "TLS Certificates"
+        ],
+        "x-codegen-request-body-name": "request"
+      }
+    },
+    "/apps/{app_name}/certificates/custom": {
+      "post": {
+        "operationId": "App_Certificates_custom_create",
+        "parameters": [
+          {
+            "description": "Fly App Name",
+            "in": "path",
+            "name": "app_name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/createCustomCertificateRequest"
+              }
+            }
+          },
+          "description": "Custom certificate request",
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CertificateDetail"
+                }
+              }
+            },
+            "description": "Created"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          }
+        },
+        "summary": "Upload custom certificate",
+        "tags": [
+          "TLS Certificates"
+        ],
+        "x-codegen-request-body-name": "request"
+      }
+    },
+    "/apps/{app_name}/certificates/{hostname}": {
+      "delete": {
+        "operationId": "App_Certificates_delete",
+        "parameters": [
+          {
+            "description": "Fly App Name",
+            "in": "path",
+            "name": "app_name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Certificate Hostname",
+            "in": "path",
+            "name": "hostname",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "content": {},
+            "description": "No Content"
+          }
+        },
+        "summary": "Remove certificate",
+        "tags": [
+          "TLS Certificates"
+        ]
+      },
+      "get": {
+        "operationId": "App_Certificates_show",
+        "parameters": [
+          {
+            "description": "Fly App Name",
+            "in": "path",
+            "name": "app_name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Certificate Hostname",
+            "in": "path",
+            "name": "hostname",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CertificateDetail"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "Get certificate details",
+        "tags": [
+          "TLS Certificates"
+        ]
+      }
+    },
+    "/apps/{app_name}/certificates/{hostname}/acme": {
+      "delete": {
+        "operationId": "App_Certificates_acme_delete",
+        "parameters": [
+          {
+            "description": "Fly App Name",
+            "in": "path",
+            "name": "app_name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Certificate Hostname",
+            "in": "path",
+            "name": "hostname",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CertificateDetail"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "Remove ACME certificates",
+        "tags": [
+          "TLS Certificates"
+        ]
+      }
+    },
+    "/apps/{app_name}/certificates/{hostname}/check": {
+      "post": {
+        "operationId": "App_Certificates_check",
+        "parameters": [
+          {
+            "description": "Fly App Name",
+            "in": "path",
+            "name": "app_name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Certificate Hostname",
+            "in": "path",
+            "name": "hostname",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CertificateCheckResponse"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "Check DNS and re-validate certificate",
+        "tags": [
+          "TLS Certificates"
+        ]
+      }
+    },
+    "/apps/{app_name}/certificates/{hostname}/custom": {
+      "delete": {
+        "operationId": "App_Certificates_custom_delete",
+        "parameters": [
+          {
+            "description": "Fly App Name",
+            "in": "path",
+            "name": "app_name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Certificate Hostname",
+            "in": "path",
+            "name": "hostname",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/destroyCustomCertificateResponse"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "Remove custom certificate",
+        "tags": [
+          "TLS Certificates"
+        ]
+      }
+    },
+    "/apps/{app_name}/deploy_token": {
+      "post": {
+        "operationId": "App_create_deploy_token",
+        "parameters": [
+          {
+            "description": "Fly App Name",
+            "in": "path",
+            "name": "app_name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateAppDeployTokenRequest"
+              }
+            }
+          },
+          "description": "Request body",
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateAppResponse"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "Create App deploy token",
+        "tags": [
+          "Apps"
+        ],
+        "x-codegen-request-body-name": "request"
+      }
+    },
+    "/apps/{app_name}/ip_assignments": {
+      "get": {
+        "operationId": "App_IPAssignments_list",
+        "parameters": [
+          {
+            "description": "Fly App Name",
+            "in": "path",
+            "name": "app_name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/listIPAssignmentsResponse"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "List IP assignments for app",
+        "tags": [
+          "Apps"
+        ]
+      },
+      "post": {
+        "operationId": "App_IPAssignments_create",
+        "parameters": [
+          {
+            "description": "Fly App Name",
+            "in": "path",
+            "name": "app_name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/assignIPRequest"
+              }
+            }
+          },
+          "description": "Assign IP request",
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IPAssignment"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "Assign new IP address to app",
+        "tags": [
+          "Apps"
+        ],
+        "x-codegen-request-body-name": "request"
+      }
+    },
+    "/apps/{app_name}/ip_assignments/{ip}": {
+      "delete": {
+        "operationId": "App_IPAssignments_delete",
+        "parameters": [
+          {
+            "description": "Fly App Name",
+            "in": "path",
+            "name": "app_name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "IP address",
+            "in": "path",
+            "name": "ip",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "content": {},
+            "description": "No Content"
+          }
+        },
+        "summary": "Remove IP assignment from app",
+        "tags": [
+          "Apps"
+        ]
+      }
+    },
+    "/apps/{app_name}/machines": {
+      "get": {
+        "description": "List all Machines associated with a specific app, with optional filters for including deleted Machines and filtering by region.\n",
+        "operationId": "Machines_list",
+        "parameters": [
+          {
+            "description": "Fly App Name",
+            "in": "path",
+            "name": "app_name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Include deleted machines",
+            "in": "query",
+            "name": "include_deleted",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "description": "Region filter",
+            "in": "query",
+            "name": "region",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "comma separated list of states to filter (created, started, stopped, suspended)",
+            "in": "query",
+            "name": "state",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Only return summary info about machines (omit config, checks, events, host_status, nonce, etc.)",
+            "in": "query",
+            "name": "summary",
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/Machine"
+                  },
+                  "type": "array"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "List Machines",
+        "tags": [
+          "Machines"
+        ]
+      },
+      "post": {
+        "description": "Create a Machine within a specific app using the details provided in the request body.\n\n**Important**: This request can fail, and you’re responsible for handling that failure. If you ask for a large Machine, or a Machine in a region we happen to be at capacity for, you might need to retry the request, or to fall back to another region. If you’re working directly with the Machines API, you’re taking some responsibility for your own orchestration!\n",
+        "operationId": "Machines_create",
+        "parameters": [
+          {
+            "description": "Fly App Name",
+            "in": "path",
+            "name": "app_name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateMachineRequest"
+              }
+            }
+          },
+          "description": "Create machine request",
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Machine"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "Create Machine",
+        "tags": [
+          "Machines"
+        ],
+        "x-codegen-request-body-name": "request"
+      }
+    },
+    "/apps/{app_name}/machines/{machine_id}": {
+      "delete": {
+        "description": "Delete a specific Machine within an app by Machine ID, with an optional force parameter to force kill the Machine if it's running.\n",
+        "operationId": "Machines_delete",
+        "parameters": [
+          {
+            "description": "Fly App Name",
+            "in": "path",
+            "name": "app_name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Machine ID",
+            "in": "path",
+            "name": "machine_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Force kill the machine if it's running",
+            "in": "query",
+            "name": "force",
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {},
+            "description": "OK"
+          }
+        },
+        "summary": "Destroy Machine",
+        "tags": [
+          "Machines"
+        ]
+      },
+      "get": {
+        "description": "Get details of a specific Machine within an app by the Machine ID.\n",
+        "operationId": "Machines_show",
+        "parameters": [
+          {
+            "description": "Fly App Name",
+            "in": "path",
+            "name": "app_name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Machine ID",
+            "in": "path",
+            "name": "machine_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Machine"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "Get Machine",
+        "tags": [
+          "Machines"
+        ]
+      },
+      "post": {
+        "description": "Update a Machine's configuration using the details provided in the request body.\n",
+        "operationId": "Machines_update",
+        "parameters": [
+          {
+            "description": "Fly App Name",
+            "in": "path",
+            "name": "app_name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Machine ID",
+            "in": "path",
+            "name": "machine_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateMachineRequest"
+              }
+            }
+          },
+          "description": "Request body",
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Machine"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          }
+        },
+        "summary": "Update Machine",
+        "tags": [
+          "Machines"
+        ],
+        "x-codegen-request-body-name": "request"
+      }
+    },
+    "/apps/{app_name}/machines/{machine_id}/cordon": {
+      "post": {
+        "description": "“Cordoning” a Machine refers to disabling its services, so the Fly Proxy won’t route requests to it. In flyctl this is used by blue/green deployments; one set of Machines is started up with services disabled, and when they are all healthy, the services are enabled on the new Machines and disabled on the old ones.\n",
+        "operationId": "Machines_cordon",
+        "parameters": [
+          {
+            "description": "Fly App Name",
+            "in": "path",
+            "name": "app_name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Machine ID",
+            "in": "path",
+            "name": "machine_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {},
+            "description": "OK"
+          }
+        },
+        "summary": "Cordon Machine",
+        "tags": [
+          "Machines"
+        ]
+      }
+    },
+    "/apps/{app_name}/machines/{machine_id}/events": {
+      "get": {
+        "description": "List all events associated with a specific Machine within an app.\n",
+        "operationId": "Machines_list_events",
+        "parameters": [
+          {
+            "description": "Fly App Name",
+            "in": "path",
+            "name": "app_name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Machine ID",
+            "in": "path",
+            "name": "machine_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "The number of events to fetch (max of 50). If omitted, this is set to 20 by default.",
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/MachineEvent"
+                  },
+                  "type": "array"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "List Events",
+        "tags": [
+          "Machines"
+        ]
+      }
+    },
+    "/apps/{app_name}/machines/{machine_id}/exec": {
+      "post": {
+        "description": "Execute a command on a specific Machine and return the raw command output bytes.\n",
+        "operationId": "Machines_exec",
+        "parameters": [
+          {
+            "description": "Fly App Name",
+            "in": "path",
+            "name": "app_name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Machine ID",
+            "in": "path",
+            "name": "machine_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MachineExecRequest"
+              }
+            }
+          },
+          "description": "Request body",
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/flydv1.ExecResponse"
+                }
+              },
+              "application/octet-stream": {
+                "schema": {
+                  "$ref": "#/components/schemas/flydv1.ExecResponse"
+                }
+              }
+            },
+            "description": "stdout, stderr, exit code, and exit signal are returned"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              },
+              "application/octet-stream": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          }
+        },
+        "summary": "Execute Command",
+        "tags": [
+          "Machines"
+        ],
+        "x-codegen-request-body-name": "request"
+      }
+    },
+    "/apps/{app_name}/machines/{machine_id}/lease": {
+      "delete": {
+        "description": "Release the lease of a specific Machine within an app. Machine leases can be used to obtain an exclusive lock on modifying a Machine.\n",
+        "operationId": "Machines_release_lease",
+        "parameters": [
+          {
+            "description": "Fly App Name",
+            "in": "path",
+            "name": "app_name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Machine ID",
+            "in": "path",
+            "name": "machine_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Existing lease nonce",
+            "in": "header",
+            "name": "fly-machine-lease-nonce",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {},
+            "description": "OK"
+          }
+        },
+        "summary": "Release Lease",
+        "tags": [
+          "Machines"
+        ]
+      },
+      "get": {
+        "description": "Retrieve the current lease of a specific Machine within an app. Machine leases can be used to obtain an exclusive lock on modifying a Machine.\n",
+        "operationId": "Machines_show_lease",
+        "parameters": [
+          {
+            "description": "Fly App Name",
+            "in": "path",
+            "name": "app_name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Machine ID",
+            "in": "path",
+            "name": "machine_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Lease"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "Get Lease",
+        "tags": [
+          "Machines"
+        ]
+      },
+      "post": {
+        "description": "Create a lease for a specific Machine within an app using the details provided in the request body. Machine leases can be used to obtain an exclusive lock on modifying a Machine.\n",
+        "operationId": "Machines_create_lease",
+        "parameters": [
+          {
+            "description": "Fly App Name",
+            "in": "path",
+            "name": "app_name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Machine ID",
+            "in": "path",
+            "name": "machine_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Existing lease nonce to refresh by ttl, empty or non-existent to create a new lease",
+            "in": "header",
+            "name": "fly-machine-lease-nonce",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateLeaseRequest"
+              }
+            }
+          },
+          "description": "Request body",
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Lease"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "Create Lease",
+        "tags": [
+          "Machines"
+        ],
+        "x-codegen-request-body-name": "request"
+      }
+    },
+    "/apps/{app_name}/machines/{machine_id}/memory": {
+      "get": {
+        "description": "Get current memory limit and available capacity for a machine",
+        "operationId": "Machines_get_memory",
+        "parameters": [
+          {
+            "description": "Fly App Name",
+            "in": "path",
+            "name": "app_name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Machine ID",
+            "in": "path",
+            "name": "machine_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/main.memoryResponse"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "Get Machine Memory",
+        "tags": [
+          "Machines"
+        ]
+      },
+      "put": {
+        "description": "Set the memory limit for a machine using the balloon device",
+        "operationId": "Machines_set_memory_limit",
+        "parameters": [
+          {
+            "description": "Fly App Name",
+            "in": "path",
+            "name": "app_name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Machine ID",
+            "in": "path",
+            "name": "machine_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/main.setMemoryLimitRequest"
+              }
+            }
+          },
+          "description": "Set memory limit request",
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/main.memoryResponse"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "Set Machine Memory Limit",
+        "tags": [
+          "Machines"
+        ],
+        "x-codegen-request-body-name": "body"
+      }
+    },
+    "/apps/{app_name}/machines/{machine_id}/memory/reclaim": {
+      "post": {
+        "description": "Trigger the balloon device to reclaim memory from a machine",
+        "operationId": "Machines_reclaim_memory",
+        "parameters": [
+          {
+            "description": "Fly App Name",
+            "in": "path",
+            "name": "app_name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Machine ID",
+            "in": "path",
+            "name": "machine_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/main.reclaimMemoryRequest"
+              }
+            }
+          },
+          "description": "Reclaim memory request",
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/main.reclaimMemoryResponse"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "Reclaim Machine Memory",
+        "tags": [
+          "Machines"
+        ],
+        "x-codegen-request-body-name": "body"
+      }
+    },
+    "/apps/{app_name}/machines/{machine_id}/metadata": {
+      "get": {
+        "description": "Retrieve metadata for a specific Machine within an app.\n",
+        "operationId": "Machines_show_metadata",
+        "parameters": [
+          {
+            "description": "Fly App Name",
+            "in": "path",
+            "name": "app_name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Machine ID",
+            "in": "path",
+            "name": "machine_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "type": "object"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "Get Metadata",
+        "tags": [
+          "Machines"
+        ]
+      },
+      "put": {
+        "description": "Update multiple metadata keys at once. Null values and empty strings remove keys.\n+ If `machine_version` is provided and no longer matches the current machine version, returns 412 Precondition Failed.",
+        "operationId": "Machines_update_metadata",
+        "parameters": [
+          {
+            "description": "Fly App Name",
+            "in": "path",
+            "name": "app_name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Machine ID",
+            "in": "path",
+            "name": "machine_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/updateMetadataRequest"
+              }
+            }
+          },
+          "description": "Update metadata request",
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "content": {},
+            "description": "No Content"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "412": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Precondition Failed"
+          }
+        },
+        "summary": "Update Metadata (set/remove multiple keys)",
+        "tags": [
+          "Machines"
+        ],
+        "x-codegen-request-body-name": "request"
+      }
+    },
+    "/apps/{app_name}/machines/{machine_id}/metadata/{key}": {
+      "delete": {
+        "description": "Delete metadata for a specific Machine within an app by providing a metadata key.\n",
+        "operationId": "Machines_delete_metadata",
+        "parameters": [
+          {
+            "description": "Fly App Name",
+            "in": "path",
+            "name": "app_name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Machine ID",
+            "in": "path",
+            "name": "machine_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Metadata Key",
+            "in": "path",
+            "name": "key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "content": {},
+            "description": "No Content"
+          }
+        },
+        "summary": "Delete Metadata",
+        "tags": [
+          "Machines"
+        ]
+      },
+      "get": {
+        "description": "Get the value of a specific metadata key",
+        "operationId": "Machines_get_metadata_key",
+        "parameters": [
+          {
+            "description": "Fly App Name",
+            "in": "path",
+            "name": "app_name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Machine ID",
+            "in": "path",
+            "name": "machine_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Metadata Key",
+            "in": "path",
+            "name": "key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/metadataValueResponse"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          }
+        },
+        "summary": "Get Metadata Value",
+        "tags": [
+          "Machines"
+        ]
+      },
+      "post": {
+        "description": "Update metadata for a specific machine within an app by providing a metadata key.\n",
+        "operationId": "Machines_upsert_metadata",
+        "parameters": [
+          {
+            "description": "Fly App Name",
+            "in": "path",
+            "name": "app_name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Machine ID",
+            "in": "path",
+            "name": "machine_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Metadata Key",
+            "in": "path",
+            "name": "key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/upsertMetadataKeyRequest"
+              }
+            }
+          },
+          "description": "Upsert metadata key request",
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "content": {},
+            "description": "No Content"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          }
+        },
+        "summary": "Upsert Metadata Key",
+        "tags": [
+          "Machines"
+        ],
+        "x-codegen-request-body-name": "request"
+      }
+    },
+    "/apps/{app_name}/machines/{machine_id}/ps": {
+      "get": {
+        "description": "List all processes running on a specific Machine within an app, with optional sorting parameters.\n",
+        "operationId": "Machines_list_processes",
+        "parameters": [
+          {
+            "description": "Fly App Name",
+            "in": "path",
+            "name": "app_name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Machine ID",
+            "in": "path",
+            "name": "machine_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Sort by",
+            "in": "query",
+            "name": "sort_by",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Order",
+            "in": "query",
+            "name": "order",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/ProcessStat"
+                  },
+                  "type": "array"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          }
+        },
+        "summary": "List Processes",
+        "tags": [
+          "Machines"
+        ]
+      }
+    },
+    "/apps/{app_name}/machines/{machine_id}/restart": {
+      "post": {
+        "description": "Restart a specific Machine within an app, with an optional timeout parameter.\n",
+        "operationId": "Machines_restart",
+        "parameters": [
+          {
+            "description": "Fly App Name",
+            "in": "path",
+            "name": "app_name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Machine ID",
+            "in": "path",
+            "name": "machine_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Restart timeout as a Go duration string or number of seconds",
+            "in": "query",
+            "name": "timeout",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Unix signal name",
+            "in": "query",
+            "name": "signal",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {},
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          }
+        },
+        "summary": "Restart Machine",
+        "tags": [
+          "Machines"
+        ]
+      }
+    },
+    "/apps/{app_name}/machines/{machine_id}/signal": {
+      "post": {
+        "description": "Send a signal to a specific Machine within an app using the details provided in the request body.\n",
+        "operationId": "Machines_signal",
+        "parameters": [
+          {
+            "description": "Fly App Name",
+            "in": "path",
+            "name": "app_name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Machine ID",
+            "in": "path",
+            "name": "machine_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SignalRequest"
+              }
+            }
+          },
+          "description": "Request body",
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {},
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          }
+        },
+        "summary": "Signal Machine",
+        "tags": [
+          "Machines"
+        ],
+        "x-codegen-request-body-name": "request"
+      }
+    },
+    "/apps/{app_name}/machines/{machine_id}/start": {
+      "post": {
+        "description": "Start a specific Machine within an app.\n",
+        "operationId": "Machines_start",
+        "parameters": [
+          {
+            "description": "Fly App Name",
+            "in": "path",
+            "name": "app_name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Machine ID",
+            "in": "path",
+            "name": "machine_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {},
+            "description": "OK"
+          }
+        },
+        "summary": "Start Machine",
+        "tags": [
+          "Machines"
+        ]
+      }
+    },
+    "/apps/{app_name}/machines/{machine_id}/stop": {
+      "post": {
+        "description": "Stop a specific Machine within an app, with an optional request body to specify signal and timeout.\n",
+        "operationId": "Machines_stop",
+        "parameters": [
+          {
+            "description": "Fly App Name",
+            "in": "path",
+            "name": "app_name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Machine ID",
+            "in": "path",
+            "name": "machine_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StopRequest"
+              }
+            }
+          },
+          "description": "Optional request body",
+          "required": false
+        },
+        "responses": {
+          "200": {
+            "content": {},
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          }
+        },
+        "summary": "Stop Machine",
+        "tags": [
+          "Machines"
+        ],
+        "x-codegen-request-body-name": "request"
+      }
+    },
+    "/apps/{app_name}/machines/{machine_id}/suspend": {
+      "post": {
+        "description": "Suspend a specific Machine within an app. The next start operation will attempt (but is not guaranteed) to resume the Machine from a snapshot taken at suspension time, rather than performing a cold boot.\n",
+        "operationId": "Machines_suspend",
+        "parameters": [
+          {
+            "description": "Fly App Name",
+            "in": "path",
+            "name": "app_name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Machine ID",
+            "in": "path",
+            "name": "machine_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {},
+            "description": "OK"
+          }
+        },
+        "summary": "Suspend Machine",
+        "tags": [
+          "Machines"
+        ]
+      }
+    },
+    "/apps/{app_name}/machines/{machine_id}/uncordon": {
+      "post": {
+        "description": "“Cordoning” a Machine refers to disabling its services, so the Fly Proxy won’t route requests to it. In flyctl this is used by blue/green deployments; one set of Machines is started up with services disabled, and when they are all healthy, the services are enabled on the new Machines and disabled on the old ones.\n",
+        "operationId": "Machines_uncordon",
+        "parameters": [
+          {
+            "description": "Fly App Name",
+            "in": "path",
+            "name": "app_name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Machine ID",
+            "in": "path",
+            "name": "machine_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {},
+            "description": "OK"
+          }
+        },
+        "summary": "Uncordon Machine",
+        "tags": [
+          "Machines"
+        ]
+      }
+    },
+    "/apps/{app_name}/machines/{machine_id}/versions": {
+      "get": {
+        "description": "List all versions of the configuration for a specific Machine within an app.\n",
+        "operationId": "Machines_list_versions",
+        "parameters": [
+          {
+            "description": "Fly App Name",
+            "in": "path",
+            "name": "app_name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Machine ID",
+            "in": "path",
+            "name": "machine_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/MachineVersion"
+                  },
+                  "type": "array"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "List Versions",
+        "tags": [
+          "Machines"
+        ]
+      }
+    },
+    "/apps/{app_name}/machines/{machine_id}/wait": {
+      "get": {
+        "description": "Wait for a Machine to reach a specific state. Specify the desired state with the state parameter. See the [Machine states table](https://fly.io/docs/machines/working-with-machines/#machine-states) for a list of possible states. The default for this parameter is `started`.\n\nThis request will block for up to 60 seconds. Set a shorter timeout with the timeout parameter.\n",
+        "operationId": "Machines_wait",
+        "parameters": [
+          {
+            "description": "Fly App Name",
+            "in": "path",
+            "name": "app_name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Machine ID",
+            "in": "path",
+            "name": "machine_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "26-character Machine version ID",
+            "in": "query",
+            "name": "version",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "26-character Machine version ID (deprecated; use version)",
+            "in": "query",
+            "name": "instance_id",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "26-character Machine event ID to start waiting after",
+            "in": "query",
+            "name": "from_event_id",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "wait timeout. default 60s",
+            "in": "query",
+            "name": "timeout",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "description": "desired state(s), supports repeated or comma-separated values",
+            "in": "query",
+            "name": "state",
+            "schema": {
+              "enum": [
+                "started",
+                "stopped",
+                "suspended",
+                "destroyed",
+                "failed",
+                "settled"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WaitMachineResponse"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          }
+        },
+        "summary": "Wait for State",
+        "tags": [
+          "Machines"
+        ]
+      }
+    },
+    "/apps/{app_name}/secretkeys": {
+      "get": {
+        "operationId": "Secretkeys_list",
+        "parameters": [
+          {
+            "description": "Fly App Name",
+            "in": "path",
+            "name": "app_name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Minimum secrets version to return. Returned when setting a new secret",
+            "in": "query",
+            "name": "min_version",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Comma-seperated list of secret keys to list",
+            "in": "query",
+            "name": "types",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SecretKeys"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "List secret keys belonging to an app",
+        "tags": [
+          "Secrets"
+        ]
+      }
+    },
+    "/apps/{app_name}/secretkeys/{secret_name}": {
+      "delete": {
+        "operationId": "Secretkey_delete",
+        "parameters": [
+          {
+            "description": "Fly App Name",
+            "in": "path",
+            "name": "app_name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Secret key name",
+            "in": "path",
+            "name": "secret_name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeleteSecretkeyResponse"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "Delete an app's secret key",
+        "tags": [
+          "Secrets"
+        ]
+      },
+      "get": {
+        "operationId": "Secretkey_get",
+        "parameters": [
+          {
+            "description": "Fly App Name",
+            "in": "path",
+            "name": "app_name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Secret key name",
+            "in": "path",
+            "name": "secret_name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Minimum secrets version to return. Returned when setting a new secret",
+            "in": "query",
+            "name": "min_version",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SecretKey"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "Get an app's secret key",
+        "tags": [
+          "Secrets"
+        ]
+      },
+      "post": {
+        "operationId": "Secretkey_set",
+        "parameters": [
+          {
+            "description": "Fly App Name",
+            "in": "path",
+            "name": "app_name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Secret key name",
+            "in": "path",
+            "name": "secret_name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SetSecretkeyRequest"
+              }
+            }
+          },
+          "description": "Create secret key request",
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SetSecretkeyResponse"
+                }
+              }
+            },
+            "description": "Created"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          }
+        },
+        "summary": "Create or update a secret key",
+        "tags": [
+          "Secrets"
+        ],
+        "x-codegen-request-body-name": "request"
+      }
+    },
+    "/apps/{app_name}/secretkeys/{secret_name}/decrypt": {
+      "post": {
+        "operationId": "Secretkey_decrypt",
+        "parameters": [
+          {
+            "description": "Fly App Name",
+            "in": "path",
+            "name": "app_name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Secret key name",
+            "in": "path",
+            "name": "secret_name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Minimum secrets version to return. Returned when setting a new secret",
+            "in": "query",
+            "name": "min_version",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DecryptSecretkeyRequest"
+              }
+            }
+          },
+          "description": "Decrypt with secret key request",
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DecryptSecretkeyResponse"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          }
+        },
+        "summary": "Decrypt with a secret key",
+        "tags": [
+          "Secrets"
+        ],
+        "x-codegen-request-body-name": "request"
+      }
+    },
+    "/apps/{app_name}/secretkeys/{secret_name}/encrypt": {
+      "post": {
+        "operationId": "Secretkey_encrypt",
+        "parameters": [
+          {
+            "description": "Fly App Name",
+            "in": "path",
+            "name": "app_name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Secret key name",
+            "in": "path",
+            "name": "secret_name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Minimum secrets version to return. Returned when setting a new secret",
+            "in": "query",
+            "name": "min_version",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EncryptSecretkeyRequest"
+              }
+            }
+          },
+          "description": "Encrypt with secret key request",
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EncryptSecretkeyResponse"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          }
+        },
+        "summary": "Encrypt with a secret key",
+        "tags": [
+          "Secrets"
+        ],
+        "x-codegen-request-body-name": "request"
+      }
+    },
+    "/apps/{app_name}/secretkeys/{secret_name}/generate": {
+      "post": {
+        "operationId": "Secretkey_generate",
+        "parameters": [
+          {
+            "description": "Fly App Name",
+            "in": "path",
+            "name": "app_name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Secret key name",
+            "in": "path",
+            "name": "secret_name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SetSecretkeyRequest"
+              }
+            }
+          },
+          "description": "generate secret key request",
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SetSecretkeyResponse"
+                }
+              }
+            },
+            "description": "Created"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          }
+        },
+        "summary": "Generate a random secret key",
+        "tags": [
+          "Secrets"
+        ],
+        "x-codegen-request-body-name": "request"
+      }
+    },
+    "/apps/{app_name}/secretkeys/{secret_name}/sign": {
+      "post": {
+        "operationId": "Secretkey_sign",
+        "parameters": [
+          {
+            "description": "Fly App Name",
+            "in": "path",
+            "name": "app_name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Secret key name",
+            "in": "path",
+            "name": "secret_name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Minimum secrets version to return. Returned when setting a new secret",
+            "in": "query",
+            "name": "min_version",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SignSecretkeyRequest"
+              }
+            }
+          },
+          "description": "Sign with secret key request",
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SignSecretkeyResponse"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          }
+        },
+        "summary": "Sign with a secret key",
+        "tags": [
+          "Secrets"
+        ],
+        "x-codegen-request-body-name": "request"
+      }
+    },
+    "/apps/{app_name}/secretkeys/{secret_name}/verify": {
+      "post": {
+        "operationId": "Secretkey_verify",
+        "parameters": [
+          {
+            "description": "Fly App Name",
+            "in": "path",
+            "name": "app_name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Secret key name",
+            "in": "path",
+            "name": "secret_name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Minimum secrets version to return. Returned when setting a new secret",
+            "in": "query",
+            "name": "min_version",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VerifySecretkeyRequest"
+              }
+            }
+          },
+          "description": "Verify with secret key request",
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "content": {},
+            "description": "No Content"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          }
+        },
+        "summary": "Verify with a secret key",
+        "tags": [
+          "Secrets"
+        ],
+        "x-codegen-request-body-name": "request"
+      }
+    },
+    "/apps/{app_name}/secrets": {
+      "get": {
+        "operationId": "Secrets_list",
+        "parameters": [
+          {
+            "description": "Fly App Name",
+            "in": "path",
+            "name": "app_name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Minimum secrets version to return. Returned when setting a new secret",
+            "in": "query",
+            "name": "min_version",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Show the secret values.",
+            "in": "query",
+            "name": "show_secrets",
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AppSecrets"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "List app secrets belonging to an app",
+        "tags": [
+          "Secrets"
+        ]
+      },
+      "post": {
+        "operationId": "Secrets_update",
+        "parameters": [
+          {
+            "description": "Fly App Name",
+            "in": "path",
+            "name": "app_name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AppSecretsUpdateRequest"
+              }
+            }
+          },
+          "description": "Update app secret request, with values to set, or nil to unset",
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AppSecretsUpdateResp"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          }
+        },
+        "summary": "Update app secrets belonging to an app",
+        "tags": [
+          "Secrets"
+        ],
+        "x-codegen-request-body-name": "request"
+      }
+    },
+    "/apps/{app_name}/secrets/{secret_name}": {
+      "delete": {
+        "operationId": "Secret_delete",
+        "parameters": [
+          {
+            "description": "Fly App Name",
+            "in": "path",
+            "name": "app_name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "App secret name",
+            "in": "path",
+            "name": "secret_name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeleteAppSecretResponse"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "Delete an app secret",
+        "tags": [
+          "Secrets"
+        ]
+      },
+      "get": {
+        "operationId": "Secret_get",
+        "parameters": [
+          {
+            "description": "Fly App Name",
+            "in": "path",
+            "name": "app_name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "App secret name",
+            "in": "path",
+            "name": "secret_name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Minimum secrets version to return. Returned when setting a new secret",
+            "in": "query",
+            "name": "min_version",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Show the secret value.",
+            "in": "query",
+            "name": "show_secrets",
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AppSecret"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "Get an app secret",
+        "tags": [
+          "Secrets"
+        ]
+      },
+      "post": {
+        "operationId": "Secret_create",
+        "parameters": [
+          {
+            "description": "Fly App Name",
+            "in": "path",
+            "name": "app_name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "App secret name",
+            "in": "path",
+            "name": "secret_name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SetAppSecretRequest"
+              }
+            }
+          },
+          "description": "Create app secret request",
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SetAppSecretResponse"
+                }
+              }
+            },
+            "description": "Created"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          }
+        },
+        "summary": "Create or update Secret",
+        "tags": [
+          "Secrets"
+        ],
+        "x-codegen-request-body-name": "request"
+      }
+    },
+    "/apps/{app_name}/volumes": {
+      "get": {
+        "description": "List all volumes associated with a specific app.\n",
+        "operationId": "Volumes_list",
+        "parameters": [
+          {
+            "description": "Fly App Name",
+            "in": "path",
+            "name": "app_name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Only return summary info about volumes (omit blocks, block size, etc)",
+            "in": "query",
+            "name": "summary",
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/Volume"
+                  },
+                  "type": "array"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "List Volumes",
+        "tags": [
+          "Volumes"
+        ]
+      },
+      "post": {
+        "description": "Create a volume for a specific app using the details provided in the request body.\n",
+        "operationId": "Volumes_create",
+        "parameters": [
+          {
+            "description": "Fly App Name",
+            "in": "path",
+            "name": "app_name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateVolumeRequest"
+              }
+            }
+          },
+          "description": "Request body",
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Volume"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "Create Volume",
+        "tags": [
+          "Volumes"
+        ],
+        "x-codegen-request-body-name": "request"
+      }
+    },
+    "/apps/{app_name}/volumes/{volume_id}": {
+      "delete": {
+        "description": "Delete a specific volume within an app by volume ID.\n",
+        "operationId": "Volume_delete",
+        "parameters": [
+          {
+            "description": "Fly App Name",
+            "in": "path",
+            "name": "app_name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Volume ID",
+            "in": "path",
+            "name": "volume_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Volume"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "Destroy Volume",
+        "tags": [
+          "Volumes"
+        ]
+      },
+      "get": {
+        "description": "Retrieve details about a specific volume by its ID within an app.\n",
+        "operationId": "Volumes_get_by_id",
+        "parameters": [
+          {
+            "description": "Fly App Name",
+            "in": "path",
+            "name": "app_name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Volume ID",
+            "in": "path",
+            "name": "volume_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Volume"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "Get Volume",
+        "tags": [
+          "Volumes"
+        ]
+      },
+      "put": {
+        "description": "Update a volume's configuration using the details provided in the request body.\n",
+        "operationId": "Volumes_update",
+        "parameters": [
+          {
+            "description": "Fly App Name",
+            "in": "path",
+            "name": "app_name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Volume ID",
+            "in": "path",
+            "name": "volume_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateVolumeRequest"
+              }
+            }
+          },
+          "description": "Request body",
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Volume"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          }
+        },
+        "summary": "Update Volume",
+        "tags": [
+          "Volumes"
+        ],
+        "x-codegen-request-body-name": "request"
+      }
+    },
+    "/apps/{app_name}/volumes/{volume_id}/extend": {
+      "put": {
+        "description": "Extend a volume's size within an app using the details provided in the request body.\n",
+        "operationId": "Volumes_extend",
+        "parameters": [
+          {
+            "description": "Fly App Name",
+            "in": "path",
+            "name": "app_name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Volume ID",
+            "in": "path",
+            "name": "volume_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ExtendVolumeRequest"
+              }
+            }
+          },
+          "description": "Request body",
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExtendVolumeResponse"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "Extend Volume",
+        "tags": [
+          "Volumes"
+        ],
+        "x-codegen-request-body-name": "request"
+      }
+    },
+    "/apps/{app_name}/volumes/{volume_id}/snapshots": {
+      "get": {
+        "description": "List all snapshots for a specific volume within an app.\n",
+        "operationId": "Volumes_list_snapshots",
+        "parameters": [
+          {
+            "description": "Fly App Name",
+            "in": "path",
+            "name": "app_name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Volume ID",
+            "in": "path",
+            "name": "volume_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/VolumeSnapshot"
+                  },
+                  "type": "array"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "List Snapshots",
+        "tags": [
+          "Volumes"
+        ]
+      },
+      "post": {
+        "description": "Create a snapshot for a specific volume within an app.\n",
+        "operationId": "createVolumeSnapshot",
+        "parameters": [
+          {
+            "description": "Fly App Name",
+            "in": "path",
+            "name": "app_name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Volume ID",
+            "in": "path",
+            "name": "volume_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {},
+            "description": "OK"
+          }
+        },
+        "summary": "Create Snapshot",
+        "tags": [
+          "Volumes"
+        ]
+      }
+    },
+    "/orgs/{org_slug}/machines": {
+      "get": {
+        "description": "List all Machines associated with a specific organization. Machines are sorted by their `updated_at` timestamps, oldest to newest.\n\nThis API call represents \"a point in time\". Recent machine changes, including creations and destructions, may take time to propagate. When polling with `updated_after`, offset your timestamps to catch late-arriving events.\n",
+        "operationId": "Machines_org_list",
+        "parameters": [
+          {
+            "description": "Fly Organization Slug",
+            "in": "path",
+            "name": "org_slug",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Include deleted machines",
+            "in": "query",
+            "name": "include_deleted",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "description": "Region filter",
+            "in": "query",
+            "name": "region",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Comma separated list of states to filter (created, started, stopped, suspended)",
+            "in": "query",
+            "name": "state",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Omit config from responses",
+            "in": "query",
+            "name": "summary",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "description": "Only return machines updated after this time. Timestamp must be in the RFC 3339 format",
+            "in": "query",
+            "name": "updated_after",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Pagination cursor from previous response (takes precedence over updated_after)",
+            "in": "query",
+            "name": "cursor",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "The number of machines to fetch (max of 2000). This limit is advisory. Responses may be shorter, even when more machines remain. If omitted, the maximum is used",
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrgMachinesResponse"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "List All Machines",
+        "tags": [
+          "Organizations"
+        ]
+      }
+    },
+    "/orgs/{org_slug}/volumes": {
+      "get": {
+        "description": "List all volumes for an organization with optional filters and cursor-based pagination.",
+        "operationId": "Volumes_org_list",
+        "parameters": [
+          {
+            "description": "Fly Organization Slug",
+            "in": "path",
+            "name": "org_slug",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Include deleted volumes",
+            "in": "query",
+            "name": "include_deleted",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "description": "Region filter",
+            "in": "query",
+            "name": "region",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Comma separated list of volume states to filter",
+            "in": "query",
+            "name": "state",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Only return summary info about volumes (omit blocks, block size, etc)",
+            "in": "query",
+            "name": "summary",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "description": "Only return volumes updated after this time. Timestamp must be in the RFC 3339 format",
+            "in": "query",
+            "name": "updated_after",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Pagination cursor from previous response (takes precedence over updated_after)",
+            "in": "query",
+            "name": "cursor",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "The number of volumes to fetch (max of 1000). This limit is advisory. Responses may be shorter, even when more volumes remain. If omitted, the maximum is used",
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrgVolumesResponse"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "List All Volumes",
+        "tags": [
+          "Organizations"
+        ]
+      }
+    },
+    "/platform/placements": {
+      "post": {
+        "description": "Simulates placing the specified number of machines into regions, depending on available capacity and limits.",
+        "operationId": "Platform_placements_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/main.getPlacementsRequest"
+              }
+            }
+          },
+          "description": "Get placements request",
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/main.getPlacementsResponse"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "Get Placements",
+        "tags": [
+          "Platform"
+        ],
+        "x-codegen-request-body-name": "request"
+      }
+    },
+    "/platform/regions": {
+      "get": {
+        "description": "List all regions on the platform with their details.",
+        "operationId": "Platform_regions_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/main.regionResponse"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "summary": "Get Regions",
+        "tags": [
+          "Platform"
+        ]
+      }
+    },
+    "/tokens/kms": {
+      "post": {
+        "description": "This site hosts documentation generated from the Fly.io Machines API OpenAPI specification. Visit our complete [Machines API docs](https://fly.io/docs/machines/api/apps-resource/) for details about using the Apps resource.",
+        "operationId": "Tokens_request_Kms",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "KMS token"
+          }
+        },
+        "summary": "Request a Petsem token for accessing KMS",
+        "tags": [
+          "Tokens"
+        ]
+      }
+    },
+    "/tokens/oidc": {
+      "post": {
+        "description": "Request an Open ID Connect token for your machine. Customize the audience claim with the `aud` parameter. This returns a JWT token. Learn more about [using OpenID Connect](/docs/reference/openid-connect/) on Fly.io.\n",
+        "operationId": "Tokens_request_OIDC",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateOIDCTokenRequest"
+              }
+            }
+          },
+          "description": "Optional request body",
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "OIDC token"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          }
+        },
+        "summary": "Request an OIDC token",
+        "tags": [
+          "Tokens"
+        ],
+        "x-codegen-request-body-name": "request"
+      }
+    },
+    "/v1/tokens/current": {
+      "get": {
+        "description": "Get information about the current macaroon token(s), including organizations, apps, and whether each token is from a user or machine",
+        "operationId": "CurrentToken_show",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CurrentTokenResponse"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "summary": "Get Current Token Information",
+        "tags": [
+          "Tokens"
+        ]
+      }
+    }
+  },
+  "servers": [
+    {
+      "url": "https://api.machines.dev/v1"
+    }
+  ],
+  "tags": [
+    {
+      "description": "This site hosts documentation generated from the Fly.io Machines API OpenAPI specification. Visit our complete [Machines API docs](https://fly.io/docs/machines/api/apps-resource/) for details about using the Apps resource.",
+      "name": "Apps"
+    },
+    {
+      "description": "This site hosts documentation generated from the Fly.io Machines API OpenAPI specification. Visit our complete [Machines API docs](https://fly.io/docs/machines/api/machines-resource/) for details about using the Machines resource.",
+      "name": "Machines"
+    },
+    {
+      "description": "This site hosts documentation generated from the Fly.io Machines API OpenAPI specification. Visit our complete [Machines API docs](https://fly.io/docs/machines/api/certificates-resource/) for details about using the TLS Certificates resource.\n",
+      "name": "TLS Certificates"
+    },
+    {
+      "description": "This site hosts documentation generated from the Fly.io Machines API OpenAPI specification. Visit our complete [Machines API docs](https://fly.io/docs/machines/api/volumes-resource/) for details about using the Volumes resource.",
+      "name": "Volumes"
+    }
+  ],
+  "x-original-swagger-version": "2.0"
+}
