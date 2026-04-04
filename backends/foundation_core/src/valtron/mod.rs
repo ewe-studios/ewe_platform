@@ -20,6 +20,8 @@ pub use iterators::*;
 pub use notifiers::*;
 pub use streams::*;
 pub use streams::ConcurrentQueueStreamIterator;
+#[allow(deprecated)]
+pub use streams::StreamRecvIterator;
 pub use task::{SplitCollectorMapContinuation, SplitCollectorMapObserver};
 pub use task::*;
 pub use types::*;

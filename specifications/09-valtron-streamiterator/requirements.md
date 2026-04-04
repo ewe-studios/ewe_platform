@@ -1,24 +1,24 @@
 ---
-description: "Migrate Stream/StreamIterator/StreamRecvIterator from mpp to valtron, add ConcurrentQueueStreamIterator with configurable max_turns polling optimization"
-status: "completed"
+description: "Migrate Stream/StreamIterator/StreamRecvIterator from mpp to valtron, add ConcurrentQueueStreamIterator with configurable max_turns polling optimization, replace StreamRecvIterator as default"
+status: "in_progress"
 priority: "high"
 created: 2026-04-04
 updated: 2026-04-04
 author: "Main Agent"
 metadata:
-  version: "1.2"
+  version: "1.3"
   estimated_effort: "large"
-  tags: [valtron, stream-iterator, concurrent-queue, optimization, migration]
+  tags: [valtron, stream-iterator, concurrent-queue, optimization, migration, default-iterator]
 has_features: true
 features:
   completed: 2
-  uncompleted: 0
-  total: 2
+  uncompleted: 2
+  total: 4
 ---
 
 # Overview
 
-This specification defines the migration of `Stream` enum, `StreamIterator` trait, and `StreamRecvIterator` from `synca::mpp` to the `valtron` module, along with a new optimized `ConcurrentQueueStreamIterator` type with configurable polling behavior.
+This specification defines the migration of `Stream` enum, `StreamIterator` trait, and `StreamRecvIterator` from `synca::mpp` to the `valtron` module, along with a new optimized `ConcurrentQueueStreamIterator` type with configurable polling behavior, and the replacement of `StreamRecvIterator` with `ConcurrentQueueStreamIterator` as the default iterator.
 
 ## The Problem
 
@@ -44,6 +44,13 @@ This causes issues in multi-task valtron scenarios where:
 - A task holding a long-blocking iterator starves other tasks
 - No graceful yielding mechanism after N unsuccessful polls
 
+### StreamRecvIterator Uses Blocking Behavior
+
+The current `StreamRecvIterator` wraps a blocking `RecvIterator`:
+- Uses `park_timeout()` for entire duration of iteration
+- No mechanism to yield after N unsuccessful polls
+- Either block indefinitely or poll once - no middle ground
+
 ## Goals
 
 1. **Move `Stream` enum to valtron** - Relocate `Stream<D, P>` from `synca::mpp` to `valtron::streams`
@@ -51,7 +58,8 @@ This causes issues in multi-task valtron scenarios where:
 3. **Move `StreamRecvIterator` to valtron** - Relocate `StreamRecvIterator<D, P>` from `synca::mpp` to `valtron::streams`
 4. **Remove types from `synca::mpp`** - Delete `Stream`, `StreamIterator`, `StreamRecvIterator` from mpp.rs (no longer needed there)
 5. **Implement `ConcurrentQueueStreamIterator`** - New iterator with `max_turns` configuration
-6. **Update all imports** - Fix existing code that imports from `synca::mpp`
+6. **Replace `StreamRecvIterator` as default** - Make `ConcurrentQueueStreamIterator` the standard iterator for valtron stream processing
+7. **Deprecate `StreamRecvIterator`** - Add deprecation notices with clear migration path
 
 ## Key Design Principles
 
@@ -81,6 +89,8 @@ After `max_turns` unsuccessful polls:
 |---|---------|-------------|--------------|--------|
 | 1 | [stream-migration](./features/01-stream-migration/feature.md) | Move `Stream`, `StreamIterator`, and `StreamRecvIterator` from `synca::mpp` to `valtron::streams` + consolidate combinators | None | ✅ Completed |
 | 2 | [concurrent-queue-iterator](./features/02-concurrent-queue-iterator/feature.md) | Implement `ConcurrentQueueStreamIterator` with `max_turns` polling optimization | #1 | ✅ Completed |
+| 3 | [replace-streamrecv-iterator](./features/03-replace-streamrecv-iterator/feature.md) | Replace `StreamRecvIterator` with `ConcurrentQueueStreamIterator` as default iterator | #1, #2 | ⏳ Pending |
+| 4 | [import-updates](./features/04-import-updates/feature.md) | Update all imports across the codebase, ensure clean compilation | #1, #3 | ⏳ Pending |
 
 ## High-Level Architecture
 
@@ -96,7 +106,7 @@ synca::mpp                          valtron::*
 └─────────────────────┘            └─────────────────────┘
 ```
 
-### After (Target State)
+### After (Target State - After Feature 03)
 
 ```
 synca::mpp                          valtron::*
@@ -104,13 +114,19 @@ synca::mpp                          valtron::*
 │ Sender/Receiver     │            │ streams.rs          │
 │ RecvIterator        │            │ ├── Stream          │
 │                     │            │ ├── StreamIterator  │
-│ (optional re-export)◄────────────│ ├── ConcurrentQueue…│
-│                     │  (re-export)│ └── ...             │
+│ (optional re-export)│◄───────────│ ├── ConcurrentQueue…│
+│                     │  (re-export)│ ├── StreamRecvIter… │
+│                     │            │ │   (deprecated)    │
+│                     │            │ └── ...             │
 └─────────────────────┘            └─────────────────────┘
          │                                       │
          │                                       │
          ▼                                       ▼
     [Message Passing]                     [Stream Processing]
+                                          ▲
+                                          │
+                              ConcurrentQueueStreamIterator
+                              is now the DEFAULT iterator
 ```
 
 ### ConcurrentQueueStreamIterator Design
@@ -168,11 +184,11 @@ valtron::streams
 ├── StreamIterator (trait)
 │   └── blanket impl for T: Iterator<Item = Stream<D, P>>
 │
-├── StreamRecvIterator<D, P> (struct)
+├── StreamRecvIterator<D, P> (struct) [DEPRECATED]
 │   ├── wraps RecvIterator<Stream<D, P>>
 │   └── implements Iterator<Item = Stream<D, P>>
 │
-└── ConcurrentQueueStreamIterator<D, P> (struct)
+└── ConcurrentQueueStreamIterator<D, P> (struct) [DEFAULT]
     ├── new(chan: Arc<ConcurrentQueue<Stream<D, P>>>, max_turns: usize, park_duration: Duration)
     └── implements Iterator<Item = Stream<D, P>>
 ```
@@ -186,6 +202,8 @@ valtron::streams
 - [ ] `StreamRecvIterator` moved to `valtron::streams.rs`
 - [ ] `ConcurrentQueueStreamIterator` implemented with `max_turns`
 - [ ] `ConcurrentQueueStreamIterator` compiles for both `std` and `no_std` targets
+- [ ] `ConcurrentQueueStreamIterator` is the default iterator used by `execute()`
+- [ ] `StreamRecvIterator` deprecated with migration guide
 - [ ] All existing tests pass after migration
 - [ ] New unit tests for `ConcurrentQueueStreamIterator` verify:
   - [ ] Returns items when available in queue
@@ -226,10 +244,10 @@ Agents implementing features should read these files:
 ### Files to Update
 
 - `backends/foundation_core/src/valtron/iterators.rs` - Currently re-exports from `synca::mpp`
-- `backends/foundation_core/src/valtron/stream_iterators.rs` - Uses `Stream` and `StreamIterator`
-- `backends/foundation_core/src/valtron/task_iterators.rs` - Uses `Stream` and `StreamIterator`
 - `backends/foundation_core/src/valtron/executors/drivers.rs` - Uses `Stream` and `StreamIterator`
 - `backends/foundation_core/src/valtron/executors/unified.rs` - Uses `Stream` and `StreamIterator`
+- `backends/foundation_core/src/valtron/executors/builders.rs` - Uses `StreamRecvIterator`
+- `backends/foundation_core/src/valtron/executors/threads.rs` - Uses `StreamRecvIterator`
 - `backends/foundation_core/src/valtron/branches.rs` - Uses `Stream` in type signatures
 
 ### Files to Search
@@ -278,9 +296,43 @@ Implement new optimized iterator for concurrent queue stream processing.
 6. Add integration test with valtron executor
 7. Add tracing calls: `tracing::trace!`, `tracing::debug!`, `tracing::info!` for debugging
 
-## Feature 03: Import Updates
+## Feature 03: Replace StreamRecvIterator with ConcurrentQueueStreamIterator
 
-**File:** `features/03-import-updates/feature.md`
+**File:** `features/03-replace-streamrecv-iterator/feature.md`
+
+Replace `StreamRecvIterator` with `ConcurrentQueueStreamIterator` as the default iterator for valtron stream processing.
+
+### Summary
+
+Make `ConcurrentQueueStreamIterator` the standard iterator used by:
+- `execute()` function in `unified.rs`
+- `drive_stream()` helper in `drivers.rs`
+- All builder methods in `builders.rs` (`scheduled_stream_iter`, `stream_lift_iter`, etc.)
+- `stream_iter()` method in `threads.rs`
+
+### Tasks
+
+1. Update `execute_single_stream()` and `execute_multi_stream()` to return `ConcurrentQueueStreamIterator`
+2. Update `drive_stream()` to accept `ConcurrentQueueStreamIterator`
+3. Update `DrivenStreamIterator` struct to wrap `ConcurrentQueueStreamIterator`
+4. Update builder methods (`scheduled_stream_iter`, `stream_lift_iter`, `stream_sequenced_iter`, `stream_broadcast_iter`)
+5. Update `stream_iter()` in `threads.rs`
+6. Add deprecation notice to `StreamRecvIterator`
+7. Update module documentation to reflect new default
+8. Add `DEFAULT_MAX_TURNS` configuration constant
+9. Run tests to verify replacement
+
+### Success Criteria
+
+- [ ] `execute()` returns `DrivenStreamIterator` wrapping `ConcurrentQueueStreamIterator`
+- [ ] All builder methods return `ConcurrentQueueStreamIterator`
+- [ ] `StreamRecvIterator` marked as deprecated
+- [ ] All existing tests pass
+- [ ] Multi-task responsiveness improved
+
+## Feature 04: Import Updates
+
+**File:** `features/04-import-updates/feature.md`
 
 Update all imports across the codebase and ensure clean compilation.
 
@@ -297,5 +349,5 @@ Update all imports across the codebase and ensure clean compilation.
 ---
 
 _Created: 2026-04-04_
-_Status: ⏳ Pending_
-_Structure: Feature-based (has_features: true, 3 features)_
+_Status: ⏳ In Progress_
+_Structure: Feature-based (has_features: true, 4 features)_

@@ -17,7 +17,7 @@ use std::{
 };
 
 use crate::{
-    valtron::{Stream, StreamRecvIterator, DEFAULT_YIELD_WAIT_TIME},
+    valtron::{ConcurrentQueueStreamIterator, Stream, StreamRecvIterator, DEFAULT_YIELD_WAIT_TIME},
 };
 use concurrent_queue::{ConcurrentQueue, PushError};
 use derive_more::derive::From;
@@ -733,6 +733,15 @@ impl<
     /// This makes it possible to build synchronous experiences in a async world.
     ///
     /// This will deliver task to deliver the bottom of the thread-local execution queue.
+    ///
+    /// # Deprecation
+    ///
+    /// **Deprecated:** Use [`stream_iter_with_config`](Self::stream_iter_with_config) instead.
+    ///
+    /// This method uses `StreamRecvIterator` which blocks indefinitely. The new method
+    /// returns `ConcurrentQueueStreamIterator` with configurable `max_turns` for better
+    /// multi-task scheduling.
+    #[deprecated(since = "1.3.0", note = "Use stream_iter_with_config instead")]
     pub fn stream_iter(
         self,
         wait_cycle: time::Duration,
@@ -759,6 +768,57 @@ impl<
                 Ok(StreamRecvIterator::new(RecvIterator::from_chan(
                     iter_chan, wait_cycle,
                 )))
+            }
+            Err(err) => match err {
+                PushError::Full(_) => Err(ExecutorError::QueueFull),
+                PushError::Closed(_) => Err(ExecutorError::QueueClosed),
+            },
+        }
+    }
+
+    /// `stream_iter_with_config` adds a task into execution queue and returns
+    /// a `ConcurrentQueueStreamIterator` with configurable polling behavior.
+    ///
+    /// But unlike `schedule_iter` returns [`Stream`] values that hide the underlying
+    /// value types of `TaskStatus` which simplifies the trait types your usage
+    /// requires.
+    ///
+    /// This makes it possible to build synchronous experiences in an async world,
+    /// with fine-grained control over iterator polling strategy.
+    ///
+    /// # Arguments
+    ///
+    /// * `wait_cycle` - Thread park duration when queue is empty (passed to `ConcurrentQueueStreamIterator`)
+    /// * `max_turns` - Max poll attempts before yielding `Stream::Ignore`
+    ///
+    /// # Returns
+    ///
+    /// Returns a `ConcurrentQueueStreamIterator` that yields `Stream<Done, Pending>` items.
+    pub fn stream_iter_with_config(
+        self,
+        wait_cycle: time::Duration,
+        max_turns: usize,
+    ) -> AnyResult<ConcurrentQueueStreamIterator<Done, Pending>, ExecutorError> {
+        let iter_chan: Arc<ConcurrentQueue<Stream<Done, Pending>>> =
+            Arc::new(ConcurrentQueue::unbounded());
+
+        let boxed_task = match self.task {
+            Some(task) => match (self.resolver, self.mappers) {
+                (None, Some(mappers)) => StreamConsumingIter::new(task, mappers, iter_chan.clone()),
+                (None, None) => StreamConsumingIter::new(task, Vec::new(), iter_chan.clone()),
+                (_, _) => return Err(ExecutorError::NotSupported),
+            },
+            None => return Err(ExecutorError::TaskRequired),
+        };
+
+        match self.tasks.push(boxed_task.into()) {
+            Ok(()) => {
+                match self.tasks.len() {
+                    1 => self.latch.signal_one(),
+                    _ => self.latch.signal_all(),
+                }
+
+                Ok(ConcurrentQueueStreamIterator::new(iter_chan, max_turns, wait_cycle))
             }
             Err(err) => match err {
                 PushError::Full(_) => Err(ExecutorError::QueueFull),

@@ -22,6 +22,71 @@ use crate::valtron::GenericResult;
 
 pub const DEFAULT_WAIT_CYCLE: std::time::Duration = std::time::Duration::from_nanos(300);
 
+/// Configuration for stream execution with fine-grained control over iterator behavior.
+///
+/// # Fields
+///
+/// * `wait_cycle` - Polling/wait duration for executor (defaults to [`DEFAULT_WAIT_CYCLE`])
+/// * `max_turns` - Max poll attempts before yielding in `ConcurrentQueueStreamIterator`
+///   (defaults to [`crate::valtron::executors::DEFAULT_MAX_TURNS`])
+/// * `park_duration` - Thread park duration when queue is empty, passed to
+///   `ConcurrentQueueStreamIterator` (defaults to [`crate::valtron::executors::DEFAULT_PARK_DURATION`])
+///
+/// # Example
+///
+/// ```ignore
+/// use crate::valtron::executors::{StreamConfig, DEFAULT_MAX_TURNS};
+/// use std::time::Duration;
+///
+/// let config = StreamConfig::default()
+///     .with_max_turns(50)  // Higher throughput
+///     .with_park_duration(Duration::from_nanos(50));
+///
+/// let result = execute_with_config(task, config)?;
+/// ```
+#[derive(Debug, Clone)]
+pub struct StreamConfig {
+    /// Wait cycle duration for executor polling
+    pub wait_cycle: std::time::Duration,
+    /// Max turns for ConcurrentQueueStreamIterator
+    pub max_turns: usize,
+    /// Park duration for ConcurrentQueueStreamIterator (used as wait_cycle)
+    pub park_duration: std::time::Duration,
+}
+
+impl Default for StreamConfig {
+    fn default() -> Self {
+        Self {
+            wait_cycle: DEFAULT_WAIT_CYCLE,
+            max_turns: crate::valtron::executors::DEFAULT_MAX_TURNS,
+            park_duration: crate::valtron::executors::DEFAULT_PARK_DURATION,
+        }
+    }
+}
+
+impl StreamConfig {
+    /// Create a new StreamConfig with custom wait_cycle.
+    #[must_use]
+    pub fn with_wait_cycle(mut self, wait_cycle: std::time::Duration) -> Self {
+        self.wait_cycle = wait_cycle;
+        self
+    }
+
+    /// Create a new StreamConfig with custom max_turns.
+    #[must_use]
+    pub fn with_max_turns(mut self, max_turns: usize) -> Self {
+        self.max_turns = max_turns;
+        self
+    }
+
+    /// Create a new StreamConfig with custom park_duration.
+    #[must_use]
+    pub fn with_park_duration(mut self, park_duration: std::time::Duration) -> Self {
+        self.park_duration = park_duration;
+        self
+    }
+}
+
 /// Execute a task using the appropriate executor for the current platform/features.
 ///
 /// ## Platform Selection
@@ -116,7 +181,7 @@ where
     }
 }
 
-/// `execute_stream` unlike [`execute_as_task`] returns a `StreamRecvIterator`
+/// `execute_stream` unlike [`execute_as_task`] returns a `DrivenStreamIterator`
 /// which hides the underlying mechanics of handling `TaskStatus`. The stream
 /// iterator will internally manage different task states, send any required
 /// spawn events to the executor as tasks request additional work, and present a
@@ -140,7 +205,7 @@ where
 ///
 /// # Returns
 ///
-/// Returns a [`GenericResult`] wrapping a `StreamRecvIterator` over the task's
+/// Returns a [`GenericResult`] wrapping a `DrivenStreamIterator` over the task's
 /// produced values. On success the `Ok` variant contains a stream-style
 /// iterator that yields ready values (and may represent pending/ready events
 /// internally). On error the `Err` variant contains an error from the
@@ -207,6 +272,70 @@ where
         {
             tracing::debug!("Executing as a single-threaded stream in no-wasm");
             execute_single_stream(task, wait_cycle)
+        }
+    }
+}
+
+/// Execute a task with custom [`StreamConfig`] for fine-grained control.
+///
+/// This function allows configuring:
+/// - `wait_cycle`: Executor polling duration
+/// - `max_turns`: Poll attempts before yielding in ConcurrentQueueStreamIterator
+/// - `park_duration`: Thread park duration when queue is empty
+///
+/// # Arguments
+///
+/// - `task`: The task to execute
+/// - `config`: StreamConfig with execution parameters
+///
+/// # Returns
+///
+/// Returns a [`GenericResult`] wrapping a `DrivenStreamIterator`.
+///
+/// # Errors
+///
+/// Returns an error if scheduling the task fails.
+///
+/// # Example
+///
+/// ```ignore
+/// use crate::valtron::executors::{execute_with_config, StreamConfig};
+/// use std::time::Duration;
+///
+/// let config = StreamConfig::default()
+///     .with_max_turns(50)
+///     .with_park_duration(Duration::from_nanos(50));
+///
+/// let result = execute_with_config(my_task, config)?;
+/// ```
+pub fn execute_with_config<T>(
+    task: T,
+    config: StreamConfig,
+) -> GenericResult<DrivenStreamIterator<T>>
+where
+    T: TaskIterator + Send + 'static,
+    T::Ready: Send + 'static,
+    T::Pending: Send + 'static,
+    T::Spawner: ExecutionAction + Send + 'static,
+{
+    #[cfg(target_arch = "wasm32")]
+    {
+        tracing::debug!("Executing as a single stream in wasm with config");
+        execute_single_stream_with_config(task, &config)
+    }
+
+    #[cfg(not(target_arch = "wasm32"))]
+    {
+        #[cfg(feature = "multi")]
+        {
+            tracing::debug!("Executing as a multi-threaded stream in no-wasm with config");
+            execute_multi_stream_with_config(task, &config)
+        }
+
+        #[cfg(not(feature = "multi"))]
+        {
+            tracing::debug!("Executing as a single-threaded stream in no-wasm with config");
+            execute_single_stream_with_config(task, &config)
         }
     }
 }
@@ -346,10 +475,14 @@ where
     T::Spawner: ExecutionAction + Send + 'static,
 {
     use super::single;
-    // Schedule task and get iterator
+    use crate::valtron::executors::{DEFAULT_MAX_TURNS, DEFAULT_PARK_DURATION};
+
+    // Schedule task and get iterator with defaults
+    // Note: wait_cycle is not used directly; DEFAULT_PARK_DURATION is used for park_duration
+    let _wait = wait_cycle.unwrap_or(DEFAULT_WAIT_CYCLE);
     let iter = single::spawn()
         .with_task(task)
-        .scheduled_stream_iter(wait_cycle.unwrap_or(DEFAULT_WAIT_CYCLE))?;
+        .scheduled_stream_iter_with_config(DEFAULT_PARK_DURATION, DEFAULT_MAX_TURNS)?;
 
     Ok(drive_stream(iter))
 }
@@ -395,11 +528,14 @@ where
     T::Spawner: ExecutionAction + Send + 'static,
 {
     use crate::valtron::multi;
+    use crate::valtron::executors::{DEFAULT_MAX_TURNS, DEFAULT_PARK_DURATION};
 
-    // Schedule task and get iterator
+    // Schedule task and get iterator with defaults
+    // Note: wait_cycle is not used directly; DEFAULT_PARK_DURATION is used for park_duration
+    let _wait = wait_cycle.unwrap_or(DEFAULT_WAIT_CYCLE);
     let iter = multi::spawn()
         .with_task(task)
-        .stream_iter(wait_cycle.unwrap_or(DEFAULT_WAIT_CYCLE))?;
+        .stream_iter_with_config(DEFAULT_PARK_DURATION, DEFAULT_MAX_TURNS)?;
 
     Ok(drive_stream(iter))
 }
@@ -418,6 +554,52 @@ where
     multi::spawn().with_task(task).schedule()?;
 
     Ok(())
+}
+
+/// Execute using single-threaded executor with custom config.
+#[allow(dead_code)]
+#[allow(clippy::type_complexity)]
+fn execute_single_stream_with_config<T>(
+    task: T,
+    config: &StreamConfig,
+) -> GenericResult<DrivenStreamIterator<T>>
+where
+    T: TaskIterator + Send + 'static,
+    T::Ready: Send + 'static,
+    T::Pending: Send + 'static,
+    T::Spawner: ExecutionAction + Send + 'static,
+{
+    use super::single;
+    // Schedule task and get iterator with config
+    // Note: wait_cycle parameter is used as park_duration in ConcurrentQueueStreamIterator
+    let iter = single::spawn()
+        .with_task(task)
+        .scheduled_stream_iter_with_config(config.park_duration, config.max_turns)?;
+
+    Ok(drive_stream(iter))
+}
+
+/// Execute using multi-threaded executor with custom config.
+#[cfg(all(not(target_arch = "wasm32"), feature = "multi"))]
+fn execute_multi_stream_with_config<T>(
+    task: T,
+    config: &StreamConfig,
+) -> GenericResult<DrivenStreamIterator<T>>
+where
+    T: TaskIterator + Send + 'static,
+    T::Ready: Send + 'static,
+    T::Pending: Send + 'static,
+    T::Spawner: ExecutionAction + Send + 'static,
+{
+    use crate::valtron::multi;
+
+    // Schedule task and get iterator with config
+    // Note: wait_cycle parameter is used as park_duration in ConcurrentQueueStreamIterator
+    let iter = multi::spawn()
+        .with_task(task)
+        .stream_iter_with_config(config.park_duration, config.max_turns)?;
+
+    Ok(drive_stream(iter))
 }
 
 // ============================================================================

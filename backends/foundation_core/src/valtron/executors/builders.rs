@@ -6,7 +6,7 @@ use std::{any::Any, marker::PhantomData, sync::Arc, time};
 
 use crate::{
     synca::mpp::RecvIterator,
-    valtron::StreamRecvIterator,
+    valtron::{ConcurrentQueueStreamIterator, StreamRecvIterator},
     valtron::StreamConsumingIter,
 };
 use concurrent_queue::ConcurrentQueue;
@@ -110,6 +110,15 @@ impl<
     ///
     /// This will schedule the task to the bottom of the queue by calling `schedule`
     /// method to deliver a task to the bottom of the thread-local execution queue.
+    ///
+    /// # Deprecation
+    ///
+    /// **Deprecated:** Use [`scheduled_stream_iter_with_config`](Self::scheduled_stream_iter_with_config) instead.
+    ///
+    /// This method uses `StreamRecvIterator` which blocks indefinitely. The new method
+    /// returns `ConcurrentQueueStreamIterator` with configurable `max_turns` for better
+    /// multi-task scheduling.
+    #[deprecated(since = "1.3.0", note = "Use scheduled_stream_iter_with_config instead")]
     pub fn scheduled_stream_iter(
         self,
         wait_cycle: time::Duration,
@@ -129,6 +138,42 @@ impl<
         self.engine
             .schedule(boxed_task.into())
             .map(|_| StreamRecvIterator::new(RecvIterator::from_chan(iter_chan, wait_cycle)))
+    }
+
+    /// `scheduled_stream_iter_with_config` adds a task into execution queue and returns
+    /// a `ConcurrentQueueStreamIterator` with configurable polling behavior.
+    ///
+    /// This makes it possible to build synchronous experiences in an async world,
+    /// with fine-grained control over iterator polling strategy.
+    ///
+    /// # Arguments
+    ///
+    /// * `wait_cycle` - Thread park duration when queue is empty (passed to `ConcurrentQueueStreamIterator`)
+    /// * `max_turns` - Max poll attempts before yielding `Stream::Ignore`
+    ///
+    /// # Returns
+    ///
+    /// Returns a `ConcurrentQueueStreamIterator` that yields `Stream<Done, Pending>` items.
+    pub fn scheduled_stream_iter_with_config(
+        self,
+        wait_cycle: time::Duration,
+        max_turns: usize,
+    ) -> AnyResult<ConcurrentQueueStreamIterator<Done, Pending>, ExecutorError> {
+        let iter_chan: Arc<ConcurrentQueue<Stream<Done, Pending>>> =
+            Arc::new(ConcurrentQueue::unbounded());
+
+        let boxed_task = match self.task {
+            Some(task) => match (self.resolver, self.mappers) {
+                (None, Some(mappers)) => StreamConsumingIter::new(task, mappers, iter_chan.clone()),
+                (None, None) => StreamConsumingIter::new(task, Vec::new(), iter_chan.clone()),
+                (_, _) => return Err(ExecutorError::NotSupported),
+            },
+            None => return Err(ExecutorError::TaskRequired),
+        };
+
+        self.engine
+            .schedule(boxed_task.into())
+            .map(|_| ConcurrentQueueStreamIterator::new(iter_chan, max_turns, wait_cycle))
     }
 
     /// `schedule_iter` adds a task into execution queue but instead of depending
