@@ -57,6 +57,10 @@ pub struct DistilledSpec {
 
     /// Change detection hash
     pub content_hash: String,
+
+    /// List of written spec file paths (relative to artefacts dir).
+    /// Single-spec providers have one entry; multi-spec providers (e.g., GCP) have multiple.
+    pub spec_files: Vec<String>,
 }
 
 /// WHY: Represents a single API endpoint extracted from a spec.
