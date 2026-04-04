@@ -40,7 +40,7 @@ This specification creates a **multi-provider deployment system** with:
 These are the foundation everything else builds on:
 
 ```bash
-mkdir -p backends/foundation_deployment/src/{core,state,engine,providers/{cloudflare,gcp,aws},template}
+mkdir -p backends/foundation_deployment/src/{core,state,engine,providers/{cloudflare,gcp,aws,fly_io,planetscale,prisma_postgres,supabase,mongodb_atlas,neon,stripe,standard},template}
 ```
 
 1. Define the `DeploymentProvider` trait (`src/core/traits.rs`)

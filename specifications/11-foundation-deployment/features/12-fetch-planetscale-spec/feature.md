@@ -4,17 +4,17 @@ spec_directory: "specifications/11-foundation-deployment"
 feature_directory: "specifications/11-foundation-deployment/features/12-fetch-planetscale-spec"
 this_file: "specifications/11-foundation-deployment/features/12-fetch-planetscale-spec/feature.md"
 
-status: pending
+status: completed
 priority: medium
 created: 2026-03-27
 
 depends_on: ["10-provider-spec-fetcher-core"]
 
 tasks:
-  completed: 0
-  uncompleted: 4
+  completed: 4
+  uncompleted: 0
   total: 4
-  completion_percentage: 0%
+  completion_percentage: 100%
 ---
 
 
@@ -37,75 +37,70 @@ Implement the PlanetScale OpenAPI spec fetcher. PlanetScale provides their spec 
 | Auth Required | No |
 | Rate Limits | Standard HTTP rate limits |
 
-## Requirements
+## Architecture
+
+Provider implementations live in `backends/foundation_deployment/src/providers/`, **not** in `bin/platform/`. Each provider gets its own directory:
+
+```
+backends/foundation_deployment/src/providers/
+├── planetscale/
+│   ├── mod.rs       # Module declaration (pub mod fetch;)
+│   ├── fetch.rs     # Fetch logic, constants, process_spec
+│   └── resources/
+│       └── mod.rs   # (future) Auto-generated resource types
+├── openapi.rs       # Shared OpenAPI 3.x extraction utilities
+└── standard/
+    └── fetch.rs     # Generic HTTP fetch (used by all standard providers)
+```
 
 ### PlanetScale-Specific Fetcher
 
 ```rust
-// bin/platform/src/gen_provider_specs/providers/planetscale.rs
+// backends/foundation_deployment/src/providers/planetscale/fetch.rs
 
-use crate::errors::SpecFetchError;  // Import from central errors.rs
-use crate::core::{DistilledSpec, SpecEndpoint};  // Core types from core.rs
-use foundation_core::wire::simple_http::client::SimpleHttpClient;
+pub const SPEC_URL: &str = "https://api.planetscale.com/v1/openapi-spec";
+pub const PROVIDER_NAME: &str = "planetscale";
 
-pub const PLANETSCALE_SPEC_URL: &str = "https://api.planetscale.com/v1/openapi-spec";
-
-/// Fetch and distill the PlanetScale OpenAPI spec.
-pub async fn fetch_planetscale_spec(
-    client: &SimpleHttpClient,
-) -> Result<DistilledSpec, SpecFetchError> {
-    // Standard fetch pattern (same as Fly.io)
-    // PlanetScale uses standard OpenAPI format
+pub fn fetch_planetscale_specs(output_dir: PathBuf) -> Result<impl StreamIterator<...>, DeploymentError> {
+    standard::fetch::fetch_standard_spec(PROVIDER_NAME, SPEC_URL, output_dir)
 }
 
-fn extract_planetscale_version(spec: &serde_json::Value) -> Option<String> {
-    spec.get("info")
-        .and_then(|info| info.get("version"))
-        .and_then(|v| v.as_str())
-        .map(String::from)
+pub fn process_spec(spec: &serde_json::Value) -> ProcessedSpec {
+    openapi::process_spec(spec)
 }
-
-fn extract_planetscale_endpoints(spec: &serde_json::Value) -> Option<Vec<SpecEndpoint>> {
-    // Extract from paths object
-}
-```
-
-## Error Handling
-
-**All errors are defined in `errors.rs` at the module root.** Provider-specific code imports:
-```rust
-use crate::errors::SpecFetchError;
 ```
 
 ## Tasks
 
 1. **Create PlanetScale provider module**
-   - [ ] Create `bin/platform/src/gen_provider_specs/providers/planetscale.rs`
-   - [ ] Implement `fetch_planetscale_spec()`
-   - [ ] Implement version and endpoint extraction
+   - [x] Create `backends/foundation_deployment/src/providers/planetscale/mod.rs`
+   - [x] Create `backends/foundation_deployment/src/providers/planetscale/fetch.rs`
+   - [x] Implement fetch and process_spec functions
 
-2. **Register in core fetcher**
-   - [ ] Add PlanetScale to provider list
-   - [ ] Wire up fetch function
+2. **Register in module tree**
+   - [x] Add `pub mod planetscale;` to `providers/mod.rs`
+   - [x] Wire into fetcher via `configured_providers()` and `create_provider_stream()`
 
 3. **Write unit tests**
-   - [ ] Test with sample PlanetScale spec structure
+   - [x] Test constants, version extraction, endpoint extraction
 
 4. **Integration test**
-   - [ ] Run fetch and verify output
+   - [x] Verify `cargo run -- gen_provider_specs --provider planetscale` works
 
 ## Success Criteria
 
-- [ ] All 4 tasks completed
-- [ ] Zero warnings
-- [ ] Spec fetches and is written correctly
+- [x] All 4 tasks completed
+- [x] Zero warnings
+- [x] Spec fetches and is written correctly to `artefacts/cloud_providers/planetscale/`
 
 ## Verification
 
 ```bash
+cargo test -p foundation_deployment -- resources::planetscale
 cargo run -- gen_provider_specs --provider planetscale
 ```
 
 ---
 
 _Created: 2026-03-27_
+_Updated: 2026-04-04 - Corrected directory structure to backends/foundation_deployment_

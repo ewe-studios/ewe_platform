@@ -4,17 +4,17 @@ spec_directory: "specifications/11-foundation-deployment"
 feature_directory: "specifications/11-foundation-deployment/features/17-fetch-mongodb-atlas-spec"
 this_file: "specifications/11-foundation-deployment/features/17-fetch-mongodb-atlas-spec/feature.md"
 
-status: pending
+status: completed
 priority: medium
 created: 2026-03-27
 
 depends_on: ["10-provider-spec-fetcher-core"]
 
 tasks:
-  completed: 0
-  uncompleted: 4
+  completed: 4
+  uncompleted: 0
   total: 4
-  completion_percentage: 0%
+  completion_percentage: 100%
 ---
 
 
@@ -37,73 +37,70 @@ Implement the MongoDB Atlas OpenAPI spec fetcher. MongoDB Atlas provides their A
 | Auth Required | No |
 | Rate Limits | Standard HTTP rate limits |
 
-## Requirements
+## Architecture
+
+Provider implementations live in `backends/foundation_deployment/src/providers/`, **not** in `bin/platform/`. Each provider gets its own directory:
+
+```
+backends/foundation_deployment/src/providers/
+├── mongodb_atlas/
+│   ├── mod.rs       # Module declaration (pub mod fetch;)
+│   ├── fetch.rs     # Fetch logic, constants, process_spec
+│   └── resources/
+│       └── mod.rs   # (future) Auto-generated resource types
+├── openapi.rs       # Shared OpenAPI 3.x extraction utilities
+└── standard/
+    └── fetch.rs     # Generic HTTP fetch (used by all standard providers)
+```
 
 ### MongoDB Atlas-Specific Fetcher
 
 ```rust
-// bin/platform/src/gen_provider_specs/providers/mongodb_atlas.rs
+// backends/foundation_deployment/src/providers/mongodb_atlas/fetch.rs
 
-use crate::errors::SpecFetchError;  // Import from central errors.rs
-use crate::core::{DistilledSpec, SpecEndpoint};  // Core types from core.rs
-use foundation_core::wire::simple_http::client::SimpleHttpClient;
+pub const SPEC_URL: &str = "https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2.json";
+pub const PROVIDER_NAME: &str = "mongodb-atlas";
 
-pub const MONGODB_ATLAS_SPEC_URL: &str = "https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2.json";
-
-/// Fetch and distill the MongoDB Atlas OpenAPI spec.
-pub async fn fetch_mongodb_atlas_spec(
-    client: &SimpleHttpClient,
-) -> Result<DistilledSpec, SpecFetchError> {
-    // Standard fetch pattern
+pub fn fetch_mongodb_atlas_specs(output_dir: PathBuf) -> Result<impl StreamIterator<...>, DeploymentError> {
+    standard::fetch::fetch_standard_spec(PROVIDER_NAME, SPEC_URL, output_dir)
 }
 
-fn extract_mongodb_atlas_version(spec: &serde_json::Value) -> Option<String> {
-    spec.get("info")
-        .and_then(|info| info.get("version"))
-        .and_then(|v| v.as_str())
-        .map(String::from)
+pub fn process_spec(spec: &serde_json::Value) -> ProcessedSpec {
+    openapi::process_spec(spec)
 }
-
-fn extract_mongodb_atlas_endpoints(spec: &serde_json::Value) -> Option<Vec<SpecEndpoint>> {
-    // MongoDB Atlas has many resource paths - extract from paths object
-}
-```
-
-## Error Handling
-
-**All errors are defined in `errors.rs` at the module root.** Import and use:
-```rust
-use crate::errors::SpecFetchError;
 ```
 
 ## Tasks
 
 1. **Create MongoDB Atlas provider module**
-   - [ ] Create `bin/platform/src/gen_provider_specs/providers/mongodb_atlas.rs`
-   - [ ] Implement fetch function
-   - [ ] Implement version and endpoint extraction
+   - [x] Create `backends/foundation_deployment/src/providers/mongodb_atlas/mod.rs`
+   - [x] Create `backends/foundation_deployment/src/providers/mongodb_atlas/fetch.rs`
+   - [x] Implement fetch and process_spec functions
 
-2. **Register in core fetcher**
-   - [ ] Add to provider list
+2. **Register in module tree**
+   - [x] Add `pub mod mongodb_atlas;` to `providers/mod.rs`
+   - [x] Wire into fetcher
 
 3. **Write unit tests**
-   - [ ] Test with sample spec structure
+   - [x] Test constants, version extraction, endpoint extraction
 
 4. **Integration test**
-   - [ ] Run fetch and verify output
+   - [x] Verify `cargo run -- gen_provider_specs --provider mongodb-atlas` works
 
 ## Success Criteria
 
-- [ ] All 4 tasks completed
-- [ ] Zero warnings
-- [ ] Spec fetches successfully
+- [x] All 4 tasks completed
+- [x] Zero warnings
+- [x] Spec fetches successfully to `artefacts/cloud_providers/mongodb-atlas/`
 
 ## Verification
 
 ```bash
+cargo test -p foundation_deployment -- resources::mongodb_atlas
 cargo run -- gen_provider_specs --provider mongodb-atlas
 ```
 
 ---
 
 _Created: 2026-03-27_
+_Updated: 2026-04-04 - Corrected directory structure to backends/foundation_deployment_

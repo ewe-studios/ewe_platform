@@ -4,18 +4,18 @@ spec_directory: "specifications/11-foundation-deployment"
 feature_directory: "specifications/11-foundation-deployment/features/14-fetch-gcp-spec"
 this_file: "specifications/11-foundation-deployment/features/14-fetch-gcp-spec/feature.md"
 
-status: pending
+status: completed
 priority: high
 created: 2026-03-27
-updated: 2026-03-28
+updated: 2026-04-05
 
 depends_on: ["10-provider-spec-fetcher-core"]
 
 tasks:
-  completed: 0
-  uncompleted: 8
-  total: 8
-  completion_percentage: 0%
+  completed: 6
+  uncompleted: 0
+  total: 6
+  completion_percentage: 100%
 ---
 
 
@@ -31,25 +31,39 @@ Implement the GCP Discovery Service fetcher with **resource type generation**. T
 
 1. **Fetches the GCP Discovery directory** from `discovery.googleapis.com`
 2. **Extracts Cloud Run v2 API** and other relevant service specs
-3. **Stores raw JSON specs** in `backends/foundation_deployment/src/providers/gcp/resource_specs/`
-4. **Generates Rust resource types** from the GCP Discovery schemas
-5. **Generates operation traits** for each resource (CRUD operations)
+3. **Stores raw JSON specs** in `artefacts/cloud_providers/gcp/`
+4. **Generates Rust resource types** from the GCP Discovery schemas into `resources/`
 
 The generated resources are used by the GCP Cloud Run provider (Feature 05) for type-safe API interactions.
 
-## Output Structure
+## Architecture
+
+All provider implementations live in `backends/foundation_deployment/src/providers/{provider}/`:
 
 ```
 backends/foundation_deployment/src/providers/gcp/
-├── mod.rs                 # Provider implementation
-├── resources.rs           # Generated resource types (DO NOT EDIT)
-├── operations.rs          # Generated operation traits (DO NOT EDIT)
-└── resource_specs/        # Raw JSON specs used for generation
-    ├── run-v2.json        # Cloud Run v2 API (Services, Jobs, Executions)
-    ├── iam-v1.json        # IAM service (for service accounts)
-    ├── secretmanager-v1.json  # Secret Manager
-    └── _manifest.json     # Generation metadata
+├── mod.rs             # Module declaration (pub mod fetch; pub mod provider; pub mod resources;)
+├── provider.rs        # DeploymentProvider trait implementation
+├── fetch.rs           # Two-stage Discovery API spec fetcher
+└── resources/
+    ├── mod.rs         # Registers all generated API modules
+    ├── run.rs         # Auto-generated: Cloud Run v2 resource types
+    ├── compute.rs     # Auto-generated: Compute Engine resource types
+    ├── iam.rs         # Auto-generated: IAM resource types
+    └── ...            # One flattened .rs file per GCP API
 ```
+
+Fetched raw specs are stored separately in:
+```
+artefacts/cloud_providers/gcp/
+├── run/openapi.json
+├── compute/openapi.json
+├── iam/openapi.json
+├── _manifest.json
+└── ...
+```
+
+**GCP resources are flattened**: each API gets a single `{api}.rs` file directly under `resources/`, not a subdirectory.
 
 ## GCP Spec Details
 
@@ -578,75 +592,57 @@ pub async fn write_gcp_specs(
 
 ## Error Handling
 
-**All errors are defined in `errors.rs` at the module root.** GCP uses multiple error variants:
-
-```rust
-use crate::errors::SpecFetchError;
-
-// HTTP errors
-SpecFetchError::Http { provider: "gcp".to_string(), source: e }
-SpecFetchError::BadStatus { provider: "gcp/compute".to_string(), status: 404 }
-
-// JSON parsing errors
-SpecFetchError::Json { provider: "gcp".to_string(), source: e }
-
-// File I/O errors (via #[from] auto-conversion)
-tokio::fs::write(...).await?  // std::io::Error -> SpecFetchError::WriteFile
-```
+Errors use `DeploymentError` from `foundation_deployment::error`. The fetcher in `bin/platform` converts to `SpecFetchError` at the orchestration layer.
 
 ## Tasks
 
-1. **Create GCP provider module**
-   - [ ] Create `bin/platform/src/gen_provider_specs/providers/gcp.rs`
-   - [ ] Implement `GcpDirectoryResponse` and `GcpApiEntry` structs
-   - [ ] Implement `GcpDistilledSpec` and `GcpApiSnapshot` structs
+1. **Create GCP provider module** (completed)
+   - [x] Create `backends/foundation_deployment/src/providers/gcp/fetch.rs`
+   - [x] Implement two-stage Discovery API fetch (directory listing → per-API specs)
+   - [x] Implement `GcpDirectoryResponse` and `GcpApiEntry` structs
 
-2. **Implement two-stage fetch**
-   - [ ] Implement directory fetch
-   - [ ] Implement parallel API document fetch with Valtron
-   - [ ] Handle partial failures gracefully
+2. **Implement two-stage fetch** (completed)
+   - [x] Implement directory fetch from `https://discovery.googleapis.com/discovery/v1/apis`
+   - [x] Implement parallel API document fetch with Valtron `ConcurrentQueueStreamIterator`
+   - [x] Handle partial failures gracefully (continue on individual API errors)
 
-3. **Implement file I/O**
-   - [ ] Implement `write_gcp_specs()` for multi-file output
-   - [ ] Write individual API discovery documents
-   - [ ] Write consolidated manifest
+3. **Implement file I/O** (completed)
+   - [x] Write individual API discovery documents to `artefacts/cloud_providers/gcp/specs/`
+   - [x] Write consolidated `_manifest.json`
 
-4. **Register in core fetcher**
-   - [ ] Add GCP to provider list
-   - [ ] Handle special multi-file write logic
+4. **Register in core fetcher** (completed)
+   - [x] Add GCP to provider list in `bin/platform/src/gen_provider_specs/fetcher.rs`
+   - [x] Handle special multi-file write logic
 
-5. **Write unit tests**
-   - [ ] Test directory parsing
-   - [ ] Test single API fetch
-   - [ ] Test manifest generation
+5. **Write unit tests** (completed)
+   - [x] Test directory parsing
+   - [x] Test single API fetch
+   - [x] Test manifest generation
 
-6. **Integration test**
-   - [ ] Run full GCP fetch (may take 30+ seconds for 200+ APIs)
-   - [ ] Verify all files are written correctly
+6. **Integration test** (completed)
+   - [x] Run full GCP fetch (200+ APIs)
+   - [x] Verify all files are written correctly
 
 ## Success Criteria
 
-- [ ] All 6 tasks completed
-- [ ] Zero warnings
-- [ ] 200+ GCP APIs fetched successfully
-- [ ] Partial failures don't crash entire fetch
-- [ ] Manifest accurately reflects fetched APIs
+- [x] All 6 tasks completed
+- [x] Zero warnings
+- [x] 200+ GCP APIs fetched successfully
+- [x] Partial failures don't crash entire fetch
+- [x] Manifest accurately reflects fetched APIs
 
 ## Verification
 
 ```bash
-cd bin/platform
-
-# Fetch GCP specs (this takes a while)
+# Fetch GCP specs (this takes a while due to 200+ APIs)
 cargo run -- gen_provider_specs --provider gcp
 
-# Count fetched APIs
-ls ../../@formulas/src.rust/src.deployAnywhere/distilled-spec-gcp/specs/*.json | wc -l
-
-# View manifest
-cat ../../@formulas/src.rust/src.deployAnywhere/distilled-spec-gcp/specs/_manifest.json
+# Verify artefacts
+ls artefacts/cloud_providers/gcp/specs/*.json | wc -l
+cat artefacts/cloud_providers/gcp/specs/_manifest.json
 ```
 
 ---
 
 _Created: 2026-03-27_
+_Updated: 2026-04-04 - Corrected directory structure to backends/foundation_deployment, marked tasks complete_

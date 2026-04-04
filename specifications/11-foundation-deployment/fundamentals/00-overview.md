@@ -247,21 +247,54 @@ backends/foundation_deployment/
 |   |   |-- planner.rs            # DeploymentPlanner (valtron StateMachine)
 |   |   +-- rollback.rs           # Rollback strategies
 |   |
-|   |-- providers/                # Provider API clients
-|   |   |-- mod.rs                # Provider registry
+|   |-- providers/                # Provider implementations + spec fetchers
+|   |   |-- mod.rs                # Provider registry (all providers registered here)
+|   |   |-- openapi.rs            # Shared OpenAPI 3.x extraction utilities
+|   |   |-- standard/
+|   |   |   |-- mod.rs
+|   |   |   +-- fetch.rs          # Generic HTTP fetch (curl-based, used by standard providers)
 |   |   |-- cloudflare/
-|   |   |   |-- mod.rs            # CloudflareProvider impl
-|   |   |   |-- api.rs            # Cloudflare REST API via SimpleHttpClient
-|   |   |   +-- types.rs          # CF-specific types
+|   |   |   |-- mod.rs
+|   |   |   |-- provider.rs       # CloudflareProvider impl (DeploymentProvider trait)
+|   |   |   |-- fetch.rs          # Git-clone based spec fetcher
+|   |   |   +-- resources/        # Auto-generated resource types
 |   |   |-- gcp/
-|   |   |   |-- mod.rs            # GcpCloudRunProvider impl
-|   |   |   |-- api.rs            # Cloud Run Admin API via SimpleHttpClient
-|   |   |   +-- types.rs          # GCP-specific types
-|   |   +-- aws/
-|   |       |-- mod.rs            # AwsLambdaProvider impl
-|   |       |-- api.rs            # Lambda API via SimpleHttpClient
-|   |       |-- sigv4.rs          # AWS Signature V4 signing
-|   |       +-- types.rs          # AWS-specific types
+|   |   |   |-- mod.rs
+|   |   |   |-- provider.rs       # GcpCloudRunProvider impl (DeploymentProvider trait)
+|   |   |   |-- fetch.rs          # Two-stage Discovery API fetcher
+|   |   |   +-- resources/        # Auto-generated resource types (one .rs per API)
+|   |   |-- aws/
+|   |   |   |-- mod.rs
+|   |   |   |-- provider.rs       # AwsLambdaProvider impl (DeploymentProvider trait)
+|   |   |   +-- resources/        # Auto-generated resource types
+|   |   |-- fly_io/
+|   |   |   |-- mod.rs
+|   |   |   |-- fetch.rs          # Spec fetcher (delegates to standard::fetch)
+|   |   |   +-- resources/        # Auto-generated resource types
+|   |   |-- planetscale/
+|   |   |   |-- mod.rs
+|   |   |   |-- fetch.rs          # Spec fetcher
+|   |   |   +-- resources/
+|   |   |-- prisma_postgres/
+|   |   |   |-- mod.rs
+|   |   |   |-- fetch.rs          # Spec fetcher
+|   |   |   +-- resources/
+|   |   |-- supabase/
+|   |   |   |-- mod.rs
+|   |   |   |-- fetch.rs          # Spec fetcher
+|   |   |   +-- resources/
+|   |   |-- mongodb_atlas/
+|   |   |   |-- mod.rs
+|   |   |   |-- fetch.rs          # Spec fetcher
+|   |   |   +-- resources/
+|   |   |-- neon/
+|   |   |   |-- mod.rs
+|   |   |   |-- fetch.rs          # Spec fetcher
+|   |   |   +-- resources/
+|   |   +-- stripe/
+|   |       |-- mod.rs
+|   |       |-- fetch.rs          # Spec fetcher
+|   |       +-- resources/
 |   |
 |   +-- template/                 # Template generation
 |       |-- mod.rs

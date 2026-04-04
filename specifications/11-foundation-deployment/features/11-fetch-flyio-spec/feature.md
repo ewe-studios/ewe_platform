@@ -4,17 +4,17 @@ spec_directory: "specifications/11-foundation-deployment"
 feature_directory: "specifications/11-foundation-deployment/features/11-fetch-flyio-spec"
 this_file: "specifications/11-foundation-deployment/features/11-fetch-flyio-spec/feature.md"
 
-status: pending
+status: completed
 priority: medium
 created: 2026-03-27
 
 depends_on: ["10-provider-spec-fetcher-core"]
 
 tasks:
-  completed: 0
-  uncompleted: 4
+  completed: 4
+  uncompleted: 0
   total: 4
-  completion_percentage: 0%
+  completion_percentage: 100%
 ---
 
 
@@ -40,163 +40,123 @@ This feature validates the core fetcher works correctly with a straightforward s
 | Rate Limits | Standard HTTP rate limits |
 | Spec Size | ~500KB |
 
+## Architecture
+
+Provider implementations live in `backends/foundation_deployment/src/providers/`, **not** in `bin/platform/`. Each provider gets its own directory:
+
+```
+backends/foundation_deployment/src/providers/
+├── fly_io/
+│   ├── mod.rs       # Module declaration (pub mod fetch;)
+│   ├── fetch.rs     # Fetch logic, constants, process_spec
+│   └── resources/
+│       └── mod.rs   # (future) Auto-generated resource types
+├── openapi.rs       # Shared OpenAPI 3.x extraction utilities
+└── standard/
+    └── fetch.rs     # Generic HTTP fetch (used by all standard providers)
+```
+
+The `bin/platform/src/gen_provider_specs/fetcher.rs` orchestrates fetching by importing from `foundation_deployment::providers::fly_io`.
+
 ## Requirements
 
 ### Fly.io-Specific Fetcher
 
 ```rust
-// bin/platform/src/gen_provider_specs/providers/fly_io.rs
+// backends/foundation_deployment/src/providers/fly_io/fetch.rs
 
-use crate::errors::SpecFetchError;  // Import from central errors.rs
-use crate::core::{DistilledSpec, SpecEndpoint};  // Core types from core.rs
-use foundation_core::wire::simple_http::client::SimpleHttpClient;
+use crate::error::DeploymentError;
+use crate::providers::openapi::{self, ProcessedSpec};
+use crate::providers::standard;
+use foundation_core::valtron::StreamIterator;
+use std::path::PathBuf;
 
-pub const FLY_IO_SPEC_URL: &str = "https://docs.machines.dev/spec/openapi3.json";
+pub const SPEC_URL: &str = "https://docs.machines.dev/spec/openapi3.json";
+pub const PROVIDER_NAME: &str = "fly-io";
 
-/// Fetch and distill the Fly.io OpenAPI spec.
-pub async fn fetch_flyio_spec(
-    client: &SimpleHttpClient,
-) -> Result<DistilledSpec, SpecFetchError> {
-    let response = client
-        .get(FLY_IO_SPEC_URL)
-        .send()
-        .await
-        .map_err(|e| SpecFetchError::Http {
-            provider: "fly-io".to_string(),
-            source: e,
-        })?;
-
-    let raw_spec: serde_json::Value = serde_json::from_str(&response.body)
-        .map_err(|e| SpecFetchError::Json {
-            provider: "fly-io".to_string(),
-            source: e,
-        })?;
-
-    let content_hash = compute_sha256(&raw_spec.to_string());
-    let version = extract_flyio_version(&raw_spec)
-        .unwrap_or_else(|| chrono::Utc::now().format("%Y%m%d").to_string());
-    let endpoints = extract_flyio_endpoints(&raw_spec);
-
-    Ok(DistilledSpec {
-        provider: "fly-io".to_string(),
-        version,
-        fetched_at: chrono::Utc::now(),
-        source_url: FLY_IO_SPEC_URL.to_string(),
-        raw_spec,
-        endpoints,
-        content_hash,
-    })
+/// Fetch the Fly.io OpenAPI spec.
+/// Delegates to standard::fetch for the actual HTTP download.
+pub fn fetch_fly_io_specs(
+    output_dir: PathBuf,
+) -> Result<
+    impl StreamIterator<D = Result<PathBuf, DeploymentError>, P = ()> + Send + 'static,
+    DeploymentError,
+> {
+    standard::fetch::fetch_standard_spec(PROVIDER_NAME, SPEC_URL, output_dir)
 }
 
-fn extract_flyio_version(spec: &serde_json::Value) -> Option<String> {
-    spec.get("info")
-        .and_then(|info| info.get("version"))
-        .and_then(|v| v.as_str())
-        .map(String::from)
+/// Process a fetched Fly.io spec into version, endpoints, and content hash.
+pub fn process_spec(spec: &serde_json::Value) -> ProcessedSpec {
+    openapi::process_spec(spec)
 }
+```
 
-fn extract_flyio_endpoints(spec: &serde_json::Value) -> Option<Vec<SpecEndpoint>> {
-    spec.get("paths")
-        .and_then(|paths| paths.as_object())
-        .map(|paths_obj| {
-            paths_obj
-                .iter()
-                .flat_map(|(path, path_item)| {
-                    let path_item = path_item.as_object()?;
-                    let mut endpoints = Vec::new();
+### Shared OpenAPI Extraction
 
-                    for method in ["get", "post", "put", "patch", "delete"] {
-                        if let Some(operation) = path_item.get(method) {
-                            endpoints.push(SpecEndpoint {
-                                path: path.clone(),
-                                methods: vec![method.to_uppercase()],
-                                operation_id: operation
-                                    .get("operationId")
-                                    .and_then(|v| v.as_str())
-                                    .map(String::from),
-                                summary: operation
-                                    .get("summary")
-                                    .and_then(|v| v.as_str())
-                                    .map(String::from),
-                            });
-                        }
-                    }
+Version and endpoint extraction is shared across all standard providers via `openapi.rs`:
 
-                    endpoints
-                })
-                .collect()
-        })
-}
+```rust
+// backends/foundation_deployment/src/providers/openapi.rs
 
-fn compute_sha256(content: &str) -> String {
-    use std::collections::hash_map::DefaultHasher;
-    use std::hash::{Hash, Hasher};
-
-    let mut hasher = DefaultHasher::new();
-    content.hash(&mut hasher);
-    format!("{:016x}", hasher.finish())
-}
+pub fn extract_version(spec: &serde_json::Value) -> Option<String>;
+pub fn extract_endpoints(spec: &serde_json::Value) -> Option<Vec<ApiEndpoint>>;
+pub fn compute_content_hash(content: &str) -> String;
+pub fn process_spec(spec: &serde_json::Value) -> ProcessedSpec;
 ```
 
 ## Error Handling
 
-**All errors are defined in `errors.rs` at the module root.** Provider-specific code:
-
-1. Imports `SpecFetchError` from the central module: `use crate::errors::SpecFetchError;`
-2. Constructs error variants manually (no `?` auto-conversion for custom fields):
-   ```rust
-   .map_err(|e| SpecFetchError::Http {
-       provider: "fly-io".to_string(),
-       source: e,
-   })
-   ```
-3. Returns `Result<DistilledSpec, SpecFetchError>` from all fallible functions
+Errors use `DeploymentError` from `foundation_deployment::error`, not `SpecFetchError` from `bin/platform`. The fetcher in `bin/platform` converts `DeploymentError` to `SpecFetchError` at the orchestration layer.
 
 ## Tasks
 
 1. **Create Fly.io provider module**
-   - [ ] Create `bin/platform/src/gen_provider_specs/providers/fly_io.rs`
-   - [ ] Implement `fetch_flyio_spec()`
-   - [ ] Implement `extract_flyio_version()`
-   - [ ] Implement `extract_flyio_endpoints()`
+   - [x] Create `backends/foundation_deployment/src/providers/fly_io/mod.rs`
+   - [x] Create `backends/foundation_deployment/src/providers/fly_io/fetch.rs`
+   - [x] Implement `fetch_fly_io_specs()` delegating to `standard::fetch`
+   - [x] Implement `process_spec()` delegating to `openapi::process_spec`
 
-2. **Register in core fetcher**
-   - [ ] Add Fly.io to `configured_providers()` list
-   - [ ] Wire up `fetch_single_spec()` for Fly.io
-   - [ ] Ensure progress reporting works
+2. **Register in module tree**
+   - [x] Add `pub mod fly_io;` to `providers/mod.rs`
+   - [x] Wire into `fetcher.rs` in `bin/platform` via `configured_providers()` and `create_provider_stream()`
 
 3. **Write unit tests**
-   - [ ] Test version extraction with sample spec
-   - [ ] Test endpoint extraction
-   - [ ] Test error handling for invalid responses
+   - [x] Test constants are correct
+   - [x] Test version extraction with sample spec
+   - [x] Test endpoint extraction
+   - [x] Test minimal/empty spec handling
 
 4. **Integration test**
-   - [ ] Run `cargo run -- gen_provider_specs --provider fly-io`
-   - [ ] Verify spec is written to `distilled-spec-fly-io/specs/`
-   - [ ] Verify manifest is correct
+   - [x] Verify `cargo run -- gen_provider_specs --provider fly-io` fetches spec
+   - [x] Verify spec is written to `artefacts/cloud_providers/fly-io/openapi.json`
+   - [x] Verify manifest is correct
 
 ## Success Criteria
 
-- [ ] All 4 tasks completed
-- [ ] `cargo clippy` — zero warnings
-- [ ] Fly.io spec fetches successfully
-- [ ] Endpoints are correctly extracted
-- [ ] Version is extracted from spec metadata
-- [ ] Change detection works on re-fetch
+- [x] All 4 tasks completed
+- [x] `cargo clippy -p foundation_deployment` — zero warnings
+- [x] `cargo test -p foundation_deployment -- resources::fly_io` — all pass
+- [x] Fly.io spec fetches successfully
+- [x] Endpoints are correctly extracted via shared `openapi.rs`
+- [x] Version is extracted from spec metadata
+- [x] Change detection works via content hash
 
 ## Verification
 
 ```bash
-cd bin/platform
+# Run tests
+cargo test -p foundation_deployment -- resources::fly_io
 
 # Fetch Fly.io spec
+cd bin/platform
 cargo run -- gen_provider_specs --provider fly-io
 
 # Verify output
-ls ../../@formulas/src.rust/src.deployAnywhere/distilled-spec-fly-io/specs/
-cat ../../@formulas/src.rust/src.deployAnywhere/distilled-spec-fly-io/specs/_manifest.json
+ls ../../artefacts/cloud_providers/fly-io/openapi.json
+cat ../../artefacts/cloud_providers/fly-io/_manifest.json
 ```
 
 ---
 
 _Created: 2026-03-27_
+_Updated: 2026-04-04 - Corrected directory structure to backends/foundation_deployment_
