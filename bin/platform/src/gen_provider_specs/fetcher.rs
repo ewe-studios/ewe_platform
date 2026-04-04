@@ -10,7 +10,7 @@
 
 use foundation_core::valtron::{Stream, StreamIteratorExt};
 use foundation_core::wire::simple_http::client::SimpleHttpClient;
-use foundation_deployment::providers::resources::{cloudflare, gcp};
+use foundation_deployment::providers::resources::{cloudflare, gcp, standard};
 use std::collections::BTreeMap;
 use std::path::PathBuf;
 use std::time::Instant;
@@ -118,9 +118,25 @@ impl ProviderSpecFetcher {
                         })
                 })));
             } else {
-                // Standard HTTP fetch for other providers
-                // TODO: Implement using foundation_deployment HTTP fetcher
-                tracing::warn!("Standard HTTP fetch not yet implemented for {provider}");
+                // Standard HTTP fetch for providers with direct JSON endpoints
+                let url = _url.to_string();
+                let provider_name = provider.to_string();
+                let stream =
+                    standard::fetch::fetch_standard_spec(provider, _url, provider_dir)
+                        .map_err(|e| SpecFetchError::Generic(format!("{provider}: {e}")))?;
+                streams.push(Box::new(stream.map_done(move |result| {
+                    result
+                        .map_err(|e| SpecFetchError::Generic(format!("{provider_name}: {e}")))
+                        .map(|_path| DistilledSpec {
+                            provider: provider_name.clone(),
+                            version: chrono::Utc::now().format("%Y%m%d").to_string(),
+                            fetched_at: chrono::Utc::now(),
+                            source_url: url.clone(),
+                            raw_spec: serde_json::Value::Null,
+                            endpoints: None,
+                            content_hash: String::new(),
+                        })
+                })));
             }
         }
 
@@ -221,9 +237,37 @@ impl ProviderSpecFetcher {
             return Err(SpecFetchError::Generic("No result from fetch".into()));
         }
 
-        Err(crate::gen_provider_specs::errors::SpecFetchError::Generic(
-            format!("Provider {provider} not yet implemented"),
-        ))
+        // Standard HTTP fetch for providers with direct JSON endpoints
+        let provider_config = Self::configured_providers()
+            .into_iter()
+            .find(|(name, _)| *name == provider);
+
+        let (_name, url) = provider_config.ok_or_else(|| {
+            SpecFetchError::Generic(format!("Unknown provider: {provider}"))
+        })?;
+
+        let stream = standard::fetch::fetch_standard_spec(provider, url, provider_dir)
+            .map_err(|e| SpecFetchError::Generic(format!("{provider}: {e}")))?;
+
+        for item in stream {
+            if let Stream::Next(result) = item {
+                return result
+                    .map_err(|e| SpecFetchError::Generic(format!("{provider}: {e}")))
+                    .map(|_path| DistilledSpec {
+                        provider: provider.to_string(),
+                        version: chrono::Utc::now().format("%Y%m%d").to_string(),
+                        fetched_at: chrono::Utc::now(),
+                        source_url: url.to_string(),
+                        raw_spec: serde_json::Value::Null,
+                        endpoints: None,
+                        content_hash: String::new(),
+                    });
+            }
+        }
+
+        Err(SpecFetchError::Generic(format!(
+            "No result from {provider} fetch"
+        )))
     }
 
     /// List of all configured providers and their spec URLs.
@@ -240,7 +284,10 @@ impl ProviderSpecFetcher {
                 "https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2.json",
             ),
             ("neon", "https://neon.com/api_spec/release/v2.json"),
-            ("stripe", "https://docs.stripe.com/api"),
+            (
+                "stripe",
+                "https://raw.githubusercontent.com/stripe/openapi/master/openapi/spec3.json",
+            ),
         ]
     }
 }

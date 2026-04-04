@@ -4,8 +4,8 @@ status: "pending"
 priority: "high"
 created: 2026-04-04
 author: "Main Agent"
-feature_number: 3
-depends_on: ["01-stream-migration", "02-concurrent-queue-iterator"]
+feature_number: 4
+depends_on: ["01-stream-migration", "03-replace-streamrecv-iterator"]
 metadata:
   estimated_effort: "medium"
   files_to_search:
@@ -14,7 +14,7 @@ metadata:
   files_to_modify: TBD (based on search results)
 ---
 
-# Feature 03: Import Updates
+# Feature 04: Import Updates
 
 ## Overview
 
@@ -343,4 +343,4 @@ Expected files to modify (verify with search):
 
 ---
 
-_Feature 03 of 03 | Part of specification 09-valtron-streamiterator_
+_Feature 04 of 04 | Part of specification 09-valtron-streamiterator_

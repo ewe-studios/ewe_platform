@@ -8,7 +8,10 @@
 //! HOW: Uses `LockSignal` (CondVar-based) for blocking. Each worker gets
 //! a guard that decrements on drop.
 
-use std::sync::{atomic::{AtomicUsize, Ordering}, Arc};
+use std::sync::{
+    atomic::{AtomicUsize, Ordering},
+    Arc,
+};
 
 use crate::synca::LockSignal;
 

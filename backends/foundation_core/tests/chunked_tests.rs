@@ -62,8 +62,7 @@ fn test_chunked_json_no_crlf_in_data() {
 
     for (i, byte) in collected_bytes.iter().enumerate() {
         assert_ne!(
-            *byte,
-            b'\r',
+            *byte, b'\r',
             "Found carriage return at position {} - CRLF not properly stripped",
             i
         );
@@ -117,9 +116,7 @@ fn test_chunked_exact_content_preservation() {
 /// accumulate and cause increasingly corrupted output.
 #[test]
 fn test_many_small_chunks() {
-    let chunks: Vec<&[u8]> = vec![
-        b"{\"", b"key", b"\":", b"\"", b"value", b"\"", b"}",
-    ];
+    let chunks: Vec<&[u8]> = vec![b"{\"", b"key", b"\":", b"\"", b"value", b"\"", b"}"];
 
     let mut raw_response = Vec::new();
 
@@ -152,10 +149,7 @@ fn test_many_small_chunks() {
 
     let expected: Vec<u8> = chunks.iter().flat_map(|c| c.iter().copied()).collect();
 
-    assert_eq!(
-        &collected_bytes, &expected,
-        "Multi-chunk output corrupted"
-    );
+    assert_eq!(&collected_bytes, &expected, "Multi-chunk output corrupted");
 
     let cr_count = collected_bytes.iter().filter(|&&b| b == b'\r').count();
     assert_eq!(cr_count, 0, "Found {} stray CR characters", cr_count);
@@ -336,7 +330,13 @@ fn test_gcp_lf_only_chunk_terminators() {
 #[test]
 fn test_lf_only_multi_chunk() {
     let chunks: Vec<&[u8]> = vec![
-        b"{\"", b"key", b"\":", b"\"", b"value\nwith\nnewlines", b"\"", b"}",
+        b"{\"",
+        b"key",
+        b"\":",
+        b"\"",
+        b"value\nwith\nnewlines",
+        b"\"",
+        b"}",
     ];
 
     let mut raw_response = Vec::new();
@@ -429,10 +429,7 @@ fn test_mixed_crlf_and_lf() {
     }
 
     let expected = b"firstsecondthird";
-    assert_eq!(
-        &collected_bytes, expected,
-        "Mixed CRLF/LF output corrupted"
-    );
+    assert_eq!(&collected_bytes, expected, "Mixed CRLF/LF output corrupted");
 }
 
 /// Test: Chunk data ending with \r character (content, not framing).
@@ -485,13 +482,14 @@ fn test_chunk_data_cr_stripped() {
     }
 
     let expected = b"line1line2line3";
-    assert_eq!(
-        &collected_bytes, expected,
-        "Content CR must be stripped"
-    );
+    assert_eq!(&collected_bytes, expected, "Content CR must be stripped");
 
     let cr_count = collected_bytes.iter().filter(|&&b| b == b'\r').count();
-    assert_eq!(cr_count, 0, "All CR bytes should be stripped (found {})", cr_count);
+    assert_eq!(
+        cr_count, 0,
+        "All CR bytes should be stripped (found {})",
+        cr_count
+    );
 }
 
 /// Test: LF-only chunked encoding with streaming buffer refills.

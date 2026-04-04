@@ -4996,7 +4996,10 @@ impl<T: std::io::Read + Send> Iterator for SimpleHttpChunkIterator<T> {
                             if size > 0 {
                                 let cr_count = chunk_data.iter().filter(|&&b| b == b'\r').count();
                                 if cr_count > 0 {
-                                    tracing::debug!("Chunk parser: stripping {} CR bytes from chunk data", cr_count);
+                                    tracing::debug!(
+                                        "Chunk parser: stripping {} CR bytes from chunk data",
+                                        cr_count
+                                    );
                                     chunk_data.retain(|&b| b != b'\r');
                                 }
                             }

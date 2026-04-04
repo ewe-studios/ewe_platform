@@ -107,6 +107,21 @@ This directory contains all project specifications and requirements. Each specif
 
 ---
 
+### [09: Valtron StreamIterator Migration](./09-valtron-streamiterator/)
+**Status:** ⏳ Pending
+**Description:** Migrate Stream/StreamIterator from mpp to valtron, add ConcurrentQueueStreamIterator with configurable max_turns polling optimization.
+**Has Features:** Yes (3 features)
+
+| Feature | Description | Dependencies |
+|---------|-------------|--------------|
+| [01-stream-migration](./09-valtron-streamiterator/features/01-stream-migration/) | Move `Stream` enum and `StreamIterator` trait from `synca::mpp` to `valtron::streams` | None |
+| [02-concurrent-queue-iterator](./09-valtron-streamiterator/features/02-concurrent-queue-iterator/) | Implement `ConcurrentQueueStreamIterator` with `max_turns` polling optimization | #1 |
+| [03-import-updates](./09-valtron-streamiterator/features/03-import-updates/) | Update all imports across codebase, re-export for backward compatibility | #1, #2 |
+
+**Total Tasks:** TBD
+
+---
+
 ### [12: Background Job Registry](./12-background-job-registry/)
 **Status:** ✅ Completed
 **Description:** Add a BackgroundJobRegistry to valtron that owns a fixed pool of background worker threads for executing blocking closures, replacing ad-hoc thread spawning in ThreadedIterFuture and exposing a unified `run_background_job` API.
@@ -129,10 +144,10 @@ This directory contains all project specifications and requirements. Each specif
 ## Status Dashboard
 
 ### Summary
-- **Total Specifications:** 6
-- **Completed:** 4 (67%)
-- **In Progress:** 1 (17%)
-- **Pending:** 1 (17%)
+- **Total Specifications:** 7
+- **Completed:** 4 (57%)
+- **In Progress:** 1 (14%)
+- **Pending:** 2 (29%)
 
 ### Completed ✅
 - 01: Fix Rust Lints, Checks, and Styling
@@ -145,6 +160,7 @@ This directory contains all project specifications and requirements. Each specif
 
 ### Pending ⏳
 - 07: TCP-Resilient Batch Readers
+- 09: Valtron StreamIterator Migration
 
 ## Specification Guidelines
 
@@ -171,4 +187,4 @@ This dashboard provides:
 - **Feature breakdown**: Understanding of complex specification structure
 
 ---
-*Last updated: 2026-03-14*
+*Last updated: 2026-04-04*

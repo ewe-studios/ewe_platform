@@ -11,7 +11,6 @@
 pub mod core;
 pub mod errors;
 pub mod fetcher;
-pub mod providers;
 
 use clap::{ArgMatches, Command};
 use foundation_core::valtron;

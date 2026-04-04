@@ -163,8 +163,9 @@ pub fn collect_string_strict(
     for part in stream {
         match part {
             // Handle sized and streamed bodies
-            Ok(IncomingResponseParts::SizedBody(body) |
-IncomingResponseParts::StreamedBody(body)) => {
+            Ok(
+                IncomingResponseParts::SizedBody(body) | IncomingResponseParts::StreamedBody(body),
+            ) => {
                 return match body {
                     SendSafeBody::Text(t) => Ok(t),
                     SendSafeBody::Bytes(b) => {
@@ -229,8 +230,11 @@ IncomingResponseParts::StreamedBody(body)) => {
                 };
             }
             // Skip intro and headers - we want the body
-            Ok(IncomingResponseParts::Intro(_, _, _) | IncomingResponseParts::Headers(_) |
-IncomingResponseParts::SKIP) => continue,
+            Ok(
+                IncomingResponseParts::Intro(_, _, _)
+                | IncomingResponseParts::Headers(_)
+                | IncomingResponseParts::SKIP,
+            ) => continue,
             Ok(IncomingResponseParts::NoBody) => return Err(StringBodyError::NoBody),
             // Stream error
             Err(e) => return Err(StringBodyError::StreamRead(e)),
@@ -319,8 +323,9 @@ pub fn collect_bytes_strict(
 
     for part in stream {
         match part {
-            Ok(IncomingResponseParts::SizedBody(body) |
-IncomingResponseParts::StreamedBody(body)) => {
+            Ok(
+                IncomingResponseParts::SizedBody(body) | IncomingResponseParts::StreamedBody(body),
+            ) => {
                 return match body {
                     SendSafeBody::Text(t) => Ok(t.into_bytes()),
                     SendSafeBody::Bytes(b) => Ok(b.clone()),
@@ -381,8 +386,11 @@ IncomingResponseParts::StreamedBody(body)) => {
                     SendSafeBody::None => Err(BodyReaderError::NoBody),
                 };
             }
-            Ok(IncomingResponseParts::Intro(_, _, _) | IncomingResponseParts::Headers(_) |
-IncomingResponseParts::SKIP) => continue,
+            Ok(
+                IncomingResponseParts::Intro(_, _, _)
+                | IncomingResponseParts::Headers(_)
+                | IncomingResponseParts::SKIP,
+            ) => continue,
             Ok(IncomingResponseParts::NoBody) => return Err(BodyReaderError::NoBody),
             Err(e) => return Err(BodyReaderError::StreamRead(e)),
         }
@@ -473,8 +481,9 @@ pub fn collect_bytes_direct(
 
     for part in stream {
         match part {
-            Ok(IncomingResponseParts::SizedBody(body) |
-IncomingResponseParts::StreamedBody(body)) => match body {
+            Ok(
+                IncomingResponseParts::SizedBody(body) | IncomingResponseParts::StreamedBody(body),
+            ) => match body {
                 SendSafeBody::Text(t) => return t.into_bytes(),
                 SendSafeBody::Bytes(b) => return b.clone(),
                 SendSafeBody::Stream(mut opt_iter) => {
@@ -534,8 +543,11 @@ IncomingResponseParts::StreamedBody(body)) => match body {
                     return Vec::new();
                 }
             },
-            Ok(IncomingResponseParts::Intro(_, _, _) | IncomingResponseParts::Headers(_) |
-IncomingResponseParts::SKIP) => continue,
+            Ok(
+                IncomingResponseParts::Intro(_, _, _)
+                | IncomingResponseParts::Headers(_)
+                | IncomingResponseParts::SKIP,
+            ) => continue,
             Ok(IncomingResponseParts::NoBody) => return Vec::new(),
             Err(e) => {
                 tracing::warn!("Error reading stream for byte collection: {e}");
@@ -815,8 +827,9 @@ where
 {
     for part in stream {
         match part {
-            Ok(IncomingResponseParts::SizedBody(body) |
-IncomingResponseParts::StreamedBody(body)) => {
+            Ok(
+                IncomingResponseParts::SizedBody(body) | IncomingResponseParts::StreamedBody(body),
+            ) => {
                 return match body {
                     SendSafeBody::Text(t) => {
                         if processor(t.as_bytes()) {
@@ -895,8 +908,11 @@ IncomingResponseParts::StreamedBody(body)) => {
                     SendSafeBody::None => Ok(ProcessStreamResult::NoBody),
                 };
             }
-            Ok(IncomingResponseParts::Intro(_, _, _) | IncomingResponseParts::Headers(_) |
-IncomingResponseParts::SKIP) => continue,
+            Ok(
+                IncomingResponseParts::Intro(_, _, _)
+                | IncomingResponseParts::Headers(_)
+                | IncomingResponseParts::SKIP,
+            ) => continue,
             Ok(IncomingResponseParts::NoBody) => return Ok(ProcessStreamResult::NoBody),
             Err(e) => return Err(BodyReaderError::StreamRead(e)),
         }
@@ -943,8 +959,11 @@ where
     F: FnMut(&[u8]) -> bool,
 {
     match process_streaming_body_strict(stream, processor) {
-        Ok(ProcessStreamResult::Completed | ProcessStreamResult::StoppedByCallback |
-ProcessStreamResult::NoBody) => true,
+        Ok(
+            ProcessStreamResult::Completed
+            | ProcessStreamResult::StoppedByCallback
+            | ProcessStreamResult::NoBody,
+        ) => true,
         Err(e) => {
             tracing::warn!("Stream processing error: {e}");
             false
@@ -1009,14 +1028,10 @@ mod tests {
         }
 
         let fallback_called = std::cell::RefCell::new(false);
-        let result = parse_with_fallback(
-            json,
-            "test-source",
-            || {
-                *fallback_called.borrow_mut() = true;
-                TestResponse { items: vec![] }
-            },
-        );
+        let result = parse_with_fallback(json, "test-source", || {
+            *fallback_called.borrow_mut() = true;
+            TestResponse { items: vec![] }
+        });
 
         assert!(!*fallback_called.borrow());
         assert_eq!(result.items, vec![1, 2, 3]);
@@ -1032,14 +1047,10 @@ mod tests {
         }
 
         let fallback_called = std::cell::RefCell::new(false);
-        let result = parse_with_fallback(
-            invalid_json,
-            "test-source",
-            || {
-                *fallback_called.borrow_mut() = true;
-                TestResponse { items: vec![0] }
-            },
-        );
+        let result = parse_with_fallback(invalid_json, "test-source", || {
+            *fallback_called.borrow_mut() = true;
+            TestResponse { items: vec![0] }
+        });
 
         assert!(*fallback_called.borrow());
         assert_eq!(result.items, vec![0]);

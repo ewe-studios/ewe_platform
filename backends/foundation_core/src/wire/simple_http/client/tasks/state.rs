@@ -346,10 +346,7 @@ impl<S: Clone, E: Clone> ErrorCollector<S, E> {
 
     /// Check if any errors were recorded
     pub fn has_errors(&self) -> bool {
-        self.inner
-            .lock()
-            .map(|g| !g.is_empty())
-            .unwrap_or(false)
+        self.inner.lock().map(|g| !g.is_empty()).unwrap_or(false)
     }
 
     /// Get the count of recorded errors
@@ -607,12 +604,14 @@ mod tests {
 
     #[test]
     fn test_fetch_result_constructors() {
-        let success: FetchResult<&str, Vec<i32>, String> = FetchResult::success("api1", vec![1, 2, 3]);
+        let success: FetchResult<&str, Vec<i32>, String> =
+            FetchResult::success("api1", vec![1, 2, 3]);
         assert_eq!(success.source, "api1");
         assert!(matches!(success.outcome, FetchOutcome::Success(_)));
         assert_eq!(success.clone().ok(), Some(vec![1, 2, 3]));
 
-        let error: FetchResult<&str, Vec<i32>, &str> = FetchResult::error("api2", "connection failed");
+        let error: FetchResult<&str, Vec<i32>, &str> =
+            FetchResult::error("api2", "connection failed");
         assert_eq!(error.source, "api2");
         assert!(matches!(error.outcome, FetchOutcome::Error(_)));
         assert_eq!(error.clone().err(), Some("connection failed"));
@@ -620,14 +619,16 @@ mod tests {
 
     #[test]
     fn test_fetch_result_new() {
-        let result: FetchResult<&str, i32, String> = FetchResult::new("api", FetchOutcome::<i32, String>::success(100));
+        let result: FetchResult<&str, i32, String> =
+            FetchResult::new("api", FetchOutcome::<i32, String>::success(100));
         assert_eq!(result.source, "api");
         assert_eq!(result.clone().ok(), Some(100));
     }
 
     #[test]
     fn test_fetch_result_map() {
-        let result: FetchResult<&str, Vec<i32>, String> = FetchResult::success("api", vec![1, 2, 3]);
+        let result: FetchResult<&str, Vec<i32>, String> =
+            FetchResult::success("api", vec![1, 2, 3]);
         let mapped = result.map(|v: Vec<i32>| v.len());
         assert_eq!(mapped.source, "api");
         assert_eq!(mapped.ok(), Some(3));

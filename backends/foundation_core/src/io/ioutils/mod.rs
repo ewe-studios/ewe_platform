@@ -1360,11 +1360,9 @@ impl<T: Read> ByteBufferPointer<T> {
         // self.reader.fill_buf()?;
         let mut copied = vec![0; self.pull_amount];
         let read = match self.reader.read(&mut copied) {
-            Ok(read_size) => {
-                read_size
-            }
+            Ok(read_size) => read_size,
             Err(err) => {
-                tracing::error!("Failed to read data from reader due to: {:?}", &err);
+                tracing::trace!("Failed to read data from reader due to: {:?}", &err);
                 return Err(err);
             }
         };
