@@ -20,7 +20,7 @@ use crate::valtron::{
 use crate::valtron::streams::Stream;
 use crate::valtron::GenericResult;
 
-pub const DEFAULT_WAIT_CYCLE: std::time::Duration = std::time::Duration::from_nanos(300);
+pub const DEFAULT_WAIT_CYCLE: std::time::Duration = std::time::Duration::from_nanos(10);
 
 /// Configuration for stream execution with fine-grained control over iterator behavior.
 ///
@@ -482,7 +482,10 @@ where
     let _wait = wait_cycle.unwrap_or(DEFAULT_WAIT_CYCLE);
     let iter = single::spawn()
         .with_task(task)
-        .scheduled_stream_iter_with_config(DEFAULT_PARK_DURATION, DEFAULT_MAX_TURNS)?;
+        .scheduled_stream_iter_with_config(
+            wait_cycle.unwrap_or(DEFAULT_PARK_DURATION),
+            DEFAULT_MAX_TURNS,
+        )?;
 
     Ok(drive_stream(iter))
 }
@@ -532,10 +535,10 @@ where
 
     // Schedule task and get iterator with defaults
     // Note: wait_cycle is not used directly; DEFAULT_PARK_DURATION is used for park_duration
-    let _wait = wait_cycle.unwrap_or(DEFAULT_WAIT_CYCLE);
-    let iter = multi::spawn()
-        .with_task(task)
-        .stream_iter_with_config(DEFAULT_PARK_DURATION, DEFAULT_MAX_TURNS)?;
+    let iter = multi::spawn().with_task(task).stream_iter_with_config(
+        wait_cycle.unwrap_or(DEFAULT_PARK_DURATION),
+        DEFAULT_MAX_TURNS,
+    )?;
 
     Ok(drive_stream(iter))
 }

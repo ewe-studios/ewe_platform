@@ -96,8 +96,9 @@ impl ProviderSpecFetcher {
                     result.map_err(|e| SpecFetchError::Generic(format!("Cloudflare: {e}")))
                 })));
             } else if provider == "gcp" {
-                let stream = gcp::fetch::fetch_gcp_specs(client, provider_dir, gcp_api_filter.clone())
-                    .map_err(|e| SpecFetchError::Generic(format!("GCP: {e}")))?;
+                let stream =
+                    gcp::fetch::fetch_gcp_specs(client, provider_dir, gcp_api_filter.clone())
+                        .map_err(|e| SpecFetchError::Generic(format!("GCP: {e}")))?;
                 streams.push(Box::new(stream.map_pending(|_| ()).map_done(|result| {
                     result.map_err(|e| SpecFetchError::Generic(format!("GCP: {e}")))
                 })));
@@ -242,7 +243,9 @@ impl ProviderSpecFetcher {
                 if let Stream::Next(result) = item {
                     match result {
                         Ok(path) => paths.push(path),
-                        Err(e) => return Err(SpecFetchError::Generic(format!("GCP: {e}"))),
+                        Err(e) => {
+                            tracing::error!("Failed to fetch GCP spec: {e}")
+                        }
                     }
                 }
             }
@@ -256,9 +259,7 @@ impl ProviderSpecFetcher {
                 if let Stream::Next(result) = item {
                     match result {
                         Ok(path) => paths.push(path),
-                        Err(e) => {
-                            return Err(SpecFetchError::Generic(format!("{provider}: {e}")))
-                        }
+                        Err(e) => return Err(SpecFetchError::Generic(format!("{provider}: {e}"))),
                     }
                 }
             }
