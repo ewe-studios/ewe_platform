@@ -749,8 +749,8 @@ fn test_flat_map_pending() {
 // ConcurrentQueueStreamIterator Tests
 // ============================================================================
 
-use foundation_core::valtron::ConcurrentQueueStreamIterator;
 use concurrent_queue::ConcurrentQueue;
+use foundation_core::valtron::ConcurrentQueueStreamIterator;
 use std::sync::Arc;
 use std::time::Duration;
 
@@ -788,7 +788,10 @@ fn test_concurrent_queue_stream_iterator_yields_ignore_after_max_turns() {
     }
 
     // Should have yielded Ignore multiple times
-    assert!(ignore_count > 0, "Iterator should yield Ignore after max_turns");
+    assert!(
+        ignore_count > 0,
+        "Iterator should yield Ignore after max_turns"
+    );
 }
 
 #[test]
@@ -843,7 +846,9 @@ fn test_concurrent_queue_stream_iterator_passes_through_stream_variants() {
     queue.push(Stream::Init).unwrap();
     queue.push(Stream::Ignore).unwrap();
     queue.push(Stream::Pending("loading".to_string())).unwrap();
-    queue.push(Stream::Delayed(Duration::from_millis(100))).unwrap();
+    queue
+        .push(Stream::Delayed(Duration::from_millis(100)))
+        .unwrap();
     queue.push(Stream::Next(42u32)).unwrap();
 
     let mut iter = ConcurrentQueueStreamIterator::new(queue.clone(), 10, Duration::from_nanos(20));
@@ -869,7 +874,8 @@ fn test_concurrent_queue_stream_iterator_concurrent_push() {
         queue_clone.push(Stream::Next(100u32)).unwrap();
     });
 
-    let mut iter = ConcurrentQueueStreamIterator::new(queue.clone(), 100, Duration::from_millis(10));
+    let mut iter =
+        ConcurrentQueueStreamIterator::new(queue.clone(), 100, Duration::from_millis(10));
 
     // Should eventually receive the item pushed by the other thread
     let mut received = false;

@@ -463,8 +463,8 @@ mod multi_threaded_tests {
                 .spawn()
                 .with_task(counter)
                 .stream_iter_with_config(
-                    std::time::Duration::from_nanos(20),  // wait_cycle (used as park_duration)
-                    10,  // max_turns
+                    std::time::Duration::from_nanos(20), // wait_cycle (used as park_duration)
+                    10,                                  // max_turns
                 )
                 .expect("should deliver task");
 

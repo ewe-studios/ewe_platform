@@ -1,6 +1,6 @@
 ---
 description: "Migrate Stream/StreamIterator/StreamRecvIterator from mpp to valtron, add ConcurrentQueueStreamIterator with configurable max_turns polling optimization, replace StreamRecvIterator as default"
-status: "in_progress"
+status: "completed"
 priority: "high"
 created: 2026-04-04
 updated: 2026-04-04
@@ -11,8 +11,8 @@ metadata:
   tags: [valtron, stream-iterator, concurrent-queue, optimization, migration, default-iterator]
 has_features: true
 features:
-  completed: 2
-  uncompleted: 2
+  completed: 4
+  uncompleted: 0
   total: 4
 ---
 
@@ -89,8 +89,8 @@ After `max_turns` unsuccessful polls:
 |---|---------|-------------|--------------|--------|
 | 1 | [stream-migration](./features/01-stream-migration/feature.md) | Move `Stream`, `StreamIterator`, and `StreamRecvIterator` from `synca::mpp` to `valtron::streams` + consolidate combinators | None | ✅ Completed |
 | 2 | [concurrent-queue-iterator](./features/02-concurrent-queue-iterator/feature.md) | Implement `ConcurrentQueueStreamIterator` with `max_turns` polling optimization | #1 | ✅ Completed |
-| 3 | [replace-streamrecv-iterator](./features/03-replace-streamrecv-iterator/feature.md) | Replace `StreamRecvIterator` with `ConcurrentQueueStreamIterator` as default iterator | #1, #2 | ⏳ Pending |
-| 4 | [import-updates](./features/04-import-updates/feature.md) | Update all imports across the codebase, ensure clean compilation | #1, #3 | ⏳ Pending |
+| 3 | [replace-streamrecv-iterator](./features/03-replace-streamrecv-iterator/feature.md) | Replace `StreamRecvIterator` with `ConcurrentQueueStreamIterator` as default iterator | #1, #2 | ✅ Completed |
+| 4 | [import-updates](./features/04-import-updates/feature.md) | Update all imports across the codebase, ensure clean compilation | #1, #3 | ✅ Completed |
 
 ## High-Level Architecture
 
@@ -349,5 +349,5 @@ Update all imports across the codebase and ensure clean compilation.
 ---
 
 _Created: 2026-04-04_
-_Status: ⏳ In Progress_
+_Status: ✅ Completed_
 _Structure: Feature-based (has_features: true, 4 features)_

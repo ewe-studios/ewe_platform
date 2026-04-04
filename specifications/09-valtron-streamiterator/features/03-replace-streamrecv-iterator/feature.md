@@ -1,6 +1,6 @@
 ---
 description: "Replace all usages of StreamRecvIterator with ConcurrentQueueStreamIterator as the default iterator for valtron stream processing"
-status: "pending"
+status: "completed"
 priority: "high"
 created: 2026-04-04
 updated: 2026-04-04
@@ -268,31 +268,31 @@ pub const DEFAULT_MAX_TURNS: usize = 10;
 
 ### Code Changes
 
-- [ ] `execute()` returns `DrivenStreamIterator` wrapping `ConcurrentQueueStreamIterator`
-- [ ] All builder methods (`scheduled_stream_iter`, `stream_lift_iter`, etc.) return `ConcurrentQueueStreamIterator`
-- [ ] `drive_stream()` accepts `ConcurrentQueueStreamIterator`
-- [ ] `run_until_stream_has_value()` works with `ConcurrentQueueStreamIterator`
-- [ ] `StreamRecvIterator` marked as deprecated with clear migration path
-- [ ] Module documentation updated to reflect new default
+- [x] `execute()` returns `DrivenStreamIterator` wrapping `ConcurrentQueueStreamIterator`
+- [x] All builder methods (`scheduled_stream_iter`, `stream_lift_iter`, etc.) return `ConcurrentQueueStreamIterator`
+- [x] `drive_stream()` accepts `ConcurrentQueueStreamIterator`
+- [x] `run_until_stream_has_value()` works with `ConcurrentQueueStreamIterator`
+- [x] `StreamRecvIterator` marked as deprecated with clear migration path
+- [x] Module documentation updated to reflect new default
 
 ### Compilation
 
-- [ ] `cargo check -p foundation_core` passes
-- [ ] `cargo clippy -p foundation_core -- -D warnings` passes
-- [ ] `cargo fmt -p foundation_core -- --check` passes
+- [x] `cargo check -p foundation_core` passes
+- [x] `cargo clippy -p foundation_core -- -D warnings` passes
+- [x] `cargo fmt -p foundation_core -- --check` passes
 
 ### Testing
 
-- [ ] All existing valtron tests pass
-- [ ] New tests verify `ConcurrentQueueStreamIterator` is used by default
-- [ ] Integration tests verify multi-task responsiveness
-- [ ] Performance tests show no regression (or document expected changes)
+- [x] All existing valtron tests pass
+- [x] New tests verify `ConcurrentQueueStreamIterator` is used by default
+- [x] Integration tests verify multi-task responsiveness
+- [x] Performance tests show no regression (or document expected changes)
 
 ### Documentation
 
-- [ ] Deprecation notice includes migration example
-- [ ] Module docs explain `max_turns` configuration
-- [ ] API documentation builds without warnings
+- [x] Deprecation notice includes migration example
+- [x] Module docs explain `max_turns` configuration
+- [x] API documentation builds without warnings
 
 ## Usage Example
 
