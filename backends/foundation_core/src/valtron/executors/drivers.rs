@@ -12,7 +12,7 @@ use crate::valtron::StreamTask;
 
 use crate::{
     synca::mpp::RecvIterator,
-    valtron::{Stream, StreamRecvIterator},
+    valtron::{Stream, ConcurrentQueueStreamIterator},
     valtron::{
         ExecutionAction, InlineAction, InlineActionBehaviour, InlineSendAction,
         InlineSendActionBehaviour, ProgressIndicator, State, TaskIterator, TaskStatus,
@@ -182,9 +182,9 @@ where
 /// This really only apply for single threaded situations (multi=off feature flag) and wasm context.
 #[tracing::instrument(skip(stream, checker))]
 pub fn run_until_stream_has_value<T, S>(
-    stream: StreamRecvIterator<T::Ready, T::Pending>,
+    stream: ConcurrentQueueStreamIterator<T::Ready, T::Pending>,
     #[allow(unused_variables)] checker: S,
-) -> StreamRecvIterator<T::Ready, T::Pending>
+) -> ConcurrentQueueStreamIterator<T::Ready, T::Pending>
 where
     S: Fn(ProgressIndicator) -> bool,
     T: TaskIterator + Send + 'static,
@@ -570,7 +570,7 @@ where
 #[must_use]
 #[tracing::instrument(skip(incoming))]
 pub fn drive_non_send_stream<T>(
-    incoming: StreamRecvIterator<T::Ready, T::Pending>,
+    incoming: ConcurrentQueueStreamIterator<T::Ready, T::Pending>,
 ) -> DrivenNonSendStreamIterator<T>
 where
     T: TaskIterator + 'static,
@@ -588,7 +588,7 @@ where
 #[must_use]
 #[tracing::instrument(skip(incoming))]
 pub fn drive_stream<T>(
-    incoming: StreamRecvIterator<T::Ready, T::Pending>,
+    incoming: ConcurrentQueueStreamIterator<T::Ready, T::Pending>,
 ) -> DrivenStreamIterator<T>
 where
     T: TaskIterator + Send + 'static,
@@ -729,7 +729,7 @@ where
 /// This is good for non send-safe types you want to use in non-send contexts.
 ///
 /// It internally uses the [`run_until_next_state`] function.
-pub struct DrivenNonSendStreamIterator<T>(Option<StreamRecvIterator<T::Ready, T::Pending>>)
+pub struct DrivenNonSendStreamIterator<T>(Option<ConcurrentQueueStreamIterator<T::Ready, T::Pending>>)
 where
     T: TaskIterator + 'static,
     T::Ready: 'static,
@@ -744,7 +744,7 @@ where
     T::Spawner: ExecutionAction + 'static,
 {
     #[must_use]
-    pub fn new(task_iterator: StreamRecvIterator<T::Ready, T::Pending>) -> Self {
+    pub fn new(task_iterator: ConcurrentQueueStreamIterator<T::Ready, T::Pending>) -> Self {
         Self(Some(task_iterator))
     }
 }
@@ -784,7 +784,7 @@ where
     }
 }
 
-pub struct DrivenStreamIterator<T>(Option<StreamRecvIterator<T::Ready, T::Pending>>)
+pub struct DrivenStreamIterator<T>(Option<ConcurrentQueueStreamIterator<T::Ready, T::Pending>>)
 where
     T: TaskIterator + Send + 'static,
     T::Ready: Send + 'static,
@@ -799,7 +799,7 @@ where
     T::Spawner: ExecutionAction + Send + 'static,
 {
     #[must_use]
-    pub fn new(task_iterator: StreamRecvIterator<T::Ready, T::Pending>) -> Self {
+    pub fn new(task_iterator: ConcurrentQueueStreamIterator<T::Ready, T::Pending>) -> Self {
         Self(Some(task_iterator))
     }
 

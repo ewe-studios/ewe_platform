@@ -43,7 +43,7 @@ impl LocalPoolHandle {
     }
 
     /// Create a task builder for scheduling work.
-    #[must_use] 
+    #[must_use]
     pub fn spawn<Task, Action>(
         &self,
     ) -> ThreadPoolTaskBuilder<
@@ -64,7 +64,7 @@ impl LocalPoolHandle {
     }
 
     /// Create a task builder with explicit Mapper and Resolver types.
-    #[must_use] 
+    #[must_use]
     pub fn spawn2<Task, Action, Mapper, Resolver>(
         &self,
     ) -> ThreadPoolTaskBuilder<Task::Ready, Task::Pending, Action, Mapper, Resolver, Task>
@@ -187,7 +187,7 @@ pub fn run_background_job(job: impl FnOnce() + Send + 'static) -> GenericResult<
 /// the underlying tasks to be scheduled into the global queue.
 ///
 /// Uses the global registry's shared queue and latch.
-#[must_use] 
+#[must_use]
 pub fn spawn<Task, Action>() -> ThreadPoolTaskBuilder<
     Task::Ready,
     Task::Pending,
@@ -207,7 +207,7 @@ where
 
 /// [`spawn2`] provides a builder which allows you to build out
 /// the underlying tasks with explicit Mapper and Resolver types.
-#[must_use] 
+#[must_use]
 pub fn spawn2<Task, Action, Mapper, Resolver>(
 ) -> ThreadPoolTaskBuilder<Task::Ready, Task::Pending, Action, Mapper, Resolver, Task>
 where
@@ -462,7 +462,10 @@ mod multi_threaded_tests {
             let iter = get_pool()
                 .spawn()
                 .with_task(counter)
-                .stream_iter(std::time::Duration::from_nanos(50))
+                .stream_iter_with_config(
+                    std::time::Duration::from_nanos(20),  // wait_cycle (used as park_duration)
+                    10,  // max_turns
+                )
                 .expect("should deliver task");
 
             let complete: Vec<usize> = iter

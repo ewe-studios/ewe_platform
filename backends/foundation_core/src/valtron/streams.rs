@@ -3,8 +3,20 @@
 //! This module contains the core stream abstractions used throughout valtron:
 //! - [`Stream<D, P>`] - Enum representing stream states (Init, Ignore, Delayed, Pending, Next)
 //! - [`StreamIterator`] - Trait for iterators yielding Stream items
-//! - [`StreamRecvIterator<D, P>`] - Iterator wrapper for receiving Stream items from channels
+//! - [`ConcurrentQueueStreamIterator<D, P>`] - Default iterator with configurable polling (max_turns)
+//! - [`StreamRecvIterator<D, P>`] - Legacy iterator for channel-based streams (deprecated)
 //! - [`StreamIteratorExt`] - Extension trait with stream combinators
+//!
+//! # Default Iterator
+//!
+//! The [`ConcurrentQueueStreamIterator`] is the default iterator used by valtron executors.
+//! It provides configurable polling behavior via `max_turns` parameter, balancing
+//! responsiveness (checking other tasks) against throughput (busy polling).
+//!
+//! ## Constants
+//!
+//! - [`DEFAULT_MAX_TURNS`](crate::valtron::executors::DEFAULT_MAX_TURNS) - Default poll attempts before yielding (10)
+//! - [`DEFAULT_PARK_DURATION`](crate::valtron::executors::DEFAULT_PARK_DURATION) - Default park duration (20ns)
 
 use std::sync::Arc;
 
@@ -86,10 +98,32 @@ where
 /// [`StreamRecvIterator<D, P>`] wraps a [`RecvIterator<Stream<D, P>>`] to provide
 /// stream iteration over channel-based streams.
 ///
+/// # Deprecation
+///
+/// **Deprecated:** Use [`ConcurrentQueueStreamIterator`] instead.
+///
+/// `StreamRecvIterator` uses blocking reads which can starve other tasks in multi-task
+/// scenarios. `ConcurrentQueueStreamIterator` provides configurable polling behavior
+/// with `max_turns` for better task scheduling.
+///
+/// ## Migration
+///
+/// Replace:
+/// ```ignore
+/// StreamRecvIterator::new(recv_iter)
+/// ```
+///
+/// With:
+/// ```ignore
+/// ConcurrentQueueStreamIterator::new(chan, DEFAULT_MAX_TURNS, DEFAULT_PARK_DURATION)
+/// ```
+///
 /// This type is used when receiving [`Stream`] items from a concurrent channel,
 /// adapting the blocking channel receiver to the valtron stream model.
+#[deprecated(since = "1.3.0", note = "Use ConcurrentQueueStreamIterator instead")]
 pub struct StreamRecvIterator<D, P>(RecvIterator<Stream<D, P>>);
 
+#[allow(deprecated)]
 impl<D, P> StreamRecvIterator<D, P> {
     /// Returns true if the underlying channel is empty
     #[must_use]
@@ -110,6 +144,7 @@ impl<D, P> StreamRecvIterator<D, P> {
     }
 }
 
+#[allow(deprecated)]
 impl<D, P> StreamRecvIterator<D, P> {
     /// Creates a new StreamRecvIterator wrapping the given RecvIterator
     #[must_use]
@@ -118,6 +153,7 @@ impl<D, P> StreamRecvIterator<D, P> {
     }
 }
 
+#[allow(deprecated)]
 impl<D, P> Iterator for StreamRecvIterator<D, P> {
     type Item = Stream<D, P>;
 
