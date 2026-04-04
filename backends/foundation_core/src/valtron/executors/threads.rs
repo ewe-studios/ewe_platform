@@ -17,8 +17,7 @@ use std::{
 };
 
 use crate::{
-    synca::mpp::StreamRecvIterator,
-    valtron::{iterators::Stream, DEFAULT_YIELD_WAIT_TIME},
+    valtron::{Stream, StreamRecvIterator, DEFAULT_YIELD_WAIT_TIME},
 };
 use concurrent_queue::{ConcurrentQueue, PushError};
 use derive_more::derive::From;

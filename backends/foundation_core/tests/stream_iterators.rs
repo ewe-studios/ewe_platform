@@ -1,6 +1,6 @@
 // Integration tests for StreamIterator combinators
 use foundation_core::valtron::{
-    CollectAll, MapAllDone, MapAllPendingAndDone, Stream, StreamIterator, StreamIteratorExt,
+    CollectAll, MapAllDone, MapAllPendingAndDone, Stream, StreamIteratorExt,
 };
 
 // Simple test stream iterator for unit tests
@@ -743,4 +743,143 @@ fn test_flat_map_pending() {
         Some(Stream::Pending(2))
     ));
     assert_eq!(Iterator::next(&mut flattened), None);
+}
+
+// ============================================================================
+// ConcurrentQueueStreamIterator Tests
+// ============================================================================
+
+use foundation_core::valtron::ConcurrentQueueStreamIterator;
+use concurrent_queue::ConcurrentQueue;
+use std::sync::Arc;
+use std::time::Duration;
+
+#[test]
+fn test_concurrent_queue_stream_iterator_returns_items() {
+    let queue: Arc<ConcurrentQueue<Stream<u32, &str>>> = Arc::new(ConcurrentQueue::bounded(10));
+
+    // Push some items to the queue
+    queue.push(Stream::Next(1u32)).unwrap();
+    queue.push(Stream::Next(2u32)).unwrap();
+    queue.push(Stream::Next(3u32)).unwrap();
+
+    let mut iter = ConcurrentQueueStreamIterator::new(queue.clone(), 10, Duration::from_nanos(20));
+
+    // Should receive all items
+    assert!(matches!(iter.next(), Some(Stream::Next(1))));
+    assert!(matches!(iter.next(), Some(Stream::Next(2))));
+    assert!(matches!(iter.next(), Some(Stream::Next(3))));
+}
+
+#[test]
+fn test_concurrent_queue_stream_iterator_yields_ignore_after_max_turns() {
+    let queue: Arc<ConcurrentQueue<Stream<u32, &str>>> = Arc::new(ConcurrentQueue::bounded(10));
+    // Queue is empty
+
+    let mut iter = ConcurrentQueueStreamIterator::new(queue.clone(), 3, Duration::from_nanos(1));
+
+    // Should yield Ignore after max_turns (3) unsuccessful polls
+    let mut ignore_count = 0;
+    for _ in 0..5 {
+        match iter.next() {
+            Some(Stream::Ignore) => ignore_count += 1,
+            _ => {}
+        }
+    }
+
+    // Should have yielded Ignore multiple times
+    assert!(ignore_count > 0, "Iterator should yield Ignore after max_turns");
+}
+
+#[test]
+fn test_concurrent_queue_stream_iterator_returns_none_when_closed() {
+    let queue: Arc<ConcurrentQueue<Stream<u32, &str>>> = Arc::new(ConcurrentQueue::bounded(10));
+
+    // Push an item then close the queue
+    queue.push(Stream::Next(1u32)).unwrap();
+    queue.close();
+
+    let mut iter = ConcurrentQueueStreamIterator::new(queue.clone(), 10, Duration::from_nanos(20));
+
+    // Should receive the item
+    assert!(matches!(iter.next(), Some(Stream::Next(1))));
+
+    // Then should return None (queue closed)
+    assert_eq!(iter.next(), None);
+}
+
+#[test]
+fn test_concurrent_queue_stream_iterator_panics_on_zero_max_turns() {
+    let queue: Arc<ConcurrentQueue<Stream<u32, &str>>> = Arc::new(ConcurrentQueue::bounded(10));
+
+    let result = std::panic::catch_unwind(|| {
+        let _ = ConcurrentQueueStreamIterator::new(queue.clone(), 0, Duration::from_nanos(20));
+    });
+
+    assert!(result.is_err(), "Should panic when max_turns is 0");
+}
+
+#[test]
+fn test_concurrent_queue_stream_iterator_accessors() {
+    let queue: Arc<ConcurrentQueue<Stream<u32, &str>>> = Arc::new(ConcurrentQueue::bounded(10));
+    queue.push(Stream::Next(1u32)).unwrap();
+    queue.push(Stream::Next(2u32)).unwrap();
+
+    let iter = ConcurrentQueueStreamIterator::new(queue.clone(), 5, Duration::from_nanos(50));
+
+    // Test accessor methods
+    assert_eq!(iter.max_turns(), 5);
+    assert_eq!(iter.park_duration(), Duration::from_nanos(50));
+    assert_eq!(iter.len(), 2);
+    assert!(!iter.is_empty());
+    assert!(!iter.is_closed());
+}
+
+#[test]
+fn test_concurrent_queue_stream_iterator_passes_through_stream_variants() {
+    let queue: Arc<ConcurrentQueue<Stream<u32, String>>> = Arc::new(ConcurrentQueue::bounded(10));
+
+    // Push different Stream variants
+    queue.push(Stream::Init).unwrap();
+    queue.push(Stream::Ignore).unwrap();
+    queue.push(Stream::Pending("loading".to_string())).unwrap();
+    queue.push(Stream::Delayed(Duration::from_millis(100))).unwrap();
+    queue.push(Stream::Next(42u32)).unwrap();
+
+    let mut iter = ConcurrentQueueStreamIterator::new(queue.clone(), 10, Duration::from_nanos(20));
+
+    // All variants should pass through
+    assert!(matches!(iter.next(), Some(Stream::Init)));
+    assert!(matches!(iter.next(), Some(Stream::Ignore)));
+    assert!(matches!(iter.next(), Some(Stream::Pending(_))));
+    assert!(matches!(iter.next(), Some(Stream::Delayed(_))));
+    assert!(matches!(iter.next(), Some(Stream::Next(42))));
+}
+
+#[test]
+fn test_concurrent_queue_stream_iterator_concurrent_push() {
+    use std::thread;
+
+    let queue: Arc<ConcurrentQueue<Stream<u32, &str>>> = Arc::new(ConcurrentQueue::bounded(10));
+    let queue_clone = queue.clone();
+
+    // Spawn a thread to push items after a delay
+    let handle = thread::spawn(move || {
+        thread::sleep(Duration::from_millis(50));
+        queue_clone.push(Stream::Next(100u32)).unwrap();
+    });
+
+    let mut iter = ConcurrentQueueStreamIterator::new(queue.clone(), 100, Duration::from_millis(10));
+
+    // Should eventually receive the item pushed by the other thread
+    let mut received = false;
+    for _ in 0..20 {
+        if let Some(Stream::Next(100)) = iter.next() {
+            received = true;
+            break;
+        }
+    }
+
+    handle.join().unwrap();
+    assert!(received, "Should receive item from concurrent thread");
 }

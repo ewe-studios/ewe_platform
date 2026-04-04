@@ -7,7 +7,7 @@
 //! HOW: Uses `CounterTask` (a simple `TaskIterator` that yields configurable Pending
 //! states then a single Ready value) and direct `Stream` iterators to test each helper.
 
-use foundation_core::synca::mpp::Stream;
+use foundation_core::valtron::Stream;
 use foundation_core::valtron::{
     collect_one, collect_result, initialize_pool, sync_all, sync_collect_one, sync_one, NoAction,
     TaskIterator, TaskStatus,

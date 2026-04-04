@@ -1,52 +1,289 @@
-//! Extension trait and combinators for `StreamIterator`.
+//! Stream types and traits for valtron stream processing.
 //!
-//! This module provides builder-style combinator methods for any type implementing
-//! `StreamIterator`. These combinators are applied **AFTER** calling `execute()`.
-//!
-//! ## Overview
-//!
-//! The `StreamIteratorExt` trait extends any `StreamIterator` with methods like:
-//! - `map_all_done()` - Transform Next (Done) values
-//! - `map_all_pending()` - Transform Pending values
-//! - `filter_all_done()` - Filter Next values
-//! - `collect_all()` - Collect all Next values into a Vec (terminal operation)
-//!
-//! ## Usage Pattern
-//!
-//! ```ignore
-//! // 1. Execute task to get StreamIterator
-//! let stream = execute(my_task)?;
-//!
-//! // 2. Apply StreamIteratorExt combinators AFTER execute()
-//! let stream = stream
-//!     .map_all_done(|v| transform(v))
-//!     .filter_all_done(|v| should_keep(v));
-//!
-//! // 3. Consume the stream
-//! for item in stream {
-//!     match item {
-//!         Stream::Next(value) => { /* got result */ }
-//!         Stream::Pending(p) => { /* still waiting */ }
-//!         Stream::Delayed(d) => { /* will be delayed */ }
-//!         Stream::Init => { /* initializing */ }
-//!         Stream::Ignore => { /* ignore */ }
-//!     }
-//! }
-//! ```
-//!
-//! ## Relationship to Other Modules
-//!
-//! - [`super::synca::mpp`] - Contains `Stream` enum and `StreamIterator` trait
-//! - [`super::executors::drivers`] - Contains `DrivenStreamIterator`
-//! - [`super::task_iterators`] - Contains `TaskIteratorExt` for pre-execute combinators
+//! This module contains the core stream abstractions used throughout valtron:
+//! - [`Stream<D, P>`] - Enum representing stream states (Init, Ignore, Delayed, Pending, Next)
+//! - [`StreamIterator`] - Trait for iterators yielding Stream items
+//! - [`StreamRecvIterator<D, P>`] - Iterator wrapper for receiving Stream items from channels
+//! - [`StreamIteratorExt`] - Extension trait with stream combinators
 
-#![allow(clippy::type_complexity)]
-
-use crate::synca::mpp::{Stream, StreamIterator};
-use crate::valtron::branches::CollectionState;
 use std::sync::Arc;
 
 use concurrent_queue::ConcurrentQueue;
+
+use crate::synca::mpp::RecvIterator;
+
+/// [`Stream<D, P>`] represents the state of a stream in the valtron execution model.
+///
+/// Valtron uses a progress-driven execution model where the executor polls iterators
+/// frequently to observe intermediate states and make scheduling decisions. The variants
+/// of this enum communicate different stream states to the executor:
+///
+/// - [`Stream::Init`] - Stream is initializing
+/// - [`Stream::Ignore`] - Internal system operations occurring, executor should ignore
+/// - [`Stream::Delayed`] - Next response will be delayed by the contained duration
+/// - [`Stream::Pending`] - Stream is pending with the contained context value
+/// - [`Stream::Next`] - Stream has produced the next value
+///
+/// # Type Parameters
+///
+/// * `D` - The data type yielded by the stream when complete
+/// * `P` - The progress/context type yielded while pending
+#[derive(Debug, PartialEq, Clone)]
+pub enum Stream<D, P> {
+    /// Indicative the stream is instantiating.
+    Init,
+
+    /// Indicative of internal system operations occuring that should be ignored.
+    Ignore,
+
+    /// Indicative that the stream next response will be delayed by this much duration
+    Delayed(std::time::Duration),
+
+    /// Indicating that the stream is a pending state with giving context value.
+    Pending(P),
+
+    /// Indicative the stream just issued its next value.
+    Next(D),
+}
+
+/// [`StreamIterator`] defines an iterator that yields [`Stream<D, P>`] items.
+///
+/// This trait is automatically implemented for any type that implements
+/// `Iterator<Item = Stream<D, P>>` where `D` and `P` are `Send + 'static`.
+///
+/// # Examples
+///
+/// ```
+/// use crate::valtron::streams::{Stream, StreamIterator};
+///
+/// // Any iterator yielding Stream<D, P> automatically implements StreamIterator
+/// let items = vec![
+///     Stream::Init,
+///     Stream::Pending("loading..."),
+///     Stream::Next(42),
+/// ];
+/// let mut iter = items.into_iter();
+/// assert!(matches!(iter.next(), Some(Stream::Init)));
+/// ```
+pub trait StreamIterator: Iterator<Item = Stream<Self::D, Self::P>> {
+    /// The data type yielded when the stream completes
+    type D;
+    /// The progress/context type yielded while pending
+    type P;
+}
+
+// Blanket implementation for any compatible iterator
+impl<M, D, P> StreamIterator for M
+where
+    M: Iterator<Item = Stream<D, P>> + ?Sized,
+    D: Send + 'static,
+    P: Send + 'static,
+{
+    type D = D;
+    type P = P;
+}
+
+/// [`StreamRecvIterator<D, P>`] wraps a [`RecvIterator<Stream<D, P>>`] to provide
+/// stream iteration over channel-based streams.
+///
+/// This type is used when receiving [`Stream`] items from a concurrent channel,
+/// adapting the blocking channel receiver to the valtron stream model.
+pub struct StreamRecvIterator<D, P>(RecvIterator<Stream<D, P>>);
+
+impl<D, P> StreamRecvIterator<D, P> {
+    /// Returns true if the underlying channel is empty
+    #[must_use]
+    pub fn is_empty(&self) -> bool {
+        self.0.is_empty()
+    }
+
+    /// Returns the number of items in the underlying channel
+    #[must_use]
+    pub fn len(&self) -> usize {
+        self.0.len()
+    }
+
+    /// Returns true if the underlying channel is closed
+    #[must_use]
+    pub fn is_closed(&self) -> bool {
+        self.0.is_closed()
+    }
+}
+
+impl<D, P> StreamRecvIterator<D, P> {
+    /// Creates a new StreamRecvIterator wrapping the given RecvIterator
+    #[must_use]
+    pub fn new(iter: RecvIterator<Stream<D, P>>) -> Self {
+        Self(iter)
+    }
+}
+
+impl<D, P> Iterator for StreamRecvIterator<D, P> {
+    type Item = Stream<D, P>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        self.0.next()
+    }
+}
+
+// ============================================================================
+// ConcurrentQueueStreamIterator
+// ============================================================================
+
+use concurrent_queue::PopError;
+use std::time::Duration;
+
+/// An iterator that polls a concurrent queue with configurable max_turns behavior.
+///
+/// `ConcurrentQueueStreamIterator` is designed for valtron executors where multiple
+/// tasks share CPU time. It polls the queue up to `max_turns` times before yielding
+/// `Stream::Ignore`, allowing the executor to check other tasks.
+///
+/// ## Polling Strategy
+///
+/// - **Turns 1 to max_turns**: Poll queue, yield thread briefly between attempts
+/// - **After max_turns**: Return `Stream::Ignore` (signals executor to check other tasks)
+/// - **Queue closed**: Return `None` (iterator exhausted)
+///
+/// ## std vs no_std
+///
+/// - **std feature**: Uses `std::thread::park_timeout(self.park_duration)`
+/// - **no_std**: Uses `std::hint::spin_loop()` (busy-wait spin)
+///
+/// ## Type Parameters
+///
+/// * `D` - The "Done" type (successful result)
+/// * `P` - The "Pending" type (intermediate state)
+///
+/// ## Example
+///
+/// ```ignore
+/// use crate::valtron::streams::{Stream, ConcurrentQueueStreamIterator};
+/// use concurrent_queue::ConcurrentQueue;
+/// use std::sync::Arc;
+/// use std::time::Duration;
+///
+/// let queue: Arc<ConcurrentQueue<Stream<i32, &str>>> = Arc::new(ConcurrentQueue::bounded(10));
+/// let iter = ConcurrentQueueStreamIterator::new(queue.clone(), 10, Duration::from_nanos(20));
+///
+/// for item in iter {
+///     match item {
+///         Stream::Next(value) => println!("Got: {}", value),
+///         Stream::Ignore => println!("Yielding to check other tasks..."),
+///         Stream::Pending(ctx) => println!("Pending: {}", ctx),
+///         _ => {}
+///     }
+/// }
+/// ```
+pub struct ConcurrentQueueStreamIterator<D, P> {
+    chan: Arc<ConcurrentQueue<Stream<D, P>>>,
+    max_turns: usize,
+    park_duration: Duration,
+}
+
+impl<D, P> ConcurrentQueueStreamIterator<D, P> {
+    /// Creates a new ConcurrentQueueStreamIterator.
+    ///
+    /// ## Arguments
+    ///
+    /// * `chan` - The concurrent queue to poll
+    /// * `max_turns` - Number of poll attempts before yielding Stream::Ignore
+    /// * `park_duration` - Duration to park thread when queue is empty (std mode)
+    ///
+    /// ## Panics
+    ///
+    /// Panics if `max_turns` is 0 (must be at least 1)
+    pub fn new(
+        chan: Arc<ConcurrentQueue<Stream<D, P>>>,
+        max_turns: usize,
+        park_duration: Duration,
+    ) -> Self {
+        assert!(max_turns > 0, "max_turns must be greater than 0");
+        tracing::info!(
+            max_turns = max_turns,
+            park_duration_ns = park_duration.as_nanos(),
+            "created ConcurrentQueueStreamIterator"
+        );
+        Self {
+            chan,
+            max_turns,
+            park_duration,
+        }
+    }
+
+    /// Returns a reference to the underlying channel.
+    #[must_use]
+    pub fn chan(&self) -> &Arc<ConcurrentQueue<Stream<D, P>>> {
+        &self.chan
+    }
+
+    /// Returns the configured max_turns value.
+    #[must_use]
+    pub fn max_turns(&self) -> usize {
+        self.max_turns
+    }
+
+    /// Returns the configured park_duration value.
+    #[must_use]
+    pub fn park_duration(&self) -> Duration {
+        self.park_duration
+    }
+
+    /// Returns true if the underlying queue is closed.
+    #[must_use]
+    pub fn is_closed(&self) -> bool {
+        self.chan.is_closed()
+    }
+
+    /// Returns the current number of items in the queue.
+    #[must_use]
+    pub fn len(&self) -> usize {
+        self.chan.len()
+    }
+
+    /// Returns true if the queue is empty.
+    #[must_use]
+    pub fn is_empty(&self) -> bool {
+        self.chan.is_empty()
+    }
+}
+
+impl<D, P> Iterator for ConcurrentQueueStreamIterator<D, P> {
+    type Item = Stream<D, P>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        tracing::trace!(max_turns = self.max_turns, "starting poll cycle");
+
+        for turn in 0..self.max_turns {
+            match self.chan.pop() {
+                Ok(value) => {
+                    tracing::debug!(turn = turn, "received value from queue");
+                    return Some(value);
+                }
+                Err(PopError::Empty) => {
+                    tracing::trace!(turn = turn, "queue empty, yielding");
+                    #[cfg(feature = "std")]
+                    std::thread::park_timeout(self.park_duration);
+                    #[cfg(not(feature = "std"))]
+                    std::hint::spin_loop();
+                }
+                Err(PopError::Closed) => {
+                    tracing::info!("queue closed, ending iteration");
+                    return None;
+                }
+            }
+        }
+
+        tracing::trace!("max_turns reached, yielding Ignore");
+        Some(Stream::Ignore)
+    }
+}
+
+// ============================================================================
+// StreamIterator Extension Trait and Combinators
+// ============================================================================
+
+use crate::valtron::branches::CollectionState;
 
 /// Control enum for the `map_circuit` combinator.
 ///
@@ -993,6 +1230,7 @@ where
             inner: self,
             acc: Some(init),
             folder: f,
+            done: false,
             _phantom: std::marker::PhantomData,
         }
     }
@@ -1032,6 +1270,7 @@ where
         SCountAll {
             inner: self,
             count: 0,
+            done: false,
         }
     }
 }
@@ -1671,89 +1910,67 @@ where
 // Multi-Source Combinators (Feature 02)
 // ============================================================================
 
-/// Extension trait for multi-source `StreamIterator` combinators.
+/// Collect all outputs from multiple `StreamIterators` into a single Vec.
 ///
-/// These combinators work with multiple `StreamIterators` simultaneously,
-/// aggregating their outputs or mapping them together.
-pub trait MultiSourceStreamIteratorExt<D, P> {
-    /// Collect all outputs from multiple `StreamIterators` into a single Vec.
-    ///
-    /// Polls all sources in round-robin fashion, collecting Next values.
-    /// Yields `Stream::Pending` with count while any source is still producing.
-    /// Yields `Stream::Next` with all collected values when all sources complete.
-    fn collect_all<I>(iterators: Vec<I>) -> CollectAll<I, D, P>
-    where
-        I: StreamIterator<D = D, P = P> + Send + 'static,
-        D: Clone + Send + 'static,
-        P: Send + 'static;
-
-    /// Map all values - only when all sources reach Done state.
-    ///
-    /// Buffers values from all sources until all have produced a Next value.
-    /// Then applies the mapper to the collected Vec and yields the result.
-    fn map_all_done<I, F, O>(iterators: Vec<I>, mapper: F) -> MapAllDone<I, F, D, P, O>
-    where
-        I: StreamIterator<D = D, P = P> + Send + 'static,
-        F: Fn(Vec<D>) -> O + Send + 'static,
-        O: Send + 'static,
-        D: Clone + Send + 'static,
-        P: Send + 'static;
-
-    /// Map all values processing both Pending and Done states together.
-    ///
-    /// Buffers Stream<D, P> from all sources and applies the mapper
-    /// to the Vec of all states, enabling visibility into which sources
-    /// are pending vs done.
-    fn map_all_pending_and_done<I, F, O>(
-        iterators: Vec<I>,
-        mapper: F,
-    ) -> MapAllPendingAndDone<I, F, D, P, O>
-    where
-        I: StreamIterator<D = D, P = P> + Send + 'static,
-        F: Fn(Vec<Stream<D, P>>) -> O + Send + 'static,
-        O: Send + 'static,
-        D: Clone + Send + 'static,
-        P: Send + 'static;
-}
-
-impl<D, P> MultiSourceStreamIteratorExt<D, P> for ()
+/// Polls all sources in round-robin fashion, collecting Next values.
+/// Yields `Stream::Pending` with count while any source is still producing.
+/// Yields `Stream::Next` with all collected values when all sources complete.
+pub fn collect_all<I, D, P>(iterators: Vec<I>) -> CollectAll<I, D, P>
 where
+    I: StreamIterator<D = D, P = P> + Send + 'static,
     D: Clone + Send + 'static,
     P: Send + 'static,
 {
-    fn collect_all<I>(iterators: Vec<I>) -> CollectAll<I, D, P>
-    where
-        I: StreamIterator<D = D, P = P> + Send + 'static,
-        D: Clone + Send + 'static,
-        P: Send + 'static,
-    {
-        CollectAll::new(iterators)
-    }
+    CollectAll::new(iterators)
+}
 
-    fn map_all_done<I, F, O>(iterators: Vec<I>, mapper: F) -> MapAllDone<I, F, D, P, O>
-    where
-        I: StreamIterator<D = D, P = P> + Send + 'static,
-        F: Fn(Vec<D>) -> O + Send + 'static,
-        O: Send + 'static,
-        D: Clone + Send + 'static,
-        P: Send + 'static,
-    {
-        MapAllDone::new(iterators, mapper)
-    }
+/// Map all values - only when all sources reach Done state.
+///
+/// Buffers values from all sources until all have produced a Next value.
+/// Then applies the mapper to the collected Vec and yields the result.
+pub fn map_all_done<I, F, O, D, P>(iterators: Vec<I>, mapper: F) -> MapAllDone<I, F, D, P, O>
+where
+    I: StreamIterator<D = D, P = P> + Send + 'static,
+    F: Fn(Vec<D>) -> O + Send + 'static,
+    O: Send + 'static,
+    D: Clone + Send + 'static,
+    P: Send + 'static,
+{
+    MapAllDone::new(iterators, mapper)
+}
 
-    fn map_all_pending_and_done<I, F, O>(
-        iterators: Vec<I>,
-        mapper: F,
-    ) -> MapAllPendingAndDone<I, F, D, P, O>
-    where
-        I: StreamIterator<D = D, P = P> + Send + 'static,
-        F: Fn(Vec<Stream<D, P>>) -> O + Send + 'static,
-        O: Send + 'static,
-        D: Clone + Send + 'static,
-        P: Send + 'static,
-    {
-        MapAllPendingAndDone::new(iterators, mapper)
-    }
+/// Map all values processing both Pending and Done states together.
+///
+/// Buffers Stream<D, P> from all sources and applies the mapper
+/// to the Vec of all states, enabling visibility into which sources
+/// are pending vs done.
+pub fn map_all_pending_and_done<I, F, O, D, P>(
+    iterators: Vec<I>,
+    mapper: F,
+) -> MapAllPendingAndDone<I, F, D, P, O>
+where
+    I: StreamIterator<D = D, P = P> + Send + 'static,
+    F: Fn(Vec<Stream<D, P>>) -> O + Send + 'static,
+    O: Send + 'static,
+    D: Clone + Send + 'static,
+    P: Send + 'static,
+{
+    MapAllPendingAndDone::new(iterators, mapper)
+}
+
+/// Collect next values from multiple streams, yielding each value as it arrives.
+///
+/// Unlike `collect_all` which buffers all values and returns them when complete,
+/// this function yields `Stream::Next(D)` for each individual value from any stream,
+/// removing completed streams from the pool. Returns `Stream::Pending(count)` while
+/// any streams are still pending. When all streams are exhausted, returns `None`.
+pub fn collect_next_from_streams<I, D, P>(iterators: Vec<I>) -> CollectNextFromStreams<I, D, P>
+where
+    I: StreamIterator<D = D, P = P> + Send + 'static,
+    D: Send + 'static,
+    P: Send + 'static,
+{
+    CollectNextFromStreams::new(iterators)
 }
 
 /// Multi-source collector that aggregates outputs from multiple `StreamIterators`.
@@ -1765,7 +1982,8 @@ pub struct CollectAll<I, D, P> {
     sources: Vec<I>,
     collected: Vec<D>,
     done: bool,
-    _phantom: std::marker::PhantomData<P>,
+    current_index: usize,
+    _phantom: std::marker::PhantomData<(D, P)>,
 }
 
 impl<I, D, P> CollectAll<I, D, P>
@@ -1780,6 +1998,7 @@ where
             sources: iterators,
             collected: Vec::new(),
             done: false,
+            current_index: 0,
             _phantom: std::marker::PhantomData,
         }
     }
@@ -1798,56 +2017,69 @@ where
             return None;
         }
 
-        let mut all_done = true;
-        let mut has_pending = false;
-        let mut max_delayed: Option<std::time::Duration> = None;
-
-        // Poll all sources in round-robin
-        for source in &mut self.sources {
-            match source.next() {
-                Some(Stream::Next(value)) => {
-                    self.collected.push(value);
-                    all_done = false;
-                }
-                Some(Stream::Pending(_)) => {
-                    all_done = false;
-                    has_pending = true;
-                }
-                Some(Stream::Delayed(d)) => {
-                    all_done = false;
-                    max_delayed = Some(match max_delayed {
-                        Some(current) => current.max(d),
-                        None => d,
-                    });
-                }
-                Some(Stream::Init) => {
-                    all_done = false;
-                }
-                Some(Stream::Ignore) => {
-                    // Ignore internal events, keep collecting
-                    all_done = false;
-                }
-                None => {
-                    // This source is exhausted
-                }
-            }
-        }
-
-        if all_done {
-            // All sources exhausted, yield collected results
+        if self.sources.is_empty() {
             self.done = true;
             if self.collected.is_empty() {
                 return None;
             }
-            Some(Stream::Next(std::mem::take(&mut self.collected)))
-        } else if let Some(delay) = max_delayed {
-            Some(Stream::Delayed(delay))
-        } else if has_pending {
-            Some(Stream::Pending(self.collected.len()))
-        } else {
-            // Still collecting, return pending with count
-            Some(Stream::Pending(self.collected.len()))
+            return Some(Stream::Next(std::mem::take(&mut self.collected)));
         }
+
+        let mut exhausted_indices = Vec::new();
+
+        // One pass through sources starting at current_index
+        for _ in 0..self.sources.len() {
+            let idx = self.current_index;
+            match self.sources[idx].next() {
+                Some(Stream::Next(value)) => {
+                    self.collected.push(value);
+                    self.current_index = (self.current_index + 1) % self.sources.len();
+                    return Some(Stream::Pending(self.collected.len()));
+                }
+                Some(Stream::Pending(_)) => {
+                    self.current_index = (self.current_index + 1) % self.sources.len();
+                    return Some(Stream::Pending(self.collected.len() + 1));
+                }
+                Some(Stream::Delayed(d)) => {
+                    self.current_index = (self.current_index + 1) % self.sources.len();
+                    return Some(Stream::Delayed(d));
+                }
+                Some(Stream::Init) => {
+                    self.current_index = (self.current_index + 1) % self.sources.len();
+                    return Some(Stream::Pending(self.collected.len() + 1));
+                }
+                Some(Stream::Ignore) => {
+                    self.current_index = (self.current_index + 1) % self.sources.len();
+                    // Continue to next source in same pass
+                }
+                None => {
+                    exhausted_indices.push(idx);
+                    self.current_index = (self.current_index + 1) % self.sources.len();
+                }
+            }
+        }
+
+        // Remove exhausted sources after the pass
+        // Sort in descending order so swap_remove doesn't invalidate subsequent indices
+        exhausted_indices.sort_by(|a, b| b.cmp(a));
+        for idx in exhausted_indices {
+            self.sources.swap_remove(idx);
+        }
+
+        // Adjust current_index if it now points beyond the new length
+        if !self.sources.is_empty() && self.current_index >= self.sources.len() {
+            self.current_index = 0;
+        }
+
+        if self.sources.is_empty() {
+            self.done = true;
+            if self.collected.is_empty() {
+                return None;
+            }
+            return Some(Stream::Next(std::mem::take(&mut self.collected)));
+        }
+
+        Some(Stream::Pending(self.collected.len()))
     }
 }
 
@@ -2089,6 +2321,7 @@ where
     fn next(&mut self) -> Option<Self::Item> {
         // First drain current inner iterator
         if let Some(ref mut inner) = self.current_inner {
+            tracing::info!("Get inner next mapIterDone");
             if let Some(item) = inner.next() {
                 return Some(item);
             }
@@ -2096,6 +2329,7 @@ where
         }
 
         // Poll outer for next item
+        tracing::info!("Get outer next in mapIterDone");
         match self.outer.next() {
             Some(item) => match item {
                 Stream::Next(inner) => {
@@ -2470,17 +2704,17 @@ where
     type Item = Stream<I::D, I::P>;
 
     fn next(&mut self) -> Option<Self::Item> {
-        loop {
-            let item = self.inner.next()?;
-            if self.done_skipping {
-                return Some(item);
-            }
-            if !(self.predicate)(&item) {
-                self.done_skipping = true;
-                return Some(item);
-            }
-            // Still skipping, continue loop
+        if self.done_skipping {
+            return self.inner.next();
         }
+
+        let item = self.inner.next()?;
+        if !(self.predicate)(&item) {
+            self.done_skipping = true;
+            return Some(item);
+        }
+        // Still skipping
+        Some(Stream::Ignore)
     }
 }
 
@@ -2527,14 +2761,12 @@ where
     type Item = Stream<I::D, I::P>;
 
     fn next(&mut self) -> Option<Self::Item> {
-        loop {
-            let item = self.inner.next()?;
-            if self.to_skip > 0 && (self.state_predicate)(&item) {
-                self.to_skip -= 1;
-                continue;
-            }
-            return Some(item);
+        let item = self.inner.next()?;
+        if self.to_skip > 0 && (self.state_predicate)(&item) {
+            self.to_skip -= 1;
+            return Some(Stream::Ignore);
         }
+        Some(item)
     }
 }
 
@@ -2579,20 +2811,20 @@ where
         if self.found {
             return None;
         }
-        loop {
-            match self.inner.next()? {
-                Stream::Next(d) => {
-                    if (self.predicate)(&d) {
-                        self.found = true;
-                        return Some(Stream::Next(Some(d)));
-                    }
-                    // Continue searching
+
+        match self.inner.next()? {
+            Stream::Next(d) => {
+                if (self.predicate)(&d) {
+                    self.found = true;
+                    Some(Stream::Next(Some(d)))
+                } else {
+                    Some(Stream::Ignore)
                 }
-                Stream::Pending(p) => return Some(Stream::Pending(p)),
-                Stream::Delayed(d) => return Some(Stream::Delayed(d)),
-                Stream::Init => return Some(Stream::Init),
-                Stream::Ignore => return Some(Stream::Ignore),
             }
+            Stream::Pending(p) => Some(Stream::Pending(p)),
+            Stream::Delayed(d) => Some(Stream::Delayed(d)),
+            Stream::Init => Some(Stream::Init),
+            Stream::Ignore => Some(Stream::Ignore),
         }
     }
 }
@@ -2617,29 +2849,34 @@ where
         if self.found {
             return None;
         }
-        loop {
-            match self.inner.next()? {
-                Stream::Next(d) => {
-                    if let Some(r) = (self.mapper)(d) {
-                        self.found = true;
-                        return Some(Stream::Next(Some(r)));
-                    }
-                    // Continue searching
+
+        match self.inner.next()? {
+            Stream::Next(d) => {
+                if let Some(r) = (self.mapper)(d) {
+                    self.found = true;
+                    Some(Stream::Next(Some(r)))
+                } else {
+                    Some(Stream::Ignore)
                 }
-                Stream::Pending(p) => return Some(Stream::Pending(p)),
-                Stream::Delayed(d) => return Some(Stream::Delayed(d)),
-                Stream::Init => return Some(Stream::Init),
-                Stream::Ignore => return Some(Stream::Ignore),
             }
+            Stream::Pending(p) => Some(Stream::Pending(p)),
+            Stream::Delayed(d) => Some(Stream::Delayed(d)),
+            Stream::Init => Some(Stream::Init),
+            Stream::Ignore => Some(Stream::Ignore),
         }
     }
 }
 
 /// Wrapper for `fold()` - accumulate values
+///
+/// Returns `Stream::Ignore` while accumulating Next values.
+/// Passes through Pending/Delayed/Init immediately.
+/// Yields final accumulated value when inner is exhausted.
 pub struct SFold<I, F, R> {
     inner: I,
     acc: Option<R>,
     folder: F,
+    done: bool,
     _phantom: std::marker::PhantomData<(I, R)>,
 }
 
@@ -2652,17 +2889,27 @@ where
     type Item = Stream<R, I::P>;
 
     fn next(&mut self) -> Option<Self::Item> {
-        loop {
-            match self.inner.next()? {
-                Stream::Next(v) => {
-                    if let Some(acc) = self.acc.take() {
-                        self.acc = Some((self.folder)(acc, v));
-                    }
+        if self.done {
+            // Already yielded final result
+            return None;
+        }
+
+        match self.inner.next() {
+            Some(Stream::Next(v)) => {
+                if let Some(acc) = self.acc.take() {
+                    self.acc = Some((self.folder)(acc, v));
                 }
-                Stream::Pending(p) => return Some(Stream::Pending(p)),
-                Stream::Delayed(d) => return Some(Stream::Delayed(d)),
-                Stream::Init => return Some(Stream::Init),
-                Stream::Ignore => {}
+                // Still accumulating, return Ignore
+                Some(Stream::Ignore)
+            }
+            Some(Stream::Pending(p)) => Some(Stream::Pending(p)),
+            Some(Stream::Delayed(d)) => Some(Stream::Delayed(d)),
+            Some(Stream::Init) => Some(Stream::Init),
+            Some(Stream::Ignore) => Some(Stream::Ignore),
+            None => {
+                // Inner exhausted, yield final accumulated value
+                self.done = true;
+                self.acc.take().map(Stream::Next)
             }
         }
     }
@@ -2693,19 +2940,28 @@ where
         if self.done {
             return None;
         }
-        loop {
-            match self.inner.next()? {
-                Stream::Next(v) => {
-                    if !(self.predicate)(v) {
-                        self.all_true = false;
-                        self.done = true;
-                        return Some(Stream::Next(false));
-                    }
+
+        // Check if we already have a result
+        if !self.all_true {
+            return None;
+        }
+
+        match self.inner.next() {
+            Some(Stream::Next(v)) => {
+                if !(self.predicate)(v) {
+                    self.all_true = false;
+                    self.done = true;
+                    return Some(Stream::Next(false));
                 }
-                Stream::Pending(p) => return Some(Stream::Pending(p)),
-                Stream::Delayed(d) => return Some(Stream::Delayed(d)),
-                Stream::Init => return Some(Stream::Init),
-                Stream::Ignore => {}
+                Some(Stream::Ignore)
+            }
+            Some(Stream::Pending(p)) => Some(Stream::Pending(p)),
+            Some(Stream::Delayed(d)) => Some(Stream::Delayed(d)),
+            Some(Stream::Init) => Some(Stream::Init),
+            Some(Stream::Ignore) => Some(Stream::Ignore),
+            None => {
+                self.done = true;
+                Some(Stream::Next(true))
             }
         }
     }
@@ -2730,19 +2986,28 @@ where
         if self.done {
             return None;
         }
-        loop {
-            match self.inner.next()? {
-                Stream::Next(v) => {
-                    if (self.predicate)(v) {
-                        self.any_true = true;
-                        self.done = true;
-                        return Some(Stream::Next(true));
-                    }
+
+        if self.any_true {
+            return None;
+        }
+
+        match self.inner.next() {
+            Some(Stream::Next(v)) => {
+                if (self.predicate)(v) {
+                    self.any_true = true;
+                    self.done = true;
+                    Some(Stream::Next(true))
+                } else {
+                    Some(Stream::Ignore)
                 }
-                Stream::Pending(p) => return Some(Stream::Pending(p)),
-                Stream::Delayed(d) => return Some(Stream::Delayed(d)),
-                Stream::Init => return Some(Stream::Init),
-                Stream::Ignore => {}
+            }
+            Some(Stream::Pending(p)) => Some(Stream::Pending(p)),
+            Some(Stream::Delayed(d)) => Some(Stream::Delayed(d)),
+            Some(Stream::Init) => Some(Stream::Init),
+            Some(Stream::Ignore) => Some(Stream::Ignore),
+            None => {
+                self.done = true;
+                Some(Stream::Next(false))
             }
         }
     }
@@ -2761,24 +3026,27 @@ where
     type Item = Stream<usize, I::P>;
 
     fn next(&mut self) -> Option<Self::Item> {
-        loop {
-            match self.inner.next()? {
-                Stream::Next(_) => {
-                    self.count += 1;
-                }
-                Stream::Pending(p) => return Some(Stream::Pending(p)),
-                Stream::Delayed(d) => return Some(Stream::Delayed(d)),
-                Stream::Init => return Some(Stream::Init),
-                Stream::Ignore => {}
+        Some(match self.inner.next()? {
+            Stream::Next(_) => {
+                self.count += 1;
+                Stream::Ignore
             }
-        }
+            Stream::Pending(p) => Stream::Pending(p),
+            Stream::Delayed(d) => Stream::Delayed(d),
+            Stream::Init => Stream::Init,
+            Stream::Ignore => Stream::Ignore,
+        })
     }
 }
 
 /// Wrapper for `count_all()` - count all items
+///
+/// Returns `Stream::Ignore` for each item while counting, then yields
+/// final count when inner is exhausted. Passes through Pending/Delayed/Init.
 pub struct SCountAll<I> {
     inner: I,
     count: usize,
+    done: bool,
 }
 
 impl<I> Iterator for SCountAll<I>
@@ -2788,17 +3056,125 @@ where
     type Item = Stream<usize, I::P>;
 
     fn next(&mut self) -> Option<Self::Item> {
-        loop {
-            match self.inner.next()? {
-                Stream::Next(_) | Stream::Pending(_) | Stream::Delayed(_) | Stream::Init => {
-                    self.count += 1;
-                }
-                Stream::Ignore => {}
+        if self.done {
+            // Already yielded final count
+            return None;
+        }
+
+        match self.inner.next() {
+            Some(Stream::Next(_)) => {
+                self.count += 1;
+                Some(Stream::Ignore)
             }
-            // Continue until inner is done, then yield final count
-            if self.inner.next().is_none() {
-                return Some(Stream::Next(self.count));
+            Some(Stream::Pending(p)) => Some(Stream::Pending(p)),
+            Some(Stream::Delayed(d)) => Some(Stream::Delayed(d)),
+            Some(Stream::Init) => Some(Stream::Init),
+            Some(Stream::Ignore) => Some(Stream::Ignore),
+            None => {
+                // Inner exhausted, yield final count
+                self.done = true;
+                Some(Stream::Next(self.count))
             }
         }
+    }
+}
+
+// ============================================================================
+// Collect Next From Streams (New Feature)
+// ============================================================================
+
+/// Multi-source collector that yields individual values from multiple `StreamIterators`
+/// as they arrive, removing completed streams from the pool.
+///
+/// Unlike `CollectAll` which buffers all values and returns them when complete,
+/// this type yields each `Next(D)` value individually as soon as any stream produces it.
+/// When a stream is exhausted (returns `None`), it is removed from the pool.
+/// Yields `Stream::Pending(count)` while any streams are still pending.
+/// Returns `None` when all streams are exhausted.
+pub struct CollectNextFromStreams<I, D, P> {
+    sources: Vec<I>,
+    current_index: usize,
+    _phantom: std::marker::PhantomData<(D, P)>,
+}
+
+impl<I, D, P> CollectNextFromStreams<I, D, P>
+where
+    I: StreamIterator<D = D, P = P>,
+    D: Send + 'static,
+    P: Send + 'static,
+{
+    #[must_use]
+    pub fn new(iterators: Vec<I>) -> Self {
+        Self {
+            sources: iterators,
+            current_index: 0,
+            _phantom: std::marker::PhantomData,
+        }
+    }
+}
+
+impl<I, D, P> Iterator for CollectNextFromStreams<I, D, P>
+where
+    I: StreamIterator<D = D, P = P> + Send + 'static,
+    D: Send + 'static,
+    P: Send + 'static,
+{
+    type Item = Stream<D, usize>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.sources.is_empty() {
+            return None;
+        }
+
+        let mut exhausted_indices = Vec::new();
+
+        // One pass through sources starting at current_index
+        for _ in 0..self.sources.len() {
+            let idx = self.current_index;
+            match self.sources[idx].next() {
+                Some(Stream::Next(value)) => {
+                    self.current_index = (self.current_index + 1) % self.sources.len();
+                    return Some(Stream::Next(value));
+                }
+                Some(Stream::Pending(_)) => {
+                    self.current_index = (self.current_index + 1) % self.sources.len();
+                    return Some(Stream::Pending(self.sources.len()));
+                }
+                Some(Stream::Delayed(d)) => {
+                    self.current_index = (self.current_index + 1) % self.sources.len();
+                    return Some(Stream::Delayed(d));
+                }
+                Some(Stream::Init) => {
+                    self.current_index = (self.current_index + 1) % self.sources.len();
+                    return Some(Stream::Pending(self.sources.len()));
+                }
+                Some(Stream::Ignore) => {
+                    self.current_index = (self.current_index + 1) % self.sources.len();
+                    // Continue to next source in same pass
+                }
+                None => {
+                    exhausted_indices.push(idx);
+                    self.current_index = (self.current_index + 1) % self.sources.len();
+                }
+            }
+        }
+
+        // Remove exhausted sources after the pass
+        // Sort in descending order so swap_remove doesn't invalidate subsequent indices
+        exhausted_indices.sort_by(|a, b| b.cmp(a));
+        for idx in exhausted_indices {
+            self.sources.swap_remove(idx);
+        }
+
+        // Adjust current_index if it now points beyond the new length
+        if !self.sources.is_empty() && self.current_index >= self.sources.len() {
+            self.current_index = 0;
+        }
+
+        if self.sources.is_empty() {
+            return None;
+        }
+
+        Some(Stream::Pending(self.sources.len()))
     }
 }

@@ -4,9 +4,8 @@ mod executors;
 mod funcs;
 mod iterators;
 mod notifiers;
-mod stream_iterators;
+mod streams;
 mod task;
-mod task_iterators;
 mod types;
 
 // modules exported as is
@@ -19,7 +18,8 @@ pub use executors::*;
 pub use funcs::*;
 pub use iterators::*;
 pub use notifiers::*;
-pub use stream_iterators::*;
+pub use streams::*;
+pub use streams::ConcurrentQueueStreamIterator;
+pub use task::{SplitCollectorMapContinuation, SplitCollectorMapObserver};
 pub use task::*;
-pub use task_iterators::*;
 pub use types::*;

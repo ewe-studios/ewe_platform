@@ -5,7 +5,8 @@ use crate::valtron::{SpawnInfo, Stream};
 use std::{any::Any, marker::PhantomData, sync::Arc, time};
 
 use crate::{
-    synca::mpp::{RecvIterator, StreamRecvIterator},
+    synca::mpp::RecvIterator,
+    valtron::StreamRecvIterator,
     valtron::StreamConsumingIter,
 };
 use concurrent_queue::ConcurrentQueue;
