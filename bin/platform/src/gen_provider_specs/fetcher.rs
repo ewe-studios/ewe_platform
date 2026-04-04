@@ -219,22 +219,26 @@ impl ProviderSpecFetcher {
             let stream = gcp::fetch::fetch_gcp_specs(client, provider_dir, gcp_api_filter)
                 .map_err(|e| SpecFetchError::Generic(format!("GCP: {e}")))?;
 
+            // GCP produces multiple results (one per API), consume all of them
+            let mut count = 0;
             for item in stream {
                 if let Stream::Next(result) = item {
-                    return result
-                        .map_err(|e| SpecFetchError::Generic(format!("GCP: {e}")))
-                        .map(|_path| DistilledSpec {
-                            provider: "gcp".to_string(),
-                            version: chrono::Utc::now().format("%Y%m%d").to_string(),
-                            fetched_at: chrono::Utc::now(),
-                            source_url: gcp::fetch::GCP_DISCOVERY_URL.to_string(),
-                            raw_spec: serde_json::Value::Null,
-                            endpoints: None,
-                            content_hash: String::new(),
-                        });
+                    result.map_err(|e| SpecFetchError::Generic(format!("GCP: {e}")))?;
+                    count += 1;
                 }
             }
-            return Err(SpecFetchError::Generic("No result from fetch".into()));
+
+            tracing::info!("GCP: Wrote {} API specs", count);
+
+            return Ok(DistilledSpec {
+                provider: "gcp".to_string(),
+                version: chrono::Utc::now().format("%Y%m%d").to_string(),
+                fetched_at: chrono::Utc::now(),
+                source_url: gcp::fetch::GCP_DISCOVERY_URL.to_string(),
+                raw_spec: serde_json::Value::Null,
+                endpoints: None,
+                content_hash: String::new(),
+            });
         }
 
         // Standard HTTP fetch for providers with direct JSON endpoints
