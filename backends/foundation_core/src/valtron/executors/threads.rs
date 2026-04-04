@@ -17,7 +17,7 @@ use std::{
 };
 
 use crate::{
-    valtron::{ConcurrentQueueStreamIterator, Stream, StreamRecvIterator, DEFAULT_YIELD_WAIT_TIME},
+    valtron::{ConcurrentQueueStreamIterator, Stream, DEFAULT_YIELD_WAIT_TIME},
 };
 use concurrent_queue::{ConcurrentQueue, PushError};
 use derive_more::derive::From;
@@ -724,56 +724,22 @@ impl<
     /// `stream_iter` adds a task into execution queue but instead of depending
     /// on a [`TaskReadyResolver`] to process the state streams instead allows you
     /// to get back a wrapper iterator that allows you synchronously receive those
-    /// values from a `StreamRecvIterator` that implements the [`Iterator`] trait.
+    /// values from a `ConcurrentQueueStreamIterator` that implements the [`Iterator`] trait.
     ///
-    /// But unlike `schedule_iter` returns [`Stream`] values that hide way the underling
+    /// But unlike `schedule_iter` returns [`Stream`] values that hide the underlying
     /// value types of `TaskStatus` which simplifies the trait types your usage
     /// requires.
     ///
     /// This makes it possible to build synchronous experiences in a async world.
     ///
+    /// Uses default configuration: `DEFAULT_PARK_DURATION` for park duration and `DEFAULT_MAX_TURNS` for max turns.
+    ///
     /// This will deliver task to deliver the bottom of the thread-local execution queue.
-    ///
-    /// # Deprecation
-    ///
-    /// **Deprecated:** Use [`stream_iter_with_config`](Self::stream_iter_with_config) instead.
-    ///
-    /// This method uses `StreamRecvIterator` which blocks indefinitely. The new method
-    /// returns `ConcurrentQueueStreamIterator` with configurable `max_turns` for better
-    /// multi-task scheduling.
-    #[deprecated(since = "1.3.0", note = "Use stream_iter_with_config instead")]
     pub fn stream_iter(
         self,
         wait_cycle: time::Duration,
-    ) -> AnyResult<StreamRecvIterator<Done, Pending>, ExecutorError> {
-        let iter_chan: Arc<ConcurrentQueue<Stream<Done, Pending>>> =
-            Arc::new(ConcurrentQueue::unbounded());
-
-        let boxed_task = match self.task {
-            Some(task) => match (self.resolver, self.mappers) {
-                (None, Some(mappers)) => StreamConsumingIter::new(task, mappers, iter_chan.clone()),
-                (None, None) => StreamConsumingIter::new(task, Vec::new(), iter_chan.clone()),
-                (_, _) => return Err(ExecutorError::NotSupported),
-            },
-            None => return Err(ExecutorError::TaskRequired),
-        };
-
-        match self.tasks.push(boxed_task.into()) {
-            Ok(()) => {
-                match self.tasks.len() {
-                    1 => self.latch.signal_one(),
-                    _ => self.latch.signal_all(),
-                }
-
-                Ok(StreamRecvIterator::new(RecvIterator::from_chan(
-                    iter_chan, wait_cycle,
-                )))
-            }
-            Err(err) => match err {
-                PushError::Full(_) => Err(ExecutorError::QueueFull),
-                PushError::Closed(_) => Err(ExecutorError::QueueClosed),
-            },
-        }
+    ) -> AnyResult<ConcurrentQueueStreamIterator<Done, Pending>, ExecutorError> {
+        self.stream_iter_with_config(wait_cycle, crate::valtron::executors::DEFAULT_MAX_TURNS)
     }
 
     /// `stream_iter_with_config` adds a task into execution queue and returns
