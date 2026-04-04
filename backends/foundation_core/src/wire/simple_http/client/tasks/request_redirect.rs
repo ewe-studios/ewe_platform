@@ -372,7 +372,7 @@ impl<R: DnsResolver + Send + 'static> TaskIterator for GetHttpRequestRedirectTas
                         return Some(TaskStatus::Pending(HttpOperationState::Connecting));
                     }
 
-                    tracing::info!(
+                    tracing::debug!(
                         "No redirect detected, transitioning to WriteBody state to send request body."
                     );
 

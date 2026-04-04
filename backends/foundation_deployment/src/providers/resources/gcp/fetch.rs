@@ -170,7 +170,6 @@ pub fn fetch_gcp_specs(
                     match create_api_fetch_task(entry, pool.clone(), config.clone()) {
                         Ok(task) => match execute(task, None) {
                             Ok(stream) => streams.push(Box::new(stream.map_done(move |result| {
-                                info!("Receiving result from stream: {:?}", &result);
                                 match result {
                                     Some(Ok((entry, spec))) => {
                                         info!("Fetched: {} ({})", entry.name, entry.version);
@@ -208,6 +207,7 @@ pub fn fetch_gcp_specs(
 
                 // Write each API spec as soon as it's fetched to avoid OOM.
                 // Each stream produces one (entry, spec) result, which we write immediately.
+                tracing::info!("Collecting results from {} streams", streams.len());
                 Box::new(
                     collect_next_from_streams(streams)
                         .map_pending(|_| GcpFetchPending::FetchingApiSpecs { remaining: 0 }),
@@ -251,17 +251,28 @@ fn create_api_fetch_task(
     let task = SendRequestTask::new(request, 5, pool, config)
         .map_ready(move |intro| match intro {
             RequestIntro::Success { stream, .. } => {
-                debug!("gcp/{}: Response received", name);
+                debug!(
+                    "gcp/{}/{}: Response received",
+                    name, entry.discovery_rest_url
+                );
                 let body = body_reader::collect_string(stream);
-                debug!("gcp/{}: Body length: {}", name, body.len());
+                debug!(
+                    "gcp/{}/{}: Body length: {}",
+                    name,
+                    entry.discovery_rest_url,
+                    body.len()
+                );
 
                 match serde_json::from_str::<Value>(body.trim()) {
                     Ok(spec) => {
-                        info!("gcp/{}: JSON parsed", name);
+                        info!("gcp/{}/{}: JSON parsed", name, entry.discovery_rest_url);
                         Some(Ok((entry.clone(), spec)))
                     }
                     Err(e) => {
-                        error!("gcp/{}: JSON error: {}", name, e);
+                        error!(
+                            "gcp/{}/{}: JSON error: {}",
+                            name, entry.discovery_rest_url, e
+                        );
                         Some(Err(DeploymentError::Generic(format!("JSON error: {e}"))))
                     }
                 }

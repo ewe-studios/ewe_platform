@@ -235,7 +235,7 @@ impl<D, P> ConcurrentQueueStreamIterator<D, P> {
         park_duration: Duration,
     ) -> Self {
         assert!(max_turns > 0, "max_turns must be greater than 0");
-        tracing::info!(
+        tracing::trace!(
             max_turns = max_turns,
             park_duration_ns = park_duration.as_nanos(),
             "created ConcurrentQueueStreamIterator"
@@ -2357,7 +2357,6 @@ where
     fn next(&mut self) -> Option<Self::Item> {
         // First drain current inner iterator
         if let Some(ref mut inner) = self.current_inner {
-            tracing::info!("Get inner next mapIterDone");
             if let Some(item) = inner.next() {
                 return Some(item);
             }
@@ -2365,7 +2364,6 @@ where
         }
 
         // Poll outer for next item
-        tracing::info!("Get outer next in mapIterDone");
         match self.outer.next() {
             Some(item) => match item {
                 Stream::Next(inner) => {
@@ -3199,6 +3197,7 @@ where
         // Sort in descending order so swap_remove doesn't invalidate subsequent indices
         exhausted_indices.sort_by(|a, b| b.cmp(a));
         for idx in exhausted_indices {
+            tracing::info!("Source is exhausted: {:?}", &idx);
             self.sources.swap_remove(idx);
         }
 
@@ -3208,6 +3207,7 @@ where
         }
 
         if self.sources.is_empty() {
+            tracing::info!("Source is empty, returning None");
             return None;
         }
 
