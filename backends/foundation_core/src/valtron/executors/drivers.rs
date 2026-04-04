@@ -11,7 +11,8 @@ use crate::valtron::FutureTask;
 use crate::valtron::StreamTask;
 
 use crate::{
-    synca::mpp::{RecvIterator, Stream, StreamRecvIterator},
+    synca::mpp::RecvIterator,
+    valtron::{Stream, StreamRecvIterator},
     valtron::{
         ExecutionAction, InlineAction, InlineActionBehaviour, InlineSendAction,
         InlineSendActionBehaviour, ProgressIndicator, State, TaskIterator, TaskStatus,
@@ -800,6 +801,13 @@ where
     #[must_use]
     pub fn new(task_iterator: StreamRecvIterator<T::Ready, T::Pending>) -> Self {
         Self(Some(task_iterator))
+    }
+
+    pub fn is_empty(&self) -> bool {
+        match &self.0 {
+            Some(inner) => inner.is_empty(),
+            None => true,
+        }
     }
 }
 

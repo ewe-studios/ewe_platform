@@ -17,10 +17,10 @@ use crate::valtron::{
     StreamIterator, TaskIterator,
 };
 
-use crate::synca::mpp::Stream;
+use crate::valtron::streams::Stream;
 use crate::valtron::GenericResult;
 
-pub const DEFAULT_WAIT_CYCLE: std::time::Duration = std::time::Duration::from_millis(10);
+pub const DEFAULT_WAIT_CYCLE: std::time::Duration = std::time::Duration::from_nanos(300);
 
 /// Execute a task using the appropriate executor for the current platform/features.
 ///
@@ -483,7 +483,7 @@ where
 /// Collects outputs from multiple `TaskIterators` executed via `execute()`.
 ///
 /// This type holds the `DrivenStreamIterator`s returned from `execute()` and
-/// polls them in round-robin fashion, yielding `Stream::Pending` while any
+/// polls them one at a time, yielding `Stream::Pending` while any
 /// sources are pending, and `Stream::Next(Vec<D>)` when all complete.
 pub struct CollectAllStream<T>
 where
@@ -495,6 +495,7 @@ where
     sources: Vec<DrivenStreamIterator<T>>,
     collected: Vec<T::Ready>,
     done: bool,
+    current_index: usize,
 }
 
 impl<T> CollectAllStream<T>
@@ -511,6 +512,7 @@ where
             sources,
             collected: Vec::new(),
             done: false,
+            current_index: 0,
         }
     }
 }
@@ -529,55 +531,55 @@ where
             return None;
         }
 
-        let mut all_done = true;
-        let mut has_pending = false;
-        let mut max_delayed: Option<std::time::Duration> = None;
-
-        // Poll all sources in round-robin
-        for source in &mut self.sources {
-            match source.next() {
-                Some(Stream::Next(value)) => {
-                    self.collected.push(value);
-                    all_done = false;
-                }
-                Some(Stream::Pending(_)) => {
-                    all_done = false;
-                    has_pending = true;
-                }
-                Some(Stream::Delayed(d)) => {
-                    all_done = false;
-                    max_delayed = Some(match max_delayed {
-                        Some(current) => current.max(d),
-                        None => d,
-                    });
-                }
-                Some(Stream::Init) => {
-                    all_done = false;
-                }
-                Some(Stream::Ignore) => {
-                    // Ignore internal events, keep collecting
-                    all_done = false;
-                }
-                None => {
-                    // This source is exhausted
-                }
-            }
-        }
-
-        if all_done {
-            // All sources exhausted, yield collected results
+        if self.sources.is_empty() {
             self.done = true;
             if self.collected.is_empty() {
                 return None;
             }
-            Some(Stream::Next(std::mem::take(&mut self.collected)))
-        } else if let Some(delay) = max_delayed {
-            Some(Stream::Delayed(delay))
-        } else if has_pending {
-            Some(Stream::Pending(self.collected.len()))
-        } else {
-            // Still collecting, return pending with count
-            Some(Stream::Pending(self.collected.len()))
+            return Some(Stream::Next(std::mem::take(&mut self.collected)));
+        }
+
+        // Poll exactly ONE source per next() call
+        let idx = self.current_index;
+        match self.sources[idx].next() {
+            Some(Stream::Next(value)) => {
+                self.collected.push(value);
+                self.current_index = (self.current_index + 1) % self.sources.len();
+                Some(Stream::Pending(self.sources.len()))
+            }
+            Some(Stream::Pending(_)) => {
+                self.current_index = (self.current_index + 1) % self.sources.len();
+                Some(Stream::Pending(self.sources.len()))
+            }
+            Some(Stream::Delayed(d)) => {
+                self.current_index = (self.current_index + 1) % self.sources.len();
+                Some(Stream::Delayed(d))
+            }
+            Some(Stream::Init) => {
+                self.current_index = (self.current_index + 1) % self.sources.len();
+                Some(Stream::Pending(self.sources.len()))
+            }
+            Some(Stream::Ignore) => {
+                self.current_index = (self.current_index + 1) % self.sources.len();
+                Some(Stream::Pending(self.sources.len()))
+            }
+            None => {
+                // Source exhausted - remove it
+                self.sources.remove(idx);
+                if self.current_index >= self.sources.len() && !self.sources.is_empty() {
+                    self.current_index = 0;
+                }
+                // Check if all done
+                if self.sources.is_empty() {
+                    self.done = true;
+                    if self.collected.is_empty() {
+                        return None;
+                    }
+                    Some(Stream::Next(std::mem::take(&mut self.collected)))
+                } else {
+                    Some(Stream::Pending(self.sources.len()))
+                }
+            }
         }
     }
 }
@@ -665,7 +667,10 @@ where
     D: Send + 'static,
     P: Send + 'static,
 {
-    OneShotStream { value: Some(value), _phantom: std::marker::PhantomData }
+    OneShotStream {
+        value: Some(value),
+        _phantom: std::marker::PhantomData,
+    }
 }
 
 /// A StreamIterator that yields a single value and then completes.
@@ -690,7 +695,7 @@ where
 
 /// Collects outputs from multiple `StreamIterator`s in parallel.
 ///
-/// This type holds the `StreamIterator`s and polls them in round-robin fashion,
+/// This type holds the `StreamIterator`s and polls them one at a time,
 /// yielding `Stream::Pending` while any sources are pending, and
 /// `Stream::Next(Vec<D>)` when all complete.
 pub struct CollectAllStreams<S>
@@ -701,6 +706,7 @@ where
     sources: Vec<S>,
     collected: Vec<S::D>,
     done: bool,
+    current_index: usize,
 }
 
 impl<S> CollectAllStreams<S>
@@ -715,6 +721,7 @@ where
             sources,
             collected: Vec::new(),
             done: false,
+            current_index: 0,
         }
     }
 }
@@ -731,56 +738,69 @@ where
             return None;
         }
 
-        let mut all_done = true;
-        let mut has_pending = false;
-        let mut max_delayed: Option<std::time::Duration> = None;
-
-        // Poll all sources in round-robin
-        for source in &mut self.sources {
-            match source.next() {
-                Some(Stream::Next(value)) => {
-                    self.collected.push(value);
-                    all_done = false;
-                }
-                Some(Stream::Pending(p)) => {
-                    all_done = false;
-                    has_pending = true;
-                    let _ = p;
-                }
-                Some(Stream::Delayed(d)) => {
-                    all_done = false;
-                    max_delayed = Some(match max_delayed {
-                        Some(current) => current.max(d),
-                        None => d,
-                    });
-                }
-                Some(Stream::Init) => {
-                    all_done = false;
-                }
-                Some(Stream::Ignore) => {
-                    all_done = false;
-                }
-                None => {
-                    // This source is exhausted
-                }
-            }
-        }
-
-        if all_done {
+        if self.sources.is_empty() {
             self.done = true;
             if self.collected.is_empty() {
                 return None;
             }
-            Some(Stream::Next(std::mem::take(&mut self.collected)))
-        } else if let Some(delay) = max_delayed {
-            Some(Stream::Delayed(delay))
-        } else if has_pending {
-            Some(Stream::Pending(
-                self.sources.len() - self.collected.len(),
-            ))
-        } else {
-            None
+            return Some(Stream::Next(std::mem::take(&mut self.collected)));
         }
+
+        let mut exhausted_indices = Vec::new();
+
+        // One pass through sources starting at current_index
+        for _ in 0..self.sources.len() {
+            let idx = self.current_index;
+            match self.sources[idx].next() {
+                Some(Stream::Next(value)) => {
+                    self.collected.push(value);
+                    self.current_index = (self.current_index + 1) % self.sources.len();
+                    return Some(Stream::Pending(self.sources.len()));
+                }
+                Some(Stream::Pending(_)) => {
+                    self.current_index = (self.current_index + 1) % self.sources.len();
+                    return Some(Stream::Pending(self.sources.len()));
+                }
+                Some(Stream::Delayed(d)) => {
+                    self.current_index = (self.current_index + 1) % self.sources.len();
+                    return Some(Stream::Delayed(d));
+                }
+                Some(Stream::Init) => {
+                    self.current_index = (self.current_index + 1) % self.sources.len();
+                    return Some(Stream::Pending(self.sources.len()));
+                }
+                Some(Stream::Ignore) => {
+                    self.current_index = (self.current_index + 1) % self.sources.len();
+                    // Continue to next source in same pass
+                }
+                None => {
+                    exhausted_indices.push(idx);
+                    self.current_index = (self.current_index + 1) % self.sources.len();
+                }
+            }
+        }
+
+        // Remove exhausted sources after the pass
+        // Sort in descending order so swap_remove doesn't invalidate subsequent indices
+        exhausted_indices.sort_by(|a, b| b.cmp(a));
+        for idx in exhausted_indices {
+            self.sources.swap_remove(idx);
+        }
+
+        // Adjust current_index if it now points beyond the new length
+        if !self.sources.is_empty() && self.current_index >= self.sources.len() {
+            self.current_index = 0;
+        }
+
+        if self.sources.is_empty() {
+            self.done = true;
+            if self.collected.is_empty() {
+                return None;
+            }
+            return Some(Stream::Next(std::mem::take(&mut self.collected)));
+        }
+
+        Some(Stream::Pending(self.sources.len()))
     }
 }
 // Note: StreamIterator is auto-implemented via blanket impl for Iterator<Item = Stream<D, P>>
@@ -1126,6 +1146,164 @@ where
 //     type D = O;
 //     type P = usize;
 // }
+
+// ============================================================================
+// Collect Next From All (New Feature)
+// ============================================================================
+
+/// Execute multiple `TaskIterator`s and yield individual values as they arrive.
+///
+/// Unlike `execute_collect_all` which buffers all values and returns them when complete,
+/// this function yields each `Stream::Next(D)` value individually as soon as any task
+/// produces it. When a task is exhausted (returns `None`), it is removed from the pool.
+/// Yields `Stream::Pending(count)` while any tasks are still pending.
+/// Returns `None` when all tasks are exhausted.
+///
+/// # Arguments
+///
+/// * `tasks` - Vector of `TaskIterator`s to execute in parallel
+/// * `wait_cycle` - Optional polling duration (defaults to `DEFAULT_WAIT_CYCLE`)
+///
+/// # Returns
+///
+/// Returns a `CollectNextFromAllStream` that yields values as they arrive.
+///
+/// # Example
+///
+/// ```ignore
+/// let tasks = vec![task1, task2, task3];
+/// let stream = execute_collect_next_from_all(tasks, None)?;
+///
+/// for item in stream {
+///     match item {
+///         Stream::Next(value) => process_immediately(value),
+///         Stream::Pending(count) => println!("{count} tasks still running..."),
+///         Stream::Delayed(dur) => continue,
+///     }
+/// }
+/// ```
+pub fn execute_collect_next_from_all<T>(
+    tasks: Vec<T>,
+    wait_cycle: Option<std::time::Duration>,
+) -> GenericResult<CollectNextFromAllStream<T>>
+where
+    T: TaskIterator + Send + 'static,
+    T::Ready: Send + 'static,
+    T::Pending: Send + 'static,
+    T::Spawner: ExecutionAction + Send + 'static,
+{
+    let streams: Vec<DrivenStreamIterator<T>> = tasks
+        .into_iter()
+        .map(|t| execute(t, wait_cycle))
+        .collect::<GenericResult<_>>()?;
+
+    Ok(CollectNextFromAllStream::new(streams))
+}
+
+/// Collects outputs from multiple `TaskIterator`s executed via `execute()`,
+/// yielding individual values as they arrive and removing completed streams.
+///
+/// Unlike `CollectAllStream` which buffers all values and returns them when complete,
+/// this type yields each `Next(D)` value individually as soon as any stream produces it.
+/// When a stream is exhausted (returns `None`), it is removed from the pool.
+/// Yields `Stream::Pending(count)` while any streams are still pending.
+/// Returns `None` when all streams are exhausted.
+pub struct CollectNextFromAllStream<T>
+where
+    T: TaskIterator + Send + 'static,
+    T::Ready: Send + 'static,
+    T::Pending: Send + 'static,
+    T::Spawner: ExecutionAction + Send + 'static,
+{
+    sources: Vec<DrivenStreamIterator<T>>,
+    current_index: usize,
+    _phantom: std::marker::PhantomData<T>,
+}
+
+impl<T> CollectNextFromAllStream<T>
+where
+    T: TaskIterator + Send + 'static,
+    T::Ready: Send + 'static,
+    T::Pending: Send + 'static,
+    T::Spawner: ExecutionAction + Send + 'static,
+{
+    /// Create a new `CollectNextFromAllStream` from a vector of `DrivenStreamIterator`s.
+    #[must_use]
+    pub fn new(sources: Vec<DrivenStreamIterator<T>>) -> Self {
+        Self {
+            sources,
+            current_index: 0,
+            _phantom: std::marker::PhantomData,
+        }
+    }
+}
+
+impl<T> Iterator for CollectNextFromAllStream<T>
+where
+    T: TaskIterator + Send + 'static,
+    T::Ready: Send + 'static,
+    T::Pending: Send + 'static,
+    T::Spawner: ExecutionAction + Send + 'static,
+{
+    type Item = Stream<T::Ready, usize>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.sources.is_empty() {
+            return None;
+        }
+
+        let mut exhausted_indices = Vec::new();
+
+        // One pass through sources starting at current_index
+        for _ in 0..self.sources.len() {
+            let idx = self.current_index;
+            match self.sources[idx].next() {
+                Some(Stream::Next(value)) => {
+                    self.current_index = (self.current_index + 1) % self.sources.len();
+                    return Some(Stream::Next(value));
+                }
+                Some(Stream::Pending(_)) => {
+                    self.current_index = (self.current_index + 1) % self.sources.len();
+                    return Some(Stream::Pending(self.sources.len()));
+                }
+                Some(Stream::Delayed(d)) => {
+                    self.current_index = (self.current_index + 1) % self.sources.len();
+                    return Some(Stream::Delayed(d));
+                }
+                Some(Stream::Init) => {
+                    self.current_index = (self.current_index + 1) % self.sources.len();
+                    return Some(Stream::Pending(self.sources.len()));
+                }
+                Some(Stream::Ignore) => {
+                    self.current_index = (self.current_index + 1) % self.sources.len();
+                    // Continue to next source in same pass
+                }
+                None => {
+                    exhausted_indices.push(idx);
+                    self.current_index = (self.current_index + 1) % self.sources.len();
+                }
+            }
+        }
+
+        // Remove exhausted sources after the pass
+        // Sort in descending order so swap_remove doesn't invalidate subsequent indices
+        exhausted_indices.sort_by(|a, b| b.cmp(a));
+        for idx in exhausted_indices {
+            self.sources.swap_remove(idx);
+        }
+
+        // Adjust current_index if it now points beyond the new length
+        if !self.sources.is_empty() && self.current_index >= self.sources.len() {
+            self.current_index = 0;
+        }
+
+        if self.sources.is_empty() {
+            return None;
+        }
+
+        Some(Stream::Pending(self.sources.len()))
+    }
+}
 
 // ============================================================================
 // Sync boundary helpers

@@ -16,8 +16,7 @@ use std::process::Command;
 use std::time::{Duration, Instant};
 
 use derive_more::{Display, From};
-use foundation_core::synca::mpp::Stream;
-use foundation_core::valtron::{self, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{self, Stream, TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::HttpRequestPending;
 use foundation_core::wire::simple_http::client::RequestIntro;
 use foundation_core::wire::simple_http::client::{body_reader, SendRequestTask, SimpleHttpClient};

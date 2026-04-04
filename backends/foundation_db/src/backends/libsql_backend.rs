@@ -333,7 +333,7 @@ impl QueryStore for LibsqlStorage {
         params: &[DataValue],
     ) -> StorageResult<StorageItemStream<'_, SqlRow>> {
         use crate::rows_stream::LibsqlRowsIterator;
-        use foundation_core::synca::mpp::Stream;
+        use foundation_core::valtron::Stream;
 
         let libsql_params = Self::to_libsql_params(params);
         let sql = sql.to_string();

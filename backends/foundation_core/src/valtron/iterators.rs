@@ -1,7 +1,6 @@
 use super::types::AnyResult;
 
-pub use crate::synca::mpp::Stream;
-pub use crate::synca::mpp::StreamIterator;
+pub use super::streams::Stream;
 
 /// `CloneableBoxIterator` is a type definition for an Iterator that can safely be
 /// sent across threads safely and easily. Requiring the underlying generic

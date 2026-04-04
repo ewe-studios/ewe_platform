@@ -212,6 +212,7 @@ impl<T> RecvIter<T> {
                         if yield_now {
                             yield_now = false;
                             std::thread::yield_now();
+                            // std::hint::spin_loop();
                             continue;
                         }
 
@@ -288,99 +289,6 @@ impl<T> Iterator for RecvIterator<T> {
 
     fn next(&mut self) -> Option<Self::Item> {
         self.0.block_recv(self.1).ok()
-    }
-}
-
-#[derive(Debug, PartialEq, Clone)]
-pub enum Stream<D, P> {
-    // Indicative the stream is instantiating.
-    Init,
-
-    // Indicative of internal system operations occuring that should be ignored.
-    Ignore,
-
-    // Indicative that the stream next response will be delayed by this much duration
-    Delayed(std::time::Duration),
-
-    // Indicating that the stream is a pending state with giving context value.
-    Pending(P),
-
-    // Indicative the stream just issued its next value.
-    Next(D),
-}
-
-/// [`StreamIterator`] defines a type which implements an
-/// iterator that returns a stream stream
-/// of values.
-pub trait StreamIterator: Iterator<Item = Stream<Self::D, Self::P>> {
-    type D;
-    type P;
-}
-
-// StreamIterator implementations for wrapper types
-//
-impl<M, D, P> StreamIterator for M
-where
-    M: Iterator<Item = Stream<D, P>> + ?Sized,
-    D: Send + 'static,
-    P: Send + 'static,
-{
-    type D = D;
-    type P = P;
-}
-
-// impl<D, P> StreamIterator for Box<dyn StreamIterator<D = D, P = P, Item = Stream<D, P>> + Send + '_>
-// where
-//     D: Send + 'static,
-//     P: Send + 'static,
-// {
-//     type D = D;
-//     type P = P;
-// }
-
-// impl<D, P> StreamIterator for Box<dyn StreamIterator<D = D, P = P, Item = Stream<D, P>> + '_>
-// where
-//     D: Send + 'static,
-//     P: Send + 'static,
-// {
-//     type D = D;
-//     type P = P;
-// }
-
-// Note: Types implement StreamIterator explicitly or via blanket impls
-// that are more specific than this would be.
-
-pub struct StreamRecvIterator<D, P>(RecvIterator<Stream<D, P>>);
-
-impl<D, P> StreamRecvIterator<D, P> {
-    #[must_use]
-    pub fn is_empty(&self) -> bool {
-        self.0.is_empty()
-    }
-
-    #[must_use]
-    pub fn len(&self) -> usize {
-        self.0.len()
-    }
-
-    #[must_use]
-    pub fn is_closed(&self) -> bool {
-        self.0.is_closed()
-    }
-}
-
-impl<D, P> StreamRecvIterator<D, P> {
-    #[must_use]
-    pub fn new(iter: RecvIterator<Stream<D, P>>) -> Self {
-        Self(iter)
-    }
-}
-
-impl<D, P> Iterator for StreamRecvIterator<D, P> {
-    type Item = Stream<D, P>;
-
-    fn next(&mut self) -> Option<Self::Item> {
-        self.0.next()
     }
 }
 
