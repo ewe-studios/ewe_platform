@@ -25,22 +25,17 @@ use tracing_test::traced_test;
 const GCP_STYLE_CHUNKED_BODY: &[u8] = &[
     // Chunk 1: 49 bytes (0x31)
     // JSON with CR embedded in "required" field
-    b'3', b'1', b'\r', b'\n',
-    b'{', b'\r', b'\n', b' ', b'"', b'k', b'i', b'n', b'd', b'"', b':',
-    b' ', b'"', b'd', b'i', b's', b'c', b'o', b'v', b'e', b'r', b'y',
-    b'"', b',', b'\r', b'\n', b' ', b'"', b'r', b'e', b'q', b'u', b'i',
-    b'\r', b'r', b'e', b'd', b'"', b':', b' ', b'"', b'v', b'a', b'l',
-    b'u', b'e', b'"', b'\r', b'\n',
+    b'3', b'1', b'\r', b'\n', b'{', b'\r', b'\n', b' ', b'"', b'k', b'i', b'n', b'd', b'"', b':',
+    b' ', b'"', b'd', b'i', b's', b'c', b'o', b'v', b'e', b'r', b'y', b'"', b',', b'\r', b'\n',
+    b' ', b'"', b'r', b'e', b'q', b'u', b'i', b'\r', b'r', b'e', b'd', b'"', b':', b' ', b'"',
+    b'v', b'a', b'l', b'u', b'e', b'"', b'\r', b'\n',
     // Chunk 2: 61 bytes (0x3d)
     // More content with CR in enumDescriptions
-    b'3', b'd', b'\r', b'\n',
-    b' ', b'"', b'i', b't', b'e', b'm', b's', b'"', b':', b' ', b'[',
-    b'{', b'"', b'n', b'a', b'm', b'e', b'"', b':', b'"', b'c', b'o',
-    b'm', b'p', b'u', b't', b'e', b'"', b'}', b']', b'\r', b'\n',
-    b' ', b'"', b'e', b'n', b'u', b'm', b'D', b'e', b's', b'c', b'r',
-    b'i', b'p', b't', b'i', b'o', b'n', b's', b'"', b':', b'"', b't',
-    b'e', b's', b't', b'"', b'\r', b'\n',
-    // Final chunk (size 0)
+    b'3', b'd', b'\r', b'\n', b' ', b'"', b'i', b't', b'e', b'm', b's', b'"', b':', b' ', b'[',
+    b'{', b'"', b'n', b'a', b'm', b'e', b'"', b':', b'"', b'c', b'o', b'm', b'p', b'u', b't', b'e',
+    b'"', b'}', b']', b'\r', b'\n', b' ', b'"', b'e', b'n', b'u', b'm', b'D', b'e', b's', b'c',
+    b'r', b'i', b'p', b't', b'i', b'o', b'n', b's', b'"', b':', b'"', b't', b'e', b's', b't', b'"',
+    b'\r', b'\n', // Final chunk (size 0)
     b'0', b'\r', b'\n', b'\r', b'\n',
 ];
 
@@ -50,16 +45,13 @@ const GCP_STYLE_CHUNKED_BODY: &[u8] = &[
 /// Note: Includes the '0' from final chunk marker due to how the parser
 /// handles the termination sequence - this is expected behavior being tested.
 const EXPECTED_OUTPUT: &[u8] = &[
-    b'{', b'\n', b' ', b'"', b'k', b'i', b'n', b'd', b'"', b':', b' ',
-    b'"', b'd', b'i', b's', b'c', b'o', b'v', b'e', b'r', b'y', b'"',
-    b',', b'\n', b' ', b'"', b'r', b'e', b'q', b'u', b'i', b'r', b'e',
-    b'd', b'"', b':', b' ', b'"', b'v', b'a', b'l', b'u', b'e', b'"',
-    b'\n', b' ', b'"', b'i', b't', b'e', b'm', b's', b'"', b':', b' ',
-    b'[', b'{', b'"', b'n', b'a', b'm', b'e', b'"', b':', b'"', b'c',
-    b'o', b'm', b'p', b'u', b't', b'e', b'"', b'}', b']', b'\n', b' ',
-    b'"', b'e', b'n', b'u', b'm', b'D', b'e', b's', b'c', b'r', b'i',
-    b'p', b't', b'i', b'o', b'n', b's', b'"', b':', b'"', b't', b'e',
-    b's', b't', b'"', b'\n', b'0',
+    b'{', b'\n', b' ', b'"', b'k', b'i', b'n', b'd', b'"', b':', b' ', b'"', b'd', b'i', b's',
+    b'c', b'o', b'v', b'e', b'r', b'y', b'"', b',', b'\n', b' ', b'"', b'r', b'e', b'q', b'u',
+    b'i', b'r', b'e', b'd', b'"', b':', b' ', b'"', b'v', b'a', b'l', b'u', b'e', b'"', b'\n',
+    b' ', b'"', b'i', b't', b'e', b'm', b's', b'"', b':', b' ', b'[', b'{', b'"', b'n', b'a', b'm',
+    b'e', b'"', b':', b'"', b'c', b'o', b'm', b'p', b'u', b't', b'e', b'"', b'}', b']', b'\n',
+    b' ', b'"', b'e', b'n', b'u', b'm', b'D', b'e', b's', b'c', b'r', b'i', b'p', b't', b'i', b'o',
+    b'n', b's', b'"', b':', b'"', b't', b'e', b's', b't', b'"', b'\n', b'0',
 ];
 
 /// Integration test: GCP-style response with CR bytes in content.
@@ -92,10 +84,7 @@ fn test_gcp_style_cr_stripping() {
     }
 
     // Verify no CR bytes in output
-    let cr_count = collected_bytes
-        .iter()
-        .filter(|&&b| b == b'\r')
-        .count();
+    let cr_count = collected_bytes.iter().filter(|&&b| b == b'\r').count();
     assert_eq!(
         cr_count, 0,
         "All CR bytes should be stripped. Found: {}",
@@ -192,10 +181,7 @@ fn test_cr_stripping_at_various_positions() {
     }
 
     // All CRs should be stripped
-    let cr_count = collected_bytes
-        .iter()
-        .filter(|&&b| b == b'\r')
-        .count();
+    let cr_count = collected_bytes.iter().filter(|&&b| b == b'\r').count();
     assert_eq!(cr_count, 0, "All CRs should be stripped");
 
     // Content should be intact (minus CRs)
@@ -244,11 +230,11 @@ fn test_gcp_chunked_fixture_from_file() {
     }
 
     // Verify no CR bytes in output
-    let cr_count = collected_bytes
-        .iter()
-        .filter(|&&b| b == b'\r')
-        .count();
-    assert_eq!(cr_count, 0, "All CR bytes should be stripped. Found: {cr_count}");
+    let cr_count = collected_bytes.iter().filter(|&&b| b == b'\r').count();
+    assert_eq!(
+        cr_count, 0,
+        "All CR bytes should be stripped. Found: {cr_count}"
+    );
 
     // Verify output matches expected
     assert_eq!(
@@ -278,15 +264,11 @@ fn test_gcp_chunked_fixture_from_file() {
 #[test]
 #[traced_test]
 fn test_real_gcp_captured_response() {
-
     // Load the real captured GCP response (body only, with chunked encoding)
     let fixture_bytes = include_bytes!("gcp_real_chunked_response.bin");
 
     // Verify fixture contains CR bytes (proves this is real GCP data with issues)
-    let fixture_cr_count = fixture_bytes
-        .iter()
-        .filter(|&&b| b == b'\r')
-        .count();
+    let fixture_cr_count = fixture_bytes.iter().filter(|&&b| b == b'\r').count();
     assert!(
         fixture_cr_count > 100,
         "Fixture should contain many CR bytes. Found: {}",
@@ -308,11 +290,19 @@ fn test_real_gcp_captured_response() {
             Ok(ChunkedData::Data(data, _)) => {
                 collected_bytes.extend_from_slice(&data);
                 chunk_count += 1;
-                tracing::info!("Chunk {}: collected {} bytes (total: {})",
-                    chunk_count, data.len(), collected_bytes.len());
+                tracing::info!(
+                    "Chunk {}: collected {} bytes (total: {})",
+                    chunk_count,
+                    data.len(),
+                    collected_bytes.len()
+                );
             }
             Ok(ChunkedData::DataEnded) => {
-                tracing::info!("DataEnd after {} chunks, {} bytes", chunk_count, collected_bytes.len());
+                tracing::info!(
+                    "DataEnd after {} chunks, {} bytes",
+                    chunk_count,
+                    collected_bytes.len()
+                );
                 break;
             }
             Ok(ChunkedData::Trailers(_)) => {
@@ -322,13 +312,14 @@ fn test_real_gcp_captured_response() {
         }
     }
 
-    tracing::info!("Final: {} chunks, {} bytes", chunk_count, collected_bytes.len());
+    tracing::info!(
+        "Final: {} chunks, {} bytes",
+        chunk_count,
+        collected_bytes.len()
+    );
 
     // Verify all CR bytes are stripped from output
-    let output_cr_count = collected_bytes
-        .iter()
-        .filter(|&&b| b == b'\r')
-        .count();
+    let output_cr_count = collected_bytes.iter().filter(|&&b| b == b'\r').count();
     assert_eq!(
         output_cr_count, 0,
         "All CR bytes should be stripped from real GCP response. Found: {output_cr_count}"

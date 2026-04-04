@@ -8,7 +8,7 @@
 //! `components/schemas`, maps OpenAPI types to Rust types, and generates Rust source files
 //! using string templates.
 
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, BTreeSet, HashMap};
 use std::fmt::Write;
 use std::path::PathBuf;
 use std::process::Command;
@@ -181,6 +181,9 @@ pub struct Schema {
     pub default: Option<Value>,
     #[serde(default)]
     pub example: Option<Value>,
+    /// Enum values for string enums.
+    #[serde(default, rename = "enum")]
+    pub enum_values: Option<Vec<Value>>,
 }
 
 // ---------------------------------------------------------------------------
@@ -208,8 +211,10 @@ pub struct ResourceDef {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct FieldDef {
-    /// Field name (Rust-safe identifier)
+    /// Field name (Rust-safe snake_case identifier)
     pub name: String,
+    /// Original field name from the spec (for serde rename)
+    pub original_name: String,
     /// Field type (Rust type string)
     pub ty: String,
     /// Whether the field is required
@@ -252,19 +257,76 @@ impl ResourceGenerator {
     }
 
     /// Generate resource types for a single provider.
+    ///
+    /// If the provider directory has subdirectories with `openapi.json` files
+    /// (e.g. `gcp/compute/openapi.json`), generates one file per sub-API.
+    /// Otherwise generates a single `resources.rs` from the top-level spec.
     pub fn generate_for_provider(&self, provider: &str) -> Result<(), GenResourceError> {
-        let spec_path = self.artefacts_dir.join(provider).join("openapi.json");
-        // Output to provider's resources directory as resources.rs
-        let output_path = self.output_dir.join(provider).join("resources.rs");
+        let provider_dir = self.artefacts_dir.join(provider);
 
-        // Create provider directory if it doesn't exist
-        std::fs::create_dir_all(&output_path.parent().unwrap()).ok();
+        // Discover sub-API directories (e.g. gcp/compute/, gcp/run/)
+        let sub_apis = self.discover_sub_apis(&provider_dir);
 
-        tracing::info!("Generating resource types for {provider}...");
+        if sub_apis.is_empty() {
+            // Single spec: provider/openapi.json -> resources.rs
+            self.generate_from_spec(
+                provider,
+                &provider_dir.join("openapi.json"),
+                &self.output_dir.join(provider).join("resources.rs"),
+            )?;
+        } else {
+            // Per-API specs: provider/{api}/openapi.json -> {api}/resources.rs
+            tracing::info!(
+                "Generating resource types for {provider} ({} sub-APIs)...",
+                sub_apis.len()
+            );
+            for api_name in &sub_apis {
+                let spec_path = provider_dir.join(api_name).join("openapi.json");
+                let output_path = self
+                    .output_dir
+                    .join(provider)
+                    .join(api_name)
+                    .join("resources.rs");
+                let label = format!("{provider}/{api_name}");
+                self.generate_from_spec(&label, &spec_path, &output_path)?;
+            }
+        }
 
-        // Read and parse spec
+        Ok(())
+    }
+
+    /// Discover sub-API directories that contain their own `openapi.json`.
+    fn discover_sub_apis(&self, provider_dir: &std::path::Path) -> Vec<String> {
+        let mut apis = Vec::new();
+        if let Ok(entries) = std::fs::read_dir(provider_dir) {
+            for entry in entries.flatten() {
+                if entry.path().is_dir() {
+                    let name = entry.file_name().to_string_lossy().to_string();
+                    if entry.path().join("openapi.json").exists() {
+                        apis.push(name);
+                    }
+                }
+            }
+        }
+        apis.sort();
+        apis
+    }
+
+    /// Generate resource types from a single spec file.
+    fn generate_from_spec(
+        &self,
+        label: &str,
+        spec_path: &std::path::Path,
+        output_path: &std::path::Path,
+    ) -> Result<(), GenResourceError> {
+        if let Some(parent) = output_path.parent() {
+            std::fs::create_dir_all(parent).ok();
+        }
+
+        tracing::info!("Generating resource types for {label}...");
+
         let spec_content =
-            std::fs::read_to_string(&spec_path).map_err(|e| GenResourceError::ReadFile {
+            std::fs::read_to_string(spec_path).map_err(|e| GenResourceError::ReadFile {
                 path: spec_path.display().to_string(),
                 source: e,
             })?;
@@ -275,25 +337,33 @@ impl ResourceGenerator {
                 source: e,
             })?;
 
-        // Extract resource definitions
-        let resources = self.extract_resources(&spec)?;
+        // Collect the set of schema names that are object types with properties,
+        // so we can validate $ref targets during type resolution.
+        let object_schemas = self.collect_object_schema_names(&spec);
+
+        let resources = self.extract_resources(&spec, &object_schemas)?;
 
         tracing::info!("  Extracted {} resource types", resources.len());
 
-        // Generate Rust code
-        let rust_code = self.generate_rust(provider, &resources)?;
+        // Dedup pass: detect PascalCase name collisions and append numeric suffix
+        let resources = Self::dedup_type_names(resources);
 
-        // Write output
-        std::fs::write(&output_path, rust_code).map_err(|e| GenResourceError::WriteFile {
+        // Skip trivial types: structs with only a single serde_json::Value field
+        let resources: Vec<ResourceDef> = resources
+            .into_iter()
+            .filter(|r| !Self::is_trivial_type(r))
+            .collect();
+
+        let rust_code = self.generate_rust(label, &resources)?;
+
+        std::fs::write(output_path, rust_code).map_err(|e| GenResourceError::WriteFile {
             path: output_path.display().to_string(),
             source: e,
         })?;
 
-        // Run rustfmt
-        let _ = Command::new("rustfmt").arg(&output_path).output();
+        let _ = Command::new("rustfmt").arg(output_path).output();
 
         tracing::info!("  Generated: {}", output_path.display());
-
         Ok(())
     }
 
@@ -314,19 +384,150 @@ impl ResourceGenerator {
         Ok(providers)
     }
 
+    /// Collect schema names that resolve to object types with properties.
+    ///
+    /// Used to validate `$ref` targets: if a ref points to a non-object schema,
+    /// the field should fall back to `serde_json::Value`.
+    fn collect_object_schema_names(&self, spec: &Value) -> BTreeSet<String> {
+        let mut names = BTreeSet::new();
+
+        let schemas_maps: Vec<&serde_json::Map<String, Value>> = {
+            let mut maps = Vec::new();
+            if let Some(s) = spec
+                .get("components")
+                .and_then(|c| c.get("schemas"))
+                .and_then(|s| s.as_object())
+            {
+                maps.push(s);
+            }
+            if let Some(s) = spec.get("schemas").and_then(|s| s.as_object()) {
+                maps.push(s);
+            }
+            // Consolidated format
+            if maps.is_empty() {
+                if let Some(obj) = spec.as_object() {
+                    for (_api_name, api_spec) in obj {
+                        if let Some(s) = api_spec
+                            .get("components")
+                            .and_then(|c| c.get("schemas"))
+                            .and_then(|s| s.as_object())
+                        {
+                            maps.push(s);
+                        } else if let Some(s) =
+                            api_spec.get("schemas").and_then(|s| s.as_object())
+                        {
+                            maps.push(s);
+                        }
+                    }
+                }
+            }
+            maps
+        };
+
+        for schemas in schemas_maps {
+            for (name, value) in schemas {
+                if value.get("type").and_then(|t| t.as_str()) == Some("object") {
+                    if let Some(props) = value.get("properties").and_then(|p| p.as_object()) {
+                        if !props.is_empty() {
+                            names.insert(name.clone());
+                        }
+                    }
+                }
+            }
+        }
+
+        names
+    }
+
+    /// Deduplicate type names by appending numeric suffixes on collision.
+    fn dedup_type_names(mut resources: Vec<ResourceDef>) -> Vec<ResourceDef> {
+        let mut seen: HashMap<String, usize> = HashMap::new();
+
+        for resource in &mut resources {
+            let count = seen.entry(resource.name.clone()).or_insert(0);
+            *count += 1;
+            if *count > 1 {
+                resource.name = format!("{}{}", resource.name, count);
+            }
+        }
+
+        resources
+    }
+
+    /// Check if a type is trivial (single `serde_json::Value` field).
+    fn is_trivial_type(resource: &ResourceDef) -> bool {
+        if resource.fields.len() != 1 {
+            return false;
+        }
+        let field = &resource.fields[0];
+        field.ty == "serde_json::Value"
+    }
+
     /// Extract resource definitions from OpenAPI spec.
-    fn extract_resources(&self, spec: &Value) -> Result<Vec<ResourceDef>, GenResourceError> {
+    ///
+    /// Handles multiple formats:
+    /// - Standard OpenAPI 3.x: `components/schemas`
+    /// - GCP Discovery: `schemas` at top level
+    /// - Consolidated: object where each value is an API spec (GCP multi-API format)
+    fn extract_resources(
+        &self,
+        spec: &Value,
+        object_schemas: &BTreeSet<String>,
+    ) -> Result<Vec<ResourceDef>, GenResourceError> {
         let mut resources = Vec::new();
 
-        // Extract schemas from components/schemas
+        // Try standard OpenAPI: components/schemas
         if let Some(schemas) = spec
             .get("components")
             .and_then(|c| c.get("schemas"))
             .and_then(|s| s.as_object())
         {
             for (schema_name, schema_value) in schemas {
-                if let Some(resource) = self.extract_resource(schema_name, schema_value) {
+                if let Some(resource) =
+                    self.extract_resource(schema_name, schema_value, object_schemas)
+                {
                     resources.push(resource);
+                }
+            }
+            return Ok(resources);
+        }
+
+        // Try GCP Discovery format: top-level `schemas`
+        if let Some(schemas) = spec.get("schemas").and_then(|s| s.as_object()) {
+            for (schema_name, schema_value) in schemas {
+                if let Some(resource) =
+                    self.extract_resource(schema_name, schema_value, object_schemas)
+                {
+                    resources.push(resource);
+                }
+            }
+            return Ok(resources);
+        }
+
+        // Try consolidated format: each top-level key is an API spec
+        if let Some(obj) = spec.as_object() {
+            for (_api_name, api_spec) in obj {
+                // Each entry might be an OpenAPI spec or a Discovery doc
+                if let Some(schemas) = api_spec
+                    .get("components")
+                    .and_then(|c| c.get("schemas"))
+                    .and_then(|s| s.as_object())
+                {
+                    for (schema_name, schema_value) in schemas {
+                        if let Some(resource) =
+                            self.extract_resource(schema_name, schema_value, object_schemas)
+                        {
+                            resources.push(resource);
+                        }
+                    }
+                } else if let Some(schemas) = api_spec.get("schemas").and_then(|s| s.as_object()) {
+                    for (schema_name, schema_value) in schemas {
+                        if let Some(resource) =
+                            self.extract_resource(schema_name, schema_value, object_schemas)
+                        {
+                            resources.push(resource);
+                        }
+                    }
                 }
             }
         }
@@ -335,7 +536,12 @@ impl ResourceGenerator {
     }
 
     /// Extract a single resource from a schema.
-    fn extract_resource(&self, schema_name: &str, schema_value: &Value) -> Option<ResourceDef> {
+    fn extract_resource(
+        &self,
+        schema_name: &str,
+        schema_value: &Value,
+        object_schemas: &BTreeSet<String>,
+    ) -> Option<ResourceDef> {
         let schema: Schema = serde_json::from_value(schema_value.clone()).ok()?;
 
         // Only process object types with properties
@@ -348,19 +554,40 @@ impl ResourceGenerator {
             return None;
         }
 
-        let rust_name = self.openapi_to_rust_name(schema_name);
+        let rust_name = self.to_pascal_case(schema_name);
         let description = schema.description.clone();
 
         let mut fields = Vec::new();
         for (field_name, field_schema) in properties {
-            let field_ty = self.schema_to_rust_type(field_schema);
+            let field_ty = self.schema_to_rust_type(field_schema, object_schemas);
             let required = schema.required.contains(field_name);
 
+            // Build description, appending enum TODO comment if applicable
+            let description = {
+                let mut desc = field_schema.description.clone();
+                if let Some(enum_vals) = &field_schema.enum_values {
+                    let vals: Vec<String> = enum_vals
+                        .iter()
+                        .map(|v| match v {
+                            Value::String(s) => format!("\"{s}\""),
+                            other => other.to_string(),
+                        })
+                        .collect();
+                    let todo = format!("TODO: enum values: [{}]", vals.join(", "));
+                    desc = Some(match desc {
+                        Some(d) => format!("{d} // {todo}"),
+                        None => todo,
+                    });
+                }
+                desc
+            };
+
             fields.push(FieldDef {
-                name: self.openapi_to_rust_name(field_name),
+                name: self.to_snake_case(field_name),
+                original_name: field_name.clone(),
                 ty: field_ty,
                 required,
-                description: field_schema.description.clone(),
+                description,
             });
         }
 
@@ -374,7 +601,10 @@ impl ResourceGenerator {
     }
 
     /// Convert OpenAPI schema type to Rust type.
-    fn schema_to_rust_type(&self, schema: &Schema) -> String {
+    ///
+    /// `object_schemas` contains schema names that are known to be object types
+    /// with properties, used to validate `$ref` targets.
+    fn schema_to_rust_type(&self, schema: &Schema, object_schemas: &BTreeSet<String>) -> String {
         match schema.schema_type.as_deref() {
             Some("string") => "String".to_string(),
             Some("integer") => match schema.format.as_deref() {
@@ -390,7 +620,7 @@ impl ResourceGenerator {
             Some("boolean") => "bool".to_string(),
             Some("array") => {
                 if let Some(items) = &schema.items {
-                    let inner_ty = self.schema_to_rust_type(items);
+                    let inner_ty = self.schema_to_rust_type(items, object_schemas);
                     format!("Vec<{inner_ty}>")
                 } else {
                     "Vec<Value>".to_string()
@@ -401,12 +631,16 @@ impl ResourceGenerator {
             None => {
                 // Could be a reference or complex type
                 if let Some(ref_path) = &schema.ref_path {
-                    let ref_name = ref_path.trim_start_matches("#/components/schemas/");
-                    self.openapi_to_rust_name(ref_name)
-                } else if schema.any_of.is_some()
-                    || schema.one_of.is_some()
-                    || schema.all_of.is_some()
-                {
+                    self.resolve_ref(ref_path, object_schemas)
+                } else if let Some(all_of) = &schema.all_of {
+                    // allOf with a single $ref: use the referenced type
+                    if all_of.len() == 1 {
+                        if let Some(ref_path) = &all_of[0].ref_path {
+                            return self.resolve_ref(ref_path, object_schemas);
+                        }
+                    }
+                    "serde_json::Value".to_string()
+                } else if schema.any_of.is_some() || schema.one_of.is_some() {
                     "serde_json::Value".to_string()
                 } else {
                     "serde_json::Value".to_string()
@@ -420,67 +654,96 @@ impl ResourceGenerator {
         }
     }
 
-    /// Convert OpenAPI identifier to Rust-safe identifier.
-    fn openapi_to_rust_name(&self, name: &str) -> String {
-        // Convert kebab-case and camelCase to snake_case
-        let result = name
-            .chars()
-            .map(|c| {
-                if c.is_alphanumeric() {
-                    c.to_ascii_lowercase()
-                } else {
-                    '_'
-                }
-            })
-            .collect::<String>();
+    /// Resolve a `$ref` path to a Rust type name.
+    ///
+    /// If the referenced schema is a known object type, returns the PascalCase name.
+    /// Otherwise falls back to `serde_json::Value`.
+    fn resolve_ref(&self, ref_path: &str, object_schemas: &BTreeSet<String>) -> String {
+        let ref_name = ref_path.trim_start_matches("#/components/schemas/");
+        // Also handle GCP Discovery refs like "#/schemas/Foo"
+        let ref_name = ref_name.trim_start_matches("#/schemas/");
+        if object_schemas.contains(ref_name) {
+            self.to_pascal_case(ref_name)
+        } else {
+            "serde_json::Value".to_string()
+        }
+    }
 
-        // Remove consecutive underscores
-        let result = result
-            .split('_')
-            .filter(|s| !s.is_empty())
-            .collect::<Vec<_>>()
-            .join("_");
+    /// Convert OpenAPI identifier to snake_case Rust field name.
+    fn to_snake_case(&self, name: &str) -> String {
+        // Split on non-alphanumeric, camelCase boundaries, and underscores
+        let mut parts = Vec::new();
+        let mut current = String::new();
+
+        let chars: Vec<char> = name.chars().collect();
+        for i in 0..chars.len() {
+            let c = chars[i];
+            if !c.is_alphanumeric() {
+                // Non-alphanumeric = word boundary
+                if !current.is_empty() {
+                    parts.push(current.clone());
+                    current.clear();
+                }
+            } else if c.is_uppercase() {
+                // camelCase boundary: start new word on uppercase
+                if !current.is_empty() {
+                    // Check if this is an acronym (e.g., "URL" in "getURLPath")
+                    let next_is_lower = i + 1 < chars.len() && chars[i + 1].is_lowercase();
+                    if next_is_lower || current.chars().last().map_or(false, |p| p.is_lowercase()) {
+                        parts.push(current.clone());
+                        current.clear();
+                    }
+                }
+                current.push(c.to_ascii_lowercase());
+            } else {
+                current.push(c.to_ascii_lowercase());
+            }
+        }
+        if !current.is_empty() {
+            parts.push(current);
+        }
+
+        let result = parts.join("_");
 
         // Handle Rust keywords
-        match result.as_str() {
-            "type" => "type_".to_string(),
-            "ref" => "ref_".to_string(),
-            "mod" => "mod_".to_string(),
-            "struct" => "struct_".to_string(),
-            "enum" => "enum_".to_string(),
-            "impl" => "impl_".to_string(),
-            "trait" => "trait_".to_string(),
-            "fn" => "fn_".to_string(),
-            "let" => "let_".to_string(),
-            "const" => "const_".to_string(),
-            "static" => "static_".to_string(),
-            "async" => "async_".to_string(),
-            "await" => "await_".to_string(),
-            "loop" => "loop_".to_string(),
-            "match" => "match_".to_string(),
-            "move" => "move_".to_string(),
-            "mut" => "mut_".to_string(),
-            "pub" => "pub_".to_string(),
-            "return" => "return_".to_string(),
-            "self" => "self_".to_string(),
-            "Self" => "Self_".to_string(),
-            "use" => "use_".to_string(),
-            "where" => "where_".to_string(),
-            "while" => "while_".to_string(),
-            "dyn" => "dyn_".to_string(),
-            "abstract" => "abstract_".to_string(),
-            "become" => "become_".to_string(),
-            "box" => "box_".to_string(),
-            "do" => "do_".to_string(),
-            "final" => "final_".to_string(),
-            "macro" => "macro_".to_string(),
-            "override" => "override_".to_string(),
-            "priv" => "priv_".to_string(),
-            "typeof" => "typeof_".to_string(),
-            "unsized" => "unsized_".to_string(),
-            "virtual" => "virtual_".to_string(),
-            "yield" => "yield_".to_string(),
-            _ => result,
+        Self::escape_keyword(&result)
+    }
+
+    /// Convert OpenAPI identifier to PascalCase Rust type name.
+    fn to_pascal_case(&self, name: &str) -> String {
+        // First get snake_case parts
+        let snake = self.to_snake_case(name);
+        let pascal: String = snake
+            .split('_')
+            .filter(|s| !s.is_empty())
+            .map(|part| {
+                let mut chars = part.chars();
+                match chars.next() {
+                    Some(first) => {
+                        let upper: String = first.to_uppercase().collect();
+                        upper + chars.as_str()
+                    }
+                    None => String::new(),
+                }
+            })
+            .collect();
+
+        if pascal.is_empty() {
+            "Unknown".to_string()
+        } else {
+            pascal
+        }
+    }
+
+    /// Escape Rust keywords by appending underscore.
+    fn escape_keyword(name: &str) -> String {
+        match name {
+            "type" | "ref" | "mod" | "struct" | "enum" | "impl" | "trait" | "fn" | "let"
+            | "const" | "static" | "async" | "await" | "loop" | "match" | "move" | "mut"
+            | "pub" | "return" | "self" | "Self" | "use" | "where" | "while" | "dyn"
+            | "abstract" | "become" | "box" | "do" | "final" | "macro" | "override" | "priv"
+            | "typeof" | "unsized" | "virtual" | "yield" => format!("{name}_"),
+            _ => name.to_string(),
         }
     }
 
@@ -492,7 +755,9 @@ impl ResourceGenerator {
     ) -> Result<String, GenResourceError> {
         let mut out = String::with_capacity(256 * 1024);
 
-        let provider_display = match provider {
+        // Extract base provider name for display (handle "gcp/compute" labels)
+        let base_provider = provider.split('/').next().unwrap_or(provider);
+        let provider_display = match base_provider {
             "gcp" => "Google Cloud Platform",
             "cloudflare" => "Cloudflare",
             "fly-io" => "Fly.io",
@@ -503,6 +768,13 @@ impl ResourceGenerator {
             "prisma-postgres" => "Prisma Postgres",
             "planetscale" => "PlanetScale",
             other => other,
+        };
+        // If there's a sub-API, include it in the display
+        let provider_display = if provider.contains('/') {
+            let sub_api = provider.split('/').nth(1).unwrap_or("");
+            format!("{provider_display} - {sub_api}")
+        } else {
+            provider_display.to_string()
         };
 
         writeln!(
@@ -563,6 +835,7 @@ use serde_json::Value;
                 source: std::io::Error::new(std::io::ErrorKind::Other, e),
             }
         })?;
+        // Deny unknown fields is too strict for evolving APIs; just generate the struct
         writeln!(out, "pub struct {} {{", resource.name).map_err(|e| {
             GenResourceError::WriteFile {
                 path: format!("struct {}", resource.name),
@@ -573,9 +846,39 @@ use serde_json::Value;
         // Write fields
         for field in &resource.fields {
             if let Some(desc) = &field.description {
-                writeln!(out, "    /// {desc}").map_err(|e| GenResourceError::WriteFile {
+                let desc_line = desc.lines().next().unwrap_or(desc);
+                writeln!(out, "    /// {desc_line}").map_err(|e| GenResourceError::WriteFile {
                     path: format!("field {}.{}", resource.name, field.name),
                     source: std::io::Error::new(std::io::ErrorKind::Other, e),
+                })?;
+            }
+            // Add serde attributes
+            if field.name != field.original_name && !field.required {
+                // Both rename and default for optional renamed fields
+                writeln!(
+                    out,
+                    "    #[serde(default, rename = \"{}\")]",
+                    field.original_name
+                )
+                .map_err(|e| GenResourceError::WriteFile {
+                    path: format!("field {}.{}", resource.name, field.name),
+                    source: std::io::Error::new(std::io::ErrorKind::Other, e),
+                })?;
+            } else if field.name != field.original_name {
+                // Rename only for required renamed fields
+                writeln!(out, "    #[serde(rename = \"{}\")]", field.original_name).map_err(
+                    |e| GenResourceError::WriteFile {
+                        path: format!("field {}.{}", resource.name, field.name),
+                        source: std::io::Error::new(std::io::ErrorKind::Other, e),
+                    },
+                )?;
+            } else if !field.required {
+                // Default only for optional non-renamed fields
+                writeln!(out, "    #[serde(default)]").map_err(|e| {
+                    GenResourceError::WriteFile {
+                        path: format!("field {}.{}", resource.name, field.name),
+                        source: std::io::Error::new(std::io::ErrorKind::Other, e),
+                    }
                 })?;
             }
             let field_ty = if field.required {

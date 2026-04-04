@@ -45,9 +45,7 @@ fn test_threaded_future_error() {
 #[test]
 #[traced_test]
 fn test_threaded_future_empty_iterator() {
-    let threaded = ThreadedIterFuture::new(|| async {
-        Ok::<_, ()>(vec![].into_iter())
-    });
+    let threaded = ThreadedIterFuture::new(|| async { Ok::<_, ()>(vec![].into_iter()) });
 
     let iter = threaded.execute();
     let results: Vec<Result<i32, ()>> = iter

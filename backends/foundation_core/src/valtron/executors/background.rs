@@ -75,10 +75,12 @@ impl BackgroundJobRegistry {
         kill_signal: Arc<OnSignal>,
         yield_duration: Duration,
     ) -> Arc<Self> {
-        assert!(num_threads >= 1, "BackgroundJobRegistry requires at least 1 thread");
+        assert!(
+            num_threads >= 1,
+            "BackgroundJobRegistry requires at least 1 thread"
+        );
 
-        let job_queue: Arc<ConcurrentQueue<BackgroundJob>> =
-            Arc::new(ConcurrentQueue::unbounded());
+        let job_queue: Arc<ConcurrentQueue<BackgroundJob>> = Arc::new(ConcurrentQueue::unbounded());
         let waitgroup = WaitGroup::new();
 
         let registry = Arc::new(Self {
@@ -105,11 +107,7 @@ impl BackgroundJobRegistry {
                 })
                 .expect("Failed to spawn background worker thread");
 
-            registry
-                .thread_handles
-                .lock()
-                .unwrap()
-                .push(handle);
+            registry.thread_handles.lock().unwrap().push(handle);
         }
 
         registry
@@ -247,11 +245,8 @@ mod tests {
     #[test]
     fn test_submit_and_execute_job() {
         let kill_signal = Arc::new(OnSignal::new());
-        let registry = BackgroundJobRegistry::new(
-            2,
-            kill_signal.clone(),
-            Duration::from_millis(10),
-        );
+        let registry =
+            BackgroundJobRegistry::new(2, kill_signal.clone(), Duration::from_millis(10));
 
         let result = Arc::new(Mutex::new(false));
         let result_clone = result.clone();
@@ -275,11 +270,8 @@ mod tests {
     #[test]
     fn test_panic_recovery() {
         let kill_signal = Arc::new(OnSignal::new());
-        let registry = BackgroundJobRegistry::new(
-            1,
-            kill_signal.clone(),
-            Duration::from_millis(10),
-        );
+        let registry =
+            BackgroundJobRegistry::new(1, kill_signal.clone(), Duration::from_millis(10));
 
         // Submit a panicking job
         registry
@@ -316,11 +308,8 @@ mod tests {
     #[test]
     fn test_shutdown() {
         let kill_signal = Arc::new(OnSignal::new());
-        let registry = BackgroundJobRegistry::new(
-            2,
-            kill_signal.clone(),
-            Duration::from_millis(10),
-        );
+        let registry =
+            BackgroundJobRegistry::new(2, kill_signal.clone(), Duration::from_millis(10));
 
         let counter = Arc::new(std::sync::atomic::AtomicUsize::new(0));
         for _ in 0..10 {
@@ -349,11 +338,8 @@ mod tests {
     #[test]
     fn test_submit_after_shutdown_fails() {
         let kill_signal = Arc::new(OnSignal::new());
-        let registry = BackgroundJobRegistry::new(
-            1,
-            kill_signal.clone(),
-            Duration::from_millis(10),
-        );
+        let registry =
+            BackgroundJobRegistry::new(1, kill_signal.clone(), Duration::from_millis(10));
 
         registry.shutdown();
 
