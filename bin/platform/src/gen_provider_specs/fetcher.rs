@@ -70,11 +70,12 @@ impl ProviderSpecFetcher {
 
         // Build fetch streams for each provider
         // Each returns a StreamIterator that runs on the Valtron thread pool
+        // Streams yield PathBuf results that we'll consolidate into DistilledSpec
         let mut streams: Vec<
             Box<
                 dyn foundation_core::valtron::StreamIterator<
-                        Item = Stream<Result<DistilledSpec, SpecFetchError>, ()>,
-                        D = Result<DistilledSpec, SpecFetchError>,
+                        Item = Stream<Result<PathBuf, SpecFetchError>, ()>,
+                        D = Result<PathBuf, SpecFetchError>,
                         P = (),
                     > + Send
                     + 'static,
@@ -89,73 +90,89 @@ impl ProviderSpecFetcher {
                     cloudflare::fetch::fetch_cloudflare_specs(temp_dir.clone(), provider_dir)
                         .map_err(|e| SpecFetchError::Generic(format!("Cloudflare: {e}")))?;
                 streams.push(Box::new(stream.map_done(|result| {
-                    result
-                        .map_err(|e| SpecFetchError::Generic(format!("Cloudflare: {e}")))
-                        .map(|_path| DistilledSpec {
-                            provider: "cloudflare".to_string(),
-                            version: chrono::Utc::now().format("%Y%m%d").to_string(),
-                            fetched_at: chrono::Utc::now(),
-                            source_url: cloudflare::fetch::CLOUDFLARE_API_SCHEMAS_URL.to_string(),
-                            raw_spec: serde_json::Value::Null,
-                            endpoints: None,
-                            content_hash: String::new(),
-                        })
+                    result.map_err(|e| SpecFetchError::Generic(format!("Cloudflare: {e}")))
                 })));
             } else if provider == "gcp" {
                 let stream = gcp::fetch::fetch_gcp_specs(client, provider_dir, gcp_api_filter.clone())
                     .map_err(|e| SpecFetchError::Generic(format!("GCP: {e}")))?;
                 streams.push(Box::new(stream.map_pending(|_| ()).map_done(|result| {
-                    result
-                        .map_err(|e| SpecFetchError::Generic(format!("GCP: {e}")))
-                        .map(|_path| DistilledSpec {
-                            provider: "gcp".to_string(),
-                            version: chrono::Utc::now().format("%Y%m%d").to_string(),
-                            fetched_at: chrono::Utc::now(),
-                            source_url: gcp::fetch::GCP_DISCOVERY_URL.to_string(),
-                            raw_spec: serde_json::Value::Null,
-                            endpoints: None,
-                            content_hash: String::new(),
-                        })
+                    result.map_err(|e| SpecFetchError::Generic(format!("GCP: {e}")))
                 })));
             } else {
                 // Standard HTTP fetch for providers with direct JSON endpoints
-                let url = _url.to_string();
                 let provider_name = provider.to_string();
                 let stream =
                     standard::fetch::fetch_standard_spec(provider, _url, provider_dir)
                         .map_err(|e| SpecFetchError::Generic(format!("{provider}: {e}")))?;
                 streams.push(Box::new(stream.map_done(move |result| {
-                    result
-                        .map_err(|e| SpecFetchError::Generic(format!("{provider_name}: {e}")))
-                        .map(|_path| DistilledSpec {
-                            provider: provider_name.clone(),
-                            version: chrono::Utc::now().format("%Y%m%d").to_string(),
-                            fetched_at: chrono::Utc::now(),
-                            source_url: url.clone(),
-                            raw_spec: serde_json::Value::Null,
-                            endpoints: None,
-                            content_hash: String::new(),
-                        })
+                    result.map_err(|e| SpecFetchError::Generic(format!("{provider_name}: {e}")))
                 })));
             }
         }
 
-        // Execute all streams and collect results
+        // Execute all streams and collect results, building DistilledSpec for each provider
         let mut specs = BTreeMap::new();
 
-        // Collect from each stream - they're all running in parallel on the thread pool
         for stream in streams {
+            // Collect all paths for this provider
+            let mut paths: Vec<PathBuf> = Vec::new();
+            let mut provider_name: Option<String> = None;
+
             for item in stream {
                 if let Stream::Next(result) = item {
                     match result {
-                        Ok(spec) => {
-                            specs.insert(spec.provider.clone(), spec);
+                        Ok(path) => {
+                            // Extract provider from first path
+                            if provider_name.is_none() {
+                                if let Some(parent) = path.parent() {
+                                    if let Some(name) = parent.file_name() {
+                                        provider_name = Some(name.to_string_lossy().to_string());
+                                    }
+                                }
+                            }
+                            paths.push(path);
                         }
                         Err(e) => {
                             tracing::warn!("Provider fetch failed: {e}");
                         }
                     }
                 }
+            }
+
+            // Build DistilledSpec from collected paths
+            if !paths.is_empty() {
+                let provider = provider_name.unwrap_or_else(|| "unknown".to_string());
+
+                // Get source URL from provider config
+                let url = Self::configured_providers()
+                    .iter()
+                    .find(|(name, _)| *name == provider)
+                    .map(|(_, url)| url.to_string())
+                    .unwrap_or_else(|| String::new());
+
+                // Convert paths to relative strings (relative to artefacts dir)
+                let spec_files: Vec<String> = paths
+                    .iter()
+                    .filter_map(|p| {
+                        p.strip_prefix(&artefacts_dir)
+                            .ok()
+                            .map(|rel| rel.display().to_string())
+                    })
+                    .collect();
+
+                specs.insert(
+                    provider.clone(),
+                    DistilledSpec {
+                        provider,
+                        version: chrono::Utc::now().format("%Y%m%d").to_string(),
+                        fetched_at: chrono::Utc::now(),
+                        source_url: url,
+                        raw_spec: serde_json::Value::Null,
+                        endpoints: None,
+                        content_hash: String::new(),
+                        spec_files,
+                    },
+                );
             }
         }
 
@@ -186,6 +203,9 @@ impl ProviderSpecFetcher {
         let artefacts_dir = PathBuf::from("artefacts/cloud_providers");
         let provider_dir = artefacts_dir.join(provider);
 
+        // Collect all paths for this provider
+        let mut paths: Vec<PathBuf> = Vec::new();
+
         if provider == "cloudflare" {
             let temp_dir = std::env::temp_dir().join("cloudflare-spec-fetch");
             std::fs::create_dir_all(&temp_dir).map_err(|e| SpecFetchError::WriteFile {
@@ -196,82 +216,86 @@ impl ProviderSpecFetcher {
             let stream = cloudflare::fetch::fetch_cloudflare_specs(temp_dir, provider_dir)
                 .map_err(|e| SpecFetchError::Generic(format!("Cloudflare: {e}")))?;
 
-            // Collect single result
             for item in stream {
                 if let Stream::Next(result) = item {
-                    return result
-                        .map_err(|e| SpecFetchError::Generic(format!("Cloudflare: {e}")))
-                        .map(|_path| DistilledSpec {
-                            provider: "cloudflare".to_string(),
-                            version: chrono::Utc::now().format("%Y%m%d").to_string(),
-                            fetched_at: chrono::Utc::now(),
-                            source_url: cloudflare::fetch::CLOUDFLARE_API_SCHEMAS_URL.to_string(),
-                            raw_spec: serde_json::Value::Null,
-                            endpoints: None,
-                            content_hash: String::new(),
-                        });
+                    match result {
+                        Ok(path) => paths.push(path),
+                        Err(e) => return Err(SpecFetchError::Generic(format!("Cloudflare: {e}"))),
+                    }
                 }
             }
-            return Err(SpecFetchError::Generic("No result from fetch".into()));
-        }
-
-        if provider == "gcp" {
+        } else if provider == "gcp" {
             let stream = gcp::fetch::fetch_gcp_specs(client, provider_dir, gcp_api_filter)
                 .map_err(|e| SpecFetchError::Generic(format!("GCP: {e}")))?;
 
-            // GCP produces multiple results (one per API), consume all of them
-            let mut count = 0;
             for item in stream {
                 if let Stream::Next(result) = item {
-                    result.map_err(|e| SpecFetchError::Generic(format!("GCP: {e}")))?;
-                    count += 1;
+                    match result {
+                        Ok(path) => paths.push(path),
+                        Err(e) => return Err(SpecFetchError::Generic(format!("GCP: {e}"))),
+                    }
                 }
             }
 
-            tracing::info!("GCP: Wrote {} API specs", count);
+            tracing::info!("GCP: Wrote {} API specs", paths.len());
+        } else {
+            // Standard HTTP fetch for providers with direct JSON endpoints
+            let provider_config = Self::configured_providers()
+                .into_iter()
+                .find(|(name, _)| *name == provider);
 
-            return Ok(DistilledSpec {
-                provider: "gcp".to_string(),
-                version: chrono::Utc::now().format("%Y%m%d").to_string(),
-                fetched_at: chrono::Utc::now(),
-                source_url: gcp::fetch::GCP_DISCOVERY_URL.to_string(),
-                raw_spec: serde_json::Value::Null,
-                endpoints: None,
-                content_hash: String::new(),
-            });
-        }
+            let (_name, url) = provider_config.ok_or_else(|| {
+                SpecFetchError::Generic(format!("Unknown provider: {provider}"))
+            })?;
 
-        // Standard HTTP fetch for providers with direct JSON endpoints
-        let provider_config = Self::configured_providers()
-            .into_iter()
-            .find(|(name, _)| *name == provider);
+            let stream = standard::fetch::fetch_standard_spec(provider, url, provider_dir)
+                .map_err(|e| SpecFetchError::Generic(format!("{provider}: {e}")))?;
 
-        let (_name, url) = provider_config.ok_or_else(|| {
-            SpecFetchError::Generic(format!("Unknown provider: {provider}"))
-        })?;
-
-        let stream = standard::fetch::fetch_standard_spec(provider, url, provider_dir)
-            .map_err(|e| SpecFetchError::Generic(format!("{provider}: {e}")))?;
-
-        for item in stream {
-            if let Stream::Next(result) = item {
-                return result
-                    .map_err(|e| SpecFetchError::Generic(format!("{provider}: {e}")))
-                    .map(|_path| DistilledSpec {
-                        provider: provider.to_string(),
-                        version: chrono::Utc::now().format("%Y%m%d").to_string(),
-                        fetched_at: chrono::Utc::now(),
-                        source_url: url.to_string(),
-                        raw_spec: serde_json::Value::Null,
-                        endpoints: None,
-                        content_hash: String::new(),
-                    });
+            for item in stream {
+                if let Stream::Next(result) = item {
+                    match result {
+                        Ok(path) => paths.push(path),
+                        Err(e) => {
+                            return Err(SpecFetchError::Generic(format!("{provider}: {e}")))
+                        }
+                    }
+                }
             }
         }
 
-        Err(SpecFetchError::Generic(format!(
-            "No result from {provider} fetch"
-        )))
+        if paths.is_empty() {
+            return Err(SpecFetchError::Generic(format!(
+                "No result from {provider} fetch"
+            )));
+        }
+
+        // Get source URL from provider config
+        let source_url = Self::configured_providers()
+            .iter()
+            .find(|(name, _)| *name == provider)
+            .map(|(_, url)| url.to_string())
+            .unwrap_or_else(|| String::new());
+
+        // Convert paths to relative strings (relative to artefacts dir)
+        let spec_files: Vec<String> = paths
+            .iter()
+            .filter_map(|p| {
+                p.strip_prefix(&artefacts_dir)
+                    .ok()
+                    .map(|rel| rel.display().to_string())
+            })
+            .collect();
+
+        Ok(DistilledSpec {
+            provider: provider.to_string(),
+            version: chrono::Utc::now().format("%Y%m%d").to_string(),
+            fetched_at: chrono::Utc::now(),
+            source_url,
+            raw_spec: serde_json::Value::Null,
+            endpoints: None,
+            content_hash: String::new(),
+            spec_files,
+        })
     }
 
     /// List of all configured providers and their spec URLs.
