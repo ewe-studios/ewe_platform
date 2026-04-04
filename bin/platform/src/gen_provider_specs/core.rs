@@ -68,7 +68,7 @@ pub struct DistilledSpec {
 /// WHAT: Normalized endpoint info for cross-provider comparisons.
 ///
 /// HOW: Extracted from OpenAPI paths during distillation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct SpecEndpoint {
     pub path: String,
     pub methods: Vec<String>,

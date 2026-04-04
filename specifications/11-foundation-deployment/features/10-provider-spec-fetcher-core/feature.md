@@ -95,14 +95,78 @@ bin/platform/src/gen_provider_specs/
 ├── mod.rs           # Module root, CLI registration
 ├── errors.rs        # ALL error types defined here (central source of truth)
 ├── core.rs          # Core types: DistilledSpec, SpecEndpoint, SpecFetchPending
-└── fetcher.rs       # ProviderSpecFetcher implementation
+└── fetcher.rs       # ProviderSpecFetcher - orchestrates fetching
 
 backends/foundation_deployment/src/providers/
 ├── mod.rs           # Provider module registry
-├── gcp.rs           # GCP endpoint extraction
-├── stripe.rs        # Stripe endpoint extraction
-└── ...              # Other providers
+├── openapi.rs       # Shared OpenAPI 3.x extraction utilities
+├── standard/
+│   ├── mod.rs
+│   └── fetch.rs     # Generic HTTP fetch (used by all standard providers)
+├── cloudflare/
+│   ├── mod.rs
+│   ├── provider.rs  # DeploymentProvider implementation
+│   ├── fetch.rs     # Git-clone based spec fetch
+│   └── resources/
+│       └── mod.rs   # Auto-generated resource types
+├── gcp/
+│   ├── mod.rs
+│   ├── provider.rs  # DeploymentProvider implementation
+│   ├── fetch.rs     # Two-stage Discovery API spec fetch
+│   └── resources/
+│       ├── mod.rs
+│       ├── run.rs             # Flattened: one .rs file per GCP API
+│       ├── compute.rs
+│       ├── iam.rs
+│       └── ...
+├── aws/
+│   ├── mod.rs
+│   ├── provider.rs  # DeploymentProvider implementation
+��   └── resources/
+│       └── mod.rs
+├── fly_io/
+│   ├── mod.rs
+│   ├── fetch.rs     # Delegates to standard::fetch
+│   └── resources/
+│       └── mod.rs   # (future) Auto-generated resource types
+├── planetscale/
+│   ├── mod.rs
+│   ├── fetch.rs
+│   └── resources/
+│       └── mod.rs
+├── prisma_postgres/
+│   ├── mod.rs
+│   ├── fetch.rs
+│   └── resources/
+│       └── mod.rs
+├── supabase/
+│   ├── mod.rs
+│   ├── fetch.rs
+│   └── resources/
+│       └── mod.rs
+├── mongodb_atlas/
+│   ├── mod.rs
+│   ├── fetch.rs
+│   └── resources/
+│       └── mod.rs
+├── neon/
+│   ├── mod.rs
+│   ├── fetch.rs
+│   └── resources/
+│       └── mod.rs
+└── stripe/
+    ├── mod.rs
+    ├── fetch.rs
+    └── resources/
+        └── mod.rs
 ```
+
+**Key architectural rules:**
+- Provider implementations live in `backends/foundation_deployment/src/providers/{provider}/`, NOT in `bin/platform/`
+- Each provider is a directory with `mod.rs`, `fetch.rs` (spec fetching), and `resources/` (auto-generated types)
+- Providers with deployment support also have `provider.rs` (`DeploymentProvider` trait impl)
+- GCP resources are flattened: one `.rs` file per API (e.g. `resources/run.rs`, not `resources/run/resources.rs`)
+- The `bin/platform` fetcher only orchestrates and converts types
 
 ### Output Structure
 

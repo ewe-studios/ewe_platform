@@ -5,24 +5,27 @@
 //! WHAT: Central coordinator that runs all fetches in parallel using Valtron's
 //! `execute_collect_all` pattern, same as `gen_model_descriptors`.
 //!
-//! HOW: Uses `foundation_deployment::providers::spec_fetch` for provider-specific
+//! HOW: Uses `foundation_deployment::providers` for provider-specific
 //! fetches, all wrapped in Valtron's `from_future` for parallel execution.
 
 use foundation_core::valtron::{Stream, StreamIteratorExt};
 use foundation_core::wire::simple_http::client::SimpleHttpClient;
-use foundation_deployment::providers::resources::{cloudflare, gcp, standard};
+use foundation_deployment::providers::{
+    cloudflare, fly_io, gcp, mongodb_atlas, neon, openapi, planetscale, prisma_postgres, standard,
+    stripe, supabase,
+};
 use std::collections::BTreeMap;
 use std::path::PathBuf;
 use std::time::Instant;
 
-use super::core::DistilledSpec;
+use super::core::{DistilledSpec, SpecEndpoint};
 use super::errors::SpecFetchError;
 
 /// WHY: Orchestrates fetching specs from multiple providers.
 ///
 /// WHAT: Central coordinator that runs all fetches in parallel.
 ///
-/// HOW: Uses `foundation_deployment::providers::spec_fetch` for each provider,
+/// HOW: Uses `foundation_deployment::providers` for each provider,
 /// then consolidates results.
 pub struct ProviderSpecFetcher;
 
@@ -99,11 +102,9 @@ impl ProviderSpecFetcher {
                     result.map_err(|e| SpecFetchError::Generic(format!("GCP: {e}")))
                 })));
             } else {
-                // Standard HTTP fetch for providers with direct JSON endpoints
+                // Use provider-specific fetch functions from foundation_deployment
                 let provider_name = provider.to_string();
-                let stream =
-                    standard::fetch::fetch_standard_spec(provider, _url, provider_dir)
-                        .map_err(|e| SpecFetchError::Generic(format!("{provider}: {e}")))?;
+                let stream = Self::create_provider_stream(provider, provider_dir)?;
                 streams.push(Box::new(stream.map_done(move |result| {
                     result.map_err(|e| SpecFetchError::Generic(format!("{provider_name}: {e}")))
                 })));
@@ -148,7 +149,7 @@ impl ProviderSpecFetcher {
                     .iter()
                     .find(|(name, _)| *name == provider)
                     .map(|(_, url)| url.to_string())
-                    .unwrap_or_else(|| String::new());
+                    .unwrap_or_else(String::new);
 
                 // Convert paths to relative strings (relative to artefacts dir)
                 let spec_files: Vec<String> = paths
@@ -160,19 +161,24 @@ impl ProviderSpecFetcher {
                     })
                     .collect();
 
-                specs.insert(
-                    provider.clone(),
-                    DistilledSpec {
-                        provider,
-                        version: chrono::Utc::now().format("%Y%m%d").to_string(),
-                        fetched_at: chrono::Utc::now(),
-                        source_url: url,
-                        raw_spec: serde_json::Value::Null,
-                        endpoints: None,
-                        content_hash: String::new(),
-                        spec_files,
-                    },
-                );
+                let mut spec = DistilledSpec {
+                    provider: provider.clone(),
+                    version: chrono::Utc::now().format("%Y%m%d").to_string(),
+                    fetched_at: chrono::Utc::now(),
+                    source_url: url,
+                    raw_spec: serde_json::Value::Null,
+                    endpoints: None,
+                    content_hash: String::new(),
+                    spec_files,
+                };
+
+                // Enrich with version, endpoints, and content hash from
+                // the first spec file (standard providers write one file).
+                if let Some(first_path) = paths.first() {
+                    Self::enrich_spec(&provider, first_path, &mut spec);
+                }
+
+                specs.insert(provider, spec);
             }
         }
 
@@ -239,17 +245,8 @@ impl ProviderSpecFetcher {
 
             tracing::info!("GCP: Wrote {} API specs", paths.len());
         } else {
-            // Standard HTTP fetch for providers with direct JSON endpoints
-            let provider_config = Self::configured_providers()
-                .into_iter()
-                .find(|(name, _)| *name == provider);
-
-            let (_name, url) = provider_config.ok_or_else(|| {
-                SpecFetchError::Generic(format!("Unknown provider: {provider}"))
-            })?;
-
-            let stream = standard::fetch::fetch_standard_spec(provider, url, provider_dir)
-                .map_err(|e| SpecFetchError::Generic(format!("{provider}: {e}")))?;
+            // Use provider-specific fetch from foundation_deployment
+            let stream = Self::create_provider_stream(provider, provider_dir)?;
 
             for item in stream {
                 if let Stream::Next(result) = item {
@@ -274,7 +271,7 @@ impl ProviderSpecFetcher {
             .iter()
             .find(|(name, _)| *name == provider)
             .map(|(_, url)| url.to_string())
-            .unwrap_or_else(|| String::new());
+            .unwrap_or_else(String::new);
 
         // Convert paths to relative strings (relative to artefacts dir)
         let spec_files: Vec<String> = paths
@@ -286,7 +283,7 @@ impl ProviderSpecFetcher {
             })
             .collect();
 
-        Ok(DistilledSpec {
+        let mut spec = DistilledSpec {
             provider: provider.to_string(),
             version: chrono::Utc::now().format("%Y%m%d").to_string(),
             fetched_at: chrono::Utc::now(),
@@ -295,27 +292,151 @@ impl ProviderSpecFetcher {
             endpoints: None,
             content_hash: String::new(),
             spec_files,
-        })
+        };
+
+        // Enrich with version, endpoints, and content hash
+        if let Some(first_path) = paths.first() {
+            Self::enrich_spec(provider, first_path, &mut spec);
+        }
+
+        Ok(spec)
     }
 
     /// List of all configured providers and their spec URLs.
+    ///
+    /// Built from the per-provider modules in `foundation_deployment`.
     pub fn configured_providers() -> Vec<(&'static str, &'static str)> {
         vec![
-            ("fly-io", "https://docs.machines.dev/spec/openapi3.json"),
-            ("planetscale", "https://api.planetscale.com/v1/openapi-spec"),
-            ("cloudflare", "https://github.com/cloudflare/api-schemas"),
-            ("gcp", "https://discovery.googleapis.com/discovery/v1/apis"),
-            ("prisma-postgres", "https://api.prisma.io/v1/doc"),
-            ("supabase", "https://api.supabase.com/api/v1-json"),
+            (fly_io::fetch::PROVIDER_NAME, fly_io::fetch::SPEC_URL),
             (
-                "mongodb-atlas",
-                "https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2.json",
+                planetscale::fetch::PROVIDER_NAME,
+                planetscale::fetch::SPEC_URL,
             ),
-            ("neon", "https://neon.com/api_spec/release/v2.json"),
             (
-                "stripe",
-                "https://raw.githubusercontent.com/stripe/openapi/master/openapi/spec3.json",
+                prisma_postgres::fetch::PROVIDER_NAME,
+                prisma_postgres::fetch::SPEC_URL,
             ),
+            (supabase::fetch::PROVIDER_NAME, supabase::fetch::SPEC_URL),
+            (
+                mongodb_atlas::fetch::PROVIDER_NAME,
+                mongodb_atlas::fetch::SPEC_URL,
+            ),
+            (neon::fetch::PROVIDER_NAME, neon::fetch::SPEC_URL),
+            (stripe::fetch::PROVIDER_NAME, stripe::fetch::SPEC_URL),
+            ("cloudflare", cloudflare::fetch::CLOUDFLARE_API_SCHEMAS_URL),
+            ("gcp", gcp::fetch::GCP_DISCOVERY_URL),
         ]
+    }
+
+    /// Create a fetch stream for a standard provider using its
+    /// per-provider fetch function from `foundation_deployment`.
+    fn create_provider_stream(
+        provider: &str,
+        output_dir: PathBuf,
+    ) -> Result<
+        Box<
+            dyn foundation_core::valtron::StreamIterator<
+                    Item = Stream<Result<PathBuf, SpecFetchError>, ()>,
+                    D = Result<PathBuf, SpecFetchError>,
+                    P = (),
+                > + Send
+                + 'static,
+        >,
+        SpecFetchError,
+    > {
+        let provider_name = provider.to_string();
+
+        match provider {
+            "fly-io" => {
+                let stream = fly_io::fetch::fetch_fly_io_specs(output_dir)
+                    .map_err(|e| SpecFetchError::Generic(format!("{provider_name}: {e}")))?;
+                Ok(Box::new(stream.map_done(move |r| {
+                    r.map_err(|e| SpecFetchError::Generic(format!("{provider_name}: {e}")))
+                })))
+            }
+            "planetscale" => {
+                let stream = planetscale::fetch::fetch_planetscale_specs(output_dir)
+                    .map_err(|e| SpecFetchError::Generic(format!("{provider_name}: {e}")))?;
+                Ok(Box::new(stream.map_done(move |r| {
+                    r.map_err(|e| SpecFetchError::Generic(format!("{provider_name}: {e}")))
+                })))
+            }
+            "prisma-postgres" => {
+                let stream = prisma_postgres::fetch::fetch_prisma_postgres_specs(output_dir)
+                    .map_err(|e| SpecFetchError::Generic(format!("{provider_name}: {e}")))?;
+                Ok(Box::new(stream.map_done(move |r| {
+                    r.map_err(|e| SpecFetchError::Generic(format!("{provider_name}: {e}")))
+                })))
+            }
+            "supabase" => {
+                let stream = supabase::fetch::fetch_supabase_specs(output_dir)
+                    .map_err(|e| SpecFetchError::Generic(format!("{provider_name}: {e}")))?;
+                Ok(Box::new(stream.map_done(move |r| {
+                    r.map_err(|e| SpecFetchError::Generic(format!("{provider_name}: {e}")))
+                })))
+            }
+            "mongodb-atlas" => {
+                let stream = mongodb_atlas::fetch::fetch_mongodb_atlas_specs(output_dir)
+                    .map_err(|e| SpecFetchError::Generic(format!("{provider_name}: {e}")))?;
+                Ok(Box::new(stream.map_done(move |r| {
+                    r.map_err(|e| SpecFetchError::Generic(format!("{provider_name}: {e}")))
+                })))
+            }
+            "neon" => {
+                let stream = neon::fetch::fetch_neon_specs(output_dir)
+                    .map_err(|e| SpecFetchError::Generic(format!("{provider_name}: {e}")))?;
+                Ok(Box::new(stream.map_done(move |r| {
+                    r.map_err(|e| SpecFetchError::Generic(format!("{provider_name}: {e}")))
+                })))
+            }
+            "stripe" => {
+                let stream = stripe::fetch::fetch_stripe_specs(output_dir)
+                    .map_err(|e| SpecFetchError::Generic(format!("{provider_name}: {e}")))?;
+                Ok(Box::new(stream.map_done(move |r| {
+                    r.map_err(|e| SpecFetchError::Generic(format!("{provider_name}: {e}")))
+                })))
+            }
+            _ => {
+                // Fallback to standard fetch for unknown providers
+                let stream =
+                    standard::fetch::fetch_standard_spec(&provider_name, "", output_dir)
+                        .map_err(|e| SpecFetchError::Generic(format!("{provider_name}: {e}")))?;
+                Ok(Box::new(stream.map_done(move |r| {
+                    r.map_err(|e| SpecFetchError::Generic(format!("{provider_name}: {e}")))
+                })))
+            }
+        }
+    }
+
+    /// Read a written spec file and run extraction via `openapi::process_spec`.
+    ///
+    /// Populates `DistilledSpec` with version, endpoints, and content hash.
+    fn enrich_spec(provider: &str, spec_path: &std::path::Path, spec: &mut DistilledSpec) {
+        let Ok(content) = std::fs::read_to_string(spec_path) else {
+            tracing::warn!("{provider}: could not read spec file for extraction");
+            return;
+        };
+
+        let Ok(json) = serde_json::from_str::<serde_json::Value>(&content) else {
+            tracing::warn!("{provider}: could not parse spec JSON for extraction");
+            return;
+        };
+
+        let processed = openapi::process_spec(&json);
+
+        if let Some(v) = processed.version {
+            spec.version = v;
+        }
+        spec.endpoints = processed.endpoints.map(|eps| {
+            eps.into_iter()
+                .map(|e| SpecEndpoint {
+                    path: e.path,
+                    methods: e.methods,
+                    operation_id: e.operation_id,
+                    summary: e.summary,
+                })
+                .collect()
+        });
+        spec.content_hash = processed.content_hash;
     }
 }
