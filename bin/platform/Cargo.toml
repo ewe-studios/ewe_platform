@@ -63,6 +63,9 @@ tracing-subscriber = { version = "0.3.18", features = ["fmt"] }
 # -- file system utilities
 walkdir = { version = "2.5" }
 
+# -- regex for comment sanitization
+regex = { version = "1.10" }
+
 [features]
 debug_trace = ["ewe_trace/debug_trace"]
 

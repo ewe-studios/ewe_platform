@@ -1,0 +1,7 @@
+{
+  "error": {
+    "code": 400,
+    "message": "No default GOOGLE_REST format gets defined in this API.",
+    "status": "INVALID_ARGUMENT"
+  }
+}

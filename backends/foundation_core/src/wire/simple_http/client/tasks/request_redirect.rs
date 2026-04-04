@@ -138,7 +138,7 @@ impl<R: DnsResolver + Send + 'static> TaskIterator for GetHttpRequestRedirectTas
                     let (data, pool, config, mut descriptor, remaining_redirects) = *state;
                     let (_connect_timeout, read_timeout, _write_timeout) = config.get_op_timeout();
 
-                    tracing::info!("REDIRECTIONS: Remaining redirects: {}", remaining_redirects);
+                    tracing::debug!("REDIRECTIONS: Remaining redirects: {}", remaining_redirects);
 
                     // Determine effective proxy configuration
                     let env_proxy = if config.proxy_from_env {
