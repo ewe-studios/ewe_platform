@@ -379,6 +379,8 @@ impl ResourceGenerator {
         }
 
         tracing::info!("Generating resource types for {label}...");
+        tracing::info!("  Spec path: {}", spec_path.display());
+        tracing::info!("  Output path: {}", output_path.display());
 
         let spec_content =
             std::fs::read_to_string(spec_path).map_err(|e| GenResourceError::ReadFile {
@@ -392,9 +394,12 @@ impl ResourceGenerator {
                 source: e,
             })?;
 
+        tracing::info!("  Parsed spec, top-level keys: {:?}", spec.as_object().map(|o| o.keys().take(5).collect::<Vec<_>>()));
+
         // Collect the set of schema names that are object types with properties,
         // so we can validate $ref targets during type resolution.
         let object_schemas = self.collect_object_schema_names(&spec);
+        tracing::info!("  Collected {} object schemas", object_schemas.len());
 
         let resources = self.extract_resources(&spec, &object_schemas)?;
 
@@ -408,6 +413,8 @@ impl ResourceGenerator {
             .into_iter()
             .filter(|r| !Self::is_trivial_type(r))
             .collect();
+
+        tracing::info!("  After filtering trivial types: {} resource types", resources.len());
 
         let rust_code = self.generate_rust(label, &resources)?;
 
@@ -537,6 +544,7 @@ impl ResourceGenerator {
             .and_then(|c| c.get("schemas"))
             .and_then(|s| s.as_object())
         {
+            tracing::info!("  Found {} schemas (standard OpenAPI format)", schemas.len());
             for (schema_name, schema_value) in schemas {
                 if let Some(resource) =
                     self.extract_resource(schema_name, schema_value, object_schemas)
@@ -549,6 +557,7 @@ impl ResourceGenerator {
 
         // Try GCP Discovery format: top-level `schemas`
         if let Some(schemas) = spec.get("schemas").and_then(|s| s.as_object()) {
+            tracing::info!("  Found {} schemas (GCP Discovery format)", schemas.len());
             for (schema_name, schema_value) in schemas {
                 if let Some(resource) =
                     self.extract_resource(schema_name, schema_value, object_schemas)
@@ -560,14 +569,18 @@ impl ResourceGenerator {
         }
 
         // Try consolidated format: each top-level key is an API spec
+        tracing::info!("  Trying consolidated format...");
         if let Some(obj) = spec.as_object() {
-            for (_api_name, api_spec) in obj {
+            tracing::info!("  Top-level object has {} keys", obj.len());
+            for (api_name, api_spec) in obj {
+                tracing::info!("    Checking key: {}", api_name);
                 // Each entry might be an OpenAPI spec or a Discovery doc
                 if let Some(schemas) = api_spec
                     .get("components")
                     .and_then(|c| c.get("schemas"))
                     .and_then(|s| s.as_object())
                 {
+                    tracing::info!("      Found {} schemas in components/schemas", schemas.len());
                     for (schema_name, schema_value) in schemas {
                         if let Some(resource) =
                             self.extract_resource(schema_name, schema_value, object_schemas)
@@ -576,6 +589,7 @@ impl ResourceGenerator {
                         }
                     }
                 } else if let Some(schemas) = api_spec.get("schemas").and_then(|s| s.as_object()) {
+                    tracing::info!("      Found {} schemas in top-level schemas", schemas.len());
                     for (schema_name, schema_value) in schemas {
                         if let Some(resource) =
                             self.extract_resource(schema_name, schema_value, object_schemas)
@@ -587,6 +601,7 @@ impl ResourceGenerator {
             }
         }
 
+        tracing::info!("  Extracted {} resources total", resources.len());
         Ok(resources)
     }
 
