@@ -1,8 +1,9 @@
 ---
 description: "Update all imports across codebase, ensure clean compilation, add backward-compatibility re-exports"
-status: "pending"
+status: "completed"
 priority: "high"
 created: 2026-04-04
+updated: 2026-04-04
 author: "Main Agent"
 feature_number: 4
 depends_on: ["01-stream-migration", "03-replace-streamrecv-iterator"]

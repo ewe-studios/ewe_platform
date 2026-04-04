@@ -527,8 +527,8 @@ where
     T::Pending: Send + 'static,
     T::Spawner: ExecutionAction + Send + 'static,
 {
-    use crate::valtron::multi;
     use crate::valtron::executors::{DEFAULT_MAX_TURNS, DEFAULT_PARK_DURATION};
+    use crate::valtron::multi;
 
     // Schedule task and get iterator with defaults
     // Note: wait_cycle is not used directly; DEFAULT_PARK_DURATION is used for park_duration

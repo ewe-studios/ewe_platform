@@ -66,7 +66,7 @@ pub enum Stream<D, P> {
 /// # Examples
 ///
 /// ```
-/// use crate::valtron::streams::{Stream, StreamIterator};
+/// use foundation_core::valtron::Stream;
 ///
 /// // Any iterator yielding Stream<D, P> automatically implements StreamIterator
 /// let items = vec![

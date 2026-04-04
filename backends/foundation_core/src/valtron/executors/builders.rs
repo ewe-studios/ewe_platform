@@ -5,9 +5,7 @@ use crate::valtron::{SpawnInfo, Stream};
 use std::{any::Any, marker::PhantomData, sync::Arc, time};
 
 use crate::{
-    synca::mpp::RecvIterator,
-    valtron::ConcurrentQueueStreamIterator,
-    valtron::StreamConsumingIter,
+    synca::mpp::RecvIterator, valtron::ConcurrentQueueStreamIterator, valtron::StreamConsumingIter,
 };
 use concurrent_queue::ConcurrentQueue;
 
@@ -116,7 +114,10 @@ impl<
         self,
         wait_cycle: time::Duration,
     ) -> AnyResult<ConcurrentQueueStreamIterator<Done, Pending>, ExecutorError> {
-        self.scheduled_stream_iter_with_config(wait_cycle, crate::valtron::executors::DEFAULT_MAX_TURNS)
+        self.scheduled_stream_iter_with_config(
+            wait_cycle,
+            crate::valtron::executors::DEFAULT_MAX_TURNS,
+        )
     }
 
     /// `scheduled_stream_iter_with_config` adds a task into execution queue and returns
@@ -346,7 +347,10 @@ impl<
         self,
         wait_cycle: time::Duration,
     ) -> AnyResult<ConcurrentQueueStreamIterator<Done, Pending>, ExecutorError> {
-        self.stream_sequenced_iter_with_config(wait_cycle, crate::valtron::executors::DEFAULT_MAX_TURNS)
+        self.stream_sequenced_iter_with_config(
+            wait_cycle,
+            crate::valtron::executors::DEFAULT_MAX_TURNS,
+        )
     }
 
     /// Creates a stream from a sequenced task with configurable polling behavior.
@@ -451,7 +455,10 @@ impl<
         self,
         wait_cycle: time::Duration,
     ) -> AnyResult<ConcurrentQueueStreamIterator<Done, Pending>, ExecutorError> {
-        self.stream_broadcast_iter_with_config(wait_cycle, crate::valtron::executors::DEFAULT_MAX_TURNS)
+        self.stream_broadcast_iter_with_config(
+            wait_cycle,
+            crate::valtron::executors::DEFAULT_MAX_TURNS,
+        )
     }
 
     /// `stream_broadcast_iter_with_config` returns a `ConcurrentQueueStreamIterator`

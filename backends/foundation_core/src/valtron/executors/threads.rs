@@ -16,9 +16,7 @@ use std::{
     time::{self, Instant},
 };
 
-use crate::{
-    valtron::{ConcurrentQueueStreamIterator, Stream, DEFAULT_YIELD_WAIT_TIME},
-};
+use crate::valtron::{ConcurrentQueueStreamIterator, Stream, DEFAULT_YIELD_WAIT_TIME};
 use concurrent_queue::{ConcurrentQueue, PushError};
 use derive_more::derive::From;
 use rand::{RngCore, SeedableRng};
@@ -784,7 +782,9 @@ impl<
                     _ => self.latch.signal_all(),
                 }
 
-                Ok(ConcurrentQueueStreamIterator::new(iter_chan, max_turns, wait_cycle))
+                Ok(ConcurrentQueueStreamIterator::new(
+                    iter_chan, max_turns, wait_cycle,
+                ))
             }
             Err(err) => match err {
                 PushError::Full(_) => Err(ExecutorError::QueueFull),
