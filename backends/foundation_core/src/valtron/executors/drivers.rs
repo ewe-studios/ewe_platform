@@ -12,7 +12,7 @@ use crate::valtron::StreamTask;
 
 use crate::{
     synca::mpp::RecvIterator,
-    valtron::{Stream, ConcurrentQueueStreamIterator},
+    valtron::{ConcurrentQueueStreamIterator, Stream},
     valtron::{
         ExecutionAction, InlineAction, InlineActionBehaviour, InlineSendAction,
         InlineSendActionBehaviour, ProgressIndicator, State, TaskIterator, TaskStatus,
@@ -274,7 +274,7 @@ pub fn run_once() {
     {
         use super::single;
 
-        tracing::debug!("Executing as a single-threaded stream in no-wasm");
+        tracing::trace!("Executing as a single-threaded stream in no-wasm");
         let _ = single::run_once();
     }
 
@@ -282,7 +282,7 @@ pub fn run_once() {
     {
         use crate::valtron::single;
 
-        tracing::debug!("Executing as a single stream in wasm");
+        tracing::trace!("Executing as a single stream in wasm");
         let _ = single::run_once();
     }
 }
@@ -637,12 +637,7 @@ where
             // execute the execution engine until the next state is ready.
             run_until_next_state();
 
-            tracing::debug!("Get the next value from inner iterator");
             let next_value = task_iterator.next_status();
-            tracing::debug!(
-                "Gotten next value from inner iterator: is_some: {}",
-                next_value.is_some()
-            );
 
             // if the next value is Some(_) then set back the
             // executor for the next call.
@@ -700,17 +695,12 @@ where
 
     fn next(&mut self) -> Option<Self::Item> {
         if let Some(mut task_iterator) = self.0.take() {
-            tracing::debug!("Run: run_until_next_state");
+            tracing::trace!("Run: run_until_next_state");
 
             // execute the execution engine until the next state is ready.
             run_until_next_state();
 
-            tracing::debug!("Get the next value from inner iterator");
             let next_value = task_iterator.next_status();
-            tracing::debug!(
-                "Gotten next value from inner iterator: is_some: {}",
-                next_value.is_some()
-            );
 
             // if the next value is Some(_) then set back the
             // executor for the next call.
@@ -729,7 +719,9 @@ where
 /// This is good for non send-safe types you want to use in non-send contexts.
 ///
 /// It internally uses the [`run_until_next_state`] function.
-pub struct DrivenNonSendStreamIterator<T>(Option<ConcurrentQueueStreamIterator<T::Ready, T::Pending>>)
+pub struct DrivenNonSendStreamIterator<T>(
+    Option<ConcurrentQueueStreamIterator<T::Ready, T::Pending>>,
+)
 where
     T: TaskIterator + 'static,
     T::Ready: 'static,
@@ -760,16 +752,11 @@ where
 
     fn next(&mut self) -> Option<Self::Item> {
         if let Some(mut task_iterator) = self.0.take() {
-            tracing::debug!("Run: run_until_next_state");
+            tracing::trace!("Run: run_until_next_state");
             // execute the execution engine until the next state is ready.
             run_until_next_state();
 
-            tracing::debug!("Get the next value from inner iterator");
             let next_value = task_iterator.next();
-            tracing::debug!(
-                "Gotten next value from inner iterator: is_some: {}",
-                next_value.is_some()
-            );
 
             // if the next value is Some(_) then set back the
             // executor for the next call.
@@ -831,7 +818,7 @@ where
 
     fn next(&mut self) -> Option<Self::Item> {
         if let Some(mut task_iterator) = self.0.take() {
-            tracing::debug!("Run: run_until_next_state");
+            tracing::trace!("Run: run_until_next_state");
 
             // execute the execution engine until the next state is ready.
             task_iterator = run_until_stream_has_value::<T, _>(task_iterator, |indicator| {
@@ -853,12 +840,7 @@ where
                 }
             });
 
-            tracing::debug!("Get the next value from inner iterator");
             let next_value = task_iterator.next();
-            tracing::debug!(
-                "Gotten next value from inner iterator: is_some: {}",
-                next_value.is_some()
-            );
 
             // if the next value is Some(_) then set back the
             // executor for the next call.
@@ -917,7 +899,7 @@ where
 
     fn next(&mut self) -> Option<Self::Item> {
         if let Some(mut task_iterator) = self.0.take() {
-            tracing::debug!("Run: run_until_next_state");
+            tracing::trace!("Run: run_until_next_state");
 
             // execute the execution engine until the next state is ready.
             task_iterator = run_until_receiver_has_value::<T, _>(task_iterator, |indicator| {
@@ -936,12 +918,7 @@ where
                 }
             });
 
-            tracing::debug!("Get the next value from inner iterator");
             let next_value = task_iterator.next();
-            tracing::debug!(
-                "Gotten next value from inner iterator: is_some: {}",
-                next_value.is_some()
-            );
 
             // if the next value is Some(_) then set back the
             // executor for the next call.
@@ -989,17 +966,12 @@ where
 
     fn next(&mut self) -> Option<Self::Item> {
         if let Some(mut task_iterator) = self.0.take() {
-            tracing::debug!("Run: run_until_next_state");
+            tracing::trace!("Run: run_until_next_state");
 
             // execute the execution engine until the next state is ready.
             run_until_next_state();
 
-            tracing::debug!("Get the next value from inner iterator");
             let next_value = task_iterator.next();
-            tracing::debug!(
-                "Gotten next value from inner iterator: is_some: {}",
-                next_value.is_some()
-            );
 
             // if the next value is Some(_) then set back the
             // executor for the next call.
