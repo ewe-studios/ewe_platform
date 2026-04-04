@@ -130,9 +130,11 @@ pub fn fetch_cloudflare_specs(
 
         // Write manifest
         let manifest = serde_json::json!({
+            "provider": "cloudflare",
             "source": CLOUDFLARE_API_SCHEMAS_URL,
             "fetched_at": chrono::Utc::now().to_rfc3339(),
-            "spec_files": spec_names,
+            "spec_files": ["openapi.json"],
+            "consolidated_from": spec_names,
         });
 
         let manifest_path = output_dir.join("_manifest.json");

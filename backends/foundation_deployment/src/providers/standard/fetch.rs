@@ -91,9 +91,10 @@ pub fn fetch_standard_spec(
 
         // Write _manifest.json
         let manifest = serde_json::json!({
+            "provider": provider,
             "source": url,
             "fetched_at": chrono::Utc::now().to_rfc3339(),
-            "provider": provider,
+            "spec_files": ["openapi.json"],
         });
 
         let manifest_path = output_dir.join("_manifest.json");

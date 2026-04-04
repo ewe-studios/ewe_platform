@@ -104,7 +104,7 @@ impl ProviderSpecFetcher {
             } else {
                 // Use provider-specific fetch functions from foundation_deployment
                 let provider_name = provider.to_string();
-                let stream = Self::create_provider_stream(provider, provider_dir)?;
+                let stream = Self::create_provider_stream(provider, provider_dir.clone())?;
                 streams.push(Box::new(stream.map_done(move |result| {
                     result.map_err(|e| SpecFetchError::Generic(format!("{provider_name}: {e}")))
                 })));
@@ -165,11 +165,11 @@ impl ProviderSpecFetcher {
                     provider: provider.clone(),
                     version: chrono::Utc::now().format("%Y%m%d").to_string(),
                     fetched_at: chrono::Utc::now(),
-                    source_url: url,
+                    source_url: url.clone(),
                     raw_spec: serde_json::Value::Null,
                     endpoints: None,
                     content_hash: String::new(),
-                    spec_files,
+                    spec_files: spec_files.clone(),
                 };
 
                 // Enrich with version, endpoints, and content hash from
@@ -177,6 +177,10 @@ impl ProviderSpecFetcher {
                 if let Some(first_path) = paths.first() {
                     Self::enrich_spec(&provider, first_path, &mut spec);
                 }
+
+                // Write/update _manifest.json with the complete spec_files list
+                let provider_dir = artefacts_dir.join(&provider);
+                Self::write_manifest(&provider_dir, &provider, &url, &spec_files);
 
                 specs.insert(provider, spec);
             }
@@ -219,7 +223,7 @@ impl ProviderSpecFetcher {
                 source: e,
             })?;
 
-            let stream = cloudflare::fetch::fetch_cloudflare_specs(temp_dir, provider_dir)
+            let stream = cloudflare::fetch::fetch_cloudflare_specs(temp_dir, provider_dir.clone())
                 .map_err(|e| SpecFetchError::Generic(format!("Cloudflare: {e}")))?;
 
             for item in stream {
@@ -231,7 +235,7 @@ impl ProviderSpecFetcher {
                 }
             }
         } else if provider == "gcp" {
-            let stream = gcp::fetch::fetch_gcp_specs(client, provider_dir, gcp_api_filter)
+            let stream = gcp::fetch::fetch_gcp_specs(client, provider_dir.clone(), gcp_api_filter)
                 .map_err(|e| SpecFetchError::Generic(format!("GCP: {e}")))?;
 
             for item in stream {
@@ -246,7 +250,7 @@ impl ProviderSpecFetcher {
             tracing::info!("GCP: Wrote {} API specs", paths.len());
         } else {
             // Use provider-specific fetch from foundation_deployment
-            let stream = Self::create_provider_stream(provider, provider_dir)?;
+            let stream = Self::create_provider_stream(provider, provider_dir.clone())?;
 
             for item in stream {
                 if let Stream::Next(result) = item {
@@ -287,17 +291,20 @@ impl ProviderSpecFetcher {
             provider: provider.to_string(),
             version: chrono::Utc::now().format("%Y%m%d").to_string(),
             fetched_at: chrono::Utc::now(),
-            source_url,
+            source_url: source_url.clone(),
             raw_spec: serde_json::Value::Null,
             endpoints: None,
             content_hash: String::new(),
-            spec_files,
+            spec_files: spec_files.clone(),
         };
 
         // Enrich with version, endpoints, and content hash
         if let Some(first_path) = paths.first() {
             Self::enrich_spec(provider, first_path, &mut spec);
         }
+
+        // Write/update _manifest.json with the complete spec_files list
+        Self::write_manifest(&provider_dir, provider, &source_url, &spec_files);
 
         Ok(spec)
     }
@@ -438,5 +445,35 @@ impl ProviderSpecFetcher {
                 .collect()
         });
         spec.content_hash = processed.content_hash;
+    }
+
+    /// Write a consistent `_manifest.json` for a provider.
+    ///
+    /// This is called after all spec files have been collected, ensuring
+    /// the manifest always reflects the complete list of spec files on disk.
+    fn write_manifest(
+        provider_dir: &std::path::Path,
+        provider: &str,
+        source_url: &str,
+        spec_files: &[String],
+    ) {
+        let manifest = serde_json::json!({
+            "provider": provider,
+            "source": source_url,
+            "fetched_at": chrono::Utc::now().to_rfc3339(),
+            "spec_files": spec_files,
+        });
+
+        let manifest_path = provider_dir.join("_manifest.json");
+        match serde_json::to_string_pretty(&manifest) {
+            Ok(json) => {
+                if let Err(e) = std::fs::write(&manifest_path, json) {
+                    tracing::warn!("{provider}: failed to write manifest: {e}");
+                }
+            }
+            Err(e) => {
+                tracing::warn!("{provider}: failed to serialize manifest: {e}");
+            }
+        }
     }
 }
