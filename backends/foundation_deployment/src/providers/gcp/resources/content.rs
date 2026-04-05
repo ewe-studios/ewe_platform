@@ -2183,7 +2183,7 @@ pub struct RegionalinventoryCustomBatchResponseEntry {
 pub struct AccountIssue {
     /// A list of actionable steps that can be executed to solve the issue. An example is requesting a re-review or providing arguments when merchant disagrees with the issue. Actions that are supported in (your) third-party application can be rendered as buttons and should be available to merchant when they expand the issue.
     #[serde(default)]
-    pub actions: ::core::option::Option<::std::vec::Vec<Action>>,
+    pub actions: ::std::vec::Vec<::std::boxed::Box<Action>>,
     /// Clarifies the severity of the issue. The summarizing message, if present, should be shown right under the title for each issue. It helps merchants to quickly understand the impact of the issue. The detailed breakdown helps the merchant to fully understand the impact of the issue. It can be rendered as dialog that opens when the merchant mouse over the summarized impact statement. Issues with different severity can be styled differently. They may use a different color or icon to signal the difference between ERROR, WARNING and INFO.
     #[serde(default)]
     pub impact: ::core::option::Option<AccountIssueImpact>,
@@ -2214,7 +2214,7 @@ pub struct AlternateDisputeResolution {
 pub struct ProductIssue {
     /// A list of actionable steps that can be executed to solve the issue. An example is requesting a re-review or providing arguments when merchant disagrees with the issue. Actions that are supported in (your) third-party application can be rendered as buttons and should be available to merchant when they expand the issue.
     #[serde(default)]
-    pub actions: ::core::option::Option<::std::vec::Vec<Action>>,
+    pub actions: ::std::vec::Vec<::std::boxed::Box<Action>>,
     /// Clarifies the severity of the issue. The summarizing message, if present, should be shown right under the title for each issue. It helps merchants to quickly understand the impact of the issue. The detailed breakdown helps the merchant to fully understand the impact of the issue. It can be rendered as dialog that opens when the merchant mouse over the summarized impact statement. Issues with different severity can be styled differently. They may use a different color or icon to signal the difference between ERROR, WARNING and INFO.
     #[serde(default)]
     pub impact: ::core::option::Option<ProductIssueImpact>,
@@ -2865,7 +2865,7 @@ pub struct LocalInventory {
     pub availability: ::core::option::Option<String>,
     /// A list of custom (merchant-provided) attributes. Can also be used to submit any attribute of the feed specification in its generic form, for example, { "name": "size type", "value": "regular" }.
     #[serde(default, rename = "customAttributes")]
-    pub custom_attributes: ::core::option::Option<::std::vec::Vec<CustomAttribute>>,
+    pub custom_attributes: ::std::vec::Vec<::std::boxed::Box<CustomAttribute>>,
     /// The in-store product location.
     #[serde(default, rename = "instoreProductLocation")]
     pub instore_product_location: ::core::option::Option<String>,
@@ -3129,7 +3129,7 @@ pub struct Product {
     pub cost_of_goods_sold: ::core::option::Option<Price>,
     /// A list of custom (merchant-provided) attributes. It can also be used for submitting any attribute of the feed specification in its generic form (for example, { "name": "size type", "value": "regular" }). This is useful for submitting attributes not explicitly exposed by the API, such as additional attributes used for Buy on Google (formerly known as Shopping Actions).
     #[serde(default, rename = "customAttributes")]
-    pub custom_attributes: ::core::option::Option<::std::vec::Vec<CustomAttribute>>,
+    pub custom_attributes: ::std::vec::Vec<::std::boxed::Box<CustomAttribute>>,
     /// Custom label 0 for custom grouping of items in a Shopping campaign.
     #[serde(default, rename = "customLabel0")]
     pub custom_label0: ::core::option::Option<String>,
@@ -3426,7 +3426,7 @@ pub struct RegionalInventory {
     pub availability: ::core::option::Option<String>,
     /// A list of custom (merchant-provided) attributes. It can also be used for submitting any attribute of the feed specification in its generic form.
     #[serde(default, rename = "customAttributes")]
-    pub custom_attributes: ::core::option::Option<::std::vec::Vec<CustomAttribute>>,
+    pub custom_attributes: ::std::vec::Vec<::std::boxed::Box<CustomAttribute>>,
     /// Identifies what kind of resource this is. Value: the fixed string "content#regionalInventory".
     #[serde(default)]
     pub kind: ::core::option::Option<String>,
@@ -4735,7 +4735,7 @@ pub struct ProductStatusItemLevelIssue {
 pub struct CustomAttribute {
     /// Subattributes within this attribute group. Exactly one of value or groupValues must be provided.
     #[serde(default, rename = "groupValues")]
-    pub group_values: ::core::option::Option<::std::vec::Vec<CustomAttribute>>,
+    pub group_values: ::std::vec::Vec<::std::boxed::Box<CustomAttribute>>,
     /// The name of the attribute. Underscores will be replaced by spaces upon insertion.
     #[serde(default)]
     pub name: ::core::option::Option<String>,
@@ -5606,22 +5606,23 @@ pub struct Price {
 pub struct Action {
     /// Action implemented and performed in (your) third-party application. The application should point the merchant to the place, where they can access the corresponding functionality or provide instructions, if the specific functionality is not available.
     #[serde(default, rename = "builtinSimpleAction")]
-    pub builtin_simple_action: ::core::option::Option<BuiltInSimpleAction>,
+    pub builtin_simple_action: ::core::option::Option<::std::boxed::Box<BuiltInSimpleAction>>,
     /// Action implemented and performed in (your) third-party application. The application needs to show an additional content and input form to the merchant as specified for given action. They can trigger the action only when they provided all required inputs.
     #[serde(default, rename = "builtinUserInputAction")]
-    pub builtin_user_input_action: ::core::option::Option<BuiltInUserInputAction>,
+    pub builtin_user_input_action:
+        ::core::option::Option<::std::boxed::Box<BuiltInUserInputAction>>,
     /// Label of the action button.
     #[serde(default, rename = "buttonLabel")]
     pub button_label: ::core::option::Option<String>,
     /// Action that is implemented and performed outside of (your) third-party application. The application needs to redirect the merchant to the external location where they can perform the action.
     #[serde(default, rename = "externalAction")]
-    pub external_action: ::core::option::Option<ExternalAction>,
+    pub external_action: ::core::option::Option<::std::boxed::Box<ExternalAction>>,
     /// Controlling whether the button is active or disabled. The value is ''false'' when the action was already requested or is not available. If the action is not available then a reason will be present. If (your) third-party application shows a disabled button for action that is not available, then it should also show reasons.
     #[serde(default, rename = "isAvailable")]
     pub is_available: ::core::option::Option<bool>,
     /// List of reasons why the action is not available. The list of reasons is empty if the action is available. If there is only one reason, it can be displayed next to the disabled button. If there are more reasons, all of them should be displayed, for example in a pop-up dialog.
     #[serde(default)]
-    pub reasons: ::core::option::Option<::std::vec::Vec<ActionReason>>,
+    pub reasons: ::std::vec::Vec<::std::boxed::Box<ActionReason>>,
 }
 
 /// Flow that can be selected for an action. When merchant selects a flow, application should open a dialog with more information and input form.
@@ -5632,10 +5633,10 @@ pub struct ActionFlow {
     pub dialog_button_label: ::core::option::Option<String>,
     /// Important message to be highlighted in the request dialog. For example: "You can only request a review for disagreeing with this issue once. If it''s not approved, you''ll need to fix the issue and wait a few days before you can request another review."
     #[serde(default, rename = "dialogCallout")]
-    pub dialog_callout: ::core::option::Option<Callout>,
+    pub dialog_callout: ::core::option::Option<::std::boxed::Box<Callout>>,
     /// Message displayed in the request dialog. For example: "Make sure you''ve fixed all your country-specific issues. If not, you may have to wait 7 days to request another review". There may be an more information to be shown in a tooltip.
     #[serde(default, rename = "dialogMessage")]
-    pub dialog_message: ::core::option::Option<TextWithTooltip>,
+    pub dialog_message: ::core::option::Option<::std::boxed::Box<TextWithTooltip>>,
     /// Title of the request dialog. For example: "Before you request a review"
     #[serde(default, rename = "dialogTitle")]
     pub dialog_title: ::core::option::Option<String>,
@@ -5644,7 +5645,7 @@ pub struct ActionFlow {
     pub id: ::core::option::Option<String>,
     /// A list of input fields.
     #[serde(default)]
-    pub inputs: ::core::option::Option<::std::vec::Vec<InputField>>,
+    pub inputs: ::std::vec::Vec<::std::boxed::Box<InputField>>,
     /// Text value describing the intent for the action flow. It can be used as an input label if merchant needs to pick one of multiple flows. For example: "I disagree with the issue"
     #[serde(default)]
     pub label: ::core::option::Option<String>,
@@ -5655,7 +5656,7 @@ pub struct ActionFlow {
 pub struct ActionReason {
     /// Optional. An action that needs to be performed to solve the problem represented by this reason. This action will always be available. Should be rendered as a link or button next to the summarizing message. For example, the review may be available only once merchant configure all required attributes. In such a situation this action can be a link to the form, where they can fill the missing attribute to unblock the main action.
     #[serde(default)]
-    pub action: ::core::option::Option<Action>,
+    pub action: ::core::option::Option<::std::boxed::Box<Action>>,
     /// Detailed explanation of the reason. Should be displayed as a hint if present.
     #[serde(default)]
     pub detail: ::core::option::Option<String>,
@@ -5669,7 +5670,8 @@ pub struct ActionReason {
 pub struct BuiltInSimpleAction {
     /// Long text from an external source that should be available to the merchant. Present when the type is SHOW_ADDITIONAL_CONTENT.
     #[serde(default, rename = "additionalContent")]
-    pub additional_content: ::core::option::Option<BuiltInSimpleActionAdditionalContent>,
+    pub additional_content:
+        ::core::option::Option<::std::boxed::Box<BuiltInSimpleActionAdditionalContent>>,
     /// The attribute that needs to be updated. Present when the type is EDIT_ITEM_ATTRIBUTE. This field contains a code for attribute, represented in snake_case. You can find a list of product''s attributes, with their codes [here](https://support.google.com/merchants/answer/7052112).
     #[serde(default, rename = "attributeCode")]
     pub attribute_code: ::core::option::Option<String>,
@@ -5697,7 +5699,7 @@ pub struct BuiltInUserInputAction {
     pub action_context: ::core::option::Option<String>,
     /// Actions may provide multiple different flows. Merchant selects one that fits best to their intent. Selecting the flow is the first step in user''s interaction with the action. It affects what input fields will be available and required and also how the request will be processed.
     #[serde(default)]
-    pub flows: ::core::option::Option<::std::vec::Vec<ActionFlow>>,
+    pub flows: ::std::vec::Vec<::std::boxed::Box<ActionFlow>>,
 }
 
 /// An important message that should be highlighted. Usually displayed as a banner.
@@ -5705,7 +5707,7 @@ pub struct BuiltInUserInputAction {
 pub struct Callout {
     /// A full message that needs to be shown to the merchant.
     #[serde(default, rename = "fullMessage")]
-    pub full_message: ::core::option::Option<TextWithTooltip>,
+    pub full_message: ::core::option::Option<::std::boxed::Box<TextWithTooltip>>,
     /// Can be used to render messages with different severity in different styles. Snippets off all types contain important information that should be displayed to merchants. // TODO: enum values: ["CALLOUT_STYLE_HINT_UNSPECIFIED", "ERROR", "WARNING", "INFO"]
     #[serde(default, rename = "styleHint")]
     pub style_hint: ::core::option::Option<String>,
@@ -5730,19 +5732,19 @@ pub struct InputField {
     pub checkbox_input: ::core::option::Option<serde_json::Value>,
     /// Input field to select one of the offered choices. Corresponds to the [html input type=radio](https://www.w3.org/TR/2012/WD-html-markup-20121025/input.radio.html#input.radio).
     #[serde(default, rename = "choiceInput")]
-    pub choice_input: ::core::option::Option<InputFieldChoiceInput>,
+    pub choice_input: ::core::option::Option<::std::boxed::Box<InputFieldChoiceInput>>,
     /// Not for display but need to be sent back for the given input field.
     #[serde(default)]
     pub id: ::core::option::Option<String>,
     /// Input field label. There may be more information to be shown in a tooltip.
     #[serde(default)]
-    pub label: ::core::option::Option<TextWithTooltip>,
+    pub label: ::core::option::Option<::std::boxed::Box<TextWithTooltip>>,
     /// Whether the field is required. The action button needs to stay disabled till values for all required fields are provided.
     #[serde(default)]
     pub required: ::core::option::Option<bool>,
     /// Input field to provide text information. Corresponds to the [html input type=text](https://www.w3.org/TR/2012/WD-html-markup-20121025/input.text.html#input.text) or [html textarea](https://www.w3.org/TR/2012/WD-html-markup-20121025/textarea.html#textarea).
     #[serde(default, rename = "textInput")]
-    pub text_input: ::core::option::Option<InputFieldTextInput>,
+    pub text_input: ::core::option::Option<::std::boxed::Box<InputFieldTextInput>>,
 }
 
 /// Choice input allows merchants to select one of the offered choices. Some choices may be linked to additional input fields that should be displayed under or next to the choice option. The value for the additional input field needs to be provided only when the specific choice is selected by the merchant. For example, additional input field can be hidden or disabled until the merchant selects the specific choice.
@@ -5750,7 +5752,7 @@ pub struct InputField {
 pub struct InputFieldChoiceInput {
     /// A list of choices. Only one option can be selected.
     #[serde(default)]
-    pub options: ::core::option::Option<::std::vec::Vec<InputFieldChoiceInputChoiceInputOption>>,
+    pub options: ::std::vec::Vec<::std::boxed::Box<InputFieldChoiceInputChoiceInputOption>>,
 }
 
 /// A choice that merchant can select.
@@ -5758,13 +5760,13 @@ pub struct InputFieldChoiceInput {
 pub struct InputFieldChoiceInputChoiceInputOption {
     /// Input that should be displayed when this option is selected. The additional input will not contain a ChoiceInput.
     #[serde(default, rename = "additionalInput")]
-    pub additional_input: ::core::option::Option<InputField>,
+    pub additional_input: ::core::option::Option<::std::boxed::Box<InputField>>,
     /// Not for display but need to be sent back for the selected choice option.
     #[serde(default)]
     pub id: ::core::option::Option<String>,
     /// Short description of the choice option. There may be more information to be shown as a tooltip.
     #[serde(default)]
-    pub label: ::core::option::Option<TextWithTooltip>,
+    pub label: ::core::option::Option<::std::boxed::Box<TextWithTooltip>>,
 }
 
 /// Text input allows merchants to provide a text value.
@@ -5772,7 +5774,7 @@ pub struct InputFieldChoiceInputChoiceInputOption {
 pub struct InputFieldTextInput {
     /// Additional info regarding the field to be displayed to merchant. For example, warning to not include personal identifiable information. There may be more information to be shown in a tooltip.
     #[serde(default, rename = "additionalInfo")]
-    pub additional_info: ::core::option::Option<TextWithTooltip>,
+    pub additional_info: ::core::option::Option<::std::boxed::Box<TextWithTooltip>>,
     /// Text to be used as the [aria-label](https://www.w3.org/TR/WCAG20-TECHS/ARIA14.html) for the input.
     #[serde(default, rename = "ariaLabel")]
     pub aria_label: ::core::option::Option<String>,

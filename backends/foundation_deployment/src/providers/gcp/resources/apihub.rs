@@ -907,7 +907,7 @@ pub struct GoogleCloudApihubV1Plugin {
     pub state: ::core::option::Option<String>,
     /// Optional. The type of the API. This maps to the following system defined attribute: projects/{project}/locations/{location}/attributes/system-plugin-type attribute. The number of allowed values for this attribute will be based on the cardinality of the attribute. The same can be retrieved via GetAttribute API. All values should be from the list of allowed values defined for the attribute. Note this field is not required for plugins developed via plugin framework.
     #[serde(default, rename = "type")]
-    pub type_: ::core::option::Option<GoogleCloudApihubV1AttributeValues>,
+    pub type_: ::core::option::Option<::std::boxed::Box<GoogleCloudApihubV1AttributeValues>>,
     /// Output only. Timestamp indicating when the plugin was last updated.
     #[serde(default, rename = "updateTime")]
     pub update_time: ::core::option::Option<String>,
@@ -1548,22 +1548,26 @@ pub struct GoogleCloudApihubV1ApiOperation {
 pub struct GoogleCloudApihubV1Api {
     /// Optional. The api functional requirements associated with the API resource. Carinality is 1 for this attribute. This maps to the following system defined attribute: projects/{project}/locations/{location}/attributes/system-api-functional-requirements attribute. The value of the attribute should be a proper URI, and in case of Cloud Storage URI, it should point to a Cloud Storage object, not a directory.
     #[serde(default, rename = "apiFunctionalRequirements")]
-    pub api_functional_requirements: ::core::option::Option<GoogleCloudApihubV1AttributeValues>,
+    pub api_functional_requirements:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudApihubV1AttributeValues>>,
     /// Optional. The api requirement doc associated with the API resource. Carinality is 1 for this attribute. This maps to the following system defined attribute: projects/{project}/locations/{location}/attributes/system-api-requirements attribute. The value of the attribute should be a proper URI, and in case of Cloud Storage URI, it should point to a Cloud Storage object, not a directory.
     #[serde(default, rename = "apiRequirements")]
-    pub api_requirements: ::core::option::Option<GoogleCloudApihubV1AttributeValues>,
+    pub api_requirements:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudApihubV1AttributeValues>>,
     /// Optional. The style of the API. This maps to the following system defined attribute: projects/{project}/locations/{location}/attributes/system-api-style attribute. The number of values for this attribute will be based on the cardinality of the attribute. The same can be retrieved via GetAttribute API. All values should be from the list of allowed values defined for the attribute.
     #[serde(default, rename = "apiStyle")]
-    pub api_style: ::core::option::Option<GoogleCloudApihubV1AttributeValues>,
+    pub api_style: ::core::option::Option<::std::boxed::Box<GoogleCloudApihubV1AttributeValues>>,
     /// Optional. The api technical requirements associated with the API resource. Carinality is 1 for this attribute. This maps to the following system defined attribute: projects/{project}/locations/{location}/attributes/system-api-technical-requirements attribute. The value of the attribute should be a proper URI, and in case of Cloud Storage URI, it should point to a Cloud Storage object, not a directory.
     #[serde(default, rename = "apiTechnicalRequirements")]
-    pub api_technical_requirements: ::core::option::Option<GoogleCloudApihubV1AttributeValues>,
+    pub api_technical_requirements:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudApihubV1AttributeValues>>,
     /// Optional. The list of user defined attributes associated with the API resource. The key is the attribute name. It will be of the format: projects/{project}/locations/{location}/attributes/{attribute}. The value is the attribute values associated with the resource.
     #[serde(default)]
     pub attributes: ::core::option::Option<serde_json::Value>,
     /// Optional. The business unit owning the API. This maps to the following system defined attribute: projects/{project}/locations/{location}/attributes/system-business-unit attribute. The number of values for this attribute will be based on the cardinality of the attribute. The same can be retrieved via GetAttribute API. All values should be from the list of allowed values defined for the attribute.
     #[serde(default, rename = "businessUnit")]
-    pub business_unit: ::core::option::Option<GoogleCloudApihubV1AttributeValues>,
+    pub business_unit:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudApihubV1AttributeValues>>,
     /// Output only. The time at which the API resource was created.
     #[serde(default, rename = "createTime")]
     pub create_time: ::core::option::Option<String>,
@@ -1581,7 +1585,8 @@ pub struct GoogleCloudApihubV1Api {
     pub fingerprint: ::core::option::Option<String>,
     /// Optional. The maturity level of the API. This maps to the following system defined attribute: projects/{project}/locations/{location}/attributes/system-maturity-level attribute. The number of values for this attribute will be based on the cardinality of the attribute. The same can be retrieved via GetAttribute API. All values should be from the list of allowed values defined for the attribute.
     #[serde(default, rename = "maturityLevel")]
-    pub maturity_level: ::core::option::Option<GoogleCloudApihubV1AttributeValues>,
+    pub maturity_level:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudApihubV1AttributeValues>>,
     /// Identifier. The name of the API resource in the API Hub. Format: projects/{project}/locations/{location}/apis/{api}
     #[serde(default)]
     pub name: ::core::option::Option<String>,
@@ -1596,10 +1601,10 @@ pub struct GoogleCloudApihubV1Api {
     pub source_metadata: ::core::option::Option<::std::vec::Vec<GoogleCloudApihubV1SourceMetadata>>,
     /// Optional. The target users for the API. This maps to the following system defined attribute: projects/{project}/locations/{location}/attributes/system-target-user attribute. The number of values for this attribute will be based on the cardinality of the attribute. The same can be retrieved via GetAttribute API. All values should be from the list of allowed values defined for the attribute.
     #[serde(default, rename = "targetUser")]
-    pub target_user: ::core::option::Option<GoogleCloudApihubV1AttributeValues>,
+    pub target_user: ::core::option::Option<::std::boxed::Box<GoogleCloudApihubV1AttributeValues>>,
     /// Optional. The team owning the API. This maps to the following system defined attribute: projects/{project}/locations/{location}/attributes/system-team attribute. The number of values for this attribute will be based on the cardinality of the attribute. The same can be retrieved via GetAttribute API. All values should be from the list of allowed values defined for the attribute.
     #[serde(default)]
-    pub team: ::core::option::Option<GoogleCloudApihubV1AttributeValues>,
+    pub team: ::core::option::Option<::std::boxed::Box<GoogleCloudApihubV1AttributeValues>>,
     /// Output only. The time at which the API resource was last updated.
     #[serde(default, rename = "updateTime")]
     pub update_time: ::core::option::Option<String>,
@@ -1776,7 +1781,8 @@ pub struct GoogleCloudApihubV1SpecMetadata {
 pub struct GoogleCloudApihubV1Version {
     /// Optional. The accreditations associated with the API version. This maps to the following system defined attribute: projects/{project}/locations/{location}/attributes/system-accreditation attribute. The number of values for this attribute will be based on the cardinality of the attribute. The same can be retrieved via GetAttribute API. All values should be from the list of allowed values defined for the attribute.
     #[serde(default)]
-    pub accreditation: ::core::option::Option<GoogleCloudApihubV1AttributeValues>,
+    pub accreditation:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudApihubV1AttributeValues>>,
     /// Output only. The operations contained in the API version. These operations will be added to the version when a new spec is added or when an existing spec is updated. Format is projects/{project}/locations/{location}/apis/{api}/versions/{version}/operations/{operation}
     #[serde(default, rename = "apiOperations")]
     pub api_operations: ::core::option::Option<::std::vec::Vec<String>>,
@@ -1785,7 +1791,7 @@ pub struct GoogleCloudApihubV1Version {
     pub attributes: ::core::option::Option<serde_json::Value>,
     /// Optional. The compliance associated with the API version. This maps to the following system defined attribute: projects/{project}/locations/{location}/attributes/system-compliance attribute. The number of values for this attribute will be based on the cardinality of the attribute. The same can be retrieved via GetAttribute API. All values should be from the list of allowed values defined for the attribute.
     #[serde(default)]
-    pub compliance: ::core::option::Option<GoogleCloudApihubV1AttributeValues>,
+    pub compliance: ::core::option::Option<::std::boxed::Box<GoogleCloudApihubV1AttributeValues>>,
     /// Output only. The time at which the version was created.
     #[serde(default, rename = "createTime")]
     pub create_time: ::core::option::Option<String>,
@@ -1806,7 +1812,7 @@ pub struct GoogleCloudApihubV1Version {
     pub documentation: ::core::option::Option<GoogleCloudApihubV1Documentation>,
     /// Optional. The lifecycle of the API version. This maps to the following system defined attribute: projects/{project}/locations/{location}/attributes/system-lifecycle attribute. The number of values for this attribute will be based on the cardinality of the attribute. The same can be retrieved via GetAttribute API. All values should be from the list of allowed values defined for the attribute.
     #[serde(default)]
-    pub lifecycle: ::core::option::Option<GoogleCloudApihubV1AttributeValues>,
+    pub lifecycle: ::core::option::Option<::std::boxed::Box<GoogleCloudApihubV1AttributeValues>>,
     /// Identifier. The name of the version. Format: projects/{project}/locations/{location}/apis/{api}/versions/{version}
     #[serde(default)]
     pub name: ::core::option::Option<String>,
@@ -1896,7 +1902,8 @@ pub struct GoogleCloudApihubV1Deployment {
     pub create_time: ::core::option::Option<String>,
     /// Required. The type of deployment. This maps to the following system defined attribute: projects/{project}/locations/{location}/attributes/system-deployment-type attribute. The number of values for this attribute will be based on the cardinality of the attribute. The same can be retrieved via GetAttribute API. All values should be from the list of allowed values defined for the attribute.
     #[serde(default, rename = "deploymentType")]
-    pub deployment_type: ::core::option::Option<GoogleCloudApihubV1AttributeValues>,
+    pub deployment_type:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudApihubV1AttributeValues>>,
     /// Optional. The description of the deployment.
     #[serde(default)]
     pub description: ::core::option::Option<String>,
@@ -1911,10 +1918,11 @@ pub struct GoogleCloudApihubV1Deployment {
     pub endpoints: ::core::option::Option<::std::vec::Vec<String>>,
     /// Optional. The environment mapping to this deployment. This maps to the following system defined attribute: projects/{project}/locations/{location}/attributes/system-environment attribute. The number of values for this attribute will be based on the cardinality of the attribute. The same can be retrieved via GetAttribute API. All values should be from the list of allowed values defined for the attribute.
     #[serde(default)]
-    pub environment: ::core::option::Option<GoogleCloudApihubV1AttributeValues>,
+    pub environment: ::core::option::Option<::std::boxed::Box<GoogleCloudApihubV1AttributeValues>>,
     /// Optional. The uri where users can navigate to for the management of the deployment. This maps to the following system defined attribute: projects/{project}/locations/{location}/attributes/system-management-url The number of values for this attribute will be based on the cardinality of the attribute. The same can be retrieved via GetAttribute API. The value of the attribute should be a valid URL.
     #[serde(default, rename = "managementUrl")]
-    pub management_url: ::core::option::Option<GoogleCloudApihubV1AttributeValues>,
+    pub management_url:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudApihubV1AttributeValues>>,
     /// Identifier. The name of the deployment. Format: projects/{project}/locations/{location}/deployments/{deployment}
     #[serde(default)]
     pub name: ::core::option::Option<String>,
@@ -1923,7 +1931,7 @@ pub struct GoogleCloudApihubV1Deployment {
     pub resource_uri: ::core::option::Option<String>,
     /// Optional. The SLO for this deployment. This maps to the following system defined attribute: projects/{project}/locations/{location}/attributes/system-slo attribute. The number of values for this attribute will be based on the cardinality of the attribute. The same can be retrieved via GetAttribute API. All values should be from the list of allowed values defined for the attribute.
     #[serde(default)]
-    pub slo: ::core::option::Option<GoogleCloudApihubV1AttributeValues>,
+    pub slo: ::core::option::Option<::std::boxed::Box<GoogleCloudApihubV1AttributeValues>>,
     /// Optional. The environment at source for the deployment. For example: prod, dev, staging, etc.
     #[serde(default, rename = "sourceEnvironment")]
     pub source_environment: ::core::option::Option<String>,
@@ -1935,7 +1943,7 @@ pub struct GoogleCloudApihubV1Deployment {
     pub source_project: ::core::option::Option<String>,
     /// Optional. The uri where additional source specific information for this deployment can be found. This maps to the following system defined attribute: projects/{project}/locations/{location}/attributes/system-source-uri The number of values for this attribute will be based on the cardinality of the attribute. The same can be retrieved via GetAttribute API. The value of the attribute should be a valid URI, and in case of Cloud Storage URI, it should point to a Cloud Storage object, not a directory.
     #[serde(default, rename = "sourceUri")]
-    pub source_uri: ::core::option::Option<GoogleCloudApihubV1AttributeValues>,
+    pub source_uri: ::core::option::Option<::std::boxed::Box<GoogleCloudApihubV1AttributeValues>>,
     /// Output only. The time at which the deployment was last updated.
     #[serde(default, rename = "updateTime")]
     pub update_time: ::core::option::Option<String>,
@@ -1983,7 +1991,7 @@ pub struct GoogleCloudApihubV1Spec {
     pub source_uri: ::core::option::Option<String>,
     /// Required. The type of spec. The value should be one of the allowed values defined for projects/{project}/locations/{location}/attributes/system-spec-type attribute. The number of values for this attribute will be based on the cardinality of the attribute. The same can be retrieved via GetAttribute API. Note, this field is mandatory if content is provided.
     #[serde(default, rename = "specType")]
-    pub spec_type: ::core::option::Option<GoogleCloudApihubV1AttributeValues>,
+    pub spec_type: ::core::option::Option<::std::boxed::Box<GoogleCloudApihubV1AttributeValues>>,
     /// Output only. The time at which the spec was last updated.
     #[serde(default, rename = "updateTime")]
     pub update_time: ::core::option::Option<String>,

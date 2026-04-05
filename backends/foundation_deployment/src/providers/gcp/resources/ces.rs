@@ -393,10 +393,10 @@ pub struct RetrieveToolSchemaRequest {
 pub struct RetrieveToolSchemaResponse {
     /// The schema of the tool input parameters.
     #[serde(default, rename = "inputSchema")]
-    pub input_schema: ::core::option::Option<Schema>,
+    pub input_schema: ::core::option::Option<::std::boxed::Box<Schema>>,
     /// The schema of the tool output parameters.
     #[serde(default, rename = "outputSchema")]
-    pub output_schema: ::core::option::Option<Schema>,
+    pub output_schema: ::core::option::Option<::std::boxed::Box<Schema>>,
     /// The name of the tool that the schema is for. Format: projects/{project}/locations/{location}/apps/{app}/tools/{tool}
     #[serde(default)]
     pub tool: ::core::option::Option<String>,
@@ -847,7 +847,7 @@ pub struct ConversationTurn {
     pub messages: ::core::option::Option<::std::vec::Vec<Message>>,
     /// Optional. The root span of the action processing.
     #[serde(default, rename = "rootSpan")]
-    pub root_span: ::core::option::Option<Span>,
+    pub root_span: ::core::option::Option<::std::boxed::Box<Span>>,
 }
 
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
@@ -935,7 +935,7 @@ pub struct SessionOutputDiagnosticInfo {
     pub messages: ::core::option::Option<::std::vec::Vec<Message>>,
     /// A trace of the entire request processing, represented as a root span. This span can contain nested child spans for specific operations.
     #[serde(default, rename = "rootSpan")]
-    pub root_span: ::core::option::Option<Span>,
+    pub root_span: ::core::option::Option<::std::boxed::Box<Span>>,
 }
 
 /// Indicates the session has terminated, due to either successful completion (e.g. user says "Good bye!" ) or an agent escalation. The agent will not process any further inputs after session is terminated and the client should half-close and disconnect after receiving all remaining responses from the agent.
@@ -1318,7 +1318,7 @@ pub struct Span {
     pub attributes: ::core::option::Option<serde_json::Value>,
     /// Output only. The child spans that are nested under this span.
     #[serde(default, rename = "childSpans")]
-    pub child_spans: ::core::option::Option<::std::vec::Vec<Span>>,
+    pub child_spans: ::std::vec::Vec<::std::boxed::Box<Span>>,
     /// Output only. The duration of the span.
     #[serde(default)]
     pub duration: ::core::option::Option<String>,
@@ -1540,7 +1540,7 @@ pub struct AppVariableDeclaration {
     pub name: ::core::option::Option<String>,
     /// Required. The schema of the variable.
     #[serde(default)]
-    pub schema: ::core::option::Option<Schema>,
+    pub schema: ::core::option::Option<::std::boxed::Box<Schema>>,
 }
 
 /// TimeZone settings of the app.
@@ -1663,10 +1663,10 @@ pub struct ClientFunction {
     pub name: ::core::option::Option<String>,
     /// Optional. The schema of the function parameters.
     #[serde(default)]
-    pub parameters: ::core::option::Option<Schema>,
+    pub parameters: ::core::option::Option<::std::boxed::Box<Schema>>,
     /// Optional. The schema of the function response.
     #[serde(default)]
-    pub response: ::core::option::Option<Schema>,
+    pub response: ::core::option::Option<::std::boxed::Box<Schema>>,
 }
 
 /// A ConnectorTool allows connections to different integrations. See: https://cloud.google.com/integration-connectors/docs/overview.
@@ -1769,13 +1769,13 @@ pub struct McpTool {
     pub description: ::core::option::Option<String>,
     /// Optional. The schema of the input arguments of the MCP tool.
     #[serde(default, rename = "inputSchema")]
-    pub input_schema: ::core::option::Option<Schema>,
+    pub input_schema: ::core::option::Option<::std::boxed::Box<Schema>>,
     /// Required. The name of the MCP tool.
     #[serde(default)]
     pub name: ::core::option::Option<String>,
     /// Optional. The schema of the output arguments of the MCP tool.
     #[serde(default, rename = "outputSchema")]
-    pub output_schema: ::core::option::Option<Schema>,
+    pub output_schema: ::core::option::Option<::std::boxed::Box<Schema>>,
     /// Required. The server address of the MCP server, e.g., "https://example.com/mcp/". If the server is built with the MCP SDK, the url should be suffixed with "/mcp/". Only Streamable HTTP transport based servers are supported. This is the same as the server_address in the McpToolset. See https://modelcontextprotocol.io/specification/2025-03-26/basic/transports#streamable-http for more details.
     #[serde(default, rename = "serverAddress")]
     pub server_address: ::core::option::Option<String>,
@@ -1841,7 +1841,7 @@ pub struct WidgetTool {
     pub name: ::core::option::Option<String>,
     /// Optional. The input parameters of the widget tool.
     #[serde(default)]
-    pub parameters: ::core::option::Option<Schema>,
+    pub parameters: ::core::option::Option<::std::boxed::Box<Schema>>,
     /// Optional. Configuration for rendering the widget.
     #[serde(default, rename = "uiConfig")]
     pub ui_config: ::core::option::Option<serde_json::Value>,
@@ -2274,10 +2274,10 @@ pub struct WidgetToolDataMapping {
 pub struct Schema {
     /// Optional. Can either be a boolean or an object, controls the presence of additional properties.
     #[serde(default, rename = "additionalProperties")]
-    pub additional_properties: ::core::option::Option<Schema>,
+    pub additional_properties: ::core::option::Option<::std::boxed::Box<Schema>>,
     /// Optional. The value should be validated against any (one or more) of the subschemas in the list.
     #[serde(default, rename = "anyOf")]
-    pub any_of: ::core::option::Option<::std::vec::Vec<Schema>>,
+    pub any_of: ::std::vec::Vec<::std::boxed::Box<Schema>>,
     /// Optional. Default value of the data.
     #[serde(default)]
     pub default: ::core::option::Option<serde_json::Value>,
@@ -2292,7 +2292,7 @@ pub struct Schema {
     pub enum_: ::core::option::Option<::std::vec::Vec<String>>,
     /// Optional. Schema of the elements of Type.ARRAY.
     #[serde(default)]
-    pub items: ::core::option::Option<Schema>,
+    pub items: ::core::option::Option<::std::boxed::Box<Schema>>,
     /// Optional. Maximum number of the elements for Type.ARRAY.
     #[serde(default, rename = "maxItems")]
     pub max_items: ::core::option::Option<String>,
@@ -2310,7 +2310,7 @@ pub struct Schema {
     pub nullable: ::core::option::Option<bool>,
     /// Optional. Schemas of initial elements of Type.ARRAY.
     #[serde(default, rename = "prefixItems")]
-    pub prefix_items: ::core::option::Option<::std::vec::Vec<Schema>>,
+    pub prefix_items: ::std::vec::Vec<::std::boxed::Box<Schema>>,
     /// Optional. Properties of Type.OBJECT.
     #[serde(default)]
     pub properties: ::core::option::Option<serde_json::Value>,

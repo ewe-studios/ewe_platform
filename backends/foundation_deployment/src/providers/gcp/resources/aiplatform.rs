@@ -946,10 +946,10 @@ pub struct GoogleCloudAiplatformV1DeployResponse {
 pub struct GoogleCloudAiplatformV1DirectPredictRequest {
     /// The prediction input.
     #[serde(default)]
-    pub inputs: ::core::option::Option<::std::vec::Vec<GoogleCloudAiplatformV1Tensor>>,
+    pub inputs: ::std::vec::Vec<::std::boxed::Box<GoogleCloudAiplatformV1Tensor>>,
     /// The parameters that govern the prediction.
     #[serde(default)]
-    pub parameters: ::core::option::Option<GoogleCloudAiplatformV1Tensor>,
+    pub parameters: ::core::option::Option<::std::boxed::Box<GoogleCloudAiplatformV1Tensor>>,
 }
 
 /// Response message for PredictionService.DirectPredict.
@@ -957,10 +957,10 @@ pub struct GoogleCloudAiplatformV1DirectPredictRequest {
 pub struct GoogleCloudAiplatformV1DirectPredictResponse {
     /// The prediction output.
     #[serde(default)]
-    pub outputs: ::core::option::Option<::std::vec::Vec<GoogleCloudAiplatformV1Tensor>>,
+    pub outputs: ::std::vec::Vec<::std::boxed::Box<GoogleCloudAiplatformV1Tensor>>,
     /// The parameters that govern the prediction.
     #[serde(default)]
-    pub parameters: ::core::option::Option<GoogleCloudAiplatformV1Tensor>,
+    pub parameters: ::core::option::Option<::std::boxed::Box<GoogleCloudAiplatformV1Tensor>>,
 }
 
 /// Request message for PredictionService.DirectRawPredict.
@@ -4673,10 +4673,10 @@ pub struct GoogleCloudAiplatformV1StreamRawPredictRequest {
 pub struct GoogleCloudAiplatformV1StreamingPredictRequest {
     /// The prediction input.
     #[serde(default)]
-    pub inputs: ::core::option::Option<::std::vec::Vec<GoogleCloudAiplatformV1Tensor>>,
+    pub inputs: ::std::vec::Vec<::std::boxed::Box<GoogleCloudAiplatformV1Tensor>>,
     /// The parameters that govern the prediction.
     #[serde(default)]
-    pub parameters: ::core::option::Option<GoogleCloudAiplatformV1Tensor>,
+    pub parameters: ::core::option::Option<::std::boxed::Box<GoogleCloudAiplatformV1Tensor>>,
 }
 
 /// Response message for PredictionService.StreamingPredict.
@@ -4684,10 +4684,10 @@ pub struct GoogleCloudAiplatformV1StreamingPredictRequest {
 pub struct GoogleCloudAiplatformV1StreamingPredictResponse {
     /// The prediction output.
     #[serde(default)]
-    pub outputs: ::core::option::Option<::std::vec::Vec<GoogleCloudAiplatformV1Tensor>>,
+    pub outputs: ::std::vec::Vec<::std::boxed::Box<GoogleCloudAiplatformV1Tensor>>,
     /// The parameters that govern the prediction.
     #[serde(default)]
-    pub parameters: ::core::option::Option<GoogleCloudAiplatformV1Tensor>,
+    pub parameters: ::core::option::Option<::std::boxed::Box<GoogleCloudAiplatformV1Tensor>>,
 }
 
 /// Request message for FeaturestoreOnlineServingService.StreamingReadFeatureValues.
@@ -9977,7 +9977,7 @@ pub struct GoogleCloudAiplatformV1Tensor {
     pub int_val: ::core::option::Option<::std::vec::Vec<i32>>,
     /// A list of tensor values.
     #[serde(default, rename = "listVal")]
-    pub list_val: ::core::option::Option<::std::vec::Vec<GoogleCloudAiplatformV1Tensor>>,
+    pub list_val: ::std::vec::Vec<::std::boxed::Box<GoogleCloudAiplatformV1Tensor>>,
     /// Shape of the tensor.
     #[serde(default)]
     pub shape: ::core::option::Option<::std::vec::Vec<String>>,
@@ -11377,7 +11377,7 @@ pub struct GoogleCloudAiplatformV1FeatureViewDirectWriteRequestDataKeyAndFeature
     pub name: ::core::option::Option<String>,
     /// Feature value. A user provided timestamp may be set in the FeatureValue.metadata.generate_time field.
     #[serde(default)]
-    pub value: ::core::option::Option<GoogleCloudAiplatformV1FeatureValue>,
+    pub value: ::core::option::Option<::std::boxed::Box<GoogleCloudAiplatformV1FeatureValue>>,
 }
 
 /// Parameters for RRF algorithm that combines search results.
@@ -12814,7 +12814,7 @@ pub struct GoogleCloudAiplatformV1RagManagedDbConfigSpanner {
 pub struct GoogleCloudAiplatformV1ReadFeatureValuesResponseEntityViewData {
     /// Feature value if a single value is requested.
     #[serde(default)]
-    pub value: ::core::option::Option<GoogleCloudAiplatformV1FeatureValue>,
+    pub value: ::core::option::Option<::std::boxed::Box<GoogleCloudAiplatformV1FeatureValue>>,
     /// Feature values list if values, successive in time, are requested. If the requested number of values is greater than the number of existing Feature values, nonexistent values are omitted instead of being returned as empty.
     #[serde(default)]
     pub values: ::core::option::Option<GoogleCloudAiplatformV1FeatureValueList>,
@@ -15270,7 +15270,7 @@ pub struct GoogleCloudAiplatformV1PublisherModelDocumentation {
 pub struct GoogleCloudAiplatformV1FeatureValueList {
     /// A list of feature values. All of them should be the same data type.
     #[serde(default)]
-    pub values: ::core::option::Option<::std::vec::Vec<GoogleCloudAiplatformV1FeatureValue>>,
+    pub values: ::std::vec::Vec<::std::boxed::Box<GoogleCloudAiplatformV1FeatureValue>>,
 }
 
 /// The results from an evaluation run performed by the EvaluationService.
@@ -15639,7 +15639,7 @@ pub struct GoogleCloudAiplatformV1StudySpec {
     /// Required. The set of parameters to tune.
     #[serde(default)]
     pub parameters:
-        ::core::option::Option<::std::vec::Vec<GoogleCloudAiplatformV1StudySpecParameterSpec>>,
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudAiplatformV1StudySpecParameterSpec>>,
     /// Conditions for automated stopping of a Study. Enable automated stopping by configuring at least one condition.
     #[serde(default, rename = "studyStoppingConfig")]
     pub study_stopping_config:
@@ -18350,7 +18350,7 @@ pub struct GoogleCloudAiplatformV1FetchFeatureValuesResponseFeatureNameValuePair
     pub name: ::core::option::Option<String>,
     /// Feature value.
     #[serde(default)]
-    pub value: ::core::option::Option<GoogleCloudAiplatformV1FeatureValue>,
+    pub value: ::core::option::Option<::std::boxed::Box<GoogleCloudAiplatformV1FeatureValue>>,
 }
 
 /// Example-based explainability that returns the nearest neighbors from the provided dataset.
@@ -18467,13 +18467,13 @@ pub struct GoogleCloudAiplatformV1FunctionDeclaration {
     pub name: ::core::option::Option<String>,
     /// Optional. Describes the parameters to this function in JSON Schema Object format. Reflects the Open API 3.03 Parameter Object. string Key: the name of the parameter. Parameter names are case sensitive. Schema Value: the Schema defining the type used for the parameter. For function with no parameters, this can be left unset. Parameter names must start with a letter or an underscore and must only contain chars a-z, A-Z, 0-9, or underscores with a maximum length of 64. Example with 1 required and 1 optional parameter: type: OBJECT properties: param1: type: STRING param2: type: INTEGER required: - param1
     #[serde(default)]
-    pub parameters: ::core::option::Option<GoogleCloudAiplatformV1Schema>,
+    pub parameters: ::core::option::Option<::std::boxed::Box<GoogleCloudAiplatformV1Schema>>,
     /// Optional. Describes the parameters to the function in JSON Schema format. The schema must describe an object where the properties are the parameters to the function. For example:  { "type": "object", "properties": { "name": { "type": "string" }, "age": { "type": "integer" } }, "additionalProperties": false, "required": ["name", "age"], "propertyOrdering": ["name", "age"] }  This field is mutually exclusive with parameters.
     #[serde(default, rename = "parametersJsonSchema")]
     pub parameters_json_schema: ::core::option::Option<serde_json::Value>,
     /// Optional. Describes the output from this function in JSON Schema format. Reflects the Open API 3.03 Response Object. The Schema defines the type used for the response value of the function.
     #[serde(default)]
-    pub response: ::core::option::Option<GoogleCloudAiplatformV1Schema>,
+    pub response: ::core::option::Option<::std::boxed::Box<GoogleCloudAiplatformV1Schema>>,
     /// Optional. Describes the output from this function in JSON Schema format. The value specified by the schema is the response value of the function. This field is mutually exclusive with response.
     #[serde(default, rename = "responseJsonSchema")]
     pub response_json_schema: ::core::option::Option<serde_json::Value>,
@@ -19557,7 +19557,7 @@ pub struct GoogleCloudAiplatformV1GenerationConfig {
     pub response_modalities: ::core::option::Option<::std::vec::Vec<String>>,
     /// Optional. Lets you to specify a schema for the model''s response, ensuring that the output conforms to a particular structure. This is useful for generating structured data such as JSON. The schema is a subset of the [OpenAPI 3.0 schema object](https://spec.openapis.org/oas/v3.0.3#schema) object. When this field is set, you must also set the response_mime_type to application/json.
     #[serde(default, rename = "responseSchema")]
-    pub response_schema: ::core::option::Option<GoogleCloudAiplatformV1Schema>,
+    pub response_schema: ::core::option::Option<::std::boxed::Box<GoogleCloudAiplatformV1Schema>>,
     /// Optional. Routing configuration.
     #[serde(default, rename = "routingConfig")]
     pub routing_config:
@@ -19757,7 +19757,7 @@ pub struct GoogleCloudAiplatformV1Schema {
     pub additional_properties: ::core::option::Option<serde_json::Value>,
     /// Optional. The instance must be valid against any (one or more) of the subschemas listed in any_of.
     #[serde(default, rename = "anyOf")]
-    pub any_of: ::core::option::Option<::std::vec::Vec<GoogleCloudAiplatformV1Schema>>,
+    pub any_of: ::std::vec::Vec<::std::boxed::Box<GoogleCloudAiplatformV1Schema>>,
     /// Optional. Default value to use if the field is not specified.
     #[serde(default)]
     pub default: ::core::option::Option<serde_json::Value>,
@@ -19778,7 +19778,7 @@ pub struct GoogleCloudAiplatformV1Schema {
     pub format: ::core::option::Option<String>,
     /// Optional. If type is ARRAY, items specifies the schema of elements in the array.
     #[serde(default)]
-    pub items: ::core::option::Option<GoogleCloudAiplatformV1Schema>,
+    pub items: ::core::option::Option<::std::boxed::Box<GoogleCloudAiplatformV1Schema>>,
     /// Optional. If type is ARRAY, max_items specifies the maximum number of items in an array.
     #[serde(default, rename = "maxItems")]
     pub max_items: ::core::option::Option<String>,
@@ -20155,7 +20155,8 @@ pub struct GoogleCloudAiplatformV1DoubleArray {
 pub struct GoogleCloudAiplatformV1FeatureValue {
     /// A list of bool type feature value.
     #[serde(default, rename = "boolArrayValue")]
-    pub bool_array_value: ::core::option::Option<GoogleCloudAiplatformV1BoolArray>,
+    pub bool_array_value:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudAiplatformV1BoolArray>>,
     /// Bool type feature value.
     #[serde(default, rename = "boolValue")]
     pub bool_value: ::core::option::Option<bool>,
@@ -20164,19 +20165,22 @@ pub struct GoogleCloudAiplatformV1FeatureValue {
     pub bytes_value: ::core::option::Option<String>,
     /// A list of double type feature value.
     #[serde(default, rename = "doubleArrayValue")]
-    pub double_array_value: ::core::option::Option<GoogleCloudAiplatformV1DoubleArray>,
+    pub double_array_value:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudAiplatformV1DoubleArray>>,
     /// Double type feature value.
     #[serde(default, rename = "doubleValue")]
     pub double_value: ::core::option::Option<f64>,
     /// A list of int64 type feature value.
     #[serde(default, rename = "int64ArrayValue")]
-    pub int64_array_value: ::core::option::Option<GoogleCloudAiplatformV1Int64Array>,
+    pub int64_array_value:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudAiplatformV1Int64Array>>,
     /// Int64 feature value.
     #[serde(default, rename = "int64Value")]
     pub int64_value: ::core::option::Option<String>,
     /// Metadata of feature value.
     #[serde(default)]
-    pub metadata: ::core::option::Option<GoogleCloudAiplatformV1FeatureValueMetadata>,
+    pub metadata:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudAiplatformV1FeatureValueMetadata>>,
     /// A list of string type feature value.
     #[serde(default, rename = "stringArrayValue")]
     pub string_array_value: ::core::option::Option<GoogleCloudAiplatformV1StringArray>,
@@ -20185,7 +20189,7 @@ pub struct GoogleCloudAiplatformV1FeatureValue {
     pub string_value: ::core::option::Option<String>,
     /// A struct type feature value.
     #[serde(default, rename = "structValue")]
-    pub struct_value: ::core::option::Option<GoogleCloudAiplatformV1StructValue>,
+    pub struct_value: ::core::option::Option<::std::boxed::Box<GoogleCloudAiplatformV1StructValue>>,
 }
 
 /// Metadata of feature value.
@@ -20212,7 +20216,7 @@ pub struct GoogleCloudAiplatformV1StructFieldValue {
     pub name: ::core::option::Option<String>,
     /// The value for this field.
     #[serde(default)]
-    pub value: ::core::option::Option<GoogleCloudAiplatformV1FeatureValue>,
+    pub value: ::core::option::Option<::std::boxed::Box<GoogleCloudAiplatformV1FeatureValue>>,
 }
 
 /// Struct (or object) type feature value.
@@ -20220,7 +20224,7 @@ pub struct GoogleCloudAiplatformV1StructFieldValue {
 pub struct GoogleCloudAiplatformV1StructValue {
     /// A list of field values.
     #[serde(default)]
-    pub values: ::core::option::Option<::std::vec::Vec<GoogleCloudAiplatformV1StructFieldValue>>,
+    pub values: ::std::vec::Vec<::std::boxed::Box<GoogleCloudAiplatformV1StructFieldValue>>,
 }
 
 /// Represents a single parameter to optimize.
@@ -20228,25 +20232,29 @@ pub struct GoogleCloudAiplatformV1StructValue {
 pub struct GoogleCloudAiplatformV1StudySpecParameterSpec {
     /// The value spec for a ''CATEGORICAL'' parameter.
     #[serde(default, rename = "categoricalValueSpec")]
-    pub categorical_value_spec:
-        ::core::option::Option<GoogleCloudAiplatformV1StudySpecParameterSpecCategoricalValueSpec>,
+    pub categorical_value_spec: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudAiplatformV1StudySpecParameterSpecCategoricalValueSpec>,
+    >,
     /// A conditional parameter node is active if the parameter''s value matches the conditional node''s parent_value_condition. If two items in conditional_parameter_specs have the same name, they must have disjoint parent_value_condition.
     #[serde(default, rename = "conditionalParameterSpecs")]
-    pub conditional_parameter_specs: ::core::option::Option<
-        ::std::vec::Vec<GoogleCloudAiplatformV1StudySpecParameterSpecConditionalParameterSpec>,
+    pub conditional_parameter_specs: ::std::vec::Vec<
+        ::std::boxed::Box<GoogleCloudAiplatformV1StudySpecParameterSpecConditionalParameterSpec>,
     >,
     /// The value spec for a ''DISCRETE'' parameter.
     #[serde(default, rename = "discreteValueSpec")]
-    pub discrete_value_spec:
-        ::core::option::Option<GoogleCloudAiplatformV1StudySpecParameterSpecDiscreteValueSpec>,
+    pub discrete_value_spec: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudAiplatformV1StudySpecParameterSpecDiscreteValueSpec>,
+    >,
     /// The value spec for a ''DOUBLE'' parameter.
     #[serde(default, rename = "doubleValueSpec")]
-    pub double_value_spec:
-        ::core::option::Option<GoogleCloudAiplatformV1StudySpecParameterSpecDoubleValueSpec>,
+    pub double_value_spec: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudAiplatformV1StudySpecParameterSpecDoubleValueSpec>,
+    >,
     /// The value spec for an ''INTEGER'' parameter.
     #[serde(default, rename = "integerValueSpec")]
-    pub integer_value_spec:
-        ::core::option::Option<GoogleCloudAiplatformV1StudySpecParameterSpecIntegerValueSpec>,
+    pub integer_value_spec: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudAiplatformV1StudySpecParameterSpecIntegerValueSpec>,
+    >,
     /// Required. The ID of the parameter. Must not contain whitespaces and must be unique amongst all ParameterSpecs.
     #[serde(default, rename = "parameterId")]
     pub parameter_id: ::core::option::Option<String>,
@@ -20271,16 +20279,16 @@ pub struct GoogleCloudAiplatformV1StudySpecParameterSpecCategoricalValueSpec {
 pub struct GoogleCloudAiplatformV1StudySpecParameterSpecConditionalParameterSpec {
     /// Required. The spec for a conditional parameter.
     #[serde(default, rename = "parameterSpec")]
-    pub parameter_spec: ::core::option::Option<GoogleCloudAiplatformV1StudySpecParameterSpec>,
+    pub parameter_spec: ::core::option::Option<::std::boxed::Box<GoogleCloudAiplatformV1StudySpecParameterSpec>>,
     /// The spec for matching values from a parent parameter of CATEGORICAL type.
     #[serde(default, rename = "parentCategoricalValues")]
-    pub parent_categorical_values: ::core::option::Option<GoogleCloudAiplatformV1StudySpecParameterSpecConditionalParameterSpecCategoricalValueCondition>,
+    pub parent_categorical_values: ::core::option::Option<::std::boxed::Box<GoogleCloudAiplatformV1StudySpecParameterSpecConditionalParameterSpecCategoricalValueCondition>>,
     /// The spec for matching values from a parent parameter of DISCRETE type.
     #[serde(default, rename = "parentDiscreteValues")]
-    pub parent_discrete_values: ::core::option::Option<GoogleCloudAiplatformV1StudySpecParameterSpecConditionalParameterSpecDiscreteValueCondition>,
+    pub parent_discrete_values: ::core::option::Option<::std::boxed::Box<GoogleCloudAiplatformV1StudySpecParameterSpecConditionalParameterSpecDiscreteValueCondition>>,
     /// The spec for matching values from a parent parameter of INTEGER type.
     #[serde(default, rename = "parentIntValues")]
-    pub parent_int_values: ::core::option::Option<GoogleCloudAiplatformV1StudySpecParameterSpecConditionalParameterSpecIntValueCondition>,
+    pub parent_int_values: ::core::option::Option<::std::boxed::Box<GoogleCloudAiplatformV1StudySpecParameterSpecConditionalParameterSpecIntValueCondition>>,
 }
 
 /// Represents the spec to match categorical values from parent parameter.

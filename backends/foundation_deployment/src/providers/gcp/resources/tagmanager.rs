@@ -889,7 +889,7 @@ pub struct Client {
     pub notes: ::core::option::Option<String>,
     /// The client''s parameters.
     #[serde(default)]
-    pub parameter: ::core::option::Option<::std::vec::Vec<Parameter>>,
+    pub parameter: ::std::vec::Vec<::std::boxed::Box<Parameter>>,
     /// Parent folder id.
     #[serde(default, rename = "parentFolderId")]
     pub parent_folder_id: ::core::option::Option<String>,
@@ -994,7 +994,7 @@ pub struct GtagConfig {
     pub gtag_config_id: ::core::option::Option<String>,
     /// The Google tag config''s parameters.
     #[serde(default)]
-    pub parameter: ::core::option::Option<::std::vec::Vec<Parameter>>,
+    pub parameter: ::std::vec::Vec<::std::boxed::Box<Parameter>>,
     /// Google tag config''s API relative path.
     #[serde(default)]
     pub path: ::core::option::Option<String>,
@@ -1035,7 +1035,7 @@ pub struct Tag {
     pub live_only: ::core::option::Option<bool>,
     /// A map of key-value pairs of tag metadata to be included in the event data for tag monitoring. Notes: - This parameter must be type MAP. - Each parameter in the map are type TEMPLATE, however cannot contain variable references.
     #[serde(default, rename = "monitoringMetadata")]
-    pub monitoring_metadata: ::core::option::Option<Parameter>,
+    pub monitoring_metadata: ::core::option::Option<::std::boxed::Box<Parameter>>,
     /// If non-empty, then the tag display name will be included in the monitoring metadata map using the key specified.
     #[serde(default, rename = "monitoringMetadataTagNameKey")]
     pub monitoring_metadata_tag_name_key: ::core::option::Option<String>,
@@ -1047,7 +1047,7 @@ pub struct Tag {
     pub notes: ::core::option::Option<String>,
     /// The tag''s parameters.
     #[serde(default)]
-    pub parameter: ::core::option::Option<::std::vec::Vec<Parameter>>,
+    pub parameter: ::std::vec::Vec<::std::boxed::Box<Parameter>>,
     /// Parent folder id.
     #[serde(default, rename = "parentFolderId")]
     pub parent_folder_id: ::core::option::Option<String>,
@@ -1059,7 +1059,7 @@ pub struct Tag {
     pub paused: ::core::option::Option<bool>,
     /// User defined numeric priority of the tag. Tags are fired asynchronously in order of priority. Tags with higher numeric value fire first. A tag''s priority can be a positive or negative value. The default value is 0.
     #[serde(default)]
-    pub priority: ::core::option::Option<Parameter>,
+    pub priority: ::core::option::Option<::std::boxed::Box<Parameter>>,
     /// The end timestamp in milliseconds to schedule a tag.
     #[serde(default, rename = "scheduleEndMs")]
     pub schedule_end_ms: ::core::option::Option<String>,
@@ -1109,7 +1109,7 @@ pub struct Transformation {
     pub notes: ::core::option::Option<String>,
     /// The transformation''s parameters.
     #[serde(default)]
-    pub parameter: ::core::option::Option<::std::vec::Vec<Parameter>>,
+    pub parameter: ::std::vec::Vec<::std::boxed::Box<Parameter>>,
     /// Parent folder id.
     #[serde(default, rename = "parentFolderId")]
     pub parent_folder_id: ::core::option::Option<String>,
@@ -1141,19 +1141,19 @@ pub struct Trigger {
     pub auto_event_filter: ::core::option::Option<::std::vec::Vec<Condition>>,
     /// Whether or not we should only fire tags if the form submit or link click event is not cancelled by some other event handler (e.g. because of validation). Only valid for Form Submission and Link Click triggers.
     #[serde(default, rename = "checkValidation")]
-    pub check_validation: ::core::option::Option<Parameter>,
+    pub check_validation: ::core::option::Option<::std::boxed::Box<Parameter>>,
     /// GTM Container ID.
     #[serde(default, rename = "containerId")]
     pub container_id: ::core::option::Option<String>,
     /// A visibility trigger minimum continuous visible time (in milliseconds). Only valid for AMP Visibility trigger.
     #[serde(default, rename = "continuousTimeMinMilliseconds")]
-    pub continuous_time_min_milliseconds: ::core::option::Option<Parameter>,
+    pub continuous_time_min_milliseconds: ::core::option::Option<::std::boxed::Box<Parameter>>,
     /// Used in the case of custom event, which is fired iff all Conditions are true.
     #[serde(default, rename = "customEventFilter")]
     pub custom_event_filter: ::core::option::Option<::std::vec::Vec<Condition>>,
     /// Name of the GTM event that is fired. Only valid for Timer triggers.
     #[serde(default, rename = "eventName")]
-    pub event_name: ::core::option::Option<Parameter>,
+    pub event_name: ::core::option::Option<::std::boxed::Box<Parameter>>,
     /// The trigger will only fire iff all Conditions are true.
     #[serde(default)]
     pub filter: ::core::option::Option<::std::vec::Vec<Condition>>,
@@ -1162,19 +1162,19 @@ pub struct Trigger {
     pub fingerprint: ::core::option::Option<String>,
     /// List of integer percentage values for scroll triggers. The trigger will fire when each percentage is reached when the view is scrolled horizontally. Only valid for AMP scroll triggers.
     #[serde(default, rename = "horizontalScrollPercentageList")]
-    pub horizontal_scroll_percentage_list: ::core::option::Option<Parameter>,
+    pub horizontal_scroll_percentage_list: ::core::option::Option<::std::boxed::Box<Parameter>>,
     /// Time between triggering recurring Timer Events (in milliseconds). Only valid for Timer triggers.
     #[serde(default)]
-    pub interval: ::core::option::Option<Parameter>,
+    pub interval: ::core::option::Option<::std::boxed::Box<Parameter>>,
     /// Time between Timer Events to fire (in seconds). Only valid for AMP Timer trigger.
     #[serde(default, rename = "intervalSeconds")]
-    pub interval_seconds: ::core::option::Option<Parameter>,
+    pub interval_seconds: ::core::option::Option<::std::boxed::Box<Parameter>>,
     /// Limit of the number of GTM events this Timer Trigger will fire. If no limit is set, we will continue to fire GTM events until the user leaves the page. Only valid for Timer triggers.
     #[serde(default)]
-    pub limit: ::core::option::Option<Parameter>,
+    pub limit: ::core::option::Option<::std::boxed::Box<Parameter>>,
     /// Max time to fire Timer Events (in seconds). Only valid for AMP Timer trigger.
     #[serde(default, rename = "maxTimerLengthSeconds")]
-    pub max_timer_length_seconds: ::core::option::Option<Parameter>,
+    pub max_timer_length_seconds: ::core::option::Option<::std::boxed::Box<Parameter>>,
     /// Trigger display name.
     #[serde(default)]
     pub name: ::core::option::Option<String>,
@@ -1183,7 +1183,7 @@ pub struct Trigger {
     pub notes: ::core::option::Option<String>,
     /// Additional parameters.
     #[serde(default)]
-    pub parameter: ::core::option::Option<::std::vec::Vec<Parameter>>,
+    pub parameter: ::std::vec::Vec<::std::boxed::Box<Parameter>>,
     /// Parent folder id.
     #[serde(default, rename = "parentFolderId")]
     pub parent_folder_id: ::core::option::Option<String>,
@@ -1192,13 +1192,13 @@ pub struct Trigger {
     pub path: ::core::option::Option<String>,
     /// A click trigger CSS selector (i.e. "a", "button" etc.). Only valid for AMP Click trigger.
     #[serde(default)]
-    pub selector: ::core::option::Option<Parameter>,
+    pub selector: ::core::option::Option<::std::boxed::Box<Parameter>>,
     /// Auto generated link to the tag manager UI
     #[serde(default, rename = "tagManagerUrl")]
     pub tag_manager_url: ::core::option::Option<String>,
     /// A visibility trigger minimum total visible time (in milliseconds). Only valid for AMP Visibility trigger.
     #[serde(default, rename = "totalTimeMinMilliseconds")]
-    pub total_time_min_milliseconds: ::core::option::Option<Parameter>,
+    pub total_time_min_milliseconds: ::core::option::Option<::std::boxed::Box<Parameter>>,
     /// The Trigger ID uniquely identifies the GTM Trigger.
     #[serde(default, rename = "triggerId")]
     pub trigger_id: ::core::option::Option<String>,
@@ -1207,25 +1207,25 @@ pub struct Trigger {
     pub type_: ::core::option::Option<String>,
     /// Globally unique id of the trigger that auto-generates this (a Form Submit, Link Click or Timer listener) if any. Used to make incompatible auto-events work together with trigger filtering based on trigger ids. This value is populated during output generation since the tags implied by triggers don''t exist until then. Only valid for Form Submit, Link Click and Timer triggers.
     #[serde(default, rename = "uniqueTriggerId")]
-    pub unique_trigger_id: ::core::option::Option<Parameter>,
+    pub unique_trigger_id: ::core::option::Option<::std::boxed::Box<Parameter>>,
     /// List of integer percentage values for scroll triggers. The trigger will fire when each percentage is reached when the view is scrolled vertically. Only valid for AMP scroll triggers.
     #[serde(default, rename = "verticalScrollPercentageList")]
-    pub vertical_scroll_percentage_list: ::core::option::Option<Parameter>,
+    pub vertical_scroll_percentage_list: ::core::option::Option<::std::boxed::Box<Parameter>>,
     /// A visibility trigger CSS selector (i.e. "#id"). Only valid for AMP Visibility trigger.
     #[serde(default, rename = "visibilitySelector")]
-    pub visibility_selector: ::core::option::Option<Parameter>,
+    pub visibility_selector: ::core::option::Option<::std::boxed::Box<Parameter>>,
     /// A visibility trigger maximum percent visibility. Only valid for AMP Visibility trigger.
     #[serde(default, rename = "visiblePercentageMax")]
-    pub visible_percentage_max: ::core::option::Option<Parameter>,
+    pub visible_percentage_max: ::core::option::Option<::std::boxed::Box<Parameter>>,
     /// A visibility trigger minimum percent visibility. Only valid for AMP Visibility trigger.
     #[serde(default, rename = "visiblePercentageMin")]
-    pub visible_percentage_min: ::core::option::Option<Parameter>,
+    pub visible_percentage_min: ::core::option::Option<::std::boxed::Box<Parameter>>,
     /// Whether or not we should delay the form submissions or link opening until all of the tags have fired (by preventing the default action and later simulating the default action). Only valid for Form Submission and Link Click triggers.
     #[serde(default, rename = "waitForTags")]
-    pub wait_for_tags: ::core::option::Option<Parameter>,
+    pub wait_for_tags: ::core::option::Option<::std::boxed::Box<Parameter>>,
     /// How long to wait (in milliseconds) for tags to fire when ''waits_for_tags'' above evaluates to true. Only valid for Form Submission and Link Click triggers.
     #[serde(default, rename = "waitForTagsTimeout")]
-    pub wait_for_tags_timeout: ::core::option::Option<Parameter>,
+    pub wait_for_tags_timeout: ::core::option::Option<::std::boxed::Box<Parameter>>,
     /// GTM Workspace ID.
     #[serde(default, rename = "workspaceId")]
     pub workspace_id: ::core::option::Option<String>,
@@ -1260,7 +1260,7 @@ pub struct Variable {
     pub notes: ::core::option::Option<String>,
     /// The variable''s parameters.
     #[serde(default)]
-    pub parameter: ::core::option::Option<::std::vec::Vec<Parameter>>,
+    pub parameter: ::std::vec::Vec<::std::boxed::Box<Parameter>>,
     /// Parent folder id.
     #[serde(default, rename = "parentFolderId")]
     pub parent_folder_id: ::core::option::Option<String>,
@@ -1365,7 +1365,7 @@ pub struct TagConsentSetting {
     pub consent_status: ::core::option::Option<String>,
     /// The type of consents to check for during tag firing if in the consent NEEDED state. This parameter must be of type LIST where each list item is of type STRING.
     #[serde(default, rename = "consentType")]
-    pub consent_type: ::core::option::Option<Parameter>,
+    pub consent_type: ::core::option::Option<::std::boxed::Box<Parameter>>,
 }
 
 /// Represents a reference to atag that fires before another tag in order to set up dependencies.
@@ -1398,10 +1398,10 @@ pub struct VariableFormatValue {
     pub case_conversion_type: ::core::option::Option<String>,
     /// The value to convert if a variable value is false.
     #[serde(default, rename = "convertFalseToValue")]
-    pub convert_false_to_value: ::core::option::Option<Parameter>,
+    pub convert_false_to_value: ::core::option::Option<::std::boxed::Box<Parameter>>,
     /// The value to convert if a variable value is null.
     #[serde(default, rename = "convertNullToValue")]
-    pub convert_null_to_value: ::core::option::Option<Parameter>,
+    pub convert_null_to_value: ::core::option::Option<::std::boxed::Box<Parameter>>,
     /// The option to convert a variable value to a boolean.
     #[serde(default, rename = "convertToBoolean")]
     pub convert_to_boolean: ::core::option::Option<bool>,
@@ -1410,10 +1410,10 @@ pub struct VariableFormatValue {
     pub convert_to_number: ::core::option::Option<String>,
     /// The value to convert if a variable value is true.
     #[serde(default, rename = "convertTrueToValue")]
-    pub convert_true_to_value: ::core::option::Option<Parameter>,
+    pub convert_true_to_value: ::core::option::Option<::std::boxed::Box<Parameter>>,
     /// The value to convert if a variable value is undefined.
     #[serde(default, rename = "convertUndefinedToValue")]
-    pub convert_undefined_to_value: ::core::option::Option<Parameter>,
+    pub convert_undefined_to_value: ::core::option::Option<::std::boxed::Box<Parameter>>,
 }
 
 /// Represents a Zone''s boundaries.
@@ -1454,7 +1454,7 @@ pub struct ZoneTypeRestriction {
 pub struct Condition {
     /// A list of named parameters (key/value), depending on the condition''s type. Notes: - For binary operators, include parameters named arg0 and arg1 for specifying the left and right operands, respectively. - At this time, the left operand (arg0) must be a reference to a variable. - For case-insensitive Regex matching, include a boolean parameter named ignore_case that is set to true. If not specified or set to any other value, the matching will be case sensitive. - To negate an operator, include a boolean parameter named negate boolean parameter that is set to true.
     #[serde(default)]
-    pub parameter: ::core::option::Option<::std::vec::Vec<Parameter>>,
+    pub parameter: ::std::vec::Vec<::std::boxed::Box<Parameter>>,
     /// The type of operator for this condition. // TODO: enum values: ["conditionTypeUnspecified", "equals", "contains", "startsWith", "endsWith", "matchRegex", "greater", "greaterOrEquals", "less", "lessOrEquals", "cssSelector", "urlMatches"]
     #[serde(default, rename = "type")]
     pub type_: ::core::option::Option<String>,
@@ -1471,10 +1471,10 @@ pub struct Parameter {
     pub key: ::core::option::Option<String>,
     /// This list parameter''s parameters (keys will be ignored).
     #[serde(default)]
-    pub list: ::core::option::Option<::std::vec::Vec<Parameter>>,
+    pub list: ::std::vec::Vec<::std::boxed::Box<Parameter>>,
     /// This map parameter''s parameters (must have keys; keys must be unique).
     #[serde(default)]
-    pub map: ::core::option::Option<::std::vec::Vec<Parameter>>,
+    pub map: ::std::vec::Vec<::std::boxed::Box<Parameter>>,
     /// The parameter type. Valid values are: - boolean: The value represents a boolean, represented as ''true'' or ''false'' - integer: The value represents a 64-bit signed integer value, in base 10 - list: A list of parameters should be specified - map: A map of parameters should be specified - template: The value represents any text; this can include variable references (even variable references that might return non-string types) - trigger_reference: The value represents a trigger, represented as the trigger id - tag_reference: The value represents a tag, represented as the tag name  // TODO: enum values: ["typeUnspecified", "template", "integer", "boolean", "list", "map", "triggerReference", "tagReference"]
     #[serde(default, rename = "type")]
     pub type_: ::core::option::Option<String>,

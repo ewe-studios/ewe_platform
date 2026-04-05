@@ -55,7 +55,7 @@ pub struct Application {
     pub icon_url: ::core::option::Option<String>,
     /// The set of managed properties available to be pre-configured for the app.
     #[serde(default, rename = "managedProperties")]
-    pub managed_properties: ::core::option::Option<::std::vec::Vec<ManagedProperty>>,
+    pub managed_properties: ::std::vec::Vec<::std::boxed::Box<ManagedProperty>>,
     /// The minimum Android SDK necessary to run the app.
     #[serde(default, rename = "minAndroidSdkVersion")]
     pub min_android_sdk_version: ::core::option::Option<i32>,
@@ -476,7 +476,7 @@ pub struct ManagedProperty {
     pub key: ::core::option::Option<String>,
     /// For BUNDLE_ARRAY properties, the list of nested properties. A BUNDLE_ARRAY property is at most two levels deep.
     #[serde(default, rename = "nestedProperties")]
-    pub nested_properties: ::core::option::Option<::std::vec::Vec<ManagedProperty>>,
+    pub nested_properties: ::std::vec::Vec<::std::boxed::Box<ManagedProperty>>,
     /// The name of the property. Localized.
     #[serde(default)]
     pub title: ::core::option::Option<String>,

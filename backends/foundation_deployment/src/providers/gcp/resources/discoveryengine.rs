@@ -5922,7 +5922,7 @@ pub struct GoogleCloudDiscoveryengineV1SearchResponseQueryExpansionInfo {
 pub struct GoogleCloudDiscoveryengineV1SearchResponseSearchResult {
     /// The chunk data in the search response if the SearchRequest.ContentSearchSpec.search_result_mode is set to CHUNKS.
     #[serde(default)]
-    pub chunk: ::core::option::Option<GoogleCloudDiscoveryengineV1Chunk>,
+    pub chunk: ::core::option::Option<::std::boxed::Box<GoogleCloudDiscoveryengineV1Chunk>>,
     /// The document data snippet in the search response. Only fields that are marked as retrievable are populated.
     #[serde(default)]
     pub document: ::core::option::Option<GoogleCloudDiscoveryengineV1Document>,
@@ -8636,7 +8636,7 @@ pub struct GoogleCloudDiscoveryengineV1SearchResponseFacetFacetValue {
 pub struct GoogleCloudDiscoveryengineV1SearchResponseNaturalLanguageQueryUnderstandingInfoStructuredExtractedFilter {
     /// The expression denoting the filter that was extracted from the input query in a structured form. It can be a simple expression denoting a single string, numerical or geolocation constraint or a compound expression which is a combination of multiple expressions connected using logical (OR and AND) operators.
     #[serde(default)]
-    pub expression: ::core::option::Option<GoogleCloudDiscoveryengineV1SearchResponseNaturalLanguageQueryUnderstandingInfoStructuredExtractedFilterExpression>,
+    pub expression: ::core::option::Option<::std::boxed::Box<GoogleCloudDiscoveryengineV1SearchResponseNaturalLanguageQueryUnderstandingInfoStructuredExtractedFilterExpression>>,
 }
 
 /// Document captures all raw metadata information of items to be recommended or searched.
@@ -14548,12 +14548,12 @@ pub struct GoogleCloudDiscoveryengineV1Chunk {
     pub annotation_contents: ::core::option::Option<::std::vec::Vec<String>>,
     /// Output only. The annotation metadata includes structured content in the current chunk.
     #[serde(default, rename = "annotationMetadata")]
-    pub annotation_metadata: ::core::option::Option<
-        ::std::vec::Vec<GoogleCloudDiscoveryengineV1ChunkAnnotationMetadata>,
-    >,
+    pub annotation_metadata:
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDiscoveryengineV1ChunkAnnotationMetadata>>,
     /// Output only. Metadata of the current chunk.
     #[serde(default, rename = "chunkMetadata")]
-    pub chunk_metadata: ::core::option::Option<GoogleCloudDiscoveryengineV1ChunkChunkMetadata>,
+    pub chunk_metadata:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDiscoveryengineV1ChunkChunkMetadata>>,
     /// Content is a string from a document (parsed content).
     #[serde(default)]
     pub content: ::core::option::Option<String>,
@@ -14565,8 +14565,9 @@ pub struct GoogleCloudDiscoveryengineV1Chunk {
     pub derived_struct_data: ::core::option::Option<serde_json::Value>,
     /// Metadata of the document from the current chunk.
     #[serde(default, rename = "documentMetadata")]
-    pub document_metadata:
-        ::core::option::Option<GoogleCloudDiscoveryengineV1ChunkDocumentMetadata>,
+    pub document_metadata: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDiscoveryengineV1ChunkDocumentMetadata>,
+    >,
     /// Unique chunk ID of the current chunk.
     #[serde(default)]
     pub id: ::core::option::Option<String>,
@@ -14575,7 +14576,8 @@ pub struct GoogleCloudDiscoveryengineV1Chunk {
     pub name: ::core::option::Option<String>,
     /// Page span of the chunk.
     #[serde(default, rename = "pageSpan")]
-    pub page_span: ::core::option::Option<GoogleCloudDiscoveryengineV1ChunkPageSpan>,
+    pub page_span:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDiscoveryengineV1ChunkPageSpan>>,
     /// Output only. Represents the relevance score based on similarity. Higher score indicates higher chunk relevance. The score is in range [-1.0, 1.0]. Only populated on SearchResponse.
     #[serde(default, rename = "relevanceScore")]
     pub relevance_score: ::core::option::Option<f64>,
@@ -14589,8 +14591,9 @@ pub struct GoogleCloudDiscoveryengineV1ChunkAnnotationMetadata {
     pub image_id: ::core::option::Option<String>,
     /// Output only. The structured content information.
     #[serde(default, rename = "structuredContent")]
-    pub structured_content:
-        ::core::option::Option<GoogleCloudDiscoveryengineV1ChunkStructuredContent>,
+    pub structured_content: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDiscoveryengineV1ChunkStructuredContent>,
+    >,
 }
 
 /// Metadata of the current chunk. This field is only populated on SearchService.Search API.
@@ -14598,10 +14601,10 @@ pub struct GoogleCloudDiscoveryengineV1ChunkAnnotationMetadata {
 pub struct GoogleCloudDiscoveryengineV1ChunkChunkMetadata {
     /// The next chunks of the current chunk. The number is controlled by SearchRequest.ContentSearchSpec.ChunkSpec.num_next_chunks. This field is only populated on SearchService.Search API.
     #[serde(default, rename = "nextChunks")]
-    pub next_chunks: ::core::option::Option<::std::vec::Vec<GoogleCloudDiscoveryengineV1Chunk>>,
+    pub next_chunks: ::std::vec::Vec<::std::boxed::Box<GoogleCloudDiscoveryengineV1Chunk>>,
     /// The previous chunks of the current chunk. The number is controlled by SearchRequest.ContentSearchSpec.ChunkSpec.num_previous_chunks. This field is only populated on SearchService.Search API.
     #[serde(default, rename = "previousChunks")]
-    pub previous_chunks: ::core::option::Option<::std::vec::Vec<GoogleCloudDiscoveryengineV1Chunk>>,
+    pub previous_chunks: ::std::vec::Vec<::std::boxed::Box<GoogleCloudDiscoveryengineV1Chunk>>,
 }
 
 /// Document metadata contains the information of the document of the current chunk.
@@ -14648,7 +14651,7 @@ pub struct GoogleCloudDiscoveryengineV1ChunkStructuredContent {
 pub struct GoogleCloudDiscoveryengineV1SearchResponseNaturalLanguageQueryUnderstandingInfoStructuredExtractedFilterAndExpression {
     /// The expressions that were ANDed together.
     #[serde(default)]
-    pub expressions: ::core::option::Option<::std::vec::Vec<GoogleCloudDiscoveryengineV1SearchResponseNaturalLanguageQueryUnderstandingInfoStructuredExtractedFilterExpression>>,
+    pub expressions: ::std::vec::Vec<::std::boxed::Box<GoogleCloudDiscoveryengineV1SearchResponseNaturalLanguageQueryUnderstandingInfoStructuredExtractedFilterExpression>>,
 }
 
 /// The expression denoting the filter that was extracted from the input query.
@@ -14656,16 +14659,16 @@ pub struct GoogleCloudDiscoveryengineV1SearchResponseNaturalLanguageQueryUnderst
 pub struct GoogleCloudDiscoveryengineV1SearchResponseNaturalLanguageQueryUnderstandingInfoStructuredExtractedFilterExpression {
     /// Logical "And" compound operator connecting multiple expressions.
     #[serde(default, rename = "andExpr")]
-    pub and_expr: ::core::option::Option<GoogleCloudDiscoveryengineV1SearchResponseNaturalLanguageQueryUnderstandingInfoStructuredExtractedFilterAndExpression>,
+    pub and_expr: ::core::option::Option<::std::boxed::Box<GoogleCloudDiscoveryengineV1SearchResponseNaturalLanguageQueryUnderstandingInfoStructuredExtractedFilterAndExpression>>,
     /// Geolocation constraint expression.
     #[serde(default, rename = "geolocationConstraint")]
-    pub geolocation_constraint: ::core::option::Option<GoogleCloudDiscoveryengineV1SearchResponseNaturalLanguageQueryUnderstandingInfoStructuredExtractedFilterGeolocationConstraint>,
+    pub geolocation_constraint: ::core::option::Option<::std::boxed::Box<GoogleCloudDiscoveryengineV1SearchResponseNaturalLanguageQueryUnderstandingInfoStructuredExtractedFilterGeolocationConstraint>>,
     /// Numerical constraint expression.
     #[serde(default, rename = "numberConstraint")]
-    pub number_constraint: ::core::option::Option<GoogleCloudDiscoveryengineV1SearchResponseNaturalLanguageQueryUnderstandingInfoStructuredExtractedFilterNumberConstraint>,
+    pub number_constraint: ::core::option::Option<::std::boxed::Box<GoogleCloudDiscoveryengineV1SearchResponseNaturalLanguageQueryUnderstandingInfoStructuredExtractedFilterNumberConstraint>>,
     /// Logical "Or" compound operator connecting multiple expressions.
     #[serde(default, rename = "orExpr")]
-    pub or_expr: ::core::option::Option<GoogleCloudDiscoveryengineV1SearchResponseNaturalLanguageQueryUnderstandingInfoStructuredExtractedFilterOrExpression>,
+    pub or_expr: ::core::option::Option<::std::boxed::Box<GoogleCloudDiscoveryengineV1SearchResponseNaturalLanguageQueryUnderstandingInfoStructuredExtractedFilterOrExpression>>,
     /// String constraint expression.
     #[serde(default, rename = "stringConstraint")]
     pub string_constraint: ::core::option::Option<GoogleCloudDiscoveryengineV1SearchResponseNaturalLanguageQueryUnderstandingInfoStructuredExtractedFilterStringConstraint>,
@@ -14715,5 +14718,5 @@ pub struct GoogleCloudDiscoveryengineV1SearchResponseNaturalLanguageQueryUnderst
 pub struct GoogleCloudDiscoveryengineV1SearchResponseNaturalLanguageQueryUnderstandingInfoStructuredExtractedFilterOrExpression {
     /// The expressions that were ORed together.
     #[serde(default)]
-    pub expressions: ::core::option::Option<::std::vec::Vec<GoogleCloudDiscoveryengineV1SearchResponseNaturalLanguageQueryUnderstandingInfoStructuredExtractedFilterExpression>>,
+    pub expressions: ::std::vec::Vec<::std::boxed::Box<GoogleCloudDiscoveryengineV1SearchResponseNaturalLanguageQueryUnderstandingInfoStructuredExtractedFilterExpression>>,
 }

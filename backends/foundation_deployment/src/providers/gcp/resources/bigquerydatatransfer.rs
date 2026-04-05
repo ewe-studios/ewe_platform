@@ -191,7 +191,7 @@ pub struct DataSource {
     pub name: ::core::option::Option<String>,
     /// Data source parameters.
     #[serde(default)]
-    pub parameters: ::core::option::Option<::std::vec::Vec<DataSourceParameter>>,
+    pub parameters: ::std::vec::Vec<::std::boxed::Box<DataSourceParameter>>,
     /// Api auth scopes for which refresh token needs to be obtained. These are scopes needed by a data source to prepare data and ingest them into BigQuery, e.g., https://www.googleapis.com/auth/bigquery
     #[serde(default)]
     pub scopes: ::core::option::Option<::std::vec::Vec<String>>,
@@ -418,7 +418,7 @@ pub struct DataSourceParameter {
     pub display_name: ::core::option::Option<String>,
     /// Deprecated. This field has no effect.
     #[serde(default)]
-    pub fields: ::core::option::Option<::std::vec::Vec<DataSourceParameter>>,
+    pub fields: ::std::vec::Vec<::std::boxed::Box<DataSourceParameter>>,
     /// Cannot be changed after initial creation.
     #[serde(default)]
     pub immutable: ::core::option::Option<bool>,

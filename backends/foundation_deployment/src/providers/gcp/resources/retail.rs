@@ -571,7 +571,7 @@ pub struct GoogleCloudRetailV2ListProductsResponse {
     pub next_page_token: ::core::option::Option<String>,
     /// The Products.
     #[serde(default)]
-    pub products: ::core::option::Option<::std::vec::Vec<GoogleCloudRetailV2Product>>,
+    pub products: ::std::vec::Vec<::std::boxed::Box<GoogleCloudRetailV2Product>>,
 }
 
 /// Response for ListServingConfigs method.
@@ -973,7 +973,7 @@ pub struct GoogleCloudRetailV2SetInventoryRequest {
     pub allow_missing: ::core::option::Option<bool>,
     /// Required. The inventory information to update. The allowable fields to update are: * Product.price_info * Product.availability * Product.available_quantity * Product.fulfillment_info The updated inventory fields must be specified in SetInventoryRequest.set_mask. If SetInventoryRequest.inventory.name is empty or invalid, an INVALID_ARGUMENT error is returned. If the caller does not have permission to update the Product named in Product.name, regardless of whether or not it exists, a PERMISSION_DENIED error is returned. If the Product to update does not have existing inventory information, the provided inventory information will be inserted. If the Product to update has existing inventory information, the provided inventory information will be merged while respecting the last update time for each inventory field, using the provided or default value for SetInventoryRequest.set_time. The caller can replace place IDs for a subset of fulfillment types in the following ways: * Adds "fulfillment_info" in SetInventoryRequest.set_mask * Specifies only the desired fulfillment types and corresponding place IDs to update in SetInventoryRequest.inventory.fulfillment_info The caller can clear all place IDs from a subset of fulfillment types in the following ways: * Adds "fulfillment_info" in SetInventoryRequest.set_mask * Specifies only the desired fulfillment types to clear in SetInventoryRequest.inventory.fulfillment_info * Checks that only the desired fulfillment info types have empty SetInventoryRequest.inventory.fulfillment_info.place_ids The last update time is recorded for the following inventory fields: * Product.price_info * Product.availability * Product.available_quantity * Product.fulfillment_info If a full overwrite of inventory information while ignoring timestamps is needed, ProductService.UpdateProduct should be invoked instead.
     #[serde(default)]
-    pub inventory: ::core::option::Option<GoogleCloudRetailV2Product>,
+    pub inventory: ::core::option::Option<::std::boxed::Box<GoogleCloudRetailV2Product>>,
     /// Indicates which inventory fields in the provided Product to update. At least one field must be provided. If an unsupported or unknown field is provided, an INVALID_ARGUMENT error is returned and the entire update will be ignored.
     #[serde(default, rename = "setMask")]
     pub set_mask: ::core::option::Option<String>,
@@ -2250,7 +2250,7 @@ pub struct GoogleCloudRetailV2SearchResponseSearchResult {
     pub personal_labels: ::core::option::Option<::std::vec::Vec<String>>,
     /// The product data snippet in the search response. Only Product.name is guaranteed to be populated. Product.variants contains the product variants that match the search query. If there are multiple product variants matching the query, top 5 most relevant product variants are returned and ordered by relevancy. If relevancy can be deternmined, use matching_variant_fields to look up matched product variants fields. If relevancy cannot be determined, e.g. when searching "shoe" all products in a shoe product can be a match, 5 product variants are returned but order is meaningless.
     #[serde(default)]
-    pub product: ::core::option::Option<GoogleCloudRetailV2Product>,
+    pub product: ::core::option::Option<::std::boxed::Box<GoogleCloudRetailV2Product>>,
     /// The rollup matching variant Product attributes. The key is one of the SearchRequest.variant_rollup_keys. The values are the merged and de-duplicated Product attributes. Notice that the rollup values are respect filter. For example, when filtering by "colorFamilies:ANY(\"red\")" and rollup "colorFamilies", only "red" is returned. For textual and numerical attributes, the rollup values is a list of string or double values with type google.protobuf.ListValue. For example, if there are two variants with colors "red" and "blue", the rollup values are { key: "colorFamilies" value { list_value { values { string_value: "red" } values { string_value: "blue" } } } } For FulfillmentInfo, the rollup values is a double value with type google.protobuf.Value. For example, {key: "pickupInStore.store1" value { number_value: 10 }} means a there are 10 variants in this product are available in the store "store1".
     #[serde(default, rename = "variantRollupValues")]
     pub variant_rollup_values: ::core::option::Option<serde_json::Value>,
@@ -2603,7 +2603,7 @@ pub struct GoogleCloudRetailV2GcsOutputResult {
 pub struct GoogleCloudRetailV2ProductInlineSource {
     /// Required. A list of products to update/create. Each product must have a valid Product.id. Recommended max of 100 items.
     #[serde(default)]
-    pub products: ::core::option::Option<::std::vec::Vec<GoogleCloudRetailV2Product>>,
+    pub products: ::std::vec::Vec<::std::boxed::Box<GoogleCloudRetailV2Product>>,
 }
 
 /// BigQuery source import data from.
@@ -3411,7 +3411,7 @@ pub struct GoogleCloudRetailV2ProductAttributeValue {
 pub struct GoogleCloudRetailV2ProductDetail {
     /// Required. Product information. Required field(s): * Product.id Optional override field(s): * Product.price_info If any supported optional fields are provided, we will treat them as a full override when looking up product information from the catalog. Thus, it is important to ensure that the overriding fields are accurate and complete. All other product fields are ignored and instead populated via catalog lookup after event ingestion.
     #[serde(default)]
-    pub product: ::core::option::Option<GoogleCloudRetailV2Product>,
+    pub product: ::core::option::Option<::std::boxed::Box<GoogleCloudRetailV2Product>>,
     /// Quantity of the product associated with the user event. For example, this field will be 2 if two products are added to the shopping cart for purchase-complete event. Required for add-to-cart and purchase-complete event types.
     #[serde(default)]
     pub quantity: ::core::option::Option<i32>,
@@ -3523,7 +3523,7 @@ pub struct GoogleCloudRetailV2Product {
     pub uri: ::core::option::Option<String>,
     /// Output only. Product variants grouped together on primary product which share similar product attributes. It''s automatically grouped by primary_product_id for all the product variants. Only populated for Type.PRIMARY Products. Note: This field is OUTPUT_ONLY for ProductService.GetProduct. Do not set this field in API requests.
     #[serde(default)]
-    pub variants: ::core::option::Option<::std::vec::Vec<GoogleCloudRetailV2Product>>,
+    pub variants: ::std::vec::Vec<::std::boxed::Box<GoogleCloudRetailV2Product>>,
 }
 
 /// An intended audience of the Product for whom it''s sold.

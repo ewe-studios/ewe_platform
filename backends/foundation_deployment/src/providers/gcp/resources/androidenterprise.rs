@@ -960,7 +960,7 @@ pub struct AppRestrictionsSchema {
     pub kind: ::core::option::Option<String>,
     /// The set of restrictions that make up this schema.
     #[serde(default)]
-    pub restrictions: ::core::option::Option<::std::vec::Vec<AppRestrictionsSchemaRestriction>>,
+    pub restrictions: ::std::vec::Vec<::std::boxed::Box<AppRestrictionsSchemaRestriction>>,
 }
 
 /// Id to name association of a track.
@@ -1107,8 +1107,7 @@ pub struct AppRestrictionsSchemaRestriction {
     pub key: ::core::option::Option<String>,
     /// For bundle or bundleArray restrictions, the list of nested restrictions. A bundle restriction is always nested within a bundleArray restriction, and a bundleArray restriction is at most two levels deep.
     #[serde(default, rename = "nestedRestriction")]
-    pub nested_restriction:
-        ::core::option::Option<::std::vec::Vec<AppRestrictionsSchemaRestriction>>,
+    pub nested_restriction: ::std::vec::Vec<::std::boxed::Box<AppRestrictionsSchemaRestriction>>,
     /// The type of the restriction. // TODO: enum values: ["bool", "string", "integer", "choice", "multiselect", "hidden", "bundle", "bundleArray"]
     #[serde(default, rename = "restrictionType")]
     pub restriction_type: ::core::option::Option<String>,
@@ -1153,7 +1152,7 @@ pub struct ManagedConfiguration {
     pub kind: ::core::option::Option<String>,
     /// The set of managed properties for this configuration.
     #[serde(default, rename = "managedProperty")]
-    pub managed_property: ::core::option::Option<::std::vec::Vec<ManagedProperty>>,
+    pub managed_property: ::std::vec::Vec<::std::boxed::Box<ManagedProperty>>,
     /// The ID of the product that the managed configuration is for, e.g. "app:com.google.android.gm".
     #[serde(default, rename = "productId")]
     pub product_id: ::core::option::Option<String>,
@@ -1257,10 +1256,10 @@ pub struct ManagedProperty {
     pub value_bool: ::core::option::Option<bool>,
     /// The bundle of managed properties - this will only be present if type of the property is bundle.
     #[serde(default, rename = "valueBundle")]
-    pub value_bundle: ::core::option::Option<ManagedPropertyBundle>,
+    pub value_bundle: ::core::option::Option<::std::boxed::Box<ManagedPropertyBundle>>,
     /// The list of bundles of properties - this will only be present if type of the property is bundle_array.
     #[serde(default, rename = "valueBundleArray")]
-    pub value_bundle_array: ::core::option::Option<::std::vec::Vec<ManagedPropertyBundle>>,
+    pub value_bundle_array: ::std::vec::Vec<::std::boxed::Box<ManagedPropertyBundle>>,
     /// The integer value - this will only be present if type of the property is integer.
     #[serde(default, rename = "valueInteger")]
     pub value_integer: ::core::option::Option<i32>,
@@ -1277,5 +1276,5 @@ pub struct ManagedProperty {
 pub struct ManagedPropertyBundle {
     /// The list of managed properties.
     #[serde(default, rename = "managedProperty")]
-    pub managed_property: ::core::option::Option<::std::vec::Vec<ManagedProperty>>,
+    pub managed_property: ::std::vec::Vec<::std::boxed::Box<ManagedProperty>>,
 }

@@ -127,7 +127,7 @@ pub struct StructMatcher {
     pub path: ::core::option::Option<::std::vec::Vec<PathSegment>>,
     /// The StructMatcher is matched if the value retrieved by path is matched to this value.
     #[serde(default)]
-    pub value: ::core::option::Option<ValueMatcher>,
+    pub value: ::core::option::Option<::std::boxed::Box<ValueMatcher>>,
 }
 
 /// GenericXdsConfig is used to specify the config status and the dump of any xDS resource identified by their type URL. It is the generalized version of the now deprecated ListenersConfigDump, ClustersConfigDump etc [#next-free-field: 10]
@@ -624,7 +624,7 @@ pub struct DoubleMatcher {
     pub exact: ::core::option::Option<f64>,
     /// If specified, the input double value must be in the range specified here. Note: The range is using half-open interval semantics [start, end).
     #[serde(default)]
-    pub range: ::core::option::Option<DoubleRange>,
+    pub range: ::core::option::Option<::std::boxed::Box<DoubleRange>>,
 }
 
 /// Specifies the double start and end of the range using half-open interval semantics [start, end).
@@ -643,14 +643,14 @@ pub struct DoubleRange {
 pub struct ListMatcher {
     /// If specified, at least one of the values in the list must match the value specified.
     #[serde(default, rename = "oneOf")]
-    pub one_of: ::core::option::Option<ValueMatcher>,
+    pub one_of: ::core::option::Option<::std::boxed::Box<ValueMatcher>>,
 }
 
 /// Specifies a list of alternatives for the match.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct OrMatcher {
     #[serde(default, rename = "valueMatchers")]
-    pub value_matchers: ::core::option::Option<::std::vec::Vec<ValueMatcher>>,
+    pub value_matchers: ::std::vec::Vec<::std::boxed::Box<ValueMatcher>>,
 }
 
 /// Specifies the way to match a Protobuf::Value. Primitive values and ListValue are supported. StructValue is not supported and is always not matched. [#next-free-field: 8]
@@ -661,16 +661,16 @@ pub struct ValueMatcher {
     pub bool_match: ::core::option::Option<bool>,
     /// If specified, a match occurs if and only if the target value is a double value and is matched to this field.
     #[serde(default, rename = "doubleMatch")]
-    pub double_match: ::core::option::Option<DoubleMatcher>,
+    pub double_match: ::core::option::Option<::std::boxed::Box<DoubleMatcher>>,
     /// If specified, a match occurs if and only if the target value is a list value and is matched to this field.
     #[serde(default, rename = "listMatch")]
-    pub list_match: ::core::option::Option<ListMatcher>,
+    pub list_match: ::core::option::Option<::std::boxed::Box<ListMatcher>>,
     /// If specified, a match occurs if and only if the target value is a NullValue.
     #[serde(default, rename = "nullMatch")]
     pub null_match: ::core::option::Option<serde_json::Value>,
     /// If specified, a match occurs if and only if any of the alternatives in the match accept the value.
     #[serde(default, rename = "orMatch")]
-    pub or_match: ::core::option::Option<OrMatcher>,
+    pub or_match: ::core::option::Option<::std::boxed::Box<OrMatcher>>,
     /// If specified, value match will be performed based on whether the path is referring to a valid primitive value in the metadata. If the path is referring to a non-primitive value, the result is always not matched.
     #[serde(default, rename = "presentMatch")]
     pub present_match: ::core::option::Option<bool>,

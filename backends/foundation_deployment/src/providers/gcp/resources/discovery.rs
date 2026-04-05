@@ -32,7 +32,7 @@ pub struct JsonSchema {
     pub ref_: ::core::option::Option<String>,
     /// If this is a schema for an object, this property is the schema for any additional properties with dynamic keys on this object.
     #[serde(default, rename = "additionalProperties")]
-    pub additional_properties: ::core::option::Option<JsonSchema>,
+    pub additional_properties: ::core::option::Option<::std::boxed::Box<JsonSchema>>,
     /// Additional information about this property.
     #[serde(default)]
     pub annotations: ::core::option::Option<serde_json::Value>,
@@ -62,7 +62,7 @@ pub struct JsonSchema {
     pub id: ::core::option::Option<String>,
     /// If this is a schema for an array, this property is the schema for each element in the array.
     #[serde(default)]
-    pub items: ::core::option::Option<JsonSchema>,
+    pub items: ::core::option::Option<::std::boxed::Box<JsonSchema>>,
     /// Whether this parameter goes in the query or the path for REST requests.
     #[serde(default)]
     pub location: ::core::option::Option<String>,

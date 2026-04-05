@@ -490,7 +490,7 @@ pub struct SearchResponse {
     pub result_counts: ::core::option::Option<ResultCounts>,
     /// Results from a search query.
     #[serde(default)]
-    pub results: ::core::option::Option<::std::vec::Vec<SearchResult>>,
+    pub results: ::std::vec::Vec<::std::boxed::Box<SearchResult>>,
     /// Suggested spelling for the query.
     #[serde(default, rename = "spellResults")]
     pub spell_results: ::core::option::Option<::std::vec::Vec<SpellResult>>,
@@ -721,14 +721,14 @@ pub struct EnterpriseTopazSidekickMeetingNotesCardRequest {
 pub struct EnterpriseTopazSidekickPeopleDisambiguationCard {
     /// Candidate persons for the query.
     #[serde(default)]
-    pub person: ::core::option::Option<::std::vec::Vec<EnterpriseTopazSidekickCommonPerson>>,
+    pub person: ::std::vec::Vec<::std::boxed::Box<EnterpriseTopazSidekickCommonPerson>>,
 }
 
 /// PeoplePromotionCard resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PeoplePromotionCard {
     #[serde(default)]
-    pub people: ::core::option::Option<::std::vec::Vec<PersonCore>>,
+    pub people: ::std::vec::Vec<::std::boxed::Box<PersonCore>>,
 }
 
 /// An answer card for a single person.
@@ -755,7 +755,7 @@ pub struct EnterpriseTopazSidekickPeopleAnswerPersonAnswerCard {
     pub status_message: ::core::option::Option<String>,
     /// The profile of the person that was the subject of the query.
     #[serde(default)]
-    pub subject: ::core::option::Option<EnterpriseTopazSidekickCommonPerson>,
+    pub subject: ::core::option::Option<::std::boxed::Box<EnterpriseTopazSidekickCommonPerson>>,
 }
 
 /// EnterpriseTopazSidekickPersonProfileCard resource type.
@@ -767,7 +767,7 @@ pub struct EnterpriseTopazSidekickPersonProfileCard {
     >,
     /// The subject of the card.
     #[serde(default)]
-    pub subject: ::core::option::Option<EnterpriseTopazSidekickCommonPerson>,
+    pub subject: ::core::option::Option<::std::boxed::Box<EnterpriseTopazSidekickCommonPerson>>,
 }
 
 /// Personalized docs card proto.
@@ -791,8 +791,7 @@ pub struct EnterpriseTopazSidekickPeopleAnswerRelatedPeopleAnswerCard {
     pub header: ::core::option::Option<EnterpriseTopazSidekickPeopleAnswerPeopleAnswerCardHeader>,
     /// A list of people that are related to the query subject.
     #[serde(default, rename = "relatedPeople")]
-    pub related_people:
-        ::core::option::Option<::std::vec::Vec<EnterpriseTopazSidekickCommonPerson>>,
+    pub related_people: ::std::vec::Vec<::std::boxed::Box<EnterpriseTopazSidekickCommonPerson>>,
     /// Defines the type of relation the list of people have with the subject of the card. // TODO: enum values: ["UNKNOWN", "DIRECT_REPORTS", "MANAGER", "PEERS"]
     #[serde(default, rename = "relationType")]
     pub relation_type: ::core::option::Option<String>,
@@ -804,7 +803,7 @@ pub struct EnterpriseTopazSidekickPeopleAnswerRelatedPeopleAnswerCard {
     pub status_message: ::core::option::Option<String>,
     /// The profile of the person that was the subject of the query.
     #[serde(default)]
-    pub subject: ::core::option::Option<EnterpriseTopazSidekickCommonPerson>,
+    pub subject: ::core::option::Option<::std::boxed::Box<EnterpriseTopazSidekickCommonPerson>>,
 }
 
 /// Share meeting docs card proto.
@@ -863,7 +862,7 @@ pub struct EnterpriseTopazSidekickRecentDocumentsCardProto {
 pub struct CustomerIndexStats {
     /// The date for which statistics were calculated.
     #[serde(default)]
-    pub date: ::core::option::Option<Date>,
+    pub date: ::core::option::Option<::std::boxed::Box<Date>>,
     /// Number of items aggregrated by status code.
     #[serde(default, rename = "itemCountByStatus")]
     pub item_count_by_status: ::core::option::Option<::std::vec::Vec<ItemCountByStatus>>,
@@ -874,7 +873,7 @@ pub struct CustomerIndexStats {
 pub struct CustomerQueryStats {
     /// The date for which query stats were calculated. Stats calculated on the next day close to midnight are returned.
     #[serde(default)]
-    pub date: ::core::option::Option<Date>,
+    pub date: ::core::option::Option<::std::boxed::Box<Date>>,
     #[serde(default, rename = "queryCountByStatus")]
     pub query_count_by_status: ::core::option::Option<::std::vec::Vec<QueryCountByStatus>>,
 }
@@ -887,7 +886,7 @@ pub struct CustomerSearchApplicationStats {
     pub count: ::core::option::Option<String>,
     /// The date for which search application stats were calculated.
     #[serde(default)]
-    pub date: ::core::option::Option<Date>,
+    pub date: ::core::option::Option<::std::boxed::Box<Date>>,
 }
 
 /// CustomerSessionStats resource type.
@@ -895,7 +894,7 @@ pub struct CustomerSearchApplicationStats {
 pub struct CustomerSessionStats {
     /// The date for which session stats were calculated. Stats are calculated on the following day, close to midnight PST, and then returned.
     #[serde(default)]
-    pub date: ::core::option::Option<Date>,
+    pub date: ::core::option::Option<::std::boxed::Box<Date>>,
     /// The count of search sessions on the day
     #[serde(default, rename = "searchSessionsCount")]
     pub search_sessions_count: ::core::option::Option<String>,
@@ -906,7 +905,7 @@ pub struct CustomerSessionStats {
 pub struct CustomerUserStats {
     /// The date for which session stats were calculated. Stats calculated on the next day close to midnight are returned.
     #[serde(default)]
-    pub date: ::core::option::Option<Date>,
+    pub date: ::core::option::Option<::std::boxed::Box<Date>>,
     /// The count of unique active users in the past one day
     #[serde(default, rename = "oneDayActiveUsersCount")]
     pub one_day_active_users_count: ::core::option::Option<String>,
@@ -923,7 +922,7 @@ pub struct CustomerUserStats {
 pub struct DataSourceIndexStats {
     /// The date for which index stats were calculated. If the date of request is not the current date then stats calculated on the next day are returned. Stats are calculated close to mid night in this case. If date of request is current date, then real time stats are returned.
     #[serde(default)]
-    pub date: ::core::option::Option<Date>,
+    pub date: ::core::option::Option<::std::boxed::Box<Date>>,
     /// Number of items aggregrated by status code.
     #[serde(default, rename = "itemCountByStatus")]
     pub item_count_by_status: ::core::option::Option<::std::vec::Vec<ItemCountByStatus>>,
@@ -934,7 +933,7 @@ pub struct DataSourceIndexStats {
 pub struct SearchApplicationQueryStats {
     /// The date for which query stats were calculated. Stats calculated on the next day close to midnight are returned.
     #[serde(default)]
-    pub date: ::core::option::Option<Date>,
+    pub date: ::core::option::Option<::std::boxed::Box<Date>>,
     #[serde(default, rename = "queryCountByStatus")]
     pub query_count_by_status: ::core::option::Option<::std::vec::Vec<QueryCountByStatus>>,
 }
@@ -944,7 +943,7 @@ pub struct SearchApplicationQueryStats {
 pub struct SearchApplicationSessionStats {
     /// The date for which session stats were calculated. Stats are calculated on the following day, close to midnight PST, and then returned.
     #[serde(default)]
-    pub date: ::core::option::Option<Date>,
+    pub date: ::core::option::Option<::std::boxed::Box<Date>>,
     /// The count of search sessions on the day
     #[serde(default, rename = "searchSessionsCount")]
     pub search_sessions_count: ::core::option::Option<String>,
@@ -955,7 +954,7 @@ pub struct SearchApplicationSessionStats {
 pub struct SearchApplicationUserStats {
     /// The date for which session stats were calculated. Stats calculated on the next day close to midnight are returned.
     #[serde(default)]
-    pub date: ::core::option::Option<Date>,
+    pub date: ::core::option::Option<::std::boxed::Box<Date>>,
     /// The count of unique active users in the past one day
     #[serde(default, rename = "oneDayActiveUsersCount")]
     pub one_day_active_users_count: ::core::option::Option<String>,
@@ -1241,7 +1240,7 @@ pub struct ResultCounts {
 pub struct SearchResult {
     /// If source is clustered, provide list of clustered results. There will only be one level of clustered results. If current source is not enabled for clustering, this field will be empty.
     #[serde(default, rename = "clusteredResults")]
-    pub clustered_results: ::core::option::Option<::std::vec::Vec<SearchResult>>,
+    pub clustered_results: ::std::vec::Vec<::std::boxed::Box<SearchResult>>,
     /// Debugging information about this search result.
     #[serde(default, rename = "debugInfo")]
     pub debug_info: ::core::option::Option<ResultDebugInfo>,
@@ -1478,16 +1477,16 @@ pub struct PersonCore {
     pub address_me_as: ::core::option::Option<String>,
     /// People the profile owner is an admin to. Note that not all fields of these PersonCores will be set, in particular, relationships will be empty.
     #[serde(default, rename = "adminTo")]
-    pub admin_to: ::core::option::Option<::std::vec::Vec<PersonCore>>,
+    pub admin_to: ::std::vec::Vec<::std::boxed::Box<PersonCore>>,
     /// The profile owner''s admins in no particular order. Note that not all fields of these PersonCores will be set, in particular, relationships will be empty.
     #[serde(default)]
-    pub admins: ::core::option::Option<::std::vec::Vec<PersonCore>>,
+    pub admins: ::std::vec::Vec<::std::boxed::Box<PersonCore>>,
     /// TODO: enum values: ["UNKNOWN", "OUT_OF_OFFICE", "OUTSIDE_WORKING_HOURS", "AVAILABLE"]
     #[serde(default, rename = "availabilityStatus")]
     pub availability_status: ::core::option::Option<String>,
     /// Person birthday.
     #[serde(default)]
-    pub birthday: ::core::option::Option<Date>,
+    pub birthday: ::core::option::Option<::std::boxed::Box<Date>>,
     /// The URL to open the profile owner''s primary calendar.
     #[serde(default, rename = "calendarUrl")]
     pub calendar_url: ::core::option::Option<SafeUrlProto>,
@@ -1502,13 +1501,13 @@ pub struct PersonCore {
     pub department: ::core::option::Option<String>,
     /// A subset of the profile owner''s direct reports. The number of entities here may be less than total_direct_reports_count, because typically ProfileResponse does not include all the person''s reports, if there are too many to retrieve efficiently. Note that not all fields of these PersonCores will be set, in particular, relationships will be empty.
     #[serde(default, rename = "directReports")]
-    pub direct_reports: ::core::option::Option<::std::vec::Vec<PersonCore>>,
+    pub direct_reports: ::std::vec::Vec<::std::boxed::Box<PersonCore>>,
     /// The profile owner''s direct dotted line managers in no particular order. Note that not all fields of these PersonCores will be set, in particular, relationships will be empty.
     #[serde(default, rename = "dottedLineManagers")]
-    pub dotted_line_managers: ::core::option::Option<::std::vec::Vec<PersonCore>>,
+    pub dotted_line_managers: ::std::vec::Vec<::std::boxed::Box<PersonCore>>,
     /// A subset of the profile owner''s dotted-line reports. The number of entities here may be less than total_dlr_count. Note that not all fields of these PersonCores will be set, in particular, relationships will be empty.
     #[serde(default, rename = "dottedLineReports")]
-    pub dotted_line_reports: ::core::option::Option<::std::vec::Vec<PersonCore>>,
+    pub dotted_line_reports: ::std::vec::Vec<::std::boxed::Box<PersonCore>>,
     /// E-mail addresses of the person. The primary or preferred email should be first.
     #[serde(default)]
     pub emails: ::core::option::Option<::std::vec::Vec<String>>,
@@ -1542,7 +1541,7 @@ pub struct PersonCore {
     pub location: ::core::option::Option<String>,
     /// The profile owner''s management chain from top to bottom, where managers[0] is the CEO, manager[N-2] is the person''s manager''s manager and managers[N-1] is the person''s direct manager. Note that not all fields of these PersonCores will be set, in particular, relationships will be empty.
     #[serde(default)]
-    pub managers: ::core::option::Option<::std::vec::Vec<PersonCore>>,
+    pub managers: ::std::vec::Vec<::std::boxed::Box<PersonCore>>,
     /// Custom mission statement the profile owner has added.
     #[serde(default)]
     pub mission: ::core::option::Option<String>,
@@ -1598,8 +1597,7 @@ pub struct EnterpriseTopazSidekickAnswerAnswerList {
 pub struct EnterpriseTopazSidekickPersonProfileCardRelatedPeople {
     /// Related people.
     #[serde(default, rename = "relatedPerson")]
-    pub related_person:
-        ::core::option::Option<::std::vec::Vec<EnterpriseTopazSidekickCommonPerson>>,
+    pub related_person: ::std::vec::Vec<::std::boxed::Box<EnterpriseTopazSidekickCommonPerson>>,
     /// Relation type. // TODO: enum values: ["UNKNOWN", "MANAGER", "DIRECT_REPORT"]
     #[serde(default)]
     pub relation: ::core::option::Option<String>,
@@ -1802,7 +1800,7 @@ pub struct DataSourceRestriction {
 pub struct FacetOptions {
     /// If set, describes integer faceting options for the given integer property. The corresponding integer property in the schema should be marked isFacetable. The number of buckets returned would be minimum of this and num_facet_buckets.
     #[serde(default, rename = "integerFacetingOptions")]
-    pub integer_faceting_options: ::core::option::Option<IntegerFacetingOptions>,
+    pub integer_faceting_options: ::core::option::Option<::std::boxed::Box<IntegerFacetingOptions>>,
     /// Maximum number of facet buckets that should be returned for this facet. Defaults to 10. Maximum value is 100.
     #[serde(default, rename = "numFacetBuckets")]
     pub num_facet_buckets: ::core::option::Option<i32>,
@@ -1975,7 +1973,7 @@ pub struct ItemStructuredData {
     pub hash: ::core::option::Option<String>,
     /// The structured data object that should conform to a registered object definition in the schema for the data source.
     #[serde(default)]
-    pub object: ::core::option::Option<StructuredDataObject>,
+    pub object: ::core::option::Option<::std::boxed::Box<StructuredDataObject>>,
 }
 
 /// Error message per source response.
@@ -1995,12 +1993,12 @@ pub struct FacetBucket {
     pub count: ::core::option::Option<i32>,
     /// Filter to be passed in the search request if the corresponding bucket is selected.
     #[serde(default)]
-    pub filter: ::core::option::Option<Filter>,
+    pub filter: ::core::option::Option<::std::boxed::Box<Filter>>,
     /// Percent of results that match the bucket value. The returned value is between (0-100], and is rounded down to an integer if fractional. If the value is not explicitly returned, it represents a percentage value that rounds to 0. Percentages are returned for all searches, but are an estimate. Because percentages are always returned, you should render percentages instead of counts.
     #[serde(default)]
     pub percentage: ::core::option::Option<i32>,
     #[serde(default)]
-    pub value: ::core::option::Option<ApiValue>,
+    pub value: ::core::option::Option<::std::boxed::Box<ApiValue>>,
 }
 
 /// Per source result count information.
@@ -2039,7 +2037,7 @@ pub struct Metadata {
     pub display_options: ::core::option::Option<ResultDisplayMetadata>,
     /// Indexed fields in structured data, returned as a generic named property.
     #[serde(default)]
-    pub fields: ::core::option::Option<::std::vec::Vec<NamedProperty>>,
+    pub fields: ::std::vec::Vec<::std::boxed::Box<NamedProperty>>,
     /// Mime type of the search result.
     #[serde(default, rename = "mimeType")]
     pub mime_type: ::core::option::Option<String>,
@@ -2109,7 +2107,7 @@ pub struct ObjectDefinition {
     pub options: ::core::option::Option<ObjectOptions>,
     /// The property definitions for the object. The maximum number of elements is 1000.
     #[serde(default, rename = "propertyDefinitions")]
-    pub property_definitions: ::core::option::Option<::std::vec::Vec<PropertyDefinition>>,
+    pub property_definitions: ::std::vec::Vec<::std::boxed::Box<PropertyDefinition>>,
 }
 
 /// Conflicting meetings card proto.
@@ -2240,7 +2238,7 @@ pub struct EnterpriseTopazSidekickAnswerAnswerListLabeledAnswer {
 pub struct EnterpriseTopazSidekickPeopleAnswerDisambiguationInfoDisambiguationPerson {
     /// The profile of this person.
     #[serde(default)]
-    pub person: ::core::option::Option<EnterpriseTopazSidekickCommonPerson>,
+    pub person: ::core::option::Option<::std::boxed::Box<EnterpriseTopazSidekickCommonPerson>>,
     /// The query that can be used to produce an answer card with the same attribute, but for this person.
     #[serde(default)]
     pub query: ::core::option::Option<String>,
@@ -2281,7 +2279,7 @@ pub struct BackgroundColoredText {
 pub struct FilterOptions {
     /// Generic filter to restrict the search, such as lang:en, site:xyz.
     #[serde(default)]
-    pub filter: ::core::option::Option<Filter>,
+    pub filter: ::core::option::Option<::std::boxed::Box<Filter>>,
     /// If object_type is set, only objects of that type are returned. This should correspond to the name of the object that was registered within the definition of schema. The maximum length is 256 characters.
     #[serde(default, rename = "objectType")]
     pub object_type: ::core::option::Option<String>,
@@ -2759,7 +2757,7 @@ pub struct ResultDisplayField {
     pub operator_name: ::core::option::Option<String>,
     /// The name value pair for the property.
     #[serde(default)]
-    pub property: ::core::option::Option<NamedProperty>,
+    pub property: ::core::option::Option<::std::boxed::Box<NamedProperty>>,
 }
 
 /// A metaline is a list of properties that are displayed along with the search result to provide context.
@@ -2804,7 +2802,7 @@ pub struct EnterpriseTopazSidekickCommonDocumentDriveDocumentMetadata {
     pub last_view_time_ms: ::core::option::Option<String>,
     /// The owner of the document.
     #[serde(default)]
-    pub owner: ::core::option::Option<EnterpriseTopazSidekickCommonPerson>,
+    pub owner: ::core::option::Option<::std::boxed::Box<EnterpriseTopazSidekickCommonPerson>>,
     /// ACL scope of the document which identifies the sharing status of the doc (e.g., limited, shared with link, team drive, ...). // TODO: enum values: ["UNKNOWN_DOCUMENT_SCOPE", "LIMITED", "DASHER_DOMAIN_WITH_LINK", "DASHER_DOMAIN", "PUBLIC_WITH_LINK", "PUBLIC", "TEAM_DRIVE"]
     #[serde(default)]
     pub scope: ::core::option::Option<String>,
@@ -2870,7 +2868,7 @@ pub struct EnterpriseTopazSidekickCommonPerson {
     pub job_title: ::core::option::Option<String>,
     /// The manager.
     #[serde(default)]
-    pub manager: ::core::option::Option<EnterpriseTopazSidekickCommonPerson>,
+    pub manager: ::core::option::Option<::std::boxed::Box<EnterpriseTopazSidekickCommonPerson>>,
     /// The obfuscated GAIA ID.
     #[serde(default, rename = "obfuscatedId")]
     pub obfuscated_id: ::core::option::Option<String>,
@@ -2903,7 +2901,7 @@ pub struct BooleanOperatorOptions {
 pub struct BooleanPropertyOptions {
     /// If set, describes how the boolean should be used as a search operator.
     #[serde(default, rename = "operatorOptions")]
-    pub operator_options: ::core::option::Option<BooleanOperatorOptions>,
+    pub operator_options: ::core::option::Option<::std::boxed::Box<BooleanOperatorOptions>>,
 }
 
 /// CompositeFilter resource type.
@@ -2914,7 +2912,7 @@ pub struct CompositeFilter {
     pub logic_operator: ::core::option::Option<String>,
     /// Sub filters.
     #[serde(default, rename = "subFilters")]
-    pub sub_filters: ::core::option::Option<::std::vec::Vec<Filter>>,
+    pub sub_filters: ::std::vec::Vec<::std::boxed::Box<Filter>>,
 }
 
 /// Represents a whole calendar date, for example a date of birth. The time of day and time zone are either specified elsewhere or are not significant. The date is relative to the [Proleptic Gregorian Calendar](https://en.wikipedia.org/wiki/Proleptic_Gregorian_calendar). The date must be a valid calendar date between the year 1 and 9999.
@@ -2950,14 +2948,14 @@ pub struct DateOperatorOptions {
 pub struct DatePropertyOptions {
     /// If set, describes how the date should be used as a search operator.
     #[serde(default, rename = "operatorOptions")]
-    pub operator_options: ::core::option::Option<DateOperatorOptions>,
+    pub operator_options: ::core::option::Option<::std::boxed::Box<DateOperatorOptions>>,
 }
 
 /// List of date values.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct DateValues {
     #[serde(default)]
-    pub values: ::core::option::Option<::std::vec::Vec<Date>>,
+    pub values: ::std::vec::Vec<::std::boxed::Box<Date>>,
 }
 
 /// Used to provide a search operator for double properties. This is optional. Search operators let users restrict the query to specific fields relevant to the type of item being searched.
@@ -2973,7 +2971,7 @@ pub struct DoubleOperatorOptions {
 pub struct DoublePropertyOptions {
     /// If set, describes how the double should be used as a search operator.
     #[serde(default, rename = "operatorOptions")]
-    pub operator_options: ::core::option::Option<DoubleOperatorOptions>,
+    pub operator_options: ::core::option::Option<::std::boxed::Box<DoubleOperatorOptions>>,
 }
 
 /// List of double values.
@@ -2996,13 +2994,13 @@ pub struct EnumOperatorOptions {
 pub struct EnumPropertyOptions {
     /// If set, describes how the enum should be used as a search operator.
     #[serde(default, rename = "operatorOptions")]
-    pub operator_options: ::core::option::Option<EnumOperatorOptions>,
+    pub operator_options: ::core::option::Option<::std::boxed::Box<EnumOperatorOptions>>,
     /// Used to specify the ordered ranking for the enumeration that determines how the integer values provided in the possible EnumValuePairs are used to rank results. If specified, integer values must be provided for all possible EnumValuePair values given for this property. Can only be used if isRepeatable is false. // TODO: enum values: ["NO_ORDER", "ASCENDING", "DESCENDING"]
     #[serde(default, rename = "orderedRanking")]
     pub ordered_ranking: ::core::option::Option<String>,
     /// The list of possible values for the enumeration property. All EnumValuePairs must provide a string value. If you specify an integer value for one EnumValuePair, then all possible EnumValuePairs must provide an integer value. Both the string value and integer value must be unique over all possible values. Once set, possible values cannot be removed or modified. If you supply an ordered ranking and think you might insert additional enum values in the future, leave gaps in the initial integer values to allow adding a value in between previously registered values. The maximum number of elements is 100.
     #[serde(default, rename = "possibleValues")]
-    pub possible_values: ::core::option::Option<::std::vec::Vec<EnumValuePair>>,
+    pub possible_values: ::std::vec::Vec<::std::boxed::Box<EnumValuePair>>,
 }
 
 /// The enumeration value pair defines two things: a required string value and an optional integer value. The string value defines the necessary query term required to retrieve that item, such as *p0* for a priority item. The integer value determines the ranking of that string value relative to other enumerated values for the same property. For example, you might associate *p0* with *0* and define another enum pair such as *p1* and *1*. You must use the integer value in combination with ordered ranking to set the ranking of a given value relative to other enumerated values for the same property name. Here, a ranking order of DESCENDING for *priority* properties results in a ranking boost for items indexed with a value of *p0* compared to items indexed with a value of *p1*. Without a specified ranking order, the integer value has no effect on item ranking.
@@ -3028,9 +3026,9 @@ pub struct EnumValues {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Filter {
     #[serde(default, rename = "compositeFilter")]
-    pub composite_filter: ::core::option::Option<CompositeFilter>,
+    pub composite_filter: ::core::option::Option<::std::boxed::Box<CompositeFilter>>,
     #[serde(default, rename = "valueFilter")]
-    pub value_filter: ::core::option::Option<ValueFilter>,
+    pub value_filter: ::core::option::Option<::std::boxed::Box<ValueFilter>>,
 }
 
 /// Used to provide a search operator for html properties. This is optional. Search operators let users restrict the query to specific fields relevant to the type of item being searched.
@@ -3046,10 +3044,10 @@ pub struct HtmlOperatorOptions {
 pub struct HtmlPropertyOptions {
     /// If set, describes how the property should be used as a search operator.
     #[serde(default, rename = "operatorOptions")]
-    pub operator_options: ::core::option::Option<HtmlOperatorOptions>,
+    pub operator_options: ::core::option::Option<::std::boxed::Box<HtmlOperatorOptions>>,
     /// Indicates the search quality importance of the tokens within the field when used for retrieval. Can only be set to DEFAULT or NONE.
     #[serde(default, rename = "retrievalImportance")]
-    pub retrieval_importance: ::core::option::Option<RetrievalImportance>,
+    pub retrieval_importance: ::core::option::Option<::std::boxed::Box<RetrievalImportance>>,
 }
 
 /// List of html values.
@@ -3087,7 +3085,7 @@ pub struct IntegerOperatorOptions {
 pub struct IntegerPropertyOptions {
     /// If set, describes integer faceting options for the given integer property. The corresponding integer property should be marked isFacetable.
     #[serde(default, rename = "integerFacetingOptions")]
-    pub integer_faceting_options: ::core::option::Option<IntegerFacetingOptions>,
+    pub integer_faceting_options: ::core::option::Option<::std::boxed::Box<IntegerFacetingOptions>>,
     /// The maximum value of the property. The minimum and maximum values for the property are used to rank results according to the ordered ranking. Indexing requests with values greater than the maximum are accepted and ranked with the same weight as items indexed with the maximum value.
     #[serde(default, rename = "maximumValue")]
     pub maximum_value: ::core::option::Option<String>,
@@ -3096,7 +3094,7 @@ pub struct IntegerPropertyOptions {
     pub minimum_value: ::core::option::Option<String>,
     /// If set, describes how the integer should be used as a search operator.
     #[serde(default, rename = "operatorOptions")]
-    pub operator_options: ::core::option::Option<IntegerOperatorOptions>,
+    pub operator_options: ::core::option::Option<::std::boxed::Box<IntegerOperatorOptions>>,
     /// Used to specify the ordered ranking for the integer. Can only be used if isRepeatable is false. // TODO: enum values: ["NO_ORDER", "ASCENDING", "DESCENDING"]
     #[serde(default, rename = "orderedRanking")]
     pub ordered_ranking: ::core::option::Option<String>,
@@ -3115,24 +3113,24 @@ pub struct NamedProperty {
     #[serde(default, rename = "booleanValue")]
     pub boolean_value: ::core::option::Option<bool>,
     #[serde(default, rename = "dateValues")]
-    pub date_values: ::core::option::Option<DateValues>,
+    pub date_values: ::core::option::Option<::std::boxed::Box<DateValues>>,
     #[serde(default, rename = "doubleValues")]
-    pub double_values: ::core::option::Option<DoubleValues>,
+    pub double_values: ::core::option::Option<::std::boxed::Box<DoubleValues>>,
     #[serde(default, rename = "enumValues")]
-    pub enum_values: ::core::option::Option<EnumValues>,
+    pub enum_values: ::core::option::Option<::std::boxed::Box<EnumValues>>,
     #[serde(default, rename = "htmlValues")]
-    pub html_values: ::core::option::Option<HtmlValues>,
+    pub html_values: ::core::option::Option<::std::boxed::Box<HtmlValues>>,
     #[serde(default, rename = "integerValues")]
-    pub integer_values: ::core::option::Option<IntegerValues>,
+    pub integer_values: ::core::option::Option<::std::boxed::Box<IntegerValues>>,
     /// The name of the property. This name should correspond to the name of the property that was registered for object definition in the schema. The maximum allowable length for this property is 256 characters.
     #[serde(default)]
     pub name: ::core::option::Option<String>,
     #[serde(default, rename = "objectValues")]
-    pub object_values: ::core::option::Option<ObjectValues>,
+    pub object_values: ::core::option::Option<::std::boxed::Box<ObjectValues>>,
     #[serde(default, rename = "textValues")]
-    pub text_values: ::core::option::Option<TextValues>,
+    pub text_values: ::core::option::Option<::std::boxed::Box<TextValues>>,
     #[serde(default, rename = "timestampValues")]
-    pub timestamp_values: ::core::option::Option<TimestampValues>,
+    pub timestamp_values: ::core::option::Option<::std::boxed::Box<TimestampValues>>,
 }
 
 /// The options for object properties.
@@ -3140,34 +3138,34 @@ pub struct NamedProperty {
 pub struct ObjectPropertyOptions {
     /// The properties of the sub-object. These properties represent a nested object. For example, if this property represents a postal address, the subobjectProperties might be named *street*, *city*, and *state*. The maximum number of elements is 1000.
     #[serde(default, rename = "subobjectProperties")]
-    pub subobject_properties: ::core::option::Option<::std::vec::Vec<PropertyDefinition>>,
+    pub subobject_properties: ::std::vec::Vec<::std::boxed::Box<PropertyDefinition>>,
 }
 
 /// List of object values.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ObjectValues {
     #[serde(default)]
-    pub values: ::core::option::Option<::std::vec::Vec<StructuredDataObject>>,
+    pub values: ::std::vec::Vec<::std::boxed::Box<StructuredDataObject>>,
 }
 
 /// The definition of a property within an object.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PropertyDefinition {
     #[serde(default, rename = "booleanPropertyOptions")]
-    pub boolean_property_options: ::core::option::Option<BooleanPropertyOptions>,
+    pub boolean_property_options: ::core::option::Option<::std::boxed::Box<BooleanPropertyOptions>>,
     #[serde(default, rename = "datePropertyOptions")]
-    pub date_property_options: ::core::option::Option<DatePropertyOptions>,
+    pub date_property_options: ::core::option::Option<::std::boxed::Box<DatePropertyOptions>>,
     /// The options that determine how the property is displayed in the Cloud Search results page if it''s specified to be displayed in the object''s display options.
     #[serde(default, rename = "displayOptions")]
-    pub display_options: ::core::option::Option<PropertyDisplayOptions>,
+    pub display_options: ::core::option::Option<::std::boxed::Box<PropertyDisplayOptions>>,
     #[serde(default, rename = "doublePropertyOptions")]
-    pub double_property_options: ::core::option::Option<DoublePropertyOptions>,
+    pub double_property_options: ::core::option::Option<::std::boxed::Box<DoublePropertyOptions>>,
     #[serde(default, rename = "enumPropertyOptions")]
-    pub enum_property_options: ::core::option::Option<EnumPropertyOptions>,
+    pub enum_property_options: ::core::option::Option<::std::boxed::Box<EnumPropertyOptions>>,
     #[serde(default, rename = "htmlPropertyOptions")]
-    pub html_property_options: ::core::option::Option<HtmlPropertyOptions>,
+    pub html_property_options: ::core::option::Option<::std::boxed::Box<HtmlPropertyOptions>>,
     #[serde(default, rename = "integerPropertyOptions")]
-    pub integer_property_options: ::core::option::Option<IntegerPropertyOptions>,
+    pub integer_property_options: ::core::option::Option<::std::boxed::Box<IntegerPropertyOptions>>,
     /// Indicates that the property can be used for generating facets. Cannot be true for properties whose type is object. IsReturnable must be true to set this option. Only supported for boolean, enum, integer, and text properties.
     #[serde(default, rename = "isFacetable")]
     pub is_facetable: ::core::option::Option<bool>,
@@ -3190,11 +3188,12 @@ pub struct PropertyDefinition {
     #[serde(default)]
     pub name: ::core::option::Option<String>,
     #[serde(default, rename = "objectPropertyOptions")]
-    pub object_property_options: ::core::option::Option<ObjectPropertyOptions>,
+    pub object_property_options: ::core::option::Option<::std::boxed::Box<ObjectPropertyOptions>>,
     #[serde(default, rename = "textPropertyOptions")]
-    pub text_property_options: ::core::option::Option<TextPropertyOptions>,
+    pub text_property_options: ::core::option::Option<::std::boxed::Box<TextPropertyOptions>>,
     #[serde(default, rename = "timestampPropertyOptions")]
-    pub timestamp_property_options: ::core::option::Option<TimestampPropertyOptions>,
+    pub timestamp_property_options:
+        ::core::option::Option<::std::boxed::Box<TimestampPropertyOptions>>,
 }
 
 /// The display options for a property.
@@ -3218,7 +3217,7 @@ pub struct RetrievalImportance {
 pub struct StructuredDataObject {
     /// The properties for the object. The maximum number of elements is 1000.
     #[serde(default)]
-    pub properties: ::core::option::Option<::std::vec::Vec<NamedProperty>>,
+    pub properties: ::std::vec::Vec<::std::boxed::Box<NamedProperty>>,
 }
 
 /// Used to provide a search operator for text properties. This is optional. Search operators let users restrict the query to specific fields relevant to the type of item being searched.
@@ -3237,10 +3236,10 @@ pub struct TextOperatorOptions {
 pub struct TextPropertyOptions {
     /// If set, describes how the property should be used as a search operator.
     #[serde(default, rename = "operatorOptions")]
-    pub operator_options: ::core::option::Option<TextOperatorOptions>,
+    pub operator_options: ::core::option::Option<::std::boxed::Box<TextOperatorOptions>>,
     /// Indicates the search quality importance of the tokens within the field when used for retrieval.
     #[serde(default, rename = "retrievalImportance")]
-    pub retrieval_importance: ::core::option::Option<RetrievalImportance>,
+    pub retrieval_importance: ::core::option::Option<::std::boxed::Box<RetrievalImportance>>,
 }
 
 /// List of text values.
@@ -3270,7 +3269,7 @@ pub struct TimestampOperatorOptions {
 pub struct TimestampPropertyOptions {
     /// If set, describes how the timestamp should be used as a search operator.
     #[serde(default, rename = "operatorOptions")]
-    pub operator_options: ::core::option::Option<TimestampOperatorOptions>,
+    pub operator_options: ::core::option::Option<::std::boxed::Box<TimestampOperatorOptions>>,
 }
 
 /// List of timestamp values.
@@ -3286,7 +3285,7 @@ pub struct ApiValue {
     #[serde(default, rename = "booleanValue")]
     pub boolean_value: ::core::option::Option<bool>,
     #[serde(default, rename = "dateValue")]
-    pub date_value: ::core::option::Option<Date>,
+    pub date_value: ::core::option::Option<::std::boxed::Box<Date>>,
     #[serde(default, rename = "doubleValue")]
     pub double_value: ::core::option::Option<f64>,
     #[serde(default, rename = "integerValue")]
@@ -3305,5 +3304,5 @@ pub struct ValueFilter {
     pub operator_name: ::core::option::Option<String>,
     /// The value to be compared with.
     #[serde(default)]
-    pub value: ::core::option::Option<ApiValue>,
+    pub value: ::core::option::Option<::std::boxed::Box<ApiValue>>,
 }

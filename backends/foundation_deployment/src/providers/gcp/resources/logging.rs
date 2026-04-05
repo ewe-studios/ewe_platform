@@ -1447,7 +1447,7 @@ pub struct QueryBuilderConfig {
     pub field_sources: ::core::option::Option<::std::vec::Vec<FieldSource>>,
     /// The filter to use for the query. This equates to the WHERE clause in SQL.
     #[serde(default)]
-    pub filter: ::core::option::Option<FilterPredicate>,
+    pub filter: ::core::option::Option<::std::boxed::Box<FilterPredicate>>,
     /// The limit to use for the query. This equates to the LIMIT clause in SQL. A limit of 0 will be treated as not enabled.
     #[serde(default)]
     pub limit: ::core::option::Option<String>,
@@ -1526,7 +1526,7 @@ pub struct AppHubWorkload {
 pub struct FilterPredicate {
     /// The children of the filter predicate. This equates to the branches of the filter predicate that could contain further nested leaves.
     #[serde(default, rename = "childPredicates")]
-    pub child_predicates: ::core::option::Option<::std::vec::Vec<FilterPredicate>>,
+    pub child_predicates: ::std::vec::Vec<::std::boxed::Box<FilterPredicate>>,
     /// The leaves of the filter predicate. This equates to the last leaves of the filter predicate associated with an operator.
     #[serde(default, rename = "leafPredicate")]
     pub leaf_predicate: ::core::option::Option<FilterExpression>,

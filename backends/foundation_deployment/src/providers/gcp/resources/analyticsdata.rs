@@ -60,13 +60,13 @@ pub struct CheckCompatibilityRequest {
     pub compatibility_filter: ::core::option::Option<String>,
     /// The filter clause of dimensions. dimensionFilter should be the same value as in your runReport request.
     #[serde(default, rename = "dimensionFilter")]
-    pub dimension_filter: ::core::option::Option<FilterExpression>,
+    pub dimension_filter: ::core::option::Option<::std::boxed::Box<FilterExpression>>,
     /// The dimensions in this report. dimensions should be the same value as in your runReport request.
     #[serde(default)]
     pub dimensions: ::core::option::Option<::std::vec::Vec<Dimension>>,
     /// The filter clause of metrics. metricFilter should be the same value as in your runReport request
     #[serde(default, rename = "metricFilter")]
-    pub metric_filter: ::core::option::Option<FilterExpression>,
+    pub metric_filter: ::core::option::Option<::std::boxed::Box<FilterExpression>>,
     /// The metrics in this report. metrics should be the same value as in your runReport request.
     #[serde(default)]
     pub metrics: ::core::option::Option<::std::vec::Vec<Metric>>,
@@ -165,7 +165,7 @@ pub struct QueryAudienceExportResponse {
 pub struct RunRealtimeReportRequest {
     /// The filter clause of dimensions. Metrics cannot be used in this filter.
     #[serde(default, rename = "dimensionFilter")]
-    pub dimension_filter: ::core::option::Option<FilterExpression>,
+    pub dimension_filter: ::core::option::Option<::std::boxed::Box<FilterExpression>>,
     /// The dimensions requested and displayed.
     #[serde(default)]
     pub dimensions: ::core::option::Option<::std::vec::Vec<Dimension>>,
@@ -177,7 +177,7 @@ pub struct RunRealtimeReportRequest {
     pub metric_aggregations: ::core::option::Option<::std::vec::Vec<String>>,
     /// The filter clause of metrics. Applied at post aggregation phase, similar to SQL having-clause. Dimensions cannot be used in this filter.
     #[serde(default, rename = "metricFilter")]
-    pub metric_filter: ::core::option::Option<FilterExpression>,
+    pub metric_filter: ::core::option::Option<::std::boxed::Box<FilterExpression>>,
     /// The metrics requested and displayed.
     #[serde(default)]
     pub metrics: ::core::option::Option<::std::vec::Vec<Metric>>,
@@ -255,7 +255,7 @@ pub struct RunPivotReportRequest {
     pub date_ranges: ::core::option::Option<::std::vec::Vec<DateRange>>,
     /// The filter clause of dimensions. Dimensions must be requested to be used in this filter. Metrics cannot be used in this filter.
     #[serde(default, rename = "dimensionFilter")]
-    pub dimension_filter: ::core::option::Option<FilterExpression>,
+    pub dimension_filter: ::core::option::Option<::std::boxed::Box<FilterExpression>>,
     /// The dimensions requested. All defined dimensions must be used by one of the following: dimension_expression, dimension_filter, pivots, order_bys.
     #[serde(default)]
     pub dimensions: ::core::option::Option<::std::vec::Vec<Dimension>>,
@@ -264,7 +264,7 @@ pub struct RunPivotReportRequest {
     pub keep_empty_rows: ::core::option::Option<bool>,
     /// The filter clause of metrics. Applied at post aggregation phase, similar to SQL having-clause. Metrics must be requested to be used in this filter. Dimensions cannot be used in this filter.
     #[serde(default, rename = "metricFilter")]
-    pub metric_filter: ::core::option::Option<FilterExpression>,
+    pub metric_filter: ::core::option::Option<::std::boxed::Box<FilterExpression>>,
     /// The metrics requested, at least one metric needs to be specified. All defined metrics must be used by one of the following: metric_expression, metric_filter, order_bys.
     #[serde(default)]
     pub metrics: ::core::option::Option<::std::vec::Vec<Metric>>,
@@ -325,7 +325,7 @@ pub struct RunReportRequest {
     pub date_ranges: ::core::option::Option<::std::vec::Vec<DateRange>>,
     /// Dimension filters let you ask for only specific dimension values in the report. To learn more, see [Fundamentals of Dimension Filters](https://developers.google.com/analytics/devguides/reporting/data/v1/basics#dimension_filters) for examples. Metrics cannot be used in this filter.
     #[serde(default, rename = "dimensionFilter")]
-    pub dimension_filter: ::core::option::Option<FilterExpression>,
+    pub dimension_filter: ::core::option::Option<::std::boxed::Box<FilterExpression>>,
     /// The dimensions requested and displayed.
     #[serde(default)]
     pub dimensions: ::core::option::Option<::std::vec::Vec<Dimension>>,
@@ -340,7 +340,7 @@ pub struct RunReportRequest {
     pub metric_aggregations: ::core::option::Option<::std::vec::Vec<String>>,
     /// The filter clause of metrics. Applied after aggregating the report''s rows, similar to SQL having-clause. Dimensions cannot be used in this filter.
     #[serde(default, rename = "metricFilter")]
-    pub metric_filter: ::core::option::Option<FilterExpression>,
+    pub metric_filter: ::core::option::Option<::std::boxed::Box<FilterExpression>>,
     /// The metrics requested and displayed.
     #[serde(default)]
     pub metrics: ::core::option::Option<::std::vec::Vec<Metric>>,
@@ -553,7 +553,7 @@ pub struct Comparison {
     pub comparison: ::core::option::Option<String>,
     /// A basic comparison.
     #[serde(default, rename = "dimensionFilter")]
-    pub dimension_filter: ::core::option::Option<FilterExpression>,
+    pub dimension_filter: ::core::option::Option<::std::boxed::Box<FilterExpression>>,
     /// Each comparison produces separate rows in the response. In the response, this comparison is identified by this name. If name is unspecified, we will use the saved comparisons display name.
     #[serde(default)]
     pub name: ::core::option::Option<String>,
@@ -946,10 +946,10 @@ pub struct PivotSelection {
 pub struct BetweenFilter {
     /// Begins with this number.
     #[serde(default, rename = "fromValue")]
-    pub from_value: ::core::option::Option<NumericValue>,
+    pub from_value: ::core::option::Option<::std::boxed::Box<NumericValue>>,
     /// Ends with this number.
     #[serde(default, rename = "toValue")]
-    pub to_value: ::core::option::Option<NumericValue>,
+    pub to_value: ::core::option::Option<::std::boxed::Box<NumericValue>>,
 }
 
 /// An expression to filter dimension or metric values.
@@ -957,7 +957,7 @@ pub struct BetweenFilter {
 pub struct Filter {
     /// A filter for two values.
     #[serde(default, rename = "betweenFilter")]
-    pub between_filter: ::core::option::Option<BetweenFilter>,
+    pub between_filter: ::core::option::Option<::std::boxed::Box<BetweenFilter>>,
     /// A filter for empty values such as "(not set)" and "" values.
     #[serde(default, rename = "emptyFilter")]
     pub empty_filter: ::core::option::Option<serde_json::Value>,
@@ -966,10 +966,10 @@ pub struct Filter {
     pub field_name: ::core::option::Option<String>,
     /// A filter for in list values.
     #[serde(default, rename = "inListFilter")]
-    pub in_list_filter: ::core::option::Option<InListFilter>,
+    pub in_list_filter: ::core::option::Option<::std::boxed::Box<InListFilter>>,
     /// A filter for numeric or date values.
     #[serde(default, rename = "numericFilter")]
-    pub numeric_filter: ::core::option::Option<NumericFilter>,
+    pub numeric_filter: ::core::option::Option<::std::boxed::Box<NumericFilter>>,
     /// Strings related filter.
     #[serde(default, rename = "stringFilter")]
     pub string_filter: ::core::option::Option<StringFilter>,
@@ -980,16 +980,16 @@ pub struct Filter {
 pub struct FilterExpression {
     /// The FilterExpressions in and_group have an AND relationship.
     #[serde(default, rename = "andGroup")]
-    pub and_group: ::core::option::Option<FilterExpressionList>,
+    pub and_group: ::core::option::Option<::std::boxed::Box<FilterExpressionList>>,
     /// A primitive filter. In the same FilterExpression, all of the filter''s field names need to be either all dimensions or all metrics.
     #[serde(default)]
-    pub filter: ::core::option::Option<Filter>,
+    pub filter: ::core::option::Option<::std::boxed::Box<Filter>>,
     /// The FilterExpression is NOT of not_expression.
     #[serde(default, rename = "notExpression")]
-    pub not_expression: ::core::option::Option<FilterExpression>,
+    pub not_expression: ::core::option::Option<::std::boxed::Box<FilterExpression>>,
     /// The FilterExpressions in or_group have an OR relationship.
     #[serde(default, rename = "orGroup")]
-    pub or_group: ::core::option::Option<FilterExpressionList>,
+    pub or_group: ::core::option::Option<::std::boxed::Box<FilterExpressionList>>,
 }
 
 /// A list of filter expressions.
@@ -997,7 +997,7 @@ pub struct FilterExpression {
 pub struct FilterExpressionList {
     /// A list of filter expressions.
     #[serde(default)]
-    pub expressions: ::core::option::Option<::std::vec::Vec<FilterExpression>>,
+    pub expressions: ::std::vec::Vec<::std::boxed::Box<FilterExpression>>,
 }
 
 /// The result needs to be in a list of string values.
@@ -1019,7 +1019,7 @@ pub struct NumericFilter {
     pub operation: ::core::option::Option<String>,
     /// A numeric value or a date value.
     #[serde(default)]
-    pub value: ::core::option::Option<NumericValue>,
+    pub value: ::core::option::Option<::std::boxed::Box<NumericValue>>,
 }
 
 /// To represent a number.

@@ -224,7 +224,8 @@ pub struct GoogleAnalyticsAdminV1betaRunAccessReportRequest {
         ::core::option::Option<::std::vec::Vec<GoogleAnalyticsAdminV1betaAccessDateRange>>,
     /// Dimension filters let you restrict report response to specific dimension values which match the filter. For example, filtering on access records of a single user. To learn more, see [Fundamentals of Dimension Filters](https://developers.google.com/analytics/devguides/reporting/data/v1/basics#dimension_filters) for examples. Metrics cannot be used in this filter.
     #[serde(default, rename = "dimensionFilter")]
-    pub dimension_filter: ::core::option::Option<GoogleAnalyticsAdminV1betaAccessFilterExpression>,
+    pub dimension_filter:
+        ::core::option::Option<::std::boxed::Box<GoogleAnalyticsAdminV1betaAccessFilterExpression>>,
     /// The dimensions requested and displayed in the response. Requests are allowed up to 9 dimensions.
     #[serde(default)]
     pub dimensions:
@@ -240,7 +241,8 @@ pub struct GoogleAnalyticsAdminV1betaRunAccessReportRequest {
     pub limit: ::core::option::Option<String>,
     /// Metric filters allow you to restrict report response to specific metric values which match the filter. Metric filters are applied after aggregating the report''s rows, similar to SQL having-clause. Dimensions cannot be used in this filter.
     #[serde(default, rename = "metricFilter")]
-    pub metric_filter: ::core::option::Option<GoogleAnalyticsAdminV1betaAccessFilterExpression>,
+    pub metric_filter:
+        ::core::option::Option<::std::boxed::Box<GoogleAnalyticsAdminV1betaAccessFilterExpression>>,
     /// The metrics requested and displayed in the response. Requests are allowed up to 10 metrics.
     #[serde(default)]
     pub metrics: ::core::option::Option<::std::vec::Vec<GoogleAnalyticsAdminV1betaAccessMetric>>,
@@ -909,10 +911,11 @@ pub struct GoogleAnalyticsAdminV1betaDataStreamWebStreamData {
 pub struct GoogleAnalyticsAdminV1betaAccessBetweenFilter {
     /// Begins with this number.
     #[serde(default, rename = "fromValue")]
-    pub from_value: ::core::option::Option<GoogleAnalyticsAdminV1betaNumericValue>,
+    pub from_value:
+        ::core::option::Option<::std::boxed::Box<GoogleAnalyticsAdminV1betaNumericValue>>,
     /// Ends with this number.
     #[serde(default, rename = "toValue")]
-    pub to_value: ::core::option::Option<GoogleAnalyticsAdminV1betaNumericValue>,
+    pub to_value: ::core::option::Option<::std::boxed::Box<GoogleAnalyticsAdminV1betaNumericValue>>,
 }
 
 /// An expression to filter dimension or metric values.
@@ -920,16 +923,19 @@ pub struct GoogleAnalyticsAdminV1betaAccessBetweenFilter {
 pub struct GoogleAnalyticsAdminV1betaAccessFilter {
     /// A filter for two values.
     #[serde(default, rename = "betweenFilter")]
-    pub between_filter: ::core::option::Option<GoogleAnalyticsAdminV1betaAccessBetweenFilter>,
+    pub between_filter:
+        ::core::option::Option<::std::boxed::Box<GoogleAnalyticsAdminV1betaAccessBetweenFilter>>,
     /// The dimension name or metric name.
     #[serde(default, rename = "fieldName")]
     pub field_name: ::core::option::Option<String>,
     /// A filter for in list values.
     #[serde(default, rename = "inListFilter")]
-    pub in_list_filter: ::core::option::Option<GoogleAnalyticsAdminV1betaAccessInListFilter>,
+    pub in_list_filter:
+        ::core::option::Option<::std::boxed::Box<GoogleAnalyticsAdminV1betaAccessInListFilter>>,
     /// A filter for numeric or date values.
     #[serde(default, rename = "numericFilter")]
-    pub numeric_filter: ::core::option::Option<GoogleAnalyticsAdminV1betaAccessNumericFilter>,
+    pub numeric_filter:
+        ::core::option::Option<::std::boxed::Box<GoogleAnalyticsAdminV1betaAccessNumericFilter>>,
     /// Strings related filter.
     #[serde(default, rename = "stringFilter")]
     pub string_filter: ::core::option::Option<GoogleAnalyticsAdminV1betaAccessStringFilter>,
@@ -940,16 +946,22 @@ pub struct GoogleAnalyticsAdminV1betaAccessFilter {
 pub struct GoogleAnalyticsAdminV1betaAccessFilterExpression {
     /// A primitive filter. In the same FilterExpression, all of the filter''s field names need to be either all dimensions or all metrics.
     #[serde(default, rename = "accessFilter")]
-    pub access_filter: ::core::option::Option<GoogleAnalyticsAdminV1betaAccessFilter>,
+    pub access_filter:
+        ::core::option::Option<::std::boxed::Box<GoogleAnalyticsAdminV1betaAccessFilter>>,
     /// Each of the FilterExpressions in the and_group has an AND relationship.
     #[serde(default, rename = "andGroup")]
-    pub and_group: ::core::option::Option<GoogleAnalyticsAdminV1betaAccessFilterExpressionList>,
+    pub and_group: ::core::option::Option<
+        ::std::boxed::Box<GoogleAnalyticsAdminV1betaAccessFilterExpressionList>,
+    >,
     /// The FilterExpression is NOT of not_expression.
     #[serde(default, rename = "notExpression")]
-    pub not_expression: ::core::option::Option<GoogleAnalyticsAdminV1betaAccessFilterExpression>,
+    pub not_expression:
+        ::core::option::Option<::std::boxed::Box<GoogleAnalyticsAdminV1betaAccessFilterExpression>>,
     /// Each of the FilterExpressions in the or_group has an OR relationship.
     #[serde(default, rename = "orGroup")]
-    pub or_group: ::core::option::Option<GoogleAnalyticsAdminV1betaAccessFilterExpressionList>,
+    pub or_group: ::core::option::Option<
+        ::std::boxed::Box<GoogleAnalyticsAdminV1betaAccessFilterExpressionList>,
+    >,
 }
 
 /// A list of filter expressions.
@@ -958,7 +970,7 @@ pub struct GoogleAnalyticsAdminV1betaAccessFilterExpressionList {
     /// A list of filter expressions.
     #[serde(default)]
     pub expressions:
-        ::core::option::Option<::std::vec::Vec<GoogleAnalyticsAdminV1betaAccessFilterExpression>>,
+        ::std::vec::Vec<::std::boxed::Box<GoogleAnalyticsAdminV1betaAccessFilterExpression>>,
 }
 
 /// The result needs to be in a list of string values.
@@ -980,7 +992,7 @@ pub struct GoogleAnalyticsAdminV1betaAccessNumericFilter {
     pub operation: ::core::option::Option<String>,
     /// A numeric value or a date value.
     #[serde(default)]
-    pub value: ::core::option::Option<GoogleAnalyticsAdminV1betaNumericValue>,
+    pub value: ::core::option::Option<::std::boxed::Box<GoogleAnalyticsAdminV1betaNumericValue>>,
 }
 
 /// To represent a number.

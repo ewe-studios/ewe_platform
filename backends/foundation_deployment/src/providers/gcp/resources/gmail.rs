@@ -712,7 +712,7 @@ pub struct Message {
     pub label_ids: ::core::option::Option<::std::vec::Vec<String>>,
     /// The parsed email structure in the message parts.
     #[serde(default)]
-    pub payload: ::core::option::Option<MessagePart>,
+    pub payload: ::core::option::Option<::std::boxed::Box<MessagePart>>,
     /// The entire email message in an RFC 2822 formatted and base64url encoded string. Returned in messages.get and drafts.get responses when the format=RAW parameter is supplied.
     #[serde(default)]
     pub raw: ::core::option::Option<String>,
@@ -758,7 +758,7 @@ pub struct MessagePart {
     pub part_id: ::core::option::Option<String>,
     /// The child MIME message parts of this part. This only applies to container MIME message parts, for example multipart/*. For non- container MIME message part types, such as text/plain, this field is empty. For more information, see RFC 1521.
     #[serde(default)]
-    pub parts: ::core::option::Option<::std::vec::Vec<MessagePart>>,
+    pub parts: ::std::vec::Vec<::std::boxed::Box<MessagePart>>,
 }
 
 /// Field values for a classification label.

@@ -774,8 +774,7 @@ pub struct GoogleCloudMlV1StudyConfig {
     pub metrics: ::core::option::Option<::std::vec::Vec<GoogleCloudMlV1StudyConfigMetricSpec>>,
     /// Required. The set of parameters to tune.
     #[serde(default)]
-    pub parameters:
-        ::core::option::Option<::std::vec::Vec<GoogleCloudMlV1StudyConfigParameterSpec>>,
+    pub parameters: ::std::vec::Vec<::std::boxed::Box<GoogleCloudMlV1StudyConfigParameterSpec>>,
 }
 
 /// A message representing a measurement.
@@ -1076,7 +1075,7 @@ pub struct GoogleCloudMlV1StudyConfigParameterSpec {
     /// A child node is active if the parameter''s value matches the child node''s matching_parent_values. If two items in child_parameter_specs have the same name, they must have disjoint matching_parent_values.
     #[serde(default, rename = "childParameterSpecs")]
     pub child_parameter_specs:
-        ::core::option::Option<::std::vec::Vec<GoogleCloudMlV1StudyConfigParameterSpec>>,
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudMlV1StudyConfigParameterSpec>>,
     /// The value spec for a ''DISCRETE'' parameter.
     #[serde(default, rename = "discreteValueSpec")]
     pub discrete_value_spec:

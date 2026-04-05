@@ -1125,7 +1125,8 @@ pub struct GoogleCloudDataplexV1AspectType {
     pub labels: ::core::option::Option<serde_json::Value>,
     /// Required. MetadataTemplate of the aspect.
     #[serde(default, rename = "metadataTemplate")]
-    pub metadata_template: ::core::option::Option<GoogleCloudDataplexV1AspectTypeMetadataTemplate>,
+    pub metadata_template:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDataplexV1AspectTypeMetadataTemplate>>,
     /// Output only. The relative resource name of the AspectType, of the form: projects/{project_number}/locations/{location_id}/aspectTypes/{aspect_type_id}.
     #[serde(default)]
     pub name: ::core::option::Option<String>,
@@ -2153,7 +2154,8 @@ pub struct GoogleCloudDataplexV1AspectTypeMetadataTemplate {
         ::core::option::Option<GoogleCloudDataplexV1AspectTypeMetadataTemplateAnnotations>,
     /// Optional. If the type is array, set array_items. array_items can refer to a primitive field or a complex (record only) field. To specify a primitive field, you only need to set name and type in the nested MetadataTemplate. The recommended value for the name field is item, as this isn''t used in the actual payload.
     #[serde(default, rename = "arrayItems")]
-    pub array_items: ::core::option::Option<GoogleCloudDataplexV1AspectTypeMetadataTemplate>,
+    pub array_items:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDataplexV1AspectTypeMetadataTemplate>>,
     /// Optional. Specifies the constraints on this field.
     #[serde(default)]
     pub constraints:
@@ -2168,14 +2170,15 @@ pub struct GoogleCloudDataplexV1AspectTypeMetadataTemplate {
     pub index: ::core::option::Option<i32>,
     /// Optional. If the type is map, set map_items. map_items can refer to a primitive field or a complex (record only) field. To specify a primitive field, you only need to set name and type in the nested MetadataTemplate. The recommended value for the name field is item, as this isn''t used in the actual payload.
     #[serde(default, rename = "mapItems")]
-    pub map_items: ::core::option::Option<GoogleCloudDataplexV1AspectTypeMetadataTemplate>,
+    pub map_items:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudDataplexV1AspectTypeMetadataTemplate>>,
     /// Required. The name of the field.
     #[serde(default)]
     pub name: ::core::option::Option<String>,
     /// Optional. Field definition. You must specify it if the type is record. It defines the nested fields.
     #[serde(default, rename = "recordFields")]
     pub record_fields:
-        ::core::option::Option<::std::vec::Vec<GoogleCloudDataplexV1AspectTypeMetadataTemplate>>,
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDataplexV1AspectTypeMetadataTemplate>>,
     /// Required. The datatype of this field. The following values are supported:Primitive types: string int bool double datetime. Must be of the format RFC3339 UTC "Zulu" (Examples: "2014-10-02T15:01:23Z" and "2014-10-02T15:01:23.045123456Z").Complex types: enum array map record
     #[serde(default, rename = "type")]
     pub type_: ::core::option::Option<String>,
@@ -2407,7 +2410,7 @@ pub struct GoogleCloudDataplexV1StorageFormat {
 pub struct GoogleCloudDataplexV1Schema {
     /// Optional. The sequence of fields describing data in table entities. Note: BigQuery SchemaFields are immutable.
     #[serde(default)]
-    pub fields: ::core::option::Option<::std::vec::Vec<GoogleCloudDataplexV1SchemaSchemaField>>,
+    pub fields: ::std::vec::Vec<::std::boxed::Box<GoogleCloudDataplexV1SchemaSchemaField>>,
     /// Optional. The sequence of fields describing the partition structure in entities. If this field is empty, there are no partitions within the data.
     #[serde(default, rename = "partitionFields")]
     pub partition_fields:
@@ -3079,7 +3082,7 @@ pub struct GoogleCloudDataplexV1SchemaSchemaField {
     pub description: ::core::option::Option<String>,
     /// Optional. Any nested field for complex types.
     #[serde(default)]
-    pub fields: ::core::option::Option<::std::vec::Vec<GoogleCloudDataplexV1SchemaSchemaField>>,
+    pub fields: ::std::vec::Vec<::std::boxed::Box<GoogleCloudDataplexV1SchemaSchemaField>>,
     /// Required. Additional field semantics. // TODO: enum values: ["MODE_UNSPECIFIED", "REQUIRED", "NULLABLE", "REPEATED"]
     #[serde(default)]
     pub mode: ::core::option::Option<String>,
@@ -3921,7 +3924,7 @@ pub struct GoogleCloudDataplexV1DataDocumentationResultSchema {
     /// Output only. The list of columns.
     #[serde(default)]
     pub fields:
-        ::core::option::Option<::std::vec::Vec<GoogleCloudDataplexV1DataDocumentationResultField>>,
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDataplexV1DataDocumentationResultField>>,
 }
 
 /// The profile information for each field type.
@@ -4101,7 +4104,7 @@ pub struct GoogleCloudDataplexV1DataDocumentationResultField {
     /// Output only. Nested fields.
     #[serde(default)]
     pub fields:
-        ::core::option::Option<::std::vec::Vec<GoogleCloudDataplexV1DataDocumentationResultField>>,
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDataplexV1DataDocumentationResultField>>,
     /// Output only. The name of the column.
     #[serde(default)]
     pub name: ::core::option::Option<String>,

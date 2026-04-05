@@ -80,7 +80,7 @@ pub struct CivicinfoApiprotosV2VoterInfoResponse {
     pub precincts: ::core::option::Option<::std::vec::Vec<CivicinfoSchemaV2Precinct>>,
     /// Local Election Information for the state that the voter votes in. For the US, there will only be one element in this array.
     #[serde(default)]
-    pub state: ::core::option::Option<::std::vec::Vec<CivicinfoSchemaV2AdministrationRegion>>,
+    pub state: ::std::vec::Vec<::std::boxed::Box<CivicinfoSchemaV2AdministrationRegion>>,
 }
 
 /// Describes a political geography.
@@ -298,7 +298,8 @@ pub struct CivicinfoSchemaV2AdministrationRegion {
     pub election_administration_body: ::core::option::Option<CivicinfoSchemaV2AdministrativeBody>,
     /// The city or county that provides election information for this voter. This object can have the same elements as state.
     #[serde(default)]
-    pub local_jurisdiction: ::core::option::Option<CivicinfoSchemaV2AdministrationRegion>,
+    pub local_jurisdiction:
+        ::core::option::Option<::std::boxed::Box<CivicinfoSchemaV2AdministrationRegion>>,
     /// The name of the jurisdiction.
     #[serde(default)]
     pub name: ::core::option::Option<String>,

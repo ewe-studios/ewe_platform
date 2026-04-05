@@ -513,7 +513,7 @@ pub struct Action {
     pub display_name: ::core::option::Option<String>,
     /// JsonSchema representation of this actions''s input schema
     #[serde(default, rename = "inputJsonSchema")]
-    pub input_json_schema: ::core::option::Option<JsonSchema>,
+    pub input_json_schema: ::core::option::Option<::std::boxed::Box<JsonSchema>>,
     /// List containing input parameter metadata.
     #[serde(default, rename = "inputParameters")]
     pub input_parameters: ::core::option::Option<::std::vec::Vec<InputParameter>>,
@@ -525,7 +525,7 @@ pub struct Action {
     pub name: ::core::option::Option<String>,
     /// JsonSchema representation of this actions''s result schema
     #[serde(default, rename = "resultJsonSchema")]
-    pub result_json_schema: ::core::option::Option<JsonSchema>,
+    pub result_json_schema: ::core::option::Option<::std::boxed::Box<JsonSchema>>,
     /// List containing the metadata of result fields.
     #[serde(default, rename = "resultMetadata")]
     pub result_metadata: ::core::option::Option<::std::vec::Vec<ResultMetadata>>,
@@ -569,7 +569,7 @@ pub struct EntityType {
     pub fields: ::core::option::Option<::std::vec::Vec<Field>>,
     /// JsonSchema representation of this entity''s schema
     #[serde(default, rename = "jsonSchema")]
-    pub json_schema: ::core::option::Option<JsonSchema>,
+    pub json_schema: ::core::option::Option<::std::boxed::Box<JsonSchema>>,
     /// Metadata like service latency, etc.
     #[serde(default)]
     pub metadata: ::core::option::Option<serde_json::Value>,
@@ -631,13 +631,13 @@ pub struct Tool {
     pub description: ::core::option::Option<String>,
     /// JSON schema for the input parameters of the tool.
     #[serde(default, rename = "inputSchema")]
-    pub input_schema: ::core::option::Option<JsonSchema>,
+    pub input_schema: ::core::option::Option<::std::boxed::Box<JsonSchema>>,
     /// Name of the tool.
     #[serde(default)]
     pub name: ::core::option::Option<String>,
     /// JSON schema for the output of the tool.
     #[serde(default, rename = "outputSchema")]
-    pub output_schema: ::core::option::Option<JsonSchema>,
+    pub output_schema: ::core::option::Option<::std::boxed::Box<JsonSchema>>,
 }
 
 /// Maintenance policy applicable to instance updates.
@@ -731,7 +731,7 @@ pub struct InputParameter {
     pub description: ::core::option::Option<String>,
     /// JsonSchema of the parameter, applicable only if parameter is of type STRUCT
     #[serde(default, rename = "jsonSchema")]
-    pub json_schema: ::core::option::Option<JsonSchema>,
+    pub json_schema: ::core::option::Option<::std::boxed::Box<JsonSchema>>,
     /// Name of the Parameter.
     #[serde(default)]
     pub name: ::core::option::Option<String>,
@@ -754,7 +754,7 @@ pub struct ResultMetadata {
     pub description: ::core::option::Option<String>,
     /// JsonSchema of the result, applicable only if parameter is of type STRUCT
     #[serde(default, rename = "jsonSchema")]
-    pub json_schema: ::core::option::Option<JsonSchema>,
+    pub json_schema: ::core::option::Option<::std::boxed::Box<JsonSchema>>,
     /// Name of the metadata field.
     #[serde(default)]
     pub name: ::core::option::Option<String>,
@@ -780,7 +780,7 @@ pub struct Field {
     pub description: ::core::option::Option<String>,
     /// JsonSchema of the field, applicable only if field is of type STRUCT
     #[serde(default, rename = "jsonSchema")]
-    pub json_schema: ::core::option::Option<JsonSchema>,
+    pub json_schema: ::core::option::Option<::std::boxed::Box<JsonSchema>>,
     /// The following boolean field specifies if the current Field acts as a primary key or id if the parent is of type entity.
     #[serde(default)]
     pub key: ::core::option::Option<bool>,
@@ -874,7 +874,7 @@ pub struct JsonSchema {
     pub format: ::core::option::Option<String>,
     /// Schema that applies to array values, applicable only if this is of type array.
     #[serde(default)]
-    pub items: ::core::option::Option<JsonSchema>,
+    pub items: ::core::option::Option<::std::boxed::Box<JsonSchema>>,
     /// JDBC datatype of the field. // TODO: enum values: ["DATA_TYPE_UNSPECIFIED", "INT", "SMALLINT", "DOUBLE", "DATE", "DATETIME", "TIME", "STRING", "LONG", "BOOLEAN", "DECIMAL", "UUID", "BLOB", "BIT", "TINYINT", "INTEGER", "BIGINT", "FLOAT", "REAL", "NUMERIC", "CHAR", "VARCHAR", "LONGVARCHAR", "TIMESTAMP", "NCHAR", "NVARCHAR", "LONGNVARCHAR", "NULL", "OTHER", "JAVA_OBJECT", "DISTINCT", "STRUCT", "ARRAY", "CLOB", "REF", "DATALINK", "ROWID", "BINARY", "VARBINARY", "LONGVARBINARY", "NCLOB", "SQLXML", "REF_CURSOR", "TIME_WITH_TIMEZONE", "TIMESTAMP_WITH_TIMEZONE"]
     #[serde(default, rename = "jdbcType")]
     pub jdbc_type: ::core::option::Option<String>,

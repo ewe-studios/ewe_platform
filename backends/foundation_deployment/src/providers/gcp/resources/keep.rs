@@ -149,7 +149,7 @@ pub struct Permission {
 pub struct ListContent {
     /// The items in the list. The number of items must be less than 1,000.
     #[serde(default, rename = "listItems")]
-    pub list_items: ::core::option::Option<::std::vec::Vec<ListItem>>,
+    pub list_items: ::std::vec::Vec<::std::boxed::Box<ListItem>>,
 }
 
 /// Describes a single Group.
@@ -176,7 +176,7 @@ pub struct ListItem {
     pub checked: ::core::option::Option<bool>,
     /// If set, list of list items nested under this list item. Only one level of nesting is allowed.
     #[serde(default, rename = "childListItems")]
-    pub child_list_items: ::core::option::Option<::std::vec::Vec<ListItem>>,
+    pub child_list_items: ::std::vec::Vec<::std::boxed::Box<ListItem>>,
     /// The text of this item. Length must be less than 1,000 characters.
     #[serde(default)]
     pub text: ::core::option::Option<TextContent>,
