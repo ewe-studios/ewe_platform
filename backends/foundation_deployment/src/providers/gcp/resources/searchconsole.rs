@@ -10,152 +10,6 @@
 use super::*;
 use serde::{Deserialize, Serialize};
 
-/// AMP inspection result of the live page or the current information from Google''s index, depending on whether you requested a live inspection or not.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AmpInspectionResult {
-    /// Index status of the AMP URL. // TODO: enum values: ["VERDICT_UNSPECIFIED", "PASS", "PARTIAL", "FAIL", "NEUTRAL"]
-    #[serde(default, rename = "ampIndexStatusVerdict")]
-    pub amp_index_status_verdict: ::core::option::Option<String>,
-    /// URL of the AMP that was inspected. If the submitted URL is a desktop page that refers to an AMP version, the AMP version will be inspected.
-    #[serde(default, rename = "ampUrl")]
-    pub amp_url: ::core::option::Option<String>,
-    /// Whether or not the page blocks indexing through a noindex rule. // TODO: enum values: ["AMP_INDEXING_STATE_UNSPECIFIED", "AMP_INDEXING_ALLOWED", "BLOCKED_DUE_TO_NOINDEX", "BLOCKED_DUE_TO_EXPIRED_UNAVAILABLE_AFTER"]
-    #[serde(default, rename = "indexingState")]
-    pub indexing_state: ::core::option::Option<String>,
-    /// A list of zero or more AMP issues found for the inspected URL.
-    #[serde(default)]
-    pub issues: ::core::option::Option<::std::vec::Vec<AmpIssue>>,
-    /// Last time this AMP version was crawled by Google. Absent if the URL was never crawled successfully.
-    #[serde(default, rename = "lastCrawlTime")]
-    pub last_crawl_time: ::core::option::Option<String>,
-    /// Whether or not Google could fetch the AMP. // TODO: enum values: ["PAGE_FETCH_STATE_UNSPECIFIED", "SUCCESSFUL", "SOFT_404", "BLOCKED_ROBOTS_TXT", "NOT_FOUND", "ACCESS_DENIED", "SERVER_ERROR", "REDIRECT_ERROR", "ACCESS_FORBIDDEN", "BLOCKED_4XX", "INTERNAL_CRAWL_ERROR", "INVALID_URL"]
-    #[serde(default, rename = "pageFetchState")]
-    pub page_fetch_state: ::core::option::Option<String>,
-    /// Whether or not the page is blocked to Google by a robots.txt rule. // TODO: enum values: ["ROBOTS_TXT_STATE_UNSPECIFIED", "ALLOWED", "DISALLOWED"]
-    #[serde(default, rename = "robotsTxtState")]
-    pub robots_txt_state: ::core::option::Option<String>,
-    /// The status of the most severe error on the page. If a page has both warnings and errors, the page status is error. Error status means the page cannot be shown in Search results. // TODO: enum values: ["VERDICT_UNSPECIFIED", "PASS", "PARTIAL", "FAIL", "NEUTRAL"]
-    #[serde(default)]
-    pub verdict: ::core::option::Option<String>,
-}
-
-/// AMP issue.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AmpIssue {
-    /// Brief description of this issue.
-    #[serde(default, rename = "issueMessage")]
-    pub issue_message: ::core::option::Option<String>,
-    /// Severity of this issue: WARNING or ERROR. // TODO: enum values: ["SEVERITY_UNSPECIFIED", "WARNING", "ERROR"]
-    #[serde(default)]
-    pub severity: ::core::option::Option<String>,
-}
-
-/// ApiDataRow resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ApiDataRow {
-    #[serde(default)]
-    pub clicks: ::core::option::Option<f64>,
-    #[serde(default)]
-    pub ctr: ::core::option::Option<f64>,
-    #[serde(default)]
-    pub impressions: ::core::option::Option<f64>,
-    #[serde(default)]
-    pub keys: ::core::option::Option<::std::vec::Vec<String>>,
-    #[serde(default)]
-    pub position: ::core::option::Option<f64>,
-}
-
-/// A filter test to be applied to each row in the data set, where a match can return the row. Filters are string comparisons, and values and dimension names are not case-sensitive. Individual filters are either AND''ed or OR''ed within their parent filter group, according to the group''s group type. You do not need to group by a specified dimension to filter against it.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ApiDimensionFilter {
-    /// TODO: enum values: ["QUERY", "PAGE", "COUNTRY", "DEVICE", "SEARCH_APPEARANCE"]
-    #[serde(default)]
-    pub dimension: ::core::option::Option<String>,
-    #[serde(default)]
-    pub expression: ::core::option::Option<String>,
-    /// TODO: enum values: ["EQUALS", "NOT_EQUALS", "CONTAINS", "NOT_CONTAINS", "INCLUDING_REGEX", "EXCLUDING_REGEX"]
-    #[serde(default)]
-    pub operator: ::core::option::Option<String>,
-}
-
-/// A set of dimension value filters to test against each row. Only rows that pass all filter groups will be returned. All results within a filter group are either AND''ed or OR''ed together, depending on the group type selected. All filter groups are AND''ed together.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ApiDimensionFilterGroup {
-    #[serde(default)]
-    pub filters: ::core::option::Option<::std::vec::Vec<ApiDimensionFilter>>,
-    /// TODO: enum values: ["AND"]
-    #[serde(default, rename = "groupType")]
-    pub group_type: ::core::option::Option<String>,
-}
-
-/// Blocked resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct BlockedResource {
-    /// URL of the blocked resource.
-    #[serde(default)]
-    pub url: ::core::option::Option<String>,
-}
-
-/// Rich Results items grouped by type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DetectedItems {
-    /// List of Rich Results items.
-    #[serde(default)]
-    pub items: ::core::option::Option<::std::vec::Vec<Item>>,
-    /// Rich Results type
-    #[serde(default, rename = "richResultType")]
-    pub rich_result_type: ::core::option::Option<String>,
-}
-
-/// Describe image data.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Image {
-    /// Image data in format determined by the mime type. Currently, the format will always be "image/png", but this might change in the future.
-    #[serde(default)]
-    pub data: ::core::option::Option<String>,
-    /// The mime-type of the image data.
-    #[serde(default, rename = "mimeType")]
-    pub mime_type: ::core::option::Option<String>,
-}
-
-/// Results of index status inspection for either the live page or the version in Google''s index, depending on whether you requested a live inspection or not. For more information, see the [Index coverage report documentation](https://support.google.com/webmasters/answer/7440203).
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct IndexStatusInspectionResult {
-    /// Could Google find and index the page. More details about page indexing appear in ''indexing_state''.
-    #[serde(default, rename = "coverageState")]
-    pub coverage_state: ::core::option::Option<String>,
-    /// Primary crawler that was used by Google to crawl your site. // TODO: enum values: ["CRAWLING_USER_AGENT_UNSPECIFIED", "DESKTOP", "MOBILE"]
-    #[serde(default, rename = "crawledAs")]
-    pub crawled_as: ::core::option::Option<String>,
-    /// The URL of the page that Google selected as canonical. If the page was not indexed, this field is absent.
-    #[serde(default, rename = "googleCanonical")]
-    pub google_canonical: ::core::option::Option<String>,
-    /// Whether or not the page blocks indexing through a noindex rule. // TODO: enum values: ["INDEXING_STATE_UNSPECIFIED", "INDEXING_ALLOWED", "BLOCKED_BY_META_TAG", "BLOCKED_BY_HTTP_HEADER", "BLOCKED_BY_ROBOTS_TXT"]
-    #[serde(default, rename = "indexingState")]
-    pub indexing_state: ::core::option::Option<String>,
-    /// Last time this URL was crawled by Google using the [primary crawler](https://support.google.com/webmasters/answer/7440203#primary_crawler). Absent if the URL was never crawled successfully.
-    #[serde(default, rename = "lastCrawlTime")]
-    pub last_crawl_time: ::core::option::Option<String>,
-    /// Whether or not Google could retrieve the page from your server. Equivalent to ["page fetch"](https://support.google.com/webmasters/answer/9012289#index_coverage) in the URL inspection report. // TODO: enum values: ["PAGE_FETCH_STATE_UNSPECIFIED", "SUCCESSFUL", "SOFT_404", "BLOCKED_ROBOTS_TXT", "NOT_FOUND", "ACCESS_DENIED", "SERVER_ERROR", "REDIRECT_ERROR", "ACCESS_FORBIDDEN", "BLOCKED_4XX", "INTERNAL_CRAWL_ERROR", "INVALID_URL"]
-    #[serde(default, rename = "pageFetchState")]
-    pub page_fetch_state: ::core::option::Option<String>,
-    /// URLs that link to the inspected URL, directly and indirectly.
-    #[serde(default, rename = "referringUrls")]
-    pub referring_urls: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Whether or not the page is blocked to Google by a robots.txt rule. // TODO: enum values: ["ROBOTS_TXT_STATE_UNSPECIFIED", "ALLOWED", "DISALLOWED"]
-    #[serde(default, rename = "robotsTxtState")]
-    pub robots_txt_state: ::core::option::Option<String>,
-    /// Any sitemaps that this URL was listed in, as known by Google. Not guaranteed to be an exhaustive list, especially if Google did not discover this URL through a sitemap. Absent if no sitemaps were found.
-    #[serde(default)]
-    pub sitemap: ::core::option::Option<::std::vec::Vec<String>>,
-    /// The URL that your page or site [declares as canonical](https://developers.google.com/search/docs/advanced/crawling/consolidate-duplicate-urls?#define-canonical). If you did not declare a canonical URL, this field is absent.
-    #[serde(default, rename = "userCanonical")]
-    pub user_canonical: ::core::option::Option<String>,
-    /// High level verdict about whether the URL *is* indexed (indexed status), or *can be* indexed (live inspection). // TODO: enum values: ["VERDICT_UNSPECIFIED", "PASS", "PARTIAL", "FAIL", "NEUTRAL"]
-    #[serde(default)]
-    pub verdict: ::core::option::Option<String>,
-}
-
 /// Index inspection request.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct InspectUrlIndexRequest {
@@ -176,91 +30,6 @@ pub struct InspectUrlIndexResponse {
     /// URL inspection results.
     #[serde(default, rename = "inspectionResult")]
     pub inspection_result: ::core::option::Option<UrlInspectionResult>,
-}
-
-/// A specific rich result found on the page.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Item {
-    /// A list of zero or more rich result issues found for this instance.
-    #[serde(default)]
-    pub issues: ::core::option::Option<::std::vec::Vec<RichResultsIssue>>,
-    /// The user-provided name of this item.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-}
-
-/// An object that may be returned with your query results, providing context about the state of the data. When you request recent data (using all or hourly_all for dataState), some of the rows returned may represent data that is incomplete, which means that the data is still being collected and processed. This metadata object helps you identify exactly when this starts and ends. All dates and times provided in this object are in the America/Los_Angeles time zone. The specific field returned within this object depends on how you''ve grouped your data in the request. See details in inner fields.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Metadata {
-    /// The first date for which the data is still being collected and processed, presented in YYYY-MM-DD format (ISO-8601 extended local date format). This field is populated only when the request''s dataState is "all", data is grouped by "DATE", and the requested date range contains incomplete data points. All values after the first_incomplete_date may still change noticeably.
-    #[serde(default, rename = "firstIncompleteDate")]
-    pub first_incomplete_date: ::core::option::Option<String>,
-    /// The first hour for which the data is still being collected and processed, presented in YYYY-MM-DDThh:mm:ss[+|-]hh:mm format (ISO-8601 extended offset date-time format). This field is populated only when the request''s dataState is "hourly_all", data is grouped by "HOUR" and the requested date range contains incomplete data points. All values after the first_incomplete_hour may still change noticeably.
-    #[serde(default, rename = "firstIncompleteHour")]
-    pub first_incomplete_hour: ::core::option::Option<String>,
-}
-
-/// Mobile-friendly issue.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct MobileFriendlyIssue {
-    /// Rule violated. // TODO: enum values: ["MOBILE_FRIENDLY_RULE_UNSPECIFIED", "USES_INCOMPATIBLE_PLUGINS", "CONFIGURE_VIEWPORT", "FIXED_WIDTH_VIEWPORT", "SIZE_CONTENT_TO_VIEWPORT", "USE_LEGIBLE_FONT_SIZES", "TAP_TARGETS_TOO_CLOSE"]
-    #[serde(default)]
-    pub rule: ::core::option::Option<String>,
-}
-
-/// Mobile-usability inspection results.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct MobileUsabilityInspectionResult {
-    /// A list of zero or more mobile-usability issues detected for this URL.
-    #[serde(default)]
-    pub issues: ::core::option::Option<::std::vec::Vec<MobileUsabilityIssue>>,
-    /// High-level mobile-usability inspection result for this URL. // TODO: enum values: ["VERDICT_UNSPECIFIED", "PASS", "PARTIAL", "FAIL", "NEUTRAL"]
-    #[serde(default)]
-    pub verdict: ::core::option::Option<String>,
-}
-
-/// Mobile-usability issue.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct MobileUsabilityIssue {
-    /// Mobile-usability issue type. // TODO: enum values: ["MOBILE_USABILITY_ISSUE_TYPE_UNSPECIFIED", "USES_INCOMPATIBLE_PLUGINS", "CONFIGURE_VIEWPORT", "FIXED_WIDTH_VIEWPORT", "SIZE_CONTENT_TO_VIEWPORT", "USE_LEGIBLE_FONT_SIZES", "TAP_TARGETS_TOO_CLOSE"]
-    #[serde(default, rename = "issueType")]
-    pub issue_type: ::core::option::Option<String>,
-    /// Additional information regarding the issue.
-    #[serde(default)]
-    pub message: ::core::option::Option<String>,
-    /// Not returned; reserved for future use. // TODO: enum values: ["SEVERITY_UNSPECIFIED", "WARNING", "ERROR"]
-    #[serde(default)]
-    pub severity: ::core::option::Option<String>,
-}
-
-/// Information about a resource with issue.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ResourceIssue {
-    /// Describes a blocked resource issue.
-    #[serde(default, rename = "blockedResource")]
-    pub blocked_resource: ::core::option::Option<BlockedResource>,
-}
-
-/// Rich-Results inspection result, including any rich results found at this URL.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct RichResultsInspectionResult {
-    /// A list of zero or more rich results detected on this page. Rich results that cannot even be parsed due to syntactic issues will not be listed here.
-    #[serde(default, rename = "detectedItems")]
-    pub detected_items: ::core::option::Option<::std::vec::Vec<DetectedItems>>,
-    /// High-level rich results inspection result for this URL. // TODO: enum values: ["VERDICT_UNSPECIFIED", "PASS", "PARTIAL", "FAIL", "NEUTRAL"]
-    #[serde(default)]
-    pub verdict: ::core::option::Option<String>,
-}
-
-/// Severity and status of a single issue affecting a single rich result instance on a page.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct RichResultsIssue {
-    /// Rich Results issue type.
-    #[serde(default, rename = "issueMessage")]
-    pub issue_message: ::core::option::Option<String>,
-    /// Severity of this issue: WARNING, or ERROR. Items with an issue of status ERROR cannot appear with rich result features in Google Search results. // TODO: enum values: ["SEVERITY_UNSPECIFIED", "WARNING", "ERROR"]
-    #[serde(default)]
-    pub severity: ::core::option::Option<String>,
 }
 
 /// Mobile-friendly test request.
@@ -359,17 +128,6 @@ pub struct SitesListResponse {
     pub site_entry: ::core::option::Option<::std::vec::Vec<WmxSite>>,
 }
 
-/// Final state of the test, including error details if necessary.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct TestStatus {
-    /// Error details if applicable.
-    #[serde(default)]
-    pub details: ::core::option::Option<String>,
-    /// Status of the test. // TODO: enum values: ["TEST_STATUS_UNSPECIFIED", "COMPLETE", "INTERNAL_ERROR", "PAGE_UNREACHABLE"]
-    #[serde(default)]
-    pub status: ::core::option::Option<String>,
-}
-
 /// URL inspection result, including all inspection results.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct UrlInspectionResult {
@@ -390,15 +148,78 @@ pub struct UrlInspectionResult {
     pub rich_results_result: ::core::option::Option<RichResultsInspectionResult>,
 }
 
-/// Contains permission level information about a Search Console site. For more information, see [Permissions in Search Console](https://support.google.com/webmasters/answer/2451999).
+/// Mobile-friendly issue.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct WmxSite {
-    /// The user''s permission level for the site. // TODO: enum values: ["SITE_PERMISSION_LEVEL_UNSPECIFIED", "SITE_OWNER", "SITE_FULL_USER", "SITE_RESTRICTED_USER", "SITE_UNVERIFIED_USER"]
-    #[serde(default, rename = "permissionLevel")]
-    pub permission_level: ::core::option::Option<String>,
-    /// The URL of the site.
-    #[serde(default, rename = "siteUrl")]
-    pub site_url: ::core::option::Option<String>,
+pub struct MobileFriendlyIssue {
+    /// Rule violated. // TODO: enum values: ["MOBILE_FRIENDLY_RULE_UNSPECIFIED", "USES_INCOMPATIBLE_PLUGINS", "CONFIGURE_VIEWPORT", "FIXED_WIDTH_VIEWPORT", "SIZE_CONTENT_TO_VIEWPORT", "USE_LEGIBLE_FONT_SIZES", "TAP_TARGETS_TOO_CLOSE"]
+    #[serde(default)]
+    pub rule: ::core::option::Option<String>,
+}
+
+/// Information about a resource with issue.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ResourceIssue {
+    /// Describes a blocked resource issue.
+    #[serde(default, rename = "blockedResource")]
+    pub blocked_resource: ::core::option::Option<BlockedResource>,
+}
+
+/// Describe image data.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Image {
+    /// Image data in format determined by the mime type. Currently, the format will always be "image/png", but this might change in the future.
+    #[serde(default)]
+    pub data: ::core::option::Option<String>,
+    /// The mime-type of the image data.
+    #[serde(default, rename = "mimeType")]
+    pub mime_type: ::core::option::Option<String>,
+}
+
+/// Final state of the test, including error details if necessary.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TestStatus {
+    /// Error details if applicable.
+    #[serde(default)]
+    pub details: ::core::option::Option<String>,
+    /// Status of the test. // TODO: enum values: ["TEST_STATUS_UNSPECIFIED", "COMPLETE", "INTERNAL_ERROR", "PAGE_UNREACHABLE"]
+    #[serde(default)]
+    pub status: ::core::option::Option<String>,
+}
+
+/// A set of dimension value filters to test against each row. Only rows that pass all filter groups will be returned. All results within a filter group are either AND''ed or OR''ed together, depending on the group type selected. All filter groups are AND''ed together.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ApiDimensionFilterGroup {
+    #[serde(default)]
+    pub filters: ::core::option::Option<::std::vec::Vec<ApiDimensionFilter>>,
+    /// TODO: enum values: ["AND"]
+    #[serde(default, rename = "groupType")]
+    pub group_type: ::core::option::Option<String>,
+}
+
+/// An object that may be returned with your query results, providing context about the state of the data. When you request recent data (using all or hourly_all for dataState), some of the rows returned may represent data that is incomplete, which means that the data is still being collected and processed. This metadata object helps you identify exactly when this starts and ends. All dates and times provided in this object are in the America/Los_Angeles time zone. The specific field returned within this object depends on how you''ve grouped your data in the request. See details in inner fields.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Metadata {
+    /// The first date for which the data is still being collected and processed, presented in YYYY-MM-DD format (ISO-8601 extended local date format). This field is populated only when the request''s dataState is "all", data is grouped by "DATE", and the requested date range contains incomplete data points. All values after the first_incomplete_date may still change noticeably.
+    #[serde(default, rename = "firstIncompleteDate")]
+    pub first_incomplete_date: ::core::option::Option<String>,
+    /// The first hour for which the data is still being collected and processed, presented in YYYY-MM-DDThh:mm:ss[+|-]hh:mm format (ISO-8601 extended offset date-time format). This field is populated only when the request''s dataState is "hourly_all", data is grouped by "HOUR" and the requested date range contains incomplete data points. All values after the first_incomplete_hour may still change noticeably.
+    #[serde(default, rename = "firstIncompleteHour")]
+    pub first_incomplete_hour: ::core::option::Option<String>,
+}
+
+/// ApiDataRow resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ApiDataRow {
+    #[serde(default)]
+    pub clicks: ::core::option::Option<f64>,
+    #[serde(default)]
+    pub ctr: ::core::option::Option<f64>,
+    #[serde(default)]
+    pub impressions: ::core::option::Option<f64>,
+    #[serde(default)]
+    pub keys: ::core::option::Option<::std::vec::Vec<String>>,
+    #[serde(default)]
+    pub position: ::core::option::Option<f64>,
 }
 
 /// Contains detailed information about a specific URL submitted as a [sitemap](https://support.google.com/webmasters/answer/156184).
@@ -433,6 +254,127 @@ pub struct WmxSitemap {
     pub warnings: ::core::option::Option<String>,
 }
 
+/// Contains permission level information about a Search Console site. For more information, see [Permissions in Search Console](https://support.google.com/webmasters/answer/2451999).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct WmxSite {
+    /// The user''s permission level for the site. // TODO: enum values: ["SITE_PERMISSION_LEVEL_UNSPECIFIED", "SITE_OWNER", "SITE_FULL_USER", "SITE_RESTRICTED_USER", "SITE_UNVERIFIED_USER"]
+    #[serde(default, rename = "permissionLevel")]
+    pub permission_level: ::core::option::Option<String>,
+    /// The URL of the site.
+    #[serde(default, rename = "siteUrl")]
+    pub site_url: ::core::option::Option<String>,
+}
+
+/// AMP inspection result of the live page or the current information from Google''s index, depending on whether you requested a live inspection or not.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AmpInspectionResult {
+    /// Index status of the AMP URL. // TODO: enum values: ["VERDICT_UNSPECIFIED", "PASS", "PARTIAL", "FAIL", "NEUTRAL"]
+    #[serde(default, rename = "ampIndexStatusVerdict")]
+    pub amp_index_status_verdict: ::core::option::Option<String>,
+    /// URL of the AMP that was inspected. If the submitted URL is a desktop page that refers to an AMP version, the AMP version will be inspected.
+    #[serde(default, rename = "ampUrl")]
+    pub amp_url: ::core::option::Option<String>,
+    /// Whether or not the page blocks indexing through a noindex rule. // TODO: enum values: ["AMP_INDEXING_STATE_UNSPECIFIED", "AMP_INDEXING_ALLOWED", "BLOCKED_DUE_TO_NOINDEX", "BLOCKED_DUE_TO_EXPIRED_UNAVAILABLE_AFTER"]
+    #[serde(default, rename = "indexingState")]
+    pub indexing_state: ::core::option::Option<String>,
+    /// A list of zero or more AMP issues found for the inspected URL.
+    #[serde(default)]
+    pub issues: ::core::option::Option<::std::vec::Vec<AmpIssue>>,
+    /// Last time this AMP version was crawled by Google. Absent if the URL was never crawled successfully.
+    #[serde(default, rename = "lastCrawlTime")]
+    pub last_crawl_time: ::core::option::Option<String>,
+    /// Whether or not Google could fetch the AMP. // TODO: enum values: ["PAGE_FETCH_STATE_UNSPECIFIED", "SUCCESSFUL", "SOFT_404", "BLOCKED_ROBOTS_TXT", "NOT_FOUND", "ACCESS_DENIED", "SERVER_ERROR", "REDIRECT_ERROR", "ACCESS_FORBIDDEN", "BLOCKED_4XX", "INTERNAL_CRAWL_ERROR", "INVALID_URL"]
+    #[serde(default, rename = "pageFetchState")]
+    pub page_fetch_state: ::core::option::Option<String>,
+    /// Whether or not the page is blocked to Google by a robots.txt rule. // TODO: enum values: ["ROBOTS_TXT_STATE_UNSPECIFIED", "ALLOWED", "DISALLOWED"]
+    #[serde(default, rename = "robotsTxtState")]
+    pub robots_txt_state: ::core::option::Option<String>,
+    /// The status of the most severe error on the page. If a page has both warnings and errors, the page status is error. Error status means the page cannot be shown in Search results. // TODO: enum values: ["VERDICT_UNSPECIFIED", "PASS", "PARTIAL", "FAIL", "NEUTRAL"]
+    #[serde(default)]
+    pub verdict: ::core::option::Option<String>,
+}
+
+/// Results of index status inspection for either the live page or the version in Google''s index, depending on whether you requested a live inspection or not. For more information, see the [Index coverage report documentation](https://support.google.com/webmasters/answer/7440203).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct IndexStatusInspectionResult {
+    /// Could Google find and index the page. More details about page indexing appear in ''indexing_state''.
+    #[serde(default, rename = "coverageState")]
+    pub coverage_state: ::core::option::Option<String>,
+    /// Primary crawler that was used by Google to crawl your site. // TODO: enum values: ["CRAWLING_USER_AGENT_UNSPECIFIED", "DESKTOP", "MOBILE"]
+    #[serde(default, rename = "crawledAs")]
+    pub crawled_as: ::core::option::Option<String>,
+    /// The URL of the page that Google selected as canonical. If the page was not indexed, this field is absent.
+    #[serde(default, rename = "googleCanonical")]
+    pub google_canonical: ::core::option::Option<String>,
+    /// Whether or not the page blocks indexing through a noindex rule. // TODO: enum values: ["INDEXING_STATE_UNSPECIFIED", "INDEXING_ALLOWED", "BLOCKED_BY_META_TAG", "BLOCKED_BY_HTTP_HEADER", "BLOCKED_BY_ROBOTS_TXT"]
+    #[serde(default, rename = "indexingState")]
+    pub indexing_state: ::core::option::Option<String>,
+    /// Last time this URL was crawled by Google using the [primary crawler](https://support.google.com/webmasters/answer/7440203#primary_crawler). Absent if the URL was never crawled successfully.
+    #[serde(default, rename = "lastCrawlTime")]
+    pub last_crawl_time: ::core::option::Option<String>,
+    /// Whether or not Google could retrieve the page from your server. Equivalent to ["page fetch"](https://support.google.com/webmasters/answer/9012289#index_coverage) in the URL inspection report. // TODO: enum values: ["PAGE_FETCH_STATE_UNSPECIFIED", "SUCCESSFUL", "SOFT_404", "BLOCKED_ROBOTS_TXT", "NOT_FOUND", "ACCESS_DENIED", "SERVER_ERROR", "REDIRECT_ERROR", "ACCESS_FORBIDDEN", "BLOCKED_4XX", "INTERNAL_CRAWL_ERROR", "INVALID_URL"]
+    #[serde(default, rename = "pageFetchState")]
+    pub page_fetch_state: ::core::option::Option<String>,
+    /// URLs that link to the inspected URL, directly and indirectly.
+    #[serde(default, rename = "referringUrls")]
+    pub referring_urls: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Whether or not the page is blocked to Google by a robots.txt rule. // TODO: enum values: ["ROBOTS_TXT_STATE_UNSPECIFIED", "ALLOWED", "DISALLOWED"]
+    #[serde(default, rename = "robotsTxtState")]
+    pub robots_txt_state: ::core::option::Option<String>,
+    /// Any sitemaps that this URL was listed in, as known by Google. Not guaranteed to be an exhaustive list, especially if Google did not discover this URL through a sitemap. Absent if no sitemaps were found.
+    #[serde(default)]
+    pub sitemap: ::core::option::Option<::std::vec::Vec<String>>,
+    /// The URL that your page or site [declares as canonical](https://developers.google.com/search/docs/advanced/crawling/consolidate-duplicate-urls?#define-canonical). If you did not declare a canonical URL, this field is absent.
+    #[serde(default, rename = "userCanonical")]
+    pub user_canonical: ::core::option::Option<String>,
+    /// High level verdict about whether the URL *is* indexed (indexed status), or *can be* indexed (live inspection). // TODO: enum values: ["VERDICT_UNSPECIFIED", "PASS", "PARTIAL", "FAIL", "NEUTRAL"]
+    #[serde(default)]
+    pub verdict: ::core::option::Option<String>,
+}
+
+/// Mobile-usability inspection results.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MobileUsabilityInspectionResult {
+    /// A list of zero or more mobile-usability issues detected for this URL.
+    #[serde(default)]
+    pub issues: ::core::option::Option<::std::vec::Vec<MobileUsabilityIssue>>,
+    /// High-level mobile-usability inspection result for this URL. // TODO: enum values: ["VERDICT_UNSPECIFIED", "PASS", "PARTIAL", "FAIL", "NEUTRAL"]
+    #[serde(default)]
+    pub verdict: ::core::option::Option<String>,
+}
+
+/// Rich-Results inspection result, including any rich results found at this URL.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RichResultsInspectionResult {
+    /// A list of zero or more rich results detected on this page. Rich results that cannot even be parsed due to syntactic issues will not be listed here.
+    #[serde(default, rename = "detectedItems")]
+    pub detected_items: ::core::option::Option<::std::vec::Vec<DetectedItems>>,
+    /// High-level rich results inspection result for this URL. // TODO: enum values: ["VERDICT_UNSPECIFIED", "PASS", "PARTIAL", "FAIL", "NEUTRAL"]
+    #[serde(default)]
+    pub verdict: ::core::option::Option<String>,
+}
+
+/// Blocked resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BlockedResource {
+    /// URL of the blocked resource.
+    #[serde(default)]
+    pub url: ::core::option::Option<String>,
+}
+
+/// A filter test to be applied to each row in the data set, where a match can return the row. Filters are string comparisons, and values and dimension names are not case-sensitive. Individual filters are either AND''ed or OR''ed within their parent filter group, according to the group''s group type. You do not need to group by a specified dimension to filter against it.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ApiDimensionFilter {
+    /// TODO: enum values: ["QUERY", "PAGE", "COUNTRY", "DEVICE", "SEARCH_APPEARANCE"]
+    #[serde(default)]
+    pub dimension: ::core::option::Option<String>,
+    #[serde(default)]
+    pub expression: ::core::option::Option<String>,
+    /// TODO: enum values: ["EQUALS", "NOT_EQUALS", "CONTAINS", "NOT_CONTAINS", "INCLUDING_REGEX", "EXCLUDING_REGEX"]
+    #[serde(default)]
+    pub operator: ::core::option::Option<String>,
+}
+
 /// Information about the various content types in the sitemap.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct WmxSitemapContent {
@@ -445,4 +387,62 @@ pub struct WmxSitemapContent {
     /// The specific type of content in this sitemap. For example: web. // TODO: enum values: ["WEB", "IMAGE", "VIDEO", "NEWS", "MOBILE", "ANDROID_APP", "PATTERN", "IOS_APP", "DATA_FEED_ELEMENT"]
     #[serde(default, rename = "type")]
     pub type_: ::core::option::Option<String>,
+}
+
+/// AMP issue.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AmpIssue {
+    /// Brief description of this issue.
+    #[serde(default, rename = "issueMessage")]
+    pub issue_message: ::core::option::Option<String>,
+    /// Severity of this issue: WARNING or ERROR. // TODO: enum values: ["SEVERITY_UNSPECIFIED", "WARNING", "ERROR"]
+    #[serde(default)]
+    pub severity: ::core::option::Option<String>,
+}
+
+/// Mobile-usability issue.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MobileUsabilityIssue {
+    /// Mobile-usability issue type. // TODO: enum values: ["MOBILE_USABILITY_ISSUE_TYPE_UNSPECIFIED", "USES_INCOMPATIBLE_PLUGINS", "CONFIGURE_VIEWPORT", "FIXED_WIDTH_VIEWPORT", "SIZE_CONTENT_TO_VIEWPORT", "USE_LEGIBLE_FONT_SIZES", "TAP_TARGETS_TOO_CLOSE"]
+    #[serde(default, rename = "issueType")]
+    pub issue_type: ::core::option::Option<String>,
+    /// Additional information regarding the issue.
+    #[serde(default)]
+    pub message: ::core::option::Option<String>,
+    /// Not returned; reserved for future use. // TODO: enum values: ["SEVERITY_UNSPECIFIED", "WARNING", "ERROR"]
+    #[serde(default)]
+    pub severity: ::core::option::Option<String>,
+}
+
+/// Rich Results items grouped by type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DetectedItems {
+    /// List of Rich Results items.
+    #[serde(default)]
+    pub items: ::core::option::Option<::std::vec::Vec<Item>>,
+    /// Rich Results type
+    #[serde(default, rename = "richResultType")]
+    pub rich_result_type: ::core::option::Option<String>,
+}
+
+/// A specific rich result found on the page.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Item {
+    /// A list of zero or more rich result issues found for this instance.
+    #[serde(default)]
+    pub issues: ::core::option::Option<::std::vec::Vec<RichResultsIssue>>,
+    /// The user-provided name of this item.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+}
+
+/// Severity and status of a single issue affecting a single rich result instance on a page.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RichResultsIssue {
+    /// Rich Results issue type.
+    #[serde(default, rename = "issueMessage")]
+    pub issue_message: ::core::option::Option<String>,
+    /// Severity of this issue: WARNING, or ERROR. Items with an issue of status ERROR cannot appear with rich result features in Google Search results. // TODO: enum values: ["SEVERITY_UNSPECIFIED", "WARNING", "ERROR"]
+    #[serde(default)]
+    pub severity: ::core::option::Option<String>,
 }

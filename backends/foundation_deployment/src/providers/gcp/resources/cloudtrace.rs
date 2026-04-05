@@ -10,17 +10,6 @@
 use super::*;
 use serde::{Deserialize, Serialize};
 
-/// Text annotation with a set of attributes.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Annotation {
-    /// A set of attributes on the annotation. You can have up to 4 attributes per Annotation.
-    #[serde(default)]
-    pub attributes: ::core::option::Option<Attributes>,
-    /// A user-supplied message describing the event. The maximum length for the description is 256 bytes.
-    #[serde(default)]
-    pub description: ::core::option::Option<TruncatableString>,
-}
-
 /// The allowed types for [VALUE] in a [KEY]:[VALUE] attribute.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AttributeValue {
@@ -35,17 +24,6 @@ pub struct AttributeValue {
     pub string_value: ::core::option::Option<TruncatableString>,
 }
 
-/// A set of attributes as key-value pairs.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Attributes {
-    /// A set of attributes. Each attribute''s key can be up to 128 bytes long. The value can be a string up to 256 bytes, a signed 64-bit integer, or the boolean values true or false. For example: "/instance_id": { "string_value": { "value": "my-instance" } } "/http/request_bytes": { "int_value": 300 } "example.com/myattribute": { "bool_value": false }
-    #[serde(default, rename = "attributeMap")]
-    pub attribute_map: ::core::option::Option<serde_json::Value>,
-    /// The number of attributes that were discarded. Attributes can be discarded because their keys are too long or because there are too many attributes. If this value is 0 then all attributes are valid.
-    #[serde(default, rename = "droppedAttributesCount")]
-    pub dropped_attributes_count: ::core::option::Option<i32>,
-}
-
 /// The request message for the BatchWriteSpans method.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct BatchWriteSpansRequest {
@@ -54,60 +32,15 @@ pub struct BatchWriteSpansRequest {
     pub spans: ::core::option::Option<::std::vec::Vec<Span>>,
 }
 
-/// A pointer from the current span to another span in the same trace or in a different trace. For example, this can be used in batching operations, where a single batch handler processes multiple requests from different traces or when the handler receives a request from a different project.
+/// Represents a string that might be shortened to a specified length.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Link {
-    /// A set of attributes on the link. Up to 32 attributes can be specified per link.
+pub struct TruncatableString {
+    /// The number of bytes removed from the original string. If this value is 0, then the string was not shortened.
+    #[serde(default, rename = "truncatedByteCount")]
+    pub truncated_byte_count: ::core::option::Option<i32>,
+    /// The shortened string. For example, if the original string is 500 bytes long and the limit of the string is 128 bytes, then value contains the first 128 bytes of the 500-byte string. Truncation always happens on a UTF8 character boundary. If there are multi-byte characters in the string, then the length of the shortened string might be less than the size limit.
     #[serde(default)]
-    pub attributes: ::core::option::Option<Attributes>,
-    /// The [SPAN_ID] for a span within a trace.
-    #[serde(default, rename = "spanId")]
-    pub span_id: ::core::option::Option<String>,
-    /// The [TRACE_ID] for a trace within a project.
-    #[serde(default, rename = "traceId")]
-    pub trace_id: ::core::option::Option<String>,
-    /// The relationship of the current span relative to the linked span. // TODO: enum values: ["TYPE_UNSPECIFIED", "CHILD_LINKED_SPAN", "PARENT_LINKED_SPAN"]
-    #[serde(default, rename = "type")]
-    pub type_: ::core::option::Option<String>,
-}
-
-/// A collection of links, which are references from this span to a span in the same or different trace.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Links {
-    /// The number of dropped links after the maximum size was enforced. If this value is 0, then no links were dropped.
-    #[serde(default, rename = "droppedLinksCount")]
-    pub dropped_links_count: ::core::option::Option<i32>,
-    /// A collection of links.
-    #[serde(default)]
-    pub link: ::core::option::Option<::std::vec::Vec<Link>>,
-}
-
-/// An event describing a message sent/received between Spans.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct MessageEvent {
-    /// The number of compressed bytes sent or received. If missing, the compressed size is assumed to be the same size as the uncompressed size.
-    #[serde(default, rename = "compressedSizeBytes")]
-    pub compressed_size_bytes: ::core::option::Option<String>,
-    /// An identifier for the MessageEvent''s message that can be used to match SENT and RECEIVED MessageEvents.
-    #[serde(default)]
-    pub id: ::core::option::Option<String>,
-    /// Type of MessageEvent. Indicates whether the message was sent or received. // TODO: enum values: ["TYPE_UNSPECIFIED", "SENT", "RECEIVED"]
-    #[serde(default, rename = "type")]
-    pub type_: ::core::option::Option<String>,
-    /// The number of uncompressed bytes sent or received.
-    #[serde(default, rename = "uncompressedSizeBytes")]
-    pub uncompressed_size_bytes: ::core::option::Option<String>,
-}
-
-/// Binary module.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Module {
-    /// A unique identifier for the module, usually a hash of its contents (up to 128 bytes).
-    #[serde(default, rename = "buildId")]
-    pub build_id: ::core::option::Option<TruncatableString>,
-    /// For example: main binary, kernel modules, and dynamic libraries such as libc.so, sharedlib.so (up to 256 bytes).
-    #[serde(default)]
-    pub module: ::core::option::Option<TruncatableString>,
+    pub value: ::core::option::Option<String>,
 }
 
 /// A span represents a single operation within a trace. Spans can be nested to form a trace tree. Often, a trace contains a root span that describes the end-to-end latency, and one or more subspans for its sub-operations. A trace can also contain multiple root spans, or none at all. Spans do not need to be contiguous. There might be gaps or overlaps between spans in a trace.
@@ -157,41 +90,15 @@ pub struct Span {
     pub time_events: ::core::option::Option<TimeEvents>,
 }
 
-/// Represents a single stack frame in a stack trace.
+/// A collection of links, which are references from this span to a span in the same or different trace.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct StackFrame {
-    /// The column number where the function call appears, if available. This is important in JavaScript because of its anonymous functions.
-    #[serde(default, rename = "columnNumber")]
-    pub column_number: ::core::option::Option<String>,
-    /// The name of the source file where the function call appears (up to 256 bytes).
-    #[serde(default, rename = "fileName")]
-    pub file_name: ::core::option::Option<TruncatableString>,
-    /// The fully-qualified name that uniquely identifies the function or method that is active in this frame (up to 1024 bytes).
-    #[serde(default, rename = "functionName")]
-    pub function_name: ::core::option::Option<TruncatableString>,
-    /// The line number in file_name where the function call appears.
-    #[serde(default, rename = "lineNumber")]
-    pub line_number: ::core::option::Option<String>,
-    /// The binary module from where the code was loaded.
-    #[serde(default, rename = "loadModule")]
-    pub load_module: ::core::option::Option<Module>,
-    /// An un-mangled function name, if function_name is mangled. To get information about name mangling, run [this search](https://www.google.com/search?q=cxx+name+mangling). The name can be fully-qualified (up to 1024 bytes).
-    #[serde(default, rename = "originalFunctionName")]
-    pub original_function_name: ::core::option::Option<TruncatableString>,
-    /// The version of the deployed source code (up to 128 bytes).
-    #[serde(default, rename = "sourceVersion")]
-    pub source_version: ::core::option::Option<TruncatableString>,
-}
-
-/// A collection of stack frames, which can be truncated.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct StackFrames {
-    /// The number of stack frames that were dropped because there were too many stack frames. If this value is 0, then no stack frames were dropped.
-    #[serde(default, rename = "droppedFramesCount")]
-    pub dropped_frames_count: ::core::option::Option<i32>,
-    /// Stack frames in this call stack.
+pub struct Links {
+    /// The number of dropped links after the maximum size was enforced. If this value is 0, then no links were dropped.
+    #[serde(default, rename = "droppedLinksCount")]
+    pub dropped_links_count: ::core::option::Option<i32>,
+    /// A collection of links.
     #[serde(default)]
-    pub frame: ::core::option::Option<::std::vec::Vec<StackFrame>>,
+    pub link: ::core::option::Option<::std::vec::Vec<Link>>,
 }
 
 /// A call stack appearing in a trace.
@@ -219,20 +126,6 @@ pub struct Status {
     pub message: ::core::option::Option<String>,
 }
 
-/// A time-stamped annotation or message event in the Span.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct TimeEvent {
-    /// Text annotation with a set of attributes.
-    #[serde(default)]
-    pub annotation: ::core::option::Option<Annotation>,
-    /// An event describing a message sent/received between Spans.
-    #[serde(default, rename = "messageEvent")]
-    pub message_event: ::core::option::Option<MessageEvent>,
-    /// The timestamp indicating the time the event occurred.
-    #[serde(default)]
-    pub time: ::core::option::Option<String>,
-}
-
 /// A collection of TimeEvents. A TimeEvent is a time-stamped annotation on the span, consisting of either user-supplied key:value pairs, or details of a message sent/received between Spans.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TimeEvents {
@@ -247,13 +140,120 @@ pub struct TimeEvents {
     pub time_event: ::core::option::Option<::std::vec::Vec<TimeEvent>>,
 }
 
-/// Represents a string that might be shortened to a specified length.
+/// A pointer from the current span to another span in the same trace or in a different trace. For example, this can be used in batching operations, where a single batch handler processes multiple requests from different traces or when the handler receives a request from a different project.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct TruncatableString {
-    /// The number of bytes removed from the original string. If this value is 0, then the string was not shortened.
-    #[serde(default, rename = "truncatedByteCount")]
-    pub truncated_byte_count: ::core::option::Option<i32>,
-    /// The shortened string. For example, if the original string is 500 bytes long and the limit of the string is 128 bytes, then value contains the first 128 bytes of the 500-byte string. Truncation always happens on a UTF8 character boundary. If there are multi-byte characters in the string, then the length of the shortened string might be less than the size limit.
+pub struct Link {
+    /// A set of attributes on the link. Up to 32 attributes can be specified per link.
     #[serde(default)]
-    pub value: ::core::option::Option<String>,
+    pub attributes: ::core::option::Option<Attributes>,
+    /// The [SPAN_ID] for a span within a trace.
+    #[serde(default, rename = "spanId")]
+    pub span_id: ::core::option::Option<String>,
+    /// The [TRACE_ID] for a trace within a project.
+    #[serde(default, rename = "traceId")]
+    pub trace_id: ::core::option::Option<String>,
+    /// The relationship of the current span relative to the linked span. // TODO: enum values: ["TYPE_UNSPECIFIED", "CHILD_LINKED_SPAN", "PARENT_LINKED_SPAN"]
+    #[serde(default, rename = "type")]
+    pub type_: ::core::option::Option<String>,
+}
+
+/// A collection of stack frames, which can be truncated.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct StackFrames {
+    /// The number of stack frames that were dropped because there were too many stack frames. If this value is 0, then no stack frames were dropped.
+    #[serde(default, rename = "droppedFramesCount")]
+    pub dropped_frames_count: ::core::option::Option<i32>,
+    /// Stack frames in this call stack.
+    #[serde(default)]
+    pub frame: ::core::option::Option<::std::vec::Vec<StackFrame>>,
+}
+
+/// A time-stamped annotation or message event in the Span.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TimeEvent {
+    /// Text annotation with a set of attributes.
+    #[serde(default)]
+    pub annotation: ::core::option::Option<Annotation>,
+    /// An event describing a message sent/received between Spans.
+    #[serde(default, rename = "messageEvent")]
+    pub message_event: ::core::option::Option<MessageEvent>,
+    /// The timestamp indicating the time the event occurred.
+    #[serde(default)]
+    pub time: ::core::option::Option<String>,
+}
+
+/// Represents a single stack frame in a stack trace.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct StackFrame {
+    /// The column number where the function call appears, if available. This is important in JavaScript because of its anonymous functions.
+    #[serde(default, rename = "columnNumber")]
+    pub column_number: ::core::option::Option<String>,
+    /// The name of the source file where the function call appears (up to 256 bytes).
+    #[serde(default, rename = "fileName")]
+    pub file_name: ::core::option::Option<TruncatableString>,
+    /// The fully-qualified name that uniquely identifies the function or method that is active in this frame (up to 1024 bytes).
+    #[serde(default, rename = "functionName")]
+    pub function_name: ::core::option::Option<TruncatableString>,
+    /// The line number in file_name where the function call appears.
+    #[serde(default, rename = "lineNumber")]
+    pub line_number: ::core::option::Option<String>,
+    /// The binary module from where the code was loaded.
+    #[serde(default, rename = "loadModule")]
+    pub load_module: ::core::option::Option<Module>,
+    /// An un-mangled function name, if function_name is mangled. To get information about name mangling, run [this search](https://www.google.com/search?q=cxx+name+mangling). The name can be fully-qualified (up to 1024 bytes).
+    #[serde(default, rename = "originalFunctionName")]
+    pub original_function_name: ::core::option::Option<TruncatableString>,
+    /// The version of the deployed source code (up to 128 bytes).
+    #[serde(default, rename = "sourceVersion")]
+    pub source_version: ::core::option::Option<TruncatableString>,
+}
+
+/// Text annotation with a set of attributes.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Annotation {
+    /// A set of attributes on the annotation. You can have up to 4 attributes per Annotation.
+    #[serde(default)]
+    pub attributes: ::core::option::Option<Attributes>,
+    /// A user-supplied message describing the event. The maximum length for the description is 256 bytes.
+    #[serde(default)]
+    pub description: ::core::option::Option<TruncatableString>,
+}
+
+/// An event describing a message sent/received between Spans.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MessageEvent {
+    /// The number of compressed bytes sent or received. If missing, the compressed size is assumed to be the same size as the uncompressed size.
+    #[serde(default, rename = "compressedSizeBytes")]
+    pub compressed_size_bytes: ::core::option::Option<String>,
+    /// An identifier for the MessageEvent''s message that can be used to match SENT and RECEIVED MessageEvents.
+    #[serde(default)]
+    pub id: ::core::option::Option<String>,
+    /// Type of MessageEvent. Indicates whether the message was sent or received. // TODO: enum values: ["TYPE_UNSPECIFIED", "SENT", "RECEIVED"]
+    #[serde(default, rename = "type")]
+    pub type_: ::core::option::Option<String>,
+    /// The number of uncompressed bytes sent or received.
+    #[serde(default, rename = "uncompressedSizeBytes")]
+    pub uncompressed_size_bytes: ::core::option::Option<String>,
+}
+
+/// Binary module.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Module {
+    /// A unique identifier for the module, usually a hash of its contents (up to 128 bytes).
+    #[serde(default, rename = "buildId")]
+    pub build_id: ::core::option::Option<TruncatableString>,
+    /// For example: main binary, kernel modules, and dynamic libraries such as libc.so, sharedlib.so (up to 256 bytes).
+    #[serde(default)]
+    pub module: ::core::option::Option<TruncatableString>,
+}
+
+/// A set of attributes as key-value pairs.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Attributes {
+    /// A set of attributes. Each attribute''s key can be up to 128 bytes long. The value can be a string up to 256 bytes, a signed 64-bit integer, or the boolean values true or false. For example: "/instance_id": { "string_value": { "value": "my-instance" } } "/http/request_bytes": { "int_value": 300 } "example.com/myattribute": { "bool_value": false }
+    #[serde(default, rename = "attributeMap")]
+    pub attribute_map: ::core::option::Option<serde_json::Value>,
+    /// The number of attributes that were discarded. Attributes can be discarded because their keys are too long or because there are too many attributes. If this value is 0 then all attributes are valid.
+    #[serde(default, rename = "droppedAttributesCount")]
+    pub dropped_attributes_count: ::core::option::Option<i32>,
 }

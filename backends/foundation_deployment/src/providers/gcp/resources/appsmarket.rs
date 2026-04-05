@@ -33,20 +33,6 @@ pub struct CustomerLicense {
     pub state: ::core::option::Option<String>,
 }
 
-/// Editions resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Editions {
-    /// (Deprecated)
-    #[serde(default, rename = "assignedSeats")]
-    pub assigned_seats: ::core::option::Option<i32>,
-    /// (Deprecated)
-    #[serde(default, rename = "editionId")]
-    pub edition_id: ::core::option::Option<String>,
-    /// (Deprecated)
-    #[serde(default, rename = "seatCount")]
-    pub seat_count: ::core::option::Option<i32>,
-}
-
 /// UserLicense resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct UserLicense {
@@ -74,4 +60,18 @@ pub struct UserLicense {
     /// The email address of the user.
     #[serde(default, rename = "userId")]
     pub user_id: ::core::option::Option<String>,
+}
+
+/// Editions resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Editions {
+    /// (Deprecated)
+    #[serde(default, rename = "assignedSeats")]
+    pub assigned_seats: ::core::option::Option<i32>,
+    /// (Deprecated)
+    #[serde(default, rename = "editionId")]
+    pub edition_id: ::core::option::Option<String>,
+    /// (Deprecated)
+    #[serde(default, rename = "seatCount")]
+    pub seat_count: ::core::option::Option<i32>,
 }

@@ -10,52 +10,6 @@
 use super::*;
 use serde::{Deserialize, Serialize};
 
-/// Represents an account that was established by the customer on the service provider''s system.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Account {
-    /// Output only. The approvals for this account. These approvals are used to track actions that are permitted or have been completed by a customer within the context of the provider. This might include a sign up flow or a provisioning step, for example, that the provider can admit to having happened.
-    #[serde(default)]
-    pub approvals: ::core::option::Option<::std::vec::Vec<Approval>>,
-    /// Output only. The creation timestamp.
-    #[serde(default, rename = "createTime")]
-    pub create_time: ::core::option::Option<String>,
-    /// Output only. The custom properties that were collected from the user to create this account.
-    #[serde(default, rename = "inputProperties")]
-    pub input_properties: ::core::option::Option<serde_json::Value>,
-    /// Output only. The resource name of the account. Account names have the form accounts/{account_id}.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Output only. The identifier of the service provider that this account was created against. Each service provider is assigned a unique provider value when they onboard with Cloud Commerce platform.
-    #[serde(default)]
-    pub provider: ::core::option::Option<String>,
-    /// Output only. The reseller parent billing account of the account''s corresponding billing account, applicable only when the corresponding billing account is a subaccount of a reseller. Included in responses only for view: ACCOUNT_VIEW_FULL. Format: billingAccounts/{billing_account_id}
-    #[serde(default, rename = "resellerParentBillingAccount")]
-    pub reseller_parent_billing_account: ::core::option::Option<String>,
-    /// Output only. The state of the account. This is used to decide whether the customer is in good standing with the provider and is able to make purchases. An account might not be able to make a purchase if the billing account is suspended, for example. // TODO: enum values: ["ACCOUNT_STATE_UNSPECIFIED", "ACCOUNT_ACTIVATION_REQUESTED", "ACCOUNT_ACTIVE"]
-    #[serde(default)]
-    pub state: ::core::option::Option<String>,
-    /// Output only. The last update timestamp.
-    #[serde(default, rename = "updateTime")]
-    pub update_time: ::core::option::Option<String>,
-}
-
-/// An approval for some action on an account.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Approval {
-    /// Output only. The name of the approval.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Output only. An explanation for the state of the approval.
-    #[serde(default)]
-    pub reason: ::core::option::Option<String>,
-    /// Output only. The state of the approval. // TODO: enum values: ["STATE_UNSPECIFIED", "PENDING", "APPROVED", "REJECTED"]
-    #[serde(default)]
-    pub state: ::core::option::Option<String>,
-    /// Optional. The last update timestamp of the approval.
-    #[serde(default, rename = "updateTime")]
-    pub update_time: ::core::option::Option<String>,
-}
-
 /// Request message for PartnerProcurementService.ApproveAccount.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ApproveAccountRequest {
@@ -89,12 +43,93 @@ pub struct ApproveEntitlementRequest {
     pub properties: ::core::option::Option<serde_json::Value>,
 }
 
-/// A resource using (consuming) this entitlement.
+/// Response message for [PartnerProcurementService.ListAccounts[].
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Consumer {
-    /// A project name with format projects/.
+pub struct ListAccountsResponse {
+    /// The list of accounts in this response.
     #[serde(default)]
-    pub project: ::core::option::Option<String>,
+    pub accounts: ::core::option::Option<::std::vec::Vec<Account>>,
+    /// The token for fetching the next page.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+}
+
+/// Response message for PartnerProcurementService.ListEntitlements.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ListEntitlementsResponse {
+    /// The list of entitlements in this response.
+    #[serde(default)]
+    pub entitlements: ::core::option::Option<::std::vec::Vec<Entitlement>>,
+    /// The token for fetching the next page.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+}
+
+/// Request message for PartnerProcurementService.RejectAccount.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RejectAccountRequest {
+    /// The name of the approval being rejected. If absent and there is only one approval possible, that approval will be rejected. If absent and there are many approvals possible, the request will fail with a 400 Bad Request. Optional.
+    #[serde(default, rename = "approvalName")]
+    pub approval_name: ::core::option::Option<String>,
+    /// Free form text string explaining the rejection reason. Max allowed length: 256 bytes. Longer strings will be truncated.
+    #[serde(default)]
+    pub reason: ::core::option::Option<String>,
+}
+
+/// Request message for PartnerProcurementService.RejectEntitlementPlanChange.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RejectEntitlementPlanChangeRequest {
+    /// Required. Name of the pending plan that is being rejected.
+    #[serde(default, rename = "pendingPlanName")]
+    pub pending_plan_name: ::core::option::Option<String>,
+    /// Free form text string explaining the rejection reason. Max allowed length: 256 bytes. Longer strings will be truncated.
+    #[serde(default)]
+    pub reason: ::core::option::Option<String>,
+}
+
+/// Request message for PartnerProcurementService.RejectEntitlement.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RejectEntitlementRequest {
+    /// Free form text string explaining the rejection reason. Max allowed length: 256 bytes. Longer strings will be truncated.
+    #[serde(default)]
+    pub reason: ::core::option::Option<String>,
+}
+
+/// Request message for ParterProcurementService.SuspendEntitlement. This is not yet supported.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SuspendEntitlementRequest {
+    /// A free-form reason string, explaining the reason for suspension request.
+    #[serde(default)]
+    pub reason: ::core::option::Option<String>,
+}
+
+/// Represents an account that was established by the customer on the service provider''s system.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Account {
+    /// Output only. The approvals for this account. These approvals are used to track actions that are permitted or have been completed by a customer within the context of the provider. This might include a sign up flow or a provisioning step, for example, that the provider can admit to having happened.
+    #[serde(default)]
+    pub approvals: ::core::option::Option<::std::vec::Vec<Approval>>,
+    /// Output only. The creation timestamp.
+    #[serde(default, rename = "createTime")]
+    pub create_time: ::core::option::Option<String>,
+    /// Output only. The custom properties that were collected from the user to create this account.
+    #[serde(default, rename = "inputProperties")]
+    pub input_properties: ::core::option::Option<serde_json::Value>,
+    /// Output only. The resource name of the account. Account names have the form accounts/{account_id}.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Output only. The identifier of the service provider that this account was created against. Each service provider is assigned a unique provider value when they onboard with Cloud Commerce platform.
+    #[serde(default)]
+    pub provider: ::core::option::Option<String>,
+    /// Output only. The reseller parent billing account of the account''s corresponding billing account, applicable only when the corresponding billing account is a subaccount of a reseller. Included in responses only for view: ACCOUNT_VIEW_FULL. Format: billingAccounts/{billing_account_id}
+    #[serde(default, rename = "resellerParentBillingAccount")]
+    pub reseller_parent_billing_account: ::core::option::Option<String>,
+    /// Output only. The state of the account. This is used to decide whether the customer is in good standing with the provider and is able to make purchases. An account might not be able to make a purchase if the billing account is suspended, for example. // TODO: enum values: ["ACCOUNT_STATE_UNSPECIFIED", "ACCOUNT_ACTIVATION_REQUESTED", "ACCOUNT_ACTIVE"]
+    #[serde(default)]
+    pub state: ::core::option::Option<String>,
+    /// Output only. The last update timestamp.
+    #[serde(default, rename = "updateTime")]
+    pub update_time: ::core::option::Option<String>,
 }
 
 /// Represents a procured product of a customer.
@@ -180,62 +215,27 @@ pub struct Entitlement {
     pub usage_reporting_id: ::core::option::Option<String>,
 }
 
-/// Response message for [PartnerProcurementService.ListAccounts[].
+/// An approval for some action on an account.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ListAccountsResponse {
-    /// The list of accounts in this response.
+pub struct Approval {
+    /// Output only. The name of the approval.
     #[serde(default)]
-    pub accounts: ::core::option::Option<::std::vec::Vec<Account>>,
-    /// The token for fetching the next page.
-    #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: ::core::option::Option<String>,
-}
-
-/// Response message for PartnerProcurementService.ListEntitlements.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ListEntitlementsResponse {
-    /// The list of entitlements in this response.
-    #[serde(default)]
-    pub entitlements: ::core::option::Option<::std::vec::Vec<Entitlement>>,
-    /// The token for fetching the next page.
-    #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: ::core::option::Option<String>,
-}
-
-/// Request message for PartnerProcurementService.RejectAccount.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct RejectAccountRequest {
-    /// The name of the approval being rejected. If absent and there is only one approval possible, that approval will be rejected. If absent and there are many approvals possible, the request will fail with a 400 Bad Request. Optional.
-    #[serde(default, rename = "approvalName")]
-    pub approval_name: ::core::option::Option<String>,
-    /// Free form text string explaining the rejection reason. Max allowed length: 256 bytes. Longer strings will be truncated.
+    pub name: ::core::option::Option<String>,
+    /// Output only. An explanation for the state of the approval.
     #[serde(default)]
     pub reason: ::core::option::Option<String>,
+    /// Output only. The state of the approval. // TODO: enum values: ["STATE_UNSPECIFIED", "PENDING", "APPROVED", "REJECTED"]
+    #[serde(default)]
+    pub state: ::core::option::Option<String>,
+    /// Optional. The last update timestamp of the approval.
+    #[serde(default, rename = "updateTime")]
+    pub update_time: ::core::option::Option<String>,
 }
 
-/// Request message for PartnerProcurementService.RejectEntitlementPlanChange.
+/// A resource using (consuming) this entitlement.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct RejectEntitlementPlanChangeRequest {
-    /// Required. Name of the pending plan that is being rejected.
-    #[serde(default, rename = "pendingPlanName")]
-    pub pending_plan_name: ::core::option::Option<String>,
-    /// Free form text string explaining the rejection reason. Max allowed length: 256 bytes. Longer strings will be truncated.
+pub struct Consumer {
+    /// A project name with format projects/.
     #[serde(default)]
-    pub reason: ::core::option::Option<String>,
-}
-
-/// Request message for PartnerProcurementService.RejectEntitlement.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct RejectEntitlementRequest {
-    /// Free form text string explaining the rejection reason. Max allowed length: 256 bytes. Longer strings will be truncated.
-    #[serde(default)]
-    pub reason: ::core::option::Option<String>,
-}
-
-/// Request message for ParterProcurementService.SuspendEntitlement. This is not yet supported.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SuspendEntitlementRequest {
-    /// A free-form reason string, explaining the reason for suspension request.
-    #[serde(default)]
-    pub reason: ::core::option::Option<String>,
+    pub project: ::core::option::Option<String>,
 }

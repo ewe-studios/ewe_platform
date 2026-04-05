@@ -21,6 +21,28 @@ pub struct GoogleCloudEssentialcontactsV1ComputeContactsResponse {
     pub next_page_token: ::core::option::Option<String>,
 }
 
+/// Response message for the ListContacts method.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudEssentialcontactsV1ListContactsResponse {
+    /// The contacts for the specified resource.
+    #[serde(default)]
+    pub contacts: ::core::option::Option<::std::vec::Vec<GoogleCloudEssentialcontactsV1Contact>>,
+    /// If there are more results than those appearing in this response, then next_page_token is included. To get the next set of results, call this method again using the value of next_page_token as page_token and the rest of the parameters the same as the original request.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+}
+
+/// Request message for the SendTestMessage method.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudEssentialcontactsV1SendTestMessageRequest {
+    /// Required. The list of names of the contacts to send a test message to. Format: organizations/{organization}/contacts/{contact}, folders/{folder}/contacts/{contact} or projects/{project}/contacts/{contact} (where {project} is the project number)
+    #[serde(default)]
+    pub contacts: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Required. The notification category to send the test message for. All contacts must be subscribed to this category. // TODO: enum values: ["NOTIFICATION_CATEGORY_UNSPECIFIED", "ALL", "SUSPENSION", "SECURITY", "TECHNICAL", "BILLING", "LEGAL", "PRODUCT_UPDATES", "TECHNICAL_INCIDENTS"]
+    #[serde(default, rename = "notificationCategory")]
+    pub notification_category: ::core::option::Option<String>,
+}
+
 /// A contact that will receive notifications from Google Cloud.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudEssentialcontactsV1Contact {
@@ -42,26 +64,4 @@ pub struct GoogleCloudEssentialcontactsV1Contact {
     /// Output only. The validity of the contact. A contact is considered valid if it is the correct recipient for notifications for a particular resource. // TODO: enum values: ["VALIDATION_STATE_UNSPECIFIED", "VALID", "INVALID"]
     #[serde(default, rename = "validationState")]
     pub validation_state: ::core::option::Option<String>,
-}
-
-/// Response message for the ListContacts method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudEssentialcontactsV1ListContactsResponse {
-    /// The contacts for the specified resource.
-    #[serde(default)]
-    pub contacts: ::core::option::Option<::std::vec::Vec<GoogleCloudEssentialcontactsV1Contact>>,
-    /// If there are more results than those appearing in this response, then next_page_token is included. To get the next set of results, call this method again using the value of next_page_token as page_token and the rest of the parameters the same as the original request.
-    #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: ::core::option::Option<String>,
-}
-
-/// Request message for the SendTestMessage method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudEssentialcontactsV1SendTestMessageRequest {
-    /// Required. The list of names of the contacts to send a test message to. Format: organizations/{organization}/contacts/{contact}, folders/{folder}/contacts/{contact} or projects/{project}/contacts/{contact} (where {project} is the project number)
-    #[serde(default)]
-    pub contacts: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Required. The notification category to send the test message for. All contacts must be subscribed to this category. // TODO: enum values: ["NOTIFICATION_CATEGORY_UNSPECIFIED", "ALL", "SUSPENSION", "SECURITY", "TECHNICAL", "BILLING", "LEGAL", "PRODUCT_UPDATES", "TECHNICAL_INCIDENTS"]
-    #[serde(default, rename = "notificationCategory")]
-    pub notification_category: ::core::option::Option<String>,
 }

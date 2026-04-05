@@ -10,112 +10,6 @@
 use super::*;
 use serde::{Deserialize, Serialize};
 
-/// A description of the context in which an error occurred. This data should be provided by the application when reporting an error, unless the error report has been generated automatically from Google App Engine logs.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ErrorContext {
-    /// The HTTP request which was processed when the error was triggered.
-    #[serde(default, rename = "httpRequest")]
-    pub http_request: ::core::option::Option<HttpRequestContext>,
-    /// The location in the source code where the decision was made to report the error, usually the place where it was logged. For a logged exception this would be the source line where the exception is logged, usually close to the place where it was caught.
-    #[serde(default, rename = "reportLocation")]
-    pub report_location: ::core::option::Option<SourceLocation>,
-    /// Source code that was used to build the executable which has caused the given error message.
-    #[serde(default, rename = "sourceReferences")]
-    pub source_references: ::core::option::Option<::std::vec::Vec<SourceReference>>,
-    /// The user who caused or was affected by the crash. This can be a user ID, an email address, or an arbitrary token that uniquely identifies the user. When sending an error report, leave this field empty if the user was not logged in. In this case the Error Reporting system will use other data, such as remote IP address, to distinguish affected users. See affected_users_count in ErrorGroupStats.
-    #[serde(default)]
-    pub user: ::core::option::Option<String>,
-}
-
-/// An error event which is returned by the Error Reporting system.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ErrorEvent {
-    /// Data about the context in which the error occurred.
-    #[serde(default)]
-    pub context: ::core::option::Option<ErrorContext>,
-    /// Time when the event occurred as provided in the error report. If the report did not contain a timestamp, the time the error was received by the Error Reporting system is used.
-    #[serde(default, rename = "eventTime")]
-    pub event_time: ::core::option::Option<String>,
-    /// The stack trace that was reported or logged by the service.
-    #[serde(default)]
-    pub message: ::core::option::Option<String>,
-    /// The ServiceContext for which this error was reported.
-    #[serde(default, rename = "serviceContext")]
-    pub service_context: ::core::option::Option<ServiceContext>,
-}
-
-/// Description of a group of similar error events.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ErrorGroup {
-    /// An opaque identifier of the group. This field is assigned by the Error Reporting system and always populated. In the group resource name, the group_id is a unique identifier for a particular error group. The identifier is derived from key parts of the error-log content and is treated as Service Data. For information about how Service Data is handled, see [Google Cloud Privacy Notice](https://cloud.google.com/terms/cloud-privacy-notice).
-    #[serde(default, rename = "groupId")]
-    pub group_id: ::core::option::Option<String>,
-    /// The group resource name. Written as projects/{projectID}/groups/{group_id} or projects/{projectID}/locations/{location}/groups/{group_id} Examples: projects/my-project-123/groups/my-group, projects/my-project-123/locations/us-central1/groups/my-group In the group resource name, the group_id is a unique identifier for a particular error group. The identifier is derived from key parts of the error-log content and is treated as Service Data. For information about how Service Data is handled, see [Google Cloud Privacy Notice](https://cloud.google.com/terms/cloud-privacy-notice). For a list of supported locations, see [Supported Regions](https://cloud.google.com/logging/docs/region-support). global is the default when unspecified.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Error group''s resolution status. An unspecified resolution status will be interpreted as OPEN // TODO: enum values: ["RESOLUTION_STATUS_UNSPECIFIED", "OPEN", "ACKNOWLEDGED", "RESOLVED", "MUTED"]
-    #[serde(default, rename = "resolutionStatus")]
-    pub resolution_status: ::core::option::Option<String>,
-    /// Associated tracking issues.
-    #[serde(default, rename = "trackingIssues")]
-    pub tracking_issues: ::core::option::Option<::std::vec::Vec<TrackingIssue>>,
-}
-
-/// Data extracted for a specific group based on certain filter criteria, such as a given time period and/or service filter.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ErrorGroupStats {
-    /// Service contexts with a non-zero error count for the given filter criteria. This list can be truncated if multiple services are affected. Refer to num_affected_services for the total count.
-    #[serde(default, rename = "affectedServices")]
-    pub affected_services: ::core::option::Option<::std::vec::Vec<ServiceContext>>,
-    /// Approximate number of affected users in the given group that match the filter criteria. Users are distinguished by data in the ErrorContext of the individual error events, such as their login name or their remote IP address in case of HTTP requests. The number of affected users can be zero even if the number of errors is non-zero if no data was provided from which the affected user could be deduced. Users are counted based on data in the request context that was provided in the error report. If more users are implicitly affected, such as due to a crash of the whole service, this is not reflected here.
-    #[serde(default, rename = "affectedUsersCount")]
-    pub affected_users_count: ::core::option::Option<String>,
-    /// Approximate total number of events in the given group that match the filter criteria.
-    #[serde(default)]
-    pub count: ::core::option::Option<String>,
-    /// Approximate first occurrence that was ever seen for this group and which matches the given filter criteria, ignoring the time_range that was specified in the request.
-    #[serde(default, rename = "firstSeenTime")]
-    pub first_seen_time: ::core::option::Option<String>,
-    /// Group data that is independent of the filter criteria.
-    #[serde(default)]
-    pub group: ::core::option::Option<ErrorGroup>,
-    /// Approximate last occurrence that was ever seen for this group and which matches the given filter criteria, ignoring the time_range that was specified in the request.
-    #[serde(default, rename = "lastSeenTime")]
-    pub last_seen_time: ::core::option::Option<String>,
-    /// The total number of services with a non-zero error count for the given filter criteria.
-    #[serde(default, rename = "numAffectedServices")]
-    pub num_affected_services: ::core::option::Option<i32>,
-    /// An arbitrary event that is chosen as representative for the whole group. The representative event is intended to be used as a quick preview for the whole group. Events in the group are usually sufficiently similar to each other such that showing an arbitrary representative provides insight into the characteristics of the group as a whole.
-    #[serde(default)]
-    pub representative: ::core::option::Option<ErrorEvent>,
-    /// Approximate number of occurrences over time. Timed counts returned by ListGroups are guaranteed to be: - Inside the requested time interval - Non-overlapping, and - Ordered by ascending time.
-    #[serde(default, rename = "timedCounts")]
-    pub timed_counts: ::core::option::Option<::std::vec::Vec<TimedCount>>,
-}
-
-/// HTTP request data that is related to a reported error. This data should be provided by the application when reporting an error, unless the error report has been generated automatically from Google App Engine logs.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct HttpRequestContext {
-    /// The type of HTTP request, such as GET, POST, etc.
-    #[serde(default)]
-    pub method: ::core::option::Option<String>,
-    /// The referrer information that is provided with the request.
-    #[serde(default)]
-    pub referrer: ::core::option::Option<String>,
-    /// The IP address from which the request originated. This can be IPv4, IPv6, or a token which is derived from the IP address, depending on the data that has been provided in the error report.
-    #[serde(default, rename = "remoteIp")]
-    pub remote_ip: ::core::option::Option<String>,
-    /// The HTTP response status code for the request.
-    #[serde(default, rename = "responseStatusCode")]
-    pub response_status_code: ::core::option::Option<i32>,
-    /// The URL of the request.
-    #[serde(default)]
-    pub url: ::core::option::Option<String>,
-    /// The user agent information that is provided with the request.
-    #[serde(default, rename = "userAgent")]
-    pub user_agent: ::core::option::Option<String>,
-}
-
 /// Contains a set of requested error events.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ListEventsResponse {
@@ -161,6 +55,111 @@ pub struct ReportedErrorEvent {
     pub service_context: ::core::option::Option<ServiceContext>,
 }
 
+/// Data extracted for a specific group based on certain filter criteria, such as a given time period and/or service filter.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ErrorGroupStats {
+    /// Service contexts with a non-zero error count for the given filter criteria. This list can be truncated if multiple services are affected. Refer to num_affected_services for the total count.
+    #[serde(default, rename = "affectedServices")]
+    pub affected_services: ::core::option::Option<::std::vec::Vec<ServiceContext>>,
+    /// Approximate number of affected users in the given group that match the filter criteria. Users are distinguished by data in the ErrorContext of the individual error events, such as their login name or their remote IP address in case of HTTP requests. The number of affected users can be zero even if the number of errors is non-zero if no data was provided from which the affected user could be deduced. Users are counted based on data in the request context that was provided in the error report. If more users are implicitly affected, such as due to a crash of the whole service, this is not reflected here.
+    #[serde(default, rename = "affectedUsersCount")]
+    pub affected_users_count: ::core::option::Option<String>,
+    /// Approximate total number of events in the given group that match the filter criteria.
+    #[serde(default)]
+    pub count: ::core::option::Option<String>,
+    /// Approximate first occurrence that was ever seen for this group and which matches the given filter criteria, ignoring the time_range that was specified in the request.
+    #[serde(default, rename = "firstSeenTime")]
+    pub first_seen_time: ::core::option::Option<String>,
+    /// Group data that is independent of the filter criteria.
+    #[serde(default)]
+    pub group: ::core::option::Option<ErrorGroup>,
+    /// Approximate last occurrence that was ever seen for this group and which matches the given filter criteria, ignoring the time_range that was specified in the request.
+    #[serde(default, rename = "lastSeenTime")]
+    pub last_seen_time: ::core::option::Option<String>,
+    /// The total number of services with a non-zero error count for the given filter criteria.
+    #[serde(default, rename = "numAffectedServices")]
+    pub num_affected_services: ::core::option::Option<i32>,
+    /// An arbitrary event that is chosen as representative for the whole group. The representative event is intended to be used as a quick preview for the whole group. Events in the group are usually sufficiently similar to each other such that showing an arbitrary representative provides insight into the characteristics of the group as a whole.
+    #[serde(default)]
+    pub representative: ::core::option::Option<ErrorEvent>,
+    /// Approximate number of occurrences over time. Timed counts returned by ListGroups are guaranteed to be: - Inside the requested time interval - Non-overlapping, and - Ordered by ascending time.
+    #[serde(default, rename = "timedCounts")]
+    pub timed_counts: ::core::option::Option<::std::vec::Vec<TimedCount>>,
+}
+
+/// Description of a group of similar error events.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ErrorGroup {
+    /// An opaque identifier of the group. This field is assigned by the Error Reporting system and always populated. In the group resource name, the group_id is a unique identifier for a particular error group. The identifier is derived from key parts of the error-log content and is treated as Service Data. For information about how Service Data is handled, see [Google Cloud Privacy Notice](https://cloud.google.com/terms/cloud-privacy-notice).
+    #[serde(default, rename = "groupId")]
+    pub group_id: ::core::option::Option<String>,
+    /// The group resource name. Written as projects/{projectID}/groups/{group_id} or projects/{projectID}/locations/{location}/groups/{group_id} Examples: projects/my-project-123/groups/my-group, projects/my-project-123/locations/us-central1/groups/my-group In the group resource name, the group_id is a unique identifier for a particular error group. The identifier is derived from key parts of the error-log content and is treated as Service Data. For information about how Service Data is handled, see [Google Cloud Privacy Notice](https://cloud.google.com/terms/cloud-privacy-notice). For a list of supported locations, see [Supported Regions](https://cloud.google.com/logging/docs/region-support). global is the default when unspecified.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Error group''s resolution status. An unspecified resolution status will be interpreted as OPEN // TODO: enum values: ["RESOLUTION_STATUS_UNSPECIFIED", "OPEN", "ACKNOWLEDGED", "RESOLVED", "MUTED"]
+    #[serde(default, rename = "resolutionStatus")]
+    pub resolution_status: ::core::option::Option<String>,
+    /// Associated tracking issues.
+    #[serde(default, rename = "trackingIssues")]
+    pub tracking_issues: ::core::option::Option<::std::vec::Vec<TrackingIssue>>,
+}
+
+/// An error event which is returned by the Error Reporting system.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ErrorEvent {
+    /// Data about the context in which the error occurred.
+    #[serde(default)]
+    pub context: ::core::option::Option<ErrorContext>,
+    /// Time when the event occurred as provided in the error report. If the report did not contain a timestamp, the time the error was received by the Error Reporting system is used.
+    #[serde(default, rename = "eventTime")]
+    pub event_time: ::core::option::Option<String>,
+    /// The stack trace that was reported or logged by the service.
+    #[serde(default)]
+    pub message: ::core::option::Option<String>,
+    /// The ServiceContext for which this error was reported.
+    #[serde(default, rename = "serviceContext")]
+    pub service_context: ::core::option::Option<ServiceContext>,
+}
+
+/// The number of errors in a given time period. All numbers are approximate since the error events are sampled before counting them.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TimedCount {
+    /// Approximate number of occurrences in the given time period.
+    #[serde(default)]
+    pub count: ::core::option::Option<String>,
+    /// End of the time period to which count refers (excluded).
+    #[serde(default, rename = "endTime")]
+    pub end_time: ::core::option::Option<String>,
+    /// Start of the time period to which count refers (included).
+    #[serde(default, rename = "startTime")]
+    pub start_time: ::core::option::Option<String>,
+}
+
+/// Information related to tracking the progress on resolving the error.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TrackingIssue {
+    /// A URL pointing to a related entry in an issue tracking system. Example: https://github.com/user/project/issues/4
+    #[serde(default)]
+    pub url: ::core::option::Option<String>,
+}
+
+/// A description of the context in which an error occurred. This data should be provided by the application when reporting an error, unless the error report has been generated automatically from Google App Engine logs.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ErrorContext {
+    /// The HTTP request which was processed when the error was triggered.
+    #[serde(default, rename = "httpRequest")]
+    pub http_request: ::core::option::Option<HttpRequestContext>,
+    /// The location in the source code where the decision was made to report the error, usually the place where it was logged. For a logged exception this would be the source line where the exception is logged, usually close to the place where it was caught.
+    #[serde(default, rename = "reportLocation")]
+    pub report_location: ::core::option::Option<SourceLocation>,
+    /// Source code that was used to build the executable which has caused the given error message.
+    #[serde(default, rename = "sourceReferences")]
+    pub source_references: ::core::option::Option<::std::vec::Vec<SourceReference>>,
+    /// The user who caused or was affected by the crash. This can be a user ID, an email address, or an arbitrary token that uniquely identifies the user. When sending an error report, leave this field empty if the user was not logged in. In this case the Error Reporting system will use other data, such as remote IP address, to distinguish affected users. See affected_users_count in ErrorGroupStats.
+    #[serde(default)]
+    pub user: ::core::option::Option<String>,
+}
+
 /// Describes a running service that sends errors. Its version changes over time and multiple versions can run in parallel.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ServiceContext {
@@ -173,6 +172,29 @@ pub struct ServiceContext {
     /// Represents the source code version that the developer provided, which could represent a version label or a Git SHA-1 hash, for example. For App Engine standard environment, the version is set to the version of the app.
     #[serde(default)]
     pub version: ::core::option::Option<String>,
+}
+
+/// HTTP request data that is related to a reported error. This data should be provided by the application when reporting an error, unless the error report has been generated automatically from Google App Engine logs.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct HttpRequestContext {
+    /// The type of HTTP request, such as GET, POST, etc.
+    #[serde(default)]
+    pub method: ::core::option::Option<String>,
+    /// The referrer information that is provided with the request.
+    #[serde(default)]
+    pub referrer: ::core::option::Option<String>,
+    /// The IP address from which the request originated. This can be IPv4, IPv6, or a token which is derived from the IP address, depending on the data that has been provided in the error report.
+    #[serde(default, rename = "remoteIp")]
+    pub remote_ip: ::core::option::Option<String>,
+    /// The HTTP response status code for the request.
+    #[serde(default, rename = "responseStatusCode")]
+    pub response_status_code: ::core::option::Option<i32>,
+    /// The URL of the request.
+    #[serde(default)]
+    pub url: ::core::option::Option<String>,
+    /// The user agent information that is provided with the request.
+    #[serde(default, rename = "userAgent")]
+    pub user_agent: ::core::option::Option<String>,
 }
 
 /// Indicates a location in the source code of the service for which errors are reported. functionName must be provided by the application when reporting an error, unless the error report contains a message with a supported exception stack trace. All fields are optional for the later case.
@@ -198,26 +220,4 @@ pub struct SourceReference {
     /// The canonical and persistent identifier of the deployed revision. Example (git): "0035781c50ec7aa23385dc841529ce8a4b70db1b"
     #[serde(default, rename = "revisionId")]
     pub revision_id: ::core::option::Option<String>,
-}
-
-/// The number of errors in a given time period. All numbers are approximate since the error events are sampled before counting them.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct TimedCount {
-    /// Approximate number of occurrences in the given time period.
-    #[serde(default)]
-    pub count: ::core::option::Option<String>,
-    /// End of the time period to which count refers (excluded).
-    #[serde(default, rename = "endTime")]
-    pub end_time: ::core::option::Option<String>,
-    /// Start of the time period to which count refers (included).
-    #[serde(default, rename = "startTime")]
-    pub start_time: ::core::option::Option<String>,
-}
-
-/// Information related to tracking the progress on resolving the error.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct TrackingIssue {
-    /// A URL pointing to a related entry in an issue tracking system. Example: https://github.com/user/project/issues/4
-    #[serde(default)]
-    pub url: ::core::option::Option<String>,
 }

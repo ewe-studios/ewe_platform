@@ -10,227 +10,6 @@
 use super::*;
 use serde::{Deserialize, Serialize};
 
-/// Represents the [access setting](https://support.google.com/chat/answer/11971020) of the space.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AccessSettings {
-    /// Output only. Indicates the access state of the space. // TODO: enum values: ["ACCESS_STATE_UNSPECIFIED", "PRIVATE", "DISCOVERABLE"]
-    #[serde(default, rename = "accessState")]
-    pub access_state: ::core::option::Option<String>,
-    /// Optional. The resource name of the [target audience](https://support.google.com/a/answer/9934697) who can discover the space, join the space, and preview the messages in the space. If unset, only users or Google Groups who have been individually invited or added to the space can access it. For details, see [Make a space discoverable to a target audience](https://developers.google.com/workspace/chat/space-target-audience). Format: audiences/{audience} To use the default target audience for the Google Workspace organization, set to audiences/default. Reading the target audience supports: - [User authentication](https://developers.google.com/workspace/chat/authenticate-authorize-chat-user) - [App authentication](https://developers.google.com/workspace/chat/authenticate-authorize-chat-app) with [administrator approval](https://support.google.com/a?p=chat-app-auth) with the chat.app.spaces scope. This field is not populated when using the chat.bot scope with [app authentication](https://developers.google.com/workspace/chat/authenticate-authorize-chat-app). Setting the target audience requires [user authentication](https://developers.google.com/workspace/chat/authenticate-authorize-chat-user).
-    #[serde(default)]
-    pub audience: ::core::option::Option<String>,
-}
-
-/// One or more interactive widgets that appear at the bottom of a message. For details, see [Add interactive widgets at the bottom of a message](https://developers.google.com/workspace/chat/create-messages#add-accessory-widgets).
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AccessoryWidget {
-    /// A list of buttons.
-    #[serde(default, rename = "buttonList")]
-    pub button_list: ::core::option::Option<GoogleAppsCardV1ButtonList>,
-}
-
-/// List of string parameters to supply when the action method is invoked. For example, consider three snooze buttons: snooze now, snooze one day, snooze next week. You might use action method = snooze(), passing the snooze type and snooze time in the list of string parameters.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ActionParameter {
-    /// The name of the parameter for the action script.
-    #[serde(default)]
-    pub key: ::core::option::Option<String>,
-    /// The value of the parameter.
-    #[serde(default)]
-    pub value: ::core::option::Option<String>,
-}
-
-/// Parameters that a Chat app can use to configure how its response is posted.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ActionResponse {
-    /// Input only. A response to an interaction event related to a [dialog](https://developers.google.com/workspace/chat/dialogs). Must be accompanied by ResponseType.Dialog.
-    #[serde(default, rename = "dialogAction")]
-    pub dialog_action: ::core::option::Option<DialogAction>,
-    /// Input only. The type of Chat app response. // TODO: enum values: ["TYPE_UNSPECIFIED", "NEW_MESSAGE", "UPDATE_MESSAGE", "UPDATE_USER_MESSAGE_CARDS", "REQUEST_CONFIG", "DIALOG", "UPDATE_WIDGET"]
-    #[serde(default, rename = "type")]
-    pub type_: ::core::option::Option<String>,
-    /// Input only. The response of the updated widget.
-    #[serde(default, rename = "updatedWidget")]
-    pub updated_widget: ::core::option::Option<UpdatedWidget>,
-    /// Input only. URL for users to authenticate or configure. (Only for REQUEST_CONFIG response types.)
-    #[serde(default)]
-    pub url: ::core::option::Option<String>,
-}
-
-/// Represents the status for a request to either invoke or submit a [dialog](https://developers.google.com/workspace/chat/dialogs).
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ActionStatus {
-    /// The status code. // TODO: enum values: ["OK", "CANCELLED", "UNKNOWN", "INVALID_ARGUMENT", "DEADLINE_EXCEEDED", "NOT_FOUND", "ALREADY_EXISTS", "PERMISSION_DENIED", "UNAUTHENTICATED", "RESOURCE_EXHAUSTED", "FAILED_PRECONDITION", "ABORTED", "OUT_OF_RANGE", "UNIMPLEMENTED", "INTERNAL", "UNAVAILABLE", "DATA_LOSS"]
-    #[serde(default, rename = "statusCode")]
-    pub status_code: ::core::option::Option<String>,
-    /// The message to send users about the status of their request. If unset, a generic message based on the status_code is sent.
-    #[serde(default, rename = "userFacingMessage")]
-    pub user_facing_message: ::core::option::Option<String>,
-}
-
-/// Output only. Annotations can be associated with the plain-text body of the message or with chips that link to Google Workspace resources like Google Docs or Sheets with start_index and length of 0. To add basic formatting to a text message, see [Format text messages](https://developers.google.com/workspace/chat/format-messages). Example plain-text message body:  Hello @FooBot how are you!"  The corresponding annotations metadata:  "annotations":[{ "type":"USER_MENTION", "startIndex":6, "length":7, "userMention": { "user": { "name":"users/{user}", "displayName":"FooBot", "avatarUrl":"https://goo.gl/aeDtrS", "type":"BOT" }, "type":"MENTION" } }]
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Annotation {
-    /// The metadata for a custom emoji.
-    #[serde(default, rename = "customEmojiMetadata")]
-    pub custom_emoji_metadata: ::core::option::Option<CustomEmojiMetadata>,
-    /// Length of the substring in the plain-text message body this annotation corresponds to. If not present, indicates a length of 0.
-    #[serde(default)]
-    pub length: ::core::option::Option<i32>,
-    /// The metadata for a rich link.
-    #[serde(default, rename = "richLinkMetadata")]
-    pub rich_link_metadata: ::core::option::Option<RichLinkMetadata>,
-    /// The metadata for a slash command.
-    #[serde(default, rename = "slashCommand")]
-    pub slash_command: ::core::option::Option<SlashCommandMetadata>,
-    /// Start index (0-based, inclusive) in the plain-text message body this annotation corresponds to.
-    #[serde(default, rename = "startIndex")]
-    pub start_index: ::core::option::Option<i32>,
-    /// The type of this annotation. // TODO: enum values: ["ANNOTATION_TYPE_UNSPECIFIED", "USER_MENTION", "SLASH_COMMAND", "RICH_LINK", "CUSTOM_EMOJI"]
-    #[serde(default, rename = "type")]
-    pub type_: ::core::option::Option<String>,
-    /// The metadata of user mention.
-    #[serde(default, rename = "userMention")]
-    pub user_mention: ::core::option::Option<UserMentionMetadata>,
-}
-
-/// Metadata about a [Chat app command](https://developers.google.com/workspace/chat/commands).
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AppCommandMetadata {
-    /// The ID for the command specified in the Chat API configuration.
-    #[serde(default, rename = "appCommandId")]
-    pub app_command_id: ::core::option::Option<i32>,
-    /// The type of Chat app command. // TODO: enum values: ["APP_COMMAND_TYPE_UNSPECIFIED", "SLASH_COMMAND", "QUICK_COMMAND"]
-    #[serde(default, rename = "appCommandType")]
-    pub app_command_type: ::core::option::Option<String>,
-}
-
-/// A GIF image that''s specified by a URL.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AttachedGif {
-    /// Output only. The URL that hosts the GIF image.
-    #[serde(default)]
-    pub uri: ::core::option::Option<String>,
-}
-
-/// An attachment in Google Chat.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Attachment {
-    /// Optional. A reference to the attachment data. This field is used to create or update messages with attachments, or with the media API to download the attachment data.
-    #[serde(default, rename = "attachmentDataRef")]
-    pub attachment_data_ref: ::core::option::Option<AttachmentDataRef>,
-    /// Output only. The original file name for the content, not the full path.
-    #[serde(default, rename = "contentName")]
-    pub content_name: ::core::option::Option<String>,
-    /// Output only. The content type (MIME type) of the file.
-    #[serde(default, rename = "contentType")]
-    pub content_type: ::core::option::Option<String>,
-    /// Output only. The download URL which should be used to allow a human user to download the attachment. Chat apps shouldn''t use this URL to download attachment content.
-    #[serde(default, rename = "downloadUri")]
-    pub download_uri: ::core::option::Option<String>,
-    /// Output only. A reference to the Google Drive attachment. This field is used with the Google Drive API.
-    #[serde(default, rename = "driveDataRef")]
-    pub drive_data_ref: ::core::option::Option<DriveDataRef>,
-    /// Identifier. Resource name of the attachment. Format: spaces/{space}/messages/{message}/attachments/{attachment}.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Output only. The source of the attachment. // TODO: enum values: ["SOURCE_UNSPECIFIED", "DRIVE_FILE", "UPLOADED_CONTENT"]
-    #[serde(default)]
-    pub source: ::core::option::Option<String>,
-    /// Output only. The thumbnail URL which should be used to preview the attachment to a human user. Chat apps shouldn''t use this URL to download attachment content.
-    #[serde(default, rename = "thumbnailUri")]
-    pub thumbnail_uri: ::core::option::Option<String>,
-}
-
-/// A reference to the attachment data.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AttachmentDataRef {
-    /// Optional. Opaque token containing a reference to an uploaded attachment. Treated by clients as an opaque string and used to create or update Chat messages with attachments.
-    #[serde(default, rename = "attachmentUploadToken")]
-    pub attachment_upload_token: ::core::option::Option<String>,
-    /// Optional. The resource name of the attachment data. This field is used with the media API to download the attachment data.
-    #[serde(default, rename = "resourceName")]
-    pub resource_name: ::core::option::Option<String>,
-}
-
-/// A button. Can be a text button or an image button.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Button {
-    /// A button with image and onclick action.
-    #[serde(default, rename = "imageButton")]
-    pub image_button: ::core::option::Option<ImageButton>,
-    /// A button with text and onclick action.
-    #[serde(default, rename = "textButton")]
-    pub text_button: ::core::option::Option<TextButton>,
-}
-
-/// Data for Calendar event links.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CalendarEventLinkData {
-    /// The [Calendar identifier](https://developers.google.com/workspace/calendar/api/v3/reference/calendars) of the linked Calendar.
-    #[serde(default, rename = "calendarId")]
-    pub calendar_id: ::core::option::Option<String>,
-    /// The [Event identifier](https://developers.google.com/workspace/calendar/api/v3/reference/events) of the linked Calendar event.
-    #[serde(default, rename = "eventId")]
-    pub event_id: ::core::option::Option<String>,
-}
-
-/// A card is a UI element that can contain UI widgets such as text and images.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Card {
-    /// The actions of this card.
-    #[serde(default, rename = "cardActions")]
-    pub card_actions: ::core::option::Option<::std::vec::Vec<CardAction>>,
-    /// The header of the card. A header usually contains a title and an image.
-    #[serde(default)]
-    pub header: ::core::option::Option<CardHeader>,
-    /// Name of the card.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Sections are separated by a line divider.
-    #[serde(default)]
-    pub sections: ::core::option::Option<::std::vec::Vec<Section>>,
-}
-
-/// A card action is the action associated with the card. For an invoice card, a typical action would be: delete invoice, email invoice or open the invoice in browser. Not supported by Google Chat apps.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CardAction {
-    /// The label used to be displayed in the action menu item.
-    #[serde(default, rename = "actionLabel")]
-    pub action_label: ::core::option::Option<String>,
-    /// The onclick action for this action item.
-    #[serde(default, rename = "onClick")]
-    pub on_click: ::core::option::Option<OnClick>,
-}
-
-/// CardHeader resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CardHeader {
-    /// The image''s type (for example, square border or circular border). // TODO: enum values: ["IMAGE_STYLE_UNSPECIFIED", "IMAGE", "AVATAR"]
-    #[serde(default, rename = "imageStyle")]
-    pub image_style: ::core::option::Option<String>,
-    /// The URL of the image in the card header.
-    #[serde(default, rename = "imageUrl")]
-    pub image_url: ::core::option::Option<String>,
-    /// The subtitle of the card header.
-    #[serde(default)]
-    pub subtitle: ::core::option::Option<String>,
-    /// The title must be specified. The header has a fixed height: if both a title and subtitle is specified, each takes up one line. If only the title is specified, it takes up both lines.
-    #[serde(default)]
-    pub title: ::core::option::Option<String>,
-}
-
-/// A [card](https://developers.google.com/workspace/chat/api/reference/rest/v1/cards) in a Google Chat message. Chat apps can create cards with [app authentication](https://developers.google.com/workspace/chat/authenticate-authorize-chat-app). As part of the [Developer Preview Program](https://developers.google.com/workspace/preview), if your Chat app [authenticates as a user](https://developers.google.com/workspace/chat/authenticate-authorize-chat-user), it can create card messages. If your Chat app is not part of Developer Preview Program, it can''t create cards with user authentication. To learn how to create a message that contains cards, see [Send a message](https://developers.google.com/workspace/chat/create-messages). [Card builder](https://addons.gsuite.google.com/uikit/builder)
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CardWithId {
-    /// A card. Maximum size is 32 KB.
-    #[serde(default)]
-    pub card: ::core::option::Option<GoogleAppsCardV1Card>,
-    /// Required if the message contains multiple cards. A unique identifier for a card in a message.
-    #[serde(default, rename = "cardId")]
-    pub card_id: ::core::option::Option<String>,
-}
-
 /// JSON payload of error messages. If the Cloud Logging API is enabled, these error messages are logged to [Google Cloud Logging](https://cloud.google.com/logging/docs).
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ChatAppLogEntry {
@@ -245,146 +24,12 @@ pub struct ChatAppLogEntry {
     pub error: ::core::option::Option<Status>,
 }
 
-/// For a SelectionInput widget that uses a multiselect menu, a data source from Google Chat. The data source populates selection items for the multiselect menu. For example, a user can select Google Chat spaces that they''re a member of. [Google Chat apps](https://developers.google.com/workspace/chat):
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ChatClientDataSourceMarkup {
-    /// Google Chat spaces that the user is a member of.
-    #[serde(default, rename = "spaceDataSource")]
-    pub space_data_source: ::core::option::Option<SpaceDataSource>,
-}
-
-/// Data for Chat space links.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ChatSpaceLinkData {
-    /// The message of the linked Chat space resource. Format: spaces/{space}/messages/{message}
-    #[serde(default)]
-    pub message: ::core::option::Option<String>,
-    /// The space of the linked Chat space resource. Format: spaces/{space}
-    #[serde(default)]
-    pub space: ::core::option::Option<String>,
-    /// The thread of the linked Chat space resource. Format: spaces/{space}/threads/{thread}
-    #[serde(default)]
-    pub thread: ::core::option::Option<String>,
-}
-
-/// Represents a color in the RGBA color space. This representation is designed for simplicity of conversion to and from color representations in various languages over compactness. For example, the fields of this representation can be trivially provided to the constructor of java.awt.Color in Java; it can also be trivially provided to UIColor''s +colorWithRed:green:blue:alpha method in iOS; and, with just a little work, it can be easily formatted into a CSS rgba() string in JavaScript. This reference page doesn''t have information about the absolute color space that should be used to interpret the RGB value—for example, sRGB, Adobe RGB, DCI-P3, and BT.2020. By default, applications should assume the sRGB color space. When color equality needs to be decided, implementations, unless documented otherwise, treat two colors as equal if all their red, green, blue, and alpha values each differ by at most 1e-5. Example (Java): import com.google.type.Color; // ... public static java.awt.Color fromProto(Color protocolor) { float alpha = protocolor.hasAlpha() ? protocolor.getAlpha().getValue() : 1.0; return new java.awt.Color( protocolor.getRed(), protocolor.getGreen(), protocolor.getBlue(), alpha); } public static Color toProto(java.awt.Color color) { float red = (float) color.getRed(); float green = (float) color.getGreen(); float blue = (float) color.getBlue(); float denominator = 255.0; Color.Builder resultBuilder = Color .newBuilder() .setRed(red / denominator) .setGreen(green / denominator) .setBlue(blue / denominator); int alpha = color.getAlpha(); if (alpha != 255) { result.setAlpha( FloatValue .newBuilder() .setValue(((float) alpha) / denominator) .build()); } return resultBuilder.build(); } // ... Example (iOS / Obj-C): // ... static UIColor* fromProto(Color* protocolor) { float red = [protocolor red]; float green = [protocolor green]; float blue = [protocolor blue]; FloatValue* alpha_wrapper = [protocolor alpha]; float alpha = 1.0; if (alpha_wrapper != nil) { alpha = [alpha_wrapper value]; } return [UIColor colorWithRed:red green:green blue:blue alpha:alpha]; } static Color* toProto(UIColor* color) { CGFloat red, green, blue, alpha; if (![color getRed:&red green:&green blue:&blue alpha:&alpha]) { return nil; } Color* result = [[Color alloc] init]; [result setRed:red]; [result setGreen:green]; [result setBlue:blue]; if (alpha &lt;= 0.9999) { [result setAlpha:floatWrapperWithValue(alpha)]; } [result autorelease]; return result; } // ... Example (JavaScript): // ... var protoToCssColor = function(rgb_color) { var redFrac = rgb_color.red || 0.0; var greenFrac = rgb_color.green || 0.0; var blueFrac = rgb_color.blue || 0.0; var red = Math.floor(redFrac * 255); var green = Math.floor(greenFrac * 255); var blue = Math.floor(blueFrac * 255); if (!(''alpha'' in rgb_color)) { return rgbToCssColor(red, green, blue); } var alphaFrac = rgb_color.alpha.value || 0.0; var rgbParams = [red, green, blue].join('',''); return [''rgba('', rgbParams, '','', alphaFrac, '')''].join(''''); }; var rgbToCssColor = function(red, green, blue) { var rgbNumber = new Number((red &lt;&lt; 16) | (green &lt;&lt; 8) | blue); var hexString = rgbNumber.toString(16); var missingZeros = 6 - hexString.length; var resultBuilder = [''#'']; for (var i = 0; i &lt; missingZeros; i++) { resultBuilder.push(''0''); } resultBuilder.push(hexString); return resultBuilder.join(''''); }; // ...
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Color {
-    /// The fraction of this color that should be applied to the pixel. That is, the final pixel color is defined by the equation: pixel color = alpha * (this color) + (1.0 - alpha) * (background color) This means that a value of 1.0 corresponds to a solid color, whereas a value of 0.0 corresponds to a completely transparent color. This uses a wrapper message rather than a simple float scalar so that it is possible to distinguish between a default value and the value being unset. If omitted, this color object is rendered as a solid color (as if the alpha value had been explicitly given a value of 1.0).
-    #[serde(default)]
-    pub alpha: ::core::option::Option<f32>,
-    /// The amount of blue in the color as a value in the interval [0, 1].
-    #[serde(default)]
-    pub blue: ::core::option::Option<f32>,
-    /// The amount of green in the color as a value in the interval [0, 1].
-    #[serde(default)]
-    pub green: ::core::option::Option<f32>,
-    /// The amount of red in the color as a value in the interval [0, 1].
-    #[serde(default)]
-    pub red: ::core::option::Option<f32>,
-}
-
-/// The common event object is the portion of the overall event object that carries general, host-independent information to the add-on from the user''s client. This information includes details such as the user''s locale, host app, and platform. In addition to homepage and contextual triggers, add-ons construct and pass event objects to [action callback functions](https://developers.google.com/workspace/add-ons/concepts/actions#callback_functions) when the user interacts with widgets. Your add-on''s callback function can query the common event object to determine the contents of open widgets in the user''s client. For example, your add-on can locate the text a user has entered into a [TextInput](https://developers.google.com/apps-script/reference/card-service/text-input) widget in the eventObject.commentEventObject.formInputs object. For Chat apps, the name of the function that the user invoked when interacting with a widget.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CommonEventObject {
-    /// A map containing the current values of the widgets in the displayed card. The map keys are the string IDs assigned with each widget. The structure of the map value object is dependent on the widget type: **Note**: The following examples are formatted for Apps Script''s V8 runtime. If you''re using Rhino runtime, you must add [""] after the value. For example, instead of e.commonEventObject.formInputs.employeeName.stringInputs.value[0], format the event object as e.commonEventObject.formInputs.employeeName[""].stringInputs.value[0]. To learn more about runtimes in Apps Script, see the [V8 Runtime Overview](https://developers.google.com/apps-script/guides/v8-runtime). * Single-valued widgets (for example, a text box): a list of strings (only one element). **Example**: for a text input widget with employeeName as its ID, access the text input value with: e.commonEventObject.formInputs.employeeName.stringInputs.value[0]. * Multi-valued widgets (for example, checkbox groups): a list of strings. **Example**: for a multi-value widget with participants as its ID, access the value array with: e.commonEventObject.formInputs.participants.stringInputs.value. * **A date-time picker**: a [DateTimeInput object](https://developers.google.com/workspace/add-ons/concepts/event-objects#date-time-input). **Example**: For a picker with an ID of myDTPicker, access the [DateTimeInput](https://developers.google.com/workspace/add-ons/concepts/event-objects#date-time-input) object using e.commonEventObject.formInputs.myDTPicker.dateTimeInput. * **A date-only picker**: a [DateInput object](https://developers.google.com/workspace/add-ons/concepts/event-objects#date-input). **Example**: For a picker with an ID of myDatePicker, access the [DateInput](https://developers.google.com/workspace/add-ons/concepts/event-objects#date-input) object using e.commonEventObject.formInputs.myDatePicker.dateInput. * **A time-only picker**: a [TimeInput object](https://developers.google.com/workspace/add-ons/concepts/event-objects#time-input). **Example**: For a picker with an ID of myTimePicker, access the [TimeInput](https://developers.google.com/workspace/add-ons/concepts/event-objects#time-input) object using e.commonEventObject.formInputs.myTimePicker.timeInput.
-    #[serde(default, rename = "formInputs")]
-    pub form_inputs: ::core::option::Option<serde_json::Value>,
-    /// Indicates the host app the add-on is active in when the event object is generated. Possible values include the following: * GMAIL * CALENDAR * DRIVE * DOCS * SHEETS * SLIDES * CHAT // TODO: enum values: ["UNSPECIFIED_HOST_APP", "GMAIL", "CALENDAR", "DRIVE", "DEMO", "DOCS", "MEET", "SHEETS", "SLIDES", "DRAWINGS", "CHAT"]
-    #[serde(default, rename = "hostApp")]
-    pub host_app: ::core::option::Option<String>,
-    /// Name of the function to invoke. This field doesn''t populate for Google Workspace Add-ons that extend Google Chat. Instead, to receive function data like identifiers, add-ons that extend Chat should use the parameters field. See [Build interactive interfaces for Chat apps](https://developers.google.com/workspace/add-ons/chat/build).
-    #[serde(default, rename = "invokedFunction")]
-    pub invoked_function: ::core::option::Option<String>,
-    /// Any additional parameters you supply to an action using [actionParameters](https://developers.google.com/workspace/add-ons/reference/rpc/google.apps.card.v1#google.apps.card.v1.Action.ActionParameter) or [Action.setParameters()](https://developers.google.com/apps-script/reference/card-service/action#setparametersparameters). **Developer Preview:** For [add-ons that extend Google Chat](https://developers.google.com/workspace/add-ons/chat), to suggest items based on what the users type in multiselect menus, use the value of the "autocomplete_widget_query" key (event.commonEventObject.parameters["autocomplete_widget_query"]). You can use this value to query a database and suggest selectable items to users as they type. For details, see [Collect and process information from Google Chat users](https://developers.google.com/workspace/add-ons/chat/collect-information).
-    #[serde(default)]
-    pub parameters: ::core::option::Option<serde_json::Value>,
-    /// The platform enum which indicates the platform where the event originates (WEB, IOS, or ANDROID). Not supported by Chat apps. // TODO: enum values: ["UNKNOWN_PLATFORM", "WEB", "IOS", "ANDROID"]
-    #[serde(default)]
-    pub platform: ::core::option::Option<String>,
-    /// **Disabled by default.** The timezone ID and offset from Coordinated Universal Time (UTC). To turn on this field, you must set addOns.common.useLocaleFromApp to true in your add-on''s manifest. Your add-on''s scope list must also include https://www.googleapis.com/auth/script.locale. See [Accessing user locale and timezone](https://developers.google.com/workspace/add-ons/how-tos/access-user-locale) for more details. Only supported for the event types [CARD_CLICKED](https://developers.google.com/chat/api/reference/rest/v1/EventType#ENUM_VALUES.CARD_CLICKED) and [SUBMIT_DIALOG](https://developers.google.com/chat/api/reference/rest/v1/DialogEventType#ENUM_VALUES.SUBMIT_DIALOG).
-    #[serde(default, rename = "timeZone")]
-    pub time_zone: ::core::option::Option<TimeZone>,
-    /// **Disabled by default.** The user''s language and country/region identifier in the format of [ISO 639](https://wikipedia.org/wiki/ISO_639_macrolanguage) language code-[ISO 3166](https://wikipedia.org/wiki/ISO_3166) country/region code. For example, en-US. To turn on this field, you must set addOns.common.useLocaleFromApp to true in your add-on''s manifest. Your add-on''s scope list must also include https://www.googleapis.com/auth/script.locale. See [Accessing user locale and timezone](https://developers.google.com/workspace/add-ons/how-tos/access-user-locale) for more details.
-    #[serde(default, rename = "userLocale")]
-    pub user_locale: ::core::option::Option<String>,
-}
-
 /// Response message for completing the import process for a space.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CompleteImportSpaceResponse {
     /// The import mode space.
     #[serde(default)]
     pub space: ::core::option::Option<Space>,
-}
-
-/// Represents a [custom emoji](https://support.google.com/chat/answer/12800149).
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CustomEmoji {
-    /// Optional. Immutable. User-provided name for the custom emoji, which is unique within the organization. Required when the custom emoji is created, output only otherwise. Emoji names must start and end with colons, must be lowercase and can only contain alphanumeric characters, hyphens, and underscores. Hyphens and underscores should be used to separate words and cannot be used consecutively. Example: :valid-emoji-name:
-    #[serde(default, rename = "emojiName")]
-    pub emoji_name: ::core::option::Option<String>,
-    /// Identifier. The resource name of the custom emoji, assigned by the server. Format: customEmojis/{customEmoji}
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Optional. Input only. Payload data. Required when the custom emoji is created.
-    #[serde(default)]
-    pub payload: ::core::option::Option<CustomEmojiPayload>,
-    /// Output only. A temporary image URL for the custom emoji, valid for at least 10 minutes. Note that this is not populated in the response when the custom emoji is created.
-    #[serde(default, rename = "temporaryImageUri")]
-    pub temporary_image_uri: ::core::option::Option<String>,
-    /// Output only. Unique key for the custom emoji resource.
-    #[serde(default)]
-    pub uid: ::core::option::Option<String>,
-}
-
-/// Annotation metadata for custom emoji.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CustomEmojiMetadata {
-    /// The custom emoji.
-    #[serde(default, rename = "customEmoji")]
-    pub custom_emoji: ::core::option::Option<CustomEmoji>,
-}
-
-/// Payload data for the custom emoji.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CustomEmojiPayload {
-    /// Required. Input only. The image used for the custom emoji. The payload must be under 256 KB and the dimension of the image must be square and between 64 and 500 pixels. The restrictions are subject to change.
-    #[serde(default, rename = "fileContent")]
-    pub file_content: ::core::option::Option<String>,
-    /// Required. Input only. The image file name. Supported file extensions: .png, .jpg, .gif.
-    #[serde(default)]
-    pub filename: ::core::option::Option<String>,
-}
-
-/// Date input values.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DateInput {
-    /// Time since epoch time, in milliseconds.
-    #[serde(default, rename = "msSinceEpoch")]
-    pub ms_since_epoch: ::core::option::Option<String>,
-}
-
-/// Date and time input values.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DateTimeInput {
-    /// Whether the datetime input includes a calendar date.
-    #[serde(default, rename = "hasDate")]
-    pub has_date: ::core::option::Option<bool>,
-    /// Whether the datetime input includes a timestamp.
-    #[serde(default, rename = "hasTime")]
-    pub has_time: ::core::option::Option<bool>,
-    /// Time since epoch time, in milliseconds.
-    #[serde(default, rename = "msSinceEpoch")]
-    pub ms_since_epoch: ::core::option::Option<String>,
-}
-
-/// Information about a deleted message. A message is deleted when delete_time is set.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DeletionMetadata {
-    /// Indicates who deleted the message. // TODO: enum values: ["DELETION_TYPE_UNSPECIFIED", "CREATOR", "SPACE_OWNER", "ADMIN", "APP_MESSAGE_EXPIRY", "CREATOR_VIA_APP", "SPACE_OWNER_VIA_APP", "SPACE_MEMBER"]
-    #[serde(default, rename = "deletionType")]
-    pub deletion_type: ::core::option::Option<String>,
 }
 
 ///  A Google Chat app interaction event that represents and contains data about a user''s interaction with a Chat app. To configure your Chat app to receive interaction events, see [Receive and respond to user interactions](https://developers.google.com/workspace/chat/receive-respond-interactions). In addition to receiving events from user interactions, Chat apps can receive events about changes to spaces, such as when a new member is added to a space. To learn about space events, see [Work with events from Google Chat](https://developers.google.com/workspace/chat/events-overview). Note: This event is only used for [Chat interaction events](https://developers.google.com/workspace/chat/receive-respond-interactions). If your Chat app is built as a [Google Workspace add-on](https://developers.google.com/workspace/add-ons/chat/build), see [Chat event objects](https://developers.google.com/workspace/add-ons/concepts/event-objects#chat-event-object) in the add-ons documentation.
@@ -434,53 +79,778 @@ pub struct DeprecatedEvent {
     pub user: ::core::option::Option<User>,
 }
 
-/// Wrapper around the card body of the dialog.
+/// Types of data that users can [input on cards or dialogs](https://developers.google.com/chat/ui/read-form-data). The input type depends on the type of values that the widget accepts.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Dialog {
-    /// Input only. Body of the dialog, which is rendered in a modal. Google Chat apps don''t support the following card entities: DateTimePicker, OnChangeAction.
+pub struct Inputs {
+    /// Date input values from a [DateTimePicker](https://developers.google.com/chat/api/reference/rest/v1/cards#DateTimePicker) widget that only accepts date values.
+    #[serde(default, rename = "dateInput")]
+    pub date_input: ::core::option::Option<DateInput>,
+    /// Date and time input values from a [DateTimePicker](https://developers.google.com/chat/api/reference/rest/v1/cards#DateTimePicker) widget that accepts both a date and time.
+    #[serde(default, rename = "dateTimeInput")]
+    pub date_time_input: ::core::option::Option<DateTimeInput>,
+    /// A list of strings that represent the values that the user inputs in a widget. If the widget only accepts one value, such as a [TextInput](https://developers.google.com/chat/api/reference/rest/v1/cards#TextInput) widget, the list contains one string object. If the widget accepts multiple values, such as a [SelectionInput](https://developers.google.com/chat/api/reference/rest/v1/cards#selectioninput) widget of checkboxes, the list contains a string object for each value that the user inputs or selects.
+    #[serde(default, rename = "stringInputs")]
+    pub string_inputs: ::core::option::Option<StringInputs>,
+    /// Time input values from a [DateTimePicker](https://developers.google.com/chat/api/reference/rest/v1/cards#DateTimePicker) widget that only accepts time values.
+    #[serde(default, rename = "timeInput")]
+    pub time_input: ::core::option::Option<TimeInput>,
+}
+
+/// A response to list custom emojis.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ListCustomEmojisResponse {
+    /// Unordered list. List of custom emojis.
+    #[serde(default, rename = "customEmojis")]
+    pub custom_emojis: ::core::option::Option<::std::vec::Vec<CustomEmoji>>,
+    /// A token that you can send as pageToken to retrieve the next page of results. If empty, there are no subsequent pages.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+}
+
+/// Response to list memberships of the space.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ListMembershipsResponse {
+    /// Unordered list. List of memberships in the requested (or first) page.
     #[serde(default)]
-    pub body: ::core::option::Option<GoogleAppsCardV1Card>,
+    pub memberships: ::core::option::Option<::std::vec::Vec<Membership>>,
+    /// A token that you can send as pageToken to retrieve the next page of results. If empty, there are no subsequent pages.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
 }
 
-/// Contains a [dialog](https://developers.google.com/workspace/chat/dialogs) and request status code.
+/// Response message for listing messages.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DialogAction {
-    /// Input only. Status for a request to either invoke or submit a [dialog](https://developers.google.com/workspace/chat/dialogs). Displays a status and message to users, if necessary. For example, in case of an error or success.
-    #[serde(default, rename = "actionStatus")]
-    pub action_status: ::core::option::Option<ActionStatus>,
-    /// Input only. [Dialog](https://developers.google.com/workspace/chat/dialogs) for the request.
+pub struct ListMessagesResponse {
+    /// List of messages.
     #[serde(default)]
-    pub dialog: ::core::option::Option<Dialog>,
+    pub messages: ::core::option::Option<::std::vec::Vec<Message>>,
+    /// You can send a token as pageToken to retrieve the next page of results. If empty, there are no subsequent pages.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
 }
 
-/// A reference to the data of a drive attachment.
+/// Response to a list reactions request.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DriveDataRef {
-    /// The ID for the drive file. Use with the Drive API.
-    #[serde(default, rename = "driveFileId")]
-    pub drive_file_id: ::core::option::Option<String>,
-}
-
-/// Data for Google Drive links.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DriveLinkData {
-    /// A [DriveDataRef](https://developers.google.com/workspace/chat/api/reference/rest/v1/spaces.messages.attachments#drivedataref) which references a Google Drive file.
-    #[serde(default, rename = "driveDataRef")]
-    pub drive_data_ref: ::core::option::Option<DriveDataRef>,
-    /// The mime type of the linked Google Drive resource.
-    #[serde(default, rename = "mimeType")]
-    pub mime_type: ::core::option::Option<String>,
-}
-
-/// An emoji that is used as a reaction to a message.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Emoji {
-    /// A custom emoji.
-    #[serde(default, rename = "customEmoji")]
-    pub custom_emoji: ::core::option::Option<CustomEmoji>,
-    /// Optional. A basic emoji represented by a unicode string.
+pub struct ListReactionsResponse {
+    /// Continuation token to retrieve the next page of results. It''s empty for the last page of results.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+    /// List of reactions in the requested (or first) page.
     #[serde(default)]
-    pub unicode: ::core::option::Option<String>,
+    pub reactions: ::core::option::Option<::std::vec::Vec<Reaction>>,
+}
+
+/// Response message for listing section items. [Developer Preview](https://developers.google.com/workspace/preview).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ListSectionItemsResponse {
+    /// A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+    /// The section items from the specified section.
+    #[serde(default, rename = "sectionItems")]
+    pub section_items: ::core::option::Option<::std::vec::Vec<SectionItem>>,
+}
+
+/// Response message for listing sections. [Developer Preview](https://developers.google.com/workspace/preview).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ListSectionsResponse {
+    /// A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+    /// The sections from the specified user.
+    #[serde(default)]
+    pub sections: ::core::option::Option<::std::vec::Vec<GoogleChatV1Section>>,
+}
+
+/// Response message for listing space events.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ListSpaceEventsResponse {
+    /// Continuation token used to fetch more events. If this field is omitted, there are no subsequent pages.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+    /// Results are returned in chronological order (oldest event first). Note: The permissionSettings field is not returned in the Space object for list requests.
+    #[serde(default, rename = "spaceEvents")]
+    pub space_events: ::core::option::Option<::std::vec::Vec<SpaceEvent>>,
+}
+
+/// The response for a list spaces request.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ListSpacesResponse {
+    /// You can send a token as pageToken to retrieve the next page of results. If empty, there are no subsequent pages.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+    /// List of spaces in the requested (or first) page. Note: The permissionSettings field is not returned in the Space object for list requests.
+    #[serde(default)]
+    pub spaces: ::core::option::Option<::std::vec::Vec<Space>>,
+}
+
+/// Media resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Media {
+    /// Name of the media resource.
+    #[serde(default, rename = "resourceName")]
+    pub resource_name: ::core::option::Option<String>,
+}
+
+/// Request message for moving a section item across sections. [Developer Preview](https://developers.google.com/workspace/preview).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MoveSectionItemRequest {
+    /// Required. The resource name of the section to move the section item to. Format: users/{user}/sections/{section}
+    #[serde(default, rename = "targetSection")]
+    pub target_section: ::core::option::Option<String>,
+}
+
+/// Response message for moving a section item. [Developer Preview](https://developers.google.com/workspace/preview).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MoveSectionItemResponse {
+    /// The updated section item.
+    #[serde(default, rename = "sectionItem")]
+    pub section_item: ::core::option::Option<SectionItem>,
+}
+
+/// Request message for positioning a section. [Developer Preview](https://developers.google.com/workspace/preview).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PositionSectionRequest {
+    /// Optional. The relative position of the section in the list of sections. // TODO: enum values: ["POSITION_UNSPECIFIED", "START", "END"]
+    #[serde(default, rename = "relativePosition")]
+    pub relative_position: ::core::option::Option<String>,
+    /// Optional. The absolute position of the section in the list of sections. The position must be greater than 0. If the position is greater than the number of sections, the section will be appended to the end of the list. This operation inserts the section at the given position and shifts the original section at that position, and those below it, to the next position.
+    #[serde(default, rename = "sortOrder")]
+    pub sort_order: ::core::option::Option<i32>,
+}
+
+/// Response message for positioning a section. [Developer Preview](https://developers.google.com/workspace/preview).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PositionSectionResponse {
+    /// The updated section.
+    #[serde(default)]
+    pub section: ::core::option::Option<GoogleChatV1Section>,
+}
+
+/// Response with a list of spaces corresponding to the search spaces request.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SearchSpacesResponse {
+    /// A token that can be used to retrieve the next page. If this field is empty, there are no subsequent pages.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+    /// A page of the requested spaces.
+    #[serde(default)]
+    pub spaces: ::core::option::Option<::std::vec::Vec<Space>>,
+    /// The total number of spaces that match the query, across all pages. If the result is over 10,000 spaces, this value is an estimate.
+    #[serde(default, rename = "totalSize")]
+    pub total_size: ::core::option::Option<i32>,
+}
+
+/// Request to create a space and add specified users to it.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SetUpSpaceRequest {
+    /// Optional. The Google Chat users or groups to invite to join the space. Omit the calling user, as they are added automatically. The set currently allows up to 49 memberships (in addition to the caller). For human membership, the Membership.member field must contain a user with name populated (format: users/{user}) and type set to User.Type.HUMAN. You can only add human users when setting up a space (adding Chat apps is only supported for direct message setup with the calling app). You can also add members using the user''s email as an alias for {user}. For example, the user.name can be users/example@gmail.com. To invite Gmail users or users from external Google Workspace domains, user''s email must be used for {user}. For Google group membership, the Membership.group_member field must contain a group with name populated (format groups/{group}). You can only add Google groups when setting Space.spaceType to SPACE. Optional when setting Space.spaceType to SPACE. Required when setting Space.spaceType to GROUP_CHAT, along with at least two memberships. Required when setting Space.spaceType to DIRECT_MESSAGE with a human user, along with exactly one membership. Must be empty when creating a 1:1 conversation between a human and the calling Chat app (when setting Space.spaceType to DIRECT_MESSAGE and Space.singleUserBotDm to true).
+    #[serde(default)]
+    pub memberships: ::core::option::Option<::std::vec::Vec<Membership>>,
+    /// Optional. A unique identifier for this request. A random UUID is recommended. Specifying an existing request ID returns the space created with that ID instead of creating a new space. Specifying an existing request ID from the same Chat app with a different authenticated user returns an error.
+    #[serde(default, rename = "requestId")]
+    pub request_id: ::core::option::Option<String>,
+    /// Required. The Space.spaceType field is required. To create a space, set Space.spaceType to SPACE and set Space.displayName. If you receive the error message ALREADY_EXISTS when setting up a space, try a different displayName. An existing space within the Google Workspace organization might already use this display name. To create a group chat, set Space.spaceType to GROUP_CHAT. Don''t set Space.displayName. To create a 1:1 conversation between humans, set Space.spaceType to DIRECT_MESSAGE and set Space.singleUserBotDm to false. Don''t set Space.displayName or Space.spaceDetails. To create an 1:1 conversation between a human and the calling Chat app, set Space.spaceType to DIRECT_MESSAGE and Space.singleUserBotDm to true. Don''t set Space.displayName or Space.spaceDetails. If a DIRECT_MESSAGE space already exists, that space is returned instead of creating a new space.
+    #[serde(default)]
+    pub space: ::core::option::Option<Space>,
+}
+
+/// The notification setting of a user in a space.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SpaceNotificationSetting {
+    /// The space notification mute setting. // TODO: enum values: ["MUTE_SETTING_UNSPECIFIED", "UNMUTED", "MUTED"]
+    #[serde(default, rename = "muteSetting")]
+    pub mute_setting: ::core::option::Option<String>,
+    /// Identifier. The resource name of the space notification setting. Format: users/{user}/spaces/{space}/spaceNotificationSetting.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// The notification setting. // TODO: enum values: ["NOTIFICATION_SETTING_UNSPECIFIED", "ALL", "MAIN_CONVERSATIONS", "FOR_YOU", "OFF"]
+    #[serde(default, rename = "notificationSetting")]
+    pub notification_setting: ::core::option::Option<String>,
+}
+
+/// A user''s read state within a space, used to identify read and unread messages.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SpaceReadState {
+    /// Optional. The time when the user''s space read state was updated. Usually this corresponds with either the timestamp of the last read message, or a timestamp specified by the user to mark the last read position in a space.
+    #[serde(default, rename = "lastReadTime")]
+    pub last_read_time: ::core::option::Option<String>,
+    /// Resource name of the space read state. Format: users/{user}/spaces/{space}/spaceReadState
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+}
+
+/// Input parameter for regular widgets. For single-valued widgets, it is a single value list. For multi-valued widgets, such as checkbox, all the values are presented.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct StringInputs {
+    /// An list of strings entered by the user.
+    #[serde(default)]
+    pub value: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// A user''s read state within a thread, used to identify read and unread messages.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ThreadReadState {
+    /// The time when the user''s thread read state was updated. Usually this corresponds with the timestamp of the last read message in a thread.
+    #[serde(default, rename = "lastReadTime")]
+    pub last_read_time: ::core::option::Option<String>,
+    /// Resource name of the thread read state. Format: users/{user}/spaces/{space}/threads/{thread}/threadReadState
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+}
+
+/// Request to upload an attachment.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct UploadAttachmentRequest {
+    /// Required. The filename of the attachment, including the file extension.
+    #[serde(default)]
+    pub filename: ::core::option::Option<String>,
+}
+
+/// Response of uploading an attachment.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct UploadAttachmentResponse {
+    /// Reference to the uploaded attachment.
+    #[serde(default, rename = "attachmentDataRef")]
+    pub attachment_data_ref: ::core::option::Option<AttachmentDataRef>,
+}
+
+/// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Status {
+    /// The status code, which should be an enum value of google.rpc.Code.
+    #[serde(default)]
+    pub code: ::core::option::Option<i32>,
+    /// A list of messages that carry the error details. There is a common set of message types for APIs to use.
+    #[serde(default)]
+    pub details: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
+    /// A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.
+    #[serde(default)]
+    pub message: ::core::option::Option<String>,
+}
+
+/// Metadata about a [Chat app command](https://developers.google.com/workspace/chat/commands).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AppCommandMetadata {
+    /// The ID for the command specified in the Chat API configuration.
+    #[serde(default, rename = "appCommandId")]
+    pub app_command_id: ::core::option::Option<i32>,
+    /// The type of Chat app command. // TODO: enum values: ["APP_COMMAND_TYPE_UNSPECIFIED", "SLASH_COMMAND", "QUICK_COMMAND"]
+    #[serde(default, rename = "appCommandType")]
+    pub app_command_type: ::core::option::Option<String>,
+}
+
+/// The common event object is the portion of the overall event object that carries general, host-independent information to the add-on from the user''s client. This information includes details such as the user''s locale, host app, and platform. In addition to homepage and contextual triggers, add-ons construct and pass event objects to [action callback functions](https://developers.google.com/workspace/add-ons/concepts/actions#callback_functions) when the user interacts with widgets. Your add-on''s callback function can query the common event object to determine the contents of open widgets in the user''s client. For example, your add-on can locate the text a user has entered into a [TextInput](https://developers.google.com/apps-script/reference/card-service/text-input) widget in the eventObject.commentEventObject.formInputs object. For Chat apps, the name of the function that the user invoked when interacting with a widget.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CommonEventObject {
+    /// A map containing the current values of the widgets in the displayed card. The map keys are the string IDs assigned with each widget. The structure of the map value object is dependent on the widget type: **Note**: The following examples are formatted for Apps Script''s V8 runtime. If you''re using Rhino runtime, you must add [""] after the value. For example, instead of e.commonEventObject.formInputs.employeeName.stringInputs.value[0], format the event object as e.commonEventObject.formInputs.employeeName[""].stringInputs.value[0]. To learn more about runtimes in Apps Script, see the [V8 Runtime Overview](https://developers.google.com/apps-script/guides/v8-runtime). * Single-valued widgets (for example, a text box): a list of strings (only one element). **Example**: for a text input widget with employeeName as its ID, access the text input value with: e.commonEventObject.formInputs.employeeName.stringInputs.value[0]. * Multi-valued widgets (for example, checkbox groups): a list of strings. **Example**: for a multi-value widget with participants as its ID, access the value array with: e.commonEventObject.formInputs.participants.stringInputs.value. * **A date-time picker**: a [DateTimeInput object](https://developers.google.com/workspace/add-ons/concepts/event-objects#date-time-input). **Example**: For a picker with an ID of myDTPicker, access the [DateTimeInput](https://developers.google.com/workspace/add-ons/concepts/event-objects#date-time-input) object using e.commonEventObject.formInputs.myDTPicker.dateTimeInput. * **A date-only picker**: a [DateInput object](https://developers.google.com/workspace/add-ons/concepts/event-objects#date-input). **Example**: For a picker with an ID of myDatePicker, access the [DateInput](https://developers.google.com/workspace/add-ons/concepts/event-objects#date-input) object using e.commonEventObject.formInputs.myDatePicker.dateInput. * **A time-only picker**: a [TimeInput object](https://developers.google.com/workspace/add-ons/concepts/event-objects#time-input). **Example**: For a picker with an ID of myTimePicker, access the [TimeInput](https://developers.google.com/workspace/add-ons/concepts/event-objects#time-input) object using e.commonEventObject.formInputs.myTimePicker.timeInput.
+    #[serde(default, rename = "formInputs")]
+    pub form_inputs: ::core::option::Option<serde_json::Value>,
+    /// Indicates the host app the add-on is active in when the event object is generated. Possible values include the following: * GMAIL * CALENDAR * DRIVE * DOCS * SHEETS * SLIDES * CHAT // TODO: enum values: ["UNSPECIFIED_HOST_APP", "GMAIL", "CALENDAR", "DRIVE", "DEMO", "DOCS", "MEET", "SHEETS", "SLIDES", "DRAWINGS", "CHAT"]
+    #[serde(default, rename = "hostApp")]
+    pub host_app: ::core::option::Option<String>,
+    /// Name of the function to invoke. This field doesn''t populate for Google Workspace Add-ons that extend Google Chat. Instead, to receive function data like identifiers, add-ons that extend Chat should use the parameters field. See [Build interactive interfaces for Chat apps](https://developers.google.com/workspace/add-ons/chat/build).
+    #[serde(default, rename = "invokedFunction")]
+    pub invoked_function: ::core::option::Option<String>,
+    /// Any additional parameters you supply to an action using [actionParameters](https://developers.google.com/workspace/add-ons/reference/rpc/google.apps.card.v1#google.apps.card.v1.Action.ActionParameter) or [Action.setParameters()](https://developers.google.com/apps-script/reference/card-service/action#setparametersparameters). **Developer Preview:** For [add-ons that extend Google Chat](https://developers.google.com/workspace/add-ons/chat), to suggest items based on what the users type in multiselect menus, use the value of the "autocomplete_widget_query" key (event.commonEventObject.parameters["autocomplete_widget_query"]). You can use this value to query a database and suggest selectable items to users as they type. For details, see [Collect and process information from Google Chat users](https://developers.google.com/workspace/add-ons/chat/collect-information).
+    #[serde(default)]
+    pub parameters: ::core::option::Option<serde_json::Value>,
+    /// The platform enum which indicates the platform where the event originates (WEB, IOS, or ANDROID). Not supported by Chat apps. // TODO: enum values: ["UNKNOWN_PLATFORM", "WEB", "IOS", "ANDROID"]
+    #[serde(default)]
+    pub platform: ::core::option::Option<String>,
+    /// **Disabled by default.** The timezone ID and offset from Coordinated Universal Time (UTC). To turn on this field, you must set addOns.common.useLocaleFromApp to true in your add-on''s manifest. Your add-on''s scope list must also include https://www.googleapis.com/auth/script.locale. See [Accessing user locale and timezone](https://developers.google.com/workspace/add-ons/how-tos/access-user-locale) for more details. Only supported for the event types [CARD_CLICKED](https://developers.google.com/chat/api/reference/rest/v1/EventType#ENUM_VALUES.CARD_CLICKED) and [SUBMIT_DIALOG](https://developers.google.com/chat/api/reference/rest/v1/DialogEventType#ENUM_VALUES.SUBMIT_DIALOG).
+    #[serde(default, rename = "timeZone")]
+    pub time_zone: ::core::option::Option<TimeZone>,
+    /// **Disabled by default.** The user''s language and country/region identifier in the format of [ISO 639](https://wikipedia.org/wiki/ISO_639_macrolanguage) language code-[ISO 3166](https://wikipedia.org/wiki/ISO_3166) country/region code. For example, en-US. To turn on this field, you must set addOns.common.useLocaleFromApp to true in your add-on''s manifest. Your add-on''s scope list must also include https://www.googleapis.com/auth/script.locale. See [Accessing user locale and timezone](https://developers.google.com/workspace/add-ons/how-tos/access-user-locale) for more details.
+    #[serde(default, rename = "userLocale")]
+    pub user_locale: ::core::option::Option<String>,
+}
+
+/// Date input values.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DateInput {
+    /// Time since epoch time, in milliseconds.
+    #[serde(default, rename = "msSinceEpoch")]
+    pub ms_since_epoch: ::core::option::Option<String>,
+}
+
+/// Date and time input values.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DateTimeInput {
+    /// Whether the datetime input includes a calendar date.
+    #[serde(default, rename = "hasDate")]
+    pub has_date: ::core::option::Option<bool>,
+    /// Whether the datetime input includes a timestamp.
+    #[serde(default, rename = "hasTime")]
+    pub has_time: ::core::option::Option<bool>,
+    /// Time since epoch time, in milliseconds.
+    #[serde(default, rename = "msSinceEpoch")]
+    pub ms_since_epoch: ::core::option::Option<String>,
+}
+
+/// Time input values.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TimeInput {
+    /// The hour on a 24-hour clock.
+    #[serde(default)]
+    pub hours: ::core::option::Option<i32>,
+    /// The number of minutes past the hour. Valid values are 0 to 59.
+    #[serde(default)]
+    pub minutes: ::core::option::Option<i32>,
+}
+
+/// An event that represents a change or activity in a Google Chat space. To learn more, see [Work with events from Google Chat](https://developers.google.com/workspace/chat/events-overview).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SpaceEvent {
+    /// Time when the event occurred.
+    #[serde(default, rename = "eventTime")]
+    pub event_time: ::core::option::Option<String>,
+    /// Type of space event. Each event type has a batch version, which represents multiple instances of the event type that occur in a short period of time. For spaceEvents.list() requests, omit batch event types in your query filter. By default, the server returns both event type and its batch version. Supported event types for [messages](https://developers.google.com/workspace/chat/api/reference/rest/v1/spaces.messages): * New message: google.workspace.chat.message.v1.created * Updated message: google.workspace.chat.message.v1.updated * Deleted message: google.workspace.chat.message.v1.deleted * Multiple new messages: google.workspace.chat.message.v1.batchCreated * Multiple updated messages: google.workspace.chat.message.v1.batchUpdated * Multiple deleted messages: google.workspace.chat.message.v1.batchDeleted Supported event types for [memberships](https://developers.google.com/workspace/chat/api/reference/rest/v1/spaces.members): * New membership: google.workspace.chat.membership.v1.created * Updated membership: google.workspace.chat.membership.v1.updated * Deleted membership: google.workspace.chat.membership.v1.deleted * Multiple new memberships: google.workspace.chat.membership.v1.batchCreated * Multiple updated memberships: google.workspace.chat.membership.v1.batchUpdated * Multiple deleted memberships: google.workspace.chat.membership.v1.batchDeleted Supported event types for [reactions](https://developers.google.com/workspace/chat/api/reference/rest/v1/spaces.messages.reactions): * New reaction: google.workspace.chat.reaction.v1.created * Deleted reaction: google.workspace.chat.reaction.v1.deleted * Multiple new reactions: google.workspace.chat.reaction.v1.batchCreated * Multiple deleted reactions: google.workspace.chat.reaction.v1.batchDeleted Supported event types about the [space](https://developers.google.com/workspace/chat/api/reference/rest/v1/spaces): * Updated space: google.workspace.chat.space.v1.updated * Multiple space updates: google.workspace.chat.space.v1.batchUpdated
+    #[serde(default, rename = "eventType")]
+    pub event_type: ::core::option::Option<String>,
+    /// Event payload for multiple new memberships. Event type: google.workspace.chat.membership.v1.batchCreated
+    #[serde(default, rename = "membershipBatchCreatedEventData")]
+    pub membership_batch_created_event_data:
+        ::core::option::Option<MembershipBatchCreatedEventData>,
+    /// Event payload for multiple deleted memberships. Event type: google.workspace.chat.membership.v1.batchDeleted
+    #[serde(default, rename = "membershipBatchDeletedEventData")]
+    pub membership_batch_deleted_event_data:
+        ::core::option::Option<MembershipBatchDeletedEventData>,
+    /// Event payload for multiple updated memberships. Event type: google.workspace.chat.membership.v1.batchUpdated
+    #[serde(default, rename = "membershipBatchUpdatedEventData")]
+    pub membership_batch_updated_event_data:
+        ::core::option::Option<MembershipBatchUpdatedEventData>,
+    /// Event payload for a new membership. Event type: google.workspace.chat.membership.v1.created
+    #[serde(default, rename = "membershipCreatedEventData")]
+    pub membership_created_event_data: ::core::option::Option<MembershipCreatedEventData>,
+    /// Event payload for a deleted membership. Event type: google.workspace.chat.membership.v1.deleted
+    #[serde(default, rename = "membershipDeletedEventData")]
+    pub membership_deleted_event_data: ::core::option::Option<MembershipDeletedEventData>,
+    /// Event payload for an updated membership. Event type: google.workspace.chat.membership.v1.updated
+    #[serde(default, rename = "membershipUpdatedEventData")]
+    pub membership_updated_event_data: ::core::option::Option<MembershipUpdatedEventData>,
+    /// Event payload for multiple new messages. Event type: google.workspace.chat.message.v1.batchCreated
+    #[serde(default, rename = "messageBatchCreatedEventData")]
+    pub message_batch_created_event_data: ::core::option::Option<MessageBatchCreatedEventData>,
+    /// Event payload for multiple deleted messages. Event type: google.workspace.chat.message.v1.batchDeleted
+    #[serde(default, rename = "messageBatchDeletedEventData")]
+    pub message_batch_deleted_event_data: ::core::option::Option<MessageBatchDeletedEventData>,
+    /// Event payload for multiple updated messages. Event type: google.workspace.chat.message.v1.batchUpdated
+    #[serde(default, rename = "messageBatchUpdatedEventData")]
+    pub message_batch_updated_event_data: ::core::option::Option<MessageBatchUpdatedEventData>,
+    /// Event payload for a new message. Event type: google.workspace.chat.message.v1.created
+    #[serde(default, rename = "messageCreatedEventData")]
+    pub message_created_event_data: ::core::option::Option<MessageCreatedEventData>,
+    /// Event payload for a deleted message. Event type: google.workspace.chat.message.v1.deleted
+    #[serde(default, rename = "messageDeletedEventData")]
+    pub message_deleted_event_data: ::core::option::Option<MessageDeletedEventData>,
+    /// Event payload for an updated message. Event type: google.workspace.chat.message.v1.updated
+    #[serde(default, rename = "messageUpdatedEventData")]
+    pub message_updated_event_data: ::core::option::Option<MessageUpdatedEventData>,
+    /// Resource name of the space event. Format: spaces/{space}/spaceEvents/{spaceEvent}
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Event payload for multiple new reactions. Event type: google.workspace.chat.reaction.v1.batchCreated
+    #[serde(default, rename = "reactionBatchCreatedEventData")]
+    pub reaction_batch_created_event_data: ::core::option::Option<ReactionBatchCreatedEventData>,
+    /// Event payload for multiple deleted reactions. Event type: google.workspace.chat.reaction.v1.batchDeleted
+    #[serde(default, rename = "reactionBatchDeletedEventData")]
+    pub reaction_batch_deleted_event_data: ::core::option::Option<ReactionBatchDeletedEventData>,
+    /// Event payload for a new reaction. Event type: google.workspace.chat.reaction.v1.created
+    #[serde(default, rename = "reactionCreatedEventData")]
+    pub reaction_created_event_data: ::core::option::Option<ReactionCreatedEventData>,
+    /// Event payload for a deleted reaction. Event type: google.workspace.chat.reaction.v1.deleted
+    #[serde(default, rename = "reactionDeletedEventData")]
+    pub reaction_deleted_event_data: ::core::option::Option<ReactionDeletedEventData>,
+    /// Event payload for multiple updates to a space. Event type: google.workspace.chat.space.v1.batchUpdated
+    #[serde(default, rename = "spaceBatchUpdatedEventData")]
+    pub space_batch_updated_event_data: ::core::option::Option<SpaceBatchUpdatedEventData>,
+    /// Event payload for a space update. Event type: google.workspace.chat.space.v1.updated
+    #[serde(default, rename = "spaceUpdatedEventData")]
+    pub space_updated_event_data: ::core::option::Option<SpaceUpdatedEventData>,
+}
+
+/// A user''s defined section item. This is used to represent section items, such as spaces, grouped under a section. [Developer Preview](https://developers.google.com/workspace/preview).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SectionItem {
+    /// Identifier. The resource name of the section item. Format: users/{user}/sections/{section}/items/{item}
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Optional. The space resource name. Format: spaces/{space}
+    #[serde(default)]
+    pub space: ::core::option::Option<String>,
+}
+
+/// Represents a [section](https://support.google.com/chat/answer/16059854) in Google Chat. Sections help users organize their spaces. There are two types of sections: 1. **System Sections:** These are predefined sections managed by Google Chat. Their resource names are fixed, and they cannot be created, deleted, or have their display_name modified. Examples include: * users/{user}/sections/default-direct-messages * users/{user}/sections/default-spaces * users/{user}/sections/default-apps 2. **Custom Sections:** These are sections created and managed by the user. Creating a custom section using CreateSection **requires** a display_name. Custom sections can be updated using UpdateSection and deleted using DeleteSection. [Developer Preview](https://developers.google.com/workspace/preview).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleChatV1Section {
+    /// Optional. The section''s display name. Only populated for sections of type CUSTOM_SECTION. Supports up to 80 characters. Required when creating a CUSTOM_SECTION.
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+    /// Identifier. Resource name of the section. For system sections, the section ID is a constant string: - DEFAULT_DIRECT_MESSAGES: users/{user}/sections/default-direct-messages - DEFAULT_SPACES: users/{user}/sections/default-spaces - DEFAULT_APPS: users/{user}/sections/default-apps Format: users/{user}/sections/{section}
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Output only. The order of the section in relation to other sections. Sections with a lower sort_order value appear before sections with a higher value.
+    #[serde(default, rename = "sortOrder")]
+    pub sort_order: ::core::option::Option<i32>,
+    /// Required. The type of the section. // TODO: enum values: ["SECTION_TYPE_UNSPECIFIED", "CUSTOM_SECTION", "DEFAULT_DIRECT_MESSAGES", "DEFAULT_SPACES", "DEFAULT_APPS"]
+    #[serde(default, rename = "type")]
+    pub type_: ::core::option::Option<String>,
+}
+
+/// The timezone ID and offset from Coordinated Universal Time (UTC). Only supported for the event types [CARD_CLICKED](https://developers.google.com/chat/api/reference/rest/v1/EventType#ENUM_VALUES.CARD_CLICKED) and [SUBMIT_DIALOG](https://developers.google.com/chat/api/reference/rest/v1/DialogEventType#ENUM_VALUES.SUBMIT_DIALOG).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TimeZone {
+    /// The [IANA TZ](https://www.iana.org/time-zones) time zone database code, such as "America/Toronto".
+    #[serde(default)]
+    pub id: ::core::option::Option<String>,
+    /// The user timezone offset, in milliseconds, from Coordinated Universal Time (UTC).
+    #[serde(default)]
+    pub offset: ::core::option::Option<i32>,
+}
+
+/// Event payload for multiple new memberships. Event type: google.workspace.chat.membership.v1.batchCreated
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MembershipBatchCreatedEventData {
+    /// A list of new memberships.
+    #[serde(default)]
+    pub memberships: ::core::option::Option<::std::vec::Vec<MembershipCreatedEventData>>,
+}
+
+/// Event payload for multiple deleted memberships. Event type: google.workspace.chat.membership.v1.batchDeleted
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MembershipBatchDeletedEventData {
+    /// A list of deleted memberships.
+    #[serde(default)]
+    pub memberships: ::core::option::Option<::std::vec::Vec<MembershipDeletedEventData>>,
+}
+
+/// Event payload for multiple updated memberships. Event type: google.workspace.chat.membership.v1.batchUpdated
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MembershipBatchUpdatedEventData {
+    /// A list of updated memberships.
+    #[serde(default)]
+    pub memberships: ::core::option::Option<::std::vec::Vec<MembershipUpdatedEventData>>,
+}
+
+/// Event payload for multiple new messages. Event type: google.workspace.chat.message.v1.batchCreated
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MessageBatchCreatedEventData {
+    /// A list of new messages.
+    #[serde(default)]
+    pub messages: ::core::option::Option<::std::vec::Vec<MessageCreatedEventData>>,
+}
+
+/// Event payload for multiple deleted messages. Event type: google.workspace.chat.message.v1.batchDeleted
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MessageBatchDeletedEventData {
+    /// A list of deleted messages.
+    #[serde(default)]
+    pub messages: ::core::option::Option<::std::vec::Vec<MessageDeletedEventData>>,
+}
+
+/// Event payload for multiple updated messages. Event type: google.workspace.chat.message.v1.batchUpdated
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MessageBatchUpdatedEventData {
+    /// A list of updated messages.
+    #[serde(default)]
+    pub messages: ::core::option::Option<::std::vec::Vec<MessageUpdatedEventData>>,
+}
+
+/// Event payload for multiple new reactions. Event type: google.workspace.chat.reaction.v1.batchCreated
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ReactionBatchCreatedEventData {
+    /// A list of new reactions.
+    #[serde(default)]
+    pub reactions: ::core::option::Option<::std::vec::Vec<ReactionCreatedEventData>>,
+}
+
+/// Event payload for multiple deleted reactions. Event type: google.workspace.chat.reaction.v1.batchDeleted
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ReactionBatchDeletedEventData {
+    /// A list of deleted reactions.
+    #[serde(default)]
+    pub reactions: ::core::option::Option<::std::vec::Vec<ReactionDeletedEventData>>,
+}
+
+/// Event payload for multiple updates to a space. Event type: google.workspace.chat.space.v1.batchUpdated
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SpaceBatchUpdatedEventData {
+    /// A list of updated spaces.
+    #[serde(default)]
+    pub spaces: ::core::option::Option<::std::vec::Vec<SpaceUpdatedEventData>>,
+}
+
+/// Event payload for a new membership. Event type: google.workspace.chat.membership.v1.created.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MembershipCreatedEventData {
+    /// The new membership.
+    #[serde(default)]
+    pub membership: ::core::option::Option<Membership>,
+}
+
+/// Event payload for a deleted membership. Event type: google.workspace.chat.membership.v1.deleted
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MembershipDeletedEventData {
+    /// The deleted membership. Only the name and state fields are populated.
+    #[serde(default)]
+    pub membership: ::core::option::Option<Membership>,
+}
+
+/// Event payload for an updated membership. Event type: google.workspace.chat.membership.v1.updated
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MembershipUpdatedEventData {
+    /// The updated membership.
+    #[serde(default)]
+    pub membership: ::core::option::Option<Membership>,
+}
+
+/// Event payload for a new message. Event type: google.workspace.chat.message.v1.created
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MessageCreatedEventData {
+    /// The new message.
+    #[serde(default)]
+    pub message: ::core::option::Option<Message>,
+}
+
+/// Event payload for a deleted message. Event type: google.workspace.chat.message.v1.deleted
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MessageDeletedEventData {
+    /// The deleted message. Only the name, createTime, and deletionMetadata fields are populated.
+    #[serde(default)]
+    pub message: ::core::option::Option<Message>,
+}
+
+/// Event payload for an updated message. Event type: google.workspace.chat.message.v1.updated
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MessageUpdatedEventData {
+    /// The updated message.
+    #[serde(default)]
+    pub message: ::core::option::Option<Message>,
+}
+
+/// Event payload for a new reaction. Event type: google.workspace.chat.reaction.v1.created
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ReactionCreatedEventData {
+    /// The new reaction.
+    #[serde(default)]
+    pub reaction: ::core::option::Option<Reaction>,
+}
+
+/// Event payload for a deleted reaction. Type: google.workspace.chat.reaction.v1.deleted
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ReactionDeletedEventData {
+    /// The deleted reaction.
+    #[serde(default)]
+    pub reaction: ::core::option::Option<Reaction>,
+}
+
+/// Event payload for an updated space. Event type: google.workspace.chat.space.v1.updated
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SpaceUpdatedEventData {
+    /// The updated space.
+    #[serde(default)]
+    pub space: ::core::option::Option<Space>,
+}
+
+/// Represents a membership relation in Google Chat, such as whether a user or Chat app is invited to, part of, or absent from a space.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Membership {
+    /// Optional. Immutable. The creation time of the membership, such as when a member joined or was invited to join a space. This field is output only, except when used to import historical memberships in import mode spaces.
+    #[serde(default, rename = "createTime")]
+    pub create_time: ::core::option::Option<String>,
+    /// Optional. Immutable. The deletion time of the membership, such as when a member left or was removed from a space. This field is output only, except when used to import historical memberships in import mode spaces.
+    #[serde(default, rename = "deleteTime")]
+    pub delete_time: ::core::option::Option<String>,
+    /// Optional. The Google Group the membership corresponds to. Reading or mutating memberships for Google Groups requires [user authentication](https://developers.google.com/workspace/chat/authenticate-authorize-chat-user).
+    #[serde(default, rename = "groupMember")]
+    pub group_member: ::core::option::Option<Group>,
+    /// Optional. The Google Chat user or app the membership corresponds to. If your Chat app [authenticates as a user](https://developers.google.com/workspace/chat/authenticate-authorize-chat-user), the output populates the [user](https://developers.google.com/workspace/chat/api/reference/rest/v1/User) name and type.
+    #[serde(default)]
+    pub member: ::core::option::Option<User>,
+    /// Identifier. Resource name of the membership, assigned by the server. Format: spaces/{space}/members/{member}
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Optional. User''s role within a Chat space, which determines their permitted actions in the space. This field can only be used as input in UpdateMembership. // TODO: enum values: ["MEMBERSHIP_ROLE_UNSPECIFIED", "ROLE_MEMBER", "ROLE_MANAGER", "ROLE_ASSISTANT_MANAGER"]
+    #[serde(default)]
+    pub role: ::core::option::Option<String>,
+    /// Output only. State of the membership. // TODO: enum values: ["MEMBERSHIP_STATE_UNSPECIFIED", "JOINED", "INVITED", "NOT_A_MEMBER"]
+    #[serde(default)]
+    pub state: ::core::option::Option<String>,
+}
+
+/// A message in a Google Chat space.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Message {
+    /// Optional. One or more interactive widgets that appear at the bottom of a message. You can add accessory widgets to messages that contain text, cards, or both text and cards. Not supported for messages that contain dialogs. For details, see [Add interactive widgets at the bottom of a message](https://developers.google.com/workspace/chat/create-messages#add-accessory-widgets). Creating a message with accessory widgets requires [app authentication] (https://developers.google.com/workspace/chat/authenticate-authorize-chat-app).
+    #[serde(default, rename = "accessoryWidgets")]
+    pub accessory_widgets: ::core::option::Option<::std::vec::Vec<AccessoryWidget>>,
+    /// Input only. Parameters that a Chat app can use to configure how its response is posted.
+    #[serde(default, rename = "actionResponse")]
+    pub action_response: ::core::option::Option<ActionResponse>,
+    /// Output only. Annotations can be associated with the plain-text body of the message or with chips that link to Google Workspace resources like Google Docs or Sheets with start_index and length of 0.
+    #[serde(default)]
+    pub annotations: ::core::option::Option<::std::vec::Vec<Annotation>>,
+    /// Output only. Plain-text body of the message with all Chat app mentions stripped out.
+    #[serde(default, rename = "argumentText")]
+    pub argument_text: ::core::option::Option<String>,
+    /// Output only. GIF images that are attached to the message.
+    #[serde(default, rename = "attachedGifs")]
+    pub attached_gifs: ::core::option::Option<::std::vec::Vec<AttachedGif>>,
+    /// Optional. User-uploaded attachment.
+    #[serde(default)]
+    pub attachment: ::core::option::Option<::std::vec::Vec<Attachment>>,
+    /// Deprecated: Use cards_v2 instead. Rich, formatted, and interactive cards that you can use to display UI elements such as: formatted texts, buttons, and clickable images. Cards are normally displayed below the plain-text body of the message. cards and cards_v2 can have a maximum size of 32 KB.
+    #[serde(default)]
+    pub cards: ::core::option::Option<::std::vec::Vec<Card>>,
+    /// Optional. An array of [cards](https://developers.google.com/workspace/chat/api/reference/rest/v1/cards). Chat apps can create cards with [app authentication](https://developers.google.com/workspace/chat/authenticate-authorize-chat-app). As part of the [Developer Preview Program](https://developers.google.com/workspace/preview), if your Chat app [authenticates as a user](https://developers.google.com/workspace/chat/authenticate-authorize-chat-user), it can create card messages. If your Chat app is not part of Developer Preview Program, it can''t create cards with user authentication. To learn how to create a message that contains cards, see [Send a message](https://developers.google.com/workspace/chat/create-messages). [Card builder](https://addons.gsuite.google.com/uikit/builder)
+    #[serde(default, rename = "cardsV2")]
+    pub cards_v2: ::core::option::Option<::std::vec::Vec<CardWithId>>,
+    /// Optional. A custom ID for the message. You can use field to identify a message, or to get, delete, or update a message. To set a custom ID, specify the [messageId](https://developers.google.com/workspace/chat/api/reference/rest/v1/spaces.messages/create#body.QUERY_PARAMETERS.message_id) field when you create the message. For details, see [Name a message](https://developers.google.com/workspace/chat/create-messages#name_a_created_message).
+    #[serde(default, rename = "clientAssignedMessageId")]
+    pub client_assigned_message_id: ::core::option::Option<String>,
+    /// Optional. Immutable. For spaces created in Chat, the time at which the message was created. This field is output only, except when used in import mode spaces. For import mode spaces, set this field to the historical timestamp at which the message was created in the source in order to preserve the original creation time.
+    #[serde(default, rename = "createTime")]
+    pub create_time: ::core::option::Option<String>,
+    /// Output only. The time at which the message was deleted in Google Chat. If the message is never deleted, this field is empty.
+    #[serde(default, rename = "deleteTime")]
+    pub delete_time: ::core::option::Option<String>,
+    /// Output only. Information about a deleted message. A message is deleted when delete_time is set.
+    #[serde(default, rename = "deletionMetadata")]
+    pub deletion_metadata: ::core::option::Option<DeletionMetadata>,
+    /// Output only. The list of emoji reaction summaries on the message.
+    #[serde(default, rename = "emojiReactionSummaries")]
+    pub emoji_reaction_summaries: ::core::option::Option<::std::vec::Vec<EmojiReactionSummary>>,
+    /// Optional. A plain-text description of the message''s cards, used when the actual cards can''t be displayed—for example, mobile notifications.
+    #[serde(default, rename = "fallbackText")]
+    pub fallback_text: ::core::option::Option<String>,
+    /// Output only. Contains the message text with markups added to communicate formatting. This field might not capture all formatting visible in the UI, but includes the following: * [Markup syntax](https://developers.google.com/workspace/chat/format-messages) for bold, italic, strikethrough, monospace, monospace block, bulleted list, and block quote. * [User mentions](https://developers.google.com/workspace/chat/format-messages#messages-@mention) using the format . * Custom hyperlinks using the format &lt;{url}|{rendered_text}&gt; where the first string is the URL and the second is the rendered text—for example, . * Custom emoji using the format :{emoji_name}:—for example, :smile:. This doesn''t apply to Unicode emoji, such as U+1F600 for a grinning face emoji. * Bullet list items using asterisks (*)—for example, * item. For more information, see [View text formatting sent in a message](https://developers.google.com/workspace/chat/format-messages#view_text_formatting_sent_in_a_message)
+    #[serde(default, rename = "formattedText")]
+    pub formatted_text: ::core::option::Option<String>,
+    /// Output only. The time at which the message was last edited by a user. If the message has never been edited, this field is empty.
+    #[serde(default, rename = "lastUpdateTime")]
+    pub last_update_time: ::core::option::Option<String>,
+    /// Output only. A URL in the Chat message text field that matches a link preview pattern. For more information, see [Preview links](https://developers.google.com/workspace/chat/preview-links).
+    #[serde(default, rename = "matchedUrl")]
+    pub matched_url: ::core::option::Option<MatchedUrl>,
+    /// Identifier. Resource name of the message. Format: spaces/{space}/messages/{message} Where {space} is the ID of the space where the message is posted and {message} is a system-assigned ID for the message. For example, spaces/AAAAAAAAAAA/messages/BBBBBBBBBBB.BBBBBBBBBBB. If you set a custom ID when you create a message, you can use this ID to specify the message in a request by replacing {message} with the value from the clientAssignedMessageId field. For example, spaces/AAAAAAAAAAA/messages/client-custom-name. For details, see [Name a message](https://developers.google.com/workspace/chat/create-messages#name_a_created_message).
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Optional. Immutable. Input for creating a message, otherwise output only. The user that can view the message. When set, the message is private and only visible to the specified user and the Chat app. To include this field in your request, you must call the Chat API using [app authentication](https://developers.google.com/workspace/chat/authenticate-authorize-chat-app) and omit the following: * [Attachments](https://developers.google.com/workspace/chat/api/reference/rest/v1/spaces.messages.attachments) For details, see [Send a message privately](https://developers.google.com/workspace/chat/create-messages#private).
+    #[serde(default, rename = "privateMessageViewer")]
+    pub private_message_viewer: ::core::option::Option<User>,
+    /// Optional. Information about a message that another message quotes. When you create a message, you can quote messages within the same thread, or quote a root message to create a new root message. However, you can''t quote a message reply from a different thread. When you update a message, you can''t add or replace the quotedMessageMetadata field, but you can remove it. For example usage, see [Quote another message](https://developers.google.com/workspace/chat/create-messages#quote-a-message).
+    #[serde(default, rename = "quotedMessageMetadata")]
+    pub quoted_message_metadata: ::core::option::Option<QuotedMessageMetadata>,
+    /// Output only. The user who created the message. If your Chat app [authenticates as a user](https://developers.google.com/workspace/chat/authenticate-authorize-chat-user), the output populates the [user](https://developers.google.com/workspace/chat/api/reference/rest/v1/User) name and type.
+    #[serde(default)]
+    pub sender: ::core::option::Option<User>,
+    /// Output only. Slash command information, if applicable.
+    #[serde(default, rename = "slashCommand")]
+    pub slash_command: ::core::option::Option<SlashCommand>,
+    /// Output only. If your Chat app [authenticates as a user](https://developers.google.com/workspace/chat/authenticate-authorize-chat-user), the output only populates the [space](https://developers.google.com/workspace/chat/api/reference/rest/v1/spaces) name.
+    #[serde(default)]
+    pub space: ::core::option::Option<Space>,
+    /// Optional. Plain-text body of the message. The first link to an image, video, or web page generates a [preview chip](https://developers.google.com/workspace/chat/preview-links). You can also [@mention a Google Chat user](https://developers.google.com/workspace/chat/format-messages#messages-@mention), or everyone in the space. To learn about creating text messages, see [Send a message](https://developers.google.com/workspace/chat/create-messages).
+    #[serde(default)]
+    pub text: ::core::option::Option<String>,
+    /// The thread the message belongs to. For example usage, see [Start or reply to a message thread](https://developers.google.com/workspace/chat/create-messages#create-message-thread).
+    #[serde(default)]
+    pub thread: ::core::option::Option<Thread>,
+    /// Output only. When true, the message is a response in a reply thread. When false, the message is visible in the space''s top-level conversation as either the first message of a thread or a message with no threaded replies. If the space doesn''t support reply in threads, this field is always false.
+    #[serde(default, rename = "threadReply")]
+    pub thread_reply: ::core::option::Option<bool>,
+}
+
+/// A reaction to a message.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Reaction {
+    /// Required. The emoji used in the reaction.
+    #[serde(default)]
+    pub emoji: ::core::option::Option<Emoji>,
+    /// Identifier. The resource name of the reaction. Format: spaces/{space}/messages/{message}/reactions/{reaction}
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Output only. The user who created the reaction.
+    #[serde(default)]
+    pub user: ::core::option::Option<User>,
+}
+
+/// A Google Group in Google Chat.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Group {
+    /// Resource name for a Google Group. Represents a [group](https://cloud.google.com/identity/docs/reference/rest/v1/groups) in Cloud Identity Groups API. Format: groups/{group}
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+}
+
+/// One or more interactive widgets that appear at the bottom of a message. For details, see [Add interactive widgets at the bottom of a message](https://developers.google.com/workspace/chat/create-messages#add-accessory-widgets).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AccessoryWidget {
+    /// A list of buttons.
+    #[serde(default, rename = "buttonList")]
+    pub button_list: ::core::option::Option<GoogleAppsCardV1ButtonList>,
+}
+
+/// Parameters that a Chat app can use to configure how its response is posted.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ActionResponse {
+    /// Input only. A response to an interaction event related to a [dialog](https://developers.google.com/workspace/chat/dialogs). Must be accompanied by ResponseType.Dialog.
+    #[serde(default, rename = "dialogAction")]
+    pub dialog_action: ::core::option::Option<DialogAction>,
+    /// Input only. The type of Chat app response. // TODO: enum values: ["TYPE_UNSPECIFIED", "NEW_MESSAGE", "UPDATE_MESSAGE", "UPDATE_USER_MESSAGE_CARDS", "REQUEST_CONFIG", "DIALOG", "UPDATE_WIDGET"]
+    #[serde(default, rename = "type")]
+    pub type_: ::core::option::Option<String>,
+    /// Input only. The response of the updated widget.
+    #[serde(default, rename = "updatedWidget")]
+    pub updated_widget: ::core::option::Option<UpdatedWidget>,
+    /// Input only. URL for users to authenticate or configure. (Only for REQUEST_CONFIG response types.)
+    #[serde(default)]
+    pub url: ::core::option::Option<String>,
+}
+
+/// A GIF image that''s specified by a URL.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AttachedGif {
+    /// Output only. The URL that hosts the GIF image.
+    #[serde(default)]
+    pub uri: ::core::option::Option<String>,
+}
+
+/// A card is a UI element that can contain UI widgets such as text and images.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Card {
+    /// The actions of this card.
+    #[serde(default, rename = "cardActions")]
+    pub card_actions: ::core::option::Option<::std::vec::Vec<CardAction>>,
+    /// The header of the card. A header usually contains a title and an image.
+    #[serde(default)]
+    pub header: ::core::option::Option<CardHeader>,
+    /// Name of the card.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Sections are separated by a line divider.
+    #[serde(default)]
+    pub sections: ::core::option::Option<::std::vec::Vec<Section>>,
+}
+
+/// A [card](https://developers.google.com/workspace/chat/api/reference/rest/v1/cards) in a Google Chat message. Chat apps can create cards with [app authentication](https://developers.google.com/workspace/chat/authenticate-authorize-chat-app). As part of the [Developer Preview Program](https://developers.google.com/workspace/preview), if your Chat app [authenticates as a user](https://developers.google.com/workspace/chat/authenticate-authorize-chat-user), it can create card messages. If your Chat app is not part of Developer Preview Program, it can''t create cards with user authentication. To learn how to create a message that contains cards, see [Send a message](https://developers.google.com/workspace/chat/create-messages). [Card builder](https://addons.gsuite.google.com/uikit/builder)
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CardWithId {
+    /// A card. Maximum size is 32 KB.
+    #[serde(default)]
+    pub card: ::core::option::Option<GoogleAppsCardV1Card>,
+    /// Required if the message contains multiple cards. A unique identifier for a card in a message.
+    #[serde(default, rename = "cardId")]
+    pub card_id: ::core::option::Option<String>,
+}
+
+/// Information about a deleted message. A message is deleted when delete_time is set.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DeletionMetadata {
+    /// Indicates who deleted the message. // TODO: enum values: ["DELETION_TYPE_UNSPECIFIED", "CREATOR", "SPACE_OWNER", "ADMIN", "APP_MESSAGE_EXPIRY", "CREATOR_VIA_APP", "SPACE_OWNER_VIA_APP", "SPACE_MEMBER"]
+    #[serde(default, rename = "deletionType")]
+    pub deletion_type: ::core::option::Option<String>,
 }
 
 /// The number of people who reacted to a message with a specific emoji.
@@ -494,15 +864,191 @@ pub struct EmojiReactionSummary {
     pub reaction_count: ::core::option::Option<i32>,
 }
 
-/// A form action describes the behavior when the form is submitted. For example, you can invoke Apps Script to handle the form.
+/// A matched URL in a Chat message. Chat apps can preview matched URLs. For more information, see [Preview links](https://developers.google.com/chat/how-tos/preview-links).
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct FormAction {
-    /// The method name is used to identify which part of the form triggered the form submission. This information is echoed back to the Chat app as part of the card click event. You can use the same method name for several elements that trigger a common behavior.
-    #[serde(default, rename = "actionMethodName")]
-    pub action_method_name: ::core::option::Option<String>,
-    /// List of action parameters.
+pub struct MatchedUrl {
+    /// Output only. The URL that was matched.
     #[serde(default)]
-    pub parameters: ::core::option::Option<::std::vec::Vec<ActionParameter>>,
+    pub url: ::core::option::Option<String>,
+}
+
+/// Information about a message that another message quotes. When you create a message, you can quote messages within the same thread, or quote a root message to create a new root message. However, you can''t quote a message reply from a different thread. When you update a message, you can''t add or replace the quotedMessageMetadata field, but you can remove it. For example usage, see [Quote another message](https://developers.google.com/workspace/chat/create-messages#quote-a-message).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct QuotedMessageMetadata {
+    /// Output only. Metadata about the source space of the quoted message. Populated only for FORWARD quote type.
+    #[serde(default, rename = "forwardedMetadata")]
+    pub forwarded_metadata: ::core::option::Option<ForwardedMetadata>,
+    /// Required. The timestamp when the quoted message was created or when the quoted message was last updated. If the message was edited, use this field, last_update_time. If the message was never edited, use create_time. If last_update_time doesn''t match the latest version of the quoted message, the request fails.
+    #[serde(default, rename = "lastUpdateTime")]
+    pub last_update_time: ::core::option::Option<String>,
+    /// Required. Resource name of the message that is quoted. Format: spaces/{space}/messages/{message}
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Optional. Specifies the quote type. If not set, defaults to REPLY in the message read/write path for backward compatibility. // TODO: enum values: ["QUOTE_TYPE_UNSPECIFIED", "REPLY"]
+    #[serde(default, rename = "quoteType")]
+    pub quote_type: ::core::option::Option<String>,
+    /// Output only. A snapshot of the quoted message''s content.
+    #[serde(default, rename = "quotedMessageSnapshot")]
+    pub quoted_message_snapshot: ::core::option::Option<QuotedMessageSnapshot>,
+}
+
+/// Metadata about a [slash command](https://developers.google.com/workspace/chat/commands) in Google Chat.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SlashCommand {
+    /// The ID of the slash command.
+    #[serde(default, rename = "commandId")]
+    pub command_id: ::core::option::Option<String>,
+}
+
+/// A space in Google Chat. Spaces are conversations between two or more users or 1:1 messages between a user and a Chat app.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Space {
+    /// Optional. Specifies the [access setting](https://support.google.com/chat/answer/11971020) of the space. Only populated when the space_type is SPACE.
+    #[serde(default, rename = "accessSettings")]
+    pub access_settings: ::core::option::Option<AccessSettings>,
+    /// Output only. For direct message (DM) spaces with a Chat app, whether the space was created by a Google Workspace administrator. Administrators can install and set up a direct message with a Chat app on behalf of users in their organization. To support admin install, your Chat app must feature direct messaging.
+    #[serde(default, rename = "adminInstalled")]
+    pub admin_installed: ::core::option::Option<bool>,
+    /// Optional. Immutable. For spaces created in Chat, the time the space was created. This field is output only, except when used in import mode spaces. For import mode spaces, set this field to the historical timestamp at which the space was created in the source in order to preserve the original creation time. Only populated in the output when spaceType is GROUP_CHAT or SPACE.
+    #[serde(default, rename = "createTime")]
+    pub create_time: ::core::option::Option<String>,
+    /// Optional. Immutable. The customer id of the domain of the space. Required only when creating a space with [app authentication](https://developers.google.com/workspace/chat/authenticate-authorize-chat-app) and SpaceType is SPACE, otherwise should not be set. In the format customers/{customer}, where customer is the id from the [Admin SDK customer resource](https://developers.google.com/admin-sdk/directory/reference/rest/v1/customers). Private apps can also use the customers/my_customer alias to create the space in the same Google Workspace organization as the app. This field isn''t populated for direct messages (DMs) or when the space is created by non-Google Workspace users.
+    #[serde(default)]
+    pub customer: ::core::option::Option<String>,
+    /// Optional. The space''s display name. Required when [creating a space](https://developers.google.com/workspace/chat/api/reference/rest/v1/spaces/create) with a spaceType of SPACE. If you receive the error message ALREADY_EXISTS when creating a space or updating the displayName, try a different displayName. An existing space within the Google Workspace organization might already use this display name. For direct messages, this field might be empty. Supports up to 128 characters.
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+    /// Optional. Immutable. Whether this space permits any Google Chat user as a member. Input when creating a space in a Google Workspace organization. Omit this field when creating spaces in the following conditions: * The authenticated user uses a consumer account (unmanaged user account). By default, a space created by a consumer account permits any Google Chat user. For existing spaces, this field is output only.
+    #[serde(default, rename = "externalUserAllowed")]
+    pub external_user_allowed: ::core::option::Option<bool>,
+    /// Optional. Whether this space is created in Import Mode as part of a data migration into Google Workspace. While spaces are being imported, they aren''t visible to users until the import is complete. Creating a space in Import Moderequires [user authentication](https://developers.google.com/workspace/chat/authenticate-authorize-chat-user).
+    #[serde(default, rename = "importMode")]
+    pub import_mode: ::core::option::Option<bool>,
+    /// Output only. The time when the space will be automatically deleted by the system if it remains in import mode. Each space created in import mode must exit this mode before this expire time using spaces.completeImport. This field is only populated for spaces that were created with import mode.
+    #[serde(default, rename = "importModeExpireTime")]
+    pub import_mode_expire_time: ::core::option::Option<String>,
+    /// Output only. Timestamp of the last message in the space.
+    #[serde(default, rename = "lastActiveTime")]
+    pub last_active_time: ::core::option::Option<String>,
+    /// Output only. The count of joined memberships grouped by member type. Populated when the space_type is SPACE, DIRECT_MESSAGE or GROUP_CHAT.
+    #[serde(default, rename = "membershipCount")]
+    pub membership_count: ::core::option::Option<MembershipCount>,
+    /// Identifier. Resource name of the space. Format: spaces/{space} Where {space} represents the system-assigned ID for the space. You can obtain the space ID by calling the [spaces.list()](https://developers.google.com/workspace/chat/api/reference/rest/v1/spaces/list) method or from the space URL. For example, if the space URL is https://mail.google.com/mail/u/0/#chat/space/AAAAAAAAA, the space ID is AAAAAAAAA.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Optional. Space permission settings for existing spaces. Input for updating exact space permission settings, where existing permission settings are replaced. Output lists current permission settings. Reading and updating permission settings supports: - [App authentication](https://developers.google.com/workspace/chat/authenticate-authorize-chat-app) with [administrator approval](https://support.google.com/a?p=chat-app-auth) with the chat.app.spaces scope. Only populated and settable when the Chat app created the space. - [User authentication](https://developers.google.com/workspace/chat/authenticate-authorize-chat-user)
+    #[serde(default, rename = "permissionSettings")]
+    pub permission_settings: ::core::option::Option<PermissionSettings>,
+    /// Optional. Input only. Predefined space permission settings, input only when creating a space. If the field is not set, a collaboration space is created. After you create the space, settings are populated in the PermissionSettings field. Setting predefined permission settings supports: - [App authentication](https://developers.google.com/workspace/chat/authenticate-authorize-chat-app) with [administrator approval](https://support.google.com/a?p=chat-app-auth) with the chat.app.spaces or chat.app.spaces.create scopes. - [User authentication](https://developers.google.com/workspace/chat/authenticate-authorize-chat-user) // TODO: enum values: ["PREDEFINED_PERMISSION_SETTINGS_UNSPECIFIED", "COLLABORATION_SPACE", "ANNOUNCEMENT_SPACE"]
+    #[serde(default, rename = "predefinedPermissionSettings")]
+    pub predefined_permission_settings: ::core::option::Option<String>,
+    /// Optional. Whether the space is a DM between a Chat app and a single human.
+    #[serde(default, rename = "singleUserBotDm")]
+    pub single_user_bot_dm: ::core::option::Option<bool>,
+    /// Optional. Details about the space including description and rules.
+    #[serde(default, rename = "spaceDetails")]
+    pub space_details: ::core::option::Option<SpaceDetails>,
+    /// Optional. The message history state for messages and threads in this space. // TODO: enum values: ["HISTORY_STATE_UNSPECIFIED", "HISTORY_OFF", "HISTORY_ON"]
+    #[serde(default, rename = "spaceHistoryState")]
+    pub space_history_state: ::core::option::Option<String>,
+    /// Output only. The threading state in the Chat space. // TODO: enum values: ["SPACE_THREADING_STATE_UNSPECIFIED", "THREADED_MESSAGES", "GROUPED_MESSAGES", "UNTHREADED_MESSAGES"]
+    #[serde(default, rename = "spaceThreadingState")]
+    pub space_threading_state: ::core::option::Option<String>,
+    /// Optional. The type of space. Required when creating a space or updating the space type of a space. Output only for other usage. // TODO: enum values: ["SPACE_TYPE_UNSPECIFIED", "SPACE", "GROUP_CHAT", "DIRECT_MESSAGE"]
+    #[serde(default, rename = "spaceType")]
+    pub space_type: ::core::option::Option<String>,
+    /// Output only. The URI for a user to access the space.
+    #[serde(default, rename = "spaceUri")]
+    pub space_uri: ::core::option::Option<String>,
+    /// Output only. Deprecated: Use spaceThreadingState instead. Whether messages are threaded in this space.
+    #[serde(default)]
+    pub threaded: ::core::option::Option<bool>,
+    /// Output only. Deprecated: Use space_type instead. The type of a space. // TODO: enum values: ["TYPE_UNSPECIFIED", "ROOM", "DM"]
+    #[serde(default, rename = "type")]
+    pub type_: ::core::option::Option<String>,
+}
+
+/// A thread in a Google Chat space. For example usage, see [Start or reply to a message thread](https://developers.google.com/workspace/chat/create-messages#create-message-thread). If you specify a thread when creating a message, you can set the [messageReplyOption](https://developers.google.com/workspace/chat/api/reference/rest/v1/spaces.messages/create#messagereplyoption) field to determine what happens if no matching thread is found.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Thread {
+    /// Identifier. Resource name of the thread. Example: spaces/{space}/threads/{thread}
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Optional. Input for creating or updating a thread. Otherwise, output only. ID for the thread. Supports up to 4000 characters. This ID is unique to the Chat app that sets it. For example, if multiple Chat apps create a message using the same thread key, the messages are posted in different threads. To reply in a thread created by a person or another Chat app, specify the thread name field instead.
+    #[serde(default, rename = "threadKey")]
+    pub thread_key: ::core::option::Option<String>,
+}
+
+/// Contains a [dialog](https://developers.google.com/workspace/chat/dialogs) and request status code.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DialogAction {
+    /// Input only. Status for a request to either invoke or submit a [dialog](https://developers.google.com/workspace/chat/dialogs). Displays a status and message to users, if necessary. For example, in case of an error or success.
+    #[serde(default, rename = "actionStatus")]
+    pub action_status: ::core::option::Option<ActionStatus>,
+    /// Input only. [Dialog](https://developers.google.com/workspace/chat/dialogs) for the request.
+    #[serde(default)]
+    pub dialog: ::core::option::Option<Dialog>,
+}
+
+/// For selectionInput widgets, returns autocomplete suggestions for a multiselect menu.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct UpdatedWidget {
+    /// List of widget autocomplete results
+    #[serde(default)]
+    pub suggestions: ::core::option::Option<SelectionItems>,
+    /// The ID of the updated widget. The ID must match the one for the widget that triggered the update request.
+    #[serde(default)]
+    pub widget: ::core::option::Option<String>,
+}
+
+/// A card action is the action associated with the card. For an invoice card, a typical action would be: delete invoice, email invoice or open the invoice in browser. Not supported by Google Chat apps.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CardAction {
+    /// The label used to be displayed in the action menu item.
+    #[serde(default, rename = "actionLabel")]
+    pub action_label: ::core::option::Option<String>,
+    /// The onclick action for this action item.
+    #[serde(default, rename = "onClick")]
+    pub on_click: ::core::option::Option<OnClick>,
+}
+
+/// CardHeader resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CardHeader {
+    /// The image''s type (for example, square border or circular border). // TODO: enum values: ["IMAGE_STYLE_UNSPECIFIED", "IMAGE", "AVATAR"]
+    #[serde(default, rename = "imageStyle")]
+    pub image_style: ::core::option::Option<String>,
+    /// The URL of the image in the card header.
+    #[serde(default, rename = "imageUrl")]
+    pub image_url: ::core::option::Option<String>,
+    /// The subtitle of the card header.
+    #[serde(default)]
+    pub subtitle: ::core::option::Option<String>,
+    /// The title must be specified. The header has a fixed height: if both a title and subtitle is specified, each takes up one line. If only the title is specified, it takes up both lines.
+    #[serde(default)]
+    pub title: ::core::option::Option<String>,
+}
+
+/// A section contains a collection of widgets that are rendered (vertically) in the order that they are specified. Across all platforms, cards have a narrow fixed width, so there''s currently no need for layout properties (for example, float).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Section {
+    /// The header of the section. Formatted text is supported. For more information about formatting text, see [Formatting text in Google Chat apps](https://developers.google.com/workspace/chat/format-messages#card-formatting) and [Formatting text in Google Workspace Add-ons](https://developers.google.com/apps-script/add-ons/concepts/widgets#text_formatting).
+    #[serde(default)]
+    pub header: ::core::option::Option<String>,
+    /// A section must contain at least one widget.
+    #[serde(default)]
+    pub widgets: ::core::option::Option<::std::vec::Vec<WidgetMarkup>>,
+}
+
+/// An emoji that is used as a reaction to a message.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Emoji {
+    /// A custom emoji.
+    #[serde(default, rename = "customEmoji")]
+    pub custom_emoji: ::core::option::Option<CustomEmoji>,
+    /// Optional. A basic emoji represented by a unicode string.
+    #[serde(default)]
+    pub unicode: ::core::option::Option<String>,
 }
 
 /// Metadata about the source space from which a message was forwarded.
@@ -514,6 +1060,538 @@ pub struct ForwardedMetadata {
     /// Output only. The display name of the source space or DM at the time of forwarding. For SPACE, this is the space name. For DIRECT_MESSAGE, this is the other participant''s name (e.g., "User A"). For GROUP_CHAT, this is a generated name based on members'' first names, limited to 5 including the creator (e.g., "User A, User B").
     #[serde(default, rename = "spaceDisplayName")]
     pub space_display_name: ::core::option::Option<String>,
+}
+
+/// Provides a snapshot of the content of the quoted message at the time of quoting or forwarding
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct QuotedMessageSnapshot {
+    /// Output only. Annotations parsed from the text body of the quoted message. Populated only for FORWARD quote type.
+    #[serde(default)]
+    pub annotations: ::core::option::Option<::std::vec::Vec<Annotation>>,
+    /// Output only. Attachments that were part of the quoted message. These are copies of the quoted message''s attachment metadata. Populated only for FORWARD quote type.
+    #[serde(default)]
+    pub attachments: ::core::option::Option<::std::vec::Vec<Attachment>>,
+    /// Output only. Contains the quoted message text with markups added to support rich formatting like hyperlinks,custom emojis, markup, etc. Populated only for FORWARD quote type.
+    #[serde(default, rename = "formattedText")]
+    pub formatted_text: ::core::option::Option<String>,
+    /// Output only. The quoted message''s author name. Populated for both REPLY & FORWARD quote types.
+    #[serde(default)]
+    pub sender: ::core::option::Option<String>,
+    /// Output only. Snapshot of the quoted message''s text content.
+    #[serde(default)]
+    pub text: ::core::option::Option<String>,
+}
+
+/// Represents the [access setting](https://support.google.com/chat/answer/11971020) of the space.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AccessSettings {
+    /// Output only. Indicates the access state of the space. // TODO: enum values: ["ACCESS_STATE_UNSPECIFIED", "PRIVATE", "DISCOVERABLE"]
+    #[serde(default, rename = "accessState")]
+    pub access_state: ::core::option::Option<String>,
+    /// Optional. The resource name of the [target audience](https://support.google.com/a/answer/9934697) who can discover the space, join the space, and preview the messages in the space. If unset, only users or Google Groups who have been individually invited or added to the space can access it. For details, see [Make a space discoverable to a target audience](https://developers.google.com/workspace/chat/space-target-audience). Format: audiences/{audience} To use the default target audience for the Google Workspace organization, set to audiences/default. Reading the target audience supports: - [User authentication](https://developers.google.com/workspace/chat/authenticate-authorize-chat-user) - [App authentication](https://developers.google.com/workspace/chat/authenticate-authorize-chat-app) with [administrator approval](https://support.google.com/a?p=chat-app-auth) with the chat.app.spaces scope. This field is not populated when using the chat.bot scope with [app authentication](https://developers.google.com/workspace/chat/authenticate-authorize-chat-app). Setting the target audience requires [user authentication](https://developers.google.com/workspace/chat/authenticate-authorize-chat-user).
+    #[serde(default)]
+    pub audience: ::core::option::Option<String>,
+}
+
+/// Represents the count of memberships of a space, grouped into categories.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MembershipCount {
+    /// Output only. Count of human users that have directly joined the space, not counting users joined by having membership in a joined group.
+    #[serde(default, rename = "joinedDirectHumanUserCount")]
+    pub joined_direct_human_user_count: ::core::option::Option<i32>,
+    /// Output only. Count of all groups that have directly joined the space.
+    #[serde(default, rename = "joinedGroupCount")]
+    pub joined_group_count: ::core::option::Option<i32>,
+}
+
+/// [Permission settings](https://support.google.com/chat/answer/13340792) that you can specify when updating an existing named space. To set permission settings when creating a space, specify the PredefinedPermissionSettings field in your request.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PermissionSettings {
+    /// Optional. Setting for managing apps in a space.
+    #[serde(default, rename = "manageApps")]
+    pub manage_apps: ::core::option::Option<PermissionSetting>,
+    /// Optional. Setting for managing members and groups in a space.
+    #[serde(default, rename = "manageMembersAndGroups")]
+    pub manage_members_and_groups: ::core::option::Option<PermissionSetting>,
+    /// Optional. Setting for managing webhooks in a space.
+    #[serde(default, rename = "manageWebhooks")]
+    pub manage_webhooks: ::core::option::Option<PermissionSetting>,
+    /// Optional. Setting for updating space name, avatar, description and guidelines.
+    #[serde(default, rename = "modifySpaceDetails")]
+    pub modify_space_details: ::core::option::Option<PermissionSetting>,
+    /// Output only. Setting for posting messages in a space.
+    #[serde(default, rename = "postMessages")]
+    pub post_messages: ::core::option::Option<PermissionSetting>,
+    /// Optional. Setting for replying to messages in a space.
+    #[serde(default, rename = "replyMessages")]
+    pub reply_messages: ::core::option::Option<PermissionSetting>,
+    /// Optional. Setting for toggling space history on and off.
+    #[serde(default, rename = "toggleHistory")]
+    pub toggle_history: ::core::option::Option<PermissionSetting>,
+    /// Optional. Setting for using @all in a space.
+    #[serde(default, rename = "useAtMentionAll")]
+    pub use_at_mention_all: ::core::option::Option<PermissionSetting>,
+}
+
+/// Details about the space including description and rules.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SpaceDetails {
+    /// Optional. A description of the space. For example, describe the space''s discussion topic, functional purpose, or participants. Supports up to 150 characters.
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+    /// Optional. The space''s rules, expectations, and etiquette. Supports up to 5,000 characters.
+    #[serde(default)]
+    pub guidelines: ::core::option::Option<String>,
+}
+
+/// Represents the status for a request to either invoke or submit a [dialog](https://developers.google.com/workspace/chat/dialogs).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ActionStatus {
+    /// The status code. // TODO: enum values: ["OK", "CANCELLED", "UNKNOWN", "INVALID_ARGUMENT", "DEADLINE_EXCEEDED", "NOT_FOUND", "ALREADY_EXISTS", "PERMISSION_DENIED", "UNAUTHENTICATED", "RESOURCE_EXHAUSTED", "FAILED_PRECONDITION", "ABORTED", "OUT_OF_RANGE", "UNIMPLEMENTED", "INTERNAL", "UNAVAILABLE", "DATA_LOSS"]
+    #[serde(default, rename = "statusCode")]
+    pub status_code: ::core::option::Option<String>,
+    /// The message to send users about the status of their request. If unset, a generic message based on the status_code is sent.
+    #[serde(default, rename = "userFacingMessage")]
+    pub user_facing_message: ::core::option::Option<String>,
+}
+
+/// Wrapper around the card body of the dialog.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Dialog {
+    /// Input only. Body of the dialog, which is rendered in a modal. Google Chat apps don''t support the following card entities: DateTimePicker, OnChangeAction.
+    #[serde(default)]
+    pub body: ::core::option::Option<GoogleAppsCardV1Card>,
+}
+
+/// List of widget autocomplete results.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SelectionItems {
+    /// An array of the SelectionItem objects.
+    #[serde(default)]
+    pub items: ::core::option::Option<::std::vec::Vec<GoogleAppsCardV1SelectionItem>>,
+}
+
+/// A widget is a UI element that presents text and images.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct WidgetMarkup {
+    /// A list of buttons. Buttons is also oneof data and only one of these fields should be set.
+    #[serde(default)]
+    pub buttons: ::core::option::Option<::std::vec::Vec<Button>>,
+    /// Display an image in this widget.
+    #[serde(default)]
+    pub image: ::core::option::Option<Image>,
+    /// Display a key value item in this widget.
+    #[serde(default, rename = "keyValue")]
+    pub key_value: ::core::option::Option<KeyValue>,
+    /// Display a text paragraph in this widget.
+    #[serde(default, rename = "textParagraph")]
+    pub text_paragraph: ::core::option::Option<TextParagraph>,
+}
+
+/// Output only. Annotations can be associated with the plain-text body of the message or with chips that link to Google Workspace resources like Google Docs or Sheets with start_index and length of 0. To add basic formatting to a text message, see [Format text messages](https://developers.google.com/workspace/chat/format-messages). Example plain-text message body:  Hello @FooBot how are you!"  The corresponding annotations metadata:  "annotations":[{ "type":"USER_MENTION", "startIndex":6, "length":7, "userMention": { "user": { "name":"users/{user}", "displayName":"FooBot", "avatarUrl":"https://goo.gl/aeDtrS", "type":"BOT" }, "type":"MENTION" } }]
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Annotation {
+    /// The metadata for a custom emoji.
+    #[serde(default, rename = "customEmojiMetadata")]
+    pub custom_emoji_metadata: ::core::option::Option<CustomEmojiMetadata>,
+    /// Length of the substring in the plain-text message body this annotation corresponds to. If not present, indicates a length of 0.
+    #[serde(default)]
+    pub length: ::core::option::Option<i32>,
+    /// The metadata for a rich link.
+    #[serde(default, rename = "richLinkMetadata")]
+    pub rich_link_metadata: ::core::option::Option<RichLinkMetadata>,
+    /// The metadata for a slash command.
+    #[serde(default, rename = "slashCommand")]
+    pub slash_command: ::core::option::Option<SlashCommandMetadata>,
+    /// Start index (0-based, inclusive) in the plain-text message body this annotation corresponds to.
+    #[serde(default, rename = "startIndex")]
+    pub start_index: ::core::option::Option<i32>,
+    /// The type of this annotation. // TODO: enum values: ["ANNOTATION_TYPE_UNSPECIFIED", "USER_MENTION", "SLASH_COMMAND", "RICH_LINK", "CUSTOM_EMOJI"]
+    #[serde(default, rename = "type")]
+    pub type_: ::core::option::Option<String>,
+    /// The metadata of user mention.
+    #[serde(default, rename = "userMention")]
+    pub user_mention: ::core::option::Option<UserMentionMetadata>,
+}
+
+/// An attachment in Google Chat.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Attachment {
+    /// Optional. A reference to the attachment data. This field is used to create or update messages with attachments, or with the media API to download the attachment data.
+    #[serde(default, rename = "attachmentDataRef")]
+    pub attachment_data_ref: ::core::option::Option<AttachmentDataRef>,
+    /// Output only. The original file name for the content, not the full path.
+    #[serde(default, rename = "contentName")]
+    pub content_name: ::core::option::Option<String>,
+    /// Output only. The content type (MIME type) of the file.
+    #[serde(default, rename = "contentType")]
+    pub content_type: ::core::option::Option<String>,
+    /// Output only. The download URL which should be used to allow a human user to download the attachment. Chat apps shouldn''t use this URL to download attachment content.
+    #[serde(default, rename = "downloadUri")]
+    pub download_uri: ::core::option::Option<String>,
+    /// Output only. A reference to the Google Drive attachment. This field is used with the Google Drive API.
+    #[serde(default, rename = "driveDataRef")]
+    pub drive_data_ref: ::core::option::Option<DriveDataRef>,
+    /// Identifier. Resource name of the attachment. Format: spaces/{space}/messages/{message}/attachments/{attachment}.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Output only. The source of the attachment. // TODO: enum values: ["SOURCE_UNSPECIFIED", "DRIVE_FILE", "UPLOADED_CONTENT"]
+    #[serde(default)]
+    pub source: ::core::option::Option<String>,
+    /// Output only. The thumbnail URL which should be used to preview the attachment to a human user. Chat apps shouldn''t use this URL to download attachment content.
+    #[serde(default, rename = "thumbnailUri")]
+    pub thumbnail_uri: ::core::option::Option<String>,
+}
+
+/// Represents a space permission setting.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PermissionSetting {
+    /// Optional. Whether space managers ROLE_ASSISTANT_MANAGER) have this permission.
+    #[serde(default, rename = "assistantManagersAllowed")]
+    pub assistant_managers_allowed: ::core::option::Option<bool>,
+    /// Optional. Whether space owners (ROLE_MANAGER) have this permission.
+    #[serde(default, rename = "managersAllowed")]
+    pub managers_allowed: ::core::option::Option<bool>,
+    /// Optional. Whether basic space members (ROLE_MEMBER) have this permission.
+    #[serde(default, rename = "membersAllowed")]
+    pub members_allowed: ::core::option::Option<bool>,
+}
+
+/// An image that''s specified by a URL and can have an onclick action.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Image {
+    /// The aspect ratio of this image (width and height). This field lets you reserve the right height for the image while waiting for it to load. It''s not meant to override the built-in aspect ratio of the image. If unset, the server fills it by prefetching the image.
+    #[serde(default, rename = "aspectRatio")]
+    pub aspect_ratio: ::core::option::Option<f64>,
+    /// The URL of the image.
+    #[serde(default, rename = "imageUrl")]
+    pub image_url: ::core::option::Option<String>,
+    /// The onclick action.
+    #[serde(default, rename = "onClick")]
+    pub on_click: ::core::option::Option<OnClick>,
+}
+
+/// A UI element contains a key (label) and a value (content). This element can also contain some actions such as onclick button.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct KeyValue {
+    /// The text of the bottom label. Formatted text supported. For more information about formatting text, see [Formatting text in Google Chat apps](https://developers.google.com/workspace/chat/format-messages#card-formatting) and [Formatting text in Google Workspace Add-ons](https://developers.google.com/apps-script/add-ons/concepts/widgets#text_formatting).
+    #[serde(default, rename = "bottomLabel")]
+    pub bottom_label: ::core::option::Option<String>,
+    /// A button that can be clicked to trigger an action.
+    #[serde(default)]
+    pub button: ::core::option::Option<Button>,
+    /// The text of the content. Formatted text supported and always required. For more information about formatting text, see [Formatting text in Google Chat apps](https://developers.google.com/workspace/chat/format-messages#card-formatting) and [Formatting text in Google Workspace Add-ons](https://developers.google.com/apps-script/add-ons/concepts/widgets#text_formatting).
+    #[serde(default)]
+    pub content: ::core::option::Option<String>,
+    /// If the content should be multiline.
+    #[serde(default, rename = "contentMultiline")]
+    pub content_multiline: ::core::option::Option<bool>,
+    /// An enum value that''s replaced by the Chat API with the corresponding icon image. // TODO: enum values: ["ICON_UNSPECIFIED", "AIRPLANE", "BOOKMARK", "BUS", "CAR", "CLOCK", "CONFIRMATION_NUMBER_ICON", "DOLLAR", "DESCRIPTION", "EMAIL", "EVENT_PERFORMER", "EVENT_SEAT", "FLIGHT_ARRIVAL", "FLIGHT_DEPARTURE", "HOTEL", "HOTEL_ROOM_TYPE", "INVITE", "MAP_PIN", "MEMBERSHIP", "MULTIPLE_PEOPLE", "OFFER", "PERSON", "PHONE", "RESTAURANT_ICON", "SHOPPING_CART", "STAR", "STORE", "TICKET", "TRAIN", "VIDEO_CAMERA", "VIDEO_PLAY"]
+    #[serde(default)]
+    pub icon: ::core::option::Option<String>,
+    /// The icon specified by a URL.
+    #[serde(default, rename = "iconUrl")]
+    pub icon_url: ::core::option::Option<String>,
+    /// The onclick action. Only the top label, bottom label, and content region are clickable.
+    #[serde(default, rename = "onClick")]
+    pub on_click: ::core::option::Option<OnClick>,
+    /// The text of the top label. Formatted text supported. For more information about formatting text, see [Formatting text in Google Chat apps](https://developers.google.com/workspace/chat/format-messages#card-formatting) and [Formatting text in Google Workspace Add-ons](https://developers.google.com/apps-script/add-ons/concepts/widgets#text_formatting).
+    #[serde(default, rename = "topLabel")]
+    pub top_label: ::core::option::Option<String>,
+}
+
+/// A paragraph of text. Formatted text supported. For more information about formatting text, see [Formatting text in Google Chat apps](https://developers.google.com/workspace/chat/format-messages#card-formatting) and [Formatting text in Google Workspace Add-ons](https://developers.google.com/apps-script/add-ons/concepts/widgets#text_formatting).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TextParagraph {
+    #[serde(default)]
+    pub text: ::core::option::Option<String>,
+}
+
+/// Annotation metadata for custom emoji.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CustomEmojiMetadata {
+    /// The custom emoji.
+    #[serde(default, rename = "customEmoji")]
+    pub custom_emoji: ::core::option::Option<CustomEmoji>,
+}
+
+/// A rich link to a resource. Rich links can be associated with the plain-text body of the message or represent chips that link to Google Workspace resources like Google Docs or Sheets with start_index and length of 0.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RichLinkMetadata {
+    /// Data for a Calendar event link.
+    #[serde(default, rename = "calendarEventLinkData")]
+    pub calendar_event_link_data: ::core::option::Option<CalendarEventLinkData>,
+    /// Data for a chat space link.
+    #[serde(default, rename = "chatSpaceLinkData")]
+    pub chat_space_link_data: ::core::option::Option<ChatSpaceLinkData>,
+    /// Data for a drive link.
+    #[serde(default, rename = "driveLinkData")]
+    pub drive_link_data: ::core::option::Option<DriveLinkData>,
+    /// Data for a Meet space link.
+    #[serde(default, rename = "meetSpaceLinkData")]
+    pub meet_space_link_data: ::core::option::Option<MeetSpaceLinkData>,
+    /// The rich link type. // TODO: enum values: ["RICH_LINK_TYPE_UNSPECIFIED", "DRIVE_FILE", "CHAT_SPACE", "GMAIL_MESSAGE", "MEET_SPACE", "CALENDAR_EVENT"]
+    #[serde(default, rename = "richLinkType")]
+    pub rich_link_type: ::core::option::Option<String>,
+    /// The URI of this link.
+    #[serde(default)]
+    pub uri: ::core::option::Option<String>,
+}
+
+/// Annotation metadata for slash commands (/).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SlashCommandMetadata {
+    /// The Chat app whose command was invoked.
+    #[serde(default)]
+    pub bot: ::core::option::Option<User>,
+    /// The command ID of the invoked slash command.
+    #[serde(default, rename = "commandId")]
+    pub command_id: ::core::option::Option<String>,
+    /// The name of the invoked slash command.
+    #[serde(default, rename = "commandName")]
+    pub command_name: ::core::option::Option<String>,
+    /// Indicates whether the slash command is for a dialog.
+    #[serde(default, rename = "triggersDialog")]
+    pub triggers_dialog: ::core::option::Option<bool>,
+    /// The type of slash command. // TODO: enum values: ["TYPE_UNSPECIFIED", "ADD", "INVOKE"]
+    #[serde(default, rename = "type")]
+    pub type_: ::core::option::Option<String>,
+}
+
+/// Annotation metadata for user mentions (@).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct UserMentionMetadata {
+    /// The type of user mention. // TODO: enum values: ["TYPE_UNSPECIFIED", "ADD", "MENTION"]
+    #[serde(default, rename = "type")]
+    pub type_: ::core::option::Option<String>,
+    /// The user mentioned.
+    #[serde(default)]
+    pub user: ::core::option::Option<User>,
+}
+
+/// A reference to the attachment data.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AttachmentDataRef {
+    /// Optional. Opaque token containing a reference to an uploaded attachment. Treated by clients as an opaque string and used to create or update Chat messages with attachments.
+    #[serde(default, rename = "attachmentUploadToken")]
+    pub attachment_upload_token: ::core::option::Option<String>,
+    /// Optional. The resource name of the attachment data. This field is used with the media API to download the attachment data.
+    #[serde(default, rename = "resourceName")]
+    pub resource_name: ::core::option::Option<String>,
+}
+
+/// A button. Can be a text button or an image button.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Button {
+    /// A button with image and onclick action.
+    #[serde(default, rename = "imageButton")]
+    pub image_button: ::core::option::Option<ImageButton>,
+    /// A button with text and onclick action.
+    #[serde(default, rename = "textButton")]
+    pub text_button: ::core::option::Option<TextButton>,
+}
+
+/// Represents a [custom emoji](https://support.google.com/chat/answer/12800149).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CustomEmoji {
+    /// Optional. Immutable. User-provided name for the custom emoji, which is unique within the organization. Required when the custom emoji is created, output only otherwise. Emoji names must start and end with colons, must be lowercase and can only contain alphanumeric characters, hyphens, and underscores. Hyphens and underscores should be used to separate words and cannot be used consecutively. Example: :valid-emoji-name:
+    #[serde(default, rename = "emojiName")]
+    pub emoji_name: ::core::option::Option<String>,
+    /// Identifier. The resource name of the custom emoji, assigned by the server. Format: customEmojis/{customEmoji}
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Optional. Input only. Payload data. Required when the custom emoji is created.
+    #[serde(default)]
+    pub payload: ::core::option::Option<CustomEmojiPayload>,
+    /// Output only. A temporary image URL for the custom emoji, valid for at least 10 minutes. Note that this is not populated in the response when the custom emoji is created.
+    #[serde(default, rename = "temporaryImageUri")]
+    pub temporary_image_uri: ::core::option::Option<String>,
+    /// Output only. Unique key for the custom emoji resource.
+    #[serde(default)]
+    pub uid: ::core::option::Option<String>,
+}
+
+/// Data for Calendar event links.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CalendarEventLinkData {
+    /// The [Calendar identifier](https://developers.google.com/workspace/calendar/api/v3/reference/calendars) of the linked Calendar.
+    #[serde(default, rename = "calendarId")]
+    pub calendar_id: ::core::option::Option<String>,
+    /// The [Event identifier](https://developers.google.com/workspace/calendar/api/v3/reference/events) of the linked Calendar event.
+    #[serde(default, rename = "eventId")]
+    pub event_id: ::core::option::Option<String>,
+}
+
+/// Data for Chat space links.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ChatSpaceLinkData {
+    /// The message of the linked Chat space resource. Format: spaces/{space}/messages/{message}
+    #[serde(default)]
+    pub message: ::core::option::Option<String>,
+    /// The space of the linked Chat space resource. Format: spaces/{space}
+    #[serde(default)]
+    pub space: ::core::option::Option<String>,
+    /// The thread of the linked Chat space resource. Format: spaces/{space}/threads/{thread}
+    #[serde(default)]
+    pub thread: ::core::option::Option<String>,
+}
+
+/// Data for Google Drive links.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DriveLinkData {
+    /// A [DriveDataRef](https://developers.google.com/workspace/chat/api/reference/rest/v1/spaces.messages.attachments#drivedataref) which references a Google Drive file.
+    #[serde(default, rename = "driveDataRef")]
+    pub drive_data_ref: ::core::option::Option<DriveDataRef>,
+    /// The mime type of the linked Google Drive resource.
+    #[serde(default, rename = "mimeType")]
+    pub mime_type: ::core::option::Option<String>,
+}
+
+/// Data for Meet space links.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MeetSpaceLinkData {
+    /// Optional. Output only. If the Meet is a Huddle, indicates the status of the huddle. Otherwise, this is unset. // TODO: enum values: ["HUDDLE_STATUS_UNSPECIFIED", "STARTED", "ENDED", "MISSED"]
+    #[serde(default, rename = "huddleStatus")]
+    pub huddle_status: ::core::option::Option<String>,
+    /// Meeting code of the linked Meet space.
+    #[serde(default, rename = "meetingCode")]
+    pub meeting_code: ::core::option::Option<String>,
+    /// Indicates the type of the Meet space. // TODO: enum values: ["TYPE_UNSPECIFIED", "MEETING", "HUDDLE"]
+    #[serde(default, rename = "type")]
+    pub type_: ::core::option::Option<String>,
+}
+
+/// A user in Google Chat. When returned as an output from a request, if your Chat app [authenticates as a user](https://developers.google.com/workspace/chat/authenticate-authorize-chat-user), the output for a User resource only populates the user''s name and type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct User {
+    /// Output only. The user''s display name.
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+    /// Unique identifier of the user''s Google Workspace domain.
+    #[serde(default, rename = "domainId")]
+    pub domain_id: ::core::option::Option<String>,
+    /// Output only. When true, the user is deleted or their profile is not visible.
+    #[serde(default, rename = "isAnonymous")]
+    pub is_anonymous: ::core::option::Option<bool>,
+    /// Resource name for a Google Chat user. Format: users/{user}. users/app can be used as an alias for the calling app bot user. For human users, {user} is the same user identifier as: - the id for the [Person](https://developers.google.com/people/api/rest/v1/people) in the People API. For example, users/123456789 in Chat API represents the same person as the 123456789 Person profile ID in People API. - the id for a [user](https://developers.google.com/admin-sdk/directory/reference/rest/v1/users) in the Admin SDK Directory API. - the user''s email address can be used as an alias for {user} in API requests. For example, if the People API Person profile ID for user@example.com is 123456789, you can use users/user@example.com as an alias to reference users/123456789. Only the canonical resource name (for example users/123456789) will be returned from the API.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// User type. // TODO: enum values: ["TYPE_UNSPECIFIED", "HUMAN", "BOT"]
+    #[serde(default, rename = "type")]
+    pub type_: ::core::option::Option<String>,
+}
+
+/// An image button with an onclick action.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ImageButton {
+    /// The icon specified by an enum that indices to an icon provided by Chat API. // TODO: enum values: ["ICON_UNSPECIFIED", "AIRPLANE", "BOOKMARK", "BUS", "CAR", "CLOCK", "CONFIRMATION_NUMBER_ICON", "DOLLAR", "DESCRIPTION", "EMAIL", "EVENT_PERFORMER", "EVENT_SEAT", "FLIGHT_ARRIVAL", "FLIGHT_DEPARTURE", "HOTEL", "HOTEL_ROOM_TYPE", "INVITE", "MAP_PIN", "MEMBERSHIP", "MULTIPLE_PEOPLE", "OFFER", "PERSON", "PHONE", "RESTAURANT_ICON", "SHOPPING_CART", "STAR", "STORE", "TICKET", "TRAIN", "VIDEO_CAMERA", "VIDEO_PLAY"]
+    #[serde(default)]
+    pub icon: ::core::option::Option<String>,
+    /// The icon specified by a URL.
+    #[serde(default, rename = "iconUrl")]
+    pub icon_url: ::core::option::Option<String>,
+    /// The name of this image_button that''s used for accessibility. Default value is provided if this name isn''t specified.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// The onclick action.
+    #[serde(default, rename = "onClick")]
+    pub on_click: ::core::option::Option<OnClick>,
+}
+
+/// A button with text and onclick action.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TextButton {
+    /// The onclick action of the button.
+    #[serde(default, rename = "onClick")]
+    pub on_click: ::core::option::Option<OnClick>,
+    /// The text of the button.
+    #[serde(default)]
+    pub text: ::core::option::Option<String>,
+}
+
+/// Payload data for the custom emoji.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CustomEmojiPayload {
+    /// Required. Input only. The image used for the custom emoji. The payload must be under 256 KB and the dimension of the image must be square and between 64 and 500 pixels. The restrictions are subject to change.
+    #[serde(default, rename = "fileContent")]
+    pub file_content: ::core::option::Option<String>,
+    /// Required. Input only. The image file name. Supported file extensions: .png, .jpg, .gif.
+    #[serde(default)]
+    pub filename: ::core::option::Option<String>,
+}
+
+/// A reference to the data of a drive attachment.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DriveDataRef {
+    /// The ID for the drive file. Use with the Drive API.
+    #[serde(default, rename = "driveFileId")]
+    pub drive_file_id: ::core::option::Option<String>,
+}
+
+/// An onclick action (for example, open a link).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct OnClick {
+    /// A form action is triggered by this onclick action if specified.
+    #[serde(default)]
+    pub action: ::core::option::Option<FormAction>,
+    /// This onclick action triggers an open link action if specified.
+    #[serde(default, rename = "openLink")]
+    pub open_link: ::core::option::Option<OpenLink>,
+}
+
+/// A form action describes the behavior when the form is submitted. For example, you can invoke Apps Script to handle the form.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct FormAction {
+    /// The method name is used to identify which part of the form triggered the form submission. This information is echoed back to the Chat app as part of the card click event. You can use the same method name for several elements that trigger a common behavior.
+    #[serde(default, rename = "actionMethodName")]
+    pub action_method_name: ::core::option::Option<String>,
+    /// List of action parameters.
+    #[serde(default)]
+    pub parameters: ::core::option::Option<::std::vec::Vec<ActionParameter>>,
+}
+
+/// A link that opens a new window.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct OpenLink {
+    /// The URL to open.
+    #[serde(default)]
+    pub url: ::core::option::Option<String>,
+}
+
+/// List of string parameters to supply when the action method is invoked. For example, consider three snooze buttons: snooze now, snooze one day, snooze next week. You might use action method = snooze(), passing the snooze type and snooze time in the list of string parameters.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ActionParameter {
+    /// The name of the parameter for the action script.
+    #[serde(default)]
+    pub key: ::core::option::Option<String>,
+    /// The value of the parameter.
+    #[serde(default)]
+    pub value: ::core::option::Option<String>,
+}
+
+/// For a SelectionInput widget that uses a multiselect menu, a data source from Google Chat. The data source populates selection items for the multiselect menu. For example, a user can select Google Chat spaces that they''re a member of. [Google Chat apps](https://developers.google.com/workspace/chat):
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ChatClientDataSourceMarkup {
+    /// Google Chat spaces that the user is a member of.
+    #[serde(default, rename = "spaceDataSource")]
+    pub space_data_source: ::core::option::Option<SpaceDataSource>,
+}
+
+/// Represents a color in the RGBA color space. This representation is designed for simplicity of conversion to and from color representations in various languages over compactness. For example, the fields of this representation can be trivially provided to the constructor of java.awt.Color in Java; it can also be trivially provided to UIColor''s +colorWithRed:green:blue:alpha method in iOS; and, with just a little work, it can be easily formatted into a CSS rgba() string in JavaScript. This reference page doesn''t have information about the absolute color space that should be used to interpret the RGB value—for example, sRGB, Adobe RGB, DCI-P3, and BT.2020. By default, applications should assume the sRGB color space. When color equality needs to be decided, implementations, unless documented otherwise, treat two colors as equal if all their red, green, blue, and alpha values each differ by at most 1e-5. Example (Java): import com.google.type.Color; // ... public static java.awt.Color fromProto(Color protocolor) { float alpha = protocolor.hasAlpha() ? protocolor.getAlpha().getValue() : 1.0; return new java.awt.Color( protocolor.getRed(), protocolor.getGreen(), protocolor.getBlue(), alpha); } public static Color toProto(java.awt.Color color) { float red = (float) color.getRed(); float green = (float) color.getGreen(); float blue = (float) color.getBlue(); float denominator = 255.0; Color.Builder resultBuilder = Color .newBuilder() .setRed(red / denominator) .setGreen(green / denominator) .setBlue(blue / denominator); int alpha = color.getAlpha(); if (alpha != 255) { result.setAlpha( FloatValue .newBuilder() .setValue(((float) alpha) / denominator) .build()); } return resultBuilder.build(); } // ... Example (iOS / Obj-C): // ... static UIColor* fromProto(Color* protocolor) { float red = [protocolor red]; float green = [protocolor green]; float blue = [protocolor blue]; FloatValue* alpha_wrapper = [protocolor alpha]; float alpha = 1.0; if (alpha_wrapper != nil) { alpha = [alpha_wrapper value]; } return [UIColor colorWithRed:red green:green blue:blue alpha:alpha]; } static Color* toProto(UIColor* color) { CGFloat red, green, blue, alpha; if (![color getRed:&red green:&green blue:&blue alpha:&alpha]) { return nil; } Color* result = [[Color alloc] init]; [result setRed:red]; [result setGreen:green]; [result setBlue:blue]; if (alpha &lt;= 0.9999) { [result setAlpha:floatWrapperWithValue(alpha)]; } [result autorelease]; return result; } // ... Example (JavaScript): // ... var protoToCssColor = function(rgb_color) { var redFrac = rgb_color.red || 0.0; var greenFrac = rgb_color.green || 0.0; var blueFrac = rgb_color.blue || 0.0; var red = Math.floor(redFrac * 255); var green = Math.floor(greenFrac * 255); var blue = Math.floor(blueFrac * 255); if (!(''alpha'' in rgb_color)) { return rgbToCssColor(red, green, blue); } var alphaFrac = rgb_color.alpha.value || 0.0; var rgbParams = [red, green, blue].join('',''); return [''rgba('', rgbParams, '','', alphaFrac, '')''].join(''''); }; var rgbToCssColor = function(red, green, blue) { var rgbNumber = new Number((red &lt;&lt; 16) | (green &lt;&lt; 8) | blue); var hexString = rgbNumber.toString(16); var missingZeros = 6 - hexString.length; var resultBuilder = [''#'']; for (var i = 0; i &lt; missingZeros; i++) { resultBuilder.push(''0''); } resultBuilder.push(hexString); return resultBuilder.join(''''); }; // ...
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Color {
+    /// The fraction of this color that should be applied to the pixel. That is, the final pixel color is defined by the equation: pixel color = alpha * (this color) + (1.0 - alpha) * (background color) This means that a value of 1.0 corresponds to a solid color, whereas a value of 0.0 corresponds to a completely transparent color. This uses a wrapper message rather than a simple float scalar so that it is possible to distinguish between a default value and the value being unset. If omitted, this color object is rendered as a solid color (as if the alpha value had been explicitly given a value of 1.0).
+    #[serde(default)]
+    pub alpha: ::core::option::Option<f32>,
+    /// The amount of blue in the color as a value in the interval [0, 1].
+    #[serde(default)]
+    pub blue: ::core::option::Option<f32>,
+    /// The amount of green in the color as a value in the interval [0, 1].
+    #[serde(default)]
+    pub green: ::core::option::Option<f32>,
+    /// The amount of red in the color as a value in the interval [0, 1].
+    #[serde(default)]
+    pub red: ::core::option::Option<f32>,
 }
 
 /// An action that describes the behavior when the form is submitted. For example, you can invoke an Apps Script script to handle the form. If the action is triggered, the form values are sent to the server. [Google Workspace add-ons and Chat apps](https://developers.google.com/workspace/extend):
@@ -1393,31 +2471,6 @@ pub struct GoogleAppsCardV1Widgets {
     pub text_paragraph: ::core::option::Option<GoogleAppsCardV1TextParagraph>,
 }
 
-/// Represents a [section](https://support.google.com/chat/answer/16059854) in Google Chat. Sections help users organize their spaces. There are two types of sections: 1. **System Sections:** These are predefined sections managed by Google Chat. Their resource names are fixed, and they cannot be created, deleted, or have their display_name modified. Examples include: * users/{user}/sections/default-direct-messages * users/{user}/sections/default-spaces * users/{user}/sections/default-apps 2. **Custom Sections:** These are sections created and managed by the user. Creating a custom section using CreateSection **requires** a display_name. Custom sections can be updated using UpdateSection and deleted using DeleteSection. [Developer Preview](https://developers.google.com/workspace/preview).
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleChatV1Section {
-    /// Optional. The section''s display name. Only populated for sections of type CUSTOM_SECTION. Supports up to 80 characters. Required when creating a CUSTOM_SECTION.
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-    /// Identifier. Resource name of the section. For system sections, the section ID is a constant string: - DEFAULT_DIRECT_MESSAGES: users/{user}/sections/default-direct-messages - DEFAULT_SPACES: users/{user}/sections/default-spaces - DEFAULT_APPS: users/{user}/sections/default-apps Format: users/{user}/sections/{section}
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Output only. The order of the section in relation to other sections. Sections with a lower sort_order value appear before sections with a higher value.
-    #[serde(default, rename = "sortOrder")]
-    pub sort_order: ::core::option::Option<i32>,
-    /// Required. The type of the section. // TODO: enum values: ["SECTION_TYPE_UNSPECIFIED", "CUSTOM_SECTION", "DEFAULT_DIRECT_MESSAGES", "DEFAULT_SPACES", "DEFAULT_APPS"]
-    #[serde(default, rename = "type")]
-    pub type_: ::core::option::Option<String>,
-}
-
-/// A Google Group in Google Chat.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Group {
-    /// Resource name for a Google Group. Represents a [group](https://cloud.google.com/identity/docs/reference/rest/v1/groups) in Cloud Identity Groups API. Format: groups/{group}
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-}
-
 /// A data source from a Google Workspace application. The data source populates available items for a widget.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct HostAppDataSourceMarkup {
@@ -1429,1065 +2482,12 @@ pub struct HostAppDataSourceMarkup {
     pub workflow_data_source: ::core::option::Option<WorkflowDataSourceMarkup>,
 }
 
-/// An image that''s specified by a URL and can have an onclick action.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Image {
-    /// The aspect ratio of this image (width and height). This field lets you reserve the right height for the image while waiting for it to load. It''s not meant to override the built-in aspect ratio of the image. If unset, the server fills it by prefetching the image.
-    #[serde(default, rename = "aspectRatio")]
-    pub aspect_ratio: ::core::option::Option<f64>,
-    /// The URL of the image.
-    #[serde(default, rename = "imageUrl")]
-    pub image_url: ::core::option::Option<String>,
-    /// The onclick action.
-    #[serde(default, rename = "onClick")]
-    pub on_click: ::core::option::Option<OnClick>,
-}
-
-/// An image button with an onclick action.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ImageButton {
-    /// The icon specified by an enum that indices to an icon provided by Chat API. // TODO: enum values: ["ICON_UNSPECIFIED", "AIRPLANE", "BOOKMARK", "BUS", "CAR", "CLOCK", "CONFIRMATION_NUMBER_ICON", "DOLLAR", "DESCRIPTION", "EMAIL", "EVENT_PERFORMER", "EVENT_SEAT", "FLIGHT_ARRIVAL", "FLIGHT_DEPARTURE", "HOTEL", "HOTEL_ROOM_TYPE", "INVITE", "MAP_PIN", "MEMBERSHIP", "MULTIPLE_PEOPLE", "OFFER", "PERSON", "PHONE", "RESTAURANT_ICON", "SHOPPING_CART", "STAR", "STORE", "TICKET", "TRAIN", "VIDEO_CAMERA", "VIDEO_PLAY"]
-    #[serde(default)]
-    pub icon: ::core::option::Option<String>,
-    /// The icon specified by a URL.
-    #[serde(default, rename = "iconUrl")]
-    pub icon_url: ::core::option::Option<String>,
-    /// The name of this image_button that''s used for accessibility. Default value is provided if this name isn''t specified.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// The onclick action.
-    #[serde(default, rename = "onClick")]
-    pub on_click: ::core::option::Option<OnClick>,
-}
-
-/// Types of data that users can [input on cards or dialogs](https://developers.google.com/chat/ui/read-form-data). The input type depends on the type of values that the widget accepts.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Inputs {
-    /// Date input values from a [DateTimePicker](https://developers.google.com/chat/api/reference/rest/v1/cards#DateTimePicker) widget that only accepts date values.
-    #[serde(default, rename = "dateInput")]
-    pub date_input: ::core::option::Option<DateInput>,
-    /// Date and time input values from a [DateTimePicker](https://developers.google.com/chat/api/reference/rest/v1/cards#DateTimePicker) widget that accepts both a date and time.
-    #[serde(default, rename = "dateTimeInput")]
-    pub date_time_input: ::core::option::Option<DateTimeInput>,
-    /// A list of strings that represent the values that the user inputs in a widget. If the widget only accepts one value, such as a [TextInput](https://developers.google.com/chat/api/reference/rest/v1/cards#TextInput) widget, the list contains one string object. If the widget accepts multiple values, such as a [SelectionInput](https://developers.google.com/chat/api/reference/rest/v1/cards#selectioninput) widget of checkboxes, the list contains a string object for each value that the user inputs or selects.
-    #[serde(default, rename = "stringInputs")]
-    pub string_inputs: ::core::option::Option<StringInputs>,
-    /// Time input values from a [DateTimePicker](https://developers.google.com/chat/api/reference/rest/v1/cards#DateTimePicker) widget that only accepts time values.
-    #[serde(default, rename = "timeInput")]
-    pub time_input: ::core::option::Option<TimeInput>,
-}
-
-/// A UI element contains a key (label) and a value (content). This element can also contain some actions such as onclick button.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct KeyValue {
-    /// The text of the bottom label. Formatted text supported. For more information about formatting text, see [Formatting text in Google Chat apps](https://developers.google.com/workspace/chat/format-messages#card-formatting) and [Formatting text in Google Workspace Add-ons](https://developers.google.com/apps-script/add-ons/concepts/widgets#text_formatting).
-    #[serde(default, rename = "bottomLabel")]
-    pub bottom_label: ::core::option::Option<String>,
-    /// A button that can be clicked to trigger an action.
-    #[serde(default)]
-    pub button: ::core::option::Option<Button>,
-    /// The text of the content. Formatted text supported and always required. For more information about formatting text, see [Formatting text in Google Chat apps](https://developers.google.com/workspace/chat/format-messages#card-formatting) and [Formatting text in Google Workspace Add-ons](https://developers.google.com/apps-script/add-ons/concepts/widgets#text_formatting).
-    #[serde(default)]
-    pub content: ::core::option::Option<String>,
-    /// If the content should be multiline.
-    #[serde(default, rename = "contentMultiline")]
-    pub content_multiline: ::core::option::Option<bool>,
-    /// An enum value that''s replaced by the Chat API with the corresponding icon image. // TODO: enum values: ["ICON_UNSPECIFIED", "AIRPLANE", "BOOKMARK", "BUS", "CAR", "CLOCK", "CONFIRMATION_NUMBER_ICON", "DOLLAR", "DESCRIPTION", "EMAIL", "EVENT_PERFORMER", "EVENT_SEAT", "FLIGHT_ARRIVAL", "FLIGHT_DEPARTURE", "HOTEL", "HOTEL_ROOM_TYPE", "INVITE", "MAP_PIN", "MEMBERSHIP", "MULTIPLE_PEOPLE", "OFFER", "PERSON", "PHONE", "RESTAURANT_ICON", "SHOPPING_CART", "STAR", "STORE", "TICKET", "TRAIN", "VIDEO_CAMERA", "VIDEO_PLAY"]
-    #[serde(default)]
-    pub icon: ::core::option::Option<String>,
-    /// The icon specified by a URL.
-    #[serde(default, rename = "iconUrl")]
-    pub icon_url: ::core::option::Option<String>,
-    /// The onclick action. Only the top label, bottom label, and content region are clickable.
-    #[serde(default, rename = "onClick")]
-    pub on_click: ::core::option::Option<OnClick>,
-    /// The text of the top label. Formatted text supported. For more information about formatting text, see [Formatting text in Google Chat apps](https://developers.google.com/workspace/chat/format-messages#card-formatting) and [Formatting text in Google Workspace Add-ons](https://developers.google.com/apps-script/add-ons/concepts/widgets#text_formatting).
-    #[serde(default, rename = "topLabel")]
-    pub top_label: ::core::option::Option<String>,
-}
-
-/// A response to list custom emojis.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ListCustomEmojisResponse {
-    /// Unordered list. List of custom emojis.
-    #[serde(default, rename = "customEmojis")]
-    pub custom_emojis: ::core::option::Option<::std::vec::Vec<CustomEmoji>>,
-    /// A token that you can send as pageToken to retrieve the next page of results. If empty, there are no subsequent pages.
-    #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: ::core::option::Option<String>,
-}
-
-/// Response to list memberships of the space.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ListMembershipsResponse {
-    /// Unordered list. List of memberships in the requested (or first) page.
-    #[serde(default)]
-    pub memberships: ::core::option::Option<::std::vec::Vec<Membership>>,
-    /// A token that you can send as pageToken to retrieve the next page of results. If empty, there are no subsequent pages.
-    #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: ::core::option::Option<String>,
-}
-
-/// Response message for listing messages.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ListMessagesResponse {
-    /// List of messages.
-    #[serde(default)]
-    pub messages: ::core::option::Option<::std::vec::Vec<Message>>,
-    /// You can send a token as pageToken to retrieve the next page of results. If empty, there are no subsequent pages.
-    #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: ::core::option::Option<String>,
-}
-
-/// Response to a list reactions request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ListReactionsResponse {
-    /// Continuation token to retrieve the next page of results. It''s empty for the last page of results.
-    #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: ::core::option::Option<String>,
-    /// List of reactions in the requested (or first) page.
-    #[serde(default)]
-    pub reactions: ::core::option::Option<::std::vec::Vec<Reaction>>,
-}
-
-/// Response message for listing section items. [Developer Preview](https://developers.google.com/workspace/preview).
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ListSectionItemsResponse {
-    /// A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
-    #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: ::core::option::Option<String>,
-    /// The section items from the specified section.
-    #[serde(default, rename = "sectionItems")]
-    pub section_items: ::core::option::Option<::std::vec::Vec<SectionItem>>,
-}
-
-/// Response message for listing sections. [Developer Preview](https://developers.google.com/workspace/preview).
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ListSectionsResponse {
-    /// A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
-    #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: ::core::option::Option<String>,
-    /// The sections from the specified user.
-    #[serde(default)]
-    pub sections: ::core::option::Option<::std::vec::Vec<GoogleChatV1Section>>,
-}
-
-/// Response message for listing space events.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ListSpaceEventsResponse {
-    /// Continuation token used to fetch more events. If this field is omitted, there are no subsequent pages.
-    #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: ::core::option::Option<String>,
-    /// Results are returned in chronological order (oldest event first). Note: The permissionSettings field is not returned in the Space object for list requests.
-    #[serde(default, rename = "spaceEvents")]
-    pub space_events: ::core::option::Option<::std::vec::Vec<SpaceEvent>>,
-}
-
-/// The response for a list spaces request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ListSpacesResponse {
-    /// You can send a token as pageToken to retrieve the next page of results. If empty, there are no subsequent pages.
-    #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: ::core::option::Option<String>,
-    /// List of spaces in the requested (or first) page. Note: The permissionSettings field is not returned in the Space object for list requests.
-    #[serde(default)]
-    pub spaces: ::core::option::Option<::std::vec::Vec<Space>>,
-}
-
-/// A matched URL in a Chat message. Chat apps can preview matched URLs. For more information, see [Preview links](https://developers.google.com/chat/how-tos/preview-links).
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct MatchedUrl {
-    /// Output only. The URL that was matched.
-    #[serde(default)]
-    pub url: ::core::option::Option<String>,
-}
-
-/// Media resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Media {
-    /// Name of the media resource.
-    #[serde(default, rename = "resourceName")]
-    pub resource_name: ::core::option::Option<String>,
-}
-
-/// Data for Meet space links.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct MeetSpaceLinkData {
-    /// Optional. Output only. If the Meet is a Huddle, indicates the status of the huddle. Otherwise, this is unset. // TODO: enum values: ["HUDDLE_STATUS_UNSPECIFIED", "STARTED", "ENDED", "MISSED"]
-    #[serde(default, rename = "huddleStatus")]
-    pub huddle_status: ::core::option::Option<String>,
-    /// Meeting code of the linked Meet space.
-    #[serde(default, rename = "meetingCode")]
-    pub meeting_code: ::core::option::Option<String>,
-    /// Indicates the type of the Meet space. // TODO: enum values: ["TYPE_UNSPECIFIED", "MEETING", "HUDDLE"]
-    #[serde(default, rename = "type")]
-    pub type_: ::core::option::Option<String>,
-}
-
-/// Represents a membership relation in Google Chat, such as whether a user or Chat app is invited to, part of, or absent from a space.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Membership {
-    /// Optional. Immutable. The creation time of the membership, such as when a member joined or was invited to join a space. This field is output only, except when used to import historical memberships in import mode spaces.
-    #[serde(default, rename = "createTime")]
-    pub create_time: ::core::option::Option<String>,
-    /// Optional. Immutable. The deletion time of the membership, such as when a member left or was removed from a space. This field is output only, except when used to import historical memberships in import mode spaces.
-    #[serde(default, rename = "deleteTime")]
-    pub delete_time: ::core::option::Option<String>,
-    /// Optional. The Google Group the membership corresponds to. Reading or mutating memberships for Google Groups requires [user authentication](https://developers.google.com/workspace/chat/authenticate-authorize-chat-user).
-    #[serde(default, rename = "groupMember")]
-    pub group_member: ::core::option::Option<Group>,
-    /// Optional. The Google Chat user or app the membership corresponds to. If your Chat app [authenticates as a user](https://developers.google.com/workspace/chat/authenticate-authorize-chat-user), the output populates the [user](https://developers.google.com/workspace/chat/api/reference/rest/v1/User) name and type.
-    #[serde(default)]
-    pub member: ::core::option::Option<User>,
-    /// Identifier. Resource name of the membership, assigned by the server. Format: spaces/{space}/members/{member}
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Optional. User''s role within a Chat space, which determines their permitted actions in the space. This field can only be used as input in UpdateMembership. // TODO: enum values: ["MEMBERSHIP_ROLE_UNSPECIFIED", "ROLE_MEMBER", "ROLE_MANAGER", "ROLE_ASSISTANT_MANAGER"]
-    #[serde(default)]
-    pub role: ::core::option::Option<String>,
-    /// Output only. State of the membership. // TODO: enum values: ["MEMBERSHIP_STATE_UNSPECIFIED", "JOINED", "INVITED", "NOT_A_MEMBER"]
-    #[serde(default)]
-    pub state: ::core::option::Option<String>,
-}
-
-/// Event payload for multiple new memberships. Event type: google.workspace.chat.membership.v1.batchCreated
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct MembershipBatchCreatedEventData {
-    /// A list of new memberships.
-    #[serde(default)]
-    pub memberships: ::core::option::Option<::std::vec::Vec<MembershipCreatedEventData>>,
-}
-
-/// Event payload for multiple deleted memberships. Event type: google.workspace.chat.membership.v1.batchDeleted
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct MembershipBatchDeletedEventData {
-    /// A list of deleted memberships.
-    #[serde(default)]
-    pub memberships: ::core::option::Option<::std::vec::Vec<MembershipDeletedEventData>>,
-}
-
-/// Event payload for multiple updated memberships. Event type: google.workspace.chat.membership.v1.batchUpdated
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct MembershipBatchUpdatedEventData {
-    /// A list of updated memberships.
-    #[serde(default)]
-    pub memberships: ::core::option::Option<::std::vec::Vec<MembershipUpdatedEventData>>,
-}
-
-/// Represents the count of memberships of a space, grouped into categories.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct MembershipCount {
-    /// Output only. Count of human users that have directly joined the space, not counting users joined by having membership in a joined group.
-    #[serde(default, rename = "joinedDirectHumanUserCount")]
-    pub joined_direct_human_user_count: ::core::option::Option<i32>,
-    /// Output only. Count of all groups that have directly joined the space.
-    #[serde(default, rename = "joinedGroupCount")]
-    pub joined_group_count: ::core::option::Option<i32>,
-}
-
-/// Event payload for a new membership. Event type: google.workspace.chat.membership.v1.created.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct MembershipCreatedEventData {
-    /// The new membership.
-    #[serde(default)]
-    pub membership: ::core::option::Option<Membership>,
-}
-
-/// Event payload for a deleted membership. Event type: google.workspace.chat.membership.v1.deleted
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct MembershipDeletedEventData {
-    /// The deleted membership. Only the name and state fields are populated.
-    #[serde(default)]
-    pub membership: ::core::option::Option<Membership>,
-}
-
-/// Event payload for an updated membership. Event type: google.workspace.chat.membership.v1.updated
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct MembershipUpdatedEventData {
-    /// The updated membership.
-    #[serde(default)]
-    pub membership: ::core::option::Option<Membership>,
-}
-
-/// A message in a Google Chat space.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Message {
-    /// Optional. One or more interactive widgets that appear at the bottom of a message. You can add accessory widgets to messages that contain text, cards, or both text and cards. Not supported for messages that contain dialogs. For details, see [Add interactive widgets at the bottom of a message](https://developers.google.com/workspace/chat/create-messages#add-accessory-widgets). Creating a message with accessory widgets requires [app authentication] (https://developers.google.com/workspace/chat/authenticate-authorize-chat-app).
-    #[serde(default, rename = "accessoryWidgets")]
-    pub accessory_widgets: ::core::option::Option<::std::vec::Vec<AccessoryWidget>>,
-    /// Input only. Parameters that a Chat app can use to configure how its response is posted.
-    #[serde(default, rename = "actionResponse")]
-    pub action_response: ::core::option::Option<ActionResponse>,
-    /// Output only. Annotations can be associated with the plain-text body of the message or with chips that link to Google Workspace resources like Google Docs or Sheets with start_index and length of 0.
-    #[serde(default)]
-    pub annotations: ::core::option::Option<::std::vec::Vec<Annotation>>,
-    /// Output only. Plain-text body of the message with all Chat app mentions stripped out.
-    #[serde(default, rename = "argumentText")]
-    pub argument_text: ::core::option::Option<String>,
-    /// Output only. GIF images that are attached to the message.
-    #[serde(default, rename = "attachedGifs")]
-    pub attached_gifs: ::core::option::Option<::std::vec::Vec<AttachedGif>>,
-    /// Optional. User-uploaded attachment.
-    #[serde(default)]
-    pub attachment: ::core::option::Option<::std::vec::Vec<Attachment>>,
-    /// Deprecated: Use cards_v2 instead. Rich, formatted, and interactive cards that you can use to display UI elements such as: formatted texts, buttons, and clickable images. Cards are normally displayed below the plain-text body of the message. cards and cards_v2 can have a maximum size of 32 KB.
-    #[serde(default)]
-    pub cards: ::core::option::Option<::std::vec::Vec<Card>>,
-    /// Optional. An array of [cards](https://developers.google.com/workspace/chat/api/reference/rest/v1/cards). Chat apps can create cards with [app authentication](https://developers.google.com/workspace/chat/authenticate-authorize-chat-app). As part of the [Developer Preview Program](https://developers.google.com/workspace/preview), if your Chat app [authenticates as a user](https://developers.google.com/workspace/chat/authenticate-authorize-chat-user), it can create card messages. If your Chat app is not part of Developer Preview Program, it can''t create cards with user authentication. To learn how to create a message that contains cards, see [Send a message](https://developers.google.com/workspace/chat/create-messages). [Card builder](https://addons.gsuite.google.com/uikit/builder)
-    #[serde(default, rename = "cardsV2")]
-    pub cards_v2: ::core::option::Option<::std::vec::Vec<CardWithId>>,
-    /// Optional. A custom ID for the message. You can use field to identify a message, or to get, delete, or update a message. To set a custom ID, specify the [messageId](https://developers.google.com/workspace/chat/api/reference/rest/v1/spaces.messages/create#body.QUERY_PARAMETERS.message_id) field when you create the message. For details, see [Name a message](https://developers.google.com/workspace/chat/create-messages#name_a_created_message).
-    #[serde(default, rename = "clientAssignedMessageId")]
-    pub client_assigned_message_id: ::core::option::Option<String>,
-    /// Optional. Immutable. For spaces created in Chat, the time at which the message was created. This field is output only, except when used in import mode spaces. For import mode spaces, set this field to the historical timestamp at which the message was created in the source in order to preserve the original creation time.
-    #[serde(default, rename = "createTime")]
-    pub create_time: ::core::option::Option<String>,
-    /// Output only. The time at which the message was deleted in Google Chat. If the message is never deleted, this field is empty.
-    #[serde(default, rename = "deleteTime")]
-    pub delete_time: ::core::option::Option<String>,
-    /// Output only. Information about a deleted message. A message is deleted when delete_time is set.
-    #[serde(default, rename = "deletionMetadata")]
-    pub deletion_metadata: ::core::option::Option<DeletionMetadata>,
-    /// Output only. The list of emoji reaction summaries on the message.
-    #[serde(default, rename = "emojiReactionSummaries")]
-    pub emoji_reaction_summaries: ::core::option::Option<::std::vec::Vec<EmojiReactionSummary>>,
-    /// Optional. A plain-text description of the message''s cards, used when the actual cards can''t be displayed—for example, mobile notifications.
-    #[serde(default, rename = "fallbackText")]
-    pub fallback_text: ::core::option::Option<String>,
-    /// Output only. Contains the message text with markups added to communicate formatting. This field might not capture all formatting visible in the UI, but includes the following: * [Markup syntax](https://developers.google.com/workspace/chat/format-messages) for bold, italic, strikethrough, monospace, monospace block, bulleted list, and block quote. * [User mentions](https://developers.google.com/workspace/chat/format-messages#messages-@mention) using the format . * Custom hyperlinks using the format &lt;{url}|{rendered_text}&gt; where the first string is the URL and the second is the rendered text—for example, . * Custom emoji using the format :{emoji_name}:—for example, :smile:. This doesn''t apply to Unicode emoji, such as U+1F600 for a grinning face emoji. * Bullet list items using asterisks (*)—for example, * item. For more information, see [View text formatting sent in a message](https://developers.google.com/workspace/chat/format-messages#view_text_formatting_sent_in_a_message)
-    #[serde(default, rename = "formattedText")]
-    pub formatted_text: ::core::option::Option<String>,
-    /// Output only. The time at which the message was last edited by a user. If the message has never been edited, this field is empty.
-    #[serde(default, rename = "lastUpdateTime")]
-    pub last_update_time: ::core::option::Option<String>,
-    /// Output only. A URL in the Chat message text field that matches a link preview pattern. For more information, see [Preview links](https://developers.google.com/workspace/chat/preview-links).
-    #[serde(default, rename = "matchedUrl")]
-    pub matched_url: ::core::option::Option<MatchedUrl>,
-    /// Identifier. Resource name of the message. Format: spaces/{space}/messages/{message} Where {space} is the ID of the space where the message is posted and {message} is a system-assigned ID for the message. For example, spaces/AAAAAAAAAAA/messages/BBBBBBBBBBB.BBBBBBBBBBB. If you set a custom ID when you create a message, you can use this ID to specify the message in a request by replacing {message} with the value from the clientAssignedMessageId field. For example, spaces/AAAAAAAAAAA/messages/client-custom-name. For details, see [Name a message](https://developers.google.com/workspace/chat/create-messages#name_a_created_message).
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Optional. Immutable. Input for creating a message, otherwise output only. The user that can view the message. When set, the message is private and only visible to the specified user and the Chat app. To include this field in your request, you must call the Chat API using [app authentication](https://developers.google.com/workspace/chat/authenticate-authorize-chat-app) and omit the following: * [Attachments](https://developers.google.com/workspace/chat/api/reference/rest/v1/spaces.messages.attachments) For details, see [Send a message privately](https://developers.google.com/workspace/chat/create-messages#private).
-    #[serde(default, rename = "privateMessageViewer")]
-    pub private_message_viewer: ::core::option::Option<User>,
-    /// Optional. Information about a message that another message quotes. When you create a message, you can quote messages within the same thread, or quote a root message to create a new root message. However, you can''t quote a message reply from a different thread. When you update a message, you can''t add or replace the quotedMessageMetadata field, but you can remove it. For example usage, see [Quote another message](https://developers.google.com/workspace/chat/create-messages#quote-a-message).
-    #[serde(default, rename = "quotedMessageMetadata")]
-    pub quoted_message_metadata: ::core::option::Option<QuotedMessageMetadata>,
-    /// Output only. The user who created the message. If your Chat app [authenticates as a user](https://developers.google.com/workspace/chat/authenticate-authorize-chat-user), the output populates the [user](https://developers.google.com/workspace/chat/api/reference/rest/v1/User) name and type.
-    #[serde(default)]
-    pub sender: ::core::option::Option<User>,
-    /// Output only. Slash command information, if applicable.
-    #[serde(default, rename = "slashCommand")]
-    pub slash_command: ::core::option::Option<SlashCommand>,
-    /// Output only. If your Chat app [authenticates as a user](https://developers.google.com/workspace/chat/authenticate-authorize-chat-user), the output only populates the [space](https://developers.google.com/workspace/chat/api/reference/rest/v1/spaces) name.
-    #[serde(default)]
-    pub space: ::core::option::Option<Space>,
-    /// Optional. Plain-text body of the message. The first link to an image, video, or web page generates a [preview chip](https://developers.google.com/workspace/chat/preview-links). You can also [@mention a Google Chat user](https://developers.google.com/workspace/chat/format-messages#messages-@mention), or everyone in the space. To learn about creating text messages, see [Send a message](https://developers.google.com/workspace/chat/create-messages).
-    #[serde(default)]
-    pub text: ::core::option::Option<String>,
-    /// The thread the message belongs to. For example usage, see [Start or reply to a message thread](https://developers.google.com/workspace/chat/create-messages#create-message-thread).
-    #[serde(default)]
-    pub thread: ::core::option::Option<Thread>,
-    /// Output only. When true, the message is a response in a reply thread. When false, the message is visible in the space''s top-level conversation as either the first message of a thread or a message with no threaded replies. If the space doesn''t support reply in threads, this field is always false.
-    #[serde(default, rename = "threadReply")]
-    pub thread_reply: ::core::option::Option<bool>,
-}
-
-/// Event payload for multiple new messages. Event type: google.workspace.chat.message.v1.batchCreated
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct MessageBatchCreatedEventData {
-    /// A list of new messages.
-    #[serde(default)]
-    pub messages: ::core::option::Option<::std::vec::Vec<MessageCreatedEventData>>,
-}
-
-/// Event payload for multiple deleted messages. Event type: google.workspace.chat.message.v1.batchDeleted
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct MessageBatchDeletedEventData {
-    /// A list of deleted messages.
-    #[serde(default)]
-    pub messages: ::core::option::Option<::std::vec::Vec<MessageDeletedEventData>>,
-}
-
-/// Event payload for multiple updated messages. Event type: google.workspace.chat.message.v1.batchUpdated
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct MessageBatchUpdatedEventData {
-    /// A list of updated messages.
-    #[serde(default)]
-    pub messages: ::core::option::Option<::std::vec::Vec<MessageUpdatedEventData>>,
-}
-
-/// Event payload for a new message. Event type: google.workspace.chat.message.v1.created
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct MessageCreatedEventData {
-    /// The new message.
-    #[serde(default)]
-    pub message: ::core::option::Option<Message>,
-}
-
-/// Event payload for a deleted message. Event type: google.workspace.chat.message.v1.deleted
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct MessageDeletedEventData {
-    /// The deleted message. Only the name, createTime, and deletionMetadata fields are populated.
-    #[serde(default)]
-    pub message: ::core::option::Option<Message>,
-}
-
-/// Event payload for an updated message. Event type: google.workspace.chat.message.v1.updated
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct MessageUpdatedEventData {
-    /// The updated message.
-    #[serde(default)]
-    pub message: ::core::option::Option<Message>,
-}
-
-/// Request message for moving a section item across sections. [Developer Preview](https://developers.google.com/workspace/preview).
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct MoveSectionItemRequest {
-    /// Required. The resource name of the section to move the section item to. Format: users/{user}/sections/{section}
-    #[serde(default, rename = "targetSection")]
-    pub target_section: ::core::option::Option<String>,
-}
-
-/// Response message for moving a section item. [Developer Preview](https://developers.google.com/workspace/preview).
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct MoveSectionItemResponse {
-    /// The updated section item.
-    #[serde(default, rename = "sectionItem")]
-    pub section_item: ::core::option::Option<SectionItem>,
-}
-
-/// An onclick action (for example, open a link).
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct OnClick {
-    /// A form action is triggered by this onclick action if specified.
-    #[serde(default)]
-    pub action: ::core::option::Option<FormAction>,
-    /// This onclick action triggers an open link action if specified.
-    #[serde(default, rename = "openLink")]
-    pub open_link: ::core::option::Option<OpenLink>,
-}
-
-/// A link that opens a new window.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct OpenLink {
-    /// The URL to open.
-    #[serde(default)]
-    pub url: ::core::option::Option<String>,
-}
-
-/// Represents a space permission setting.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PermissionSetting {
-    /// Optional. Whether space managers ROLE_ASSISTANT_MANAGER) have this permission.
-    #[serde(default, rename = "assistantManagersAllowed")]
-    pub assistant_managers_allowed: ::core::option::Option<bool>,
-    /// Optional. Whether space owners (ROLE_MANAGER) have this permission.
-    #[serde(default, rename = "managersAllowed")]
-    pub managers_allowed: ::core::option::Option<bool>,
-    /// Optional. Whether basic space members (ROLE_MEMBER) have this permission.
-    #[serde(default, rename = "membersAllowed")]
-    pub members_allowed: ::core::option::Option<bool>,
-}
-
-/// [Permission settings](https://support.google.com/chat/answer/13340792) that you can specify when updating an existing named space. To set permission settings when creating a space, specify the PredefinedPermissionSettings field in your request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PermissionSettings {
-    /// Optional. Setting for managing apps in a space.
-    #[serde(default, rename = "manageApps")]
-    pub manage_apps: ::core::option::Option<PermissionSetting>,
-    /// Optional. Setting for managing members and groups in a space.
-    #[serde(default, rename = "manageMembersAndGroups")]
-    pub manage_members_and_groups: ::core::option::Option<PermissionSetting>,
-    /// Optional. Setting for managing webhooks in a space.
-    #[serde(default, rename = "manageWebhooks")]
-    pub manage_webhooks: ::core::option::Option<PermissionSetting>,
-    /// Optional. Setting for updating space name, avatar, description and guidelines.
-    #[serde(default, rename = "modifySpaceDetails")]
-    pub modify_space_details: ::core::option::Option<PermissionSetting>,
-    /// Output only. Setting for posting messages in a space.
-    #[serde(default, rename = "postMessages")]
-    pub post_messages: ::core::option::Option<PermissionSetting>,
-    /// Optional. Setting for replying to messages in a space.
-    #[serde(default, rename = "replyMessages")]
-    pub reply_messages: ::core::option::Option<PermissionSetting>,
-    /// Optional. Setting for toggling space history on and off.
-    #[serde(default, rename = "toggleHistory")]
-    pub toggle_history: ::core::option::Option<PermissionSetting>,
-    /// Optional. Setting for using @all in a space.
-    #[serde(default, rename = "useAtMentionAll")]
-    pub use_at_mention_all: ::core::option::Option<PermissionSetting>,
-}
-
-/// Request message for positioning a section. [Developer Preview](https://developers.google.com/workspace/preview).
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PositionSectionRequest {
-    /// Optional. The relative position of the section in the list of sections. // TODO: enum values: ["POSITION_UNSPECIFIED", "START", "END"]
-    #[serde(default, rename = "relativePosition")]
-    pub relative_position: ::core::option::Option<String>,
-    /// Optional. The absolute position of the section in the list of sections. The position must be greater than 0. If the position is greater than the number of sections, the section will be appended to the end of the list. This operation inserts the section at the given position and shifts the original section at that position, and those below it, to the next position.
-    #[serde(default, rename = "sortOrder")]
-    pub sort_order: ::core::option::Option<i32>,
-}
-
-/// Response message for positioning a section. [Developer Preview](https://developers.google.com/workspace/preview).
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PositionSectionResponse {
-    /// The updated section.
-    #[serde(default)]
-    pub section: ::core::option::Option<GoogleChatV1Section>,
-}
-
-/// Information about a message that another message quotes. When you create a message, you can quote messages within the same thread, or quote a root message to create a new root message. However, you can''t quote a message reply from a different thread. When you update a message, you can''t add or replace the quotedMessageMetadata field, but you can remove it. For example usage, see [Quote another message](https://developers.google.com/workspace/chat/create-messages#quote-a-message).
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct QuotedMessageMetadata {
-    /// Output only. Metadata about the source space of the quoted message. Populated only for FORWARD quote type.
-    #[serde(default, rename = "forwardedMetadata")]
-    pub forwarded_metadata: ::core::option::Option<ForwardedMetadata>,
-    /// Required. The timestamp when the quoted message was created or when the quoted message was last updated. If the message was edited, use this field, last_update_time. If the message was never edited, use create_time. If last_update_time doesn''t match the latest version of the quoted message, the request fails.
-    #[serde(default, rename = "lastUpdateTime")]
-    pub last_update_time: ::core::option::Option<String>,
-    /// Required. Resource name of the message that is quoted. Format: spaces/{space}/messages/{message}
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Optional. Specifies the quote type. If not set, defaults to REPLY in the message read/write path for backward compatibility. // TODO: enum values: ["QUOTE_TYPE_UNSPECIFIED", "REPLY"]
-    #[serde(default, rename = "quoteType")]
-    pub quote_type: ::core::option::Option<String>,
-    /// Output only. A snapshot of the quoted message''s content.
-    #[serde(default, rename = "quotedMessageSnapshot")]
-    pub quoted_message_snapshot: ::core::option::Option<QuotedMessageSnapshot>,
-}
-
-/// Provides a snapshot of the content of the quoted message at the time of quoting or forwarding
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct QuotedMessageSnapshot {
-    /// Output only. Annotations parsed from the text body of the quoted message. Populated only for FORWARD quote type.
-    #[serde(default)]
-    pub annotations: ::core::option::Option<::std::vec::Vec<Annotation>>,
-    /// Output only. Attachments that were part of the quoted message. These are copies of the quoted message''s attachment metadata. Populated only for FORWARD quote type.
-    #[serde(default)]
-    pub attachments: ::core::option::Option<::std::vec::Vec<Attachment>>,
-    /// Output only. Contains the quoted message text with markups added to support rich formatting like hyperlinks,custom emojis, markup, etc. Populated only for FORWARD quote type.
-    #[serde(default, rename = "formattedText")]
-    pub formatted_text: ::core::option::Option<String>,
-    /// Output only. The quoted message''s author name. Populated for both REPLY & FORWARD quote types.
-    #[serde(default)]
-    pub sender: ::core::option::Option<String>,
-    /// Output only. Snapshot of the quoted message''s text content.
-    #[serde(default)]
-    pub text: ::core::option::Option<String>,
-}
-
-/// A reaction to a message.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Reaction {
-    /// Required. The emoji used in the reaction.
-    #[serde(default)]
-    pub emoji: ::core::option::Option<Emoji>,
-    /// Identifier. The resource name of the reaction. Format: spaces/{space}/messages/{message}/reactions/{reaction}
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Output only. The user who created the reaction.
-    #[serde(default)]
-    pub user: ::core::option::Option<User>,
-}
-
-/// Event payload for multiple new reactions. Event type: google.workspace.chat.reaction.v1.batchCreated
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ReactionBatchCreatedEventData {
-    /// A list of new reactions.
-    #[serde(default)]
-    pub reactions: ::core::option::Option<::std::vec::Vec<ReactionCreatedEventData>>,
-}
-
-/// Event payload for multiple deleted reactions. Event type: google.workspace.chat.reaction.v1.batchDeleted
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ReactionBatchDeletedEventData {
-    /// A list of deleted reactions.
-    #[serde(default)]
-    pub reactions: ::core::option::Option<::std::vec::Vec<ReactionDeletedEventData>>,
-}
-
-/// Event payload for a new reaction. Event type: google.workspace.chat.reaction.v1.created
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ReactionCreatedEventData {
-    /// The new reaction.
-    #[serde(default)]
-    pub reaction: ::core::option::Option<Reaction>,
-}
-
-/// Event payload for a deleted reaction. Type: google.workspace.chat.reaction.v1.deleted
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ReactionDeletedEventData {
-    /// The deleted reaction.
-    #[serde(default)]
-    pub reaction: ::core::option::Option<Reaction>,
-}
-
-/// A rich link to a resource. Rich links can be associated with the plain-text body of the message or represent chips that link to Google Workspace resources like Google Docs or Sheets with start_index and length of 0.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct RichLinkMetadata {
-    /// Data for a Calendar event link.
-    #[serde(default, rename = "calendarEventLinkData")]
-    pub calendar_event_link_data: ::core::option::Option<CalendarEventLinkData>,
-    /// Data for a chat space link.
-    #[serde(default, rename = "chatSpaceLinkData")]
-    pub chat_space_link_data: ::core::option::Option<ChatSpaceLinkData>,
-    /// Data for a drive link.
-    #[serde(default, rename = "driveLinkData")]
-    pub drive_link_data: ::core::option::Option<DriveLinkData>,
-    /// Data for a Meet space link.
-    #[serde(default, rename = "meetSpaceLinkData")]
-    pub meet_space_link_data: ::core::option::Option<MeetSpaceLinkData>,
-    /// The rich link type. // TODO: enum values: ["RICH_LINK_TYPE_UNSPECIFIED", "DRIVE_FILE", "CHAT_SPACE", "GMAIL_MESSAGE", "MEET_SPACE", "CALENDAR_EVENT"]
-    #[serde(default, rename = "richLinkType")]
-    pub rich_link_type: ::core::option::Option<String>,
-    /// The URI of this link.
-    #[serde(default)]
-    pub uri: ::core::option::Option<String>,
-}
-
-/// Response with a list of spaces corresponding to the search spaces request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SearchSpacesResponse {
-    /// A token that can be used to retrieve the next page. If this field is empty, there are no subsequent pages.
-    #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: ::core::option::Option<String>,
-    /// A page of the requested spaces.
-    #[serde(default)]
-    pub spaces: ::core::option::Option<::std::vec::Vec<Space>>,
-    /// The total number of spaces that match the query, across all pages. If the result is over 10,000 spaces, this value is an estimate.
-    #[serde(default, rename = "totalSize")]
-    pub total_size: ::core::option::Option<i32>,
-}
-
-/// A section contains a collection of widgets that are rendered (vertically) in the order that they are specified. Across all platforms, cards have a narrow fixed width, so there''s currently no need for layout properties (for example, float).
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Section {
-    /// The header of the section. Formatted text is supported. For more information about formatting text, see [Formatting text in Google Chat apps](https://developers.google.com/workspace/chat/format-messages#card-formatting) and [Formatting text in Google Workspace Add-ons](https://developers.google.com/apps-script/add-ons/concepts/widgets#text_formatting).
-    #[serde(default)]
-    pub header: ::core::option::Option<String>,
-    /// A section must contain at least one widget.
-    #[serde(default)]
-    pub widgets: ::core::option::Option<::std::vec::Vec<WidgetMarkup>>,
-}
-
-/// A user''s defined section item. This is used to represent section items, such as spaces, grouped under a section. [Developer Preview](https://developers.google.com/workspace/preview).
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SectionItem {
-    /// Identifier. The resource name of the section item. Format: users/{user}/sections/{section}/items/{item}
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Optional. The space resource name. Format: spaces/{space}
-    #[serde(default)]
-    pub space: ::core::option::Option<String>,
-}
-
-/// List of widget autocomplete results.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SelectionItems {
-    /// An array of the SelectionItem objects.
-    #[serde(default)]
-    pub items: ::core::option::Option<::std::vec::Vec<GoogleAppsCardV1SelectionItem>>,
-}
-
-/// Request to create a space and add specified users to it.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SetUpSpaceRequest {
-    /// Optional. The Google Chat users or groups to invite to join the space. Omit the calling user, as they are added automatically. The set currently allows up to 49 memberships (in addition to the caller). For human membership, the Membership.member field must contain a user with name populated (format: users/{user}) and type set to User.Type.HUMAN. You can only add human users when setting up a space (adding Chat apps is only supported for direct message setup with the calling app). You can also add members using the user''s email as an alias for {user}. For example, the user.name can be users/example@gmail.com. To invite Gmail users or users from external Google Workspace domains, user''s email must be used for {user}. For Google group membership, the Membership.group_member field must contain a group with name populated (format groups/{group}). You can only add Google groups when setting Space.spaceType to SPACE. Optional when setting Space.spaceType to SPACE. Required when setting Space.spaceType to GROUP_CHAT, along with at least two memberships. Required when setting Space.spaceType to DIRECT_MESSAGE with a human user, along with exactly one membership. Must be empty when creating a 1:1 conversation between a human and the calling Chat app (when setting Space.spaceType to DIRECT_MESSAGE and Space.singleUserBotDm to true).
-    #[serde(default)]
-    pub memberships: ::core::option::Option<::std::vec::Vec<Membership>>,
-    /// Optional. A unique identifier for this request. A random UUID is recommended. Specifying an existing request ID returns the space created with that ID instead of creating a new space. Specifying an existing request ID from the same Chat app with a different authenticated user returns an error.
-    #[serde(default, rename = "requestId")]
-    pub request_id: ::core::option::Option<String>,
-    /// Required. The Space.spaceType field is required. To create a space, set Space.spaceType to SPACE and set Space.displayName. If you receive the error message ALREADY_EXISTS when setting up a space, try a different displayName. An existing space within the Google Workspace organization might already use this display name. To create a group chat, set Space.spaceType to GROUP_CHAT. Don''t set Space.displayName. To create a 1:1 conversation between humans, set Space.spaceType to DIRECT_MESSAGE and set Space.singleUserBotDm to false. Don''t set Space.displayName or Space.spaceDetails. To create an 1:1 conversation between a human and the calling Chat app, set Space.spaceType to DIRECT_MESSAGE and Space.singleUserBotDm to true. Don''t set Space.displayName or Space.spaceDetails. If a DIRECT_MESSAGE space already exists, that space is returned instead of creating a new space.
-    #[serde(default)]
-    pub space: ::core::option::Option<Space>,
-}
-
-/// Metadata about a [slash command](https://developers.google.com/workspace/chat/commands) in Google Chat.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SlashCommand {
-    /// The ID of the slash command.
-    #[serde(default, rename = "commandId")]
-    pub command_id: ::core::option::Option<String>,
-}
-
-/// Annotation metadata for slash commands (/).
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SlashCommandMetadata {
-    /// The Chat app whose command was invoked.
-    #[serde(default)]
-    pub bot: ::core::option::Option<User>,
-    /// The command ID of the invoked slash command.
-    #[serde(default, rename = "commandId")]
-    pub command_id: ::core::option::Option<String>,
-    /// The name of the invoked slash command.
-    #[serde(default, rename = "commandName")]
-    pub command_name: ::core::option::Option<String>,
-    /// Indicates whether the slash command is for a dialog.
-    #[serde(default, rename = "triggersDialog")]
-    pub triggers_dialog: ::core::option::Option<bool>,
-    /// The type of slash command. // TODO: enum values: ["TYPE_UNSPECIFIED", "ADD", "INVOKE"]
-    #[serde(default, rename = "type")]
-    pub type_: ::core::option::Option<String>,
-}
-
-/// A space in Google Chat. Spaces are conversations between two or more users or 1:1 messages between a user and a Chat app.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Space {
-    /// Optional. Specifies the [access setting](https://support.google.com/chat/answer/11971020) of the space. Only populated when the space_type is SPACE.
-    #[serde(default, rename = "accessSettings")]
-    pub access_settings: ::core::option::Option<AccessSettings>,
-    /// Output only. For direct message (DM) spaces with a Chat app, whether the space was created by a Google Workspace administrator. Administrators can install and set up a direct message with a Chat app on behalf of users in their organization. To support admin install, your Chat app must feature direct messaging.
-    #[serde(default, rename = "adminInstalled")]
-    pub admin_installed: ::core::option::Option<bool>,
-    /// Optional. Immutable. For spaces created in Chat, the time the space was created. This field is output only, except when used in import mode spaces. For import mode spaces, set this field to the historical timestamp at which the space was created in the source in order to preserve the original creation time. Only populated in the output when spaceType is GROUP_CHAT or SPACE.
-    #[serde(default, rename = "createTime")]
-    pub create_time: ::core::option::Option<String>,
-    /// Optional. Immutable. The customer id of the domain of the space. Required only when creating a space with [app authentication](https://developers.google.com/workspace/chat/authenticate-authorize-chat-app) and SpaceType is SPACE, otherwise should not be set. In the format customers/{customer}, where customer is the id from the [Admin SDK customer resource](https://developers.google.com/admin-sdk/directory/reference/rest/v1/customers). Private apps can also use the customers/my_customer alias to create the space in the same Google Workspace organization as the app. This field isn''t populated for direct messages (DMs) or when the space is created by non-Google Workspace users.
-    #[serde(default)]
-    pub customer: ::core::option::Option<String>,
-    /// Optional. The space''s display name. Required when [creating a space](https://developers.google.com/workspace/chat/api/reference/rest/v1/spaces/create) with a spaceType of SPACE. If you receive the error message ALREADY_EXISTS when creating a space or updating the displayName, try a different displayName. An existing space within the Google Workspace organization might already use this display name. For direct messages, this field might be empty. Supports up to 128 characters.
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-    /// Optional. Immutable. Whether this space permits any Google Chat user as a member. Input when creating a space in a Google Workspace organization. Omit this field when creating spaces in the following conditions: * The authenticated user uses a consumer account (unmanaged user account). By default, a space created by a consumer account permits any Google Chat user. For existing spaces, this field is output only.
-    #[serde(default, rename = "externalUserAllowed")]
-    pub external_user_allowed: ::core::option::Option<bool>,
-    /// Optional. Whether this space is created in Import Mode as part of a data migration into Google Workspace. While spaces are being imported, they aren''t visible to users until the import is complete. Creating a space in Import Moderequires [user authentication](https://developers.google.com/workspace/chat/authenticate-authorize-chat-user).
-    #[serde(default, rename = "importMode")]
-    pub import_mode: ::core::option::Option<bool>,
-    /// Output only. The time when the space will be automatically deleted by the system if it remains in import mode. Each space created in import mode must exit this mode before this expire time using spaces.completeImport. This field is only populated for spaces that were created with import mode.
-    #[serde(default, rename = "importModeExpireTime")]
-    pub import_mode_expire_time: ::core::option::Option<String>,
-    /// Output only. Timestamp of the last message in the space.
-    #[serde(default, rename = "lastActiveTime")]
-    pub last_active_time: ::core::option::Option<String>,
-    /// Output only. The count of joined memberships grouped by member type. Populated when the space_type is SPACE, DIRECT_MESSAGE or GROUP_CHAT.
-    #[serde(default, rename = "membershipCount")]
-    pub membership_count: ::core::option::Option<MembershipCount>,
-    /// Identifier. Resource name of the space. Format: spaces/{space} Where {space} represents the system-assigned ID for the space. You can obtain the space ID by calling the [spaces.list()](https://developers.google.com/workspace/chat/api/reference/rest/v1/spaces/list) method or from the space URL. For example, if the space URL is https://mail.google.com/mail/u/0/#chat/space/AAAAAAAAA, the space ID is AAAAAAAAA.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Optional. Space permission settings for existing spaces. Input for updating exact space permission settings, where existing permission settings are replaced. Output lists current permission settings. Reading and updating permission settings supports: - [App authentication](https://developers.google.com/workspace/chat/authenticate-authorize-chat-app) with [administrator approval](https://support.google.com/a?p=chat-app-auth) with the chat.app.spaces scope. Only populated and settable when the Chat app created the space. - [User authentication](https://developers.google.com/workspace/chat/authenticate-authorize-chat-user)
-    #[serde(default, rename = "permissionSettings")]
-    pub permission_settings: ::core::option::Option<PermissionSettings>,
-    /// Optional. Input only. Predefined space permission settings, input only when creating a space. If the field is not set, a collaboration space is created. After you create the space, settings are populated in the PermissionSettings field. Setting predefined permission settings supports: - [App authentication](https://developers.google.com/workspace/chat/authenticate-authorize-chat-app) with [administrator approval](https://support.google.com/a?p=chat-app-auth) with the chat.app.spaces or chat.app.spaces.create scopes. - [User authentication](https://developers.google.com/workspace/chat/authenticate-authorize-chat-user) // TODO: enum values: ["PREDEFINED_PERMISSION_SETTINGS_UNSPECIFIED", "COLLABORATION_SPACE", "ANNOUNCEMENT_SPACE"]
-    #[serde(default, rename = "predefinedPermissionSettings")]
-    pub predefined_permission_settings: ::core::option::Option<String>,
-    /// Optional. Whether the space is a DM between a Chat app and a single human.
-    #[serde(default, rename = "singleUserBotDm")]
-    pub single_user_bot_dm: ::core::option::Option<bool>,
-    /// Optional. Details about the space including description and rules.
-    #[serde(default, rename = "spaceDetails")]
-    pub space_details: ::core::option::Option<SpaceDetails>,
-    /// Optional. The message history state for messages and threads in this space. // TODO: enum values: ["HISTORY_STATE_UNSPECIFIED", "HISTORY_OFF", "HISTORY_ON"]
-    #[serde(default, rename = "spaceHistoryState")]
-    pub space_history_state: ::core::option::Option<String>,
-    /// Output only. The threading state in the Chat space. // TODO: enum values: ["SPACE_THREADING_STATE_UNSPECIFIED", "THREADED_MESSAGES", "GROUPED_MESSAGES", "UNTHREADED_MESSAGES"]
-    #[serde(default, rename = "spaceThreadingState")]
-    pub space_threading_state: ::core::option::Option<String>,
-    /// Optional. The type of space. Required when creating a space or updating the space type of a space. Output only for other usage. // TODO: enum values: ["SPACE_TYPE_UNSPECIFIED", "SPACE", "GROUP_CHAT", "DIRECT_MESSAGE"]
-    #[serde(default, rename = "spaceType")]
-    pub space_type: ::core::option::Option<String>,
-    /// Output only. The URI for a user to access the space.
-    #[serde(default, rename = "spaceUri")]
-    pub space_uri: ::core::option::Option<String>,
-    /// Output only. Deprecated: Use spaceThreadingState instead. Whether messages are threaded in this space.
-    #[serde(default)]
-    pub threaded: ::core::option::Option<bool>,
-    /// Output only. Deprecated: Use space_type instead. The type of a space. // TODO: enum values: ["TYPE_UNSPECIFIED", "ROOM", "DM"]
-    #[serde(default, rename = "type")]
-    pub type_: ::core::option::Option<String>,
-}
-
-/// Event payload for multiple updates to a space. Event type: google.workspace.chat.space.v1.batchUpdated
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SpaceBatchUpdatedEventData {
-    /// A list of updated spaces.
-    #[serde(default)]
-    pub spaces: ::core::option::Option<::std::vec::Vec<SpaceUpdatedEventData>>,
-}
-
 /// A data source that populates Google Chat spaces as selection items for a multiselect menu. Only populates spaces that the user is a member of. [Google Chat apps](https://developers.google.com/workspace/chat):
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SpaceDataSource {
     /// If set to true, the multiselect menu selects the current Google Chat space as an item by default.
     #[serde(default, rename = "defaultToCurrentSpace")]
     pub default_to_current_space: ::core::option::Option<bool>,
-}
-
-/// Details about the space including description and rules.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SpaceDetails {
-    /// Optional. A description of the space. For example, describe the space''s discussion topic, functional purpose, or participants. Supports up to 150 characters.
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// Optional. The space''s rules, expectations, and etiquette. Supports up to 5,000 characters.
-    #[serde(default)]
-    pub guidelines: ::core::option::Option<String>,
-}
-
-/// An event that represents a change or activity in a Google Chat space. To learn more, see [Work with events from Google Chat](https://developers.google.com/workspace/chat/events-overview).
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SpaceEvent {
-    /// Time when the event occurred.
-    #[serde(default, rename = "eventTime")]
-    pub event_time: ::core::option::Option<String>,
-    /// Type of space event. Each event type has a batch version, which represents multiple instances of the event type that occur in a short period of time. For spaceEvents.list() requests, omit batch event types in your query filter. By default, the server returns both event type and its batch version. Supported event types for [messages](https://developers.google.com/workspace/chat/api/reference/rest/v1/spaces.messages): * New message: google.workspace.chat.message.v1.created * Updated message: google.workspace.chat.message.v1.updated * Deleted message: google.workspace.chat.message.v1.deleted * Multiple new messages: google.workspace.chat.message.v1.batchCreated * Multiple updated messages: google.workspace.chat.message.v1.batchUpdated * Multiple deleted messages: google.workspace.chat.message.v1.batchDeleted Supported event types for [memberships](https://developers.google.com/workspace/chat/api/reference/rest/v1/spaces.members): * New membership: google.workspace.chat.membership.v1.created * Updated membership: google.workspace.chat.membership.v1.updated * Deleted membership: google.workspace.chat.membership.v1.deleted * Multiple new memberships: google.workspace.chat.membership.v1.batchCreated * Multiple updated memberships: google.workspace.chat.membership.v1.batchUpdated * Multiple deleted memberships: google.workspace.chat.membership.v1.batchDeleted Supported event types for [reactions](https://developers.google.com/workspace/chat/api/reference/rest/v1/spaces.messages.reactions): * New reaction: google.workspace.chat.reaction.v1.created * Deleted reaction: google.workspace.chat.reaction.v1.deleted * Multiple new reactions: google.workspace.chat.reaction.v1.batchCreated * Multiple deleted reactions: google.workspace.chat.reaction.v1.batchDeleted Supported event types about the [space](https://developers.google.com/workspace/chat/api/reference/rest/v1/spaces): * Updated space: google.workspace.chat.space.v1.updated * Multiple space updates: google.workspace.chat.space.v1.batchUpdated
-    #[serde(default, rename = "eventType")]
-    pub event_type: ::core::option::Option<String>,
-    /// Event payload for multiple new memberships. Event type: google.workspace.chat.membership.v1.batchCreated
-    #[serde(default, rename = "membershipBatchCreatedEventData")]
-    pub membership_batch_created_event_data:
-        ::core::option::Option<MembershipBatchCreatedEventData>,
-    /// Event payload for multiple deleted memberships. Event type: google.workspace.chat.membership.v1.batchDeleted
-    #[serde(default, rename = "membershipBatchDeletedEventData")]
-    pub membership_batch_deleted_event_data:
-        ::core::option::Option<MembershipBatchDeletedEventData>,
-    /// Event payload for multiple updated memberships. Event type: google.workspace.chat.membership.v1.batchUpdated
-    #[serde(default, rename = "membershipBatchUpdatedEventData")]
-    pub membership_batch_updated_event_data:
-        ::core::option::Option<MembershipBatchUpdatedEventData>,
-    /// Event payload for a new membership. Event type: google.workspace.chat.membership.v1.created
-    #[serde(default, rename = "membershipCreatedEventData")]
-    pub membership_created_event_data: ::core::option::Option<MembershipCreatedEventData>,
-    /// Event payload for a deleted membership. Event type: google.workspace.chat.membership.v1.deleted
-    #[serde(default, rename = "membershipDeletedEventData")]
-    pub membership_deleted_event_data: ::core::option::Option<MembershipDeletedEventData>,
-    /// Event payload for an updated membership. Event type: google.workspace.chat.membership.v1.updated
-    #[serde(default, rename = "membershipUpdatedEventData")]
-    pub membership_updated_event_data: ::core::option::Option<MembershipUpdatedEventData>,
-    /// Event payload for multiple new messages. Event type: google.workspace.chat.message.v1.batchCreated
-    #[serde(default, rename = "messageBatchCreatedEventData")]
-    pub message_batch_created_event_data: ::core::option::Option<MessageBatchCreatedEventData>,
-    /// Event payload for multiple deleted messages. Event type: google.workspace.chat.message.v1.batchDeleted
-    #[serde(default, rename = "messageBatchDeletedEventData")]
-    pub message_batch_deleted_event_data: ::core::option::Option<MessageBatchDeletedEventData>,
-    /// Event payload for multiple updated messages. Event type: google.workspace.chat.message.v1.batchUpdated
-    #[serde(default, rename = "messageBatchUpdatedEventData")]
-    pub message_batch_updated_event_data: ::core::option::Option<MessageBatchUpdatedEventData>,
-    /// Event payload for a new message. Event type: google.workspace.chat.message.v1.created
-    #[serde(default, rename = "messageCreatedEventData")]
-    pub message_created_event_data: ::core::option::Option<MessageCreatedEventData>,
-    /// Event payload for a deleted message. Event type: google.workspace.chat.message.v1.deleted
-    #[serde(default, rename = "messageDeletedEventData")]
-    pub message_deleted_event_data: ::core::option::Option<MessageDeletedEventData>,
-    /// Event payload for an updated message. Event type: google.workspace.chat.message.v1.updated
-    #[serde(default, rename = "messageUpdatedEventData")]
-    pub message_updated_event_data: ::core::option::Option<MessageUpdatedEventData>,
-    /// Resource name of the space event. Format: spaces/{space}/spaceEvents/{spaceEvent}
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Event payload for multiple new reactions. Event type: google.workspace.chat.reaction.v1.batchCreated
-    #[serde(default, rename = "reactionBatchCreatedEventData")]
-    pub reaction_batch_created_event_data: ::core::option::Option<ReactionBatchCreatedEventData>,
-    /// Event payload for multiple deleted reactions. Event type: google.workspace.chat.reaction.v1.batchDeleted
-    #[serde(default, rename = "reactionBatchDeletedEventData")]
-    pub reaction_batch_deleted_event_data: ::core::option::Option<ReactionBatchDeletedEventData>,
-    /// Event payload for a new reaction. Event type: google.workspace.chat.reaction.v1.created
-    #[serde(default, rename = "reactionCreatedEventData")]
-    pub reaction_created_event_data: ::core::option::Option<ReactionCreatedEventData>,
-    /// Event payload for a deleted reaction. Event type: google.workspace.chat.reaction.v1.deleted
-    #[serde(default, rename = "reactionDeletedEventData")]
-    pub reaction_deleted_event_data: ::core::option::Option<ReactionDeletedEventData>,
-    /// Event payload for multiple updates to a space. Event type: google.workspace.chat.space.v1.batchUpdated
-    #[serde(default, rename = "spaceBatchUpdatedEventData")]
-    pub space_batch_updated_event_data: ::core::option::Option<SpaceBatchUpdatedEventData>,
-    /// Event payload for a space update. Event type: google.workspace.chat.space.v1.updated
-    #[serde(default, rename = "spaceUpdatedEventData")]
-    pub space_updated_event_data: ::core::option::Option<SpaceUpdatedEventData>,
-}
-
-/// The notification setting of a user in a space.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SpaceNotificationSetting {
-    /// The space notification mute setting. // TODO: enum values: ["MUTE_SETTING_UNSPECIFIED", "UNMUTED", "MUTED"]
-    #[serde(default, rename = "muteSetting")]
-    pub mute_setting: ::core::option::Option<String>,
-    /// Identifier. The resource name of the space notification setting. Format: users/{user}/spaces/{space}/spaceNotificationSetting.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// The notification setting. // TODO: enum values: ["NOTIFICATION_SETTING_UNSPECIFIED", "ALL", "MAIN_CONVERSATIONS", "FOR_YOU", "OFF"]
-    #[serde(default, rename = "notificationSetting")]
-    pub notification_setting: ::core::option::Option<String>,
-}
-
-/// A user''s read state within a space, used to identify read and unread messages.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SpaceReadState {
-    /// Optional. The time when the user''s space read state was updated. Usually this corresponds with either the timestamp of the last read message, or a timestamp specified by the user to mark the last read position in a space.
-    #[serde(default, rename = "lastReadTime")]
-    pub last_read_time: ::core::option::Option<String>,
-    /// Resource name of the space read state. Format: users/{user}/spaces/{space}/spaceReadState
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-}
-
-/// Event payload for an updated space. Event type: google.workspace.chat.space.v1.updated
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SpaceUpdatedEventData {
-    /// The updated space.
-    #[serde(default)]
-    pub space: ::core::option::Option<Space>,
-}
-
-/// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Status {
-    /// The status code, which should be an enum value of google.rpc.Code.
-    #[serde(default)]
-    pub code: ::core::option::Option<i32>,
-    /// A list of messages that carry the error details. There is a common set of message types for APIs to use.
-    #[serde(default)]
-    pub details: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
-    /// A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.
-    #[serde(default)]
-    pub message: ::core::option::Option<String>,
-}
-
-/// Input parameter for regular widgets. For single-valued widgets, it is a single value list. For multi-valued widgets, such as checkbox, all the values are presented.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct StringInputs {
-    /// An list of strings entered by the user.
-    #[serde(default)]
-    pub value: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// A button with text and onclick action.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct TextButton {
-    /// The onclick action of the button.
-    #[serde(default, rename = "onClick")]
-    pub on_click: ::core::option::Option<OnClick>,
-    /// The text of the button.
-    #[serde(default)]
-    pub text: ::core::option::Option<String>,
-}
-
-/// A paragraph of text. Formatted text supported. For more information about formatting text, see [Formatting text in Google Chat apps](https://developers.google.com/workspace/chat/format-messages#card-formatting) and [Formatting text in Google Workspace Add-ons](https://developers.google.com/apps-script/add-ons/concepts/widgets#text_formatting).
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct TextParagraph {
-    #[serde(default)]
-    pub text: ::core::option::Option<String>,
-}
-
-/// A thread in a Google Chat space. For example usage, see [Start or reply to a message thread](https://developers.google.com/workspace/chat/create-messages#create-message-thread). If you specify a thread when creating a message, you can set the [messageReplyOption](https://developers.google.com/workspace/chat/api/reference/rest/v1/spaces.messages/create#messagereplyoption) field to determine what happens if no matching thread is found.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Thread {
-    /// Identifier. Resource name of the thread. Example: spaces/{space}/threads/{thread}
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Optional. Input for creating or updating a thread. Otherwise, output only. ID for the thread. Supports up to 4000 characters. This ID is unique to the Chat app that sets it. For example, if multiple Chat apps create a message using the same thread key, the messages are posted in different threads. To reply in a thread created by a person or another Chat app, specify the thread name field instead.
-    #[serde(default, rename = "threadKey")]
-    pub thread_key: ::core::option::Option<String>,
-}
-
-/// A user''s read state within a thread, used to identify read and unread messages.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ThreadReadState {
-    /// The time when the user''s thread read state was updated. Usually this corresponds with the timestamp of the last read message in a thread.
-    #[serde(default, rename = "lastReadTime")]
-    pub last_read_time: ::core::option::Option<String>,
-    /// Resource name of the thread read state. Format: users/{user}/spaces/{space}/threads/{thread}/threadReadState
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-}
-
-/// Time input values.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct TimeInput {
-    /// The hour on a 24-hour clock.
-    #[serde(default)]
-    pub hours: ::core::option::Option<i32>,
-    /// The number of minutes past the hour. Valid values are 0 to 59.
-    #[serde(default)]
-    pub minutes: ::core::option::Option<i32>,
-}
-
-/// The timezone ID and offset from Coordinated Universal Time (UTC). Only supported for the event types [CARD_CLICKED](https://developers.google.com/chat/api/reference/rest/v1/EventType#ENUM_VALUES.CARD_CLICKED) and [SUBMIT_DIALOG](https://developers.google.com/chat/api/reference/rest/v1/DialogEventType#ENUM_VALUES.SUBMIT_DIALOG).
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct TimeZone {
-    /// The [IANA TZ](https://www.iana.org/time-zones) time zone database code, such as "America/Toronto".
-    #[serde(default)]
-    pub id: ::core::option::Option<String>,
-    /// The user timezone offset, in milliseconds, from Coordinated Universal Time (UTC).
-    #[serde(default)]
-    pub offset: ::core::option::Option<i32>,
-}
-
-/// For selectionInput widgets, returns autocomplete suggestions for a multiselect menu.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct UpdatedWidget {
-    /// List of widget autocomplete results
-    #[serde(default)]
-    pub suggestions: ::core::option::Option<SelectionItems>,
-    /// The ID of the updated widget. The ID must match the one for the widget that triggered the update request.
-    #[serde(default)]
-    pub widget: ::core::option::Option<String>,
-}
-
-/// Request to upload an attachment.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct UploadAttachmentRequest {
-    /// Required. The filename of the attachment, including the file extension.
-    #[serde(default)]
-    pub filename: ::core::option::Option<String>,
-}
-
-/// Response of uploading an attachment.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct UploadAttachmentResponse {
-    /// Reference to the uploaded attachment.
-    #[serde(default, rename = "attachmentDataRef")]
-    pub attachment_data_ref: ::core::option::Option<AttachmentDataRef>,
-}
-
-/// A user in Google Chat. When returned as an output from a request, if your Chat app [authenticates as a user](https://developers.google.com/workspace/chat/authenticate-authorize-chat-user), the output for a User resource only populates the user''s name and type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct User {
-    /// Output only. The user''s display name.
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-    /// Unique identifier of the user''s Google Workspace domain.
-    #[serde(default, rename = "domainId")]
-    pub domain_id: ::core::option::Option<String>,
-    /// Output only. When true, the user is deleted or their profile is not visible.
-    #[serde(default, rename = "isAnonymous")]
-    pub is_anonymous: ::core::option::Option<bool>,
-    /// Resource name for a Google Chat user. Format: users/{user}. users/app can be used as an alias for the calling app bot user. For human users, {user} is the same user identifier as: - the id for the [Person](https://developers.google.com/people/api/rest/v1/people) in the People API. For example, users/123456789 in Chat API represents the same person as the 123456789 Person profile ID in People API. - the id for a [user](https://developers.google.com/admin-sdk/directory/reference/rest/v1/users) in the Admin SDK Directory API. - the user''s email address can be used as an alias for {user} in API requests. For example, if the People API Person profile ID for user@example.com is 123456789, you can use users/user@example.com as an alias to reference users/123456789. Only the canonical resource name (for example users/123456789) will be returned from the API.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// User type. // TODO: enum values: ["TYPE_UNSPECIFIED", "HUMAN", "BOT"]
-    #[serde(default, rename = "type")]
-    pub type_: ::core::option::Option<String>,
-}
-
-/// Annotation metadata for user mentions (@).
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct UserMentionMetadata {
-    /// The type of user mention. // TODO: enum values: ["TYPE_UNSPECIFIED", "ADD", "MENTION"]
-    #[serde(default, rename = "type")]
-    pub type_: ::core::option::Option<String>,
-    /// The user mentioned.
-    #[serde(default)]
-    pub user: ::core::option::Option<User>,
-}
-
-/// A widget is a UI element that presents text and images.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct WidgetMarkup {
-    /// A list of buttons. Buttons is also oneof data and only one of these fields should be set.
-    #[serde(default)]
-    pub buttons: ::core::option::Option<::std::vec::Vec<Button>>,
-    /// Display an image in this widget.
-    #[serde(default)]
-    pub image: ::core::option::Option<Image>,
-    /// Display a key value item in this widget.
-    #[serde(default, rename = "keyValue")]
-    pub key_value: ::core::option::Option<KeyValue>,
-    /// Display a text paragraph in this widget.
-    #[serde(default, rename = "textParagraph")]
-    pub text_paragraph: ::core::option::Option<TextParagraph>,
 }
 
 /// * Only supported by Google Workspace Workflow, but not Google Chat apps or Google Workspace add-ons. In a TextInput or SelectionInput widget with MULTI_SELECT type or a DateTimePicker, provide data source from Google.

@@ -10,17 +10,6 @@
 use super::*;
 use serde::{Deserialize, Serialize};
 
-/// Message encapsulating a value that can be either absolute ("fixed") or relative ("percent") to a value.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct FixedOrPercent {
-    /// Specifies a fixed value.
-    #[serde(default)]
-    pub fixed: ::core::option::Option<i32>,
-    /// Specifies the relative value defined as a percentage, which will be multiplied by a reference value.
-    #[serde(default)]
-    pub percent: ::core::option::Option<i32>,
-}
-
 /// Represents the metadata of a generic long-running operation.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudOsconfigCommonV1OperationMetadata {
@@ -119,80 +108,6 @@ pub struct GoogleCloudOsconfigV1OSPolicyAssignmentOperationMetadata {
     pub rollout_update_time: ::core::option::Option<String>,
 }
 
-/// Selector containing locations in scope.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudOsconfigV2OrchestrationScopeLocationSelector {
-    /// Optional. Names of the locations in scope. Format: us-central1-a
-    #[serde(default, rename = "includedLocations")]
-    pub included_locations: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// Selector containing Cloud Resource Manager resource hierarchy nodes.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudOsconfigV2OrchestrationScopeResourceHierarchySelector {
-    /// Optional. Names of the folders in scope. Format: folders/{folder_id}
-    #[serde(default, rename = "includedFolders")]
-    pub included_folders: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Optional. Names of the projects in scope. Format: projects/{project_number}
-    #[serde(default, rename = "includedProjects")]
-    pub included_projects: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// Selector for the resources in scope of orchestration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudOsconfigV2OrchestrationScopeSelector {
-    /// Selector for selecting locations.
-    #[serde(default, rename = "locationSelector")]
-    pub location_selector:
-        ::core::option::Option<GoogleCloudOsconfigV2OrchestrationScopeLocationSelector>,
-    /// Selector for selecting resource hierarchy.
-    #[serde(default, rename = "resourceHierarchySelector")]
-    pub resource_hierarchy_selector:
-        ::core::option::Option<GoogleCloudOsconfigV2OrchestrationScopeResourceHierarchySelector>,
-}
-
-/// Describes the state of a single iteration of the orchestrator.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudOsconfigV2PolicyOrchestratorIterationState {
-    /// Output only. Error thrown in the wave iteration.
-    #[serde(default)]
-    pub error: ::core::option::Option<Status>,
-    /// Output only. Number of orchestration actions which failed so far. For more details, query the Cloud Logs.
-    #[serde(default, rename = "failedActions")]
-    pub failed_actions: ::core::option::Option<String>,
-    /// Output only. Finish time of the wave iteration.
-    #[serde(default, rename = "finishTime")]
-    pub finish_time: ::core::option::Option<String>,
-    /// Output only. Unique identifier of the iteration.
-    #[serde(default, rename = "iterationId")]
-    pub iteration_id: ::core::option::Option<String>,
-    /// Output only. Overall number of actions done by the orchestrator so far.
-    #[serde(default, rename = "performedActions")]
-    pub performed_actions: ::core::option::Option<String>,
-    /// Output only. An estimated percentage of the progress. Number between 0 and 100.
-    #[serde(default)]
-    pub progress: ::core::option::Option<f32>,
-    /// Output only. Start time of the wave iteration.
-    #[serde(default, rename = "startTime")]
-    pub start_time: ::core::option::Option<String>,
-    /// Output only. State of the iteration. // TODO: enum values: ["STATE_UNSPECIFIED", "PROCESSING", "COMPLETED", "FAILED", "CANCELLED", "UNKNOWN"]
-    #[serde(default)]
-    pub state: ::core::option::Option<String>,
-}
-
-/// Describes the state of the orchestration process.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudOsconfigV2PolicyOrchestratorOrchestrationState {
-    /// Output only. Current Wave iteration state.
-    #[serde(default, rename = "currentIterationState")]
-    pub current_iteration_state:
-        ::core::option::Option<GoogleCloudOsconfigV2PolicyOrchestratorIterationState>,
-    /// Output only. Previous Wave iteration state.
-    #[serde(default, rename = "previousIterationState")]
-    pub previous_iteration_state:
-        ::core::option::Option<GoogleCloudOsconfigV2PolicyOrchestratorIterationState>,
-}
-
 /// Response for the list policy orchestrator resources.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudOsconfigV2ListPolicyOrchestratorsResponse {
@@ -234,24 +149,84 @@ pub struct GoogleCloudOsconfigV2OperationMetadata {
     pub verb: ::core::option::Option<String>,
 }
 
-/// Represents a resource that is being orchestrated by the policy orchestrator.
+/// Represents the metadata of the long-running operation.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudOsconfigV2OrchestratedResource {
-    /// Optional. ID of the resource to be used while generating set of affected resources. For UPSERT action the value is auto-generated during PolicyOrchestrator creation when not set. When the value is set it should following next restrictions: * Must contain only lowercase letters, numbers, and hyphens. * Must start with a letter. * Must be between 1-63 characters. * Must end with a number or a letter. * Must be unique within the project. For DELETE action, ID must be specified explicitly during PolicyOrchestrator creation.
+pub struct GoogleCloudOsconfigV2betaOperationMetadata {
+    /// Output only. API version used to start the operation.
+    #[serde(default, rename = "apiVersion")]
+    pub api_version: ::core::option::Option<String>,
+    /// Output only. The time the operation was created.
+    #[serde(default, rename = "createTime")]
+    pub create_time: ::core::option::Option<String>,
+    /// Output only. The time the operation finished running.
+    #[serde(default, rename = "endTime")]
+    pub end_time: ::core::option::Option<String>,
+    /// Output only. Identifies whether the user has requested cancellation of the operation. Operations that have been cancelled successfully have Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+    #[serde(default, rename = "requestedCancellation")]
+    pub requested_cancellation: ::core::option::Option<bool>,
+    /// Output only. Human-readable status of the operation, if any.
+    #[serde(default, rename = "statusMessage")]
+    pub status_message: ::core::option::Option<String>,
+    /// Output only. Server-defined resource path for the target of the operation.
     #[serde(default)]
-    pub id: ::core::option::Option<String>,
-    /// Optional. OSPolicyAssignment resource to be created, updated or deleted. Name field is ignored and replace with a generated value. With this field set, orchestrator will perform actions on project/{project}/locations/{zone}/osPolicyAssignments/{resource_id} resources, where project and zone pairs come from the expanded scope, and resource_id comes from the resource_id field of orchestrator resource.
-    #[serde(default, rename = "osPolicyAssignmentV1Payload")]
-    pub os_policy_assignment_v1_payload: ::core::option::Option<OSPolicyAssignment>,
+    pub target: ::core::option::Option<String>,
+    /// Output only. Name of the verb executed by the operation.
+    #[serde(default)]
+    pub verb: ::core::option::Option<String>,
 }
 
-/// Defines a set of selectors which drive which resources are in scope of policy orchestration.
+/// The response message for Operations.ListOperations.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudOsconfigV2OrchestrationScope {
-    /// Optional. Selectors of the orchestration scope. There is a logical AND between each selector defined. When there is no explicit ResourceHierarchySelector selector specified, the scope is by default bounded to the parent of the policy orchestrator resource.
+pub struct ListOperationsResponse {
+    /// The standard List next-page token.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+    /// A list of operations that matches the specified filter in the request.
     #[serde(default)]
-    pub selectors:
-        ::core::option::Option<::std::vec::Vec<GoogleCloudOsconfigV2OrchestrationScopeSelector>>,
+    pub operations: ::core::option::Option<::std::vec::Vec<Operation>>,
+    /// Unordered list. Unreachable resources. Populated when the request sets ListOperationsRequest.return_partial_success and reads across collections. For example, when attempting to list all resources across all supported locations.
+    #[serde(default)]
+    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// OS policy assignment operation metadata provided by OS policy assignment API methods that return long running operations.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct OSPolicyAssignmentOperationMetadata {
+    /// The OS policy assignment API method. // TODO: enum values: ["API_METHOD_UNSPECIFIED", "CREATE", "UPDATE", "DELETE"]
+    #[serde(default, rename = "apiMethod")]
+    pub api_method: ::core::option::Option<String>,
+    /// Reference to the OSPolicyAssignment API resource. Format: projects/{project_number}/locations/{location}/osPolicyAssignments/{os_policy_assignment_id@revision_id}
+    #[serde(default, rename = "osPolicyAssignment")]
+    pub os_policy_assignment: ::core::option::Option<String>,
+    /// Rollout start time
+    #[serde(default, rename = "rolloutStartTime")]
+    pub rollout_start_time: ::core::option::Option<String>,
+    /// State of the rollout // TODO: enum values: ["ROLLOUT_STATE_UNSPECIFIED", "IN_PROGRESS", "CANCELLING", "CANCELLED", "SUCCEEDED"]
+    #[serde(default, rename = "rolloutState")]
+    pub rollout_state: ::core::option::Option<String>,
+    /// Rollout update time
+    #[serde(default, rename = "rolloutUpdateTime")]
+    pub rollout_update_time: ::core::option::Option<String>,
+}
+
+/// Wire-format for a Status object
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct StatusProto {
+    /// copybara:strip_begin(b/383363683) copybara:strip_end_and_replace optional int32 canonical_code = 6;
+    #[serde(default, rename = "canonicalCode")]
+    pub canonical_code: ::core::option::Option<i32>,
+    /// Numeric code drawn from the space specified below. Often, this is the canonical error space, and code is drawn from google3/util/task/codes.proto copybara:strip_begin(b/383363683) copybara:strip_end_and_replace optional int32 code = 1;
+    #[serde(default)]
+    pub code: ::core::option::Option<i32>,
+    /// Detail message copybara:strip_begin(b/383363683) copybara:strip_end_and_replace optional string message = 3;
+    #[serde(default)]
+    pub message: ::core::option::Option<String>,
+    /// message_set associates an arbitrary proto message with the status. copybara:strip_begin(b/383363683) copybara:strip_end_and_replace optional proto2.bridge.MessageSet message_set = 5;
+    #[serde(default, rename = "messageSet")]
+    pub message_set: ::core::option::Option<serde_json::Value>,
+    /// copybara:strip_begin(b/383363683) Space to which this status belongs copybara:strip_end_and_replace optional string space = 2; // Space to which this status belongs
+    #[serde(default)]
+    pub space: ::core::option::Option<String>,
 }
 
 /// PolicyOrchestrator helps managing project+zone level policy resources (e.g. OS Policy Assignments), by providing tools to create, update and delete them across projects and locations, at scale. Policy orchestrator functions as an endless loop. Each iteration orchestrator computes a set of resources that should be affected, then progressively applies changes to them. If for some reason this set of resources changes over time (e.g. new projects are added), the future loop iterations will address that. Orchestrator can either upsert or delete policy resources. For more details, see the description of the action, and orchestrated_resource fields. Note that policy orchestrator do not "manage" the resources it creates. Every iteration is independent and only minimal history of past actions is retained (apart from Cloud Logging). If orchestrator gets deleted, it does not affect the resources it created in the past. Those will remain where they were. Same applies if projects are removed from the orchestrator''s scope.
@@ -296,64 +271,57 @@ pub struct GoogleCloudOsconfigV2PolicyOrchestrator {
     pub update_time: ::core::option::Option<String>,
 }
 
-/// Represents the metadata of the long-running operation.
+/// This resource represents a long-running operation that is the result of a network API call.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudOsconfigV2betaOperationMetadata {
-    /// Output only. API version used to start the operation.
-    #[serde(default, rename = "apiVersion")]
-    pub api_version: ::core::option::Option<String>,
-    /// Output only. The time the operation was created.
-    #[serde(default, rename = "createTime")]
-    pub create_time: ::core::option::Option<String>,
-    /// Output only. The time the operation finished running.
-    #[serde(default, rename = "endTime")]
-    pub end_time: ::core::option::Option<String>,
-    /// Output only. Identifies whether the user has requested cancellation of the operation. Operations that have been cancelled successfully have Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
-    #[serde(default, rename = "requestedCancellation")]
-    pub requested_cancellation: ::core::option::Option<bool>,
-    /// Output only. Human-readable status of the operation, if any.
-    #[serde(default, rename = "statusMessage")]
-    pub status_message: ::core::option::Option<String>,
-    /// Output only. Server-defined resource path for the target of the operation.
+pub struct Operation {
+    /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
     #[serde(default)]
-    pub target: ::core::option::Option<String>,
-    /// Output only. Name of the verb executed by the operation.
+    pub done: ::core::option::Option<bool>,
+    /// The error result of the operation in case of failure or cancellation.
     #[serde(default)]
-    pub verb: ::core::option::Option<String>,
+    pub error: ::core::option::Option<Status>,
+    /// Service-specific metadata associated with the operation. It typically contains progress information and common metadata such as create time. Some services might not provide such metadata. Any method that returns a long-running operation should document the metadata type, if any.
+    #[serde(default)]
+    pub metadata: ::core::option::Option<serde_json::Value>,
+    /// The server-assigned name, which is only unique within the same service that originally returns it. If you use the default HTTP mapping, the name should be a resource name ending with operations/{unique_id}.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// The normal, successful response of the operation. If the original method returns no data on success, such as Delete, the response is google.protobuf.Empty. If the original method is standard Get/Create/Update, the response should be the resource. For other methods, the response should have the type XxxResponse, where Xxx is the original method name. For example, if the original method name is TakeSnapshot(), the inferred response type is TakeSnapshotResponse.
+    #[serde(default)]
+    pub response: ::core::option::Option<serde_json::Value>,
 }
 
-/// The response message for Operations.ListOperations.
+/// Represents a resource that is being orchestrated by the policy orchestrator.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ListOperationsResponse {
-    /// The standard List next-page token.
-    #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: ::core::option::Option<String>,
-    /// A list of operations that matches the specified filter in the request.
-    #[serde(default)]
-    pub operations: ::core::option::Option<::std::vec::Vec<Operation>>,
-    /// Unordered list. Unreachable resources. Populated when the request sets ListOperationsRequest.return_partial_success and reads across collections. For example, when attempting to list all resources across all supported locations.
-    #[serde(default)]
-    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// An OS policy defines the desired state configuration for a VM.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct OSPolicy {
-    /// This flag determines the OS policy compliance status when none of the resource groups within the policy are applicable for a VM. Set this value to true if the policy needs to be reported as compliant even if the policy has nothing to validate or enforce.
-    #[serde(default, rename = "allowNoResourceGroupMatch")]
-    pub allow_no_resource_group_match: ::core::option::Option<bool>,
-    /// Policy description. Length of the description is limited to 1024 characters.
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// Required. The id of the OS policy with the following restrictions: * Must contain only lowercase letters, numbers, and hyphens. * Must start with a letter. * Must be between 1-63 characters. * Must end with a number or a letter. * Must be unique within the assignment.
+pub struct GoogleCloudOsconfigV2OrchestratedResource {
+    /// Optional. ID of the resource to be used while generating set of affected resources. For UPSERT action the value is auto-generated during PolicyOrchestrator creation when not set. When the value is set it should following next restrictions: * Must contain only lowercase letters, numbers, and hyphens. * Must start with a letter. * Must be between 1-63 characters. * Must end with a number or a letter. * Must be unique within the project. For DELETE action, ID must be specified explicitly during PolicyOrchestrator creation.
     #[serde(default)]
     pub id: ::core::option::Option<String>,
-    /// Required. Policy mode // TODO: enum values: ["MODE_UNSPECIFIED", "VALIDATION", "ENFORCEMENT"]
+    /// Optional. OSPolicyAssignment resource to be created, updated or deleted. Name field is ignored and replace with a generated value. With this field set, orchestrator will perform actions on project/{project}/locations/{zone}/osPolicyAssignments/{resource_id} resources, where project and zone pairs come from the expanded scope, and resource_id comes from the resource_id field of orchestrator resource.
+    #[serde(default, rename = "osPolicyAssignmentV1Payload")]
+    pub os_policy_assignment_v1_payload: ::core::option::Option<OSPolicyAssignment>,
+}
+
+/// Defines a set of selectors which drive which resources are in scope of policy orchestration.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudOsconfigV2OrchestrationScope {
+    /// Optional. Selectors of the orchestration scope. There is a logical AND between each selector defined. When there is no explicit ResourceHierarchySelector selector specified, the scope is by default bounded to the parent of the policy orchestrator resource.
     #[serde(default)]
-    pub mode: ::core::option::Option<String>,
-    /// Required. List of resource groups for the policy. For a particular VM, resource groups are evaluated in the order specified and the first resource group that is applicable is selected and the rest are ignored. If none of the resource groups are applicable for a VM, the VM is considered to be non-compliant w.r.t this policy. This behavior can be toggled by the flag allow_no_resource_group_match
-    #[serde(default, rename = "resourceGroups")]
-    pub resource_groups: ::core::option::Option<::std::vec::Vec<OSPolicyResourceGroup>>,
+    pub selectors:
+        ::core::option::Option<::std::vec::Vec<GoogleCloudOsconfigV2OrchestrationScopeSelector>>,
+}
+
+/// Describes the state of the orchestration process.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudOsconfigV2PolicyOrchestratorOrchestrationState {
+    /// Output only. Current Wave iteration state.
+    #[serde(default, rename = "currentIterationState")]
+    pub current_iteration_state:
+        ::core::option::Option<GoogleCloudOsconfigV2PolicyOrchestratorIterationState>,
+    /// Output only. Previous Wave iteration state.
+    #[serde(default, rename = "previousIterationState")]
+    pub previous_iteration_state:
+        ::core::option::Option<GoogleCloudOsconfigV2PolicyOrchestratorIterationState>,
 }
 
 /// OS policy assignment is an API resource that is used to apply a set of OS policies to a dynamically targeted group of Compute Engine VM instances. An OS policy is used to define the desired state configuration for a Compute Engine VM instance through a set of configuration resources that provide capabilities such as installing or removing software packages, or executing a script. For more information about the OS policy resource definitions and examples, see [OS policy and OS policy assignment](https://cloud.google.com/compute/docs/os-configuration-management/working-with-os-policies).
@@ -400,6 +368,48 @@ pub struct OSPolicyAssignment {
     pub uid: ::core::option::Option<String>,
 }
 
+/// Selector for the resources in scope of orchestration.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudOsconfigV2OrchestrationScopeSelector {
+    /// Selector for selecting locations.
+    #[serde(default, rename = "locationSelector")]
+    pub location_selector:
+        ::core::option::Option<GoogleCloudOsconfigV2OrchestrationScopeLocationSelector>,
+    /// Selector for selecting resource hierarchy.
+    #[serde(default, rename = "resourceHierarchySelector")]
+    pub resource_hierarchy_selector:
+        ::core::option::Option<GoogleCloudOsconfigV2OrchestrationScopeResourceHierarchySelector>,
+}
+
+/// Describes the state of a single iteration of the orchestrator.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudOsconfigV2PolicyOrchestratorIterationState {
+    /// Output only. Error thrown in the wave iteration.
+    #[serde(default)]
+    pub error: ::core::option::Option<Status>,
+    /// Output only. Number of orchestration actions which failed so far. For more details, query the Cloud Logs.
+    #[serde(default, rename = "failedActions")]
+    pub failed_actions: ::core::option::Option<String>,
+    /// Output only. Finish time of the wave iteration.
+    #[serde(default, rename = "finishTime")]
+    pub finish_time: ::core::option::Option<String>,
+    /// Output only. Unique identifier of the iteration.
+    #[serde(default, rename = "iterationId")]
+    pub iteration_id: ::core::option::Option<String>,
+    /// Output only. Overall number of actions done by the orchestrator so far.
+    #[serde(default, rename = "performedActions")]
+    pub performed_actions: ::core::option::Option<String>,
+    /// Output only. An estimated percentage of the progress. Number between 0 and 100.
+    #[serde(default)]
+    pub progress: ::core::option::Option<f32>,
+    /// Output only. Start time of the wave iteration.
+    #[serde(default, rename = "startTime")]
+    pub start_time: ::core::option::Option<String>,
+    /// Output only. State of the iteration. // TODO: enum values: ["STATE_UNSPECIFIED", "PROCESSING", "COMPLETED", "FAILED", "CANCELLED", "UNKNOWN"]
+    #[serde(default)]
+    pub state: ::core::option::Option<String>,
+}
+
 /// Filters to select target VMs for an assignment. If more than one filter criteria is specified below, a VM will be selected if and only if it satisfies all of them.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct OSPolicyAssignmentInstanceFilter {
@@ -418,35 +428,24 @@ pub struct OSPolicyAssignmentInstanceFilter {
         ::core::option::Option<::std::vec::Vec<OSPolicyAssignmentInstanceFilterInventory>>,
 }
 
-/// VM inventory details.
+/// An OS policy defines the desired state configuration for a VM.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct OSPolicyAssignmentInstanceFilterInventory {
-    /// Required. The OS short name
-    #[serde(default, rename = "osShortName")]
-    pub os_short_name: ::core::option::Option<String>,
-    /// The OS version Prefix matches are supported if asterisk(*) is provided as the last character. For example, to match all versions with a major version of 7, specify the following value for this field 7.* An empty string matches all OS versions.
-    #[serde(default, rename = "osVersion")]
-    pub os_version: ::core::option::Option<String>,
-}
-
-/// OS policy assignment operation metadata provided by OS policy assignment API methods that return long running operations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct OSPolicyAssignmentOperationMetadata {
-    /// The OS policy assignment API method. // TODO: enum values: ["API_METHOD_UNSPECIFIED", "CREATE", "UPDATE", "DELETE"]
-    #[serde(default, rename = "apiMethod")]
-    pub api_method: ::core::option::Option<String>,
-    /// Reference to the OSPolicyAssignment API resource. Format: projects/{project_number}/locations/{location}/osPolicyAssignments/{os_policy_assignment_id@revision_id}
-    #[serde(default, rename = "osPolicyAssignment")]
-    pub os_policy_assignment: ::core::option::Option<String>,
-    /// Rollout start time
-    #[serde(default, rename = "rolloutStartTime")]
-    pub rollout_start_time: ::core::option::Option<String>,
-    /// State of the rollout // TODO: enum values: ["ROLLOUT_STATE_UNSPECIFIED", "IN_PROGRESS", "CANCELLING", "CANCELLED", "SUCCEEDED"]
-    #[serde(default, rename = "rolloutState")]
-    pub rollout_state: ::core::option::Option<String>,
-    /// Rollout update time
-    #[serde(default, rename = "rolloutUpdateTime")]
-    pub rollout_update_time: ::core::option::Option<String>,
+pub struct OSPolicy {
+    /// This flag determines the OS policy compliance status when none of the resource groups within the policy are applicable for a VM. Set this value to true if the policy needs to be reported as compliant even if the policy has nothing to validate or enforce.
+    #[serde(default, rename = "allowNoResourceGroupMatch")]
+    pub allow_no_resource_group_match: ::core::option::Option<bool>,
+    /// Policy description. Length of the description is limited to 1024 characters.
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+    /// Required. The id of the OS policy with the following restrictions: * Must contain only lowercase letters, numbers, and hyphens. * Must start with a letter. * Must be between 1-63 characters. * Must end with a number or a letter. * Must be unique within the assignment.
+    #[serde(default)]
+    pub id: ::core::option::Option<String>,
+    /// Required. Policy mode // TODO: enum values: ["MODE_UNSPECIFIED", "VALIDATION", "ENFORCEMENT"]
+    #[serde(default)]
+    pub mode: ::core::option::Option<String>,
+    /// Required. List of resource groups for the policy. For a particular VM, resource groups are evaluated in the order specified and the first resource group that is applicable is selected and the rest are ignored. If none of the resource groups are applicable for a VM, the VM is considered to be non-compliant w.r.t this policy. This behavior can be toggled by the flag allow_no_resource_group_match
+    #[serde(default, rename = "resourceGroups")]
+    pub resource_groups: ::core::option::Option<::std::vec::Vec<OSPolicyResourceGroup>>,
 }
 
 /// Message to configure the rollout at the zonal level for the OS policy assignment.
@@ -458,6 +457,72 @@ pub struct OSPolicyAssignmentRollout {
     /// Required. This determines the minimum duration of time to wait after the configuration changes are applied through the current rollout. A VM continues to count towards the disruption_budget at least until this duration of time has passed after configuration changes are applied.
     #[serde(default, rename = "minWaitDuration")]
     pub min_wait_duration: ::core::option::Option<String>,
+}
+
+/// Selector containing locations in scope.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudOsconfigV2OrchestrationScopeLocationSelector {
+    /// Optional. Names of the locations in scope. Format: us-central1-a
+    #[serde(default, rename = "includedLocations")]
+    pub included_locations: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// Selector containing Cloud Resource Manager resource hierarchy nodes.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudOsconfigV2OrchestrationScopeResourceHierarchySelector {
+    /// Optional. Names of the folders in scope. Format: folders/{folder_id}
+    #[serde(default, rename = "includedFolders")]
+    pub included_folders: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Optional. Names of the projects in scope. Format: projects/{project_number}
+    #[serde(default, rename = "includedProjects")]
+    pub included_projects: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Status {
+    /// The status code, which should be an enum value of google.rpc.Code.
+    #[serde(default)]
+    pub code: ::core::option::Option<i32>,
+    /// A list of messages that carry the error details. There is a common set of message types for APIs to use.
+    #[serde(default)]
+    pub details: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
+    /// A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.
+    #[serde(default)]
+    pub message: ::core::option::Option<String>,
+}
+
+/// VM inventory details.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct OSPolicyAssignmentInstanceFilterInventory {
+    /// Required. The OS short name
+    #[serde(default, rename = "osShortName")]
+    pub os_short_name: ::core::option::Option<String>,
+    /// The OS version Prefix matches are supported if asterisk(*) is provided as the last character. For example, to match all versions with a major version of 7, specify the following value for this field 7.* An empty string matches all OS versions.
+    #[serde(default, rename = "osVersion")]
+    pub os_version: ::core::option::Option<String>,
+}
+
+/// Resource groups provide a mechanism to group OS policy resources. Resource groups enable OS policy authors to create a single OS policy to be applied to VMs running different operating Systems. When the OS policy is applied to a target VM, the appropriate resource group within the OS policy is selected based on the OSFilter specified within the resource group.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct OSPolicyResourceGroup {
+    /// List of inventory filters for the resource group. The resources in this resource group are applied to the target VM if it satisfies at least one of the following inventory filters. For example, to apply this resource group to VMs running either RHEL or CentOS operating systems, specify 2 items for the list with following values: inventory_filters[0].os_short_name=''rhel'' and inventory_filters[1].os_short_name=''centos'' If the list is empty, this resource group will be applied to the target VM unconditionally.
+    #[serde(default, rename = "inventoryFilters")]
+    pub inventory_filters: ::core::option::Option<::std::vec::Vec<OSPolicyInventoryFilter>>,
+    /// Required. List of resources configured for this resource group. The resources are executed in the exact order specified here.
+    #[serde(default)]
+    pub resources: ::core::option::Option<::std::vec::Vec<OSPolicyResource>>,
+}
+
+/// Message encapsulating a value that can be either absolute ("fixed") or relative ("percent") to a value.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct FixedOrPercent {
+    /// Specifies a fixed value.
+    #[serde(default)]
+    pub fixed: ::core::option::Option<i32>,
+    /// Specifies the relative value defined as a percentage, which will be multiplied by a reference value.
+    #[serde(default)]
+    pub percent: ::core::option::Option<i32>,
 }
 
 /// Filtering criteria to select VMs based on inventory details.
@@ -502,68 +567,6 @@ pub struct OSPolicyResourceExecResource {
     pub validate: ::core::option::Option<OSPolicyResourceExecResourceExec>,
 }
 
-/// A file or script to execute.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct OSPolicyResourceExecResourceExec {
-    /// Optional arguments to pass to the source during execution.
-    #[serde(default)]
-    pub args: ::core::option::Option<::std::vec::Vec<String>>,
-    /// A remote or local file.
-    #[serde(default)]
-    pub file: ::core::option::Option<OSPolicyResourceFile>,
-    /// Required. The script interpreter to use. // TODO: enum values: ["INTERPRETER_UNSPECIFIED", "NONE", "SHELL", "POWERSHELL"]
-    #[serde(default)]
-    pub interpreter: ::core::option::Option<String>,
-    /// Only recorded for enforce Exec. Path to an output file (that is created by this Exec) whose content will be recorded in OSPolicyResourceCompliance after a successful run. Absence or failure to read this file will result in this ExecResource being non-compliant. Output file size is limited to 500K bytes.
-    #[serde(default, rename = "outputFilePath")]
-    pub output_file_path: ::core::option::Option<String>,
-    /// An inline script. The size of the script is limited to 32KiB.
-    #[serde(default)]
-    pub script: ::core::option::Option<String>,
-}
-
-/// A remote or local file.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct OSPolicyResourceFile {
-    /// Defaults to false. When false, files are subject to validations based on the file type: Remote: A checksum must be specified. Cloud Storage: An object generation number must be specified.
-    #[serde(default, rename = "allowInsecure")]
-    pub allow_insecure: ::core::option::Option<bool>,
-    /// A Cloud Storage object.
-    #[serde(default)]
-    pub gcs: ::core::option::Option<OSPolicyResourceFileGcs>,
-    /// A local path within the VM to use.
-    #[serde(default, rename = "localPath")]
-    pub local_path: ::core::option::Option<String>,
-    /// A generic remote file.
-    #[serde(default)]
-    pub remote: ::core::option::Option<OSPolicyResourceFileRemote>,
-}
-
-/// Specifies a file available as a Cloud Storage Object.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct OSPolicyResourceFileGcs {
-    /// Required. Bucket of the Cloud Storage object.
-    #[serde(default)]
-    pub bucket: ::core::option::Option<String>,
-    /// Generation number of the Cloud Storage object.
-    #[serde(default)]
-    pub generation: ::core::option::Option<String>,
-    /// Required. Name of the Cloud Storage object.
-    #[serde(default)]
-    pub object: ::core::option::Option<String>,
-}
-
-/// Specifies a file available via some URI.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct OSPolicyResourceFileRemote {
-    /// SHA256 checksum of the remote file.
-    #[serde(default, rename = "sha256Checksum")]
-    pub sha256_checksum: ::core::option::Option<String>,
-    /// Required. URI from which to fetch the object. It should contain both the protocol and path following the format {protocol}://{location}.
-    #[serde(default)]
-    pub uri: ::core::option::Option<String>,
-}
-
 /// A resource that manages the state of a file.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct OSPolicyResourceFileResource {
@@ -582,17 +585,6 @@ pub struct OSPolicyResourceFileResource {
     /// Required. Desired state of the file. // TODO: enum values: ["DESIRED_STATE_UNSPECIFIED", "PRESENT", "ABSENT", "CONTENTS_MATCH"]
     #[serde(default)]
     pub state: ::core::option::Option<String>,
-}
-
-/// Resource groups provide a mechanism to group OS policy resources. Resource groups enable OS policy authors to create a single OS policy to be applied to VMs running different operating Systems. When the OS policy is applied to a target VM, the appropriate resource group within the OS policy is selected based on the OSFilter specified within the resource group.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct OSPolicyResourceGroup {
-    /// List of inventory filters for the resource group. The resources in this resource group are applied to the target VM if it satisfies at least one of the following inventory filters. For example, to apply this resource group to VMs running either RHEL or CentOS operating systems, specify 2 items for the list with following values: inventory_filters[0].os_short_name=''rhel'' and inventory_filters[1].os_short_name=''centos'' If the list is empty, this resource group will be applied to the target VM unconditionally.
-    #[serde(default, rename = "inventoryFilters")]
-    pub inventory_filters: ::core::option::Option<::std::vec::Vec<OSPolicyInventoryFilter>>,
-    /// Required. List of resources configured for this resource group. The resources are executed in the exact order specified here.
-    #[serde(default)]
-    pub resources: ::core::option::Option<::std::vec::Vec<OSPolicyResource>>,
 }
 
 /// A resource that manages a system package.
@@ -622,6 +614,43 @@ pub struct OSPolicyResourcePackageResource {
     /// A package managed by Zypper.
     #[serde(default)]
     pub zypper: ::core::option::Option<OSPolicyResourcePackageResourceZypper>,
+}
+
+/// A resource that manages a package repository.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct OSPolicyResourceRepositoryResource {
+    /// An Apt Repository.
+    #[serde(default)]
+    pub apt: ::core::option::Option<OSPolicyResourceRepositoryResourceAptRepository>,
+    /// A Goo Repository.
+    #[serde(default)]
+    pub goo: ::core::option::Option<OSPolicyResourceRepositoryResourceGooRepository>,
+    /// A Yum Repository.
+    #[serde(default)]
+    pub yum: ::core::option::Option<OSPolicyResourceRepositoryResourceYumRepository>,
+    /// A Zypper Repository.
+    #[serde(default)]
+    pub zypper: ::core::option::Option<OSPolicyResourceRepositoryResourceZypperRepository>,
+}
+
+/// A file or script to execute.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct OSPolicyResourceExecResourceExec {
+    /// Optional arguments to pass to the source during execution.
+    #[serde(default)]
+    pub args: ::core::option::Option<::std::vec::Vec<String>>,
+    /// A remote or local file.
+    #[serde(default)]
+    pub file: ::core::option::Option<OSPolicyResourceFile>,
+    /// Required. The script interpreter to use. // TODO: enum values: ["INTERPRETER_UNSPECIFIED", "NONE", "SHELL", "POWERSHELL"]
+    #[serde(default)]
+    pub interpreter: ::core::option::Option<String>,
+    /// Only recorded for enforce Exec. Path to an output file (that is created by this Exec) whose content will be recorded in OSPolicyResourceCompliance after a successful run. Absence or failure to read this file will result in this ExecResource being non-compliant. Output file size is limited to 500K bytes.
+    #[serde(default, rename = "outputFilePath")]
+    pub output_file_path: ::core::option::Option<String>,
+    /// An inline script. The size of the script is limited to 32KiB.
+    #[serde(default)]
+    pub script: ::core::option::Option<String>,
 }
 
 /// A package managed by APT. - install: apt-get update && apt-get -y install [name] - remove: apt-get -y remove [name]
@@ -689,23 +718,6 @@ pub struct OSPolicyResourcePackageResourceZypper {
     pub name: ::core::option::Option<String>,
 }
 
-/// A resource that manages a package repository.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct OSPolicyResourceRepositoryResource {
-    /// An Apt Repository.
-    #[serde(default)]
-    pub apt: ::core::option::Option<OSPolicyResourceRepositoryResourceAptRepository>,
-    /// A Goo Repository.
-    #[serde(default)]
-    pub goo: ::core::option::Option<OSPolicyResourceRepositoryResourceGooRepository>,
-    /// A Yum Repository.
-    #[serde(default)]
-    pub yum: ::core::option::Option<OSPolicyResourceRepositoryResourceYumRepository>,
-    /// A Zypper Repository.
-    #[serde(default)]
-    pub zypper: ::core::option::Option<OSPolicyResourceRepositoryResourceZypperRepository>,
-}
-
 /// Represents a single apt package repository. These will be added to a repo file that will be managed at /etc/apt/sources.list.d/google_osconfig.list.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct OSPolicyResourceRepositoryResourceAptRepository {
@@ -771,56 +783,44 @@ pub struct OSPolicyResourceRepositoryResourceZypperRepository {
     pub id: ::core::option::Option<String>,
 }
 
-/// This resource represents a long-running operation that is the result of a network API call.
+/// A remote or local file.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Operation {
-    /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
+pub struct OSPolicyResourceFile {
+    /// Defaults to false. When false, files are subject to validations based on the file type: Remote: A checksum must be specified. Cloud Storage: An object generation number must be specified.
+    #[serde(default, rename = "allowInsecure")]
+    pub allow_insecure: ::core::option::Option<bool>,
+    /// A Cloud Storage object.
     #[serde(default)]
-    pub done: ::core::option::Option<bool>,
-    /// The error result of the operation in case of failure or cancellation.
+    pub gcs: ::core::option::Option<OSPolicyResourceFileGcs>,
+    /// A local path within the VM to use.
+    #[serde(default, rename = "localPath")]
+    pub local_path: ::core::option::Option<String>,
+    /// A generic remote file.
     #[serde(default)]
-    pub error: ::core::option::Option<Status>,
-    /// Service-specific metadata associated with the operation. It typically contains progress information and common metadata such as create time. Some services might not provide such metadata. Any method that returns a long-running operation should document the metadata type, if any.
-    #[serde(default)]
-    pub metadata: ::core::option::Option<serde_json::Value>,
-    /// The server-assigned name, which is only unique within the same service that originally returns it. If you use the default HTTP mapping, the name should be a resource name ending with operations/{unique_id}.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// The normal, successful response of the operation. If the original method returns no data on success, such as Delete, the response is google.protobuf.Empty. If the original method is standard Get/Create/Update, the response should be the resource. For other methods, the response should have the type XxxResponse, where Xxx is the original method name. For example, if the original method name is TakeSnapshot(), the inferred response type is TakeSnapshotResponse.
-    #[serde(default)]
-    pub response: ::core::option::Option<serde_json::Value>,
+    pub remote: ::core::option::Option<OSPolicyResourceFileRemote>,
 }
 
-/// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
+/// Specifies a file available as a Cloud Storage Object.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Status {
-    /// The status code, which should be an enum value of google.rpc.Code.
+pub struct OSPolicyResourceFileGcs {
+    /// Required. Bucket of the Cloud Storage object.
     #[serde(default)]
-    pub code: ::core::option::Option<i32>,
-    /// A list of messages that carry the error details. There is a common set of message types for APIs to use.
+    pub bucket: ::core::option::Option<String>,
+    /// Generation number of the Cloud Storage object.
     #[serde(default)]
-    pub details: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
-    /// A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.
+    pub generation: ::core::option::Option<String>,
+    /// Required. Name of the Cloud Storage object.
     #[serde(default)]
-    pub message: ::core::option::Option<String>,
+    pub object: ::core::option::Option<String>,
 }
 
-/// Wire-format for a Status object
+/// Specifies a file available via some URI.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct StatusProto {
-    /// copybara:strip_begin(b/383363683) copybara:strip_end_and_replace optional int32 canonical_code = 6;
-    #[serde(default, rename = "canonicalCode")]
-    pub canonical_code: ::core::option::Option<i32>,
-    /// Numeric code drawn from the space specified below. Often, this is the canonical error space, and code is drawn from google3/util/task/codes.proto copybara:strip_begin(b/383363683) copybara:strip_end_and_replace optional int32 code = 1;
+pub struct OSPolicyResourceFileRemote {
+    /// SHA256 checksum of the remote file.
+    #[serde(default, rename = "sha256Checksum")]
+    pub sha256_checksum: ::core::option::Option<String>,
+    /// Required. URI from which to fetch the object. It should contain both the protocol and path following the format {protocol}://{location}.
     #[serde(default)]
-    pub code: ::core::option::Option<i32>,
-    /// Detail message copybara:strip_begin(b/383363683) copybara:strip_end_and_replace optional string message = 3;
-    #[serde(default)]
-    pub message: ::core::option::Option<String>,
-    /// message_set associates an arbitrary proto message with the status. copybara:strip_begin(b/383363683) copybara:strip_end_and_replace optional proto2.bridge.MessageSet message_set = 5;
-    #[serde(default, rename = "messageSet")]
-    pub message_set: ::core::option::Option<serde_json::Value>,
-    /// copybara:strip_begin(b/383363683) Space to which this status belongs copybara:strip_end_and_replace optional string space = 2; // Space to which this status belongs
-    #[serde(default)]
-    pub space: ::core::option::Option<String>,
+    pub uri: ::core::option::Option<String>,
 }

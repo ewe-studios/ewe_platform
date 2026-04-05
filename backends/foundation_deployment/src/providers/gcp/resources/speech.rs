@@ -10,22 +10,6 @@
 use super::*;
 use serde::{Deserialize, Serialize};
 
-/// ABNFGrammar resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ABNFGrammar {
-    /// All declarations and rules of an ABNF grammar broken up into multiple strings that will end up concatenated.
-    #[serde(default, rename = "abnfStrings")]
-    pub abnf_strings: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// An item of the class.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ClassItem {
-    /// The class item''s value.
-    #[serde(default)]
-    pub value: ::core::option::Option<String>,
-}
-
 /// Message sent by the client for the CreateCustomClass method.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CreateCustomClassRequest {
@@ -46,64 +30,6 @@ pub struct CreatePhraseSetRequest {
     /// Required. The ID to use for the phrase set, which will become the final component of the phrase set''s resource name. This value should restrict to letters, numbers, and hyphens, with the first character a letter, the last a letter or a number, and be 4-63 characters.
     #[serde(default, rename = "phraseSetId")]
     pub phrase_set_id: ::core::option::Option<String>,
-}
-
-/// A set of words or phrases that represents a common concept likely to appear in your audio, for example a list of passenger ship names. CustomClass items can be substituted into placeholders that you set in PhraseSet phrases.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CustomClass {
-    /// Output only. Allows users to store small amounts of arbitrary data. Both the key and the value must be 63 characters or less each. At most 100 annotations. This field is not used.
-    #[serde(default)]
-    pub annotations: ::core::option::Option<serde_json::Value>,
-    /// If this custom class is a resource, the custom_class_id is the resource id of the CustomClass. Case sensitive.
-    #[serde(default, rename = "customClassId")]
-    pub custom_class_id: ::core::option::Option<String>,
-    /// Output only. The time at which this resource was requested for deletion. This field is not used.
-    #[serde(default, rename = "deleteTime")]
-    pub delete_time: ::core::option::Option<String>,
-    /// Output only. User-settable, human-readable name for the CustomClass. Must be 63 characters or less. This field is not used.
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-    /// Output only. This checksum is computed by the server based on the value of other fields. This may be sent on update, undelete, and delete requests to ensure the client has an up-to-date value before proceeding. This field is not used.
-    #[serde(default)]
-    pub etag: ::core::option::Option<String>,
-    /// Output only. The time at which this resource will be purged. This field is not used.
-    #[serde(default, rename = "expireTime")]
-    pub expire_time: ::core::option::Option<String>,
-    /// A collection of class items.
-    #[serde(default)]
-    pub items: ::core::option::Option<::std::vec::Vec<ClassItem>>,
-    /// Output only. The [KMS key name](https://cloud.google.com/kms/docs/resource-hierarchy#keys) with which the content of the ClassItem is encrypted. The expected format is projects/{project}/locations/{location}/keyRings/{key_ring}/cryptoKeys/{crypto_key}.
-    #[serde(default, rename = "kmsKeyName")]
-    pub kms_key_name: ::core::option::Option<String>,
-    /// Output only. The [KMS key version name](https://cloud.google.com/kms/docs/resource-hierarchy#key_versions) with which content of the ClassItem is encrypted. The expected format is projects/{project}/locations/{location}/keyRings/{key_ring}/cryptoKeys/{crypto_key}/cryptoKeyVersions/{crypto_key_version}.
-    #[serde(default, rename = "kmsKeyVersionName")]
-    pub kms_key_version_name: ::core::option::Option<String>,
-    /// The resource name of the custom class.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Output only. Whether or not this CustomClass is in the process of being updated. This field is not used.
-    #[serde(default)]
-    pub reconciling: ::core::option::Option<bool>,
-    /// Output only. The CustomClass lifecycle state. This field is not used. // TODO: enum values: ["STATE_UNSPECIFIED", "ACTIVE", "DELETED"]
-    #[serde(default)]
-    pub state: ::core::option::Option<String>,
-    /// Output only. System-assigned unique identifier for the CustomClass. This field is not used.
-    #[serde(default)]
-    pub uid: ::core::option::Option<String>,
-}
-
-/// A single replacement configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Entry {
-    /// Whether the search is case sensitive.
-    #[serde(default, rename = "caseSensitive")]
-    pub case_sensitive: ::core::option::Option<bool>,
-    /// What to replace with. Max length is 100 characters.
-    #[serde(default)]
-    pub replace: ::core::option::Option<String>,
-    /// What to replace. Max length is 100 characters.
-    #[serde(default)]
-    pub search: ::core::option::Option<String>,
 }
 
 /// Message returned to the client by the ListCustomClasses method.
@@ -196,6 +122,37 @@ pub struct LongRunningRecognizeResponse {
     pub total_billed_time: ::core::option::Option<String>,
 }
 
+/// The top-level message sent by the client for the Recognize method.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RecognizeRequest {
+    /// Required. The audio data to be recognized.
+    #[serde(default)]
+    pub audio: ::core::option::Option<RecognitionAudio>,
+    /// Required. Provides information to the recognizer that specifies how to process the request.
+    #[serde(default)]
+    pub config: ::core::option::Option<RecognitionConfig>,
+}
+
+/// The only message returned to the client by the Recognize method. It contains the result as zero or more sequential SpeechRecognitionResult messages.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RecognizeResponse {
+    /// The ID associated with the request. This is a unique ID specific only to the given request.
+    #[serde(default, rename = "requestId")]
+    pub request_id: ::core::option::Option<String>,
+    /// Sequential list of transcription results corresponding to sequential portions of audio.
+    #[serde(default)]
+    pub results: ::core::option::Option<::std::vec::Vec<SpeechRecognitionResult>>,
+    /// Provides information on adaptation behavior in response
+    #[serde(default, rename = "speechAdaptationInfo")]
+    pub speech_adaptation_info: ::core::option::Option<SpeechAdaptationInfo>,
+    /// When available, billed audio seconds for the corresponding request.
+    #[serde(default, rename = "totalBilledTime")]
+    pub total_billed_time: ::core::option::Option<String>,
+    /// Whether request used legacy asr models (was not automatically migrated to use conformer models).
+    #[serde(default, rename = "usingLegacyModels")]
+    pub using_legacy_models: ::core::option::Option<bool>,
+}
+
 /// This resource represents a long-running operation that is the result of a network API call.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Operation {
@@ -216,59 +173,12 @@ pub struct Operation {
     pub response: ::core::option::Option<serde_json::Value>,
 }
 
-/// A phrases containing words and phrase "hints" so that the speech recognition is more likely to recognize them. This can be used to improve the accuracy for specific words and phrases, for example, if specific commands are typically spoken by the user. This can also be used to add additional words to the vocabulary of the recognizer. See [usage limits](https://cloud.google.com/speech-to-text/quotas#content). List items can also include pre-built or custom classes containing groups of words that represent common concepts that occur in natural language. For example, rather than providing a phrase hint for every month of the year (e.g. "i was born in january", "i was born in febuary", ...), use the pre-built $MONTH class improves the likelihood of correctly transcribing audio that includes months (e.g. "i was born in $month"). To refer to pre-built classes, use the class'' symbol prepended with $ e.g. $MONTH. To refer to custom classes that were defined inline in the request, set the class''s custom_class_id to a string unique to all class resources and inline classes. Then use the class'' id wrapped in ${...} e.g. "${my-months}". To refer to custom classes resources, use the class'' id wrapped in ${} (e.g. ${my-months}). Speech-to-Text supports three locations: global, us (US North America), and eu (Europe). If you are calling the speech.googleapis.com endpoint, use the global location. To specify a region, use a [regional endpoint](https://cloud.google.com/speech-to-text/docs/endpoints) with matching us or eu location value.
+/// Specifies an optional destination for the recognition results.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Phrase {
-    /// Hint Boost. Overrides the boost set at the phrase set level. Positive value will increase the probability that a specific phrase will be recognized over other similar sounding phrases. The higher the boost, the higher the chance of false positive recognition as well. Negative boost will simply be ignored. Though boost can accept a wide range of positive values, most use cases are best served with values between 0 and 20. We recommend using a binary search approach to finding the optimal value for your use case as well as adding phrases both with and without boost to your requests.
-    #[serde(default)]
-    pub boost: ::core::option::Option<f32>,
-    /// The phrase itself.
-    #[serde(default)]
-    pub value: ::core::option::Option<String>,
-}
-
-/// Provides "hints" to the speech recognizer to favor specific words and phrases in the results.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PhraseSet {
-    /// Output only. Allows users to store small amounts of arbitrary data. Both the key and the value must be 63 characters or less each. At most 100 annotations. This field is not used.
-    #[serde(default)]
-    pub annotations: ::core::option::Option<serde_json::Value>,
-    /// Hint Boost. Positive value will increase the probability that a specific phrase will be recognized over other similar sounding phrases. The higher the boost, the higher the chance of false positive recognition as well. Negative boost values would correspond to anti-biasing. Anti-biasing is not enabled, so negative boost will simply be ignored. Though boost can accept a wide range of positive values, most use cases are best served with values between 0 (exclusive) and 20. We recommend using a binary search approach to finding the optimal value for your use case as well as adding phrases both with and without boost to your requests.
-    #[serde(default)]
-    pub boost: ::core::option::Option<f32>,
-    /// Output only. The time at which this resource was requested for deletion. This field is not used.
-    #[serde(default, rename = "deleteTime")]
-    pub delete_time: ::core::option::Option<String>,
-    /// Output only. User-settable, human-readable name for the PhraseSet. Must be 63 characters or less. This field is not used.
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-    /// Output only. This checksum is computed by the server based on the value of other fields. This may be sent on update, undelete, and delete requests to ensure the client has an up-to-date value before proceeding. This field is not used.
-    #[serde(default)]
-    pub etag: ::core::option::Option<String>,
-    /// Output only. The time at which this resource will be purged. This field is not used.
-    #[serde(default, rename = "expireTime")]
-    pub expire_time: ::core::option::Option<String>,
-    /// Output only. The [KMS key name](https://cloud.google.com/kms/docs/resource-hierarchy#keys) with which the content of the PhraseSet is encrypted. The expected format is projects/{project}/locations/{location}/keyRings/{key_ring}/cryptoKeys/{crypto_key}.
-    #[serde(default, rename = "kmsKeyName")]
-    pub kms_key_name: ::core::option::Option<String>,
-    /// Output only. The [KMS key version name](https://cloud.google.com/kms/docs/resource-hierarchy#key_versions) with which content of the PhraseSet is encrypted. The expected format is projects/{project}/locations/{location}/keyRings/{key_ring}/cryptoKeys/{crypto_key}/cryptoKeyVersions/{crypto_key_version}.
-    #[serde(default, rename = "kmsKeyVersionName")]
-    pub kms_key_version_name: ::core::option::Option<String>,
-    /// The resource name of the phrase set.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// A list of word and phrases.
-    #[serde(default)]
-    pub phrases: ::core::option::Option<::std::vec::Vec<Phrase>>,
-    /// Output only. Whether or not this PhraseSet is in the process of being updated. This field is not used.
-    #[serde(default)]
-    pub reconciling: ::core::option::Option<bool>,
-    /// Output only. The CustomClass lifecycle state. This field is not used. // TODO: enum values: ["STATE_UNSPECIFIED", "ACTIVE", "DELETED"]
-    #[serde(default)]
-    pub state: ::core::option::Option<String>,
-    /// Output only. System-assigned unique identifier for the PhraseSet. This field is not used.
-    #[serde(default)]
-    pub uid: ::core::option::Option<String>,
+pub struct TranscriptOutputConfig {
+    /// Specifies a Cloud Storage URI for the recognition results. Must be specified in the format: gs://bucket_name/object_name, and the bucket must already exist.
+    #[serde(default, rename = "gcsUri")]
+    pub gcs_uri: ::core::option::Option<String>,
 }
 
 /// Contains audio data in the encoding specified in the RecognitionConfig. Either content or uri must be supplied. Supplying both or neither returns google.rpc.Code.INVALID_ARGUMENT. See [content limits](https://cloud.google.com/speech-to-text/quotas#content).
@@ -347,6 +257,82 @@ pub struct RecognitionConfig {
     pub use_enhanced: ::core::option::Option<bool>,
 }
 
+/// A speech recognition result corresponding to a portion of the audio.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SpeechRecognitionResult {
+    /// May contain one or more recognition hypotheses (up to the maximum specified in max_alternatives). These alternatives are ordered in terms of accuracy, with the top (first) alternative being the most probable, as ranked by the recognizer.
+    #[serde(default)]
+    pub alternatives: ::core::option::Option<::std::vec::Vec<SpeechRecognitionAlternative>>,
+    /// For multi-channel audio, this is the channel number corresponding to the recognized result for the audio from that channel. For audio_channel_count = N, its output values can range from ''1'' to ''N''.
+    #[serde(default, rename = "channelTag")]
+    pub channel_tag: ::core::option::Option<i32>,
+    /// Output only. The [BCP-47](https://www.rfc-editor.org/rfc/bcp/bcp47.txt) language tag of the language in this result. This language code was detected to have the most likelihood of being spoken in the audio.
+    #[serde(default, rename = "languageCode")]
+    pub language_code: ::core::option::Option<String>,
+    /// Time offset of the end of this result relative to the beginning of the audio.
+    #[serde(default, rename = "resultEndTime")]
+    pub result_end_time: ::core::option::Option<String>,
+}
+
+/// Information on speech adaptation use in results
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SpeechAdaptationInfo {
+    /// Whether there was a timeout when applying speech adaptation. If true, adaptation had no effect in the response transcript.
+    #[serde(default, rename = "adaptationTimeout")]
+    pub adaptation_timeout: ::core::option::Option<bool>,
+    /// If set, returns a message specifying which part of the speech adaptation request timed out.
+    #[serde(default, rename = "timeoutMessage")]
+    pub timeout_message: ::core::option::Option<String>,
+}
+
+/// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Status {
+    /// The status code, which should be an enum value of google.rpc.Code.
+    #[serde(default)]
+    pub code: ::core::option::Option<i32>,
+    /// A list of messages that carry the error details. There is a common set of message types for APIs to use.
+    #[serde(default)]
+    pub details: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
+    /// A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.
+    #[serde(default)]
+    pub message: ::core::option::Option<String>,
+}
+
+/// Speech adaptation configuration.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SpeechAdaptation {
+    /// Augmented Backus-Naur form (ABNF) is a standardized grammar notation comprised by a set of derivation rules. See specifications: https://www.w3.org/TR/speech-grammar
+    #[serde(default, rename = "abnfGrammar")]
+    pub abnf_grammar: ::core::option::Option<ABNFGrammar>,
+    /// A collection of custom classes. To specify the classes inline, leave the class'' name blank and fill in the rest of its fields, giving it a unique custom_class_id. Refer to the inline defined class in phrase hints by its custom_class_id.
+    #[serde(default, rename = "customClasses")]
+    pub custom_classes: ::core::option::Option<::std::vec::Vec<CustomClass>>,
+    /// A collection of phrase set resource names to use.
+    #[serde(default, rename = "phraseSetReferences")]
+    pub phrase_set_references: ::core::option::Option<::std::vec::Vec<String>>,
+    /// A collection of phrase sets. To specify the hints inline, leave the phrase set''s name blank and fill in the rest of its fields. Any phrase set can use any custom class.
+    #[serde(default, rename = "phraseSets")]
+    pub phrase_sets: ::core::option::Option<::std::vec::Vec<PhraseSet>>,
+}
+
+/// Config to enable speaker diarization.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SpeakerDiarizationConfig {
+    /// If ''true'', enables speaker detection for each recognized word in the top alternative of the recognition result using a speaker_label provided in the WordInfo.
+    #[serde(default, rename = "enableSpeakerDiarization")]
+    pub enable_speaker_diarization: ::core::option::Option<bool>,
+    /// Maximum number of speakers in the conversation. This range gives you more flexibility by allowing the system to automatically determine the correct number of speakers. If not set, the default value is 6.
+    #[serde(default, rename = "maxSpeakerCount")]
+    pub max_speaker_count: ::core::option::Option<i32>,
+    /// Minimum number of speakers in the conversation. This range gives you more flexibility by allowing the system to automatically determine the correct number of speakers. If not set, the default value is 2.
+    #[serde(default, rename = "minSpeakerCount")]
+    pub min_speaker_count: ::core::option::Option<i32>,
+    /// Output only. Unused.
+    #[serde(default, rename = "speakerTag")]
+    pub speaker_tag: ::core::option::Option<i32>,
+}
+
 /// Description of audio data to be recognized.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct RecognitionMetadata {
@@ -376,82 +362,6 @@ pub struct RecognitionMetadata {
     pub recording_device_type: ::core::option::Option<String>,
 }
 
-/// The top-level message sent by the client for the Recognize method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct RecognizeRequest {
-    /// Required. The audio data to be recognized.
-    #[serde(default)]
-    pub audio: ::core::option::Option<RecognitionAudio>,
-    /// Required. Provides information to the recognizer that specifies how to process the request.
-    #[serde(default)]
-    pub config: ::core::option::Option<RecognitionConfig>,
-}
-
-/// The only message returned to the client by the Recognize method. It contains the result as zero or more sequential SpeechRecognitionResult messages.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct RecognizeResponse {
-    /// The ID associated with the request. This is a unique ID specific only to the given request.
-    #[serde(default, rename = "requestId")]
-    pub request_id: ::core::option::Option<String>,
-    /// Sequential list of transcription results corresponding to sequential portions of audio.
-    #[serde(default)]
-    pub results: ::core::option::Option<::std::vec::Vec<SpeechRecognitionResult>>,
-    /// Provides information on adaptation behavior in response
-    #[serde(default, rename = "speechAdaptationInfo")]
-    pub speech_adaptation_info: ::core::option::Option<SpeechAdaptationInfo>,
-    /// When available, billed audio seconds for the corresponding request.
-    #[serde(default, rename = "totalBilledTime")]
-    pub total_billed_time: ::core::option::Option<String>,
-    /// Whether request used legacy asr models (was not automatically migrated to use conformer models).
-    #[serde(default, rename = "usingLegacyModels")]
-    pub using_legacy_models: ::core::option::Option<bool>,
-}
-
-/// Config to enable speaker diarization.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SpeakerDiarizationConfig {
-    /// If ''true'', enables speaker detection for each recognized word in the top alternative of the recognition result using a speaker_label provided in the WordInfo.
-    #[serde(default, rename = "enableSpeakerDiarization")]
-    pub enable_speaker_diarization: ::core::option::Option<bool>,
-    /// Maximum number of speakers in the conversation. This range gives you more flexibility by allowing the system to automatically determine the correct number of speakers. If not set, the default value is 6.
-    #[serde(default, rename = "maxSpeakerCount")]
-    pub max_speaker_count: ::core::option::Option<i32>,
-    /// Minimum number of speakers in the conversation. This range gives you more flexibility by allowing the system to automatically determine the correct number of speakers. If not set, the default value is 2.
-    #[serde(default, rename = "minSpeakerCount")]
-    pub min_speaker_count: ::core::option::Option<i32>,
-    /// Output only. Unused.
-    #[serde(default, rename = "speakerTag")]
-    pub speaker_tag: ::core::option::Option<i32>,
-}
-
-/// Speech adaptation configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SpeechAdaptation {
-    /// Augmented Backus-Naur form (ABNF) is a standardized grammar notation comprised by a set of derivation rules. See specifications: https://www.w3.org/TR/speech-grammar
-    #[serde(default, rename = "abnfGrammar")]
-    pub abnf_grammar: ::core::option::Option<ABNFGrammar>,
-    /// A collection of custom classes. To specify the classes inline, leave the class'' name blank and fill in the rest of its fields, giving it a unique custom_class_id. Refer to the inline defined class in phrase hints by its custom_class_id.
-    #[serde(default, rename = "customClasses")]
-    pub custom_classes: ::core::option::Option<::std::vec::Vec<CustomClass>>,
-    /// A collection of phrase set resource names to use.
-    #[serde(default, rename = "phraseSetReferences")]
-    pub phrase_set_references: ::core::option::Option<::std::vec::Vec<String>>,
-    /// A collection of phrase sets. To specify the hints inline, leave the phrase set''s name blank and fill in the rest of its fields. Any phrase set can use any custom class.
-    #[serde(default, rename = "phraseSets")]
-    pub phrase_sets: ::core::option::Option<::std::vec::Vec<PhraseSet>>,
-}
-
-/// Information on speech adaptation use in results
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SpeechAdaptationInfo {
-    /// Whether there was a timeout when applying speech adaptation. If true, adaptation had no effect in the response transcript.
-    #[serde(default, rename = "adaptationTimeout")]
-    pub adaptation_timeout: ::core::option::Option<bool>,
-    /// If set, returns a message specifying which part of the speech adaptation request timed out.
-    #[serde(default, rename = "timeoutMessage")]
-    pub timeout_message: ::core::option::Option<String>,
-}
-
 /// Provides "hints" to the speech recognizer to favor specific words and phrases in the results.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SpeechContext {
@@ -461,6 +371,14 @@ pub struct SpeechContext {
     /// A list of strings containing words and phrases "hints" so that the speech recognition is more likely to recognize them. This can be used to improve the accuracy for specific words and phrases, for example, if specific commands are typically spoken by the user. This can also be used to add additional words to the vocabulary of the recognizer. See [usage limits](https://cloud.google.com/speech-to-text/quotas#content). List items can also be set to classes for groups of words that represent common concepts that occur in natural language. For example, rather than providing phrase hints for every month of the year, using the $MONTH class improves the likelihood of correctly transcribing audio that includes months.
     #[serde(default)]
     pub phrases: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// Transcription normalization configuration. Use transcription normalization to automatically replace parts of the transcript with phrases of your choosing. For StreamingRecognize, this normalization only applies to stable partial transcripts (stability &gt; 0.8) and final transcripts.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TranscriptNormalization {
+    /// A list of replacement entries. We will perform replacement with one entry at a time. For example, the second entry in ["cat" =&gt; "dog", "mountain cat" =&gt; "mountain dog"] will never be applied because we will always process the first entry before it. At most 100 entries.
+    #[serde(default)]
+    pub entries: ::core::option::Option<::std::vec::Vec<Entry>>,
 }
 
 /// Alternative hypotheses (a.k.a. n-best list).
@@ -477,51 +395,114 @@ pub struct SpeechRecognitionAlternative {
     pub words: ::core::option::Option<::std::vec::Vec<WordInfo>>,
 }
 
-/// A speech recognition result corresponding to a portion of the audio.
+/// ABNFGrammar resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SpeechRecognitionResult {
-    /// May contain one or more recognition hypotheses (up to the maximum specified in max_alternatives). These alternatives are ordered in terms of accuracy, with the top (first) alternative being the most probable, as ranked by the recognizer.
-    #[serde(default)]
-    pub alternatives: ::core::option::Option<::std::vec::Vec<SpeechRecognitionAlternative>>,
-    /// For multi-channel audio, this is the channel number corresponding to the recognized result for the audio from that channel. For audio_channel_count = N, its output values can range from ''1'' to ''N''.
-    #[serde(default, rename = "channelTag")]
-    pub channel_tag: ::core::option::Option<i32>,
-    /// Output only. The [BCP-47](https://www.rfc-editor.org/rfc/bcp/bcp47.txt) language tag of the language in this result. This language code was detected to have the most likelihood of being spoken in the audio.
-    #[serde(default, rename = "languageCode")]
-    pub language_code: ::core::option::Option<String>,
-    /// Time offset of the end of this result relative to the beginning of the audio.
-    #[serde(default, rename = "resultEndTime")]
-    pub result_end_time: ::core::option::Option<String>,
+pub struct ABNFGrammar {
+    /// All declarations and rules of an ABNF grammar broken up into multiple strings that will end up concatenated.
+    #[serde(default, rename = "abnfStrings")]
+    pub abnf_strings: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
-/// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
+/// A set of words or phrases that represents a common concept likely to appear in your audio, for example a list of passenger ship names. CustomClass items can be substituted into placeholders that you set in PhraseSet phrases.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Status {
-    /// The status code, which should be an enum value of google.rpc.Code.
+pub struct CustomClass {
+    /// Output only. Allows users to store small amounts of arbitrary data. Both the key and the value must be 63 characters or less each. At most 100 annotations. This field is not used.
     #[serde(default)]
-    pub code: ::core::option::Option<i32>,
-    /// A list of messages that carry the error details. There is a common set of message types for APIs to use.
+    pub annotations: ::core::option::Option<serde_json::Value>,
+    /// If this custom class is a resource, the custom_class_id is the resource id of the CustomClass. Case sensitive.
+    #[serde(default, rename = "customClassId")]
+    pub custom_class_id: ::core::option::Option<String>,
+    /// Output only. The time at which this resource was requested for deletion. This field is not used.
+    #[serde(default, rename = "deleteTime")]
+    pub delete_time: ::core::option::Option<String>,
+    /// Output only. User-settable, human-readable name for the CustomClass. Must be 63 characters or less. This field is not used.
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+    /// Output only. This checksum is computed by the server based on the value of other fields. This may be sent on update, undelete, and delete requests to ensure the client has an up-to-date value before proceeding. This field is not used.
     #[serde(default)]
-    pub details: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
-    /// A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.
+    pub etag: ::core::option::Option<String>,
+    /// Output only. The time at which this resource will be purged. This field is not used.
+    #[serde(default, rename = "expireTime")]
+    pub expire_time: ::core::option::Option<String>,
+    /// A collection of class items.
     #[serde(default)]
-    pub message: ::core::option::Option<String>,
+    pub items: ::core::option::Option<::std::vec::Vec<ClassItem>>,
+    /// Output only. The [KMS key name](https://cloud.google.com/kms/docs/resource-hierarchy#keys) with which the content of the ClassItem is encrypted. The expected format is projects/{project}/locations/{location}/keyRings/{key_ring}/cryptoKeys/{crypto_key}.
+    #[serde(default, rename = "kmsKeyName")]
+    pub kms_key_name: ::core::option::Option<String>,
+    /// Output only. The [KMS key version name](https://cloud.google.com/kms/docs/resource-hierarchy#key_versions) with which content of the ClassItem is encrypted. The expected format is projects/{project}/locations/{location}/keyRings/{key_ring}/cryptoKeys/{crypto_key}/cryptoKeyVersions/{crypto_key_version}.
+    #[serde(default, rename = "kmsKeyVersionName")]
+    pub kms_key_version_name: ::core::option::Option<String>,
+    /// The resource name of the custom class.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Output only. Whether or not this CustomClass is in the process of being updated. This field is not used.
+    #[serde(default)]
+    pub reconciling: ::core::option::Option<bool>,
+    /// Output only. The CustomClass lifecycle state. This field is not used. // TODO: enum values: ["STATE_UNSPECIFIED", "ACTIVE", "DELETED"]
+    #[serde(default)]
+    pub state: ::core::option::Option<String>,
+    /// Output only. System-assigned unique identifier for the CustomClass. This field is not used.
+    #[serde(default)]
+    pub uid: ::core::option::Option<String>,
 }
 
-/// Transcription normalization configuration. Use transcription normalization to automatically replace parts of the transcript with phrases of your choosing. For StreamingRecognize, this normalization only applies to stable partial transcripts (stability &gt; 0.8) and final transcripts.
+/// Provides "hints" to the speech recognizer to favor specific words and phrases in the results.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct TranscriptNormalization {
-    /// A list of replacement entries. We will perform replacement with one entry at a time. For example, the second entry in ["cat" =&gt; "dog", "mountain cat" =&gt; "mountain dog"] will never be applied because we will always process the first entry before it. At most 100 entries.
+pub struct PhraseSet {
+    /// Output only. Allows users to store small amounts of arbitrary data. Both the key and the value must be 63 characters or less each. At most 100 annotations. This field is not used.
     #[serde(default)]
-    pub entries: ::core::option::Option<::std::vec::Vec<Entry>>,
+    pub annotations: ::core::option::Option<serde_json::Value>,
+    /// Hint Boost. Positive value will increase the probability that a specific phrase will be recognized over other similar sounding phrases. The higher the boost, the higher the chance of false positive recognition as well. Negative boost values would correspond to anti-biasing. Anti-biasing is not enabled, so negative boost will simply be ignored. Though boost can accept a wide range of positive values, most use cases are best served with values between 0 (exclusive) and 20. We recommend using a binary search approach to finding the optimal value for your use case as well as adding phrases both with and without boost to your requests.
+    #[serde(default)]
+    pub boost: ::core::option::Option<f32>,
+    /// Output only. The time at which this resource was requested for deletion. This field is not used.
+    #[serde(default, rename = "deleteTime")]
+    pub delete_time: ::core::option::Option<String>,
+    /// Output only. User-settable, human-readable name for the PhraseSet. Must be 63 characters or less. This field is not used.
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+    /// Output only. This checksum is computed by the server based on the value of other fields. This may be sent on update, undelete, and delete requests to ensure the client has an up-to-date value before proceeding. This field is not used.
+    #[serde(default)]
+    pub etag: ::core::option::Option<String>,
+    /// Output only. The time at which this resource will be purged. This field is not used.
+    #[serde(default, rename = "expireTime")]
+    pub expire_time: ::core::option::Option<String>,
+    /// Output only. The [KMS key name](https://cloud.google.com/kms/docs/resource-hierarchy#keys) with which the content of the PhraseSet is encrypted. The expected format is projects/{project}/locations/{location}/keyRings/{key_ring}/cryptoKeys/{crypto_key}.
+    #[serde(default, rename = "kmsKeyName")]
+    pub kms_key_name: ::core::option::Option<String>,
+    /// Output only. The [KMS key version name](https://cloud.google.com/kms/docs/resource-hierarchy#key_versions) with which content of the PhraseSet is encrypted. The expected format is projects/{project}/locations/{location}/keyRings/{key_ring}/cryptoKeys/{crypto_key}/cryptoKeyVersions/{crypto_key_version}.
+    #[serde(default, rename = "kmsKeyVersionName")]
+    pub kms_key_version_name: ::core::option::Option<String>,
+    /// The resource name of the phrase set.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// A list of word and phrases.
+    #[serde(default)]
+    pub phrases: ::core::option::Option<::std::vec::Vec<Phrase>>,
+    /// Output only. Whether or not this PhraseSet is in the process of being updated. This field is not used.
+    #[serde(default)]
+    pub reconciling: ::core::option::Option<bool>,
+    /// Output only. The CustomClass lifecycle state. This field is not used. // TODO: enum values: ["STATE_UNSPECIFIED", "ACTIVE", "DELETED"]
+    #[serde(default)]
+    pub state: ::core::option::Option<String>,
+    /// Output only. System-assigned unique identifier for the PhraseSet. This field is not used.
+    #[serde(default)]
+    pub uid: ::core::option::Option<String>,
 }
 
-/// Specifies an optional destination for the recognition results.
+/// A single replacement configuration.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct TranscriptOutputConfig {
-    /// Specifies a Cloud Storage URI for the recognition results. Must be specified in the format: gs://bucket_name/object_name, and the bucket must already exist.
-    #[serde(default, rename = "gcsUri")]
-    pub gcs_uri: ::core::option::Option<String>,
+pub struct Entry {
+    /// Whether the search is case sensitive.
+    #[serde(default, rename = "caseSensitive")]
+    pub case_sensitive: ::core::option::Option<bool>,
+    /// What to replace with. Max length is 100 characters.
+    #[serde(default)]
+    pub replace: ::core::option::Option<String>,
+    /// What to replace. Max length is 100 characters.
+    #[serde(default)]
+    pub search: ::core::option::Option<String>,
 }
 
 /// Word-specific information for recognized words.
@@ -545,4 +526,23 @@ pub struct WordInfo {
     /// The word corresponding to this set of information.
     #[serde(default)]
     pub word: ::core::option::Option<String>,
+}
+
+/// An item of the class.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ClassItem {
+    /// The class item''s value.
+    #[serde(default)]
+    pub value: ::core::option::Option<String>,
+}
+
+/// A phrases containing words and phrase "hints" so that the speech recognition is more likely to recognize them. This can be used to improve the accuracy for specific words and phrases, for example, if specific commands are typically spoken by the user. This can also be used to add additional words to the vocabulary of the recognizer. See [usage limits](https://cloud.google.com/speech-to-text/quotas#content). List items can also include pre-built or custom classes containing groups of words that represent common concepts that occur in natural language. For example, rather than providing a phrase hint for every month of the year (e.g. "i was born in january", "i was born in febuary", ...), use the pre-built $MONTH class improves the likelihood of correctly transcribing audio that includes months (e.g. "i was born in $month"). To refer to pre-built classes, use the class'' symbol prepended with $ e.g. $MONTH. To refer to custom classes that were defined inline in the request, set the class''s custom_class_id to a string unique to all class resources and inline classes. Then use the class'' id wrapped in ${...} e.g. "${my-months}". To refer to custom classes resources, use the class'' id wrapped in ${} (e.g. ${my-months}). Speech-to-Text supports three locations: global, us (US North America), and eu (Europe). If you are calling the speech.googleapis.com endpoint, use the global location. To specify a region, use a [regional endpoint](https://cloud.google.com/speech-to-text/docs/endpoints) with matching us or eu location value.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Phrase {
+    /// Hint Boost. Overrides the boost set at the phrase set level. Positive value will increase the probability that a specific phrase will be recognized over other similar sounding phrases. The higher the boost, the higher the chance of false positive recognition as well. Negative boost will simply be ignored. Though boost can accept a wide range of positive values, most use cases are best served with values between 0 and 20. We recommend using a binary search approach to finding the optimal value for your use case as well as adding phrases both with and without boost to your requests.
+    #[serde(default)]
+    pub boost: ::core::option::Option<f32>,
+    /// The phrase itself.
+    #[serde(default)]
+    pub value: ::core::option::Option<String>,
 }

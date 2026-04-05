@@ -10,112 +10,6 @@
 use super::*;
 use serde::{Deserialize, Serialize};
 
-/// Action represents an issue requiring administrator action for resolution.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDataplexV1Action {
-    /// Output only. The relative resource name of the asset, of the form: projects/{project_number}/locations/{location_id}/lakes/{lake_id}/zones/{zone_id}/assets/{asset_id}.
-    #[serde(default)]
-    pub asset: ::core::option::Option<String>,
-    /// The category of issue associated with the action. // TODO: enum values: ["CATEGORY_UNSPECIFIED", "RESOURCE_MANAGEMENT", "SECURITY_POLICY", "DATA_DISCOVERY"]
-    #[serde(default)]
-    pub category: ::core::option::Option<String>,
-    /// The list of data locations associated with this action. Cloud Storage locations are represented as URI paths(E.g. gs://bucket/table1/year=2020/month=Jan/). BigQuery locations refer to resource names(E.g. bigquery.googleapis.com/projects/project-id/datasets/dataset-id).
-    #[serde(default, rename = "dataLocations")]
-    pub data_locations: ::core::option::Option<::std::vec::Vec<String>>,
-    /// The time that the issue was detected.
-    #[serde(default, rename = "detectTime")]
-    pub detect_time: ::core::option::Option<String>,
-    /// Details for issues related to applying security policy.
-    #[serde(default, rename = "failedSecurityPolicyApply")]
-    pub failed_security_policy_apply:
-        ::core::option::Option<GoogleCloudDataplexV1ActionFailedSecurityPolicyApply>,
-    /// Details for issues related to incompatible schemas detected within data.
-    #[serde(default, rename = "incompatibleDataSchema")]
-    pub incompatible_data_schema:
-        ::core::option::Option<GoogleCloudDataplexV1ActionIncompatibleDataSchema>,
-    /// Details for issues related to invalid or unsupported data formats.
-    #[serde(default, rename = "invalidDataFormat")]
-    pub invalid_data_format: ::core::option::Option<GoogleCloudDataplexV1ActionInvalidDataFormat>,
-    /// Details for issues related to invalid data arrangement.
-    #[serde(default, rename = "invalidDataOrganization")]
-    pub invalid_data_organization: ::core::option::Option<serde_json::Value>,
-    /// Details for issues related to invalid or unsupported data partition structure.
-    #[serde(default, rename = "invalidDataPartition")]
-    pub invalid_data_partition:
-        ::core::option::Option<GoogleCloudDataplexV1ActionInvalidDataPartition>,
-    /// Detailed description of the issue requiring action.
-    #[serde(default)]
-    pub issue: ::core::option::Option<String>,
-    /// Output only. The relative resource name of the lake, of the form: projects/{project_number}/locations/{location_id}/lakes/{lake_id}.
-    #[serde(default)]
-    pub lake: ::core::option::Option<String>,
-    /// Details for issues related to absence of data within managed resources.
-    #[serde(default, rename = "missingData")]
-    pub missing_data: ::core::option::Option<serde_json::Value>,
-    /// Details for issues related to absence of a managed resource.
-    #[serde(default, rename = "missingResource")]
-    pub missing_resource: ::core::option::Option<serde_json::Value>,
-    /// Output only. The relative resource name of the action, of the form: projects/{project}/locations/{location}/lakes/{lake}/actions/{action} projects/{project}/locations/{location}/lakes/{lake}/zones/{zone}/actions/{action} projects/{project}/locations/{location}/lakes/{lake}/zones/{zone}/assets/{asset}/actions/{action}.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Details for issues related to lack of permissions to access data resources.
-    #[serde(default, rename = "unauthorizedResource")]
-    pub unauthorized_resource: ::core::option::Option<serde_json::Value>,
-    /// Output only. The relative resource name of the zone, of the form: projects/{project_number}/locations/{location_id}/lakes/{lake_id}/zones/{zone_id}.
-    #[serde(default)]
-    pub zone: ::core::option::Option<String>,
-}
-
-/// Failed to apply security policy to the managed resource(s) under a lake, zone or an asset. For a lake or zone resource, one or more underlying assets has a failure applying security policy to the associated managed resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDataplexV1ActionFailedSecurityPolicyApply {
-    /// Resource name of one of the assets with failing security policy application. Populated for a lake or zone resource only.
-    #[serde(default)]
-    pub asset: ::core::option::Option<String>,
-}
-
-/// Action details for incompatible schemas detected by discovery.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDataplexV1ActionIncompatibleDataSchema {
-    /// The existing and expected schema of the table. The schema is provided as a JSON formatted structure listing columns and data types.
-    #[serde(default, rename = "existingSchema")]
-    pub existing_schema: ::core::option::Option<String>,
-    /// The new and incompatible schema within the table. The schema is provided as a JSON formatted structured listing columns and data types.
-    #[serde(default, rename = "newSchema")]
-    pub new_schema: ::core::option::Option<String>,
-    /// The list of data locations sampled and used for format/schema inference.
-    #[serde(default, rename = "sampledDataLocations")]
-    pub sampled_data_locations: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Whether the action relates to a schema that is incompatible or modified. // TODO: enum values: ["SCHEMA_CHANGE_UNSPECIFIED", "INCOMPATIBLE", "MODIFIED"]
-    #[serde(default, rename = "schemaChange")]
-    pub schema_change: ::core::option::Option<String>,
-    /// The name of the table containing invalid data.
-    #[serde(default)]
-    pub table: ::core::option::Option<String>,
-}
-
-/// Action details for invalid or unsupported data files detected by discovery.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDataplexV1ActionInvalidDataFormat {
-    /// The expected data format of the entity.
-    #[serde(default, rename = "expectedFormat")]
-    pub expected_format: ::core::option::Option<String>,
-    /// The new unexpected data format within the entity.
-    #[serde(default, rename = "newFormat")]
-    pub new_format: ::core::option::Option<String>,
-    /// The list of data locations sampled and used for format/schema inference.
-    #[serde(default, rename = "sampledDataLocations")]
-    pub sampled_data_locations: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// Action details for invalid or unsupported partitions detected by discovery.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDataplexV1ActionInvalidDataPartition {
-    /// The issue type of InvalidDataPartition. // TODO: enum values: ["PARTITION_STRUCTURE_UNSPECIFIED", "CONSISTENT_KEYS", "HIVE_STYLE_KEYS"]
-    #[serde(default, rename = "expectedStructure")]
-    pub expected_structure: ::core::option::Option<String>,
-}
-
 /// An aspect is a single piece of metadata describing an entry.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDataplexV1Aspect {
@@ -139,351 +33,6 @@ pub struct GoogleCloudDataplexV1Aspect {
     pub update_time: ::core::option::Option<String>,
 }
 
-/// Information related to the source system of the aspect.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDataplexV1AspectSource {
-    /// The time the aspect was created in the source system.
-    #[serde(default, rename = "createTime")]
-    pub create_time: ::core::option::Option<String>,
-    /// The version of the data format used to produce this data. This field is used to indicated when the underlying data format changes (e.g., schema modifications, changes to the source URL format definition, etc).
-    #[serde(default, rename = "dataVersion")]
-    pub data_version: ::core::option::Option<String>,
-    /// The time the aspect was last updated in the source system.
-    #[serde(default, rename = "updateTime")]
-    pub update_time: ::core::option::Option<String>,
-}
-
-/// AspectType is a template for creating Aspects, and represents the JSON-schema for a given Entry, for example, BigQuery Table Schema.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDataplexV1AspectType {
-    /// Immutable. Defines the Authorization for this type.
-    #[serde(default)]
-    pub authorization: ::core::option::Option<GoogleCloudDataplexV1AspectTypeAuthorization>,
-    /// Output only. The time when the AspectType was created.
-    #[serde(default, rename = "createTime")]
-    pub create_time: ::core::option::Option<String>,
-    /// Optional. Immutable. Stores data classification of the aspect. // TODO: enum values: ["DATA_CLASSIFICATION_UNSPECIFIED", "METADATA_AND_DATA"]
-    #[serde(default, rename = "dataClassification")]
-    pub data_classification: ::core::option::Option<String>,
-    /// Optional. Description of the AspectType.
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// Optional. User friendly display name.
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-    /// The service computes this checksum. The client may send it on update and delete requests to ensure it has an up-to-date value before proceeding.
-    #[serde(default)]
-    pub etag: ::core::option::Option<String>,
-    /// Optional. User-defined labels for the AspectType.
-    #[serde(default)]
-    pub labels: ::core::option::Option<serde_json::Value>,
-    /// Required. MetadataTemplate of the aspect.
-    #[serde(default, rename = "metadataTemplate")]
-    pub metadata_template: ::core::option::Option<GoogleCloudDataplexV1AspectTypeMetadataTemplate>,
-    /// Output only. The relative resource name of the AspectType, of the form: projects/{project_number}/locations/{location_id}/aspectTypes/{aspect_type_id}.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Output only. Denotes the transfer status of the Aspect Type. It is unspecified for Aspect Types created from Dataplex API. // TODO: enum values: ["TRANSFER_STATUS_UNSPECIFIED", "TRANSFER_STATUS_MIGRATED", "TRANSFER_STATUS_TRANSFERRED"]
-    #[serde(default, rename = "transferStatus")]
-    pub transfer_status: ::core::option::Option<String>,
-    /// Output only. System generated globally unique ID for the AspectType. If you delete and recreate the AspectType with the same name, then this ID will be different.
-    #[serde(default)]
-    pub uid: ::core::option::Option<String>,
-    /// Output only. The time when the AspectType was last updated.
-    #[serde(default, rename = "updateTime")]
-    pub update_time: ::core::option::Option<String>,
-}
-
-/// Authorization for an AspectType.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDataplexV1AspectTypeAuthorization {
-    /// Immutable. The IAM permission grantable on the EntryGroup to allow access to instantiate Aspects of Dataplex Universal Catalog owned AspectTypes, only settable for Dataplex Universal Catalog owned Types.
-    #[serde(default, rename = "alternateUsePermission")]
-    pub alternate_use_permission: ::core::option::Option<String>,
-}
-
-/// MetadataTemplate definition for an AspectType.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDataplexV1AspectTypeMetadataTemplate {
-    /// Optional. Specifies annotations on this field.
-    #[serde(default)]
-    pub annotations:
-        ::core::option::Option<GoogleCloudDataplexV1AspectTypeMetadataTemplateAnnotations>,
-    /// Optional. If the type is array, set array_items. array_items can refer to a primitive field or a complex (record only) field. To specify a primitive field, you only need to set name and type in the nested MetadataTemplate. The recommended value for the name field is item, as this isn''t used in the actual payload.
-    #[serde(default, rename = "arrayItems")]
-    pub array_items: ::core::option::Option<GoogleCloudDataplexV1AspectTypeMetadataTemplate>,
-    /// Optional. Specifies the constraints on this field.
-    #[serde(default)]
-    pub constraints:
-        ::core::option::Option<GoogleCloudDataplexV1AspectTypeMetadataTemplateConstraints>,
-    /// Optional. The list of values for an enum type. You must define it if the type is enum.
-    #[serde(default, rename = "enumValues")]
-    pub enum_values: ::core::option::Option<
-        ::std::vec::Vec<GoogleCloudDataplexV1AspectTypeMetadataTemplateEnumValue>,
-    >,
-    /// Optional. Index is used to encode Template messages. The value of index can range between 1 and 2,147,483,647. Index must be unique within all fields in a Template. (Nested Templates can reuse indexes). Once a Template is defined, the index cannot be changed, because it identifies the field in the actual storage format. Index is a mandatory field, but it is optional for top level fields, and map/array "values" definitions.
-    #[serde(default)]
-    pub index: ::core::option::Option<i32>,
-    /// Optional. If the type is map, set map_items. map_items can refer to a primitive field or a complex (record only) field. To specify a primitive field, you only need to set name and type in the nested MetadataTemplate. The recommended value for the name field is item, as this isn''t used in the actual payload.
-    #[serde(default, rename = "mapItems")]
-    pub map_items: ::core::option::Option<GoogleCloudDataplexV1AspectTypeMetadataTemplate>,
-    /// Required. The name of the field.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Optional. Field definition. You must specify it if the type is record. It defines the nested fields.
-    #[serde(default, rename = "recordFields")]
-    pub record_fields:
-        ::core::option::Option<::std::vec::Vec<GoogleCloudDataplexV1AspectTypeMetadataTemplate>>,
-    /// Required. The datatype of this field. The following values are supported:Primitive types: string int bool double datetime. Must be of the format RFC3339 UTC "Zulu" (Examples: "2014-10-02T15:01:23Z" and "2014-10-02T15:01:23.045123456Z").Complex types: enum array map record
-    #[serde(default, rename = "type")]
-    pub type_: ::core::option::Option<String>,
-    /// Optional. You can use type id if this definition of the field needs to be reused later. The type id must be unique across the entire template. You can only specify it if the field type is record.
-    #[serde(default, rename = "typeId")]
-    pub type_id: ::core::option::Option<String>,
-    /// Optional. A reference to another field definition (not an inline definition). The value must be equal to the value of an id field defined elsewhere in the MetadataTemplate. Only fields with record type can refer to other fields.
-    #[serde(default, rename = "typeRef")]
-    pub type_ref: ::core::option::Option<String>,
-}
-
-/// Definition of the annotations of a field.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDataplexV1AspectTypeMetadataTemplateAnnotations {
-    /// Optional. Marks a field as deprecated. You can include a deprecation message.
-    #[serde(default)]
-    pub deprecated: ::core::option::Option<String>,
-    /// Optional. Description for a field.
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// Optional. Display name for a field.
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-    /// Optional. Display order for a field. You can use this to reorder where a field is rendered.
-    #[serde(default, rename = "displayOrder")]
-    pub display_order: ::core::option::Option<i32>,
-    /// Optional. You can use String Type annotations to specify special meaning to string fields. The following values are supported: richText: The field must be interpreted as a rich text field. url: A fully qualified URL link. resource: A service qualified resource reference.
-    #[serde(default, rename = "stringType")]
-    pub string_type: ::core::option::Option<String>,
-    /// Optional. Suggested hints for string fields. You can use them to suggest values to users through console.
-    #[serde(default, rename = "stringValues")]
-    pub string_values: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// Definition of the constraints of a field.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDataplexV1AspectTypeMetadataTemplateConstraints {
-    /// Optional. Marks this field as optional or required.
-    #[serde(default)]
-    pub required: ::core::option::Option<bool>,
-}
-
-/// Definition of Enumvalue, to be used for enum fields.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDataplexV1AspectTypeMetadataTemplateEnumValue {
-    /// Optional. You can set this message if you need to deprecate an enum value.
-    #[serde(default)]
-    pub deprecated: ::core::option::Option<String>,
-    /// Required. Index for the enum value. It can''t be modified.
-    #[serde(default)]
-    pub index: ::core::option::Option<i32>,
-    /// Required. Name of the enumvalue. This is the actual value that the aspect can contain.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-}
-
-/// An asset represents a cloud resource that is being managed within a lake as a member of a zone.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDataplexV1Asset {
-    /// Output only. The time when the asset was created.
-    #[serde(default, rename = "createTime")]
-    pub create_time: ::core::option::Option<String>,
-    /// Optional. Description of the asset.
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// Optional. Specification of the discovery feature applied to data referenced by this asset. When this spec is left unset, the asset will use the spec set on the parent zone.
-    #[serde(default, rename = "discoverySpec")]
-    pub discovery_spec: ::core::option::Option<GoogleCloudDataplexV1AssetDiscoverySpec>,
-    /// Output only. Status of the discovery feature applied to data referenced by this asset.
-    #[serde(default, rename = "discoveryStatus")]
-    pub discovery_status: ::core::option::Option<GoogleCloudDataplexV1AssetDiscoveryStatus>,
-    /// Optional. User friendly display name.
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-    /// Optional. User defined labels for the asset.
-    #[serde(default)]
-    pub labels: ::core::option::Option<serde_json::Value>,
-    /// Output only. The relative resource name of the asset, of the form: projects/{project_number}/locations/{location_id}/lakes/{lake_id}/zones/{zone_id}/assets/{asset_id}.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Required. Specification of the resource that is referenced by this asset.
-    #[serde(default, rename = "resourceSpec")]
-    pub resource_spec: ::core::option::Option<GoogleCloudDataplexV1AssetResourceSpec>,
-    /// Output only. Status of the resource referenced by this asset.
-    #[serde(default, rename = "resourceStatus")]
-    pub resource_status: ::core::option::Option<GoogleCloudDataplexV1AssetResourceStatus>,
-    /// Output only. Status of the security policy applied to resource referenced by this asset.
-    #[serde(default, rename = "securityStatus")]
-    pub security_status: ::core::option::Option<GoogleCloudDataplexV1AssetSecurityStatus>,
-    /// Output only. Current state of the asset. // TODO: enum values: ["STATE_UNSPECIFIED", "ACTIVE", "CREATING", "DELETING", "ACTION_REQUIRED"]
-    #[serde(default)]
-    pub state: ::core::option::Option<String>,
-    /// Output only. System generated globally unique ID for the asset. This ID will be different if the asset is deleted and re-created with the same name.
-    #[serde(default)]
-    pub uid: ::core::option::Option<String>,
-    /// Output only. The time when the asset was last updated.
-    #[serde(default, rename = "updateTime")]
-    pub update_time: ::core::option::Option<String>,
-}
-
-/// Settings to manage the metadata discovery and publishing for an asset.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDataplexV1AssetDiscoverySpec {
-    /// Optional. Configuration for CSV data.
-    #[serde(default, rename = "csvOptions")]
-    pub csv_options: ::core::option::Option<GoogleCloudDataplexV1AssetDiscoverySpecCsvOptions>,
-    /// Optional. Whether discovery is enabled.
-    #[serde(default)]
-    pub enabled: ::core::option::Option<bool>,
-    /// Optional. The list of patterns to apply for selecting data to exclude during discovery. For Cloud Storage bucket assets, these are interpreted as glob patterns used to match object names. For BigQuery dataset assets, these are interpreted as patterns to match table names.
-    #[serde(default, rename = "excludePatterns")]
-    pub exclude_patterns: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Optional. The list of patterns to apply for selecting data to include during discovery if only a subset of the data should considered. For Cloud Storage bucket assets, these are interpreted as glob patterns used to match object names. For BigQuery dataset assets, these are interpreted as patterns to match table names.
-    #[serde(default, rename = "includePatterns")]
-    pub include_patterns: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Optional. Configuration for Json data.
-    #[serde(default, rename = "jsonOptions")]
-    pub json_options: ::core::option::Option<GoogleCloudDataplexV1AssetDiscoverySpecJsonOptions>,
-    /// Optional. Cron schedule (https://en.wikipedia.org/wiki/Cron) for running discovery periodically. Successive discovery runs must be scheduled at least 60 minutes apart. The default value is to run discovery every 60 minutes.To explicitly set a timezone to the cron tab, apply a prefix in the cron tab: "CRON_TZ=${IANA_TIME_ZONE}" or TZ=${IANA_TIME_ZONE}". The ${IANA_TIME_ZONE} may only be a valid string from IANA time zone database. For example, CRON_TZ=America/New_York 1 * * * *, or TZ=America/New_York 1 * * * *.
-    #[serde(default)]
-    pub schedule: ::core::option::Option<String>,
-}
-
-/// Describe CSV and similar semi-structured data formats.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDataplexV1AssetDiscoverySpecCsvOptions {
-    /// Optional. The delimiter being used to separate values. This defaults to '',''.
-    #[serde(default)]
-    pub delimiter: ::core::option::Option<String>,
-    /// Optional. Whether to disable the inference of data type for CSV data. If true, all columns will be registered as strings.
-    #[serde(default, rename = "disableTypeInference")]
-    pub disable_type_inference: ::core::option::Option<bool>,
-    /// Optional. The character encoding of the data. The default is UTF-8.
-    #[serde(default)]
-    pub encoding: ::core::option::Option<String>,
-    /// Optional. The number of rows to interpret as header rows that should be skipped when reading data rows.
-    #[serde(default, rename = "headerRows")]
-    pub header_rows: ::core::option::Option<i32>,
-}
-
-/// Describe JSON data format.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDataplexV1AssetDiscoverySpecJsonOptions {
-    /// Optional. Whether to disable the inference of data type for Json data. If true, all columns will be registered as their primitive types (strings, number or boolean).
-    #[serde(default, rename = "disableTypeInference")]
-    pub disable_type_inference: ::core::option::Option<bool>,
-    /// Optional. The character encoding of the data. The default is UTF-8.
-    #[serde(default)]
-    pub encoding: ::core::option::Option<String>,
-}
-
-/// Status of discovery for an asset.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDataplexV1AssetDiscoveryStatus {
-    /// The duration of the last discovery run.
-    #[serde(default, rename = "lastRunDuration")]
-    pub last_run_duration: ::core::option::Option<String>,
-    /// The start time of the last discovery run.
-    #[serde(default, rename = "lastRunTime")]
-    pub last_run_time: ::core::option::Option<String>,
-    /// Additional information about the current state.
-    #[serde(default)]
-    pub message: ::core::option::Option<String>,
-    /// The current status of the discovery feature. // TODO: enum values: ["STATE_UNSPECIFIED", "SCHEDULED", "IN_PROGRESS", "PAUSED", "DISABLED"]
-    #[serde(default)]
-    pub state: ::core::option::Option<String>,
-    /// Data Stats of the asset reported by discovery.
-    #[serde(default)]
-    pub stats: ::core::option::Option<GoogleCloudDataplexV1AssetDiscoveryStatusStats>,
-    /// Last update time of the status.
-    #[serde(default, rename = "updateTime")]
-    pub update_time: ::core::option::Option<String>,
-}
-
-/// The aggregated data statistics for the asset reported by discovery.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDataplexV1AssetDiscoveryStatusStats {
-    /// The count of data items within the referenced resource.
-    #[serde(default, rename = "dataItems")]
-    pub data_items: ::core::option::Option<String>,
-    /// The number of stored data bytes within the referenced resource.
-    #[serde(default, rename = "dataSize")]
-    pub data_size: ::core::option::Option<String>,
-    /// The count of fileset entities within the referenced resource.
-    #[serde(default)]
-    pub filesets: ::core::option::Option<String>,
-    /// The count of table entities within the referenced resource.
-    #[serde(default)]
-    pub tables: ::core::option::Option<String>,
-}
-
-/// Identifies the cloud resource that is referenced by this asset.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDataplexV1AssetResourceSpec {
-    /// Immutable. Relative name of the cloud resource that contains the data that is being managed within a lake. For example: projects/{project_number}/buckets/{bucket_id} projects/{project_number}/datasets/{dataset_id}
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Optional. Determines how read permissions are handled for each asset and their associated tables. Only available to storage buckets assets. // TODO: enum values: ["ACCESS_MODE_UNSPECIFIED", "DIRECT", "MANAGED"]
-    #[serde(default, rename = "readAccessMode")]
-    pub read_access_mode: ::core::option::Option<String>,
-    /// Required. Immutable. Type of resource. // TODO: enum values: ["TYPE_UNSPECIFIED", "STORAGE_BUCKET", "BIGQUERY_DATASET"]
-    #[serde(default, rename = "type")]
-    pub type_: ::core::option::Option<String>,
-}
-
-/// Status of the resource referenced by an asset.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDataplexV1AssetResourceStatus {
-    /// Output only. Service account associated with the BigQuery Connection.
-    #[serde(default, rename = "managedAccessIdentity")]
-    pub managed_access_identity: ::core::option::Option<String>,
-    /// Additional information about the current state.
-    #[serde(default)]
-    pub message: ::core::option::Option<String>,
-    /// The current state of the managed resource. // TODO: enum values: ["STATE_UNSPECIFIED", "READY", "ERROR"]
-    #[serde(default)]
-    pub state: ::core::option::Option<String>,
-    /// Last update time of the status.
-    #[serde(default, rename = "updateTime")]
-    pub update_time: ::core::option::Option<String>,
-}
-
-/// Security policy status of the asset. Data security policy, i.e., readers, writers & owners, should be specified in the lake/zone/asset IAM policy.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDataplexV1AssetSecurityStatus {
-    /// Additional information about the current state.
-    #[serde(default)]
-    pub message: ::core::option::Option<String>,
-    /// The current state of the security policy applied to the attached resource. // TODO: enum values: ["STATE_UNSPECIFIED", "READY", "APPLYING", "ERROR"]
-    #[serde(default)]
-    pub state: ::core::option::Option<String>,
-    /// Last update time of the status.
-    #[serde(default, rename = "updateTime")]
-    pub update_time: ::core::option::Option<String>,
-}
-
-/// Aggregated status of the underlying assets of a lake or zone.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDataplexV1AssetStatus {
-    /// Number of active assets.
-    #[serde(default, rename = "activeAssets")]
-    pub active_assets: ::core::option::Option<i32>,
-    /// Number of assets that are in process of updating the security policy on attached resources.
-    #[serde(default, rename = "securityPolicyApplyingAssets")]
-    pub security_policy_applying_assets: ::core::option::Option<i32>,
-    /// Last update time of the status.
-    #[serde(default, rename = "updateTime")]
-    pub update_time: ::core::option::Option<String>,
-}
-
 /// Payload associated with Business Glossary related log events.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDataplexV1BusinessGlossaryEvent {
@@ -498,447 +47,12 @@ pub struct GoogleCloudDataplexV1BusinessGlossaryEvent {
     pub resource: ::core::option::Option<String>,
 }
 
-/// DataAccessSpec holds the access control configuration to be enforced on data stored within resources (eg: rows, columns in BigQuery Tables). When associated with data, the data is only accessible to principals explicitly granted access through the DataAccessSpec. Principals with access to the containing resource are not implicitly granted access.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDataplexV1DataAccessSpec {
-    /// Optional. The format of strings follows the pattern followed by IAM in the bindings. user:{email}, serviceAccount:{email} group:{email}. The set of principals to be granted reader role on data stored within resources.
-    #[serde(default)]
-    pub readers: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// Represents a data asset resource that can be packaged and shared via a data product.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDataplexV1DataAsset {
-    /// Optional. Access groups configurations for this data asset.The key is DataProduct.AccessGroup.id and the value is AccessGroupConfig.Example: { "analyst": { "iamRoles": ["roles/bigquery.dataViewer"] } } Currently, at most one IAM role is allowed per access group. For providing multiple predefined IAM roles, wrap them in a custom IAM role as per https://cloud.google.com/iam/docs/creating-custom-roles.
-    #[serde(default, rename = "accessGroupConfigs")]
-    pub access_group_configs: ::core::option::Option<serde_json::Value>,
-    /// Output only. The time at which the data asset was created.
-    #[serde(default, rename = "createTime")]
-    pub create_time: ::core::option::Option<String>,
-    /// Optional. This checksum is computed by the server based on the value of other fields, and may be sent on update and delete requests to ensure the client has an up-to-date value before proceeding.
-    #[serde(default)]
-    pub etag: ::core::option::Option<String>,
-    /// Optional. User-defined labels for the data asset.Example: { "environment": "production", "billing": "marketing-department" }
-    #[serde(default)]
-    pub labels: ::core::option::Option<serde_json::Value>,
-    /// Identifier. Resource name of the data asset. Format: projects/{project_id_or_number}/locations/{location_id}/dataProducts/{data_product_id}/dataAssets/{data_asset_id}
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Required. Immutable. Full resource name of the cloud resource represented by the data asset. This must follow https://cloud.google.com/iam/docs/full-resource-names. Example: //bigquery.googleapis.com/projects/my_project_123/datasets/dataset_456/tables/table_789 Only BigQuery tables and datasets are currently supported. Data asset creator must have getIamPolicy and setIamPolicy permissions on the resource. Data asset creator must also have resource specific get permission, for instance, bigquery.tables.get for BigQuery tables.
-    #[serde(default)]
-    pub resource: ::core::option::Option<String>,
-    /// Output only. System generated globally unique ID for the data asset. This ID will be different if the data asset is deleted and re-created with the same name.
-    #[serde(default)]
-    pub uid: ::core::option::Option<String>,
-    /// Output only. The time at which the data asset was last updated.
-    #[serde(default, rename = "updateTime")]
-    pub update_time: ::core::option::Option<String>,
-}
-
 /// Configuration for access group inherited from the parent data product.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDataplexV1DataAssetAccessGroupConfig {
     /// Optional. IAM roles granted on the resource to this access group. Role name follows https://cloud.google.com/iam/docs/reference/rest/v1/roles.Example: [ "roles/bigquery.dataViewer" ]
     #[serde(default, rename = "iamRoles")]
     pub iam_roles: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// Denotes one dataAttribute in a dataTaxonomy, for example, PII. DataAttribute resources can be defined in a hierarchy. A single dataAttribute resource can contain specs of multiple types PII - ResourceAccessSpec : - readers :foo@bar.com - DataAccessSpec : - readers :bar@foo.com
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDataplexV1DataAttribute {
-    /// Output only. The number of child attributes present for this attribute.
-    #[serde(default, rename = "attributeCount")]
-    pub attribute_count: ::core::option::Option<i32>,
-    /// Output only. The time when the DataAttribute was created.
-    #[serde(default, rename = "createTime")]
-    pub create_time: ::core::option::Option<String>,
-    /// Optional. Specified when applied to data stored on the resource (eg: rows, columns in BigQuery Tables).
-    #[serde(default, rename = "dataAccessSpec")]
-    pub data_access_spec: ::core::option::Option<GoogleCloudDataplexV1DataAccessSpec>,
-    /// Optional. Description of the DataAttribute.
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// Optional. User friendly display name.
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-    /// This checksum is computed by the server based on the value of other fields, and may be sent on update and delete requests to ensure the client has an up-to-date value before proceeding.
-    #[serde(default)]
-    pub etag: ::core::option::Option<String>,
-    /// Optional. User-defined labels for the DataAttribute.
-    #[serde(default)]
-    pub labels: ::core::option::Option<serde_json::Value>,
-    /// Output only. The relative resource name of the dataAttribute, of the form: projects/{project_number}/locations/{location_id}/dataTaxonomies/{dataTaxonomy}/attributes/{data_attribute_id}.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Optional. The ID of the parent DataAttribute resource, should belong to the same data taxonomy. Circular dependency in parent chain is not valid. Maximum depth of the hierarchy allowed is 4. a -&gt; b -&gt; c -&gt; d -&gt; e, depth = 4
-    #[serde(default, rename = "parentId")]
-    pub parent_id: ::core::option::Option<String>,
-    /// Optional. Specified when applied to a resource (eg: Cloud Storage bucket, BigQuery dataset, BigQuery table).
-    #[serde(default, rename = "resourceAccessSpec")]
-    pub resource_access_spec: ::core::option::Option<GoogleCloudDataplexV1ResourceAccessSpec>,
-    /// Output only. System generated globally unique ID for the DataAttribute. This ID will be different if the DataAttribute is deleted and re-created with the same name.
-    #[serde(default)]
-    pub uid: ::core::option::Option<String>,
-    /// Output only. The time when the DataAttribute was last updated.
-    #[serde(default, rename = "updateTime")]
-    pub update_time: ::core::option::Option<String>,
-}
-
-/// DataAttributeBinding represents binding of attributes to resources. Eg: Bind ''CustomerInfo'' entity with ''PII'' attribute.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDataplexV1DataAttributeBinding {
-    /// Optional. List of attributes to be associated with the resource, provided in the form: projects/{project}/locations/{location}/dataTaxonomies/{dataTaxonomy}/attributes/{data_attribute_id}
-    #[serde(default)]
-    pub attributes: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Output only. The time when the DataAttributeBinding was created.
-    #[serde(default, rename = "createTime")]
-    pub create_time: ::core::option::Option<String>,
-    /// Optional. Description of the DataAttributeBinding.
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// Optional. User friendly display name.
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-    /// This checksum is computed by the server based on the value of other fields, and may be sent on update and delete requests to ensure the client has an up-to-date value before proceeding. Etags must be used when calling the DeleteDataAttributeBinding and the UpdateDataAttributeBinding method.
-    #[serde(default)]
-    pub etag: ::core::option::Option<String>,
-    /// Optional. User-defined labels for the DataAttributeBinding.
-    #[serde(default)]
-    pub labels: ::core::option::Option<serde_json::Value>,
-    /// Output only. The relative resource name of the Data Attribute Binding, of the form: projects/{project_number}/locations/{location}/dataAttributeBindings/{data_attribute_binding_id}
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Optional. The list of paths for items within the associated resource (eg. columns and partitions within a table) along with attribute bindings.
-    #[serde(default)]
-    pub paths:
-        ::core::option::Option<::std::vec::Vec<GoogleCloudDataplexV1DataAttributeBindingPath>>,
-    /// Optional. Immutable. The resource name of the resource that is associated to attributes. Presently, only entity resource is supported in the form: projects/{project}/locations/{location}/lakes/{lake}/zones/{zone}/entities/{entity_id} Must belong in the same project and region as the attribute binding, and there can only exist one active binding for a resource.
-    #[serde(default)]
-    pub resource: ::core::option::Option<String>,
-    /// Output only. System generated globally unique ID for the DataAttributeBinding. This ID will be different if the DataAttributeBinding is deleted and re-created with the same name.
-    #[serde(default)]
-    pub uid: ::core::option::Option<String>,
-    /// Output only. The time when the DataAttributeBinding was last updated.
-    #[serde(default, rename = "updateTime")]
-    pub update_time: ::core::option::Option<String>,
-}
-
-/// Represents a subresource of the given resource, and associated bindings with it. Currently supported subresources are column and partition schema fields within a table.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDataplexV1DataAttributeBindingPath {
-    /// Optional. List of attributes to be associated with the path of the resource, provided in the form: projects/{project}/locations/{location}/dataTaxonomies/{dataTaxonomy}/attributes/{data_attribute_id}
-    #[serde(default)]
-    pub attributes: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Required. The name identifier of the path. Nested columns should be of the form: ''address.city''.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-}
-
-/// The output of a data discovery scan.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDataplexV1DataDiscoveryResult {
-    /// Output only. Configuration for metadata publishing.
-    #[serde(default, rename = "bigqueryPublishing")]
-    pub bigquery_publishing:
-        ::core::option::Option<GoogleCloudDataplexV1DataDiscoveryResultBigQueryPublishing>,
-    /// Output only. Describes result statistics of a data scan discovery job.
-    #[serde(default, rename = "scanStatistics")]
-    pub scan_statistics:
-        ::core::option::Option<GoogleCloudDataplexV1DataDiscoveryResultScanStatistics>,
-}
-
-/// Describes BigQuery publishing configurations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDataplexV1DataDiscoveryResultBigQueryPublishing {
-    /// Output only. The BigQuery dataset the discovered tables are published to.
-    #[serde(default)]
-    pub dataset: ::core::option::Option<String>,
-    /// Output only. The location of the BigQuery publishing dataset.
-    #[serde(default)]
-    pub location: ::core::option::Option<String>,
-}
-
-/// Describes result statistics of a data scan discovery job.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDataplexV1DataDiscoveryResultScanStatistics {
-    /// The data processed in bytes.
-    #[serde(default, rename = "dataProcessedBytes")]
-    pub data_processed_bytes: ::core::option::Option<String>,
-    /// The number of files excluded.
-    #[serde(default, rename = "filesExcluded")]
-    pub files_excluded: ::core::option::Option<i32>,
-    /// The number of filesets created.
-    #[serde(default, rename = "filesetsCreated")]
-    pub filesets_created: ::core::option::Option<i32>,
-    /// The number of filesets deleted.
-    #[serde(default, rename = "filesetsDeleted")]
-    pub filesets_deleted: ::core::option::Option<i32>,
-    /// The number of filesets updated.
-    #[serde(default, rename = "filesetsUpdated")]
-    pub filesets_updated: ::core::option::Option<i32>,
-    /// The number of files scanned.
-    #[serde(default, rename = "scannedFileCount")]
-    pub scanned_file_count: ::core::option::Option<i32>,
-    /// The number of tables created.
-    #[serde(default, rename = "tablesCreated")]
-    pub tables_created: ::core::option::Option<i32>,
-    /// The number of tables deleted.
-    #[serde(default, rename = "tablesDeleted")]
-    pub tables_deleted: ::core::option::Option<i32>,
-    /// The number of tables updated.
-    #[serde(default, rename = "tablesUpdated")]
-    pub tables_updated: ::core::option::Option<i32>,
-}
-
-/// Spec for a data discovery scan.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDataplexV1DataDiscoverySpec {
-    /// Optional. Configuration for metadata publishing.
-    #[serde(default, rename = "bigqueryPublishingConfig")]
-    pub bigquery_publishing_config:
-        ::core::option::Option<GoogleCloudDataplexV1DataDiscoverySpecBigQueryPublishingConfig>,
-    /// Cloud Storage related configurations.
-    #[serde(default, rename = "storageConfig")]
-    pub storage_config: ::core::option::Option<GoogleCloudDataplexV1DataDiscoverySpecStorageConfig>,
-}
-
-/// Describes BigQuery publishing configurations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDataplexV1DataDiscoverySpecBigQueryPublishingConfig {
-    /// Optional. The BigQuery connection used to create BigLake tables. Must be in the form projects/{project_id}/locations/{location_id}/connections/{connection_id}
-    #[serde(default)]
-    pub connection: ::core::option::Option<String>,
-    /// Optional. The location of the BigQuery dataset to publish BigLake external or non-BigLake external tables to. 1. If the Cloud Storage bucket is located in a multi-region bucket, then BigQuery dataset can be in the same multi-region bucket or any single region that is included in the same multi-region bucket. The datascan can be created in any single region that is included in the same multi-region bucket 2. If the Cloud Storage bucket is located in a dual-region bucket, then BigQuery dataset can be located in regions that are included in the dual-region bucket, or in a multi-region that includes the dual-region. The datascan can be created in any single region that is included in the same dual-region bucket. 3. If the Cloud Storage bucket is located in a single region, then BigQuery dataset can be in the same single region or any multi-region bucket that includes the same single region. The datascan will be created in the same single region as the bucket. 4. If the BigQuery dataset is in single region, it must be in the same single region as the datascan.For supported values, refer to https://cloud.google.com/bigquery/docs/locations#supported_locations.
-    #[serde(default)]
-    pub location: ::core::option::Option<String>,
-    /// Optional. The project of the BigQuery dataset to publish BigLake external or non-BigLake external tables to. If not specified, the project of the Cloud Storage bucket will be used. The format is "projects/{project_id_or_number}".
-    #[serde(default)]
-    pub project: ::core::option::Option<String>,
-    /// Optional. Determines whether to publish discovered tables as BigLake external tables or non-BigLake external tables. // TODO: enum values: ["TABLE_TYPE_UNSPECIFIED", "EXTERNAL", "BIGLAKE"]
-    #[serde(default, rename = "tableType")]
-    pub table_type: ::core::option::Option<String>,
-}
-
-/// Configurations related to Cloud Storage as the data source.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDataplexV1DataDiscoverySpecStorageConfig {
-    /// Optional. Configuration for CSV data.
-    #[serde(default, rename = "csvOptions")]
-    pub csv_options:
-        ::core::option::Option<GoogleCloudDataplexV1DataDiscoverySpecStorageConfigCsvOptions>,
-    /// Optional. Defines the data to exclude during discovery. Provide a list of patterns that identify the data to exclude. For Cloud Storage bucket assets, these patterns are interpreted as glob patterns used to match object names. For BigQuery dataset assets, these patterns are interpreted as patterns to match table names.
-    #[serde(default, rename = "excludePatterns")]
-    pub exclude_patterns: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Optional. Defines the data to include during discovery when only a subset of the data should be considered. Provide a list of patterns that identify the data to include. For Cloud Storage bucket assets, these patterns are interpreted as glob patterns used to match object names. For BigQuery dataset assets, these patterns are interpreted as patterns to match table names.
-    #[serde(default, rename = "includePatterns")]
-    pub include_patterns: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Optional. Configuration for JSON data.
-    #[serde(default, rename = "jsonOptions")]
-    pub json_options:
-        ::core::option::Option<GoogleCloudDataplexV1DataDiscoverySpecStorageConfigJsonOptions>,
-}
-
-/// Describes CSV and similar semi-structured data formats.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDataplexV1DataDiscoverySpecStorageConfigCsvOptions {
-    /// Optional. The delimiter that is used to separate values. The default is , (comma).
-    #[serde(default)]
-    pub delimiter: ::core::option::Option<String>,
-    /// Optional. The character encoding of the data. The default is UTF-8.
-    #[serde(default)]
-    pub encoding: ::core::option::Option<String>,
-    /// Optional. The number of rows to interpret as header rows that should be skipped when reading data rows.
-    #[serde(default, rename = "headerRows")]
-    pub header_rows: ::core::option::Option<i32>,
-    /// Optional. The character used to quote column values. Accepts " (double quotation mark) or '' (single quotation mark). If unspecified, defaults to " (double quotation mark).
-    #[serde(default)]
-    pub quote: ::core::option::Option<String>,
-    /// Optional. Whether to disable the inference of data types for CSV data. If true, all columns are registered as strings.
-    #[serde(default, rename = "typeInferenceDisabled")]
-    pub type_inference_disabled: ::core::option::Option<bool>,
-}
-
-/// Describes JSON data format.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDataplexV1DataDiscoverySpecStorageConfigJsonOptions {
-    /// Optional. The character encoding of the data. The default is UTF-8.
-    #[serde(default)]
-    pub encoding: ::core::option::Option<String>,
-    /// Optional. Whether to disable the inference of data types for JSON data. If true, all columns are registered as their primitive types (strings, number, or boolean).
-    #[serde(default, rename = "typeInferenceDisabled")]
-    pub type_inference_disabled: ::core::option::Option<bool>,
-}
-
-/// The output of a DataDocumentation scan.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDataplexV1DataDocumentationResult {
-    /// Output only. Insights for a Dataset resource.
-    #[serde(default, rename = "datasetResult")]
-    pub dataset_result:
-        ::core::option::Option<GoogleCloudDataplexV1DataDocumentationResultDatasetResult>,
-    /// Output only. Insights for a Table resource.
-    #[serde(default, rename = "tableResult")]
-    pub table_result:
-        ::core::option::Option<GoogleCloudDataplexV1DataDocumentationResultTableResult>,
-}
-
-/// Insights for a dataset resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDataplexV1DataDocumentationResultDatasetResult {
-    /// Output only. Generated Dataset description.
-    #[serde(default)]
-    pub overview: ::core::option::Option<String>,
-    /// Output only. Sample SQL queries for the dataset.
-    #[serde(default)]
-    pub queries:
-        ::core::option::Option<::std::vec::Vec<GoogleCloudDataplexV1DataDocumentationResultQuery>>,
-    /// Output only. Relationships suggesting how tables in the dataset are related to each other, based on their schema.
-    #[serde(default, rename = "schemaRelationships")]
-    pub schema_relationships: ::core::option::Option<
-        ::std::vec::Vec<GoogleCloudDataplexV1DataDocumentationResultSchemaRelationship>,
-    >,
-    /// Output only. Generated table and column descriptions for each table in the dataset.
-    #[serde(default, rename = "tableResults")]
-    pub table_results: ::core::option::Option<
-        ::std::vec::Vec<GoogleCloudDataplexV1DataDocumentationResultTableResult>,
-    >,
-}
-
-/// Column of a table with generated metadata and nested fields.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDataplexV1DataDocumentationResultField {
-    /// Output only. Generated description for columns and fields.
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// Output only. Nested fields.
-    #[serde(default)]
-    pub fields:
-        ::core::option::Option<::std::vec::Vec<GoogleCloudDataplexV1DataDocumentationResultField>>,
-    /// Output only. The name of the column.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-}
-
-/// A sample SQL query in data documentation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDataplexV1DataDocumentationResultQuery {
-    /// Output only. The description for the query.
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// Output only. The SQL query string which can be executed.
-    #[serde(default)]
-    pub sql: ::core::option::Option<String>,
-}
-
-/// Schema of the table with generated metadata of columns.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDataplexV1DataDocumentationResultSchema {
-    /// Output only. The list of columns.
-    #[serde(default)]
-    pub fields:
-        ::core::option::Option<::std::vec::Vec<GoogleCloudDataplexV1DataDocumentationResultField>>,
-}
-
-/// Details of the relationship between the schema of two resources.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDataplexV1DataDocumentationResultSchemaRelationship {
-    /// Output only. An ordered list of fields for the join from the first table. The size of this list must be the same as right_schema_paths. Each field at index i in this list must correspond to a field at the same index in the right_schema_paths list.
-    #[serde(default, rename = "leftSchemaPaths")]
-    pub left_schema_paths: ::core::option::Option<
-        GoogleCloudDataplexV1DataDocumentationResultSchemaRelationshipSchemaPaths,
-    >,
-    /// Output only. An ordered list of fields for the join from the second table. The size of this list must be the same as left_schema_paths. Each field at index i in this list must correspond to a field at the same index in the left_schema_paths list.
-    #[serde(default, rename = "rightSchemaPaths")]
-    pub right_schema_paths: ::core::option::Option<
-        GoogleCloudDataplexV1DataDocumentationResultSchemaRelationshipSchemaPaths,
-    >,
-    /// Output only. Sources which generated the schema relation edge.
-    #[serde(default)]
-    pub sources: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Output only. The type of relationship between the schema paths. // TODO: enum values: ["TYPE_UNSPECIFIED", "SCHEMA_JOIN"]
-    #[serde(default, rename = "type")]
-    pub type_: ::core::option::Option<String>,
-}
-
-/// Represents an ordered set of paths within a table''s schema.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDataplexV1DataDocumentationResultSchemaRelationshipSchemaPaths {
-    /// Output only. An ordered set of Paths to fields within the schema of the table. For fields nested within a top level field of type record, use ''.'' to separate field names. Examples: Top level field - top_level Nested field - top_level.child.sub_field
-    #[serde(default)]
-    pub paths: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Output only. The service-qualified full resource name of the table Ex: //bigquery.googleapis.com/projects/PROJECT_ID/datasets/DATASET_ID/tables/TABLE_ID
-    #[serde(default, rename = "tableFqn")]
-    pub table_fqn: ::core::option::Option<String>,
-}
-
-/// Insights for a table resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDataplexV1DataDocumentationResultTableResult {
-    /// Output only. The service-qualified full resource name of the cloud resource. Ex: //bigquery.googleapis.com/projects/PROJECT_ID/datasets/DATASET_ID/tables/TABLE_ID
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Output only. Generated description of the table.
-    #[serde(default)]
-    pub overview: ::core::option::Option<String>,
-    /// Output only. Sample SQL queries for the table.
-    #[serde(default)]
-    pub queries:
-        ::core::option::Option<::std::vec::Vec<GoogleCloudDataplexV1DataDocumentationResultQuery>>,
-    /// Output only. Schema of the table with generated metadata of the columns in the schema.
-    #[serde(default)]
-    pub schema: ::core::option::Option<GoogleCloudDataplexV1DataDocumentationResultSchema>,
-}
-
-/// DataDocumentation scan related spec.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDataplexV1DataDocumentationSpec {
-    /// Optional. Whether to publish result to Dataplex Catalog.
-    #[serde(default, rename = "catalogPublishingEnabled")]
-    pub catalog_publishing_enabled: ::core::option::Option<bool>,
-    /// Optional. Specifies which components of the data documentation to generate. Any component that is required to generate the specified components will also be generated. If no generation scope is specified, all available documentation components will be generated.
-    #[serde(default, rename = "generationScopes")]
-    pub generation_scopes: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// A data product is a curated collection of data assets, packaged to address specific use cases. It''s a way to manage and share data in a more organized, product-like manner.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDataplexV1DataProduct {
-    /// Optional. Data product access groups by access group id as key. If data product is used only for packaging data assets, then access groups may be empty. However, if a data product is used for sharing data assets, then at least one access group must be specified.Example: { "analyst": { "id": "analyst", "displayName": "Analyst", "description": "Access group for analysts", "principal": { "googleGroup": "analysts@example.com" } } }
-    #[serde(default, rename = "accessGroups")]
-    pub access_groups: ::core::option::Option<serde_json::Value>,
-    /// Output only. Number of data assets associated with this data product.
-    #[serde(default, rename = "assetCount")]
-    pub asset_count: ::core::option::Option<i32>,
-    /// Output only. The time at which the data product was created.
-    #[serde(default, rename = "createTime")]
-    pub create_time: ::core::option::Option<String>,
-    /// Optional. Description of the data product.
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// Required. User-friendly display name of the data product.
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-    /// Optional. This checksum is computed by the server based on the value of other fields, and may be sent on update and delete requests to ensure the client has an up-to-date value before proceeding.
-    #[serde(default)]
-    pub etag: ::core::option::Option<String>,
-    /// Optional. Base64 encoded image representing the data product. Max Size: 3.0MiB Expected image dimensions are 512x512 pixels, however the API only performs validation on size of the encoded data. Note: For byte fields, the content of the fields are base64-encoded (which increases the size of the data by 33-36%) when using JSON on the wire.
-    #[serde(default)]
-    pub icon: ::core::option::Option<String>,
-    /// Optional. User-defined labels for the data product.Example: { "environment": "production", "billing": "marketing-department" }
-    #[serde(default)]
-    pub labels: ::core::option::Option<serde_json::Value>,
-    /// Identifier. Resource name of the data product. Format: projects/{project_id_or_number}/locations/{location_id}/dataProducts/{data_product_id}.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Required. Emails of the data product owners.
-    #[serde(default, rename = "ownerEmails")]
-    pub owner_emails: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Output only. System generated unique ID for the data product. This ID will be different if the data product is deleted and re-created with the same name.
-    #[serde(default)]
-    pub uid: ::core::option::Option<String>,
-    /// Output only. The time at which the data product was last updated.
-    #[serde(default, rename = "updateTime")]
-    pub update_time: ::core::option::Option<String>,
 }
 
 /// Custom user defined access groups at the data product level. These are used for granting different levels of access (IAM roles) on the individual data product''s data assets.
@@ -958,155 +72,6 @@ pub struct GoogleCloudDataplexV1DataProductAccessGroup {
     pub principal: ::core::option::Option<GoogleCloudDataplexV1DataProductPrincipal>,
 }
 
-/// Represents the principal entity associated with an access group, as per https://cloud.google.com/iam/docs/principals-overview.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDataplexV1DataProductPrincipal {
-    /// Optional. Email of the Google Group, as per https://cloud.google.com/iam/docs/principals-overview#google-group.
-    #[serde(default, rename = "googleGroup")]
-    pub google_group: ::core::option::Option<String>,
-}
-
-/// DataProfileResult defines the output of DataProfileScan. Each field of the table will have field type specific profile result.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDataplexV1DataProfileResult {
-    /// Output only. The status of publishing the data scan as Dataplex Universal Catalog metadata.
-    #[serde(default, rename = "catalogPublishingStatus")]
-    pub catalog_publishing_status:
-        ::core::option::Option<GoogleCloudDataplexV1DataScanCatalogPublishingStatus>,
-    /// Output only. The result of post scan actions.
-    #[serde(default, rename = "postScanActionsResult")]
-    pub post_scan_actions_result:
-        ::core::option::Option<GoogleCloudDataplexV1DataProfileResultPostScanActionsResult>,
-    /// Output only. The profile information per field.
-    #[serde(default)]
-    pub profile: ::core::option::Option<GoogleCloudDataplexV1DataProfileResultProfile>,
-    /// Output only. The count of rows scanned.
-    #[serde(default, rename = "rowCount")]
-    pub row_count: ::core::option::Option<String>,
-    /// Output only. The data scanned for this result.
-    #[serde(default, rename = "scannedData")]
-    pub scanned_data: ::core::option::Option<GoogleCloudDataplexV1ScannedData>,
-}
-
-/// The result of post scan actions of DataProfileScan job.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDataplexV1DataProfileResultPostScanActionsResult {
-    /// Output only. The result of BigQuery export post scan action.
-    #[serde(default, rename = "bigqueryExportResult")]
-    pub bigquery_export_result: ::core::option::Option<
-        GoogleCloudDataplexV1DataProfileResultPostScanActionsResultBigQueryExportResult,
-    >,
-}
-
-/// The result of BigQuery export post scan action.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDataplexV1DataProfileResultPostScanActionsResultBigQueryExportResult {
-    /// Output only. Additional information about the BigQuery exporting.
-    #[serde(default)]
-    pub message: ::core::option::Option<String>,
-    /// Output only. Execution state for the BigQuery exporting. // TODO: enum values: ["STATE_UNSPECIFIED", "SUCCEEDED", "FAILED", "SKIPPED"]
-    #[serde(default)]
-    pub state: ::core::option::Option<String>,
-}
-
-/// Contains name, type, mode and field type specific profile information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDataplexV1DataProfileResultProfile {
-    /// Output only. List of fields with structural and profile information for each field.
-    #[serde(default)]
-    pub fields:
-        ::core::option::Option<::std::vec::Vec<GoogleCloudDataplexV1DataProfileResultProfileField>>,
-}
-
-/// A field within a table.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDataplexV1DataProfileResultProfileField {
-    /// Output only. The mode of the field. Possible values include: REQUIRED, if it is a required field. NULLABLE, if it is an optional field. REPEATED, if it is a repeated field.
-    #[serde(default)]
-    pub mode: ::core::option::Option<String>,
-    /// Output only. The name of the field.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Output only. Profile information for the corresponding field.
-    #[serde(default)]
-    pub profile:
-        ::core::option::Option<GoogleCloudDataplexV1DataProfileResultProfileFieldProfileInfo>,
-    /// Output only. The data type retrieved from the schema of the data source. For instance, for a BigQuery native table, it is the BigQuery Table Schema (https://cloud.google.com/bigquery/docs/reference/rest/v2/tables#tablefieldschema). For a Dataplex Universal Catalog Entity, it is the Entity Schema (https://cloud.google.com/dataplex/docs/reference/rpc/google.cloud.dataplex.v1#type_3).
-    #[serde(default, rename = "type")]
-    pub type_: ::core::option::Option<String>,
-}
-
-/// The profile information for each field type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDataplexV1DataProfileResultProfileFieldProfileInfo {
-    /// Output only. Ratio of rows with distinct values against total scanned rows. Not available for complex non-groupable field type, including RECORD, ARRAY, GEOGRAPHY, and JSON, as well as fields with REPEATABLE mode.
-    #[serde(default, rename = "distinctRatio")]
-    pub distinct_ratio: ::core::option::Option<f64>,
-    /// Double type field information.
-    #[serde(default, rename = "doubleProfile")]
-    pub double_profile: ::core::option::Option<
-        GoogleCloudDataplexV1DataProfileResultProfileFieldProfileInfoDoubleFieldInfo,
-    >,
-    /// Integer type field information.
-    #[serde(default, rename = "integerProfile")]
-    pub integer_profile: ::core::option::Option<
-        GoogleCloudDataplexV1DataProfileResultProfileFieldProfileInfoIntegerFieldInfo,
-    >,
-    /// Output only. Ratio of rows with null value against total scanned rows.
-    #[serde(default, rename = "nullRatio")]
-    pub null_ratio: ::core::option::Option<f64>,
-    /// String type field information.
-    #[serde(default, rename = "stringProfile")]
-    pub string_profile: ::core::option::Option<
-        GoogleCloudDataplexV1DataProfileResultProfileFieldProfileInfoStringFieldInfo,
-    >,
-    /// Output only. The list of top N non-null values, frequency and ratio with which they occur in the scanned data. N is 10 or equal to the number of distinct values in the field, whichever is smaller. Not available for complex non-groupable field type, including RECORD, ARRAY, GEOGRAPHY, and JSON, as well as fields with REPEATABLE mode.
-    #[serde(default, rename = "topNValues")]
-    pub top_n_values: ::core::option::Option<
-        ::std::vec::Vec<GoogleCloudDataplexV1DataProfileResultProfileFieldProfileInfoTopNValue>,
-    >,
-}
-
-/// The profile information for a double type field.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDataplexV1DataProfileResultProfileFieldProfileInfoDoubleFieldInfo {
-    /// Output only. Average of non-null values in the scanned data. NaN, if the field has a NaN.
-    #[serde(default)]
-    pub average: ::core::option::Option<f64>,
-    /// Output only. Maximum of non-null values in the scanned data. NaN, if the field has a NaN.
-    #[serde(default)]
-    pub max: ::core::option::Option<f64>,
-    /// Output only. Minimum of non-null values in the scanned data. NaN, if the field has a NaN.
-    #[serde(default)]
-    pub min: ::core::option::Option<f64>,
-    /// Output only. A quartile divides the number of data points into four parts, or quarters, of more-or-less equal size. Three main quartiles used are: The first quartile (Q1) splits off the lowest 25% of data from the highest 75%. It is also known as the lower or 25th empirical quartile, as 25% of the data is below this point. The second quartile (Q2) is the median of a data set. So, 50% of the data lies below this point. The third quartile (Q3) splits off the highest 25% of data from the lowest 75%. It is known as the upper or 75th empirical quartile, as 75% of the data lies below this point. Here, the quartiles is provided as an ordered list of quartile values for the scanned data, occurring in order Q1, median, Q3.
-    #[serde(default)]
-    pub quartiles: ::core::option::Option<::std::vec::Vec<f64>>,
-    /// Output only. Standard deviation of non-null values in the scanned data. NaN, if the field has a NaN.
-    #[serde(default, rename = "standardDeviation")]
-    pub standard_deviation: ::core::option::Option<f64>,
-}
-
-/// The profile information for an integer type field.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDataplexV1DataProfileResultProfileFieldProfileInfoIntegerFieldInfo {
-    /// Output only. Average of non-null values in the scanned data. NaN, if the field has a NaN.
-    #[serde(default)]
-    pub average: ::core::option::Option<f64>,
-    /// Output only. Maximum of non-null values in the scanned data. NaN, if the field has a NaN.
-    #[serde(default)]
-    pub max: ::core::option::Option<String>,
-    /// Output only. Minimum of non-null values in the scanned data. NaN, if the field has a NaN.
-    #[serde(default)]
-    pub min: ::core::option::Option<String>,
-    /// Output only. A quartile divides the number of data points into four parts, or quarters, of more-or-less equal size. Three main quartiles used are: The first quartile (Q1) splits off the lowest 25% of data from the highest 75%. It is also known as the lower or 25th empirical quartile, as 25% of the data is below this point. The second quartile (Q2) is the median of a data set. So, 50% of the data lies below this point. The third quartile (Q3) splits off the highest 25% of data from the lowest 75%. It is known as the upper or 75th empirical quartile, as 75% of the data lies below this point. Here, the quartiles is provided as an ordered list of approximate quartile values for the scanned data, occurring in order Q1, median, Q3.
-    #[serde(default)]
-    pub quartiles: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Output only. Standard deviation of non-null values in the scanned data. NaN, if the field has a NaN.
-    #[serde(default, rename = "standardDeviation")]
-    pub standard_deviation: ::core::option::Option<f64>,
-}
-
 /// The profile information for a string type field.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDataplexV1DataProfileResultProfileFieldProfileInfoStringFieldInfo {
@@ -1119,396 +84,6 @@ pub struct GoogleCloudDataplexV1DataProfileResultProfileFieldProfileInfoStringFi
     /// Output only. Minimum length of non-null values in the scanned data.
     #[serde(default, rename = "minLength")]
     pub min_length: ::core::option::Option<String>,
-}
-
-/// Top N non-null values in the scanned data.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDataplexV1DataProfileResultProfileFieldProfileInfoTopNValue {
-    /// Output only. Count of the corresponding value in the scanned data.
-    #[serde(default)]
-    pub count: ::core::option::Option<String>,
-    /// Output only. Ratio of the corresponding value in the field against the total number of rows in the scanned data.
-    #[serde(default)]
-    pub ratio: ::core::option::Option<f64>,
-    /// Output only. String value of a top N non-null value.
-    #[serde(default)]
-    pub value: ::core::option::Option<String>,
-}
-
-/// DataProfileScan related setting.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDataplexV1DataProfileSpec {
-    /// Optional. If set, the latest DataScan job result will be published as Dataplex Universal Catalog metadata.
-    #[serde(default, rename = "catalogPublishingEnabled")]
-    pub catalog_publishing_enabled: ::core::option::Option<bool>,
-    /// Optional. The fields to exclude from data profile.If specified, the fields will be excluded from data profile, regardless of include_fields value.
-    #[serde(default, rename = "excludeFields")]
-    pub exclude_fields: ::core::option::Option<GoogleCloudDataplexV1DataProfileSpecSelectedFields>,
-    /// Optional. The fields to include in data profile.If not specified, all fields at the time of profile scan job execution are included, except for ones listed in exclude_fields.
-    #[serde(default, rename = "includeFields")]
-    pub include_fields: ::core::option::Option<GoogleCloudDataplexV1DataProfileSpecSelectedFields>,
-    /// Optional. Actions to take upon job completion..
-    #[serde(default, rename = "postScanActions")]
-    pub post_scan_actions:
-        ::core::option::Option<GoogleCloudDataplexV1DataProfileSpecPostScanActions>,
-    /// Optional. A filter applied to all rows in a single DataScan job. The filter needs to be a valid SQL expression for a WHERE clause in BigQuery standard SQL syntax. Example: col1 &gt;= 0 AND col2 &lt; 10
-    #[serde(default, rename = "rowFilter")]
-    pub row_filter: ::core::option::Option<String>,
-    /// Optional. The percentage of the records to be selected from the dataset for DataScan. Value can range between 0.0 and 100.0 with up to 3 significant decimal digits. Sampling is not applied if sampling_percent is not specified, 0 or 100.
-    #[serde(default, rename = "samplingPercent")]
-    pub sampling_percent: ::core::option::Option<f32>,
-}
-
-/// The configuration of post scan actions of DataProfileScan job.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDataplexV1DataProfileSpecPostScanActions {
-    /// Optional. If set, results will be exported to the provided BigQuery table.
-    #[serde(default, rename = "bigqueryExport")]
-    pub bigquery_export:
-        ::core::option::Option<GoogleCloudDataplexV1DataProfileSpecPostScanActionsBigQueryExport>,
-}
-
-/// The configuration of BigQuery export post scan action.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDataplexV1DataProfileSpecPostScanActionsBigQueryExport {
-    /// Optional. The BigQuery table to export DataProfileScan results to. Format: //bigquery.googleapis.com/projects/PROJECT_ID/datasets/DATASET_ID/tables/TABLE_ID
-    #[serde(default, rename = "resultsTable")]
-    pub results_table: ::core::option::Option<String>,
-}
-
-/// The specification for fields to include or exclude in data profile scan.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDataplexV1DataProfileSpecSelectedFields {
-    /// Optional. Expected input is a list of fully qualified names of fields as in the schema.Only top-level field names for nested fields are supported. For instance, if ''x'' is of nested field type, listing ''x'' is supported but ''x.y.z'' is not supported. Here ''y'' and ''y.z'' are nested fields of ''x''.
-    #[serde(default, rename = "fieldNames")]
-    pub field_names: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// DataQualityColumnResult provides a more detailed, per-column view of the results.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDataplexV1DataQualityColumnResult {
-    /// Output only. The column specified in the DataQualityRule.
-    #[serde(default)]
-    pub column: ::core::option::Option<String>,
-    /// Output only. The dimension-level results for this column.
-    #[serde(default)]
-    pub dimensions:
-        ::core::option::Option<::std::vec::Vec<GoogleCloudDataplexV1DataQualityDimensionResult>>,
-    /// Output only. Whether the column passed or failed.
-    #[serde(default)]
-    pub passed: ::core::option::Option<bool>,
-    /// Output only. The column-level data quality score for this data scan job if and only if the ''column'' field is set.The score ranges between between 0, 100 (up to two decimal points).
-    #[serde(default)]
-    pub score: ::core::option::Option<f32>,
-}
-
-/// A dimension captures data quality intent about a defined subset of the rules specified.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDataplexV1DataQualityDimension {
-    /// Output only. The dimension name a rule belongs to. Custom dimension name is supported with all uppercase letters and maximum length of 30 characters.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-}
-
-/// DataQualityDimensionResult provides a more detailed, per-dimension view of the results.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDataplexV1DataQualityDimensionResult {
-    /// Output only. The dimension config specified in the DataQualitySpec, as is.
-    #[serde(default)]
-    pub dimension: ::core::option::Option<GoogleCloudDataplexV1DataQualityDimension>,
-    /// Output only. Whether the dimension passed or failed.
-    #[serde(default)]
-    pub passed: ::core::option::Option<bool>,
-    /// Output only. The dimension-level data quality score for this data scan job if and only if the ''dimension'' field is set.The score ranges between 0, 100 (up to two decimal points).
-    #[serde(default)]
-    pub score: ::core::option::Option<f32>,
-}
-
-/// The output of a DataQualityScan.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDataplexV1DataQualityResult {
-    /// Output only. The generated assets for anomaly detection.
-    #[serde(default, rename = "anomalyDetectionGeneratedAssets")]
-    pub anomaly_detection_generated_assets: ::core::option::Option<
-        GoogleCloudDataplexV1DataQualityResultAnomalyDetectionGeneratedAssets,
-    >,
-    /// Output only. The status of publishing the data scan as Dataplex Universal Catalog metadata.
-    #[serde(default, rename = "catalogPublishingStatus")]
-    pub catalog_publishing_status:
-        ::core::option::Option<GoogleCloudDataplexV1DataScanCatalogPublishingStatus>,
-    /// Output only. A list of results at the column level.A column will have a corresponding DataQualityColumnResult if and only if there is at least one rule with the ''column'' field set to it.
-    #[serde(default)]
-    pub columns:
-        ::core::option::Option<::std::vec::Vec<GoogleCloudDataplexV1DataQualityColumnResult>>,
-    /// Output only. A list of results at the dimension level.A dimension will have a corresponding DataQualityDimensionResult if and only if there is at least one rule with the ''dimension'' field set to it.
-    #[serde(default)]
-    pub dimensions:
-        ::core::option::Option<::std::vec::Vec<GoogleCloudDataplexV1DataQualityDimensionResult>>,
-    /// Output only. Overall data quality result -- true if all rules passed.
-    #[serde(default)]
-    pub passed: ::core::option::Option<bool>,
-    /// Output only. The result of post scan actions.
-    #[serde(default, rename = "postScanActionsResult")]
-    pub post_scan_actions_result:
-        ::core::option::Option<GoogleCloudDataplexV1DataQualityResultPostScanActionsResult>,
-    /// Output only. The count of rows processed.
-    #[serde(default, rename = "rowCount")]
-    pub row_count: ::core::option::Option<String>,
-    /// Output only. A list of all the rules in a job, and their results.
-    #[serde(default)]
-    pub rules: ::core::option::Option<::std::vec::Vec<GoogleCloudDataplexV1DataQualityRuleResult>>,
-    /// Output only. The data scanned for this result.
-    #[serde(default, rename = "scannedData")]
-    pub scanned_data: ::core::option::Option<GoogleCloudDataplexV1ScannedData>,
-    /// Output only. The overall data quality score.The score ranges between 0, 100 (up to two decimal points).
-    #[serde(default)]
-    pub score: ::core::option::Option<f32>,
-}
-
-/// The assets generated by Anomaly Detection Data Scan.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDataplexV1DataQualityResultAnomalyDetectionGeneratedAssets {
-    /// Output only. The intermediate table for data anomaly detection. Format: PROJECT_ID.DATASET_ID.TABLE_ID
-    #[serde(default, rename = "dataIntermediateTable")]
-    pub data_intermediate_table: ::core::option::Option<String>,
-    /// Output only. The intermediate table for freshness anomaly detection. Format: PROJECT_ID.DATASET_ID.TABLE_ID
-    #[serde(default, rename = "freshnessIntermediateTable")]
-    pub freshness_intermediate_table: ::core::option::Option<String>,
-    /// Output only. The result table for anomaly detection. Format: PROJECT_ID.DATASET_ID.TABLE_ID If the result table is set at AnomalyDetectionAssets, the result table here would be the same as the one set in the AnomalyDetectionAssets.result_table.
-    #[serde(default, rename = "resultTable")]
-    pub result_table: ::core::option::Option<String>,
-    /// Output only. The intermediate table for volume anomaly detection. Format: PROJECT_ID.DATASET_ID.TABLE_ID
-    #[serde(default, rename = "volumeIntermediateTable")]
-    pub volume_intermediate_table: ::core::option::Option<String>,
-}
-
-/// The result of post scan actions of DataQualityScan job.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDataplexV1DataQualityResultPostScanActionsResult {
-    /// Output only. The result of BigQuery export post scan action.
-    #[serde(default, rename = "bigqueryExportResult")]
-    pub bigquery_export_result: ::core::option::Option<
-        GoogleCloudDataplexV1DataQualityResultPostScanActionsResultBigQueryExportResult,
-    >,
-}
-
-/// The result of BigQuery export post scan action.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDataplexV1DataQualityResultPostScanActionsResultBigQueryExportResult {
-    /// Output only. Additional information about the BigQuery exporting.
-    #[serde(default)]
-    pub message: ::core::option::Option<String>,
-    /// Output only. Execution state for the BigQuery exporting. // TODO: enum values: ["STATE_UNSPECIFIED", "SUCCEEDED", "FAILED", "SKIPPED"]
-    #[serde(default)]
-    pub state: ::core::option::Option<String>,
-}
-
-/// A rule captures data quality intent about a data source.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDataplexV1DataQualityRule {
-    /// Optional. The unnested column which this rule is evaluated against.
-    #[serde(default)]
-    pub column: ::core::option::Option<String>,
-    /// Optional. Specifies the debug queries for this rule. Currently, only one query is supported, but this may be expanded in the future.
-    #[serde(default, rename = "debugQueries")]
-    pub debug_queries:
-        ::core::option::Option<::std::vec::Vec<GoogleCloudDataplexV1DataQualityRuleDebugQuery>>,
-    /// Optional. Description of the rule. The maximum length is 1,024 characters.
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// Optional. The dimension a rule belongs to. Results are also aggregated at the dimension level. Custom dimension name is supported with all uppercase letters and maximum length of 30 characters.
-    #[serde(default)]
-    pub dimension: ::core::option::Option<String>,
-    /// Optional. Rows with null values will automatically fail a rule, unless ignore_null is true. In that case, such null rows are trivially considered passing.This field is only valid for the following type of rules: RangeExpectation RegexExpectation SetExpectation UniquenessExpectation
-    #[serde(default, rename = "ignoreNull")]
-    pub ignore_null: ::core::option::Option<bool>,
-    /// Optional. A mutable name for the rule. The name must contain only letters (a-z, A-Z), numbers (0-9), or hyphens (-). The maximum length is 63 characters. Must start with a letter. Must end with a number or a letter.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Row-level rule which evaluates whether each column value is null.
-    #[serde(default, rename = "nonNullExpectation")]
-    pub non_null_expectation: ::core::option::Option<serde_json::Value>,
-    /// Row-level rule which evaluates whether each column value lies between a specified range.
-    #[serde(default, rename = "rangeExpectation")]
-    pub range_expectation:
-        ::core::option::Option<GoogleCloudDataplexV1DataQualityRuleRangeExpectation>,
-    /// Row-level rule which evaluates whether each column value matches a specified regex.
-    #[serde(default, rename = "regexExpectation")]
-    pub regex_expectation:
-        ::core::option::Option<GoogleCloudDataplexV1DataQualityRuleRegexExpectation>,
-    /// Row-level rule which evaluates whether each row in a table passes the specified condition.
-    #[serde(default, rename = "rowConditionExpectation")]
-    pub row_condition_expectation:
-        ::core::option::Option<GoogleCloudDataplexV1DataQualityRuleRowConditionExpectation>,
-    /// Row-level rule which evaluates whether each column value is contained by a specified set.
-    #[serde(default, rename = "setExpectation")]
-    pub set_expectation: ::core::option::Option<GoogleCloudDataplexV1DataQualityRuleSetExpectation>,
-    /// Aggregate rule which evaluates the number of rows returned for the provided statement. If any rows are returned, this rule fails.
-    #[serde(default, rename = "sqlAssertion")]
-    pub sql_assertion: ::core::option::Option<GoogleCloudDataplexV1DataQualityRuleSqlAssertion>,
-    /// Aggregate rule which evaluates whether the column aggregate statistic lies between a specified range.
-    #[serde(default, rename = "statisticRangeExpectation")]
-    pub statistic_range_expectation:
-        ::core::option::Option<GoogleCloudDataplexV1DataQualityRuleStatisticRangeExpectation>,
-    /// Optional. Whether the Rule is active or suspended. Default is false.
-    #[serde(default)]
-    pub suspended: ::core::option::Option<bool>,
-    /// Aggregate rule which evaluates whether the provided expression is true for a table.
-    #[serde(default, rename = "tableConditionExpectation")]
-    pub table_condition_expectation:
-        ::core::option::Option<GoogleCloudDataplexV1DataQualityRuleTableConditionExpectation>,
-    /// Optional. The minimum ratio of passing_rows / total_rows required to pass this rule, with a range of 0.0, 1.0.0 indicates default value (i.e. 1.0).This field is only valid for row-level type rules.
-    #[serde(default)]
-    pub threshold: ::core::option::Option<f64>,
-    /// Row-level rule which evaluates whether each column value is unique.
-    #[serde(default, rename = "uniquenessExpectation")]
-    pub uniqueness_expectation: ::core::option::Option<serde_json::Value>,
-}
-
-/// Specifies a SQL statement that is evaluated to return up to 10 scalar values that are used to debug rules. If the rule fails, the values can help diagnose the cause of the failure.The SQL statement must use GoogleSQL syntax (https://cloud.google.com/bigquery/docs/reference/standard-sql/query-syntax), and must not contain any semicolons.You can use the data reference parameter ${data()} to reference the source table with all of its precondition filters applied. Examples of precondition filters include row filters, incremental data filters, and sampling. For more information, see Data reference parameter (https://cloud.google.com/dataplex/docs/auto-data-quality-overview#data-reference-parameter).You can also name results with an explicit alias using [AS] alias. For more information, see BigQuery explicit aliases (https://docs.cloud.google.com/bigquery/docs/reference/standard-sql/query-syntax#explicit_alias_syntax).Example: SELECT MIN(col1) AS min_col1, MAX(col1) AS max_col1 FROM ${data()}
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDataplexV1DataQualityRuleDebugQuery {
-    /// Optional. Specifies the description of the debug query. The maximum length is 1,024 characters.
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// Required. Specifies the SQL statement to be executed.
-    #[serde(default, rename = "sqlStatement")]
-    pub sql_statement: ::core::option::Option<String>,
-}
-
-/// Evaluates whether each column value lies between a specified range.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDataplexV1DataQualityRuleRangeExpectation {
-    /// Optional. The maximum column value allowed for a row to pass this validation. At least one of min_value and max_value need to be provided.
-    #[serde(default, rename = "maxValue")]
-    pub max_value: ::core::option::Option<String>,
-    /// Optional. The minimum column value allowed for a row to pass this validation. At least one of min_value and max_value need to be provided.
-    #[serde(default, rename = "minValue")]
-    pub min_value: ::core::option::Option<String>,
-    /// Optional. Whether each value needs to be strictly lesser than (''&lt;'') the maximum, or if equality is allowed.Only relevant if a max_value has been defined. Default = false.
-    #[serde(default, rename = "strictMaxEnabled")]
-    pub strict_max_enabled: ::core::option::Option<bool>,
-    /// Optional. Whether each value needs to be strictly greater than (''&gt;'') the minimum, or if equality is allowed.Only relevant if a min_value has been defined. Default = false.
-    #[serde(default, rename = "strictMinEnabled")]
-    pub strict_min_enabled: ::core::option::Option<bool>,
-}
-
-/// Evaluates whether each column value matches a specified regex.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDataplexV1DataQualityRuleRegexExpectation {
-    /// Optional. A regular expression the column value is expected to match.
-    #[serde(default)]
-    pub regex: ::core::option::Option<String>,
-}
-
-/// DataQualityRuleResult provides a more detailed, per-rule view of the results.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDataplexV1DataQualityRuleResult {
-    /// Output only. The number of rows returned by the SQL statement in a SQL assertion rule.This field is only valid for SQL assertion rules.
-    #[serde(default, rename = "assertionRowCount")]
-    pub assertion_row_count: ::core::option::Option<String>,
-    /// Output only. Contains the results of all debug queries for this rule. The number of result sets will correspond to the number of debug_queries.
-    #[serde(default, rename = "debugQueriesResultSets")]
-    pub debug_queries_result_sets: ::core::option::Option<
-        ::std::vec::Vec<GoogleCloudDataplexV1DataQualityRuleResultDebugQueryResultSet>,
-    >,
-    /// Output only. The number of rows a rule was evaluated against.This field is only valid for row-level type rules.Evaluated count can be configured to either include all rows (default) - with null rows automatically failing rule evaluation, or exclude null rows from the evaluated_count, by setting ignore_nulls = true.This field is not set for rule SqlAssertion.
-    #[serde(default, rename = "evaluatedCount")]
-    pub evaluated_count: ::core::option::Option<String>,
-    /// Output only. The query to find rows that did not pass this rule.This field is only valid for row-level type rules.
-    #[serde(default, rename = "failingRowsQuery")]
-    pub failing_rows_query: ::core::option::Option<String>,
-    /// Output only. The number of rows with null values in the specified column.
-    #[serde(default, rename = "nullCount")]
-    pub null_count: ::core::option::Option<String>,
-    /// Output only. The ratio of passed_count / evaluated_count.This field is only valid for row-level type rules.
-    #[serde(default, rename = "passRatio")]
-    pub pass_ratio: ::core::option::Option<f64>,
-    /// Output only. Whether the rule passed or failed.
-    #[serde(default)]
-    pub passed: ::core::option::Option<bool>,
-    /// Output only. The number of rows which passed a rule evaluation.This field is only valid for row-level type rules.This field is not set for rule SqlAssertion.
-    #[serde(default, rename = "passedCount")]
-    pub passed_count: ::core::option::Option<String>,
-    /// Output only. The rule specified in the DataQualitySpec, as is.
-    #[serde(default)]
-    pub rule: ::core::option::Option<GoogleCloudDataplexV1DataQualityRule>,
-}
-
-/// Contains a single result from the debug query.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDataplexV1DataQualityRuleResultDebugQueryResult {
-    /// Specifies the name of the result. Available if provided with an explicit alias using [AS] alias.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Indicates the data type of the result. For more information, see BigQuery data types (https://cloud.google.com/bigquery/docs/reference/standard-sql/data-types).
-    #[serde(default, rename = "type")]
-    pub type_: ::core::option::Option<String>,
-    /// Represents the value of the result as a string.
-    #[serde(default)]
-    pub value: ::core::option::Option<String>,
-}
-
-/// Contains all results from a debug query.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDataplexV1DataQualityRuleResultDebugQueryResultSet {
-    /// Output only. Contains all results. Up to 10 results can be returned.
-    #[serde(default)]
-    pub results: ::core::option::Option<
-        ::std::vec::Vec<GoogleCloudDataplexV1DataQualityRuleResultDebugQueryResult>,
-    >,
-}
-
-/// Evaluates whether each row passes the specified condition.The SQL expression needs to use GoogleSQL syntax (https://cloud.google.com/bigquery/docs/reference/standard-sql/query-syntax) and should produce a boolean value per row as the result.Example: col1 &gt;= 0 AND col2 &lt; 10
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDataplexV1DataQualityRuleRowConditionExpectation {
-    /// Optional. The SQL expression.
-    #[serde(default, rename = "sqlExpression")]
-    pub sql_expression: ::core::option::Option<String>,
-}
-
-/// Evaluates whether each column value is contained by a specified set.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDataplexV1DataQualityRuleSetExpectation {
-    /// Optional. Expected values for the column value.
-    #[serde(default)]
-    pub values: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// A SQL statement that is evaluated to return rows that match an invalid state. If any rows are are returned, this rule fails.The SQL statement must use GoogleSQL syntax (https://cloud.google.com/bigquery/docs/reference/standard-sql/query-syntax), and must not contain any semicolons.You can use the data reference parameter ${data()} to reference the source table with all of its precondition filters applied. Examples of precondition filters include row filters, incremental data filters, and sampling. For more information, see Data reference parameter (https://cloud.google.com/dataplex/docs/auto-data-quality-overview#data-reference-parameter).Example: SELECT * FROM ${data()} WHERE price &lt; 0
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDataplexV1DataQualityRuleSqlAssertion {
-    /// Optional. The SQL statement.
-    #[serde(default, rename = "sqlStatement")]
-    pub sql_statement: ::core::option::Option<String>,
-}
-
-/// Evaluates whether the column aggregate statistic lies between a specified range.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDataplexV1DataQualityRuleStatisticRangeExpectation {
-    /// Optional. The maximum column statistic value allowed for a row to pass this validation.At least one of min_value and max_value need to be provided.
-    #[serde(default, rename = "maxValue")]
-    pub max_value: ::core::option::Option<String>,
-    /// Optional. The minimum column statistic value allowed for a row to pass this validation.At least one of min_value and max_value need to be provided.
-    #[serde(default, rename = "minValue")]
-    pub min_value: ::core::option::Option<String>,
-    /// Optional. The aggregate metric to evaluate. // TODO: enum values: ["STATISTIC_UNDEFINED", "MEAN", "MIN", "MAX"]
-    #[serde(default)]
-    pub statistic: ::core::option::Option<String>,
-    /// Optional. Whether column statistic needs to be strictly lesser than (''&lt;'') the maximum, or if equality is allowed.Only relevant if a max_value has been defined. Default = false.
-    #[serde(default, rename = "strictMaxEnabled")]
-    pub strict_max_enabled: ::core::option::Option<bool>,
-    /// Optional. Whether column statistic needs to be strictly greater than (''&gt;'') the minimum, or if equality is allowed.Only relevant if a min_value has been defined. Default = false.
-    #[serde(default, rename = "strictMinEnabled")]
-    pub strict_min_enabled: ::core::option::Option<bool>,
-}
-
-/// Evaluates whether the provided expression is true.The SQL expression needs to use GoogleSQL syntax (https://cloud.google.com/bigquery/docs/reference/standard-sql/query-syntax) and should produce a scalar boolean result.Example: MIN(col1) &gt;= 0
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDataplexV1DataQualityRuleTableConditionExpectation {
-    /// Optional. The SQL expression.
-    #[serde(default, rename = "sqlExpression")]
-    pub sql_expression: ::core::option::Option<String>,
 }
 
 /// Information about the result of a data quality rule for data quality scan. The monitored resource is ''DataScan''.
@@ -1553,159 +128,6 @@ pub struct GoogleCloudDataplexV1DataQualityScanRuleResult {
     /// The passing threshold (0.0, 100.0) of the data quality rule.
     #[serde(default, rename = "thresholdPercent")]
     pub threshold_percent: ::core::option::Option<f64>,
-}
-
-/// DataQualityScan related setting.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDataplexV1DataQualitySpec {
-    /// Optional. If set, the latest DataScan job result will be published as Dataplex Universal Catalog metadata.
-    #[serde(default, rename = "catalogPublishingEnabled")]
-    pub catalog_publishing_enabled: ::core::option::Option<bool>,
-    /// Optional. Actions to take upon job completion.
-    #[serde(default, rename = "postScanActions")]
-    pub post_scan_actions:
-        ::core::option::Option<GoogleCloudDataplexV1DataQualitySpecPostScanActions>,
-    /// Optional. A filter applied to all rows in a single DataScan job. The filter needs to be a valid SQL expression for a WHERE clause in GoogleSQL syntax (https://cloud.google.com/bigquery/docs/reference/standard-sql/query-syntax#where_clause).Example: col1 &gt;= 0 AND col2 &lt; 10
-    #[serde(default, rename = "rowFilter")]
-    pub row_filter: ::core::option::Option<String>,
-    /// Required. The list of rules to evaluate against a data source. At least one rule is required.
-    #[serde(default)]
-    pub rules: ::core::option::Option<::std::vec::Vec<GoogleCloudDataplexV1DataQualityRule>>,
-    /// Optional. The percentage of the records to be selected from the dataset for DataScan. Value can range between 0.0 and 100.0 with up to 3 significant decimal digits. Sampling is not applied if sampling_percent is not specified, 0 or 100.
-    #[serde(default, rename = "samplingPercent")]
-    pub sampling_percent: ::core::option::Option<f32>,
-}
-
-/// The configuration of post scan actions of DataQualityScan.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDataplexV1DataQualitySpecPostScanActions {
-    /// Optional. If set, results will be exported to the provided BigQuery table.
-    #[serde(default, rename = "bigqueryExport")]
-    pub bigquery_export:
-        ::core::option::Option<GoogleCloudDataplexV1DataQualitySpecPostScanActionsBigQueryExport>,
-    /// Optional. If set, results will be sent to the provided notification receipts upon triggers.
-    #[serde(default, rename = "notificationReport")]
-    pub notification_report: ::core::option::Option<
-        GoogleCloudDataplexV1DataQualitySpecPostScanActionsNotificationReport,
-    >,
-}
-
-/// The configuration of BigQuery export post scan action.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDataplexV1DataQualitySpecPostScanActionsBigQueryExport {
-    /// Optional. The BigQuery table to export DataQualityScan results to. Format: //bigquery.googleapis.com/projects/PROJECT_ID/datasets/DATASET_ID/tables/TABLE_ID or projects/PROJECT_ID/datasets/DATASET_ID/tables/TABLE_ID
-    #[serde(default, rename = "resultsTable")]
-    pub results_table: ::core::option::Option<String>,
-}
-
-/// The configuration of notification report post scan action.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDataplexV1DataQualitySpecPostScanActionsNotificationReport {
-    /// Optional. If set, report will be sent when a scan job ends.
-    #[serde(default, rename = "jobEndTrigger")]
-    pub job_end_trigger: ::core::option::Option<serde_json::Value>,
-    /// Optional. If set, report will be sent when a scan job fails.
-    #[serde(default, rename = "jobFailureTrigger")]
-    pub job_failure_trigger: ::core::option::Option<serde_json::Value>,
-    /// Required. The recipients who will receive the notification report.
-    #[serde(default)]
-    pub recipients:
-        ::core::option::Option<GoogleCloudDataplexV1DataQualitySpecPostScanActionsRecipients>,
-    /// Optional. If set, report will be sent when score threshold is met.
-    #[serde(default, rename = "scoreThresholdTrigger")]
-    pub score_threshold_trigger: ::core::option::Option<
-        GoogleCloudDataplexV1DataQualitySpecPostScanActionsScoreThresholdTrigger,
-    >,
-}
-
-/// The individuals or groups who are designated to receive notifications upon triggers.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDataplexV1DataQualitySpecPostScanActionsRecipients {
-    /// Optional. The email recipients who will receive the DataQualityScan results report.
-    #[serde(default)]
-    pub emails: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// This trigger is triggered when the DQ score in the job result is less than a specified input score.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDataplexV1DataQualitySpecPostScanActionsScoreThresholdTrigger {
-    /// Optional. The score range is in 0,100.
-    #[serde(default, rename = "scoreThreshold")]
-    pub score_threshold: ::core::option::Option<f32>,
-}
-
-/// Represents a user-visible job which provides the insights for the related data source.For example: Data quality: generates queries based on the rules and runs against the data to get data quality check results. For more information, see Auto data quality overview (https://cloud.google.com/dataplex/docs/auto-data-quality-overview). Data profile: analyzes the data in tables and generates insights about the structure, content and relationships (such as null percent, cardinality, min/max/mean, etc). For more information, see About data profiling (https://cloud.google.com/dataplex/docs/data-profiling-overview). Data discovery: scans data in Cloud Storage buckets to extract and then catalog metadata. For more information, see Discover and catalog Cloud Storage data (https://cloud.google.com/bigquery/docs/automatic-discovery). Data documentation: analyzes the table or dataset metadata and generates insights. For tables, insights include descriptions and sample SQL queries. For datasets, insights include descriptions, schema relationships and sample SQL queries. For more information, see Generate data insights in BigQuery (https://cloud.google.com/bigquery/docs/data-insights).
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDataplexV1DataScan {
-    /// Output only. The time when the scan was created.
-    #[serde(default, rename = "createTime")]
-    pub create_time: ::core::option::Option<String>,
-    /// Required. The data source for DataScan.
-    #[serde(default)]
-    pub data: ::core::option::Option<GoogleCloudDataplexV1DataSource>,
-    /// Output only. The result of a data discovery scan.
-    #[serde(default, rename = "dataDiscoveryResult")]
-    pub data_discovery_result: ::core::option::Option<GoogleCloudDataplexV1DataDiscoveryResult>,
-    /// Settings for a data discovery scan.
-    #[serde(default, rename = "dataDiscoverySpec")]
-    pub data_discovery_spec: ::core::option::Option<GoogleCloudDataplexV1DataDiscoverySpec>,
-    /// Output only. The result of a data documentation scan.
-    #[serde(default, rename = "dataDocumentationResult")]
-    pub data_documentation_result:
-        ::core::option::Option<GoogleCloudDataplexV1DataDocumentationResult>,
-    /// Settings for a data documentation scan.
-    #[serde(default, rename = "dataDocumentationSpec")]
-    pub data_documentation_spec: ::core::option::Option<GoogleCloudDataplexV1DataDocumentationSpec>,
-    /// Output only. The result of a data profile scan.
-    #[serde(default, rename = "dataProfileResult")]
-    pub data_profile_result: ::core::option::Option<GoogleCloudDataplexV1DataProfileResult>,
-    /// Settings for a data profile scan.
-    #[serde(default, rename = "dataProfileSpec")]
-    pub data_profile_spec: ::core::option::Option<GoogleCloudDataplexV1DataProfileSpec>,
-    /// Output only. The result of a data quality scan.
-    #[serde(default, rename = "dataQualityResult")]
-    pub data_quality_result: ::core::option::Option<GoogleCloudDataplexV1DataQualityResult>,
-    /// Settings for a data quality scan.
-    #[serde(default, rename = "dataQualitySpec")]
-    pub data_quality_spec: ::core::option::Option<GoogleCloudDataplexV1DataQualitySpec>,
-    /// Optional. Description of the scan. Must be between 1-1024 characters.
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// Optional. User friendly display name. Must be between 1-256 characters.
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-    /// Optional. DataScan execution settings.If not specified, the fields in it will use their default values.
-    #[serde(default, rename = "executionSpec")]
-    pub execution_spec: ::core::option::Option<GoogleCloudDataplexV1DataScanExecutionSpec>,
-    /// Output only. Status of the data scan execution.
-    #[serde(default, rename = "executionStatus")]
-    pub execution_status: ::core::option::Option<GoogleCloudDataplexV1DataScanExecutionStatus>,
-    /// Optional. User-defined labels for the scan.
-    #[serde(default)]
-    pub labels: ::core::option::Option<serde_json::Value>,
-    /// Output only. Identifier. The relative resource name of the scan, of the form: projects/{project}/locations/{location_id}/dataScans/{datascan_id}, where project refers to a project_id or project_number and location_id refers to a Google Cloud region.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Output only. Current state of the DataScan. // TODO: enum values: ["STATE_UNSPECIFIED", "ACTIVE", "CREATING", "DELETING", "ACTION_REQUIRED"]
-    #[serde(default)]
-    pub state: ::core::option::Option<String>,
-    /// Output only. The type of DataScan. // TODO: enum values: ["DATA_SCAN_TYPE_UNSPECIFIED", "DATA_QUALITY", "DATA_PROFILE", "DATA_DISCOVERY", "DATA_DOCUMENTATION"]
-    #[serde(default, rename = "type")]
-    pub type_: ::core::option::Option<String>,
-    /// Output only. System generated globally unique ID for the scan. This ID will be different if the scan is deleted and re-created with the same name.
-    #[serde(default)]
-    pub uid: ::core::option::Option<String>,
-    /// Output only. The time when the scan was last updated.
-    #[serde(default, rename = "updateTime")]
-    pub update_time: ::core::option::Option<String>,
-}
-
-/// The status of publishing the data scan result as Dataplex Universal Catalog metadata. Multiple DataScan log events may exist, each with different publishing information depending on the type of publishing triggered.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDataplexV1DataScanCatalogPublishingStatus {
-    /// Output only. Execution state for publishing. // TODO: enum values: ["STATE_UNSPECIFIED", "SUCCEEDED", "FAILED", "SKIPPED"]
-    #[serde(default)]
-    pub state: ::core::option::Option<String>,
 }
 
 /// These messages contain information about the execution of a datascan. The monitored resource is ''DataScan''
@@ -1768,208 +190,6 @@ pub struct GoogleCloudDataplexV1DataScanEvent {
     pub type_: ::core::option::Option<String>,
 }
 
-/// Applied configs for data profile type data scan job.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDataplexV1DataScanEventDataProfileAppliedConfigs {
-    /// Boolean indicating whether a column filter was applied in the DataScan job.
-    #[serde(default, rename = "columnFilterApplied")]
-    pub column_filter_applied: ::core::option::Option<bool>,
-    /// Boolean indicating whether a row filter was applied in the DataScan job.
-    #[serde(default, rename = "rowFilterApplied")]
-    pub row_filter_applied: ::core::option::Option<bool>,
-    /// The percentage of the records selected from the dataset for DataScan. Value ranges between 0.0 and 100.0. Value 0.0 or 100.0 imply that sampling was not applied.
-    #[serde(default, rename = "samplingPercent")]
-    pub sampling_percent: ::core::option::Option<f32>,
-}
-
-/// Data profile result for data scan job.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDataplexV1DataScanEventDataProfileResult {
-    /// The count of rows processed in the data scan job.
-    #[serde(default, rename = "rowCount")]
-    pub row_count: ::core::option::Option<String>,
-}
-
-/// Applied configs for data quality type data scan job.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDataplexV1DataScanEventDataQualityAppliedConfigs {
-    /// Boolean indicating whether a row filter was applied in the DataScan job.
-    #[serde(default, rename = "rowFilterApplied")]
-    pub row_filter_applied: ::core::option::Option<bool>,
-    /// The percentage of the records selected from the dataset for DataScan. Value ranges between 0.0 and 100.0. Value 0.0 or 100.0 imply that sampling was not applied.
-    #[serde(default, rename = "samplingPercent")]
-    pub sampling_percent: ::core::option::Option<f32>,
-}
-
-/// Data quality result for data scan job.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDataplexV1DataScanEventDataQualityResult {
-    /// The score of each column scanned in the data scan job. The key of the map is the name of the column. The value is the data quality score for the column.The score ranges between 0, 100 (up to two decimal points).
-    #[serde(default, rename = "columnScore")]
-    pub column_score: ::core::option::Option<serde_json::Value>,
-    /// The result of each dimension for data quality result. The key of the map is the name of the dimension. The value is the bool value depicting whether the dimension result was pass or not.
-    #[serde(default, rename = "dimensionPassed")]
-    pub dimension_passed: ::core::option::Option<serde_json::Value>,
-    /// The score of each dimension for data quality result. The key of the map is the name of the dimension. The value is the data quality score for the dimension.The score ranges between 0, 100 (up to two decimal points).
-    #[serde(default, rename = "dimensionScore")]
-    pub dimension_score: ::core::option::Option<serde_json::Value>,
-    /// Whether the data quality result was pass or not.
-    #[serde(default)]
-    pub passed: ::core::option::Option<bool>,
-    /// The count of rows processed in the data scan job.
-    #[serde(default, rename = "rowCount")]
-    pub row_count: ::core::option::Option<String>,
-    /// The table-level data quality score for the data scan job.The data quality score ranges between 0, 100 (up to two decimal points).
-    #[serde(default)]
-    pub score: ::core::option::Option<f32>,
-}
-
-/// Post scan actions result for data scan job.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDataplexV1DataScanEventPostScanActionsResult {
-    /// The result of BigQuery export post scan action.
-    #[serde(default, rename = "bigqueryExportResult")]
-    pub bigquery_export_result: ::core::option::Option<
-        GoogleCloudDataplexV1DataScanEventPostScanActionsResultBigQueryExportResult,
-    >,
-}
-
-/// The result of BigQuery export post scan action.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDataplexV1DataScanEventPostScanActionsResultBigQueryExportResult {
-    /// Additional information about the BigQuery exporting.
-    #[serde(default)]
-    pub message: ::core::option::Option<String>,
-    /// Execution state for the BigQuery exporting. // TODO: enum values: ["STATE_UNSPECIFIED", "SUCCEEDED", "FAILED", "SKIPPED"]
-    #[serde(default)]
-    pub state: ::core::option::Option<String>,
-}
-
-/// DataScan execution settings.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDataplexV1DataScanExecutionSpec {
-    /// Immutable. The unnested field (of type Date or Timestamp) that contains values which monotonically increase over time.If not specified, a data scan will run for all data in the table.
-    #[serde(default)]
-    pub field: ::core::option::Option<String>,
-    /// Optional. Spec related to how often and when a scan should be triggered.If not specified, the default is OnDemand, which means the scan will not run until the user calls RunDataScan API.
-    #[serde(default)]
-    pub trigger: ::core::option::Option<GoogleCloudDataplexV1Trigger>,
-}
-
-/// Status of the data scan execution.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDataplexV1DataScanExecutionStatus {
-    /// Optional. The time when the DataScanJob execution was created.
-    #[serde(default, rename = "latestJobCreateTime")]
-    pub latest_job_create_time: ::core::option::Option<String>,
-    /// Optional. The time when the latest DataScanJob ended.
-    #[serde(default, rename = "latestJobEndTime")]
-    pub latest_job_end_time: ::core::option::Option<String>,
-    /// Optional. The time when the latest DataScanJob started.
-    #[serde(default, rename = "latestJobStartTime")]
-    pub latest_job_start_time: ::core::option::Option<String>,
-}
-
-/// A DataScanJob represents an instance of DataScan execution.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDataplexV1DataScanJob {
-    /// Output only. The time when the DataScanJob was created.
-    #[serde(default, rename = "createTime")]
-    pub create_time: ::core::option::Option<String>,
-    /// Output only. The result of a data discovery scan.
-    #[serde(default, rename = "dataDiscoveryResult")]
-    pub data_discovery_result: ::core::option::Option<GoogleCloudDataplexV1DataDiscoveryResult>,
-    /// Output only. Settings for a data discovery scan.
-    #[serde(default, rename = "dataDiscoverySpec")]
-    pub data_discovery_spec: ::core::option::Option<GoogleCloudDataplexV1DataDiscoverySpec>,
-    /// Output only. The result of a data documentation scan.
-    #[serde(default, rename = "dataDocumentationResult")]
-    pub data_documentation_result:
-        ::core::option::Option<GoogleCloudDataplexV1DataDocumentationResult>,
-    /// Output only. Settings for a data documentation scan.
-    #[serde(default, rename = "dataDocumentationSpec")]
-    pub data_documentation_spec: ::core::option::Option<GoogleCloudDataplexV1DataDocumentationSpec>,
-    /// Output only. The result of a data profile scan.
-    #[serde(default, rename = "dataProfileResult")]
-    pub data_profile_result: ::core::option::Option<GoogleCloudDataplexV1DataProfileResult>,
-    /// Output only. Settings for a data profile scan.
-    #[serde(default, rename = "dataProfileSpec")]
-    pub data_profile_spec: ::core::option::Option<GoogleCloudDataplexV1DataProfileSpec>,
-    /// Output only. The result of a data quality scan.
-    #[serde(default, rename = "dataQualityResult")]
-    pub data_quality_result: ::core::option::Option<GoogleCloudDataplexV1DataQualityResult>,
-    /// Output only. Settings for a data quality scan.
-    #[serde(default, rename = "dataQualitySpec")]
-    pub data_quality_spec: ::core::option::Option<GoogleCloudDataplexV1DataQualitySpec>,
-    /// Output only. The time when the DataScanJob ended.
-    #[serde(default, rename = "endTime")]
-    pub end_time: ::core::option::Option<String>,
-    /// Output only. Additional information about the current state.
-    #[serde(default)]
-    pub message: ::core::option::Option<String>,
-    /// Output only. Identifier. The relative resource name of the DataScanJob, of the form: projects/{project}/locations/{location_id}/dataScans/{datascan_id}/jobs/{job_id}, where project refers to a project_id or project_number and location_id refers to a Google Cloud region.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Output only. The time when the DataScanJob was started.
-    #[serde(default, rename = "startTime")]
-    pub start_time: ::core::option::Option<String>,
-    /// Output only. Execution state for the DataScanJob. // TODO: enum values: ["STATE_UNSPECIFIED", "RUNNING", "CANCELING", "CANCELLED", "SUCCEEDED", "FAILED", "PENDING"]
-    #[serde(default)]
-    pub state: ::core::option::Option<String>,
-    /// Output only. The type of the parent DataScan. // TODO: enum values: ["DATA_SCAN_TYPE_UNSPECIFIED", "DATA_QUALITY", "DATA_PROFILE", "DATA_DISCOVERY", "DATA_DOCUMENTATION"]
-    #[serde(default, rename = "type")]
-    pub type_: ::core::option::Option<String>,
-    /// Output only. System generated globally unique ID for the DataScanJob.
-    #[serde(default)]
-    pub uid: ::core::option::Option<String>,
-}
-
-/// The data source for DataScan.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDataplexV1DataSource {
-    /// Immutable. The Dataplex Universal Catalog entity that represents the data source (e.g. BigQuery table) for DataScan, of the form: projects/{project_number}/locations/{location_id}/lakes/{lake_id}/zones/{zone_id}/entities/{entity_id}.
-    #[serde(default)]
-    pub entity: ::core::option::Option<String>,
-    /// Immutable. The service-qualified full resource name of the cloud resource for a DataScan job to scan against. The field could either be: Cloud Storage bucket for DataDiscoveryScan Format: //storage.googleapis.com/projects/PROJECT_ID/buckets/BUCKET_ID or BigQuery table of type "TABLE" for DataProfileScan/DataQualityScan/DataDocumentationScan Format: //bigquery.googleapis.com/projects/PROJECT_ID/datasets/DATASET_ID/tables/TABLE_ID or BigQuery dataset for DataDocumentationScan only Format: //bigquery.googleapis.com/projects/PROJECT_ID/datasets/DATASET_ID
-    #[serde(default)]
-    pub resource: ::core::option::Option<String>,
-}
-
-/// DataTaxonomy represents a set of hierarchical DataAttributes resources, grouped with a common theme Eg: ''SensitiveDataTaxonomy'' can have attributes to manage PII data. It is defined at project level.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDataplexV1DataTaxonomy {
-    /// Output only. The number of attributes in the DataTaxonomy.
-    #[serde(default, rename = "attributeCount")]
-    pub attribute_count: ::core::option::Option<i32>,
-    /// Output only. The number of classes in the DataTaxonomy.
-    #[serde(default, rename = "classCount")]
-    pub class_count: ::core::option::Option<i32>,
-    /// Output only. The time when the DataTaxonomy was created.
-    #[serde(default, rename = "createTime")]
-    pub create_time: ::core::option::Option<String>,
-    /// Optional. Description of the DataTaxonomy.
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// Optional. User friendly display name.
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-    /// This checksum is computed by the server based on the value of other fields, and may be sent on update and delete requests to ensure the client has an up-to-date value before proceeding.
-    #[serde(default)]
-    pub etag: ::core::option::Option<String>,
-    /// Optional. User-defined labels for the DataTaxonomy.
-    #[serde(default)]
-    pub labels: ::core::option::Option<serde_json::Value>,
-    /// Output only. The relative resource name of the DataTaxonomy, of the form: projects/{project_number}/locations/{location_id}/dataTaxonomies/{data_taxonomy_id}.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Output only. System generated globally unique ID for the dataTaxonomy. This ID will be different if the DataTaxonomy is deleted and re-created with the same name.
-    #[serde(default)]
-    pub uid: ::core::option::Option<String>,
-    /// Output only. The time when the DataTaxonomy was last updated.
-    #[serde(default, rename = "updateTime")]
-    pub update_time: ::core::option::Option<String>,
-}
-
 /// The payload associated with Discovery data processing.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDataplexV1DiscoveryEvent {
@@ -2011,279 +231,6 @@ pub struct GoogleCloudDataplexV1DiscoveryEvent {
     pub zone_id: ::core::option::Option<String>,
 }
 
-/// Details about the action.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDataplexV1DiscoveryEventActionDetails {
-    /// The human readable issue associated with the action.
-    #[serde(default)]
-    pub issue: ::core::option::Option<String>,
-    /// The type of action. Eg. IncompatibleDataSchema, InvalidDataFormat
-    #[serde(default, rename = "type")]
-    pub type_: ::core::option::Option<String>,
-}
-
-/// Details about the entity.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDataplexV1DiscoveryEventEntityDetails {
-    /// The name of the entity resource. The name is the fully-qualified resource name.
-    #[serde(default)]
-    pub entity: ::core::option::Option<String>,
-    /// The type of the entity resource. // TODO: enum values: ["ENTITY_TYPE_UNSPECIFIED", "TABLE", "FILESET"]
-    #[serde(default, rename = "type")]
-    pub type_: ::core::option::Option<String>,
-}
-
-/// Details about the partition.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDataplexV1DiscoveryEventPartitionDetails {
-    /// The name to the containing entity resource. The name is the fully-qualified resource name.
-    #[serde(default)]
-    pub entity: ::core::option::Option<String>,
-    /// The name to the partition resource. The name is the fully-qualified resource name.
-    #[serde(default)]
-    pub partition: ::core::option::Option<String>,
-    /// The locations of the data items (e.g., a Cloud Storage objects) sampled for metadata inference.
-    #[serde(default, rename = "sampledDataLocations")]
-    pub sampled_data_locations: ::core::option::Option<::std::vec::Vec<String>>,
-    /// The type of the containing entity resource. // TODO: enum values: ["ENTITY_TYPE_UNSPECIFIED", "TABLE", "FILESET"]
-    #[serde(default, rename = "type")]
-    pub type_: ::core::option::Option<String>,
-}
-
-/// Details about the published table.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDataplexV1DiscoveryEventTableDetails {
-    /// The fully-qualified resource name of the table resource.
-    #[serde(default)]
-    pub table: ::core::option::Option<String>,
-    /// The type of the table resource. // TODO: enum values: ["TABLE_TYPE_UNSPECIFIED", "EXTERNAL_TABLE", "BIGLAKE_TABLE", "OBJECT_TABLE"]
-    #[serde(default, rename = "type")]
-    pub type_: ::core::option::Option<String>,
-}
-
-/// A Resource designed to manage encryption configurations for customers to support Customer Managed Encryption Keys (CMEK).
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDataplexV1EncryptionConfig {
-    /// Output only. The time when the Encryption configuration was created.
-    #[serde(default, rename = "createTime")]
-    pub create_time: ::core::option::Option<String>,
-    /// Optional. Represent the state of CMEK opt-in for metastore.
-    #[serde(default, rename = "enableMetastoreEncryption")]
-    pub enable_metastore_encryption: ::core::option::Option<bool>,
-    /// Output only. The state of encryption of the databases. // TODO: enum values: ["ENCRYPTION_STATE_UNSPECIFIED", "ENCRYPTING", "COMPLETED", "FAILED"]
-    #[serde(default, rename = "encryptionState")]
-    pub encryption_state: ::core::option::Option<String>,
-    /// Etag of the EncryptionConfig. This is a strong etag.
-    #[serde(default)]
-    pub etag: ::core::option::Option<String>,
-    /// Output only. Details of the failure if anything related to Cmek db fails.
-    #[serde(default, rename = "failureDetails")]
-    pub failure_details:
-        ::core::option::Option<GoogleCloudDataplexV1EncryptionConfigFailureDetails>,
-    /// Optional. If a key is chosen, it means that the customer is using CMEK. If a key is not chosen, it means that the customer is using Google managed encryption.
-    #[serde(default)]
-    pub key: ::core::option::Option<String>,
-    /// Identifier. The resource name of the EncryptionConfig. Format: organizations/{organization}/locations/{location}/encryptionConfigs/{encryption_config} Global location is not supported.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Output only. The time when the Encryption configuration was last updated.
-    #[serde(default, rename = "updateTime")]
-    pub update_time: ::core::option::Option<String>,
-}
-
-/// Details of the failure if anything related to Cmek db fails.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDataplexV1EncryptionConfigFailureDetails {
-    /// Output only. The error code for the failure. // TODO: enum values: ["UNKNOWN", "INTERNAL_ERROR", "REQUIRE_USER_ACTION"]
-    #[serde(default, rename = "errorCode")]
-    pub error_code: ::core::option::Option<String>,
-    /// Output only. The error message will be shown to the user. Set only if the error code is REQUIRE_USER_ACTION.
-    #[serde(default, rename = "errorMessage")]
-    pub error_message: ::core::option::Option<String>,
-}
-
-/// Represents tables and fileset metadata contained within a zone.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDataplexV1Entity {
-    /// Output only. Identifies the access mechanism to the entity. Not user settable.
-    #[serde(default)]
-    pub access: ::core::option::Option<GoogleCloudDataplexV1StorageAccess>,
-    /// Required. Immutable. The ID of the asset associated with the storage location containing the entity data. The entity must be with in the same zone with the asset.
-    #[serde(default)]
-    pub asset: ::core::option::Option<String>,
-    /// Output only. The name of the associated Data Catalog entry.
-    #[serde(default, rename = "catalogEntry")]
-    pub catalog_entry: ::core::option::Option<String>,
-    /// Output only. Metadata stores that the entity is compatible with.
-    #[serde(default)]
-    pub compatibility: ::core::option::Option<GoogleCloudDataplexV1EntityCompatibilityStatus>,
-    /// Output only. The time when the entity was created.
-    #[serde(default, rename = "createTime")]
-    pub create_time: ::core::option::Option<String>,
-    /// Required. Immutable. The storage path of the entity data. For Cloud Storage data, this is the fully-qualified path to the entity, such as gs://bucket/path/to/data. For BigQuery data, this is the name of the table resource, such as projects/project_id/datasets/dataset_id/tables/table_id.
-    #[serde(default, rename = "dataPath")]
-    pub data_path: ::core::option::Option<String>,
-    /// Optional. The set of items within the data path constituting the data in the entity, represented as a glob path. Example: gs://bucket/path/to/data/**/*.csv.
-    #[serde(default, rename = "dataPathPattern")]
-    pub data_path_pattern: ::core::option::Option<String>,
-    /// Optional. User friendly longer description text. Must be shorter than or equal to 1024 characters.
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// Optional. Display name must be shorter than or equal to 256 characters.
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-    /// Optional. The etag associated with the entity, which can be retrieved with a GetEntity request. Required for update and delete requests.
-    #[serde(default)]
-    pub etag: ::core::option::Option<String>,
-    /// Required. Identifies the storage format of the entity data. It does not apply to entities with data stored in BigQuery.
-    #[serde(default)]
-    pub format: ::core::option::Option<GoogleCloudDataplexV1StorageFormat>,
-    /// Required. A user-provided entity ID. It is mutable, and will be used as the published table name. Specifying a new ID in an update entity request will override the existing value. The ID must contain only letters (a-z, A-Z), numbers (0-9), and underscores, and consist of 256 or fewer characters.
-    #[serde(default)]
-    pub id: ::core::option::Option<String>,
-    /// Output only. The resource name of the entity, of the form: projects/{project_number}/locations/{location_id}/lakes/{lake_id}/zones/{zone_id}/entities/{id}.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Required. The description of the data structure and layout. The schema is not included in list responses. It is only included in SCHEMA and FULL entity views of a GetEntity response.
-    #[serde(default)]
-    pub schema: ::core::option::Option<GoogleCloudDataplexV1Schema>,
-    /// Required. Immutable. Identifies the storage system of the entity data. // TODO: enum values: ["STORAGE_SYSTEM_UNSPECIFIED", "CLOUD_STORAGE", "BIGQUERY"]
-    #[serde(default)]
-    pub system: ::core::option::Option<String>,
-    /// Required. Immutable. The type of entity. // TODO: enum values: ["TYPE_UNSPECIFIED", "TABLE", "FILESET"]
-    #[serde(default, rename = "type")]
-    pub type_: ::core::option::Option<String>,
-    /// Output only. System generated unique ID for the Entity. This ID will be different if the Entity is deleted and re-created with the same name.
-    #[serde(default)]
-    pub uid: ::core::option::Option<String>,
-    /// Output only. The time when the entity was last updated.
-    #[serde(default, rename = "updateTime")]
-    pub update_time: ::core::option::Option<String>,
-}
-
-/// Provides compatibility information for various metadata stores.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDataplexV1EntityCompatibilityStatus {
-    /// Output only. Whether this entity is compatible with BigQuery.
-    #[serde(default)]
-    pub bigquery:
-        ::core::option::Option<GoogleCloudDataplexV1EntityCompatibilityStatusCompatibility>,
-    /// Output only. Whether this entity is compatible with Hive Metastore.
-    #[serde(default, rename = "hiveMetastore")]
-    pub hive_metastore:
-        ::core::option::Option<GoogleCloudDataplexV1EntityCompatibilityStatusCompatibility>,
-}
-
-/// Provides compatibility information for a specific metadata store.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDataplexV1EntityCompatibilityStatusCompatibility {
-    /// Output only. Whether the entity is compatible and can be represented in the metadata store.
-    #[serde(default)]
-    pub compatible: ::core::option::Option<bool>,
-    /// Output only. Provides additional detail if the entity is incompatible with the metadata store.
-    #[serde(default)]
-    pub reason: ::core::option::Option<String>,
-}
-
-/// An entry is a representation of a data resource that can be described by various metadata.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDataplexV1Entry {
-    /// Optional. The aspects that are attached to the entry. Depending on how the aspect is attached to the entry, the format of the aspect key can be one of the following: If the aspect is attached directly to the entry: {project_id_or_number}.{location_id}.{aspect_type_id} If the aspect is attached to an entry''s path: {project_id_or_number}.{location_id}.{aspect_type_id}@{path}
-    #[serde(default)]
-    pub aspects: ::core::option::Option<serde_json::Value>,
-    /// Output only. The time when the entry was created in Dataplex Universal Catalog.
-    #[serde(default, rename = "createTime")]
-    pub create_time: ::core::option::Option<String>,
-    /// Optional. Information related to the source system of the data resource that is represented by the entry.
-    #[serde(default, rename = "entrySource")]
-    pub entry_source: ::core::option::Option<GoogleCloudDataplexV1EntrySource>,
-    /// Required. Immutable. The relative resource name of the entry type that was used to create this entry, in the format projects/{project_id_or_number}/locations/{location_id}/entryTypes/{entry_type_id}.
-    #[serde(default, rename = "entryType")]
-    pub entry_type: ::core::option::Option<String>,
-    /// Optional. A name for the entry that can be referenced by an external system. For more information, see Fully qualified names (https://cloud.google.com/data-catalog/docs/fully-qualified-names). The maximum size of the field is 4000 characters.
-    #[serde(default, rename = "fullyQualifiedName")]
-    pub fully_qualified_name: ::core::option::Option<String>,
-    /// Identifier. The relative resource name of the entry, in the format projects/{project_id_or_number}/locations/{location_id}/entryGroups/{entry_group_id}/entries/{entry_id}.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Optional. Immutable. The resource name of the parent entry, in the format projects/{project_id_or_number}/locations/{location_id}/entryGroups/{entry_group_id}/entries/{entry_id}.
-    #[serde(default, rename = "parentEntry")]
-    pub parent_entry: ::core::option::Option<String>,
-    /// Output only. The time when the entry was last updated in Dataplex Universal Catalog.
-    #[serde(default, rename = "updateTime")]
-    pub update_time: ::core::option::Option<String>,
-}
-
-/// An Entry Group represents a logical grouping of one or more Entries.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDataplexV1EntryGroup {
-    /// Output only. The time when the EntryGroup was created.
-    #[serde(default, rename = "createTime")]
-    pub create_time: ::core::option::Option<String>,
-    /// Optional. Description of the EntryGroup.
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// Optional. User friendly display name.
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-    /// This checksum is computed by the service, and might be sent on update and delete requests to ensure the client has an up-to-date value before proceeding.
-    #[serde(default)]
-    pub etag: ::core::option::Option<String>,
-    /// Optional. User-defined labels for the EntryGroup.
-    #[serde(default)]
-    pub labels: ::core::option::Option<serde_json::Value>,
-    /// Output only. The relative resource name of the EntryGroup, in the format projects/{project_id_or_number}/locations/{location_id}/entryGroups/{entry_group_id}.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Output only. Denotes the transfer status of the Entry Group. It is unspecified for Entry Group created from Dataplex API. // TODO: enum values: ["TRANSFER_STATUS_UNSPECIFIED", "TRANSFER_STATUS_MIGRATED", "TRANSFER_STATUS_TRANSFERRED"]
-    #[serde(default, rename = "transferStatus")]
-    pub transfer_status: ::core::option::Option<String>,
-    /// Output only. System generated globally unique ID for the EntryGroup. If you delete and recreate the EntryGroup with the same name, this ID will be different.
-    #[serde(default)]
-    pub uid: ::core::option::Option<String>,
-    /// Output only. The time when the EntryGroup was last updated.
-    #[serde(default, rename = "updateTime")]
-    pub update_time: ::core::option::Option<String>,
-}
-
-/// EntryLink represents a link between two Entries.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDataplexV1EntryLink {
-    /// Optional. The aspects that are attached to the entry link. The format of the aspect key has to be the following: {project_id_or_number}.{location_id}.{aspect_type_id} Currently, only a single aspect of a Dataplex-owned Aspect Type is allowed.
-    #[serde(default)]
-    pub aspects: ::core::option::Option<serde_json::Value>,
-    /// Output only. The time when the Entry Link was created.
-    #[serde(default, rename = "createTime")]
-    pub create_time: ::core::option::Option<String>,
-    /// Required. Immutable. Relative resource name of the Entry Link Type used to create this Entry Link. For example: Entry link between synonym terms in a glossary: projects/dataplex-types/locations/global/entryLinkTypes/synonym Entry link between related terms in a glossary: projects/dataplex-types/locations/global/entryLinkTypes/related Entry link between glossary terms and data assets: projects/dataplex-types/locations/global/entryLinkTypes/definition
-    #[serde(default, rename = "entryLinkType")]
-    pub entry_link_type: ::core::option::Option<String>,
-    /// Required. Immutable. Specifies the Entries referenced in the Entry Link. There should be exactly two entry references.
-    #[serde(default, rename = "entryReferences")]
-    pub entry_references:
-        ::core::option::Option<::std::vec::Vec<GoogleCloudDataplexV1EntryLinkEntryReference>>,
-    /// Output only. Immutable. Identifier. The relative resource name of the Entry Link, of the form: projects/{project_id_or_number}/locations/{location_id}/entryGroups/{entry_group_id}/entryLinks/{entry_link_id}
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Output only. The time when the Entry Link was last updated.
-    #[serde(default, rename = "updateTime")]
-    pub update_time: ::core::option::Option<String>,
-}
-
-/// Reference to the Entry that is linked through the Entry Link.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDataplexV1EntryLinkEntryReference {
-    /// Required. Immutable. The relative resource name of the referenced Entry, of the form: projects/{project_id_or_number}/locations/{location_id}/entryGroups/{entry_group_id}/entries/{entry_id}
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Immutable. The path in the Entry that is referenced in the Entry Link. Empty path denotes that the Entry itself is referenced in the Entry Link.
-    #[serde(default)]
-    pub path: ::core::option::Option<String>,
-    /// Required. Immutable. The reference type of the Entry. // TODO: enum values: ["UNSPECIFIED", "SOURCE", "TARGET"]
-    #[serde(default, rename = "type")]
-    pub type_: ::core::option::Option<String>,
-}
-
 /// Payload associated with Entry related log events.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDataplexV1EntryLinkEvent {
@@ -2298,213 +245,12 @@ pub struct GoogleCloudDataplexV1EntryLinkEvent {
     pub resource: ::core::option::Option<String>,
 }
 
-/// Information related to the source system of the data resource that is represented by the entry.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDataplexV1EntrySource {
-    /// Immutable. The entries representing the ancestors of the data resource in the source system.
-    #[serde(default)]
-    pub ancestors:
-        ::core::option::Option<::std::vec::Vec<GoogleCloudDataplexV1EntrySourceAncestor>>,
-    /// The time when the resource was created in the source system.
-    #[serde(default, rename = "createTime")]
-    pub create_time: ::core::option::Option<String>,
-    /// A description of the data resource. Maximum length is 2,000 characters.
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// A user-friendly display name. Maximum length is 500 characters.
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-    /// User-defined labels. The maximum size of keys and values is 128 characters each.
-    #[serde(default)]
-    pub labels: ::core::option::Option<serde_json::Value>,
-    /// Output only. Location of the resource in the source system. You can search the entry by this location. By default, this should match the location of the entry group containing this entry. A different value allows capturing the source location for data external to Google Cloud.
-    #[serde(default)]
-    pub location: ::core::option::Option<String>,
-    /// The platform containing the source system. Maximum length is 64 characters.
-    #[serde(default)]
-    pub platform: ::core::option::Option<String>,
-    /// The name of the resource in the source system. Maximum length is 4,000 characters.
-    #[serde(default)]
-    pub resource: ::core::option::Option<String>,
-    /// The name of the source system. Maximum length is 64 characters.
-    #[serde(default)]
-    pub system: ::core::option::Option<String>,
-    /// The time when the resource was last updated in the source system. If the entry exists in the system and its EntrySource has update_time populated, further updates to the EntrySource of the entry must provide incremental updates to its update_time.
-    #[serde(default, rename = "updateTime")]
-    pub update_time: ::core::option::Option<String>,
-}
-
-/// Information about individual items in the hierarchy that is associated with the data resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDataplexV1EntrySourceAncestor {
-    /// Optional. The name of the ancestor resource.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Optional. The type of the ancestor resource.
-    #[serde(default, rename = "type")]
-    pub type_: ::core::option::Option<String>,
-}
-
-/// Entry Type is a template for creating Entries.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDataplexV1EntryType {
-    /// Immutable. Authorization defined for this type.
-    #[serde(default)]
-    pub authorization: ::core::option::Option<GoogleCloudDataplexV1EntryTypeAuthorization>,
-    /// Output only. The time when the EntryType was created.
-    #[serde(default, rename = "createTime")]
-    pub create_time: ::core::option::Option<String>,
-    /// Optional. Description of the EntryType.
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// Optional. User friendly display name.
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-    /// Optional. This checksum is computed by the service, and might be sent on update and delete requests to ensure the client has an up-to-date value before proceeding.
-    #[serde(default)]
-    pub etag: ::core::option::Option<String>,
-    /// Optional. User-defined labels for the EntryType.
-    #[serde(default)]
-    pub labels: ::core::option::Option<serde_json::Value>,
-    /// Output only. The relative resource name of the EntryType, of the form: projects/{project_number}/locations/{location_id}/entryTypes/{entry_type_id}.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Optional. The platform that Entries of this type belongs to.
-    #[serde(default)]
-    pub platform: ::core::option::Option<String>,
-    /// AspectInfo for the entry type.
-    #[serde(default, rename = "requiredAspects")]
-    pub required_aspects:
-        ::core::option::Option<::std::vec::Vec<GoogleCloudDataplexV1EntryTypeAspectInfo>>,
-    /// Optional. The system that Entries of this type belongs to. Examples include CloudSQL, MariaDB etc
-    #[serde(default)]
-    pub system: ::core::option::Option<String>,
-    /// Optional. Indicates the classes this Entry Type belongs to, for example, TABLE, DATABASE, MODEL.
-    #[serde(default, rename = "typeAliases")]
-    pub type_aliases: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Output only. System generated globally unique ID for the EntryType. This ID will be different if the EntryType is deleted and re-created with the same name.
-    #[serde(default)]
-    pub uid: ::core::option::Option<String>,
-    /// Output only. The time when the EntryType was last updated.
-    #[serde(default, rename = "updateTime")]
-    pub update_time: ::core::option::Option<String>,
-}
-
-/// GoogleCloudDataplexV1EntryTypeAspectInfo resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDataplexV1EntryTypeAspectInfo {
-    /// Required aspect type for the entry type.
-    #[serde(default, rename = "type")]
-    pub type_: ::core::option::Option<String>,
-}
-
-/// Authorization for an Entry Type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDataplexV1EntryTypeAuthorization {
-    /// Immutable. The IAM permission grantable on the Entry Group to allow access to instantiate Entries of Dataplex Universal Catalog owned Entry Types, only settable for Dataplex Universal Catalog owned Types.
-    #[serde(default, rename = "alternateUsePermission")]
-    pub alternate_use_permission: ::core::option::Option<String>,
-}
-
 /// Response details for data quality rule recommendations.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDataplexV1GenerateDataQualityRulesResponse {
     /// The data quality rules that Dataplex Universal Catalog generates based on the results of a data profiling scan.
     #[serde(default)]
     pub rule: ::core::option::Option<::std::vec::Vec<GoogleCloudDataplexV1DataQualityRule>>,
-}
-
-/// A Glossary represents a collection of GlossaryCategories and GlossaryTerms defined by the user. Glossary is a top level resource and is the Google Cloud parent resource of all the GlossaryCategories and GlossaryTerms within it.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDataplexV1Glossary {
-    /// Output only. The number of GlossaryCategories in the Glossary.
-    #[serde(default, rename = "categoryCount")]
-    pub category_count: ::core::option::Option<i32>,
-    /// Output only. The time at which the Glossary was created.
-    #[serde(default, rename = "createTime")]
-    pub create_time: ::core::option::Option<String>,
-    /// Optional. The user-mutable description of the Glossary.
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// Optional. User friendly display name of the Glossary. This is user-mutable. This will be same as the GlossaryId, if not specified.
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-    /// Optional. Needed for resource freshness validation. This checksum is computed by the server based on the value of other fields, and may be sent on update and delete requests to ensure the client has an up-to-date value before proceeding.
-    #[serde(default)]
-    pub etag: ::core::option::Option<String>,
-    /// Optional. User-defined labels for the Glossary.
-    #[serde(default)]
-    pub labels: ::core::option::Option<serde_json::Value>,
-    /// Output only. Identifier. The resource name of the Glossary. Format: projects/{project_id_or_number}/locations/{location_id}/glossaries/{glossary_id}
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Output only. The number of GlossaryTerms in the Glossary.
-    #[serde(default, rename = "termCount")]
-    pub term_count: ::core::option::Option<i32>,
-    /// Output only. System generated unique id for the Glossary. This ID will be different if the Glossary is deleted and re-created with the same name.
-    #[serde(default)]
-    pub uid: ::core::option::Option<String>,
-    /// Output only. The time at which the Glossary was last updated.
-    #[serde(default, rename = "updateTime")]
-    pub update_time: ::core::option::Option<String>,
-}
-
-/// A GlossaryCategory represents a collection of GlossaryCategories and GlossaryTerms within a Glossary that are related to each other.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDataplexV1GlossaryCategory {
-    /// Output only. The time at which the GlossaryCategory was created.
-    #[serde(default, rename = "createTime")]
-    pub create_time: ::core::option::Option<String>,
-    /// Optional. The user-mutable description of the GlossaryCategory.
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// Optional. User friendly display name of the GlossaryCategory. This is user-mutable. This will be same as the GlossaryCategoryId, if not specified.
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-    /// Optional. User-defined labels for the GlossaryCategory.
-    #[serde(default)]
-    pub labels: ::core::option::Option<serde_json::Value>,
-    /// Output only. Identifier. The resource name of the GlossaryCategory. Format: projects/{project_id_or_number}/locations/{location_id}/glossaries/{glossary_id}/categories/{category_id}
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Required. The immediate parent of the GlossaryCategory in the resource-hierarchy. It can either be a Glossary or a GlossaryCategory. Format: projects/{project_id_or_number}/locations/{location_id}/glossaries/{glossary_id} OR projects/{project_id_or_number}/locations/{location_id}/glossaries/{glossary_id}/categories/{category_id}
-    #[serde(default)]
-    pub parent: ::core::option::Option<String>,
-    /// Output only. System generated unique id for the GlossaryCategory. This ID will be different if the GlossaryCategory is deleted and re-created with the same name.
-    #[serde(default)]
-    pub uid: ::core::option::Option<String>,
-    /// Output only. The time at which the GlossaryCategory was last updated.
-    #[serde(default, rename = "updateTime")]
-    pub update_time: ::core::option::Option<String>,
-}
-
-/// GlossaryTerms are the core of Glossary. A GlossaryTerm holds a rich text description that can be attached to Entries or specific columns to enrich them.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDataplexV1GlossaryTerm {
-    /// Output only. The time at which the GlossaryTerm was created.
-    #[serde(default, rename = "createTime")]
-    pub create_time: ::core::option::Option<String>,
-    /// Optional. The user-mutable description of the GlossaryTerm.
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// Optional. User friendly display name of the GlossaryTerm. This is user-mutable. This will be same as the GlossaryTermId, if not specified.
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-    /// Optional. User-defined labels for the GlossaryTerm.
-    #[serde(default)]
-    pub labels: ::core::option::Option<serde_json::Value>,
-    /// Output only. Identifier. The resource name of the GlossaryTerm. Format: projects/{project_id_or_number}/locations/{location_id}/glossaries/{glossary_id}/terms/{term_id}
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Required. The immediate parent of the GlossaryTerm in the resource-hierarchy. It can either be a Glossary or a GlossaryCategory. Format: projects/{project_id_or_number}/locations/{location_id}/glossaries/{glossary_id} OR projects/{project_id_or_number}/locations/{location_id}/glossaries/{glossary_id}/categories/{category_id}
-    #[serde(default)]
-    pub parent: ::core::option::Option<String>,
-    /// Output only. System generated unique id for the GlossaryTerm. This ID will be different if the GlossaryTerm is deleted and re-created with the same name.
-    #[serde(default)]
-    pub uid: ::core::option::Option<String>,
-    /// Output only. The time at which the GlossaryTerm was last updated.
-    #[serde(default, rename = "updateTime")]
-    pub update_time: ::core::option::Option<String>,
 }
 
 /// Payload associated with Governance related log events.
@@ -2519,17 +265,6 @@ pub struct GoogleCloudDataplexV1GovernanceEvent {
     /// The log message.
     #[serde(default)]
     pub message: ::core::option::Option<String>,
-}
-
-/// Information about Entity resource that the log event is associated with.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDataplexV1GovernanceEventEntity {
-    /// The Entity resource the log event is associated with. Format: projects/{project_number}/locations/{location_id}/lakes/{lake_id}/zones/{zone_id}/entities/{entity_id}
-    #[serde(default)]
-    pub entity: ::core::option::Option<String>,
-    /// Type of entity. // TODO: enum values: ["ENTITY_TYPE_UNSPECIFIED", "TABLE", "FILESET"]
-    #[serde(default, rename = "entityType")]
-    pub entity_type: ::core::option::Option<String>,
 }
 
 /// An object that describes the values that you want to set for an entry and its attached aspects when you import metadata. Used when you run a metadata import job. See CreateMetadataJob.You provide a collection of import items in a metadata import file. For more information about how to create a metadata import file, see Metadata import file (https://cloud.google.com/dataplex/docs/import-metadata#metadata-import-file).
@@ -2547,47 +282,6 @@ pub struct GoogleCloudDataplexV1ImportItem {
     /// The fields to update, in paths that are relative to the Entry resource. Separate each field with a comma.In FULL entry sync mode, Dataplex Universal Catalog includes the paths of all of the fields for an entry that can be modified, including aspects. This means that Dataplex Universal Catalog replaces the existing entry with the entry in the metadata import file. All modifiable fields are updated, regardless of the fields that are listed in the update mask, and regardless of whether a field is present in the entry object.The update_mask field is ignored when an entry is created or re-created.In an aspect-only metadata job (when entry sync mode is NONE), set this value to aspects.Dataplex Universal Catalog also determines which entries and aspects to modify by comparing the values and timestamps that you provide in the metadata import file with the values and timestamps that exist in your project. For more information, see Comparison logic (https://cloud.google.com/dataplex/docs/import-metadata#data-modification-logic).
     #[serde(default, rename = "updateMask")]
     pub update_mask: ::core::option::Option<String>,
-}
-
-/// A job represents an instance of a task.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDataplexV1Job {
-    /// Output only. The time when the job ended.
-    #[serde(default, rename = "endTime")]
-    pub end_time: ::core::option::Option<String>,
-    /// Output only. Spec related to how a task is executed.
-    #[serde(default, rename = "executionSpec")]
-    pub execution_spec: ::core::option::Option<GoogleCloudDataplexV1TaskExecutionSpec>,
-    /// Output only. User-defined labels for the task.
-    #[serde(default)]
-    pub labels: ::core::option::Option<serde_json::Value>,
-    /// Output only. Additional information about the current state.
-    #[serde(default)]
-    pub message: ::core::option::Option<String>,
-    /// Output only. The relative resource name of the job, of the form: projects/{project_number}/locations/{location_id}/lakes/{lake_id}/tasks/{task_id}/jobs/{job_id}.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Output only. The number of times the job has been retried (excluding the initial attempt).
-    #[serde(default, rename = "retryCount")]
-    pub retry_count: ::core::option::Option<i64>,
-    /// Output only. The underlying service running a job. // TODO: enum values: ["SERVICE_UNSPECIFIED", "DATAPROC"]
-    #[serde(default)]
-    pub service: ::core::option::Option<String>,
-    /// Output only. The full resource name for the job run under a particular service.
-    #[serde(default, rename = "serviceJob")]
-    pub service_job: ::core::option::Option<String>,
-    /// Output only. The time when the job was started.
-    #[serde(default, rename = "startTime")]
-    pub start_time: ::core::option::Option<String>,
-    /// Output only. Execution state for the job. // TODO: enum values: ["STATE_UNSPECIFIED", "RUNNING", "CANCELLING", "CANCELLED", "SUCCEEDED", "FAILED", "ABORTED"]
-    #[serde(default)]
-    pub state: ::core::option::Option<String>,
-    /// Output only. Job execution trigger. // TODO: enum values: ["TRIGGER_UNSPECIFIED", "TASK_CONFIG", "RUN_REQUEST"]
-    #[serde(default)]
-    pub trigger: ::core::option::Option<String>,
-    /// Output only. System generated globally unique ID for the job.
-    #[serde(default)]
-    pub uid: ::core::option::Option<String>,
 }
 
 /// The payload associated with Job logs that contains events describing jobs that have run within a Lake.
@@ -2623,72 +317,6 @@ pub struct GoogleCloudDataplexV1JobEvent {
     /// The type of the job. // TODO: enum values: ["TYPE_UNSPECIFIED", "SPARK", "NOTEBOOK"]
     #[serde(default, rename = "type")]
     pub type_: ::core::option::Option<String>,
-}
-
-/// A lake is a centralized repository for managing enterprise data across the organization distributed across many cloud projects, and stored in a variety of storage services such as Google Cloud Storage and BigQuery. The resources attached to a lake are referred to as managed resources. Data within these managed resources can be structured or unstructured. A lake provides data admins with tools to organize, secure and manage their data at scale, and provides data scientists and data engineers an integrated experience to easily search, discover, analyze and transform data and associated metadata.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDataplexV1Lake {
-    /// Output only. Aggregated status of the underlying assets of the lake.
-    #[serde(default, rename = "assetStatus")]
-    pub asset_status: ::core::option::Option<GoogleCloudDataplexV1AssetStatus>,
-    /// Output only. The time when the lake was created.
-    #[serde(default, rename = "createTime")]
-    pub create_time: ::core::option::Option<String>,
-    /// Optional. Description of the lake.
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// Optional. User friendly display name.
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-    /// Optional. User-defined labels for the lake.
-    #[serde(default)]
-    pub labels: ::core::option::Option<serde_json::Value>,
-    /// Optional. Settings to manage lake and Dataproc Metastore service instance association.
-    #[serde(default)]
-    pub metastore: ::core::option::Option<GoogleCloudDataplexV1LakeMetastore>,
-    /// Output only. Metastore status of the lake.
-    #[serde(default, rename = "metastoreStatus")]
-    pub metastore_status: ::core::option::Option<GoogleCloudDataplexV1LakeMetastoreStatus>,
-    /// Output only. The relative resource name of the lake, of the form: projects/{project_number}/locations/{location_id}/lakes/{lake_id}.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Output only. Service account associated with this lake. This service account must be authorized to access or operate on resources managed by the lake.
-    #[serde(default, rename = "serviceAccount")]
-    pub service_account: ::core::option::Option<String>,
-    /// Output only. Current state of the lake. // TODO: enum values: ["STATE_UNSPECIFIED", "ACTIVE", "CREATING", "DELETING", "ACTION_REQUIRED"]
-    #[serde(default)]
-    pub state: ::core::option::Option<String>,
-    /// Output only. System generated globally unique ID for the lake. This ID will be different if the lake is deleted and re-created with the same name.
-    #[serde(default)]
-    pub uid: ::core::option::Option<String>,
-    /// Output only. The time when the lake was last updated.
-    #[serde(default, rename = "updateTime")]
-    pub update_time: ::core::option::Option<String>,
-}
-
-/// Settings to manage association of Dataproc Metastore with a lake.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDataplexV1LakeMetastore {
-    /// Optional. A relative reference to the Dataproc Metastore (https://cloud.google.com/dataproc-metastore/docs) service associated with the lake: projects/{project_id}/locations/{location_id}/services/{service_id}
-    #[serde(default)]
-    pub service: ::core::option::Option<String>,
-}
-
-/// Status of Lake and Dataproc Metastore service instance association.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDataplexV1LakeMetastoreStatus {
-    /// The URI of the endpoint used to access the Metastore service.
-    #[serde(default)]
-    pub endpoint: ::core::option::Option<String>,
-    /// Additional information about the current status.
-    #[serde(default)]
-    pub message: ::core::option::Option<String>,
-    /// Current state of association. // TODO: enum values: ["STATE_UNSPECIFIED", "NONE", "READY", "UPDATING", "ERROR"]
-    #[serde(default)]
-    pub state: ::core::option::Option<String>,
-    /// Last update time of the metastore status of the lake.
-    #[serde(default, rename = "updateTime")]
-    pub update_time: ::core::option::Option<String>,
 }
 
 /// List actions response.
@@ -3047,6 +675,998 @@ pub struct GoogleCloudDataplexV1LookupEntryLinksResponse {
     pub next_page_token: ::core::option::Option<String>,
 }
 
+/// Represents the metadata of a long-running operation.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDataplexV1OperationMetadata {
+    /// Output only. API version used to start the operation.
+    #[serde(default, rename = "apiVersion")]
+    pub api_version: ::core::option::Option<String>,
+    /// Output only. The time the operation was created.
+    #[serde(default, rename = "createTime")]
+    pub create_time: ::core::option::Option<String>,
+    /// Output only. The time the operation finished running.
+    #[serde(default, rename = "endTime")]
+    pub end_time: ::core::option::Option<String>,
+    /// Output only. Identifies whether the user has requested cancellation of the operation. Operations that have successfully been cancelled have Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+    #[serde(default, rename = "requestedCancellation")]
+    pub requested_cancellation: ::core::option::Option<bool>,
+    /// Output only. Human-readable status of the operation, if any.
+    #[serde(default, rename = "statusMessage")]
+    pub status_message: ::core::option::Option<String>,
+    /// Output only. Server-defined resource path for the target of the operation.
+    #[serde(default)]
+    pub target: ::core::option::Option<String>,
+    /// Output only. Name of the verb executed by the operation.
+    #[serde(default)]
+    pub verb: ::core::option::Option<String>,
+}
+
+/// Run DataScan Response.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDataplexV1RunDataScanResponse {
+    /// DataScanJob created by RunDataScan request.
+    #[serde(default)]
+    pub job: ::core::option::Option<GoogleCloudDataplexV1DataScanJob>,
+}
+
+/// GoogleCloudDataplexV1RunTaskRequest resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDataplexV1RunTaskRequest {
+    /// Optional. Execution spec arguments. If the map is left empty, the task will run with existing execution spec args from task definition. If the map contains an entry with a new key, the same will be added to existing set of args. If the map contains an entry with an existing arg key in task definition, the task will run with new arg value for that entry. Clearing an existing arg will require arg value to be explicitly set to a hyphen "-". The arg value cannot be empty.
+    #[serde(default)]
+    pub args: ::core::option::Option<serde_json::Value>,
+    /// Optional. User-defined labels for the task. If the map is left empty, the task will run with existing labels from task definition. If the map contains an entry with a new key, the same will be added to existing set of labels. If the map contains an entry with an existing label key in task definition, the task will run with new label value for that entry. Clearing an existing label will require label value to be explicitly set to a hyphen "-". The label value cannot be empty.
+    #[serde(default)]
+    pub labels: ::core::option::Option<serde_json::Value>,
+}
+
+/// GoogleCloudDataplexV1RunTaskResponse resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDataplexV1RunTaskResponse {
+    /// Jobs created by RunTask API.
+    #[serde(default)]
+    pub job: ::core::option::Option<GoogleCloudDataplexV1Job>,
+}
+
+/// GoogleCloudDataplexV1SearchEntriesResponse resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDataplexV1SearchEntriesResponse {
+    /// Token to retrieve the next page of results, or empty if there are no more results in the list.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+    /// The results matching the search query.
+    #[serde(default)]
+    pub results: ::core::option::Option<::std::vec::Vec<GoogleCloudDataplexV1SearchEntriesResult>>,
+    /// The estimated total number of matching entries. This number isn''t guaranteed to be accurate.
+    #[serde(default, rename = "totalSize")]
+    pub total_size: ::core::option::Option<i32>,
+    /// Locations that the service couldn''t reach. Search results don''t include data from these locations.
+    #[serde(default)]
+    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// These messages contain information about sessions within an environment. The monitored resource is ''Environment''.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDataplexV1SessionEvent {
+    /// The status of the event.
+    #[serde(default, rename = "eventSucceeded")]
+    pub event_succeeded: ::core::option::Option<bool>,
+    /// If the session is associated with an environment with fast startup enabled, and was created before being assigned to a user.
+    #[serde(default, rename = "fastStartupEnabled")]
+    pub fast_startup_enabled: ::core::option::Option<bool>,
+    /// The log message.
+    #[serde(default)]
+    pub message: ::core::option::Option<String>,
+    /// The execution details of the query.
+    #[serde(default)]
+    pub query: ::core::option::Option<GoogleCloudDataplexV1SessionEventQueryDetail>,
+    /// Unique identifier for the session.
+    #[serde(default, rename = "sessionId")]
+    pub session_id: ::core::option::Option<String>,
+    /// The type of the event. // TODO: enum values: ["EVENT_TYPE_UNSPECIFIED", "START", "STOP", "QUERY", "CREATE"]
+    #[serde(default, rename = "type")]
+    pub type_: ::core::option::Option<String>,
+    /// The idle duration of a warm pooled session before it is assigned to user.
+    #[serde(default, rename = "unassignedDuration")]
+    pub unassigned_duration: ::core::option::Option<String>,
+    /// The information about the user that created the session. It will be the email address of the user.
+    #[serde(default, rename = "userId")]
+    pub user_id: ::core::option::Option<String>,
+}
+
+/// The response message for Locations.ListLocations.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudLocationListLocationsResponse {
+    /// A list of locations that matches the specified filter in the request.
+    #[serde(default)]
+    pub locations: ::core::option::Option<::std::vec::Vec<GoogleCloudLocationLocation>>,
+    /// The standard List next-page token.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+}
+
+/// Request message for SetIamPolicy method.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleIamV1SetIamPolicyRequest {
+    /// REQUIRED: The complete policy to be applied to the resource. The size of the policy is limited to a few 10s of KB. An empty policy is a valid policy but certain Google Cloud services (such as Projects) might reject them.
+    #[serde(default)]
+    pub policy: ::core::option::Option<GoogleIamV1Policy>,
+    /// OPTIONAL: A FieldMask specifying which fields of the policy to modify. Only the fields in the mask will be modified. If no mask is provided, the following default mask is used:paths: "bindings, etag"
+    #[serde(default, rename = "updateMask")]
+    pub update_mask: ::core::option::Option<String>,
+}
+
+/// Request message for TestIamPermissions method.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleIamV1TestIamPermissionsRequest {
+    /// The set of permissions to check for the resource. Permissions with wildcards (such as * or storage.*) are not allowed. For more information see IAM Overview (https://cloud.google.com/iam/docs/overview#permissions).
+    #[serde(default)]
+    pub permissions: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// Response message for TestIamPermissions method.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleIamV1TestIamPermissionsResponse {
+    /// A subset of TestPermissionsRequest.permissions that the caller is allowed.
+    #[serde(default)]
+    pub permissions: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// The response message for Operations.ListOperations.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleLongrunningListOperationsResponse {
+    /// The standard List next-page token.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+    /// A list of operations that matches the specified filter in the request.
+    #[serde(default)]
+    pub operations: ::core::option::Option<::std::vec::Vec<GoogleLongrunningOperation>>,
+    /// Unordered list. Unreachable resources. Populated when the request sets ListOperationsRequest.return_partial_success and reads across collections. For example, when attempting to list all resources across all supported locations.
+    #[serde(default)]
+    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// Information related to the source system of the aspect.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDataplexV1AspectSource {
+    /// The time the aspect was created in the source system.
+    #[serde(default, rename = "createTime")]
+    pub create_time: ::core::option::Option<String>,
+    /// The version of the data format used to produce this data. This field is used to indicated when the underlying data format changes (e.g., schema modifications, changes to the source URL format definition, etc).
+    #[serde(default, rename = "dataVersion")]
+    pub data_version: ::core::option::Option<String>,
+    /// The time the aspect was last updated in the source system.
+    #[serde(default, rename = "updateTime")]
+    pub update_time: ::core::option::Option<String>,
+}
+
+/// Represents the principal entity associated with an access group, as per https://cloud.google.com/iam/docs/principals-overview.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDataplexV1DataProductPrincipal {
+    /// Optional. Email of the Google Group, as per https://cloud.google.com/iam/docs/principals-overview#google-group.
+    #[serde(default, rename = "googleGroup")]
+    pub google_group: ::core::option::Option<String>,
+}
+
+/// Data profile result for data scan job.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDataplexV1DataScanEventDataProfileResult {
+    /// The count of rows processed in the data scan job.
+    #[serde(default, rename = "rowCount")]
+    pub row_count: ::core::option::Option<String>,
+}
+
+/// Applied configs for data profile type data scan job.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDataplexV1DataScanEventDataProfileAppliedConfigs {
+    /// Boolean indicating whether a column filter was applied in the DataScan job.
+    #[serde(default, rename = "columnFilterApplied")]
+    pub column_filter_applied: ::core::option::Option<bool>,
+    /// Boolean indicating whether a row filter was applied in the DataScan job.
+    #[serde(default, rename = "rowFilterApplied")]
+    pub row_filter_applied: ::core::option::Option<bool>,
+    /// The percentage of the records selected from the dataset for DataScan. Value ranges between 0.0 and 100.0. Value 0.0 or 100.0 imply that sampling was not applied.
+    #[serde(default, rename = "samplingPercent")]
+    pub sampling_percent: ::core::option::Option<f32>,
+}
+
+/// Data quality result for data scan job.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDataplexV1DataScanEventDataQualityResult {
+    /// The score of each column scanned in the data scan job. The key of the map is the name of the column. The value is the data quality score for the column.The score ranges between 0, 100 (up to two decimal points).
+    #[serde(default, rename = "columnScore")]
+    pub column_score: ::core::option::Option<serde_json::Value>,
+    /// The result of each dimension for data quality result. The key of the map is the name of the dimension. The value is the bool value depicting whether the dimension result was pass or not.
+    #[serde(default, rename = "dimensionPassed")]
+    pub dimension_passed: ::core::option::Option<serde_json::Value>,
+    /// The score of each dimension for data quality result. The key of the map is the name of the dimension. The value is the data quality score for the dimension.The score ranges between 0, 100 (up to two decimal points).
+    #[serde(default, rename = "dimensionScore")]
+    pub dimension_score: ::core::option::Option<serde_json::Value>,
+    /// Whether the data quality result was pass or not.
+    #[serde(default)]
+    pub passed: ::core::option::Option<bool>,
+    /// The count of rows processed in the data scan job.
+    #[serde(default, rename = "rowCount")]
+    pub row_count: ::core::option::Option<String>,
+    /// The table-level data quality score for the data scan job.The data quality score ranges between 0, 100 (up to two decimal points).
+    #[serde(default)]
+    pub score: ::core::option::Option<f32>,
+}
+
+/// Applied configs for data quality type data scan job.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDataplexV1DataScanEventDataQualityAppliedConfigs {
+    /// Boolean indicating whether a row filter was applied in the DataScan job.
+    #[serde(default, rename = "rowFilterApplied")]
+    pub row_filter_applied: ::core::option::Option<bool>,
+    /// The percentage of the records selected from the dataset for DataScan. Value ranges between 0.0 and 100.0. Value 0.0 or 100.0 imply that sampling was not applied.
+    #[serde(default, rename = "samplingPercent")]
+    pub sampling_percent: ::core::option::Option<f32>,
+}
+
+/// Post scan actions result for data scan job.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDataplexV1DataScanEventPostScanActionsResult {
+    /// The result of BigQuery export post scan action.
+    #[serde(default, rename = "bigqueryExportResult")]
+    pub bigquery_export_result: ::core::option::Option<
+        GoogleCloudDataplexV1DataScanEventPostScanActionsResultBigQueryExportResult,
+    >,
+}
+
+/// Details about the action.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDataplexV1DiscoveryEventActionDetails {
+    /// The human readable issue associated with the action.
+    #[serde(default)]
+    pub issue: ::core::option::Option<String>,
+    /// The type of action. Eg. IncompatibleDataSchema, InvalidDataFormat
+    #[serde(default, rename = "type")]
+    pub type_: ::core::option::Option<String>,
+}
+
+/// Details about the entity.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDataplexV1DiscoveryEventEntityDetails {
+    /// The name of the entity resource. The name is the fully-qualified resource name.
+    #[serde(default)]
+    pub entity: ::core::option::Option<String>,
+    /// The type of the entity resource. // TODO: enum values: ["ENTITY_TYPE_UNSPECIFIED", "TABLE", "FILESET"]
+    #[serde(default, rename = "type")]
+    pub type_: ::core::option::Option<String>,
+}
+
+/// Details about the partition.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDataplexV1DiscoveryEventPartitionDetails {
+    /// The name to the containing entity resource. The name is the fully-qualified resource name.
+    #[serde(default)]
+    pub entity: ::core::option::Option<String>,
+    /// The name to the partition resource. The name is the fully-qualified resource name.
+    #[serde(default)]
+    pub partition: ::core::option::Option<String>,
+    /// The locations of the data items (e.g., a Cloud Storage objects) sampled for metadata inference.
+    #[serde(default, rename = "sampledDataLocations")]
+    pub sampled_data_locations: ::core::option::Option<::std::vec::Vec<String>>,
+    /// The type of the containing entity resource. // TODO: enum values: ["ENTITY_TYPE_UNSPECIFIED", "TABLE", "FILESET"]
+    #[serde(default, rename = "type")]
+    pub type_: ::core::option::Option<String>,
+}
+
+/// Details about the published table.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDataplexV1DiscoveryEventTableDetails {
+    /// The fully-qualified resource name of the table resource.
+    #[serde(default)]
+    pub table: ::core::option::Option<String>,
+    /// The type of the table resource. // TODO: enum values: ["TABLE_TYPE_UNSPECIFIED", "EXTERNAL_TABLE", "BIGLAKE_TABLE", "OBJECT_TABLE"]
+    #[serde(default, rename = "type")]
+    pub type_: ::core::option::Option<String>,
+}
+
+/// Information about Entity resource that the log event is associated with.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDataplexV1GovernanceEventEntity {
+    /// The Entity resource the log event is associated with. Format: projects/{project_number}/locations/{location_id}/lakes/{lake_id}/zones/{zone_id}/entities/{entity_id}
+    #[serde(default)]
+    pub entity: ::core::option::Option<String>,
+    /// Type of entity. // TODO: enum values: ["ENTITY_TYPE_UNSPECIFIED", "TABLE", "FILESET"]
+    #[serde(default, rename = "entityType")]
+    pub entity_type: ::core::option::Option<String>,
+}
+
+/// Action represents an issue requiring administrator action for resolution.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDataplexV1Action {
+    /// Output only. The relative resource name of the asset, of the form: projects/{project_number}/locations/{location_id}/lakes/{lake_id}/zones/{zone_id}/assets/{asset_id}.
+    #[serde(default)]
+    pub asset: ::core::option::Option<String>,
+    /// The category of issue associated with the action. // TODO: enum values: ["CATEGORY_UNSPECIFIED", "RESOURCE_MANAGEMENT", "SECURITY_POLICY", "DATA_DISCOVERY"]
+    #[serde(default)]
+    pub category: ::core::option::Option<String>,
+    /// The list of data locations associated with this action. Cloud Storage locations are represented as URI paths(E.g. gs://bucket/table1/year=2020/month=Jan/). BigQuery locations refer to resource names(E.g. bigquery.googleapis.com/projects/project-id/datasets/dataset-id).
+    #[serde(default, rename = "dataLocations")]
+    pub data_locations: ::core::option::Option<::std::vec::Vec<String>>,
+    /// The time that the issue was detected.
+    #[serde(default, rename = "detectTime")]
+    pub detect_time: ::core::option::Option<String>,
+    /// Details for issues related to applying security policy.
+    #[serde(default, rename = "failedSecurityPolicyApply")]
+    pub failed_security_policy_apply:
+        ::core::option::Option<GoogleCloudDataplexV1ActionFailedSecurityPolicyApply>,
+    /// Details for issues related to incompatible schemas detected within data.
+    #[serde(default, rename = "incompatibleDataSchema")]
+    pub incompatible_data_schema:
+        ::core::option::Option<GoogleCloudDataplexV1ActionIncompatibleDataSchema>,
+    /// Details for issues related to invalid or unsupported data formats.
+    #[serde(default, rename = "invalidDataFormat")]
+    pub invalid_data_format: ::core::option::Option<GoogleCloudDataplexV1ActionInvalidDataFormat>,
+    /// Details for issues related to invalid data arrangement.
+    #[serde(default, rename = "invalidDataOrganization")]
+    pub invalid_data_organization: ::core::option::Option<serde_json::Value>,
+    /// Details for issues related to invalid or unsupported data partition structure.
+    #[serde(default, rename = "invalidDataPartition")]
+    pub invalid_data_partition:
+        ::core::option::Option<GoogleCloudDataplexV1ActionInvalidDataPartition>,
+    /// Detailed description of the issue requiring action.
+    #[serde(default)]
+    pub issue: ::core::option::Option<String>,
+    /// Output only. The relative resource name of the lake, of the form: projects/{project_number}/locations/{location_id}/lakes/{lake_id}.
+    #[serde(default)]
+    pub lake: ::core::option::Option<String>,
+    /// Details for issues related to absence of data within managed resources.
+    #[serde(default, rename = "missingData")]
+    pub missing_data: ::core::option::Option<serde_json::Value>,
+    /// Details for issues related to absence of a managed resource.
+    #[serde(default, rename = "missingResource")]
+    pub missing_resource: ::core::option::Option<serde_json::Value>,
+    /// Output only. The relative resource name of the action, of the form: projects/{project}/locations/{location}/lakes/{lake}/actions/{action} projects/{project}/locations/{location}/lakes/{lake}/zones/{zone}/actions/{action} projects/{project}/locations/{location}/lakes/{lake}/zones/{zone}/assets/{asset}/actions/{action}.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Details for issues related to lack of permissions to access data resources.
+    #[serde(default, rename = "unauthorizedResource")]
+    pub unauthorized_resource: ::core::option::Option<serde_json::Value>,
+    /// Output only. The relative resource name of the zone, of the form: projects/{project_number}/locations/{location_id}/lakes/{lake_id}/zones/{zone_id}.
+    #[serde(default)]
+    pub zone: ::core::option::Option<String>,
+}
+
+/// AspectType is a template for creating Aspects, and represents the JSON-schema for a given Entry, for example, BigQuery Table Schema.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDataplexV1AspectType {
+    /// Immutable. Defines the Authorization for this type.
+    #[serde(default)]
+    pub authorization: ::core::option::Option<GoogleCloudDataplexV1AspectTypeAuthorization>,
+    /// Output only. The time when the AspectType was created.
+    #[serde(default, rename = "createTime")]
+    pub create_time: ::core::option::Option<String>,
+    /// Optional. Immutable. Stores data classification of the aspect. // TODO: enum values: ["DATA_CLASSIFICATION_UNSPECIFIED", "METADATA_AND_DATA"]
+    #[serde(default, rename = "dataClassification")]
+    pub data_classification: ::core::option::Option<String>,
+    /// Optional. Description of the AspectType.
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+    /// Optional. User friendly display name.
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+    /// The service computes this checksum. The client may send it on update and delete requests to ensure it has an up-to-date value before proceeding.
+    #[serde(default)]
+    pub etag: ::core::option::Option<String>,
+    /// Optional. User-defined labels for the AspectType.
+    #[serde(default)]
+    pub labels: ::core::option::Option<serde_json::Value>,
+    /// Required. MetadataTemplate of the aspect.
+    #[serde(default, rename = "metadataTemplate")]
+    pub metadata_template: ::core::option::Option<GoogleCloudDataplexV1AspectTypeMetadataTemplate>,
+    /// Output only. The relative resource name of the AspectType, of the form: projects/{project_number}/locations/{location_id}/aspectTypes/{aspect_type_id}.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Output only. Denotes the transfer status of the Aspect Type. It is unspecified for Aspect Types created from Dataplex API. // TODO: enum values: ["TRANSFER_STATUS_UNSPECIFIED", "TRANSFER_STATUS_MIGRATED", "TRANSFER_STATUS_TRANSFERRED"]
+    #[serde(default, rename = "transferStatus")]
+    pub transfer_status: ::core::option::Option<String>,
+    /// Output only. System generated globally unique ID for the AspectType. If you delete and recreate the AspectType with the same name, then this ID will be different.
+    #[serde(default)]
+    pub uid: ::core::option::Option<String>,
+    /// Output only. The time when the AspectType was last updated.
+    #[serde(default, rename = "updateTime")]
+    pub update_time: ::core::option::Option<String>,
+}
+
+/// An asset represents a cloud resource that is being managed within a lake as a member of a zone.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDataplexV1Asset {
+    /// Output only. The time when the asset was created.
+    #[serde(default, rename = "createTime")]
+    pub create_time: ::core::option::Option<String>,
+    /// Optional. Description of the asset.
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+    /// Optional. Specification of the discovery feature applied to data referenced by this asset. When this spec is left unset, the asset will use the spec set on the parent zone.
+    #[serde(default, rename = "discoverySpec")]
+    pub discovery_spec: ::core::option::Option<GoogleCloudDataplexV1AssetDiscoverySpec>,
+    /// Output only. Status of the discovery feature applied to data referenced by this asset.
+    #[serde(default, rename = "discoveryStatus")]
+    pub discovery_status: ::core::option::Option<GoogleCloudDataplexV1AssetDiscoveryStatus>,
+    /// Optional. User friendly display name.
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+    /// Optional. User defined labels for the asset.
+    #[serde(default)]
+    pub labels: ::core::option::Option<serde_json::Value>,
+    /// Output only. The relative resource name of the asset, of the form: projects/{project_number}/locations/{location_id}/lakes/{lake_id}/zones/{zone_id}/assets/{asset_id}.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Required. Specification of the resource that is referenced by this asset.
+    #[serde(default, rename = "resourceSpec")]
+    pub resource_spec: ::core::option::Option<GoogleCloudDataplexV1AssetResourceSpec>,
+    /// Output only. Status of the resource referenced by this asset.
+    #[serde(default, rename = "resourceStatus")]
+    pub resource_status: ::core::option::Option<GoogleCloudDataplexV1AssetResourceStatus>,
+    /// Output only. Status of the security policy applied to resource referenced by this asset.
+    #[serde(default, rename = "securityStatus")]
+    pub security_status: ::core::option::Option<GoogleCloudDataplexV1AssetSecurityStatus>,
+    /// Output only. Current state of the asset. // TODO: enum values: ["STATE_UNSPECIFIED", "ACTIVE", "CREATING", "DELETING", "ACTION_REQUIRED"]
+    #[serde(default)]
+    pub state: ::core::option::Option<String>,
+    /// Output only. System generated globally unique ID for the asset. This ID will be different if the asset is deleted and re-created with the same name.
+    #[serde(default)]
+    pub uid: ::core::option::Option<String>,
+    /// Output only. The time when the asset was last updated.
+    #[serde(default, rename = "updateTime")]
+    pub update_time: ::core::option::Option<String>,
+}
+
+/// Represents a data asset resource that can be packaged and shared via a data product.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDataplexV1DataAsset {
+    /// Optional. Access groups configurations for this data asset.The key is DataProduct.AccessGroup.id and the value is AccessGroupConfig.Example: { "analyst": { "iamRoles": ["roles/bigquery.dataViewer"] } } Currently, at most one IAM role is allowed per access group. For providing multiple predefined IAM roles, wrap them in a custom IAM role as per https://cloud.google.com/iam/docs/creating-custom-roles.
+    #[serde(default, rename = "accessGroupConfigs")]
+    pub access_group_configs: ::core::option::Option<serde_json::Value>,
+    /// Output only. The time at which the data asset was created.
+    #[serde(default, rename = "createTime")]
+    pub create_time: ::core::option::Option<String>,
+    /// Optional. This checksum is computed by the server based on the value of other fields, and may be sent on update and delete requests to ensure the client has an up-to-date value before proceeding.
+    #[serde(default)]
+    pub etag: ::core::option::Option<String>,
+    /// Optional. User-defined labels for the data asset.Example: { "environment": "production", "billing": "marketing-department" }
+    #[serde(default)]
+    pub labels: ::core::option::Option<serde_json::Value>,
+    /// Identifier. Resource name of the data asset. Format: projects/{project_id_or_number}/locations/{location_id}/dataProducts/{data_product_id}/dataAssets/{data_asset_id}
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Required. Immutable. Full resource name of the cloud resource represented by the data asset. This must follow https://cloud.google.com/iam/docs/full-resource-names. Example: //bigquery.googleapis.com/projects/my_project_123/datasets/dataset_456/tables/table_789 Only BigQuery tables and datasets are currently supported. Data asset creator must have getIamPolicy and setIamPolicy permissions on the resource. Data asset creator must also have resource specific get permission, for instance, bigquery.tables.get for BigQuery tables.
+    #[serde(default)]
+    pub resource: ::core::option::Option<String>,
+    /// Output only. System generated globally unique ID for the data asset. This ID will be different if the data asset is deleted and re-created with the same name.
+    #[serde(default)]
+    pub uid: ::core::option::Option<String>,
+    /// Output only. The time at which the data asset was last updated.
+    #[serde(default, rename = "updateTime")]
+    pub update_time: ::core::option::Option<String>,
+}
+
+/// DataAttributeBinding represents binding of attributes to resources. Eg: Bind ''CustomerInfo'' entity with ''PII'' attribute.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDataplexV1DataAttributeBinding {
+    /// Optional. List of attributes to be associated with the resource, provided in the form: projects/{project}/locations/{location}/dataTaxonomies/{dataTaxonomy}/attributes/{data_attribute_id}
+    #[serde(default)]
+    pub attributes: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Output only. The time when the DataAttributeBinding was created.
+    #[serde(default, rename = "createTime")]
+    pub create_time: ::core::option::Option<String>,
+    /// Optional. Description of the DataAttributeBinding.
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+    /// Optional. User friendly display name.
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+    /// This checksum is computed by the server based on the value of other fields, and may be sent on update and delete requests to ensure the client has an up-to-date value before proceeding. Etags must be used when calling the DeleteDataAttributeBinding and the UpdateDataAttributeBinding method.
+    #[serde(default)]
+    pub etag: ::core::option::Option<String>,
+    /// Optional. User-defined labels for the DataAttributeBinding.
+    #[serde(default)]
+    pub labels: ::core::option::Option<serde_json::Value>,
+    /// Output only. The relative resource name of the Data Attribute Binding, of the form: projects/{project_number}/locations/{location}/dataAttributeBindings/{data_attribute_binding_id}
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Optional. The list of paths for items within the associated resource (eg. columns and partitions within a table) along with attribute bindings.
+    #[serde(default)]
+    pub paths:
+        ::core::option::Option<::std::vec::Vec<GoogleCloudDataplexV1DataAttributeBindingPath>>,
+    /// Optional. Immutable. The resource name of the resource that is associated to attributes. Presently, only entity resource is supported in the form: projects/{project}/locations/{location}/lakes/{lake}/zones/{zone}/entities/{entity_id} Must belong in the same project and region as the attribute binding, and there can only exist one active binding for a resource.
+    #[serde(default)]
+    pub resource: ::core::option::Option<String>,
+    /// Output only. System generated globally unique ID for the DataAttributeBinding. This ID will be different if the DataAttributeBinding is deleted and re-created with the same name.
+    #[serde(default)]
+    pub uid: ::core::option::Option<String>,
+    /// Output only. The time when the DataAttributeBinding was last updated.
+    #[serde(default, rename = "updateTime")]
+    pub update_time: ::core::option::Option<String>,
+}
+
+/// Denotes one dataAttribute in a dataTaxonomy, for example, PII. DataAttribute resources can be defined in a hierarchy. A single dataAttribute resource can contain specs of multiple types PII - ResourceAccessSpec : - readers :foo@bar.com - DataAccessSpec : - readers :bar@foo.com
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDataplexV1DataAttribute {
+    /// Output only. The number of child attributes present for this attribute.
+    #[serde(default, rename = "attributeCount")]
+    pub attribute_count: ::core::option::Option<i32>,
+    /// Output only. The time when the DataAttribute was created.
+    #[serde(default, rename = "createTime")]
+    pub create_time: ::core::option::Option<String>,
+    /// Optional. Specified when applied to data stored on the resource (eg: rows, columns in BigQuery Tables).
+    #[serde(default, rename = "dataAccessSpec")]
+    pub data_access_spec: ::core::option::Option<GoogleCloudDataplexV1DataAccessSpec>,
+    /// Optional. Description of the DataAttribute.
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+    /// Optional. User friendly display name.
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+    /// This checksum is computed by the server based on the value of other fields, and may be sent on update and delete requests to ensure the client has an up-to-date value before proceeding.
+    #[serde(default)]
+    pub etag: ::core::option::Option<String>,
+    /// Optional. User-defined labels for the DataAttribute.
+    #[serde(default)]
+    pub labels: ::core::option::Option<serde_json::Value>,
+    /// Output only. The relative resource name of the dataAttribute, of the form: projects/{project_number}/locations/{location_id}/dataTaxonomies/{dataTaxonomy}/attributes/{data_attribute_id}.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Optional. The ID of the parent DataAttribute resource, should belong to the same data taxonomy. Circular dependency in parent chain is not valid. Maximum depth of the hierarchy allowed is 4. a -&gt; b -&gt; c -&gt; d -&gt; e, depth = 4
+    #[serde(default, rename = "parentId")]
+    pub parent_id: ::core::option::Option<String>,
+    /// Optional. Specified when applied to a resource (eg: Cloud Storage bucket, BigQuery dataset, BigQuery table).
+    #[serde(default, rename = "resourceAccessSpec")]
+    pub resource_access_spec: ::core::option::Option<GoogleCloudDataplexV1ResourceAccessSpec>,
+    /// Output only. System generated globally unique ID for the DataAttribute. This ID will be different if the DataAttribute is deleted and re-created with the same name.
+    #[serde(default)]
+    pub uid: ::core::option::Option<String>,
+    /// Output only. The time when the DataAttribute was last updated.
+    #[serde(default, rename = "updateTime")]
+    pub update_time: ::core::option::Option<String>,
+}
+
+/// A data product is a curated collection of data assets, packaged to address specific use cases. It''s a way to manage and share data in a more organized, product-like manner.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDataplexV1DataProduct {
+    /// Optional. Data product access groups by access group id as key. If data product is used only for packaging data assets, then access groups may be empty. However, if a data product is used for sharing data assets, then at least one access group must be specified.Example: { "analyst": { "id": "analyst", "displayName": "Analyst", "description": "Access group for analysts", "principal": { "googleGroup": "analysts@example.com" } } }
+    #[serde(default, rename = "accessGroups")]
+    pub access_groups: ::core::option::Option<serde_json::Value>,
+    /// Output only. Number of data assets associated with this data product.
+    #[serde(default, rename = "assetCount")]
+    pub asset_count: ::core::option::Option<i32>,
+    /// Output only. The time at which the data product was created.
+    #[serde(default, rename = "createTime")]
+    pub create_time: ::core::option::Option<String>,
+    /// Optional. Description of the data product.
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+    /// Required. User-friendly display name of the data product.
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+    /// Optional. This checksum is computed by the server based on the value of other fields, and may be sent on update and delete requests to ensure the client has an up-to-date value before proceeding.
+    #[serde(default)]
+    pub etag: ::core::option::Option<String>,
+    /// Optional. Base64 encoded image representing the data product. Max Size: 3.0MiB Expected image dimensions are 512x512 pixels, however the API only performs validation on size of the encoded data. Note: For byte fields, the content of the fields are base64-encoded (which increases the size of the data by 33-36%) when using JSON on the wire.
+    #[serde(default)]
+    pub icon: ::core::option::Option<String>,
+    /// Optional. User-defined labels for the data product.Example: { "environment": "production", "billing": "marketing-department" }
+    #[serde(default)]
+    pub labels: ::core::option::Option<serde_json::Value>,
+    /// Identifier. Resource name of the data product. Format: projects/{project_id_or_number}/locations/{location_id}/dataProducts/{data_product_id}.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Required. Emails of the data product owners.
+    #[serde(default, rename = "ownerEmails")]
+    pub owner_emails: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Output only. System generated unique ID for the data product. This ID will be different if the data product is deleted and re-created with the same name.
+    #[serde(default)]
+    pub uid: ::core::option::Option<String>,
+    /// Output only. The time at which the data product was last updated.
+    #[serde(default, rename = "updateTime")]
+    pub update_time: ::core::option::Option<String>,
+}
+
+/// Represents a user-visible job which provides the insights for the related data source.For example: Data quality: generates queries based on the rules and runs against the data to get data quality check results. For more information, see Auto data quality overview (https://cloud.google.com/dataplex/docs/auto-data-quality-overview). Data profile: analyzes the data in tables and generates insights about the structure, content and relationships (such as null percent, cardinality, min/max/mean, etc). For more information, see About data profiling (https://cloud.google.com/dataplex/docs/data-profiling-overview). Data discovery: scans data in Cloud Storage buckets to extract and then catalog metadata. For more information, see Discover and catalog Cloud Storage data (https://cloud.google.com/bigquery/docs/automatic-discovery). Data documentation: analyzes the table or dataset metadata and generates insights. For tables, insights include descriptions and sample SQL queries. For datasets, insights include descriptions, schema relationships and sample SQL queries. For more information, see Generate data insights in BigQuery (https://cloud.google.com/bigquery/docs/data-insights).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDataplexV1DataScan {
+    /// Output only. The time when the scan was created.
+    #[serde(default, rename = "createTime")]
+    pub create_time: ::core::option::Option<String>,
+    /// Required. The data source for DataScan.
+    #[serde(default)]
+    pub data: ::core::option::Option<GoogleCloudDataplexV1DataSource>,
+    /// Output only. The result of a data discovery scan.
+    #[serde(default, rename = "dataDiscoveryResult")]
+    pub data_discovery_result: ::core::option::Option<GoogleCloudDataplexV1DataDiscoveryResult>,
+    /// Settings for a data discovery scan.
+    #[serde(default, rename = "dataDiscoverySpec")]
+    pub data_discovery_spec: ::core::option::Option<GoogleCloudDataplexV1DataDiscoverySpec>,
+    /// Output only. The result of a data documentation scan.
+    #[serde(default, rename = "dataDocumentationResult")]
+    pub data_documentation_result:
+        ::core::option::Option<GoogleCloudDataplexV1DataDocumentationResult>,
+    /// Settings for a data documentation scan.
+    #[serde(default, rename = "dataDocumentationSpec")]
+    pub data_documentation_spec: ::core::option::Option<GoogleCloudDataplexV1DataDocumentationSpec>,
+    /// Output only. The result of a data profile scan.
+    #[serde(default, rename = "dataProfileResult")]
+    pub data_profile_result: ::core::option::Option<GoogleCloudDataplexV1DataProfileResult>,
+    /// Settings for a data profile scan.
+    #[serde(default, rename = "dataProfileSpec")]
+    pub data_profile_spec: ::core::option::Option<GoogleCloudDataplexV1DataProfileSpec>,
+    /// Output only. The result of a data quality scan.
+    #[serde(default, rename = "dataQualityResult")]
+    pub data_quality_result: ::core::option::Option<GoogleCloudDataplexV1DataQualityResult>,
+    /// Settings for a data quality scan.
+    #[serde(default, rename = "dataQualitySpec")]
+    pub data_quality_spec: ::core::option::Option<GoogleCloudDataplexV1DataQualitySpec>,
+    /// Optional. Description of the scan. Must be between 1-1024 characters.
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+    /// Optional. User friendly display name. Must be between 1-256 characters.
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+    /// Optional. DataScan execution settings.If not specified, the fields in it will use their default values.
+    #[serde(default, rename = "executionSpec")]
+    pub execution_spec: ::core::option::Option<GoogleCloudDataplexV1DataScanExecutionSpec>,
+    /// Output only. Status of the data scan execution.
+    #[serde(default, rename = "executionStatus")]
+    pub execution_status: ::core::option::Option<GoogleCloudDataplexV1DataScanExecutionStatus>,
+    /// Optional. User-defined labels for the scan.
+    #[serde(default)]
+    pub labels: ::core::option::Option<serde_json::Value>,
+    /// Output only. Identifier. The relative resource name of the scan, of the form: projects/{project}/locations/{location_id}/dataScans/{datascan_id}, where project refers to a project_id or project_number and location_id refers to a Google Cloud region.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Output only. Current state of the DataScan. // TODO: enum values: ["STATE_UNSPECIFIED", "ACTIVE", "CREATING", "DELETING", "ACTION_REQUIRED"]
+    #[serde(default)]
+    pub state: ::core::option::Option<String>,
+    /// Output only. The type of DataScan. // TODO: enum values: ["DATA_SCAN_TYPE_UNSPECIFIED", "DATA_QUALITY", "DATA_PROFILE", "DATA_DISCOVERY", "DATA_DOCUMENTATION"]
+    #[serde(default, rename = "type")]
+    pub type_: ::core::option::Option<String>,
+    /// Output only. System generated globally unique ID for the scan. This ID will be different if the scan is deleted and re-created with the same name.
+    #[serde(default)]
+    pub uid: ::core::option::Option<String>,
+    /// Output only. The time when the scan was last updated.
+    #[serde(default, rename = "updateTime")]
+    pub update_time: ::core::option::Option<String>,
+}
+
+/// DataTaxonomy represents a set of hierarchical DataAttributes resources, grouped with a common theme Eg: ''SensitiveDataTaxonomy'' can have attributes to manage PII data. It is defined at project level.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDataplexV1DataTaxonomy {
+    /// Output only. The number of attributes in the DataTaxonomy.
+    #[serde(default, rename = "attributeCount")]
+    pub attribute_count: ::core::option::Option<i32>,
+    /// Output only. The number of classes in the DataTaxonomy.
+    #[serde(default, rename = "classCount")]
+    pub class_count: ::core::option::Option<i32>,
+    /// Output only. The time when the DataTaxonomy was created.
+    #[serde(default, rename = "createTime")]
+    pub create_time: ::core::option::Option<String>,
+    /// Optional. Description of the DataTaxonomy.
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+    /// Optional. User friendly display name.
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+    /// This checksum is computed by the server based on the value of other fields, and may be sent on update and delete requests to ensure the client has an up-to-date value before proceeding.
+    #[serde(default)]
+    pub etag: ::core::option::Option<String>,
+    /// Optional. User-defined labels for the DataTaxonomy.
+    #[serde(default)]
+    pub labels: ::core::option::Option<serde_json::Value>,
+    /// Output only. The relative resource name of the DataTaxonomy, of the form: projects/{project_number}/locations/{location_id}/dataTaxonomies/{data_taxonomy_id}.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Output only. System generated globally unique ID for the dataTaxonomy. This ID will be different if the DataTaxonomy is deleted and re-created with the same name.
+    #[serde(default)]
+    pub uid: ::core::option::Option<String>,
+    /// Output only. The time when the DataTaxonomy was last updated.
+    #[serde(default, rename = "updateTime")]
+    pub update_time: ::core::option::Option<String>,
+}
+
+/// A Resource designed to manage encryption configurations for customers to support Customer Managed Encryption Keys (CMEK).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDataplexV1EncryptionConfig {
+    /// Output only. The time when the Encryption configuration was created.
+    #[serde(default, rename = "createTime")]
+    pub create_time: ::core::option::Option<String>,
+    /// Optional. Represent the state of CMEK opt-in for metastore.
+    #[serde(default, rename = "enableMetastoreEncryption")]
+    pub enable_metastore_encryption: ::core::option::Option<bool>,
+    /// Output only. The state of encryption of the databases. // TODO: enum values: ["ENCRYPTION_STATE_UNSPECIFIED", "ENCRYPTING", "COMPLETED", "FAILED"]
+    #[serde(default, rename = "encryptionState")]
+    pub encryption_state: ::core::option::Option<String>,
+    /// Etag of the EncryptionConfig. This is a strong etag.
+    #[serde(default)]
+    pub etag: ::core::option::Option<String>,
+    /// Output only. Details of the failure if anything related to Cmek db fails.
+    #[serde(default, rename = "failureDetails")]
+    pub failure_details:
+        ::core::option::Option<GoogleCloudDataplexV1EncryptionConfigFailureDetails>,
+    /// Optional. If a key is chosen, it means that the customer is using CMEK. If a key is not chosen, it means that the customer is using Google managed encryption.
+    #[serde(default)]
+    pub key: ::core::option::Option<String>,
+    /// Identifier. The resource name of the EncryptionConfig. Format: organizations/{organization}/locations/{location}/encryptionConfigs/{encryption_config} Global location is not supported.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Output only. The time when the Encryption configuration was last updated.
+    #[serde(default, rename = "updateTime")]
+    pub update_time: ::core::option::Option<String>,
+}
+
+/// Represents tables and fileset metadata contained within a zone.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDataplexV1Entity {
+    /// Output only. Identifies the access mechanism to the entity. Not user settable.
+    #[serde(default)]
+    pub access: ::core::option::Option<GoogleCloudDataplexV1StorageAccess>,
+    /// Required. Immutable. The ID of the asset associated with the storage location containing the entity data. The entity must be with in the same zone with the asset.
+    #[serde(default)]
+    pub asset: ::core::option::Option<String>,
+    /// Output only. The name of the associated Data Catalog entry.
+    #[serde(default, rename = "catalogEntry")]
+    pub catalog_entry: ::core::option::Option<String>,
+    /// Output only. Metadata stores that the entity is compatible with.
+    #[serde(default)]
+    pub compatibility: ::core::option::Option<GoogleCloudDataplexV1EntityCompatibilityStatus>,
+    /// Output only. The time when the entity was created.
+    #[serde(default, rename = "createTime")]
+    pub create_time: ::core::option::Option<String>,
+    /// Required. Immutable. The storage path of the entity data. For Cloud Storage data, this is the fully-qualified path to the entity, such as gs://bucket/path/to/data. For BigQuery data, this is the name of the table resource, such as projects/project_id/datasets/dataset_id/tables/table_id.
+    #[serde(default, rename = "dataPath")]
+    pub data_path: ::core::option::Option<String>,
+    /// Optional. The set of items within the data path constituting the data in the entity, represented as a glob path. Example: gs://bucket/path/to/data/**/*.csv.
+    #[serde(default, rename = "dataPathPattern")]
+    pub data_path_pattern: ::core::option::Option<String>,
+    /// Optional. User friendly longer description text. Must be shorter than or equal to 1024 characters.
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+    /// Optional. Display name must be shorter than or equal to 256 characters.
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+    /// Optional. The etag associated with the entity, which can be retrieved with a GetEntity request. Required for update and delete requests.
+    #[serde(default)]
+    pub etag: ::core::option::Option<String>,
+    /// Required. Identifies the storage format of the entity data. It does not apply to entities with data stored in BigQuery.
+    #[serde(default)]
+    pub format: ::core::option::Option<GoogleCloudDataplexV1StorageFormat>,
+    /// Required. A user-provided entity ID. It is mutable, and will be used as the published table name. Specifying a new ID in an update entity request will override the existing value. The ID must contain only letters (a-z, A-Z), numbers (0-9), and underscores, and consist of 256 or fewer characters.
+    #[serde(default)]
+    pub id: ::core::option::Option<String>,
+    /// Output only. The resource name of the entity, of the form: projects/{project_number}/locations/{location_id}/lakes/{lake_id}/zones/{zone_id}/entities/{id}.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Required. The description of the data structure and layout. The schema is not included in list responses. It is only included in SCHEMA and FULL entity views of a GetEntity response.
+    #[serde(default)]
+    pub schema: ::core::option::Option<GoogleCloudDataplexV1Schema>,
+    /// Required. Immutable. Identifies the storage system of the entity data. // TODO: enum values: ["STORAGE_SYSTEM_UNSPECIFIED", "CLOUD_STORAGE", "BIGQUERY"]
+    #[serde(default)]
+    pub system: ::core::option::Option<String>,
+    /// Required. Immutable. The type of entity. // TODO: enum values: ["TYPE_UNSPECIFIED", "TABLE", "FILESET"]
+    #[serde(default, rename = "type")]
+    pub type_: ::core::option::Option<String>,
+    /// Output only. System generated unique ID for the Entity. This ID will be different if the Entity is deleted and re-created with the same name.
+    #[serde(default)]
+    pub uid: ::core::option::Option<String>,
+    /// Output only. The time when the entity was last updated.
+    #[serde(default, rename = "updateTime")]
+    pub update_time: ::core::option::Option<String>,
+}
+
+/// An Entry Group represents a logical grouping of one or more Entries.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDataplexV1EntryGroup {
+    /// Output only. The time when the EntryGroup was created.
+    #[serde(default, rename = "createTime")]
+    pub create_time: ::core::option::Option<String>,
+    /// Optional. Description of the EntryGroup.
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+    /// Optional. User friendly display name.
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+    /// This checksum is computed by the service, and might be sent on update and delete requests to ensure the client has an up-to-date value before proceeding.
+    #[serde(default)]
+    pub etag: ::core::option::Option<String>,
+    /// Optional. User-defined labels for the EntryGroup.
+    #[serde(default)]
+    pub labels: ::core::option::Option<serde_json::Value>,
+    /// Output only. The relative resource name of the EntryGroup, in the format projects/{project_id_or_number}/locations/{location_id}/entryGroups/{entry_group_id}.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Output only. Denotes the transfer status of the Entry Group. It is unspecified for Entry Group created from Dataplex API. // TODO: enum values: ["TRANSFER_STATUS_UNSPECIFIED", "TRANSFER_STATUS_MIGRATED", "TRANSFER_STATUS_TRANSFERRED"]
+    #[serde(default, rename = "transferStatus")]
+    pub transfer_status: ::core::option::Option<String>,
+    /// Output only. System generated globally unique ID for the EntryGroup. If you delete and recreate the EntryGroup with the same name, this ID will be different.
+    #[serde(default)]
+    pub uid: ::core::option::Option<String>,
+    /// Output only. The time when the EntryGroup was last updated.
+    #[serde(default, rename = "updateTime")]
+    pub update_time: ::core::option::Option<String>,
+}
+
+/// Entry Type is a template for creating Entries.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDataplexV1EntryType {
+    /// Immutable. Authorization defined for this type.
+    #[serde(default)]
+    pub authorization: ::core::option::Option<GoogleCloudDataplexV1EntryTypeAuthorization>,
+    /// Output only. The time when the EntryType was created.
+    #[serde(default, rename = "createTime")]
+    pub create_time: ::core::option::Option<String>,
+    /// Optional. Description of the EntryType.
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+    /// Optional. User friendly display name.
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+    /// Optional. This checksum is computed by the service, and might be sent on update and delete requests to ensure the client has an up-to-date value before proceeding.
+    #[serde(default)]
+    pub etag: ::core::option::Option<String>,
+    /// Optional. User-defined labels for the EntryType.
+    #[serde(default)]
+    pub labels: ::core::option::Option<serde_json::Value>,
+    /// Output only. The relative resource name of the EntryType, of the form: projects/{project_number}/locations/{location_id}/entryTypes/{entry_type_id}.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Optional. The platform that Entries of this type belongs to.
+    #[serde(default)]
+    pub platform: ::core::option::Option<String>,
+    /// AspectInfo for the entry type.
+    #[serde(default, rename = "requiredAspects")]
+    pub required_aspects:
+        ::core::option::Option<::std::vec::Vec<GoogleCloudDataplexV1EntryTypeAspectInfo>>,
+    /// Optional. The system that Entries of this type belongs to. Examples include CloudSQL, MariaDB etc
+    #[serde(default)]
+    pub system: ::core::option::Option<String>,
+    /// Optional. Indicates the classes this Entry Type belongs to, for example, TABLE, DATABASE, MODEL.
+    #[serde(default, rename = "typeAliases")]
+    pub type_aliases: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Output only. System generated globally unique ID for the EntryType. This ID will be different if the EntryType is deleted and re-created with the same name.
+    #[serde(default)]
+    pub uid: ::core::option::Option<String>,
+    /// Output only. The time when the EntryType was last updated.
+    #[serde(default, rename = "updateTime")]
+    pub update_time: ::core::option::Option<String>,
+}
+
+/// A Glossary represents a collection of GlossaryCategories and GlossaryTerms defined by the user. Glossary is a top level resource and is the Google Cloud parent resource of all the GlossaryCategories and GlossaryTerms within it.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDataplexV1Glossary {
+    /// Output only. The number of GlossaryCategories in the Glossary.
+    #[serde(default, rename = "categoryCount")]
+    pub category_count: ::core::option::Option<i32>,
+    /// Output only. The time at which the Glossary was created.
+    #[serde(default, rename = "createTime")]
+    pub create_time: ::core::option::Option<String>,
+    /// Optional. The user-mutable description of the Glossary.
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+    /// Optional. User friendly display name of the Glossary. This is user-mutable. This will be same as the GlossaryId, if not specified.
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+    /// Optional. Needed for resource freshness validation. This checksum is computed by the server based on the value of other fields, and may be sent on update and delete requests to ensure the client has an up-to-date value before proceeding.
+    #[serde(default)]
+    pub etag: ::core::option::Option<String>,
+    /// Optional. User-defined labels for the Glossary.
+    #[serde(default)]
+    pub labels: ::core::option::Option<serde_json::Value>,
+    /// Output only. Identifier. The resource name of the Glossary. Format: projects/{project_id_or_number}/locations/{location_id}/glossaries/{glossary_id}
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Output only. The number of GlossaryTerms in the Glossary.
+    #[serde(default, rename = "termCount")]
+    pub term_count: ::core::option::Option<i32>,
+    /// Output only. System generated unique id for the Glossary. This ID will be different if the Glossary is deleted and re-created with the same name.
+    #[serde(default)]
+    pub uid: ::core::option::Option<String>,
+    /// Output only. The time at which the Glossary was last updated.
+    #[serde(default, rename = "updateTime")]
+    pub update_time: ::core::option::Option<String>,
+}
+
+/// A GlossaryCategory represents a collection of GlossaryCategories and GlossaryTerms within a Glossary that are related to each other.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDataplexV1GlossaryCategory {
+    /// Output only. The time at which the GlossaryCategory was created.
+    #[serde(default, rename = "createTime")]
+    pub create_time: ::core::option::Option<String>,
+    /// Optional. The user-mutable description of the GlossaryCategory.
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+    /// Optional. User friendly display name of the GlossaryCategory. This is user-mutable. This will be same as the GlossaryCategoryId, if not specified.
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+    /// Optional. User-defined labels for the GlossaryCategory.
+    #[serde(default)]
+    pub labels: ::core::option::Option<serde_json::Value>,
+    /// Output only. Identifier. The resource name of the GlossaryCategory. Format: projects/{project_id_or_number}/locations/{location_id}/glossaries/{glossary_id}/categories/{category_id}
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Required. The immediate parent of the GlossaryCategory in the resource-hierarchy. It can either be a Glossary or a GlossaryCategory. Format: projects/{project_id_or_number}/locations/{location_id}/glossaries/{glossary_id} OR projects/{project_id_or_number}/locations/{location_id}/glossaries/{glossary_id}/categories/{category_id}
+    #[serde(default)]
+    pub parent: ::core::option::Option<String>,
+    /// Output only. System generated unique id for the GlossaryCategory. This ID will be different if the GlossaryCategory is deleted and re-created with the same name.
+    #[serde(default)]
+    pub uid: ::core::option::Option<String>,
+    /// Output only. The time at which the GlossaryCategory was last updated.
+    #[serde(default, rename = "updateTime")]
+    pub update_time: ::core::option::Option<String>,
+}
+
+/// GlossaryTerms are the core of Glossary. A GlossaryTerm holds a rich text description that can be attached to Entries or specific columns to enrich them.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDataplexV1GlossaryTerm {
+    /// Output only. The time at which the GlossaryTerm was created.
+    #[serde(default, rename = "createTime")]
+    pub create_time: ::core::option::Option<String>,
+    /// Optional. The user-mutable description of the GlossaryTerm.
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+    /// Optional. User friendly display name of the GlossaryTerm. This is user-mutable. This will be same as the GlossaryTermId, if not specified.
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+    /// Optional. User-defined labels for the GlossaryTerm.
+    #[serde(default)]
+    pub labels: ::core::option::Option<serde_json::Value>,
+    /// Output only. Identifier. The resource name of the GlossaryTerm. Format: projects/{project_id_or_number}/locations/{location_id}/glossaries/{glossary_id}/terms/{term_id}
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Required. The immediate parent of the GlossaryTerm in the resource-hierarchy. It can either be a Glossary or a GlossaryCategory. Format: projects/{project_id_or_number}/locations/{location_id}/glossaries/{glossary_id} OR projects/{project_id_or_number}/locations/{location_id}/glossaries/{glossary_id}/categories/{category_id}
+    #[serde(default)]
+    pub parent: ::core::option::Option<String>,
+    /// Output only. System generated unique id for the GlossaryTerm. This ID will be different if the GlossaryTerm is deleted and re-created with the same name.
+    #[serde(default)]
+    pub uid: ::core::option::Option<String>,
+    /// Output only. The time at which the GlossaryTerm was last updated.
+    #[serde(default, rename = "updateTime")]
+    pub update_time: ::core::option::Option<String>,
+}
+
+/// A lake is a centralized repository for managing enterprise data across the organization distributed across many cloud projects, and stored in a variety of storage services such as Google Cloud Storage and BigQuery. The resources attached to a lake are referred to as managed resources. Data within these managed resources can be structured or unstructured. A lake provides data admins with tools to organize, secure and manage their data at scale, and provides data scientists and data engineers an integrated experience to easily search, discover, analyze and transform data and associated metadata.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDataplexV1Lake {
+    /// Output only. Aggregated status of the underlying assets of the lake.
+    #[serde(default, rename = "assetStatus")]
+    pub asset_status: ::core::option::Option<GoogleCloudDataplexV1AssetStatus>,
+    /// Output only. The time when the lake was created.
+    #[serde(default, rename = "createTime")]
+    pub create_time: ::core::option::Option<String>,
+    /// Optional. Description of the lake.
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+    /// Optional. User friendly display name.
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+    /// Optional. User-defined labels for the lake.
+    #[serde(default)]
+    pub labels: ::core::option::Option<serde_json::Value>,
+    /// Optional. Settings to manage lake and Dataproc Metastore service instance association.
+    #[serde(default)]
+    pub metastore: ::core::option::Option<GoogleCloudDataplexV1LakeMetastore>,
+    /// Output only. Metastore status of the lake.
+    #[serde(default, rename = "metastoreStatus")]
+    pub metastore_status: ::core::option::Option<GoogleCloudDataplexV1LakeMetastoreStatus>,
+    /// Output only. The relative resource name of the lake, of the form: projects/{project_number}/locations/{location_id}/lakes/{lake_id}.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Output only. Service account associated with this lake. This service account must be authorized to access or operate on resources managed by the lake.
+    #[serde(default, rename = "serviceAccount")]
+    pub service_account: ::core::option::Option<String>,
+    /// Output only. Current state of the lake. // TODO: enum values: ["STATE_UNSPECIFIED", "ACTIVE", "CREATING", "DELETING", "ACTION_REQUIRED"]
+    #[serde(default)]
+    pub state: ::core::option::Option<String>,
+    /// Output only. System generated globally unique ID for the lake. This ID will be different if the lake is deleted and re-created with the same name.
+    #[serde(default)]
+    pub uid: ::core::option::Option<String>,
+    /// Output only. The time when the lake was last updated.
+    #[serde(default, rename = "updateTime")]
+    pub update_time: ::core::option::Option<String>,
+}
+
 /// MetadataFeed contains information related to the metadata feed.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDataplexV1MetadataFeed {
@@ -3074,34 +1694,6 @@ pub struct GoogleCloudDataplexV1MetadataFeed {
     /// Output only. The time when the feed was updated.
     #[serde(default, rename = "updateTime")]
     pub update_time: ::core::option::Option<String>,
-}
-
-/// Filters defines the type of changes that you want to listen to. You can have multiple entry type filters and multiple aspect type filters. All of the entry type filters are OR''ed together. All of the aspect type filters are OR''ed together. All of the entry type filters and aspect type filters are AND''ed together.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDataplexV1MetadataFeedFilters {
-    /// Optional. The aspect types that you want to listen to. Depending on how the aspect is attached to the entry, in the format: projects/{project_id_or_number}/locations/{location}/aspectTypes/{aspect_type_id}.
-    #[serde(default, rename = "aspectTypes")]
-    pub aspect_types: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Optional. The type of change that you want to listen to. If not specified, all changes are published.
-    #[serde(default, rename = "changeTypes")]
-    pub change_types: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Optional. The entry types that you want to listen to, specified as relative resource names in the format projects/{project_id_or_number}/locations/{location}/entryTypes/{entry_type_id}. Only entries that belong to the specified entry types are published.
-    #[serde(default, rename = "entryTypes")]
-    pub entry_types: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// Scope defines the scope of the metadata feed. Scopes are exclusive. Only one of the scopes can be specified.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDataplexV1MetadataFeedScope {
-    /// Optional. The entry groups whose entries you want to listen to. Must be in the format: projects/{project_id_or_number}/locations/{location_id}/entryGroups/{entry_group_id}.
-    #[serde(default, rename = "entryGroups")]
-    pub entry_groups: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Optional. Whether the metadata feed is at the organization-level. If true, all changes happened to the entries in the same organization as the feed are published. If false, you must specify a list of projects or a list of entry groups whose entries you want to listen to.The default is false.
-    #[serde(default, rename = "organizationLevel")]
-    pub organization_level: ::core::option::Option<bool>,
-    /// Optional. The projects whose entries you want to listen to. Must be in the same organization as the feed. Must be in the format: projects/{project_id_or_number}.
-    #[serde(default)]
-    pub projects: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// A metadata job resource.
@@ -3142,6 +1734,693 @@ pub struct GoogleCloudDataplexV1MetadataJob {
     pub update_time: ::core::option::Option<String>,
 }
 
+/// Represents partition metadata contained within entity instances.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDataplexV1Partition {
+    /// Optional. The etag for this partition.
+    #[serde(default)]
+    pub etag: ::core::option::Option<String>,
+    /// Required. Immutable. The location of the entity data within the partition, for example, gs://bucket/path/to/entity/key1=value1/key2=value2. Or projects//datasets//tables/
+    #[serde(default)]
+    pub location: ::core::option::Option<String>,
+    /// Output only. Partition values used in the HTTP URL must be double encoded. For example, url_encode(url_encode(value)) can be used to encode "US:CA/CA#Sunnyvale so that the request URL ends with "/partitions/US%253ACA/CA%2523Sunnyvale". The name field in the response retains the encoded format.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Required. Immutable. The set of values representing the partition, which correspond to the partition schema defined in the parent entity.
+    #[serde(default)]
+    pub values: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// A task represents a user-visible job.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDataplexV1Task {
+    /// Output only. The time when the task was created.
+    #[serde(default, rename = "createTime")]
+    pub create_time: ::core::option::Option<String>,
+    /// Optional. Description of the task.
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+    /// Optional. User friendly display name.
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+    /// Required. Spec related to how a task is executed.
+    #[serde(default, rename = "executionSpec")]
+    pub execution_spec: ::core::option::Option<GoogleCloudDataplexV1TaskExecutionSpec>,
+    /// Output only. Status of the latest task executions.
+    #[serde(default, rename = "executionStatus")]
+    pub execution_status: ::core::option::Option<GoogleCloudDataplexV1TaskExecutionStatus>,
+    /// Optional. User-defined labels for the task.
+    #[serde(default)]
+    pub labels: ::core::option::Option<serde_json::Value>,
+    /// Output only. The relative resource name of the task, of the form: projects/{project_number}/locations/{location_id}/lakes/{lake_id}/ tasks/{task_id}.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Config related to running scheduled Notebooks.
+    #[serde(default)]
+    pub notebook: ::core::option::Option<GoogleCloudDataplexV1TaskNotebookTaskConfig>,
+    /// Config related to running custom Spark tasks.
+    #[serde(default)]
+    pub spark: ::core::option::Option<GoogleCloudDataplexV1TaskSparkTaskConfig>,
+    /// Output only. Current state of the task. // TODO: enum values: ["STATE_UNSPECIFIED", "ACTIVE", "CREATING", "DELETING", "ACTION_REQUIRED"]
+    #[serde(default)]
+    pub state: ::core::option::Option<String>,
+    /// Required. Spec related to how often and when a task should be triggered.
+    #[serde(default, rename = "triggerSpec")]
+    pub trigger_spec: ::core::option::Option<GoogleCloudDataplexV1TaskTriggerSpec>,
+    /// Output only. System generated globally unique ID for the task. This ID will be different if the task is deleted and re-created with the same name.
+    #[serde(default)]
+    pub uid: ::core::option::Option<String>,
+    /// Output only. The time when the task was last updated.
+    #[serde(default, rename = "updateTime")]
+    pub update_time: ::core::option::Option<String>,
+}
+
+/// A zone represents a logical group of related assets within a lake. A zone can be used to map to organizational structure or represent stages of data readiness from raw to curated. It provides managing behavior that is shared or inherited by all contained assets.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDataplexV1Zone {
+    /// Output only. Aggregated status of the underlying assets of the zone.
+    #[serde(default, rename = "assetStatus")]
+    pub asset_status: ::core::option::Option<GoogleCloudDataplexV1AssetStatus>,
+    /// Output only. The time when the zone was created.
+    #[serde(default, rename = "createTime")]
+    pub create_time: ::core::option::Option<String>,
+    /// Optional. Description of the zone.
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+    /// Optional. Specification of the discovery feature applied to data in this zone.
+    #[serde(default, rename = "discoverySpec")]
+    pub discovery_spec: ::core::option::Option<GoogleCloudDataplexV1ZoneDiscoverySpec>,
+    /// Optional. User friendly display name.
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+    /// Optional. User defined labels for the zone.
+    #[serde(default)]
+    pub labels: ::core::option::Option<serde_json::Value>,
+    /// Output only. The relative resource name of the zone, of the form: projects/{project_number}/locations/{location_id}/lakes/{lake_id}/zones/{zone_id}.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Required. Specification of the resources that are referenced by the assets within this zone.
+    #[serde(default, rename = "resourceSpec")]
+    pub resource_spec: ::core::option::Option<GoogleCloudDataplexV1ZoneResourceSpec>,
+    /// Output only. Current state of the zone. // TODO: enum values: ["STATE_UNSPECIFIED", "ACTIVE", "CREATING", "DELETING", "ACTION_REQUIRED"]
+    #[serde(default)]
+    pub state: ::core::option::Option<String>,
+    /// Required. Immutable. The type of the zone. // TODO: enum values: ["TYPE_UNSPECIFIED", "RAW", "CURATED"]
+    #[serde(default, rename = "type")]
+    pub type_: ::core::option::Option<String>,
+    /// Output only. System generated globally unique ID for the zone. This ID will be different if the zone is deleted and re-created with the same name.
+    #[serde(default)]
+    pub uid: ::core::option::Option<String>,
+    /// Output only. The time when the zone was last updated.
+    #[serde(default, rename = "updateTime")]
+    pub update_time: ::core::option::Option<String>,
+}
+
+/// EntryLink represents a link between two Entries.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDataplexV1EntryLink {
+    /// Optional. The aspects that are attached to the entry link. The format of the aspect key has to be the following: {project_id_or_number}.{location_id}.{aspect_type_id} Currently, only a single aspect of a Dataplex-owned Aspect Type is allowed.
+    #[serde(default)]
+    pub aspects: ::core::option::Option<serde_json::Value>,
+    /// Output only. The time when the Entry Link was created.
+    #[serde(default, rename = "createTime")]
+    pub create_time: ::core::option::Option<String>,
+    /// Required. Immutable. Relative resource name of the Entry Link Type used to create this Entry Link. For example: Entry link between synonym terms in a glossary: projects/dataplex-types/locations/global/entryLinkTypes/synonym Entry link between related terms in a glossary: projects/dataplex-types/locations/global/entryLinkTypes/related Entry link between glossary terms and data assets: projects/dataplex-types/locations/global/entryLinkTypes/definition
+    #[serde(default, rename = "entryLinkType")]
+    pub entry_link_type: ::core::option::Option<String>,
+    /// Required. Immutable. Specifies the Entries referenced in the Entry Link. There should be exactly two entry references.
+    #[serde(default, rename = "entryReferences")]
+    pub entry_references:
+        ::core::option::Option<::std::vec::Vec<GoogleCloudDataplexV1EntryLinkEntryReference>>,
+    /// Output only. Immutable. Identifier. The relative resource name of the Entry Link, of the form: projects/{project_id_or_number}/locations/{location_id}/entryGroups/{entry_group_id}/entryLinks/{entry_link_id}
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Output only. The time when the Entry Link was last updated.
+    #[serde(default, rename = "updateTime")]
+    pub update_time: ::core::option::Option<String>,
+}
+
+/// A DataScanJob represents an instance of DataScan execution.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDataplexV1DataScanJob {
+    /// Output only. The time when the DataScanJob was created.
+    #[serde(default, rename = "createTime")]
+    pub create_time: ::core::option::Option<String>,
+    /// Output only. The result of a data discovery scan.
+    #[serde(default, rename = "dataDiscoveryResult")]
+    pub data_discovery_result: ::core::option::Option<GoogleCloudDataplexV1DataDiscoveryResult>,
+    /// Output only. Settings for a data discovery scan.
+    #[serde(default, rename = "dataDiscoverySpec")]
+    pub data_discovery_spec: ::core::option::Option<GoogleCloudDataplexV1DataDiscoverySpec>,
+    /// Output only. The result of a data documentation scan.
+    #[serde(default, rename = "dataDocumentationResult")]
+    pub data_documentation_result:
+        ::core::option::Option<GoogleCloudDataplexV1DataDocumentationResult>,
+    /// Output only. Settings for a data documentation scan.
+    #[serde(default, rename = "dataDocumentationSpec")]
+    pub data_documentation_spec: ::core::option::Option<GoogleCloudDataplexV1DataDocumentationSpec>,
+    /// Output only. The result of a data profile scan.
+    #[serde(default, rename = "dataProfileResult")]
+    pub data_profile_result: ::core::option::Option<GoogleCloudDataplexV1DataProfileResult>,
+    /// Output only. Settings for a data profile scan.
+    #[serde(default, rename = "dataProfileSpec")]
+    pub data_profile_spec: ::core::option::Option<GoogleCloudDataplexV1DataProfileSpec>,
+    /// Output only. The result of a data quality scan.
+    #[serde(default, rename = "dataQualityResult")]
+    pub data_quality_result: ::core::option::Option<GoogleCloudDataplexV1DataQualityResult>,
+    /// Output only. Settings for a data quality scan.
+    #[serde(default, rename = "dataQualitySpec")]
+    pub data_quality_spec: ::core::option::Option<GoogleCloudDataplexV1DataQualitySpec>,
+    /// Output only. The time when the DataScanJob ended.
+    #[serde(default, rename = "endTime")]
+    pub end_time: ::core::option::Option<String>,
+    /// Output only. Additional information about the current state.
+    #[serde(default)]
+    pub message: ::core::option::Option<String>,
+    /// Output only. Identifier. The relative resource name of the DataScanJob, of the form: projects/{project}/locations/{location_id}/dataScans/{datascan_id}/jobs/{job_id}, where project refers to a project_id or project_number and location_id refers to a Google Cloud region.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Output only. The time when the DataScanJob was started.
+    #[serde(default, rename = "startTime")]
+    pub start_time: ::core::option::Option<String>,
+    /// Output only. Execution state for the DataScanJob. // TODO: enum values: ["STATE_UNSPECIFIED", "RUNNING", "CANCELING", "CANCELLED", "SUCCEEDED", "FAILED", "PENDING"]
+    #[serde(default)]
+    pub state: ::core::option::Option<String>,
+    /// Output only. The type of the parent DataScan. // TODO: enum values: ["DATA_SCAN_TYPE_UNSPECIFIED", "DATA_QUALITY", "DATA_PROFILE", "DATA_DISCOVERY", "DATA_DOCUMENTATION"]
+    #[serde(default, rename = "type")]
+    pub type_: ::core::option::Option<String>,
+    /// Output only. System generated globally unique ID for the DataScanJob.
+    #[serde(default)]
+    pub uid: ::core::option::Option<String>,
+}
+
+/// A single result of a SearchEntries request.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDataplexV1SearchEntriesResult {
+    #[serde(default, rename = "dataplexEntry")]
+    pub dataplex_entry: ::core::option::Option<GoogleCloudDataplexV1Entry>,
+    /// Linked resource name.
+    #[serde(default, rename = "linkedResource")]
+    pub linked_resource: ::core::option::Option<String>,
+    /// Snippets.
+    #[serde(default)]
+    pub snippets: ::core::option::Option<GoogleCloudDataplexV1SearchEntriesResultSnippets>,
+}
+
+/// Execution details of the query.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDataplexV1SessionEventQueryDetail {
+    /// The data processed by the query.
+    #[serde(default, rename = "dataProcessedBytes")]
+    pub data_processed_bytes: ::core::option::Option<String>,
+    /// Time taken for execution of the query.
+    #[serde(default)]
+    pub duration: ::core::option::Option<String>,
+    /// Query Execution engine. // TODO: enum values: ["ENGINE_UNSPECIFIED", "SPARK_SQL", "BIGQUERY"]
+    #[serde(default)]
+    pub engine: ::core::option::Option<String>,
+    /// The unique Query id identifying the query.
+    #[serde(default, rename = "queryId")]
+    pub query_id: ::core::option::Option<String>,
+    /// The query text executed.
+    #[serde(default, rename = "queryText")]
+    pub query_text: ::core::option::Option<String>,
+    /// The size of results the query produced.
+    #[serde(default, rename = "resultSizeBytes")]
+    pub result_size_bytes: ::core::option::Option<String>,
+}
+
+/// A resource that represents a Google Cloud location.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudLocationLocation {
+    /// The friendly name for this location, typically a nearby city name. For example, "Tokyo".
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+    /// Cross-service attributes for the location. For example {"cloud.googleapis.com/region": "us-east1"}
+    #[serde(default)]
+    pub labels: ::core::option::Option<serde_json::Value>,
+    /// The canonical id for this location. For example: "us-east1".
+    #[serde(default, rename = "locationId")]
+    pub location_id: ::core::option::Option<String>,
+    /// Service-specific metadata. For example the available capacity at the given location.
+    #[serde(default)]
+    pub metadata: ::core::option::Option<serde_json::Value>,
+    /// Resource name for the location, which may vary between implementations. For example: "projects/example-project/locations/us-east1"
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+}
+
+/// An Identity and Access Management (IAM) policy, which specifies access controls for Google Cloud resources.A Policy is a collection of bindings. A binding binds one or more members, or principals, to a single role. Principals can be user accounts, service accounts, Google groups, and domains (such as G Suite). A role is a named list of permissions; each role can be an IAM predefined role or a user-created custom role.For some types of Google Cloud resources, a binding can also specify a condition, which is a logical expression that allows access to a resource only if the expression evaluates to true. A condition can add constraints based on attributes of the request, the resource, or both. To learn which resources support conditions in their IAM policies, see the IAM documentation (https://cloud.google.com/iam/help/conditions/resource-policies).JSON example: { "bindings": [ { "role": "roles/resourcemanager.organizationAdmin", "members": [ "user:mike@example.com", "group:admins@example.com", "domain:google.com", "serviceAccount:my-project-id@appspot.gserviceaccount.com" ] }, { "role": "roles/resourcemanager.organizationViewer", "members": [ "user:eve@example.com" ], "condition": { "title": "expirable access", "description": "Does not grant access after Sep 2020", "expression": "request.time &lt; timestamp(''2020-10-01T00:00:00.000Z'')", } } ], "etag": "BwWWja0YfJA=", "version": 3 } YAML example: bindings: - members: - user:mike@example.com - group:admins@example.com - domain:google.com - serviceAccount:my-project-id@appspot.gserviceaccount.com role: roles/resourcemanager.organizationAdmin - members: - user:eve@example.com role: roles/resourcemanager.organizationViewer condition: title: expirable access description: Does not grant access after Sep 2020 expression: request.time &lt; timestamp(''2020-10-01T00:00:00.000Z'') etag: BwWWja0YfJA= version: 3 For a description of IAM and its features, see the IAM documentation (https://cloud.google.com/iam/docs/).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleIamV1Policy {
+    /// Specifies cloud audit logging configuration for this policy.
+    #[serde(default, rename = "auditConfigs")]
+    pub audit_configs: ::core::option::Option<::std::vec::Vec<GoogleIamV1AuditConfig>>,
+    /// Associates a list of members, or principals, with a role. Optionally, may specify a condition that determines how and when the bindings are applied. Each of the bindings must contain at least one principal.The bindings in a Policy can refer to up to 1,500 principals; up to 250 of these principals can be Google groups. Each occurrence of a principal counts towards these limits. For example, if the bindings grant 50 different roles to user:alice@example.com, and not to any other principal, then you can add another 1,450 principals to the bindings in the Policy.
+    #[serde(default)]
+    pub bindings: ::core::option::Option<::std::vec::Vec<GoogleIamV1Binding>>,
+    /// etag is used for optimistic concurrency control as a way to help prevent simultaneous updates of a policy from overwriting each other. It is strongly suggested that systems make use of the etag in the read-modify-write cycle to perform policy updates in order to avoid race conditions: An etag is returned in the response to getIamPolicy, and systems are expected to put that etag in the request to setIamPolicy to ensure that their change will be applied to the same version of the policy.Important: If you use IAM Conditions, you must include the etag field whenever you call setIamPolicy. If you omit this field, then IAM allows you to overwrite a version 3 policy with a version 1 policy, and all of the conditions in the version 3 policy are lost.
+    #[serde(default)]
+    pub etag: ::core::option::Option<String>,
+    /// Specifies the format of the policy.Valid values are 0, 1, and 3. Requests that specify an invalid value are rejected.Any operation that affects conditional role bindings must specify version 3. This requirement applies to the following operations: Getting a policy that includes a conditional role binding Adding a conditional role binding to a policy Changing a conditional role binding in a policy Removing any role binding, with or without a condition, from a policy that includes conditionsImportant: If you use IAM Conditions, you must include the etag field whenever you call setIamPolicy. If you omit this field, then IAM allows you to overwrite a version 3 policy with a version 1 policy, and all of the conditions in the version 3 policy are lost.If a policy does not include any conditions, operations on that policy may specify any valid version or leave the field unset.To learn which resources support conditions in their IAM policies, see the IAM documentation (https://cloud.google.com/iam/help/conditions/resource-policies).
+    #[serde(default)]
+    pub version: ::core::option::Option<i32>,
+}
+
+/// This resource represents a long-running operation that is the result of a network API call.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleLongrunningOperation {
+    /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
+    #[serde(default)]
+    pub done: ::core::option::Option<bool>,
+    /// The error result of the operation in case of failure or cancellation.
+    #[serde(default)]
+    pub error: ::core::option::Option<GoogleRpcStatus>,
+    /// Service-specific metadata associated with the operation. It typically contains progress information and common metadata such as create time. Some services might not provide such metadata. Any method that returns a long-running operation should document the metadata type, if any.
+    #[serde(default)]
+    pub metadata: ::core::option::Option<serde_json::Value>,
+    /// The server-assigned name, which is only unique within the same service that originally returns it. If you use the default HTTP mapping, the name should be a resource name ending with operations/{unique_id}.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// The normal, successful response of the operation. If the original method returns no data on success, such as Delete, the response is google.protobuf.Empty. If the original method is standard Get/Create/Update, the response should be the resource. For other methods, the response should have the type XxxResponse, where Xxx is the original method name. For example, if the original method name is TakeSnapshot(), the inferred response type is TakeSnapshotResponse.
+    #[serde(default)]
+    pub response: ::core::option::Option<serde_json::Value>,
+}
+
+/// The result of BigQuery export post scan action.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDataplexV1DataScanEventPostScanActionsResultBigQueryExportResult {
+    /// Additional information about the BigQuery exporting.
+    #[serde(default)]
+    pub message: ::core::option::Option<String>,
+    /// Execution state for the BigQuery exporting. // TODO: enum values: ["STATE_UNSPECIFIED", "SUCCEEDED", "FAILED", "SKIPPED"]
+    #[serde(default)]
+    pub state: ::core::option::Option<String>,
+}
+
+/// Failed to apply security policy to the managed resource(s) under a lake, zone or an asset. For a lake or zone resource, one or more underlying assets has a failure applying security policy to the associated managed resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDataplexV1ActionFailedSecurityPolicyApply {
+    /// Resource name of one of the assets with failing security policy application. Populated for a lake or zone resource only.
+    #[serde(default)]
+    pub asset: ::core::option::Option<String>,
+}
+
+/// Action details for incompatible schemas detected by discovery.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDataplexV1ActionIncompatibleDataSchema {
+    /// The existing and expected schema of the table. The schema is provided as a JSON formatted structure listing columns and data types.
+    #[serde(default, rename = "existingSchema")]
+    pub existing_schema: ::core::option::Option<String>,
+    /// The new and incompatible schema within the table. The schema is provided as a JSON formatted structured listing columns and data types.
+    #[serde(default, rename = "newSchema")]
+    pub new_schema: ::core::option::Option<String>,
+    /// The list of data locations sampled and used for format/schema inference.
+    #[serde(default, rename = "sampledDataLocations")]
+    pub sampled_data_locations: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Whether the action relates to a schema that is incompatible or modified. // TODO: enum values: ["SCHEMA_CHANGE_UNSPECIFIED", "INCOMPATIBLE", "MODIFIED"]
+    #[serde(default, rename = "schemaChange")]
+    pub schema_change: ::core::option::Option<String>,
+    /// The name of the table containing invalid data.
+    #[serde(default)]
+    pub table: ::core::option::Option<String>,
+}
+
+/// Action details for invalid or unsupported data files detected by discovery.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDataplexV1ActionInvalidDataFormat {
+    /// The expected data format of the entity.
+    #[serde(default, rename = "expectedFormat")]
+    pub expected_format: ::core::option::Option<String>,
+    /// The new unexpected data format within the entity.
+    #[serde(default, rename = "newFormat")]
+    pub new_format: ::core::option::Option<String>,
+    /// The list of data locations sampled and used for format/schema inference.
+    #[serde(default, rename = "sampledDataLocations")]
+    pub sampled_data_locations: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// Action details for invalid or unsupported partitions detected by discovery.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDataplexV1ActionInvalidDataPartition {
+    /// The issue type of InvalidDataPartition. // TODO: enum values: ["PARTITION_STRUCTURE_UNSPECIFIED", "CONSISTENT_KEYS", "HIVE_STYLE_KEYS"]
+    #[serde(default, rename = "expectedStructure")]
+    pub expected_structure: ::core::option::Option<String>,
+}
+
+/// Authorization for an AspectType.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDataplexV1AspectTypeAuthorization {
+    /// Immutable. The IAM permission grantable on the EntryGroup to allow access to instantiate Aspects of Dataplex Universal Catalog owned AspectTypes, only settable for Dataplex Universal Catalog owned Types.
+    #[serde(default, rename = "alternateUsePermission")]
+    pub alternate_use_permission: ::core::option::Option<String>,
+}
+
+/// MetadataTemplate definition for an AspectType.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDataplexV1AspectTypeMetadataTemplate {
+    /// Optional. Specifies annotations on this field.
+    #[serde(default)]
+    pub annotations:
+        ::core::option::Option<GoogleCloudDataplexV1AspectTypeMetadataTemplateAnnotations>,
+    /// Optional. If the type is array, set array_items. array_items can refer to a primitive field or a complex (record only) field. To specify a primitive field, you only need to set name and type in the nested MetadataTemplate. The recommended value for the name field is item, as this isn''t used in the actual payload.
+    #[serde(default, rename = "arrayItems")]
+    pub array_items: ::core::option::Option<GoogleCloudDataplexV1AspectTypeMetadataTemplate>,
+    /// Optional. Specifies the constraints on this field.
+    #[serde(default)]
+    pub constraints:
+        ::core::option::Option<GoogleCloudDataplexV1AspectTypeMetadataTemplateConstraints>,
+    /// Optional. The list of values for an enum type. You must define it if the type is enum.
+    #[serde(default, rename = "enumValues")]
+    pub enum_values: ::core::option::Option<
+        ::std::vec::Vec<GoogleCloudDataplexV1AspectTypeMetadataTemplateEnumValue>,
+    >,
+    /// Optional. Index is used to encode Template messages. The value of index can range between 1 and 2,147,483,647. Index must be unique within all fields in a Template. (Nested Templates can reuse indexes). Once a Template is defined, the index cannot be changed, because it identifies the field in the actual storage format. Index is a mandatory field, but it is optional for top level fields, and map/array "values" definitions.
+    #[serde(default)]
+    pub index: ::core::option::Option<i32>,
+    /// Optional. If the type is map, set map_items. map_items can refer to a primitive field or a complex (record only) field. To specify a primitive field, you only need to set name and type in the nested MetadataTemplate. The recommended value for the name field is item, as this isn''t used in the actual payload.
+    #[serde(default, rename = "mapItems")]
+    pub map_items: ::core::option::Option<GoogleCloudDataplexV1AspectTypeMetadataTemplate>,
+    /// Required. The name of the field.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Optional. Field definition. You must specify it if the type is record. It defines the nested fields.
+    #[serde(default, rename = "recordFields")]
+    pub record_fields:
+        ::core::option::Option<::std::vec::Vec<GoogleCloudDataplexV1AspectTypeMetadataTemplate>>,
+    /// Required. The datatype of this field. The following values are supported:Primitive types: string int bool double datetime. Must be of the format RFC3339 UTC "Zulu" (Examples: "2014-10-02T15:01:23Z" and "2014-10-02T15:01:23.045123456Z").Complex types: enum array map record
+    #[serde(default, rename = "type")]
+    pub type_: ::core::option::Option<String>,
+    /// Optional. You can use type id if this definition of the field needs to be reused later. The type id must be unique across the entire template. You can only specify it if the field type is record.
+    #[serde(default, rename = "typeId")]
+    pub type_id: ::core::option::Option<String>,
+    /// Optional. A reference to another field definition (not an inline definition). The value must be equal to the value of an id field defined elsewhere in the MetadataTemplate. Only fields with record type can refer to other fields.
+    #[serde(default, rename = "typeRef")]
+    pub type_ref: ::core::option::Option<String>,
+}
+
+/// Settings to manage the metadata discovery and publishing for an asset.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDataplexV1AssetDiscoverySpec {
+    /// Optional. Configuration for CSV data.
+    #[serde(default, rename = "csvOptions")]
+    pub csv_options: ::core::option::Option<GoogleCloudDataplexV1AssetDiscoverySpecCsvOptions>,
+    /// Optional. Whether discovery is enabled.
+    #[serde(default)]
+    pub enabled: ::core::option::Option<bool>,
+    /// Optional. The list of patterns to apply for selecting data to exclude during discovery. For Cloud Storage bucket assets, these are interpreted as glob patterns used to match object names. For BigQuery dataset assets, these are interpreted as patterns to match table names.
+    #[serde(default, rename = "excludePatterns")]
+    pub exclude_patterns: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Optional. The list of patterns to apply for selecting data to include during discovery if only a subset of the data should considered. For Cloud Storage bucket assets, these are interpreted as glob patterns used to match object names. For BigQuery dataset assets, these are interpreted as patterns to match table names.
+    #[serde(default, rename = "includePatterns")]
+    pub include_patterns: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Optional. Configuration for Json data.
+    #[serde(default, rename = "jsonOptions")]
+    pub json_options: ::core::option::Option<GoogleCloudDataplexV1AssetDiscoverySpecJsonOptions>,
+    /// Optional. Cron schedule (https://en.wikipedia.org/wiki/Cron) for running discovery periodically. Successive discovery runs must be scheduled at least 60 minutes apart. The default value is to run discovery every 60 minutes.To explicitly set a timezone to the cron tab, apply a prefix in the cron tab: "CRON_TZ=${IANA_TIME_ZONE}" or TZ=${IANA_TIME_ZONE}". The ${IANA_TIME_ZONE} may only be a valid string from IANA time zone database. For example, CRON_TZ=America/New_York 1 * * * *, or TZ=America/New_York 1 * * * *.
+    #[serde(default)]
+    pub schedule: ::core::option::Option<String>,
+}
+
+/// Status of discovery for an asset.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDataplexV1AssetDiscoveryStatus {
+    /// The duration of the last discovery run.
+    #[serde(default, rename = "lastRunDuration")]
+    pub last_run_duration: ::core::option::Option<String>,
+    /// The start time of the last discovery run.
+    #[serde(default, rename = "lastRunTime")]
+    pub last_run_time: ::core::option::Option<String>,
+    /// Additional information about the current state.
+    #[serde(default)]
+    pub message: ::core::option::Option<String>,
+    /// The current status of the discovery feature. // TODO: enum values: ["STATE_UNSPECIFIED", "SCHEDULED", "IN_PROGRESS", "PAUSED", "DISABLED"]
+    #[serde(default)]
+    pub state: ::core::option::Option<String>,
+    /// Data Stats of the asset reported by discovery.
+    #[serde(default)]
+    pub stats: ::core::option::Option<GoogleCloudDataplexV1AssetDiscoveryStatusStats>,
+    /// Last update time of the status.
+    #[serde(default, rename = "updateTime")]
+    pub update_time: ::core::option::Option<String>,
+}
+
+/// Identifies the cloud resource that is referenced by this asset.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDataplexV1AssetResourceSpec {
+    /// Immutable. Relative name of the cloud resource that contains the data that is being managed within a lake. For example: projects/{project_number}/buckets/{bucket_id} projects/{project_number}/datasets/{dataset_id}
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Optional. Determines how read permissions are handled for each asset and their associated tables. Only available to storage buckets assets. // TODO: enum values: ["ACCESS_MODE_UNSPECIFIED", "DIRECT", "MANAGED"]
+    #[serde(default, rename = "readAccessMode")]
+    pub read_access_mode: ::core::option::Option<String>,
+    /// Required. Immutable. Type of resource. // TODO: enum values: ["TYPE_UNSPECIFIED", "STORAGE_BUCKET", "BIGQUERY_DATASET"]
+    #[serde(default, rename = "type")]
+    pub type_: ::core::option::Option<String>,
+}
+
+/// Status of the resource referenced by an asset.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDataplexV1AssetResourceStatus {
+    /// Output only. Service account associated with the BigQuery Connection.
+    #[serde(default, rename = "managedAccessIdentity")]
+    pub managed_access_identity: ::core::option::Option<String>,
+    /// Additional information about the current state.
+    #[serde(default)]
+    pub message: ::core::option::Option<String>,
+    /// The current state of the managed resource. // TODO: enum values: ["STATE_UNSPECIFIED", "READY", "ERROR"]
+    #[serde(default)]
+    pub state: ::core::option::Option<String>,
+    /// Last update time of the status.
+    #[serde(default, rename = "updateTime")]
+    pub update_time: ::core::option::Option<String>,
+}
+
+/// Security policy status of the asset. Data security policy, i.e., readers, writers & owners, should be specified in the lake/zone/asset IAM policy.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDataplexV1AssetSecurityStatus {
+    /// Additional information about the current state.
+    #[serde(default)]
+    pub message: ::core::option::Option<String>,
+    /// The current state of the security policy applied to the attached resource. // TODO: enum values: ["STATE_UNSPECIFIED", "READY", "APPLYING", "ERROR"]
+    #[serde(default)]
+    pub state: ::core::option::Option<String>,
+    /// Last update time of the status.
+    #[serde(default, rename = "updateTime")]
+    pub update_time: ::core::option::Option<String>,
+}
+
+/// Represents a subresource of the given resource, and associated bindings with it. Currently supported subresources are column and partition schema fields within a table.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDataplexV1DataAttributeBindingPath {
+    /// Optional. List of attributes to be associated with the path of the resource, provided in the form: projects/{project}/locations/{location}/dataTaxonomies/{dataTaxonomy}/attributes/{data_attribute_id}
+    #[serde(default)]
+    pub attributes: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Required. The name identifier of the path. Nested columns should be of the form: ''address.city''.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+}
+
+/// DataAccessSpec holds the access control configuration to be enforced on data stored within resources (eg: rows, columns in BigQuery Tables). When associated with data, the data is only accessible to principals explicitly granted access through the DataAccessSpec. Principals with access to the containing resource are not implicitly granted access.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDataplexV1DataAccessSpec {
+    /// Optional. The format of strings follows the pattern followed by IAM in the bindings. user:{email}, serviceAccount:{email} group:{email}. The set of principals to be granted reader role on data stored within resources.
+    #[serde(default)]
+    pub readers: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// ResourceAccessSpec holds the access control configuration to be enforced on the resources, for example, Cloud Storage bucket, BigQuery dataset, BigQuery table.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDataplexV1ResourceAccessSpec {
+    /// Optional. The set of principals to be granted owner role on the resource.
+    #[serde(default)]
+    pub owners: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Optional. The format of strings follows the pattern followed by IAM in the bindings. user:{email}, serviceAccount:{email} group:{email}. The set of principals to be granted reader role on the resource.
+    #[serde(default)]
+    pub readers: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Optional. The set of principals to be granted writer role on the resource.
+    #[serde(default)]
+    pub writers: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// The data source for DataScan.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDataplexV1DataSource {
+    /// Immutable. The Dataplex Universal Catalog entity that represents the data source (e.g. BigQuery table) for DataScan, of the form: projects/{project_number}/locations/{location_id}/lakes/{lake_id}/zones/{zone_id}/entities/{entity_id}.
+    #[serde(default)]
+    pub entity: ::core::option::Option<String>,
+    /// Immutable. The service-qualified full resource name of the cloud resource for a DataScan job to scan against. The field could either be: Cloud Storage bucket for DataDiscoveryScan Format: //storage.googleapis.com/projects/PROJECT_ID/buckets/BUCKET_ID or BigQuery table of type "TABLE" for DataProfileScan/DataQualityScan/DataDocumentationScan Format: //bigquery.googleapis.com/projects/PROJECT_ID/datasets/DATASET_ID/tables/TABLE_ID or BigQuery dataset for DataDocumentationScan only Format: //bigquery.googleapis.com/projects/PROJECT_ID/datasets/DATASET_ID
+    #[serde(default)]
+    pub resource: ::core::option::Option<String>,
+}
+
+/// DataScan execution settings.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDataplexV1DataScanExecutionSpec {
+    /// Immutable. The unnested field (of type Date or Timestamp) that contains values which monotonically increase over time.If not specified, a data scan will run for all data in the table.
+    #[serde(default)]
+    pub field: ::core::option::Option<String>,
+    /// Optional. Spec related to how often and when a scan should be triggered.If not specified, the default is OnDemand, which means the scan will not run until the user calls RunDataScan API.
+    #[serde(default)]
+    pub trigger: ::core::option::Option<GoogleCloudDataplexV1Trigger>,
+}
+
+/// Status of the data scan execution.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDataplexV1DataScanExecutionStatus {
+    /// Optional. The time when the DataScanJob execution was created.
+    #[serde(default, rename = "latestJobCreateTime")]
+    pub latest_job_create_time: ::core::option::Option<String>,
+    /// Optional. The time when the latest DataScanJob ended.
+    #[serde(default, rename = "latestJobEndTime")]
+    pub latest_job_end_time: ::core::option::Option<String>,
+    /// Optional. The time when the latest DataScanJob started.
+    #[serde(default, rename = "latestJobStartTime")]
+    pub latest_job_start_time: ::core::option::Option<String>,
+}
+
+/// Details of the failure if anything related to Cmek db fails.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDataplexV1EncryptionConfigFailureDetails {
+    /// Output only. The error code for the failure. // TODO: enum values: ["UNKNOWN", "INTERNAL_ERROR", "REQUIRE_USER_ACTION"]
+    #[serde(default, rename = "errorCode")]
+    pub error_code: ::core::option::Option<String>,
+    /// Output only. The error message will be shown to the user. Set only if the error code is REQUIRE_USER_ACTION.
+    #[serde(default, rename = "errorMessage")]
+    pub error_message: ::core::option::Option<String>,
+}
+
+/// Describes the access mechanism of the data within its storage location.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDataplexV1StorageAccess {
+    /// Output only. Describes the read access mechanism of the data. Not user settable. // TODO: enum values: ["ACCESS_MODE_UNSPECIFIED", "DIRECT", "MANAGED"]
+    #[serde(default)]
+    pub read: ::core::option::Option<String>,
+}
+
+/// Provides compatibility information for various metadata stores.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDataplexV1EntityCompatibilityStatus {
+    /// Output only. Whether this entity is compatible with BigQuery.
+    #[serde(default)]
+    pub bigquery:
+        ::core::option::Option<GoogleCloudDataplexV1EntityCompatibilityStatusCompatibility>,
+    /// Output only. Whether this entity is compatible with Hive Metastore.
+    #[serde(default, rename = "hiveMetastore")]
+    pub hive_metastore:
+        ::core::option::Option<GoogleCloudDataplexV1EntityCompatibilityStatusCompatibility>,
+}
+
+/// Describes the format of the data within its storage location.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDataplexV1StorageFormat {
+    /// Optional. The compression type associated with the stored data. If unspecified, the data is uncompressed. // TODO: enum values: ["COMPRESSION_FORMAT_UNSPECIFIED", "GZIP", "BZIP2"]
+    #[serde(default, rename = "compressionFormat")]
+    pub compression_format: ::core::option::Option<String>,
+    /// Optional. Additional information about CSV formatted data.
+    #[serde(default)]
+    pub csv: ::core::option::Option<GoogleCloudDataplexV1StorageFormatCsvOptions>,
+    /// Output only. The data format associated with the stored data, which represents content type values. The value is inferred from mime type. // TODO: enum values: ["FORMAT_UNSPECIFIED", "PARQUET", "AVRO", "ORC", "CSV", "JSON", "IMAGE", "AUDIO", "VIDEO", "TEXT", "TFRECORD", "OTHER", "UNKNOWN"]
+    #[serde(default)]
+    pub format: ::core::option::Option<String>,
+    /// Optional. Additional information about iceberg tables.
+    #[serde(default)]
+    pub iceberg: ::core::option::Option<GoogleCloudDataplexV1StorageFormatIcebergOptions>,
+    /// Optional. Additional information about CSV formatted data.
+    #[serde(default)]
+    pub json: ::core::option::Option<GoogleCloudDataplexV1StorageFormatJsonOptions>,
+    /// Required. The mime type descriptor for the data. Must match the pattern {type}/{subtype}. Supported values: application/x-parquet application/x-avro application/x-orc application/x-tfrecord application/x-parquet+iceberg application/x-avro+iceberg application/x-orc+iceberg application/json application/{subtypes} text/csv text/ image/{image subtype} video/{video subtype} audio/{audio subtype}
+    #[serde(default, rename = "mimeType")]
+    pub mime_type: ::core::option::Option<String>,
+}
+
+/// Schema information describing the structure and layout of the data.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDataplexV1Schema {
+    /// Optional. The sequence of fields describing data in table entities. Note: BigQuery SchemaFields are immutable.
+    #[serde(default)]
+    pub fields: ::core::option::Option<::std::vec::Vec<GoogleCloudDataplexV1SchemaSchemaField>>,
+    /// Optional. The sequence of fields describing the partition structure in entities. If this field is empty, there are no partitions within the data.
+    #[serde(default, rename = "partitionFields")]
+    pub partition_fields:
+        ::core::option::Option<::std::vec::Vec<GoogleCloudDataplexV1SchemaPartitionField>>,
+    /// Optional. The structure of paths containing partition data within the entity. // TODO: enum values: ["PARTITION_STYLE_UNSPECIFIED", "HIVE_COMPATIBLE"]
+    #[serde(default, rename = "partitionStyle")]
+    pub partition_style: ::core::option::Option<String>,
+    /// Required. Set to true if user-managed or false if managed by Dataplex Universal Catalog. The default is false (managed by Dataplex Universal Catalog). Set to falseto enable Dataplex Universal Catalog discovery to update the schema. including new data discovery, schema inference, and schema evolution. Users retain the ability to input and edit the schema. Dataplex Universal Catalog treats schema input by the user as though produced by a previous Dataplex Universal Catalog discovery operation, and it will evolve the schema and take action based on that treatment. Set to true to fully manage the entity schema. This setting guarantees that Dataplex Universal Catalog will not change schema fields.
+    #[serde(default, rename = "userManaged")]
+    pub user_managed: ::core::option::Option<bool>,
+}
+
+/// Authorization for an Entry Type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDataplexV1EntryTypeAuthorization {
+    /// Immutable. The IAM permission grantable on the Entry Group to allow access to instantiate Entries of Dataplex Universal Catalog owned Entry Types, only settable for Dataplex Universal Catalog owned Types.
+    #[serde(default, rename = "alternateUsePermission")]
+    pub alternate_use_permission: ::core::option::Option<String>,
+}
+
+/// GoogleCloudDataplexV1EntryTypeAspectInfo resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDataplexV1EntryTypeAspectInfo {
+    /// Required aspect type for the entry type.
+    #[serde(default, rename = "type")]
+    pub type_: ::core::option::Option<String>,
+}
+
+/// Settings to manage association of Dataproc Metastore with a lake.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDataplexV1LakeMetastore {
+    /// Optional. A relative reference to the Dataproc Metastore (https://cloud.google.com/dataproc-metastore/docs) service associated with the lake: projects/{project_id}/locations/{location_id}/services/{service_id}
+    #[serde(default)]
+    pub service: ::core::option::Option<String>,
+}
+
+/// Status of Lake and Dataproc Metastore service instance association.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDataplexV1LakeMetastoreStatus {
+    /// The URI of the endpoint used to access the Metastore service.
+    #[serde(default)]
+    pub endpoint: ::core::option::Option<String>,
+    /// Additional information about the current status.
+    #[serde(default)]
+    pub message: ::core::option::Option<String>,
+    /// Current state of association. // TODO: enum values: ["STATE_UNSPECIFIED", "NONE", "READY", "UPDATING", "ERROR"]
+    #[serde(default)]
+    pub state: ::core::option::Option<String>,
+    /// Last update time of the metastore status of the lake.
+    #[serde(default, rename = "updateTime")]
+    pub update_time: ::core::option::Option<String>,
+}
+
+/// Filters defines the type of changes that you want to listen to. You can have multiple entry type filters and multiple aspect type filters. All of the entry type filters are OR''ed together. All of the aspect type filters are OR''ed together. All of the entry type filters and aspect type filters are AND''ed together.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDataplexV1MetadataFeedFilters {
+    /// Optional. The aspect types that you want to listen to. Depending on how the aspect is attached to the entry, in the format: projects/{project_id_or_number}/locations/{location}/aspectTypes/{aspect_type_id}.
+    #[serde(default, rename = "aspectTypes")]
+    pub aspect_types: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Optional. The type of change that you want to listen to. If not specified, all changes are published.
+    #[serde(default, rename = "changeTypes")]
+    pub change_types: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Optional. The entry types that you want to listen to, specified as relative resource names in the format projects/{project_id_or_number}/locations/{location}/entryTypes/{entry_type_id}. Only entries that belong to the specified entry types are published.
+    #[serde(default, rename = "entryTypes")]
+    pub entry_types: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// Scope defines the scope of the metadata feed. Scopes are exclusive. Only one of the scopes can be specified.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDataplexV1MetadataFeedScope {
+    /// Optional. The entry groups whose entries you want to listen to. Must be in the format: projects/{project_id_or_number}/locations/{location_id}/entryGroups/{entry_group_id}.
+    #[serde(default, rename = "entryGroups")]
+    pub entry_groups: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Optional. Whether the metadata feed is at the organization-level. If true, all changes happened to the entries in the same organization as the feed are published. If false, you must specify a list of projects or a list of entry groups whose entries you want to listen to.The default is false.
+    #[serde(default, rename = "organizationLevel")]
+    pub organization_level: ::core::option::Option<bool>,
+    /// Optional. The projects whose entries you want to listen to. Must be in the same organization as the feed. Must be in the format: projects/{project_id_or_number}.
+    #[serde(default)]
+    pub projects: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
 /// Summary results from a metadata export job. The results are a snapshot of the metadata at the time when the job was created. The exported entries are saved to a Cloud Storage bucket.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDataplexV1MetadataJobExportJobResult {
@@ -3162,26 +2441,6 @@ pub struct GoogleCloudDataplexV1MetadataJobExportJobSpec {
     /// Required. The scope of the export job.
     #[serde(default)]
     pub scope: ::core::option::Option<GoogleCloudDataplexV1MetadataJobExportJobSpecExportJobScope>,
-}
-
-/// The scope of the export job.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDataplexV1MetadataJobExportJobSpecExportJobScope {
-    /// The aspect types that are in scope for the export job, specified as relative resource names in the format projects/{project_id_or_number}/locations/{location}/aspectTypes/{aspect_type_id}. Only aspects that belong to the specified aspect types are affected by the job.
-    #[serde(default, rename = "aspectTypes")]
-    pub aspect_types: ::core::option::Option<::std::vec::Vec<String>>,
-    /// The entry groups whose metadata you want to export, in the format projects/{project_id_or_number}/locations/{location_id}/entryGroups/{entry_group_id}. Only the entries in the specified entry groups are exported.The entry groups must be in the same location and the same VPC Service Controls perimeter as the job.If you set the job scope to be a list of entry groups, then set the organization-level export flag to false and don''t provide a list of projects.
-    #[serde(default, rename = "entryGroups")]
-    pub entry_groups: ::core::option::Option<::std::vec::Vec<String>>,
-    /// The entry types that are in scope for the export job, specified as relative resource names in the format projects/{project_id_or_number}/locations/{location}/entryTypes/{entry_type_id}. Only entries that belong to the specified entry types are affected by the job.
-    #[serde(default, rename = "entryTypes")]
-    pub entry_types: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Whether the metadata export job is an organization-level export job. If true, the job exports the entries from the same organization and VPC Service Controls perimeter as the job. The project that the job belongs to determines the VPC Service Controls perimeter. If you set the job scope to be at the organization level, then don''t provide a list of projects or entry groups. If false, you must specify a list of projects or a list of entry groups whose entries you want to export.The default is false.
-    #[serde(default, rename = "organizationLevel")]
-    pub organization_level: ::core::option::Option<bool>,
-    /// The projects whose metadata you want to export, in the format projects/{project_id_or_number}. Only the entries from the specified projects are exported.The projects must be in the same organization and VPC Service Controls perimeter as the job.If you set the job scope to be a list of projects, then set the organization-level export flag to false and don''t provide a list of entry groups.
-    #[serde(default)]
-    pub projects: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Results from a metadata import job.
@@ -3239,29 +2498,6 @@ pub struct GoogleCloudDataplexV1MetadataJobImportJobSpec {
     pub source_storage_uri: ::core::option::Option<String>,
 }
 
-/// A boundary on the scope of impact that the metadata import job can have.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDataplexV1MetadataJobImportJobSpecImportJobScope {
-    /// Optional. The aspect types that are in scope for the import job, specified as relative resource names in the format projects/{project_number_or_id}/locations/{location_id}/aspectTypes/{aspect_type_id}. The job modifies only the aspects that belong to these aspect types.This field is required when creating an aspect-only import job.If the metadata import file attempts to modify an aspect whose type isn''t included in this list, the import job is halted before modifying any entries or aspects.The location of an aspect type must either match the location of the job, or the aspect type must be global.
-    #[serde(default, rename = "aspectTypes")]
-    pub aspect_types: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Required. The entry groups that are in scope for the import job, specified as relative resource names in the format projects/{project_number_or_id}/locations/{location_id}/entryGroups/{entry_group_id}. Only entries and aspects that belong to the specified entry groups are affected by the job.The entry groups and the job must be in the same location.
-    #[serde(default, rename = "entryGroups")]
-    pub entry_groups: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Optional. The entry link types that are in scope for the import job, specified as relative resource names in the format projects/{project_number_or_id}/locations/{location_id}/entryLinkTypes/{entry_link_type_id}. The job modifies only the entryLinks that belong to these entry link types.If the metadata import file attempts to create or delete an entry link whose entry link type isn''t included in this list, the import job will skip those entry links.
-    #[serde(default, rename = "entryLinkTypes")]
-    pub entry_link_types: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Required. The entry types that are in scope for the import job, specified as relative resource names in the format projects/{project_number_or_id}/locations/{location_id}/entryTypes/{entry_type_id}. The job modifies only the entries and aspects that belong to these entry types.If the metadata import file attempts to modify an entry whose type isn''t included in this list, the import job is halted before modifying any entries or aspects.The location of an entry type must either match the location of the job, or the entry type must be global.
-    #[serde(default, rename = "entryTypes")]
-    pub entry_types: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Optional. The glossaries that are in scope for the import job, specified as relative resource names in the format projects/{project_number_or_id}/locations/{location_id}/glossaries/{glossary_id}.While importing Business Glossary entries, the user must provide glossaries. While importing entries, the user does not have to provide glossaries. If the metadata import file attempts to modify Business Glossary entries whose glossary isn''t included in this list, the import job will skip those entries.The location of a glossary must either match the location of the job, or the glossary must be global.
-    #[serde(default)]
-    pub glossaries: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Optional. Defines the scope of entries that can be referenced in the entry links.Currently, projects are supported as valid scopes. Format: projects/{project_number_or_id}If the metadata import file attempts to create an entry link which references an entry that is not in the scope, the import job will skip that entry link.
-    #[serde(default, rename = "referencedEntryScopes")]
-    pub referenced_entry_scopes: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
 /// Metadata job status.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDataplexV1MetadataJobStatus {
@@ -3279,379 +2515,6 @@ pub struct GoogleCloudDataplexV1MetadataJobStatus {
     pub update_time: ::core::option::Option<String>,
 }
 
-/// Represents the metadata of a long-running operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDataplexV1OperationMetadata {
-    /// Output only. API version used to start the operation.
-    #[serde(default, rename = "apiVersion")]
-    pub api_version: ::core::option::Option<String>,
-    /// Output only. The time the operation was created.
-    #[serde(default, rename = "createTime")]
-    pub create_time: ::core::option::Option<String>,
-    /// Output only. The time the operation finished running.
-    #[serde(default, rename = "endTime")]
-    pub end_time: ::core::option::Option<String>,
-    /// Output only. Identifies whether the user has requested cancellation of the operation. Operations that have successfully been cancelled have Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
-    #[serde(default, rename = "requestedCancellation")]
-    pub requested_cancellation: ::core::option::Option<bool>,
-    /// Output only. Human-readable status of the operation, if any.
-    #[serde(default, rename = "statusMessage")]
-    pub status_message: ::core::option::Option<String>,
-    /// Output only. Server-defined resource path for the target of the operation.
-    #[serde(default)]
-    pub target: ::core::option::Option<String>,
-    /// Output only. Name of the verb executed by the operation.
-    #[serde(default)]
-    pub verb: ::core::option::Option<String>,
-}
-
-/// Represents partition metadata contained within entity instances.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDataplexV1Partition {
-    /// Optional. The etag for this partition.
-    #[serde(default)]
-    pub etag: ::core::option::Option<String>,
-    /// Required. Immutable. The location of the entity data within the partition, for example, gs://bucket/path/to/entity/key1=value1/key2=value2. Or projects//datasets//tables/
-    #[serde(default)]
-    pub location: ::core::option::Option<String>,
-    /// Output only. Partition values used in the HTTP URL must be double encoded. For example, url_encode(url_encode(value)) can be used to encode "US:CA/CA#Sunnyvale so that the request URL ends with "/partitions/US%253ACA/CA%2523Sunnyvale". The name field in the response retains the encoded format.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Required. Immutable. The set of values representing the partition, which correspond to the partition schema defined in the parent entity.
-    #[serde(default)]
-    pub values: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// ResourceAccessSpec holds the access control configuration to be enforced on the resources, for example, Cloud Storage bucket, BigQuery dataset, BigQuery table.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDataplexV1ResourceAccessSpec {
-    /// Optional. The set of principals to be granted owner role on the resource.
-    #[serde(default)]
-    pub owners: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Optional. The format of strings follows the pattern followed by IAM in the bindings. user:{email}, serviceAccount:{email} group:{email}. The set of principals to be granted reader role on the resource.
-    #[serde(default)]
-    pub readers: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Optional. The set of principals to be granted writer role on the resource.
-    #[serde(default)]
-    pub writers: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// Run DataScan Response.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDataplexV1RunDataScanResponse {
-    /// DataScanJob created by RunDataScan request.
-    #[serde(default)]
-    pub job: ::core::option::Option<GoogleCloudDataplexV1DataScanJob>,
-}
-
-/// GoogleCloudDataplexV1RunTaskRequest resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDataplexV1RunTaskRequest {
-    /// Optional. Execution spec arguments. If the map is left empty, the task will run with existing execution spec args from task definition. If the map contains an entry with a new key, the same will be added to existing set of args. If the map contains an entry with an existing arg key in task definition, the task will run with new arg value for that entry. Clearing an existing arg will require arg value to be explicitly set to a hyphen "-". The arg value cannot be empty.
-    #[serde(default)]
-    pub args: ::core::option::Option<serde_json::Value>,
-    /// Optional. User-defined labels for the task. If the map is left empty, the task will run with existing labels from task definition. If the map contains an entry with a new key, the same will be added to existing set of labels. If the map contains an entry with an existing label key in task definition, the task will run with new label value for that entry. Clearing an existing label will require label value to be explicitly set to a hyphen "-". The label value cannot be empty.
-    #[serde(default)]
-    pub labels: ::core::option::Option<serde_json::Value>,
-}
-
-/// GoogleCloudDataplexV1RunTaskResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDataplexV1RunTaskResponse {
-    /// Jobs created by RunTask API.
-    #[serde(default)]
-    pub job: ::core::option::Option<GoogleCloudDataplexV1Job>,
-}
-
-/// The data scanned during processing (e.g. in incremental DataScan)
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDataplexV1ScannedData {
-    /// The range denoted by values of an incremental field
-    #[serde(default, rename = "incrementalField")]
-    pub incremental_field: ::core::option::Option<GoogleCloudDataplexV1ScannedDataIncrementalField>,
-}
-
-/// A data range denoted by a pair of start/end values of a field.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDataplexV1ScannedDataIncrementalField {
-    /// Output only. Value that marks the end of the range.
-    #[serde(default)]
-    pub end: ::core::option::Option<String>,
-    /// Output only. The field that contains values which monotonically increases over time (e.g. a timestamp column).
-    #[serde(default)]
-    pub field: ::core::option::Option<String>,
-    /// Output only. Value that marks the start of the range.
-    #[serde(default)]
-    pub start: ::core::option::Option<String>,
-}
-
-/// Schema information describing the structure and layout of the data.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDataplexV1Schema {
-    /// Optional. The sequence of fields describing data in table entities. Note: BigQuery SchemaFields are immutable.
-    #[serde(default)]
-    pub fields: ::core::option::Option<::std::vec::Vec<GoogleCloudDataplexV1SchemaSchemaField>>,
-    /// Optional. The sequence of fields describing the partition structure in entities. If this field is empty, there are no partitions within the data.
-    #[serde(default, rename = "partitionFields")]
-    pub partition_fields:
-        ::core::option::Option<::std::vec::Vec<GoogleCloudDataplexV1SchemaPartitionField>>,
-    /// Optional. The structure of paths containing partition data within the entity. // TODO: enum values: ["PARTITION_STYLE_UNSPECIFIED", "HIVE_COMPATIBLE"]
-    #[serde(default, rename = "partitionStyle")]
-    pub partition_style: ::core::option::Option<String>,
-    /// Required. Set to true if user-managed or false if managed by Dataplex Universal Catalog. The default is false (managed by Dataplex Universal Catalog). Set to falseto enable Dataplex Universal Catalog discovery to update the schema. including new data discovery, schema inference, and schema evolution. Users retain the ability to input and edit the schema. Dataplex Universal Catalog treats schema input by the user as though produced by a previous Dataplex Universal Catalog discovery operation, and it will evolve the schema and take action based on that treatment. Set to true to fully manage the entity schema. This setting guarantees that Dataplex Universal Catalog will not change schema fields.
-    #[serde(default, rename = "userManaged")]
-    pub user_managed: ::core::option::Option<bool>,
-}
-
-/// Represents a key field within the entity''s partition structure. You could have up to 20 partition fields, but only the first 10 partitions have the filtering ability due to performance consideration. Note: Partition fields are immutable.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDataplexV1SchemaPartitionField {
-    /// Required. Partition field name must consist of letters, numbers, and underscores only, with a maximum of length of 256 characters, and must begin with a letter or underscore..
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Required. Immutable. The type of field. // TODO: enum values: ["TYPE_UNSPECIFIED", "BOOLEAN", "BYTE", "INT16", "INT32", "INT64", "FLOAT", "DOUBLE", "DECIMAL", "STRING", "BINARY", "TIMESTAMP", "DATE", "TIME", "RECORD", "NULL"]
-    #[serde(default, rename = "type")]
-    pub type_: ::core::option::Option<String>,
-}
-
-/// Represents a column field within a table schema.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDataplexV1SchemaSchemaField {
-    /// Optional. User friendly field description. Must be less than or equal to 1024 characters.
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// Optional. Any nested field for complex types.
-    #[serde(default)]
-    pub fields: ::core::option::Option<::std::vec::Vec<GoogleCloudDataplexV1SchemaSchemaField>>,
-    /// Required. Additional field semantics. // TODO: enum values: ["MODE_UNSPECIFIED", "REQUIRED", "NULLABLE", "REPEATED"]
-    #[serde(default)]
-    pub mode: ::core::option::Option<String>,
-    /// Required. The name of the field. Must contain only letters, numbers and underscores, with a maximum length of 767 characters, and must begin with a letter or underscore.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Required. The type of field. // TODO: enum values: ["TYPE_UNSPECIFIED", "BOOLEAN", "BYTE", "INT16", "INT32", "INT64", "FLOAT", "DOUBLE", "DECIMAL", "STRING", "BINARY", "TIMESTAMP", "DATE", "TIME", "RECORD", "NULL"]
-    #[serde(default, rename = "type")]
-    pub type_: ::core::option::Option<String>,
-}
-
-/// GoogleCloudDataplexV1SearchEntriesResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDataplexV1SearchEntriesResponse {
-    /// Token to retrieve the next page of results, or empty if there are no more results in the list.
-    #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: ::core::option::Option<String>,
-    /// The results matching the search query.
-    #[serde(default)]
-    pub results: ::core::option::Option<::std::vec::Vec<GoogleCloudDataplexV1SearchEntriesResult>>,
-    /// The estimated total number of matching entries. This number isn''t guaranteed to be accurate.
-    #[serde(default, rename = "totalSize")]
-    pub total_size: ::core::option::Option<i32>,
-    /// Locations that the service couldn''t reach. Search results don''t include data from these locations.
-    #[serde(default)]
-    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// A single result of a SearchEntries request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDataplexV1SearchEntriesResult {
-    #[serde(default, rename = "dataplexEntry")]
-    pub dataplex_entry: ::core::option::Option<GoogleCloudDataplexV1Entry>,
-    /// Linked resource name.
-    #[serde(default, rename = "linkedResource")]
-    pub linked_resource: ::core::option::Option<String>,
-    /// Snippets.
-    #[serde(default)]
-    pub snippets: ::core::option::Option<GoogleCloudDataplexV1SearchEntriesResultSnippets>,
-}
-
-/// Snippets for the entry, contains HTML-style highlighting for matched tokens, will be used in UI.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDataplexV1SearchEntriesResultSnippets {
-    /// Entry
-    #[serde(default, rename = "dataplexEntry")]
-    pub dataplex_entry: ::core::option::Option<GoogleCloudDataplexV1Entry>,
-}
-
-/// These messages contain information about sessions within an environment. The monitored resource is ''Environment''.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDataplexV1SessionEvent {
-    /// The status of the event.
-    #[serde(default, rename = "eventSucceeded")]
-    pub event_succeeded: ::core::option::Option<bool>,
-    /// If the session is associated with an environment with fast startup enabled, and was created before being assigned to a user.
-    #[serde(default, rename = "fastStartupEnabled")]
-    pub fast_startup_enabled: ::core::option::Option<bool>,
-    /// The log message.
-    #[serde(default)]
-    pub message: ::core::option::Option<String>,
-    /// The execution details of the query.
-    #[serde(default)]
-    pub query: ::core::option::Option<GoogleCloudDataplexV1SessionEventQueryDetail>,
-    /// Unique identifier for the session.
-    #[serde(default, rename = "sessionId")]
-    pub session_id: ::core::option::Option<String>,
-    /// The type of the event. // TODO: enum values: ["EVENT_TYPE_UNSPECIFIED", "START", "STOP", "QUERY", "CREATE"]
-    #[serde(default, rename = "type")]
-    pub type_: ::core::option::Option<String>,
-    /// The idle duration of a warm pooled session before it is assigned to user.
-    #[serde(default, rename = "unassignedDuration")]
-    pub unassigned_duration: ::core::option::Option<String>,
-    /// The information about the user that created the session. It will be the email address of the user.
-    #[serde(default, rename = "userId")]
-    pub user_id: ::core::option::Option<String>,
-}
-
-/// Execution details of the query.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDataplexV1SessionEventQueryDetail {
-    /// The data processed by the query.
-    #[serde(default, rename = "dataProcessedBytes")]
-    pub data_processed_bytes: ::core::option::Option<String>,
-    /// Time taken for execution of the query.
-    #[serde(default)]
-    pub duration: ::core::option::Option<String>,
-    /// Query Execution engine. // TODO: enum values: ["ENGINE_UNSPECIFIED", "SPARK_SQL", "BIGQUERY"]
-    #[serde(default)]
-    pub engine: ::core::option::Option<String>,
-    /// The unique Query id identifying the query.
-    #[serde(default, rename = "queryId")]
-    pub query_id: ::core::option::Option<String>,
-    /// The query text executed.
-    #[serde(default, rename = "queryText")]
-    pub query_text: ::core::option::Option<String>,
-    /// The size of results the query produced.
-    #[serde(default, rename = "resultSizeBytes")]
-    pub result_size_bytes: ::core::option::Option<String>,
-}
-
-/// Describes the access mechanism of the data within its storage location.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDataplexV1StorageAccess {
-    /// Output only. Describes the read access mechanism of the data. Not user settable. // TODO: enum values: ["ACCESS_MODE_UNSPECIFIED", "DIRECT", "MANAGED"]
-    #[serde(default)]
-    pub read: ::core::option::Option<String>,
-}
-
-/// Describes the format of the data within its storage location.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDataplexV1StorageFormat {
-    /// Optional. The compression type associated with the stored data. If unspecified, the data is uncompressed. // TODO: enum values: ["COMPRESSION_FORMAT_UNSPECIFIED", "GZIP", "BZIP2"]
-    #[serde(default, rename = "compressionFormat")]
-    pub compression_format: ::core::option::Option<String>,
-    /// Optional. Additional information about CSV formatted data.
-    #[serde(default)]
-    pub csv: ::core::option::Option<GoogleCloudDataplexV1StorageFormatCsvOptions>,
-    /// Output only. The data format associated with the stored data, which represents content type values. The value is inferred from mime type. // TODO: enum values: ["FORMAT_UNSPECIFIED", "PARQUET", "AVRO", "ORC", "CSV", "JSON", "IMAGE", "AUDIO", "VIDEO", "TEXT", "TFRECORD", "OTHER", "UNKNOWN"]
-    #[serde(default)]
-    pub format: ::core::option::Option<String>,
-    /// Optional. Additional information about iceberg tables.
-    #[serde(default)]
-    pub iceberg: ::core::option::Option<GoogleCloudDataplexV1StorageFormatIcebergOptions>,
-    /// Optional. Additional information about CSV formatted data.
-    #[serde(default)]
-    pub json: ::core::option::Option<GoogleCloudDataplexV1StorageFormatJsonOptions>,
-    /// Required. The mime type descriptor for the data. Must match the pattern {type}/{subtype}. Supported values: application/x-parquet application/x-avro application/x-orc application/x-tfrecord application/x-parquet+iceberg application/x-avro+iceberg application/x-orc+iceberg application/json application/{subtypes} text/csv text/ image/{image subtype} video/{video subtype} audio/{audio subtype}
-    #[serde(default, rename = "mimeType")]
-    pub mime_type: ::core::option::Option<String>,
-}
-
-/// Describes CSV and similar semi-structured data formats.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDataplexV1StorageFormatCsvOptions {
-    /// Optional. The delimiter used to separate values. Defaults to '',''.
-    #[serde(default)]
-    pub delimiter: ::core::option::Option<String>,
-    /// Optional. The character encoding of the data. Accepts "US-ASCII", "UTF-8", and "ISO-8859-1". Defaults to UTF-8 if unspecified.
-    #[serde(default)]
-    pub encoding: ::core::option::Option<String>,
-    /// Optional. The number of rows to interpret as header rows that should be skipped when reading data rows. Defaults to 0.
-    #[serde(default, rename = "headerRows")]
-    pub header_rows: ::core::option::Option<i32>,
-    /// Optional. The character used to quote column values. Accepts ''"'' (double quotation mark) or '''''' (single quotation mark). Defaults to ''"'' (double quotation mark) if unspecified.
-    #[serde(default)]
-    pub quote: ::core::option::Option<String>,
-}
-
-/// Describes Iceberg data format.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDataplexV1StorageFormatIcebergOptions {
-    /// Optional. The location of where the iceberg metadata is present, must be within the table path
-    #[serde(default, rename = "metadataLocation")]
-    pub metadata_location: ::core::option::Option<String>,
-}
-
-/// Describes JSON data format.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDataplexV1StorageFormatJsonOptions {
-    /// Optional. The character encoding of the data. Accepts "US-ASCII", "UTF-8" and "ISO-8859-1". Defaults to UTF-8 if not specified.
-    #[serde(default)]
-    pub encoding: ::core::option::Option<String>,
-}
-
-/// A task represents a user-visible job.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDataplexV1Task {
-    /// Output only. The time when the task was created.
-    #[serde(default, rename = "createTime")]
-    pub create_time: ::core::option::Option<String>,
-    /// Optional. Description of the task.
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// Optional. User friendly display name.
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-    /// Required. Spec related to how a task is executed.
-    #[serde(default, rename = "executionSpec")]
-    pub execution_spec: ::core::option::Option<GoogleCloudDataplexV1TaskExecutionSpec>,
-    /// Output only. Status of the latest task executions.
-    #[serde(default, rename = "executionStatus")]
-    pub execution_status: ::core::option::Option<GoogleCloudDataplexV1TaskExecutionStatus>,
-    /// Optional. User-defined labels for the task.
-    #[serde(default)]
-    pub labels: ::core::option::Option<serde_json::Value>,
-    /// Output only. The relative resource name of the task, of the form: projects/{project_number}/locations/{location_id}/lakes/{lake_id}/ tasks/{task_id}.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Config related to running scheduled Notebooks.
-    #[serde(default)]
-    pub notebook: ::core::option::Option<GoogleCloudDataplexV1TaskNotebookTaskConfig>,
-    /// Config related to running custom Spark tasks.
-    #[serde(default)]
-    pub spark: ::core::option::Option<GoogleCloudDataplexV1TaskSparkTaskConfig>,
-    /// Output only. Current state of the task. // TODO: enum values: ["STATE_UNSPECIFIED", "ACTIVE", "CREATING", "DELETING", "ACTION_REQUIRED"]
-    #[serde(default)]
-    pub state: ::core::option::Option<String>,
-    /// Required. Spec related to how often and when a task should be triggered.
-    #[serde(default, rename = "triggerSpec")]
-    pub trigger_spec: ::core::option::Option<GoogleCloudDataplexV1TaskTriggerSpec>,
-    /// Output only. System generated globally unique ID for the task. This ID will be different if the task is deleted and re-created with the same name.
-    #[serde(default)]
-    pub uid: ::core::option::Option<String>,
-    /// Output only. The time when the task was last updated.
-    #[serde(default, rename = "updateTime")]
-    pub update_time: ::core::option::Option<String>,
-}
-
-/// Execution related settings, like retry and service_account.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDataplexV1TaskExecutionSpec {
-    /// Optional. The arguments to pass to the task. The args can use placeholders of the format ${placeholder} as part of key/value string. These will be interpolated before passing the args to the driver. Currently supported placeholders: - ${task_id} - ${job_time} To pass positional args, set the key as TASK_ARGS. The value should be a comma-separated string of all the positional arguments. To use a delimiter other than comma, refer to https://cloud.google.com/sdk/gcloud/reference/topic/escaping. In case of other keys being present in the args, then TASK_ARGS will be passed as the last argument.
-    #[serde(default)]
-    pub args: ::core::option::Option<serde_json::Value>,
-    /// Optional. The Cloud KMS key to use for encryption, of the form: projects/{project_number}/locations/{location_id}/keyRings/{key-ring-name}/cryptoKeys/{key-name}.
-    #[serde(default, rename = "kmsKey")]
-    pub kms_key: ::core::option::Option<String>,
-    /// Optional. The maximum duration after which the job execution is expired.
-    #[serde(default, rename = "maxJobExecutionLifetime")]
-    pub max_job_execution_lifetime: ::core::option::Option<String>,
-    /// Optional. The project in which jobs are run. By default, the project containing the Lake is used. If a project is provided, the ExecutionSpec.service_account must belong to this project.
-    #[serde(default)]
-    pub project: ::core::option::Option<String>,
-    /// Required. Service account to use to execute a task. If not provided, the default Compute service account for the project is used.
-    #[serde(default, rename = "serviceAccount")]
-    pub service_account: ::core::option::Option<String>,
-}
-
 /// Status of the task execution (e.g. Jobs).
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDataplexV1TaskExecutionStatus {
@@ -3661,64 +2524,6 @@ pub struct GoogleCloudDataplexV1TaskExecutionStatus {
     /// Output only. Last update time of the status.
     #[serde(default, rename = "updateTime")]
     pub update_time: ::core::option::Option<String>,
-}
-
-/// Configuration for the underlying infrastructure used to run workloads.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDataplexV1TaskInfrastructureSpec {
-    /// Compute resources needed for a Task when using Dataproc Serverless.
-    #[serde(default)]
-    pub batch:
-        ::core::option::Option<GoogleCloudDataplexV1TaskInfrastructureSpecBatchComputeResources>,
-    /// Container Image Runtime Configuration.
-    #[serde(default, rename = "containerImage")]
-    pub container_image:
-        ::core::option::Option<GoogleCloudDataplexV1TaskInfrastructureSpecContainerImageRuntime>,
-    /// Vpc network.
-    #[serde(default, rename = "vpcNetwork")]
-    pub vpc_network: ::core::option::Option<GoogleCloudDataplexV1TaskInfrastructureSpecVpcNetwork>,
-}
-
-/// Batch compute resources associated with the task.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDataplexV1TaskInfrastructureSpecBatchComputeResources {
-    /// Optional. Total number of job executors. Executor Count should be between 2 and 100. Default=2
-    #[serde(default, rename = "executorsCount")]
-    pub executors_count: ::core::option::Option<i32>,
-    /// Optional. Max configurable executors. If max_executors_count &gt; executors_count, then auto-scaling is enabled. Max Executor Count should be between 2 and 1000. Default=1000
-    #[serde(default, rename = "maxExecutorsCount")]
-    pub max_executors_count: ::core::option::Option<i32>,
-}
-
-/// Container Image Runtime Configuration used with Batch execution.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDataplexV1TaskInfrastructureSpecContainerImageRuntime {
-    /// Optional. Container image to use.
-    #[serde(default)]
-    pub image: ::core::option::Option<String>,
-    /// Optional. A list of Java JARS to add to the classpath. Valid input includes Cloud Storage URIs to Jar binaries. For example, gs://bucket-name/my/path/to/file.jar
-    #[serde(default, rename = "javaJars")]
-    pub java_jars: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Optional. Override to common configuration of open source components installed on the Dataproc cluster. The properties to set on daemon config files. Property keys are specified in prefix:property format, for example core:hadoop.tmp.dir. For more information, see Cluster properties (https://cloud.google.com/dataproc/docs/concepts/cluster-properties).
-    #[serde(default)]
-    pub properties: ::core::option::Option<serde_json::Value>,
-    /// Optional. A list of python packages to be installed. Valid formats include Cloud Storage URI to a PIP installable library. For example, gs://bucket-name/my/path/to/lib.tar.gz
-    #[serde(default, rename = "pythonPackages")]
-    pub python_packages: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// Cloud VPC Network used to run the infrastructure.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDataplexV1TaskInfrastructureSpecVpcNetwork {
-    /// Optional. The Cloud VPC network in which the job is run. By default, the Cloud VPC network named Default within the project is used.
-    #[serde(default)]
-    pub network: ::core::option::Option<String>,
-    /// Optional. List of network tags to apply to the job.
-    #[serde(default, rename = "networkTags")]
-    pub network_tags: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Optional. The Cloud VPC sub-network in which the job is run.
-    #[serde(default, rename = "subNetwork")]
-    pub sub_network: ::core::option::Option<String>,
 }
 
 /// Config for running scheduled notebooks.
@@ -3787,73 +2592,16 @@ pub struct GoogleCloudDataplexV1TaskTriggerSpec {
     pub type_: ::core::option::Option<String>,
 }
 
-/// DataScan scheduling and trigger settings.
+/// Aggregated status of the underlying assets of a lake or zone.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDataplexV1Trigger {
-    /// The scan runs once via RunDataScan API.
-    #[serde(default, rename = "onDemand")]
-    pub on_demand: ::core::option::Option<serde_json::Value>,
-    /// The scan runs once, and does not create an associated ScanJob child resource.
-    #[serde(default, rename = "oneTime")]
-    pub one_time: ::core::option::Option<GoogleCloudDataplexV1TriggerOneTime>,
-    /// The scan is scheduled to run periodically.
-    #[serde(default)]
-    pub schedule: ::core::option::Option<GoogleCloudDataplexV1TriggerSchedule>,
-}
-
-/// The scan runs once using create API.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDataplexV1TriggerOneTime {
-    /// Optional. Time to live for OneTime scans. default value is 24 hours, minimum value is 0 seconds, and maximum value is 365 days. The time is calculated from the data scan job completion time. If value is set as 0 seconds, the scan will be immediately deleted upon job completion, regardless of whether the job succeeded or failed.
-    #[serde(default, rename = "ttlAfterScanCompletion")]
-    pub ttl_after_scan_completion: ::core::option::Option<String>,
-}
-
-/// The scan is scheduled to run periodically.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDataplexV1TriggerSchedule {
-    /// Required. Cron (https://en.wikipedia.org/wiki/Cron) schedule for running scans periodically.To explicitly set a timezone in the cron tab, apply a prefix in the cron tab: "CRON_TZ=${IANA_TIME_ZONE}" or "TZ=${IANA_TIME_ZONE}". The ${IANA_TIME_ZONE} may only be a valid string from IANA time zone database (wikipedia (https://en.wikipedia.org/wiki/List_of_tz_database_time_zones#List)). For example, CRON_TZ=America/New_York 1 * * * *, or TZ=America/New_York 1 * * * *.This field is required for Schedule scans.
-    #[serde(default)]
-    pub cron: ::core::option::Option<String>,
-}
-
-/// A zone represents a logical group of related assets within a lake. A zone can be used to map to organizational structure or represent stages of data readiness from raw to curated. It provides managing behavior that is shared or inherited by all contained assets.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDataplexV1Zone {
-    /// Output only. Aggregated status of the underlying assets of the zone.
-    #[serde(default, rename = "assetStatus")]
-    pub asset_status: ::core::option::Option<GoogleCloudDataplexV1AssetStatus>,
-    /// Output only. The time when the zone was created.
-    #[serde(default, rename = "createTime")]
-    pub create_time: ::core::option::Option<String>,
-    /// Optional. Description of the zone.
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// Optional. Specification of the discovery feature applied to data in this zone.
-    #[serde(default, rename = "discoverySpec")]
-    pub discovery_spec: ::core::option::Option<GoogleCloudDataplexV1ZoneDiscoverySpec>,
-    /// Optional. User friendly display name.
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-    /// Optional. User defined labels for the zone.
-    #[serde(default)]
-    pub labels: ::core::option::Option<serde_json::Value>,
-    /// Output only. The relative resource name of the zone, of the form: projects/{project_number}/locations/{location_id}/lakes/{lake_id}/zones/{zone_id}.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Required. Specification of the resources that are referenced by the assets within this zone.
-    #[serde(default, rename = "resourceSpec")]
-    pub resource_spec: ::core::option::Option<GoogleCloudDataplexV1ZoneResourceSpec>,
-    /// Output only. Current state of the zone. // TODO: enum values: ["STATE_UNSPECIFIED", "ACTIVE", "CREATING", "DELETING", "ACTION_REQUIRED"]
-    #[serde(default)]
-    pub state: ::core::option::Option<String>,
-    /// Required. Immutable. The type of the zone. // TODO: enum values: ["TYPE_UNSPECIFIED", "RAW", "CURATED"]
-    #[serde(default, rename = "type")]
-    pub type_: ::core::option::Option<String>,
-    /// Output only. System generated globally unique ID for the zone. This ID will be different if the zone is deleted and re-created with the same name.
-    #[serde(default)]
-    pub uid: ::core::option::Option<String>,
-    /// Output only. The time when the zone was last updated.
+pub struct GoogleCloudDataplexV1AssetStatus {
+    /// Number of active assets.
+    #[serde(default, rename = "activeAssets")]
+    pub active_assets: ::core::option::Option<i32>,
+    /// Number of assets that are in process of updating the security policy on attached resources.
+    #[serde(default, rename = "securityPolicyApplyingAssets")]
+    pub security_policy_applying_assets: ::core::option::Option<i32>,
+    /// Last update time of the status.
     #[serde(default, rename = "updateTime")]
     pub update_time: ::core::option::Option<String>,
 }
@@ -3879,6 +2627,511 @@ pub struct GoogleCloudDataplexV1ZoneDiscoverySpec {
     /// Optional. Cron schedule (https://en.wikipedia.org/wiki/Cron) for running discovery periodically. Successive discovery runs must be scheduled at least 60 minutes apart. The default value is to run discovery every 60 minutes.To explicitly set a timezone to the cron tab, apply a prefix in the cron tab: "CRON_TZ=${IANA_TIME_ZONE}" or TZ=${IANA_TIME_ZONE}". The ${IANA_TIME_ZONE} may only be a valid string from IANA time zone database. For example, CRON_TZ=America/New_York 1 * * * *, or TZ=America/New_York 1 * * * *.
     #[serde(default)]
     pub schedule: ::core::option::Option<String>,
+}
+
+/// Settings for resources attached as assets within a zone.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDataplexV1ZoneResourceSpec {
+    /// Required. Immutable. The location type of the resources that are allowed to be attached to the assets within this zone. // TODO: enum values: ["LOCATION_TYPE_UNSPECIFIED", "SINGLE_REGION", "MULTI_REGION"]
+    #[serde(default, rename = "locationType")]
+    pub location_type: ::core::option::Option<String>,
+}
+
+/// Reference to the Entry that is linked through the Entry Link.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDataplexV1EntryLinkEntryReference {
+    /// Required. Immutable. The relative resource name of the referenced Entry, of the form: projects/{project_id_or_number}/locations/{location_id}/entryGroups/{entry_group_id}/entries/{entry_id}
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Immutable. The path in the Entry that is referenced in the Entry Link. Empty path denotes that the Entry itself is referenced in the Entry Link.
+    #[serde(default)]
+    pub path: ::core::option::Option<String>,
+    /// Required. Immutable. The reference type of the Entry. // TODO: enum values: ["UNSPECIFIED", "SOURCE", "TARGET"]
+    #[serde(default, rename = "type")]
+    pub type_: ::core::option::Option<String>,
+}
+
+/// The output of a data discovery scan.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDataplexV1DataDiscoveryResult {
+    /// Output only. Configuration for metadata publishing.
+    #[serde(default, rename = "bigqueryPublishing")]
+    pub bigquery_publishing:
+        ::core::option::Option<GoogleCloudDataplexV1DataDiscoveryResultBigQueryPublishing>,
+    /// Output only. Describes result statistics of a data scan discovery job.
+    #[serde(default, rename = "scanStatistics")]
+    pub scan_statistics:
+        ::core::option::Option<GoogleCloudDataplexV1DataDiscoveryResultScanStatistics>,
+}
+
+/// Spec for a data discovery scan.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDataplexV1DataDiscoverySpec {
+    /// Optional. Configuration for metadata publishing.
+    #[serde(default, rename = "bigqueryPublishingConfig")]
+    pub bigquery_publishing_config:
+        ::core::option::Option<GoogleCloudDataplexV1DataDiscoverySpecBigQueryPublishingConfig>,
+    /// Cloud Storage related configurations.
+    #[serde(default, rename = "storageConfig")]
+    pub storage_config: ::core::option::Option<GoogleCloudDataplexV1DataDiscoverySpecStorageConfig>,
+}
+
+/// The output of a DataDocumentation scan.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDataplexV1DataDocumentationResult {
+    /// Output only. Insights for a Dataset resource.
+    #[serde(default, rename = "datasetResult")]
+    pub dataset_result:
+        ::core::option::Option<GoogleCloudDataplexV1DataDocumentationResultDatasetResult>,
+    /// Output only. Insights for a Table resource.
+    #[serde(default, rename = "tableResult")]
+    pub table_result:
+        ::core::option::Option<GoogleCloudDataplexV1DataDocumentationResultTableResult>,
+}
+
+/// DataDocumentation scan related spec.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDataplexV1DataDocumentationSpec {
+    /// Optional. Whether to publish result to Dataplex Catalog.
+    #[serde(default, rename = "catalogPublishingEnabled")]
+    pub catalog_publishing_enabled: ::core::option::Option<bool>,
+    /// Optional. Specifies which components of the data documentation to generate. Any component that is required to generate the specified components will also be generated. If no generation scope is specified, all available documentation components will be generated.
+    #[serde(default, rename = "generationScopes")]
+    pub generation_scopes: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// DataProfileResult defines the output of DataProfileScan. Each field of the table will have field type specific profile result.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDataplexV1DataProfileResult {
+    /// Output only. The status of publishing the data scan as Dataplex Universal Catalog metadata.
+    #[serde(default, rename = "catalogPublishingStatus")]
+    pub catalog_publishing_status:
+        ::core::option::Option<GoogleCloudDataplexV1DataScanCatalogPublishingStatus>,
+    /// Output only. The result of post scan actions.
+    #[serde(default, rename = "postScanActionsResult")]
+    pub post_scan_actions_result:
+        ::core::option::Option<GoogleCloudDataplexV1DataProfileResultPostScanActionsResult>,
+    /// Output only. The profile information per field.
+    #[serde(default)]
+    pub profile: ::core::option::Option<GoogleCloudDataplexV1DataProfileResultProfile>,
+    /// Output only. The count of rows scanned.
+    #[serde(default, rename = "rowCount")]
+    pub row_count: ::core::option::Option<String>,
+    /// Output only. The data scanned for this result.
+    #[serde(default, rename = "scannedData")]
+    pub scanned_data: ::core::option::Option<GoogleCloudDataplexV1ScannedData>,
+}
+
+/// DataProfileScan related setting.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDataplexV1DataProfileSpec {
+    /// Optional. If set, the latest DataScan job result will be published as Dataplex Universal Catalog metadata.
+    #[serde(default, rename = "catalogPublishingEnabled")]
+    pub catalog_publishing_enabled: ::core::option::Option<bool>,
+    /// Optional. The fields to exclude from data profile.If specified, the fields will be excluded from data profile, regardless of include_fields value.
+    #[serde(default, rename = "excludeFields")]
+    pub exclude_fields: ::core::option::Option<GoogleCloudDataplexV1DataProfileSpecSelectedFields>,
+    /// Optional. The fields to include in data profile.If not specified, all fields at the time of profile scan job execution are included, except for ones listed in exclude_fields.
+    #[serde(default, rename = "includeFields")]
+    pub include_fields: ::core::option::Option<GoogleCloudDataplexV1DataProfileSpecSelectedFields>,
+    /// Optional. Actions to take upon job completion..
+    #[serde(default, rename = "postScanActions")]
+    pub post_scan_actions:
+        ::core::option::Option<GoogleCloudDataplexV1DataProfileSpecPostScanActions>,
+    /// Optional. A filter applied to all rows in a single DataScan job. The filter needs to be a valid SQL expression for a WHERE clause in BigQuery standard SQL syntax. Example: col1 &gt;= 0 AND col2 &lt; 10
+    #[serde(default, rename = "rowFilter")]
+    pub row_filter: ::core::option::Option<String>,
+    /// Optional. The percentage of the records to be selected from the dataset for DataScan. Value can range between 0.0 and 100.0 with up to 3 significant decimal digits. Sampling is not applied if sampling_percent is not specified, 0 or 100.
+    #[serde(default, rename = "samplingPercent")]
+    pub sampling_percent: ::core::option::Option<f32>,
+}
+
+/// The output of a DataQualityScan.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDataplexV1DataQualityResult {
+    /// Output only. The generated assets for anomaly detection.
+    #[serde(default, rename = "anomalyDetectionGeneratedAssets")]
+    pub anomaly_detection_generated_assets: ::core::option::Option<
+        GoogleCloudDataplexV1DataQualityResultAnomalyDetectionGeneratedAssets,
+    >,
+    /// Output only. The status of publishing the data scan as Dataplex Universal Catalog metadata.
+    #[serde(default, rename = "catalogPublishingStatus")]
+    pub catalog_publishing_status:
+        ::core::option::Option<GoogleCloudDataplexV1DataScanCatalogPublishingStatus>,
+    /// Output only. A list of results at the column level.A column will have a corresponding DataQualityColumnResult if and only if there is at least one rule with the ''column'' field set to it.
+    #[serde(default)]
+    pub columns:
+        ::core::option::Option<::std::vec::Vec<GoogleCloudDataplexV1DataQualityColumnResult>>,
+    /// Output only. A list of results at the dimension level.A dimension will have a corresponding DataQualityDimensionResult if and only if there is at least one rule with the ''dimension'' field set to it.
+    #[serde(default)]
+    pub dimensions:
+        ::core::option::Option<::std::vec::Vec<GoogleCloudDataplexV1DataQualityDimensionResult>>,
+    /// Output only. Overall data quality result -- true if all rules passed.
+    #[serde(default)]
+    pub passed: ::core::option::Option<bool>,
+    /// Output only. The result of post scan actions.
+    #[serde(default, rename = "postScanActionsResult")]
+    pub post_scan_actions_result:
+        ::core::option::Option<GoogleCloudDataplexV1DataQualityResultPostScanActionsResult>,
+    /// Output only. The count of rows processed.
+    #[serde(default, rename = "rowCount")]
+    pub row_count: ::core::option::Option<String>,
+    /// Output only. A list of all the rules in a job, and their results.
+    #[serde(default)]
+    pub rules: ::core::option::Option<::std::vec::Vec<GoogleCloudDataplexV1DataQualityRuleResult>>,
+    /// Output only. The data scanned for this result.
+    #[serde(default, rename = "scannedData")]
+    pub scanned_data: ::core::option::Option<GoogleCloudDataplexV1ScannedData>,
+    /// Output only. The overall data quality score.The score ranges between 0, 100 (up to two decimal points).
+    #[serde(default)]
+    pub score: ::core::option::Option<f32>,
+}
+
+/// DataQualityScan related setting.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDataplexV1DataQualitySpec {
+    /// Optional. If set, the latest DataScan job result will be published as Dataplex Universal Catalog metadata.
+    #[serde(default, rename = "catalogPublishingEnabled")]
+    pub catalog_publishing_enabled: ::core::option::Option<bool>,
+    /// Optional. Actions to take upon job completion.
+    #[serde(default, rename = "postScanActions")]
+    pub post_scan_actions:
+        ::core::option::Option<GoogleCloudDataplexV1DataQualitySpecPostScanActions>,
+    /// Optional. A filter applied to all rows in a single DataScan job. The filter needs to be a valid SQL expression for a WHERE clause in GoogleSQL syntax (https://cloud.google.com/bigquery/docs/reference/standard-sql/query-syntax#where_clause).Example: col1 &gt;= 0 AND col2 &lt; 10
+    #[serde(default, rename = "rowFilter")]
+    pub row_filter: ::core::option::Option<String>,
+    /// Required. The list of rules to evaluate against a data source. At least one rule is required.
+    #[serde(default)]
+    pub rules: ::core::option::Option<::std::vec::Vec<GoogleCloudDataplexV1DataQualityRule>>,
+    /// Optional. The percentage of the records to be selected from the dataset for DataScan. Value can range between 0.0 and 100.0 with up to 3 significant decimal digits. Sampling is not applied if sampling_percent is not specified, 0 or 100.
+    #[serde(default, rename = "samplingPercent")]
+    pub sampling_percent: ::core::option::Option<f32>,
+}
+
+/// Snippets for the entry, contains HTML-style highlighting for matched tokens, will be used in UI.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDataplexV1SearchEntriesResultSnippets {
+    /// Entry
+    #[serde(default, rename = "dataplexEntry")]
+    pub dataplex_entry: ::core::option::Option<GoogleCloudDataplexV1Entry>,
+}
+
+/// Specifies the audit configuration for a service. The configuration determines which permission types are logged, and what identities, if any, are exempted from logging. An AuditConfig must have one or more AuditLogConfigs.If there are AuditConfigs for both allServices and a specific service, the union of the two AuditConfigs is used for that service: the log_types specified in each AuditConfig are enabled, and the exempted_members in each AuditLogConfig are exempted.Example Policy with multiple AuditConfigs: { "audit_configs": [ { "service": "allServices", "audit_log_configs": [ { "log_type": "DATA_READ", "exempted_members": [ "user:jose@example.com" ] }, { "log_type": "DATA_WRITE" }, { "log_type": "ADMIN_READ" } ] }, { "service": "sampleservice.googleapis.com", "audit_log_configs": [ { "log_type": "DATA_READ" }, { "log_type": "DATA_WRITE", "exempted_members": [ "user:aliya@example.com" ] } ] } ] } For sampleservice, this policy enables DATA_READ, DATA_WRITE and ADMIN_READ logging. It also exempts jose@example.com from DATA_READ logging, and aliya@example.com from DATA_WRITE logging.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleIamV1AuditConfig {
+    /// The configuration for logging of each type of permission.
+    #[serde(default, rename = "auditLogConfigs")]
+    pub audit_log_configs: ::core::option::Option<::std::vec::Vec<GoogleIamV1AuditLogConfig>>,
+    /// Specifies a service that will be enabled for audit logging. For example, storage.googleapis.com, cloudsql.googleapis.com. allServices is a special value that covers all services.
+    #[serde(default)]
+    pub service: ::core::option::Option<String>,
+}
+
+/// Associates members, or principals, with a role.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleIamV1Binding {
+    /// The condition that is associated with this binding.If the condition evaluates to true, then this binding applies to the current request.If the condition evaluates to false, then this binding does not apply to the current request. However, a different role binding might grant the same role to one or more of the principals in this binding.To learn which resources support conditions in their IAM policies, see the IAM documentation (https://cloud.google.com/iam/help/conditions/resource-policies).
+    #[serde(default)]
+    pub condition: ::core::option::Option<GoogleTypeExpr>,
+    /// Specifies the principals requesting access for a Google Cloud resource. members can have the following values: allUsers: A special identifier that represents anyone who is on the internet; with or without a Google account. allAuthenticatedUsers: A special identifier that represents anyone who is authenticated with a Google account or a service account. Does not include identities that come from external identity providers (IdPs) through identity federation. user:{emailid}: An email address that represents a specific Google account. For example, alice@example.com . serviceAccount:{emailid}: An email address that represents a Google service account. For example, my-other-app@appspot.gserviceaccount.com. serviceAccount:{projectid}.svc.id.goog[{namespace}/{kubernetes-sa}]: An identifier for a Kubernetes service account (https://cloud.google.com/kubernetes-engine/docs/how-to/kubernetes-service-accounts). For example, my-project.svc.id.goog[my-namespace/my-kubernetes-sa]. group:{emailid}: An email address that represents a Google group. For example, admins@example.com. domain:{domain}: The G Suite domain (primary) that represents all the users of that domain. For example, google.com or example.com. principal://iam.googleapis.com/locations/global/workforcePools/{pool_id}/subject/{subject_attribute_value}: A single identity in a workforce identity pool. principalSet://iam.googleapis.com/locations/global/workforcePools/{pool_id}/group/{group_id}: All workforce identities in a group. principalSet://iam.googleapis.com/locations/global/workforcePools/{pool_id}/attribute.{attribute_name}/{attribute_value}: All workforce identities with a specific attribute value. principalSet://iam.googleapis.com/locations/global/workforcePools/{pool_id}/*: All identities in a workforce identity pool. principal://iam.googleapis.com/projects/{project_number}/locations/global/workloadIdentityPools/{pool_id}/subject/{subject_attribute_value}: A single identity in a workload identity pool. principalSet://iam.googleapis.com/projects/{project_number}/locations/global/workloadIdentityPools/{pool_id}/group/{group_id}: A workload identity pool group. principalSet://iam.googleapis.com/projects/{project_number}/locations/global/workloadIdentityPools/{pool_id}/attribute.{attribute_name}/{attribute_value}: All identities in a workload identity pool with a certain attribute. principalSet://iam.googleapis.com/projects/{project_number}/locations/global/workloadIdentityPools/{pool_id}/*: All identities in a workload identity pool. deleted:user:{emailid}?uid={uniqueid}: An email address (plus unique identifier) representing a user that has been recently deleted. For example, alice@example.com?uid=123456789012345678901. If the user is recovered, this value reverts to user:{emailid} and the recovered user retains the role in the binding. deleted:serviceAccount:{emailid}?uid={uniqueid}: An email address (plus unique identifier) representing a service account that has been recently deleted. For example, my-other-app@appspot.gserviceaccount.com?uid=123456789012345678901. If the service account is undeleted, this value reverts to serviceAccount:{emailid} and the undeleted service account retains the role in the binding. deleted:group:{emailid}?uid={uniqueid}: An email address (plus unique identifier) representing a Google group that has been recently deleted. For example, admins@example.com?uid=123456789012345678901. If the group is recovered, this value reverts to group:{emailid} and the recovered group retains the role in the binding. deleted:principal://iam.googleapis.com/locations/global/workforcePools/{pool_id}/subject/{subject_attribute_value}: Deleted single identity in a workforce identity pool. For example, deleted:principal://iam.googleapis.com/locations/global/workforcePools/my-pool-id/subject/my-subject-attribute-value.
+    #[serde(default)]
+    pub members: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Role that is assigned to the list of members, or principals. For example, roles/viewer, roles/editor, or roles/owner.For an overview of the IAM roles and permissions, see the IAM documentation (https://cloud.google.com/iam/docs/roles-overview). For a list of the available pre-defined roles, see here (https://cloud.google.com/iam/docs/understanding-roles).
+    #[serde(default)]
+    pub role: ::core::option::Option<String>,
+}
+
+/// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by gRPC (https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details.You can find out more about this error model and how to work with it in the API Design Guide (https://cloud.google.com/apis/design/errors).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleRpcStatus {
+    /// The status code, which should be an enum value of google.rpc.Code.
+    #[serde(default)]
+    pub code: ::core::option::Option<i32>,
+    /// A list of messages that carry the error details. There is a common set of message types for APIs to use.
+    #[serde(default)]
+    pub details: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
+    /// A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.
+    #[serde(default)]
+    pub message: ::core::option::Option<String>,
+}
+
+/// Definition of the annotations of a field.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDataplexV1AspectTypeMetadataTemplateAnnotations {
+    /// Optional. Marks a field as deprecated. You can include a deprecation message.
+    #[serde(default)]
+    pub deprecated: ::core::option::Option<String>,
+    /// Optional. Description for a field.
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+    /// Optional. Display name for a field.
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+    /// Optional. Display order for a field. You can use this to reorder where a field is rendered.
+    #[serde(default, rename = "displayOrder")]
+    pub display_order: ::core::option::Option<i32>,
+    /// Optional. You can use String Type annotations to specify special meaning to string fields. The following values are supported: richText: The field must be interpreted as a rich text field. url: A fully qualified URL link. resource: A service qualified resource reference.
+    #[serde(default, rename = "stringType")]
+    pub string_type: ::core::option::Option<String>,
+    /// Optional. Suggested hints for string fields. You can use them to suggest values to users through console.
+    #[serde(default, rename = "stringValues")]
+    pub string_values: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// Definition of the constraints of a field.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDataplexV1AspectTypeMetadataTemplateConstraints {
+    /// Optional. Marks this field as optional or required.
+    #[serde(default)]
+    pub required: ::core::option::Option<bool>,
+}
+
+/// Definition of Enumvalue, to be used for enum fields.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDataplexV1AspectTypeMetadataTemplateEnumValue {
+    /// Optional. You can set this message if you need to deprecate an enum value.
+    #[serde(default)]
+    pub deprecated: ::core::option::Option<String>,
+    /// Required. Index for the enum value. It can''t be modified.
+    #[serde(default)]
+    pub index: ::core::option::Option<i32>,
+    /// Required. Name of the enumvalue. This is the actual value that the aspect can contain.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+}
+
+/// Describe CSV and similar semi-structured data formats.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDataplexV1AssetDiscoverySpecCsvOptions {
+    /// Optional. The delimiter being used to separate values. This defaults to '',''.
+    #[serde(default)]
+    pub delimiter: ::core::option::Option<String>,
+    /// Optional. Whether to disable the inference of data type for CSV data. If true, all columns will be registered as strings.
+    #[serde(default, rename = "disableTypeInference")]
+    pub disable_type_inference: ::core::option::Option<bool>,
+    /// Optional. The character encoding of the data. The default is UTF-8.
+    #[serde(default)]
+    pub encoding: ::core::option::Option<String>,
+    /// Optional. The number of rows to interpret as header rows that should be skipped when reading data rows.
+    #[serde(default, rename = "headerRows")]
+    pub header_rows: ::core::option::Option<i32>,
+}
+
+/// Describe JSON data format.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDataplexV1AssetDiscoverySpecJsonOptions {
+    /// Optional. Whether to disable the inference of data type for Json data. If true, all columns will be registered as their primitive types (strings, number or boolean).
+    #[serde(default, rename = "disableTypeInference")]
+    pub disable_type_inference: ::core::option::Option<bool>,
+    /// Optional. The character encoding of the data. The default is UTF-8.
+    #[serde(default)]
+    pub encoding: ::core::option::Option<String>,
+}
+
+/// The aggregated data statistics for the asset reported by discovery.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDataplexV1AssetDiscoveryStatusStats {
+    /// The count of data items within the referenced resource.
+    #[serde(default, rename = "dataItems")]
+    pub data_items: ::core::option::Option<String>,
+    /// The number of stored data bytes within the referenced resource.
+    #[serde(default, rename = "dataSize")]
+    pub data_size: ::core::option::Option<String>,
+    /// The count of fileset entities within the referenced resource.
+    #[serde(default)]
+    pub filesets: ::core::option::Option<String>,
+    /// The count of table entities within the referenced resource.
+    #[serde(default)]
+    pub tables: ::core::option::Option<String>,
+}
+
+/// DataScan scheduling and trigger settings.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDataplexV1Trigger {
+    /// The scan runs once via RunDataScan API.
+    #[serde(default, rename = "onDemand")]
+    pub on_demand: ::core::option::Option<serde_json::Value>,
+    /// The scan runs once, and does not create an associated ScanJob child resource.
+    #[serde(default, rename = "oneTime")]
+    pub one_time: ::core::option::Option<GoogleCloudDataplexV1TriggerOneTime>,
+    /// The scan is scheduled to run periodically.
+    #[serde(default)]
+    pub schedule: ::core::option::Option<GoogleCloudDataplexV1TriggerSchedule>,
+}
+
+/// Provides compatibility information for a specific metadata store.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDataplexV1EntityCompatibilityStatusCompatibility {
+    /// Output only. Whether the entity is compatible and can be represented in the metadata store.
+    #[serde(default)]
+    pub compatible: ::core::option::Option<bool>,
+    /// Output only. Provides additional detail if the entity is incompatible with the metadata store.
+    #[serde(default)]
+    pub reason: ::core::option::Option<String>,
+}
+
+/// Describes CSV and similar semi-structured data formats.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDataplexV1StorageFormatCsvOptions {
+    /// Optional. The delimiter used to separate values. Defaults to '',''.
+    #[serde(default)]
+    pub delimiter: ::core::option::Option<String>,
+    /// Optional. The character encoding of the data. Accepts "US-ASCII", "UTF-8", and "ISO-8859-1". Defaults to UTF-8 if unspecified.
+    #[serde(default)]
+    pub encoding: ::core::option::Option<String>,
+    /// Optional. The number of rows to interpret as header rows that should be skipped when reading data rows. Defaults to 0.
+    #[serde(default, rename = "headerRows")]
+    pub header_rows: ::core::option::Option<i32>,
+    /// Optional. The character used to quote column values. Accepts ''"'' (double quotation mark) or '''''' (single quotation mark). Defaults to ''"'' (double quotation mark) if unspecified.
+    #[serde(default)]
+    pub quote: ::core::option::Option<String>,
+}
+
+/// Describes Iceberg data format.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDataplexV1StorageFormatIcebergOptions {
+    /// Optional. The location of where the iceberg metadata is present, must be within the table path
+    #[serde(default, rename = "metadataLocation")]
+    pub metadata_location: ::core::option::Option<String>,
+}
+
+/// Describes JSON data format.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDataplexV1StorageFormatJsonOptions {
+    /// Optional. The character encoding of the data. Accepts "US-ASCII", "UTF-8" and "ISO-8859-1". Defaults to UTF-8 if not specified.
+    #[serde(default)]
+    pub encoding: ::core::option::Option<String>,
+}
+
+/// Represents a column field within a table schema.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDataplexV1SchemaSchemaField {
+    /// Optional. User friendly field description. Must be less than or equal to 1024 characters.
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+    /// Optional. Any nested field for complex types.
+    #[serde(default)]
+    pub fields: ::core::option::Option<::std::vec::Vec<GoogleCloudDataplexV1SchemaSchemaField>>,
+    /// Required. Additional field semantics. // TODO: enum values: ["MODE_UNSPECIFIED", "REQUIRED", "NULLABLE", "REPEATED"]
+    #[serde(default)]
+    pub mode: ::core::option::Option<String>,
+    /// Required. The name of the field. Must contain only letters, numbers and underscores, with a maximum length of 767 characters, and must begin with a letter or underscore.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Required. The type of field. // TODO: enum values: ["TYPE_UNSPECIFIED", "BOOLEAN", "BYTE", "INT16", "INT32", "INT64", "FLOAT", "DOUBLE", "DECIMAL", "STRING", "BINARY", "TIMESTAMP", "DATE", "TIME", "RECORD", "NULL"]
+    #[serde(default, rename = "type")]
+    pub type_: ::core::option::Option<String>,
+}
+
+/// Represents a key field within the entity''s partition structure. You could have up to 20 partition fields, but only the first 10 partitions have the filtering ability due to performance consideration. Note: Partition fields are immutable.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDataplexV1SchemaPartitionField {
+    /// Required. Partition field name must consist of letters, numbers, and underscores only, with a maximum of length of 256 characters, and must begin with a letter or underscore..
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Required. Immutable. The type of field. // TODO: enum values: ["TYPE_UNSPECIFIED", "BOOLEAN", "BYTE", "INT16", "INT32", "INT64", "FLOAT", "DOUBLE", "DECIMAL", "STRING", "BINARY", "TIMESTAMP", "DATE", "TIME", "RECORD", "NULL"]
+    #[serde(default, rename = "type")]
+    pub type_: ::core::option::Option<String>,
+}
+
+/// The scope of the export job.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDataplexV1MetadataJobExportJobSpecExportJobScope {
+    /// The aspect types that are in scope for the export job, specified as relative resource names in the format projects/{project_id_or_number}/locations/{location}/aspectTypes/{aspect_type_id}. Only aspects that belong to the specified aspect types are affected by the job.
+    #[serde(default, rename = "aspectTypes")]
+    pub aspect_types: ::core::option::Option<::std::vec::Vec<String>>,
+    /// The entry groups whose metadata you want to export, in the format projects/{project_id_or_number}/locations/{location_id}/entryGroups/{entry_group_id}. Only the entries in the specified entry groups are exported.The entry groups must be in the same location and the same VPC Service Controls perimeter as the job.If you set the job scope to be a list of entry groups, then set the organization-level export flag to false and don''t provide a list of projects.
+    #[serde(default, rename = "entryGroups")]
+    pub entry_groups: ::core::option::Option<::std::vec::Vec<String>>,
+    /// The entry types that are in scope for the export job, specified as relative resource names in the format projects/{project_id_or_number}/locations/{location}/entryTypes/{entry_type_id}. Only entries that belong to the specified entry types are affected by the job.
+    #[serde(default, rename = "entryTypes")]
+    pub entry_types: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Whether the metadata export job is an organization-level export job. If true, the job exports the entries from the same organization and VPC Service Controls perimeter as the job. The project that the job belongs to determines the VPC Service Controls perimeter. If you set the job scope to be at the organization level, then don''t provide a list of projects or entry groups. If false, you must specify a list of projects or a list of entry groups whose entries you want to export.The default is false.
+    #[serde(default, rename = "organizationLevel")]
+    pub organization_level: ::core::option::Option<bool>,
+    /// The projects whose metadata you want to export, in the format projects/{project_id_or_number}. Only the entries from the specified projects are exported.The projects must be in the same organization and VPC Service Controls perimeter as the job.If you set the job scope to be a list of projects, then set the organization-level export flag to false and don''t provide a list of entry groups.
+    #[serde(default)]
+    pub projects: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// A boundary on the scope of impact that the metadata import job can have.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDataplexV1MetadataJobImportJobSpecImportJobScope {
+    /// Optional. The aspect types that are in scope for the import job, specified as relative resource names in the format projects/{project_number_or_id}/locations/{location_id}/aspectTypes/{aspect_type_id}. The job modifies only the aspects that belong to these aspect types.This field is required when creating an aspect-only import job.If the metadata import file attempts to modify an aspect whose type isn''t included in this list, the import job is halted before modifying any entries or aspects.The location of an aspect type must either match the location of the job, or the aspect type must be global.
+    #[serde(default, rename = "aspectTypes")]
+    pub aspect_types: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Required. The entry groups that are in scope for the import job, specified as relative resource names in the format projects/{project_number_or_id}/locations/{location_id}/entryGroups/{entry_group_id}. Only entries and aspects that belong to the specified entry groups are affected by the job.The entry groups and the job must be in the same location.
+    #[serde(default, rename = "entryGroups")]
+    pub entry_groups: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Optional. The entry link types that are in scope for the import job, specified as relative resource names in the format projects/{project_number_or_id}/locations/{location_id}/entryLinkTypes/{entry_link_type_id}. The job modifies only the entryLinks that belong to these entry link types.If the metadata import file attempts to create or delete an entry link whose entry link type isn''t included in this list, the import job will skip those entry links.
+    #[serde(default, rename = "entryLinkTypes")]
+    pub entry_link_types: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Required. The entry types that are in scope for the import job, specified as relative resource names in the format projects/{project_number_or_id}/locations/{location_id}/entryTypes/{entry_type_id}. The job modifies only the entries and aspects that belong to these entry types.If the metadata import file attempts to modify an entry whose type isn''t included in this list, the import job is halted before modifying any entries or aspects.The location of an entry type must either match the location of the job, or the entry type must be global.
+    #[serde(default, rename = "entryTypes")]
+    pub entry_types: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Optional. The glossaries that are in scope for the import job, specified as relative resource names in the format projects/{project_number_or_id}/locations/{location_id}/glossaries/{glossary_id}.While importing Business Glossary entries, the user must provide glossaries. While importing entries, the user does not have to provide glossaries. If the metadata import file attempts to modify Business Glossary entries whose glossary isn''t included in this list, the import job will skip those entries.The location of a glossary must either match the location of the job, or the glossary must be global.
+    #[serde(default)]
+    pub glossaries: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Optional. Defines the scope of entries that can be referenced in the entry links.Currently, projects are supported as valid scopes. Format: projects/{project_number_or_id}If the metadata import file attempts to create an entry link which references an entry that is not in the scope, the import job will skip that entry link.
+    #[serde(default, rename = "referencedEntryScopes")]
+    pub referenced_entry_scopes: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// A job represents an instance of a task.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDataplexV1Job {
+    /// Output only. The time when the job ended.
+    #[serde(default, rename = "endTime")]
+    pub end_time: ::core::option::Option<String>,
+    /// Output only. Spec related to how a task is executed.
+    #[serde(default, rename = "executionSpec")]
+    pub execution_spec: ::core::option::Option<GoogleCloudDataplexV1TaskExecutionSpec>,
+    /// Output only. User-defined labels for the task.
+    #[serde(default)]
+    pub labels: ::core::option::Option<serde_json::Value>,
+    /// Output only. Additional information about the current state.
+    #[serde(default)]
+    pub message: ::core::option::Option<String>,
+    /// Output only. The relative resource name of the job, of the form: projects/{project_number}/locations/{location_id}/lakes/{lake_id}/tasks/{task_id}/jobs/{job_id}.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Output only. The number of times the job has been retried (excluding the initial attempt).
+    #[serde(default, rename = "retryCount")]
+    pub retry_count: ::core::option::Option<i64>,
+    /// Output only. The underlying service running a job. // TODO: enum values: ["SERVICE_UNSPECIFIED", "DATAPROC"]
+    #[serde(default)]
+    pub service: ::core::option::Option<String>,
+    /// Output only. The full resource name for the job run under a particular service.
+    #[serde(default, rename = "serviceJob")]
+    pub service_job: ::core::option::Option<String>,
+    /// Output only. The time when the job was started.
+    #[serde(default, rename = "startTime")]
+    pub start_time: ::core::option::Option<String>,
+    /// Output only. Execution state for the job. // TODO: enum values: ["STATE_UNSPECIFIED", "RUNNING", "CANCELLING", "CANCELLED", "SUCCEEDED", "FAILED", "ABORTED"]
+    #[serde(default)]
+    pub state: ::core::option::Option<String>,
+    /// Output only. Job execution trigger. // TODO: enum values: ["TRIGGER_UNSPECIFIED", "TASK_CONFIG", "RUN_REQUEST"]
+    #[serde(default)]
+    pub trigger: ::core::option::Option<String>,
+    /// Output only. System generated globally unique ID for the job.
+    #[serde(default)]
+    pub uid: ::core::option::Option<String>,
+}
+
+/// Configuration for the underlying infrastructure used to run workloads.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDataplexV1TaskInfrastructureSpec {
+    /// Compute resources needed for a Task when using Dataproc Serverless.
+    #[serde(default)]
+    pub batch:
+        ::core::option::Option<GoogleCloudDataplexV1TaskInfrastructureSpecBatchComputeResources>,
+    /// Container Image Runtime Configuration.
+    #[serde(default, rename = "containerImage")]
+    pub container_image:
+        ::core::option::Option<GoogleCloudDataplexV1TaskInfrastructureSpecContainerImageRuntime>,
+    /// Vpc network.
+    #[serde(default, rename = "vpcNetwork")]
+    pub vpc_network: ::core::option::Option<GoogleCloudDataplexV1TaskInfrastructureSpecVpcNetwork>,
 }
 
 /// Describe CSV and similar semi-structured data formats.
@@ -3909,54 +3162,279 @@ pub struct GoogleCloudDataplexV1ZoneDiscoverySpecJsonOptions {
     pub encoding: ::core::option::Option<String>,
 }
 
-/// Settings for resources attached as assets within a zone.
+/// Describes BigQuery publishing configurations.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDataplexV1ZoneResourceSpec {
-    /// Required. Immutable. The location type of the resources that are allowed to be attached to the assets within this zone. // TODO: enum values: ["LOCATION_TYPE_UNSPECIFIED", "SINGLE_REGION", "MULTI_REGION"]
-    #[serde(default, rename = "locationType")]
-    pub location_type: ::core::option::Option<String>,
+pub struct GoogleCloudDataplexV1DataDiscoveryResultBigQueryPublishing {
+    /// Output only. The BigQuery dataset the discovered tables are published to.
+    #[serde(default)]
+    pub dataset: ::core::option::Option<String>,
+    /// Output only. The location of the BigQuery publishing dataset.
+    #[serde(default)]
+    pub location: ::core::option::Option<String>,
 }
 
-/// The response message for Locations.ListLocations.
+/// Describes result statistics of a data scan discovery job.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudLocationListLocationsResponse {
-    /// A list of locations that matches the specified filter in the request.
-    #[serde(default)]
-    pub locations: ::core::option::Option<::std::vec::Vec<GoogleCloudLocationLocation>>,
-    /// The standard List next-page token.
-    #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: ::core::option::Option<String>,
+pub struct GoogleCloudDataplexV1DataDiscoveryResultScanStatistics {
+    /// The data processed in bytes.
+    #[serde(default, rename = "dataProcessedBytes")]
+    pub data_processed_bytes: ::core::option::Option<String>,
+    /// The number of files excluded.
+    #[serde(default, rename = "filesExcluded")]
+    pub files_excluded: ::core::option::Option<i32>,
+    /// The number of filesets created.
+    #[serde(default, rename = "filesetsCreated")]
+    pub filesets_created: ::core::option::Option<i32>,
+    /// The number of filesets deleted.
+    #[serde(default, rename = "filesetsDeleted")]
+    pub filesets_deleted: ::core::option::Option<i32>,
+    /// The number of filesets updated.
+    #[serde(default, rename = "filesetsUpdated")]
+    pub filesets_updated: ::core::option::Option<i32>,
+    /// The number of files scanned.
+    #[serde(default, rename = "scannedFileCount")]
+    pub scanned_file_count: ::core::option::Option<i32>,
+    /// The number of tables created.
+    #[serde(default, rename = "tablesCreated")]
+    pub tables_created: ::core::option::Option<i32>,
+    /// The number of tables deleted.
+    #[serde(default, rename = "tablesDeleted")]
+    pub tables_deleted: ::core::option::Option<i32>,
+    /// The number of tables updated.
+    #[serde(default, rename = "tablesUpdated")]
+    pub tables_updated: ::core::option::Option<i32>,
 }
 
-/// A resource that represents a Google Cloud location.
+/// Describes BigQuery publishing configurations.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudLocationLocation {
-    /// The friendly name for this location, typically a nearby city name. For example, "Tokyo".
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-    /// Cross-service attributes for the location. For example {"cloud.googleapis.com/region": "us-east1"}
+pub struct GoogleCloudDataplexV1DataDiscoverySpecBigQueryPublishingConfig {
+    /// Optional. The BigQuery connection used to create BigLake tables. Must be in the form projects/{project_id}/locations/{location_id}/connections/{connection_id}
     #[serde(default)]
-    pub labels: ::core::option::Option<serde_json::Value>,
-    /// The canonical id for this location. For example: "us-east1".
-    #[serde(default, rename = "locationId")]
-    pub location_id: ::core::option::Option<String>,
-    /// Service-specific metadata. For example the available capacity at the given location.
+    pub connection: ::core::option::Option<String>,
+    /// Optional. The location of the BigQuery dataset to publish BigLake external or non-BigLake external tables to. 1. If the Cloud Storage bucket is located in a multi-region bucket, then BigQuery dataset can be in the same multi-region bucket or any single region that is included in the same multi-region bucket. The datascan can be created in any single region that is included in the same multi-region bucket 2. If the Cloud Storage bucket is located in a dual-region bucket, then BigQuery dataset can be located in regions that are included in the dual-region bucket, or in a multi-region that includes the dual-region. The datascan can be created in any single region that is included in the same dual-region bucket. 3. If the Cloud Storage bucket is located in a single region, then BigQuery dataset can be in the same single region or any multi-region bucket that includes the same single region. The datascan will be created in the same single region as the bucket. 4. If the BigQuery dataset is in single region, it must be in the same single region as the datascan.For supported values, refer to https://cloud.google.com/bigquery/docs/locations#supported_locations.
     #[serde(default)]
-    pub metadata: ::core::option::Option<serde_json::Value>,
-    /// Resource name for the location, which may vary between implementations. For example: "projects/example-project/locations/us-east1"
+    pub location: ::core::option::Option<String>,
+    /// Optional. The project of the BigQuery dataset to publish BigLake external or non-BigLake external tables to. If not specified, the project of the Cloud Storage bucket will be used. The format is "projects/{project_id_or_number}".
+    #[serde(default)]
+    pub project: ::core::option::Option<String>,
+    /// Optional. Determines whether to publish discovered tables as BigLake external tables or non-BigLake external tables. // TODO: enum values: ["TABLE_TYPE_UNSPECIFIED", "EXTERNAL", "BIGLAKE"]
+    #[serde(default, rename = "tableType")]
+    pub table_type: ::core::option::Option<String>,
+}
+
+/// Configurations related to Cloud Storage as the data source.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDataplexV1DataDiscoverySpecStorageConfig {
+    /// Optional. Configuration for CSV data.
+    #[serde(default, rename = "csvOptions")]
+    pub csv_options:
+        ::core::option::Option<GoogleCloudDataplexV1DataDiscoverySpecStorageConfigCsvOptions>,
+    /// Optional. Defines the data to exclude during discovery. Provide a list of patterns that identify the data to exclude. For Cloud Storage bucket assets, these patterns are interpreted as glob patterns used to match object names. For BigQuery dataset assets, these patterns are interpreted as patterns to match table names.
+    #[serde(default, rename = "excludePatterns")]
+    pub exclude_patterns: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Optional. Defines the data to include during discovery when only a subset of the data should be considered. Provide a list of patterns that identify the data to include. For Cloud Storage bucket assets, these patterns are interpreted as glob patterns used to match object names. For BigQuery dataset assets, these patterns are interpreted as patterns to match table names.
+    #[serde(default, rename = "includePatterns")]
+    pub include_patterns: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Optional. Configuration for JSON data.
+    #[serde(default, rename = "jsonOptions")]
+    pub json_options:
+        ::core::option::Option<GoogleCloudDataplexV1DataDiscoverySpecStorageConfigJsonOptions>,
+}
+
+/// Insights for a dataset resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDataplexV1DataDocumentationResultDatasetResult {
+    /// Output only. Generated Dataset description.
+    #[serde(default)]
+    pub overview: ::core::option::Option<String>,
+    /// Output only. Sample SQL queries for the dataset.
+    #[serde(default)]
+    pub queries:
+        ::core::option::Option<::std::vec::Vec<GoogleCloudDataplexV1DataDocumentationResultQuery>>,
+    /// Output only. Relationships suggesting how tables in the dataset are related to each other, based on their schema.
+    #[serde(default, rename = "schemaRelationships")]
+    pub schema_relationships: ::core::option::Option<
+        ::std::vec::Vec<GoogleCloudDataplexV1DataDocumentationResultSchemaRelationship>,
+    >,
+    /// Output only. Generated table and column descriptions for each table in the dataset.
+    #[serde(default, rename = "tableResults")]
+    pub table_results: ::core::option::Option<
+        ::std::vec::Vec<GoogleCloudDataplexV1DataDocumentationResultTableResult>,
+    >,
+}
+
+/// The result of post scan actions of DataProfileScan job.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDataplexV1DataProfileResultPostScanActionsResult {
+    /// Output only. The result of BigQuery export post scan action.
+    #[serde(default, rename = "bigqueryExportResult")]
+    pub bigquery_export_result: ::core::option::Option<
+        GoogleCloudDataplexV1DataProfileResultPostScanActionsResultBigQueryExportResult,
+    >,
+}
+
+/// Contains name, type, mode and field type specific profile information.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDataplexV1DataProfileResultProfile {
+    /// Output only. List of fields with structural and profile information for each field.
+    #[serde(default)]
+    pub fields:
+        ::core::option::Option<::std::vec::Vec<GoogleCloudDataplexV1DataProfileResultProfileField>>,
+}
+
+/// The specification for fields to include or exclude in data profile scan.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDataplexV1DataProfileSpecSelectedFields {
+    /// Optional. Expected input is a list of fully qualified names of fields as in the schema.Only top-level field names for nested fields are supported. For instance, if ''x'' is of nested field type, listing ''x'' is supported but ''x.y.z'' is not supported. Here ''y'' and ''y.z'' are nested fields of ''x''.
+    #[serde(default, rename = "fieldNames")]
+    pub field_names: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// The configuration of post scan actions of DataProfileScan job.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDataplexV1DataProfileSpecPostScanActions {
+    /// Optional. If set, results will be exported to the provided BigQuery table.
+    #[serde(default, rename = "bigqueryExport")]
+    pub bigquery_export:
+        ::core::option::Option<GoogleCloudDataplexV1DataProfileSpecPostScanActionsBigQueryExport>,
+}
+
+/// The assets generated by Anomaly Detection Data Scan.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDataplexV1DataQualityResultAnomalyDetectionGeneratedAssets {
+    /// Output only. The intermediate table for data anomaly detection. Format: PROJECT_ID.DATASET_ID.TABLE_ID
+    #[serde(default, rename = "dataIntermediateTable")]
+    pub data_intermediate_table: ::core::option::Option<String>,
+    /// Output only. The intermediate table for freshness anomaly detection. Format: PROJECT_ID.DATASET_ID.TABLE_ID
+    #[serde(default, rename = "freshnessIntermediateTable")]
+    pub freshness_intermediate_table: ::core::option::Option<String>,
+    /// Output only. The result table for anomaly detection. Format: PROJECT_ID.DATASET_ID.TABLE_ID If the result table is set at AnomalyDetectionAssets, the result table here would be the same as the one set in the AnomalyDetectionAssets.result_table.
+    #[serde(default, rename = "resultTable")]
+    pub result_table: ::core::option::Option<String>,
+    /// Output only. The intermediate table for volume anomaly detection. Format: PROJECT_ID.DATASET_ID.TABLE_ID
+    #[serde(default, rename = "volumeIntermediateTable")]
+    pub volume_intermediate_table: ::core::option::Option<String>,
+}
+
+/// The status of publishing the data scan result as Dataplex Universal Catalog metadata. Multiple DataScan log events may exist, each with different publishing information depending on the type of publishing triggered.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDataplexV1DataScanCatalogPublishingStatus {
+    /// Output only. Execution state for publishing. // TODO: enum values: ["STATE_UNSPECIFIED", "SUCCEEDED", "FAILED", "SKIPPED"]
+    #[serde(default)]
+    pub state: ::core::option::Option<String>,
+}
+
+/// DataQualityColumnResult provides a more detailed, per-column view of the results.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDataplexV1DataQualityColumnResult {
+    /// Output only. The column specified in the DataQualityRule.
+    #[serde(default)]
+    pub column: ::core::option::Option<String>,
+    /// Output only. The dimension-level results for this column.
+    #[serde(default)]
+    pub dimensions:
+        ::core::option::Option<::std::vec::Vec<GoogleCloudDataplexV1DataQualityDimensionResult>>,
+    /// Output only. Whether the column passed or failed.
+    #[serde(default)]
+    pub passed: ::core::option::Option<bool>,
+    /// Output only. The column-level data quality score for this data scan job if and only if the ''column'' field is set.The score ranges between between 0, 100 (up to two decimal points).
+    #[serde(default)]
+    pub score: ::core::option::Option<f32>,
+}
+
+/// The result of post scan actions of DataQualityScan job.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDataplexV1DataQualityResultPostScanActionsResult {
+    /// Output only. The result of BigQuery export post scan action.
+    #[serde(default, rename = "bigqueryExportResult")]
+    pub bigquery_export_result: ::core::option::Option<
+        GoogleCloudDataplexV1DataQualityResultPostScanActionsResultBigQueryExportResult,
+    >,
+}
+
+/// DataQualityRuleResult provides a more detailed, per-rule view of the results.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDataplexV1DataQualityRuleResult {
+    /// Output only. The number of rows returned by the SQL statement in a SQL assertion rule.This field is only valid for SQL assertion rules.
+    #[serde(default, rename = "assertionRowCount")]
+    pub assertion_row_count: ::core::option::Option<String>,
+    /// Output only. Contains the results of all debug queries for this rule. The number of result sets will correspond to the number of debug_queries.
+    #[serde(default, rename = "debugQueriesResultSets")]
+    pub debug_queries_result_sets: ::core::option::Option<
+        ::std::vec::Vec<GoogleCloudDataplexV1DataQualityRuleResultDebugQueryResultSet>,
+    >,
+    /// Output only. The number of rows a rule was evaluated against.This field is only valid for row-level type rules.Evaluated count can be configured to either include all rows (default) - with null rows automatically failing rule evaluation, or exclude null rows from the evaluated_count, by setting ignore_nulls = true.This field is not set for rule SqlAssertion.
+    #[serde(default, rename = "evaluatedCount")]
+    pub evaluated_count: ::core::option::Option<String>,
+    /// Output only. The query to find rows that did not pass this rule.This field is only valid for row-level type rules.
+    #[serde(default, rename = "failingRowsQuery")]
+    pub failing_rows_query: ::core::option::Option<String>,
+    /// Output only. The number of rows with null values in the specified column.
+    #[serde(default, rename = "nullCount")]
+    pub null_count: ::core::option::Option<String>,
+    /// Output only. The ratio of passed_count / evaluated_count.This field is only valid for row-level type rules.
+    #[serde(default, rename = "passRatio")]
+    pub pass_ratio: ::core::option::Option<f64>,
+    /// Output only. Whether the rule passed or failed.
+    #[serde(default)]
+    pub passed: ::core::option::Option<bool>,
+    /// Output only. The number of rows which passed a rule evaluation.This field is only valid for row-level type rules.This field is not set for rule SqlAssertion.
+    #[serde(default, rename = "passedCount")]
+    pub passed_count: ::core::option::Option<String>,
+    /// Output only. The rule specified in the DataQualitySpec, as is.
+    #[serde(default)]
+    pub rule: ::core::option::Option<GoogleCloudDataplexV1DataQualityRule>,
+}
+
+/// The data scanned during processing (e.g. in incremental DataScan)
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDataplexV1ScannedData {
+    /// The range denoted by values of an incremental field
+    #[serde(default, rename = "incrementalField")]
+    pub incremental_field: ::core::option::Option<GoogleCloudDataplexV1ScannedDataIncrementalField>,
+}
+
+/// The configuration of post scan actions of DataQualityScan.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDataplexV1DataQualitySpecPostScanActions {
+    /// Optional. If set, results will be exported to the provided BigQuery table.
+    #[serde(default, rename = "bigqueryExport")]
+    pub bigquery_export:
+        ::core::option::Option<GoogleCloudDataplexV1DataQualitySpecPostScanActionsBigQueryExport>,
+    /// Optional. If set, results will be sent to the provided notification receipts upon triggers.
+    #[serde(default, rename = "notificationReport")]
+    pub notification_report: ::core::option::Option<
+        GoogleCloudDataplexV1DataQualitySpecPostScanActionsNotificationReport,
+    >,
+}
+
+/// An entry is a representation of a data resource that can be described by various metadata.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDataplexV1Entry {
+    /// Optional. The aspects that are attached to the entry. Depending on how the aspect is attached to the entry, the format of the aspect key can be one of the following: If the aspect is attached directly to the entry: {project_id_or_number}.{location_id}.{aspect_type_id} If the aspect is attached to an entry''s path: {project_id_or_number}.{location_id}.{aspect_type_id}@{path}
+    #[serde(default)]
+    pub aspects: ::core::option::Option<serde_json::Value>,
+    /// Output only. The time when the entry was created in Dataplex Universal Catalog.
+    #[serde(default, rename = "createTime")]
+    pub create_time: ::core::option::Option<String>,
+    /// Optional. Information related to the source system of the data resource that is represented by the entry.
+    #[serde(default, rename = "entrySource")]
+    pub entry_source: ::core::option::Option<GoogleCloudDataplexV1EntrySource>,
+    /// Required. Immutable. The relative resource name of the entry type that was used to create this entry, in the format projects/{project_id_or_number}/locations/{location_id}/entryTypes/{entry_type_id}.
+    #[serde(default, rename = "entryType")]
+    pub entry_type: ::core::option::Option<String>,
+    /// Optional. A name for the entry that can be referenced by an external system. For more information, see Fully qualified names (https://cloud.google.com/data-catalog/docs/fully-qualified-names). The maximum size of the field is 4000 characters.
+    #[serde(default, rename = "fullyQualifiedName")]
+    pub fully_qualified_name: ::core::option::Option<String>,
+    /// Identifier. The relative resource name of the entry, in the format projects/{project_id_or_number}/locations/{location_id}/entryGroups/{entry_group_id}/entries/{entry_id}.
     #[serde(default)]
     pub name: ::core::option::Option<String>,
-}
-
-/// Specifies the audit configuration for a service. The configuration determines which permission types are logged, and what identities, if any, are exempted from logging. An AuditConfig must have one or more AuditLogConfigs.If there are AuditConfigs for both allServices and a specific service, the union of the two AuditConfigs is used for that service: the log_types specified in each AuditConfig are enabled, and the exempted_members in each AuditLogConfig are exempted.Example Policy with multiple AuditConfigs: { "audit_configs": [ { "service": "allServices", "audit_log_configs": [ { "log_type": "DATA_READ", "exempted_members": [ "user:jose@example.com" ] }, { "log_type": "DATA_WRITE" }, { "log_type": "ADMIN_READ" } ] }, { "service": "sampleservice.googleapis.com", "audit_log_configs": [ { "log_type": "DATA_READ" }, { "log_type": "DATA_WRITE", "exempted_members": [ "user:aliya@example.com" ] } ] } ] } For sampleservice, this policy enables DATA_READ, DATA_WRITE and ADMIN_READ logging. It also exempts jose@example.com from DATA_READ logging, and aliya@example.com from DATA_WRITE logging.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleIamV1AuditConfig {
-    /// The configuration for logging of each type of permission.
-    #[serde(default, rename = "auditLogConfigs")]
-    pub audit_log_configs: ::core::option::Option<::std::vec::Vec<GoogleIamV1AuditLogConfig>>,
-    /// Specifies a service that will be enabled for audit logging. For example, storage.googleapis.com, cloudsql.googleapis.com. allServices is a special value that covers all services.
-    #[serde(default)]
-    pub service: ::core::option::Option<String>,
+    /// Optional. Immutable. The resource name of the parent entry, in the format projects/{project_id_or_number}/locations/{location_id}/entryGroups/{entry_group_id}/entries/{entry_id}.
+    #[serde(default, rename = "parentEntry")]
+    pub parent_entry: ::core::option::Option<String>,
+    /// Output only. The time when the entry was last updated in Dataplex Universal Catalog.
+    #[serde(default, rename = "updateTime")]
+    pub update_time: ::core::option::Option<String>,
 }
 
 /// Provides the configuration for logging a type of permissions. Example: { "audit_log_configs": [ { "log_type": "DATA_READ", "exempted_members": [ "user:jose@example.com" ] }, { "log_type": "DATA_WRITE" } ] } This enables ''DATA_READ'' and ''DATA_WRITE'' logging, while exempting jose@example.com from DATA_READ logging.
@@ -3968,112 +3446,6 @@ pub struct GoogleIamV1AuditLogConfig {
     /// The log type that this config enables. // TODO: enum values: ["LOG_TYPE_UNSPECIFIED", "ADMIN_READ", "DATA_WRITE", "DATA_READ"]
     #[serde(default, rename = "logType")]
     pub log_type: ::core::option::Option<String>,
-}
-
-/// Associates members, or principals, with a role.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleIamV1Binding {
-    /// The condition that is associated with this binding.If the condition evaluates to true, then this binding applies to the current request.If the condition evaluates to false, then this binding does not apply to the current request. However, a different role binding might grant the same role to one or more of the principals in this binding.To learn which resources support conditions in their IAM policies, see the IAM documentation (https://cloud.google.com/iam/help/conditions/resource-policies).
-    #[serde(default)]
-    pub condition: ::core::option::Option<GoogleTypeExpr>,
-    /// Specifies the principals requesting access for a Google Cloud resource. members can have the following values: allUsers: A special identifier that represents anyone who is on the internet; with or without a Google account. allAuthenticatedUsers: A special identifier that represents anyone who is authenticated with a Google account or a service account. Does not include identities that come from external identity providers (IdPs) through identity federation. user:{emailid}: An email address that represents a specific Google account. For example, alice@example.com . serviceAccount:{emailid}: An email address that represents a Google service account. For example, my-other-app@appspot.gserviceaccount.com. serviceAccount:{projectid}.svc.id.goog[{namespace}/{kubernetes-sa}]: An identifier for a Kubernetes service account (https://cloud.google.com/kubernetes-engine/docs/how-to/kubernetes-service-accounts). For example, my-project.svc.id.goog[my-namespace/my-kubernetes-sa]. group:{emailid}: An email address that represents a Google group. For example, admins@example.com. domain:{domain}: The G Suite domain (primary) that represents all the users of that domain. For example, google.com or example.com. principal://iam.googleapis.com/locations/global/workforcePools/{pool_id}/subject/{subject_attribute_value}: A single identity in a workforce identity pool. principalSet://iam.googleapis.com/locations/global/workforcePools/{pool_id}/group/{group_id}: All workforce identities in a group. principalSet://iam.googleapis.com/locations/global/workforcePools/{pool_id}/attribute.{attribute_name}/{attribute_value}: All workforce identities with a specific attribute value. principalSet://iam.googleapis.com/locations/global/workforcePools/{pool_id}/*: All identities in a workforce identity pool. principal://iam.googleapis.com/projects/{project_number}/locations/global/workloadIdentityPools/{pool_id}/subject/{subject_attribute_value}: A single identity in a workload identity pool. principalSet://iam.googleapis.com/projects/{project_number}/locations/global/workloadIdentityPools/{pool_id}/group/{group_id}: A workload identity pool group. principalSet://iam.googleapis.com/projects/{project_number}/locations/global/workloadIdentityPools/{pool_id}/attribute.{attribute_name}/{attribute_value}: All identities in a workload identity pool with a certain attribute. principalSet://iam.googleapis.com/projects/{project_number}/locations/global/workloadIdentityPools/{pool_id}/*: All identities in a workload identity pool. deleted:user:{emailid}?uid={uniqueid}: An email address (plus unique identifier) representing a user that has been recently deleted. For example, alice@example.com?uid=123456789012345678901. If the user is recovered, this value reverts to user:{emailid} and the recovered user retains the role in the binding. deleted:serviceAccount:{emailid}?uid={uniqueid}: An email address (plus unique identifier) representing a service account that has been recently deleted. For example, my-other-app@appspot.gserviceaccount.com?uid=123456789012345678901. If the service account is undeleted, this value reverts to serviceAccount:{emailid} and the undeleted service account retains the role in the binding. deleted:group:{emailid}?uid={uniqueid}: An email address (plus unique identifier) representing a Google group that has been recently deleted. For example, admins@example.com?uid=123456789012345678901. If the group is recovered, this value reverts to group:{emailid} and the recovered group retains the role in the binding. deleted:principal://iam.googleapis.com/locations/global/workforcePools/{pool_id}/subject/{subject_attribute_value}: Deleted single identity in a workforce identity pool. For example, deleted:principal://iam.googleapis.com/locations/global/workforcePools/my-pool-id/subject/my-subject-attribute-value.
-    #[serde(default)]
-    pub members: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Role that is assigned to the list of members, or principals. For example, roles/viewer, roles/editor, or roles/owner.For an overview of the IAM roles and permissions, see the IAM documentation (https://cloud.google.com/iam/docs/roles-overview). For a list of the available pre-defined roles, see here (https://cloud.google.com/iam/docs/understanding-roles).
-    #[serde(default)]
-    pub role: ::core::option::Option<String>,
-}
-
-/// An Identity and Access Management (IAM) policy, which specifies access controls for Google Cloud resources.A Policy is a collection of bindings. A binding binds one or more members, or principals, to a single role. Principals can be user accounts, service accounts, Google groups, and domains (such as G Suite). A role is a named list of permissions; each role can be an IAM predefined role or a user-created custom role.For some types of Google Cloud resources, a binding can also specify a condition, which is a logical expression that allows access to a resource only if the expression evaluates to true. A condition can add constraints based on attributes of the request, the resource, or both. To learn which resources support conditions in their IAM policies, see the IAM documentation (https://cloud.google.com/iam/help/conditions/resource-policies).JSON example: { "bindings": [ { "role": "roles/resourcemanager.organizationAdmin", "members": [ "user:mike@example.com", "group:admins@example.com", "domain:google.com", "serviceAccount:my-project-id@appspot.gserviceaccount.com" ] }, { "role": "roles/resourcemanager.organizationViewer", "members": [ "user:eve@example.com" ], "condition": { "title": "expirable access", "description": "Does not grant access after Sep 2020", "expression": "request.time &lt; timestamp(''2020-10-01T00:00:00.000Z'')", } } ], "etag": "BwWWja0YfJA=", "version": 3 } YAML example: bindings: - members: - user:mike@example.com - group:admins@example.com - domain:google.com - serviceAccount:my-project-id@appspot.gserviceaccount.com role: roles/resourcemanager.organizationAdmin - members: - user:eve@example.com role: roles/resourcemanager.organizationViewer condition: title: expirable access description: Does not grant access after Sep 2020 expression: request.time &lt; timestamp(''2020-10-01T00:00:00.000Z'') etag: BwWWja0YfJA= version: 3 For a description of IAM and its features, see the IAM documentation (https://cloud.google.com/iam/docs/).
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleIamV1Policy {
-    /// Specifies cloud audit logging configuration for this policy.
-    #[serde(default, rename = "auditConfigs")]
-    pub audit_configs: ::core::option::Option<::std::vec::Vec<GoogleIamV1AuditConfig>>,
-    /// Associates a list of members, or principals, with a role. Optionally, may specify a condition that determines how and when the bindings are applied. Each of the bindings must contain at least one principal.The bindings in a Policy can refer to up to 1,500 principals; up to 250 of these principals can be Google groups. Each occurrence of a principal counts towards these limits. For example, if the bindings grant 50 different roles to user:alice@example.com, and not to any other principal, then you can add another 1,450 principals to the bindings in the Policy.
-    #[serde(default)]
-    pub bindings: ::core::option::Option<::std::vec::Vec<GoogleIamV1Binding>>,
-    /// etag is used for optimistic concurrency control as a way to help prevent simultaneous updates of a policy from overwriting each other. It is strongly suggested that systems make use of the etag in the read-modify-write cycle to perform policy updates in order to avoid race conditions: An etag is returned in the response to getIamPolicy, and systems are expected to put that etag in the request to setIamPolicy to ensure that their change will be applied to the same version of the policy.Important: If you use IAM Conditions, you must include the etag field whenever you call setIamPolicy. If you omit this field, then IAM allows you to overwrite a version 3 policy with a version 1 policy, and all of the conditions in the version 3 policy are lost.
-    #[serde(default)]
-    pub etag: ::core::option::Option<String>,
-    /// Specifies the format of the policy.Valid values are 0, 1, and 3. Requests that specify an invalid value are rejected.Any operation that affects conditional role bindings must specify version 3. This requirement applies to the following operations: Getting a policy that includes a conditional role binding Adding a conditional role binding to a policy Changing a conditional role binding in a policy Removing any role binding, with or without a condition, from a policy that includes conditionsImportant: If you use IAM Conditions, you must include the etag field whenever you call setIamPolicy. If you omit this field, then IAM allows you to overwrite a version 3 policy with a version 1 policy, and all of the conditions in the version 3 policy are lost.If a policy does not include any conditions, operations on that policy may specify any valid version or leave the field unset.To learn which resources support conditions in their IAM policies, see the IAM documentation (https://cloud.google.com/iam/help/conditions/resource-policies).
-    #[serde(default)]
-    pub version: ::core::option::Option<i32>,
-}
-
-/// Request message for SetIamPolicy method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleIamV1SetIamPolicyRequest {
-    /// REQUIRED: The complete policy to be applied to the resource. The size of the policy is limited to a few 10s of KB. An empty policy is a valid policy but certain Google Cloud services (such as Projects) might reject them.
-    #[serde(default)]
-    pub policy: ::core::option::Option<GoogleIamV1Policy>,
-    /// OPTIONAL: A FieldMask specifying which fields of the policy to modify. Only the fields in the mask will be modified. If no mask is provided, the following default mask is used:paths: "bindings, etag"
-    #[serde(default, rename = "updateMask")]
-    pub update_mask: ::core::option::Option<String>,
-}
-
-/// Request message for TestIamPermissions method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleIamV1TestIamPermissionsRequest {
-    /// The set of permissions to check for the resource. Permissions with wildcards (such as * or storage.*) are not allowed. For more information see IAM Overview (https://cloud.google.com/iam/docs/overview#permissions).
-    #[serde(default)]
-    pub permissions: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// Response message for TestIamPermissions method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleIamV1TestIamPermissionsResponse {
-    /// A subset of TestPermissionsRequest.permissions that the caller is allowed.
-    #[serde(default)]
-    pub permissions: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// The response message for Operations.ListOperations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleLongrunningListOperationsResponse {
-    /// The standard List next-page token.
-    #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: ::core::option::Option<String>,
-    /// A list of operations that matches the specified filter in the request.
-    #[serde(default)]
-    pub operations: ::core::option::Option<::std::vec::Vec<GoogleLongrunningOperation>>,
-    /// Unordered list. Unreachable resources. Populated when the request sets ListOperationsRequest.return_partial_success and reads across collections. For example, when attempting to list all resources across all supported locations.
-    #[serde(default)]
-    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// This resource represents a long-running operation that is the result of a network API call.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleLongrunningOperation {
-    /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
-    #[serde(default)]
-    pub done: ::core::option::Option<bool>,
-    /// The error result of the operation in case of failure or cancellation.
-    #[serde(default)]
-    pub error: ::core::option::Option<GoogleRpcStatus>,
-    /// Service-specific metadata associated with the operation. It typically contains progress information and common metadata such as create time. Some services might not provide such metadata. Any method that returns a long-running operation should document the metadata type, if any.
-    #[serde(default)]
-    pub metadata: ::core::option::Option<serde_json::Value>,
-    /// The server-assigned name, which is only unique within the same service that originally returns it. If you use the default HTTP mapping, the name should be a resource name ending with operations/{unique_id}.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// The normal, successful response of the operation. If the original method returns no data on success, such as Delete, the response is google.protobuf.Empty. If the original method is standard Get/Create/Update, the response should be the resource. For other methods, the response should have the type XxxResponse, where Xxx is the original method name. For example, if the original method name is TakeSnapshot(), the inferred response type is TakeSnapshotResponse.
-    #[serde(default)]
-    pub response: ::core::option::Option<serde_json::Value>,
-}
-
-/// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by gRPC (https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details.You can find out more about this error model and how to work with it in the API Design Guide (https://cloud.google.com/apis/design/errors).
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleRpcStatus {
-    /// The status code, which should be an enum value of google.rpc.Code.
-    #[serde(default)]
-    pub code: ::core::option::Option<i32>,
-    /// A list of messages that carry the error details. There is a common set of message types for APIs to use.
-    #[serde(default)]
-    pub details: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
-    /// A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.
-    #[serde(default)]
-    pub message: ::core::option::Option<String>,
 }
 
 /// Represents a textual expression in the Common Expression Language (CEL) syntax. CEL is a C-like expression language. The syntax and semantics of CEL are documented at https://github.com/google/cel-spec.Example (Comparison): title: "Summary size limit" description: "Determines if a summary is less than 100 chars" expression: "document.summary.size() &lt; 100" Example (Equality): title: "Requestor is owner" description: "Determines if requestor is the document owner" expression: "document.owner == request.auth.claims.email" Example (Logic): title: "Public documents" description: "Determine whether the document should be publicly visible" expression: "document.type != ''private'' && document.type != ''internal''" Example (Data Manipulation): title: "Notification string" description: "Create a notification string with a timestamp." expression: "''New message received at '' + string(document.create_time)" The exact variables and functions that may be referenced within an expression are determined by the service that evaluates it. See the service documentation for additional information.
@@ -4091,4 +3463,632 @@ pub struct GoogleTypeExpr {
     /// Optional. Title for the expression, i.e. a short string describing its purpose. This can be used e.g. in UIs which allow to enter the expression.
     #[serde(default)]
     pub title: ::core::option::Option<String>,
+}
+
+/// The scan runs once using create API.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDataplexV1TriggerOneTime {
+    /// Optional. Time to live for OneTime scans. default value is 24 hours, minimum value is 0 seconds, and maximum value is 365 days. The time is calculated from the data scan job completion time. If value is set as 0 seconds, the scan will be immediately deleted upon job completion, regardless of whether the job succeeded or failed.
+    #[serde(default, rename = "ttlAfterScanCompletion")]
+    pub ttl_after_scan_completion: ::core::option::Option<String>,
+}
+
+/// The scan is scheduled to run periodically.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDataplexV1TriggerSchedule {
+    /// Required. Cron (https://en.wikipedia.org/wiki/Cron) schedule for running scans periodically.To explicitly set a timezone in the cron tab, apply a prefix in the cron tab: "CRON_TZ=${IANA_TIME_ZONE}" or "TZ=${IANA_TIME_ZONE}". The ${IANA_TIME_ZONE} may only be a valid string from IANA time zone database (wikipedia (https://en.wikipedia.org/wiki/List_of_tz_database_time_zones#List)). For example, CRON_TZ=America/New_York 1 * * * *, or TZ=America/New_York 1 * * * *.This field is required for Schedule scans.
+    #[serde(default)]
+    pub cron: ::core::option::Option<String>,
+}
+
+/// Execution related settings, like retry and service_account.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDataplexV1TaskExecutionSpec {
+    /// Optional. The arguments to pass to the task. The args can use placeholders of the format ${placeholder} as part of key/value string. These will be interpolated before passing the args to the driver. Currently supported placeholders: - ${task_id} - ${job_time} To pass positional args, set the key as TASK_ARGS. The value should be a comma-separated string of all the positional arguments. To use a delimiter other than comma, refer to https://cloud.google.com/sdk/gcloud/reference/topic/escaping. In case of other keys being present in the args, then TASK_ARGS will be passed as the last argument.
+    #[serde(default)]
+    pub args: ::core::option::Option<serde_json::Value>,
+    /// Optional. The Cloud KMS key to use for encryption, of the form: projects/{project_number}/locations/{location_id}/keyRings/{key-ring-name}/cryptoKeys/{key-name}.
+    #[serde(default, rename = "kmsKey")]
+    pub kms_key: ::core::option::Option<String>,
+    /// Optional. The maximum duration after which the job execution is expired.
+    #[serde(default, rename = "maxJobExecutionLifetime")]
+    pub max_job_execution_lifetime: ::core::option::Option<String>,
+    /// Optional. The project in which jobs are run. By default, the project containing the Lake is used. If a project is provided, the ExecutionSpec.service_account must belong to this project.
+    #[serde(default)]
+    pub project: ::core::option::Option<String>,
+    /// Required. Service account to use to execute a task. If not provided, the default Compute service account for the project is used.
+    #[serde(default, rename = "serviceAccount")]
+    pub service_account: ::core::option::Option<String>,
+}
+
+/// Batch compute resources associated with the task.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDataplexV1TaskInfrastructureSpecBatchComputeResources {
+    /// Optional. Total number of job executors. Executor Count should be between 2 and 100. Default=2
+    #[serde(default, rename = "executorsCount")]
+    pub executors_count: ::core::option::Option<i32>,
+    /// Optional. Max configurable executors. If max_executors_count &gt; executors_count, then auto-scaling is enabled. Max Executor Count should be between 2 and 1000. Default=1000
+    #[serde(default, rename = "maxExecutorsCount")]
+    pub max_executors_count: ::core::option::Option<i32>,
+}
+
+/// Container Image Runtime Configuration used with Batch execution.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDataplexV1TaskInfrastructureSpecContainerImageRuntime {
+    /// Optional. Container image to use.
+    #[serde(default)]
+    pub image: ::core::option::Option<String>,
+    /// Optional. A list of Java JARS to add to the classpath. Valid input includes Cloud Storage URIs to Jar binaries. For example, gs://bucket-name/my/path/to/file.jar
+    #[serde(default, rename = "javaJars")]
+    pub java_jars: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Optional. Override to common configuration of open source components installed on the Dataproc cluster. The properties to set on daemon config files. Property keys are specified in prefix:property format, for example core:hadoop.tmp.dir. For more information, see Cluster properties (https://cloud.google.com/dataproc/docs/concepts/cluster-properties).
+    #[serde(default)]
+    pub properties: ::core::option::Option<serde_json::Value>,
+    /// Optional. A list of python packages to be installed. Valid formats include Cloud Storage URI to a PIP installable library. For example, gs://bucket-name/my/path/to/lib.tar.gz
+    #[serde(default, rename = "pythonPackages")]
+    pub python_packages: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// Cloud VPC Network used to run the infrastructure.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDataplexV1TaskInfrastructureSpecVpcNetwork {
+    /// Optional. The Cloud VPC network in which the job is run. By default, the Cloud VPC network named Default within the project is used.
+    #[serde(default)]
+    pub network: ::core::option::Option<String>,
+    /// Optional. List of network tags to apply to the job.
+    #[serde(default, rename = "networkTags")]
+    pub network_tags: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Optional. The Cloud VPC sub-network in which the job is run.
+    #[serde(default, rename = "subNetwork")]
+    pub sub_network: ::core::option::Option<String>,
+}
+
+/// Describes CSV and similar semi-structured data formats.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDataplexV1DataDiscoverySpecStorageConfigCsvOptions {
+    /// Optional. The delimiter that is used to separate values. The default is , (comma).
+    #[serde(default)]
+    pub delimiter: ::core::option::Option<String>,
+    /// Optional. The character encoding of the data. The default is UTF-8.
+    #[serde(default)]
+    pub encoding: ::core::option::Option<String>,
+    /// Optional. The number of rows to interpret as header rows that should be skipped when reading data rows.
+    #[serde(default, rename = "headerRows")]
+    pub header_rows: ::core::option::Option<i32>,
+    /// Optional. The character used to quote column values. Accepts " (double quotation mark) or '' (single quotation mark). If unspecified, defaults to " (double quotation mark).
+    #[serde(default)]
+    pub quote: ::core::option::Option<String>,
+    /// Optional. Whether to disable the inference of data types for CSV data. If true, all columns are registered as strings.
+    #[serde(default, rename = "typeInferenceDisabled")]
+    pub type_inference_disabled: ::core::option::Option<bool>,
+}
+
+/// Describes JSON data format.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDataplexV1DataDiscoverySpecStorageConfigJsonOptions {
+    /// Optional. The character encoding of the data. The default is UTF-8.
+    #[serde(default)]
+    pub encoding: ::core::option::Option<String>,
+    /// Optional. Whether to disable the inference of data types for JSON data. If true, all columns are registered as their primitive types (strings, number, or boolean).
+    #[serde(default, rename = "typeInferenceDisabled")]
+    pub type_inference_disabled: ::core::option::Option<bool>,
+}
+
+/// Details of the relationship between the schema of two resources.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDataplexV1DataDocumentationResultSchemaRelationship {
+    /// Output only. An ordered list of fields for the join from the first table. The size of this list must be the same as right_schema_paths. Each field at index i in this list must correspond to a field at the same index in the right_schema_paths list.
+    #[serde(default, rename = "leftSchemaPaths")]
+    pub left_schema_paths: ::core::option::Option<
+        GoogleCloudDataplexV1DataDocumentationResultSchemaRelationshipSchemaPaths,
+    >,
+    /// Output only. An ordered list of fields for the join from the second table. The size of this list must be the same as left_schema_paths. Each field at index i in this list must correspond to a field at the same index in the left_schema_paths list.
+    #[serde(default, rename = "rightSchemaPaths")]
+    pub right_schema_paths: ::core::option::Option<
+        GoogleCloudDataplexV1DataDocumentationResultSchemaRelationshipSchemaPaths,
+    >,
+    /// Output only. Sources which generated the schema relation edge.
+    #[serde(default)]
+    pub sources: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Output only. The type of relationship between the schema paths. // TODO: enum values: ["TYPE_UNSPECIFIED", "SCHEMA_JOIN"]
+    #[serde(default, rename = "type")]
+    pub type_: ::core::option::Option<String>,
+}
+
+/// Insights for a table resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDataplexV1DataDocumentationResultTableResult {
+    /// Output only. The service-qualified full resource name of the cloud resource. Ex: //bigquery.googleapis.com/projects/PROJECT_ID/datasets/DATASET_ID/tables/TABLE_ID
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Output only. Generated description of the table.
+    #[serde(default)]
+    pub overview: ::core::option::Option<String>,
+    /// Output only. Sample SQL queries for the table.
+    #[serde(default)]
+    pub queries:
+        ::core::option::Option<::std::vec::Vec<GoogleCloudDataplexV1DataDocumentationResultQuery>>,
+    /// Output only. Schema of the table with generated metadata of the columns in the schema.
+    #[serde(default)]
+    pub schema: ::core::option::Option<GoogleCloudDataplexV1DataDocumentationResultSchema>,
+}
+
+/// The result of BigQuery export post scan action.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDataplexV1DataProfileResultPostScanActionsResultBigQueryExportResult {
+    /// Output only. Additional information about the BigQuery exporting.
+    #[serde(default)]
+    pub message: ::core::option::Option<String>,
+    /// Output only. Execution state for the BigQuery exporting. // TODO: enum values: ["STATE_UNSPECIFIED", "SUCCEEDED", "FAILED", "SKIPPED"]
+    #[serde(default)]
+    pub state: ::core::option::Option<String>,
+}
+
+/// A field within a table.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDataplexV1DataProfileResultProfileField {
+    /// Output only. The mode of the field. Possible values include: REQUIRED, if it is a required field. NULLABLE, if it is an optional field. REPEATED, if it is a repeated field.
+    #[serde(default)]
+    pub mode: ::core::option::Option<String>,
+    /// Output only. The name of the field.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Output only. Profile information for the corresponding field.
+    #[serde(default)]
+    pub profile:
+        ::core::option::Option<GoogleCloudDataplexV1DataProfileResultProfileFieldProfileInfo>,
+    /// Output only. The data type retrieved from the schema of the data source. For instance, for a BigQuery native table, it is the BigQuery Table Schema (https://cloud.google.com/bigquery/docs/reference/rest/v2/tables#tablefieldschema). For a Dataplex Universal Catalog Entity, it is the Entity Schema (https://cloud.google.com/dataplex/docs/reference/rpc/google.cloud.dataplex.v1#type_3).
+    #[serde(default, rename = "type")]
+    pub type_: ::core::option::Option<String>,
+}
+
+/// The configuration of BigQuery export post scan action.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDataplexV1DataProfileSpecPostScanActionsBigQueryExport {
+    /// Optional. The BigQuery table to export DataProfileScan results to. Format: //bigquery.googleapis.com/projects/PROJECT_ID/datasets/DATASET_ID/tables/TABLE_ID
+    #[serde(default, rename = "resultsTable")]
+    pub results_table: ::core::option::Option<String>,
+}
+
+/// DataQualityDimensionResult provides a more detailed, per-dimension view of the results.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDataplexV1DataQualityDimensionResult {
+    /// Output only. The dimension config specified in the DataQualitySpec, as is.
+    #[serde(default)]
+    pub dimension: ::core::option::Option<GoogleCloudDataplexV1DataQualityDimension>,
+    /// Output only. Whether the dimension passed or failed.
+    #[serde(default)]
+    pub passed: ::core::option::Option<bool>,
+    /// Output only. The dimension-level data quality score for this data scan job if and only if the ''dimension'' field is set.The score ranges between 0, 100 (up to two decimal points).
+    #[serde(default)]
+    pub score: ::core::option::Option<f32>,
+}
+
+/// The result of BigQuery export post scan action.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDataplexV1DataQualityResultPostScanActionsResultBigQueryExportResult {
+    /// Output only. Additional information about the BigQuery exporting.
+    #[serde(default)]
+    pub message: ::core::option::Option<String>,
+    /// Output only. Execution state for the BigQuery exporting. // TODO: enum values: ["STATE_UNSPECIFIED", "SUCCEEDED", "FAILED", "SKIPPED"]
+    #[serde(default)]
+    pub state: ::core::option::Option<String>,
+}
+
+/// Contains all results from a debug query.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDataplexV1DataQualityRuleResultDebugQueryResultSet {
+    /// Output only. Contains all results. Up to 10 results can be returned.
+    #[serde(default)]
+    pub results: ::core::option::Option<
+        ::std::vec::Vec<GoogleCloudDataplexV1DataQualityRuleResultDebugQueryResult>,
+    >,
+}
+
+/// A rule captures data quality intent about a data source.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDataplexV1DataQualityRule {
+    /// Optional. The unnested column which this rule is evaluated against.
+    #[serde(default)]
+    pub column: ::core::option::Option<String>,
+    /// Optional. Specifies the debug queries for this rule. Currently, only one query is supported, but this may be expanded in the future.
+    #[serde(default, rename = "debugQueries")]
+    pub debug_queries:
+        ::core::option::Option<::std::vec::Vec<GoogleCloudDataplexV1DataQualityRuleDebugQuery>>,
+    /// Optional. Description of the rule. The maximum length is 1,024 characters.
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+    /// Optional. The dimension a rule belongs to. Results are also aggregated at the dimension level. Custom dimension name is supported with all uppercase letters and maximum length of 30 characters.
+    #[serde(default)]
+    pub dimension: ::core::option::Option<String>,
+    /// Optional. Rows with null values will automatically fail a rule, unless ignore_null is true. In that case, such null rows are trivially considered passing.This field is only valid for the following type of rules: RangeExpectation RegexExpectation SetExpectation UniquenessExpectation
+    #[serde(default, rename = "ignoreNull")]
+    pub ignore_null: ::core::option::Option<bool>,
+    /// Optional. A mutable name for the rule. The name must contain only letters (a-z, A-Z), numbers (0-9), or hyphens (-). The maximum length is 63 characters. Must start with a letter. Must end with a number or a letter.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Row-level rule which evaluates whether each column value is null.
+    #[serde(default, rename = "nonNullExpectation")]
+    pub non_null_expectation: ::core::option::Option<serde_json::Value>,
+    /// Row-level rule which evaluates whether each column value lies between a specified range.
+    #[serde(default, rename = "rangeExpectation")]
+    pub range_expectation:
+        ::core::option::Option<GoogleCloudDataplexV1DataQualityRuleRangeExpectation>,
+    /// Row-level rule which evaluates whether each column value matches a specified regex.
+    #[serde(default, rename = "regexExpectation")]
+    pub regex_expectation:
+        ::core::option::Option<GoogleCloudDataplexV1DataQualityRuleRegexExpectation>,
+    /// Row-level rule which evaluates whether each row in a table passes the specified condition.
+    #[serde(default, rename = "rowConditionExpectation")]
+    pub row_condition_expectation:
+        ::core::option::Option<GoogleCloudDataplexV1DataQualityRuleRowConditionExpectation>,
+    /// Row-level rule which evaluates whether each column value is contained by a specified set.
+    #[serde(default, rename = "setExpectation")]
+    pub set_expectation: ::core::option::Option<GoogleCloudDataplexV1DataQualityRuleSetExpectation>,
+    /// Aggregate rule which evaluates the number of rows returned for the provided statement. If any rows are returned, this rule fails.
+    #[serde(default, rename = "sqlAssertion")]
+    pub sql_assertion: ::core::option::Option<GoogleCloudDataplexV1DataQualityRuleSqlAssertion>,
+    /// Aggregate rule which evaluates whether the column aggregate statistic lies between a specified range.
+    #[serde(default, rename = "statisticRangeExpectation")]
+    pub statistic_range_expectation:
+        ::core::option::Option<GoogleCloudDataplexV1DataQualityRuleStatisticRangeExpectation>,
+    /// Optional. Whether the Rule is active or suspended. Default is false.
+    #[serde(default)]
+    pub suspended: ::core::option::Option<bool>,
+    /// Aggregate rule which evaluates whether the provided expression is true for a table.
+    #[serde(default, rename = "tableConditionExpectation")]
+    pub table_condition_expectation:
+        ::core::option::Option<GoogleCloudDataplexV1DataQualityRuleTableConditionExpectation>,
+    /// Optional. The minimum ratio of passing_rows / total_rows required to pass this rule, with a range of 0.0, 1.0.0 indicates default value (i.e. 1.0).This field is only valid for row-level type rules.
+    #[serde(default)]
+    pub threshold: ::core::option::Option<f64>,
+    /// Row-level rule which evaluates whether each column value is unique.
+    #[serde(default, rename = "uniquenessExpectation")]
+    pub uniqueness_expectation: ::core::option::Option<serde_json::Value>,
+}
+
+/// A data range denoted by a pair of start/end values of a field.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDataplexV1ScannedDataIncrementalField {
+    /// Output only. Value that marks the end of the range.
+    #[serde(default)]
+    pub end: ::core::option::Option<String>,
+    /// Output only. The field that contains values which monotonically increases over time (e.g. a timestamp column).
+    #[serde(default)]
+    pub field: ::core::option::Option<String>,
+    /// Output only. Value that marks the start of the range.
+    #[serde(default)]
+    pub start: ::core::option::Option<String>,
+}
+
+/// The configuration of BigQuery export post scan action.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDataplexV1DataQualitySpecPostScanActionsBigQueryExport {
+    /// Optional. The BigQuery table to export DataQualityScan results to. Format: //bigquery.googleapis.com/projects/PROJECT_ID/datasets/DATASET_ID/tables/TABLE_ID or projects/PROJECT_ID/datasets/DATASET_ID/tables/TABLE_ID
+    #[serde(default, rename = "resultsTable")]
+    pub results_table: ::core::option::Option<String>,
+}
+
+/// The configuration of notification report post scan action.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDataplexV1DataQualitySpecPostScanActionsNotificationReport {
+    /// Optional. If set, report will be sent when a scan job ends.
+    #[serde(default, rename = "jobEndTrigger")]
+    pub job_end_trigger: ::core::option::Option<serde_json::Value>,
+    /// Optional. If set, report will be sent when a scan job fails.
+    #[serde(default, rename = "jobFailureTrigger")]
+    pub job_failure_trigger: ::core::option::Option<serde_json::Value>,
+    /// Required. The recipients who will receive the notification report.
+    #[serde(default)]
+    pub recipients:
+        ::core::option::Option<GoogleCloudDataplexV1DataQualitySpecPostScanActionsRecipients>,
+    /// Optional. If set, report will be sent when score threshold is met.
+    #[serde(default, rename = "scoreThresholdTrigger")]
+    pub score_threshold_trigger: ::core::option::Option<
+        GoogleCloudDataplexV1DataQualitySpecPostScanActionsScoreThresholdTrigger,
+    >,
+}
+
+/// Information related to the source system of the data resource that is represented by the entry.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDataplexV1EntrySource {
+    /// Immutable. The entries representing the ancestors of the data resource in the source system.
+    #[serde(default)]
+    pub ancestors:
+        ::core::option::Option<::std::vec::Vec<GoogleCloudDataplexV1EntrySourceAncestor>>,
+    /// The time when the resource was created in the source system.
+    #[serde(default, rename = "createTime")]
+    pub create_time: ::core::option::Option<String>,
+    /// A description of the data resource. Maximum length is 2,000 characters.
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+    /// A user-friendly display name. Maximum length is 500 characters.
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+    /// User-defined labels. The maximum size of keys and values is 128 characters each.
+    #[serde(default)]
+    pub labels: ::core::option::Option<serde_json::Value>,
+    /// Output only. Location of the resource in the source system. You can search the entry by this location. By default, this should match the location of the entry group containing this entry. A different value allows capturing the source location for data external to Google Cloud.
+    #[serde(default)]
+    pub location: ::core::option::Option<String>,
+    /// The platform containing the source system. Maximum length is 64 characters.
+    #[serde(default)]
+    pub platform: ::core::option::Option<String>,
+    /// The name of the resource in the source system. Maximum length is 4,000 characters.
+    #[serde(default)]
+    pub resource: ::core::option::Option<String>,
+    /// The name of the source system. Maximum length is 64 characters.
+    #[serde(default)]
+    pub system: ::core::option::Option<String>,
+    /// The time when the resource was last updated in the source system. If the entry exists in the system and its EntrySource has update_time populated, further updates to the EntrySource of the entry must provide incremental updates to its update_time.
+    #[serde(default, rename = "updateTime")]
+    pub update_time: ::core::option::Option<String>,
+}
+
+/// Represents an ordered set of paths within a table''s schema.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDataplexV1DataDocumentationResultSchemaRelationshipSchemaPaths {
+    /// Output only. An ordered set of Paths to fields within the schema of the table. For fields nested within a top level field of type record, use ''.'' to separate field names. Examples: Top level field - top_level Nested field - top_level.child.sub_field
+    #[serde(default)]
+    pub paths: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Output only. The service-qualified full resource name of the table Ex: //bigquery.googleapis.com/projects/PROJECT_ID/datasets/DATASET_ID/tables/TABLE_ID
+    #[serde(default, rename = "tableFqn")]
+    pub table_fqn: ::core::option::Option<String>,
+}
+
+/// A sample SQL query in data documentation.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDataplexV1DataDocumentationResultQuery {
+    /// Output only. The description for the query.
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+    /// Output only. The SQL query string which can be executed.
+    #[serde(default)]
+    pub sql: ::core::option::Option<String>,
+}
+
+/// Schema of the table with generated metadata of columns.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDataplexV1DataDocumentationResultSchema {
+    /// Output only. The list of columns.
+    #[serde(default)]
+    pub fields:
+        ::core::option::Option<::std::vec::Vec<GoogleCloudDataplexV1DataDocumentationResultField>>,
+}
+
+/// The profile information for each field type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDataplexV1DataProfileResultProfileFieldProfileInfo {
+    /// Output only. Ratio of rows with distinct values against total scanned rows. Not available for complex non-groupable field type, including RECORD, ARRAY, GEOGRAPHY, and JSON, as well as fields with REPEATABLE mode.
+    #[serde(default, rename = "distinctRatio")]
+    pub distinct_ratio: ::core::option::Option<f64>,
+    /// Double type field information.
+    #[serde(default, rename = "doubleProfile")]
+    pub double_profile: ::core::option::Option<
+        GoogleCloudDataplexV1DataProfileResultProfileFieldProfileInfoDoubleFieldInfo,
+    >,
+    /// Integer type field information.
+    #[serde(default, rename = "integerProfile")]
+    pub integer_profile: ::core::option::Option<
+        GoogleCloudDataplexV1DataProfileResultProfileFieldProfileInfoIntegerFieldInfo,
+    >,
+    /// Output only. Ratio of rows with null value against total scanned rows.
+    #[serde(default, rename = "nullRatio")]
+    pub null_ratio: ::core::option::Option<f64>,
+    /// String type field information.
+    #[serde(default, rename = "stringProfile")]
+    pub string_profile: ::core::option::Option<
+        GoogleCloudDataplexV1DataProfileResultProfileFieldProfileInfoStringFieldInfo,
+    >,
+    /// Output only. The list of top N non-null values, frequency and ratio with which they occur in the scanned data. N is 10 or equal to the number of distinct values in the field, whichever is smaller. Not available for complex non-groupable field type, including RECORD, ARRAY, GEOGRAPHY, and JSON, as well as fields with REPEATABLE mode.
+    #[serde(default, rename = "topNValues")]
+    pub top_n_values: ::core::option::Option<
+        ::std::vec::Vec<GoogleCloudDataplexV1DataProfileResultProfileFieldProfileInfoTopNValue>,
+    >,
+}
+
+/// A dimension captures data quality intent about a defined subset of the rules specified.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDataplexV1DataQualityDimension {
+    /// Output only. The dimension name a rule belongs to. Custom dimension name is supported with all uppercase letters and maximum length of 30 characters.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+}
+
+/// Contains a single result from the debug query.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDataplexV1DataQualityRuleResultDebugQueryResult {
+    /// Specifies the name of the result. Available if provided with an explicit alias using [AS] alias.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Indicates the data type of the result. For more information, see BigQuery data types (https://cloud.google.com/bigquery/docs/reference/standard-sql/data-types).
+    #[serde(default, rename = "type")]
+    pub type_: ::core::option::Option<String>,
+    /// Represents the value of the result as a string.
+    #[serde(default)]
+    pub value: ::core::option::Option<String>,
+}
+
+/// Specifies a SQL statement that is evaluated to return up to 10 scalar values that are used to debug rules. If the rule fails, the values can help diagnose the cause of the failure.The SQL statement must use GoogleSQL syntax (https://cloud.google.com/bigquery/docs/reference/standard-sql/query-syntax), and must not contain any semicolons.You can use the data reference parameter ${data()} to reference the source table with all of its precondition filters applied. Examples of precondition filters include row filters, incremental data filters, and sampling. For more information, see Data reference parameter (https://cloud.google.com/dataplex/docs/auto-data-quality-overview#data-reference-parameter).You can also name results with an explicit alias using [AS] alias. For more information, see BigQuery explicit aliases (https://docs.cloud.google.com/bigquery/docs/reference/standard-sql/query-syntax#explicit_alias_syntax).Example: SELECT MIN(col1) AS min_col1, MAX(col1) AS max_col1 FROM ${data()}
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDataplexV1DataQualityRuleDebugQuery {
+    /// Optional. Specifies the description of the debug query. The maximum length is 1,024 characters.
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+    /// Required. Specifies the SQL statement to be executed.
+    #[serde(default, rename = "sqlStatement")]
+    pub sql_statement: ::core::option::Option<String>,
+}
+
+/// Evaluates whether each column value lies between a specified range.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDataplexV1DataQualityRuleRangeExpectation {
+    /// Optional. The maximum column value allowed for a row to pass this validation. At least one of min_value and max_value need to be provided.
+    #[serde(default, rename = "maxValue")]
+    pub max_value: ::core::option::Option<String>,
+    /// Optional. The minimum column value allowed for a row to pass this validation. At least one of min_value and max_value need to be provided.
+    #[serde(default, rename = "minValue")]
+    pub min_value: ::core::option::Option<String>,
+    /// Optional. Whether each value needs to be strictly lesser than (''&lt;'') the maximum, or if equality is allowed.Only relevant if a max_value has been defined. Default = false.
+    #[serde(default, rename = "strictMaxEnabled")]
+    pub strict_max_enabled: ::core::option::Option<bool>,
+    /// Optional. Whether each value needs to be strictly greater than (''&gt;'') the minimum, or if equality is allowed.Only relevant if a min_value has been defined. Default = false.
+    #[serde(default, rename = "strictMinEnabled")]
+    pub strict_min_enabled: ::core::option::Option<bool>,
+}
+
+/// Evaluates whether each column value matches a specified regex.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDataplexV1DataQualityRuleRegexExpectation {
+    /// Optional. A regular expression the column value is expected to match.
+    #[serde(default)]
+    pub regex: ::core::option::Option<String>,
+}
+
+/// Evaluates whether each row passes the specified condition.The SQL expression needs to use GoogleSQL syntax (https://cloud.google.com/bigquery/docs/reference/standard-sql/query-syntax) and should produce a boolean value per row as the result.Example: col1 &gt;= 0 AND col2 &lt; 10
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDataplexV1DataQualityRuleRowConditionExpectation {
+    /// Optional. The SQL expression.
+    #[serde(default, rename = "sqlExpression")]
+    pub sql_expression: ::core::option::Option<String>,
+}
+
+/// Evaluates whether each column value is contained by a specified set.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDataplexV1DataQualityRuleSetExpectation {
+    /// Optional. Expected values for the column value.
+    #[serde(default)]
+    pub values: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// A SQL statement that is evaluated to return rows that match an invalid state. If any rows are are returned, this rule fails.The SQL statement must use GoogleSQL syntax (https://cloud.google.com/bigquery/docs/reference/standard-sql/query-syntax), and must not contain any semicolons.You can use the data reference parameter ${data()} to reference the source table with all of its precondition filters applied. Examples of precondition filters include row filters, incremental data filters, and sampling. For more information, see Data reference parameter (https://cloud.google.com/dataplex/docs/auto-data-quality-overview#data-reference-parameter).Example: SELECT * FROM ${data()} WHERE price &lt; 0
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDataplexV1DataQualityRuleSqlAssertion {
+    /// Optional. The SQL statement.
+    #[serde(default, rename = "sqlStatement")]
+    pub sql_statement: ::core::option::Option<String>,
+}
+
+/// Evaluates whether the column aggregate statistic lies between a specified range.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDataplexV1DataQualityRuleStatisticRangeExpectation {
+    /// Optional. The maximum column statistic value allowed for a row to pass this validation.At least one of min_value and max_value need to be provided.
+    #[serde(default, rename = "maxValue")]
+    pub max_value: ::core::option::Option<String>,
+    /// Optional. The minimum column statistic value allowed for a row to pass this validation.At least one of min_value and max_value need to be provided.
+    #[serde(default, rename = "minValue")]
+    pub min_value: ::core::option::Option<String>,
+    /// Optional. The aggregate metric to evaluate. // TODO: enum values: ["STATISTIC_UNDEFINED", "MEAN", "MIN", "MAX"]
+    #[serde(default)]
+    pub statistic: ::core::option::Option<String>,
+    /// Optional. Whether column statistic needs to be strictly lesser than (''&lt;'') the maximum, or if equality is allowed.Only relevant if a max_value has been defined. Default = false.
+    #[serde(default, rename = "strictMaxEnabled")]
+    pub strict_max_enabled: ::core::option::Option<bool>,
+    /// Optional. Whether column statistic needs to be strictly greater than (''&gt;'') the minimum, or if equality is allowed.Only relevant if a min_value has been defined. Default = false.
+    #[serde(default, rename = "strictMinEnabled")]
+    pub strict_min_enabled: ::core::option::Option<bool>,
+}
+
+/// Evaluates whether the provided expression is true.The SQL expression needs to use GoogleSQL syntax (https://cloud.google.com/bigquery/docs/reference/standard-sql/query-syntax) and should produce a scalar boolean result.Example: MIN(col1) &gt;= 0
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDataplexV1DataQualityRuleTableConditionExpectation {
+    /// Optional. The SQL expression.
+    #[serde(default, rename = "sqlExpression")]
+    pub sql_expression: ::core::option::Option<String>,
+}
+
+/// The individuals or groups who are designated to receive notifications upon triggers.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDataplexV1DataQualitySpecPostScanActionsRecipients {
+    /// Optional. The email recipients who will receive the DataQualityScan results report.
+    #[serde(default)]
+    pub emails: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// This trigger is triggered when the DQ score in the job result is less than a specified input score.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDataplexV1DataQualitySpecPostScanActionsScoreThresholdTrigger {
+    /// Optional. The score range is in 0,100.
+    #[serde(default, rename = "scoreThreshold")]
+    pub score_threshold: ::core::option::Option<f32>,
+}
+
+/// Information about individual items in the hierarchy that is associated with the data resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDataplexV1EntrySourceAncestor {
+    /// Optional. The name of the ancestor resource.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Optional. The type of the ancestor resource.
+    #[serde(default, rename = "type")]
+    pub type_: ::core::option::Option<String>,
+}
+
+/// Column of a table with generated metadata and nested fields.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDataplexV1DataDocumentationResultField {
+    /// Output only. Generated description for columns and fields.
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+    /// Output only. Nested fields.
+    #[serde(default)]
+    pub fields:
+        ::core::option::Option<::std::vec::Vec<GoogleCloudDataplexV1DataDocumentationResultField>>,
+    /// Output only. The name of the column.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+}
+
+/// The profile information for a double type field.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDataplexV1DataProfileResultProfileFieldProfileInfoDoubleFieldInfo {
+    /// Output only. Average of non-null values in the scanned data. NaN, if the field has a NaN.
+    #[serde(default)]
+    pub average: ::core::option::Option<f64>,
+    /// Output only. Maximum of non-null values in the scanned data. NaN, if the field has a NaN.
+    #[serde(default)]
+    pub max: ::core::option::Option<f64>,
+    /// Output only. Minimum of non-null values in the scanned data. NaN, if the field has a NaN.
+    #[serde(default)]
+    pub min: ::core::option::Option<f64>,
+    /// Output only. A quartile divides the number of data points into four parts, or quarters, of more-or-less equal size. Three main quartiles used are: The first quartile (Q1) splits off the lowest 25% of data from the highest 75%. It is also known as the lower or 25th empirical quartile, as 25% of the data is below this point. The second quartile (Q2) is the median of a data set. So, 50% of the data lies below this point. The third quartile (Q3) splits off the highest 25% of data from the lowest 75%. It is known as the upper or 75th empirical quartile, as 75% of the data lies below this point. Here, the quartiles is provided as an ordered list of quartile values for the scanned data, occurring in order Q1, median, Q3.
+    #[serde(default)]
+    pub quartiles: ::core::option::Option<::std::vec::Vec<f64>>,
+    /// Output only. Standard deviation of non-null values in the scanned data. NaN, if the field has a NaN.
+    #[serde(default, rename = "standardDeviation")]
+    pub standard_deviation: ::core::option::Option<f64>,
+}
+
+/// The profile information for an integer type field.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDataplexV1DataProfileResultProfileFieldProfileInfoIntegerFieldInfo {
+    /// Output only. Average of non-null values in the scanned data. NaN, if the field has a NaN.
+    #[serde(default)]
+    pub average: ::core::option::Option<f64>,
+    /// Output only. Maximum of non-null values in the scanned data. NaN, if the field has a NaN.
+    #[serde(default)]
+    pub max: ::core::option::Option<String>,
+    /// Output only. Minimum of non-null values in the scanned data. NaN, if the field has a NaN.
+    #[serde(default)]
+    pub min: ::core::option::Option<String>,
+    /// Output only. A quartile divides the number of data points into four parts, or quarters, of more-or-less equal size. Three main quartiles used are: The first quartile (Q1) splits off the lowest 25% of data from the highest 75%. It is also known as the lower or 25th empirical quartile, as 25% of the data is below this point. The second quartile (Q2) is the median of a data set. So, 50% of the data lies below this point. The third quartile (Q3) splits off the highest 25% of data from the lowest 75%. It is known as the upper or 75th empirical quartile, as 75% of the data lies below this point. Here, the quartiles is provided as an ordered list of approximate quartile values for the scanned data, occurring in order Q1, median, Q3.
+    #[serde(default)]
+    pub quartiles: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Output only. Standard deviation of non-null values in the scanned data. NaN, if the field has a NaN.
+    #[serde(default, rename = "standardDeviation")]
+    pub standard_deviation: ::core::option::Option<f64>,
+}
+
+/// Top N non-null values in the scanned data.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDataplexV1DataProfileResultProfileFieldProfileInfoTopNValue {
+    /// Output only. Count of the corresponding value in the scanned data.
+    #[serde(default)]
+    pub count: ::core::option::Option<String>,
+    /// Output only. Ratio of the corresponding value in the field against the total number of rows in the scanned data.
+    #[serde(default)]
+    pub ratio: ::core::option::Option<f64>,
+    /// Output only. String value of a top N non-null value.
+    #[serde(default)]
+    pub value: ::core::option::Option<String>,
 }

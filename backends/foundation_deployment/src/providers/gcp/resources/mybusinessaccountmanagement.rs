@@ -10,6 +10,89 @@
 use super::*;
 use serde::{Deserialize, Serialize};
 
+/// Response message for AccessControl.ListAccountAdmins.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ListAccountAdminsResponse {
+    /// A collection of Admin instances.
+    #[serde(default, rename = "accountAdmins")]
+    pub account_admins: ::core::option::Option<::std::vec::Vec<Admin>>,
+}
+
+/// Response message for Accounts.ListAccounts.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ListAccountsResponse {
+    /// A collection of accounts to which the user has access. The personal account of the user doing the query will always be the first item of the result, unless it is filtered out.
+    #[serde(default)]
+    pub accounts: ::core::option::Option<::std::vec::Vec<Account>>,
+    /// If the number of accounts exceeds the requested page size, this field is populated with a token to fetch the next page of accounts on a subsequent call to accounts.list. If there are no more accounts, this field is not present in the response.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+}
+
+/// Response message for AccessControl.ListInvitations.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ListInvitationsResponse {
+    /// A collection of invitations that are pending for the account. The number of invitations listed here cannot exceed 1000.
+    #[serde(default)]
+    pub invitations: ::core::option::Option<::std::vec::Vec<Invitation>>,
+}
+
+/// Response message for AccessControl.ListLocationAdmins.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ListLocationAdminsResponse {
+    /// A collection of Admins.
+    #[serde(default)]
+    pub admins: ::core::option::Option<::std::vec::Vec<Admin>>,
+}
+
+/// Request message for AccessControl.TransferLocation.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TransferLocationRequest {
+    /// Required. Name of the account resource to transfer the location to (for example, "accounts/{account}").
+    #[serde(default, rename = "destinationAccount")]
+    pub destination_account: ::core::option::Option<String>,
+}
+
+/// Represents a pending invitation.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Invitation {
+    /// Required. The resource name for the invitation. accounts/{account_id}/invitations/{invitation_id}.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Output only. The invited role on the account. // TODO: enum values: ["ADMIN_ROLE_UNSPECIFIED", "PRIMARY_OWNER", "OWNER", "MANAGER", "SITE_MANAGER"]
+    #[serde(default)]
+    pub role: ::core::option::Option<String>,
+    /// The sparsely populated account this invitation is for.
+    #[serde(default, rename = "targetAccount")]
+    pub target_account: ::core::option::Option<Account>,
+    /// The target location this invitation is for.
+    #[serde(default, rename = "targetLocation")]
+    pub target_location: ::core::option::Option<TargetLocation>,
+    /// Output only. Specifies which target types should appear in the response. // TODO: enum values: ["TARGET_TYPE_UNSPECIFIED", "ACCOUNTS_ONLY", "LOCATIONS_ONLY"]
+    #[serde(default, rename = "targetType")]
+    pub target_type: ::core::option::Option<String>,
+}
+
+/// An administrator of an Account or a location.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Admin {
+    /// Immutable. The name of the Account resource that this Admin refers to. Used when calling locations.admins.create to invite a LocationGroup as an admin. If both this field and admin are set on CREATE requests, this field takes precedence and the email address in admin will be ignored. Format: accounts/{account}.
+    #[serde(default)]
+    pub account: ::core::option::Option<String>,
+    /// Optional. The name of the admin. When making the initial invitation, this is the invitee''s email address. On GET calls, the user''s email address is returned if the invitation is still pending. Otherwise, it contains the user''s first and last names. This field is only needed to be set during admin creation.
+    #[serde(default)]
+    pub admin: ::core::option::Option<String>,
+    /// Immutable. The resource name. For account admins, this is in the form: accounts/{account_id}/admins/{admin_id} For location admins, this is in the form: locations/{location_id}/admins/{admin_id} This field will be ignored if set during admin creation.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Output only. Indicates whether this admin has a pending invitation for the specified resource.
+    #[serde(default, rename = "pendingInvitation")]
+    pub pending_invitation: ::core::option::Option<bool>,
+    /// Required. Specifies the role that this admin uses with the specified Account or Location. // TODO: enum values: ["ADMIN_ROLE_UNSPECIFIED", "PRIMARY_OWNER", "OWNER", "MANAGER", "SITE_MANAGER"]
+    #[serde(default)]
+    pub role: ::core::option::Option<String>,
+}
+
 /// An account is a container for your location. If you are the only user who manages locations for your business, you can use your personal Google Account. To share management of locations with multiple users, [create a business account] (https://support.google.com/business/answer/6085339?ref_topic=6085325).
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Account {
@@ -45,79 +128,15 @@ pub struct Account {
     pub vetted_state: ::core::option::Option<String>,
 }
 
-/// An administrator of an Account or a location.
+/// Represents a target location for a pending invitation.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Admin {
-    /// Immutable. The name of the Account resource that this Admin refers to. Used when calling locations.admins.create to invite a LocationGroup as an admin. If both this field and admin are set on CREATE requests, this field takes precedence and the email address in admin will be ignored. Format: accounts/{account}.
+pub struct TargetLocation {
+    /// The address of the location to which the user is invited.
     #[serde(default)]
-    pub account: ::core::option::Option<String>,
-    /// Optional. The name of the admin. When making the initial invitation, this is the invitee''s email address. On GET calls, the user''s email address is returned if the invitation is still pending. Otherwise, it contains the user''s first and last names. This field is only needed to be set during admin creation.
-    #[serde(default)]
-    pub admin: ::core::option::Option<String>,
-    /// Immutable. The resource name. For account admins, this is in the form: accounts/{account_id}/admins/{admin_id} For location admins, this is in the form: locations/{location_id}/admins/{admin_id} This field will be ignored if set during admin creation.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Output only. Indicates whether this admin has a pending invitation for the specified resource.
-    #[serde(default, rename = "pendingInvitation")]
-    pub pending_invitation: ::core::option::Option<bool>,
-    /// Required. Specifies the role that this admin uses with the specified Account or Location. // TODO: enum values: ["ADMIN_ROLE_UNSPECIFIED", "PRIMARY_OWNER", "OWNER", "MANAGER", "SITE_MANAGER"]
-    #[serde(default)]
-    pub role: ::core::option::Option<String>,
-}
-
-/// Represents a pending invitation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Invitation {
-    /// Required. The resource name for the invitation. accounts/{account_id}/invitations/{invitation_id}.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Output only. The invited role on the account. // TODO: enum values: ["ADMIN_ROLE_UNSPECIFIED", "PRIMARY_OWNER", "OWNER", "MANAGER", "SITE_MANAGER"]
-    #[serde(default)]
-    pub role: ::core::option::Option<String>,
-    /// The sparsely populated account this invitation is for.
-    #[serde(default, rename = "targetAccount")]
-    pub target_account: ::core::option::Option<Account>,
-    /// The target location this invitation is for.
-    #[serde(default, rename = "targetLocation")]
-    pub target_location: ::core::option::Option<TargetLocation>,
-    /// Output only. Specifies which target types should appear in the response. // TODO: enum values: ["TARGET_TYPE_UNSPECIFIED", "ACCOUNTS_ONLY", "LOCATIONS_ONLY"]
-    #[serde(default, rename = "targetType")]
-    pub target_type: ::core::option::Option<String>,
-}
-
-/// Response message for AccessControl.ListAccountAdmins.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ListAccountAdminsResponse {
-    /// A collection of Admin instances.
-    #[serde(default, rename = "accountAdmins")]
-    pub account_admins: ::core::option::Option<::std::vec::Vec<Admin>>,
-}
-
-/// Response message for Accounts.ListAccounts.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ListAccountsResponse {
-    /// A collection of accounts to which the user has access. The personal account of the user doing the query will always be the first item of the result, unless it is filtered out.
-    #[serde(default)]
-    pub accounts: ::core::option::Option<::std::vec::Vec<Account>>,
-    /// If the number of accounts exceeds the requested page size, this field is populated with a token to fetch the next page of accounts on a subsequent call to accounts.list. If there are no more accounts, this field is not present in the response.
-    #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: ::core::option::Option<String>,
-}
-
-/// Response message for AccessControl.ListInvitations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ListInvitationsResponse {
-    /// A collection of invitations that are pending for the account. The number of invitations listed here cannot exceed 1000.
-    #[serde(default)]
-    pub invitations: ::core::option::Option<::std::vec::Vec<Invitation>>,
-}
-
-/// Response message for AccessControl.ListLocationAdmins.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ListLocationAdminsResponse {
-    /// A collection of Admins.
-    #[serde(default)]
-    pub admins: ::core::option::Option<::std::vec::Vec<Admin>>,
+    pub address: ::core::option::Option<String>,
+    /// The name of the location to which the user is invited.
+    #[serde(default, rename = "locationName")]
+    pub location_name: ::core::option::Option<String>,
 }
 
 /// Additional information stored for an organization.
@@ -170,23 +189,4 @@ pub struct PostalAddress {
     /// Optional. Sublocality of the address. For example, this can be a neighborhood, borough, or district.
     #[serde(default)]
     pub sublocality: ::core::option::Option<String>,
-}
-
-/// Represents a target location for a pending invitation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct TargetLocation {
-    /// The address of the location to which the user is invited.
-    #[serde(default)]
-    pub address: ::core::option::Option<String>,
-    /// The name of the location to which the user is invited.
-    #[serde(default, rename = "locationName")]
-    pub location_name: ::core::option::Option<String>,
-}
-
-/// Request message for AccessControl.TransferLocation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct TransferLocationRequest {
-    /// Required. Name of the account resource to transfer the location to (for example, "accounts/{account}").
-    #[serde(default, rename = "destinationAccount")]
-    pub destination_account: ::core::option::Option<String>,
 }

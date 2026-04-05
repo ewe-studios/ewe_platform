@@ -10,17 +10,6 @@
 use super::*;
 use serde::{Deserialize, Serialize};
 
-/// Describes the amount unit including the currency code.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Amount {
-    /// Required. Amount in micros (1_000_000 micros = 1 currency unit)
-    #[serde(default, rename = "amountMicros")]
-    pub amount_micros: ::core::option::Option<String>,
-    /// Required. Currency codes in accordance with [ISO-4217 Currency Codes] (https://en.wikipedia.org/wiki/ISO_4217). For example, USD.
-    #[serde(default, rename = "currencyCode")]
-    pub currency_code: ::core::option::Option<String>,
-}
-
 /// Request to cancel a subscription.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CancelSubscriptionRequest {
@@ -40,50 +29,6 @@ pub struct CancelSubscriptionResponse {
     pub subscription: ::core::option::Option<Subscription>,
 }
 
-/// Intent message for creating a Subscription resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CreateSubscriptionIntent {
-    /// Optional. The cycle options for the subscription.
-    #[serde(default, rename = "cycleOptions")]
-    pub cycle_options: ::core::option::Option<CycleOptions>,
-    /// Required. The parent resource name, which is the identifier of the partner.
-    #[serde(default)]
-    pub parent: ::core::option::Option<String>,
-    /// Required. The Subscription to be created.
-    #[serde(default)]
-    pub subscription: ::core::option::Option<Subscription>,
-    /// Required. Identifies the subscription resource on the Partner side. The value is restricted to 63 ASCII characters at the maximum. If a subscription was previously created with the same subscription_id, we will directly return that one.
-    #[serde(default, rename = "subscriptionId")]
-    pub subscription_id: ::core::option::Option<String>,
-}
-
-/// The cycle options when starting and resuming a subscription.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CycleOptions {
-    /// Optional. The duration of the initial cycle. Only DAY is supported. If set, Google will start the subscription with this initial cycle duration starting at the request time (see available methods below). A prorated charge will be applied. This option is available to the following methods: - partners.subscriptions.provision - partners.subscriptions.resume - partners.userSessions.generate
-    #[serde(default, rename = "initialCycleDuration")]
-    pub initial_cycle_duration: ::core::option::Option<Duration>,
-}
-
-/// Describes the length of a period of a time.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Duration {
-    /// number of duration units to be included.
-    #[serde(default)]
-    pub count: ::core::option::Option<i32>,
-    /// The unit used for the duration // TODO: enum values: ["UNIT_UNSPECIFIED", "MONTH", "DAY", "HOUR"]
-    #[serde(default)]
-    pub unit: ::core::option::Option<String>,
-}
-
-/// Intent for entitling the previously provisioned subscription to an end user.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct EntitleSubscriptionIntent {
-    /// Required. The name of the subscription resource that is entitled to the current end user. It is in the format of "partners/{partner_id}/subscriptions/{subscriptionId}".
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-}
-
 /// Partner request for entitling the previously provisioned subscription to an end user. The end user identity is inferred from the request OAuth context.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct EntitleSubscriptionRequest {
@@ -92,17 +37,6 @@ pub struct EntitleSubscriptionRequest {
     pub line_item_entitlement_details: ::core::option::Option<
         ::std::vec::Vec<EntitleSubscriptionRequestLineItemEntitlementDetails>,
     >,
-}
-
-/// The details of the line item to be entitled.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct EntitleSubscriptionRequestLineItemEntitlementDetails {
-    /// Required. The index of the line item to be entitled.
-    #[serde(default, rename = "lineItemIndex")]
-    pub line_item_index: ::core::option::Option<i32>,
-    /// Optional. Only applicable if the line item corresponds to a hard bundle. Product resource names that identify the bundle elements to be entitled in the line item. If unspecified, all bundle elements will be entitled. The format is ''partners/{partner_id}/products/{product_id}''.
-    #[serde(default)]
-    pub products: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Response that contains the entitled subscription resource.
@@ -138,17 +72,6 @@ pub struct ExtendSubscriptionResponse {
     pub renewal_time: ::core::option::Option<String>,
 }
 
-/// Describes the details of an extension request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Extension {
-    /// Required. Specifies the period of access the subscription should grant.
-    #[serde(default)]
-    pub duration: ::core::option::Option<Duration>,
-    /// Required. Identifier of the end-user in partner’s system.
-    #[serde(default, rename = "partnerUserToken")]
-    pub partner_user_token: ::core::option::Option<String>,
-}
-
 /// Request to find eligible promotions for the current user.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct FindEligiblePromotionsRequest {
@@ -174,14 +97,6 @@ pub struct FindEligiblePromotionsResponse {
     pub promotions: ::core::option::Option<::std::vec::Vec<Promotion>>,
 }
 
-/// Details for a subscription line item with finite billing cycles.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct FiniteBillingCycleDetails {
-    /// The number of a subscription line item billing cycles after which billing will stop automatically.
-    #[serde(default, rename = "billingCycleCountLimit")]
-    pub billing_cycle_count_limit: ::core::option::Option<String>,
-}
-
 /// Request to generate a user session.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GenerateUserSessionRequest {
@@ -196,70 +111,6 @@ pub struct GenerateUserSessionResponse {
     /// The generated user session. The token size is proportional to the size of the intent payload.
     #[serde(default, rename = "userSession")]
     pub user_session: ::core::option::Option<UserSession>,
-}
-
-/// Payload specific for Google Home products.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleHomePayload {
-    /// Output only. This identifies whether the subscription is attached to a Google Home structure.
-    #[serde(default, rename = "attachedToGoogleStructure")]
-    pub attached_to_google_structure: ::core::option::Option<bool>,
-    /// Optional. Structure identifier on Google side.
-    #[serde(default, rename = "googleStructureId")]
-    pub google_structure_id: ::core::option::Option<String>,
-    /// Optional. This identifies the structure ID on partner side that the subscription should be applied to. Only required when the partner requires structure mapping.
-    #[serde(default, rename = "partnerStructureId")]
-    pub partner_structure_id: ::core::option::Option<String>,
-}
-
-/// Payload specific to Google One products.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleOnePayload {
-    /// Campaign attributed to sales of this subscription.
-    #[serde(default)]
-    pub campaigns: ::core::option::Option<::std::vec::Vec<String>>,
-    /// The type of offering the subscription was sold by the partner. e.g. VAS. // TODO: enum values: ["OFFERING_UNSPECIFIED", "OFFERING_VAS_BUNDLE", "OFFERING_VAS_STANDALONE", "OFFERING_HARD_BUNDLE", "OFFERING_SOFT_BUNDLE"]
-    #[serde(default)]
-    pub offering: ::core::option::Option<String>,
-    /// The type of sales channel through which the subscription was sold. // TODO: enum values: ["CHANNEL_UNSPECIFIED", "CHANNEL_RETAIL", "CHANNEL_ONLINE_WEB", "CHANNEL_ONLINE_ANDROID_APP", "CHANNEL_ONLINE_IOS_APP"]
-    #[serde(default, rename = "salesChannel")]
-    pub sales_channel: ::core::option::Option<String>,
-    /// The identifier for the partner store where the subscription was sold.
-    #[serde(default, rename = "storeId")]
-    pub store_id: ::core::option::Option<String>,
-}
-
-/// Localized variant of a text in a particular language.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleTypeLocalizedText {
-    /// The text''s BCP-47 language code, such as "en-US" or "sr-Latn". For more information, see http://www.unicode.org/reports/tr35/#Unicode_locale_identifier.
-    #[serde(default, rename = "languageCode")]
-    pub language_code: ::core::option::Option<String>,
-    /// Localized string in the language corresponding to language_code below.
-    #[serde(default)]
-    pub text: ::core::option::Option<String>,
-}
-
-/// The payload that describes the user intent.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct IntentPayload {
-    /// The request to create a subscription.
-    #[serde(default, rename = "createIntent")]
-    pub create_intent: ::core::option::Option<CreateSubscriptionIntent>,
-    /// The request to entitle a subscription.
-    #[serde(default, rename = "entitleIntent")]
-    pub entitle_intent: ::core::option::Option<EntitleSubscriptionIntent>,
-    /// Optional. The additional features for the intent.
-    #[serde(default, rename = "intentOptions")]
-    pub intent_options: ::core::option::Option<IntentPayloadIntentOptions>,
-}
-
-/// The options for the intent.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct IntentPayloadIntentOptions {
-    /// Optional. If true, Google may use a different product and promotion id from the ones in the create_intent based on the user''s eligibility. Only applicable for certain YouTube free trial offers.
-    #[serde(default, rename = "enableOfferOverride")]
-    pub enable_offer_override: ::core::option::Option<bool>,
 }
 
 /// Response that contains the products.
@@ -284,15 +135,86 @@ pub struct ListPromotionsResponse {
     pub promotions: ::core::option::Option<::std::vec::Vec<Promotion>>,
 }
 
-/// Describes a location of an end user.
+/// Request to resume a suspended subscription.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Location {
-    /// The postal code this location refers to. Ex. "94043"
-    #[serde(default, rename = "postalCode")]
-    pub postal_code: ::core::option::Option<String>,
-    /// 2-letter ISO region code for current content region. Ex. “US” Please refers to: https://en.wikipedia.org/wiki/ISO_3166-1
-    #[serde(default, rename = "regionCode")]
-    pub region_code: ::core::option::Option<String>,
+pub struct ResumeSubscriptionRequest {
+    /// Optional. The cycle options for the subscription.
+    #[serde(default, rename = "cycleOptions")]
+    pub cycle_options: ::core::option::Option<CycleOptions>,
+    /// Required. The mode to resume the subscription. // TODO: enum values: ["RESUME_MODE_UNSPECIFIED", "RESUME_MODE_CYCLE_OPTIONS", "RESUME_MODE_RESTORE_EXISTING_BILLING_SCHEDULE"]
+    #[serde(default, rename = "resumeMode")]
+    pub resume_mode: ::core::option::Option<String>,
+}
+
+/// Response that contains the resumed subscription.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ResumeSubscriptionResponse {
+    /// The resumed subscription resource.
+    #[serde(default)]
+    pub subscription: ::core::option::Option<Subscription>,
+}
+
+/// Response that contains the suspended subscription.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SuspendSubscriptionResponse {
+    /// The suspended subscription resource.
+    #[serde(default)]
+    pub subscription: ::core::option::Option<Subscription>,
+}
+
+/// Response that contains the updated subscription resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct UndoCancelSubscriptionResponse {
+    /// The updated subscription resource.
+    #[serde(default)]
+    pub subscription: ::core::option::Option<Subscription>,
+}
+
+/// The details of the line item to be entitled.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct EntitleSubscriptionRequestLineItemEntitlementDetails {
+    /// Required. The index of the line item to be entitled.
+    #[serde(default, rename = "lineItemIndex")]
+    pub line_item_index: ::core::option::Option<i32>,
+    /// Optional. Only applicable if the line item corresponds to a hard bundle. Product resource names that identify the bundle elements to be entitled in the line item. If unspecified, all bundle elements will be entitled. The format is ''partners/{partner_id}/products/{product_id}''.
+    #[serde(default)]
+    pub products: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// Describes the details of an extension request.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Extension {
+    /// Required. Specifies the period of access the subscription should grant.
+    #[serde(default)]
+    pub duration: ::core::option::Option<Duration>,
+    /// Required. Identifier of the end-user in partner’s system.
+    #[serde(default, rename = "partnerUserToken")]
+    pub partner_user_token: ::core::option::Option<String>,
+}
+
+/// The payload that describes the user intent.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct IntentPayload {
+    /// The request to create a subscription.
+    #[serde(default, rename = "createIntent")]
+    pub create_intent: ::core::option::Option<CreateSubscriptionIntent>,
+    /// The request to entitle a subscription.
+    #[serde(default, rename = "entitleIntent")]
+    pub entitle_intent: ::core::option::Option<EntitleSubscriptionIntent>,
+    /// Optional. The additional features for the intent.
+    #[serde(default, rename = "intentOptions")]
+    pub intent_options: ::core::option::Option<IntentPayloadIntentOptions>,
+}
+
+/// Contains a short-lived token containing information required to interact with the Google Payments Reseller Platform via web endpoints. - Generate a user session token dynamically for an authenticated user. Do not share a token directly with a user in an unauthenticated context, such as SMS or email. - You can regenerate new session tokens repeatedly for the same generate request if necessary, regardless of whether previous tokens have expired. Multiple sessions will not result in duplicate fulfillments because the subscription ID guarantees uniqueness. For more integration details, see the [Google Managed Signup](/payments/reseller/subscription/reference/index/User.Signup.Integration/Google.Managed.Signup) documentation.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct UserSession {
+    /// Output only. The time at which the user session expires.
+    #[serde(default, rename = "expireTime")]
+    pub expire_time: ::core::option::Option<String>,
+    /// Output only. The encrypted token of the user session, including the information of the user''s intent and request. This token should be provided when redirecting the user to Google.
+    #[serde(default)]
+    pub token: ::core::option::Option<String>,
 }
 
 /// A Product resource that defines a subscription service that can be resold.
@@ -322,50 +244,6 @@ pub struct Product {
     /// Output only. Localized human readable name of the product.
     #[serde(default)]
     pub titles: ::core::option::Option<::std::vec::Vec<GoogleTypeLocalizedText>>,
-}
-
-/// Details for a bundle product.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ProductBundleDetails {
-    /// The individual products that are included in the bundle.
-    #[serde(default, rename = "bundleElements")]
-    pub bundle_elements: ::core::option::Option<::std::vec::Vec<ProductBundleDetailsBundleElement>>,
-    /// The entitlement mode of the bundle product. // TODO: enum values: ["ENTITLEMENT_MODE_UNSPECIFIED", "ENTITLEMENT_MODE_FULL", "ENTITLEMENT_MODE_INCREMENTAL"]
-    #[serde(default, rename = "entitlementMode")]
-    pub entitlement_mode: ::core::option::Option<String>,
-}
-
-/// The individual product that is included in the bundle.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ProductBundleDetailsBundleElement {
-    /// Required. Output only. Product resource name that identifies the bundle element. The format is ''partners/{partner_id}/products/{product_id}''.
-    #[serde(default)]
-    pub product: ::core::option::Option<String>,
-}
-
-/// Specifies product specific payload.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ProductPayload {
-    /// Payload specific to Google Home products.
-    #[serde(default, rename = "googleHomePayload")]
-    pub google_home_payload: ::core::option::Option<GoogleHomePayload>,
-    /// Product-specific payloads. Payload specific to Google One products.
-    #[serde(default, rename = "googleOnePayload")]
-    pub google_one_payload: ::core::option::Option<GoogleOnePayload>,
-    /// Payload specific to Youtube products.
-    #[serde(default, rename = "youtubePayload")]
-    pub youtube_payload: ::core::option::Option<YoutubePayload>,
-}
-
-/// Configs the prices in an available region.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ProductPriceConfig {
-    /// Output only. The price in the region.
-    #[serde(default)]
-    pub amount: ::core::option::Option<Amount>,
-    /// Output only. 2-letter ISO region code where the product is available in. Ex. "US".
-    #[serde(default, rename = "regionCode")]
-    pub region_code: ::core::option::Option<String>,
 }
 
 /// A Promotion resource that defines a promotion for a subscription that can be resold.
@@ -400,61 +278,78 @@ pub struct Promotion {
     pub titles: ::core::option::Option<::std::vec::Vec<GoogleTypeLocalizedText>>,
 }
 
-/// The details of a introductory pricing promotion.
+/// Intent message for creating a Subscription resource.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PromotionIntroductoryPricingDetails {
-    /// Output only. Specifies the introductory pricing periods.
-    #[serde(default, rename = "introductoryPricingSpecs")]
-    pub introductory_pricing_specs: ::core::option::Option<
-        ::std::vec::Vec<PromotionIntroductoryPricingDetailsIntroductoryPricingSpec>,
-    >,
+pub struct CreateSubscriptionIntent {
+    /// Optional. The cycle options for the subscription.
+    #[serde(default, rename = "cycleOptions")]
+    pub cycle_options: ::core::option::Option<CycleOptions>,
+    /// Required. The parent resource name, which is the identifier of the partner.
+    #[serde(default)]
+    pub parent: ::core::option::Option<String>,
+    /// Required. The Subscription to be created.
+    #[serde(default)]
+    pub subscription: ::core::option::Option<Subscription>,
+    /// Required. Identifies the subscription resource on the Partner side. The value is restricted to 63 ASCII characters at the maximum. If a subscription was previously created with the same subscription_id, we will directly return that one.
+    #[serde(default, rename = "subscriptionId")]
+    pub subscription_id: ::core::option::Option<String>,
 }
 
-/// The duration of an introductory pricing promotion.
+/// Intent for entitling the previously provisioned subscription to an end user.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PromotionIntroductoryPricingDetailsIntroductoryPricingSpec {
-    /// Output only. The discount amount. The value is positive.
-    #[serde(default, rename = "discountAmount")]
-    pub discount_amount: ::core::option::Option<Amount>,
-    /// Output only. The discount percentage in micros. For example, 50,000 represents 5%.
-    #[serde(default, rename = "discountRatioMicros")]
-    pub discount_ratio_micros: ::core::option::Option<String>,
-    /// Output only. The duration of an introductory offer in billing cycles.
-    #[serde(default, rename = "recurrenceCount")]
-    pub recurrence_count: ::core::option::Option<i32>,
+pub struct EntitleSubscriptionIntent {
+    /// Required. The name of the subscription resource that is entitled to the current end user. It is in the format of "partners/{partner_id}/subscriptions/{subscriptionId}".
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+}
+
+/// The options for the intent.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct IntentPayloadIntentOptions {
+    /// Optional. If true, Google may use a different product and promotion id from the ones in the create_intent based on the user''s eligibility. Only applicable for certain YouTube free trial offers.
+    #[serde(default, rename = "enableOfferOverride")]
+    pub enable_offer_override: ::core::option::Option<bool>,
+}
+
+/// Details for a bundle product.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ProductBundleDetails {
+    /// The individual products that are included in the bundle.
+    #[serde(default, rename = "bundleElements")]
+    pub bundle_elements: ::core::option::Option<::std::vec::Vec<ProductBundleDetailsBundleElement>>,
+    /// The entitlement mode of the bundle product. // TODO: enum values: ["ENTITLEMENT_MODE_UNSPECIFIED", "ENTITLEMENT_MODE_FULL", "ENTITLEMENT_MODE_INCREMENTAL"]
+    #[serde(default, rename = "entitlementMode")]
+    pub entitlement_mode: ::core::option::Option<String>,
+}
+
+/// Configs the prices in an available region.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ProductPriceConfig {
+    /// Output only. The price in the region.
+    #[serde(default)]
+    pub amount: ::core::option::Option<Amount>,
     /// Output only. 2-letter ISO region code where the product is available in. Ex. "US".
     #[serde(default, rename = "regionCode")]
     pub region_code: ::core::option::Option<String>,
 }
 
-/// Request to resume a suspended subscription.
+/// Localized variant of a text in a particular language.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ResumeSubscriptionRequest {
-    /// Optional. The cycle options for the subscription.
-    #[serde(default, rename = "cycleOptions")]
-    pub cycle_options: ::core::option::Option<CycleOptions>,
-    /// Required. The mode to resume the subscription. // TODO: enum values: ["RESUME_MODE_UNSPECIFIED", "RESUME_MODE_CYCLE_OPTIONS", "RESUME_MODE_RESTORE_EXISTING_BILLING_SCHEDULE"]
-    #[serde(default, rename = "resumeMode")]
-    pub resume_mode: ::core::option::Option<String>,
-}
-
-/// Response that contains the resumed subscription.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ResumeSubscriptionResponse {
-    /// The resumed subscription resource.
+pub struct GoogleTypeLocalizedText {
+    /// The text''s BCP-47 language code, such as "en-US" or "sr-Latn". For more information, see http://www.unicode.org/reports/tr35/#Unicode_locale_identifier.
+    #[serde(default, rename = "languageCode")]
+    pub language_code: ::core::option::Option<String>,
+    /// Localized string in the language corresponding to language_code below.
     #[serde(default)]
-    pub subscription: ::core::option::Option<Subscription>,
+    pub text: ::core::option::Option<String>,
 }
 
-/// A description of what time period or moment in time the product or service is being delivered over.
+/// The cycle options when starting and resuming a subscription.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ServicePeriod {
-    /// Optional. The end time of the service period. Time is exclusive.
-    #[serde(default, rename = "endTime")]
-    pub end_time: ::core::option::Option<String>,
-    /// Required. The start time of the service period. Time is inclusive.
-    #[serde(default, rename = "startTime")]
-    pub start_time: ::core::option::Option<String>,
+pub struct CycleOptions {
+    /// Optional. The duration of the initial cycle. Only DAY is supported. If set, Google will start the subscription with this initial cycle duration starting at the request time (see available methods below). A prorated charge will be applied. This option is available to the following methods: - partners.subscriptions.provision - partners.subscriptions.resume - partners.userSessions.generate
+    #[serde(default, rename = "initialCycleDuration")]
+    pub initial_cycle_duration: ::core::option::Option<Duration>,
 }
 
 /// Acts as a central billing entity between an external partner and Google. Google services use the subscription state to grant or revoke the user''s service entitlement. Note: The subscription state might not perfectly align with the user''s service entitlement. Some services might continue providing access until the current cycle ends, even if the subscription is immediately canceled. Consult the relevant contract or product policy for specific details.
@@ -522,6 +417,14 @@ pub struct Subscription {
     pub upgrade_downgrade_details: ::core::option::Option<SubscriptionUpgradeDowngradeDetails>,
 }
 
+/// The individual product that is included in the bundle.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ProductBundleDetailsBundleElement {
+    /// Required. Output only. Product resource name that identifies the bundle element. The format is ''partners/{partner_id}/products/{product_id}''.
+    #[serde(default)]
+    pub product: ::core::option::Option<String>,
+}
+
 /// Describes the details of a cancelled or cancelling subscription.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SubscriptionCancellationDetails {
@@ -576,6 +479,36 @@ pub struct SubscriptionLineItem {
     pub state: ::core::option::Option<String>,
 }
 
+/// Describes the details of the migrated subscription.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SubscriptionMigrationDetails {
+    /// Output only. The migrated subscription id in the legacy system.
+    #[serde(default, rename = "migratedSubscriptionId")]
+    pub migrated_subscription_id: ::core::option::Option<String>,
+}
+
+/// Describes a location of an end user.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Location {
+    /// The postal code this location refers to. Ex. "94043"
+    #[serde(default, rename = "postalCode")]
+    pub postal_code: ::core::option::Option<String>,
+    /// 2-letter ISO region code for current content region. Ex. “US” Please refers to: https://en.wikipedia.org/wiki/ISO_3166-1
+    #[serde(default, rename = "regionCode")]
+    pub region_code: ::core::option::Option<String>,
+}
+
+/// Details about the previous subscription that this new subscription upgrades/downgrades from.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SubscriptionUpgradeDowngradeDetails {
+    /// Required. Specifies the billing cycle spec for the new upgraded/downgraded subscription. // TODO: enum values: ["BILLING_CYCLE_SPEC_UNSPECIFIED", "BILLING_CYCLE_SPEC_ALIGN_WITH_PREVIOUS_SUBSCRIPTION", "BILLING_CYCLE_SPEC_START_IMMEDIATELY", "BILLING_CYCLE_SPEC_DEFERRED_TO_NEXT_RECURRENCE"]
+    #[serde(default, rename = "billingCycleSpec")]
+    pub billing_cycle_spec: ::core::option::Option<String>,
+    /// Required. The previous subscription id to be replaced. The format can be one of the following: 1. subscription_id: the old subscription id under the same partner_id. 2. partners/{partner_id}/subscriptions/{subscription_id}. A different partner_id is allowed. But they must be under the same partner group.
+    #[serde(default, rename = "previousSubscriptionId")]
+    pub previous_subscription_id: ::core::option::Option<String>,
+}
+
 /// The bundle details for a line item corresponding to a hard bundle.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SubscriptionLineItemBundleDetails {
@@ -586,31 +519,12 @@ pub struct SubscriptionLineItemBundleDetails {
     >,
 }
 
-/// The details for an element in the hard bundle.
+/// Details for a subscription line item with finite billing cycles.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SubscriptionLineItemBundleDetailsBundleElementDetails {
-    /// Output only. Product resource name that identifies the bundle element. The format is ''partners/{partner_id}/products/{product_id}''.
-    #[serde(default)]
-    pub product: ::core::option::Option<String>,
-    /// Output only. The time when this product is linked to an end user.
-    #[serde(default, rename = "userAccountLinkedTime")]
-    pub user_account_linked_time: ::core::option::Option<String>,
-}
-
-/// Details for a ONE_TIME recurrence line item.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SubscriptionLineItemOneTimeRecurrenceDetails {
-    /// Output only. The service period of the ONE_TIME line item.
-    #[serde(default, rename = "servicePeriod")]
-    pub service_period: ::core::option::Option<ServicePeriod>,
-}
-
-/// Describes the details of the migrated subscription.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SubscriptionMigrationDetails {
-    /// Output only. The migrated subscription id in the legacy system.
-    #[serde(default, rename = "migratedSubscriptionId")]
-    pub migrated_subscription_id: ::core::option::Option<String>,
+pub struct FiniteBillingCycleDetails {
+    /// The number of a subscription line item billing cycles after which billing will stop automatically.
+    #[serde(default, rename = "billingCycleCountLimit")]
+    pub billing_cycle_count_limit: ::core::option::Option<String>,
 }
 
 /// Describes the spec for one promotion.
@@ -630,42 +544,100 @@ pub struct SubscriptionPromotionSpec {
     pub type_: ::core::option::Option<String>,
 }
 
-/// Details about the previous subscription that this new subscription upgrades/downgrades from.
+/// Details for a ONE_TIME recurrence line item.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SubscriptionUpgradeDowngradeDetails {
-    /// Required. Specifies the billing cycle spec for the new upgraded/downgraded subscription. // TODO: enum values: ["BILLING_CYCLE_SPEC_UNSPECIFIED", "BILLING_CYCLE_SPEC_ALIGN_WITH_PREVIOUS_SUBSCRIPTION", "BILLING_CYCLE_SPEC_START_IMMEDIATELY", "BILLING_CYCLE_SPEC_DEFERRED_TO_NEXT_RECURRENCE"]
-    #[serde(default, rename = "billingCycleSpec")]
-    pub billing_cycle_spec: ::core::option::Option<String>,
-    /// Required. The previous subscription id to be replaced. The format can be one of the following: 1. subscription_id: the old subscription id under the same partner_id. 2. partners/{partner_id}/subscriptions/{subscription_id}. A different partner_id is allowed. But they must be under the same partner group.
-    #[serde(default, rename = "previousSubscriptionId")]
-    pub previous_subscription_id: ::core::option::Option<String>,
+pub struct SubscriptionLineItemOneTimeRecurrenceDetails {
+    /// Output only. The service period of the ONE_TIME line item.
+    #[serde(default, rename = "servicePeriod")]
+    pub service_period: ::core::option::Option<ServicePeriod>,
 }
 
-/// Response that contains the suspended subscription.
+/// Specifies product specific payload.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SuspendSubscriptionResponse {
-    /// The suspended subscription resource.
-    #[serde(default)]
-    pub subscription: ::core::option::Option<Subscription>,
+pub struct ProductPayload {
+    /// Payload specific to Google Home products.
+    #[serde(default, rename = "googleHomePayload")]
+    pub google_home_payload: ::core::option::Option<GoogleHomePayload>,
+    /// Product-specific payloads. Payload specific to Google One products.
+    #[serde(default, rename = "googleOnePayload")]
+    pub google_one_payload: ::core::option::Option<GoogleOnePayload>,
+    /// Payload specific to Youtube products.
+    #[serde(default, rename = "youtubePayload")]
+    pub youtube_payload: ::core::option::Option<YoutubePayload>,
 }
 
-/// Response that contains the updated subscription resource.
+/// The details for an element in the hard bundle.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct UndoCancelSubscriptionResponse {
-    /// The updated subscription resource.
+pub struct SubscriptionLineItemBundleDetailsBundleElementDetails {
+    /// Output only. Product resource name that identifies the bundle element. The format is ''partners/{partner_id}/products/{product_id}''.
     #[serde(default)]
-    pub subscription: ::core::option::Option<Subscription>,
+    pub product: ::core::option::Option<String>,
+    /// Output only. The time when this product is linked to an end user.
+    #[serde(default, rename = "userAccountLinkedTime")]
+    pub user_account_linked_time: ::core::option::Option<String>,
 }
 
-/// Contains a short-lived token containing information required to interact with the Google Payments Reseller Platform via web endpoints. - Generate a user session token dynamically for an authenticated user. Do not share a token directly with a user in an unauthenticated context, such as SMS or email. - You can regenerate new session tokens repeatedly for the same generate request if necessary, regardless of whether previous tokens have expired. Multiple sessions will not result in duplicate fulfillments because the subscription ID guarantees uniqueness. For more integration details, see the [Google Managed Signup](/payments/reseller/subscription/reference/index/User.Signup.Integration/Google.Managed.Signup) documentation.
+/// Describes the length of a period of a time.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct UserSession {
-    /// Output only. The time at which the user session expires.
-    #[serde(default, rename = "expireTime")]
-    pub expire_time: ::core::option::Option<String>,
-    /// Output only. The encrypted token of the user session, including the information of the user''s intent and request. This token should be provided when redirecting the user to Google.
+pub struct Duration {
+    /// number of duration units to be included.
     #[serde(default)]
-    pub token: ::core::option::Option<String>,
+    pub count: ::core::option::Option<i32>,
+    /// The unit used for the duration // TODO: enum values: ["UNIT_UNSPECIFIED", "MONTH", "DAY", "HOUR"]
+    #[serde(default)]
+    pub unit: ::core::option::Option<String>,
+}
+
+/// The details of a introductory pricing promotion.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PromotionIntroductoryPricingDetails {
+    /// Output only. Specifies the introductory pricing periods.
+    #[serde(default, rename = "introductoryPricingSpecs")]
+    pub introductory_pricing_specs: ::core::option::Option<
+        ::std::vec::Vec<PromotionIntroductoryPricingDetailsIntroductoryPricingSpec>,
+    >,
+}
+
+/// A description of what time period or moment in time the product or service is being delivered over.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ServicePeriod {
+    /// Optional. The end time of the service period. Time is exclusive.
+    #[serde(default, rename = "endTime")]
+    pub end_time: ::core::option::Option<String>,
+    /// Required. The start time of the service period. Time is inclusive.
+    #[serde(default, rename = "startTime")]
+    pub start_time: ::core::option::Option<String>,
+}
+
+/// Payload specific for Google Home products.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleHomePayload {
+    /// Output only. This identifies whether the subscription is attached to a Google Home structure.
+    #[serde(default, rename = "attachedToGoogleStructure")]
+    pub attached_to_google_structure: ::core::option::Option<bool>,
+    /// Optional. Structure identifier on Google side.
+    #[serde(default, rename = "googleStructureId")]
+    pub google_structure_id: ::core::option::Option<String>,
+    /// Optional. This identifies the structure ID on partner side that the subscription should be applied to. Only required when the partner requires structure mapping.
+    #[serde(default, rename = "partnerStructureId")]
+    pub partner_structure_id: ::core::option::Option<String>,
+}
+
+/// Payload specific to Google One products.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleOnePayload {
+    /// Campaign attributed to sales of this subscription.
+    #[serde(default)]
+    pub campaigns: ::core::option::Option<::std::vec::Vec<String>>,
+    /// The type of offering the subscription was sold by the partner. e.g. VAS. // TODO: enum values: ["OFFERING_UNSPECIFIED", "OFFERING_VAS_BUNDLE", "OFFERING_VAS_STANDALONE", "OFFERING_HARD_BUNDLE", "OFFERING_SOFT_BUNDLE"]
+    #[serde(default)]
+    pub offering: ::core::option::Option<String>,
+    /// The type of sales channel through which the subscription was sold. // TODO: enum values: ["CHANNEL_UNSPECIFIED", "CHANNEL_RETAIL", "CHANNEL_ONLINE_WEB", "CHANNEL_ONLINE_ANDROID_APP", "CHANNEL_ONLINE_IOS_APP"]
+    #[serde(default, rename = "salesChannel")]
+    pub sales_channel: ::core::option::Option<String>,
+    /// The identifier for the partner store where the subscription was sold.
+    #[serde(default, rename = "storeId")]
+    pub store_id: ::core::option::Option<String>,
 }
 
 /// Payload specific to Youtube products.
@@ -680,4 +652,32 @@ pub struct YoutubePayload {
     /// Optional. Specifies the plan type offered to the end user by the partner. // TODO: enum values: ["PARTNER_PLAN_TYPE_UNSPECIFIED", "PARTNER_PLAN_TYPE_STANDALONE", "PARTNER_PLAN_TYPE_HARD_BUNDLE", "PARTNER_PLAN_TYPE_SOFT_BUNDLE"]
     #[serde(default, rename = "partnerPlanType")]
     pub partner_plan_type: ::core::option::Option<String>,
+}
+
+/// The duration of an introductory pricing promotion.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PromotionIntroductoryPricingDetailsIntroductoryPricingSpec {
+    /// Output only. The discount amount. The value is positive.
+    #[serde(default, rename = "discountAmount")]
+    pub discount_amount: ::core::option::Option<Amount>,
+    /// Output only. The discount percentage in micros. For example, 50,000 represents 5%.
+    #[serde(default, rename = "discountRatioMicros")]
+    pub discount_ratio_micros: ::core::option::Option<String>,
+    /// Output only. The duration of an introductory offer in billing cycles.
+    #[serde(default, rename = "recurrenceCount")]
+    pub recurrence_count: ::core::option::Option<i32>,
+    /// Output only. 2-letter ISO region code where the product is available in. Ex. "US".
+    #[serde(default, rename = "regionCode")]
+    pub region_code: ::core::option::Option<String>,
+}
+
+/// Describes the amount unit including the currency code.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Amount {
+    /// Required. Amount in micros (1_000_000 micros = 1 currency unit)
+    #[serde(default, rename = "amountMicros")]
+    pub amount_micros: ::core::option::Option<String>,
+    /// Required. Currency codes in accordance with [ISO-4217 Currency Codes] (https://en.wikipedia.org/wiki/ISO_4217). For example, USD.
+    #[serde(default, rename = "currencyCode")]
+    pub currency_code: ::core::option::Option<String>,
 }

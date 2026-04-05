@@ -90,29 +90,6 @@ pub struct EmailLinkSigninResponse {
     pub refresh_token: ::core::option::Option<String>,
 }
 
-/// Template for an email template.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct EmailTemplate {
-    /// Email body.
-    #[serde(default)]
-    pub body: ::core::option::Option<String>,
-    /// Email body format.
-    #[serde(default)]
-    pub format: ::core::option::Option<String>,
-    /// From address of the email.
-    #[serde(default)]
-    pub from: ::core::option::Option<String>,
-    /// From display name.
-    #[serde(default, rename = "fromDisplayName")]
-    pub from_display_name: ::core::option::Option<String>,
-    /// Reply-to address.
-    #[serde(default, rename = "replyTo")]
-    pub reply_to: ::core::option::Option<String>,
-    /// Subject of the email.
-    #[serde(default)]
-    pub subject: ::core::option::Option<String>,
-}
-
 /// Response of getting account information.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GetAccountInfoResponse {
@@ -726,29 +703,6 @@ pub struct IdentitytoolkitRelyingpartyVerifyPhoneNumberResponse {
     pub verification_proof_expires_in: ::core::option::Option<String>,
 }
 
-/// Template for a single idp configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct IdpConfig {
-    /// OAuth2 client ID.
-    #[serde(default, rename = "clientId")]
-    pub client_id: ::core::option::Option<String>,
-    /// Whether this IDP is enabled.
-    #[serde(default)]
-    pub enabled: ::core::option::Option<bool>,
-    /// Percent of users who will be prompted/redirected federated login for this IDP.
-    #[serde(default, rename = "experimentPercent")]
-    pub experiment_percent: ::core::option::Option<i32>,
-    /// OAuth2 provider.
-    #[serde(default)]
-    pub provider: ::core::option::Option<String>,
-    /// OAuth2 client secret.
-    #[serde(default)]
-    pub secret: ::core::option::Option<String>,
-    /// Whitelisted client IDs for audience check.
-    #[serde(default, rename = "whitelistedAudiences")]
-    pub whitelisted_audiences: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
 /// Request of getting a code for user confirmation (reset password, change email etc.)
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Relyingparty {
@@ -892,68 +846,6 @@ pub struct UploadAccountResponse {
     /// The fixed string "identitytoolkit#UploadAccountResponse".
     #[serde(default)]
     pub kind: ::core::option::Option<String>,
-}
-
-/// Template for an individual account info.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct UserInfo {
-    /// User creation timestamp.
-    #[serde(default, rename = "createdAt")]
-    pub created_at: ::core::option::Option<String>,
-    /// The custom attributes to be set in the user''s id token.
-    #[serde(default, rename = "customAttributes")]
-    pub custom_attributes: ::core::option::Option<String>,
-    /// Whether the user is authenticated by the developer.
-    #[serde(default, rename = "customAuth")]
-    pub custom_auth: ::core::option::Option<bool>,
-    /// Whether the user is disabled.
-    #[serde(default)]
-    pub disabled: ::core::option::Option<bool>,
-    /// The name of the user.
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-    /// The email of the user.
-    #[serde(default)]
-    pub email: ::core::option::Option<String>,
-    /// Whether the email has been verified.
-    #[serde(default, rename = "emailVerified")]
-    pub email_verified: ::core::option::Option<bool>,
-    /// last login timestamp.
-    #[serde(default, rename = "lastLoginAt")]
-    pub last_login_at: ::core::option::Option<String>,
-    /// The local ID of the user.
-    #[serde(default, rename = "localId")]
-    pub local_id: ::core::option::Option<String>,
-    /// The user''s hashed password.
-    #[serde(default, rename = "passwordHash")]
-    pub password_hash: ::core::option::Option<String>,
-    /// The timestamp when the password was last updated.
-    #[serde(default, rename = "passwordUpdatedAt")]
-    pub password_updated_at: ::core::option::Option<f64>,
-    /// User''s phone number.
-    #[serde(default, rename = "phoneNumber")]
-    pub phone_number: ::core::option::Option<String>,
-    /// The URL of the user profile photo.
-    #[serde(default, rename = "photoUrl")]
-    pub photo_url: ::core::option::Option<String>,
-    /// The IDP of the user.
-    #[serde(default, rename = "providerUserInfo")]
-    pub provider_user_info: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
-    /// The user''s plain text password.
-    #[serde(default, rename = "rawPassword")]
-    pub raw_password: ::core::option::Option<String>,
-    /// The user''s password salt.
-    #[serde(default)]
-    pub salt: ::core::option::Option<String>,
-    /// User''s screen name at Twitter or login name at Github.
-    #[serde(default, rename = "screenName")]
-    pub screen_name: ::core::option::Option<String>,
-    /// Timestamp in seconds for valid login token.
-    #[serde(default, rename = "validSince")]
-    pub valid_since: ::core::option::Option<String>,
-    /// Version of the user''s password.
-    #[serde(default)]
-    pub version: ::core::option::Option<i32>,
 }
 
 /// Response of verifying the IDP assertion.
@@ -1137,4 +1029,112 @@ pub struct VerifyPasswordResponse {
     /// Whether the email is registered.
     #[serde(default)]
     pub registered: ::core::option::Option<bool>,
+}
+
+/// Template for an email template.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct EmailTemplate {
+    /// Email body.
+    #[serde(default)]
+    pub body: ::core::option::Option<String>,
+    /// Email body format.
+    #[serde(default)]
+    pub format: ::core::option::Option<String>,
+    /// From address of the email.
+    #[serde(default)]
+    pub from: ::core::option::Option<String>,
+    /// From display name.
+    #[serde(default, rename = "fromDisplayName")]
+    pub from_display_name: ::core::option::Option<String>,
+    /// Reply-to address.
+    #[serde(default, rename = "replyTo")]
+    pub reply_to: ::core::option::Option<String>,
+    /// Subject of the email.
+    #[serde(default)]
+    pub subject: ::core::option::Option<String>,
+}
+
+/// Template for a single idp configuration.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct IdpConfig {
+    /// OAuth2 client ID.
+    #[serde(default, rename = "clientId")]
+    pub client_id: ::core::option::Option<String>,
+    /// Whether this IDP is enabled.
+    #[serde(default)]
+    pub enabled: ::core::option::Option<bool>,
+    /// Percent of users who will be prompted/redirected federated login for this IDP.
+    #[serde(default, rename = "experimentPercent")]
+    pub experiment_percent: ::core::option::Option<i32>,
+    /// OAuth2 provider.
+    #[serde(default)]
+    pub provider: ::core::option::Option<String>,
+    /// OAuth2 client secret.
+    #[serde(default)]
+    pub secret: ::core::option::Option<String>,
+    /// Whitelisted client IDs for audience check.
+    #[serde(default, rename = "whitelistedAudiences")]
+    pub whitelisted_audiences: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// Template for an individual account info.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct UserInfo {
+    /// User creation timestamp.
+    #[serde(default, rename = "createdAt")]
+    pub created_at: ::core::option::Option<String>,
+    /// The custom attributes to be set in the user''s id token.
+    #[serde(default, rename = "customAttributes")]
+    pub custom_attributes: ::core::option::Option<String>,
+    /// Whether the user is authenticated by the developer.
+    #[serde(default, rename = "customAuth")]
+    pub custom_auth: ::core::option::Option<bool>,
+    /// Whether the user is disabled.
+    #[serde(default)]
+    pub disabled: ::core::option::Option<bool>,
+    /// The name of the user.
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+    /// The email of the user.
+    #[serde(default)]
+    pub email: ::core::option::Option<String>,
+    /// Whether the email has been verified.
+    #[serde(default, rename = "emailVerified")]
+    pub email_verified: ::core::option::Option<bool>,
+    /// last login timestamp.
+    #[serde(default, rename = "lastLoginAt")]
+    pub last_login_at: ::core::option::Option<String>,
+    /// The local ID of the user.
+    #[serde(default, rename = "localId")]
+    pub local_id: ::core::option::Option<String>,
+    /// The user''s hashed password.
+    #[serde(default, rename = "passwordHash")]
+    pub password_hash: ::core::option::Option<String>,
+    /// The timestamp when the password was last updated.
+    #[serde(default, rename = "passwordUpdatedAt")]
+    pub password_updated_at: ::core::option::Option<f64>,
+    /// User''s phone number.
+    #[serde(default, rename = "phoneNumber")]
+    pub phone_number: ::core::option::Option<String>,
+    /// The URL of the user profile photo.
+    #[serde(default, rename = "photoUrl")]
+    pub photo_url: ::core::option::Option<String>,
+    /// The IDP of the user.
+    #[serde(default, rename = "providerUserInfo")]
+    pub provider_user_info: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
+    /// The user''s plain text password.
+    #[serde(default, rename = "rawPassword")]
+    pub raw_password: ::core::option::Option<String>,
+    /// The user''s password salt.
+    #[serde(default)]
+    pub salt: ::core::option::Option<String>,
+    /// User''s screen name at Twitter or login name at Github.
+    #[serde(default, rename = "screenName")]
+    pub screen_name: ::core::option::Option<String>,
+    /// Timestamp in seconds for valid login token.
+    #[serde(default, rename = "validSince")]
+    pub valid_since: ::core::option::Option<String>,
+    /// Version of the user''s password.
+    #[serde(default)]
+    pub version: ::core::option::Option<i32>,
 }

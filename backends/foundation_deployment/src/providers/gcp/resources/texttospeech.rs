@@ -10,79 +10,6 @@
 use super::*;
 use serde::{Deserialize, Serialize};
 
-/// Used for advanced voice options.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AdvancedVoiceOptions {
-    /// Optional. If true, textnorm will be applied to text input. This feature is enabled by default. Only applies for Gemini TTS.
-    #[serde(default, rename = "enableTextnorm")]
-    pub enable_textnorm: ::core::option::Option<bool>,
-    /// Only for Journey voices. If false, the synthesis is context aware and has a higher latency.
-    #[serde(default, rename = "lowLatencyJourneySynthesis")]
-    pub low_latency_journey_synthesis: ::core::option::Option<bool>,
-    /// Optional. Input only. Deprecated, use safety_settings instead. If true, relaxes safety filters for Gemini TTS.
-    #[serde(default, rename = "relaxSafetyFilters")]
-    pub relax_safety_filters: ::core::option::Option<bool>,
-    /// Optional. Input only. This applies to Gemini TTS only. If set, the category specified in the safety setting will be blocked if the harm probability is above the threshold. Otherwise, the safety filter will be disabled by default.
-    #[serde(default, rename = "safetySettings")]
-    pub safety_settings: ::core::option::Option<SafetySettings>,
-}
-
-/// Description of audio data to be synthesized.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AudioConfig {
-    /// Required. The format of the audio byte stream. // TODO: enum values: ["AUDIO_ENCODING_UNSPECIFIED", "LINEAR16", "MP3", "OGG_OPUS", "MULAW", "ALAW", "PCM", "M4A"]
-    #[serde(default, rename = "audioEncoding")]
-    pub audio_encoding: ::core::option::Option<String>,
-    /// Optional. Input only. An identifier which selects ''audio effects'' profiles that are applied on (post synthesized) text to speech. Effects are applied on top of each other in the order they are given. See [audio profiles](https://cloud.google.com/text-to-speech/docs/audio-profiles) for current supported profile ids.
-    #[serde(default, rename = "effectsProfileId")]
-    pub effects_profile_id: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Optional. Input only. Speaking pitch, in the range [-20.0, 20.0]. 20 means increase 20 semitones from the original pitch. -20 means decrease 20 semitones from the original pitch.
-    #[serde(default)]
-    pub pitch: ::core::option::Option<f64>,
-    /// Optional. The synthesis sample rate (in hertz) for this audio. When this is specified in SynthesizeSpeechRequest, if this is different from the voice''s natural sample rate, then the synthesizer will honor this request by converting to the desired sample rate (which might result in worse audio quality), unless the specified sample rate is not supported for the encoding chosen, in which case it will fail the request and return google.rpc.Code.INVALID_ARGUMENT.
-    #[serde(default, rename = "sampleRateHertz")]
-    pub sample_rate_hertz: ::core::option::Option<i32>,
-    /// Optional. Input only. Speaking rate/speed, in the range [0.25, 2.0]. 1.0 is the normal native speed supported by the specific voice. 2.0 is twice as fast, and 0.5 is half as fast. If unset(0.0), defaults to the native 1.0 speed. Any other values &lt; 0.25 or &gt; 2.0 will return an error.
-    #[serde(default, rename = "speakingRate")]
-    pub speaking_rate: ::core::option::Option<f64>,
-    /// Optional. Input only. Volume gain (in dB) of the normal native volume supported by the specific voice, in the range [-96.0, 16.0]. If unset, or set to a value of 0.0 (dB), will play at normal native signal amplitude. A value of -6.0 (dB) will play at approximately half the amplitude of the normal native signal amplitude. A value of +6.0 (dB) will play at approximately twice the amplitude of the normal native signal amplitude. Strongly recommend not to exceed +10 (dB) as there''s usually no effective increase in loudness for any value greater than that.
-    #[serde(default, rename = "volumeGainDb")]
-    pub volume_gain_db: ::core::option::Option<f64>,
-}
-
-/// Pronunciation customization for a phrase.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CustomPronunciationParams {
-    /// The phonetic encoding of the phrase. // TODO: enum values: ["PHONETIC_ENCODING_UNSPECIFIED", "PHONETIC_ENCODING_IPA", "PHONETIC_ENCODING_X_SAMPA", "PHONETIC_ENCODING_JAPANESE_YOMIGANA", "PHONETIC_ENCODING_PINYIN"]
-    #[serde(default, rename = "phoneticEncoding")]
-    pub phonetic_encoding: ::core::option::Option<String>,
-    /// The phrase to which the customization is applied. The phrase can be multiple words, such as proper nouns, but shouldn''t span the length of the sentence.
-    #[serde(default)]
-    pub phrase: ::core::option::Option<String>,
-    /// The pronunciation of the phrase. This must be in the phonetic encoding specified above.
-    #[serde(default)]
-    pub pronunciation: ::core::option::Option<String>,
-}
-
-/// A collection of pronunciation customizations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CustomPronunciations {
-    /// The pronunciation customizations are applied.
-    #[serde(default)]
-    pub pronunciations: ::core::option::Option<::std::vec::Vec<CustomPronunciationParams>>,
-}
-
-/// Description of the custom voice to be synthesized.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CustomVoiceParams {
-    /// Required. The name of the AutoML model that synthesizes the custom voice.
-    #[serde(default)]
-    pub model: ::core::option::Option<String>,
-    /// Optional. Deprecated. The usage of the synthesized audio to be reported. // TODO: enum values: ["REPORTED_USAGE_UNSPECIFIED", "REALTIME", "OFFLINE"]
-    #[serde(default, rename = "reportedUsage")]
-    pub reported_usage: ::core::option::Option<String>,
-}
-
 /// Metadata for response returned by the SynthesizeLongAudio method.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudTexttospeechV1SynthesizeLongAudioMetadata {
@@ -117,109 +44,6 @@ pub struct ListVoicesResponse {
     /// The list of voices.
     #[serde(default)]
     pub voices: ::core::option::Option<::std::vec::Vec<Voice>>,
-}
-
-/// A collection of turns for multi-speaker synthesis.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct MultiSpeakerMarkup {
-    /// Required. Speaker turns.
-    #[serde(default)]
-    pub turns: ::core::option::Option<::std::vec::Vec<Turn>>,
-}
-
-/// Configuration for a multi-speaker text-to-speech setup. Enables the use of up to two distinct voices in a single synthesis request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct MultiSpeakerVoiceConfig {
-    /// Required. A list of configurations for the voices of the speakers. Exactly two speaker voice configurations must be provided.
-    #[serde(default, rename = "speakerVoiceConfigs")]
-    pub speaker_voice_configs: ::core::option::Option<::std::vec::Vec<MultispeakerPrebuiltVoice>>,
-}
-
-/// Configuration for a single speaker in a Gemini TTS multi-speaker setup. Enables dialogue between two speakers.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct MultispeakerPrebuiltVoice {
-    /// Required. The speaker alias of the voice. This is the user-chosen speaker name that is used in the multispeaker text input, such as "Speaker1".
-    #[serde(default, rename = "speakerAlias")]
-    pub speaker_alias: ::core::option::Option<String>,
-    /// Required. The speaker ID of the voice. See https://cloud.google.com/text-to-speech/docs/gemini-tts#voice_options for available values.
-    #[serde(default, rename = "speakerId")]
-    pub speaker_id: ::core::option::Option<String>,
-}
-
-/// This resource represents a long-running operation that is the result of a network API call.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Operation {
-    /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
-    #[serde(default)]
-    pub done: ::core::option::Option<bool>,
-    /// The error result of the operation in case of failure or cancellation.
-    #[serde(default)]
-    pub error: ::core::option::Option<Status>,
-    /// Service-specific metadata associated with the operation. It typically contains progress information and common metadata such as create time. Some services might not provide such metadata. Any method that returns a long-running operation should document the metadata type, if any.
-    #[serde(default)]
-    pub metadata: ::core::option::Option<serde_json::Value>,
-    /// The server-assigned name, which is only unique within the same service that originally returns it. If you use the default HTTP mapping, the name should be a resource name ending with operations/{unique_id}.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// The normal, successful response of the operation. If the original method returns no data on success, such as Delete, the response is google.protobuf.Empty. If the original method is standard Get/Create/Update, the response should be the resource. For other methods, the response should have the type XxxResponse, where Xxx is the original method name. For example, if the original method name is TakeSnapshot(), the inferred response type is TakeSnapshotResponse.
-    #[serde(default)]
-    pub response: ::core::option::Option<serde_json::Value>,
-}
-
-/// Safety setting for a single harm category.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SafetySetting {
-    /// The harm category to apply the safety setting to. // TODO: enum values: ["HARM_CATEGORY_UNSPECIFIED", "HARM_CATEGORY_HATE_SPEECH", "HARM_CATEGORY_DANGEROUS_CONTENT", "HARM_CATEGORY_HARASSMENT", "HARM_CATEGORY_SEXUALLY_EXPLICIT"]
-    #[serde(default)]
-    pub category: ::core::option::Option<String>,
-    /// The harm block threshold for the safety setting. // TODO: enum values: ["HARM_BLOCK_THRESHOLD_UNSPECIFIED", "BLOCK_LOW_AND_ABOVE", "BLOCK_MEDIUM_AND_ABOVE", "BLOCK_ONLY_HIGH", "BLOCK_NONE", "OFF"]
-    #[serde(default)]
-    pub threshold: ::core::option::Option<String>,
-}
-
-/// Safety settings for the request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SafetySettings {
-    /// The safety settings for the request.
-    #[serde(default)]
-    pub settings: ::core::option::Option<::std::vec::Vec<SafetySetting>>,
-}
-
-/// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Status {
-    /// The status code, which should be an enum value of google.rpc.Code.
-    #[serde(default)]
-    pub code: ::core::option::Option<i32>,
-    /// A list of messages that carry the error details. There is a common set of message types for APIs to use.
-    #[serde(default)]
-    pub details: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
-    /// A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.
-    #[serde(default)]
-    pub message: ::core::option::Option<String>,
-}
-
-/// Contains text input to be synthesized. Either text or ssml must be supplied. Supplying both or neither returns google.rpc.Code.INVALID_ARGUMENT. The input size is limited to 5000 bytes.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SynthesisInput {
-    /// Optional. The pronunciation customizations are applied to the input. If this is set, the input is synthesized using the given pronunciation customizations. The initial support is for en-us, with plans to expand to other locales in the future. Instant Clone voices aren''t supported. In order to customize the pronunciation of a phrase, there must be an exact match of the phrase in the input types. If using SSML, the phrase must not be inside a phoneme tag.
-    #[serde(default, rename = "customPronunciations")]
-    pub custom_pronunciations: ::core::option::Option<CustomPronunciations>,
-    /// Markup for Chirp 3: HD voices specifically. This field may not be used with any other voices.
-    #[serde(default)]
-    pub markup: ::core::option::Option<String>,
-    /// The multi-speaker input to be synthesized. Only applicable for multi-speaker synthesis.
-    #[serde(default, rename = "multiSpeakerMarkup")]
-    pub multi_speaker_markup: ::core::option::Option<MultiSpeakerMarkup>,
-    /// This system instruction is supported only for controllable/promptable voice models. If this system instruction is used, we pass the unedited text to Gemini-TTS. Otherwise, a default system instruction is used. AI Studio calls this system instruction, Style Instructions.
-    #[serde(default)]
-    pub prompt: ::core::option::Option<String>,
-    /// The SSML document to be synthesized. The SSML document must be valid and well-formed. Otherwise the RPC will fail and return google.rpc.Code.INVALID_ARGUMENT. For more information, see [SSML](https://cloud.google.com/text-to-speech/docs/ssml).
-    #[serde(default)]
-    pub ssml: ::core::option::Option<String>,
-    /// The raw text to be synthesized.
-    #[serde(default)]
-    pub text: ::core::option::Option<String>,
 }
 
 /// Metadata for response returned by the SynthesizeLongAudio method.
@@ -278,15 +102,24 @@ pub struct SynthesizeSpeechResponse {
     pub audio_content: ::core::option::Option<String>,
 }
 
-/// A multi-speaker turn.
+/// This resource represents a long-running operation that is the result of a network API call.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Turn {
-    /// Required. The speaker of the turn, for example, ''O'' or ''Q''. Please refer to documentation for available speakers.
+pub struct Operation {
+    /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
     #[serde(default)]
-    pub speaker: ::core::option::Option<String>,
-    /// Required. The text to speak.
+    pub done: ::core::option::Option<bool>,
+    /// The error result of the operation in case of failure or cancellation.
     #[serde(default)]
-    pub text: ::core::option::Option<String>,
+    pub error: ::core::option::Option<Status>,
+    /// Service-specific metadata associated with the operation. It typically contains progress information and common metadata such as create time. Some services might not provide such metadata. Any method that returns a long-running operation should document the metadata type, if any.
+    #[serde(default)]
+    pub metadata: ::core::option::Option<serde_json::Value>,
+    /// The server-assigned name, which is only unique within the same service that originally returns it. If you use the default HTTP mapping, the name should be a resource name ending with operations/{unique_id}.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// The normal, successful response of the operation. If the original method returns no data on success, such as Delete, the response is google.protobuf.Empty. If the original method is standard Get/Create/Update, the response should be the resource. For other methods, the response should have the type XxxResponse, where Xxx is the original method name. For example, if the original method name is TakeSnapshot(), the inferred response type is TakeSnapshotResponse.
+    #[serde(default)]
+    pub response: ::core::option::Option<serde_json::Value>,
 }
 
 /// Description of a voice supported by the TTS service.
@@ -306,12 +139,67 @@ pub struct Voice {
     pub ssml_gender: ::core::option::Option<String>,
 }
 
-/// The configuration of Voice Clone feature.
+/// Used for advanced voice options.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct VoiceCloneParams {
-    /// Required. Created by GenerateVoiceCloningKey.
-    #[serde(default, rename = "voiceCloningKey")]
-    pub voice_cloning_key: ::core::option::Option<String>,
+pub struct AdvancedVoiceOptions {
+    /// Optional. If true, textnorm will be applied to text input. This feature is enabled by default. Only applies for Gemini TTS.
+    #[serde(default, rename = "enableTextnorm")]
+    pub enable_textnorm: ::core::option::Option<bool>,
+    /// Only for Journey voices. If false, the synthesis is context aware and has a higher latency.
+    #[serde(default, rename = "lowLatencyJourneySynthesis")]
+    pub low_latency_journey_synthesis: ::core::option::Option<bool>,
+    /// Optional. Input only. Deprecated, use safety_settings instead. If true, relaxes safety filters for Gemini TTS.
+    #[serde(default, rename = "relaxSafetyFilters")]
+    pub relax_safety_filters: ::core::option::Option<bool>,
+    /// Optional. Input only. This applies to Gemini TTS only. If set, the category specified in the safety setting will be blocked if the harm probability is above the threshold. Otherwise, the safety filter will be disabled by default.
+    #[serde(default, rename = "safetySettings")]
+    pub safety_settings: ::core::option::Option<SafetySettings>,
+}
+
+/// Description of audio data to be synthesized.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AudioConfig {
+    /// Required. The format of the audio byte stream. // TODO: enum values: ["AUDIO_ENCODING_UNSPECIFIED", "LINEAR16", "MP3", "OGG_OPUS", "MULAW", "ALAW", "PCM", "M4A"]
+    #[serde(default, rename = "audioEncoding")]
+    pub audio_encoding: ::core::option::Option<String>,
+    /// Optional. Input only. An identifier which selects ''audio effects'' profiles that are applied on (post synthesized) text to speech. Effects are applied on top of each other in the order they are given. See [audio profiles](https://cloud.google.com/text-to-speech/docs/audio-profiles) for current supported profile ids.
+    #[serde(default, rename = "effectsProfileId")]
+    pub effects_profile_id: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Optional. Input only. Speaking pitch, in the range [-20.0, 20.0]. 20 means increase 20 semitones from the original pitch. -20 means decrease 20 semitones from the original pitch.
+    #[serde(default)]
+    pub pitch: ::core::option::Option<f64>,
+    /// Optional. The synthesis sample rate (in hertz) for this audio. When this is specified in SynthesizeSpeechRequest, if this is different from the voice''s natural sample rate, then the synthesizer will honor this request by converting to the desired sample rate (which might result in worse audio quality), unless the specified sample rate is not supported for the encoding chosen, in which case it will fail the request and return google.rpc.Code.INVALID_ARGUMENT.
+    #[serde(default, rename = "sampleRateHertz")]
+    pub sample_rate_hertz: ::core::option::Option<i32>,
+    /// Optional. Input only. Speaking rate/speed, in the range [0.25, 2.0]. 1.0 is the normal native speed supported by the specific voice. 2.0 is twice as fast, and 0.5 is half as fast. If unset(0.0), defaults to the native 1.0 speed. Any other values &lt; 0.25 or &gt; 2.0 will return an error.
+    #[serde(default, rename = "speakingRate")]
+    pub speaking_rate: ::core::option::Option<f64>,
+    /// Optional. Input only. Volume gain (in dB) of the normal native volume supported by the specific voice, in the range [-96.0, 16.0]. If unset, or set to a value of 0.0 (dB), will play at normal native signal amplitude. A value of -6.0 (dB) will play at approximately half the amplitude of the normal native signal amplitude. A value of +6.0 (dB) will play at approximately twice the amplitude of the normal native signal amplitude. Strongly recommend not to exceed +10 (dB) as there''s usually no effective increase in loudness for any value greater than that.
+    #[serde(default, rename = "volumeGainDb")]
+    pub volume_gain_db: ::core::option::Option<f64>,
+}
+
+/// Contains text input to be synthesized. Either text or ssml must be supplied. Supplying both or neither returns google.rpc.Code.INVALID_ARGUMENT. The input size is limited to 5000 bytes.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SynthesisInput {
+    /// Optional. The pronunciation customizations are applied to the input. If this is set, the input is synthesized using the given pronunciation customizations. The initial support is for en-us, with plans to expand to other locales in the future. Instant Clone voices aren''t supported. In order to customize the pronunciation of a phrase, there must be an exact match of the phrase in the input types. If using SSML, the phrase must not be inside a phoneme tag.
+    #[serde(default, rename = "customPronunciations")]
+    pub custom_pronunciations: ::core::option::Option<CustomPronunciations>,
+    /// Markup for Chirp 3: HD voices specifically. This field may not be used with any other voices.
+    #[serde(default)]
+    pub markup: ::core::option::Option<String>,
+    /// The multi-speaker input to be synthesized. Only applicable for multi-speaker synthesis.
+    #[serde(default, rename = "multiSpeakerMarkup")]
+    pub multi_speaker_markup: ::core::option::Option<MultiSpeakerMarkup>,
+    /// This system instruction is supported only for controllable/promptable voice models. If this system instruction is used, we pass the unedited text to Gemini-TTS. Otherwise, a default system instruction is used. AI Studio calls this system instruction, Style Instructions.
+    #[serde(default)]
+    pub prompt: ::core::option::Option<String>,
+    /// The SSML document to be synthesized. The SSML document must be valid and well-formed. Otherwise the RPC will fail and return google.rpc.Code.INVALID_ARGUMENT. For more information, see [SSML](https://cloud.google.com/text-to-speech/docs/ssml).
+    #[serde(default)]
+    pub ssml: ::core::option::Option<String>,
+    /// The raw text to be synthesized.
+    #[serde(default)]
+    pub text: ::core::option::Option<String>,
 }
 
 /// Description of which voice to use for a synthesis request.
@@ -338,4 +226,116 @@ pub struct VoiceSelectionParams {
     /// Optional. The configuration for a voice clone. If [VoiceCloneParams.voice_clone_key] is set, the service chooses the voice clone matching the specified configuration.
     #[serde(default, rename = "voiceClone")]
     pub voice_clone: ::core::option::Option<VoiceCloneParams>,
+}
+
+/// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Status {
+    /// The status code, which should be an enum value of google.rpc.Code.
+    #[serde(default)]
+    pub code: ::core::option::Option<i32>,
+    /// A list of messages that carry the error details. There is a common set of message types for APIs to use.
+    #[serde(default)]
+    pub details: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
+    /// A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.
+    #[serde(default)]
+    pub message: ::core::option::Option<String>,
+}
+
+/// Safety settings for the request.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SafetySettings {
+    /// The safety settings for the request.
+    #[serde(default)]
+    pub settings: ::core::option::Option<::std::vec::Vec<SafetySetting>>,
+}
+
+/// A collection of pronunciation customizations.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CustomPronunciations {
+    /// The pronunciation customizations are applied.
+    #[serde(default)]
+    pub pronunciations: ::core::option::Option<::std::vec::Vec<CustomPronunciationParams>>,
+}
+
+/// A collection of turns for multi-speaker synthesis.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MultiSpeakerMarkup {
+    /// Required. Speaker turns.
+    #[serde(default)]
+    pub turns: ::core::option::Option<::std::vec::Vec<Turn>>,
+}
+
+/// Description of the custom voice to be synthesized.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CustomVoiceParams {
+    /// Required. The name of the AutoML model that synthesizes the custom voice.
+    #[serde(default)]
+    pub model: ::core::option::Option<String>,
+    /// Optional. Deprecated. The usage of the synthesized audio to be reported. // TODO: enum values: ["REPORTED_USAGE_UNSPECIFIED", "REALTIME", "OFFLINE"]
+    #[serde(default, rename = "reportedUsage")]
+    pub reported_usage: ::core::option::Option<String>,
+}
+
+/// Configuration for a multi-speaker text-to-speech setup. Enables the use of up to two distinct voices in a single synthesis request.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MultiSpeakerVoiceConfig {
+    /// Required. A list of configurations for the voices of the speakers. Exactly two speaker voice configurations must be provided.
+    #[serde(default, rename = "speakerVoiceConfigs")]
+    pub speaker_voice_configs: ::core::option::Option<::std::vec::Vec<MultispeakerPrebuiltVoice>>,
+}
+
+/// The configuration of Voice Clone feature.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct VoiceCloneParams {
+    /// Required. Created by GenerateVoiceCloningKey.
+    #[serde(default, rename = "voiceCloningKey")]
+    pub voice_cloning_key: ::core::option::Option<String>,
+}
+
+/// Safety setting for a single harm category.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SafetySetting {
+    /// The harm category to apply the safety setting to. // TODO: enum values: ["HARM_CATEGORY_UNSPECIFIED", "HARM_CATEGORY_HATE_SPEECH", "HARM_CATEGORY_DANGEROUS_CONTENT", "HARM_CATEGORY_HARASSMENT", "HARM_CATEGORY_SEXUALLY_EXPLICIT"]
+    #[serde(default)]
+    pub category: ::core::option::Option<String>,
+    /// The harm block threshold for the safety setting. // TODO: enum values: ["HARM_BLOCK_THRESHOLD_UNSPECIFIED", "BLOCK_LOW_AND_ABOVE", "BLOCK_MEDIUM_AND_ABOVE", "BLOCK_ONLY_HIGH", "BLOCK_NONE", "OFF"]
+    #[serde(default)]
+    pub threshold: ::core::option::Option<String>,
+}
+
+/// Pronunciation customization for a phrase.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CustomPronunciationParams {
+    /// The phonetic encoding of the phrase. // TODO: enum values: ["PHONETIC_ENCODING_UNSPECIFIED", "PHONETIC_ENCODING_IPA", "PHONETIC_ENCODING_X_SAMPA", "PHONETIC_ENCODING_JAPANESE_YOMIGANA", "PHONETIC_ENCODING_PINYIN"]
+    #[serde(default, rename = "phoneticEncoding")]
+    pub phonetic_encoding: ::core::option::Option<String>,
+    /// The phrase to which the customization is applied. The phrase can be multiple words, such as proper nouns, but shouldn''t span the length of the sentence.
+    #[serde(default)]
+    pub phrase: ::core::option::Option<String>,
+    /// The pronunciation of the phrase. This must be in the phonetic encoding specified above.
+    #[serde(default)]
+    pub pronunciation: ::core::option::Option<String>,
+}
+
+/// A multi-speaker turn.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Turn {
+    /// Required. The speaker of the turn, for example, ''O'' or ''Q''. Please refer to documentation for available speakers.
+    #[serde(default)]
+    pub speaker: ::core::option::Option<String>,
+    /// Required. The text to speak.
+    #[serde(default)]
+    pub text: ::core::option::Option<String>,
+}
+
+/// Configuration for a single speaker in a Gemini TTS multi-speaker setup. Enables dialogue between two speakers.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MultispeakerPrebuiltVoice {
+    /// Required. The speaker alias of the voice. This is the user-chosen speaker name that is used in the multispeaker text input, such as "Speaker1".
+    #[serde(default, rename = "speakerAlias")]
+    pub speaker_alias: ::core::option::Option<String>,
+    /// Required. The speaker ID of the voice. See https://cloud.google.com/text-to-speech/docs/gemini-tts#voice_options for available values.
+    #[serde(default, rename = "speakerId")]
+    pub speaker_id: ::core::option::Option<String>,
 }

@@ -10,6 +10,18 @@
 use super::*;
 use serde::{Deserialize, Serialize};
 
+/// Response message for ListAndroidDeliveryData.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleFirebaseFcmDataV1beta1ListAndroidDeliveryDataResponse {
+    /// The delivery data for the provided app. There will be one entry per combination of app, date, and analytics label.
+    #[serde(default, rename = "androidDeliveryData")]
+    pub android_delivery_data:
+        ::core::option::Option<::std::vec::Vec<GoogleFirebaseFcmDataV1beta1AndroidDeliveryData>>,
+    /// A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+}
+
 /// Message delivery data for a given date, app, and analytics label combination.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleFirebaseFcmDataV1beta1AndroidDeliveryData {
@@ -54,6 +66,20 @@ pub struct GoogleFirebaseFcmDataV1beta1Data {
         ::core::option::Option<GoogleFirebaseFcmDataV1beta1ProxyNotificationInsightPercents>,
 }
 
+/// Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleTypeDate {
+    /// Day of a month. Must be from 1 to 31 and valid for the year and month, or 0 to specify a year by itself or a year and month where the day isn''t significant.
+    #[serde(default)]
+    pub day: ::core::option::Option<i32>,
+    /// Month of a year. Must be from 1 to 12, or 0 to specify a year without a month and day.
+    #[serde(default)]
+    pub month: ::core::option::Option<i32>,
+    /// Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.
+    #[serde(default)]
+    pub year: ::core::option::Option<i32>,
+}
+
 /// Overview of delivery performance for messages that were successfully delivered. All percentages are calculated with countMessagesAccepted as the denominator. These categories are not mutually exclusive; a message can be delayed for multiple reasons.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleFirebaseFcmDataV1beta1DeliveryPerformancePercents {
@@ -72,18 +98,6 @@ pub struct GoogleFirebaseFcmDataV1beta1DeliveryPerformancePercents {
     /// The percentage of accepted messages that were delivered to the device without delay from the FCM system.
     #[serde(default, rename = "deliveredNoDelay")]
     pub delivered_no_delay: ::core::option::Option<f32>,
-}
-
-/// Response message for ListAndroidDeliveryData.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleFirebaseFcmDataV1beta1ListAndroidDeliveryDataResponse {
-    /// The delivery data for the provided app. There will be one entry per combination of app, date, and analytics label.
-    #[serde(default, rename = "androidDeliveryData")]
-    pub android_delivery_data:
-        ::core::option::Option<::std::vec::Vec<GoogleFirebaseFcmDataV1beta1AndroidDeliveryData>>,
-    /// A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
-    #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// Additional information about message delivery. All percentages are calculated with countMessagesAccepted as the denominator.
@@ -141,18 +155,4 @@ pub struct GoogleFirebaseFcmDataV1beta1ProxyNotificationInsightPercents {
     /// The percentage of accepted notifications that were skipped because proxy notification is unsupported for the recipient.
     #[serde(default, rename = "skippedUnsupported")]
     pub skipped_unsupported: ::core::option::Option<f32>,
-}
-
-/// Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleTypeDate {
-    /// Day of a month. Must be from 1 to 31 and valid for the year and month, or 0 to specify a year by itself or a year and month where the day isn''t significant.
-    #[serde(default)]
-    pub day: ::core::option::Option<i32>,
-    /// Month of a year. Must be from 1 to 12, or 0 to specify a year without a month and day.
-    #[serde(default)]
-    pub month: ::core::option::Option<i32>,
-    /// Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.
-    #[serde(default)]
-    pub year: ::core::option::Option<i32>,
 }

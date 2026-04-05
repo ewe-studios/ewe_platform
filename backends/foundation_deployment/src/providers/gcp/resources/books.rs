@@ -10,61 +10,6 @@
 use super::*;
 use serde::{Deserialize, Serialize};
 
-/// Annotation resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Annotation {
-    /// Anchor text after excerpt. For requests, if the user bookmarked a screen that has no flowing text on it, then this field should be empty.
-    #[serde(default, rename = "afterSelectedText")]
-    pub after_selected_text: ::core::option::Option<String>,
-    /// Anchor text before excerpt. For requests, if the user bookmarked a screen that has no flowing text on it, then this field should be empty.
-    #[serde(default, rename = "beforeSelectedText")]
-    pub before_selected_text: ::core::option::Option<String>,
-    /// Selection ranges sent from the client.
-    #[serde(default, rename = "clientVersionRanges")]
-    pub client_version_ranges: ::core::option::Option<serde_json::Value>,
-    /// Timestamp for the created time of this annotation.
-    #[serde(default)]
-    pub created: ::core::option::Option<String>,
-    /// Selection ranges for the most recent content version.
-    #[serde(default, rename = "currentVersionRanges")]
-    pub current_version_ranges: ::core::option::Option<serde_json::Value>,
-    /// User-created data for this annotation.
-    #[serde(default)]
-    pub data: ::core::option::Option<String>,
-    /// Indicates that this annotation is deleted.
-    #[serde(default)]
-    pub deleted: ::core::option::Option<bool>,
-    /// The highlight style for this annotation.
-    #[serde(default, rename = "highlightStyle")]
-    pub highlight_style: ::core::option::Option<String>,
-    /// Id of this annotation, in the form of a GUID.
-    #[serde(default)]
-    pub id: ::core::option::Option<String>,
-    /// Resource type.
-    #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-    /// The layer this annotation is for.
-    #[serde(default, rename = "layerId")]
-    pub layer_id: ::core::option::Option<String>,
-    #[serde(default, rename = "layerSummary")]
-    pub layer_summary: ::core::option::Option<serde_json::Value>,
-    /// Pages that this annotation spans.
-    #[serde(default, rename = "pageIds")]
-    pub page_ids: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Excerpt from the volume.
-    #[serde(default, rename = "selectedText")]
-    pub selected_text: ::core::option::Option<String>,
-    /// URL to this resource.
-    #[serde(default, rename = "selfLink")]
-    pub self_link: ::core::option::Option<String>,
-    /// Timestamp for the last time this annotation was modified.
-    #[serde(default)]
-    pub updated: ::core::option::Option<String>,
-    /// The volume that this annotation belongs to.
-    #[serde(default, rename = "volumeId")]
-    pub volume_id: ::core::option::Option<String>,
-}
-
 /// Annotations resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Annotations {
@@ -145,41 +90,6 @@ pub struct BooksVolumesRecommendedRateResponse {
     pub consistency_token: ::core::option::Option<String>,
 }
 
-/// Bookshelf resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Bookshelf {
-    /// Whether this bookshelf is PUBLIC or PRIVATE.
-    #[serde(default)]
-    pub access: ::core::option::Option<String>,
-    /// Created time for this bookshelf (formatted UTC timestamp with millisecond resolution).
-    #[serde(default)]
-    pub created: ::core::option::Option<String>,
-    /// Description of this bookshelf.
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// Id of this bookshelf, only unique by user.
-    #[serde(default)]
-    pub id: ::core::option::Option<i32>,
-    /// Resource type for bookshelf metadata.
-    #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-    /// URL to this resource.
-    #[serde(default, rename = "selfLink")]
-    pub self_link: ::core::option::Option<String>,
-    /// Title of this bookshelf.
-    #[serde(default)]
-    pub title: ::core::option::Option<String>,
-    /// Last modified time of this bookshelf (formatted UTC timestamp with millisecond resolution).
-    #[serde(default)]
-    pub updated: ::core::option::Option<String>,
-    /// Number of volumes in this bookshelf.
-    #[serde(default, rename = "volumeCount")]
-    pub volume_count: ::core::option::Option<i32>,
-    /// Last time a volume was added or removed from this bookshelf (formatted UTC timestamp with millisecond resolution).
-    #[serde(default, rename = "volumesLastUpdated")]
-    pub volumes_last_updated: ::core::option::Option<String>,
-}
-
 /// Bookshelves resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Bookshelves {
@@ -200,44 +110,6 @@ pub struct Category {
     /// Resource type.
     #[serde(default)]
     pub kind: ::core::option::Option<String>,
-}
-
-/// ConcurrentAccessRestriction resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ConcurrentAccessRestriction {
-    /// Whether access is granted for this (user, device, volume).
-    #[serde(default, rename = "deviceAllowed")]
-    pub device_allowed: ::core::option::Option<bool>,
-    /// Resource type.
-    #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-    /// The maximum number of concurrent access licenses for this volume.
-    #[serde(default, rename = "maxConcurrentDevices")]
-    pub max_concurrent_devices: ::core::option::Option<i32>,
-    /// Error/warning message.
-    #[serde(default)]
-    pub message: ::core::option::Option<String>,
-    /// Client nonce for verification. Download access and client-validation only.
-    #[serde(default)]
-    pub nonce: ::core::option::Option<String>,
-    /// Error/warning reason code.
-    #[serde(default, rename = "reasonCode")]
-    pub reason_code: ::core::option::Option<String>,
-    /// Whether this volume has any concurrent access restrictions.
-    #[serde(default)]
-    pub restricted: ::core::option::Option<bool>,
-    /// Response signature.
-    #[serde(default)]
-    pub signature: ::core::option::Option<String>,
-    /// Client app identifier for verification. Download access and client-validation only.
-    #[serde(default)]
-    pub source: ::core::option::Option<String>,
-    /// Time in seconds for license auto-expiration.
-    #[serde(default, rename = "timeWindowSeconds")]
-    pub time_window_seconds: ::core::option::Option<i32>,
-    /// Identifies the volume for which this entry applies.
-    #[serde(default, rename = "volumeId")]
-    pub volume_id: ::core::option::Option<String>,
 }
 
 /// DictionaryAnnotationdata resource type.
@@ -272,17 +144,6 @@ pub struct DictionaryAnnotationdata {
     pub volume_id: ::core::option::Option<String>,
 }
 
-/// Dictlayerdata resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Dictlayerdata {
-    #[serde(default)]
-    pub common: ::core::option::Option<serde_json::Value>,
-    #[serde(default)]
-    pub dict: ::core::option::Option<serde_json::Value>,
-    #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-}
-
 /// Discoveryclusters resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Discoveryclusters {
@@ -293,47 +154,6 @@ pub struct Discoveryclusters {
     pub kind: ::core::option::Option<String>,
     #[serde(default, rename = "totalClusters")]
     pub total_clusters: ::core::option::Option<i32>,
-}
-
-/// DownloadAccessRestriction resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DownloadAccessRestriction {
-    /// If restricted, whether access is granted for this (user, device, volume).
-    #[serde(default, rename = "deviceAllowed")]
-    pub device_allowed: ::core::option::Option<bool>,
-    /// If restricted, the number of content download licenses already acquired (including the requesting client, if licensed).
-    #[serde(default, rename = "downloadsAcquired")]
-    pub downloads_acquired: ::core::option::Option<i32>,
-    /// If deviceAllowed, whether access was just acquired with this request.
-    #[serde(default, rename = "justAcquired")]
-    pub just_acquired: ::core::option::Option<bool>,
-    /// Resource type.
-    #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-    /// If restricted, the maximum number of content download licenses for this volume.
-    #[serde(default, rename = "maxDownloadDevices")]
-    pub max_download_devices: ::core::option::Option<i32>,
-    /// Error/warning message.
-    #[serde(default)]
-    pub message: ::core::option::Option<String>,
-    /// Client nonce for verification. Download access and client-validation only.
-    #[serde(default)]
-    pub nonce: ::core::option::Option<String>,
-    /// Error/warning reason code. Additional codes may be added in the future. 0 OK 100 ACCESS_DENIED_PUBLISHER_LIMIT 101 ACCESS_DENIED_LIMIT 200 WARNING_USED_LAST_ACCESS
-    #[serde(default, rename = "reasonCode")]
-    pub reason_code: ::core::option::Option<String>,
-    /// Whether this volume has any download access restrictions.
-    #[serde(default)]
-    pub restricted: ::core::option::Option<bool>,
-    /// Response signature.
-    #[serde(default)]
-    pub signature: ::core::option::Option<String>,
-    /// Client app identifier for verification. Download access and client-validation only.
-    #[serde(default)]
-    pub source: ::core::option::Option<String>,
-    /// Identifies the volume for which this entry applies.
-    #[serde(default, rename = "volumeId")]
-    pub volume_id: ::core::option::Option<String>,
 }
 
 /// DownloadAccesses resource type.
@@ -358,49 +178,6 @@ pub struct FamilyInfo {
     pub membership: ::core::option::Option<serde_json::Value>,
 }
 
-/// GeoAnnotationdata resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GeoAnnotationdata {
-    /// The type of annotation this data is for.
-    #[serde(default, rename = "annotationType")]
-    pub annotation_type: ::core::option::Option<String>,
-    /// JSON encoded data for this geo annotation data. Emitted with name ''data'' in JSON output. Either this or dict_data will be populated.
-    #[serde(default)]
-    pub data: ::core::option::Option<Geolayerdata>,
-    /// Base64 encoded data for this annotation data.
-    #[serde(default, rename = "encodedData")]
-    pub encoded_data: ::core::option::Option<String>,
-    /// Unique id for this annotation data.
-    #[serde(default)]
-    pub id: ::core::option::Option<String>,
-    /// Resource Type
-    #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-    /// The Layer id for this data. *
-    #[serde(default, rename = "layerId")]
-    pub layer_id: ::core::option::Option<String>,
-    /// URL for this resource. *
-    #[serde(default, rename = "selfLink")]
-    pub self_link: ::core::option::Option<String>,
-    /// Timestamp for the last time this data was updated. (RFC 3339 UTC date-time format).
-    #[serde(default)]
-    pub updated: ::core::option::Option<String>,
-    /// The volume id for this data. *
-    #[serde(default, rename = "volumeId")]
-    pub volume_id: ::core::option::Option<String>,
-}
-
-/// Geolayerdata resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Geolayerdata {
-    #[serde(default)]
-    pub common: ::core::option::Option<serde_json::Value>,
-    #[serde(default)]
-    pub geo: ::core::option::Option<serde_json::Value>,
-    #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-}
-
 /// Layersummaries resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Layersummaries {
@@ -413,50 +190,6 @@ pub struct Layersummaries {
     /// The total number of layer summaries found.
     #[serde(default, rename = "totalItems")]
     pub total_items: ::core::option::Option<i32>,
-}
-
-/// Layersummary resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Layersummary {
-    /// The number of annotations for this layer.
-    #[serde(default, rename = "annotationCount")]
-    pub annotation_count: ::core::option::Option<i32>,
-    /// The list of annotation types contained for this layer.
-    #[serde(default, rename = "annotationTypes")]
-    pub annotation_types: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Link to get data for this annotation.
-    #[serde(default, rename = "annotationsDataLink")]
-    pub annotations_data_link: ::core::option::Option<String>,
-    /// The link to get the annotations for this layer.
-    #[serde(default, rename = "annotationsLink")]
-    pub annotations_link: ::core::option::Option<String>,
-    /// The content version this resource is for.
-    #[serde(default, rename = "contentVersion")]
-    pub content_version: ::core::option::Option<String>,
-    /// The number of data items for this layer.
-    #[serde(default, rename = "dataCount")]
-    pub data_count: ::core::option::Option<i32>,
-    /// Unique id of this layer summary.
-    #[serde(default)]
-    pub id: ::core::option::Option<String>,
-    /// Resource Type
-    #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-    /// The layer id for this summary.
-    #[serde(default, rename = "layerId")]
-    pub layer_id: ::core::option::Option<String>,
-    /// URL to this resource.
-    #[serde(default, rename = "selfLink")]
-    pub self_link: ::core::option::Option<String>,
-    /// Timestamp for the last time an item in this layer was updated. (RFC 3339 UTC date-time format).
-    #[serde(default)]
-    pub updated: ::core::option::Option<String>,
-    /// The current version of this layer''s volume annotations. Note that this version applies only to the data in the books.layers.volumeAnnotations.* responses. The actual annotation data is versioned separately.
-    #[serde(default, rename = "volumeAnnotationsVersion")]
-    pub volume_annotations_version: ::core::option::Option<String>,
-    /// The volume id this resource is for.
-    #[serde(default, rename = "volumeId")]
-    pub volume_id: ::core::option::Option<String>,
 }
 
 /// Metadata resource type.
@@ -630,44 +363,6 @@ pub struct Usersettings {
     pub notification: ::core::option::Option<serde_json::Value>,
 }
 
-/// Volume resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Volume {
-    /// Any information about a volume related to reading or obtaining that volume text. This information can depend on country (books may be public domain in one country but not in another, e.g.).
-    #[serde(default, rename = "accessInfo")]
-    pub access_info: ::core::option::Option<serde_json::Value>,
-    /// Opaque identifier for a specific version of a volume resource. (In LITE projection)
-    #[serde(default)]
-    pub etag: ::core::option::Option<String>,
-    /// Unique identifier for a volume. (In LITE projection.)
-    #[serde(default)]
-    pub id: ::core::option::Option<String>,
-    /// Resource type for a volume. (In LITE projection.)
-    #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-    /// What layers exist in this volume and high level information about them.
-    #[serde(default, rename = "layerInfo")]
-    pub layer_info: ::core::option::Option<serde_json::Value>,
-    /// Recommendation related information for this volume.
-    #[serde(default, rename = "recommendedInfo")]
-    pub recommended_info: ::core::option::Option<serde_json::Value>,
-    /// Any information about a volume related to the eBookstore and/or purchaseability. This information can depend on the country where the request originates from (i.e. books may not be for sale in certain countries).
-    #[serde(default, rename = "saleInfo")]
-    pub sale_info: ::core::option::Option<serde_json::Value>,
-    /// Search result information related to this volume.
-    #[serde(default, rename = "searchInfo")]
-    pub search_info: ::core::option::Option<serde_json::Value>,
-    /// URL to this resource. (In LITE projection.)
-    #[serde(default, rename = "selfLink")]
-    pub self_link: ::core::option::Option<String>,
-    /// User specific information related to this volume. (e.g. page this user last read or whether they purchased this book)
-    #[serde(default, rename = "userInfo")]
-    pub user_info: ::core::option::Option<serde_json::Value>,
-    /// General volume information.
-    #[serde(default, rename = "volumeInfo")]
-    pub volume_info: ::core::option::Option<serde_json::Value>,
-}
-
 /// Volume2 resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Volume2 {
@@ -679,53 +374,6 @@ pub struct Volume2 {
     pub kind: ::core::option::Option<String>,
     #[serde(default, rename = "nextPageToken")]
     pub next_page_token: ::core::option::Option<String>,
-}
-
-/// Volumeannotation resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Volumeannotation {
-    /// The annotation data id for this volume annotation.
-    #[serde(default, rename = "annotationDataId")]
-    pub annotation_data_id: ::core::option::Option<String>,
-    /// Link to get data for this annotation.
-    #[serde(default, rename = "annotationDataLink")]
-    pub annotation_data_link: ::core::option::Option<String>,
-    /// The type of annotation this is.
-    #[serde(default, rename = "annotationType")]
-    pub annotation_type: ::core::option::Option<String>,
-    /// The content ranges to identify the selected text.
-    #[serde(default, rename = "contentRanges")]
-    pub content_ranges: ::core::option::Option<serde_json::Value>,
-    /// Data for this annotation.
-    #[serde(default)]
-    pub data: ::core::option::Option<String>,
-    /// Indicates that this annotation is deleted.
-    #[serde(default)]
-    pub deleted: ::core::option::Option<bool>,
-    /// Unique id of this volume annotation.
-    #[serde(default)]
-    pub id: ::core::option::Option<String>,
-    /// Resource Type
-    #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-    /// The Layer this annotation is for.
-    #[serde(default, rename = "layerId")]
-    pub layer_id: ::core::option::Option<String>,
-    /// Pages the annotation spans.
-    #[serde(default, rename = "pageIds")]
-    pub page_ids: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Excerpt from the volume.
-    #[serde(default, rename = "selectedText")]
-    pub selected_text: ::core::option::Option<String>,
-    /// URL to this resource.
-    #[serde(default, rename = "selfLink")]
-    pub self_link: ::core::option::Option<String>,
-    /// Timestamp for the last time this anntoation was updated. (RFC 3339 UTC date-time format).
-    #[serde(default)]
-    pub updated: ::core::option::Option<String>,
-    /// The Volume this annotation is for.
-    #[serde(default, rename = "volumeId")]
-    pub volume_id: ::core::option::Option<String>,
 }
 
 /// Volumeannotations resource type.
@@ -776,4 +424,356 @@ pub struct Volumeseriesinfo {
     pub short_series_book_title: ::core::option::Option<String>,
     #[serde(default, rename = "volumeSeries")]
     pub volume_series: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
+}
+
+/// Annotation resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Annotation {
+    /// Anchor text after excerpt. For requests, if the user bookmarked a screen that has no flowing text on it, then this field should be empty.
+    #[serde(default, rename = "afterSelectedText")]
+    pub after_selected_text: ::core::option::Option<String>,
+    /// Anchor text before excerpt. For requests, if the user bookmarked a screen that has no flowing text on it, then this field should be empty.
+    #[serde(default, rename = "beforeSelectedText")]
+    pub before_selected_text: ::core::option::Option<String>,
+    /// Selection ranges sent from the client.
+    #[serde(default, rename = "clientVersionRanges")]
+    pub client_version_ranges: ::core::option::Option<serde_json::Value>,
+    /// Timestamp for the created time of this annotation.
+    #[serde(default)]
+    pub created: ::core::option::Option<String>,
+    /// Selection ranges for the most recent content version.
+    #[serde(default, rename = "currentVersionRanges")]
+    pub current_version_ranges: ::core::option::Option<serde_json::Value>,
+    /// User-created data for this annotation.
+    #[serde(default)]
+    pub data: ::core::option::Option<String>,
+    /// Indicates that this annotation is deleted.
+    #[serde(default)]
+    pub deleted: ::core::option::Option<bool>,
+    /// The highlight style for this annotation.
+    #[serde(default, rename = "highlightStyle")]
+    pub highlight_style: ::core::option::Option<String>,
+    /// Id of this annotation, in the form of a GUID.
+    #[serde(default)]
+    pub id: ::core::option::Option<String>,
+    /// Resource type.
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+    /// The layer this annotation is for.
+    #[serde(default, rename = "layerId")]
+    pub layer_id: ::core::option::Option<String>,
+    #[serde(default, rename = "layerSummary")]
+    pub layer_summary: ::core::option::Option<serde_json::Value>,
+    /// Pages that this annotation spans.
+    #[serde(default, rename = "pageIds")]
+    pub page_ids: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Excerpt from the volume.
+    #[serde(default, rename = "selectedText")]
+    pub selected_text: ::core::option::Option<String>,
+    /// URL to this resource.
+    #[serde(default, rename = "selfLink")]
+    pub self_link: ::core::option::Option<String>,
+    /// Timestamp for the last time this annotation was modified.
+    #[serde(default)]
+    pub updated: ::core::option::Option<String>,
+    /// The volume that this annotation belongs to.
+    #[serde(default, rename = "volumeId")]
+    pub volume_id: ::core::option::Option<String>,
+}
+
+/// GeoAnnotationdata resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GeoAnnotationdata {
+    /// The type of annotation this data is for.
+    #[serde(default, rename = "annotationType")]
+    pub annotation_type: ::core::option::Option<String>,
+    /// JSON encoded data for this geo annotation data. Emitted with name ''data'' in JSON output. Either this or dict_data will be populated.
+    #[serde(default)]
+    pub data: ::core::option::Option<Geolayerdata>,
+    /// Base64 encoded data for this annotation data.
+    #[serde(default, rename = "encodedData")]
+    pub encoded_data: ::core::option::Option<String>,
+    /// Unique id for this annotation data.
+    #[serde(default)]
+    pub id: ::core::option::Option<String>,
+    /// Resource Type
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+    /// The Layer id for this data. *
+    #[serde(default, rename = "layerId")]
+    pub layer_id: ::core::option::Option<String>,
+    /// URL for this resource. *
+    #[serde(default, rename = "selfLink")]
+    pub self_link: ::core::option::Option<String>,
+    /// Timestamp for the last time this data was updated. (RFC 3339 UTC date-time format).
+    #[serde(default)]
+    pub updated: ::core::option::Option<String>,
+    /// The volume id for this data. *
+    #[serde(default, rename = "volumeId")]
+    pub volume_id: ::core::option::Option<String>,
+}
+
+/// Bookshelf resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Bookshelf {
+    /// Whether this bookshelf is PUBLIC or PRIVATE.
+    #[serde(default)]
+    pub access: ::core::option::Option<String>,
+    /// Created time for this bookshelf (formatted UTC timestamp with millisecond resolution).
+    #[serde(default)]
+    pub created: ::core::option::Option<String>,
+    /// Description of this bookshelf.
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+    /// Id of this bookshelf, only unique by user.
+    #[serde(default)]
+    pub id: ::core::option::Option<i32>,
+    /// Resource type for bookshelf metadata.
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+    /// URL to this resource.
+    #[serde(default, rename = "selfLink")]
+    pub self_link: ::core::option::Option<String>,
+    /// Title of this bookshelf.
+    #[serde(default)]
+    pub title: ::core::option::Option<String>,
+    /// Last modified time of this bookshelf (formatted UTC timestamp with millisecond resolution).
+    #[serde(default)]
+    pub updated: ::core::option::Option<String>,
+    /// Number of volumes in this bookshelf.
+    #[serde(default, rename = "volumeCount")]
+    pub volume_count: ::core::option::Option<i32>,
+    /// Last time a volume was added or removed from this bookshelf (formatted UTC timestamp with millisecond resolution).
+    #[serde(default, rename = "volumesLastUpdated")]
+    pub volumes_last_updated: ::core::option::Option<String>,
+}
+
+/// Dictlayerdata resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Dictlayerdata {
+    #[serde(default)]
+    pub common: ::core::option::Option<serde_json::Value>,
+    #[serde(default)]
+    pub dict: ::core::option::Option<serde_json::Value>,
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+}
+
+/// Layersummary resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Layersummary {
+    /// The number of annotations for this layer.
+    #[serde(default, rename = "annotationCount")]
+    pub annotation_count: ::core::option::Option<i32>,
+    /// The list of annotation types contained for this layer.
+    #[serde(default, rename = "annotationTypes")]
+    pub annotation_types: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Link to get data for this annotation.
+    #[serde(default, rename = "annotationsDataLink")]
+    pub annotations_data_link: ::core::option::Option<String>,
+    /// The link to get the annotations for this layer.
+    #[serde(default, rename = "annotationsLink")]
+    pub annotations_link: ::core::option::Option<String>,
+    /// The content version this resource is for.
+    #[serde(default, rename = "contentVersion")]
+    pub content_version: ::core::option::Option<String>,
+    /// The number of data items for this layer.
+    #[serde(default, rename = "dataCount")]
+    pub data_count: ::core::option::Option<i32>,
+    /// Unique id of this layer summary.
+    #[serde(default)]
+    pub id: ::core::option::Option<String>,
+    /// Resource Type
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+    /// The layer id for this summary.
+    #[serde(default, rename = "layerId")]
+    pub layer_id: ::core::option::Option<String>,
+    /// URL to this resource.
+    #[serde(default, rename = "selfLink")]
+    pub self_link: ::core::option::Option<String>,
+    /// Timestamp for the last time an item in this layer was updated. (RFC 3339 UTC date-time format).
+    #[serde(default)]
+    pub updated: ::core::option::Option<String>,
+    /// The current version of this layer''s volume annotations. Note that this version applies only to the data in the books.layers.volumeAnnotations.* responses. The actual annotation data is versioned separately.
+    #[serde(default, rename = "volumeAnnotationsVersion")]
+    pub volume_annotations_version: ::core::option::Option<String>,
+    /// The volume id this resource is for.
+    #[serde(default, rename = "volumeId")]
+    pub volume_id: ::core::option::Option<String>,
+}
+
+/// ConcurrentAccessRestriction resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ConcurrentAccessRestriction {
+    /// Whether access is granted for this (user, device, volume).
+    #[serde(default, rename = "deviceAllowed")]
+    pub device_allowed: ::core::option::Option<bool>,
+    /// Resource type.
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+    /// The maximum number of concurrent access licenses for this volume.
+    #[serde(default, rename = "maxConcurrentDevices")]
+    pub max_concurrent_devices: ::core::option::Option<i32>,
+    /// Error/warning message.
+    #[serde(default)]
+    pub message: ::core::option::Option<String>,
+    /// Client nonce for verification. Download access and client-validation only.
+    #[serde(default)]
+    pub nonce: ::core::option::Option<String>,
+    /// Error/warning reason code.
+    #[serde(default, rename = "reasonCode")]
+    pub reason_code: ::core::option::Option<String>,
+    /// Whether this volume has any concurrent access restrictions.
+    #[serde(default)]
+    pub restricted: ::core::option::Option<bool>,
+    /// Response signature.
+    #[serde(default)]
+    pub signature: ::core::option::Option<String>,
+    /// Client app identifier for verification. Download access and client-validation only.
+    #[serde(default)]
+    pub source: ::core::option::Option<String>,
+    /// Time in seconds for license auto-expiration.
+    #[serde(default, rename = "timeWindowSeconds")]
+    pub time_window_seconds: ::core::option::Option<i32>,
+    /// Identifies the volume for which this entry applies.
+    #[serde(default, rename = "volumeId")]
+    pub volume_id: ::core::option::Option<String>,
+}
+
+/// DownloadAccessRestriction resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DownloadAccessRestriction {
+    /// If restricted, whether access is granted for this (user, device, volume).
+    #[serde(default, rename = "deviceAllowed")]
+    pub device_allowed: ::core::option::Option<bool>,
+    /// If restricted, the number of content download licenses already acquired (including the requesting client, if licensed).
+    #[serde(default, rename = "downloadsAcquired")]
+    pub downloads_acquired: ::core::option::Option<i32>,
+    /// If deviceAllowed, whether access was just acquired with this request.
+    #[serde(default, rename = "justAcquired")]
+    pub just_acquired: ::core::option::Option<bool>,
+    /// Resource type.
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+    /// If restricted, the maximum number of content download licenses for this volume.
+    #[serde(default, rename = "maxDownloadDevices")]
+    pub max_download_devices: ::core::option::Option<i32>,
+    /// Error/warning message.
+    #[serde(default)]
+    pub message: ::core::option::Option<String>,
+    /// Client nonce for verification. Download access and client-validation only.
+    #[serde(default)]
+    pub nonce: ::core::option::Option<String>,
+    /// Error/warning reason code. Additional codes may be added in the future. 0 OK 100 ACCESS_DENIED_PUBLISHER_LIMIT 101 ACCESS_DENIED_LIMIT 200 WARNING_USED_LAST_ACCESS
+    #[serde(default, rename = "reasonCode")]
+    pub reason_code: ::core::option::Option<String>,
+    /// Whether this volume has any download access restrictions.
+    #[serde(default)]
+    pub restricted: ::core::option::Option<bool>,
+    /// Response signature.
+    #[serde(default)]
+    pub signature: ::core::option::Option<String>,
+    /// Client app identifier for verification. Download access and client-validation only.
+    #[serde(default)]
+    pub source: ::core::option::Option<String>,
+    /// Identifies the volume for which this entry applies.
+    #[serde(default, rename = "volumeId")]
+    pub volume_id: ::core::option::Option<String>,
+}
+
+/// Volumeannotation resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Volumeannotation {
+    /// The annotation data id for this volume annotation.
+    #[serde(default, rename = "annotationDataId")]
+    pub annotation_data_id: ::core::option::Option<String>,
+    /// Link to get data for this annotation.
+    #[serde(default, rename = "annotationDataLink")]
+    pub annotation_data_link: ::core::option::Option<String>,
+    /// The type of annotation this is.
+    #[serde(default, rename = "annotationType")]
+    pub annotation_type: ::core::option::Option<String>,
+    /// The content ranges to identify the selected text.
+    #[serde(default, rename = "contentRanges")]
+    pub content_ranges: ::core::option::Option<serde_json::Value>,
+    /// Data for this annotation.
+    #[serde(default)]
+    pub data: ::core::option::Option<String>,
+    /// Indicates that this annotation is deleted.
+    #[serde(default)]
+    pub deleted: ::core::option::Option<bool>,
+    /// Unique id of this volume annotation.
+    #[serde(default)]
+    pub id: ::core::option::Option<String>,
+    /// Resource Type
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+    /// The Layer this annotation is for.
+    #[serde(default, rename = "layerId")]
+    pub layer_id: ::core::option::Option<String>,
+    /// Pages the annotation spans.
+    #[serde(default, rename = "pageIds")]
+    pub page_ids: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Excerpt from the volume.
+    #[serde(default, rename = "selectedText")]
+    pub selected_text: ::core::option::Option<String>,
+    /// URL to this resource.
+    #[serde(default, rename = "selfLink")]
+    pub self_link: ::core::option::Option<String>,
+    /// Timestamp for the last time this anntoation was updated. (RFC 3339 UTC date-time format).
+    #[serde(default)]
+    pub updated: ::core::option::Option<String>,
+    /// The Volume this annotation is for.
+    #[serde(default, rename = "volumeId")]
+    pub volume_id: ::core::option::Option<String>,
+}
+
+/// Volume resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Volume {
+    /// Any information about a volume related to reading or obtaining that volume text. This information can depend on country (books may be public domain in one country but not in another, e.g.).
+    #[serde(default, rename = "accessInfo")]
+    pub access_info: ::core::option::Option<serde_json::Value>,
+    /// Opaque identifier for a specific version of a volume resource. (In LITE projection)
+    #[serde(default)]
+    pub etag: ::core::option::Option<String>,
+    /// Unique identifier for a volume. (In LITE projection.)
+    #[serde(default)]
+    pub id: ::core::option::Option<String>,
+    /// Resource type for a volume. (In LITE projection.)
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+    /// What layers exist in this volume and high level information about them.
+    #[serde(default, rename = "layerInfo")]
+    pub layer_info: ::core::option::Option<serde_json::Value>,
+    /// Recommendation related information for this volume.
+    #[serde(default, rename = "recommendedInfo")]
+    pub recommended_info: ::core::option::Option<serde_json::Value>,
+    /// Any information about a volume related to the eBookstore and/or purchaseability. This information can depend on the country where the request originates from (i.e. books may not be for sale in certain countries).
+    #[serde(default, rename = "saleInfo")]
+    pub sale_info: ::core::option::Option<serde_json::Value>,
+    /// Search result information related to this volume.
+    #[serde(default, rename = "searchInfo")]
+    pub search_info: ::core::option::Option<serde_json::Value>,
+    /// URL to this resource. (In LITE projection.)
+    #[serde(default, rename = "selfLink")]
+    pub self_link: ::core::option::Option<String>,
+    /// User specific information related to this volume. (e.g. page this user last read or whether they purchased this book)
+    #[serde(default, rename = "userInfo")]
+    pub user_info: ::core::option::Option<serde_json::Value>,
+    /// General volume information.
+    #[serde(default, rename = "volumeInfo")]
+    pub volume_info: ::core::option::Option<serde_json::Value>,
+}
+
+/// Geolayerdata resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Geolayerdata {
+    #[serde(default)]
+    pub common: ::core::option::Option<serde_json::Value>,
+    #[serde(default)]
+    pub geo: ::core::option::Option<serde_json::Value>,
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
 }

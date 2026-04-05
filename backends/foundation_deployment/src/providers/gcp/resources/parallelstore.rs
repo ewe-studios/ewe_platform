@@ -10,22 +10,6 @@
 use super::*;
 use serde::{Deserialize, Serialize};
 
-/// Cloud Storage as the destination of a data transfer.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DestinationGcsBucket {
-    /// Required. URI to a Cloud Storage bucket in the format: gs:///. The path inside the bucket is optional.
-    #[serde(default)]
-    pub uri: ::core::option::Option<String>,
-}
-
-/// Parallelstore as the destination of a data transfer.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DestinationParallelstore {
-    /// Optional. Root directory path to the Paralellstore filesystem, starting with /. Defaults to / if unset.
-    #[serde(default)]
-    pub path: ::core::option::Option<String>,
-}
-
 /// Export data from Parallelstore to Cloud Storage.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ExportDataRequest {
@@ -64,6 +48,128 @@ pub struct ImportDataRequest {
     /// The Cloud Storage source bucket and, optionally, path inside the bucket.
     #[serde(default, rename = "sourceGcsBucket")]
     pub source_gcs_bucket: ::core::option::Option<SourceGcsBucket>,
+}
+
+/// Response from ListInstances.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ListInstancesResponse {
+    /// The list of Parallelstore instances.
+    #[serde(default)]
+    pub instances: ::core::option::Option<::std::vec::Vec<Instance>>,
+    /// A token identifying a page of results the server should return.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+    /// Locations that could not be reached.
+    #[serde(default)]
+    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// The response message for Locations.ListLocations.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ListLocationsResponse {
+    /// A list of locations that matches the specified filter in the request.
+    #[serde(default)]
+    pub locations: ::core::option::Option<::std::vec::Vec<Location>>,
+    /// The standard List next-page token.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+}
+
+/// The response message for Operations.ListOperations.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ListOperationsResponse {
+    /// The standard List next-page token.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+    /// A list of operations that matches the specified filter in the request.
+    #[serde(default)]
+    pub operations: ::core::option::Option<::std::vec::Vec<Operation>>,
+    /// Unordered list. Unreachable resources. Populated when the request sets ListOperationsRequest.return_partial_success and reads across collections e.g. when attempting to list all resources across all supported locations.
+    #[serde(default)]
+    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// Long-running operation metadata.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct OperationMetadata {
+    /// Output only. API version used to start the operation.
+    #[serde(default, rename = "apiVersion")]
+    pub api_version: ::core::option::Option<String>,
+    /// Output only. The time the operation was created.
+    #[serde(default, rename = "createTime")]
+    pub create_time: ::core::option::Option<String>,
+    /// Output only. The time the operation finished running.
+    #[serde(default, rename = "endTime")]
+    pub end_time: ::core::option::Option<String>,
+    /// Output only. Identifies whether the user has requested cancellation of the operation. Operations that have been cancelled successfully have Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+    #[serde(default, rename = "requestedCancellation")]
+    pub requested_cancellation: ::core::option::Option<bool>,
+    /// Output only. Human-readable status of the operation, if any.
+    #[serde(default, rename = "statusMessage")]
+    pub status_message: ::core::option::Option<String>,
+    /// Output only. Server-defined resource path for the target of the operation.
+    #[serde(default)]
+    pub target: ::core::option::Option<String>,
+    /// Output only. Name of the verb executed by the operation.
+    #[serde(default)]
+    pub verb: ::core::option::Option<String>,
+}
+
+/// Operation metadata returned by the CLH during resource state reconciliation.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ReconciliationOperationMetadata {
+    /// DEPRECATED. Use exclusive_action instead.
+    #[serde(default, rename = "deleteResource")]
+    pub delete_resource: ::core::option::Option<bool>,
+    /// Excluisive action returned by the CLH. // TODO: enum values: ["UNKNOWN_REPAIR_ACTION", "DELETE", "RETRY"]
+    #[serde(default, rename = "exclusiveAction")]
+    pub exclusive_action: ::core::option::Option<String>,
+}
+
+/// Cloud Storage as the destination of a data transfer.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DestinationGcsBucket {
+    /// Required. URI to a Cloud Storage bucket in the format: gs:///. The path inside the bucket is optional.
+    #[serde(default)]
+    pub uri: ::core::option::Option<String>,
+}
+
+/// Parallelstore as the source of a data transfer.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SourceParallelstore {
+    /// Optional. Root directory path to the Paralellstore filesystem, starting with /. Defaults to / if unset.
+    #[serde(default)]
+    pub path: ::core::option::Option<String>,
+}
+
+/// Parallelstore as the destination of a data transfer.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DestinationParallelstore {
+    /// Optional. Root directory path to the Paralellstore filesystem, starting with /. Defaults to / if unset.
+    #[serde(default)]
+    pub path: ::core::option::Option<String>,
+}
+
+/// Transfer metadata options for the instance.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TransferMetadataOptions {
+    /// Optional. The GID preservation behavior. // TODO: enum values: ["GID_UNSPECIFIED", "GID_SKIP", "GID_NUMBER_PRESERVE"]
+    #[serde(default)]
+    pub gid: ::core::option::Option<String>,
+    /// Optional. The mode preservation behavior. // TODO: enum values: ["MODE_UNSPECIFIED", "MODE_SKIP", "MODE_PRESERVE"]
+    #[serde(default)]
+    pub mode: ::core::option::Option<String>,
+    /// Optional. The UID preservation behavior. // TODO: enum values: ["UID_UNSPECIFIED", "UID_SKIP", "UID_NUMBER_PRESERVE"]
+    #[serde(default)]
+    pub uid: ::core::option::Option<String>,
+}
+
+/// Cloud Storage as the source of a data transfer.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SourceGcsBucket {
+    /// Required. URI to a Cloud Storage bucket in the format: gs:///. The path inside the bucket is optional.
+    #[serde(default)]
+    pub uri: ::core::option::Option<String>,
 }
 
 /// A Parallelstore instance.
@@ -116,45 +222,6 @@ pub struct Instance {
     pub update_time: ::core::option::Option<String>,
 }
 
-/// Response from ListInstances.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ListInstancesResponse {
-    /// The list of Parallelstore instances.
-    #[serde(default)]
-    pub instances: ::core::option::Option<::std::vec::Vec<Instance>>,
-    /// A token identifying a page of results the server should return.
-    #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: ::core::option::Option<String>,
-    /// Locations that could not be reached.
-    #[serde(default)]
-    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// The response message for Locations.ListLocations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ListLocationsResponse {
-    /// A list of locations that matches the specified filter in the request.
-    #[serde(default)]
-    pub locations: ::core::option::Option<::std::vec::Vec<Location>>,
-    /// The standard List next-page token.
-    #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: ::core::option::Option<String>,
-}
-
-/// The response message for Operations.ListOperations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ListOperationsResponse {
-    /// The standard List next-page token.
-    #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: ::core::option::Option<String>,
-    /// A list of operations that matches the specified filter in the request.
-    #[serde(default)]
-    pub operations: ::core::option::Option<::std::vec::Vec<Operation>>,
-    /// Unordered list. Unreachable resources. Populated when the request sets ListOperationsRequest.return_partial_success and reads across collections e.g. when attempting to list all resources across all supported locations.
-    #[serde(default)]
-    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
 /// A resource that represents a Google Cloud location.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Location {
@@ -195,59 +262,6 @@ pub struct Operation {
     pub response: ::core::option::Option<serde_json::Value>,
 }
 
-/// Long-running operation metadata.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct OperationMetadata {
-    /// Output only. API version used to start the operation.
-    #[serde(default, rename = "apiVersion")]
-    pub api_version: ::core::option::Option<String>,
-    /// Output only. The time the operation was created.
-    #[serde(default, rename = "createTime")]
-    pub create_time: ::core::option::Option<String>,
-    /// Output only. The time the operation finished running.
-    #[serde(default, rename = "endTime")]
-    pub end_time: ::core::option::Option<String>,
-    /// Output only. Identifies whether the user has requested cancellation of the operation. Operations that have been cancelled successfully have Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
-    #[serde(default, rename = "requestedCancellation")]
-    pub requested_cancellation: ::core::option::Option<bool>,
-    /// Output only. Human-readable status of the operation, if any.
-    #[serde(default, rename = "statusMessage")]
-    pub status_message: ::core::option::Option<String>,
-    /// Output only. Server-defined resource path for the target of the operation.
-    #[serde(default)]
-    pub target: ::core::option::Option<String>,
-    /// Output only. Name of the verb executed by the operation.
-    #[serde(default)]
-    pub verb: ::core::option::Option<String>,
-}
-
-/// Operation metadata returned by the CLH during resource state reconciliation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ReconciliationOperationMetadata {
-    /// DEPRECATED. Use exclusive_action instead.
-    #[serde(default, rename = "deleteResource")]
-    pub delete_resource: ::core::option::Option<bool>,
-    /// Excluisive action returned by the CLH. // TODO: enum values: ["UNKNOWN_REPAIR_ACTION", "DELETE", "RETRY"]
-    #[serde(default, rename = "exclusiveAction")]
-    pub exclusive_action: ::core::option::Option<String>,
-}
-
-/// Cloud Storage as the source of a data transfer.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SourceGcsBucket {
-    /// Required. URI to a Cloud Storage bucket in the format: gs:///. The path inside the bucket is optional.
-    #[serde(default)]
-    pub uri: ::core::option::Option<String>,
-}
-
-/// Parallelstore as the source of a data transfer.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SourceParallelstore {
-    /// Optional. Root directory path to the Paralellstore filesystem, starting with /. Defaults to / if unset.
-    #[serde(default)]
-    pub path: ::core::option::Option<String>,
-}
-
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Status {
@@ -260,18 +274,4 @@ pub struct Status {
     /// A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.
     #[serde(default)]
     pub message: ::core::option::Option<String>,
-}
-
-/// Transfer metadata options for the instance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct TransferMetadataOptions {
-    /// Optional. The GID preservation behavior. // TODO: enum values: ["GID_UNSPECIFIED", "GID_SKIP", "GID_NUMBER_PRESERVE"]
-    #[serde(default)]
-    pub gid: ::core::option::Option<String>,
-    /// Optional. The mode preservation behavior. // TODO: enum values: ["MODE_UNSPECIFIED", "MODE_SKIP", "MODE_PRESERVE"]
-    #[serde(default)]
-    pub mode: ::core::option::Option<String>,
-    /// Optional. The UID preservation behavior. // TODO: enum values: ["UID_UNSPECIFIED", "UID_SKIP", "UID_NUMBER_PRESERVE"]
-    #[serde(default)]
-    pub uid: ::core::option::Option<String>,
 }

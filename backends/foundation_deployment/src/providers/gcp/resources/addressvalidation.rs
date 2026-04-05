@@ -10,15 +10,77 @@
 use super::*;
 use serde::{Deserialize, Serialize};
 
-/// A latitude-longitude viewport, represented as two diagonally opposite low and high points. A viewport is considered a closed region, i.e. it includes its boundary. The latitude bounds must range between -90 to 90 degrees inclusive, and the longitude bounds must range between -180 to 180 degrees inclusive. Various cases include: - If low = high, the viewport consists of that single point. - If low.longitude &gt; high.longitude, the longitude range is inverted (the viewport crosses the 180 degree longitude line). - If low.longitude = -180 degrees and high.longitude = 180 degrees, the viewport includes all longitudes. - If low.longitude = 180 degrees and high.longitude = -180 degrees, the longitude range is empty. - If low.latitude &gt; high.latitude, the latitude range is empty. Both low and high must be populated, and the represented box cannot be empty (as specified by the definitions above). An empty viewport will result in an error. For example, this viewport fully encloses New York City: { "low": { "latitude": 40.477398, "longitude": -74.259087 }, "high": { "latitude": 40.91618, "longitude": -73.70018 } }
+/// The request for sending validation feedback.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleGeoTypeViewport {
-    /// Required. The high point of the viewport.
+pub struct GoogleMapsAddressvalidationV1ProvideValidationFeedbackRequest {
+    /// Required. The outcome of the sequence of validation attempts. If this field is set to VALIDATION_CONCLUSION_UNSPECIFIED, an INVALID_ARGUMENT error will be returned. // TODO: enum values: ["VALIDATION_CONCLUSION_UNSPECIFIED", "VALIDATED_VERSION_USED", "USER_VERSION_USED", "UNVALIDATED_VERSION_USED", "UNUSED"]
     #[serde(default)]
-    pub high: ::core::option::Option<GoogleTypeLatLng>,
-    /// Required. The low point of the viewport.
+    pub conclusion: ::core::option::Option<String>,
+    /// Required. The ID of the response that this feedback is for. This should be the response_id from the first response in a series of address validation attempts.
+    #[serde(default, rename = "responseId")]
+    pub response_id: ::core::option::Option<String>,
+}
+
+/// The request for validating an address.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleMapsAddressvalidationV1ValidateAddressRequest {
+    /// Required. The address being validated. Unformatted addresses should be submitted via address_lines. The total length of the fields in this input must not exceed 280 characters. Supported regions can be found [here](https://developers.google.com/maps/documentation/address-validation/coverage). The language_code value in the input address is reserved for future uses and is ignored today. The validated address result will be populated based on the preferred language for the given address, as identified by the system. The Address Validation API ignores the values in recipients and organization. Any values in those fields will be discarded and not returned. Please do not set them.
     #[serde(default)]
-    pub low: ::core::option::Option<GoogleTypeLatLng>,
+    pub address: ::core::option::Option<GoogleTypePostalAddress>,
+    /// Enables USPS CASS compatible mode. This affects _only_ the [google.maps.addressvalidation.v1.ValidationResult.usps_data] field of [google.maps.addressvalidation.v1.ValidationResult]. Note: for USPS CASS enabled requests for addresses in Puerto Rico, a [google.type.PostalAddress.region_code] of the address must be provided as "PR", or an [google.type.PostalAddress.administrative_area] of the address must be provided as "Puerto Rico" (case-insensitive) or "PR". It''s recommended to use a componentized address, or alternatively specify at least two [google.type.PostalAddress.address_lines] where the first line contains the street number and name and the second line contains the city, state, and zip code.
+    #[serde(default, rename = "enableUspsCass")]
+    pub enable_usps_cass: ::core::option::Option<bool>,
+    /// Optional. Preview: This feature is in Preview (pre-GA). Pre-GA products and features might have limited support, and changes to pre-GA products and features might not be compatible with other pre-GA versions. Pre-GA Offerings are covered by the [Google Maps Platform Service Specific Terms](https://cloud.google.com/maps-platform/terms/maps-service-terms). For more information, see the [launch stage descriptions](https://developers.google.com/maps/launch-stages). Enables the Address Validation API to include additional information in the response.
+    #[serde(default, rename = "languageOptions")]
+    pub language_options: ::core::option::Option<GoogleMapsAddressvalidationV1LanguageOptions>,
+    /// This field must be empty for the first address validation request. If more requests are necessary to fully validate a single address (for example if the changes the user makes after the initial validation need to be re-validated), then each followup request must populate this field with the response_id from the very first response in the validation sequence.
+    #[serde(default, rename = "previousResponseId")]
+    pub previous_response_id: ::core::option::Option<String>,
+    /// Optional. A string which identifies an Autocomplete session for billing purposes. Must be a URL and filename safe base64 string with at most 36 ASCII characters in length. Otherwise an INVALID_ARGUMENT error is returned. The session begins when the user makes an Autocomplete query, and concludes when they select a place and a call to Place Details or Address Validation is made. Each session can have multiple Autocomplete queries, followed by one Place Details or Address Validation request. The credentials used for each request within a session must belong to the same Google Cloud Console project. Once a session has concluded, the token is no longer valid; your app must generate a fresh token for each session. If the sessionToken parameter is omitted, or if you reuse a session token, the session is charged as if no session token was provided (each request is billed separately). Note: Address Validation can only be used in sessions with the Autocomplete (New) API, not the Autocomplete API. See https://developers.google.com/maps/documentation/places/web-service/session-pricing for more details.
+    #[serde(default, rename = "sessionToken")]
+    pub session_token: ::core::option::Option<String>,
+}
+
+/// The response to an address validation request.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleMapsAddressvalidationV1ValidateAddressResponse {
+    /// The UUID that identifies this response. If the address needs to be re-validated, this UUID *must* accompany the new request.
+    #[serde(default, rename = "responseId")]
+    pub response_id: ::core::option::Option<String>,
+    /// The result of the address validation.
+    #[serde(default)]
+    pub result: ::core::option::Option<GoogleMapsAddressvalidationV1ValidationResult>,
+}
+
+/// Preview: This feature is in Preview (pre-GA). Pre-GA products and features might have limited support, and changes to pre-GA products and features might not be compatible with other pre-GA versions. Pre-GA Offerings are covered by the [Google Maps Platform Service Specific Terms](https://cloud.google.com/maps-platform/terms/maps-service-terms). For more information, see the [launch stage descriptions](https://developers.google.com/maps/launch-stages). Enables the Address Validation API to include additional information in the response.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleMapsAddressvalidationV1LanguageOptions {
+    /// Preview: Return a [google.maps.addressvalidation.v1.Address] in English. See [google.maps.addressvalidation.v1.ValidationResult.english_latin_address] for details.
+    #[serde(default, rename = "returnEnglishLatinAddress")]
+    pub return_english_latin_address: ::core::option::Option<bool>,
+}
+
+/// The result of validating an address.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleMapsAddressvalidationV1ValidationResult {
+    /// Information about the address itself as opposed to the geocode.
+    #[serde(default)]
+    pub address: ::core::option::Option<GoogleMapsAddressvalidationV1Address>,
+    /// Preview: This feature is in Preview (pre-GA). Pre-GA products and features might have limited support, and changes to pre-GA products and features might not be compatible with other pre-GA versions. Pre-GA Offerings are covered by the [Google Maps Platform Service Specific Terms](https://cloud.google.com/maps-platform/terms/maps-service-terms). For more information, see the [launch stage descriptions](https://developers.google.com/maps/launch-stages). The address translated to English. Translated addresses are not reusable as API input. The service provides them so that the user can use their native language to confirm or deny the validation of the originally-provided address. If part of the address doesn''t have an English translation, the service returns that part in an alternate language that uses a Latin script. See [here](https://developers.google.com/maps/documentation/address-validation/convert-addresses-english) for an explanation of how the alternate language is selected. If part of the address doesn''t have any translations or transliterations in a language that uses a Latin script, the service returns that part in the local language associated with the address. Enable this output by using the [google.maps.addressvalidation.v1.LanguageOptions.return_english_latin_address] flag. Note: the [google.maps.addressvalidation.v1.Address.unconfirmed_component_types] field in the english_latin_address and the [google.maps.addressvalidation.v1.AddressComponent.confirmation_level] fields in english_latin_address.address_components are not populated.
+    #[serde(default, rename = "englishLatinAddress")]
+    pub english_latin_address: ::core::option::Option<GoogleMapsAddressvalidationV1Address>,
+    /// Information about the location and place that the address geocoded to.
+    #[serde(default)]
+    pub geocode: ::core::option::Option<GoogleMapsAddressvalidationV1Geocode>,
+    /// Other information relevant to deliverability. metadata is not guaranteed to be fully populated for every address sent to the Address Validation API.
+    #[serde(default)]
+    pub metadata: ::core::option::Option<GoogleMapsAddressvalidationV1AddressMetadata>,
+    /// Extra deliverability flags provided by USPS. Only provided in region US and PR.
+    #[serde(default, rename = "uspsData")]
+    pub usps_data: ::core::option::Option<GoogleMapsAddressvalidationV1UspsData>,
+    /// Overall verdict flags
+    #[serde(default)]
+    pub verdict: ::core::option::Option<GoogleMapsAddressvalidationV1Verdict>,
 }
 
 /// Details of the post-processed address. Post-processing includes correcting misspelled parts of the address, replacing incorrect parts, and inferring missing parts.
@@ -45,57 +107,6 @@ pub struct GoogleMapsAddressvalidationV1Address {
     pub unresolved_tokens: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
-/// Represents an address component, such as a street, city, or state.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleMapsAddressvalidationV1AddressComponent {
-    /// The name for this component.
-    #[serde(default, rename = "componentName")]
-    pub component_name: ::core::option::Option<GoogleMapsAddressvalidationV1ComponentName>,
-    /// The type of the address component. See [Table 2: Additional types returned by the Places service](https://developers.google.com/places/web-service/supported_types#table2) for a list of possible types.
-    #[serde(default, rename = "componentType")]
-    pub component_type: ::core::option::Option<String>,
-    /// Indicates the level of certainty that we have that the component is correct. // TODO: enum values: ["CONFIRMATION_LEVEL_UNSPECIFIED", "CONFIRMED", "UNCONFIRMED_BUT_PLAUSIBLE", "UNCONFIRMED_AND_SUSPICIOUS"]
-    #[serde(default, rename = "confirmationLevel")]
-    pub confirmation_level: ::core::option::Option<String>,
-    /// Indicates that the component was not part of the input, but we inferred it for the address location and believe it should be provided for a complete address.
-    #[serde(default)]
-    pub inferred: ::core::option::Option<bool>,
-    /// Indicates the name of the component was replaced with a completely different one, for example a wrong postal code being replaced with one that is correct for the address. This is not a cosmetic change, the input component has been changed to a different one.
-    #[serde(default)]
-    pub replaced: ::core::option::Option<bool>,
-    /// Indicates a correction to a misspelling in the component name. The API does not always flag changes from one spelling variant to another, such as when changing "centre" to "center". It also does not always flag common misspellings, such as when changing "Amphitheater Pkwy" to "Amphitheatre Pkwy".
-    #[serde(default, rename = "spellCorrected")]
-    pub spell_corrected: ::core::option::Option<bool>,
-    /// Indicates an address component that is not expected to be present in a postal address for the given region. We have retained it only because it was part of the input.
-    #[serde(default)]
-    pub unexpected: ::core::option::Option<bool>,
-}
-
-/// The metadata for the post-processed address. metadata is not guaranteed to be fully populated for every address sent to the Address Validation API.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleMapsAddressvalidationV1AddressMetadata {
-    /// Indicates that this is the address of a business. If unset, indicates that the value is unknown.
-    #[serde(default)]
-    pub business: ::core::option::Option<bool>,
-    /// Indicates that the address of a PO box. If unset, indicates that the value is unknown.
-    #[serde(default, rename = "poBox")]
-    pub po_box: ::core::option::Option<bool>,
-    /// Indicates that this is the address of a residence. If unset, indicates that the value is unknown.
-    #[serde(default)]
-    pub residential: ::core::option::Option<bool>,
-}
-
-/// A wrapper for the name of the component.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleMapsAddressvalidationV1ComponentName {
-    /// The BCP-47 language code. This will not be present if the component name is not associated with a language, such as a street number.
-    #[serde(default, rename = "languageCode")]
-    pub language_code: ::core::option::Option<String>,
-    /// The name text. For example, "5th Avenue" for a street name or "1253" for a street number.
-    #[serde(default)]
-    pub text: ::core::option::Option<String>,
-}
-
 /// Contains information about the place the input was geocoded to.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleMapsAddressvalidationV1Geocode {
@@ -119,66 +130,18 @@ pub struct GoogleMapsAddressvalidationV1Geocode {
     pub plus_code: ::core::option::Option<GoogleMapsAddressvalidationV1PlusCode>,
 }
 
-/// Preview: This feature is in Preview (pre-GA). Pre-GA products and features might have limited support, and changes to pre-GA products and features might not be compatible with other pre-GA versions. Pre-GA Offerings are covered by the [Google Maps Platform Service Specific Terms](https://cloud.google.com/maps-platform/terms/maps-service-terms). For more information, see the [launch stage descriptions](https://developers.google.com/maps/launch-stages). Enables the Address Validation API to include additional information in the response.
+/// The metadata for the post-processed address. metadata is not guaranteed to be fully populated for every address sent to the Address Validation API.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleMapsAddressvalidationV1LanguageOptions {
-    /// Preview: Return a [google.maps.addressvalidation.v1.Address] in English. See [google.maps.addressvalidation.v1.ValidationResult.english_latin_address] for details.
-    #[serde(default, rename = "returnEnglishLatinAddress")]
-    pub return_english_latin_address: ::core::option::Option<bool>,
-}
-
-/// Plus code (http://plus.codes) is a location reference with two formats: global code defining a 14mx14m (1/8000th of a degree) or smaller rectangle, and compound code, replacing the prefix with a reference location.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleMapsAddressvalidationV1PlusCode {
-    /// Place''s compound code, such as "33GV+HQ, Ramberg, Norway", containing the suffix of the global code and replacing the prefix with a formatted name of a reference entity.
-    #[serde(default, rename = "compoundCode")]
-    pub compound_code: ::core::option::Option<String>,
-    /// Place''s global (full) code, such as "9FWM33GV+HQ", representing an 1/8000 by 1/8000 degree area (~14 by 14 meters).
-    #[serde(default, rename = "globalCode")]
-    pub global_code: ::core::option::Option<String>,
-}
-
-/// The request for sending validation feedback.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleMapsAddressvalidationV1ProvideValidationFeedbackRequest {
-    /// Required. The outcome of the sequence of validation attempts. If this field is set to VALIDATION_CONCLUSION_UNSPECIFIED, an INVALID_ARGUMENT error will be returned. // TODO: enum values: ["VALIDATION_CONCLUSION_UNSPECIFIED", "VALIDATED_VERSION_USED", "USER_VERSION_USED", "UNVALIDATED_VERSION_USED", "UNUSED"]
+pub struct GoogleMapsAddressvalidationV1AddressMetadata {
+    /// Indicates that this is the address of a business. If unset, indicates that the value is unknown.
     #[serde(default)]
-    pub conclusion: ::core::option::Option<String>,
-    /// Required. The ID of the response that this feedback is for. This should be the response_id from the first response in a series of address validation attempts.
-    #[serde(default, rename = "responseId")]
-    pub response_id: ::core::option::Option<String>,
-}
-
-/// USPS representation of a US address.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleMapsAddressvalidationV1UspsAddress {
-    /// City name.
+    pub business: ::core::option::Option<bool>,
+    /// Indicates that the address of a PO box. If unset, indicates that the value is unknown.
+    #[serde(default, rename = "poBox")]
+    pub po_box: ::core::option::Option<bool>,
+    /// Indicates that this is the address of a residence. If unset, indicates that the value is unknown.
     #[serde(default)]
-    pub city: ::core::option::Option<String>,
-    /// City + state + postal code.
-    #[serde(default, rename = "cityStateZipAddressLine")]
-    pub city_state_zip_address_line: ::core::option::Option<String>,
-    /// Firm name.
-    #[serde(default)]
-    pub firm: ::core::option::Option<String>,
-    /// First address line.
-    #[serde(default, rename = "firstAddressLine")]
-    pub first_address_line: ::core::option::Option<String>,
-    /// Second address line.
-    #[serde(default, rename = "secondAddressLine")]
-    pub second_address_line: ::core::option::Option<String>,
-    /// 2 letter state code.
-    #[serde(default)]
-    pub state: ::core::option::Option<String>,
-    /// Puerto Rican urbanization name.
-    #[serde(default)]
-    pub urbanization: ::core::option::Option<String>,
-    /// Postal code e.g. 10009.
-    #[serde(default, rename = "zipCode")]
-    pub zip_code: ::core::option::Option<String>,
-    /// 4-digit postal code extension e.g. 5023.
-    #[serde(default, rename = "zipCodeExtension")]
-    pub zip_code_extension: ::core::option::Option<String>,
+    pub residential: ::core::option::Option<bool>,
 }
 
 /// The USPS data for the address. uspsData is not guaranteed to be fully populated for every US or PR address sent to the Address Validation API. It''s recommended to integrate the backup address fields in the response if you utilize uspsData as the primary part of the response.
@@ -297,60 +260,6 @@ pub struct GoogleMapsAddressvalidationV1UspsData {
     pub suitelink_footnote: ::core::option::Option<String>,
 }
 
-/// The request for validating an address.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleMapsAddressvalidationV1ValidateAddressRequest {
-    /// Required. The address being validated. Unformatted addresses should be submitted via address_lines. The total length of the fields in this input must not exceed 280 characters. Supported regions can be found [here](https://developers.google.com/maps/documentation/address-validation/coverage). The language_code value in the input address is reserved for future uses and is ignored today. The validated address result will be populated based on the preferred language for the given address, as identified by the system. The Address Validation API ignores the values in recipients and organization. Any values in those fields will be discarded and not returned. Please do not set them.
-    #[serde(default)]
-    pub address: ::core::option::Option<GoogleTypePostalAddress>,
-    /// Enables USPS CASS compatible mode. This affects _only_ the [google.maps.addressvalidation.v1.ValidationResult.usps_data] field of [google.maps.addressvalidation.v1.ValidationResult]. Note: for USPS CASS enabled requests for addresses in Puerto Rico, a [google.type.PostalAddress.region_code] of the address must be provided as "PR", or an [google.type.PostalAddress.administrative_area] of the address must be provided as "Puerto Rico" (case-insensitive) or "PR". It''s recommended to use a componentized address, or alternatively specify at least two [google.type.PostalAddress.address_lines] where the first line contains the street number and name and the second line contains the city, state, and zip code.
-    #[serde(default, rename = "enableUspsCass")]
-    pub enable_usps_cass: ::core::option::Option<bool>,
-    /// Optional. Preview: This feature is in Preview (pre-GA). Pre-GA products and features might have limited support, and changes to pre-GA products and features might not be compatible with other pre-GA versions. Pre-GA Offerings are covered by the [Google Maps Platform Service Specific Terms](https://cloud.google.com/maps-platform/terms/maps-service-terms). For more information, see the [launch stage descriptions](https://developers.google.com/maps/launch-stages). Enables the Address Validation API to include additional information in the response.
-    #[serde(default, rename = "languageOptions")]
-    pub language_options: ::core::option::Option<GoogleMapsAddressvalidationV1LanguageOptions>,
-    /// This field must be empty for the first address validation request. If more requests are necessary to fully validate a single address (for example if the changes the user makes after the initial validation need to be re-validated), then each followup request must populate this field with the response_id from the very first response in the validation sequence.
-    #[serde(default, rename = "previousResponseId")]
-    pub previous_response_id: ::core::option::Option<String>,
-    /// Optional. A string which identifies an Autocomplete session for billing purposes. Must be a URL and filename safe base64 string with at most 36 ASCII characters in length. Otherwise an INVALID_ARGUMENT error is returned. The session begins when the user makes an Autocomplete query, and concludes when they select a place and a call to Place Details or Address Validation is made. Each session can have multiple Autocomplete queries, followed by one Place Details or Address Validation request. The credentials used for each request within a session must belong to the same Google Cloud Console project. Once a session has concluded, the token is no longer valid; your app must generate a fresh token for each session. If the sessionToken parameter is omitted, or if you reuse a session token, the session is charged as if no session token was provided (each request is billed separately). Note: Address Validation can only be used in sessions with the Autocomplete (New) API, not the Autocomplete API. See https://developers.google.com/maps/documentation/places/web-service/session-pricing for more details.
-    #[serde(default, rename = "sessionToken")]
-    pub session_token: ::core::option::Option<String>,
-}
-
-/// The response to an address validation request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleMapsAddressvalidationV1ValidateAddressResponse {
-    /// The UUID that identifies this response. If the address needs to be re-validated, this UUID *must* accompany the new request.
-    #[serde(default, rename = "responseId")]
-    pub response_id: ::core::option::Option<String>,
-    /// The result of the address validation.
-    #[serde(default)]
-    pub result: ::core::option::Option<GoogleMapsAddressvalidationV1ValidationResult>,
-}
-
-/// The result of validating an address.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleMapsAddressvalidationV1ValidationResult {
-    /// Information about the address itself as opposed to the geocode.
-    #[serde(default)]
-    pub address: ::core::option::Option<GoogleMapsAddressvalidationV1Address>,
-    /// Preview: This feature is in Preview (pre-GA). Pre-GA products and features might have limited support, and changes to pre-GA products and features might not be compatible with other pre-GA versions. Pre-GA Offerings are covered by the [Google Maps Platform Service Specific Terms](https://cloud.google.com/maps-platform/terms/maps-service-terms). For more information, see the [launch stage descriptions](https://developers.google.com/maps/launch-stages). The address translated to English. Translated addresses are not reusable as API input. The service provides them so that the user can use their native language to confirm or deny the validation of the originally-provided address. If part of the address doesn''t have an English translation, the service returns that part in an alternate language that uses a Latin script. See [here](https://developers.google.com/maps/documentation/address-validation/convert-addresses-english) for an explanation of how the alternate language is selected. If part of the address doesn''t have any translations or transliterations in a language that uses a Latin script, the service returns that part in the local language associated with the address. Enable this output by using the [google.maps.addressvalidation.v1.LanguageOptions.return_english_latin_address] flag. Note: the [google.maps.addressvalidation.v1.Address.unconfirmed_component_types] field in the english_latin_address and the [google.maps.addressvalidation.v1.AddressComponent.confirmation_level] fields in english_latin_address.address_components are not populated.
-    #[serde(default, rename = "englishLatinAddress")]
-    pub english_latin_address: ::core::option::Option<GoogleMapsAddressvalidationV1Address>,
-    /// Information about the location and place that the address geocoded to.
-    #[serde(default)]
-    pub geocode: ::core::option::Option<GoogleMapsAddressvalidationV1Geocode>,
-    /// Other information relevant to deliverability. metadata is not guaranteed to be fully populated for every address sent to the Address Validation API.
-    #[serde(default)]
-    pub metadata: ::core::option::Option<GoogleMapsAddressvalidationV1AddressMetadata>,
-    /// Extra deliverability flags provided by USPS. Only provided in region US and PR.
-    #[serde(default, rename = "uspsData")]
-    pub usps_data: ::core::option::Option<GoogleMapsAddressvalidationV1UspsData>,
-    /// Overall verdict flags
-    #[serde(default)]
-    pub verdict: ::core::option::Option<GoogleMapsAddressvalidationV1Verdict>,
-}
-
 /// High level overview of the address validation result and geocode.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleMapsAddressvalidationV1Verdict {
@@ -383,15 +292,30 @@ pub struct GoogleMapsAddressvalidationV1Verdict {
     pub validation_granularity: ::core::option::Option<String>,
 }
 
-/// An object that represents a latitude/longitude pair. This is expressed as a pair of doubles to represent degrees latitude and degrees longitude. Unless specified otherwise, this object must conform to the WGS84 standard. Values must be within normalized ranges.
+/// Represents an address component, such as a street, city, or state.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleTypeLatLng {
-    /// The latitude in degrees. It must be in the range [-90.0, +90.0].
+pub struct GoogleMapsAddressvalidationV1AddressComponent {
+    /// The name for this component.
+    #[serde(default, rename = "componentName")]
+    pub component_name: ::core::option::Option<GoogleMapsAddressvalidationV1ComponentName>,
+    /// The type of the address component. See [Table 2: Additional types returned by the Places service](https://developers.google.com/places/web-service/supported_types#table2) for a list of possible types.
+    #[serde(default, rename = "componentType")]
+    pub component_type: ::core::option::Option<String>,
+    /// Indicates the level of certainty that we have that the component is correct. // TODO: enum values: ["CONFIRMATION_LEVEL_UNSPECIFIED", "CONFIRMED", "UNCONFIRMED_BUT_PLAUSIBLE", "UNCONFIRMED_AND_SUSPICIOUS"]
+    #[serde(default, rename = "confirmationLevel")]
+    pub confirmation_level: ::core::option::Option<String>,
+    /// Indicates that the component was not part of the input, but we inferred it for the address location and believe it should be provided for a complete address.
     #[serde(default)]
-    pub latitude: ::core::option::Option<f64>,
-    /// The longitude in degrees. It must be in the range [-180.0, +180.0].
+    pub inferred: ::core::option::Option<bool>,
+    /// Indicates the name of the component was replaced with a completely different one, for example a wrong postal code being replaced with one that is correct for the address. This is not a cosmetic change, the input component has been changed to a different one.
     #[serde(default)]
-    pub longitude: ::core::option::Option<f64>,
+    pub replaced: ::core::option::Option<bool>,
+    /// Indicates a correction to a misspelling in the component name. The API does not always flag changes from one spelling variant to another, such as when changing "centre" to "center". It also does not always flag common misspellings, such as when changing "Amphitheater Pkwy" to "Amphitheatre Pkwy".
+    #[serde(default, rename = "spellCorrected")]
+    pub spell_corrected: ::core::option::Option<bool>,
+    /// Indicates an address component that is not expected to be present in a postal address for the given region. We have retained it only because it was part of the input.
+    #[serde(default)]
+    pub unexpected: ::core::option::Option<bool>,
 }
 
 /// Represents a postal address, such as for postal delivery or payments addresses. With a postal address, a postal service can deliver items to a premise, P.O. box, or similar. A postal address is not intended to model geographical locations like roads, towns, or mountains. In typical usage, an address would be created by user input or from importing existing data, depending on the type of process. Advice on address input or editing: - Use an internationalization-ready address widget such as https://github.com/google/libaddressinput. - Users should not be presented with UI elements for input or editing of fields outside countries where that field is used. For more guidance on how to use this schema, see: https://support.google.com/business/answer/6397478.
@@ -430,4 +354,80 @@ pub struct GoogleTypePostalAddress {
     /// Optional. Sublocality of the address. For example, this can be a neighborhood, borough, or district.
     #[serde(default)]
     pub sublocality: ::core::option::Option<String>,
+}
+
+/// A latitude-longitude viewport, represented as two diagonally opposite low and high points. A viewport is considered a closed region, i.e. it includes its boundary. The latitude bounds must range between -90 to 90 degrees inclusive, and the longitude bounds must range between -180 to 180 degrees inclusive. Various cases include: - If low = high, the viewport consists of that single point. - If low.longitude &gt; high.longitude, the longitude range is inverted (the viewport crosses the 180 degree longitude line). - If low.longitude = -180 degrees and high.longitude = 180 degrees, the viewport includes all longitudes. - If low.longitude = 180 degrees and high.longitude = -180 degrees, the longitude range is empty. - If low.latitude &gt; high.latitude, the latitude range is empty. Both low and high must be populated, and the represented box cannot be empty (as specified by the definitions above). An empty viewport will result in an error. For example, this viewport fully encloses New York City: { "low": { "latitude": 40.477398, "longitude": -74.259087 }, "high": { "latitude": 40.91618, "longitude": -73.70018 } }
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleGeoTypeViewport {
+    /// Required. The high point of the viewport.
+    #[serde(default)]
+    pub high: ::core::option::Option<GoogleTypeLatLng>,
+    /// Required. The low point of the viewport.
+    #[serde(default)]
+    pub low: ::core::option::Option<GoogleTypeLatLng>,
+}
+
+/// Plus code (http://plus.codes) is a location reference with two formats: global code defining a 14mx14m (1/8000th of a degree) or smaller rectangle, and compound code, replacing the prefix with a reference location.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleMapsAddressvalidationV1PlusCode {
+    /// Place''s compound code, such as "33GV+HQ, Ramberg, Norway", containing the suffix of the global code and replacing the prefix with a formatted name of a reference entity.
+    #[serde(default, rename = "compoundCode")]
+    pub compound_code: ::core::option::Option<String>,
+    /// Place''s global (full) code, such as "9FWM33GV+HQ", representing an 1/8000 by 1/8000 degree area (~14 by 14 meters).
+    #[serde(default, rename = "globalCode")]
+    pub global_code: ::core::option::Option<String>,
+}
+
+/// USPS representation of a US address.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleMapsAddressvalidationV1UspsAddress {
+    /// City name.
+    #[serde(default)]
+    pub city: ::core::option::Option<String>,
+    /// City + state + postal code.
+    #[serde(default, rename = "cityStateZipAddressLine")]
+    pub city_state_zip_address_line: ::core::option::Option<String>,
+    /// Firm name.
+    #[serde(default)]
+    pub firm: ::core::option::Option<String>,
+    /// First address line.
+    #[serde(default, rename = "firstAddressLine")]
+    pub first_address_line: ::core::option::Option<String>,
+    /// Second address line.
+    #[serde(default, rename = "secondAddressLine")]
+    pub second_address_line: ::core::option::Option<String>,
+    /// 2 letter state code.
+    #[serde(default)]
+    pub state: ::core::option::Option<String>,
+    /// Puerto Rican urbanization name.
+    #[serde(default)]
+    pub urbanization: ::core::option::Option<String>,
+    /// Postal code e.g. 10009.
+    #[serde(default, rename = "zipCode")]
+    pub zip_code: ::core::option::Option<String>,
+    /// 4-digit postal code extension e.g. 5023.
+    #[serde(default, rename = "zipCodeExtension")]
+    pub zip_code_extension: ::core::option::Option<String>,
+}
+
+/// A wrapper for the name of the component.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleMapsAddressvalidationV1ComponentName {
+    /// The BCP-47 language code. This will not be present if the component name is not associated with a language, such as a street number.
+    #[serde(default, rename = "languageCode")]
+    pub language_code: ::core::option::Option<String>,
+    /// The name text. For example, "5th Avenue" for a street name or "1253" for a street number.
+    #[serde(default)]
+    pub text: ::core::option::Option<String>,
+}
+
+/// An object that represents a latitude/longitude pair. This is expressed as a pair of doubles to represent degrees latitude and degrees longitude. Unless specified otherwise, this object must conform to the WGS84 standard. Values must be within normalized ranges.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleTypeLatLng {
+    /// The latitude in degrees. It must be in the range [-90.0, +90.0].
+    #[serde(default)]
+    pub latitude: ::core::option::Option<f64>,
+    /// The longitude in degrees. It must be in the range [-180.0, +180.0].
+    #[serde(default)]
+    pub longitude: ::core::option::Option<f64>,
 }

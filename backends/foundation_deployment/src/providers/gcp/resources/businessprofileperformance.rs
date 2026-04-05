@@ -10,56 +10,6 @@
 use super::*;
 use serde::{Deserialize, Serialize};
 
-/// Represents a single datapoint, where each datapoint is a DailyMetric-DailySubEntityType-TimeSeries tuple.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DailyMetricTimeSeries {
-    /// The DailyMetric that the TimeSeries represents. // TODO: enum values: ["DAILY_METRIC_UNKNOWN", "BUSINESS_IMPRESSIONS_DESKTOP_MAPS", "BUSINESS_IMPRESSIONS_DESKTOP_SEARCH", "BUSINESS_IMPRESSIONS_MOBILE_MAPS", "BUSINESS_IMPRESSIONS_MOBILE_SEARCH", "BUSINESS_CONVERSATIONS", "BUSINESS_DIRECTION_REQUESTS", "CALL_CLICKS", "WEBSITE_CLICKS", "BUSINESS_BOOKINGS", "BUSINESS_FOOD_ORDERS", "BUSINESS_FOOD_MENU_CLICKS"]
-    #[serde(default, rename = "dailyMetric")]
-    pub daily_metric: ::core::option::Option<String>,
-    /// The DailySubEntityType that the TimeSeries represents. Will not be present when breakdown does not exist.
-    #[serde(default, rename = "dailySubEntityType")]
-    pub daily_sub_entity_type: ::core::option::Option<DailySubEntityType>,
-    /// List of datapoints where each datapoint is a date-value pair.
-    #[serde(default, rename = "timeSeries")]
-    pub time_series: ::core::option::Option<TimeSeries>,
-}
-
-/// Represents all possible subentity types that are associated with DailyMetrics.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DailySubEntityType {
-    /// Represents the day of the week. Eg: MONDAY. Currently supported DailyMetrics = NONE. // TODO: enum values: ["DAY_OF_WEEK_UNSPECIFIED", "MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY"]
-    #[serde(default, rename = "dayOfWeek")]
-    pub day_of_week: ::core::option::Option<String>,
-    /// Represents the time of the day in 24 hour format. Eg: 13:34:20 Currently supported DailyMetrics = NONE.
-    #[serde(default, rename = "timeOfDay")]
-    pub time_of_day: ::core::option::Option<TimeOfDay>,
-}
-
-/// Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Date {
-    /// Day of a month. Must be from 1 to 31 and valid for the year and month, or 0 to specify a year by itself or a year and month where the day isn''t significant.
-    #[serde(default)]
-    pub day: ::core::option::Option<i32>,
-    /// Month of a year. Must be from 1 to 12, or 0 to specify a year without a month and day.
-    #[serde(default)]
-    pub month: ::core::option::Option<i32>,
-    /// Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.
-    #[serde(default)]
-    pub year: ::core::option::Option<i32>,
-}
-
-/// Represents a single datapoint in the timeseries, where each datapoint is a date-value pair.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DatedValue {
-    /// The date that the datapoint corresponds to. This represents a month value if the day field is not set.
-    #[serde(default)]
-    pub date: ::core::option::Option<Date>,
-    /// The value of the datapoint. This will not be present when the value is zero.
-    #[serde(default)]
-    pub value: ::core::option::Option<String>,
-}
-
 /// Represents the response for FetchMultiDailyMetricsTimeSeries.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct FetchMultiDailyMetricsTimeSeriesResponse {
@@ -75,17 +25,6 @@ pub struct GetDailyMetricsTimeSeriesResponse {
     /// The daily time series.
     #[serde(default, rename = "timeSeries")]
     pub time_series: ::core::option::Option<TimeSeries>,
-}
-
-/// Represents an insights value.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct InsightsValue {
-    /// Represents the threshold below which the actual value falls.
-    #[serde(default)]
-    pub threshold: ::core::option::Option<String>,
-    /// Represents the actual value.
-    #[serde(default)]
-    pub value: ::core::option::Option<String>,
 }
 
 /// Represents the response for ListSearchKeywordImpressionsMonthly.
@@ -118,6 +57,50 @@ pub struct SearchKeywordCount {
     pub search_keyword: ::core::option::Option<String>,
 }
 
+/// Represents a single datapoint, where each datapoint is a DailyMetric-DailySubEntityType-TimeSeries tuple.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DailyMetricTimeSeries {
+    /// The DailyMetric that the TimeSeries represents. // TODO: enum values: ["DAILY_METRIC_UNKNOWN", "BUSINESS_IMPRESSIONS_DESKTOP_MAPS", "BUSINESS_IMPRESSIONS_DESKTOP_SEARCH", "BUSINESS_IMPRESSIONS_MOBILE_MAPS", "BUSINESS_IMPRESSIONS_MOBILE_SEARCH", "BUSINESS_CONVERSATIONS", "BUSINESS_DIRECTION_REQUESTS", "CALL_CLICKS", "WEBSITE_CLICKS", "BUSINESS_BOOKINGS", "BUSINESS_FOOD_ORDERS", "BUSINESS_FOOD_MENU_CLICKS"]
+    #[serde(default, rename = "dailyMetric")]
+    pub daily_metric: ::core::option::Option<String>,
+    /// The DailySubEntityType that the TimeSeries represents. Will not be present when breakdown does not exist.
+    #[serde(default, rename = "dailySubEntityType")]
+    pub daily_sub_entity_type: ::core::option::Option<DailySubEntityType>,
+    /// List of datapoints where each datapoint is a date-value pair.
+    #[serde(default, rename = "timeSeries")]
+    pub time_series: ::core::option::Option<TimeSeries>,
+}
+
+/// Represents an insights value.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct InsightsValue {
+    /// Represents the threshold below which the actual value falls.
+    #[serde(default)]
+    pub threshold: ::core::option::Option<String>,
+    /// Represents the actual value.
+    #[serde(default)]
+    pub value: ::core::option::Option<String>,
+}
+
+/// Represents all possible subentity types that are associated with DailyMetrics.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DailySubEntityType {
+    /// Represents the day of the week. Eg: MONDAY. Currently supported DailyMetrics = NONE. // TODO: enum values: ["DAY_OF_WEEK_UNSPECIFIED", "MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY"]
+    #[serde(default, rename = "dayOfWeek")]
+    pub day_of_week: ::core::option::Option<String>,
+    /// Represents the time of the day in 24 hour format. Eg: 13:34:20 Currently supported DailyMetrics = NONE.
+    #[serde(default, rename = "timeOfDay")]
+    pub time_of_day: ::core::option::Option<TimeOfDay>,
+}
+
+/// Represents a timeseries.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TimeSeries {
+    /// List of datapoints in the timeseries, where each datapoint is a date-value pair.
+    #[serde(default, rename = "datedValues")]
+    pub dated_values: ::core::option::Option<::std::vec::Vec<DatedValue>>,
+}
+
 /// Represents a time of day. The date and time zone are either not significant or are specified elsewhere. An API may choose to allow leap seconds. Related types are google.type.Date and google.protobuf.Timestamp.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TimeOfDay {
@@ -135,10 +118,27 @@ pub struct TimeOfDay {
     pub seconds: ::core::option::Option<i32>,
 }
 
-/// Represents a timeseries.
+/// Represents a single datapoint in the timeseries, where each datapoint is a date-value pair.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct TimeSeries {
-    /// List of datapoints in the timeseries, where each datapoint is a date-value pair.
-    #[serde(default, rename = "datedValues")]
-    pub dated_values: ::core::option::Option<::std::vec::Vec<DatedValue>>,
+pub struct DatedValue {
+    /// The date that the datapoint corresponds to. This represents a month value if the day field is not set.
+    #[serde(default)]
+    pub date: ::core::option::Option<Date>,
+    /// The value of the datapoint. This will not be present when the value is zero.
+    #[serde(default)]
+    pub value: ::core::option::Option<String>,
+}
+
+/// Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Date {
+    /// Day of a month. Must be from 1 to 31 and valid for the year and month, or 0 to specify a year by itself or a year and month where the day isn''t significant.
+    #[serde(default)]
+    pub day: ::core::option::Option<i32>,
+    /// Month of a year. Must be from 1 to 12, or 0 to specify a year without a month and day.
+    #[serde(default)]
+    pub month: ::core::option::Option<i32>,
+    /// Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.
+    #[serde(default)]
+    pub year: ::core::option::Option<i32>,
 }

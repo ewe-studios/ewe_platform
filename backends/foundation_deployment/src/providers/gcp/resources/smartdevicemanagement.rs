@@ -10,27 +10,6 @@
 use super::*;
 use serde::{Deserialize, Serialize};
 
-/// Device resource represents an instance of enterprise managed device in the property.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleHomeEnterpriseSdmV1Device {
-    /// Output only. The GHP device ID of the device.
-    #[serde(default, rename = "ghpName")]
-    pub ghp_name: ::core::option::Option<String>,
-    /// Required. The resource name of the device. For example: "enterprises/XYZ/devices/123".
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Assignee details of the device.
-    #[serde(default, rename = "parentRelations")]
-    pub parent_relations:
-        ::core::option::Option<::std::vec::Vec<GoogleHomeEnterpriseSdmV1ParentRelation>>,
-    /// Output only. Device traits.
-    #[serde(default)]
-    pub traits: ::core::option::Option<serde_json::Value>,
-    /// Output only. Type of the device for general display purposes. For example: "THERMOSTAT". The device type should not be used to deduce or infer functionality of the actual device it is assigned to. Instead, use the returned traits for the device.
-    #[serde(default, rename = "type")]
-    pub type_: ::core::option::Option<String>,
-}
-
 /// Request message for SmartDeviceManagementService.ExecuteDeviceCommand
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleHomeEnterpriseSdmV1ExecuteDeviceCommandRequest {
@@ -66,18 +45,25 @@ pub struct GoogleHomeEnterpriseSdmV1ListStructuresResponse {
     pub structures: ::core::option::Option<::std::vec::Vec<GoogleHomeEnterpriseSdmV1Structure>>,
 }
 
-/// Represents device relationships, for instance, structure/room to which the device is assigned to.
+/// Device resource represents an instance of enterprise managed device in the property.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleHomeEnterpriseSdmV1ParentRelation {
-    /// Output only. The custom name of the relation -- e.g., structure/room where the device is assigned to.
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-    /// Output only. The GHP name of the relation -- e.g., structure/room where the device is assigned to. For example: "homegraph.googleapis.com/Structure/ABC" or "homegraph.googleapis.com/Room/ABC"
-    #[serde(default, rename = "ghpParent")]
-    pub ghp_parent: ::core::option::Option<String>,
-    /// Output only. The name of the relation -- e.g., structure/room where the device is assigned to. For example: "enterprises/XYZ/structures/ABC" or "enterprises/XYZ/structures/ABC/rooms/123"
+pub struct GoogleHomeEnterpriseSdmV1Device {
+    /// Output only. The GHP device ID of the device.
+    #[serde(default, rename = "ghpName")]
+    pub ghp_name: ::core::option::Option<String>,
+    /// Required. The resource name of the device. For example: "enterprises/XYZ/devices/123".
     #[serde(default)]
-    pub parent: ::core::option::Option<String>,
+    pub name: ::core::option::Option<String>,
+    /// Assignee details of the device.
+    #[serde(default, rename = "parentRelations")]
+    pub parent_relations:
+        ::core::option::Option<::std::vec::Vec<GoogleHomeEnterpriseSdmV1ParentRelation>>,
+    /// Output only. Device traits.
+    #[serde(default)]
+    pub traits: ::core::option::Option<serde_json::Value>,
+    /// Output only. Type of the device for general display purposes. For example: "THERMOSTAT". The device type should not be used to deduce or infer functionality of the actual device it is assigned to. Instead, use the returned traits for the device.
+    #[serde(default, rename = "type")]
+    pub type_: ::core::option::Option<String>,
 }
 
 /// Room resource represents an instance of sub-space within a structure such as rooms in a hotel suite or rental apartment.
@@ -103,4 +89,18 @@ pub struct GoogleHomeEnterpriseSdmV1Structure {
     /// Structure traits.
     #[serde(default)]
     pub traits: ::core::option::Option<serde_json::Value>,
+}
+
+/// Represents device relationships, for instance, structure/room to which the device is assigned to.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleHomeEnterpriseSdmV1ParentRelation {
+    /// Output only. The custom name of the relation -- e.g., structure/room where the device is assigned to.
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+    /// Output only. The GHP name of the relation -- e.g., structure/room where the device is assigned to. For example: "homegraph.googleapis.com/Structure/ABC" or "homegraph.googleapis.com/Room/ABC"
+    #[serde(default, rename = "ghpParent")]
+    pub ghp_parent: ::core::option::Option<String>,
+    /// Output only. The name of the relation -- e.g., structure/room where the device is assigned to. For example: "enterprises/XYZ/structures/ABC" or "enterprises/XYZ/structures/ABC/rooms/123"
+    #[serde(default)]
+    pub parent: ::core::option::Option<String>,
 }

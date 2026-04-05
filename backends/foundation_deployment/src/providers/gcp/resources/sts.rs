@@ -24,29 +24,6 @@ pub struct GoogleIamV1Binding {
     pub role: ::core::option::Option<String>,
 }
 
-/// An access boundary defines the upper bound of what a principal may access. It includes a list of access boundary rules that each defines the resource that may be allowed as well as permissions that may be used on those resources.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleIdentityStsV1AccessBoundary {
-    /// A list of access boundary rules which defines the upper bound of the permission a principal may carry. If multiple rules are specified, the effective access boundary is the union of all the access boundary rules attached. One access boundary can contain at most 10 rules.
-    #[serde(default, rename = "accessBoundaryRules")]
-    pub access_boundary_rules:
-        ::core::option::Option<::std::vec::Vec<GoogleIdentityStsV1AccessBoundaryRule>>,
-}
-
-/// An access boundary rule defines an upper bound of IAM permissions on a single resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleIdentityStsV1AccessBoundaryRule {
-    /// The availability condition further constrains the access allowed by the access boundary rule. If the condition evaluates to true, then this access boundary rule will provide access to the specified resource, assuming the principal has the required permissions for the resource. If the condition does not evaluate to true, then access to the specified resource will not be available. Note that all access boundary rules in an access boundary are evaluated together as a union. As such, another access boundary rule may allow access to the resource, even if this access boundary rule does not allow access. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies). The maximum length of the expression field is 2048 characters.
-    #[serde(default, rename = "availabilityCondition")]
-    pub availability_condition: ::core::option::Option<GoogleTypeExpr>,
-    /// A list of permissions that may be allowed for use on the specified resource. The only supported values in the list are IAM roles, following the format of google.iam.v1.Binding.role. Example value: inRole:roles/logging.viewer for predefined roles and inRole:organizations/{ORGANIZATION_ID}/roles/logging.viewer for custom roles.
-    #[serde(default, rename = "availablePermissions")]
-    pub available_permissions: ::core::option::Option<::std::vec::Vec<String>>,
-    /// The full resource name of a Google Cloud resource entity. The format definition is at https://cloud.google.com/apis/design/resource_names. Example value: //cloudresourcemanager.googleapis.com/projects/my-project.
-    #[serde(default, rename = "availableResource")]
-    pub available_resource: ::core::option::Option<String>,
-}
-
 /// Request message for ExchangeToken.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleIdentityStsV1ExchangeTokenRequest {
@@ -107,6 +84,26 @@ pub struct GoogleIdentityStsV1Options {
     pub user_project: ::core::option::Option<String>,
 }
 
+/// An Options object configures features that the Security Token Service supports, but that are not supported by standard OAuth 2.0 token exchange endpoints, as defined in https://tools.ietf.org/html/rfc8693.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleIdentityStsV1betaOptions {
+    /// An access boundary that defines the upper bound of permissions the credential may have. The value should be a JSON object of AccessBoundary. The access boundary can include up to 10 rules. The size of the parameter value should not exceed 2048 characters.
+    #[serde(default, rename = "accessBoundary")]
+    pub access_boundary: ::core::option::Option<GoogleIdentityStsV1betaAccessBoundary>,
+    /// A Google project used for quota and billing purposes when the credential is used to access Google APIs. The provided project overrides the project bound to the credential. The value must be a project number or a project ID. Example: my-sample-project-191923. The maximum length is 32 characters.
+    #[serde(default, rename = "userProject")]
+    pub user_project: ::core::option::Option<String>,
+}
+
+/// An access boundary defines the upper bound of what a principal may access. It includes a list of access boundary rules that each defines the resource that may be allowed as well as permissions that may be used on those resources.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleIdentityStsV1AccessBoundary {
+    /// A list of access boundary rules which defines the upper bound of the permission a principal may carry. If multiple rules are specified, the effective access boundary is the union of all the access boundary rules attached. One access boundary can contain at most 10 rules.
+    #[serde(default, rename = "accessBoundaryRules")]
+    pub access_boundary_rules:
+        ::core::option::Option<::std::vec::Vec<GoogleIdentityStsV1AccessBoundaryRule>>,
+}
+
 /// An access boundary defines the upper bound of what a principal may access. It includes a list of access boundary rules that each defines the resource that may be allowed as well as permissions that may be used on those resources.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleIdentityStsV1betaAccessBoundary {
@@ -114,6 +111,20 @@ pub struct GoogleIdentityStsV1betaAccessBoundary {
     #[serde(default, rename = "accessBoundaryRules")]
     pub access_boundary_rules:
         ::core::option::Option<::std::vec::Vec<GoogleIdentityStsV1betaAccessBoundaryRule>>,
+}
+
+/// An access boundary rule defines an upper bound of IAM permissions on a single resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleIdentityStsV1AccessBoundaryRule {
+    /// The availability condition further constrains the access allowed by the access boundary rule. If the condition evaluates to true, then this access boundary rule will provide access to the specified resource, assuming the principal has the required permissions for the resource. If the condition does not evaluate to true, then access to the specified resource will not be available. Note that all access boundary rules in an access boundary are evaluated together as a union. As such, another access boundary rule may allow access to the resource, even if this access boundary rule does not allow access. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies). The maximum length of the expression field is 2048 characters.
+    #[serde(default, rename = "availabilityCondition")]
+    pub availability_condition: ::core::option::Option<GoogleTypeExpr>,
+    /// A list of permissions that may be allowed for use on the specified resource. The only supported values in the list are IAM roles, following the format of google.iam.v1.Binding.role. Example value: inRole:roles/logging.viewer for predefined roles and inRole:organizations/{ORGANIZATION_ID}/roles/logging.viewer for custom roles.
+    #[serde(default, rename = "availablePermissions")]
+    pub available_permissions: ::core::option::Option<::std::vec::Vec<String>>,
+    /// The full resource name of a Google Cloud resource entity. The format definition is at https://cloud.google.com/apis/design/resource_names. Example value: //cloudresourcemanager.googleapis.com/projects/my-project.
+    #[serde(default, rename = "availableResource")]
+    pub available_resource: ::core::option::Option<String>,
 }
 
 /// An access boundary rule defines an upper bound of IAM permissions on a single resource.
@@ -128,17 +139,6 @@ pub struct GoogleIdentityStsV1betaAccessBoundaryRule {
     /// The full resource name of a Google Cloud resource entity. The format definition is at https://cloud.google.com/apis/design/resource_names. Example value: //cloudresourcemanager.googleapis.com/projects/my-project.
     #[serde(default, rename = "availableResource")]
     pub available_resource: ::core::option::Option<String>,
-}
-
-/// An Options object configures features that the Security Token Service supports, but that are not supported by standard OAuth 2.0 token exchange endpoints, as defined in https://tools.ietf.org/html/rfc8693.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleIdentityStsV1betaOptions {
-    /// An access boundary that defines the upper bound of permissions the credential may have. The value should be a JSON object of AccessBoundary. The access boundary can include up to 10 rules. The size of the parameter value should not exceed 2048 characters.
-    #[serde(default, rename = "accessBoundary")]
-    pub access_boundary: ::core::option::Option<GoogleIdentityStsV1betaAccessBoundary>,
-    /// A Google project used for quota and billing purposes when the credential is used to access Google APIs. The provided project overrides the project bound to the credential. The value must be a project number or a project ID. Example: my-sample-project-191923. The maximum length is 32 characters.
-    #[serde(default, rename = "userProject")]
-    pub user_project: ::core::option::Option<String>,
 }
 
 /// Represents a textual expression in the Common Expression Language (CEL) syntax. CEL is a C-like expression language. The syntax and semantics of CEL are documented at https://github.com/google/cel-spec. Example (Comparison): title: "Summary size limit" description: "Determines if a summary is less than 100 chars" expression: "document.summary.size() &lt; 100" Example (Equality): title: "Requestor is owner" description: "Determines if requestor is the document owner" expression: "document.owner == request.auth.claims.email" Example (Logic): title: "Public documents" description: "Determine whether the document should be publicly visible" expression: "document.type != ''private'' && document.type != ''internal''" Example (Data Manipulation): title: "Notification string" description: "Create a notification string with a timestamp." expression: "''New message received at '' + string(document.create_time)" The exact variables and functions that may be referenced within an expression are determined by the service that evaluates it. See the service documentation for additional information.

@@ -10,383 +10,6 @@
 use super::*;
 use serde::{Deserialize, Serialize};
 
-/// ActiveDirectory is the public representation of the active directory config.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ActiveDirectory {
-    /// Optional. Users to be added to the Built-in Admininstrators group.
-    #[serde(default)]
-    pub administrators: ::core::option::Option<::std::vec::Vec<String>>,
-    /// If enabled, AES encryption will be enabled for SMB communication.
-    #[serde(default, rename = "aesEncryption")]
-    pub aes_encryption: ::core::option::Option<bool>,
-    /// Optional. Users to be added to the Built-in Backup Operator active directory group.
-    #[serde(default, rename = "backupOperators")]
-    pub backup_operators: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Output only. Create time of the active directory.
-    #[serde(default, rename = "createTime")]
-    pub create_time: ::core::option::Option<String>,
-    /// Description of the active directory.
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// Required. Comma separated list of DNS server IP addresses for the Active Directory domain.
-    #[serde(default)]
-    pub dns: ::core::option::Option<String>,
-    /// Required. Name of the Active Directory domain
-    #[serde(default)]
-    pub domain: ::core::option::Option<String>,
-    /// If enabled, traffic between the SMB server to Domain Controller (DC) will be encrypted.
-    #[serde(default, rename = "encryptDcConnections")]
-    pub encrypt_dc_connections: ::core::option::Option<bool>,
-    /// Name of the active directory machine. This optional parameter is used only while creating kerberos volume
-    #[serde(default, rename = "kdcHostname")]
-    pub kdc_hostname: ::core::option::Option<String>,
-    /// KDC server IP address for the active directory machine.
-    #[serde(default, rename = "kdcIp")]
-    pub kdc_ip: ::core::option::Option<String>,
-    /// Labels for the active directory.
-    #[serde(default)]
-    pub labels: ::core::option::Option<serde_json::Value>,
-    /// Specifies whether or not the LDAP traffic needs to be signed.
-    #[serde(default, rename = "ldapSigning")]
-    pub ldap_signing: ::core::option::Option<bool>,
-    /// Identifier. The resource name of the active directory. Format: projects/{project_number}/locations/{location_id}/activeDirectories/{active_directory_id}.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Required. NetBIOSPrefix is used as a prefix for SMB server name.
-    #[serde(default, rename = "netBiosPrefix")]
-    pub net_bios_prefix: ::core::option::Option<String>,
-    /// If enabled, will allow access to local users and LDAP users. If access is needed for only LDAP users, it has to be disabled.
-    #[serde(default, rename = "nfsUsersWithLdap")]
-    pub nfs_users_with_ldap: ::core::option::Option<bool>,
-    /// The Organizational Unit (OU) within the Windows Active Directory the user belongs to.
-    #[serde(default, rename = "organizationalUnit")]
-    pub organizational_unit: ::core::option::Option<String>,
-    /// Required. Password of the Active Directory domain administrator.
-    #[serde(default)]
-    pub password: ::core::option::Option<String>,
-    /// Optional. Domain users to be given the SeSecurityPrivilege.
-    #[serde(default, rename = "securityOperators")]
-    pub security_operators: ::core::option::Option<::std::vec::Vec<String>>,
-    /// The Active Directory site the service will limit Domain Controller discovery too.
-    #[serde(default)]
-    pub site: ::core::option::Option<String>,
-    /// Output only. The state of the AD. // TODO: enum values: ["STATE_UNSPECIFIED", "CREATING", "READY", "UPDATING", "IN_USE", "DELETING", "ERROR", "DIAGNOSING"]
-    #[serde(default)]
-    pub state: ::core::option::Option<String>,
-    /// Output only. The state details of the Active Directory.
-    #[serde(default, rename = "stateDetails")]
-    pub state_details: ::core::option::Option<String>,
-    /// Required. Username of the Active Directory domain administrator.
-    #[serde(default)]
-    pub username: ::core::option::Option<String>,
-}
-
-/// A NetApp Backup.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Backup {
-    /// Output only. Region in which backup is stored. Format: projects/{project_id}/locations/{location}
-    #[serde(default, rename = "backupRegion")]
-    pub backup_region: ::core::option::Option<String>,
-    /// Output only. Type of backup, manually created or created by a backup policy. // TODO: enum values: ["TYPE_UNSPECIFIED", "MANUAL", "SCHEDULED"]
-    #[serde(default, rename = "backupType")]
-    pub backup_type: ::core::option::Option<String>,
-    /// Output only. Total size of all backups in a chain in bytes = baseline backup size + sum(incremental backup size)
-    #[serde(default, rename = "chainStorageBytes")]
-    pub chain_storage_bytes: ::core::option::Option<String>,
-    /// Output only. The time when the backup was created.
-    #[serde(default, rename = "createTime")]
-    pub create_time: ::core::option::Option<String>,
-    /// A description of the backup with 2048 characters or less. Requests with longer descriptions will be rejected.
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// Output only. The time until which the backup is not deletable.
-    #[serde(default, rename = "enforcedRetentionEndTime")]
-    pub enforced_retention_end_time: ::core::option::Option<String>,
-    /// Resource labels to represent user provided metadata.
-    #[serde(default)]
-    pub labels: ::core::option::Option<serde_json::Value>,
-    /// Identifier. The resource name of the backup. Format: projects/{project_id}/locations/{location}/backupVaults/{backup_vault_id}/backups/{backup_id}.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Output only. Reserved for future use
-    #[serde(default, rename = "satisfiesPzi")]
-    pub satisfies_pzi: ::core::option::Option<bool>,
-    /// Output only. Reserved for future use
-    #[serde(default, rename = "satisfiesPzs")]
-    pub satisfies_pzs: ::core::option::Option<bool>,
-    /// If specified, backup will be created from the given snapshot. If not specified, there will be a new snapshot taken to initiate the backup creation. Format: projects/{project_id}/locations/{location}/volumes/{volume_id}/snapshots/{snapshot_id}
-    #[serde(default, rename = "sourceSnapshot")]
-    pub source_snapshot: ::core::option::Option<String>,
-    /// Volume full name of this backup belongs to. Either source_volume or ontap_source should be provided. Format: projects/{projects_id}/locations/{location}/volumes/{volume_id}
-    #[serde(default, rename = "sourceVolume")]
-    pub source_volume: ::core::option::Option<String>,
-    /// Output only. The backup state. // TODO: enum values: ["STATE_UNSPECIFIED", "CREATING", "UPLOADING", "READY", "DELETING", "ERROR", "UPDATING"]
-    #[serde(default)]
-    pub state: ::core::option::Option<String>,
-    /// Output only. Region of the volume from which the backup was created. Format: projects/{project_id}/locations/{location}
-    #[serde(default, rename = "volumeRegion")]
-    pub volume_region: ::core::option::Option<String>,
-    /// Output only. Size of the file system when the backup was created. When creating a new volume from the backup, the volume capacity will have to be at least as big.
-    #[serde(default, rename = "volumeUsageBytes")]
-    pub volume_usage_bytes: ::core::option::Option<String>,
-}
-
-/// BackupConfig contains backup related config on a volume.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct BackupConfig {
-    /// Output only. Total size of all backups in a chain in bytes = baseline backup size + sum(incremental backup size).
-    #[serde(default, rename = "backupChainBytes")]
-    pub backup_chain_bytes: ::core::option::Option<String>,
-    /// Optional. When specified, schedule backups will be created based on the policy configuration.
-    #[serde(default, rename = "backupPolicies")]
-    pub backup_policies: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Optional. Name of backup vault. Format: projects/{project_id}/locations/{location}/backupVaults/{backup_vault_id}
-    #[serde(default, rename = "backupVault")]
-    pub backup_vault: ::core::option::Option<String>,
-    /// Optional. When set to true, scheduled backup is enabled on the volume. This field should be nil when there''s no backup policy attached.
-    #[serde(default, rename = "scheduledBackupEnabled")]
-    pub scheduled_backup_enabled: ::core::option::Option<bool>,
-}
-
-/// Backup Policy.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct BackupPolicy {
-    /// Output only. The total number of volumes assigned by this backup policy.
-    #[serde(default, rename = "assignedVolumeCount")]
-    pub assigned_volume_count: ::core::option::Option<i32>,
-    /// Output only. The time when the backup policy was created.
-    #[serde(default, rename = "createTime")]
-    pub create_time: ::core::option::Option<String>,
-    /// Number of daily backups to keep. Note that the minimum daily backup limit is 2.
-    #[serde(default, rename = "dailyBackupLimit")]
-    pub daily_backup_limit: ::core::option::Option<i32>,
-    /// Description of the backup policy.
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// If enabled, make backups automatically according to the schedules. This will be applied to all volumes that have this policy attached and enforced on volume level. If not specified, default is true.
-    #[serde(default)]
-    pub enabled: ::core::option::Option<bool>,
-    /// Resource labels to represent user provided metadata.
-    #[serde(default)]
-    pub labels: ::core::option::Option<serde_json::Value>,
-    /// Number of monthly backups to keep. Note that the sum of daily, weekly and monthly backups should be greater than 1.
-    #[serde(default, rename = "monthlyBackupLimit")]
-    pub monthly_backup_limit: ::core::option::Option<i32>,
-    /// Identifier. The resource name of the backup policy. Format: projects/{project_id}/locations/{location}/backupPolicies/{backup_policy_id}.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Output only. The backup policy state. // TODO: enum values: ["STATE_UNSPECIFIED", "CREATING", "READY", "DELETING", "ERROR", "UPDATING"]
-    #[serde(default)]
-    pub state: ::core::option::Option<String>,
-    /// Number of weekly backups to keep. Note that the sum of daily, weekly and monthly backups should be greater than 1.
-    #[serde(default, rename = "weeklyBackupLimit")]
-    pub weekly_backup_limit: ::core::option::Option<i32>,
-}
-
-/// Retention policy for backups in the backup vault
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct BackupRetentionPolicy {
-    /// Required. Minimum retention duration in days for backups in the backup vault.
-    #[serde(default, rename = "backupMinimumEnforcedRetentionDays")]
-    pub backup_minimum_enforced_retention_days: ::core::option::Option<i32>,
-    /// Optional. Indicates if the daily backups are immutable. At least one of daily_backup_immutable, weekly_backup_immutable, monthly_backup_immutable and manual_backup_immutable must be true.
-    #[serde(default, rename = "dailyBackupImmutable")]
-    pub daily_backup_immutable: ::core::option::Option<bool>,
-    /// Optional. Indicates if the manual backups are immutable. At least one of daily_backup_immutable, weekly_backup_immutable, monthly_backup_immutable and manual_backup_immutable must be true.
-    #[serde(default, rename = "manualBackupImmutable")]
-    pub manual_backup_immutable: ::core::option::Option<bool>,
-    /// Optional. Indicates if the monthly backups are immutable. At least one of daily_backup_immutable, weekly_backup_immutable, monthly_backup_immutable and manual_backup_immutable must be true.
-    #[serde(default, rename = "monthlyBackupImmutable")]
-    pub monthly_backup_immutable: ::core::option::Option<bool>,
-    /// Optional. Indicates if the weekly backups are immutable. At least one of daily_backup_immutable, weekly_backup_immutable, monthly_backup_immutable and manual_backup_immutable must be true.
-    #[serde(default, rename = "weeklyBackupImmutable")]
-    pub weekly_backup_immutable: ::core::option::Option<bool>,
-}
-
-/// A NetApp BackupVault.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct BackupVault {
-    /// Optional. Region where the backups are stored. Format: projects/{project_id}/locations/{location}
-    #[serde(default, rename = "backupRegion")]
-    pub backup_region: ::core::option::Option<String>,
-    /// Optional. Backup retention policy defining the retention of backups.
-    #[serde(default, rename = "backupRetentionPolicy")]
-    pub backup_retention_policy: ::core::option::Option<BackupRetentionPolicy>,
-    /// Optional. Type of backup vault to be created. Default is IN_REGION. // TODO: enum values: ["BACKUP_VAULT_TYPE_UNSPECIFIED", "IN_REGION", "CROSS_REGION"]
-    #[serde(default, rename = "backupVaultType")]
-    pub backup_vault_type: ::core::option::Option<String>,
-    /// Output only. The crypto key version used to encrypt the backup vault. Format: projects/{project}/locations/{location}/keyRings/{key_ring}/cryptoKeys/{crypto_key}/cryptoKeyVersions/{crypto_key_version}
-    #[serde(default, rename = "backupsCryptoKeyVersion")]
-    pub backups_crypto_key_version: ::core::option::Option<String>,
-    /// Output only. Create time of the backup vault.
-    #[serde(default, rename = "createTime")]
-    pub create_time: ::core::option::Option<String>,
-    /// Description of the backup vault.
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// Output only. Name of the Backup vault created in backup region. Format: projects/{project_id}/locations/{location}/backupVaults/{backup_vault_id}
-    #[serde(default, rename = "destinationBackupVault")]
-    pub destination_backup_vault: ::core::option::Option<String>,
-    /// Output only. Field indicating encryption state of CMEK backups. // TODO: enum values: ["ENCRYPTION_STATE_UNSPECIFIED", "ENCRYPTION_STATE_PENDING", "ENCRYPTION_STATE_COMPLETED", "ENCRYPTION_STATE_IN_PROGRESS", "ENCRYPTION_STATE_FAILED"]
-    #[serde(default, rename = "encryptionState")]
-    pub encryption_state: ::core::option::Option<String>,
-    /// Optional. Specifies the Key Management System (KMS) configuration to be used for backup encryption. Format: projects/{project}/locations/{location}/kmsConfigs/{kms_config}
-    #[serde(default, rename = "kmsConfig")]
-    pub kms_config: ::core::option::Option<String>,
-    /// Resource labels to represent user provided metadata.
-    #[serde(default)]
-    pub labels: ::core::option::Option<serde_json::Value>,
-    /// Identifier. The resource name of the backup vault. Format: projects/{project_id}/locations/{location}/backupVaults/{backup_vault_id}.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Output only. Name of the Backup vault created in source region. Format: projects/{project_id}/locations/{location}/backupVaults/{backup_vault_id}
-    #[serde(default, rename = "sourceBackupVault")]
-    pub source_backup_vault: ::core::option::Option<String>,
-    /// Output only. Region in which the backup vault is created. Format: projects/{project_id}/locations/{location}
-    #[serde(default, rename = "sourceRegion")]
-    pub source_region: ::core::option::Option<String>,
-    /// Output only. The backup vault state. // TODO: enum values: ["STATE_UNSPECIFIED", "CREATING", "READY", "DELETING", "ERROR", "UPDATING"]
-    #[serde(default)]
-    pub state: ::core::option::Option<String>,
-}
-
-/// Block device represents the device(s) which are stored in the block volume.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct BlockDevice {
-    /// Optional. A list of host groups that identify hosts that can mount the block volume. Format: projects/{project_id}/locations/{location}/hostGroups/{host_group_id} This field can be updated after the block device is created.
-    #[serde(default, rename = "hostGroups")]
-    pub host_groups: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Output only. Device identifier of the block volume. This represents lun_serial_number for iSCSI volumes.
-    #[serde(default)]
-    pub identifier: ::core::option::Option<String>,
-    /// Optional. User-defined name for the block device, unique within the volume. In case no user input is provided, name will be auto-generated in the backend. The name must meet the following requirements: * Be between 1 and 255 characters long. * Contain only uppercase or lowercase letters (A-Z, a-z), numbers (0-9), and the following special characters: "-", "_", "}", "{", ".". * Spaces are not allowed.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Required. Immutable. The OS type of the volume. This field can''t be changed after the block device is created. // TODO: enum values: ["OS_TYPE_UNSPECIFIED", "LINUX", "WINDOWS", "ESXI"]
-    #[serde(default, rename = "osType")]
-    pub os_type: ::core::option::Option<String>,
-    /// Optional. The size of the block device in GiB. Any value provided for the size_gib field during volume creation is ignored. The block device''s size is system-managed and will be set to match the parent Volume''s capacity_gib.
-    #[serde(default, rename = "sizeGib")]
-    pub size_gib: ::core::option::Option<String>,
-}
-
-/// Configuration of the cache volume.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CacheConfig {
-    /// Optional. Pre-populate cache volume with data from the origin volume.
-    #[serde(default, rename = "cachePrePopulate")]
-    pub cache_pre_populate: ::core::option::Option<CachePrePopulate>,
-    /// Output only. State of the prepopulation job indicating how the prepopulation is progressing. // TODO: enum values: ["CACHE_PRE_POPULATE_STATE_UNSPECIFIED", "NOT_NEEDED", "IN_PROGRESS", "COMPLETE", "ERROR"]
-    #[serde(default, rename = "cachePrePopulateState")]
-    pub cache_pre_populate_state: ::core::option::Option<String>,
-    /// Optional. Flag indicating whether a CIFS change notification is enabled for the FlexCache volume.
-    #[serde(default, rename = "cifsChangeNotifyEnabled")]
-    pub cifs_change_notify_enabled: ::core::option::Option<bool>,
-    /// Optional. Flag indicating whether writeback is enabled for the FlexCache volume.
-    #[serde(default, rename = "writebackEnabled")]
-    pub writeback_enabled: ::core::option::Option<bool>,
-}
-
-/// Cache Parameters for the volume.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CacheParameters {
-    /// Optional. Configuration of the cache volume.
-    #[serde(default, rename = "cacheConfig")]
-    pub cache_config: ::core::option::Option<CacheConfig>,
-    /// Output only. State of the cache volume indicating the peering status. // TODO: enum values: ["CACHE_STATE_UNSPECIFIED", "PENDING_CLUSTER_PEERING", "PENDING_SVM_PEERING", "PEERED", "ERROR"]
-    #[serde(default, rename = "cacheState")]
-    pub cache_state: ::core::option::Option<String>,
-    /// Output only. Copy-paste-able commands to be used on user''s ONTAP to accept peering requests.
-    #[serde(default)]
-    pub command: ::core::option::Option<String>,
-    /// Optional. Indicates whether the cache volume has global file lock enabled.
-    #[serde(default, rename = "enableGlobalFileLock")]
-    pub enable_global_file_lock: ::core::option::Option<bool>,
-    /// Output only. Temporary passphrase generated to accept cluster peering command.
-    #[serde(default)]
-    pub passphrase: ::core::option::Option<String>,
-    /// Required. Name of the origin volume''s ONTAP cluster.
-    #[serde(default, rename = "peerClusterName")]
-    pub peer_cluster_name: ::core::option::Option<String>,
-    /// Required. List of IC LIF addresses of the origin volume''s ONTAP cluster.
-    #[serde(default, rename = "peerIpAddresses")]
-    pub peer_ip_addresses: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Required. Name of the origin volume''s SVM.
-    #[serde(default, rename = "peerSvmName")]
-    pub peer_svm_name: ::core::option::Option<String>,
-    /// Required. Name of the origin volume for the cache volume.
-    #[serde(default, rename = "peerVolumeName")]
-    pub peer_volume_name: ::core::option::Option<String>,
-    /// Optional. Expiration time for the peering command to be executed on user''s ONTAP.
-    #[serde(default, rename = "peeringCommandExpiryTime")]
-    pub peering_command_expiry_time: ::core::option::Option<String>,
-    /// Output only. Detailed description of the current cache state.
-    #[serde(default, rename = "stateDetails")]
-    pub state_details: ::core::option::Option<String>,
-}
-
-/// Pre-populate cache volume with data from the origin volume.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CachePrePopulate {
-    /// Optional. List of directory-paths to be excluded for pre-population for the FlexCache volume.
-    #[serde(default, rename = "excludePathList")]
-    pub exclude_path_list: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Optional. List of directory-paths to be pre-populated for the FlexCache volume.
-    #[serde(default, rename = "pathList")]
-    pub path_list: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Optional. Flag indicating whether the directories listed with the path_list need to be recursively pre-populated.
-    #[serde(default)]
-    pub recursion: ::core::option::Option<bool>,
-}
-
-/// Details about a clone volume.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CloneDetails {
-    /// Output only. Shared space in GiB. Determined at volume creation time based on size of source snapshot.
-    #[serde(default, rename = "sharedSpaceGib")]
-    pub shared_space_gib: ::core::option::Option<String>,
-    /// Output only. Specifies the full resource name of the source snapshot from which this volume was cloned. Format: projects/{project}/locations/{location}/volumes/{volume}/snapshots/{snapshot}
-    #[serde(default, rename = "sourceSnapshot")]
-    pub source_snapshot: ::core::option::Option<String>,
-    /// Output only. Full name of the source volume resource. Format: projects/{project}/locations/{location}/volumes/{volume}
-    #[serde(default, rename = "sourceVolume")]
-    pub source_volume: ::core::option::Option<String>,
-}
-
-/// Make a snapshot every day e.g. at 04:00, 05:20, 23:50
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DailySchedule {
-    /// Set the hour to start the snapshot (0-23), defaults to midnight (0).
-    #[serde(default)]
-    pub hour: ::core::option::Option<f64>,
-    /// Set the minute of the hour to start the snapshot (0-59), defaults to the top of the hour (0).
-    #[serde(default)]
-    pub minute: ::core::option::Option<f64>,
-    /// The maximum number of Snapshots to keep for the hourly schedule
-    #[serde(default, rename = "snapshotsToKeep")]
-    pub snapshots_to_keep: ::core::option::Option<f64>,
-}
-
-/// DestinationVolumeParameters specify input parameters used for creating destination volume.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DestinationVolumeParameters {
-    /// Description for the destination volume.
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// Destination volume''s share name. If not specified, source volume''s share name will be used.
-    #[serde(default, rename = "shareName")]
-    pub share_name: ::core::option::Option<String>,
-    /// Required. Existing destination StoragePool name.
-    #[serde(default, rename = "storagePool")]
-    pub storage_pool: ::core::option::Option<String>,
-    /// Optional. Tiering policy for the volume.
-    #[serde(default, rename = "tieringPolicy")]
-    pub tiering_policy: ::core::option::Option<TieringPolicy>,
-    /// Desired destination volume resource id. If not specified, source volume''s resource id will be used. This value must start with a lowercase letter followed by up to 62 lowercase letters, numbers, or hyphens, and cannot end with a hyphen.
-    #[serde(default, rename = "volumeId")]
-    pub volume_id: ::core::option::Option<String>,
-}
-
 /// EstablishPeeringRequest establishes cluster and svm peerings between the source and the destination replications.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct EstablishPeeringRequest {
@@ -419,158 +42,6 @@ pub struct EstablishVolumePeeringRequest {
     /// Required. Name of the user''s local source volume to be peered with the destination volume.
     #[serde(default, rename = "peerVolumeName")]
     pub peer_volume_name: ::core::option::Option<String>,
-}
-
-/// Defines the export policy for the volume.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ExportPolicy {
-    /// Required. List of export policy rules
-    #[serde(default)]
-    pub rules: ::core::option::Option<::std::vec::Vec<SimpleExportPolicyRule>>,
-}
-
-/// Host group is a collection of hosts that can be used for accessing a Block Volume.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct HostGroup {
-    /// Output only. Create time of the host group.
-    #[serde(default, rename = "createTime")]
-    pub create_time: ::core::option::Option<String>,
-    /// Optional. Description of the host group.
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// Required. The list of hosts associated with the host group.
-    #[serde(default)]
-    pub hosts: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Optional. Labels of the host group.
-    #[serde(default)]
-    pub labels: ::core::option::Option<serde_json::Value>,
-    /// Identifier. The resource name of the host group. Format: projects/{project_number}/locations/{location_id}/hostGroups/{host_group_id}.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Required. The OS type of the host group. It indicates the type of operating system used by all of the hosts in the HostGroup. All hosts in a HostGroup must be of the same OS type. This can be set only when creating a HostGroup. // TODO: enum values: ["OS_TYPE_UNSPECIFIED", "LINUX", "WINDOWS", "ESXI"]
-    #[serde(default, rename = "osType")]
-    pub os_type: ::core::option::Option<String>,
-    /// Output only. State of the host group. // TODO: enum values: ["STATE_UNSPECIFIED", "CREATING", "READY", "UPDATING", "DELETING", "DISABLED"]
-    #[serde(default)]
-    pub state: ::core::option::Option<String>,
-    /// Required. Type of the host group. // TODO: enum values: ["TYPE_UNSPECIFIED", "ISCSI_INITIATOR"]
-    #[serde(default, rename = "type")]
-    pub type_: ::core::option::Option<String>,
-}
-
-/// Make a snapshot every hour e.g. at 04:00, 05:00, 06:00.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct HourlySchedule {
-    /// Set the minute of the hour to start the snapshot (0-59), defaults to the top of the hour (0).
-    #[serde(default)]
-    pub minute: ::core::option::Option<f64>,
-    /// The maximum number of Snapshots to keep for the hourly schedule
-    #[serde(default, rename = "snapshotsToKeep")]
-    pub snapshots_to_keep: ::core::option::Option<f64>,
-}
-
-/// HybridPeeringDetails contains details about the hybrid peering.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct HybridPeeringDetails {
-    /// Output only. Copy-paste-able commands to be used on user''s ONTAP to accept peering requests.
-    #[serde(default)]
-    pub command: ::core::option::Option<String>,
-    /// Output only. Expiration time for the peering command to be executed on user''s ONTAP.
-    #[serde(default, rename = "commandExpiryTime")]
-    pub command_expiry_time: ::core::option::Option<String>,
-    /// Output only. Temporary passphrase generated to accept cluster peering command.
-    #[serde(default)]
-    pub passphrase: ::core::option::Option<String>,
-    /// Output only. Name of the user''s local source cluster to be peered with the destination cluster.
-    #[serde(default, rename = "peerClusterName")]
-    pub peer_cluster_name: ::core::option::Option<String>,
-    /// Output only. Name of the user''s local source vserver svm to be peered with the destination vserver svm.
-    #[serde(default, rename = "peerSvmName")]
-    pub peer_svm_name: ::core::option::Option<String>,
-    /// Output only. Name of the user''s local source volume to be peered with the destination volume.
-    #[serde(default, rename = "peerVolumeName")]
-    pub peer_volume_name: ::core::option::Option<String>,
-    /// Output only. IP address of the subnet.
-    #[serde(default, rename = "subnetIp")]
-    pub subnet_ip: ::core::option::Option<String>,
-}
-
-/// The Hybrid Replication parameters for the volume.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct HybridReplicationParameters {
-    /// Optional. Name of source cluster location associated with the Hybrid replication. This is a free-form field for the display purpose only.
-    #[serde(default, rename = "clusterLocation")]
-    pub cluster_location: ::core::option::Option<String>,
-    /// Optional. Description of the replication.
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// Optional. Type of the hybrid replication. // TODO: enum values: ["VOLUME_HYBRID_REPLICATION_TYPE_UNSPECIFIED", "MIGRATION", "CONTINUOUS_REPLICATION", "ONPREM_REPLICATION", "REVERSE_ONPREM_REPLICATION"]
-    #[serde(default, rename = "hybridReplicationType")]
-    pub hybrid_replication_type: ::core::option::Option<String>,
-    /// Optional. Labels to be added to the replication as the key value pairs.
-    #[serde(default)]
-    pub labels: ::core::option::Option<serde_json::Value>,
-    /// Optional. Constituent volume count for large volume.
-    #[serde(default, rename = "largeVolumeConstituentCount")]
-    pub large_volume_constituent_count: ::core::option::Option<i32>,
-    /// Required. Name of the user''s local source cluster to be peered with the destination cluster.
-    #[serde(default, rename = "peerClusterName")]
-    pub peer_cluster_name: ::core::option::Option<String>,
-    /// Required. List of node ip addresses to be peered with.
-    #[serde(default, rename = "peerIpAddresses")]
-    pub peer_ip_addresses: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Required. Name of the user''s local source vserver svm to be peered with the destination vserver svm.
-    #[serde(default, rename = "peerSvmName")]
-    pub peer_svm_name: ::core::option::Option<String>,
-    /// Required. Name of the user''s local source volume to be peered with the destination volume.
-    #[serde(default, rename = "peerVolumeName")]
-    pub peer_volume_name: ::core::option::Option<String>,
-    /// Required. Desired name for the replication of this volume.
-    #[serde(default)]
-    pub replication: ::core::option::Option<String>,
-    /// Optional. Replication Schedule for the replication created. // TODO: enum values: ["HYBRID_REPLICATION_SCHEDULE_UNSPECIFIED", "EVERY_10_MINUTES", "HOURLY", "DAILY"]
-    #[serde(default, rename = "replicationSchedule")]
-    pub replication_schedule: ::core::option::Option<String>,
-}
-
-/// KmsConfig is the customer-managed encryption key(CMEK) configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct KmsConfig {
-    /// Output only. Create time of the KmsConfig.
-    #[serde(default, rename = "createTime")]
-    pub create_time: ::core::option::Option<String>,
-    /// Required. Customer-managed crypto key resource full name. Format: projects/{project}/locations/{location}/keyRings/{key_ring}/cryptoKeys/{crypto_key}
-    #[serde(default, rename = "cryptoKeyName")]
-    pub crypto_key_name: ::core::option::Option<String>,
-    /// Description of the KmsConfig.
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// Output only. Instructions to provide the access to the customer provided encryption key.
-    #[serde(default)]
-    pub instructions: ::core::option::Option<String>,
-    /// Labels as key value pairs
-    #[serde(default)]
-    pub labels: ::core::option::Option<serde_json::Value>,
-    /// Identifier. Name of the KmsConfig. Format: projects/{project}/locations/{location}/kmsConfigs/{kms_config}
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Output only. The Service account which will have access to the customer provided encryption key.
-    #[serde(default, rename = "serviceAccount")]
-    pub service_account: ::core::option::Option<String>,
-    /// Output only. State of the KmsConfig. // TODO: enum values: ["STATE_UNSPECIFIED", "READY", "CREATING", "DELETING", "UPDATING", "IN_USE", "ERROR", "KEY_CHECK_PENDING", "KEY_NOT_REACHABLE", "DISABLING", "DISABLED", "MIGRATING"]
-    #[serde(default)]
-    pub state: ::core::option::Option<String>,
-    /// Output only. State details of the KmsConfig.
-    #[serde(default, rename = "stateDetails")]
-    pub state_details: ::core::option::Option<String>,
-}
-
-/// Configuration for a Large Capacity Volume. A Large Capacity Volume supports sizes ranging from 4.8 TiB to 20 PiB, it is composed of multiple internal constituents, and must be created in a large capacity pool.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct LargeCapacityConfig {
-    /// Optional. The number of internal constituents (e.g., FlexVols) for this large volume. The minimum number of constituents is 2.
-    #[serde(default, rename = "constituentCount")]
-    pub constituent_count: ::core::option::Option<i32>,
 }
 
 /// ListActiveDirectoriesResponse contains all the active directories requested.
@@ -752,26 +223,6 @@ pub struct ListVolumesResponse {
     pub volumes: ::core::option::Option<::std::vec::Vec<Volume>>,
 }
 
-/// A resource that represents a Google Cloud location.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Location {
-    /// The friendly name for this location, typically a nearby city name. For example, "Tokyo".
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-    /// Cross-service attributes for the location. For example {"cloud.googleapis.com/region": "us-east1"}
-    #[serde(default)]
-    pub labels: ::core::option::Option<serde_json::Value>,
-    /// The canonical id for this location. For example: "us-east1".
-    #[serde(default, rename = "locationId")]
-    pub location_id: ::core::option::Option<String>,
-    /// Service-specific metadata. For example the available capacity at the given location.
-    #[serde(default)]
-    pub metadata: ::core::option::Option<serde_json::Value>,
-    /// Resource name for the location, which may vary between implementations. For example: "projects/example-project/locations/us-east1"
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-}
-
 /// Metadata for a given google.cloud.location.Location.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct LocationMetadata {
@@ -787,63 +238,6 @@ pub struct LocationMetadata {
     /// Output only. Supported service levels in a location.
     #[serde(default, rename = "supportedServiceLevels")]
     pub supported_service_levels: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// Make a snapshot once a month e.g. at 2nd 04:00, 7th 05:20, 24th 23:50
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct MonthlySchedule {
-    /// Set the day or days of the month to make a snapshot (1-31). Accepts a comma separated number of days. Defaults to ''1''.
-    #[serde(default, rename = "daysOfMonth")]
-    pub days_of_month: ::core::option::Option<String>,
-    /// Set the hour to start the snapshot (0-23), defaults to midnight (0).
-    #[serde(default)]
-    pub hour: ::core::option::Option<f64>,
-    /// Set the minute of the hour to start the snapshot (0-59), defaults to the top of the hour (0).
-    #[serde(default)]
-    pub minute: ::core::option::Option<f64>,
-    /// The maximum number of Snapshots to keep for the hourly schedule
-    #[serde(default, rename = "snapshotsToKeep")]
-    pub snapshots_to_keep: ::core::option::Option<f64>,
-}
-
-/// View only mount options for a volume.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct MountOption {
-    /// Export string
-    #[serde(default)]
-    pub export: ::core::option::Option<String>,
-    /// Full export string
-    #[serde(default, rename = "exportFull")]
-    pub export_full: ::core::option::Option<String>,
-    /// Instructions for mounting
-    #[serde(default)]
-    pub instructions: ::core::option::Option<String>,
-    /// Output only. IP Address.
-    #[serde(default, rename = "ipAddress")]
-    pub ip_address: ::core::option::Option<String>,
-    /// Protocol to mount with. // TODO: enum values: ["PROTOCOLS_UNSPECIFIED", "NFSV3", "NFSV4", "SMB", "ISCSI"]
-    #[serde(default)]
-    pub protocol: ::core::option::Option<String>,
-}
-
-/// This resource represents a long-running operation that is the result of a network API call.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Operation {
-    /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
-    #[serde(default)]
-    pub done: ::core::option::Option<bool>,
-    /// The error result of the operation in case of failure or cancellation.
-    #[serde(default)]
-    pub error: ::core::option::Option<Status>,
-    /// Service-specific metadata associated with the operation. It typically contains progress information and common metadata such as create time. Some services might not provide such metadata. Any method that returns a long-running operation should document the metadata type, if any.
-    #[serde(default)]
-    pub metadata: ::core::option::Option<serde_json::Value>,
-    /// The server-assigned name, which is only unique within the same service that originally returns it. If you use the default HTTP mapping, the name should be a resource name ending with operations/{unique_id}.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// The normal, successful response of the operation. If the original method returns no data on success, such as Delete, the response is google.protobuf.Empty. If the original method is standard Get/Create/Update, the response should be the resource. For other methods, the response should have the type XxxResponse, where Xxx is the original method name. For example, if the original method name is TakeSnapshot(), the inferred response type is TakeSnapshotResponse.
-    #[serde(default)]
-    pub response: ::core::option::Option<serde_json::Value>,
 }
 
 /// Represents the metadata of the long-running operation.
@@ -870,6 +264,362 @@ pub struct OperationMetadata {
     /// Output only. Name of the verb executed by the operation.
     #[serde(default)]
     pub verb: ::core::option::Option<String>,
+}
+
+/// RestoreBackupFilesRequest restores files from a backup to a volume.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RestoreBackupFilesRequest {
+    /// Required. The backup resource name, in the format projects/{project_id}/locations/{location}/backupVaults/{backup_vault_id}/backups/{backup_id}
+    #[serde(default)]
+    pub backup: ::core::option::Option<String>,
+    /// Required. List of files to be restored, specified by their absolute path in the source volume.
+    #[serde(default, rename = "fileList")]
+    pub file_list: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Optional. Absolute directory path in the destination volume. This is required if the file_list is provided.
+    #[serde(default, rename = "restoreDestinationPath")]
+    pub restore_destination_path: ::core::option::Option<String>,
+}
+
+/// RevertVolumeRequest reverts the given volume to the specified snapshot.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RevertVolumeRequest {
+    /// Required. The snapshot resource ID, in the format ''my-snapshot'', where the specified ID is the {snapshot_id} of the fully qualified name like projects/{project_id}/locations/{location_id}/volumes/{volume_id}/snapshots/{snapshot_id}
+    #[serde(default, rename = "snapshotId")]
+    pub snapshot_id: ::core::option::Option<String>,
+}
+
+/// StopReplicationRequest stops a replication until resumed.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct StopReplicationRequest {
+    /// Indicates whether to stop replication forcefully while data transfer is in progress. Warning! if force is true, this will abort any current transfers and can lead to data loss due to partial transfer. If force is false, stop replication will fail while data transfer is in progress and you will need to retry later.
+    #[serde(default)]
+    pub force: ::core::option::Option<bool>,
+}
+
+/// ValidateDirectoryServiceRequest validates the directory service policy attached to the storage pool.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ValidateDirectoryServiceRequest {
+    /// Type of directory service policy attached to the storage pool. // TODO: enum values: ["DIRECTORY_SERVICE_TYPE_UNSPECIFIED", "ACTIVE_DIRECTORY"]
+    #[serde(default, rename = "directoryServiceType")]
+    pub directory_service_type: ::core::option::Option<String>,
+}
+
+/// VerifyKmsConfigResponse contains the information if the config is correctly and error message.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct VerifyKmsConfigResponse {
+    /// Output only. Error message if config is not healthy.
+    #[serde(default, rename = "healthError")]
+    pub health_error: ::core::option::Option<String>,
+    /// Output only. If the customer key configured correctly to the encrypt volume.
+    #[serde(default)]
+    pub healthy: ::core::option::Option<bool>,
+    /// Output only. Instructions for the customers to provide the access to the encryption key.
+    #[serde(default)]
+    pub instructions: ::core::option::Option<String>,
+}
+
+/// ActiveDirectory is the public representation of the active directory config.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ActiveDirectory {
+    /// Optional. Users to be added to the Built-in Admininstrators group.
+    #[serde(default)]
+    pub administrators: ::core::option::Option<::std::vec::Vec<String>>,
+    /// If enabled, AES encryption will be enabled for SMB communication.
+    #[serde(default, rename = "aesEncryption")]
+    pub aes_encryption: ::core::option::Option<bool>,
+    /// Optional. Users to be added to the Built-in Backup Operator active directory group.
+    #[serde(default, rename = "backupOperators")]
+    pub backup_operators: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Output only. Create time of the active directory.
+    #[serde(default, rename = "createTime")]
+    pub create_time: ::core::option::Option<String>,
+    /// Description of the active directory.
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+    /// Required. Comma separated list of DNS server IP addresses for the Active Directory domain.
+    #[serde(default)]
+    pub dns: ::core::option::Option<String>,
+    /// Required. Name of the Active Directory domain
+    #[serde(default)]
+    pub domain: ::core::option::Option<String>,
+    /// If enabled, traffic between the SMB server to Domain Controller (DC) will be encrypted.
+    #[serde(default, rename = "encryptDcConnections")]
+    pub encrypt_dc_connections: ::core::option::Option<bool>,
+    /// Name of the active directory machine. This optional parameter is used only while creating kerberos volume
+    #[serde(default, rename = "kdcHostname")]
+    pub kdc_hostname: ::core::option::Option<String>,
+    /// KDC server IP address for the active directory machine.
+    #[serde(default, rename = "kdcIp")]
+    pub kdc_ip: ::core::option::Option<String>,
+    /// Labels for the active directory.
+    #[serde(default)]
+    pub labels: ::core::option::Option<serde_json::Value>,
+    /// Specifies whether or not the LDAP traffic needs to be signed.
+    #[serde(default, rename = "ldapSigning")]
+    pub ldap_signing: ::core::option::Option<bool>,
+    /// Identifier. The resource name of the active directory. Format: projects/{project_number}/locations/{location_id}/activeDirectories/{active_directory_id}.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Required. NetBIOSPrefix is used as a prefix for SMB server name.
+    #[serde(default, rename = "netBiosPrefix")]
+    pub net_bios_prefix: ::core::option::Option<String>,
+    /// If enabled, will allow access to local users and LDAP users. If access is needed for only LDAP users, it has to be disabled.
+    #[serde(default, rename = "nfsUsersWithLdap")]
+    pub nfs_users_with_ldap: ::core::option::Option<bool>,
+    /// The Organizational Unit (OU) within the Windows Active Directory the user belongs to.
+    #[serde(default, rename = "organizationalUnit")]
+    pub organizational_unit: ::core::option::Option<String>,
+    /// Required. Password of the Active Directory domain administrator.
+    #[serde(default)]
+    pub password: ::core::option::Option<String>,
+    /// Optional. Domain users to be given the SeSecurityPrivilege.
+    #[serde(default, rename = "securityOperators")]
+    pub security_operators: ::core::option::Option<::std::vec::Vec<String>>,
+    /// The Active Directory site the service will limit Domain Controller discovery too.
+    #[serde(default)]
+    pub site: ::core::option::Option<String>,
+    /// Output only. The state of the AD. // TODO: enum values: ["STATE_UNSPECIFIED", "CREATING", "READY", "UPDATING", "IN_USE", "DELETING", "ERROR", "DIAGNOSING"]
+    #[serde(default)]
+    pub state: ::core::option::Option<String>,
+    /// Output only. The state details of the Active Directory.
+    #[serde(default, rename = "stateDetails")]
+    pub state_details: ::core::option::Option<String>,
+    /// Required. Username of the Active Directory domain administrator.
+    #[serde(default)]
+    pub username: ::core::option::Option<String>,
+}
+
+/// Backup Policy.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BackupPolicy {
+    /// Output only. The total number of volumes assigned by this backup policy.
+    #[serde(default, rename = "assignedVolumeCount")]
+    pub assigned_volume_count: ::core::option::Option<i32>,
+    /// Output only. The time when the backup policy was created.
+    #[serde(default, rename = "createTime")]
+    pub create_time: ::core::option::Option<String>,
+    /// Number of daily backups to keep. Note that the minimum daily backup limit is 2.
+    #[serde(default, rename = "dailyBackupLimit")]
+    pub daily_backup_limit: ::core::option::Option<i32>,
+    /// Description of the backup policy.
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+    /// If enabled, make backups automatically according to the schedules. This will be applied to all volumes that have this policy attached and enforced on volume level. If not specified, default is true.
+    #[serde(default)]
+    pub enabled: ::core::option::Option<bool>,
+    /// Resource labels to represent user provided metadata.
+    #[serde(default)]
+    pub labels: ::core::option::Option<serde_json::Value>,
+    /// Number of monthly backups to keep. Note that the sum of daily, weekly and monthly backups should be greater than 1.
+    #[serde(default, rename = "monthlyBackupLimit")]
+    pub monthly_backup_limit: ::core::option::Option<i32>,
+    /// Identifier. The resource name of the backup policy. Format: projects/{project_id}/locations/{location}/backupPolicies/{backup_policy_id}.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Output only. The backup policy state. // TODO: enum values: ["STATE_UNSPECIFIED", "CREATING", "READY", "DELETING", "ERROR", "UPDATING"]
+    #[serde(default)]
+    pub state: ::core::option::Option<String>,
+    /// Number of weekly backups to keep. Note that the sum of daily, weekly and monthly backups should be greater than 1.
+    #[serde(default, rename = "weeklyBackupLimit")]
+    pub weekly_backup_limit: ::core::option::Option<i32>,
+}
+
+/// A NetApp BackupVault.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BackupVault {
+    /// Optional. Region where the backups are stored. Format: projects/{project_id}/locations/{location}
+    #[serde(default, rename = "backupRegion")]
+    pub backup_region: ::core::option::Option<String>,
+    /// Optional. Backup retention policy defining the retention of backups.
+    #[serde(default, rename = "backupRetentionPolicy")]
+    pub backup_retention_policy: ::core::option::Option<BackupRetentionPolicy>,
+    /// Optional. Type of backup vault to be created. Default is IN_REGION. // TODO: enum values: ["BACKUP_VAULT_TYPE_UNSPECIFIED", "IN_REGION", "CROSS_REGION"]
+    #[serde(default, rename = "backupVaultType")]
+    pub backup_vault_type: ::core::option::Option<String>,
+    /// Output only. The crypto key version used to encrypt the backup vault. Format: projects/{project}/locations/{location}/keyRings/{key_ring}/cryptoKeys/{crypto_key}/cryptoKeyVersions/{crypto_key_version}
+    #[serde(default, rename = "backupsCryptoKeyVersion")]
+    pub backups_crypto_key_version: ::core::option::Option<String>,
+    /// Output only. Create time of the backup vault.
+    #[serde(default, rename = "createTime")]
+    pub create_time: ::core::option::Option<String>,
+    /// Description of the backup vault.
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+    /// Output only. Name of the Backup vault created in backup region. Format: projects/{project_id}/locations/{location}/backupVaults/{backup_vault_id}
+    #[serde(default, rename = "destinationBackupVault")]
+    pub destination_backup_vault: ::core::option::Option<String>,
+    /// Output only. Field indicating encryption state of CMEK backups. // TODO: enum values: ["ENCRYPTION_STATE_UNSPECIFIED", "ENCRYPTION_STATE_PENDING", "ENCRYPTION_STATE_COMPLETED", "ENCRYPTION_STATE_IN_PROGRESS", "ENCRYPTION_STATE_FAILED"]
+    #[serde(default, rename = "encryptionState")]
+    pub encryption_state: ::core::option::Option<String>,
+    /// Optional. Specifies the Key Management System (KMS) configuration to be used for backup encryption. Format: projects/{project}/locations/{location}/kmsConfigs/{kms_config}
+    #[serde(default, rename = "kmsConfig")]
+    pub kms_config: ::core::option::Option<String>,
+    /// Resource labels to represent user provided metadata.
+    #[serde(default)]
+    pub labels: ::core::option::Option<serde_json::Value>,
+    /// Identifier. The resource name of the backup vault. Format: projects/{project_id}/locations/{location}/backupVaults/{backup_vault_id}.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Output only. Name of the Backup vault created in source region. Format: projects/{project_id}/locations/{location}/backupVaults/{backup_vault_id}
+    #[serde(default, rename = "sourceBackupVault")]
+    pub source_backup_vault: ::core::option::Option<String>,
+    /// Output only. Region in which the backup vault is created. Format: projects/{project_id}/locations/{location}
+    #[serde(default, rename = "sourceRegion")]
+    pub source_region: ::core::option::Option<String>,
+    /// Output only. The backup vault state. // TODO: enum values: ["STATE_UNSPECIFIED", "CREATING", "READY", "DELETING", "ERROR", "UPDATING"]
+    #[serde(default)]
+    pub state: ::core::option::Option<String>,
+}
+
+/// A NetApp Backup.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Backup {
+    /// Output only. Region in which backup is stored. Format: projects/{project_id}/locations/{location}
+    #[serde(default, rename = "backupRegion")]
+    pub backup_region: ::core::option::Option<String>,
+    /// Output only. Type of backup, manually created or created by a backup policy. // TODO: enum values: ["TYPE_UNSPECIFIED", "MANUAL", "SCHEDULED"]
+    #[serde(default, rename = "backupType")]
+    pub backup_type: ::core::option::Option<String>,
+    /// Output only. Total size of all backups in a chain in bytes = baseline backup size + sum(incremental backup size)
+    #[serde(default, rename = "chainStorageBytes")]
+    pub chain_storage_bytes: ::core::option::Option<String>,
+    /// Output only. The time when the backup was created.
+    #[serde(default, rename = "createTime")]
+    pub create_time: ::core::option::Option<String>,
+    /// A description of the backup with 2048 characters or less. Requests with longer descriptions will be rejected.
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+    /// Output only. The time until which the backup is not deletable.
+    #[serde(default, rename = "enforcedRetentionEndTime")]
+    pub enforced_retention_end_time: ::core::option::Option<String>,
+    /// Resource labels to represent user provided metadata.
+    #[serde(default)]
+    pub labels: ::core::option::Option<serde_json::Value>,
+    /// Identifier. The resource name of the backup. Format: projects/{project_id}/locations/{location}/backupVaults/{backup_vault_id}/backups/{backup_id}.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Output only. Reserved for future use
+    #[serde(default, rename = "satisfiesPzi")]
+    pub satisfies_pzi: ::core::option::Option<bool>,
+    /// Output only. Reserved for future use
+    #[serde(default, rename = "satisfiesPzs")]
+    pub satisfies_pzs: ::core::option::Option<bool>,
+    /// If specified, backup will be created from the given snapshot. If not specified, there will be a new snapshot taken to initiate the backup creation. Format: projects/{project_id}/locations/{location}/volumes/{volume_id}/snapshots/{snapshot_id}
+    #[serde(default, rename = "sourceSnapshot")]
+    pub source_snapshot: ::core::option::Option<String>,
+    /// Volume full name of this backup belongs to. Either source_volume or ontap_source should be provided. Format: projects/{projects_id}/locations/{location}/volumes/{volume_id}
+    #[serde(default, rename = "sourceVolume")]
+    pub source_volume: ::core::option::Option<String>,
+    /// Output only. The backup state. // TODO: enum values: ["STATE_UNSPECIFIED", "CREATING", "UPLOADING", "READY", "DELETING", "ERROR", "UPDATING"]
+    #[serde(default)]
+    pub state: ::core::option::Option<String>,
+    /// Output only. Region of the volume from which the backup was created. Format: projects/{project_id}/locations/{location}
+    #[serde(default, rename = "volumeRegion")]
+    pub volume_region: ::core::option::Option<String>,
+    /// Output only. Size of the file system when the backup was created. When creating a new volume from the backup, the volume capacity will have to be at least as big.
+    #[serde(default, rename = "volumeUsageBytes")]
+    pub volume_usage_bytes: ::core::option::Option<String>,
+}
+
+/// Host group is a collection of hosts that can be used for accessing a Block Volume.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct HostGroup {
+    /// Output only. Create time of the host group.
+    #[serde(default, rename = "createTime")]
+    pub create_time: ::core::option::Option<String>,
+    /// Optional. Description of the host group.
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+    /// Required. The list of hosts associated with the host group.
+    #[serde(default)]
+    pub hosts: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Optional. Labels of the host group.
+    #[serde(default)]
+    pub labels: ::core::option::Option<serde_json::Value>,
+    /// Identifier. The resource name of the host group. Format: projects/{project_number}/locations/{location_id}/hostGroups/{host_group_id}.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Required. The OS type of the host group. It indicates the type of operating system used by all of the hosts in the HostGroup. All hosts in a HostGroup must be of the same OS type. This can be set only when creating a HostGroup. // TODO: enum values: ["OS_TYPE_UNSPECIFIED", "LINUX", "WINDOWS", "ESXI"]
+    #[serde(default, rename = "osType")]
+    pub os_type: ::core::option::Option<String>,
+    /// Output only. State of the host group. // TODO: enum values: ["STATE_UNSPECIFIED", "CREATING", "READY", "UPDATING", "DELETING", "DISABLED"]
+    #[serde(default)]
+    pub state: ::core::option::Option<String>,
+    /// Required. Type of the host group. // TODO: enum values: ["TYPE_UNSPECIFIED", "ISCSI_INITIATOR"]
+    #[serde(default, rename = "type")]
+    pub type_: ::core::option::Option<String>,
+}
+
+/// KmsConfig is the customer-managed encryption key(CMEK) configuration.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct KmsConfig {
+    /// Output only. Create time of the KmsConfig.
+    #[serde(default, rename = "createTime")]
+    pub create_time: ::core::option::Option<String>,
+    /// Required. Customer-managed crypto key resource full name. Format: projects/{project}/locations/{location}/keyRings/{key_ring}/cryptoKeys/{crypto_key}
+    #[serde(default, rename = "cryptoKeyName")]
+    pub crypto_key_name: ::core::option::Option<String>,
+    /// Description of the KmsConfig.
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+    /// Output only. Instructions to provide the access to the customer provided encryption key.
+    #[serde(default)]
+    pub instructions: ::core::option::Option<String>,
+    /// Labels as key value pairs
+    #[serde(default)]
+    pub labels: ::core::option::Option<serde_json::Value>,
+    /// Identifier. Name of the KmsConfig. Format: projects/{project}/locations/{location}/kmsConfigs/{kms_config}
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Output only. The Service account which will have access to the customer provided encryption key.
+    #[serde(default, rename = "serviceAccount")]
+    pub service_account: ::core::option::Option<String>,
+    /// Output only. State of the KmsConfig. // TODO: enum values: ["STATE_UNSPECIFIED", "READY", "CREATING", "DELETING", "UPDATING", "IN_USE", "ERROR", "KEY_CHECK_PENDING", "KEY_NOT_REACHABLE", "DISABLING", "DISABLED", "MIGRATING"]
+    #[serde(default)]
+    pub state: ::core::option::Option<String>,
+    /// Output only. State details of the KmsConfig.
+    #[serde(default, rename = "stateDetails")]
+    pub state_details: ::core::option::Option<String>,
+}
+
+/// A resource that represents a Google Cloud location.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Location {
+    /// The friendly name for this location, typically a nearby city name. For example, "Tokyo".
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+    /// Cross-service attributes for the location. For example {"cloud.googleapis.com/region": "us-east1"}
+    #[serde(default)]
+    pub labels: ::core::option::Option<serde_json::Value>,
+    /// The canonical id for this location. For example: "us-east1".
+    #[serde(default, rename = "locationId")]
+    pub location_id: ::core::option::Option<String>,
+    /// Service-specific metadata. For example the available capacity at the given location.
+    #[serde(default)]
+    pub metadata: ::core::option::Option<serde_json::Value>,
+    /// Resource name for the location, which may vary between implementations. For example: "projects/example-project/locations/us-east1"
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+}
+
+/// This resource represents a long-running operation that is the result of a network API call.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Operation {
+    /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
+    #[serde(default)]
+    pub done: ::core::option::Option<bool>,
+    /// The error result of the operation in case of failure or cancellation.
+    #[serde(default)]
+    pub error: ::core::option::Option<Status>,
+    /// Service-specific metadata associated with the operation. It typically contains progress information and common metadata such as create time. Some services might not provide such metadata. Any method that returns a long-running operation should document the metadata type, if any.
+    #[serde(default)]
+    pub metadata: ::core::option::Option<serde_json::Value>,
+    /// The server-assigned name, which is only unique within the same service that originally returns it. If you use the default HTTP mapping, the name should be a resource name ending with operations/{unique_id}.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// The normal, successful response of the operation. If the original method returns no data on success, such as Delete, the response is google.protobuf.Empty. If the original method is standard Get/Create/Update, the response should be the resource. For other methods, the response should have the type XxxResponse, where Xxx is the original method name. For example, if the original method name is TakeSnapshot(), the inferred response type is TakeSnapshotResponse.
+    #[serde(default)]
+    pub response: ::core::option::Option<serde_json::Value>,
 }
 
 /// QuotaRule specifies the maximum disk space a user or group can use within a volume. They can be used for creating default and individual quota rules.
@@ -963,83 +713,6 @@ pub struct Replication {
     pub transfer_stats: ::core::option::Option<TransferStats>,
 }
 
-/// RestoreBackupFilesRequest restores files from a backup to a volume.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct RestoreBackupFilesRequest {
-    /// Required. The backup resource name, in the format projects/{project_id}/locations/{location}/backupVaults/{backup_vault_id}/backups/{backup_id}
-    #[serde(default)]
-    pub backup: ::core::option::Option<String>,
-    /// Required. List of files to be restored, specified by their absolute path in the source volume.
-    #[serde(default, rename = "fileList")]
-    pub file_list: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Optional. Absolute directory path in the destination volume. This is required if the file_list is provided.
-    #[serde(default, rename = "restoreDestinationPath")]
-    pub restore_destination_path: ::core::option::Option<String>,
-}
-
-/// The RestoreParameters if volume is created from a snapshot or backup.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct RestoreParameters {
-    /// Full name of the backup resource. Format for standard backup: projects/{project}/locations/{location}/backupVaults/{backup_vault_id}/backups/{backup_id} Format for BackupDR backup: projects/{project}/locations/{location}/backupVaults/{backup_vault}/dataSources/{data_source}/backups/{backup}
-    #[serde(default, rename = "sourceBackup")]
-    pub source_backup: ::core::option::Option<String>,
-    /// Full name of the snapshot resource. Format: projects/{project}/locations/{location}/volumes/{volume}/snapshots/{snapshot}
-    #[serde(default, rename = "sourceSnapshot")]
-    pub source_snapshot: ::core::option::Option<String>,
-}
-
-/// RevertVolumeRequest reverts the given volume to the specified snapshot.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct RevertVolumeRequest {
-    /// Required. The snapshot resource ID, in the format ''my-snapshot'', where the specified ID is the {snapshot_id} of the fully qualified name like projects/{project_id}/locations/{location_id}/volumes/{volume_id}/snapshots/{snapshot_id}
-    #[serde(default, rename = "snapshotId")]
-    pub snapshot_id: ::core::option::Option<String>,
-}
-
-/// An export policy rule describing various export options.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SimpleExportPolicyRule {
-    /// Access type (ReadWrite, ReadOnly, None) // TODO: enum values: ["ACCESS_TYPE_UNSPECIFIED", "READ_ONLY", "READ_WRITE", "READ_NONE"]
-    #[serde(default, rename = "accessType")]
-    pub access_type: ::core::option::Option<String>,
-    /// Comma separated list of allowed clients IP addresses
-    #[serde(default, rename = "allowedClients")]
-    pub allowed_clients: ::core::option::Option<String>,
-    /// Optional. An integer representing the anonymous user ID. Range is 0 to 4294967295. Required when squash_mode is ROOT_SQUASH or ALL_SQUASH.
-    #[serde(default, rename = "anonUid")]
-    pub anon_uid: ::core::option::Option<String>,
-    /// Whether Unix root access will be granted.
-    #[serde(default, rename = "hasRootAccess")]
-    pub has_root_access: ::core::option::Option<String>,
-    /// If enabled (true) the rule defines a read only access for clients matching the ''allowedClients'' specification. It enables nfs clients to mount using ''authentication'' kerberos security mode.
-    #[serde(default, rename = "kerberos5ReadOnly")]
-    pub kerberos5_read_only: ::core::option::Option<bool>,
-    /// If enabled (true) the rule defines read and write access for clients matching the ''allowedClients'' specification. It enables nfs clients to mount using ''authentication'' kerberos security mode. The ''kerberos5ReadOnly'' value be ignored if this is enabled.
-    #[serde(default, rename = "kerberos5ReadWrite")]
-    pub kerberos5_read_write: ::core::option::Option<bool>,
-    /// If enabled (true) the rule defines a read only access for clients matching the ''allowedClients'' specification. It enables nfs clients to mount using ''integrity'' kerberos security mode.
-    #[serde(default, rename = "kerberos5iReadOnly")]
-    pub kerberos5i_read_only: ::core::option::Option<bool>,
-    /// If enabled (true) the rule defines read and write access for clients matching the ''allowedClients'' specification. It enables nfs clients to mount using ''integrity'' kerberos security mode. The ''kerberos5iReadOnly'' value be ignored if this is enabled.
-    #[serde(default, rename = "kerberos5iReadWrite")]
-    pub kerberos5i_read_write: ::core::option::Option<bool>,
-    /// If enabled (true) the rule defines a read only access for clients matching the ''allowedClients'' specification. It enables nfs clients to mount using ''privacy'' kerberos security mode.
-    #[serde(default, rename = "kerberos5pReadOnly")]
-    pub kerberos5p_read_only: ::core::option::Option<bool>,
-    /// If enabled (true) the rule defines read and write access for clients matching the ''allowedClients'' specification. It enables nfs clients to mount using ''privacy'' kerberos security mode. The ''kerberos5pReadOnly'' value be ignored if this is enabled.
-    #[serde(default, rename = "kerberos5pReadWrite")]
-    pub kerberos5p_read_write: ::core::option::Option<bool>,
-    /// NFS V3 protocol.
-    #[serde(default)]
-    pub nfsv3: ::core::option::Option<bool>,
-    /// NFS V4 protocol.
-    #[serde(default)]
-    pub nfsv4: ::core::option::Option<bool>,
-    /// Optional. Defines how user identity squashing is applied for this export rule. This field is the preferred way to configure squashing behavior and takes precedence over has_root_access if both are provided. // TODO: enum values: ["SQUASH_MODE_UNSPECIFIED", "NO_ROOT_SQUASH", "ROOT_SQUASH", "ALL_SQUASH"]
-    #[serde(default, rename = "squashMode")]
-    pub squash_mode: ::core::option::Option<String>,
-}
-
 /// Snapshot is a point-in-time version of a Volume''s content.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Snapshot {
@@ -1064,48 +737,6 @@ pub struct Snapshot {
     /// Output only. Current storage usage for the snapshot in bytes.
     #[serde(default, rename = "usedBytes")]
     pub used_bytes: ::core::option::Option<f64>,
-}
-
-/// Snapshot Policy for a volume.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SnapshotPolicy {
-    /// Daily schedule policy.
-    #[serde(default, rename = "dailySchedule")]
-    pub daily_schedule: ::core::option::Option<DailySchedule>,
-    /// If enabled, make snapshots automatically according to the schedules. Default is false.
-    #[serde(default)]
-    pub enabled: ::core::option::Option<bool>,
-    /// Hourly schedule policy.
-    #[serde(default, rename = "hourlySchedule")]
-    pub hourly_schedule: ::core::option::Option<HourlySchedule>,
-    /// Monthly schedule policy.
-    #[serde(default, rename = "monthlySchedule")]
-    pub monthly_schedule: ::core::option::Option<MonthlySchedule>,
-    /// Weekly schedule policy.
-    #[serde(default, rename = "weeklySchedule")]
-    pub weekly_schedule: ::core::option::Option<WeeklySchedule>,
-}
-
-/// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Status {
-    /// The status code, which should be an enum value of google.rpc.Code.
-    #[serde(default)]
-    pub code: ::core::option::Option<i32>,
-    /// A list of messages that carry the error details. There is a common set of message types for APIs to use.
-    #[serde(default)]
-    pub details: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
-    /// A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.
-    #[serde(default)]
-    pub message: ::core::option::Option<String>,
-}
-
-/// StopReplicationRequest stops a replication until resumed.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct StopReplicationRequest {
-    /// Indicates whether to stop replication forcefully while data transfer is in progress. Warning! if force is true, this will abort any current transfers and can lead to data loss due to partial transfer. If force is false, stop replication will fail while data transfer is in progress and you will need to retry later.
-    #[serde(default)]
-    pub force: ::core::option::Option<bool>,
 }
 
 /// StoragePool is a container for volumes with a service level and capacity. Volumes can be created in a pool of sufficient available capacity. StoragePool capacity is what you are billed for.
@@ -1213,79 +844,6 @@ pub struct StoragePool {
     /// Optional. Specifies the active zone for regional storagePool.
     #[serde(default)]
     pub zone: ::core::option::Option<String>,
-}
-
-/// Defines tiering policy for the volume.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct TieringPolicy {
-    /// Optional. Time in days to mark the volume''s data block as cold and make it eligible for tiering, can be range from 2-183. Default is 31.
-    #[serde(default, rename = "coolingThresholdDays")]
-    pub cooling_threshold_days: ::core::option::Option<i32>,
-    /// Optional. Flag indicating that the hot tier bypass mode is enabled. Default is false. This is only applicable to Flex service level.
-    #[serde(default, rename = "hotTierBypassModeEnabled")]
-    pub hot_tier_bypass_mode_enabled: ::core::option::Option<bool>,
-    /// Optional. Flag indicating if the volume has tiering policy enable/pause. Default is PAUSED. // TODO: enum values: ["TIER_ACTION_UNSPECIFIED", "ENABLED", "PAUSED"]
-    #[serde(default, rename = "tierAction")]
-    pub tier_action: ::core::option::Option<String>,
-}
-
-/// TransferStats reports all statistics related to replication transfer.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct TransferStats {
-    /// Lag duration indicates the duration by which Destination region volume content lags behind the primary region volume content.
-    #[serde(default, rename = "lagDuration")]
-    pub lag_duration: ::core::option::Option<String>,
-    /// Last transfer size in bytes.
-    #[serde(default, rename = "lastTransferBytes")]
-    pub last_transfer_bytes: ::core::option::Option<String>,
-    /// Time taken during last transfer.
-    #[serde(default, rename = "lastTransferDuration")]
-    pub last_transfer_duration: ::core::option::Option<String>,
-    /// Time when last transfer completed.
-    #[serde(default, rename = "lastTransferEndTime")]
-    pub last_transfer_end_time: ::core::option::Option<String>,
-    /// A message describing the cause of the last transfer failure.
-    #[serde(default, rename = "lastTransferError")]
-    pub last_transfer_error: ::core::option::Option<String>,
-    /// Cumulative time taken across all transfers for the replication relationship.
-    #[serde(default, rename = "totalTransferDuration")]
-    pub total_transfer_duration: ::core::option::Option<String>,
-    /// Cumulative bytes transferred so far for the replication relationship.
-    #[serde(default, rename = "transferBytes")]
-    pub transfer_bytes: ::core::option::Option<String>,
-    /// Time when progress was updated last.
-    #[serde(default, rename = "updateTime")]
-    pub update_time: ::core::option::Option<String>,
-}
-
-/// UserCommands contains the commands to be executed by the customer.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct UserCommands {
-    /// Output only. List of commands to be executed by the customer.
-    #[serde(default)]
-    pub commands: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// ValidateDirectoryServiceRequest validates the directory service policy attached to the storage pool.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ValidateDirectoryServiceRequest {
-    /// Type of directory service policy attached to the storage pool. // TODO: enum values: ["DIRECTORY_SERVICE_TYPE_UNSPECIFIED", "ACTIVE_DIRECTORY"]
-    #[serde(default, rename = "directoryServiceType")]
-    pub directory_service_type: ::core::option::Option<String>,
-}
-
-/// VerifyKmsConfigResponse contains the information if the config is correctly and error message.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct VerifyKmsConfigResponse {
-    /// Output only. Error message if config is not healthy.
-    #[serde(default, rename = "healthError")]
-    pub health_error: ::core::option::Option<String>,
-    /// Output only. If the customer key configured correctly to the encrypt volume.
-    #[serde(default)]
-    pub healthy: ::core::option::Option<bool>,
-    /// Output only. Instructions for the customers to provide the access to the encryption key.
-    #[serde(default)]
-    pub instructions: ::core::option::Option<String>,
 }
 
 /// Volume provides a filesystem that you can mount.
@@ -1425,6 +983,434 @@ pub struct Volume {
     pub zone: ::core::option::Option<String>,
 }
 
+/// Retention policy for backups in the backup vault
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BackupRetentionPolicy {
+    /// Required. Minimum retention duration in days for backups in the backup vault.
+    #[serde(default, rename = "backupMinimumEnforcedRetentionDays")]
+    pub backup_minimum_enforced_retention_days: ::core::option::Option<i32>,
+    /// Optional. Indicates if the daily backups are immutable. At least one of daily_backup_immutable, weekly_backup_immutable, monthly_backup_immutable and manual_backup_immutable must be true.
+    #[serde(default, rename = "dailyBackupImmutable")]
+    pub daily_backup_immutable: ::core::option::Option<bool>,
+    /// Optional. Indicates if the manual backups are immutable. At least one of daily_backup_immutable, weekly_backup_immutable, monthly_backup_immutable and manual_backup_immutable must be true.
+    #[serde(default, rename = "manualBackupImmutable")]
+    pub manual_backup_immutable: ::core::option::Option<bool>,
+    /// Optional. Indicates if the monthly backups are immutable. At least one of daily_backup_immutable, weekly_backup_immutable, monthly_backup_immutable and manual_backup_immutable must be true.
+    #[serde(default, rename = "monthlyBackupImmutable")]
+    pub monthly_backup_immutable: ::core::option::Option<bool>,
+    /// Optional. Indicates if the weekly backups are immutable. At least one of daily_backup_immutable, weekly_backup_immutable, monthly_backup_immutable and manual_backup_immutable must be true.
+    #[serde(default, rename = "weeklyBackupImmutable")]
+    pub weekly_backup_immutable: ::core::option::Option<bool>,
+}
+
+/// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Status {
+    /// The status code, which should be an enum value of google.rpc.Code.
+    #[serde(default)]
+    pub code: ::core::option::Option<i32>,
+    /// A list of messages that carry the error details. There is a common set of message types for APIs to use.
+    #[serde(default)]
+    pub details: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
+    /// A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.
+    #[serde(default)]
+    pub message: ::core::option::Option<String>,
+}
+
+/// DestinationVolumeParameters specify input parameters used for creating destination volume.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DestinationVolumeParameters {
+    /// Description for the destination volume.
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+    /// Destination volume''s share name. If not specified, source volume''s share name will be used.
+    #[serde(default, rename = "shareName")]
+    pub share_name: ::core::option::Option<String>,
+    /// Required. Existing destination StoragePool name.
+    #[serde(default, rename = "storagePool")]
+    pub storage_pool: ::core::option::Option<String>,
+    /// Optional. Tiering policy for the volume.
+    #[serde(default, rename = "tieringPolicy")]
+    pub tiering_policy: ::core::option::Option<TieringPolicy>,
+    /// Desired destination volume resource id. If not specified, source volume''s resource id will be used. This value must start with a lowercase letter followed by up to 62 lowercase letters, numbers, or hyphens, and cannot end with a hyphen.
+    #[serde(default, rename = "volumeId")]
+    pub volume_id: ::core::option::Option<String>,
+}
+
+/// HybridPeeringDetails contains details about the hybrid peering.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct HybridPeeringDetails {
+    /// Output only. Copy-paste-able commands to be used on user''s ONTAP to accept peering requests.
+    #[serde(default)]
+    pub command: ::core::option::Option<String>,
+    /// Output only. Expiration time for the peering command to be executed on user''s ONTAP.
+    #[serde(default, rename = "commandExpiryTime")]
+    pub command_expiry_time: ::core::option::Option<String>,
+    /// Output only. Temporary passphrase generated to accept cluster peering command.
+    #[serde(default)]
+    pub passphrase: ::core::option::Option<String>,
+    /// Output only. Name of the user''s local source cluster to be peered with the destination cluster.
+    #[serde(default, rename = "peerClusterName")]
+    pub peer_cluster_name: ::core::option::Option<String>,
+    /// Output only. Name of the user''s local source vserver svm to be peered with the destination vserver svm.
+    #[serde(default, rename = "peerSvmName")]
+    pub peer_svm_name: ::core::option::Option<String>,
+    /// Output only. Name of the user''s local source volume to be peered with the destination volume.
+    #[serde(default, rename = "peerVolumeName")]
+    pub peer_volume_name: ::core::option::Option<String>,
+    /// Output only. IP address of the subnet.
+    #[serde(default, rename = "subnetIp")]
+    pub subnet_ip: ::core::option::Option<String>,
+}
+
+/// UserCommands contains the commands to be executed by the customer.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct UserCommands {
+    /// Output only. List of commands to be executed by the customer.
+    #[serde(default)]
+    pub commands: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// TransferStats reports all statistics related to replication transfer.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TransferStats {
+    /// Lag duration indicates the duration by which Destination region volume content lags behind the primary region volume content.
+    #[serde(default, rename = "lagDuration")]
+    pub lag_duration: ::core::option::Option<String>,
+    /// Last transfer size in bytes.
+    #[serde(default, rename = "lastTransferBytes")]
+    pub last_transfer_bytes: ::core::option::Option<String>,
+    /// Time taken during last transfer.
+    #[serde(default, rename = "lastTransferDuration")]
+    pub last_transfer_duration: ::core::option::Option<String>,
+    /// Time when last transfer completed.
+    #[serde(default, rename = "lastTransferEndTime")]
+    pub last_transfer_end_time: ::core::option::Option<String>,
+    /// A message describing the cause of the last transfer failure.
+    #[serde(default, rename = "lastTransferError")]
+    pub last_transfer_error: ::core::option::Option<String>,
+    /// Cumulative time taken across all transfers for the replication relationship.
+    #[serde(default, rename = "totalTransferDuration")]
+    pub total_transfer_duration: ::core::option::Option<String>,
+    /// Cumulative bytes transferred so far for the replication relationship.
+    #[serde(default, rename = "transferBytes")]
+    pub transfer_bytes: ::core::option::Option<String>,
+    /// Time when progress was updated last.
+    #[serde(default, rename = "updateTime")]
+    pub update_time: ::core::option::Option<String>,
+}
+
+/// BackupConfig contains backup related config on a volume.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BackupConfig {
+    /// Output only. Total size of all backups in a chain in bytes = baseline backup size + sum(incremental backup size).
+    #[serde(default, rename = "backupChainBytes")]
+    pub backup_chain_bytes: ::core::option::Option<String>,
+    /// Optional. When specified, schedule backups will be created based on the policy configuration.
+    #[serde(default, rename = "backupPolicies")]
+    pub backup_policies: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Optional. Name of backup vault. Format: projects/{project_id}/locations/{location}/backupVaults/{backup_vault_id}
+    #[serde(default, rename = "backupVault")]
+    pub backup_vault: ::core::option::Option<String>,
+    /// Optional. When set to true, scheduled backup is enabled on the volume. This field should be nil when there''s no backup policy attached.
+    #[serde(default, rename = "scheduledBackupEnabled")]
+    pub scheduled_backup_enabled: ::core::option::Option<bool>,
+}
+
+/// Block device represents the device(s) which are stored in the block volume.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BlockDevice {
+    /// Optional. A list of host groups that identify hosts that can mount the block volume. Format: projects/{project_id}/locations/{location}/hostGroups/{host_group_id} This field can be updated after the block device is created.
+    #[serde(default, rename = "hostGroups")]
+    pub host_groups: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Output only. Device identifier of the block volume. This represents lun_serial_number for iSCSI volumes.
+    #[serde(default)]
+    pub identifier: ::core::option::Option<String>,
+    /// Optional. User-defined name for the block device, unique within the volume. In case no user input is provided, name will be auto-generated in the backend. The name must meet the following requirements: * Be between 1 and 255 characters long. * Contain only uppercase or lowercase letters (A-Z, a-z), numbers (0-9), and the following special characters: "-", "_", "}", "{", ".". * Spaces are not allowed.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Required. Immutable. The OS type of the volume. This field can''t be changed after the block device is created. // TODO: enum values: ["OS_TYPE_UNSPECIFIED", "LINUX", "WINDOWS", "ESXI"]
+    #[serde(default, rename = "osType")]
+    pub os_type: ::core::option::Option<String>,
+    /// Optional. The size of the block device in GiB. Any value provided for the size_gib field during volume creation is ignored. The block device''s size is system-managed and will be set to match the parent Volume''s capacity_gib.
+    #[serde(default, rename = "sizeGib")]
+    pub size_gib: ::core::option::Option<String>,
+}
+
+/// Cache Parameters for the volume.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CacheParameters {
+    /// Optional. Configuration of the cache volume.
+    #[serde(default, rename = "cacheConfig")]
+    pub cache_config: ::core::option::Option<CacheConfig>,
+    /// Output only. State of the cache volume indicating the peering status. // TODO: enum values: ["CACHE_STATE_UNSPECIFIED", "PENDING_CLUSTER_PEERING", "PENDING_SVM_PEERING", "PEERED", "ERROR"]
+    #[serde(default, rename = "cacheState")]
+    pub cache_state: ::core::option::Option<String>,
+    /// Output only. Copy-paste-able commands to be used on user''s ONTAP to accept peering requests.
+    #[serde(default)]
+    pub command: ::core::option::Option<String>,
+    /// Optional. Indicates whether the cache volume has global file lock enabled.
+    #[serde(default, rename = "enableGlobalFileLock")]
+    pub enable_global_file_lock: ::core::option::Option<bool>,
+    /// Output only. Temporary passphrase generated to accept cluster peering command.
+    #[serde(default)]
+    pub passphrase: ::core::option::Option<String>,
+    /// Required. Name of the origin volume''s ONTAP cluster.
+    #[serde(default, rename = "peerClusterName")]
+    pub peer_cluster_name: ::core::option::Option<String>,
+    /// Required. List of IC LIF addresses of the origin volume''s ONTAP cluster.
+    #[serde(default, rename = "peerIpAddresses")]
+    pub peer_ip_addresses: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Required. Name of the origin volume''s SVM.
+    #[serde(default, rename = "peerSvmName")]
+    pub peer_svm_name: ::core::option::Option<String>,
+    /// Required. Name of the origin volume for the cache volume.
+    #[serde(default, rename = "peerVolumeName")]
+    pub peer_volume_name: ::core::option::Option<String>,
+    /// Optional. Expiration time for the peering command to be executed on user''s ONTAP.
+    #[serde(default, rename = "peeringCommandExpiryTime")]
+    pub peering_command_expiry_time: ::core::option::Option<String>,
+    /// Output only. Detailed description of the current cache state.
+    #[serde(default, rename = "stateDetails")]
+    pub state_details: ::core::option::Option<String>,
+}
+
+/// Details about a clone volume.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CloneDetails {
+    /// Output only. Shared space in GiB. Determined at volume creation time based on size of source snapshot.
+    #[serde(default, rename = "sharedSpaceGib")]
+    pub shared_space_gib: ::core::option::Option<String>,
+    /// Output only. Specifies the full resource name of the source snapshot from which this volume was cloned. Format: projects/{project}/locations/{location}/volumes/{volume}/snapshots/{snapshot}
+    #[serde(default, rename = "sourceSnapshot")]
+    pub source_snapshot: ::core::option::Option<String>,
+    /// Output only. Full name of the source volume resource. Format: projects/{project}/locations/{location}/volumes/{volume}
+    #[serde(default, rename = "sourceVolume")]
+    pub source_volume: ::core::option::Option<String>,
+}
+
+/// Defines the export policy for the volume.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ExportPolicy {
+    /// Required. List of export policy rules
+    #[serde(default)]
+    pub rules: ::core::option::Option<::std::vec::Vec<SimpleExportPolicyRule>>,
+}
+
+/// The Hybrid Replication parameters for the volume.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct HybridReplicationParameters {
+    /// Optional. Name of source cluster location associated with the Hybrid replication. This is a free-form field for the display purpose only.
+    #[serde(default, rename = "clusterLocation")]
+    pub cluster_location: ::core::option::Option<String>,
+    /// Optional. Description of the replication.
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+    /// Optional. Type of the hybrid replication. // TODO: enum values: ["VOLUME_HYBRID_REPLICATION_TYPE_UNSPECIFIED", "MIGRATION", "CONTINUOUS_REPLICATION", "ONPREM_REPLICATION", "REVERSE_ONPREM_REPLICATION"]
+    #[serde(default, rename = "hybridReplicationType")]
+    pub hybrid_replication_type: ::core::option::Option<String>,
+    /// Optional. Labels to be added to the replication as the key value pairs.
+    #[serde(default)]
+    pub labels: ::core::option::Option<serde_json::Value>,
+    /// Optional. Constituent volume count for large volume.
+    #[serde(default, rename = "largeVolumeConstituentCount")]
+    pub large_volume_constituent_count: ::core::option::Option<i32>,
+    /// Required. Name of the user''s local source cluster to be peered with the destination cluster.
+    #[serde(default, rename = "peerClusterName")]
+    pub peer_cluster_name: ::core::option::Option<String>,
+    /// Required. List of node ip addresses to be peered with.
+    #[serde(default, rename = "peerIpAddresses")]
+    pub peer_ip_addresses: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Required. Name of the user''s local source vserver svm to be peered with the destination vserver svm.
+    #[serde(default, rename = "peerSvmName")]
+    pub peer_svm_name: ::core::option::Option<String>,
+    /// Required. Name of the user''s local source volume to be peered with the destination volume.
+    #[serde(default, rename = "peerVolumeName")]
+    pub peer_volume_name: ::core::option::Option<String>,
+    /// Required. Desired name for the replication of this volume.
+    #[serde(default)]
+    pub replication: ::core::option::Option<String>,
+    /// Optional. Replication Schedule for the replication created. // TODO: enum values: ["HYBRID_REPLICATION_SCHEDULE_UNSPECIFIED", "EVERY_10_MINUTES", "HOURLY", "DAILY"]
+    #[serde(default, rename = "replicationSchedule")]
+    pub replication_schedule: ::core::option::Option<String>,
+}
+
+/// Configuration for a Large Capacity Volume. A Large Capacity Volume supports sizes ranging from 4.8 TiB to 20 PiB, it is composed of multiple internal constituents, and must be created in a large capacity pool.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LargeCapacityConfig {
+    /// Optional. The number of internal constituents (e.g., FlexVols) for this large volume. The minimum number of constituents is 2.
+    #[serde(default, rename = "constituentCount")]
+    pub constituent_count: ::core::option::Option<i32>,
+}
+
+/// View only mount options for a volume.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MountOption {
+    /// Export string
+    #[serde(default)]
+    pub export: ::core::option::Option<String>,
+    /// Full export string
+    #[serde(default, rename = "exportFull")]
+    pub export_full: ::core::option::Option<String>,
+    /// Instructions for mounting
+    #[serde(default)]
+    pub instructions: ::core::option::Option<String>,
+    /// Output only. IP Address.
+    #[serde(default, rename = "ipAddress")]
+    pub ip_address: ::core::option::Option<String>,
+    /// Protocol to mount with. // TODO: enum values: ["PROTOCOLS_UNSPECIFIED", "NFSV3", "NFSV4", "SMB", "ISCSI"]
+    #[serde(default)]
+    pub protocol: ::core::option::Option<String>,
+}
+
+/// The RestoreParameters if volume is created from a snapshot or backup.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RestoreParameters {
+    /// Full name of the backup resource. Format for standard backup: projects/{project}/locations/{location}/backupVaults/{backup_vault_id}/backups/{backup_id} Format for BackupDR backup: projects/{project}/locations/{location}/backupVaults/{backup_vault}/dataSources/{data_source}/backups/{backup}
+    #[serde(default, rename = "sourceBackup")]
+    pub source_backup: ::core::option::Option<String>,
+    /// Full name of the snapshot resource. Format: projects/{project}/locations/{location}/volumes/{volume}/snapshots/{snapshot}
+    #[serde(default, rename = "sourceSnapshot")]
+    pub source_snapshot: ::core::option::Option<String>,
+}
+
+/// Snapshot Policy for a volume.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SnapshotPolicy {
+    /// Daily schedule policy.
+    #[serde(default, rename = "dailySchedule")]
+    pub daily_schedule: ::core::option::Option<DailySchedule>,
+    /// If enabled, make snapshots automatically according to the schedules. Default is false.
+    #[serde(default)]
+    pub enabled: ::core::option::Option<bool>,
+    /// Hourly schedule policy.
+    #[serde(default, rename = "hourlySchedule")]
+    pub hourly_schedule: ::core::option::Option<HourlySchedule>,
+    /// Monthly schedule policy.
+    #[serde(default, rename = "monthlySchedule")]
+    pub monthly_schedule: ::core::option::Option<MonthlySchedule>,
+    /// Weekly schedule policy.
+    #[serde(default, rename = "weeklySchedule")]
+    pub weekly_schedule: ::core::option::Option<WeeklySchedule>,
+}
+
+/// Defines tiering policy for the volume.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TieringPolicy {
+    /// Optional. Time in days to mark the volume''s data block as cold and make it eligible for tiering, can be range from 2-183. Default is 31.
+    #[serde(default, rename = "coolingThresholdDays")]
+    pub cooling_threshold_days: ::core::option::Option<i32>,
+    /// Optional. Flag indicating that the hot tier bypass mode is enabled. Default is false. This is only applicable to Flex service level.
+    #[serde(default, rename = "hotTierBypassModeEnabled")]
+    pub hot_tier_bypass_mode_enabled: ::core::option::Option<bool>,
+    /// Optional. Flag indicating if the volume has tiering policy enable/pause. Default is PAUSED. // TODO: enum values: ["TIER_ACTION_UNSPECIFIED", "ENABLED", "PAUSED"]
+    #[serde(default, rename = "tierAction")]
+    pub tier_action: ::core::option::Option<String>,
+}
+
+/// Configuration of the cache volume.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CacheConfig {
+    /// Optional. Pre-populate cache volume with data from the origin volume.
+    #[serde(default, rename = "cachePrePopulate")]
+    pub cache_pre_populate: ::core::option::Option<CachePrePopulate>,
+    /// Output only. State of the prepopulation job indicating how the prepopulation is progressing. // TODO: enum values: ["CACHE_PRE_POPULATE_STATE_UNSPECIFIED", "NOT_NEEDED", "IN_PROGRESS", "COMPLETE", "ERROR"]
+    #[serde(default, rename = "cachePrePopulateState")]
+    pub cache_pre_populate_state: ::core::option::Option<String>,
+    /// Optional. Flag indicating whether a CIFS change notification is enabled for the FlexCache volume.
+    #[serde(default, rename = "cifsChangeNotifyEnabled")]
+    pub cifs_change_notify_enabled: ::core::option::Option<bool>,
+    /// Optional. Flag indicating whether writeback is enabled for the FlexCache volume.
+    #[serde(default, rename = "writebackEnabled")]
+    pub writeback_enabled: ::core::option::Option<bool>,
+}
+
+/// An export policy rule describing various export options.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SimpleExportPolicyRule {
+    /// Access type (ReadWrite, ReadOnly, None) // TODO: enum values: ["ACCESS_TYPE_UNSPECIFIED", "READ_ONLY", "READ_WRITE", "READ_NONE"]
+    #[serde(default, rename = "accessType")]
+    pub access_type: ::core::option::Option<String>,
+    /// Comma separated list of allowed clients IP addresses
+    #[serde(default, rename = "allowedClients")]
+    pub allowed_clients: ::core::option::Option<String>,
+    /// Optional. An integer representing the anonymous user ID. Range is 0 to 4294967295. Required when squash_mode is ROOT_SQUASH or ALL_SQUASH.
+    #[serde(default, rename = "anonUid")]
+    pub anon_uid: ::core::option::Option<String>,
+    /// Whether Unix root access will be granted.
+    #[serde(default, rename = "hasRootAccess")]
+    pub has_root_access: ::core::option::Option<String>,
+    /// If enabled (true) the rule defines a read only access for clients matching the ''allowedClients'' specification. It enables nfs clients to mount using ''authentication'' kerberos security mode.
+    #[serde(default, rename = "kerberos5ReadOnly")]
+    pub kerberos5_read_only: ::core::option::Option<bool>,
+    /// If enabled (true) the rule defines read and write access for clients matching the ''allowedClients'' specification. It enables nfs clients to mount using ''authentication'' kerberos security mode. The ''kerberos5ReadOnly'' value be ignored if this is enabled.
+    #[serde(default, rename = "kerberos5ReadWrite")]
+    pub kerberos5_read_write: ::core::option::Option<bool>,
+    /// If enabled (true) the rule defines a read only access for clients matching the ''allowedClients'' specification. It enables nfs clients to mount using ''integrity'' kerberos security mode.
+    #[serde(default, rename = "kerberos5iReadOnly")]
+    pub kerberos5i_read_only: ::core::option::Option<bool>,
+    /// If enabled (true) the rule defines read and write access for clients matching the ''allowedClients'' specification. It enables nfs clients to mount using ''integrity'' kerberos security mode. The ''kerberos5iReadOnly'' value be ignored if this is enabled.
+    #[serde(default, rename = "kerberos5iReadWrite")]
+    pub kerberos5i_read_write: ::core::option::Option<bool>,
+    /// If enabled (true) the rule defines a read only access for clients matching the ''allowedClients'' specification. It enables nfs clients to mount using ''privacy'' kerberos security mode.
+    #[serde(default, rename = "kerberos5pReadOnly")]
+    pub kerberos5p_read_only: ::core::option::Option<bool>,
+    /// If enabled (true) the rule defines read and write access for clients matching the ''allowedClients'' specification. It enables nfs clients to mount using ''privacy'' kerberos security mode. The ''kerberos5pReadOnly'' value be ignored if this is enabled.
+    #[serde(default, rename = "kerberos5pReadWrite")]
+    pub kerberos5p_read_write: ::core::option::Option<bool>,
+    /// NFS V3 protocol.
+    #[serde(default)]
+    pub nfsv3: ::core::option::Option<bool>,
+    /// NFS V4 protocol.
+    #[serde(default)]
+    pub nfsv4: ::core::option::Option<bool>,
+    /// Optional. Defines how user identity squashing is applied for this export rule. This field is the preferred way to configure squashing behavior and takes precedence over has_root_access if both are provided. // TODO: enum values: ["SQUASH_MODE_UNSPECIFIED", "NO_ROOT_SQUASH", "ROOT_SQUASH", "ALL_SQUASH"]
+    #[serde(default, rename = "squashMode")]
+    pub squash_mode: ::core::option::Option<String>,
+}
+
+/// Make a snapshot every day e.g. at 04:00, 05:20, 23:50
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DailySchedule {
+    /// Set the hour to start the snapshot (0-23), defaults to midnight (0).
+    #[serde(default)]
+    pub hour: ::core::option::Option<f64>,
+    /// Set the minute of the hour to start the snapshot (0-59), defaults to the top of the hour (0).
+    #[serde(default)]
+    pub minute: ::core::option::Option<f64>,
+    /// The maximum number of Snapshots to keep for the hourly schedule
+    #[serde(default, rename = "snapshotsToKeep")]
+    pub snapshots_to_keep: ::core::option::Option<f64>,
+}
+
+/// Make a snapshot every hour e.g. at 04:00, 05:00, 06:00.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct HourlySchedule {
+    /// Set the minute of the hour to start the snapshot (0-59), defaults to the top of the hour (0).
+    #[serde(default)]
+    pub minute: ::core::option::Option<f64>,
+    /// The maximum number of Snapshots to keep for the hourly schedule
+    #[serde(default, rename = "snapshotsToKeep")]
+    pub snapshots_to_keep: ::core::option::Option<f64>,
+}
+
+/// Make a snapshot once a month e.g. at 2nd 04:00, 7th 05:20, 24th 23:50
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MonthlySchedule {
+    /// Set the day or days of the month to make a snapshot (1-31). Accepts a comma separated number of days. Defaults to ''1''.
+    #[serde(default, rename = "daysOfMonth")]
+    pub days_of_month: ::core::option::Option<String>,
+    /// Set the hour to start the snapshot (0-23), defaults to midnight (0).
+    #[serde(default)]
+    pub hour: ::core::option::Option<f64>,
+    /// Set the minute of the hour to start the snapshot (0-59), defaults to the top of the hour (0).
+    #[serde(default)]
+    pub minute: ::core::option::Option<f64>,
+    /// The maximum number of Snapshots to keep for the hourly schedule
+    #[serde(default, rename = "snapshotsToKeep")]
+    pub snapshots_to_keep: ::core::option::Option<f64>,
+}
+
 /// Make a snapshot every week e.g. at Monday 04:00, Wednesday 05:20, Sunday 23:50
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct WeeklySchedule {
@@ -1440,4 +1426,18 @@ pub struct WeeklySchedule {
     /// The maximum number of Snapshots to keep for the hourly schedule
     #[serde(default, rename = "snapshotsToKeep")]
     pub snapshots_to_keep: ::core::option::Option<f64>,
+}
+
+/// Pre-populate cache volume with data from the origin volume.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CachePrePopulate {
+    /// Optional. List of directory-paths to be excluded for pre-population for the FlexCache volume.
+    #[serde(default, rename = "excludePathList")]
+    pub exclude_path_list: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Optional. List of directory-paths to be pre-populated for the FlexCache volume.
+    #[serde(default, rename = "pathList")]
+    pub path_list: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Optional. Flag indicating whether the directories listed with the path_list need to be recursively pre-populated.
+    #[serde(default)]
+    pub recursion: ::core::option::Option<bool>,
 }

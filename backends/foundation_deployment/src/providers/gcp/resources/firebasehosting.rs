@@ -10,17 +10,6 @@
 use super::*;
 use serde::{Deserialize, Serialize};
 
-/// A set of ACME challenges you can use to allow Hosting to create an SSL certificate for your domain name before directing traffic to Hosting servers. Use either the DNS or HTTP challenge; it''s not necessary to provide both.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CertVerification {
-    /// Output only. A TXT record to add to your DNS records that confirms your intent to let Hosting create an SSL cert for your domain name.
-    #[serde(default)]
-    pub dns: ::core::option::Option<DnsUpdates>,
-    /// Output only. A file to add to your existing, non-Hosting hosting service that confirms your intent to let Hosting create an SSL cert for your domain name.
-    #[serde(default)]
-    pub http: ::core::option::Option<HttpUpdate>,
-}
-
 /// Metadata associated with aCustomDomain operation.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CustomDomainMetadata {
@@ -42,71 +31,6 @@ pub struct CustomDomainMetadata {
     /// A set of DNS record updates that allow Hosting to serve secure content on your domain name. The record type determines the update''s purpose: - A and AAAA: Updates your domain name''s IP addresses so that they direct traffic to Hosting servers. - TXT: Updates ownership permissions on your domain name, letting Hosting know that your custom domain''s project has permission to perform actions for that domain name. - CAA: Updates your domain name''s list of authorized Certificate Authorities (CAs). Only present if you have existing CAA records that prohibit Hosting''s CA from minting certs for your domain name. These updates include all DNS changes you''ll need to get started with Hosting, but, if made all at once, can result in a brief period of downtime for your domain name--while Hosting creates and uploads an SSL cert, for example. If you''d like to add your domain name to Hosting without downtime, complete the liveMigrationSteps first, before making the remaining updates in this field.
     #[serde(default, rename = "quickSetupUpdates")]
     pub quick_setup_updates: ::core::option::Option<DnsUpdates>,
-}
-
-/// DNS records are resource records that define how systems and services should behave when handling requests for a domain name. For example, when you add A records to your domain name''s DNS records, you''re informing other systems (such as your users'' web browsers) to contact those IPv4 addresses to retrieve resources relevant to your domain name (such as your Hosting site files).
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DnsRecord {
-    /// Output only. The domain name the record pertains to, e.g. foo.bar.com..
-    #[serde(default, rename = "domainName")]
-    pub domain_name: ::core::option::Option<String>,
-    /// Output only. The data of the record. The meaning of the value depends on record type: - A and AAAA: IP addresses for the domain name. - CNAME: Another domain to check for records. - TXT: Arbitrary text strings associated with the domain name. Hosting uses TXT records to determine which Firebase projects have permission to act on the domain name''s behalf. - CAA: The record''s flags, tag, and value, e.g. 0 issue "pki.goog".
-    #[serde(default)]
-    pub rdata: ::core::option::Option<String>,
-    /// Output only. An enum that indicates the a required action for this record. // TODO: enum values: ["NONE", "ADD", "REMOVE"]
-    #[serde(default, rename = "requiredAction")]
-    pub required_action: ::core::option::Option<String>,
-    /// Output only. The record''s type, which determines what data the record contains. // TODO: enum values: ["TYPE_UNSPECIFIED", "A", "CNAME", "TXT", "AAAA", "CAA"]
-    #[serde(default, rename = "type")]
-    pub type_: ::core::option::Option<String>,
-}
-
-/// A set of DNS records relevant to the setup and maintenance of a custom domain in Firebase Hosting.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DnsRecordSet {
-    /// Output only. An error Hosting services encountered when querying your domain name''s DNS records. Note: Hosting ignores NXDOMAIN errors, as those generally just mean that a domain name hasn''t been set up yet.
-    #[serde(default, rename = "checkError")]
-    pub check_error: ::core::option::Option<Status>,
-    /// Output only. The domain name the record set pertains to.
-    #[serde(default, rename = "domainName")]
-    pub domain_name: ::core::option::Option<String>,
-    /// Output only. Records on the domain.
-    #[serde(default)]
-    pub records: ::core::option::Option<::std::vec::Vec<DnsRecord>>,
-}
-
-/// A set of DNS record updates that you should make to allow Hosting to serve secure content in response to requests against your domain name. These updates present the current state of your domain name''s DNS records when Hosting last queried them, and the desired set of records that Hosting needs to see before your custom domain can be fully active.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DnsUpdates {
-    /// The last time Hosting checked your custom domain''s DNS records.
-    #[serde(default, rename = "checkTime")]
-    pub check_time: ::core::option::Option<String>,
-    /// The set of DNS records Hosting needs to serve secure content on the domain.
-    #[serde(default)]
-    pub desired: ::core::option::Option<::std::vec::Vec<DnsRecordSet>>,
-    /// The set of DNS records Hosting discovered when inspecting a domain.
-    #[serde(default)]
-    pub discovered: ::core::option::Option<::std::vec::Vec<DnsRecordSet>>,
-}
-
-/// A file you can add to your existing, non-Hosting hosting service that confirms your intent to allow Hosting''s Certificate Authorities to create an SSL certificate for your domain.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct HttpUpdate {
-    /// Output only. An error encountered during the last contents check. If null, the check completed successfully.
-    #[serde(default, rename = "checkError")]
-    pub check_error: ::core::option::Option<Status>,
-    /// Output only. A text string to serve at the path.
-    #[serde(default)]
-    pub desired: ::core::option::Option<String>,
-    /// Output only. Whether Hosting was able to find the required file contents on the specified path during its last check.
-    #[serde(default)]
-    pub discovered: ::core::option::Option<String>,
-    /// Output only. The last time Hosting systems checked for the file contents.
-    #[serde(default, rename = "lastCheckTime")]
-    pub last_check_time: ::core::option::Option<String>,
-    /// Output only. The path to the file.
-    #[serde(default)]
-    pub path: ::core::option::Option<String>,
 }
 
 /// The response message for Operations.ListOperations.
@@ -160,6 +84,65 @@ pub struct Operation {
     pub response: ::core::option::Option<serde_json::Value>,
 }
 
+/// A set of ACME challenges you can use to allow Hosting to create an SSL certificate for your domain name before directing traffic to Hosting servers. Use either the DNS or HTTP challenge; it''s not necessary to provide both.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CertVerification {
+    /// Output only. A TXT record to add to your DNS records that confirms your intent to let Hosting create an SSL cert for your domain name.
+    #[serde(default)]
+    pub dns: ::core::option::Option<DnsUpdates>,
+    /// Output only. A file to add to your existing, non-Hosting hosting service that confirms your intent to let Hosting create an SSL cert for your domain name.
+    #[serde(default)]
+    pub http: ::core::option::Option<HttpUpdate>,
+}
+
+/// A set of DNS record updates that you should make to allow Hosting to serve secure content in response to requests against your domain name. These updates present the current state of your domain name''s DNS records when Hosting last queried them, and the desired set of records that Hosting needs to see before your custom domain can be fully active.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DnsUpdates {
+    /// The last time Hosting checked your custom domain''s DNS records.
+    #[serde(default, rename = "checkTime")]
+    pub check_time: ::core::option::Option<String>,
+    /// The set of DNS records Hosting needs to serve secure content on the domain.
+    #[serde(default)]
+    pub desired: ::core::option::Option<::std::vec::Vec<DnsRecordSet>>,
+    /// The set of DNS records Hosting discovered when inspecting a domain.
+    #[serde(default)]
+    pub discovered: ::core::option::Option<::std::vec::Vec<DnsRecordSet>>,
+}
+
+/// A file you can add to your existing, non-Hosting hosting service that confirms your intent to allow Hosting''s Certificate Authorities to create an SSL certificate for your domain.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct HttpUpdate {
+    /// Output only. An error encountered during the last contents check. If null, the check completed successfully.
+    #[serde(default, rename = "checkError")]
+    pub check_error: ::core::option::Option<Status>,
+    /// Output only. A text string to serve at the path.
+    #[serde(default)]
+    pub desired: ::core::option::Option<String>,
+    /// Output only. Whether Hosting was able to find the required file contents on the specified path during its last check.
+    #[serde(default)]
+    pub discovered: ::core::option::Option<String>,
+    /// Output only. The last time Hosting systems checked for the file contents.
+    #[serde(default, rename = "lastCheckTime")]
+    pub last_check_time: ::core::option::Option<String>,
+    /// Output only. The path to the file.
+    #[serde(default)]
+    pub path: ::core::option::Option<String>,
+}
+
+/// A set of DNS records relevant to the setup and maintenance of a custom domain in Firebase Hosting.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DnsRecordSet {
+    /// Output only. An error Hosting services encountered when querying your domain name''s DNS records. Note: Hosting ignores NXDOMAIN errors, as those generally just mean that a domain name hasn''t been set up yet.
+    #[serde(default, rename = "checkError")]
+    pub check_error: ::core::option::Option<Status>,
+    /// Output only. The domain name the record set pertains to.
+    #[serde(default, rename = "domainName")]
+    pub domain_name: ::core::option::Option<String>,
+    /// Output only. Records on the domain.
+    #[serde(default)]
+    pub records: ::core::option::Option<::std::vec::Vec<DnsRecord>>,
+}
+
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Status {
@@ -172,4 +155,21 @@ pub struct Status {
     /// A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.
     #[serde(default)]
     pub message: ::core::option::Option<String>,
+}
+
+/// DNS records are resource records that define how systems and services should behave when handling requests for a domain name. For example, when you add A records to your domain name''s DNS records, you''re informing other systems (such as your users'' web browsers) to contact those IPv4 addresses to retrieve resources relevant to your domain name (such as your Hosting site files).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DnsRecord {
+    /// Output only. The domain name the record pertains to, e.g. foo.bar.com..
+    #[serde(default, rename = "domainName")]
+    pub domain_name: ::core::option::Option<String>,
+    /// Output only. The data of the record. The meaning of the value depends on record type: - A and AAAA: IP addresses for the domain name. - CNAME: Another domain to check for records. - TXT: Arbitrary text strings associated with the domain name. Hosting uses TXT records to determine which Firebase projects have permission to act on the domain name''s behalf. - CAA: The record''s flags, tag, and value, e.g. 0 issue "pki.goog".
+    #[serde(default)]
+    pub rdata: ::core::option::Option<String>,
+    /// Output only. An enum that indicates the a required action for this record. // TODO: enum values: ["NONE", "ADD", "REMOVE"]
+    #[serde(default, rename = "requiredAction")]
+    pub required_action: ::core::option::Option<String>,
+    /// Output only. The record''s type, which determines what data the record contains. // TODO: enum values: ["TYPE_UNSPECIFIED", "A", "CNAME", "TXT", "AAAA", "CAA"]
+    #[serde(default, rename = "type")]
+    pub type_: ::core::option::Option<String>,
 }

@@ -10,143 +10,6 @@
 use super::*;
 use serde::{Deserialize, Serialize};
 
-/// Represents an Agent. "A2A" below refers to the Agent-to-Agent protocol.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Agent {
-    /// Output only. A stable, globally unique identifier for agents.
-    #[serde(default, rename = "agentId")]
-    pub agent_id: ::core::option::Option<String>,
-    /// Output only. Attributes of the Agent. Valid values: * agentregistry.googleapis.com/system/Framework: {"framework": "google-adk"} - the agent framework used to develop the Agent. Example values: "google-adk", "langchain", "custom". * agentregistry.googleapis.com/system/RuntimeIdentity: {"principal": "principal://..."} - the runtime identity associated with the Agent. * agentregistry.googleapis.com/system/RuntimeReference: {"uri": "//..."} - the URI of the underlying resource hosting the Agent, for example, the Reasoning Engine URI.
-    #[serde(default)]
-    pub attributes: ::core::option::Option<serde_json::Value>,
-    /// Output only. Full Agent Card payload, when available.
-    #[serde(default)]
-    pub card: ::core::option::Option<Card>,
-    /// Output only. Create time.
-    #[serde(default, rename = "createTime")]
-    pub create_time: ::core::option::Option<String>,
-    /// Output only. The description of the Agent, often obtained from the A2A Agent Card. Empty if Agent Card has no description.
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// Output only. The display name of the agent, often obtained from the A2A Agent Card.
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-    /// Output only. The location where agent is hosted. The value is defined by the hosting environment (i.e. cloud provider).
-    #[serde(default)]
-    pub location: ::core::option::Option<String>,
-    /// Identifier. The resource name of an Agent. Format: projects/{project}/locations/{location}/agents/{agent}.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Output only. The connection details for the Agent.
-    #[serde(default)]
-    pub protocols: ::core::option::Option<::std::vec::Vec<Protocol>>,
-    /// Output only. Skills the agent possesses, often obtained from the A2A Agent Card.
-    #[serde(default)]
-    pub skills: ::core::option::Option<::std::vec::Vec<Skill>>,
-    /// Output only. A universally unique identifier for the Agent.
-    #[serde(default)]
-    pub uid: ::core::option::Option<String>,
-    /// Output only. Update time.
-    #[serde(default, rename = "updateTime")]
-    pub update_time: ::core::option::Option<String>,
-    /// Output only. The version of the Agent, often obtained from the A2A Agent Card. Empty if Agent Card has no version or agent is not an A2A Agent.
-    #[serde(default)]
-    pub version: ::core::option::Option<String>,
-}
-
-/// The spec of the agent.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AgentSpec {
-    /// Optional. The content of the Agent spec in the JSON format. This payload is validated against the schema for the specified type. The content size is limited to 10KB.
-    #[serde(default)]
-    pub content: ::core::option::Option<serde_json::Value>,
-    /// Required. The type of the agent spec content. // TODO: enum values: ["TYPE_UNSPECIFIED", "NO_SPEC", "A2A_AGENT_CARD"]
-    #[serde(default, rename = "type")]
-    pub type_: ::core::option::Option<String>,
-}
-
-/// Annotations describing the characteristics and behavior of a tool or operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Annotations {
-    /// Output only. If true, the tool may perform destructive updates to its environment. If false, the tool performs only additive updates. NOTE: This property is meaningful only when read_only_hint == false Default: true
-    #[serde(default, rename = "destructiveHint")]
-    pub destructive_hint: ::core::option::Option<bool>,
-    /// Output only. If true, calling the tool repeatedly with the same arguments will have no additional effect on its environment. NOTE: This property is meaningful only when read_only_hint == false. Default: false
-    #[serde(default, rename = "idempotentHint")]
-    pub idempotent_hint: ::core::option::Option<bool>,
-    /// Output only. If true, this tool may interact with an "open world" of external entities. If false, the tool''s domain of interaction is closed. For example, the world of a web search tool is open, whereas that of a memory tool is not. Default: true
-    #[serde(default, rename = "openWorldHint")]
-    pub open_world_hint: ::core::option::Option<bool>,
-    /// Output only. If true, the tool does not modify its environment. Default: false
-    #[serde(default, rename = "readOnlyHint")]
-    pub read_only_hint: ::core::option::Option<bool>,
-    /// Output only. A human-readable title for the tool.
-    #[serde(default)]
-    pub title: ::core::option::Option<String>,
-}
-
-/// Full Agent Card payload, often obtained from the A2A Agent Card.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Card {
-    /// Output only. The content of the agent card.
-    #[serde(default)]
-    pub content: ::core::option::Option<serde_json::Value>,
-    /// Output only. The type of agent card. // TODO: enum values: ["TYPE_UNSPECIFIED", "A2A_AGENT_CARD"]
-    #[serde(default, rename = "type")]
-    pub type_: ::core::option::Option<String>,
-}
-
-/// Represents an Endpoint.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Endpoint {
-    /// Output only. Attributes of the Endpoint. Valid values: * agentregistry.googleapis.com/system/RuntimeReference: {"uri": "//..."} - the URI of the underlying resource hosting the Endpoint, for example, the GKE Deployment.
-    #[serde(default)]
-    pub attributes: ::core::option::Option<serde_json::Value>,
-    /// Output only. Create time.
-    #[serde(default, rename = "createTime")]
-    pub create_time: ::core::option::Option<String>,
-    /// Output only. Description of an Endpoint.
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// Output only. Display name for the Endpoint.
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-    /// Output only. A stable, globally unique identifier for Endpoint.
-    #[serde(default, rename = "endpointId")]
-    pub endpoint_id: ::core::option::Option<String>,
-    /// Required. The connection details for the Endpoint.
-    #[serde(default)]
-    pub interfaces: ::core::option::Option<::std::vec::Vec<Interface>>,
-    /// Identifier. The resource name of the Endpoint. Format: projects/{project}/locations/{location}/endpoints/{endpoint}.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Output only. Update time.
-    #[serde(default, rename = "updateTime")]
-    pub update_time: ::core::option::Option<String>,
-}
-
-/// The spec of the endpoint.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct EndpointSpec {
-    /// Optional. The content of the endpoint spec. Reserved for future use.
-    #[serde(default)]
-    pub content: ::core::option::Option<serde_json::Value>,
-    /// Required. The type of the endpoint spec content. // TODO: enum values: ["TYPE_UNSPECIFIED", "NO_SPEC"]
-    #[serde(default, rename = "type")]
-    pub type_: ::core::option::Option<String>,
-}
-
-/// Represents the connection details for an Agent or MCP Server.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Interface {
-    /// Required. The protocol binding of the interface. // TODO: enum values: ["PROTOCOL_BINDING_UNSPECIFIED", "JSONRPC", "GRPC", "HTTP_JSON"]
-    #[serde(default, rename = "protocolBinding")]
-    pub protocol_binding: ::core::option::Option<String>,
-    /// Required. The destination URL.
-    #[serde(default)]
-    pub url: ::core::option::Option<String>,
-}
-
 /// Message for response to listing Agents
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ListAgentsResponse {
@@ -216,6 +79,105 @@ pub struct ListServicesResponse {
     pub services: ::core::option::Option<::std::vec::Vec<Service>>,
 }
 
+/// Represents the metadata of the long-running operation.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct OperationMetadata {
+    /// Output only. API version used to start the operation.
+    #[serde(default, rename = "apiVersion")]
+    pub api_version: ::core::option::Option<String>,
+    /// Output only. The time the operation was created.
+    #[serde(default, rename = "createTime")]
+    pub create_time: ::core::option::Option<String>,
+    /// Output only. The time the operation finished running.
+    #[serde(default, rename = "endTime")]
+    pub end_time: ::core::option::Option<String>,
+    /// Output only. Identifies whether the user has requested cancellation of the operation. Operations that have been cancelled successfully have google.longrunning.Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+    #[serde(default, rename = "requestedCancellation")]
+    pub requested_cancellation: ::core::option::Option<bool>,
+    /// Output only. Human-readable status of the operation, if any.
+    #[serde(default, rename = "statusMessage")]
+    pub status_message: ::core::option::Option<String>,
+    /// Output only. Server-defined resource path for the target of the operation.
+    #[serde(default)]
+    pub target: ::core::option::Option<String>,
+    /// Output only. Name of the verb executed by the operation.
+    #[serde(default)]
+    pub verb: ::core::option::Option<String>,
+}
+
+/// Represents an Agent. "A2A" below refers to the Agent-to-Agent protocol.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Agent {
+    /// Output only. A stable, globally unique identifier for agents.
+    #[serde(default, rename = "agentId")]
+    pub agent_id: ::core::option::Option<String>,
+    /// Output only. Attributes of the Agent. Valid values: * agentregistry.googleapis.com/system/Framework: {"framework": "google-adk"} - the agent framework used to develop the Agent. Example values: "google-adk", "langchain", "custom". * agentregistry.googleapis.com/system/RuntimeIdentity: {"principal": "principal://..."} - the runtime identity associated with the Agent. * agentregistry.googleapis.com/system/RuntimeReference: {"uri": "//..."} - the URI of the underlying resource hosting the Agent, for example, the Reasoning Engine URI.
+    #[serde(default)]
+    pub attributes: ::core::option::Option<serde_json::Value>,
+    /// Output only. Full Agent Card payload, when available.
+    #[serde(default)]
+    pub card: ::core::option::Option<Card>,
+    /// Output only. Create time.
+    #[serde(default, rename = "createTime")]
+    pub create_time: ::core::option::Option<String>,
+    /// Output only. The description of the Agent, often obtained from the A2A Agent Card. Empty if Agent Card has no description.
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+    /// Output only. The display name of the agent, often obtained from the A2A Agent Card.
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+    /// Output only. The location where agent is hosted. The value is defined by the hosting environment (i.e. cloud provider).
+    #[serde(default)]
+    pub location: ::core::option::Option<String>,
+    /// Identifier. The resource name of an Agent. Format: projects/{project}/locations/{location}/agents/{agent}.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Output only. The connection details for the Agent.
+    #[serde(default)]
+    pub protocols: ::core::option::Option<::std::vec::Vec<Protocol>>,
+    /// Output only. Skills the agent possesses, often obtained from the A2A Agent Card.
+    #[serde(default)]
+    pub skills: ::core::option::Option<::std::vec::Vec<Skill>>,
+    /// Output only. A universally unique identifier for the Agent.
+    #[serde(default)]
+    pub uid: ::core::option::Option<String>,
+    /// Output only. Update time.
+    #[serde(default, rename = "updateTime")]
+    pub update_time: ::core::option::Option<String>,
+    /// Output only. The version of the Agent, often obtained from the A2A Agent Card. Empty if Agent Card has no version or agent is not an A2A Agent.
+    #[serde(default)]
+    pub version: ::core::option::Option<String>,
+}
+
+/// Represents an Endpoint.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Endpoint {
+    /// Output only. Attributes of the Endpoint. Valid values: * agentregistry.googleapis.com/system/RuntimeReference: {"uri": "//..."} - the URI of the underlying resource hosting the Endpoint, for example, the GKE Deployment.
+    #[serde(default)]
+    pub attributes: ::core::option::Option<serde_json::Value>,
+    /// Output only. Create time.
+    #[serde(default, rename = "createTime")]
+    pub create_time: ::core::option::Option<String>,
+    /// Output only. Description of an Endpoint.
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+    /// Output only. Display name for the Endpoint.
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+    /// Output only. A stable, globally unique identifier for Endpoint.
+    #[serde(default, rename = "endpointId")]
+    pub endpoint_id: ::core::option::Option<String>,
+    /// Required. The connection details for the Endpoint.
+    #[serde(default)]
+    pub interfaces: ::core::option::Option<::std::vec::Vec<Interface>>,
+    /// Identifier. The resource name of the Endpoint. Format: projects/{project}/locations/{location}/endpoints/{endpoint}.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Output only. Update time.
+    #[serde(default, rename = "updateTime")]
+    pub update_time: ::core::option::Option<String>,
+}
+
 /// A resource that represents a Google Cloud location.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Location {
@@ -268,17 +230,6 @@ pub struct McpServer {
     pub update_time: ::core::option::Option<String>,
 }
 
-/// The spec of the MCP Server.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct McpServerSpec {
-    /// Optional. The content of the MCP Server spec. This payload is validated against the schema for the specified type. The content size is limited to 10KB.
-    #[serde(default)]
-    pub content: ::core::option::Option<serde_json::Value>,
-    /// Required. The type of the MCP Server spec content. // TODO: enum values: ["TYPE_UNSPECIFIED", "NO_SPEC", "TOOL_SPEC"]
-    #[serde(default, rename = "type")]
-    pub type_: ::core::option::Option<String>,
-}
-
 /// This resource represents a long-running operation that is the result of a network API call.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Operation {
@@ -297,46 +248,6 @@ pub struct Operation {
     /// The normal, successful response of the operation. If the original method returns no data on success, such as Delete, the response is google.protobuf.Empty. If the original method is standard Get/Create/Update, the response should be the resource. For other methods, the response should have the type XxxResponse, where Xxx is the original method name. For example, if the original method name is TakeSnapshot(), the inferred response type is TakeSnapshotResponse.
     #[serde(default)]
     pub response: ::core::option::Option<serde_json::Value>,
-}
-
-/// Represents the metadata of the long-running operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct OperationMetadata {
-    /// Output only. API version used to start the operation.
-    #[serde(default, rename = "apiVersion")]
-    pub api_version: ::core::option::Option<String>,
-    /// Output only. The time the operation was created.
-    #[serde(default, rename = "createTime")]
-    pub create_time: ::core::option::Option<String>,
-    /// Output only. The time the operation finished running.
-    #[serde(default, rename = "endTime")]
-    pub end_time: ::core::option::Option<String>,
-    /// Output only. Identifies whether the user has requested cancellation of the operation. Operations that have been cancelled successfully have google.longrunning.Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
-    #[serde(default, rename = "requestedCancellation")]
-    pub requested_cancellation: ::core::option::Option<bool>,
-    /// Output only. Human-readable status of the operation, if any.
-    #[serde(default, rename = "statusMessage")]
-    pub status_message: ::core::option::Option<String>,
-    /// Output only. Server-defined resource path for the target of the operation.
-    #[serde(default)]
-    pub target: ::core::option::Option<String>,
-    /// Output only. Name of the verb executed by the operation.
-    #[serde(default)]
-    pub verb: ::core::option::Option<String>,
-}
-
-/// Represents the protocol of an Agent.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Protocol {
-    /// Output only. The connection details for the Agent.
-    #[serde(default)]
-    pub interfaces: ::core::option::Option<::std::vec::Vec<Interface>>,
-    /// Output only. The version of the protocol, for example, the A2A Agent Card version.
-    #[serde(default, rename = "protocolVersion")]
-    pub protocol_version: ::core::option::Option<String>,
-    /// Output only. The type of the protocol. // TODO: enum values: ["TYPE_UNSPECIFIED", "A2A_AGENT", "CUSTOM"]
-    #[serde(default, rename = "type")]
-    pub type_: ::core::option::Option<String>,
 }
 
 /// Represents a user-defined Service.
@@ -374,6 +285,31 @@ pub struct Service {
     pub update_time: ::core::option::Option<String>,
 }
 
+/// Full Agent Card payload, often obtained from the A2A Agent Card.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Card {
+    /// Output only. The content of the agent card.
+    #[serde(default)]
+    pub content: ::core::option::Option<serde_json::Value>,
+    /// Output only. The type of agent card. // TODO: enum values: ["TYPE_UNSPECIFIED", "A2A_AGENT_CARD"]
+    #[serde(default, rename = "type")]
+    pub type_: ::core::option::Option<String>,
+}
+
+/// Represents the protocol of an Agent.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Protocol {
+    /// Output only. The connection details for the Agent.
+    #[serde(default)]
+    pub interfaces: ::core::option::Option<::std::vec::Vec<Interface>>,
+    /// Output only. The version of the protocol, for example, the A2A Agent Card version.
+    #[serde(default, rename = "protocolVersion")]
+    pub protocol_version: ::core::option::Option<String>,
+    /// Output only. The type of the protocol. // TODO: enum values: ["TYPE_UNSPECIFIED", "A2A_AGENT", "CUSTOM"]
+    #[serde(default, rename = "type")]
+    pub type_: ::core::option::Option<String>,
+}
+
 /// Represents the skills of an Agent.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Skill {
@@ -394,6 +330,20 @@ pub struct Skill {
     pub tags: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
+/// Represents a single tool provided by an MCP Server.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Tool {
+    /// Output only. Annotations associated with the tool.
+    #[serde(default)]
+    pub annotations: ::core::option::Option<Annotations>,
+    /// Output only. Description of what the tool does.
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+    /// Output only. Human-readable name of the tool.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+}
+
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Status {
@@ -408,16 +358,66 @@ pub struct Status {
     pub message: ::core::option::Option<String>,
 }
 
-/// Represents a single tool provided by an MCP Server.
+/// The spec of the agent.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Tool {
-    /// Output only. Annotations associated with the tool.
+pub struct AgentSpec {
+    /// Optional. The content of the Agent spec in the JSON format. This payload is validated against the schema for the specified type. The content size is limited to 10KB.
     #[serde(default)]
-    pub annotations: ::core::option::Option<Annotations>,
-    /// Output only. Description of what the tool does.
+    pub content: ::core::option::Option<serde_json::Value>,
+    /// Required. The type of the agent spec content. // TODO: enum values: ["TYPE_UNSPECIFIED", "NO_SPEC", "A2A_AGENT_CARD"]
+    #[serde(default, rename = "type")]
+    pub type_: ::core::option::Option<String>,
+}
+
+/// The spec of the endpoint.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct EndpointSpec {
+    /// Optional. The content of the endpoint spec. Reserved for future use.
     #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// Output only. Human-readable name of the tool.
+    pub content: ::core::option::Option<serde_json::Value>,
+    /// Required. The type of the endpoint spec content. // TODO: enum values: ["TYPE_UNSPECIFIED", "NO_SPEC"]
+    #[serde(default, rename = "type")]
+    pub type_: ::core::option::Option<String>,
+}
+
+/// The spec of the MCP Server.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct McpServerSpec {
+    /// Optional. The content of the MCP Server spec. This payload is validated against the schema for the specified type. The content size is limited to 10KB.
     #[serde(default)]
-    pub name: ::core::option::Option<String>,
+    pub content: ::core::option::Option<serde_json::Value>,
+    /// Required. The type of the MCP Server spec content. // TODO: enum values: ["TYPE_UNSPECIFIED", "NO_SPEC", "TOOL_SPEC"]
+    #[serde(default, rename = "type")]
+    pub type_: ::core::option::Option<String>,
+}
+
+/// Represents the connection details for an Agent or MCP Server.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Interface {
+    /// Required. The protocol binding of the interface. // TODO: enum values: ["PROTOCOL_BINDING_UNSPECIFIED", "JSONRPC", "GRPC", "HTTP_JSON"]
+    #[serde(default, rename = "protocolBinding")]
+    pub protocol_binding: ::core::option::Option<String>,
+    /// Required. The destination URL.
+    #[serde(default)]
+    pub url: ::core::option::Option<String>,
+}
+
+/// Annotations describing the characteristics and behavior of a tool or operation.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Annotations {
+    /// Output only. If true, the tool may perform destructive updates to its environment. If false, the tool performs only additive updates. NOTE: This property is meaningful only when read_only_hint == false Default: true
+    #[serde(default, rename = "destructiveHint")]
+    pub destructive_hint: ::core::option::Option<bool>,
+    /// Output only. If true, calling the tool repeatedly with the same arguments will have no additional effect on its environment. NOTE: This property is meaningful only when read_only_hint == false. Default: false
+    #[serde(default, rename = "idempotentHint")]
+    pub idempotent_hint: ::core::option::Option<bool>,
+    /// Output only. If true, this tool may interact with an "open world" of external entities. If false, the tool''s domain of interaction is closed. For example, the world of a web search tool is open, whereas that of a memory tool is not. Default: true
+    #[serde(default, rename = "openWorldHint")]
+    pub open_world_hint: ::core::option::Option<bool>,
+    /// Output only. If true, the tool does not modify its environment. Default: false
+    #[serde(default, rename = "readOnlyHint")]
+    pub read_only_hint: ::core::option::Option<bool>,
+    /// Output only. A human-readable title for the tool.
+    #[serde(default)]
+    pub title: ::core::option::Option<String>,
 }

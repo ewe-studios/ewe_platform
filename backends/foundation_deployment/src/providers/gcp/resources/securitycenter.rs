@@ -10,524 +10,6 @@
 use super::*;
 use serde::{Deserialize, Serialize};
 
-/// Represents an access event.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Access {
-    /// Caller''s IP address, such as "1.1.1.1".
-    #[serde(default, rename = "callerIp")]
-    pub caller_ip: ::core::option::Option<String>,
-    /// The caller IP''s geolocation, which identifies where the call came from.
-    #[serde(default, rename = "callerIpGeo")]
-    pub caller_ip_geo: ::core::option::Option<Geolocation>,
-    /// The method that the service account called, e.g. "SetIamPolicy".
-    #[serde(default, rename = "methodName")]
-    pub method_name: ::core::option::Option<String>,
-    /// Associated email, such as "foo@google.com". The email address of the authenticated user or a service account acting on behalf of a third party principal making the request. For third party identity callers, the principal_subject field is populated instead of this field. For privacy reasons, the principal email address is sometimes redacted. For more information, see [Caller identities in audit logs](https://cloud.google.com/logging/docs/audit#user-id).
-    #[serde(default, rename = "principalEmail")]
-    pub principal_email: ::core::option::Option<String>,
-    /// A string that represents the principal_subject that is associated with the identity. Unlike principal_email, principal_subject supports principals that aren''t associated with email addresses, such as third party principals. For most identities, the format is principal://iam.googleapis.com/{identity pool name}/subject/{subject}. Some GKE identities, such as GKE_WORKLOAD, FREEFORM, and GKE_HUB_WORKLOAD, still use the legacy format serviceAccount:{identity pool name}[{subject}].
-    #[serde(default, rename = "principalSubject")]
-    pub principal_subject: ::core::option::Option<String>,
-    /// The identity delegation history of an authenticated service account that made the request. The serviceAccountDelegationInfo[] object contains information about the real authorities that try to access Google Cloud resources by delegating on a service account. When multiple authorities are present, they are guaranteed to be sorted based on the original ordering of the identity delegation events.
-    #[serde(default, rename = "serviceAccountDelegationInfo")]
-    pub service_account_delegation_info:
-        ::core::option::Option<::std::vec::Vec<ServiceAccountDelegationInfo>>,
-    /// The name of the service account key that was used to create or exchange credentials when authenticating the service account that made the request. This is a scheme-less URI full resource name. For example: "//iam.googleapis.com/projects/{PROJECT_ID}/serviceAccounts/{ACCOUNT}/keys/{key}".
-    #[serde(default, rename = "serviceAccountKeyName")]
-    pub service_account_key_name: ::core::option::Option<String>,
-    /// This is the API service that the service account made a call to, e.g. "iam.googleapis.com"
-    #[serde(default, rename = "serviceName")]
-    pub service_name: ::core::option::Option<String>,
-    /// The caller''s user agent string associated with the finding.
-    #[serde(default, rename = "userAgent")]
-    pub user_agent: ::core::option::Option<String>,
-    /// Type of user agent associated with the finding. For example, an operating system shell or an embedded or standalone application.
-    #[serde(default, rename = "userAgentFamily")]
-    pub user_agent_family: ::core::option::Option<String>,
-    /// A string that represents a username. The username provided depends on the type of the finding and is likely not an IAM principal. For example, this can be a system username if the finding is related to a virtual machine, or it can be an application login username.
-    #[serde(default, rename = "userName")]
-    pub user_name: ::core::option::Option<String>,
-}
-
-/// Conveys information about a Kubernetes access review (such as one returned by a [kubectl auth can-i](https://kubernetes.io/docs/reference/access-authn-authz/authorization/#checking-api-access) command) that was involved in a finding.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AccessReview {
-    /// The API group of the resource. "*" means all.
-    #[serde(default)]
-    pub group: ::core::option::Option<String>,
-    /// The name of the resource being requested. Empty means all.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Namespace of the action being requested. Currently, there is no distinction between no namespace and all namespaces. Both are represented by "" (empty).
-    #[serde(default)]
-    pub ns: ::core::option::Option<String>,
-    /// The optional resource type requested. "*" means all.
-    #[serde(default)]
-    pub resource: ::core::option::Option<String>,
-    /// The optional subresource type.
-    #[serde(default)]
-    pub subresource: ::core::option::Option<String>,
-    /// A Kubernetes resource API verb, like get, list, watch, create, update, delete, proxy. "*" means all.
-    #[serde(default)]
-    pub verb: ::core::option::Option<String>,
-    /// The API version of the resource. "*" means all.
-    #[serde(default)]
-    pub version: ::core::option::Option<String>,
-}
-
-/// Information about [Google Cloud Armor Adaptive Protection](https://cloud.google.com/armor/docs/cloud-armor-overview#google-cloud-armor-adaptive-protection).
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AdaptiveProtection {
-    /// A score of 0 means that there is low confidence that the detected event is an actual attack. A score of 1 means that there is high confidence that the detected event is an attack. See the [Adaptive Protection documentation](https://cloud.google.com/armor/docs/adaptive-protection-overview#configure-alert-tuning) for further explanation.
-    #[serde(default)]
-    pub confidence: ::core::option::Option<f64>,
-}
-
-/// Represents an ADC application associated with the finding.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AdcApplication {
-    /// Consumer provided attributes for the AppHub application.
-    #[serde(default)]
-    pub attributes:
-        ::core::option::Option<GoogleCloudSecuritycenterV1ResourceApplicationAttributes>,
-    /// The resource name of an ADC Application. Format: projects/{project}/locations/{location}/spaces/{space}/applications/{application}
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-}
-
-/// Represents an ADC template associated with the finding.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AdcApplicationTemplateRevision {
-    /// The resource name of an ADC Application Template Revision. Format: projects/{project}/locations/{location}/spaces/{space}/applicationTemplates/{application_template}/revisions/{revision}
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-}
-
-/// Represents an ADC shared template associated with the finding.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AdcSharedTemplateRevision {
-    /// The resource name of an ADC Shared Template Revision. Format: projects/{project}/locations/{location}/spaces/{space}/applicationTemplates/{application_template}/revisions/{revision}
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-}
-
-/// Details about resources affected by this finding.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AffectedResources {
-    /// The count of resources affected by the finding.
-    #[serde(default)]
-    pub count: ::core::option::Option<String>,
-}
-
-/// Details about a data access attempt made by an agent principal not authorized under applicable data security policy.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AgentDataAccessEvent {
-    /// Unique identifier for data access event.
-    #[serde(default, rename = "eventId")]
-    pub event_id: ::core::option::Option<String>,
-    /// Timestamp of data access event.
-    #[serde(default, rename = "eventTime")]
-    pub event_time: ::core::option::Option<String>,
-    /// The operation performed by the principal to access the data. // TODO: enum values: ["OPERATION_UNSPECIFIED", "READ", "MOVE", "COPY"]
-    #[serde(default)]
-    pub operation: ::core::option::Option<String>,
-    /// The agent principal that accessed the data.
-    #[serde(default, rename = "principalSubject")]
-    pub principal_subject: ::core::option::Option<String>,
-}
-
-/// Contains information about the AI model associated with the finding.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AiModel {
-    /// The platform on which the model is deployed. // TODO: enum values: ["DEPLOYMENT_PLATFORM_UNSPECIFIED", "VERTEX_AI", "GKE", "GCE", "FINE_TUNED_MODEL"]
-    #[serde(default, rename = "deploymentPlatform")]
-    pub deployment_platform: ::core::option::Option<String>,
-    /// The user defined display name of model. Ex. baseline-classification-model
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-    /// The domain of the model, for example, “image-classification”.
-    #[serde(default)]
-    pub domain: ::core::option::Option<String>,
-    /// The name of the model library, for example, “transformers”.
-    #[serde(default)]
-    pub library: ::core::option::Option<String>,
-    /// The region in which the model is used, for example, “us-central1”.
-    #[serde(default)]
-    pub location: ::core::option::Option<String>,
-    /// The name of the AI model, for example, "gemini:1.0.0".
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// The publisher of the model, for example, “google” or “nvidia”.
-    #[serde(default)]
-    pub publisher: ::core::option::Option<String>,
-    /// The purpose of the model, for example, "Inteference" or "Training".
-    #[serde(default, rename = "usageCategory")]
-    pub usage_category: ::core::option::Option<String>,
-}
-
-/// Allowed IP rule.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Allowed {
-    /// Optional. Optional list of allowed IP rules.
-    #[serde(default, rename = "ipRules")]
-    pub ip_rules: ::core::option::Option<::std::vec::Vec<IpRule>>,
-}
-
-/// Represents an application associated with a finding.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Application {
-    /// The base URI that identifies the network location of the application in which the vulnerability was detected. For example, http://example.com.
-    #[serde(default, rename = "baseUri")]
-    pub base_uri: ::core::option::Option<String>,
-    /// The full URI with payload that can be used to reproduce the vulnerability. For example, http://example.com?p=aMmYgI6H.
-    #[serde(default, rename = "fullUri")]
-    pub full_uri: ::core::option::Option<String>,
-}
-
-/// Represents the result of evaluating artifact guard policies.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ArtifactGuardPolicies {
-    /// A list of failing policies.
-    #[serde(default, rename = "failingPolicies")]
-    pub failing_policies: ::core::option::Option<::std::vec::Vec<ArtifactGuardPolicy>>,
-    /// The ID of the resource that has policies configured for it.
-    #[serde(default, rename = "resourceId")]
-    pub resource_id: ::core::option::Option<String>,
-}
-
-/// Represents an artifact guard policy.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ArtifactGuardPolicy {
-    /// The reason for the policy failure, for example, "severity=HIGH AND max_vuln_count=2".
-    #[serde(default, rename = "failureReason")]
-    pub failure_reason: ::core::option::Option<String>,
-    /// The ID of the failing policy, for example, "organizations/3392779/locations/global/policies/prod-policy".
-    #[serde(default, rename = "policyId")]
-    pub policy_id: ::core::option::Option<String>,
-    /// The type of the policy evaluation. // TODO: enum values: ["ARTIFACT_GUARD_POLICY_TYPE_UNSPECIFIED", "VULNERABILITY"]
-    #[serde(default, rename = "type")]
-    pub type_: ::core::option::Option<String>,
-}
-
-/// Security Command Center representation of a Google Cloud resource. The Asset is a Security Command Center resource that captures information about a single Google Cloud resource. All modifications to an Asset are only within the context of Security Command Center and don''t affect the referenced Google Cloud resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Asset {
-    /// The canonical name of the resource. It''s either "organizations/{organization_id}/assets/{asset_id}", "folders/{folder_id}/assets/{asset_id}" or "projects/{project_number}/assets/{asset_id}", depending on the closest CRM ancestor of the resource.
-    #[serde(default, rename = "canonicalName")]
-    pub canonical_name: ::core::option::Option<String>,
-    /// The time at which the asset was created in Security Command Center.
-    #[serde(default, rename = "createTime")]
-    pub create_time: ::core::option::Option<String>,
-    /// Cloud IAM Policy information associated with the Google Cloud resource described by the Security Command Center asset. This information is managed and defined by the Google Cloud resource and cannot be modified by the user.
-    #[serde(default, rename = "iamPolicy")]
-    pub iam_policy: ::core::option::Option<IamPolicy>,
-    /// The relative resource name of this asset. See: https://cloud.google.com/apis/design/resource_names#relative_resource_name Example: "organizations/{organization_id}/assets/{asset_id}".
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Resource managed properties. These properties are managed and defined by the Google Cloud resource and cannot be modified by the user.
-    #[serde(default, rename = "resourceProperties")]
-    pub resource_properties: ::core::option::Option<serde_json::Value>,
-    /// Security Command Center managed properties. These properties are managed by Security Command Center and cannot be modified by the user.
-    #[serde(default, rename = "securityCenterProperties")]
-    pub security_center_properties: ::core::option::Option<SecurityCenterProperties>,
-    /// User specified security marks. These marks are entirely managed by the user and come from the SecurityMarks resource that belongs to the asset.
-    #[serde(default, rename = "securityMarks")]
-    pub security_marks: ::core::option::Option<SecurityMarks>,
-    /// The time at which the asset was last updated or added in Cloud SCC.
-    #[serde(default, rename = "updateTime")]
-    pub update_time: ::core::option::Option<String>,
-}
-
-/// The configuration used for Asset Discovery runs.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AssetDiscoveryConfig {
-    /// The folder ids to use for filtering asset discovery. It consists of only digits, e.g., 756619654966.
-    #[serde(default, rename = "folderIds")]
-    pub folder_ids: ::core::option::Option<::std::vec::Vec<String>>,
-    /// The mode to use for filtering asset discovery. // TODO: enum values: ["INCLUSION_MODE_UNSPECIFIED", "INCLUDE_ONLY", "EXCLUDE"]
-    #[serde(default, rename = "inclusionMode")]
-    pub inclusion_mode: ::core::option::Option<String>,
-    /// The project ids to use for filtering asset discovery.
-    #[serde(default, rename = "projectIds")]
-    pub project_ids: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// Information about DDoS attack volume and classification.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Attack {
-    /// Type of attack, for example, ''SYN-flood'', ''NTP-udp'', or ''CHARGEN-udp''.
-    #[serde(default)]
-    pub classification: ::core::option::Option<String>,
-    /// Total BPS (bytes per second) volume of attack. Deprecated - refer to volume_bps_long instead.
-    #[serde(default, rename = "volumeBps")]
-    pub volume_bps: ::core::option::Option<i32>,
-    /// Total BPS (bytes per second) volume of attack.
-    #[serde(default, rename = "volumeBpsLong")]
-    pub volume_bps_long: ::core::option::Option<String>,
-    /// Total PPS (packets per second) volume of attack. Deprecated - refer to volume_pps_long instead.
-    #[serde(default, rename = "volumePps")]
-    pub volume_pps: ::core::option::Option<i32>,
-    /// Total PPS (packets per second) volume of attack.
-    #[serde(default, rename = "volumePpsLong")]
-    pub volume_pps_long: ::core::option::Option<String>,
-}
-
-/// An attack exposure contains the results of an attack path simulation run.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AttackExposure {
-    /// The resource name of the attack path simulation result that contains the details regarding this attack exposure score. Example: organizations/123/simulations/456/attackExposureResults/789
-    #[serde(default, rename = "attackExposureResult")]
-    pub attack_exposure_result: ::core::option::Option<String>,
-    /// The number of high value resources that are exposed as a result of this finding.
-    #[serde(default, rename = "exposedHighValueResourcesCount")]
-    pub exposed_high_value_resources_count: ::core::option::Option<i32>,
-    /// The number of high value resources that are exposed as a result of this finding.
-    #[serde(default, rename = "exposedLowValueResourcesCount")]
-    pub exposed_low_value_resources_count: ::core::option::Option<i32>,
-    /// The number of medium value resources that are exposed as a result of this finding.
-    #[serde(default, rename = "exposedMediumValueResourcesCount")]
-    pub exposed_medium_value_resources_count: ::core::option::Option<i32>,
-    /// The most recent time the attack exposure was updated on this finding.
-    #[serde(default, rename = "latestCalculationTime")]
-    pub latest_calculation_time: ::core::option::Option<String>,
-    /// A number between 0 (inclusive) and infinity that represents how important this finding is to remediate. The higher the score, the more important it is to remediate.
-    #[serde(default)]
-    pub score: ::core::option::Option<f64>,
-    /// What state this AttackExposure is in. This captures whether or not an attack exposure has been calculated or not. // TODO: enum values: ["STATE_UNSPECIFIED", "CALCULATED", "NOT_CALCULATED"]
-    #[serde(default)]
-    pub state: ::core::option::Option<String>,
-}
-
-/// A path that an attacker could take to reach an exposed resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AttackPath {
-    /// A list of the edges between nodes in this attack path.
-    #[serde(default)]
-    pub edges: ::core::option::Option<::std::vec::Vec<AttackPathEdge>>,
-    /// The attack path name, for example, organizations/12/simulation/34/valuedResources/56/attackPaths/78
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// A list of nodes that exist in this attack path.
-    #[serde(default, rename = "pathNodes")]
-    pub path_nodes: ::core::option::Option<::std::vec::Vec<AttackPathNode>>,
-}
-
-/// Represents a connection between a source node and a destination node in this attack path.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AttackPathEdge {
-    /// The attack node uuid of the destination node.
-    #[serde(default)]
-    pub destination: ::core::option::Option<String>,
-    /// The attack node uuid of the source node.
-    #[serde(default)]
-    pub source: ::core::option::Option<String>,
-}
-
-/// Represents one point that an attacker passes through in this attack path.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AttackPathNode {
-    /// The findings associated with this node in the attack path.
-    #[serde(default, rename = "associatedFindings")]
-    pub associated_findings: ::core::option::Option<::std::vec::Vec<PathNodeAssociatedFinding>>,
-    /// A list of attack step nodes that exist in this attack path node.
-    #[serde(default, rename = "attackSteps")]
-    pub attack_steps: ::core::option::Option<::std::vec::Vec<AttackStepNode>>,
-    /// Human-readable name of this resource.
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-    /// The name of the resource at this point in the attack path. The format of the name follows the Cloud Asset Inventory [resource name format](https://cloud.google.com/asset-inventory/docs/resource-name-format)
-    #[serde(default)]
-    pub resource: ::core::option::Option<String>,
-    /// The [supported resource type](https://cloud.google.com/asset-inventory/docs/supported-asset-types)
-    #[serde(default, rename = "resourceType")]
-    pub resource_type: ::core::option::Option<String>,
-    /// Unique id of the attack path node.
-    #[serde(default)]
-    pub uuid: ::core::option::Option<String>,
-}
-
-/// Detailed steps the attack can take between path nodes.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AttackStepNode {
-    /// Attack step description
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// User friendly name of the attack step
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-    /// Attack step labels for metadata
-    #[serde(default)]
-    pub labels: ::core::option::Option<serde_json::Value>,
-    /// Attack step type. Can be either AND, OR or DEFENSE // TODO: enum values: ["NODE_TYPE_UNSPECIFIED", "NODE_TYPE_AND", "NODE_TYPE_OR", "NODE_TYPE_DEFENSE", "NODE_TYPE_ATTACKER"]
-    #[serde(default, rename = "type")]
-    pub type_: ::core::option::Option<String>,
-    /// Unique ID for one Node
-    #[serde(default)]
-    pub uuid: ::core::option::Option<String>,
-}
-
-/// Specifies the audit configuration for a service. The configuration determines which permission types are logged, and what identities, if any, are exempted from logging. An AuditConfig must have one or more AuditLogConfigs. If there are AuditConfigs for both allServices and a specific service, the union of the two AuditConfigs is used for that service: the log_types specified in each AuditConfig are enabled, and the exempted_members in each AuditLogConfig are exempted. Example Policy with multiple AuditConfigs: { "audit_configs": [ { "service": "allServices", "audit_log_configs": [ { "log_type": "DATA_READ", "exempted_members": [ "user:jose@example.com" ] }, { "log_type": "DATA_WRITE" }, { "log_type": "ADMIN_READ" } ] }, { "service": "sampleservice.googleapis.com", "audit_log_configs": [ { "log_type": "DATA_READ" }, { "log_type": "DATA_WRITE", "exempted_members": [ "user:aliya@example.com" ] } ] } ] } For sampleservice, this policy enables DATA_READ, DATA_WRITE and ADMIN_READ logging. It also exempts jose@example.com from DATA_READ logging, and aliya@example.com from DATA_WRITE logging.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AuditConfig {
-    /// The configuration for logging of each type of permission.
-    #[serde(default, rename = "auditLogConfigs")]
-    pub audit_log_configs: ::core::option::Option<::std::vec::Vec<AuditLogConfig>>,
-    /// Specifies a service that will be enabled for audit logging. For example, storage.googleapis.com, cloudsql.googleapis.com. allServices is a special value that covers all services.
-    #[serde(default)]
-    pub service: ::core::option::Option<String>,
-}
-
-/// Provides the configuration for logging a type of permissions. Example: { "audit_log_configs": [ { "log_type": "DATA_READ", "exempted_members": [ "user:jose@example.com" ] }, { "log_type": "DATA_WRITE" } ] } This enables ''DATA_READ'' and ''DATA_WRITE'' logging, while exempting jose@example.com from DATA_READ logging.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AuditLogConfig {
-    /// Specifies the identities that do not cause logging for this type of permission. Follows the same format of Binding.members.
-    #[serde(default, rename = "exemptedMembers")]
-    pub exempted_members: ::core::option::Option<::std::vec::Vec<String>>,
-    /// The log type that this config enables. // TODO: enum values: ["LOG_TYPE_UNSPECIFIED", "ADMIN_READ", "DATA_WRITE", "DATA_READ"]
-    #[serde(default, rename = "logType")]
-    pub log_type: ::core::option::Option<String>,
-}
-
-/// An AWS account that is a member of an organization.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AwsAccount {
-    /// The unique identifier (ID) of the account, containing exactly 12 digits.
-    #[serde(default)]
-    pub id: ::core::option::Option<String>,
-    /// The friendly name of this account.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-}
-
-/// AWS metadata associated with the resource, only applicable if the finding''s cloud provider is Amazon Web Services.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AwsMetadata {
-    /// The AWS account associated with the resource.
-    #[serde(default)]
-    pub account: ::core::option::Option<AwsAccount>,
-    /// The AWS organization associated with the resource.
-    #[serde(default)]
-    pub organization: ::core::option::Option<AwsOrganization>,
-    /// A list of AWS organizational units associated with the resource, ordered from lowest level (closest to the account) to highest level.
-    #[serde(default, rename = "organizationalUnits")]
-    pub organizational_units: ::core::option::Option<::std::vec::Vec<AwsOrganizationalUnit>>,
-}
-
-/// An organization is a collection of accounts that are centrally managed together using consolidated billing, organized hierarchically with organizational units (OUs), and controlled with policies.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AwsOrganization {
-    /// The unique identifier (ID) for the organization. The regex pattern for an organization ID string requires "o-" followed by from 10 to 32 lowercase letters or digits.
-    #[serde(default)]
-    pub id: ::core::option::Option<String>,
-}
-
-/// An Organizational Unit (OU) is a container of AWS accounts within a root of an organization. Policies that are attached to an OU apply to all accounts contained in that OU and in any child OUs.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AwsOrganizationalUnit {
-    /// The unique identifier (ID) associated with this OU. The regex pattern for an organizational unit ID string requires "ou-" followed by from 4 to 32 lowercase letters or digits (the ID of the root that contains the OU). This string is followed by a second "-" dash and from 8 to 32 additional lowercase letters or digits. For example, "ou-ab12-cd34ef56".
-    #[serde(default)]
-    pub id: ::core::option::Option<String>,
-    /// The friendly name of the OU.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-}
-
-/// Represents an Azure management group.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AzureManagementGroup {
-    /// The display name of the Azure management group.
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-    /// The UUID of the Azure management group, for example, 20000000-0001-0000-0000-000000000000.
-    #[serde(default)]
-    pub id: ::core::option::Option<String>,
-}
-
-/// Azure metadata associated with the resource, only applicable if the finding''s cloud provider is Microsoft Azure.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AzureMetadata {
-    /// A list of Azure management groups associated with the resource, ordered from lowest level (closest to the subscription) to highest level.
-    #[serde(default, rename = "managementGroups")]
-    pub management_groups: ::core::option::Option<::std::vec::Vec<AzureManagementGroup>>,
-    /// The Azure resource group associated with the resource.
-    #[serde(default, rename = "resourceGroup")]
-    pub resource_group: ::core::option::Option<AzureResourceGroup>,
-    /// The Azure subscription associated with the resource.
-    #[serde(default)]
-    pub subscription: ::core::option::Option<AzureSubscription>,
-    /// The Azure Entra tenant associated with the resource.
-    #[serde(default)]
-    pub tenant: ::core::option::Option<AzureTenant>,
-}
-
-/// Represents an Azure resource group.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AzureResourceGroup {
-    /// The ID of the Azure resource group.
-    #[serde(default)]
-    pub id: ::core::option::Option<String>,
-    /// The name of the Azure resource group. This is not a UUID.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-}
-
-/// Represents an Azure subscription.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AzureSubscription {
-    /// The display name of the Azure subscription.
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-    /// The UUID of the Azure subscription, for example, 291bba3f-e0a5-47bc-a099-3bdcb2a50a05.
-    #[serde(default)]
-    pub id: ::core::option::Option<String>,
-}
-
-/// Represents a Microsoft Entra tenant.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AzureTenant {
-    /// The display name of the Azure tenant.
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-    /// The ID of the Microsoft Entra tenant, for example, "a11aaa11-aa11-1aa1-11aa-1aaa11a".
-    #[serde(default)]
-    pub id: ::core::option::Option<String>,
-}
-
-/// Information related to Google Cloud Backup and DR Service findings.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct BackupDisasterRecovery {
-    /// The name of the Backup and DR appliance that captures, moves, and manages the lifecycle of backup data. For example, backup-server-57137.
-    #[serde(default)]
-    pub appliance: ::core::option::Option<String>,
-    /// The names of Backup and DR applications. An application is a VM, database, or file system on a managed host monitored by a backup and recovery appliance. For example, centos7-01-vol00, centos7-01-vol01, centos7-01-vol02.
-    #[serde(default)]
-    pub applications: ::core::option::Option<::std::vec::Vec<String>>,
-    /// The timestamp at which the Backup and DR backup was created.
-    #[serde(default, rename = "backupCreateTime")]
-    pub backup_create_time: ::core::option::Option<String>,
-    /// The name of a Backup and DR template which comprises one or more backup policies. See the [Backup and DR documentation](https://cloud.google.com/backup-disaster-recovery/docs/concepts/backup-plan#temp) for more information. For example, snap-ov.
-    #[serde(default, rename = "backupTemplate")]
-    pub backup_template: ::core::option::Option<String>,
-    /// The backup type of the Backup and DR image. For example, Snapshot, Remote Snapshot, OnVault.
-    #[serde(default, rename = "backupType")]
-    pub backup_type: ::core::option::Option<String>,
-    /// The name of a Backup and DR host, which is managed by the backup and recovery appliance and known to the management console. The host can be of type Generic (for example, Compute Engine, SQL Server, Oracle DB, SMB file system, etc.), vCenter, or an ESX server. See the [Backup and DR documentation on hosts](https://cloud.google.com/backup-disaster-recovery/docs/configuration/manage-hosts-and-their-applications) for more information. For example, centos7-01.
-    #[serde(default)]
-    pub host: ::core::option::Option<String>,
-    /// The names of Backup and DR policies that are associated with a template and that define when to run a backup, how frequently to run a backup, and how long to retain the backup image. For example, onvaults.
-    #[serde(default)]
-    pub policies: ::core::option::Option<::std::vec::Vec<String>>,
-    /// The names of Backup and DR advanced policy options of a policy applying to an application. See the [Backup and DR documentation on policy options](https://cloud.google.com/backup-disaster-recovery/docs/create-plan/policy-settings). For example, skipofflineappsincongrp, nounmap.
-    #[serde(default, rename = "policyOptions")]
-    pub policy_options: ::core::option::Option<::std::vec::Vec<String>>,
-    /// The name of the Backup and DR resource profile that specifies the storage media for backups of application and VM data. See the [Backup and DR documentation on profiles](https://cloud.google.com/backup-disaster-recovery/docs/concepts/backup-plan#profile). For example, GCP.
-    #[serde(default)]
-    pub profile: ::core::option::Option<String>,
-    /// The name of the Backup and DR storage pool that the backup and recovery appliance is storing data in. The storage pool could be of type Cloud, Primary, Snapshot, or OnVault. See the [Backup and DR documentation on storage pools](https://cloud.google.com/backup-disaster-recovery/docs/concepts/storage-pools). For example, DiskPoolOne.
-    #[serde(default, rename = "storagePool")]
-    pub storage_pool: ::core::option::Option<String>,
-}
-
 /// Request message to create multiple resource value configs
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct BatchCreateResourceValueConfigsRequest {
@@ -545,28 +27,6 @@ pub struct BatchCreateResourceValueConfigsResponse {
         ::core::option::Option<::std::vec::Vec<GoogleCloudSecuritycenterV1ResourceValueConfig>>,
 }
 
-/// The destination BigQuery dataset to export findings to.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct BigQueryDestination {
-    /// Required. The relative resource name of the destination dataset, in the form projects/{projectId}/datasets/{datasetId}.
-    #[serde(default)]
-    pub dataset: ::core::option::Option<String>,
-}
-
-/// Associates members, or principals, with a role.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Binding {
-    /// The condition that is associated with this binding. If the condition evaluates to true, then this binding applies to the current request. If the condition evaluates to false, then this binding does not apply to the current request. However, a different role binding might grant the same role to one or more of the principals in this binding. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies).
-    #[serde(default)]
-    pub condition: ::core::option::Option<Expr>,
-    /// Specifies the principals requesting access for a Google Cloud resource. members can have the following values: * allUsers: A special identifier that represents anyone who is on the internet; with or without a Google account. * allAuthenticatedUsers: A special identifier that represents anyone who is authenticated with a Google account or a service account. Does not include identities that come from external identity providers (IdPs) through identity federation. * user:{emailid}: An email address that represents a specific Google account. For example, alice@example.com . * serviceAccount:{emailid}: An email address that represents a Google service account. For example, my-other-app@appspot.gserviceaccount.com. * serviceAccount:{projectid}.svc.id.goog[{namespace}/{kubernetes-sa}]: An identifier for a [Kubernetes service account](https://cloud.google.com/kubernetes-engine/docs/how-to/kubernetes-service-accounts). For example, my-project.svc.id.goog[my-namespace/my-kubernetes-sa]. * group:{emailid}: An email address that represents a Google group. For example, admins@example.com. * domain:{domain}: The G Suite domain (primary) that represents all the users of that domain. For example, google.com or example.com. * principal://iam.googleapis.com/locations/global/workforcePools/{pool_id}/subject/{subject_attribute_value}: A single identity in a workforce identity pool. * principalSet://iam.googleapis.com/locations/global/workforcePools/{pool_id}/group/{group_id}: All workforce identities in a group. * principalSet://iam.googleapis.com/locations/global/workforcePools/{pool_id}/attribute.{attribute_name}/{attribute_value}: All workforce identities with a specific attribute value. * principalSet://iam.googleapis.com/locations/global/workforcePools/{pool_id}/*: All identities in a workforce identity pool. * principal://iam.googleapis.com/projects/{project_number}/locations/global/workloadIdentityPools/{pool_id}/subject/{subject_attribute_value}: A single identity in a workload identity pool. * principalSet://iam.googleapis.com/projects/{project_number}/locations/global/workloadIdentityPools/{pool_id}/group/{group_id}: A workload identity pool group. * principalSet://iam.googleapis.com/projects/{project_number}/locations/global/workloadIdentityPools/{pool_id}/attribute.{attribute_name}/{attribute_value}: All identities in a workload identity pool with a certain attribute. * principalSet://iam.googleapis.com/projects/{project_number}/locations/global/workloadIdentityPools/{pool_id}/*: All identities in a workload identity pool. * deleted:user:{emailid}?uid={uniqueid}: An email address (plus unique identifier) representing a user that has been recently deleted. For example, alice@example.com?uid=123456789012345678901. If the user is recovered, this value reverts to user:{emailid} and the recovered user retains the role in the binding. * deleted:serviceAccount:{emailid}?uid={uniqueid}: An email address (plus unique identifier) representing a service account that has been recently deleted. For example, my-other-app@appspot.gserviceaccount.com?uid=123456789012345678901. If the service account is undeleted, this value reverts to serviceAccount:{emailid} and the undeleted service account retains the role in the binding. * deleted:group:{emailid}?uid={uniqueid}: An email address (plus unique identifier) representing a Google group that has been recently deleted. For example, admins@example.com?uid=123456789012345678901. If the group is recovered, this value reverts to group:{emailid} and the recovered group retains the role in the binding. * deleted:principal://iam.googleapis.com/locations/global/workforcePools/{pool_id}/subject/{subject_attribute_value}: Deleted single identity in a workforce identity pool. For example, deleted:principal://iam.googleapis.com/locations/global/workforcePools/my-pool-id/subject/my-subject-attribute-value.
-    #[serde(default)]
-    pub members: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Role that is assigned to the list of members, or principals. For example, roles/viewer, roles/editor, or roles/owner. For an overview of the IAM roles and permissions, see the [IAM documentation](https://cloud.google.com/iam/docs/roles-overview). For a list of the available pre-defined roles, see [here](https://cloud.google.com/iam/docs/understanding-roles).
-    #[serde(default)]
-    pub role: ::core::option::Option<String>,
-}
-
 /// Request message for bulk findings update. Note: 1. If multiple bulk update requests match the same resource, the order in which they get executed is not defined. 2. Once a bulk operation is started, there is no way to stop it.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct BulkMuteFindingsRequest {
@@ -581,570 +41,12 @@ pub struct BulkMuteFindingsRequest {
     pub mute_state: ::core::option::Option<String>,
 }
 
-/// Contains details about a chokepoint, which is a resource or resource group where high-risk attack paths converge, based on [attack path simulations] (https://cloud.google.com/security-command-center/docs/attack-exposure-learn#attack_path_simulations).
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Chokepoint {
-    /// List of resource names of findings associated with this chokepoint. For example, organizations/123/sources/456/findings/789. This list will have at most 100 findings.
-    #[serde(default, rename = "relatedFindings")]
-    pub related_findings: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// Fields related to Google Cloud Armor findings.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CloudArmor {
-    /// Information about potential Layer 7 DDoS attacks identified by [Google Cloud Armor Adaptive Protection](https://cloud.google.com/armor/docs/adaptive-protection-overview).
-    #[serde(default, rename = "adaptiveProtection")]
-    pub adaptive_protection: ::core::option::Option<AdaptiveProtection>,
-    /// Information about DDoS attack volume and classification.
-    #[serde(default)]
-    pub attack: ::core::option::Option<Attack>,
-    /// Duration of attack from the start until the current moment (updated every 5 minutes).
-    #[serde(default)]
-    pub duration: ::core::option::Option<String>,
-    /// Information about incoming requests evaluated by [Google Cloud Armor security policies](https://cloud.google.com/armor/docs/security-policy-overview).
-    #[serde(default)]
-    pub requests: ::core::option::Option<Requests>,
-    /// Information about the [Google Cloud Armor security policy](https://cloud.google.com/armor/docs/security-policy-overview) relevant to the finding.
-    #[serde(default, rename = "securityPolicy")]
-    pub security_policy: ::core::option::Option<SecurityPolicy>,
-    /// Distinguish between volumetric & protocol DDoS attack and application layer attacks. For example, "L3_4" for Layer 3 and Layer 4 DDoS attacks, or "L_7" for Layer 7 DDoS attacks.
-    #[serde(default, rename = "threatVector")]
-    pub threat_vector: ::core::option::Option<String>,
-}
-
-/// CloudControl associated with the finding.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CloudControl {
-    /// Name of the CloudControl associated with the finding.
-    #[serde(default, rename = "cloudControlName")]
-    pub cloud_control_name: ::core::option::Option<String>,
-    /// Policy type of the CloudControl
-    #[serde(default, rename = "policyType")]
-    pub policy_type: ::core::option::Option<String>,
-    /// Type of cloud control. // TODO: enum values: ["CLOUD_CONTROL_TYPE_UNSPECIFIED", "BUILT_IN", "CUSTOM"]
-    #[serde(default, rename = "type")]
-    pub type_: ::core::option::Option<String>,
-    /// Version of the Cloud Control
-    #[serde(default)]
-    pub version: ::core::option::Option<i32>,
-}
-
-/// The [data profile](https://cloud.google.com/dlp/docs/data-profiles) associated with the finding.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CloudDlpDataProfile {
-    /// Name of the data profile, for example, projects/123/locations/europe/tableProfiles/8383929.
-    #[serde(default, rename = "dataProfile")]
-    pub data_profile: ::core::option::Option<String>,
-    /// Type of information detected by SDP. Info type includes name, version and sensitivity of the detected information type.
-    #[serde(default, rename = "infoTypes")]
-    pub info_types: ::core::option::Option<::std::vec::Vec<InfoType>>,
-    /// The resource hierarchy level at which the data profile was generated. // TODO: enum values: ["PARENT_TYPE_UNSPECIFIED", "ORGANIZATION", "PROJECT"]
-    #[serde(default, rename = "parentType")]
-    pub parent_type: ::core::option::Option<String>,
-}
-
-/// Details about the Cloud Data Loss Prevention (Cloud DLP) [inspection job](https://cloud.google.com/dlp/docs/concepts-job-triggers) that produced the finding.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CloudDlpInspection {
-    /// Whether Cloud DLP scanned the complete resource or a sampled subset.
-    #[serde(default, rename = "fullScan")]
-    pub full_scan: ::core::option::Option<bool>,
-    /// The type of information (or *[infoType](https://cloud.google.com/dlp/docs/infotypes-reference)*) found, for example, EMAIL_ADDRESS or STREET_ADDRESS.
-    #[serde(default, rename = "infoType")]
-    pub info_type: ::core::option::Option<String>,
-    /// The number of times Cloud DLP found this infoType within this job and resource.
-    #[serde(default, rename = "infoTypeCount")]
-    pub info_type_count: ::core::option::Option<String>,
-    /// Name of the inspection job, for example, projects/123/locations/europe/dlpJobs/i-8383929.
-    #[serde(default, rename = "inspectJob")]
-    pub inspect_job: ::core::option::Option<String>,
-}
-
-/// Metadata taken from a [Cloud Logging LogEntry](https://cloud.google.com/logging/docs/reference/v2/rest/v2/LogEntry)
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CloudLoggingEntry {
-    /// A unique identifier for the log entry.
-    #[serde(default, rename = "insertId")]
-    pub insert_id: ::core::option::Option<String>,
-    /// The type of the log (part of log_name. log_name is the resource name of the log to which this log entry belongs). For example: cloudresourcemanager.googleapis.com/activity. Note that this field is not URL-encoded, unlike the LOG_ID field in LogEntry.
-    #[serde(default, rename = "logId")]
-    pub log_id: ::core::option::Option<String>,
-    /// The organization, folder, or project of the monitored resource that produced this log entry.
-    #[serde(default, rename = "resourceContainer")]
-    pub resource_container: ::core::option::Option<String>,
-    /// The time the event described by the log entry occurred.
-    #[serde(default)]
-    pub timestamp: ::core::option::Option<String>,
-}
-
-/// Contains compliance information about a security standard indicating unmet recommendations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Compliance {
-    /// Policies within the standard or benchmark, for example, A.12.4.1
-    #[serde(default)]
-    pub ids: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Industry-wide compliance standards or benchmarks, such as CIS, PCI, and OWASP.
-    #[serde(default)]
-    pub standard: ::core::option::Option<String>,
-    /// Version of the standard or benchmark, for example, 1.1
-    #[serde(default)]
-    pub version: ::core::option::Option<String>,
-}
-
-/// Compliance Details associated with the finding.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ComplianceDetails {
-    /// CloudControl associated with the finding
-    #[serde(default, rename = "cloudControl")]
-    pub cloud_control: ::core::option::Option<CloudControl>,
-    /// Cloud Control Deployments associated with the finding. For example, organizations/123/locations/global/cloudControlDeployments/deploymentIdentifier
-    #[serde(default, rename = "cloudControlDeploymentNames")]
-    pub cloud_control_deployment_names: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Details of Frameworks associated with the finding
-    #[serde(default)]
-    pub frameworks: ::core::option::Option<::std::vec::Vec<Framework>>,
-}
-
-/// Contains information about the IP connection associated with the finding.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Connection {
-    /// Destination IP address. Not present for sockets that are listening and not connected.
-    #[serde(default, rename = "destinationIp")]
-    pub destination_ip: ::core::option::Option<String>,
-    /// Destination port. Not present for sockets that are listening and not connected.
-    #[serde(default, rename = "destinationPort")]
-    pub destination_port: ::core::option::Option<i32>,
-    /// IANA Internet Protocol Number such as TCP(6) and UDP(17). // TODO: enum values: ["PROTOCOL_UNSPECIFIED", "ICMP", "TCP", "UDP", "GRE", "ESP"]
-    #[serde(default)]
-    pub protocol: ::core::option::Option<String>,
-    /// Source IP address.
-    #[serde(default, rename = "sourceIp")]
-    pub source_ip: ::core::option::Option<String>,
-    /// Source port.
-    #[serde(default, rename = "sourcePort")]
-    pub source_port: ::core::option::Option<i32>,
-}
-
-/// The email address of a contact.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Contact {
-    /// An email address. For example, "person123@company.com".
-    #[serde(default)]
-    pub email: ::core::option::Option<String>,
-}
-
 /// Details about specific contacts
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ContactDetails {
     /// A list of contacts
     #[serde(default)]
     pub contacts: ::core::option::Option<::std::vec::Vec<Contact>>,
-}
-
-/// Container associated with the finding.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Container {
-    /// The time that the container was created.
-    #[serde(default, rename = "createTime")]
-    pub create_time: ::core::option::Option<String>,
-    /// Optional container image ID, if provided by the container runtime. Uniquely identifies the container image launched using a container image digest.
-    #[serde(default, rename = "imageId")]
-    pub image_id: ::core::option::Option<String>,
-    /// Container labels, as provided by the container runtime.
-    #[serde(default)]
-    pub labels: ::core::option::Option<::std::vec::Vec<Label>>,
-    /// Name of the container.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Container image URI provided when configuring a pod or container. This string can identify a container image version using mutable tags.
-    #[serde(default)]
-    pub uri: ::core::option::Option<String>,
-}
-
-/// Compliance control associated with the finding.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Control {
-    /// Name of the Control
-    #[serde(default, rename = "controlName")]
-    pub control_name: ::core::option::Option<String>,
-    /// Display name of the control. For example, AU-02.
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-}
-
-/// Request message to create single resource value config
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CreateResourceValueConfigRequest {
-    /// Required. Resource name of the new ResourceValueConfig''s parent.
-    #[serde(default)]
-    pub parent: ::core::option::Option<String>,
-    /// Required. The resource value config being created.
-    #[serde(default, rename = "resourceValueConfig")]
-    pub resource_value_config:
-        ::core::option::Option<GoogleCloudSecuritycenterV1ResourceValueConfig>,
-}
-
-/// An error encountered while validating the uploaded configuration of an Event Threat Detection Custom Module.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CustomModuleValidationError {
-    /// A description of the error, suitable for human consumption. Required.
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// The end position of the error in the uploaded text version of the module. This field may be omitted if no specific position applies, or if one could not be computed.
-    #[serde(default)]
-    pub end: ::core::option::Option<Position>,
-    /// The path, in RFC 8901 JSON Pointer format, to the field that failed validation. This may be left empty if no specific field is affected.
-    #[serde(default, rename = "fieldPath")]
-    pub field_path: ::core::option::Option<String>,
-    /// The initial position of the error in the uploaded text version of the module. This field may be omitted if no specific position applies, or if one could not be computed.
-    #[serde(default)]
-    pub start: ::core::option::Option<Position>,
-}
-
-/// A list of zero or more errors encountered while validating the uploaded configuration of an Event Threat Detection Custom Module.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CustomModuleValidationErrors {
-    /// The list of errors.
-    #[serde(default)]
-    pub errors: ::core::option::Option<::std::vec::Vec<CustomModuleValidationError>>,
-}
-
-/// CVE stands for Common Vulnerabilities and Exposures. Information from the [CVE record](https://www.cve.org/ResourcesSupport/Glossary) that describes this vulnerability.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Cve {
-    /// Describe Common Vulnerability Scoring System specified at https://www.first.org/cvss/v3.1/specification-document
-    #[serde(default)]
-    pub cvssv3: ::core::option::Option<Cvssv3>,
-    /// Date the first publicly available exploit or PoC was released.
-    #[serde(default, rename = "exploitReleaseDate")]
-    pub exploit_release_date: ::core::option::Option<String>,
-    /// The exploitation activity of the vulnerability in the wild. // TODO: enum values: ["EXPLOITATION_ACTIVITY_UNSPECIFIED", "WIDE", "CONFIRMED", "AVAILABLE", "ANTICIPATED", "NO_KNOWN"]
-    #[serde(default, rename = "exploitationActivity")]
-    pub exploitation_activity: ::core::option::Option<String>,
-    /// Date of the earliest known exploitation.
-    #[serde(default, rename = "firstExploitationDate")]
-    pub first_exploitation_date: ::core::option::Option<String>,
-    /// The unique identifier for the vulnerability. e.g. CVE-2021-34527
-    #[serde(default)]
-    pub id: ::core::option::Option<String>,
-    /// The potential impact of the vulnerability if it was to be exploited. // TODO: enum values: ["RISK_RATING_UNSPECIFIED", "LOW", "MEDIUM", "HIGH", "CRITICAL"]
-    #[serde(default)]
-    pub impact: ::core::option::Option<String>,
-    /// Whether or not the vulnerability has been observed in the wild.
-    #[serde(default, rename = "observedInTheWild")]
-    pub observed_in_the_wild: ::core::option::Option<bool>,
-    /// Additional information about the CVE. e.g. https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2021-34527
-    #[serde(default)]
-    pub references: ::core::option::Option<::std::vec::Vec<Reference>>,
-    /// Whether upstream fix is available for the CVE.
-    #[serde(default, rename = "upstreamFixAvailable")]
-    pub upstream_fix_available: ::core::option::Option<bool>,
-    /// Whether or not the vulnerability was zero day when the finding was published.
-    #[serde(default, rename = "zeroDay")]
-    pub zero_day: ::core::option::Option<bool>,
-}
-
-/// Common Vulnerability Scoring System version 3.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Cvssv3 {
-    /// This metric describes the conditions beyond the attacker''s control that must exist in order to exploit the vulnerability. // TODO: enum values: ["ATTACK_COMPLEXITY_UNSPECIFIED", "ATTACK_COMPLEXITY_LOW", "ATTACK_COMPLEXITY_HIGH"]
-    #[serde(default, rename = "attackComplexity")]
-    pub attack_complexity: ::core::option::Option<String>,
-    /// Base Metrics Represents the intrinsic characteristics of a vulnerability that are constant over time and across user environments. This metric reflects the context by which vulnerability exploitation is possible. // TODO: enum values: ["ATTACK_VECTOR_UNSPECIFIED", "ATTACK_VECTOR_NETWORK", "ATTACK_VECTOR_ADJACENT", "ATTACK_VECTOR_LOCAL", "ATTACK_VECTOR_PHYSICAL"]
-    #[serde(default, rename = "attackVector")]
-    pub attack_vector: ::core::option::Option<String>,
-    /// This metric measures the impact to the availability of the impacted component resulting from a successfully exploited vulnerability. // TODO: enum values: ["IMPACT_UNSPECIFIED", "IMPACT_HIGH", "IMPACT_LOW", "IMPACT_NONE"]
-    #[serde(default, rename = "availabilityImpact")]
-    pub availability_impact: ::core::option::Option<String>,
-    /// The base score is a function of the base metric scores.
-    #[serde(default, rename = "baseScore")]
-    pub base_score: ::core::option::Option<f64>,
-    /// This metric measures the impact to the confidentiality of the information resources managed by a software component due to a successfully exploited vulnerability. // TODO: enum values: ["IMPACT_UNSPECIFIED", "IMPACT_HIGH", "IMPACT_LOW", "IMPACT_NONE"]
-    #[serde(default, rename = "confidentialityImpact")]
-    pub confidentiality_impact: ::core::option::Option<String>,
-    /// This metric measures the impact to integrity of a successfully exploited vulnerability. // TODO: enum values: ["IMPACT_UNSPECIFIED", "IMPACT_HIGH", "IMPACT_LOW", "IMPACT_NONE"]
-    #[serde(default, rename = "integrityImpact")]
-    pub integrity_impact: ::core::option::Option<String>,
-    /// This metric describes the level of privileges an attacker must possess before successfully exploiting the vulnerability. // TODO: enum values: ["PRIVILEGES_REQUIRED_UNSPECIFIED", "PRIVILEGES_REQUIRED_NONE", "PRIVILEGES_REQUIRED_LOW", "PRIVILEGES_REQUIRED_HIGH"]
-    #[serde(default, rename = "privilegesRequired")]
-    pub privileges_required: ::core::option::Option<String>,
-    /// The Scope metric captures whether a vulnerability in one vulnerable component impacts resources in components beyond its security scope. // TODO: enum values: ["SCOPE_UNSPECIFIED", "SCOPE_UNCHANGED", "SCOPE_CHANGED"]
-    #[serde(default)]
-    pub scope: ::core::option::Option<String>,
-    /// This metric captures the requirement for a human user, other than the attacker, to participate in the successful compromise of the vulnerable component. // TODO: enum values: ["USER_INTERACTION_UNSPECIFIED", "USER_INTERACTION_NONE", "USER_INTERACTION_REQUIRED"]
-    #[serde(default, rename = "userInteraction")]
-    pub user_interaction: ::core::option::Option<String>,
-}
-
-/// CWE stands for Common Weakness Enumeration. Information about this weakness, as described by [CWE](https://cwe.mitre.org/).
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Cwe {
-    /// The CWE identifier, e.g. CWE-94
-    #[serde(default)]
-    pub id: ::core::option::Option<String>,
-    /// Any reference to the details on the CWE, for example, https://cwe.mitre.org/data/definitions/94.html
-    #[serde(default)]
-    pub references: ::core::option::Option<::std::vec::Vec<Reference>>,
-}
-
-/// Details about a data access attempt made by a principal not authorized under applicable data security policy.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DataAccessEvent {
-    /// Unique identifier for data access event.
-    #[serde(default, rename = "eventId")]
-    pub event_id: ::core::option::Option<String>,
-    /// Timestamp of data access event.
-    #[serde(default, rename = "eventTime")]
-    pub event_time: ::core::option::Option<String>,
-    /// The operation performed by the principal to access the data. // TODO: enum values: ["OPERATION_UNSPECIFIED", "READ", "MOVE", "COPY"]
-    #[serde(default)]
-    pub operation: ::core::option::Option<String>,
-    /// The email address of the principal that accessed the data. The principal could be a user account, service account, Google group, or other.
-    #[serde(default, rename = "principalEmail")]
-    pub principal_email: ::core::option::Option<String>,
-}
-
-/// Details about a data flow event, in which either the data is moved to or is accessed from a non-compliant geo-location, as defined in the applicable data security policy.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DataFlowEvent {
-    /// Unique identifier for data flow event.
-    #[serde(default, rename = "eventId")]
-    pub event_id: ::core::option::Option<String>,
-    /// Timestamp of data flow event.
-    #[serde(default, rename = "eventTime")]
-    pub event_time: ::core::option::Option<String>,
-    /// The operation performed by the principal for the data flow event. // TODO: enum values: ["OPERATION_UNSPECIFIED", "READ", "MOVE", "COPY"]
-    #[serde(default)]
-    pub operation: ::core::option::Option<String>,
-    /// The email address of the principal that initiated the data flow event. The principal could be a user account, service account, Google group, or other.
-    #[serde(default, rename = "principalEmail")]
-    pub principal_email: ::core::option::Option<String>,
-    /// Non-compliant location of the principal or the data destination.
-    #[serde(default, rename = "violatedLocation")]
-    pub violated_location: ::core::option::Option<String>,
-}
-
-/// Details about data retention deletion violations, in which the data is non-compliant based on their retention or deletion time, as defined in the applicable data security policy. The Data Retention Deletion (DRD) control is a control of the DSPM (Data Security Posture Management) suite that enables organizations to manage data retention and deletion policies in compliance with regulations, such as GDPR and CRPA. DRD supports two primary policy types: maximum storage length (max TTL) and minimum storage length (min TTL). Both are aimed at helping organizations meet regulatory and data management commitments.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DataRetentionDeletionEvent {
-    /// Number of objects that violated the policy for this resource. If the number is less than 1,000, then the value of this field is the exact number. If the number of objects that violated the policy is greater than or equal to 1,000, then the value of this field is 1000.
-    #[serde(default, rename = "dataObjectCount")]
-    pub data_object_count: ::core::option::Option<String>,
-    /// Timestamp indicating when the event was detected.
-    #[serde(default, rename = "eventDetectionTime")]
-    pub event_detection_time: ::core::option::Option<String>,
-    /// Type of the DRD event. // TODO: enum values: ["EVENT_TYPE_UNSPECIFIED", "EVENT_TYPE_MAX_TTL_EXCEEDED", "EVENT_TYPE_MAX_TTL_FROM_CREATION", "EVENT_TYPE_MAX_TTL_FROM_LAST_MODIFICATION", "EVENT_TYPE_MIN_TTL_FROM_CREATION"]
-    #[serde(default, rename = "eventType")]
-    pub event_type: ::core::option::Option<String>,
-    /// Maximum duration of retention allowed from the DRD control. This comes from the DRD control where users set a max TTL for their data. For example, suppose that a user sets the max TTL for a Cloud Storage bucket to 90 days. However, an object in that bucket is 100 days old. In this case, a DataRetentionDeletionEvent will be generated for that Cloud Storage bucket, and the max_retention_allowed is 90 days.
-    #[serde(default, rename = "maxRetentionAllowed")]
-    pub max_retention_allowed: ::core::option::Option<String>,
-    /// Min duration of retention allowed from the DSPM retention control. This field is only populated when event type is set to EVENT_TYPE_MIN_TTL_FROM_CREATION.
-    #[serde(default, rename = "minRetentionAllowed")]
-    pub min_retention_allowed: ::core::option::Option<String>,
-}
-
-/// Represents database access information, such as queries. A database may be a sub-resource of an instance (as in the case of Cloud SQL instances or Cloud Spanner instances), or the database instance itself. Some database resources might not have the [full resource name](https://google.aip.dev/122#full-resource-names) populated because these resource types, such as Cloud SQL databases, are not yet supported by Cloud Asset Inventory. In these cases only the display name is provided.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Database {
-    /// The human-readable name of the database that the user connected to.
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-    /// The target usernames, roles, or groups of an SQL privilege grant, which is not an IAM policy change.
-    #[serde(default)]
-    pub grantees: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Some database resources may not have the [full resource name](https://google.aip.dev/122#full-resource-names) populated because these resource types are not yet supported by Cloud Asset Inventory (e.g. Cloud SQL databases). In these cases only the display name will be provided. The [full resource name](https://google.aip.dev/122#full-resource-names) of the database that the user connected to, if it is supported by Cloud Asset Inventory.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// The SQL statement that is associated with the database access.
-    #[serde(default)]
-    pub query: ::core::option::Option<String>,
-    /// The username used to connect to the database. The username might not be an IAM principal and does not have a set format.
-    #[serde(default, rename = "userName")]
-    pub user_name: ::core::option::Option<String>,
-    /// The version of the database, for example, POSTGRES_14. See [the complete list](https://cloud.google.com/sql/docs/mysql/admin-api/rest/v1/SqlDatabaseVersion).
-    #[serde(default)]
-    pub version: ::core::option::Option<String>,
-}
-
-/// Vertex AI dataset associated with the finding.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Dataset {
-    /// The user defined display name of dataset, e.g. plants-dataset
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-    /// Resource name of the dataset, e.g. projects/{project}/locations/{location}/datasets/2094040236064505856
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Data source, such as BigQuery source URI, e.g. bq://scc-nexus-test.AIPPtest.gsod
-    #[serde(default)]
-    pub source: ::core::option::Option<String>,
-}
-
-/// Denied IP rule.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Denied {
-    /// Optional. Optional list of denied IP rules.
-    #[serde(default, rename = "ipRules")]
-    pub ip_rules: ::core::option::Option<::std::vec::Vec<IpRule>>,
-}
-
-/// Memory hash detection contributing to the binary family match.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Detection {
-    /// The name of the binary associated with the memory hash signature detection.
-    #[serde(default)]
-    pub binary: ::core::option::Option<String>,
-    /// The percentage of memory page hashes in the signature that were matched.
-    #[serde(default, rename = "percentPagesMatched")]
-    pub percent_pages_matched: ::core::option::Option<f64>,
-}
-
-/// Represents discovered, customer managed workload that is not registered with the respective GCP service.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DiscoveredWorkload {
-    /// The confidence in detection of this workload. // TODO: enum values: ["CONFIDENCE_UNSPECIFIED", "CONFIDENCE_HIGH"]
-    #[serde(default)]
-    pub confidence: ::core::option::Option<String>,
-    /// A boolean flag set to true if associated hardware strongly predicts the workload type.
-    #[serde(default, rename = "detectedRelevantHardware")]
-    pub detected_relevant_hardware: ::core::option::Option<bool>,
-    /// A boolean flag set to true if associated keywords strongly predict the workload type.
-    #[serde(default, rename = "detectedRelevantKeywords")]
-    pub detected_relevant_keywords: ::core::option::Option<bool>,
-    /// A boolean flag set to true if installed packages strongly predict the workload type.
-    #[serde(default, rename = "detectedRelevantPackages")]
-    pub detected_relevant_packages: ::core::option::Option<bool>,
-    /// The type of workload. // TODO: enum values: ["WORKLOAD_TYPE_UNSPECIFIED", "MCP_SERVER", "AI_INFERENCE", "AGENT"]
-    #[serde(default, rename = "workloadType")]
-    pub workload_type: ::core::option::Option<String>,
-}
-
-/// Contains information about the disk associated with the finding.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Disk {
-    /// The name of the disk, for example, "https://www.googleapis.com/compute/v1/projects/{project-id}/zones/{zone-id}/disks/{disk-id}".
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-}
-
-/// Path of the file in terms of underlying disk/partition identifiers.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DiskPath {
-    /// UUID of the partition (format https://wiki.archlinux.org/title/persistent_block_device_naming#by-uuid)
-    #[serde(default, rename = "partitionUuid")]
-    pub partition_uuid: ::core::option::Option<String>,
-    /// Relative path of the file in the partition as a JSON encoded string. Example: /home/user1/executable_file.sh
-    #[serde(default, rename = "relativePath")]
-    pub relative_path: ::core::option::Option<String>,
-}
-
-/// The record of a dynamic mute rule that matches the finding.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DynamicMuteRecord {
-    /// When the dynamic mute rule first matched the finding.
-    #[serde(default, rename = "matchTime")]
-    pub match_time: ::core::option::Option<String>,
-    /// The relative resource name of the mute rule, represented by a mute config, that created this record, for example organizations/123/muteConfigs/mymuteconfig or organizations/123/locations/global/muteConfigs/mymuteconfig.
-    #[serde(default, rename = "muteConfig")]
-    pub mute_config: ::core::option::Option<String>,
-}
-
-/// An EffectiveEventThreatDetectionCustomModule is the representation of an Event Threat Detection custom module at a specified level of the resource hierarchy: organization, folder, or project. If a custom module is inherited from a parent organization or folder, the value of the enablement_state property in EffectiveEventThreatDetectionCustomModule is set to the value that is effective in the parent, instead of INHERITED. For example, if the module is enabled in a parent organization or folder, the effective enablement_state for the module in all child folders or projects is also enabled. EffectiveEventThreatDetectionCustomModule is read-only.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct EffectiveEventThreatDetectionCustomModule {
-    /// The cloud provider of the custom module. // TODO: enum values: ["CLOUD_PROVIDER_UNSPECIFIED", "GOOGLE_CLOUD_PLATFORM", "AMAZON_WEB_SERVICES", "MICROSOFT_AZURE"]
-    #[serde(default, rename = "cloudProvider")]
-    pub cloud_provider: ::core::option::Option<String>,
-    /// Output only. Config for the effective module.
-    #[serde(default)]
-    pub config: ::core::option::Option<serde_json::Value>,
-    /// Output only. The description for the module.
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// Output only. The human readable name to be displayed for the module.
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-    /// Output only. The effective state of enablement for the module at the given level of the hierarchy. // TODO: enum values: ["ENABLEMENT_STATE_UNSPECIFIED", "ENABLED", "DISABLED"]
-    #[serde(default, rename = "enablementState")]
-    pub enablement_state: ::core::option::Option<String>,
-    /// Output only. The resource name of the effective ETD custom module. Its format is: * organizations/{organization}/eventThreatDetectionSettings/effectiveCustomModules/{module}. * folders/{folder}/eventThreatDetectionSettings/effectiveCustomModules/{module}. * projects/{project}/eventThreatDetectionSettings/effectiveCustomModules/{module}.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Output only. Type for the module. e.g. CONFIGURABLE_BAD_IP.
-    #[serde(default, rename = "type")]
-    pub type_: ::core::option::Option<String>,
-}
-
-/// A name-value pair representing an environment variable used in an operating system process.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct EnvironmentVariable {
-    /// Environment variable name as a JSON encoded string.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Environment variable value as a JSON encoded string.
-    #[serde(default)]
-    pub val: ::core::option::Option<String>,
-}
-
-/// Represents an instance of an Event Threat Detection custom module, including its full module name, display name, enablement state, and last updated time. You can create a custom module at the organization, folder, or project level. Custom modules that you create at the organization or folder level are inherited by child folders and projects.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct EventThreatDetectionCustomModule {
-    /// Output only. The closest ancestor module that this module inherits the enablement state from. The format is the same as the EventThreatDetectionCustomModule resource name.
-    #[serde(default, rename = "ancestorModule")]
-    pub ancestor_module: ::core::option::Option<String>,
-    /// The cloud provider of the custom module. // TODO: enum values: ["CLOUD_PROVIDER_UNSPECIFIED", "GOOGLE_CLOUD_PLATFORM", "AMAZON_WEB_SERVICES", "MICROSOFT_AZURE"]
-    #[serde(default, rename = "cloudProvider")]
-    pub cloud_provider: ::core::option::Option<String>,
-    /// Config for the module. For the resident module, its config value is defined at this level. For the inherited module, its config value is inherited from the ancestor module.
-    #[serde(default)]
-    pub config: ::core::option::Option<serde_json::Value>,
-    /// The description for the module.
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// The human readable name to be displayed for the module.
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-    /// The state of enablement for the module at the given level of the hierarchy. // TODO: enum values: ["ENABLEMENT_STATE_UNSPECIFIED", "ENABLED", "DISABLED", "INHERITED"]
-    #[serde(default, rename = "enablementState")]
-    pub enablement_state: ::core::option::Option<String>,
-    /// Output only. The editor the module was last updated by.
-    #[serde(default, rename = "lastEditor")]
-    pub last_editor: ::core::option::Option<String>,
-    /// Immutable. The resource name of the Event Threat Detection custom module. Its format is: * organizations/{organization}/eventThreatDetectionSettings/customModules/{module}. * folders/{folder}/eventThreatDetectionSettings/customModules/{module}. * projects/{project}/eventThreatDetectionSettings/customModules/{module}.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Type for the module. e.g. CONFIGURABLE_BAD_IP.
-    #[serde(default, rename = "type")]
-    pub type_: ::core::option::Option<String>,
-    /// Output only. The time the module was last updated.
-    #[serde(default, rename = "updateTime")]
-    pub update_time: ::core::option::Option<String>,
-}
-
-/// Resource where data was exfiltrated from or exfiltrated to.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ExfilResource {
-    /// Subcomponents of the asset that was exfiltrated, like URIs used during exfiltration, table names, databases, and filenames. For example, multiple tables might have been exfiltrated from the same Cloud SQL instance, or multiple files might have been exfiltrated from the same Cloud Storage bucket.
-    #[serde(default)]
-    pub components: ::core::option::Option<::std::vec::Vec<String>>,
-    /// The resource''s [full resource name](https://cloud.google.com/apis/design/resource_names#full_resource_name).
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-}
-
-/// Exfiltration represents a data exfiltration attempt from one or more sources to one or more targets. The sources attribute lists the sources of the exfiltrated data. The targets attribute lists the destinations the data was copied to.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Exfiltration {
-    /// If there are multiple sources, then the data is considered "joined" between them. For instance, BigQuery can join multiple tables, and each table would be considered a source.
-    #[serde(default)]
-    pub sources: ::core::option::Option<::std::vec::Vec<ExfilResource>>,
-    /// If there are multiple targets, each target would get a complete copy of the "joined" source data.
-    #[serde(default)]
-    pub targets: ::core::option::Option<::std::vec::Vec<ExfilResource>>,
-    /// Total exfiltrated bytes processed for the entire job.
-    #[serde(default, rename = "totalExfiltratedBytes")]
-    pub total_exfiltrated_bytes: ::core::option::Option<String>,
 }
 
 /// The LRO metadata for a ExportFindings request.
@@ -1158,487 +60,12 @@ pub struct ExportFindingsMetadata {
     pub export_start_time: ::core::option::Option<String>,
 }
 
-/// Represents a textual expression in the Common Expression Language (CEL) syntax. CEL is a C-like expression language. The syntax and semantics of CEL are documented at https://github.com/google/cel-spec. Example (Comparison): title: "Summary size limit" description: "Determines if a summary is less than 100 chars" expression: "document.summary.size() &lt; 100" Example (Equality): title: "Requestor is owner" description: "Determines if requestor is the document owner" expression: "document.owner == request.auth.claims.email" Example (Logic): title: "Public documents" description: "Determine whether the document should be publicly visible" expression: "document.type != ''private'' && document.type != ''internal''" Example (Data Manipulation): title: "Notification string" description: "Create a notification string with a timestamp." expression: "''New message received at '' + string(document.create_time)" The exact variables and functions that may be referenced within an expression are determined by the service that evaluates it. See the service documentation for additional information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Expr {
-    /// Optional. Description of the expression. This is a longer text which describes the expression, e.g. when hovered over it in a UI.
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// Textual representation of an expression in Common Expression Language syntax.
-    #[serde(default)]
-    pub expression: ::core::option::Option<String>,
-    /// Optional. String indicating the location of the expression for error reporting, e.g. a file name and a position in the file.
-    #[serde(default)]
-    pub location: ::core::option::Option<String>,
-    /// Optional. Title for the expression, i.e. a short string describing its purpose. This can be used e.g. in UIs which allow to enter the expression.
-    #[serde(default)]
-    pub title: ::core::option::Option<String>,
-}
-
-/// Details about the externally exposed resource associated with the finding.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ExternalExposure {
-    /// The full resource name of load balancer backend service, for example, "//compute.googleapis.com/projects/{project-id}/global/backendServices/{name}".
-    #[serde(default, rename = "backendService")]
-    pub backend_service: ::core::option::Option<String>,
-    /// The resource which is running the exposed service, for example, "//compute.googleapis.com/projects/{project-id}/zones/{zone}/instances/{instance}.”
-    #[serde(default, rename = "exposedEndpoint")]
-    pub exposed_endpoint: ::core::option::Option<String>,
-    /// The name and version of the service, for example, "Jupyter Notebook 6.14.0".
-    #[serde(default, rename = "exposedService")]
-    pub exposed_service: ::core::option::Option<String>,
-    /// The full resource name of the forwarding rule, for example, "//compute.googleapis.com/projects/{project-id}/global/forwardingRules/{forwarding-rule-name}".
-    #[serde(default, rename = "forwardingRule")]
-    pub forwarding_rule: ::core::option::Option<String>,
-    /// The full resource name of the instance group, for example, "//compute.googleapis.com/projects/{project-id}/global/instanceGroups/{name}".
-    #[serde(default, rename = "instanceGroup")]
-    pub instance_group: ::core::option::Option<String>,
-    /// The full resource name of the load balancer firewall policy, for example, "//compute.googleapis.com/projects/{project-id}/global/firewallPolicies/{policy-name}".
-    #[serde(default, rename = "loadBalancerFirewallPolicy")]
-    pub load_balancer_firewall_policy: ::core::option::Option<String>,
-    /// The full resource name of the network endpoint group, for example, "//compute.googleapis.com/projects/{project-id}/global/networkEndpointGroups/{name}".
-    #[serde(default, rename = "networkEndpointGroup")]
-    pub network_endpoint_group: ::core::option::Option<String>,
-    /// Private IP address of the exposed endpoint.
-    #[serde(default, rename = "privateIpAddress")]
-    pub private_ip_address: ::core::option::Option<String>,
-    /// Port number associated with private IP address.
-    #[serde(default, rename = "privatePort")]
-    pub private_port: ::core::option::Option<String>,
-    /// Public IP address of the exposed endpoint.
-    #[serde(default, rename = "publicIpAddress")]
-    pub public_ip_address: ::core::option::Option<String>,
-    /// Public port number of the exposed endpoint.
-    #[serde(default, rename = "publicPort")]
-    pub public_port: ::core::option::Option<String>,
-    /// The full resource name of the firewall policy of the exposed service, for example, "//compute.googleapis.com/projects/{project-id}/global/firewallPolicies/{policy-name}".
-    #[serde(default, rename = "serviceFirewallPolicy")]
-    pub service_firewall_policy: ::core::option::Option<String>,
-}
-
-/// File information about the related binary/library used by an executable, or the script used by a script interpreter
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct File {
-    /// Prefix of the file contents as a JSON-encoded string.
-    #[serde(default)]
-    pub contents: ::core::option::Option<String>,
-    /// Path of the file in terms of underlying disk/partition identifiers.
-    #[serde(default, rename = "diskPath")]
-    pub disk_path: ::core::option::Option<DiskPath>,
-    /// The load state of the file. // TODO: enum values: ["FILE_LOAD_STATE_UNSPECIFIED", "LOADED_BY_PROCESS", "NOT_LOADED_BY_PROCESS"]
-    #[serde(default, rename = "fileLoadState")]
-    pub file_load_state: ::core::option::Option<String>,
-    /// The length in bytes of the file prefix that was hashed. If hashed_size == size, any hashes reported represent the entire file.
-    #[serde(default, rename = "hashedSize")]
-    pub hashed_size: ::core::option::Option<String>,
-    /// Operation(s) performed on a file.
-    #[serde(default)]
-    pub operations: ::core::option::Option<::std::vec::Vec<FileOperation>>,
-    /// True when the hash covers only a prefix of the file.
-    #[serde(default, rename = "partiallyHashed")]
-    pub partially_hashed: ::core::option::Option<bool>,
-    /// Absolute path of the file as a JSON encoded string.
-    #[serde(default)]
-    pub path: ::core::option::Option<String>,
-    /// SHA256 hash of the first hashed_size bytes of the file encoded as a hex string. If hashed_size == size, sha256 represents the SHA256 hash of the entire file.
-    #[serde(default)]
-    pub sha256: ::core::option::Option<String>,
-    /// Size of the file in bytes.
-    #[serde(default)]
-    pub size: ::core::option::Option<String>,
-}
-
-/// Operation(s) performed on a file.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct FileOperation {
-    /// The type of the operation // TODO: enum values: ["OPERATION_TYPE_UNSPECIFIED", "OPEN", "READ", "RENAME", "WRITE", "EXECUTE"]
-    #[serde(default, rename = "type")]
-    pub type_: ::core::option::Option<String>,
-}
-
-/// Security Command Center finding. A finding is a record of assessment data like security, risk, health, or privacy, that is ingested into Security Command Center for presentation, notification, analysis, policy testing, and enforcement. For example, a cross-site scripting (XSS) vulnerability in an App Engine application is a finding.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Finding {
-    /// Access details associated with the finding, such as more information on the caller, which method was accessed, and from where.
-    #[serde(default)]
-    pub access: ::core::option::Option<Access>,
-    /// AffectedResources associated with the finding.
-    #[serde(default, rename = "affectedResources")]
-    pub affected_resources: ::core::option::Option<AffectedResources>,
-    /// Agent data access events associated with the finding.
-    #[serde(default, rename = "agentDataAccessEvents")]
-    pub agent_data_access_events: ::core::option::Option<::std::vec::Vec<AgentDataAccessEvent>>,
-    /// The AI model associated with the finding.
-    #[serde(default, rename = "aiModel")]
-    pub ai_model: ::core::option::Option<AiModel>,
-    /// Represents an application associated with the finding.
-    #[serde(default)]
-    pub application: ::core::option::Option<Application>,
-    /// ArtifactGuardPolicies associated with the finding.
-    #[serde(default, rename = "artifactGuardPolicies")]
-    pub artifact_guard_policies: ::core::option::Option<ArtifactGuardPolicies>,
-    /// The results of an attack path simulation relevant to this finding.
-    #[serde(default, rename = "attackExposure")]
-    pub attack_exposure: ::core::option::Option<AttackExposure>,
-    /// Fields related to Backup and DR findings.
-    #[serde(default, rename = "backupDisasterRecovery")]
-    pub backup_disaster_recovery: ::core::option::Option<BackupDisasterRecovery>,
-    /// The canonical name of the finding. It''s either "organizations/{organization_id}/sources/{source_id}/findings/{finding_id}", "folders/{folder_id}/sources/{source_id}/findings/{finding_id}" or "projects/{project_number}/sources/{source_id}/findings/{finding_id}", depending on the closest CRM ancestor of the resource associated with the finding.
-    #[serde(default, rename = "canonicalName")]
-    pub canonical_name: ::core::option::Option<String>,
-    /// The additional taxonomy group within findings from a given source. This field is immutable after creation time. Example: "XSS_FLASH_INJECTION"
-    #[serde(default)]
-    pub category: ::core::option::Option<String>,
-    /// Contains details about a chokepoint, which is a resource or resource group where high-risk attack paths converge, based on [attack path simulations] (https://cloud.google.com/security-command-center/docs/attack-exposure-learn#attack_path_simulations). This field cannot be updated. Its value is ignored in all update requests.
-    #[serde(default)]
-    pub chokepoint: ::core::option::Option<Chokepoint>,
-    /// Fields related to Cloud Armor findings.
-    #[serde(default, rename = "cloudArmor")]
-    pub cloud_armor: ::core::option::Option<CloudArmor>,
-    /// Cloud DLP data profile that is associated with the finding.
-    #[serde(default, rename = "cloudDlpDataProfile")]
-    pub cloud_dlp_data_profile: ::core::option::Option<CloudDlpDataProfile>,
-    /// Cloud Data Loss Prevention (Cloud DLP) inspection results that are associated with the finding.
-    #[serde(default, rename = "cloudDlpInspection")]
-    pub cloud_dlp_inspection: ::core::option::Option<CloudDlpInspection>,
-    /// Details about the compliance implications of the finding.
-    #[serde(default, rename = "complianceDetails")]
-    pub compliance_details: ::core::option::Option<ComplianceDetails>,
-    /// Contains compliance information for security standards associated to the finding.
-    #[serde(default)]
-    pub compliances: ::core::option::Option<::std::vec::Vec<Compliance>>,
-    /// Contains information about the IP connection associated with the finding.
-    #[serde(default)]
-    pub connections: ::core::option::Option<::std::vec::Vec<Connection>>,
-    /// Output only. Map containing the points of contact for the given finding. The key represents the type of contact, while the value contains a list of all the contacts that pertain. Please refer to: https://cloud.google.com/resource-manager/docs/managing-notification-contacts#notification-categories { "security": { "contacts": [ { "email": "person1@company.com" }, { "email": "person2@company.com" } ] } }
-    #[serde(default)]
-    pub contacts: ::core::option::Option<serde_json::Value>,
-    /// Containers associated with the finding. This field provides information for both Kubernetes and non-Kubernetes containers.
-    #[serde(default)]
-    pub containers: ::core::option::Option<::std::vec::Vec<Container>>,
-    /// The time at which the finding was created in Security Command Center.
-    #[serde(default, rename = "createTime")]
-    pub create_time: ::core::option::Option<String>,
-    /// Data access events associated with the finding.
-    #[serde(default, rename = "dataAccessEvents")]
-    pub data_access_events: ::core::option::Option<::std::vec::Vec<DataAccessEvent>>,
-    /// Data flow events associated with the finding.
-    #[serde(default, rename = "dataFlowEvents")]
-    pub data_flow_events: ::core::option::Option<::std::vec::Vec<DataFlowEvent>>,
-    /// Data retention deletion events associated with the finding.
-    #[serde(default, rename = "dataRetentionDeletionEvents")]
-    pub data_retention_deletion_events:
-        ::core::option::Option<::std::vec::Vec<DataRetentionDeletionEvent>>,
-    /// Database associated with the finding.
-    #[serde(default)]
-    pub database: ::core::option::Option<Database>,
-    /// Contains more details about the finding.
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// DiscoveredWorkload associated with the finding.
-    #[serde(default, rename = "discoveredWorkload")]
-    pub discovered_workload: ::core::option::Option<DiscoveredWorkload>,
-    /// Disk associated with the finding.
-    #[serde(default)]
-    pub disk: ::core::option::Option<Disk>,
-    /// The time the finding was first detected. If an existing finding is updated, then this is the time the update occurred. For example, if the finding represents an open firewall, this property captures the time the detector believes the firewall became open. The accuracy is determined by the detector. If the finding is later resolved, then this time reflects when the finding was resolved. This must not be set to a value greater than the current timestamp.
-    #[serde(default, rename = "eventTime")]
-    pub event_time: ::core::option::Option<String>,
-    /// Represents exfiltrations associated with the finding.
-    #[serde(default)]
-    pub exfiltration: ::core::option::Option<Exfiltration>,
-    /// External exposure associated with the finding.
-    #[serde(default, rename = "externalExposure")]
-    pub external_exposure: ::core::option::Option<ExternalExposure>,
-    /// Output only. Third party SIEM/SOAR fields within SCC, contains external system information and external system finding fields.
-    #[serde(default, rename = "externalSystems")]
-    pub external_systems: ::core::option::Option<serde_json::Value>,
-    /// The URI that, if available, points to a web page outside of Security Command Center where additional information about the finding can be found. This field is guaranteed to be either empty or a well formed URL.
-    #[serde(default, rename = "externalUri")]
-    pub external_uri: ::core::option::Option<String>,
-    /// File associated with the finding.
-    #[serde(default)]
-    pub files: ::core::option::Option<::std::vec::Vec<File>>,
-    /// The class of the finding. // TODO: enum values: ["FINDING_CLASS_UNSPECIFIED", "THREAT", "VULNERABILITY", "MISCONFIGURATION", "OBSERVATION", "SCC_ERROR", "POSTURE_VIOLATION", "TOXIC_COMBINATION", "SENSITIVE_DATA_RISK", "CHOKEPOINT", "EXTERNAL_EXPOSURE"]
-    #[serde(default, rename = "findingClass")]
-    pub finding_class: ::core::option::Option<String>,
-    /// Contains details about groups of which this finding is a member. A group is a collection of findings that are related in some way. This field cannot be updated. Its value is ignored in all update requests.
-    #[serde(default, rename = "groupMemberships")]
-    pub group_memberships: ::core::option::Option<::std::vec::Vec<GroupMembership>>,
-    /// Represents IAM bindings associated with the finding.
-    #[serde(default, rename = "iamBindings")]
-    pub iam_bindings: ::core::option::Option<::std::vec::Vec<IamBinding>>,
-    /// Represents what''s commonly known as an *indicator of compromise* (IoC) in computer forensics. This is an artifact observed on a network or in an operating system that, with high confidence, indicates a computer intrusion. For more information, see [Indicator of compromise](https://en.wikipedia.org/wiki/Indicator_of_compromise).
-    #[serde(default)]
-    pub indicator: ::core::option::Option<Indicator>,
-    /// IP rules associated with the finding.
-    #[serde(default, rename = "ipRules")]
-    pub ip_rules: ::core::option::Option<IpRules>,
-    /// Job associated with the finding.
-    #[serde(default)]
-    pub job: ::core::option::Option<Job>,
-    /// Signature of the kernel rootkit.
-    #[serde(default, rename = "kernelRootkit")]
-    pub kernel_rootkit: ::core::option::Option<KernelRootkit>,
-    /// Kubernetes resources associated with the finding.
-    #[serde(default)]
-    pub kubernetes: ::core::option::Option<Kubernetes>,
-    /// The load balancers associated with the finding.
-    #[serde(default, rename = "loadBalancers")]
-    pub load_balancers: ::core::option::Option<::std::vec::Vec<LoadBalancer>>,
-    /// Log entries that are relevant to the finding.
-    #[serde(default, rename = "logEntries")]
-    pub log_entries: ::core::option::Option<::std::vec::Vec<LogEntry>>,
-    /// MITRE ATT&CK tactics and techniques related to this finding. See: https://attack.mitre.org
-    #[serde(default, rename = "mitreAttack")]
-    pub mitre_attack: ::core::option::Option<MitreAttack>,
-    /// Unique identifier of the module which generated the finding. Example: folders/598186756061/securityHealthAnalyticsSettings/customModules/56799441161885
-    #[serde(default, rename = "moduleName")]
-    pub module_name: ::core::option::Option<String>,
-    /// Indicates the mute state of a finding (either muted, unmuted or undefined). Unlike other attributes of a finding, a finding provider shouldn''t set the value of mute. // TODO: enum values: ["MUTE_UNSPECIFIED", "MUTED", "UNMUTED", "UNDEFINED"]
-    #[serde(default)]
-    pub mute: ::core::option::Option<String>,
-    /// Output only. The mute information regarding this finding.
-    #[serde(default, rename = "muteInfo")]
-    pub mute_info: ::core::option::Option<MuteInfo>,
-    /// Records additional information about the mute operation, for example, the [mute configuration](/security-command-center/docs/how-to-mute-findings) that muted the finding and the user who muted the finding.
-    #[serde(default, rename = "muteInitiator")]
-    pub mute_initiator: ::core::option::Option<String>,
-    /// Output only. The most recent time this finding was muted or unmuted.
-    #[serde(default, rename = "muteUpdateTime")]
-    pub mute_update_time: ::core::option::Option<String>,
-    /// The [relative resource name](https://cloud.google.com/apis/design/resource_names#relative_resource_name) of the finding. Example: "organizations/{organization_id}/sources/{source_id}/findings/{finding_id}", "folders/{folder_id}/sources/{source_id}/findings/{finding_id}", "projects/{project_id}/sources/{source_id}/findings/{finding_id}".
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Represents the VPC networks that the resource is attached to.
-    #[serde(default)]
-    pub networks: ::core::option::Option<::std::vec::Vec<Network>>,
-    /// Steps to address the finding.
-    #[serde(default, rename = "nextSteps")]
-    pub next_steps: ::core::option::Option<String>,
-    /// Notebook associated with the finding.
-    #[serde(default)]
-    pub notebook: ::core::option::Option<Notebook>,
-    /// Contains information about the org policies associated with the finding.
-    #[serde(default, rename = "orgPolicies")]
-    pub org_policies: ::core::option::Option<::std::vec::Vec<OrgPolicy>>,
-    /// The relative resource name of the source the finding belongs to. See: https://cloud.google.com/apis/design/resource_names#relative_resource_name This field is immutable after creation time. For example: "organizations/{organization_id}/sources/{source_id}"
-    #[serde(default)]
-    pub parent: ::core::option::Option<String>,
-    /// Output only. The human readable display name of the finding source such as "Event Threat Detection" or "Security Health Analytics".
-    #[serde(default, rename = "parentDisplayName")]
-    pub parent_display_name: ::core::option::Option<String>,
-    /// PolicyViolationSummary associated with the finding.
-    #[serde(default, rename = "policyViolationSummary")]
-    pub policy_violation_summary: ::core::option::Option<PolicyViolationSummary>,
-    /// Represents operating system processes associated with the Finding.
-    #[serde(default)]
-    pub processes: ::core::option::Option<::std::vec::Vec<Process>>,
-    /// For findings on Google Cloud resources, the full resource name of the Google Cloud resource this finding is for. See: https://cloud.google.com/apis/design/resource_names#full_resource_name When the finding is for a non-Google Cloud resource, the resourceName can be a customer or partner defined string. This field is immutable after creation time.
-    #[serde(default, rename = "resourceName")]
-    pub resource_name: ::core::option::Option<String>,
-    /// Secret associated with the finding.
-    #[serde(default)]
-    pub secret: ::core::option::Option<Secret>,
-    /// Output only. User specified security marks. These marks are entirely managed by the user and come from the SecurityMarks resource that belongs to the finding.
-    #[serde(default, rename = "securityMarks")]
-    pub security_marks: ::core::option::Option<SecurityMarks>,
-    /// The security posture associated with the finding.
-    #[serde(default, rename = "securityPosture")]
-    pub security_posture: ::core::option::Option<SecurityPosture>,
-    /// The severity of the finding. This field is managed by the source that writes the finding. // TODO: enum values: ["SEVERITY_UNSPECIFIED", "CRITICAL", "HIGH", "MEDIUM", "LOW"]
-    #[serde(default)]
-    pub severity: ::core::option::Option<String>,
-    /// Source specific properties. These properties are managed by the source that writes the finding. The key names in the source_properties map must be between 1 and 255 characters, and must start with a letter and contain alphanumeric characters or underscores only.
-    #[serde(default, rename = "sourceProperties")]
-    pub source_properties: ::core::option::Option<serde_json::Value>,
-    /// The state of the finding. // TODO: enum values: ["STATE_UNSPECIFIED", "ACTIVE", "INACTIVE"]
-    #[serde(default)]
-    pub state: ::core::option::Option<String>,
-    /// Contains details about a group of security issues that, when the issues occur together, represent a greater risk than when the issues occur independently. A group of such issues is referred to as a toxic combination. This field cannot be updated. Its value is ignored in all update requests.
-    #[serde(default, rename = "toxicCombination")]
-    pub toxic_combination: ::core::option::Option<ToxicCombination>,
-    /// VertexAi associated with the finding.
-    #[serde(default, rename = "vertexAi")]
-    pub vertex_ai: ::core::option::Option<VertexAi>,
-    /// Represents vulnerability-specific fields like CVE and CVSS scores. CVE stands for Common Vulnerabilities and Exposures (https://cve.mitre.org/about/)
-    #[serde(default)]
-    pub vulnerability: ::core::option::Option<Vulnerability>,
-}
-
-/// Message that contains the resource name and display name of a folder resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Folder {
-    /// Full resource name of this folder. See: https://cloud.google.com/apis/design/resource_names#full_resource_name
-    #[serde(default, rename = "resourceFolder")]
-    pub resource_folder: ::core::option::Option<String>,
-    /// The user defined display name for this folder.
-    #[serde(default, rename = "resourceFolderDisplayName")]
-    pub resource_folder_display_name: ::core::option::Option<String>,
-}
-
-/// Compliance framework associated with the finding.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Framework {
-    /// Category of the framework associated with the finding. E.g. Security Benchmark, or Assured Workloads
-    #[serde(default)]
-    pub category: ::core::option::Option<::std::vec::Vec<String>>,
-    /// The controls associated with the framework.
-    #[serde(default)]
-    pub controls: ::core::option::Option<::std::vec::Vec<Control>>,
-    /// Display name of the framework. For a standard framework, this will look like e.g. PCI DSS 3.2.1, whereas for a custom framework it can be a user defined string like MyFramework
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-    /// Name of the framework associated with the finding
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Type of the framework associated with the finding, to specify whether the framework is built-in (pre-defined and immutable) or a custom framework defined by the customer (equivalent to security posture) // TODO: enum values: ["FRAMEWORK_TYPE_UNSPECIFIED", "FRAMEWORK_TYPE_BUILT_IN", "FRAMEWORK_TYPE_CUSTOM"]
-    #[serde(default, rename = "type")]
-    pub type_: ::core::option::Option<String>,
-}
-
-/// Google Cloud metadata associated with the resource. Only applicable if the finding''s cloud provider is Google Cloud.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GcpMetadata {
-    /// Output only. Contains a Folder message for each folder in the assets ancestry. The first folder is the deepest nested folder, and the last folder is the folder directly under the Organization.
-    #[serde(default)]
-    pub folders: ::core::option::Option<::std::vec::Vec<GoogleCloudSecuritycenterV2Folder>>,
-    /// The name of the organization that the resource belongs to.
-    #[serde(default)]
-    pub organization: ::core::option::Option<String>,
-    /// The full resource name of resource''s parent.
-    #[serde(default)]
-    pub parent: ::core::option::Option<String>,
-    /// The human readable name of resource''s parent.
-    #[serde(default, rename = "parentDisplayName")]
-    pub parent_display_name: ::core::option::Option<String>,
-    /// The full resource name of project that the resource belongs to.
-    #[serde(default)]
-    pub project: ::core::option::Option<String>,
-    /// The project ID that the resource belongs to.
-    #[serde(default, rename = "projectDisplayName")]
-    pub project_display_name: ::core::option::Option<String>,
-}
-
-/// Represents a geographical location for a given access.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Geolocation {
-    /// A CLDR.
-    #[serde(default, rename = "regionCode")]
-    pub region_code: ::core::option::Option<String>,
-}
-
 /// Request message for GetIamPolicy method.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GetIamPolicyRequest {
     /// OPTIONAL: A GetPolicyOptions object for specifying options to GetIamPolicy.
     #[serde(default)]
     pub options: ::core::option::Option<GetPolicyOptions>,
-}
-
-/// Encapsulates settings provided to GetIamPolicy.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GetPolicyOptions {
-    /// Optional. The maximum policy version that will be used to format the policy. Valid values are 0, 1, and 3. Requests specifying an invalid value will be rejected. Requests for policies with any conditional role bindings must specify version 3. Policies with no conditional role bindings may specify any valid value or leave the field unset. The policy in the response might use the policy version that you specified, or it might use a lower policy version. For example, if you specify version 3, but the policy has no conditional role bindings, the response uses version 1. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies).
-    #[serde(default, rename = "requestedPolicyVersion")]
-    pub requested_policy_version: ::core::option::Option<i32>,
-}
-
-/// Configures how to deliver Findings to BigQuery Instance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudSecuritycenterV1BigQueryExport {
-    /// Output only. The time at which the BigQuery export was created. This field is set by the server and will be ignored if provided on export on creation.
-    #[serde(default, rename = "createTime")]
-    pub create_time: ::core::option::Option<String>,
-    /// The dataset to write findings'' updates to. Its format is "projects/[project_id]/datasets/[bigquery_dataset_id]". BigQuery Dataset unique ID must contain only letters (a-z, A-Z), numbers (0-9), or underscores (_).
-    #[serde(default)]
-    pub dataset: ::core::option::Option<String>,
-    /// The description of the export (max of 1024 characters).
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// Expression that defines the filter to apply across create/update events of findings. The expression is a list of zero or more restrictions combined via logical operators AND and OR. Parentheses are supported, and OR has higher precedence than AND. Restrictions have the form   and may have a - character in front of them to indicate negation. The fields map to those defined in the corresponding resource. The supported operators are: * = for all value types. * &gt;, &lt;, &gt;=, &lt;= for integer values. * :, meaning substring matching, for strings. The supported value types are: * string literals in quotes. * integer literals without quotes. * boolean literals true and false without quotes.
-    #[serde(default)]
-    pub filter: ::core::option::Option<String>,
-    /// Output only. Email address of the user who last edited the BigQuery export. This field is set by the server and will be ignored if provided on export creation or update.
-    #[serde(default, rename = "mostRecentEditor")]
-    pub most_recent_editor: ::core::option::Option<String>,
-    /// The relative resource name of this export. See: https://cloud.google.com/apis/design/resource_names#relative_resource_name. Example format: "organizations/{organization_id}/bigQueryExports/{export_id}" Example format: "folders/{folder_id}/bigQueryExports/{export_id}" Example format: "projects/{project_id}/bigQueryExports/{export_id}" This field is provided in responses, and is ignored when provided in create requests.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Output only. The service account that needs permission to create table and upload data to the BigQuery dataset.
-    #[serde(default)]
-    pub principal: ::core::option::Option<String>,
-    /// Output only. The most recent time at which the BigQuery export was updated. This field is set by the server and will be ignored if provided on export creation or update.
-    #[serde(default, rename = "updateTime")]
-    pub update_time: ::core::option::Option<String>,
-}
-
-/// Represents a Kubernetes RoleBinding or ClusterRoleBinding.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudSecuritycenterV1Binding {
-    /// Name for the binding.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Namespace for the binding.
-    #[serde(default)]
-    pub ns: ::core::option::Option<String>,
-    /// The Role or ClusterRole referenced by the binding.
-    #[serde(default)]
-    pub role: ::core::option::Option<Role>,
-    /// Represents one or more subjects that are bound to the role. Not always available for PATCH requests.
-    #[serde(default)]
-    pub subjects: ::core::option::Option<::std::vec::Vec<Subject>>,
-}
-
-/// Defines the properties in a custom module configuration for Security Health Analytics. Use the custom module configuration to create custom detectors that generate custom findings for resources that you specify.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudSecuritycenterV1CustomConfig {
-    /// Custom output properties.
-    #[serde(default, rename = "customOutput")]
-    pub custom_output: ::core::option::Option<GoogleCloudSecuritycenterV1CustomOutputSpec>,
-    /// Text that describes the vulnerability or misconfiguration that the custom module detects. This explanation is returned with each finding instance to help investigators understand the detected issue. The text must be enclosed in quotation marks.
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// The CEL expression to evaluate to produce findings. When the expression evaluates to true against a resource, a finding is generated.
-    #[serde(default)]
-    pub predicate: ::core::option::Option<Expr>,
-    /// An explanation of the recommended steps that security teams can take to resolve the detected issue. This explanation is returned with each finding generated by this module in the nextSteps property of the finding JSON.
-    #[serde(default)]
-    pub recommendation: ::core::option::Option<String>,
-    /// The resource types that the custom module operates on. Each custom module can specify up to 5 resource types.
-    #[serde(default, rename = "resourceSelector")]
-    pub resource_selector: ::core::option::Option<GoogleCloudSecuritycenterV1ResourceSelector>,
-    /// The severity to assign to findings generated by the module. // TODO: enum values: ["SEVERITY_UNSPECIFIED", "CRITICAL", "HIGH", "MEDIUM", "LOW"]
-    #[serde(default)]
-    pub severity: ::core::option::Option<String>,
-}
-
-/// A set of optional name-value pairs that define custom source properties to return with each finding that is generated by the custom module. The custom source properties that are defined here are included in the finding JSON under sourceProperties.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudSecuritycenterV1CustomOutputSpec {
-    /// A list of custom output properties to add to the finding.
-    #[serde(default)]
-    pub properties: ::core::option::Option<::std::vec::Vec<GoogleCloudSecuritycenterV1Property>>,
-}
-
-/// An EffectiveSecurityHealthAnalyticsCustomModule is the representation of a Security Health Analytics custom module at a specified level of the resource hierarchy: organization, folder, or project. If a custom module is inherited from a parent organization or folder, the value of the enablementState property in EffectiveSecurityHealthAnalyticsCustomModule is set to the value that is effective in the parent, instead of INHERITED. For example, if the module is enabled in a parent organization or folder, the effective enablement_state for the module in all child folders or projects is also enabled. EffectiveSecurityHealthAnalyticsCustomModule is read-only.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudSecuritycenterV1EffectiveSecurityHealthAnalyticsCustomModule {
-    /// The cloud provider of the custom module. // TODO: enum values: ["CLOUD_PROVIDER_UNSPECIFIED", "GOOGLE_CLOUD_PLATFORM", "AMAZON_WEB_SERVICES", "MICROSOFT_AZURE"]
-    #[serde(default, rename = "cloudProvider")]
-    pub cloud_provider: ::core::option::Option<String>,
-    /// Output only. The user-specified configuration for the module.
-    #[serde(default, rename = "customConfig")]
-    pub custom_config: ::core::option::Option<GoogleCloudSecuritycenterV1CustomConfig>,
-    /// Output only. The display name for the custom module. The name must be between 1 and 128 characters, start with a lowercase letter, and contain alphanumeric characters or underscores only.
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-    /// Output only. The effective state of enablement for the module at the given level of the hierarchy. // TODO: enum values: ["ENABLEMENT_STATE_UNSPECIFIED", "ENABLED", "DISABLED"]
-    #[serde(default, rename = "enablementState")]
-    pub enablement_state: ::core::option::Option<String>,
-    /// Output only. The resource name of the custom module. Its format is "organizations/{organization}/securityHealthAnalyticsSettings/effectiveCustomModules/{customModule}", or "folders/{folder}/securityHealthAnalyticsSettings/effectiveCustomModules/{customModule}", or "projects/{project}/securityHealthAnalyticsSettings/effectiveCustomModules/{customModule}"
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
 }
 
 /// Representation of third party SIEM/SOAR fields within SCC.
@@ -1679,38 +106,6 @@ pub struct GoogleCloudSecuritycenterV1ExternalSystem {
     pub ticket_info: ::core::option::Option<TicketInfo>,
 }
 
-/// A mute config is a Cloud SCC resource that contains the configuration to mute create/update events of findings.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudSecuritycenterV1MuteConfig {
-    /// Output only. The time at which the mute config was created. This field is set by the server and will be ignored if provided on config creation.
-    #[serde(default, rename = "createTime")]
-    pub create_time: ::core::option::Option<String>,
-    /// A description of the mute config.
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// The human readable name to be displayed for the mute config.
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-    /// Optional. The expiry of the mute config. Only applicable for dynamic configs. If the expiry is set, when the config expires, it is removed from all findings.
-    #[serde(default, rename = "expiryTime")]
-    pub expiry_time: ::core::option::Option<String>,
-    /// Required. An expression that defines the filter to apply across create/update events of findings. While creating a filter string, be mindful of the scope in which the mute configuration is being created. E.g., If a filter contains project = X but is created under the project = Y scope, it might not match any findings. The following field and operator combinations are supported: * severity: =, : * category: =, : * resource.name: =, : * resource.project_name: =, : * resource.project_display_name: =, : * resource.folders.resource_folder: =, : * resource.parent_name: =, : * resource.parent_display_name: =, : * resource.type: =, : * finding_class: =, : * indicator.ip_addresses: =, : * indicator.domains: =, :
-    #[serde(default)]
-    pub filter: ::core::option::Option<String>,
-    /// Output only. Email address of the user who last edited the mute config. This field is set by the server and will be ignored if provided on config creation or update.
-    #[serde(default, rename = "mostRecentEditor")]
-    pub most_recent_editor: ::core::option::Option<String>,
-    /// This field will be ignored if provided on config creation. Format organizations/{organization}/muteConfigs/{mute_config} folders/{folder}/muteConfigs/{mute_config} projects/{project}/muteConfigs/{mute_config} organizations/{organization}/locations/global/muteConfigs/{mute_config} folders/{folder}/locations/global/muteConfigs/{mute_config} projects/{project}/locations/global/muteConfigs/{mute_config}
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Optional. The type of the mute config, which determines what type of mute state the config affects. The static mute state takes precedence over the dynamic mute state. Immutable after creation. STATIC by default if not set during creation. // TODO: enum values: ["MUTE_CONFIG_TYPE_UNSPECIFIED", "STATIC", "DYNAMIC"]
-    #[serde(default, rename = "type")]
-    pub type_: ::core::option::Option<String>,
-    /// Output only. The most recent time at which the mute config was updated. This field is set by the server and will be ignored if provided on config creation or update.
-    #[serde(default, rename = "updateTime")]
-    pub update_time: ::core::option::Option<String>,
-}
-
 /// Cloud SCC''s Notification
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudSecuritycenterV1NotificationMessage {
@@ -1725,15 +120,751 @@ pub struct GoogleCloudSecuritycenterV1NotificationMessage {
     pub resource: ::core::option::Option<GoogleCloudSecuritycenterV1Resource>,
 }
 
-/// An individual name-value pair that defines a custom source property.
+/// Response of asset discovery run
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudSecuritycenterV1Property {
-    /// Name of the property for the custom output.
+pub struct GoogleCloudSecuritycenterV1RunAssetDiscoveryResponse {
+    /// The duration between asset discovery run start and end
+    #[serde(default)]
+    pub duration: ::core::option::Option<String>,
+    /// The state of an asset discovery run. // TODO: enum values: ["STATE_UNSPECIFIED", "COMPLETED", "SUPERSEDED", "TERMINATED"]
+    #[serde(default)]
+    pub state: ::core::option::Option<String>,
+}
+
+/// Response of asset discovery run
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudSecuritycenterV1beta1RunAssetDiscoveryResponse {
+    /// The duration between asset discovery run start and end
+    #[serde(default)]
+    pub duration: ::core::option::Option<String>,
+    /// The state of an asset discovery run. // TODO: enum values: ["STATE_UNSPECIFIED", "COMPLETED", "SUPERSEDED", "TERMINATED"]
+    #[serde(default)]
+    pub state: ::core::option::Option<String>,
+}
+
+/// Security Command Center''s Notification
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudSecuritycenterV1p1beta1NotificationMessage {
+    /// If it''s a Finding based notification config, this field will be populated.
+    #[serde(default)]
+    pub finding: ::core::option::Option<GoogleCloudSecuritycenterV1p1beta1Finding>,
+    /// Name of the notification config that generated current notification.
+    #[serde(default, rename = "notificationConfigName")]
+    pub notification_config_name: ::core::option::Option<String>,
+    /// The Cloud resource tied to the notification.
+    #[serde(default)]
+    pub resource: ::core::option::Option<GoogleCloudSecuritycenterV1p1beta1Resource>,
+}
+
+/// Response of asset discovery run
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudSecuritycenterV1p1beta1RunAssetDiscoveryResponse {
+    /// The duration between asset discovery run start and end
+    #[serde(default)]
+    pub duration: ::core::option::Option<String>,
+    /// The state of an asset discovery run. // TODO: enum values: ["STATE_UNSPECIFIED", "COMPLETED", "SUPERSEDED", "TERMINATED"]
+    #[serde(default)]
+    pub state: ::core::option::Option<String>,
+}
+
+/// Configures how to deliver Findings to BigQuery Instance.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudSecuritycenterV2BigQueryExport {
+    /// Output only. The time at which the BigQuery export was created. This field is set by the server and will be ignored if provided on export on creation.
+    #[serde(default, rename = "createTime")]
+    pub create_time: ::core::option::Option<String>,
+    /// Output only. The resource name of the Cloud KMS CryptoKey used to protect this configuration''s data, if configured during Security Command Center activation.
+    #[serde(default, rename = "cryptoKeyName")]
+    pub crypto_key_name: ::core::option::Option<String>,
+    /// The dataset to write findings'' updates to. Its format is "projects/[project_id]/datasets/[bigquery_dataset_id]". BigQuery dataset unique ID must contain only letters (a-z, A-Z), numbers (0-9), or underscores (_).
+    #[serde(default)]
+    pub dataset: ::core::option::Option<String>,
+    /// The description of the export (max of 1024 characters).
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+    /// Expression that defines the filter to apply across create/update events of findings. The expression is a list of zero or more restrictions combined via logical operators AND and OR. Parentheses are supported, and OR has higher precedence than AND. Restrictions have the form   and may have a - character in front of them to indicate negation. The fields map to those defined in the corresponding resource. The supported operators are: * = for all value types. * &gt;, &lt;, &gt;=, &lt;= for integer values. * :, meaning substring matching, for strings. The supported value types are: * string literals in quotes. * integer literals without quotes. * boolean literals true and false without quotes.
+    #[serde(default)]
+    pub filter: ::core::option::Option<String>,
+    /// Output only. Email address of the user who last edited the BigQuery export. This field is set by the server and will be ignored if provided on export creation or update.
+    #[serde(default, rename = "mostRecentEditor")]
+    pub most_recent_editor: ::core::option::Option<String>,
+    /// Identifier. The relative resource name of this export. See: https://cloud.google.com/apis/design/resource_names#relative_resource_name. The following list shows some examples: + organizations/{organization_id}/locations/{location_id}/bigQueryExports/{export_id} + folders/{folder_id}/locations/{location_id}/bigQueryExports/{export_id} + projects/{project_id}/locations/{location_id}/bigQueryExports/{export_id} This field is provided in responses, and is ignored when provided in create requests.
     #[serde(default)]
     pub name: ::core::option::Option<String>,
-    /// The CEL expression for the custom output. A resource property can be specified to return the value of the property or a text string enclosed in quotation marks.
-    #[serde(default, rename = "valueExpression")]
-    pub value_expression: ::core::option::Option<Expr>,
+    /// Output only. The service account that needs permission to create table and upload data to the BigQuery dataset.
+    #[serde(default)]
+    pub principal: ::core::option::Option<String>,
+    /// Output only. The most recent time at which the BigQuery export was updated. This field is set by the server and will be ignored if provided on export creation or update.
+    #[serde(default, rename = "updateTime")]
+    pub update_time: ::core::option::Option<String>,
+}
+
+/// Details about specific contacts
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudSecuritycenterV2ContactDetails {
+    /// A list of contacts
+    #[serde(default)]
+    pub contacts: ::core::option::Option<::std::vec::Vec<GoogleCloudSecuritycenterV2Contact>>,
+}
+
+/// Representation of third party SIEM/SOAR fields within SCC.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudSecuritycenterV2ExternalSystem {
+    /// References primary/secondary etc assignees in the external system.
+    #[serde(default)]
+    pub assignees: ::core::option::Option<::std::vec::Vec<String>>,
+    /// The time when the case was closed, as reported by the external system.
+    #[serde(default, rename = "caseCloseTime")]
+    pub case_close_time: ::core::option::Option<String>,
+    /// The time when the case was created, as reported by the external system.
+    #[serde(default, rename = "caseCreateTime")]
+    pub case_create_time: ::core::option::Option<String>,
+    /// The priority of the finding''s corresponding case in the external system.
+    #[serde(default, rename = "casePriority")]
+    pub case_priority: ::core::option::Option<String>,
+    /// The SLA of the finding''s corresponding case in the external system.
+    #[serde(default, rename = "caseSla")]
+    pub case_sla: ::core::option::Option<String>,
+    /// The link to the finding''s corresponding case in the external system.
+    #[serde(default, rename = "caseUri")]
+    pub case_uri: ::core::option::Option<String>,
+    /// The time when the case was last updated, as reported by the external system.
+    #[serde(default, rename = "externalSystemUpdateTime")]
+    pub external_system_update_time: ::core::option::Option<String>,
+    /// The identifier that''s used to track the finding''s corresponding case in the external system.
+    #[serde(default, rename = "externalUid")]
+    pub external_uid: ::core::option::Option<String>,
+    /// Full resource name of the external system. The following list shows some examples: + organizations/1234/sources/5678/findings/123456/externalSystems/jira + organizations/1234/sources/5678/locations/us/findings/123456/externalSystems/jira + folders/1234/sources/5678/findings/123456/externalSystems/jira + folders/1234/sources/5678/locations/us/findings/123456/externalSystems/jira + projects/1234/sources/5678/findings/123456/externalSystems/jira + projects/1234/sources/5678/locations/us/findings/123456/externalSystems/jira
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// The most recent status of the finding''s corresponding case, as reported by the external system.
+    #[serde(default)]
+    pub status: ::core::option::Option<String>,
+    /// Information about the ticket, if any, that is being used to track the resolution of the issue that is identified by this finding.
+    #[serde(default, rename = "ticketInfo")]
+    pub ticket_info: ::core::option::Option<GoogleCloudSecuritycenterV2TicketInfo>,
+}
+
+/// Security Command Center Issue.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudSecuritycenterV2Issue {
+    /// Output only. The time the issue was created.
+    #[serde(default, rename = "createTime")]
+    pub create_time: ::core::option::Option<String>,
+    /// The description of the issue in Markdown format.
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+    /// The finding category or rule name that generated the issue.
+    #[serde(default)]
+    pub detection: ::core::option::Option<String>,
+    /// The domains of the issue.
+    #[serde(default)]
+    pub domains: ::core::option::Option<::std::vec::Vec<GoogleCloudSecuritycenterV2IssueDomain>>,
+    /// The exposure score of the issue.
+    #[serde(default, rename = "exposureScore")]
+    pub exposure_score: ::core::option::Option<f64>,
+    /// The type of the issue. // TODO: enum values: ["ISSUE_TYPE_UNSPECIFIED", "CHOKEPOINT", "TOXIC_COMBINATION", "INSIGHT"]
+    #[serde(default, rename = "issueType")]
+    pub issue_type: ::core::option::Option<String>,
+    /// The time the issue was last observed.
+    #[serde(default, rename = "lastObservationTime")]
+    pub last_observation_time: ::core::option::Option<String>,
+    /// The mute information of the issue.
+    #[serde(default)]
+    pub mute: ::core::option::Option<GoogleCloudSecuritycenterV2IssueMute>,
+    /// Identifier. The name of the issue. Format: organizations/{organization}/locations/{location}/issues/{issue}
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// The primary resource associated with the issue.
+    #[serde(default, rename = "primaryResource")]
+    pub primary_resource: ::core::option::Option<GoogleCloudSecuritycenterV2IssueResource>,
+    /// The findings related to the issue.
+    #[serde(default, rename = "relatedFindings")]
+    pub related_findings:
+        ::core::option::Option<::std::vec::Vec<GoogleCloudSecuritycenterV2IssueFinding>>,
+    /// Approaches to remediate the issue in Markdown format.
+    #[serde(default)]
+    pub remediations: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Additional resources associated with the issue.
+    #[serde(default, rename = "secondaryResources")]
+    pub secondary_resources:
+        ::core::option::Option<::std::vec::Vec<GoogleCloudSecuritycenterV2IssueResource>>,
+    /// The security context of the issue.
+    #[serde(default, rename = "securityContexts")]
+    pub security_contexts:
+        ::core::option::Option<::std::vec::Vec<GoogleCloudSecuritycenterV2IssueSecurityContext>>,
+    /// The severity of the issue. // TODO: enum values: ["SEVERITY_UNSPECIFIED", "CRITICAL", "HIGH", "MEDIUM", "LOW"]
+    #[serde(default)]
+    pub severity: ::core::option::Option<String>,
+    /// Output only. The state of the issue. // TODO: enum values: ["STATE_UNSPECIFIED", "ACTIVE", "INACTIVE"]
+    #[serde(default)]
+    pub state: ::core::option::Option<String>,
+    /// Output only. The time the issue was last updated.
+    #[serde(default, rename = "updateTime")]
+    pub update_time: ::core::option::Option<String>,
+}
+
+/// A mute config is a Cloud SCC resource that contains the configuration to mute create/update events of findings.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudSecuritycenterV2MuteConfig {
+    /// Output only. The time at which the mute config was created. This field is set by the server and will be ignored if provided on config creation.
+    #[serde(default, rename = "createTime")]
+    pub create_time: ::core::option::Option<String>,
+    /// Output only. The resource name of the Cloud KMS CryptoKey used to encrypt this configuration data, if CMEK was enabled during Security Command Center activation.
+    #[serde(default, rename = "cryptoKeyName")]
+    pub crypto_key_name: ::core::option::Option<String>,
+    /// A description of the mute config.
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+    /// Optional. The expiry of the mute config. Only applicable for dynamic configs. If the expiry is set, when the config expires, it is removed from all findings.
+    #[serde(default, rename = "expiryTime")]
+    pub expiry_time: ::core::option::Option<String>,
+    /// Required. An expression that defines the filter to apply across create/update events of findings. While creating a filter string, be mindful of the scope in which the mute configuration is being created. E.g., If a filter contains project = X but is created under the project = Y scope, it might not match any findings. The following field and operator combinations are supported: * severity: =, : * category: =, : * resource.name: =, : * resource.project_name: =, : * resource.project_display_name: =, : * resource.folders.resource_folder: =, : * resource.parent_name: =, : * resource.parent_display_name: =, : * resource.type: =, : * finding_class: =, : * indicator.ip_addresses: =, : * indicator.domains: =, :
+    #[serde(default)]
+    pub filter: ::core::option::Option<String>,
+    /// Output only. Email address of the user who last edited the mute config. This field is set by the server and will be ignored if provided on config creation or update.
+    #[serde(default, rename = "mostRecentEditor")]
+    pub most_recent_editor: ::core::option::Option<String>,
+    /// Identifier. This field will be ignored if provided on config creation. The following list shows some examples of the format: + organizations/{organization}/muteConfigs/{mute_config} + organizations/{organization}locations/{location}//muteConfigs/{mute_config} + folders/{folder}/muteConfigs/{mute_config} + folders/{folder}/locations/{location}/muteConfigs/{mute_config} + projects/{project}/muteConfigs/{mute_config} + projects/{project}/locations/{location}/muteConfigs/{mute_config}
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Required. The type of the mute config, which determines what type of mute state the config affects. Immutable after creation. // TODO: enum values: ["MUTE_CONFIG_TYPE_UNSPECIFIED", "STATIC", "DYNAMIC"]
+    #[serde(default, rename = "type")]
+    pub type_: ::core::option::Option<String>,
+    /// Output only. The most recent time at which the mute config was updated. This field is set by the server and will be ignored if provided on config creation or update.
+    #[serde(default, rename = "updateTime")]
+    pub update_time: ::core::option::Option<String>,
+}
+
+/// Cloud SCC''s Notification
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudSecuritycenterV2NotificationMessage {
+    /// If it''s a Finding based notification config, this field will be populated.
+    #[serde(default)]
+    pub finding: ::core::option::Option<GoogleCloudSecuritycenterV2Finding>,
+    /// Name of the notification config that generated current notification.
+    #[serde(default, rename = "notificationConfigName")]
+    pub notification_config_name: ::core::option::Option<String>,
+    /// The Cloud resource tied to this notification''s Finding.
+    #[serde(default)]
+    pub resource: ::core::option::Option<GoogleCloudSecuritycenterV2Resource>,
+}
+
+/// A resource value configuration (RVC) is a mapping configuration of user''s resources to resource values. Used in Attack path simulations.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudSecuritycenterV2ResourceValueConfig {
+    /// Cloud provider this configuration applies to // TODO: enum values: ["CLOUD_PROVIDER_UNSPECIFIED", "GOOGLE_CLOUD_PLATFORM", "AMAZON_WEB_SERVICES", "MICROSOFT_AZURE"]
+    #[serde(default, rename = "cloudProvider")]
+    pub cloud_provider: ::core::option::Option<String>,
+    /// Output only. Timestamp this resource value configuration was created.
+    #[serde(default, rename = "createTime")]
+    pub create_time: ::core::option::Option<String>,
+    /// Description of the resource value configuration.
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+    /// Identifier. Name for the resource value configuration
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// List of resource labels to search for, evaluated with AND. For example, "resource_labels_selector": {"key": "value", "env": "prod"} will match resources with labels "key": "value" AND "env": "prod" https://cloud.google.com/resource-manager/docs/creating-managing-labels
+    #[serde(default, rename = "resourceLabelsSelector")]
+    pub resource_labels_selector: ::core::option::Option<serde_json::Value>,
+    /// Apply resource_value only to resources that match resource_type. resource_type will be checked with AND of other resources. For example, "storage.googleapis.com/Bucket" with resource_value "HIGH" will apply "HIGH" value only to "storage.googleapis.com/Bucket" resources.
+    #[serde(default, rename = "resourceType")]
+    pub resource_type: ::core::option::Option<String>,
+    /// Resource value level this expression represents Only required when there is no Sensitive Data Protection mapping in the request // TODO: enum values: ["RESOURCE_VALUE_UNSPECIFIED", "HIGH", "MEDIUM", "LOW", "NONE"]
+    #[serde(default, rename = "resourceValue")]
+    pub resource_value: ::core::option::Option<String>,
+    /// Project or folder to scope this configuration to. For example, "project/456" would apply this configuration only to resources in "project/456" scope and will be checked with AND of other resources.
+    #[serde(default)]
+    pub scope: ::core::option::Option<String>,
+    /// A mapping of the sensitivity on Sensitive Data Protection finding to resource values. This mapping can only be used in combination with a resource_type that is related to BigQuery, e.g. "bigquery.googleapis.com/Dataset".
+    #[serde(default, rename = "sensitiveDataProtectionMapping")]
+    pub sensitive_data_protection_mapping:
+        ::core::option::Option<GoogleCloudSecuritycenterV2SensitiveDataProtectionMapping>,
+    /// Tag values combined with AND to check against. For Google Cloud resources, they are tag value IDs in the form of "tagValues/123". Example: [ "tagValues/123", "tagValues/456", "tagValues/789" ] https://cloud.google.com/resource-manager/docs/tags/tags-creating-and-managing
+    #[serde(default, rename = "tagValues")]
+    pub tag_values: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Output only. Timestamp this resource value configuration was last updated.
+    #[serde(default, rename = "updateTime")]
+    pub update_time: ::core::option::Option<String>,
+}
+
+/// Request message for grouping by assets.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GroupAssetsRequest {
+    /// When compare_duration is set, the GroupResult''s "state_change" property is updated to indicate whether the asset was added, removed, or remained present during the compare_duration period of time that precedes the read_time. This is the time between (read_time - compare_duration) and read_time. The state change value is derived based on the presence of the asset at the two points in time. Intermediate state changes between the two times don''t affect the result. For example, the results aren''t affected if the asset is removed and re-created again. Possible "state_change" values when compare_duration is specified: * "ADDED": indicates that the asset was not present at the start of compare_duration, but present at reference_time. * "REMOVED": indicates that the asset was present at the start of compare_duration, but not present at reference_time. * "ACTIVE": indicates that the asset was present at both the start and the end of the time period defined by compare_duration and reference_time. If compare_duration is not specified, then the only possible state_change is "UNUSED", which will be the state_change set for all assets present at read_time. If this field is set then state_change must be a specified field in group_by.
+    #[serde(default, rename = "compareDuration")]
+    pub compare_duration: ::core::option::Option<String>,
+    /// Expression that defines the filter to apply across assets. The expression is a list of zero or more restrictions combined via logical operators AND and OR. Parentheses are supported, and OR has higher precedence than AND. Restrictions have the form   and may have a - character in front of them to indicate negation. The fields map to those defined in the Asset resource. Examples include: * name * security_center_properties.resource_name * resource_properties.a_property * security_marks.marks.marka The supported operators are: * = for all value types. * &gt;, &lt;, &gt;=, &lt;= for integer values. * :, meaning substring matching, for strings. The supported value types are: * string literals in quotes. * integer literals without quotes. * boolean literals true and false without quotes. The following field and operator combinations are supported: * name: = * update_time: =, &gt;, &lt;, &gt;=, &lt;= Usage: This should be milliseconds since epoch or an RFC3339 string. Examples: update_time = "2019-06-10T16:07:18-07:00" update_time = 1560208038000 * create_time: =, &gt;, &lt;, &gt;=, &lt;= Usage: This should be milliseconds since epoch or an RFC3339 string. Examples: create_time = "2019-06-10T16:07:18-07:00" create_time = 1560208038000 * iam_policy.policy_blob: =, : * resource_properties: =, :, &gt;, &lt;, &gt;=, &lt;= * security_marks.marks: =, : * security_center_properties.resource_name: =, : * security_center_properties.resource_display_name: =, : * security_center_properties.resource_type: =, : * security_center_properties.resource_parent: =, : * security_center_properties.resource_parent_display_name: =, : * security_center_properties.resource_project: =, : * security_center_properties.resource_project_display_name: =, : * security_center_properties.resource_owners: =, : For example, resource_properties.size = 100 is a valid filter string. Use a partial match on the empty string to filter based on a property existing: resource_properties.my_property : "" Use a negated partial match on the empty string to filter based on a property not existing: -resource_properties.my_property : ""
+    #[serde(default)]
+    pub filter: ::core::option::Option<String>,
+    /// Required. Expression that defines what assets fields to use for grouping. The string value should follow SQL syntax: comma separated list of fields. For example: "security_center_properties.resource_project,security_center_properties.project". The following fields are supported when compare_duration is not set: * security_center_properties.resource_project * security_center_properties.resource_project_display_name * security_center_properties.resource_type * security_center_properties.resource_parent * security_center_properties.resource_parent_display_name The following fields are supported when compare_duration is set: * security_center_properties.resource_type * security_center_properties.resource_project_display_name * security_center_properties.resource_parent_display_name
+    #[serde(default, rename = "groupBy")]
+    pub group_by: ::core::option::Option<String>,
+    /// The maximum number of results to return in a single response. Default is 10, minimum is 1, maximum is 1000.
+    #[serde(default, rename = "pageSize")]
+    pub page_size: ::core::option::Option<i32>,
+    /// The value returned by the last GroupAssetsResponse; indicates that this is a continuation of a prior GroupAssets call, and that the system should return the next page of data.
+    #[serde(default, rename = "pageToken")]
+    pub page_token: ::core::option::Option<String>,
+    /// Time used as a reference point when filtering assets. The filter is limited to assets existing at the supplied time and their values are those at that specific time. Absence of this field will default to the API''s version of NOW.
+    #[serde(default, rename = "readTime")]
+    pub read_time: ::core::option::Option<String>,
+}
+
+/// Response message for grouping by assets.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GroupAssetsResponse {
+    /// Group results. There exists an element for each existing unique combination of property/values. The element contains a count for the number of times those specific property/values appear.
+    #[serde(default, rename = "groupByResults")]
+    pub group_by_results: ::core::option::Option<::std::vec::Vec<GroupResult>>,
+    /// Token to retrieve the next page of results, or empty if there are no more results.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+    /// Time used for executing the groupBy request.
+    #[serde(default, rename = "readTime")]
+    pub read_time: ::core::option::Option<String>,
+    /// The total number of results matching the query.
+    #[serde(default, rename = "totalSize")]
+    pub total_size: ::core::option::Option<i32>,
+}
+
+/// Request message for grouping by findings.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GroupFindingsRequest {
+    /// When compare_duration is set, the GroupResult''s "state_change" attribute is updated to indicate whether the finding had its state changed, the finding''s state remained unchanged, or if the finding was added during the compare_duration period of time that precedes the read_time. This is the time between (read_time - compare_duration) and read_time. The state_change value is derived based on the presence and state of the finding at the two points in time. Intermediate state changes between the two times don''t affect the result. For example, the results aren''t affected if the finding is made inactive and then active again. Possible "state_change" values when compare_duration is specified: * "CHANGED": indicates that the finding was present and matched the given filter at the start of compare_duration, but changed its state at read_time. * "UNCHANGED": indicates that the finding was present and matched the given filter at the start of compare_duration and did not change state at read_time. * "ADDED": indicates that the finding did not match the given filter or was not present at the start of compare_duration, but was present at read_time. * "REMOVED": indicates that the finding was present and matched the filter at the start of compare_duration, but did not match the filter at read_time. If compare_duration is not specified, then the only possible state_change is "UNUSED", which will be the state_change set for all findings present at read_time. If this field is set then state_change must be a specified field in group_by.
+    #[serde(default, rename = "compareDuration")]
+    pub compare_duration: ::core::option::Option<String>,
+    /// Expression that defines the filter to apply across findings. The expression is a list of one or more restrictions combined via logical operators AND and OR. Parentheses are supported, and OR has higher precedence than AND. Restrictions have the form   and may have a - character in front of them to indicate negation. Examples include: * name * source_properties.a_property * security_marks.marks.marka The supported operators are: * = for all value types. * &gt;, &lt;, &gt;=, &lt;= for integer values. * :, meaning substring matching, for strings. The supported value types are: * string literals in quotes. * integer literals without quotes. * boolean literals true and false without quotes. The following field and operator combinations are supported: * name: = * parent: =, : * resource_name: =, : * state: =, : * category: =, : * external_uri: =, : * event_time: =, &gt;, &lt;, &gt;=, &lt;= Usage: This should be milliseconds since epoch or an RFC3339 string. Examples: event_time = "2019-06-10T16:07:18-07:00" event_time = 1560208038000 * severity: =, : * workflow_state: =, : * security_marks.marks: =, : * source_properties: =, :, &gt;, &lt;, &gt;=, &lt;= For example, source_properties.size = 100 is a valid filter string. Use a partial match on the empty string to filter based on a property existing: source_properties.my_property : "" Use a negated partial match on the empty string to filter based on a property not existing: -source_properties.my_property : "" * resource: * resource.name: =, : * resource.parent_name: =, : * resource.parent_display_name: =, : * resource.project_name: =, : * resource.project_display_name: =, : * resource.type: =, :
+    #[serde(default)]
+    pub filter: ::core::option::Option<String>,
+    /// Required. Expression that defines what assets fields to use for grouping (including state_change). The string value should follow SQL syntax: comma separated list of fields. For example: "parent,resource_name". The following fields are supported when compare_duration is set: * state_change
+    #[serde(default, rename = "groupBy")]
+    pub group_by: ::core::option::Option<String>,
+    /// The maximum number of results to return in a single response. Default is 10, minimum is 1, maximum is 1000.
+    #[serde(default, rename = "pageSize")]
+    pub page_size: ::core::option::Option<i32>,
+    /// The value returned by the last GroupFindingsResponse; indicates that this is a continuation of a prior GroupFindings call, and that the system should return the next page of data.
+    #[serde(default, rename = "pageToken")]
+    pub page_token: ::core::option::Option<String>,
+    /// Time used as a reference point when filtering findings. The filter is limited to findings existing at the supplied time and their values are those at that specific time. Absence of this field will default to the API''s version of NOW.
+    #[serde(default, rename = "readTime")]
+    pub read_time: ::core::option::Option<String>,
+}
+
+/// Response message for group by findings.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GroupFindingsResponse {
+    /// Group results. There exists an element for each existing unique combination of property/values. The element contains a count for the number of times those specific property/values appear.
+    #[serde(default, rename = "groupByResults")]
+    pub group_by_results: ::core::option::Option<::std::vec::Vec<GroupResult>>,
+    /// Token to retrieve the next page of results, or empty if there are no more results.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+    /// Time used for executing the groupBy request.
+    #[serde(default, rename = "readTime")]
+    pub read_time: ::core::option::Option<String>,
+    /// The total number of results matching the query.
+    #[serde(default, rename = "totalSize")]
+    pub total_size: ::core::option::Option<i32>,
+}
+
+/// Response message for listing assets.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ListAssetsResponse {
+    /// Assets matching the list request.
+    #[serde(default, rename = "listAssetsResults")]
+    pub list_assets_results: ::core::option::Option<::std::vec::Vec<ListAssetsResult>>,
+    /// Token to retrieve the next page of results, or empty if there are no more results.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+    /// Time used for executing the list request.
+    #[serde(default, rename = "readTime")]
+    pub read_time: ::core::option::Option<String>,
+    /// The total number of assets matching the query.
+    #[serde(default, rename = "totalSize")]
+    pub total_size: ::core::option::Option<i32>,
+}
+
+/// Response message for listing the attack paths for a given simulation or valued resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ListAttackPathsResponse {
+    /// The attack paths that the attack path simulation identified.
+    #[serde(default, rename = "attackPaths")]
+    pub attack_paths: ::core::option::Option<::std::vec::Vec<AttackPath>>,
+    /// Token to retrieve the next page of results, or empty if there are no more results.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+}
+
+/// Response message for listing BigQuery exports.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ListBigQueryExportsResponse {
+    /// The BigQuery exports from the specified parent.
+    #[serde(default, rename = "bigQueryExports")]
+    pub big_query_exports:
+        ::core::option::Option<::std::vec::Vec<GoogleCloudSecuritycenterV1BigQueryExport>>,
+    /// A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+}
+
+/// Response for listing current and descendant resident Event Threat Detection custom modules.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ListDescendantEventThreatDetectionCustomModulesResponse {
+    /// Custom modules belonging to the requested parent.
+    #[serde(default, rename = "eventThreatDetectionCustomModules")]
+    pub event_threat_detection_custom_modules:
+        ::core::option::Option<::std::vec::Vec<EventThreatDetectionCustomModule>>,
+    /// A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+}
+
+/// Response message for listing descendant Security Health Analytics custom modules.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ListDescendantSecurityHealthAnalyticsCustomModulesResponse {
+    /// If not empty, indicates that there may be more custom modules to be returned.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+    /// Custom modules belonging to the requested parent and its descendants.
+    #[serde(default, rename = "securityHealthAnalyticsCustomModules")]
+    pub security_health_analytics_custom_modules: ::core::option::Option<
+        ::std::vec::Vec<GoogleCloudSecuritycenterV1SecurityHealthAnalyticsCustomModule>,
+    >,
+}
+
+/// Response for listing EffectiveEventThreatDetectionCustomModules.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ListEffectiveEventThreatDetectionCustomModulesResponse {
+    /// Effective custom modules belonging to the requested parent.
+    #[serde(default, rename = "effectiveEventThreatDetectionCustomModules")]
+    pub effective_event_threat_detection_custom_modules:
+        ::core::option::Option<::std::vec::Vec<EffectiveEventThreatDetectionCustomModule>>,
+    /// A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+}
+
+/// Response message for listing effective Security Health Analytics custom modules.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ListEffectiveSecurityHealthAnalyticsCustomModulesResponse {
+    /// Effective custom modules belonging to the requested parent.
+    #[serde(default, rename = "effectiveSecurityHealthAnalyticsCustomModules")]
+    pub effective_security_health_analytics_custom_modules: ::core::option::Option<
+        ::std::vec::Vec<GoogleCloudSecuritycenterV1EffectiveSecurityHealthAnalyticsCustomModule>,
+    >,
+    /// If not empty, indicates that there may be more effective custom modules to be returned.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+}
+
+/// Response for listing Event Threat Detection custom modules.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ListEventThreatDetectionCustomModulesResponse {
+    /// Custom modules belonging to the requested parent.
+    #[serde(default, rename = "eventThreatDetectionCustomModules")]
+    pub event_threat_detection_custom_modules:
+        ::core::option::Option<::std::vec::Vec<EventThreatDetectionCustomModule>>,
+    /// A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+}
+
+/// Response message for listing findings.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ListFindingsResponse {
+    /// Findings matching the list request.
+    #[serde(default, rename = "listFindingsResults")]
+    pub list_findings_results: ::core::option::Option<::std::vec::Vec<ListFindingsResult>>,
+    /// Token to retrieve the next page of results, or empty if there are no more results.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+    /// Time used for executing the list request.
+    #[serde(default, rename = "readTime")]
+    pub read_time: ::core::option::Option<String>,
+    /// The total number of findings matching the query.
+    #[serde(default, rename = "totalSize")]
+    pub total_size: ::core::option::Option<i32>,
+}
+
+/// Response message for listing mute configs.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ListMuteConfigsResponse {
+    /// The mute configs from the specified parent.
+    #[serde(default, rename = "muteConfigs")]
+    pub mute_configs:
+        ::core::option::Option<::std::vec::Vec<GoogleCloudSecuritycenterV1MuteConfig>>,
+    /// A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+}
+
+/// Response message for listing notification configs.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ListNotificationConfigsResponse {
+    /// Token to retrieve the next page of results, or empty if there are no more results.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+    /// Notification configs belonging to the requested parent.
+    #[serde(default, rename = "notificationConfigs")]
+    pub notification_configs: ::core::option::Option<::std::vec::Vec<NotificationConfig>>,
+}
+
+/// The response message for Operations.ListOperations.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ListOperationsResponse {
+    /// The standard List next-page token.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+    /// A list of operations that matches the specified filter in the request.
+    #[serde(default)]
+    pub operations: ::core::option::Option<::std::vec::Vec<Operation>>,
+    /// Unordered list. Unreachable resources. Populated when the request sets ListOperationsRequest.return_partial_success and reads across collections. For example, when attempting to list all resources across all supported locations.
+    #[serde(default)]
+    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// Response message to list resource value configs
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ListResourceValueConfigsResponse {
+    /// A token, which can be sent as page_token to retrieve the next page. If this field is empty, there are no subsequent pages.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+    /// The resource value configs from the specified parent.
+    #[serde(default, rename = "resourceValueConfigs")]
+    pub resource_value_configs:
+        ::core::option::Option<::std::vec::Vec<GoogleCloudSecuritycenterV1ResourceValueConfig>>,
+}
+
+/// Response message for listing Security Health Analytics custom modules.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ListSecurityHealthAnalyticsCustomModulesResponse {
+    /// If not empty, indicates that there may be more custom modules to be returned.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+    /// Custom modules belonging to the requested parent.
+    #[serde(default, rename = "securityHealthAnalyticsCustomModules")]
+    pub security_health_analytics_custom_modules: ::core::option::Option<
+        ::std::vec::Vec<GoogleCloudSecuritycenterV1SecurityHealthAnalyticsCustomModule>,
+    >,
+}
+
+/// Response message for listing sources.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ListSourcesResponse {
+    /// Token to retrieve the next page of results, or empty if there are no more results.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+    /// Sources belonging to the requested parent.
+    #[serde(default)]
+    pub sources: ::core::option::Option<::std::vec::Vec<Source>>,
+}
+
+/// Response message for listing the valued resources for a given simulation.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ListValuedResourcesResponse {
+    /// Token to retrieve the next page of results, or empty if there are no more results.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+    /// The estimated total number of results matching the query.
+    #[serde(default, rename = "totalSize")]
+    pub total_size: ::core::option::Option<i32>,
+    /// The valued resources that the attack path simulation identified.
+    #[serde(default, rename = "valuedResources")]
+    pub valued_resources: ::core::option::Option<::std::vec::Vec<ValuedResource>>,
+}
+
+/// User specified settings that are attached to the Security Command Center organization.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct OrganizationSettings {
+    /// The configuration used for Asset Discovery runs.
+    #[serde(default, rename = "assetDiscoveryConfig")]
+    pub asset_discovery_config: ::core::option::Option<AssetDiscoveryConfig>,
+    /// A flag that indicates if Asset Discovery should be enabled. If the flag is set to true, then discovery of assets will occur. If it is set to false, all historical assets will remain, but discovery of future assets will not occur.
+    #[serde(default, rename = "enableAssetDiscovery")]
+    pub enable_asset_discovery: ::core::option::Option<bool>,
+    /// The relative resource name of the settings. See: https://cloud.google.com/apis/design/resource_names#relative_resource_name Example: "organizations/{organization_id}/organizationSettings".
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+}
+
+/// Request message for updating a finding''s state.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SetFindingStateRequest {
+    /// Optional. The time at which the updated state takes effect. If unset, defaults to the request time.
+    #[serde(default, rename = "startTime")]
+    pub start_time: ::core::option::Option<String>,
+    /// Required. The desired State of the finding. // TODO: enum values: ["STATE_UNSPECIFIED", "ACTIVE", "INACTIVE"]
+    #[serde(default)]
+    pub state: ::core::option::Option<String>,
+}
+
+/// Request message for SetIamPolicy method.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SetIamPolicyRequest {
+    /// REQUIRED: The complete policy to be applied to the resource. The size of the policy is limited to a few 10s of KB. An empty policy is a valid policy but certain Google Cloud services (such as Projects) might reject them.
+    #[serde(default)]
+    pub policy: ::core::option::Option<Policy>,
+    /// OPTIONAL: A FieldMask specifying which fields of the policy to modify. Only the fields in the mask will be modified. If no mask is provided, the following default mask is used: paths: "bindings, etag"
+    #[serde(default, rename = "updateMask")]
+    pub update_mask: ::core::option::Option<String>,
+}
+
+/// Request message for updating a finding''s mute status.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SetMuteRequest {
+    /// Required. The desired state of the Mute. // TODO: enum values: ["MUTE_UNSPECIFIED", "MUTED", "UNMUTED", "UNDEFINED"]
+    #[serde(default)]
+    pub mute: ::core::option::Option<String>,
+}
+
+/// Request message to simulate a CustomConfig against a given test resource. Maximum size of the request is 4 MB by default.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SimulateSecurityHealthAnalyticsCustomModuleRequest {
+    /// Required. The custom configuration that you need to test.
+    #[serde(default, rename = "customConfig")]
+    pub custom_config: ::core::option::Option<GoogleCloudSecuritycenterV1CustomConfig>,
+    /// Required. Resource data to simulate custom module against.
+    #[serde(default)]
+    pub resource: ::core::option::Option<SimulatedResource>,
+}
+
+/// Response message for simulating a SecurityHealthAnalyticsCustomModule against a given resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SimulateSecurityHealthAnalyticsCustomModuleResponse {
+    /// Result for test case in the corresponding request.
+    #[serde(default)]
+    pub result: ::core::option::Option<SimulatedResult>,
+}
+
+/// Attack path simulation
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Simulation {
+    /// Indicates which cloud provider was used in this simulation. // TODO: enum values: ["CLOUD_PROVIDER_UNSPECIFIED", "GOOGLE_CLOUD_PLATFORM", "AMAZON_WEB_SERVICES", "MICROSOFT_AZURE"]
+    #[serde(default, rename = "cloudProvider")]
+    pub cloud_provider: ::core::option::Option<String>,
+    /// Output only. Time simulation was created
+    #[serde(default, rename = "createTime")]
+    pub create_time: ::core::option::Option<String>,
+    /// Full resource name of the Simulation: organizations/123/simulations/456
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Resource value configurations'' metadata used in this simulation. Maximum of 100.
+    #[serde(default, rename = "resourceValueConfigsMetadata")]
+    pub resource_value_configs_metadata:
+        ::core::option::Option<::std::vec::Vec<ResourceValueConfigMetadata>>,
+}
+
+/// Request message for TestIamPermissions method.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TestIamPermissionsRequest {
+    /// The set of permissions to check for the resource. Permissions with wildcards (such as * or storage.*) are not allowed. For more information see [IAM Overview](https://cloud.google.com/iam/docs/overview#permissions).
+    #[serde(default)]
+    pub permissions: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// Response message for TestIamPermissions method.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TestIamPermissionsResponse {
+    /// A subset of TestPermissionsRequest.permissions that the caller is allowed.
+    #[serde(default)]
+    pub permissions: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// Request to validate an Event Threat Detection custom module.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ValidateEventThreatDetectionCustomModuleRequest {
+    /// Required. The raw text of the module''s contents. Used to generate error messages.
+    #[serde(default, rename = "rawText")]
+    pub raw_text: ::core::option::Option<String>,
+    /// Required. The type of the module (e.g. CONFIGURABLE_BAD_IP).
+    #[serde(default, rename = "type")]
+    pub type_: ::core::option::Option<String>,
+}
+
+/// Response to validating an Event Threat Detection custom module.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ValidateEventThreatDetectionCustomModuleResponse {
+    /// A list of errors returned by the validator. If the list is empty, there were no errors.
+    #[serde(default)]
+    pub errors: ::core::option::Option<CustomModuleValidationErrors>,
+}
+
+/// Result containing the properties and count of a VulnerabilitySnapshot request.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct VulnerabilitySnapshot {
+    /// The cloud provider for the vulnerability snapshot. // TODO: enum values: ["CLOUD_PROVIDER_UNSPECIFIED", "GOOGLE_CLOUD_PLATFORM", "AMAZON_WEB_SERVICES", "MICROSOFT_AZURE"]
+    #[serde(default, rename = "cloudProvider")]
+    pub cloud_provider: ::core::option::Option<String>,
+    /// The vulnerability count by severity.
+    #[serde(default, rename = "findingCount")]
+    pub finding_count: ::core::option::Option<VulnerabilityCountBySeverity>,
+    /// Identifier. The vulnerability snapshot name. Format: //locations//vulnerabilitySnapshots/
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// The time that the snapshot was taken.
+    #[serde(default, rename = "snapshotTime")]
+    pub snapshot_time: ::core::option::Option<String>,
+}
+
+/// Request message to create single resource value config
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CreateResourceValueConfigRequest {
+    /// Required. Resource name of the new ResourceValueConfig''s parent.
+    #[serde(default)]
+    pub parent: ::core::option::Option<String>,
+    /// Required. The resource value config being created.
+    #[serde(default, rename = "resourceValueConfig")]
+    pub resource_value_config:
+        ::core::option::Option<GoogleCloudSecuritycenterV1ResourceValueConfig>,
+}
+
+/// The email address of a contact.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Contact {
+    /// An email address. For example, "person123@company.com".
+    #[serde(default)]
+    pub email: ::core::option::Option<String>,
+}
+
+/// The destination BigQuery dataset to export findings to.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BigQueryDestination {
+    /// Required. The relative resource name of the destination dataset, in the form projects/{projectId}/datasets/{datasetId}.
+    #[serde(default)]
+    pub dataset: ::core::option::Option<String>,
+}
+
+/// Encapsulates settings provided to GetIamPolicy.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GetPolicyOptions {
+    /// Optional. The maximum policy version that will be used to format the policy. Valid values are 0, 1, and 3. Requests specifying an invalid value will be rejected. Requests for policies with any conditional role bindings must specify version 3. Policies with no conditional role bindings may specify any valid value or leave the field unset. The policy in the response might use the policy version that you specified, or it might use a lower policy version. For example, if you specify version 3, but the policy has no conditional role bindings, the response uses version 1. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies).
+    #[serde(default, rename = "requestedPolicyVersion")]
+    pub requested_policy_version: ::core::option::Option<i32>,
+}
+
+/// Information about the ticket, if any, that is being used to track the resolution of the issue that is identified by this finding.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TicketInfo {
+    /// The assignee of the ticket in the ticket system.
+    #[serde(default)]
+    pub assignee: ::core::option::Option<String>,
+    /// The description of the ticket in the ticket system.
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+    /// The identifier of the ticket in the ticket system.
+    #[serde(default)]
+    pub id: ::core::option::Option<String>,
+    /// The latest status of the ticket, as reported by the ticket system.
+    #[serde(default)]
+    pub status: ::core::option::Option<String>,
+    /// The time when the ticket was last updated, as reported by the ticket system.
+    #[serde(default, rename = "updateTime")]
+    pub update_time: ::core::option::Option<String>,
+    /// The link to the ticket in the ticket system.
+    #[serde(default)]
+    pub uri: ::core::option::Option<String>,
 }
 
 /// Information related to the Google Cloud resource.
@@ -1801,179 +932,6 @@ pub struct GoogleCloudSecuritycenterV1Resource {
     pub type_: ::core::option::Option<String>,
 }
 
-/// The App Hub Application associated with the finding''s resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudSecuritycenterV1ResourceApplication {
-    /// Consumer provided attributes for the application
-    #[serde(default)]
-    pub attributes:
-        ::core::option::Option<GoogleCloudSecuritycenterV1ResourceApplicationAttributes>,
-    /// The resource name of an Application. Format: projects/{host-project-id}/locations/{location}/applications/{application-id}
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-}
-
-/// Consumer provided attributes for the application
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudSecuritycenterV1ResourceApplicationAttributes {
-    /// Business team that ensures user needs are met and value is delivered
-    #[serde(default, rename = "businessOwners")]
-    pub business_owners: ::core::option::Option<
-        ::std::vec::Vec<GoogleCloudSecuritycenterV1ResourceApplicationAttributesContactInfo>,
-    >,
-    /// User-defined criticality information.
-    #[serde(default)]
-    pub criticality:
-        ::core::option::Option<GoogleCloudSecuritycenterV1ResourceApplicationAttributesCriticality>,
-    /// Developer team that owns development and coding.
-    #[serde(default, rename = "developerOwners")]
-    pub developer_owners: ::core::option::Option<
-        ::std::vec::Vec<GoogleCloudSecuritycenterV1ResourceApplicationAttributesContactInfo>,
-    >,
-    /// User-defined environment information.
-    #[serde(default)]
-    pub environment:
-        ::core::option::Option<GoogleCloudSecuritycenterV1ResourceApplicationAttributesEnvironment>,
-    /// Operator team that ensures runtime and operations.
-    #[serde(default, rename = "operatorOwners")]
-    pub operator_owners: ::core::option::Option<
-        ::std::vec::Vec<GoogleCloudSecuritycenterV1ResourceApplicationAttributesContactInfo>,
-    >,
-}
-
-/// Contact information of stakeholders.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudSecuritycenterV1ResourceApplicationAttributesContactInfo {
-    /// Email address of the contacts.
-    #[serde(default)]
-    pub email: ::core::option::Option<String>,
-}
-
-/// Criticality of the Application, Service, or Workload
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudSecuritycenterV1ResourceApplicationAttributesCriticality {
-    /// Criticality Type. // TODO: enum values: ["CRITICALITY_TYPE_UNSPECIFIED", "MISSION_CRITICAL", "HIGH", "MEDIUM", "LOW"]
-    #[serde(default, rename = "type")]
-    pub type_: ::core::option::Option<String>,
-}
-
-/// Environment of the Application, Service, or Workload
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudSecuritycenterV1ResourceApplicationAttributesEnvironment {
-    /// Environment Type. // TODO: enum values: ["ENVIRONMENT_TYPE_UNSPECIFIED", "PRODUCTION", "STAGING", "TEST", "DEVELOPMENT"]
-    #[serde(default, rename = "type")]
-    pub type_: ::core::option::Option<String>,
-}
-
-/// Resource for selecting resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudSecuritycenterV1ResourceSelector {
-    /// The resource types to run the detector on.
-    #[serde(default, rename = "resourceTypes")]
-    pub resource_types: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// A resource value configuration (RVC) is a mapping configuration of user''s resources to resource values. Used in Attack path simulations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudSecuritycenterV1ResourceValueConfig {
-    /// Cloud provider this configuration applies to // TODO: enum values: ["CLOUD_PROVIDER_UNSPECIFIED", "GOOGLE_CLOUD_PLATFORM", "AMAZON_WEB_SERVICES", "MICROSOFT_AZURE"]
-    #[serde(default, rename = "cloudProvider")]
-    pub cloud_provider: ::core::option::Option<String>,
-    /// Output only. Timestamp this resource value configuration was created.
-    #[serde(default, rename = "createTime")]
-    pub create_time: ::core::option::Option<String>,
-    /// Description of the resource value configuration.
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// Name for the resource value configuration
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// List of resource labels to search for, evaluated with AND. For example, "resource_labels_selector": {"key": "value", "env": "prod"} will match resources with labels "key": "value" AND "env": "prod" https://cloud.google.com/resource-manager/docs/creating-managing-labels
-    #[serde(default, rename = "resourceLabelsSelector")]
-    pub resource_labels_selector: ::core::option::Option<serde_json::Value>,
-    /// Apply resource_value only to resources that match resource_type. resource_type will be checked with AND of other resources. For example, "storage.googleapis.com/Bucket" with resource_value "HIGH" will apply "HIGH" value only to "storage.googleapis.com/Bucket" resources.
-    #[serde(default, rename = "resourceType")]
-    pub resource_type: ::core::option::Option<String>,
-    /// Required. Resource value level this expression represents // TODO: enum values: ["RESOURCE_VALUE_UNSPECIFIED", "HIGH", "MEDIUM", "LOW", "NONE"]
-    #[serde(default, rename = "resourceValue")]
-    pub resource_value: ::core::option::Option<String>,
-    /// Project or folder to scope this configuration to. For example, "project/456" would apply this configuration only to resources in "project/456" scope will be checked with AND of other resources.
-    #[serde(default)]
-    pub scope: ::core::option::Option<String>,
-    /// A mapping of the sensitivity on Sensitive Data Protection finding to resource values. This mapping can only be used in combination with a resource_type that is related to BigQuery, e.g. "bigquery.googleapis.com/Dataset".
-    #[serde(default, rename = "sensitiveDataProtectionMapping")]
-    pub sensitive_data_protection_mapping:
-        ::core::option::Option<GoogleCloudSecuritycenterV1SensitiveDataProtectionMapping>,
-    /// Required. Tag values combined with AND to check against. For Google Cloud resources, they are tag value IDs in the form of "tagValues/123". Example: [ "tagValues/123", "tagValues/456", "tagValues/789" ] https://cloud.google.com/resource-manager/docs/tags/tags-creating-and-managing
-    #[serde(default, rename = "tagValues")]
-    pub tag_values: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Output only. Timestamp this resource value configuration was last updated.
-    #[serde(default, rename = "updateTime")]
-    pub update_time: ::core::option::Option<String>,
-}
-
-/// Response of asset discovery run
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudSecuritycenterV1RunAssetDiscoveryResponse {
-    /// The duration between asset discovery run start and end
-    #[serde(default)]
-    pub duration: ::core::option::Option<String>,
-    /// The state of an asset discovery run. // TODO: enum values: ["STATE_UNSPECIFIED", "COMPLETED", "SUPERSEDED", "TERMINATED"]
-    #[serde(default)]
-    pub state: ::core::option::Option<String>,
-}
-
-/// Represents an instance of a Security Health Analytics custom module, including its full module name, display name, enablement state, and last updated time. You can create a custom module at the organization, folder, or project level. Custom modules that you create at the organization or folder level are inherited by the child folders and projects.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudSecuritycenterV1SecurityHealthAnalyticsCustomModule {
-    /// Output only. If empty, indicates that the custom module was created in the organization, folder, or project in which you are viewing the custom module. Otherwise, ancestor_module specifies the organization or folder from which the custom module is inherited.
-    #[serde(default, rename = "ancestorModule")]
-    pub ancestor_module: ::core::option::Option<String>,
-    /// The cloud provider of the custom module. // TODO: enum values: ["CLOUD_PROVIDER_UNSPECIFIED", "GOOGLE_CLOUD_PLATFORM", "AMAZON_WEB_SERVICES", "MICROSOFT_AZURE"]
-    #[serde(default, rename = "cloudProvider")]
-    pub cloud_provider: ::core::option::Option<String>,
-    /// The user specified custom configuration for the module.
-    #[serde(default, rename = "customConfig")]
-    pub custom_config: ::core::option::Option<GoogleCloudSecuritycenterV1CustomConfig>,
-    /// The display name of the Security Health Analytics custom module. This display name becomes the finding category for all findings that are returned by this custom module. The display name must be between 1 and 128 characters, start with a lowercase letter, and contain alphanumeric characters or underscores only.
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-    /// The enablement state of the custom module. // TODO: enum values: ["ENABLEMENT_STATE_UNSPECIFIED", "ENABLED", "DISABLED", "INHERITED"]
-    #[serde(default, rename = "enablementState")]
-    pub enablement_state: ::core::option::Option<String>,
-    /// Output only. The editor that last updated the custom module.
-    #[serde(default, rename = "lastEditor")]
-    pub last_editor: ::core::option::Option<String>,
-    /// Immutable. The resource name of the custom module. Its format is "organizations/{organization}/securityHealthAnalyticsSettings/customModules/{customModule}", or "folders/{folder}/securityHealthAnalyticsSettings/customModules/{customModule}", or "projects/{project}/securityHealthAnalyticsSettings/customModules/{customModule}" The id {customModule} is server-generated and is not user settable. It will be a numeric id containing 1-20 digits.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Output only. The time at which the custom module was last updated.
-    #[serde(default, rename = "updateTime")]
-    pub update_time: ::core::option::Option<String>,
-}
-
-/// Resource value mapping for Sensitive Data Protection findings. If any of these mappings have a resource value that is not unspecified, the resource_value field will be ignored when reading this configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudSecuritycenterV1SensitiveDataProtectionMapping {
-    /// Resource value mapping for high-sensitivity Sensitive Data Protection findings // TODO: enum values: ["RESOURCE_VALUE_UNSPECIFIED", "HIGH", "MEDIUM", "LOW", "NONE"]
-    #[serde(default, rename = "highSensitivityMapping")]
-    pub high_sensitivity_mapping: ::core::option::Option<String>,
-    /// Resource value mapping for medium-sensitivity Sensitive Data Protection findings // TODO: enum values: ["RESOURCE_VALUE_UNSPECIFIED", "HIGH", "MEDIUM", "LOW", "NONE"]
-    #[serde(default, rename = "mediumSensitivityMapping")]
-    pub medium_sensitivity_mapping: ::core::option::Option<String>,
-}
-
-/// Response of asset discovery run
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudSecuritycenterV1beta1RunAssetDiscoveryResponse {
-    /// The duration between asset discovery run start and end
-    #[serde(default)]
-    pub duration: ::core::option::Option<String>,
-    /// The state of an asset discovery run. // TODO: enum values: ["STATE_UNSPECIFIED", "COMPLETED", "SUPERSEDED", "TERMINATED"]
-    #[serde(default)]
-    pub state: ::core::option::Option<String>,
-}
-
 /// Security Command Center finding. A finding is a record of assessment data (security, risk, health or privacy) ingested into Security Command Center for presentation, notification, analysis, policy testing, and enforcement. For example, an XSS vulnerability in an App Engine application is a finding.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudSecuritycenterV1p1beta1Finding {
@@ -2015,31 +973,6 @@ pub struct GoogleCloudSecuritycenterV1p1beta1Finding {
     pub state: ::core::option::Option<String>,
 }
 
-/// Message that contains the resource name and display name of a folder resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudSecuritycenterV1p1beta1Folder {
-    /// Full resource name of this folder. See: https://cloud.google.com/apis/design/resource_names#full_resource_name
-    #[serde(default, rename = "resourceFolder")]
-    pub resource_folder: ::core::option::Option<String>,
-    /// The user defined display name for this folder.
-    #[serde(default, rename = "resourceFolderDisplayName")]
-    pub resource_folder_display_name: ::core::option::Option<String>,
-}
-
-/// Security Command Center''s Notification
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudSecuritycenterV1p1beta1NotificationMessage {
-    /// If it''s a Finding based notification config, this field will be populated.
-    #[serde(default)]
-    pub finding: ::core::option::Option<GoogleCloudSecuritycenterV1p1beta1Finding>,
-    /// Name of the notification config that generated current notification.
-    #[serde(default, rename = "notificationConfigName")]
-    pub notification_config_name: ::core::option::Option<String>,
-    /// The Cloud resource tied to the notification.
-    #[serde(default)]
-    pub resource: ::core::option::Option<GoogleCloudSecuritycenterV1p1beta1Resource>,
-}
-
 /// Information related to the Google Cloud resource.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudSecuritycenterV1p1beta1Resource {
@@ -2063,613 +996,6 @@ pub struct GoogleCloudSecuritycenterV1p1beta1Resource {
     pub project_display_name: ::core::option::Option<String>,
 }
 
-/// Response of asset discovery run
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudSecuritycenterV1p1beta1RunAssetDiscoveryResponse {
-    /// The duration between asset discovery run start and end
-    #[serde(default)]
-    pub duration: ::core::option::Option<String>,
-    /// The state of an asset discovery run. // TODO: enum values: ["STATE_UNSPECIFIED", "COMPLETED", "SUPERSEDED", "TERMINATED"]
-    #[serde(default)]
-    pub state: ::core::option::Option<String>,
-}
-
-/// User specified security marks that are attached to the parent Security Command Center resource. Security marks are scoped within a Security Command Center organization -- they can be modified and viewed by all users who have proper permissions on the organization.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudSecuritycenterV1p1beta1SecurityMarks {
-    /// The canonical name of the marks. Examples: "organizations/{organization_id}/assets/{asset_id}/securityMarks" "folders/{folder_id}/assets/{asset_id}/securityMarks" "projects/{project_number}/assets/{asset_id}/securityMarks" "organizations/{organization_id}/sources/{source_id}/findings/{finding_id}/securityMarks" "folders/{folder_id}/sources/{source_id}/findings/{finding_id}/securityMarks" "projects/{project_number}/sources/{source_id}/findings/{finding_id}/securityMarks"
-    #[serde(default, rename = "canonicalName")]
-    pub canonical_name: ::core::option::Option<String>,
-    /// Mutable user specified security marks belonging to the parent resource. Constraints are as follows: * Keys and values are treated as case insensitive * Keys must be between 1 - 256 characters (inclusive) * Keys must be letters, numbers, underscores, or dashes * Values have leading and trailing whitespace trimmed, remaining characters must be between 1 - 4096 characters (inclusive)
-    #[serde(default)]
-    pub marks: ::core::option::Option<serde_json::Value>,
-    /// The relative resource name of the SecurityMarks. See: https://cloud.google.com/apis/design/resource_names#relative_resource_name Examples: "organizations/{organization_id}/assets/{asset_id}/securityMarks" "organizations/{organization_id}/sources/{source_id}/findings/{finding_id}/securityMarks".
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-}
-
-/// Represents an access event.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudSecuritycenterV2Access {
-    /// Caller''s IP address, such as "1.1.1.1".
-    #[serde(default, rename = "callerIp")]
-    pub caller_ip: ::core::option::Option<String>,
-    /// The caller IP''s geolocation, which identifies where the call came from.
-    #[serde(default, rename = "callerIpGeo")]
-    pub caller_ip_geo: ::core::option::Option<GoogleCloudSecuritycenterV2Geolocation>,
-    /// The method that the service account called, e.g. "SetIamPolicy".
-    #[serde(default, rename = "methodName")]
-    pub method_name: ::core::option::Option<String>,
-    /// Associated email, such as "foo@google.com". The email address of the authenticated user or a service account acting on behalf of a third party principal making the request. For third party identity callers, the principal_subject field is populated instead of this field. For privacy reasons, the principal email address is sometimes redacted. For more information, see [Caller identities in audit logs](https://cloud.google.com/logging/docs/audit#user-id).
-    #[serde(default, rename = "principalEmail")]
-    pub principal_email: ::core::option::Option<String>,
-    /// A string that represents the principal_subject that is associated with the identity. Unlike principal_email, principal_subject supports principals that aren''t associated with email addresses, such as third party principals. For most identities, the format is principal://iam.googleapis.com/{identity pool name}/subject/{subject}. Some GKE identities, such as GKE_WORKLOAD, FREEFORM, and GKE_HUB_WORKLOAD, still use the legacy format serviceAccount:{identity pool name}[{subject}].
-    #[serde(default, rename = "principalSubject")]
-    pub principal_subject: ::core::option::Option<String>,
-    /// The identity delegation history of an authenticated service account that made the request. The serviceAccountDelegationInfo[] object contains information about the real authorities that try to access Google Cloud resources by delegating on a service account. When multiple authorities are present, they are guaranteed to be sorted based on the original ordering of the identity delegation events.
-    #[serde(default, rename = "serviceAccountDelegationInfo")]
-    pub service_account_delegation_info: ::core::option::Option<
-        ::std::vec::Vec<GoogleCloudSecuritycenterV2ServiceAccountDelegationInfo>,
-    >,
-    /// The name of the service account key that was used to create or exchange credentials when authenticating the service account that made the request. This is a scheme-less URI full resource name. For example: "//iam.googleapis.com/projects/{PROJECT_ID}/serviceAccounts/{ACCOUNT}/keys/{key}".
-    #[serde(default, rename = "serviceAccountKeyName")]
-    pub service_account_key_name: ::core::option::Option<String>,
-    /// This is the API service that the service account made a call to, e.g. "iam.googleapis.com"
-    #[serde(default, rename = "serviceName")]
-    pub service_name: ::core::option::Option<String>,
-    /// The caller''s user agent string associated with the finding.
-    #[serde(default, rename = "userAgent")]
-    pub user_agent: ::core::option::Option<String>,
-    /// Type of user agent associated with the finding. For example, an operating system shell or an embedded or standalone application.
-    #[serde(default, rename = "userAgentFamily")]
-    pub user_agent_family: ::core::option::Option<String>,
-    /// A string that represents a username. The username provided depends on the type of the finding and is likely not an IAM principal. For example, this can be a system username if the finding is related to a virtual machine, or it can be an application login username.
-    #[serde(default, rename = "userName")]
-    pub user_name: ::core::option::Option<String>,
-}
-
-/// Conveys information about a Kubernetes access review (such as one returned by a [kubectl auth can-i](https://kubernetes.io/docs/reference/access-authn-authz/authorization/#checking-api-access) command) that was involved in a finding.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudSecuritycenterV2AccessReview {
-    /// The API group of the resource. "*" means all.
-    #[serde(default)]
-    pub group: ::core::option::Option<String>,
-    /// The name of the resource being requested. Empty means all.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Namespace of the action being requested. Currently, there is no distinction between no namespace and all namespaces. Both are represented by "" (empty).
-    #[serde(default)]
-    pub ns: ::core::option::Option<String>,
-    /// The optional resource type requested. "*" means all.
-    #[serde(default)]
-    pub resource: ::core::option::Option<String>,
-    /// The optional subresource type.
-    #[serde(default)]
-    pub subresource: ::core::option::Option<String>,
-    /// A Kubernetes resource API verb, like get, list, watch, create, update, delete, proxy. "*" means all.
-    #[serde(default)]
-    pub verb: ::core::option::Option<String>,
-    /// The API version of the resource. "*" means all.
-    #[serde(default)]
-    pub version: ::core::option::Option<String>,
-}
-
-/// Information about [Google Cloud Armor Adaptive Protection](https://cloud.google.com/armor/docs/cloud-armor-overview#google-cloud-armor-adaptive-protection).
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudSecuritycenterV2AdaptiveProtection {
-    /// A score of 0 means that there is low confidence that the detected event is an actual attack. A score of 1 means that there is high confidence that the detected event is an attack. See the [Adaptive Protection documentation](https://cloud.google.com/armor/docs/adaptive-protection-overview#configure-alert-tuning) for further explanation.
-    #[serde(default)]
-    pub confidence: ::core::option::Option<f64>,
-}
-
-/// Represents an ADC application associated with the finding.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudSecuritycenterV2AdcApplication {
-    /// Consumer provided attributes for the AppHub application.
-    #[serde(default)]
-    pub attributes:
-        ::core::option::Option<GoogleCloudSecuritycenterV2ResourceApplicationAttributes>,
-    /// The resource name of an ADC Application. Format: projects/{project}/locations/{location}/spaces/{space}/applications/{application}
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-}
-
-/// Represents an ADC template associated with the finding.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudSecuritycenterV2AdcApplicationTemplateRevision {
-    /// The resource name of an ADC Application Template Revision. Format: projects/{project}/locations/{location}/spaces/{space}/applicationTemplates/{application_template}/revisions/{revision}
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-}
-
-/// Represents an ADC shared template associated with the finding.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudSecuritycenterV2AdcSharedTemplateRevision {
-    /// The resource name of an ADC Shared Template Revision. Format: projects/{project}/locations/{location}/spaces/{space}/applicationTemplates/{application_template}/revisions/{revision}
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-}
-
-/// Details about resources affected by this finding.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudSecuritycenterV2AffectedResources {
-    /// The count of resources affected by the finding.
-    #[serde(default)]
-    pub count: ::core::option::Option<String>,
-}
-
-/// Details about a data access attempt made by an agent principal not authorized under applicable data security policy.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudSecuritycenterV2AgentDataAccessEvent {
-    /// Unique identifier for data access event.
-    #[serde(default, rename = "eventId")]
-    pub event_id: ::core::option::Option<String>,
-    /// Timestamp of data access event.
-    #[serde(default, rename = "eventTime")]
-    pub event_time: ::core::option::Option<String>,
-    /// The operation performed by the principal to access the data. // TODO: enum values: ["OPERATION_UNSPECIFIED", "READ", "MOVE", "COPY"]
-    #[serde(default)]
-    pub operation: ::core::option::Option<String>,
-    /// The agent principal that accessed the data.
-    #[serde(default, rename = "principalSubject")]
-    pub principal_subject: ::core::option::Option<String>,
-}
-
-/// Contains information about the AI model associated with the finding.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudSecuritycenterV2AiModel {
-    /// The platform on which the model is deployed. // TODO: enum values: ["DEPLOYMENT_PLATFORM_UNSPECIFIED", "VERTEX_AI", "GKE", "GCE", "FINE_TUNED_MODEL"]
-    #[serde(default, rename = "deploymentPlatform")]
-    pub deployment_platform: ::core::option::Option<String>,
-    /// The user defined display name of model. Ex. baseline-classification-model
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-    /// The domain of the model, for example, “image-classification”.
-    #[serde(default)]
-    pub domain: ::core::option::Option<String>,
-    /// The name of the model library, for example, “transformers”.
-    #[serde(default)]
-    pub library: ::core::option::Option<String>,
-    /// The region in which the model is used, for example, “us-central1”.
-    #[serde(default)]
-    pub location: ::core::option::Option<String>,
-    /// The name of the AI model, for example, "gemini:1.0.0".
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// The publisher of the model, for example, “google” or “nvidia”.
-    #[serde(default)]
-    pub publisher: ::core::option::Option<String>,
-    /// The purpose of the model, for example, "Inteference" or "Training".
-    #[serde(default, rename = "usageCategory")]
-    pub usage_category: ::core::option::Option<String>,
-}
-
-/// Allowed IP rule.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudSecuritycenterV2Allowed {
-    /// Optional. Optional list of allowed IP rules.
-    #[serde(default, rename = "ipRules")]
-    pub ip_rules: ::core::option::Option<::std::vec::Vec<GoogleCloudSecuritycenterV2IpRule>>,
-}
-
-/// Represents an application associated with a finding.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudSecuritycenterV2Application {
-    /// The base URI that identifies the network location of the application in which the vulnerability was detected. For example, http://example.com.
-    #[serde(default, rename = "baseUri")]
-    pub base_uri: ::core::option::Option<String>,
-    /// The full URI with payload that could be used to reproduce the vulnerability. For example, http://example.com?p=aMmYgI6H.
-    #[serde(default, rename = "fullUri")]
-    pub full_uri: ::core::option::Option<String>,
-}
-
-/// Represents the result of evaluating artifact guard policies.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudSecuritycenterV2ArtifactGuardPolicies {
-    /// A list of failing policies.
-    #[serde(default, rename = "failingPolicies")]
-    pub failing_policies:
-        ::core::option::Option<::std::vec::Vec<GoogleCloudSecuritycenterV2ArtifactGuardPolicy>>,
-    /// The ID of the resource that has policies configured for it.
-    #[serde(default, rename = "resourceId")]
-    pub resource_id: ::core::option::Option<String>,
-}
-
-/// Represents an artifact guard policy.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudSecuritycenterV2ArtifactGuardPolicy {
-    /// The reason for the policy failure, for example, "severity=HIGH AND max_vuln_count=2".
-    #[serde(default, rename = "failureReason")]
-    pub failure_reason: ::core::option::Option<String>,
-    /// The ID of the failing policy, for example, "organizations/3392779/locations/global/policies/prod-policy".
-    #[serde(default, rename = "policyId")]
-    pub policy_id: ::core::option::Option<String>,
-    /// The type of the policy evaluation. // TODO: enum values: ["ARTIFACT_GUARD_POLICY_TYPE_UNSPECIFIED", "VULNERABILITY"]
-    #[serde(default, rename = "type")]
-    pub type_: ::core::option::Option<String>,
-}
-
-/// Information about DDoS attack volume and classification.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudSecuritycenterV2Attack {
-    /// Type of attack, for example, ''SYN-flood'', ''NTP-udp'', or ''CHARGEN-udp''.
-    #[serde(default)]
-    pub classification: ::core::option::Option<String>,
-    /// Total BPS (bytes per second) volume of attack. Deprecated - refer to volume_bps_long instead.
-    #[serde(default, rename = "volumeBps")]
-    pub volume_bps: ::core::option::Option<i32>,
-    /// Total BPS (bytes per second) volume of attack.
-    #[serde(default, rename = "volumeBpsLong")]
-    pub volume_bps_long: ::core::option::Option<String>,
-    /// Total PPS (packets per second) volume of attack. Deprecated - refer to volume_pps_long instead.
-    #[serde(default, rename = "volumePps")]
-    pub volume_pps: ::core::option::Option<i32>,
-    /// Total PPS (packets per second) volume of attack.
-    #[serde(default, rename = "volumePpsLong")]
-    pub volume_pps_long: ::core::option::Option<String>,
-}
-
-/// An attack exposure contains the results of an attack path simulation run.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudSecuritycenterV2AttackExposure {
-    /// The resource name of the attack path simulation result that contains the details regarding this attack exposure score. Example: organizations/123/simulations/456/attackExposureResults/789
-    #[serde(default, rename = "attackExposureResult")]
-    pub attack_exposure_result: ::core::option::Option<String>,
-    /// The number of high value resources that are exposed as a result of this finding.
-    #[serde(default, rename = "exposedHighValueResourcesCount")]
-    pub exposed_high_value_resources_count: ::core::option::Option<i32>,
-    /// The number of high value resources that are exposed as a result of this finding.
-    #[serde(default, rename = "exposedLowValueResourcesCount")]
-    pub exposed_low_value_resources_count: ::core::option::Option<i32>,
-    /// The number of medium value resources that are exposed as a result of this finding.
-    #[serde(default, rename = "exposedMediumValueResourcesCount")]
-    pub exposed_medium_value_resources_count: ::core::option::Option<i32>,
-    /// The most recent time the attack exposure was updated on this finding.
-    #[serde(default, rename = "latestCalculationTime")]
-    pub latest_calculation_time: ::core::option::Option<String>,
-    /// A number between 0 (inclusive) and infinity that represents how important this finding is to remediate. The higher the score, the more important it is to remediate.
-    #[serde(default)]
-    pub score: ::core::option::Option<f64>,
-    /// Output only. What state this AttackExposure is in. This captures whether or not an attack exposure has been calculated or not. // TODO: enum values: ["STATE_UNSPECIFIED", "CALCULATED", "NOT_CALCULATED"]
-    #[serde(default)]
-    pub state: ::core::option::Option<String>,
-}
-
-/// An AWS account that is a member of an organization.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudSecuritycenterV2AwsAccount {
-    /// The unique identifier (ID) of the account, containing exactly 12 digits.
-    #[serde(default)]
-    pub id: ::core::option::Option<String>,
-    /// The friendly name of this account.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-}
-
-/// AWS metadata associated with the resource, only applicable if the finding''s cloud provider is Amazon Web Services.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudSecuritycenterV2AwsMetadata {
-    /// The AWS account associated with the resource.
-    #[serde(default)]
-    pub account: ::core::option::Option<GoogleCloudSecuritycenterV2AwsAccount>,
-    /// The AWS organization associated with the resource.
-    #[serde(default)]
-    pub organization: ::core::option::Option<GoogleCloudSecuritycenterV2AwsOrganization>,
-    /// A list of AWS organizational units associated with the resource, ordered from lowest level (closest to the account) to highest level.
-    #[serde(default, rename = "organizationalUnits")]
-    pub organizational_units:
-        ::core::option::Option<::std::vec::Vec<GoogleCloudSecuritycenterV2AwsOrganizationalUnit>>,
-}
-
-/// An organization is a collection of accounts that are centrally managed together using consolidated billing, organized hierarchically with organizational units (OUs), and controlled with policies.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudSecuritycenterV2AwsOrganization {
-    /// The unique identifier (ID) for the organization. The regex pattern for an organization ID string requires "o-" followed by from 10 to 32 lowercase letters or digits.
-    #[serde(default)]
-    pub id: ::core::option::Option<String>,
-}
-
-/// An Organizational Unit (OU) is a container of AWS accounts within a root of an organization. Policies that are attached to an OU apply to all accounts contained in that OU and in any child OUs.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudSecuritycenterV2AwsOrganizationalUnit {
-    /// The unique identifier (ID) associated with this OU. The regex pattern for an organizational unit ID string requires "ou-" followed by from 4 to 32 lowercase letters or digits (the ID of the root that contains the OU). This string is followed by a second "-" dash and from 8 to 32 additional lowercase letters or digits. For example, "ou-ab12-cd34ef56".
-    #[serde(default)]
-    pub id: ::core::option::Option<String>,
-    /// The friendly name of the OU.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-}
-
-/// Represents an Azure management group.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudSecuritycenterV2AzureManagementGroup {
-    /// The display name of the Azure management group.
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-    /// The UUID of the Azure management group, for example, 20000000-0001-0000-0000-000000000000.
-    #[serde(default)]
-    pub id: ::core::option::Option<String>,
-}
-
-/// Azure metadata associated with the resource, only applicable if the finding''s cloud provider is Microsoft Azure.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudSecuritycenterV2AzureMetadata {
-    /// A list of Azure management groups associated with the resource, ordered from lowest level (closest to the subscription) to highest level.
-    #[serde(default, rename = "managementGroups")]
-    pub management_groups:
-        ::core::option::Option<::std::vec::Vec<GoogleCloudSecuritycenterV2AzureManagementGroup>>,
-    /// The Azure resource group associated with the resource.
-    #[serde(default, rename = "resourceGroup")]
-    pub resource_group: ::core::option::Option<GoogleCloudSecuritycenterV2AzureResourceGroup>,
-    /// The Azure subscription associated with the resource.
-    #[serde(default)]
-    pub subscription: ::core::option::Option<GoogleCloudSecuritycenterV2AzureSubscription>,
-    /// The Azure Entra tenant associated with the resource.
-    #[serde(default)]
-    pub tenant: ::core::option::Option<GoogleCloudSecuritycenterV2AzureTenant>,
-}
-
-/// Represents an Azure resource group.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudSecuritycenterV2AzureResourceGroup {
-    /// The ID of the Azure resource group.
-    #[serde(default)]
-    pub id: ::core::option::Option<String>,
-    /// The name of the Azure resource group. This is not a UUID.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-}
-
-/// Represents an Azure subscription.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudSecuritycenterV2AzureSubscription {
-    /// The display name of the Azure subscription.
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-    /// The UUID of the Azure subscription, for example, 291bba3f-e0a5-47bc-a099-3bdcb2a50a05.
-    #[serde(default)]
-    pub id: ::core::option::Option<String>,
-}
-
-/// Represents a Microsoft Entra tenant.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudSecuritycenterV2AzureTenant {
-    /// The display name of the Azure tenant.
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-    /// The ID of the Microsoft Entra tenant, for example, "a11aaa11-aa11-1aa1-11aa-1aaa11a".
-    #[serde(default)]
-    pub id: ::core::option::Option<String>,
-}
-
-/// Information related to Google Cloud Backup and DR Service findings.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudSecuritycenterV2BackupDisasterRecovery {
-    /// The name of the Backup and DR appliance that captures, moves, and manages the lifecycle of backup data. For example, backup-server-57137.
-    #[serde(default)]
-    pub appliance: ::core::option::Option<String>,
-    /// The names of Backup and DR applications. An application is a VM, database, or file system on a managed host monitored by a backup and recovery appliance. For example, centos7-01-vol00, centos7-01-vol01, centos7-01-vol02.
-    #[serde(default)]
-    pub applications: ::core::option::Option<::std::vec::Vec<String>>,
-    /// The timestamp at which the Backup and DR backup was created.
-    #[serde(default, rename = "backupCreateTime")]
-    pub backup_create_time: ::core::option::Option<String>,
-    /// The name of a Backup and DR template which comprises one or more backup policies. See the [Backup and DR documentation](https://cloud.google.com/backup-disaster-recovery/docs/concepts/backup-plan#temp) for more information. For example, snap-ov.
-    #[serde(default, rename = "backupTemplate")]
-    pub backup_template: ::core::option::Option<String>,
-    /// The backup type of the Backup and DR image. For example, Snapshot, Remote Snapshot, OnVault.
-    #[serde(default, rename = "backupType")]
-    pub backup_type: ::core::option::Option<String>,
-    /// The name of a Backup and DR host, which is managed by the backup and recovery appliance and known to the management console. The host can be of type Generic (for example, Compute Engine, SQL Server, Oracle DB, SMB file system, etc.), vCenter, or an ESX server. See the [Backup and DR documentation on hosts](https://cloud.google.com/backup-disaster-recovery/docs/configuration/manage-hosts-and-their-applications) for more information. For example, centos7-01.
-    #[serde(default)]
-    pub host: ::core::option::Option<String>,
-    /// The names of Backup and DR policies that are associated with a template and that define when to run a backup, how frequently to run a backup, and how long to retain the backup image. For example, onvaults.
-    #[serde(default)]
-    pub policies: ::core::option::Option<::std::vec::Vec<String>>,
-    /// The names of Backup and DR advanced policy options of a policy applying to an application. See the [Backup and DR documentation on policy options](https://cloud.google.com/backup-disaster-recovery/docs/create-plan/policy-settings). For example, skipofflineappsincongrp, nounmap.
-    #[serde(default, rename = "policyOptions")]
-    pub policy_options: ::core::option::Option<::std::vec::Vec<String>>,
-    /// The name of the Backup and DR resource profile that specifies the storage media for backups of application and VM data. See the [Backup and DR documentation on profiles](https://cloud.google.com/backup-disaster-recovery/docs/concepts/backup-plan#profile). For example, GCP.
-    #[serde(default)]
-    pub profile: ::core::option::Option<String>,
-    /// The name of the Backup and DR storage pool that the backup and recovery appliance is storing data in. The storage pool could be of type Cloud, Primary, Snapshot, or OnVault. See the [Backup and DR documentation on storage pools](https://cloud.google.com/backup-disaster-recovery/docs/concepts/storage-pools). For example, DiskPoolOne.
-    #[serde(default, rename = "storagePool")]
-    pub storage_pool: ::core::option::Option<String>,
-}
-
-/// Configures how to deliver Findings to BigQuery Instance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudSecuritycenterV2BigQueryExport {
-    /// Output only. The time at which the BigQuery export was created. This field is set by the server and will be ignored if provided on export on creation.
-    #[serde(default, rename = "createTime")]
-    pub create_time: ::core::option::Option<String>,
-    /// Output only. The resource name of the Cloud KMS CryptoKey used to protect this configuration''s data, if configured during Security Command Center activation.
-    #[serde(default, rename = "cryptoKeyName")]
-    pub crypto_key_name: ::core::option::Option<String>,
-    /// The dataset to write findings'' updates to. Its format is "projects/[project_id]/datasets/[bigquery_dataset_id]". BigQuery dataset unique ID must contain only letters (a-z, A-Z), numbers (0-9), or underscores (_).
-    #[serde(default)]
-    pub dataset: ::core::option::Option<String>,
-    /// The description of the export (max of 1024 characters).
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// Expression that defines the filter to apply across create/update events of findings. The expression is a list of zero or more restrictions combined via logical operators AND and OR. Parentheses are supported, and OR has higher precedence than AND. Restrictions have the form   and may have a - character in front of them to indicate negation. The fields map to those defined in the corresponding resource. The supported operators are: * = for all value types. * &gt;, &lt;, &gt;=, &lt;= for integer values. * :, meaning substring matching, for strings. The supported value types are: * string literals in quotes. * integer literals without quotes. * boolean literals true and false without quotes.
-    #[serde(default)]
-    pub filter: ::core::option::Option<String>,
-    /// Output only. Email address of the user who last edited the BigQuery export. This field is set by the server and will be ignored if provided on export creation or update.
-    #[serde(default, rename = "mostRecentEditor")]
-    pub most_recent_editor: ::core::option::Option<String>,
-    /// Identifier. The relative resource name of this export. See: https://cloud.google.com/apis/design/resource_names#relative_resource_name. The following list shows some examples: + organizations/{organization_id}/locations/{location_id}/bigQueryExports/{export_id} + folders/{folder_id}/locations/{location_id}/bigQueryExports/{export_id} + projects/{project_id}/locations/{location_id}/bigQueryExports/{export_id} This field is provided in responses, and is ignored when provided in create requests.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Output only. The service account that needs permission to create table and upload data to the BigQuery dataset.
-    #[serde(default)]
-    pub principal: ::core::option::Option<String>,
-    /// Output only. The most recent time at which the BigQuery export was updated. This field is set by the server and will be ignored if provided on export creation or update.
-    #[serde(default, rename = "updateTime")]
-    pub update_time: ::core::option::Option<String>,
-}
-
-/// Represents a Kubernetes RoleBinding or ClusterRoleBinding.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudSecuritycenterV2Binding {
-    /// Name for the binding.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Namespace for the binding.
-    #[serde(default)]
-    pub ns: ::core::option::Option<String>,
-    /// The Role or ClusterRole referenced by the binding.
-    #[serde(default)]
-    pub role: ::core::option::Option<GoogleCloudSecuritycenterV2Role>,
-    /// Represents one or more subjects that are bound to the role. Not always available for PATCH requests.
-    #[serde(default)]
-    pub subjects: ::core::option::Option<::std::vec::Vec<GoogleCloudSecuritycenterV2Subject>>,
-}
-
-/// Contains details about a chokepoint, which is a resource or resource group where high-risk attack paths converge, based on [attack path simulations] (https://cloud.google.com/security-command-center/docs/attack-exposure-learn#attack_path_simulations).
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudSecuritycenterV2Chokepoint {
-    /// List of resource names of findings associated with this chokepoint. For example, organizations/123/sources/456/findings/789. This list will have at most 100 findings.
-    #[serde(default, rename = "relatedFindings")]
-    pub related_findings: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// Fields related to Google Cloud Armor findings.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudSecuritycenterV2CloudArmor {
-    /// Information about potential Layer 7 DDoS attacks identified by [Google Cloud Armor Adaptive Protection](https://cloud.google.com/armor/docs/adaptive-protection-overview).
-    #[serde(default, rename = "adaptiveProtection")]
-    pub adaptive_protection: ::core::option::Option<GoogleCloudSecuritycenterV2AdaptiveProtection>,
-    /// Information about DDoS attack volume and classification.
-    #[serde(default)]
-    pub attack: ::core::option::Option<GoogleCloudSecuritycenterV2Attack>,
-    /// Duration of attack from the start until the current moment (updated every 5 minutes).
-    #[serde(default)]
-    pub duration: ::core::option::Option<String>,
-    /// Information about incoming requests evaluated by [Google Cloud Armor security policies](https://cloud.google.com/armor/docs/security-policy-overview).
-    #[serde(default)]
-    pub requests: ::core::option::Option<GoogleCloudSecuritycenterV2Requests>,
-    /// Information about the [Google Cloud Armor security policy](https://cloud.google.com/armor/docs/security-policy-overview) relevant to the finding.
-    #[serde(default, rename = "securityPolicy")]
-    pub security_policy: ::core::option::Option<GoogleCloudSecuritycenterV2SecurityPolicy>,
-    /// Distinguish between volumetric & protocol DDoS attack and application layer attacks. For example, "L3_4" for Layer 3 and Layer 4 DDoS attacks, or "L_7" for Layer 7 DDoS attacks.
-    #[serde(default, rename = "threatVector")]
-    pub threat_vector: ::core::option::Option<String>,
-}
-
-/// CloudControl associated with the finding.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudSecuritycenterV2CloudControl {
-    /// Name of the CloudControl associated with the finding.
-    #[serde(default, rename = "cloudControlName")]
-    pub cloud_control_name: ::core::option::Option<String>,
-    /// Policy type of the CloudControl
-    #[serde(default, rename = "policyType")]
-    pub policy_type: ::core::option::Option<String>,
-    /// Type of cloud control. // TODO: enum values: ["CLOUD_CONTROL_TYPE_UNSPECIFIED", "BUILT_IN", "CUSTOM"]
-    #[serde(default, rename = "type")]
-    pub type_: ::core::option::Option<String>,
-    /// Version of the Cloud Control
-    #[serde(default)]
-    pub version: ::core::option::Option<i32>,
-}
-
-/// The [data profile](https://cloud.google.com/dlp/docs/data-profiles) associated with the finding.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudSecuritycenterV2CloudDlpDataProfile {
-    /// Name of the data profile, for example, projects/123/locations/europe/tableProfiles/8383929.
-    #[serde(default, rename = "dataProfile")]
-    pub data_profile: ::core::option::Option<String>,
-    /// Type of information detected by SDP. Info type includes name, version and sensitivity of the detected information type.
-    #[serde(default, rename = "infoTypes")]
-    pub info_types: ::core::option::Option<::std::vec::Vec<GoogleCloudSecuritycenterV2InfoType>>,
-    /// The resource hierarchy level at which the data profile was generated. // TODO: enum values: ["PARENT_TYPE_UNSPECIFIED", "ORGANIZATION", "PROJECT"]
-    #[serde(default, rename = "parentType")]
-    pub parent_type: ::core::option::Option<String>,
-}
-
-/// Details about the Cloud Data Loss Prevention (Cloud DLP) [inspection job](https://cloud.google.com/dlp/docs/concepts-job-triggers) that produced the finding.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudSecuritycenterV2CloudDlpInspection {
-    /// Whether Cloud DLP scanned the complete resource or a sampled subset.
-    #[serde(default, rename = "fullScan")]
-    pub full_scan: ::core::option::Option<bool>,
-    /// The type of information (or *[infoType](https://cloud.google.com/dlp/docs/infotypes-reference)*) found, for example, EMAIL_ADDRESS or STREET_ADDRESS.
-    #[serde(default, rename = "infoType")]
-    pub info_type: ::core::option::Option<String>,
-    /// The number of times Cloud DLP found this infoType within this job and resource.
-    #[serde(default, rename = "infoTypeCount")]
-    pub info_type_count: ::core::option::Option<String>,
-    /// Name of the inspection job, for example, projects/123/locations/europe/dlpJobs/i-8383929.
-    #[serde(default, rename = "inspectJob")]
-    pub inspect_job: ::core::option::Option<String>,
-}
-
-/// Metadata taken from a [Cloud Logging LogEntry](https://cloud.google.com/logging/docs/reference/v2/rest/v2/LogEntry)
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudSecuritycenterV2CloudLoggingEntry {
-    /// A unique identifier for the log entry.
-    #[serde(default, rename = "insertId")]
-    pub insert_id: ::core::option::Option<String>,
-    /// The type of the log (part of log_name. log_name is the resource name of the log to which this log entry belongs). For example: cloudresourcemanager.googleapis.com/activity Note that this field is not URL-encoded, unlike in LogEntry.
-    #[serde(default, rename = "logId")]
-    pub log_id: ::core::option::Option<String>,
-    /// The organization, folder, or project of the monitored resource that produced this log entry.
-    #[serde(default, rename = "resourceContainer")]
-    pub resource_container: ::core::option::Option<String>,
-    /// The time the event described by the log entry occurred.
-    #[serde(default)]
-    pub timestamp: ::core::option::Option<String>,
-}
-
-/// Contains compliance information about a security standard indicating unmet recommendations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudSecuritycenterV2Compliance {
-    /// Policies within the standard or benchmark, for example, A.12.4.1
-    #[serde(default)]
-    pub ids: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Industry-wide compliance standards or benchmarks, such as CIS, PCI, and OWASP.
-    #[serde(default)]
-    pub standard: ::core::option::Option<String>,
-    /// Version of the standard or benchmark, for example, 1.1
-    #[serde(default)]
-    pub version: ::core::option::Option<String>,
-}
-
-/// Compliance Details associated with the finding.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudSecuritycenterV2ComplianceDetails {
-    /// CloudControl associated with the finding
-    #[serde(default, rename = "cloudControl")]
-    pub cloud_control: ::core::option::Option<GoogleCloudSecuritycenterV2CloudControl>,
-    /// Cloud Control Deployments associated with the finding. For example, organizations/123/locations/global/cloudControlDeployments/deploymentIdentifier
-    #[serde(default, rename = "cloudControlDeploymentNames")]
-    pub cloud_control_deployment_names: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Details of Frameworks associated with the finding
-    #[serde(default)]
-    pub frameworks: ::core::option::Option<::std::vec::Vec<GoogleCloudSecuritycenterV2Framework>>,
-}
-
-/// Contains information about the IP connection associated with the finding.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudSecuritycenterV2Connection {
-    /// Destination IP address. Not present for sockets that are listening and not connected.
-    #[serde(default, rename = "destinationIp")]
-    pub destination_ip: ::core::option::Option<String>,
-    /// Destination port. Not present for sockets that are listening and not connected.
-    #[serde(default, rename = "destinationPort")]
-    pub destination_port: ::core::option::Option<i32>,
-    /// IANA Internet Protocol Number such as TCP(6) and UDP(17). // TODO: enum values: ["PROTOCOL_UNSPECIFIED", "ICMP", "TCP", "UDP", "GRE", "ESP"]
-    #[serde(default)]
-    pub protocol: ::core::option::Option<String>,
-    /// Source IP address.
-    #[serde(default, rename = "sourceIp")]
-    pub source_ip: ::core::option::Option<String>,
-    /// Source port.
-    #[serde(default, rename = "sourcePort")]
-    pub source_port: ::core::option::Option<i32>,
-}
-
 /// The email address of a contact.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudSecuritycenterV2Contact {
@@ -2678,440 +1004,123 @@ pub struct GoogleCloudSecuritycenterV2Contact {
     pub email: ::core::option::Option<String>,
 }
 
-/// Details about specific contacts
+/// Information about the ticket, if any, that is being used to track the resolution of the issue that is identified by this finding.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudSecuritycenterV2ContactDetails {
-    /// A list of contacts
+pub struct GoogleCloudSecuritycenterV2TicketInfo {
+    /// The assignee of the ticket in the ticket system.
     #[serde(default)]
-    pub contacts: ::core::option::Option<::std::vec::Vec<GoogleCloudSecuritycenterV2Contact>>,
-}
-
-/// Container associated with the finding.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudSecuritycenterV2Container {
-    /// The time that the container was created.
-    #[serde(default, rename = "createTime")]
-    pub create_time: ::core::option::Option<String>,
-    /// Optional container image ID, if provided by the container runtime. Uniquely identifies the container image launched using a container image digest.
-    #[serde(default, rename = "imageId")]
-    pub image_id: ::core::option::Option<String>,
-    /// Container labels, as provided by the container runtime.
+    pub assignee: ::core::option::Option<String>,
+    /// The description of the ticket in the ticket system.
     #[serde(default)]
-    pub labels: ::core::option::Option<::std::vec::Vec<GoogleCloudSecuritycenterV2Label>>,
-    /// Name of the container.
+    pub description: ::core::option::Option<String>,
+    /// The identifier of the ticket in the ticket system.
     #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Container image URI provided when configuring a pod or container. This string can identify a container image version using mutable tags.
+    pub id: ::core::option::Option<String>,
+    /// The latest status of the ticket, as reported by the ticket system.
+    #[serde(default)]
+    pub status: ::core::option::Option<String>,
+    /// The time when the ticket was last updated, as reported by the ticket system.
+    #[serde(default, rename = "updateTime")]
+    pub update_time: ::core::option::Option<String>,
+    /// The link to the ticket in the ticket system.
     #[serde(default)]
     pub uri: ::core::option::Option<String>,
 }
 
-/// Compliance control associated with the finding.
+/// The domains of an issue.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudSecuritycenterV2Control {
-    /// Name of the Control
-    #[serde(default, rename = "controlName")]
-    pub control_name: ::core::option::Option<String>,
-    /// Display name of the control. For example, AU-02.
+pub struct GoogleCloudSecuritycenterV2IssueDomain {
+    /// The domain category of the issue. // TODO: enum values: ["DOMAIN_CATEGORY_UNSPECIFIED", "AI", "CODE", "CONTAINER", "DATA", "IDENTITY_AND_ACCESS", "VULNERABILITY", "THREAT"]
+    #[serde(default, rename = "domainCategory")]
+    pub domain_category: ::core::option::Option<String>,
+}
+
+/// The mute information of the issue.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudSecuritycenterV2IssueMute {
+    /// The email address of the user who last changed the mute state of the issue.
+    #[serde(default, rename = "muteInitiator")]
+    pub mute_initiator: ::core::option::Option<String>,
+    /// The user-provided reason for muting the issue.
+    #[serde(default, rename = "muteReason")]
+    pub mute_reason: ::core::option::Option<String>,
+    /// Output only. The mute state of the issue. // TODO: enum values: ["MUTE_STATE_UNSPECIFIED", "NOT_MUTED", "MUTED"]
+    #[serde(default, rename = "muteState")]
+    pub mute_state: ::core::option::Option<String>,
+    /// The time the issue was muted.
+    #[serde(default, rename = "muteUpdateTime")]
+    pub mute_update_time: ::core::option::Option<String>,
+}
+
+/// A resource associated with the an issue.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudSecuritycenterV2IssueResource {
+    /// The ADC application associated with the finding.
+    #[serde(default, rename = "adcApplication")]
+    pub adc_application:
+        ::core::option::Option<GoogleCloudSecuritycenterV2IssueResourceAdcApplication>,
+    /// The ADC template associated with the finding.
+    #[serde(default, rename = "adcApplicationTemplate")]
+    pub adc_application_template: ::core::option::Option<
+        GoogleCloudSecuritycenterV2IssueResourceAdcApplicationTemplateRevision,
+    >,
+    /// The ADC shared template associated with the finding.
+    #[serde(default, rename = "adcSharedTemplate")]
+    pub adc_shared_template:
+        ::core::option::Option<GoogleCloudSecuritycenterV2IssueResourceAdcSharedTemplateRevision>,
+    /// The AppHub application associated with the resource, if any. Only populated for the primary resource.
+    #[serde(default)]
+    pub application: ::core::option::Option<GoogleCloudSecuritycenterV2IssueResourceApplication>,
+    /// The AWS metadata of the resource associated with the issue. Only populated for AWS resources.
+    #[serde(default, rename = "awsMetadata")]
+    pub aws_metadata: ::core::option::Option<GoogleCloudSecuritycenterV2IssueResourceAwsMetadata>,
+    /// The Azure metadata of the resource associated with the issue. Only populated for Azure resources.
+    #[serde(default, rename = "azureMetadata")]
+    pub azure_metadata:
+        ::core::option::Option<GoogleCloudSecuritycenterV2IssueResourceAzureMetadata>,
+    /// The cloud provider of the resource associated with the issue. // TODO: enum values: ["CLOUD_PROVIDER_UNSPECIFIED", "GOOGLE_CLOUD", "AMAZON_WEB_SERVICES", "MICROSOFT_AZURE"]
+    #[serde(default, rename = "cloudProvider")]
+    pub cloud_provider: ::core::option::Option<String>,
+    /// The resource-type specific display name of the resource associated with the issue.
     #[serde(default, rename = "displayName")]
     pub display_name: ::core::option::Option<String>,
-}
-
-/// CVE stands for Common Vulnerabilities and Exposures. Information from the [CVE record](https://www.cve.org/ResourcesSupport/Glossary) that describes this vulnerability.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudSecuritycenterV2Cve {
-    /// Describe Common Vulnerability Scoring System specified at https://www.first.org/cvss/v3.1/specification-document
-    #[serde(default)]
-    pub cvssv3: ::core::option::Option<GoogleCloudSecuritycenterV2Cvssv3>,
-    /// Date the first publicly available exploit or PoC was released.
-    #[serde(default, rename = "exploitReleaseDate")]
-    pub exploit_release_date: ::core::option::Option<String>,
-    /// The exploitation activity of the vulnerability in the wild. // TODO: enum values: ["EXPLOITATION_ACTIVITY_UNSPECIFIED", "WIDE", "CONFIRMED", "AVAILABLE", "ANTICIPATED", "NO_KNOWN"]
-    #[serde(default, rename = "exploitationActivity")]
-    pub exploitation_activity: ::core::option::Option<String>,
-    /// Date of the earliest known exploitation.
-    #[serde(default, rename = "firstExploitationDate")]
-    pub first_exploitation_date: ::core::option::Option<String>,
-    /// The unique identifier for the vulnerability. e.g. CVE-2021-34527
-    #[serde(default)]
-    pub id: ::core::option::Option<String>,
-    /// The potential impact of the vulnerability if it was to be exploited. // TODO: enum values: ["RISK_RATING_UNSPECIFIED", "LOW", "MEDIUM", "HIGH", "CRITICAL"]
-    #[serde(default)]
-    pub impact: ::core::option::Option<String>,
-    /// Whether or not the vulnerability has been observed in the wild.
-    #[serde(default, rename = "observedInTheWild")]
-    pub observed_in_the_wild: ::core::option::Option<bool>,
-    /// Additional information about the CVE. e.g. https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2021-34527
-    #[serde(default)]
-    pub references: ::core::option::Option<::std::vec::Vec<GoogleCloudSecuritycenterV2Reference>>,
-    /// Whether upstream fix is available for the CVE.
-    #[serde(default, rename = "upstreamFixAvailable")]
-    pub upstream_fix_available: ::core::option::Option<bool>,
-    /// Whether or not the vulnerability was zero day when the finding was published.
-    #[serde(default, rename = "zeroDay")]
-    pub zero_day: ::core::option::Option<bool>,
-}
-
-/// Common Vulnerability Scoring System version 3.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudSecuritycenterV2Cvssv3 {
-    /// This metric describes the conditions beyond the attacker''s control that must exist in order to exploit the vulnerability. // TODO: enum values: ["ATTACK_COMPLEXITY_UNSPECIFIED", "ATTACK_COMPLEXITY_LOW", "ATTACK_COMPLEXITY_HIGH"]
-    #[serde(default, rename = "attackComplexity")]
-    pub attack_complexity: ::core::option::Option<String>,
-    /// Base Metrics Represents the intrinsic characteristics of a vulnerability that are constant over time and across user environments. This metric reflects the context by which vulnerability exploitation is possible. // TODO: enum values: ["ATTACK_VECTOR_UNSPECIFIED", "ATTACK_VECTOR_NETWORK", "ATTACK_VECTOR_ADJACENT", "ATTACK_VECTOR_LOCAL", "ATTACK_VECTOR_PHYSICAL"]
-    #[serde(default, rename = "attackVector")]
-    pub attack_vector: ::core::option::Option<String>,
-    /// This metric measures the impact to the availability of the impacted component resulting from a successfully exploited vulnerability. // TODO: enum values: ["IMPACT_UNSPECIFIED", "IMPACT_HIGH", "IMPACT_LOW", "IMPACT_NONE"]
-    #[serde(default, rename = "availabilityImpact")]
-    pub availability_impact: ::core::option::Option<String>,
-    /// The base score is a function of the base metric scores.
-    #[serde(default, rename = "baseScore")]
-    pub base_score: ::core::option::Option<f64>,
-    /// This metric measures the impact to the confidentiality of the information resources managed by a software component due to a successfully exploited vulnerability. // TODO: enum values: ["IMPACT_UNSPECIFIED", "IMPACT_HIGH", "IMPACT_LOW", "IMPACT_NONE"]
-    #[serde(default, rename = "confidentialityImpact")]
-    pub confidentiality_impact: ::core::option::Option<String>,
-    /// This metric measures the impact to integrity of a successfully exploited vulnerability. // TODO: enum values: ["IMPACT_UNSPECIFIED", "IMPACT_HIGH", "IMPACT_LOW", "IMPACT_NONE"]
-    #[serde(default, rename = "integrityImpact")]
-    pub integrity_impact: ::core::option::Option<String>,
-    /// This metric describes the level of privileges an attacker must possess before successfully exploiting the vulnerability. // TODO: enum values: ["PRIVILEGES_REQUIRED_UNSPECIFIED", "PRIVILEGES_REQUIRED_NONE", "PRIVILEGES_REQUIRED_LOW", "PRIVILEGES_REQUIRED_HIGH"]
-    #[serde(default, rename = "privilegesRequired")]
-    pub privileges_required: ::core::option::Option<String>,
-    /// The Scope metric captures whether a vulnerability in one vulnerable component impacts resources in components beyond its security scope. // TODO: enum values: ["SCOPE_UNSPECIFIED", "SCOPE_UNCHANGED", "SCOPE_CHANGED"]
-    #[serde(default)]
-    pub scope: ::core::option::Option<String>,
-    /// This metric captures the requirement for a human user, other than the attacker, to participate in the successful compromise of the vulnerable component. // TODO: enum values: ["USER_INTERACTION_UNSPECIFIED", "USER_INTERACTION_NONE", "USER_INTERACTION_REQUIRED"]
-    #[serde(default, rename = "userInteraction")]
-    pub user_interaction: ::core::option::Option<String>,
-}
-
-/// CWE stands for Common Weakness Enumeration. Information about this weakness, as described by [CWE](https://cwe.mitre.org/).
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudSecuritycenterV2Cwe {
-    /// The CWE identifier, e.g. CWE-94
-    #[serde(default)]
-    pub id: ::core::option::Option<String>,
-    /// Any reference to the details on the CWE, for example, https://cwe.mitre.org/data/definitions/94.html
-    #[serde(default)]
-    pub references: ::core::option::Option<::std::vec::Vec<GoogleCloudSecuritycenterV2Reference>>,
-}
-
-/// Details about a data access attempt made by a principal not authorized under applicable data security policy.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudSecuritycenterV2DataAccessEvent {
-    /// Unique identifier for data access event.
-    #[serde(default, rename = "eventId")]
-    pub event_id: ::core::option::Option<String>,
-    /// Timestamp of data access event.
-    #[serde(default, rename = "eventTime")]
-    pub event_time: ::core::option::Option<String>,
-    /// The operation performed by the principal to access the data. // TODO: enum values: ["OPERATION_UNSPECIFIED", "READ", "MOVE", "COPY"]
-    #[serde(default)]
-    pub operation: ::core::option::Option<String>,
-    /// The email address of the principal that accessed the data. The principal could be a user account, service account, Google group, or other.
-    #[serde(default, rename = "principalEmail")]
-    pub principal_email: ::core::option::Option<String>,
-}
-
-/// Details about a data flow event, in which either the data is moved to or is accessed from a non-compliant geo-location, as defined in the applicable data security policy.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudSecuritycenterV2DataFlowEvent {
-    /// Unique identifier for data flow event.
-    #[serde(default, rename = "eventId")]
-    pub event_id: ::core::option::Option<String>,
-    /// Timestamp of data flow event.
-    #[serde(default, rename = "eventTime")]
-    pub event_time: ::core::option::Option<String>,
-    /// The operation performed by the principal for the data flow event. // TODO: enum values: ["OPERATION_UNSPECIFIED", "READ", "MOVE", "COPY"]
-    #[serde(default)]
-    pub operation: ::core::option::Option<String>,
-    /// The email address of the principal that initiated the data flow event. The principal could be a user account, service account, Google group, or other.
-    #[serde(default, rename = "principalEmail")]
-    pub principal_email: ::core::option::Option<String>,
-    /// Non-compliant location of the principal or the data destination.
-    #[serde(default, rename = "violatedLocation")]
-    pub violated_location: ::core::option::Option<String>,
-}
-
-/// Details about data retention deletion violations, in which the data is non-compliant based on their retention or deletion time, as defined in the applicable data security policy. The Data Retention Deletion (DRD) control is a control of the DSPM (Data Security Posture Management) suite that enables organizations to manage data retention and deletion policies in compliance with regulations, such as GDPR and CRPA. DRD supports two primary policy types: maximum storage length (max TTL) and minimum storage length (min TTL). Both are aimed at helping organizations meet regulatory and data management commitments.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudSecuritycenterV2DataRetentionDeletionEvent {
-    /// Number of objects that violated the policy for this resource. If the number is less than 1,000, then the value of this field is the exact number. If the number of objects that violated the policy is greater than or equal to 1,000, then the value of this field is 1000.
-    #[serde(default, rename = "dataObjectCount")]
-    pub data_object_count: ::core::option::Option<String>,
-    /// Timestamp indicating when the event was detected.
-    #[serde(default, rename = "eventDetectionTime")]
-    pub event_detection_time: ::core::option::Option<String>,
-    /// Type of the DRD event. // TODO: enum values: ["EVENT_TYPE_UNSPECIFIED", "EVENT_TYPE_MAX_TTL_EXCEEDED", "EVENT_TYPE_MAX_TTL_FROM_CREATION", "EVENT_TYPE_MAX_TTL_FROM_LAST_MODIFICATION", "EVENT_TYPE_MIN_TTL_FROM_CREATION"]
-    #[serde(default, rename = "eventType")]
-    pub event_type: ::core::option::Option<String>,
-    /// Maximum duration of retention allowed from the DRD control. This comes from the DRD control where users set a max TTL for their data. For example, suppose that a user sets the max TTL for a Cloud Storage bucket to 90 days. However, an object in that bucket is 100 days old. In this case, a DataRetentionDeletionEvent will be generated for that Cloud Storage bucket, and the max_retention_allowed is 90 days.
-    #[serde(default, rename = "maxRetentionAllowed")]
-    pub max_retention_allowed: ::core::option::Option<String>,
-    /// Min duration of retention allowed from the DSPM retention control. This field is only populated when event type is set to EVENT_TYPE_MIN_TTL_FROM_CREATION.
-    #[serde(default, rename = "minRetentionAllowed")]
-    pub min_retention_allowed: ::core::option::Option<String>,
-}
-
-/// Represents database access information, such as queries. A database may be a sub-resource of an instance (as in the case of Cloud SQL instances or Cloud Spanner instances), or the database instance itself. Some database resources might not have the [full resource name](https://google.aip.dev/122#full-resource-names) populated because these resource types, such as Cloud SQL databases, are not yet supported by Cloud Asset Inventory. In these cases only the display name is provided.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudSecuritycenterV2Database {
-    /// The human-readable name of the database that the user connected to.
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-    /// The target usernames, roles, or groups of an SQL privilege grant, which is not an IAM policy change.
-    #[serde(default)]
-    pub grantees: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Some database resources may not have the [full resource name](https://google.aip.dev/122#full-resource-names) populated because these resource types are not yet supported by Cloud Asset Inventory (e.g. Cloud SQL databases). In these cases only the display name will be provided. The [full resource name](https://google.aip.dev/122#full-resource-names) of the database that the user connected to, if it is supported by Cloud Asset Inventory.
+    /// The Google Cloud metadata of the resource associated with the issue. Only populated for Google Cloud resources.
+    #[serde(default, rename = "googleCloudMetadata")]
+    pub google_cloud_metadata:
+        ::core::option::Option<GoogleCloudSecuritycenterV2IssueResourceGoogleCloudMetadata>,
+    /// The full resource name of the resource associated with the issue.
     #[serde(default)]
     pub name: ::core::option::Option<String>,
-    /// The SQL statement that is associated with the database access.
-    #[serde(default)]
-    pub query: ::core::option::Option<String>,
-    /// The username used to connect to the database. The username might not be an IAM principal and does not have a set format.
-    #[serde(default, rename = "userName")]
-    pub user_name: ::core::option::Option<String>,
-    /// The version of the database, for example, POSTGRES_14. See [the complete list](https://cloud.google.com/sql/docs/mysql/admin-api/rest/v1/SqlDatabaseVersion).
-    #[serde(default)]
-    pub version: ::core::option::Option<String>,
-}
-
-/// Vertex AI dataset associated with the finding.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudSecuritycenterV2Dataset {
-    /// The user defined display name of dataset, e.g. plants-dataset
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-    /// Resource name of the dataset, e.g. projects/{project}/locations/{location}/datasets/2094040236064505856
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Data source, such as a BigQuery source URI, e.g. bq://scc-nexus-test.AIPPtest.gsod
-    #[serde(default)]
-    pub source: ::core::option::Option<String>,
-}
-
-/// Denied IP rule.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudSecuritycenterV2Denied {
-    /// Optional. Optional list of denied IP rules.
-    #[serde(default, rename = "ipRules")]
-    pub ip_rules: ::core::option::Option<::std::vec::Vec<GoogleCloudSecuritycenterV2IpRule>>,
-}
-
-/// Memory hash detection contributing to the binary family match.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudSecuritycenterV2Detection {
-    /// The name of the binary associated with the memory hash signature detection.
-    #[serde(default)]
-    pub binary: ::core::option::Option<String>,
-    /// The percentage of memory page hashes in the signature that were matched.
-    #[serde(default, rename = "percentPagesMatched")]
-    pub percent_pages_matched: ::core::option::Option<f64>,
-}
-
-/// Represents discovered, customer managed workload that is not registered with the respective GCP service.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudSecuritycenterV2DiscoveredWorkload {
-    /// The confidence in detection of this workload. // TODO: enum values: ["CONFIDENCE_UNSPECIFIED", "CONFIDENCE_HIGH"]
-    #[serde(default)]
-    pub confidence: ::core::option::Option<String>,
-    /// A boolean flag set to true if associated hardware strongly predicts the workload type.
-    #[serde(default, rename = "detectedRelevantHardware")]
-    pub detected_relevant_hardware: ::core::option::Option<bool>,
-    /// A boolean flag set to true if associated keywords strongly predict the workload type.
-    #[serde(default, rename = "detectedRelevantKeywords")]
-    pub detected_relevant_keywords: ::core::option::Option<bool>,
-    /// A boolean flag set to true if installed packages strongly predict the workload type.
-    #[serde(default, rename = "detectedRelevantPackages")]
-    pub detected_relevant_packages: ::core::option::Option<bool>,
-    /// The type of workload. // TODO: enum values: ["WORKLOAD_TYPE_UNSPECIFIED", "MCP_SERVER", "AI_INFERENCE", "AGENT"]
-    #[serde(default, rename = "workloadType")]
-    pub workload_type: ::core::option::Option<String>,
-}
-
-/// Contains information about the disk associated with the finding.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudSecuritycenterV2Disk {
-    /// The name of the disk, for example, "https://www.googleapis.com/compute/v1/projects/{project-id}/zones/{zone-id}/disks/{disk-id}".
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-}
-
-/// Path of the file in terms of underlying disk/partition identifiers.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudSecuritycenterV2DiskPath {
-    /// UUID of the partition (format https://wiki.archlinux.org/title/persistent_block_device_naming#by-uuid)
-    #[serde(default, rename = "partitionUuid")]
-    pub partition_uuid: ::core::option::Option<String>,
-    /// Relative path of the file in the partition as a JSON encoded string. Example: /home/user1/executable_file.sh
-    #[serde(default, rename = "relativePath")]
-    pub relative_path: ::core::option::Option<String>,
-}
-
-/// The record of a dynamic mute rule that matches the finding.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudSecuritycenterV2DynamicMuteRecord {
-    /// When the dynamic mute rule first matched the finding.
-    #[serde(default, rename = "matchTime")]
-    pub match_time: ::core::option::Option<String>,
-    /// The relative resource name of the mute rule, represented by a mute config, that created this record, for example organizations/123/muteConfigs/mymuteconfig or organizations/123/locations/global/muteConfigs/mymuteconfig.
-    #[serde(default, rename = "muteConfig")]
-    pub mute_config: ::core::option::Option<String>,
-}
-
-/// A name-value pair representing an environment variable used in an operating system process.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudSecuritycenterV2EnvironmentVariable {
-    /// Environment variable name as a JSON encoded string.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Environment variable value as a JSON encoded string.
-    #[serde(default)]
-    pub val: ::core::option::Option<String>,
-}
-
-/// Resource where data was exfiltrated from or exfiltrated to.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudSecuritycenterV2ExfilResource {
-    /// Subcomponents of the asset that was exfiltrated, like URIs used during exfiltration, table names, databases, and filenames. For example, multiple tables might have been exfiltrated from the same Cloud SQL instance, or multiple files might have been exfiltrated from the same Cloud Storage bucket.
-    #[serde(default)]
-    pub components: ::core::option::Option<::std::vec::Vec<String>>,
-    /// The resource''s [full resource name](https://cloud.google.com/apis/design/resource_names#full_resource_name).
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-}
-
-/// Exfiltration represents a data exfiltration attempt from one or more sources to one or more targets. The sources attribute lists the sources of the exfiltrated data. The targets attribute lists the destinations the data was copied to.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudSecuritycenterV2Exfiltration {
-    /// If there are multiple sources, then the data is considered "joined" between them. For instance, BigQuery can join multiple tables, and each table would be considered a source.
-    #[serde(default)]
-    pub sources: ::core::option::Option<::std::vec::Vec<GoogleCloudSecuritycenterV2ExfilResource>>,
-    /// If there are multiple targets, each target would get a complete copy of the "joined" source data.
-    #[serde(default)]
-    pub targets: ::core::option::Option<::std::vec::Vec<GoogleCloudSecuritycenterV2ExfilResource>>,
-    /// Total exfiltrated bytes processed for the entire job.
-    #[serde(default, rename = "totalExfiltratedBytes")]
-    pub total_exfiltrated_bytes: ::core::option::Option<String>,
-}
-
-/// Details about the externally exposed resource associated with the finding.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudSecuritycenterV2ExternalExposure {
-    /// The full resource name of load balancer backend service, for example, "//compute.googleapis.com/projects/{project-id}/global/backendServices/{name}".
-    #[serde(default, rename = "backendService")]
-    pub backend_service: ::core::option::Option<String>,
-    /// The resource which is running the exposed service, for example, "//compute.googleapis.com/projects/{project-id}/zones/{zone}/instances/{instance}.”
-    #[serde(default, rename = "exposedEndpoint")]
-    pub exposed_endpoint: ::core::option::Option<String>,
-    /// The name and version of the service, for example, "Jupyter Notebook 6.14.0".
-    #[serde(default, rename = "exposedService")]
-    pub exposed_service: ::core::option::Option<String>,
-    /// The full resource name of the forwarding rule, for example, "//compute.googleapis.com/projects/{project-id}/global/forwardingRules/{forwarding-rule-name}".
-    #[serde(default, rename = "forwardingRule")]
-    pub forwarding_rule: ::core::option::Option<String>,
-    /// The full resource name of the instance group, for example, "//compute.googleapis.com/projects/{project-id}/global/instanceGroups/{name}".
-    #[serde(default, rename = "instanceGroup")]
-    pub instance_group: ::core::option::Option<String>,
-    /// The full resource name of the load balancer firewall policy, for example, "//compute.googleapis.com/projects/{project-id}/global/firewallPolicies/{policy-name}".
-    #[serde(default, rename = "loadBalancerFirewallPolicy")]
-    pub load_balancer_firewall_policy: ::core::option::Option<String>,
-    /// The full resource name of the network endpoint group, for example, "//compute.googleapis.com/projects/{project-id}/global/networkEndpointGroups/{name}".
-    #[serde(default, rename = "networkEndpointGroup")]
-    pub network_endpoint_group: ::core::option::Option<String>,
-    /// Private IP address of the exposed endpoint.
-    #[serde(default, rename = "privateIpAddress")]
-    pub private_ip_address: ::core::option::Option<String>,
-    /// Port number associated with private IP address.
-    #[serde(default, rename = "privatePort")]
-    pub private_port: ::core::option::Option<String>,
-    /// Public IP address of the exposed endpoint.
-    #[serde(default, rename = "publicIpAddress")]
-    pub public_ip_address: ::core::option::Option<String>,
-    /// Public port number of the exposed endpoint.
-    #[serde(default, rename = "publicPort")]
-    pub public_port: ::core::option::Option<String>,
-    /// The full resource name of the firewall policy of the exposed service, for example, "//compute.googleapis.com/projects/{project-id}/global/firewallPolicies/{policy-name}".
-    #[serde(default, rename = "serviceFirewallPolicy")]
-    pub service_firewall_policy: ::core::option::Option<String>,
-}
-
-/// Representation of third party SIEM/SOAR fields within SCC.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudSecuritycenterV2ExternalSystem {
-    /// References primary/secondary etc assignees in the external system.
-    #[serde(default)]
-    pub assignees: ::core::option::Option<::std::vec::Vec<String>>,
-    /// The time when the case was closed, as reported by the external system.
-    #[serde(default, rename = "caseCloseTime")]
-    pub case_close_time: ::core::option::Option<String>,
-    /// The time when the case was created, as reported by the external system.
-    #[serde(default, rename = "caseCreateTime")]
-    pub case_create_time: ::core::option::Option<String>,
-    /// The priority of the finding''s corresponding case in the external system.
-    #[serde(default, rename = "casePriority")]
-    pub case_priority: ::core::option::Option<String>,
-    /// The SLA of the finding''s corresponding case in the external system.
-    #[serde(default, rename = "caseSla")]
-    pub case_sla: ::core::option::Option<String>,
-    /// The link to the finding''s corresponding case in the external system.
-    #[serde(default, rename = "caseUri")]
-    pub case_uri: ::core::option::Option<String>,
-    /// The time when the case was last updated, as reported by the external system.
-    #[serde(default, rename = "externalSystemUpdateTime")]
-    pub external_system_update_time: ::core::option::Option<String>,
-    /// The identifier that''s used to track the finding''s corresponding case in the external system.
-    #[serde(default, rename = "externalUid")]
-    pub external_uid: ::core::option::Option<String>,
-    /// Full resource name of the external system. The following list shows some examples: + organizations/1234/sources/5678/findings/123456/externalSystems/jira + organizations/1234/sources/5678/locations/us/findings/123456/externalSystems/jira + folders/1234/sources/5678/findings/123456/externalSystems/jira + folders/1234/sources/5678/locations/us/findings/123456/externalSystems/jira + projects/1234/sources/5678/findings/123456/externalSystems/jira + projects/1234/sources/5678/locations/us/findings/123456/externalSystems/jira
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// The most recent status of the finding''s corresponding case, as reported by the external system.
-    #[serde(default)]
-    pub status: ::core::option::Option<String>,
-    /// Information about the ticket, if any, that is being used to track the resolution of the issue that is identified by this finding.
-    #[serde(default, rename = "ticketInfo")]
-    pub ticket_info: ::core::option::Option<GoogleCloudSecuritycenterV2TicketInfo>,
-}
-
-/// File information about the related binary/library used by an executable, or the script used by a script interpreter
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudSecuritycenterV2File {
-    /// Prefix of the file contents as a JSON-encoded string.
-    #[serde(default)]
-    pub contents: ::core::option::Option<String>,
-    /// Path of the file in terms of underlying disk/partition identifiers.
-    #[serde(default, rename = "diskPath")]
-    pub disk_path: ::core::option::Option<GoogleCloudSecuritycenterV2DiskPath>,
-    /// The load state of the file. // TODO: enum values: ["FILE_LOAD_STATE_UNSPECIFIED", "LOADED_BY_PROCESS", "NOT_LOADED_BY_PROCESS"]
-    #[serde(default, rename = "fileLoadState")]
-    pub file_load_state: ::core::option::Option<String>,
-    /// The length in bytes of the file prefix that was hashed. If hashed_size == size, any hashes reported represent the entire file.
-    #[serde(default, rename = "hashedSize")]
-    pub hashed_size: ::core::option::Option<String>,
-    /// Operation(s) performed on a file.
-    #[serde(default)]
-    pub operations:
-        ::core::option::Option<::std::vec::Vec<GoogleCloudSecuritycenterV2FileOperation>>,
-    /// True when the hash covers only a prefix of the file.
-    #[serde(default, rename = "partiallyHashed")]
-    pub partially_hashed: ::core::option::Option<bool>,
-    /// Absolute path of the file as a JSON encoded string.
-    #[serde(default)]
-    pub path: ::core::option::Option<String>,
-    /// SHA256 hash of the first hashed_size bytes of the file encoded as a hex string. If hashed_size == size, sha256 represents the SHA256 hash of the entire file.
-    #[serde(default)]
-    pub sha256: ::core::option::Option<String>,
-    /// Size of the file in bytes.
-    #[serde(default)]
-    pub size: ::core::option::Option<String>,
-}
-
-/// Operation(s) performed on a file.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudSecuritycenterV2FileOperation {
-    /// The type of the operation // TODO: enum values: ["OPERATION_TYPE_UNSPECIFIED", "OPEN", "READ", "RENAME", "WRITE", "EXECUTE"]
+    /// The type of the resource associated with the issue.
     #[serde(default, rename = "type")]
     pub type_: ::core::option::Option<String>,
+}
+
+/// Finding related to an issue.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudSecuritycenterV2IssueFinding {
+    /// The CVE of the finding.
+    #[serde(default)]
+    pub cve: ::core::option::Option<GoogleCloudSecuritycenterV2IssueFindingCve>,
+    /// The name of the finding.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// The security bulletin of the finding.
+    #[serde(default, rename = "securityBulletin")]
+    pub security_bulletin:
+        ::core::option::Option<GoogleCloudSecuritycenterV2IssueFindingSecurityBulletin>,
+}
+
+/// Security context associated with an issue.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudSecuritycenterV2IssueSecurityContext {
+    /// The aggregated count of the security context.
+    #[serde(default, rename = "aggregatedCount")]
+    pub aggregated_count:
+        ::core::option::Option<GoogleCloudSecuritycenterV2IssueSecurityContextAggregatedCount>,
+    /// The context of the security context.
+    #[serde(default)]
+    pub context: ::core::option::Option<GoogleCloudSecuritycenterV2IssueSecurityContextContext>,
 }
 
 /// Security Command Center finding. A finding is a record of assessment data like security, risk, health, or privacy, that is ingested into Security Command Center for presentation, notification, analysis, policy testing, and enforcement. For example, a cross-site scripting (XSS) vulnerability in an App Engine application is a finding.
@@ -3338,9 +1347,480 @@ pub struct GoogleCloudSecuritycenterV2Finding {
     pub vulnerability: ::core::option::Option<GoogleCloudSecuritycenterV2Vulnerability>,
 }
 
+/// Information related to the Google Cloud resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudSecuritycenterV2Resource {
+    /// The ADC application associated with the finding.
+    #[serde(default, rename = "adcApplication")]
+    pub adc_application: ::core::option::Option<GoogleCloudSecuritycenterV2AdcApplication>,
+    /// The ADC template associated with the finding.
+    #[serde(default, rename = "adcApplicationTemplate")]
+    pub adc_application_template:
+        ::core::option::Option<GoogleCloudSecuritycenterV2AdcApplicationTemplateRevision>,
+    /// The ADC shared template associated with the finding.
+    #[serde(default, rename = "adcSharedTemplate")]
+    pub adc_shared_template:
+        ::core::option::Option<GoogleCloudSecuritycenterV2AdcSharedTemplateRevision>,
+    /// The App Hub application this resource belongs to.
+    #[serde(default)]
+    pub application: ::core::option::Option<GoogleCloudSecuritycenterV2ResourceApplication>,
+    /// The AWS metadata associated with the finding.
+    #[serde(default, rename = "awsMetadata")]
+    pub aws_metadata: ::core::option::Option<GoogleCloudSecuritycenterV2AwsMetadata>,
+    /// The Azure metadata associated with the finding.
+    #[serde(default, rename = "azureMetadata")]
+    pub azure_metadata: ::core::option::Option<GoogleCloudSecuritycenterV2AzureMetadata>,
+    /// Indicates which cloud provider the finding is from. // TODO: enum values: ["CLOUD_PROVIDER_UNSPECIFIED", "GOOGLE_CLOUD_PLATFORM", "AMAZON_WEB_SERVICES", "MICROSOFT_AZURE"]
+    #[serde(default, rename = "cloudProvider")]
+    pub cloud_provider: ::core::option::Option<String>,
+    /// The human readable name of the resource.
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+    /// The Google Cloud metadata associated with the finding.
+    #[serde(default, rename = "gcpMetadata")]
+    pub gcp_metadata: ::core::option::Option<GcpMetadata>,
+    /// The region or location of the service (if applicable).
+    #[serde(default)]
+    pub location: ::core::option::Option<String>,
+    /// The full resource name of the resource. See: https://cloud.google.com/apis/design/resource_names#full_resource_name
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Provides the path to the resource within the resource hierarchy.
+    #[serde(default, rename = "resourcePath")]
+    pub resource_path: ::core::option::Option<GoogleCloudSecuritycenterV2ResourcePath>,
+    /// A string representation of the resource path. For Google Cloud, it has the format of organizations/{organization_id}/folders/{folder_id}/folders/{folder_id}/projects/{project_id} where there can be any number of folders. For AWS, it has the format of org/{organization_id}/ou/{organizational_unit_id}/ou/{organizational_unit_id}/account/{account_id} where there can be any number of organizational units. For Azure, it has the format of mg/{management_group_id}/mg/{management_group_id}/subscription/{subscription_id}/rg/{resource_group_name} where there can be any number of management groups.
+    #[serde(default, rename = "resourcePathString")]
+    pub resource_path_string: ::core::option::Option<String>,
+    /// The service or resource provider associated with the resource.
+    #[serde(default)]
+    pub service: ::core::option::Option<String>,
+    /// The full resource type of the resource.
+    #[serde(default, rename = "type")]
+    pub type_: ::core::option::Option<String>,
+}
+
+/// Resource value mapping for Sensitive Data Protection findings If any of these mappings have a resource value that is not unspecified, the resource_value field will be ignored when reading this configuration.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudSecuritycenterV2SensitiveDataProtectionMapping {
+    /// Resource value mapping for high-sensitivity Sensitive Data Protection findings // TODO: enum values: ["RESOURCE_VALUE_UNSPECIFIED", "HIGH", "MEDIUM", "LOW", "NONE"]
+    #[serde(default, rename = "highSensitivityMapping")]
+    pub high_sensitivity_mapping: ::core::option::Option<String>,
+    /// Resource value mapping for medium-sensitivity Sensitive Data Protection findings // TODO: enum values: ["RESOURCE_VALUE_UNSPECIFIED", "HIGH", "MEDIUM", "LOW", "NONE"]
+    #[serde(default, rename = "mediumSensitivityMapping")]
+    pub medium_sensitivity_mapping: ::core::option::Option<String>,
+}
+
+/// Result containing the properties and count of a groupBy request.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GroupResult {
+    /// Total count of resources for the given properties.
+    #[serde(default)]
+    pub count: ::core::option::Option<String>,
+    /// Properties matching the groupBy fields in the request.
+    #[serde(default)]
+    pub properties: ::core::option::Option<serde_json::Value>,
+}
+
+/// Result containing the Asset and its State.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ListAssetsResult {
+    /// Asset matching the search request.
+    #[serde(default)]
+    pub asset: ::core::option::Option<Asset>,
+    /// State change of the asset between the points in time. // TODO: enum values: ["UNUSED", "ADDED", "REMOVED", "ACTIVE"]
+    #[serde(default, rename = "stateChange")]
+    pub state_change: ::core::option::Option<String>,
+}
+
+/// A path that an attacker could take to reach an exposed resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AttackPath {
+    /// A list of the edges between nodes in this attack path.
+    #[serde(default)]
+    pub edges: ::core::option::Option<::std::vec::Vec<AttackPathEdge>>,
+    /// The attack path name, for example, organizations/12/simulation/34/valuedResources/56/attackPaths/78
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// A list of nodes that exist in this attack path.
+    #[serde(default, rename = "pathNodes")]
+    pub path_nodes: ::core::option::Option<::std::vec::Vec<AttackPathNode>>,
+}
+
+/// Configures how to deliver Findings to BigQuery Instance.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudSecuritycenterV1BigQueryExport {
+    /// Output only. The time at which the BigQuery export was created. This field is set by the server and will be ignored if provided on export on creation.
+    #[serde(default, rename = "createTime")]
+    pub create_time: ::core::option::Option<String>,
+    /// The dataset to write findings'' updates to. Its format is "projects/[project_id]/datasets/[bigquery_dataset_id]". BigQuery Dataset unique ID must contain only letters (a-z, A-Z), numbers (0-9), or underscores (_).
+    #[serde(default)]
+    pub dataset: ::core::option::Option<String>,
+    /// The description of the export (max of 1024 characters).
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+    /// Expression that defines the filter to apply across create/update events of findings. The expression is a list of zero or more restrictions combined via logical operators AND and OR. Parentheses are supported, and OR has higher precedence than AND. Restrictions have the form   and may have a - character in front of them to indicate negation. The fields map to those defined in the corresponding resource. The supported operators are: * = for all value types. * &gt;, &lt;, &gt;=, &lt;= for integer values. * :, meaning substring matching, for strings. The supported value types are: * string literals in quotes. * integer literals without quotes. * boolean literals true and false without quotes.
+    #[serde(default)]
+    pub filter: ::core::option::Option<String>,
+    /// Output only. Email address of the user who last edited the BigQuery export. This field is set by the server and will be ignored if provided on export creation or update.
+    #[serde(default, rename = "mostRecentEditor")]
+    pub most_recent_editor: ::core::option::Option<String>,
+    /// The relative resource name of this export. See: https://cloud.google.com/apis/design/resource_names#relative_resource_name. Example format: "organizations/{organization_id}/bigQueryExports/{export_id}" Example format: "folders/{folder_id}/bigQueryExports/{export_id}" Example format: "projects/{project_id}/bigQueryExports/{export_id}" This field is provided in responses, and is ignored when provided in create requests.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Output only. The service account that needs permission to create table and upload data to the BigQuery dataset.
+    #[serde(default)]
+    pub principal: ::core::option::Option<String>,
+    /// Output only. The most recent time at which the BigQuery export was updated. This field is set by the server and will be ignored if provided on export creation or update.
+    #[serde(default, rename = "updateTime")]
+    pub update_time: ::core::option::Option<String>,
+}
+
+/// An EffectiveEventThreatDetectionCustomModule is the representation of an Event Threat Detection custom module at a specified level of the resource hierarchy: organization, folder, or project. If a custom module is inherited from a parent organization or folder, the value of the enablement_state property in EffectiveEventThreatDetectionCustomModule is set to the value that is effective in the parent, instead of INHERITED. For example, if the module is enabled in a parent organization or folder, the effective enablement_state for the module in all child folders or projects is also enabled. EffectiveEventThreatDetectionCustomModule is read-only.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct EffectiveEventThreatDetectionCustomModule {
+    /// The cloud provider of the custom module. // TODO: enum values: ["CLOUD_PROVIDER_UNSPECIFIED", "GOOGLE_CLOUD_PLATFORM", "AMAZON_WEB_SERVICES", "MICROSOFT_AZURE"]
+    #[serde(default, rename = "cloudProvider")]
+    pub cloud_provider: ::core::option::Option<String>,
+    /// Output only. Config for the effective module.
+    #[serde(default)]
+    pub config: ::core::option::Option<serde_json::Value>,
+    /// Output only. The description for the module.
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+    /// Output only. The human readable name to be displayed for the module.
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+    /// Output only. The effective state of enablement for the module at the given level of the hierarchy. // TODO: enum values: ["ENABLEMENT_STATE_UNSPECIFIED", "ENABLED", "DISABLED"]
+    #[serde(default, rename = "enablementState")]
+    pub enablement_state: ::core::option::Option<String>,
+    /// Output only. The resource name of the effective ETD custom module. Its format is: * organizations/{organization}/eventThreatDetectionSettings/effectiveCustomModules/{module}. * folders/{folder}/eventThreatDetectionSettings/effectiveCustomModules/{module}. * projects/{project}/eventThreatDetectionSettings/effectiveCustomModules/{module}.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Output only. Type for the module. e.g. CONFIGURABLE_BAD_IP.
+    #[serde(default, rename = "type")]
+    pub type_: ::core::option::Option<String>,
+}
+
+/// An EffectiveSecurityHealthAnalyticsCustomModule is the representation of a Security Health Analytics custom module at a specified level of the resource hierarchy: organization, folder, or project. If a custom module is inherited from a parent organization or folder, the value of the enablementState property in EffectiveSecurityHealthAnalyticsCustomModule is set to the value that is effective in the parent, instead of INHERITED. For example, if the module is enabled in a parent organization or folder, the effective enablement_state for the module in all child folders or projects is also enabled. EffectiveSecurityHealthAnalyticsCustomModule is read-only.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudSecuritycenterV1EffectiveSecurityHealthAnalyticsCustomModule {
+    /// The cloud provider of the custom module. // TODO: enum values: ["CLOUD_PROVIDER_UNSPECIFIED", "GOOGLE_CLOUD_PLATFORM", "AMAZON_WEB_SERVICES", "MICROSOFT_AZURE"]
+    #[serde(default, rename = "cloudProvider")]
+    pub cloud_provider: ::core::option::Option<String>,
+    /// Output only. The user-specified configuration for the module.
+    #[serde(default, rename = "customConfig")]
+    pub custom_config: ::core::option::Option<GoogleCloudSecuritycenterV1CustomConfig>,
+    /// Output only. The display name for the custom module. The name must be between 1 and 128 characters, start with a lowercase letter, and contain alphanumeric characters or underscores only.
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+    /// Output only. The effective state of enablement for the module at the given level of the hierarchy. // TODO: enum values: ["ENABLEMENT_STATE_UNSPECIFIED", "ENABLED", "DISABLED"]
+    #[serde(default, rename = "enablementState")]
+    pub enablement_state: ::core::option::Option<String>,
+    /// Output only. The resource name of the custom module. Its format is "organizations/{organization}/securityHealthAnalyticsSettings/effectiveCustomModules/{customModule}", or "folders/{folder}/securityHealthAnalyticsSettings/effectiveCustomModules/{customModule}", or "projects/{project}/securityHealthAnalyticsSettings/effectiveCustomModules/{customModule}"
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+}
+
+/// Represents an instance of an Event Threat Detection custom module, including its full module name, display name, enablement state, and last updated time. You can create a custom module at the organization, folder, or project level. Custom modules that you create at the organization or folder level are inherited by child folders and projects.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct EventThreatDetectionCustomModule {
+    /// Output only. The closest ancestor module that this module inherits the enablement state from. The format is the same as the EventThreatDetectionCustomModule resource name.
+    #[serde(default, rename = "ancestorModule")]
+    pub ancestor_module: ::core::option::Option<String>,
+    /// The cloud provider of the custom module. // TODO: enum values: ["CLOUD_PROVIDER_UNSPECIFIED", "GOOGLE_CLOUD_PLATFORM", "AMAZON_WEB_SERVICES", "MICROSOFT_AZURE"]
+    #[serde(default, rename = "cloudProvider")]
+    pub cloud_provider: ::core::option::Option<String>,
+    /// Config for the module. For the resident module, its config value is defined at this level. For the inherited module, its config value is inherited from the ancestor module.
+    #[serde(default)]
+    pub config: ::core::option::Option<serde_json::Value>,
+    /// The description for the module.
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+    /// The human readable name to be displayed for the module.
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+    /// The state of enablement for the module at the given level of the hierarchy. // TODO: enum values: ["ENABLEMENT_STATE_UNSPECIFIED", "ENABLED", "DISABLED", "INHERITED"]
+    #[serde(default, rename = "enablementState")]
+    pub enablement_state: ::core::option::Option<String>,
+    /// Output only. The editor the module was last updated by.
+    #[serde(default, rename = "lastEditor")]
+    pub last_editor: ::core::option::Option<String>,
+    /// Immutable. The resource name of the Event Threat Detection custom module. Its format is: * organizations/{organization}/eventThreatDetectionSettings/customModules/{module}. * folders/{folder}/eventThreatDetectionSettings/customModules/{module}. * projects/{project}/eventThreatDetectionSettings/customModules/{module}.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Type for the module. e.g. CONFIGURABLE_BAD_IP.
+    #[serde(default, rename = "type")]
+    pub type_: ::core::option::Option<String>,
+    /// Output only. The time the module was last updated.
+    #[serde(default, rename = "updateTime")]
+    pub update_time: ::core::option::Option<String>,
+}
+
+/// Result containing the Finding and its StateChange.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ListFindingsResult {
+    /// Finding matching the search request.
+    #[serde(default)]
+    pub finding: ::core::option::Option<Finding>,
+    /// Output only. Resource that is associated with this finding.
+    #[serde(default)]
+    pub resource: ::core::option::Option<Resource>,
+    /// State change of the finding between the points in time. // TODO: enum values: ["UNUSED", "CHANGED", "UNCHANGED", "ADDED", "REMOVED"]
+    #[serde(default, rename = "stateChange")]
+    pub state_change: ::core::option::Option<String>,
+}
+
+/// A mute config is a Cloud SCC resource that contains the configuration to mute create/update events of findings.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudSecuritycenterV1MuteConfig {
+    /// Output only. The time at which the mute config was created. This field is set by the server and will be ignored if provided on config creation.
+    #[serde(default, rename = "createTime")]
+    pub create_time: ::core::option::Option<String>,
+    /// A description of the mute config.
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+    /// The human readable name to be displayed for the mute config.
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+    /// Optional. The expiry of the mute config. Only applicable for dynamic configs. If the expiry is set, when the config expires, it is removed from all findings.
+    #[serde(default, rename = "expiryTime")]
+    pub expiry_time: ::core::option::Option<String>,
+    /// Required. An expression that defines the filter to apply across create/update events of findings. While creating a filter string, be mindful of the scope in which the mute configuration is being created. E.g., If a filter contains project = X but is created under the project = Y scope, it might not match any findings. The following field and operator combinations are supported: * severity: =, : * category: =, : * resource.name: =, : * resource.project_name: =, : * resource.project_display_name: =, : * resource.folders.resource_folder: =, : * resource.parent_name: =, : * resource.parent_display_name: =, : * resource.type: =, : * finding_class: =, : * indicator.ip_addresses: =, : * indicator.domains: =, :
+    #[serde(default)]
+    pub filter: ::core::option::Option<String>,
+    /// Output only. Email address of the user who last edited the mute config. This field is set by the server and will be ignored if provided on config creation or update.
+    #[serde(default, rename = "mostRecentEditor")]
+    pub most_recent_editor: ::core::option::Option<String>,
+    /// This field will be ignored if provided on config creation. Format organizations/{organization}/muteConfigs/{mute_config} folders/{folder}/muteConfigs/{mute_config} projects/{project}/muteConfigs/{mute_config} organizations/{organization}/locations/global/muteConfigs/{mute_config} folders/{folder}/locations/global/muteConfigs/{mute_config} projects/{project}/locations/global/muteConfigs/{mute_config}
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Optional. The type of the mute config, which determines what type of mute state the config affects. The static mute state takes precedence over the dynamic mute state. Immutable after creation. STATIC by default if not set during creation. // TODO: enum values: ["MUTE_CONFIG_TYPE_UNSPECIFIED", "STATIC", "DYNAMIC"]
+    #[serde(default, rename = "type")]
+    pub type_: ::core::option::Option<String>,
+    /// Output only. The most recent time at which the mute config was updated. This field is set by the server and will be ignored if provided on config creation or update.
+    #[serde(default, rename = "updateTime")]
+    pub update_time: ::core::option::Option<String>,
+}
+
+/// Cloud Security Command Center (Cloud SCC) notification configs. A notification config is a Cloud SCC resource that contains the configuration to send notifications for create/update events of findings, assets and etc.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct NotificationConfig {
+    /// The description of the notification config (max of 1024 characters).
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+    /// The relative resource name of this notification config. See: https://cloud.google.com/apis/design/resource_names#relative_resource_name Example: "organizations/{organization_id}/notificationConfigs/notify_public_bucket", "folders/{folder_id}/notificationConfigs/notify_public_bucket", or "projects/{project_id}/notificationConfigs/notify_public_bucket".
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// The Pub/Sub topic to send notifications to. Its format is "projects/[project_id]/topics/[topic]".
+    #[serde(default, rename = "pubsubTopic")]
+    pub pubsub_topic: ::core::option::Option<String>,
+    /// Output only. The service account that needs "pubsub.topics.publish" permission to publish to the Pub/Sub topic.
+    #[serde(default, rename = "serviceAccount")]
+    pub service_account: ::core::option::Option<String>,
+    /// The config for triggering streaming-based notifications.
+    #[serde(default, rename = "streamingConfig")]
+    pub streaming_config: ::core::option::Option<StreamingConfig>,
+}
+
+/// This resource represents a long-running operation that is the result of a network API call.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Operation {
+    /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
+    #[serde(default)]
+    pub done: ::core::option::Option<bool>,
+    /// The error result of the operation in case of failure or cancellation.
+    #[serde(default)]
+    pub error: ::core::option::Option<Status>,
+    /// Service-specific metadata associated with the operation. It typically contains progress information and common metadata such as create time. Some services might not provide such metadata. Any method that returns a long-running operation should document the metadata type, if any.
+    #[serde(default)]
+    pub metadata: ::core::option::Option<serde_json::Value>,
+    /// The server-assigned name, which is only unique within the same service that originally returns it. If you use the default HTTP mapping, the name should be a resource name ending with operations/{unique_id}.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// The normal, successful response of the operation. If the original method returns no data on success, such as Delete, the response is google.protobuf.Empty. If the original method is standard Get/Create/Update, the response should be the resource. For other methods, the response should have the type XxxResponse, where Xxx is the original method name. For example, if the original method name is TakeSnapshot(), the inferred response type is TakeSnapshotResponse.
+    #[serde(default)]
+    pub response: ::core::option::Option<serde_json::Value>,
+}
+
+/// Represents an instance of a Security Health Analytics custom module, including its full module name, display name, enablement state, and last updated time. You can create a custom module at the organization, folder, or project level. Custom modules that you create at the organization or folder level are inherited by the child folders and projects.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudSecuritycenterV1SecurityHealthAnalyticsCustomModule {
+    /// Output only. If empty, indicates that the custom module was created in the organization, folder, or project in which you are viewing the custom module. Otherwise, ancestor_module specifies the organization or folder from which the custom module is inherited.
+    #[serde(default, rename = "ancestorModule")]
+    pub ancestor_module: ::core::option::Option<String>,
+    /// The cloud provider of the custom module. // TODO: enum values: ["CLOUD_PROVIDER_UNSPECIFIED", "GOOGLE_CLOUD_PLATFORM", "AMAZON_WEB_SERVICES", "MICROSOFT_AZURE"]
+    #[serde(default, rename = "cloudProvider")]
+    pub cloud_provider: ::core::option::Option<String>,
+    /// The user specified custom configuration for the module.
+    #[serde(default, rename = "customConfig")]
+    pub custom_config: ::core::option::Option<GoogleCloudSecuritycenterV1CustomConfig>,
+    /// The display name of the Security Health Analytics custom module. This display name becomes the finding category for all findings that are returned by this custom module. The display name must be between 1 and 128 characters, start with a lowercase letter, and contain alphanumeric characters or underscores only.
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+    /// The enablement state of the custom module. // TODO: enum values: ["ENABLEMENT_STATE_UNSPECIFIED", "ENABLED", "DISABLED", "INHERITED"]
+    #[serde(default, rename = "enablementState")]
+    pub enablement_state: ::core::option::Option<String>,
+    /// Output only. The editor that last updated the custom module.
+    #[serde(default, rename = "lastEditor")]
+    pub last_editor: ::core::option::Option<String>,
+    /// Immutable. The resource name of the custom module. Its format is "organizations/{organization}/securityHealthAnalyticsSettings/customModules/{customModule}", or "folders/{folder}/securityHealthAnalyticsSettings/customModules/{customModule}", or "projects/{project}/securityHealthAnalyticsSettings/customModules/{customModule}" The id {customModule} is server-generated and is not user settable. It will be a numeric id containing 1-20 digits.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Output only. The time at which the custom module was last updated.
+    #[serde(default, rename = "updateTime")]
+    pub update_time: ::core::option::Option<String>,
+}
+
+/// Security Command Center finding source. A finding source is an entity or a mechanism that can produce a finding. A source is like a container of findings that come from the same scanner, logger, monitor, and other tools.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Source {
+    /// The canonical name of the finding source. It''s either "organizations/{organization_id}/sources/{source_id}", "folders/{folder_id}/sources/{source_id}", or "projects/{project_number}/sources/{source_id}", depending on the closest CRM ancestor of the resource associated with the finding.
+    #[serde(default, rename = "canonicalName")]
+    pub canonical_name: ::core::option::Option<String>,
+    /// The description of the source (max of 1024 characters). Example: "Web Security Scanner is a web security scanner for common vulnerabilities in App Engine applications. It can automatically scan and detect four common vulnerabilities, including cross-site-scripting (XSS), Flash injection, mixed content (HTTP in HTTPS), and outdated or insecure libraries."
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+    /// The source''s display name. A source''s display name must be unique amongst its siblings, for example, two sources with the same parent can''t share the same display name. The display name must have a length between 1 and 64 characters (inclusive).
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+    /// The relative resource name of this source. See: https://cloud.google.com/apis/design/resource_names#relative_resource_name Example: "organizations/{organization_id}/sources/{source_id}"
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+}
+
+/// A resource that is determined to have value to a user''s system
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ValuedResource {
+    /// Human-readable name of the valued resource.
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+    /// Exposed score for this valued resource. A value of 0 means no exposure was detected exposure.
+    #[serde(default, rename = "exposedScore")]
+    pub exposed_score: ::core::option::Option<f64>,
+    /// Valued resource name, for example, e.g.: organizations/123/simulations/456/valuedResources/789
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// The [full resource name](https://cloud.google.com/apis/design/resource_names#full_resource_name) of the valued resource.
+    #[serde(default)]
+    pub resource: ::core::option::Option<String>,
+    /// The [resource type](https://cloud.google.com/asset-inventory/docs/supported-asset-types) of the valued resource.
+    #[serde(default, rename = "resourceType")]
+    pub resource_type: ::core::option::Option<String>,
+    /// How valuable this resource is. // TODO: enum values: ["RESOURCE_VALUE_UNSPECIFIED", "RESOURCE_VALUE_LOW", "RESOURCE_VALUE_MEDIUM", "RESOURCE_VALUE_HIGH"]
+    #[serde(default, rename = "resourceValue")]
+    pub resource_value: ::core::option::Option<String>,
+    /// List of resource value configurations'' metadata used to determine the value of this resource. Maximum of 100.
+    #[serde(default, rename = "resourceValueConfigsUsed")]
+    pub resource_value_configs_used:
+        ::core::option::Option<::std::vec::Vec<ResourceValueConfigMetadata>>,
+}
+
+/// The configuration used for Asset Discovery runs.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AssetDiscoveryConfig {
+    /// The folder ids to use for filtering asset discovery. It consists of only digits, e.g., 756619654966.
+    #[serde(default, rename = "folderIds")]
+    pub folder_ids: ::core::option::Option<::std::vec::Vec<String>>,
+    /// The mode to use for filtering asset discovery. // TODO: enum values: ["INCLUSION_MODE_UNSPECIFIED", "INCLUDE_ONLY", "EXCLUDE"]
+    #[serde(default, rename = "inclusionMode")]
+    pub inclusion_mode: ::core::option::Option<String>,
+    /// The project ids to use for filtering asset discovery.
+    #[serde(default, rename = "projectIds")]
+    pub project_ids: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// Manually constructed resource name. If the custom module evaluates against only the resource data, you can omit the iam_policy_data field. If it evaluates only the iam_policy_data field, you can omit the resource data.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SimulatedResource {
+    /// Optional. A representation of the IAM policy.
+    #[serde(default, rename = "iamPolicyData")]
+    pub iam_policy_data: ::core::option::Option<Policy>,
+    /// Optional. A representation of the Google Cloud resource. Should match the Google Cloud resource JSON format.
+    #[serde(default, rename = "resourceData")]
+    pub resource_data: ::core::option::Option<serde_json::Value>,
+    /// Required. The type of the resource, for example, compute.googleapis.com/Disk.
+    #[serde(default, rename = "resourceType")]
+    pub resource_type: ::core::option::Option<String>,
+}
+
+/// Possible test result.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SimulatedResult {
+    /// Error encountered during the test.
+    #[serde(default)]
+    pub error: ::core::option::Option<Status>,
+    /// Finding that would be published for the test case, if a violation is detected.
+    #[serde(default)]
+    pub finding: ::core::option::Option<Finding>,
+    /// Indicates that the test case does not trigger any violation.
+    #[serde(default, rename = "noViolation")]
+    pub no_violation: ::core::option::Option<serde_json::Value>,
+}
+
+/// A list of zero or more errors encountered while validating the uploaded configuration of an Event Threat Detection Custom Module.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CustomModuleValidationErrors {
+    /// The list of errors.
+    #[serde(default)]
+    pub errors: ::core::option::Option<::std::vec::Vec<CustomModuleValidationError>>,
+}
+
+/// A resource value configuration (RVC) is a mapping configuration of user''s resources to resource values. Used in Attack path simulations.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudSecuritycenterV1ResourceValueConfig {
+    /// Cloud provider this configuration applies to // TODO: enum values: ["CLOUD_PROVIDER_UNSPECIFIED", "GOOGLE_CLOUD_PLATFORM", "AMAZON_WEB_SERVICES", "MICROSOFT_AZURE"]
+    #[serde(default, rename = "cloudProvider")]
+    pub cloud_provider: ::core::option::Option<String>,
+    /// Output only. Timestamp this resource value configuration was created.
+    #[serde(default, rename = "createTime")]
+    pub create_time: ::core::option::Option<String>,
+    /// Description of the resource value configuration.
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+    /// Name for the resource value configuration
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// List of resource labels to search for, evaluated with AND. For example, "resource_labels_selector": {"key": "value", "env": "prod"} will match resources with labels "key": "value" AND "env": "prod" https://cloud.google.com/resource-manager/docs/creating-managing-labels
+    #[serde(default, rename = "resourceLabelsSelector")]
+    pub resource_labels_selector: ::core::option::Option<serde_json::Value>,
+    /// Apply resource_value only to resources that match resource_type. resource_type will be checked with AND of other resources. For example, "storage.googleapis.com/Bucket" with resource_value "HIGH" will apply "HIGH" value only to "storage.googleapis.com/Bucket" resources.
+    #[serde(default, rename = "resourceType")]
+    pub resource_type: ::core::option::Option<String>,
+    /// Required. Resource value level this expression represents // TODO: enum values: ["RESOURCE_VALUE_UNSPECIFIED", "HIGH", "MEDIUM", "LOW", "NONE"]
+    #[serde(default, rename = "resourceValue")]
+    pub resource_value: ::core::option::Option<String>,
+    /// Project or folder to scope this configuration to. For example, "project/456" would apply this configuration only to resources in "project/456" scope will be checked with AND of other resources.
+    #[serde(default)]
+    pub scope: ::core::option::Option<String>,
+    /// A mapping of the sensitivity on Sensitive Data Protection finding to resource values. This mapping can only be used in combination with a resource_type that is related to BigQuery, e.g. "bigquery.googleapis.com/Dataset".
+    #[serde(default, rename = "sensitiveDataProtectionMapping")]
+    pub sensitive_data_protection_mapping:
+        ::core::option::Option<GoogleCloudSecuritycenterV1SensitiveDataProtectionMapping>,
+    /// Required. Tag values combined with AND to check against. For Google Cloud resources, they are tag value IDs in the form of "tagValues/123". Example: [ "tagValues/123", "tagValues/456", "tagValues/789" ] https://cloud.google.com/resource-manager/docs/tags/tags-creating-and-managing
+    #[serde(default, rename = "tagValues")]
+    pub tag_values: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Output only. Timestamp this resource value configuration was last updated.
+    #[serde(default, rename = "updateTime")]
+    pub update_time: ::core::option::Option<String>,
+}
+
+/// User specified security marks that are attached to the parent Security Command Center resource. Security marks are scoped within a Security Command Center organization -- they can be modified and viewed by all users who have proper permissions on the organization.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudSecuritycenterV1p1beta1SecurityMarks {
+    /// The canonical name of the marks. Examples: "organizations/{organization_id}/assets/{asset_id}/securityMarks" "folders/{folder_id}/assets/{asset_id}/securityMarks" "projects/{project_number}/assets/{asset_id}/securityMarks" "organizations/{organization_id}/sources/{source_id}/findings/{finding_id}/securityMarks" "folders/{folder_id}/sources/{source_id}/findings/{finding_id}/securityMarks" "projects/{project_number}/sources/{source_id}/findings/{finding_id}/securityMarks"
+    #[serde(default, rename = "canonicalName")]
+    pub canonical_name: ::core::option::Option<String>,
+    /// Mutable user specified security marks belonging to the parent resource. Constraints are as follows: * Keys and values are treated as case insensitive * Keys must be between 1 - 256 characters (inclusive) * Keys must be letters, numbers, underscores, or dashes * Values have leading and trailing whitespace trimmed, remaining characters must be between 1 - 4096 characters (inclusive)
+    #[serde(default)]
+    pub marks: ::core::option::Option<serde_json::Value>,
+    /// The relative resource name of the SecurityMarks. See: https://cloud.google.com/apis/design/resource_names#relative_resource_name Examples: "organizations/{organization_id}/assets/{asset_id}/securityMarks" "organizations/{organization_id}/sources/{source_id}/findings/{finding_id}/securityMarks".
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+}
+
 /// Message that contains the resource name and display name of a folder resource.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudSecuritycenterV2Folder {
+pub struct GoogleCloudSecuritycenterV1p1beta1Folder {
     /// Full resource name of this folder. See: https://cloud.google.com/apis/design/resource_names#full_resource_name
     #[serde(default, rename = "resourceFolder")]
     pub resource_folder: ::core::option::Option<String>,
@@ -3349,32 +1829,560 @@ pub struct GoogleCloudSecuritycenterV2Folder {
     pub resource_folder_display_name: ::core::option::Option<String>,
 }
 
-/// Compliance framework associated with the finding.
+/// Represents an ADC application associated with the finding.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudSecuritycenterV2Framework {
-    /// Category of the framework associated with the finding. E.g. Security Benchmark, or Assured Workloads
+pub struct GoogleCloudSecuritycenterV2IssueResourceAdcApplication {
+    /// Consumer provided attributes for the AppHub application.
     #[serde(default)]
-    pub category: ::core::option::Option<::std::vec::Vec<String>>,
-    /// The controls associated with the framework.
-    #[serde(default)]
-    pub controls: ::core::option::Option<::std::vec::Vec<GoogleCloudSecuritycenterV2Control>>,
-    /// Display name of the framework. For a standard framework, this will look like e.g. PCI DSS 3.2.1, whereas for a custom framework it can be a user defined string like MyFramework
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-    /// Name of the framework associated with the finding
+    pub attributes:
+        ::core::option::Option<GoogleCloudSecuritycenterV2IssueResourceApplicationAttributes>,
+    /// The resource name of an ADC Application. Format: projects/{project}/locations/{location}/spaces/{space}/applications/{application}
     #[serde(default)]
     pub name: ::core::option::Option<String>,
-    /// Type of the framework associated with the finding, to specify whether the framework is built-in (pre-defined and immutable) or a custom framework defined by the customer (equivalent to security posture) // TODO: enum values: ["FRAMEWORK_TYPE_UNSPECIFIED", "FRAMEWORK_TYPE_BUILT_IN", "FRAMEWORK_TYPE_CUSTOM"]
-    #[serde(default, rename = "type")]
-    pub type_: ::core::option::Option<String>,
 }
 
-/// Represents a geographical location for a given access.
+/// Represents an ADC template associated with the finding.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudSecuritycenterV2Geolocation {
-    /// A CLDR.
-    #[serde(default, rename = "regionCode")]
-    pub region_code: ::core::option::Option<String>,
+pub struct GoogleCloudSecuritycenterV2IssueResourceAdcApplicationTemplateRevision {
+    /// The resource name of an ADC Application Template Revision. Format: projects/{project}/locations/{location}/spaces/{space}/applicationTemplates/{application_template}/revisions/{revision}
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+}
+
+/// Represents an ADC shared template associated with the finding.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudSecuritycenterV2IssueResourceAdcSharedTemplateRevision {
+    /// The resource name of an ADC Shared Template Revision. Format: projects/{project}/locations/{location}/spaces/{space}/applicationTemplates/{application_template}/revisions/{revision}
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+}
+
+/// The AppHub application associated with the resource, if any.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudSecuritycenterV2IssueResourceApplication {
+    /// Consumer provided attributes for the application
+    #[serde(default)]
+    pub attributes:
+        ::core::option::Option<GoogleCloudSecuritycenterV2IssueResourceApplicationAttributes>,
+    /// The resource name of an Application. Format: projects/{host-project-id}/locations/{location}/applications/{application-id}
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+}
+
+/// The AWS metadata of a resource associated with an issue.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudSecuritycenterV2IssueResourceAwsMetadata {
+    /// The AWS account of the resource associated with the issue.
+    #[serde(default)]
+    pub account:
+        ::core::option::Option<GoogleCloudSecuritycenterV2IssueResourceAwsMetadataAwsAccount>,
+}
+
+/// The Azure metadata of a resource associated with an issue.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudSecuritycenterV2IssueResourceAzureMetadata {
+    /// The Azure subscription of the resource associated with the issue.
+    #[serde(default)]
+    pub subscription: ::core::option::Option<
+        GoogleCloudSecuritycenterV2IssueResourceAzureMetadataAzureSubscription,
+    >,
+}
+
+/// Google Cloud metadata of a resource associated with an issue.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudSecuritycenterV2IssueResourceGoogleCloudMetadata {
+    /// The project ID that the resource associated with the issue belongs to.
+    #[serde(default, rename = "projectId")]
+    pub project_id: ::core::option::Option<String>,
+}
+
+/// The CVE of the finding.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudSecuritycenterV2IssueFindingCve {
+    /// The CVE name.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+}
+
+/// The security bulletin of the finding.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudSecuritycenterV2IssueFindingSecurityBulletin {
+    /// The security bulletin name.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+}
+
+/// Aggregated count of a security context.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudSecuritycenterV2IssueSecurityContextAggregatedCount {
+    /// Aggregation key.
+    #[serde(default)]
+    pub key: ::core::option::Option<String>,
+    /// Aggregation value.
+    #[serde(default)]
+    pub value: ::core::option::Option<i32>,
+}
+
+/// Context of a security context.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudSecuritycenterV2IssueSecurityContextContext {
+    /// Context type.
+    #[serde(default, rename = "type")]
+    pub type_: ::core::option::Option<String>,
+    /// Context values.
+    #[serde(default)]
+    pub values: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// Represents an access event.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudSecuritycenterV2Access {
+    /// Caller''s IP address, such as "1.1.1.1".
+    #[serde(default, rename = "callerIp")]
+    pub caller_ip: ::core::option::Option<String>,
+    /// The caller IP''s geolocation, which identifies where the call came from.
+    #[serde(default, rename = "callerIpGeo")]
+    pub caller_ip_geo: ::core::option::Option<GoogleCloudSecuritycenterV2Geolocation>,
+    /// The method that the service account called, e.g. "SetIamPolicy".
+    #[serde(default, rename = "methodName")]
+    pub method_name: ::core::option::Option<String>,
+    /// Associated email, such as "foo@google.com". The email address of the authenticated user or a service account acting on behalf of a third party principal making the request. For third party identity callers, the principal_subject field is populated instead of this field. For privacy reasons, the principal email address is sometimes redacted. For more information, see [Caller identities in audit logs](https://cloud.google.com/logging/docs/audit#user-id).
+    #[serde(default, rename = "principalEmail")]
+    pub principal_email: ::core::option::Option<String>,
+    /// A string that represents the principal_subject that is associated with the identity. Unlike principal_email, principal_subject supports principals that aren''t associated with email addresses, such as third party principals. For most identities, the format is principal://iam.googleapis.com/{identity pool name}/subject/{subject}. Some GKE identities, such as GKE_WORKLOAD, FREEFORM, and GKE_HUB_WORKLOAD, still use the legacy format serviceAccount:{identity pool name}[{subject}].
+    #[serde(default, rename = "principalSubject")]
+    pub principal_subject: ::core::option::Option<String>,
+    /// The identity delegation history of an authenticated service account that made the request. The serviceAccountDelegationInfo[] object contains information about the real authorities that try to access Google Cloud resources by delegating on a service account. When multiple authorities are present, they are guaranteed to be sorted based on the original ordering of the identity delegation events.
+    #[serde(default, rename = "serviceAccountDelegationInfo")]
+    pub service_account_delegation_info: ::core::option::Option<
+        ::std::vec::Vec<GoogleCloudSecuritycenterV2ServiceAccountDelegationInfo>,
+    >,
+    /// The name of the service account key that was used to create or exchange credentials when authenticating the service account that made the request. This is a scheme-less URI full resource name. For example: "//iam.googleapis.com/projects/{PROJECT_ID}/serviceAccounts/{ACCOUNT}/keys/{key}".
+    #[serde(default, rename = "serviceAccountKeyName")]
+    pub service_account_key_name: ::core::option::Option<String>,
+    /// This is the API service that the service account made a call to, e.g. "iam.googleapis.com"
+    #[serde(default, rename = "serviceName")]
+    pub service_name: ::core::option::Option<String>,
+    /// The caller''s user agent string associated with the finding.
+    #[serde(default, rename = "userAgent")]
+    pub user_agent: ::core::option::Option<String>,
+    /// Type of user agent associated with the finding. For example, an operating system shell or an embedded or standalone application.
+    #[serde(default, rename = "userAgentFamily")]
+    pub user_agent_family: ::core::option::Option<String>,
+    /// A string that represents a username. The username provided depends on the type of the finding and is likely not an IAM principal. For example, this can be a system username if the finding is related to a virtual machine, or it can be an application login username.
+    #[serde(default, rename = "userName")]
+    pub user_name: ::core::option::Option<String>,
+}
+
+/// Details about resources affected by this finding.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudSecuritycenterV2AffectedResources {
+    /// The count of resources affected by the finding.
+    #[serde(default)]
+    pub count: ::core::option::Option<String>,
+}
+
+/// Details about a data access attempt made by an agent principal not authorized under applicable data security policy.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudSecuritycenterV2AgentDataAccessEvent {
+    /// Unique identifier for data access event.
+    #[serde(default, rename = "eventId")]
+    pub event_id: ::core::option::Option<String>,
+    /// Timestamp of data access event.
+    #[serde(default, rename = "eventTime")]
+    pub event_time: ::core::option::Option<String>,
+    /// The operation performed by the principal to access the data. // TODO: enum values: ["OPERATION_UNSPECIFIED", "READ", "MOVE", "COPY"]
+    #[serde(default)]
+    pub operation: ::core::option::Option<String>,
+    /// The agent principal that accessed the data.
+    #[serde(default, rename = "principalSubject")]
+    pub principal_subject: ::core::option::Option<String>,
+}
+
+/// Contains information about the AI model associated with the finding.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudSecuritycenterV2AiModel {
+    /// The platform on which the model is deployed. // TODO: enum values: ["DEPLOYMENT_PLATFORM_UNSPECIFIED", "VERTEX_AI", "GKE", "GCE", "FINE_TUNED_MODEL"]
+    #[serde(default, rename = "deploymentPlatform")]
+    pub deployment_platform: ::core::option::Option<String>,
+    /// The user defined display name of model. Ex. baseline-classification-model
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+    /// The domain of the model, for example, “image-classification”.
+    #[serde(default)]
+    pub domain: ::core::option::Option<String>,
+    /// The name of the model library, for example, “transformers”.
+    #[serde(default)]
+    pub library: ::core::option::Option<String>,
+    /// The region in which the model is used, for example, “us-central1”.
+    #[serde(default)]
+    pub location: ::core::option::Option<String>,
+    /// The name of the AI model, for example, "gemini:1.0.0".
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// The publisher of the model, for example, “google” or “nvidia”.
+    #[serde(default)]
+    pub publisher: ::core::option::Option<String>,
+    /// The purpose of the model, for example, "Inteference" or "Training".
+    #[serde(default, rename = "usageCategory")]
+    pub usage_category: ::core::option::Option<String>,
+}
+
+/// Represents an application associated with a finding.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudSecuritycenterV2Application {
+    /// The base URI that identifies the network location of the application in which the vulnerability was detected. For example, http://example.com.
+    #[serde(default, rename = "baseUri")]
+    pub base_uri: ::core::option::Option<String>,
+    /// The full URI with payload that could be used to reproduce the vulnerability. For example, http://example.com?p=aMmYgI6H.
+    #[serde(default, rename = "fullUri")]
+    pub full_uri: ::core::option::Option<String>,
+}
+
+/// Represents the result of evaluating artifact guard policies.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudSecuritycenterV2ArtifactGuardPolicies {
+    /// A list of failing policies.
+    #[serde(default, rename = "failingPolicies")]
+    pub failing_policies:
+        ::core::option::Option<::std::vec::Vec<GoogleCloudSecuritycenterV2ArtifactGuardPolicy>>,
+    /// The ID of the resource that has policies configured for it.
+    #[serde(default, rename = "resourceId")]
+    pub resource_id: ::core::option::Option<String>,
+}
+
+/// An attack exposure contains the results of an attack path simulation run.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudSecuritycenterV2AttackExposure {
+    /// The resource name of the attack path simulation result that contains the details regarding this attack exposure score. Example: organizations/123/simulations/456/attackExposureResults/789
+    #[serde(default, rename = "attackExposureResult")]
+    pub attack_exposure_result: ::core::option::Option<String>,
+    /// The number of high value resources that are exposed as a result of this finding.
+    #[serde(default, rename = "exposedHighValueResourcesCount")]
+    pub exposed_high_value_resources_count: ::core::option::Option<i32>,
+    /// The number of high value resources that are exposed as a result of this finding.
+    #[serde(default, rename = "exposedLowValueResourcesCount")]
+    pub exposed_low_value_resources_count: ::core::option::Option<i32>,
+    /// The number of medium value resources that are exposed as a result of this finding.
+    #[serde(default, rename = "exposedMediumValueResourcesCount")]
+    pub exposed_medium_value_resources_count: ::core::option::Option<i32>,
+    /// The most recent time the attack exposure was updated on this finding.
+    #[serde(default, rename = "latestCalculationTime")]
+    pub latest_calculation_time: ::core::option::Option<String>,
+    /// A number between 0 (inclusive) and infinity that represents how important this finding is to remediate. The higher the score, the more important it is to remediate.
+    #[serde(default)]
+    pub score: ::core::option::Option<f64>,
+    /// Output only. What state this AttackExposure is in. This captures whether or not an attack exposure has been calculated or not. // TODO: enum values: ["STATE_UNSPECIFIED", "CALCULATED", "NOT_CALCULATED"]
+    #[serde(default)]
+    pub state: ::core::option::Option<String>,
+}
+
+/// Information related to Google Cloud Backup and DR Service findings.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudSecuritycenterV2BackupDisasterRecovery {
+    /// The name of the Backup and DR appliance that captures, moves, and manages the lifecycle of backup data. For example, backup-server-57137.
+    #[serde(default)]
+    pub appliance: ::core::option::Option<String>,
+    /// The names of Backup and DR applications. An application is a VM, database, or file system on a managed host monitored by a backup and recovery appliance. For example, centos7-01-vol00, centos7-01-vol01, centos7-01-vol02.
+    #[serde(default)]
+    pub applications: ::core::option::Option<::std::vec::Vec<String>>,
+    /// The timestamp at which the Backup and DR backup was created.
+    #[serde(default, rename = "backupCreateTime")]
+    pub backup_create_time: ::core::option::Option<String>,
+    /// The name of a Backup and DR template which comprises one or more backup policies. See the [Backup and DR documentation](https://cloud.google.com/backup-disaster-recovery/docs/concepts/backup-plan#temp) for more information. For example, snap-ov.
+    #[serde(default, rename = "backupTemplate")]
+    pub backup_template: ::core::option::Option<String>,
+    /// The backup type of the Backup and DR image. For example, Snapshot, Remote Snapshot, OnVault.
+    #[serde(default, rename = "backupType")]
+    pub backup_type: ::core::option::Option<String>,
+    /// The name of a Backup and DR host, which is managed by the backup and recovery appliance and known to the management console. The host can be of type Generic (for example, Compute Engine, SQL Server, Oracle DB, SMB file system, etc.), vCenter, or an ESX server. See the [Backup and DR documentation on hosts](https://cloud.google.com/backup-disaster-recovery/docs/configuration/manage-hosts-and-their-applications) for more information. For example, centos7-01.
+    #[serde(default)]
+    pub host: ::core::option::Option<String>,
+    /// The names of Backup and DR policies that are associated with a template and that define when to run a backup, how frequently to run a backup, and how long to retain the backup image. For example, onvaults.
+    #[serde(default)]
+    pub policies: ::core::option::Option<::std::vec::Vec<String>>,
+    /// The names of Backup and DR advanced policy options of a policy applying to an application. See the [Backup and DR documentation on policy options](https://cloud.google.com/backup-disaster-recovery/docs/create-plan/policy-settings). For example, skipofflineappsincongrp, nounmap.
+    #[serde(default, rename = "policyOptions")]
+    pub policy_options: ::core::option::Option<::std::vec::Vec<String>>,
+    /// The name of the Backup and DR resource profile that specifies the storage media for backups of application and VM data. See the [Backup and DR documentation on profiles](https://cloud.google.com/backup-disaster-recovery/docs/concepts/backup-plan#profile). For example, GCP.
+    #[serde(default)]
+    pub profile: ::core::option::Option<String>,
+    /// The name of the Backup and DR storage pool that the backup and recovery appliance is storing data in. The storage pool could be of type Cloud, Primary, Snapshot, or OnVault. See the [Backup and DR documentation on storage pools](https://cloud.google.com/backup-disaster-recovery/docs/concepts/storage-pools). For example, DiskPoolOne.
+    #[serde(default, rename = "storagePool")]
+    pub storage_pool: ::core::option::Option<String>,
+}
+
+/// Contains details about a chokepoint, which is a resource or resource group where high-risk attack paths converge, based on [attack path simulations] (https://cloud.google.com/security-command-center/docs/attack-exposure-learn#attack_path_simulations).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudSecuritycenterV2Chokepoint {
+    /// List of resource names of findings associated with this chokepoint. For example, organizations/123/sources/456/findings/789. This list will have at most 100 findings.
+    #[serde(default, rename = "relatedFindings")]
+    pub related_findings: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// Fields related to Google Cloud Armor findings.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudSecuritycenterV2CloudArmor {
+    /// Information about potential Layer 7 DDoS attacks identified by [Google Cloud Armor Adaptive Protection](https://cloud.google.com/armor/docs/adaptive-protection-overview).
+    #[serde(default, rename = "adaptiveProtection")]
+    pub adaptive_protection: ::core::option::Option<GoogleCloudSecuritycenterV2AdaptiveProtection>,
+    /// Information about DDoS attack volume and classification.
+    #[serde(default)]
+    pub attack: ::core::option::Option<GoogleCloudSecuritycenterV2Attack>,
+    /// Duration of attack from the start until the current moment (updated every 5 minutes).
+    #[serde(default)]
+    pub duration: ::core::option::Option<String>,
+    /// Information about incoming requests evaluated by [Google Cloud Armor security policies](https://cloud.google.com/armor/docs/security-policy-overview).
+    #[serde(default)]
+    pub requests: ::core::option::Option<GoogleCloudSecuritycenterV2Requests>,
+    /// Information about the [Google Cloud Armor security policy](https://cloud.google.com/armor/docs/security-policy-overview) relevant to the finding.
+    #[serde(default, rename = "securityPolicy")]
+    pub security_policy: ::core::option::Option<GoogleCloudSecuritycenterV2SecurityPolicy>,
+    /// Distinguish between volumetric & protocol DDoS attack and application layer attacks. For example, "L3_4" for Layer 3 and Layer 4 DDoS attacks, or "L_7" for Layer 7 DDoS attacks.
+    #[serde(default, rename = "threatVector")]
+    pub threat_vector: ::core::option::Option<String>,
+}
+
+/// The [data profile](https://cloud.google.com/dlp/docs/data-profiles) associated with the finding.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudSecuritycenterV2CloudDlpDataProfile {
+    /// Name of the data profile, for example, projects/123/locations/europe/tableProfiles/8383929.
+    #[serde(default, rename = "dataProfile")]
+    pub data_profile: ::core::option::Option<String>,
+    /// Type of information detected by SDP. Info type includes name, version and sensitivity of the detected information type.
+    #[serde(default, rename = "infoTypes")]
+    pub info_types: ::core::option::Option<::std::vec::Vec<GoogleCloudSecuritycenterV2InfoType>>,
+    /// The resource hierarchy level at which the data profile was generated. // TODO: enum values: ["PARENT_TYPE_UNSPECIFIED", "ORGANIZATION", "PROJECT"]
+    #[serde(default, rename = "parentType")]
+    pub parent_type: ::core::option::Option<String>,
+}
+
+/// Details about the Cloud Data Loss Prevention (Cloud DLP) [inspection job](https://cloud.google.com/dlp/docs/concepts-job-triggers) that produced the finding.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudSecuritycenterV2CloudDlpInspection {
+    /// Whether Cloud DLP scanned the complete resource or a sampled subset.
+    #[serde(default, rename = "fullScan")]
+    pub full_scan: ::core::option::Option<bool>,
+    /// The type of information (or *[infoType](https://cloud.google.com/dlp/docs/infotypes-reference)*) found, for example, EMAIL_ADDRESS or STREET_ADDRESS.
+    #[serde(default, rename = "infoType")]
+    pub info_type: ::core::option::Option<String>,
+    /// The number of times Cloud DLP found this infoType within this job and resource.
+    #[serde(default, rename = "infoTypeCount")]
+    pub info_type_count: ::core::option::Option<String>,
+    /// Name of the inspection job, for example, projects/123/locations/europe/dlpJobs/i-8383929.
+    #[serde(default, rename = "inspectJob")]
+    pub inspect_job: ::core::option::Option<String>,
+}
+
+/// Compliance Details associated with the finding.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudSecuritycenterV2ComplianceDetails {
+    /// CloudControl associated with the finding
+    #[serde(default, rename = "cloudControl")]
+    pub cloud_control: ::core::option::Option<GoogleCloudSecuritycenterV2CloudControl>,
+    /// Cloud Control Deployments associated with the finding. For example, organizations/123/locations/global/cloudControlDeployments/deploymentIdentifier
+    #[serde(default, rename = "cloudControlDeploymentNames")]
+    pub cloud_control_deployment_names: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Details of Frameworks associated with the finding
+    #[serde(default)]
+    pub frameworks: ::core::option::Option<::std::vec::Vec<GoogleCloudSecuritycenterV2Framework>>,
+}
+
+/// Contains compliance information about a security standard indicating unmet recommendations.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudSecuritycenterV2Compliance {
+    /// Policies within the standard or benchmark, for example, A.12.4.1
+    #[serde(default)]
+    pub ids: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Industry-wide compliance standards or benchmarks, such as CIS, PCI, and OWASP.
+    #[serde(default)]
+    pub standard: ::core::option::Option<String>,
+    /// Version of the standard or benchmark, for example, 1.1
+    #[serde(default)]
+    pub version: ::core::option::Option<String>,
+}
+
+/// Contains information about the IP connection associated with the finding.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudSecuritycenterV2Connection {
+    /// Destination IP address. Not present for sockets that are listening and not connected.
+    #[serde(default, rename = "destinationIp")]
+    pub destination_ip: ::core::option::Option<String>,
+    /// Destination port. Not present for sockets that are listening and not connected.
+    #[serde(default, rename = "destinationPort")]
+    pub destination_port: ::core::option::Option<i32>,
+    /// IANA Internet Protocol Number such as TCP(6) and UDP(17). // TODO: enum values: ["PROTOCOL_UNSPECIFIED", "ICMP", "TCP", "UDP", "GRE", "ESP"]
+    #[serde(default)]
+    pub protocol: ::core::option::Option<String>,
+    /// Source IP address.
+    #[serde(default, rename = "sourceIp")]
+    pub source_ip: ::core::option::Option<String>,
+    /// Source port.
+    #[serde(default, rename = "sourcePort")]
+    pub source_port: ::core::option::Option<i32>,
+}
+
+/// Details about a data access attempt made by a principal not authorized under applicable data security policy.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudSecuritycenterV2DataAccessEvent {
+    /// Unique identifier for data access event.
+    #[serde(default, rename = "eventId")]
+    pub event_id: ::core::option::Option<String>,
+    /// Timestamp of data access event.
+    #[serde(default, rename = "eventTime")]
+    pub event_time: ::core::option::Option<String>,
+    /// The operation performed by the principal to access the data. // TODO: enum values: ["OPERATION_UNSPECIFIED", "READ", "MOVE", "COPY"]
+    #[serde(default)]
+    pub operation: ::core::option::Option<String>,
+    /// The email address of the principal that accessed the data. The principal could be a user account, service account, Google group, or other.
+    #[serde(default, rename = "principalEmail")]
+    pub principal_email: ::core::option::Option<String>,
+}
+
+/// Details about a data flow event, in which either the data is moved to or is accessed from a non-compliant geo-location, as defined in the applicable data security policy.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudSecuritycenterV2DataFlowEvent {
+    /// Unique identifier for data flow event.
+    #[serde(default, rename = "eventId")]
+    pub event_id: ::core::option::Option<String>,
+    /// Timestamp of data flow event.
+    #[serde(default, rename = "eventTime")]
+    pub event_time: ::core::option::Option<String>,
+    /// The operation performed by the principal for the data flow event. // TODO: enum values: ["OPERATION_UNSPECIFIED", "READ", "MOVE", "COPY"]
+    #[serde(default)]
+    pub operation: ::core::option::Option<String>,
+    /// The email address of the principal that initiated the data flow event. The principal could be a user account, service account, Google group, or other.
+    #[serde(default, rename = "principalEmail")]
+    pub principal_email: ::core::option::Option<String>,
+    /// Non-compliant location of the principal or the data destination.
+    #[serde(default, rename = "violatedLocation")]
+    pub violated_location: ::core::option::Option<String>,
+}
+
+/// Details about data retention deletion violations, in which the data is non-compliant based on their retention or deletion time, as defined in the applicable data security policy. The Data Retention Deletion (DRD) control is a control of the DSPM (Data Security Posture Management) suite that enables organizations to manage data retention and deletion policies in compliance with regulations, such as GDPR and CRPA. DRD supports two primary policy types: maximum storage length (max TTL) and minimum storage length (min TTL). Both are aimed at helping organizations meet regulatory and data management commitments.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudSecuritycenterV2DataRetentionDeletionEvent {
+    /// Number of objects that violated the policy for this resource. If the number is less than 1,000, then the value of this field is the exact number. If the number of objects that violated the policy is greater than or equal to 1,000, then the value of this field is 1000.
+    #[serde(default, rename = "dataObjectCount")]
+    pub data_object_count: ::core::option::Option<String>,
+    /// Timestamp indicating when the event was detected.
+    #[serde(default, rename = "eventDetectionTime")]
+    pub event_detection_time: ::core::option::Option<String>,
+    /// Type of the DRD event. // TODO: enum values: ["EVENT_TYPE_UNSPECIFIED", "EVENT_TYPE_MAX_TTL_EXCEEDED", "EVENT_TYPE_MAX_TTL_FROM_CREATION", "EVENT_TYPE_MAX_TTL_FROM_LAST_MODIFICATION", "EVENT_TYPE_MIN_TTL_FROM_CREATION"]
+    #[serde(default, rename = "eventType")]
+    pub event_type: ::core::option::Option<String>,
+    /// Maximum duration of retention allowed from the DRD control. This comes from the DRD control where users set a max TTL for their data. For example, suppose that a user sets the max TTL for a Cloud Storage bucket to 90 days. However, an object in that bucket is 100 days old. In this case, a DataRetentionDeletionEvent will be generated for that Cloud Storage bucket, and the max_retention_allowed is 90 days.
+    #[serde(default, rename = "maxRetentionAllowed")]
+    pub max_retention_allowed: ::core::option::Option<String>,
+    /// Min duration of retention allowed from the DSPM retention control. This field is only populated when event type is set to EVENT_TYPE_MIN_TTL_FROM_CREATION.
+    #[serde(default, rename = "minRetentionAllowed")]
+    pub min_retention_allowed: ::core::option::Option<String>,
+}
+
+/// Represents database access information, such as queries. A database may be a sub-resource of an instance (as in the case of Cloud SQL instances or Cloud Spanner instances), or the database instance itself. Some database resources might not have the [full resource name](https://google.aip.dev/122#full-resource-names) populated because these resource types, such as Cloud SQL databases, are not yet supported by Cloud Asset Inventory. In these cases only the display name is provided.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudSecuritycenterV2Database {
+    /// The human-readable name of the database that the user connected to.
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+    /// The target usernames, roles, or groups of an SQL privilege grant, which is not an IAM policy change.
+    #[serde(default)]
+    pub grantees: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Some database resources may not have the [full resource name](https://google.aip.dev/122#full-resource-names) populated because these resource types are not yet supported by Cloud Asset Inventory (e.g. Cloud SQL databases). In these cases only the display name will be provided. The [full resource name](https://google.aip.dev/122#full-resource-names) of the database that the user connected to, if it is supported by Cloud Asset Inventory.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// The SQL statement that is associated with the database access.
+    #[serde(default)]
+    pub query: ::core::option::Option<String>,
+    /// The username used to connect to the database. The username might not be an IAM principal and does not have a set format.
+    #[serde(default, rename = "userName")]
+    pub user_name: ::core::option::Option<String>,
+    /// The version of the database, for example, POSTGRES_14. See [the complete list](https://cloud.google.com/sql/docs/mysql/admin-api/rest/v1/SqlDatabaseVersion).
+    #[serde(default)]
+    pub version: ::core::option::Option<String>,
+}
+
+/// Represents discovered, customer managed workload that is not registered with the respective GCP service.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudSecuritycenterV2DiscoveredWorkload {
+    /// The confidence in detection of this workload. // TODO: enum values: ["CONFIDENCE_UNSPECIFIED", "CONFIDENCE_HIGH"]
+    #[serde(default)]
+    pub confidence: ::core::option::Option<String>,
+    /// A boolean flag set to true if associated hardware strongly predicts the workload type.
+    #[serde(default, rename = "detectedRelevantHardware")]
+    pub detected_relevant_hardware: ::core::option::Option<bool>,
+    /// A boolean flag set to true if associated keywords strongly predict the workload type.
+    #[serde(default, rename = "detectedRelevantKeywords")]
+    pub detected_relevant_keywords: ::core::option::Option<bool>,
+    /// A boolean flag set to true if installed packages strongly predict the workload type.
+    #[serde(default, rename = "detectedRelevantPackages")]
+    pub detected_relevant_packages: ::core::option::Option<bool>,
+    /// The type of workload. // TODO: enum values: ["WORKLOAD_TYPE_UNSPECIFIED", "MCP_SERVER", "AI_INFERENCE", "AGENT"]
+    #[serde(default, rename = "workloadType")]
+    pub workload_type: ::core::option::Option<String>,
+}
+
+/// Contains information about the disk associated with the finding.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudSecuritycenterV2Disk {
+    /// The name of the disk, for example, "https://www.googleapis.com/compute/v1/projects/{project-id}/zones/{zone-id}/disks/{disk-id}".
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+}
+
+/// Exfiltration represents a data exfiltration attempt from one or more sources to one or more targets. The sources attribute lists the sources of the exfiltrated data. The targets attribute lists the destinations the data was copied to.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudSecuritycenterV2Exfiltration {
+    /// If there are multiple sources, then the data is considered "joined" between them. For instance, BigQuery can join multiple tables, and each table would be considered a source.
+    #[serde(default)]
+    pub sources: ::core::option::Option<::std::vec::Vec<GoogleCloudSecuritycenterV2ExfilResource>>,
+    /// If there are multiple targets, each target would get a complete copy of the "joined" source data.
+    #[serde(default)]
+    pub targets: ::core::option::Option<::std::vec::Vec<GoogleCloudSecuritycenterV2ExfilResource>>,
+    /// Total exfiltrated bytes processed for the entire job.
+    #[serde(default, rename = "totalExfiltratedBytes")]
+    pub total_exfiltrated_bytes: ::core::option::Option<String>,
+}
+
+/// Details about the externally exposed resource associated with the finding.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudSecuritycenterV2ExternalExposure {
+    /// The full resource name of load balancer backend service, for example, "//compute.googleapis.com/projects/{project-id}/global/backendServices/{name}".
+    #[serde(default, rename = "backendService")]
+    pub backend_service: ::core::option::Option<String>,
+    /// The resource which is running the exposed service, for example, "//compute.googleapis.com/projects/{project-id}/zones/{zone}/instances/{instance}.”
+    #[serde(default, rename = "exposedEndpoint")]
+    pub exposed_endpoint: ::core::option::Option<String>,
+    /// The name and version of the service, for example, "Jupyter Notebook 6.14.0".
+    #[serde(default, rename = "exposedService")]
+    pub exposed_service: ::core::option::Option<String>,
+    /// The full resource name of the forwarding rule, for example, "//compute.googleapis.com/projects/{project-id}/global/forwardingRules/{forwarding-rule-name}".
+    #[serde(default, rename = "forwardingRule")]
+    pub forwarding_rule: ::core::option::Option<String>,
+    /// The full resource name of the instance group, for example, "//compute.googleapis.com/projects/{project-id}/global/instanceGroups/{name}".
+    #[serde(default, rename = "instanceGroup")]
+    pub instance_group: ::core::option::Option<String>,
+    /// The full resource name of the load balancer firewall policy, for example, "//compute.googleapis.com/projects/{project-id}/global/firewallPolicies/{policy-name}".
+    #[serde(default, rename = "loadBalancerFirewallPolicy")]
+    pub load_balancer_firewall_policy: ::core::option::Option<String>,
+    /// The full resource name of the network endpoint group, for example, "//compute.googleapis.com/projects/{project-id}/global/networkEndpointGroups/{name}".
+    #[serde(default, rename = "networkEndpointGroup")]
+    pub network_endpoint_group: ::core::option::Option<String>,
+    /// Private IP address of the exposed endpoint.
+    #[serde(default, rename = "privateIpAddress")]
+    pub private_ip_address: ::core::option::Option<String>,
+    /// Port number associated with private IP address.
+    #[serde(default, rename = "privatePort")]
+    pub private_port: ::core::option::Option<String>,
+    /// Public IP address of the exposed endpoint.
+    #[serde(default, rename = "publicIpAddress")]
+    pub public_ip_address: ::core::option::Option<String>,
+    /// Public port number of the exposed endpoint.
+    #[serde(default, rename = "publicPort")]
+    pub public_port: ::core::option::Option<String>,
+    /// The full resource name of the firewall policy of the exposed service, for example, "//compute.googleapis.com/projects/{project-id}/global/firewallPolicies/{policy-name}".
+    #[serde(default, rename = "serviceFirewallPolicy")]
+    pub service_firewall_policy: ::core::option::Option<String>,
 }
 
 /// Contains details about groups of which this finding is a member. A group is a collection of findings that are related in some way.
@@ -3420,31 +2428,6 @@ pub struct GoogleCloudSecuritycenterV2Indicator {
     pub uris: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
-/// Type of information detected by the API.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudSecuritycenterV2InfoType {
-    /// Name of the information type. Either a name of your choosing when creating a CustomInfoType, or one of the names listed at https://cloud.google.com/sensitive-data-protection/docs/infotypes-reference when specifying a built-in type. When sending Cloud DLP results to Data Catalog, infoType names should conform to the pattern [A-Za-z0-9$_-]{1,64}.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Optional custom sensitivity for this InfoType. This only applies to data profiling.
-    #[serde(default, rename = "sensitivityScore")]
-    pub sensitivity_score: ::core::option::Option<GoogleCloudSecuritycenterV2SensitivityScore>,
-    /// Optional version name for this InfoType.
-    #[serde(default)]
-    pub version: ::core::option::Option<String>,
-}
-
-/// IP rule information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudSecuritycenterV2IpRule {
-    /// Optional. An optional list of ports to which this rule applies. This field is only applicable for the UDP or (S)TCP protocols. Each entry must be either an integer or a range including a min and max port number.
-    #[serde(default, rename = "portRanges")]
-    pub port_ranges: ::core::option::Option<::std::vec::Vec<GoogleCloudSecuritycenterV2PortRange>>,
-    /// The IP protocol this rule applies to. This value can either be one of the following well known protocol strings (TCP, UDP, ICMP, ESP, AH, IPIP, SCTP) or a string representation of the integer value.
-    #[serde(default)]
-    pub protocol: ::core::option::Option<String>,
-}
-
 /// IP rules associated with the finding.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudSecuritycenterV2IpRules {
@@ -3466,342 +2449,6 @@ pub struct GoogleCloudSecuritycenterV2IpRules {
     /// If source IP ranges are specified, the firewall rule applies only to traffic that has a source IP address in these ranges. These ranges must be expressed in CIDR format. Only supports IPv4.
     #[serde(default, rename = "sourceIpRanges")]
     pub source_ip_ranges: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// Security Command Center Issue.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudSecuritycenterV2Issue {
-    /// Output only. The time the issue was created.
-    #[serde(default, rename = "createTime")]
-    pub create_time: ::core::option::Option<String>,
-    /// The description of the issue in Markdown format.
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// The finding category or rule name that generated the issue.
-    #[serde(default)]
-    pub detection: ::core::option::Option<String>,
-    /// The domains of the issue.
-    #[serde(default)]
-    pub domains: ::core::option::Option<::std::vec::Vec<GoogleCloudSecuritycenterV2IssueDomain>>,
-    /// The exposure score of the issue.
-    #[serde(default, rename = "exposureScore")]
-    pub exposure_score: ::core::option::Option<f64>,
-    /// The type of the issue. // TODO: enum values: ["ISSUE_TYPE_UNSPECIFIED", "CHOKEPOINT", "TOXIC_COMBINATION", "INSIGHT"]
-    #[serde(default, rename = "issueType")]
-    pub issue_type: ::core::option::Option<String>,
-    /// The time the issue was last observed.
-    #[serde(default, rename = "lastObservationTime")]
-    pub last_observation_time: ::core::option::Option<String>,
-    /// The mute information of the issue.
-    #[serde(default)]
-    pub mute: ::core::option::Option<GoogleCloudSecuritycenterV2IssueMute>,
-    /// Identifier. The name of the issue. Format: organizations/{organization}/locations/{location}/issues/{issue}
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// The primary resource associated with the issue.
-    #[serde(default, rename = "primaryResource")]
-    pub primary_resource: ::core::option::Option<GoogleCloudSecuritycenterV2IssueResource>,
-    /// The findings related to the issue.
-    #[serde(default, rename = "relatedFindings")]
-    pub related_findings:
-        ::core::option::Option<::std::vec::Vec<GoogleCloudSecuritycenterV2IssueFinding>>,
-    /// Approaches to remediate the issue in Markdown format.
-    #[serde(default)]
-    pub remediations: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Additional resources associated with the issue.
-    #[serde(default, rename = "secondaryResources")]
-    pub secondary_resources:
-        ::core::option::Option<::std::vec::Vec<GoogleCloudSecuritycenterV2IssueResource>>,
-    /// The security context of the issue.
-    #[serde(default, rename = "securityContexts")]
-    pub security_contexts:
-        ::core::option::Option<::std::vec::Vec<GoogleCloudSecuritycenterV2IssueSecurityContext>>,
-    /// The severity of the issue. // TODO: enum values: ["SEVERITY_UNSPECIFIED", "CRITICAL", "HIGH", "MEDIUM", "LOW"]
-    #[serde(default)]
-    pub severity: ::core::option::Option<String>,
-    /// Output only. The state of the issue. // TODO: enum values: ["STATE_UNSPECIFIED", "ACTIVE", "INACTIVE"]
-    #[serde(default)]
-    pub state: ::core::option::Option<String>,
-    /// Output only. The time the issue was last updated.
-    #[serde(default, rename = "updateTime")]
-    pub update_time: ::core::option::Option<String>,
-}
-
-/// The domains of an issue.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudSecuritycenterV2IssueDomain {
-    /// The domain category of the issue. // TODO: enum values: ["DOMAIN_CATEGORY_UNSPECIFIED", "AI", "CODE", "CONTAINER", "DATA", "IDENTITY_AND_ACCESS", "VULNERABILITY", "THREAT"]
-    #[serde(default, rename = "domainCategory")]
-    pub domain_category: ::core::option::Option<String>,
-}
-
-/// Finding related to an issue.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudSecuritycenterV2IssueFinding {
-    /// The CVE of the finding.
-    #[serde(default)]
-    pub cve: ::core::option::Option<GoogleCloudSecuritycenterV2IssueFindingCve>,
-    /// The name of the finding.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// The security bulletin of the finding.
-    #[serde(default, rename = "securityBulletin")]
-    pub security_bulletin:
-        ::core::option::Option<GoogleCloudSecuritycenterV2IssueFindingSecurityBulletin>,
-}
-
-/// The CVE of the finding.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudSecuritycenterV2IssueFindingCve {
-    /// The CVE name.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-}
-
-/// The security bulletin of the finding.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudSecuritycenterV2IssueFindingSecurityBulletin {
-    /// The security bulletin name.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-}
-
-/// The mute information of the issue.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudSecuritycenterV2IssueMute {
-    /// The email address of the user who last changed the mute state of the issue.
-    #[serde(default, rename = "muteInitiator")]
-    pub mute_initiator: ::core::option::Option<String>,
-    /// The user-provided reason for muting the issue.
-    #[serde(default, rename = "muteReason")]
-    pub mute_reason: ::core::option::Option<String>,
-    /// Output only. The mute state of the issue. // TODO: enum values: ["MUTE_STATE_UNSPECIFIED", "NOT_MUTED", "MUTED"]
-    #[serde(default, rename = "muteState")]
-    pub mute_state: ::core::option::Option<String>,
-    /// The time the issue was muted.
-    #[serde(default, rename = "muteUpdateTime")]
-    pub mute_update_time: ::core::option::Option<String>,
-}
-
-/// A resource associated with the an issue.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudSecuritycenterV2IssueResource {
-    /// The ADC application associated with the finding.
-    #[serde(default, rename = "adcApplication")]
-    pub adc_application:
-        ::core::option::Option<GoogleCloudSecuritycenterV2IssueResourceAdcApplication>,
-    /// The ADC template associated with the finding.
-    #[serde(default, rename = "adcApplicationTemplate")]
-    pub adc_application_template: ::core::option::Option<
-        GoogleCloudSecuritycenterV2IssueResourceAdcApplicationTemplateRevision,
-    >,
-    /// The ADC shared template associated with the finding.
-    #[serde(default, rename = "adcSharedTemplate")]
-    pub adc_shared_template:
-        ::core::option::Option<GoogleCloudSecuritycenterV2IssueResourceAdcSharedTemplateRevision>,
-    /// The AppHub application associated with the resource, if any. Only populated for the primary resource.
-    #[serde(default)]
-    pub application: ::core::option::Option<GoogleCloudSecuritycenterV2IssueResourceApplication>,
-    /// The AWS metadata of the resource associated with the issue. Only populated for AWS resources.
-    #[serde(default, rename = "awsMetadata")]
-    pub aws_metadata: ::core::option::Option<GoogleCloudSecuritycenterV2IssueResourceAwsMetadata>,
-    /// The Azure metadata of the resource associated with the issue. Only populated for Azure resources.
-    #[serde(default, rename = "azureMetadata")]
-    pub azure_metadata:
-        ::core::option::Option<GoogleCloudSecuritycenterV2IssueResourceAzureMetadata>,
-    /// The cloud provider of the resource associated with the issue. // TODO: enum values: ["CLOUD_PROVIDER_UNSPECIFIED", "GOOGLE_CLOUD", "AMAZON_WEB_SERVICES", "MICROSOFT_AZURE"]
-    #[serde(default, rename = "cloudProvider")]
-    pub cloud_provider: ::core::option::Option<String>,
-    /// The resource-type specific display name of the resource associated with the issue.
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-    /// The Google Cloud metadata of the resource associated with the issue. Only populated for Google Cloud resources.
-    #[serde(default, rename = "googleCloudMetadata")]
-    pub google_cloud_metadata:
-        ::core::option::Option<GoogleCloudSecuritycenterV2IssueResourceGoogleCloudMetadata>,
-    /// The full resource name of the resource associated with the issue.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// The type of the resource associated with the issue.
-    #[serde(default, rename = "type")]
-    pub type_: ::core::option::Option<String>,
-}
-
-/// Represents an ADC application associated with the finding.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudSecuritycenterV2IssueResourceAdcApplication {
-    /// Consumer provided attributes for the AppHub application.
-    #[serde(default)]
-    pub attributes:
-        ::core::option::Option<GoogleCloudSecuritycenterV2IssueResourceApplicationAttributes>,
-    /// The resource name of an ADC Application. Format: projects/{project}/locations/{location}/spaces/{space}/applications/{application}
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-}
-
-/// Represents an ADC template associated with the finding.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudSecuritycenterV2IssueResourceAdcApplicationTemplateRevision {
-    /// The resource name of an ADC Application Template Revision. Format: projects/{project}/locations/{location}/spaces/{space}/applicationTemplates/{application_template}/revisions/{revision}
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-}
-
-/// Represents an ADC shared template associated with the finding.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudSecuritycenterV2IssueResourceAdcSharedTemplateRevision {
-    /// The resource name of an ADC Shared Template Revision. Format: projects/{project}/locations/{location}/spaces/{space}/applicationTemplates/{application_template}/revisions/{revision}
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-}
-
-/// The AppHub application associated with the resource, if any.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudSecuritycenterV2IssueResourceApplication {
-    /// Consumer provided attributes for the application
-    #[serde(default)]
-    pub attributes:
-        ::core::option::Option<GoogleCloudSecuritycenterV2IssueResourceApplicationAttributes>,
-    /// The resource name of an Application. Format: projects/{host-project-id}/locations/{location}/applications/{application-id}
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-}
-
-/// Consumer provided attributes for the application
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudSecuritycenterV2IssueResourceApplicationAttributes {
-    /// Business team that ensures user needs are met and value is delivered
-    #[serde(default, rename = "businessOwners")]
-    pub business_owners: ::core::option::Option<
-        ::std::vec::Vec<GoogleCloudSecuritycenterV2IssueResourceApplicationAttributesContactInfo>,
-    >,
-    /// User-defined criticality information.
-    #[serde(default)]
-    pub criticality: ::core::option::Option<
-        GoogleCloudSecuritycenterV2IssueResourceApplicationAttributesCriticality,
-    >,
-    /// Developer team that owns development and coding.
-    #[serde(default, rename = "developerOwners")]
-    pub developer_owners: ::core::option::Option<
-        ::std::vec::Vec<GoogleCloudSecuritycenterV2IssueResourceApplicationAttributesContactInfo>,
-    >,
-    /// User-defined environment information.
-    #[serde(default)]
-    pub environment: ::core::option::Option<
-        GoogleCloudSecuritycenterV2IssueResourceApplicationAttributesEnvironment,
-    >,
-    /// Operator team that ensures runtime and operations.
-    #[serde(default, rename = "operatorOwners")]
-    pub operator_owners: ::core::option::Option<
-        ::std::vec::Vec<GoogleCloudSecuritycenterV2IssueResourceApplicationAttributesContactInfo>,
-    >,
-}
-
-/// Contact information of stakeholders.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudSecuritycenterV2IssueResourceApplicationAttributesContactInfo {
-    /// Email address of the contacts.
-    #[serde(default)]
-    pub email: ::core::option::Option<String>,
-}
-
-/// Criticality of the Application, Service, or Workload
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudSecuritycenterV2IssueResourceApplicationAttributesCriticality {
-    /// Criticality Type. // TODO: enum values: ["CRITICALITY_TYPE_UNSPECIFIED", "MISSION_CRITICAL", "HIGH", "MEDIUM", "LOW"]
-    #[serde(default, rename = "type")]
-    pub type_: ::core::option::Option<String>,
-}
-
-/// Environment of the Application, Service, or Workload
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudSecuritycenterV2IssueResourceApplicationAttributesEnvironment {
-    /// Environment Type. // TODO: enum values: ["ENVIRONMENT_TYPE_UNSPECIFIED", "PRODUCTION", "STAGING", "TEST", "DEVELOPMENT"]
-    #[serde(default, rename = "type")]
-    pub type_: ::core::option::Option<String>,
-}
-
-/// The AWS metadata of a resource associated with an issue.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudSecuritycenterV2IssueResourceAwsMetadata {
-    /// The AWS account of the resource associated with the issue.
-    #[serde(default)]
-    pub account:
-        ::core::option::Option<GoogleCloudSecuritycenterV2IssueResourceAwsMetadataAwsAccount>,
-}
-
-/// The AWS account of the resource associated with the issue.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudSecuritycenterV2IssueResourceAwsMetadataAwsAccount {
-    /// The AWS account ID of the resource associated with the issue.
-    #[serde(default)]
-    pub id: ::core::option::Option<String>,
-    /// The AWS account name of the resource associated with the issue.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-}
-
-/// The Azure metadata of a resource associated with an issue.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudSecuritycenterV2IssueResourceAzureMetadata {
-    /// The Azure subscription of the resource associated with the issue.
-    #[serde(default)]
-    pub subscription: ::core::option::Option<
-        GoogleCloudSecuritycenterV2IssueResourceAzureMetadataAzureSubscription,
-    >,
-}
-
-/// The Azure subscription of the resource associated with the issue.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudSecuritycenterV2IssueResourceAzureMetadataAzureSubscription {
-    /// The Azure subscription display name of the resource associated with the issue.
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-    /// The Azure subscription ID of the resource associated with the issue.
-    #[serde(default)]
-    pub id: ::core::option::Option<String>,
-}
-
-/// Google Cloud metadata of a resource associated with an issue.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudSecuritycenterV2IssueResourceGoogleCloudMetadata {
-    /// The project ID that the resource associated with the issue belongs to.
-    #[serde(default, rename = "projectId")]
-    pub project_id: ::core::option::Option<String>,
-}
-
-/// Security context associated with an issue.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudSecuritycenterV2IssueSecurityContext {
-    /// The aggregated count of the security context.
-    #[serde(default, rename = "aggregatedCount")]
-    pub aggregated_count:
-        ::core::option::Option<GoogleCloudSecuritycenterV2IssueSecurityContextAggregatedCount>,
-    /// The context of the security context.
-    #[serde(default)]
-    pub context: ::core::option::Option<GoogleCloudSecuritycenterV2IssueSecurityContextContext>,
-}
-
-/// Aggregated count of a security context.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudSecuritycenterV2IssueSecurityContextAggregatedCount {
-    /// Aggregation key.
-    #[serde(default)]
-    pub key: ::core::option::Option<String>,
-    /// Aggregation value.
-    #[serde(default)]
-    pub value: ::core::option::Option<i32>,
-}
-
-/// Context of a security context.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudSecuritycenterV2IssueSecurityContextContext {
-    /// Context type.
-    #[serde(default, rename = "type")]
-    pub type_: ::core::option::Option<String>,
-    /// Context values.
-    #[serde(default)]
-    pub values: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Describes a job
@@ -3880,17 +2527,6 @@ pub struct GoogleCloudSecuritycenterV2Kubernetes {
     pub roles: ::core::option::Option<::std::vec::Vec<GoogleCloudSecuritycenterV2Role>>,
 }
 
-/// Represents a generic name-value label. A label has separate name and value fields to support filtering with the contains() function. For more information, see [Filtering on array-type fields](https://cloud.google.com/security-command-center/docs/how-to-api-list-findings#array-contains-filtering).
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudSecuritycenterV2Label {
-    /// Name of the label.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Value that corresponds to the label''s name.
-    #[serde(default)]
-    pub value: ::core::option::Option<String>,
-}
-
 /// Contains information related to the load balancer associated with the finding.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudSecuritycenterV2LoadBalancer {
@@ -3905,17 +2541,6 @@ pub struct GoogleCloudSecuritycenterV2LogEntry {
     /// An individual entry in a log stored in Cloud Logging.
     #[serde(default, rename = "cloudLoggingEntry")]
     pub cloud_logging_entry: ::core::option::Option<GoogleCloudSecuritycenterV2CloudLoggingEntry>,
-}
-
-/// A signature corresponding to memory page hashes.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudSecuritycenterV2MemoryHashSignature {
-    /// The binary family.
-    #[serde(default, rename = "binaryFamily")]
-    pub binary_family: ::core::option::Option<String>,
-    /// The list of memory hash detections contributing to the binary family match.
-    #[serde(default)]
-    pub detections: ::core::option::Option<::std::vec::Vec<GoogleCloudSecuritycenterV2Detection>>,
 }
 
 /// MITRE ATT&CK tactics and techniques related to this finding. See: https://attack.mitre.org
@@ -3938,38 +2563,6 @@ pub struct GoogleCloudSecuritycenterV2MitreAttack {
     pub version: ::core::option::Option<String>,
 }
 
-/// A mute config is a Cloud SCC resource that contains the configuration to mute create/update events of findings.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudSecuritycenterV2MuteConfig {
-    /// Output only. The time at which the mute config was created. This field is set by the server and will be ignored if provided on config creation.
-    #[serde(default, rename = "createTime")]
-    pub create_time: ::core::option::Option<String>,
-    /// Output only. The resource name of the Cloud KMS CryptoKey used to encrypt this configuration data, if CMEK was enabled during Security Command Center activation.
-    #[serde(default, rename = "cryptoKeyName")]
-    pub crypto_key_name: ::core::option::Option<String>,
-    /// A description of the mute config.
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// Optional. The expiry of the mute config. Only applicable for dynamic configs. If the expiry is set, when the config expires, it is removed from all findings.
-    #[serde(default, rename = "expiryTime")]
-    pub expiry_time: ::core::option::Option<String>,
-    /// Required. An expression that defines the filter to apply across create/update events of findings. While creating a filter string, be mindful of the scope in which the mute configuration is being created. E.g., If a filter contains project = X but is created under the project = Y scope, it might not match any findings. The following field and operator combinations are supported: * severity: =, : * category: =, : * resource.name: =, : * resource.project_name: =, : * resource.project_display_name: =, : * resource.folders.resource_folder: =, : * resource.parent_name: =, : * resource.parent_display_name: =, : * resource.type: =, : * finding_class: =, : * indicator.ip_addresses: =, : * indicator.domains: =, :
-    #[serde(default)]
-    pub filter: ::core::option::Option<String>,
-    /// Output only. Email address of the user who last edited the mute config. This field is set by the server and will be ignored if provided on config creation or update.
-    #[serde(default, rename = "mostRecentEditor")]
-    pub most_recent_editor: ::core::option::Option<String>,
-    /// Identifier. This field will be ignored if provided on config creation. The following list shows some examples of the format: + organizations/{organization}/muteConfigs/{mute_config} + organizations/{organization}locations/{location}//muteConfigs/{mute_config} + folders/{folder}/muteConfigs/{mute_config} + folders/{folder}/locations/{location}/muteConfigs/{mute_config} + projects/{project}/muteConfigs/{mute_config} + projects/{project}/locations/{location}/muteConfigs/{mute_config}
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Required. The type of the mute config, which determines what type of mute state the config affects. Immutable after creation. // TODO: enum values: ["MUTE_CONFIG_TYPE_UNSPECIFIED", "STATIC", "DYNAMIC"]
-    #[serde(default, rename = "type")]
-    pub type_: ::core::option::Option<String>,
-    /// Output only. The most recent time at which the mute config was updated. This field is set by the server and will be ignored if provided on config creation or update.
-    #[serde(default, rename = "updateTime")]
-    pub update_time: ::core::option::Option<String>,
-}
-
 /// Mute information about the finding, including whether the finding has a static mute or any matching dynamic mute rules.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudSecuritycenterV2MuteInfo {
@@ -3990,25 +2583,6 @@ pub struct GoogleCloudSecuritycenterV2Network {
     pub name: ::core::option::Option<String>,
 }
 
-/// Kubernetes nodes associated with the finding.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudSecuritycenterV2Node {
-    /// [Full resource name](https://google.aip.dev/122#full-resource-names) of the Compute Engine VM running the cluster node.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-}
-
-/// Provides GKE node pool information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudSecuritycenterV2NodePool {
-    /// Kubernetes node pool name.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Nodes associated with the finding.
-    #[serde(default)]
-    pub nodes: ::core::option::Option<::std::vec::Vec<GoogleCloudSecuritycenterV2Node>>,
-}
-
 /// Represents a Jupyter notebook IPYNB file, such as a [Colab Enterprise notebook](https://cloud.google.com/colab/docs/introduction) file, that is associated with a finding.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudSecuritycenterV2Notebook {
@@ -4026,105 +2600,12 @@ pub struct GoogleCloudSecuritycenterV2Notebook {
     pub service: ::core::option::Option<String>,
 }
 
-/// Cloud SCC''s Notification
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudSecuritycenterV2NotificationMessage {
-    /// If it''s a Finding based notification config, this field will be populated.
-    #[serde(default)]
-    pub finding: ::core::option::Option<GoogleCloudSecuritycenterV2Finding>,
-    /// Name of the notification config that generated current notification.
-    #[serde(default, rename = "notificationConfigName")]
-    pub notification_config_name: ::core::option::Option<String>,
-    /// The Cloud resource tied to this notification''s Finding.
-    #[serde(default)]
-    pub resource: ::core::option::Option<GoogleCloudSecuritycenterV2Resource>,
-}
-
-/// Kubernetes object related to the finding, uniquely identified by GKNN. Used if the object Kind is not one of Pod, Node, NodePool, Binding, or AccessReview.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudSecuritycenterV2Object {
-    /// Pod containers associated with this finding, if any.
-    #[serde(default)]
-    pub containers: ::core::option::Option<::std::vec::Vec<GoogleCloudSecuritycenterV2Container>>,
-    /// Kubernetes object group, such as "policy.k8s.io/v1".
-    #[serde(default)]
-    pub group: ::core::option::Option<String>,
-    /// Kubernetes object kind, such as "Namespace".
-    #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-    /// Kubernetes object name. For details see https://kubernetes.io/docs/concepts/overview/working-with-objects/names/.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Kubernetes object namespace. Must be a valid DNS label. Named "ns" to avoid collision with C++ namespace keyword. For details see https://kubernetes.io/docs/tasks/administer-cluster/namespaces/.
-    #[serde(default)]
-    pub ns: ::core::option::Option<String>,
-}
-
 /// Contains information about the org policies associated with the finding.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudSecuritycenterV2OrgPolicy {
     /// Identifier. The resource name of the org policy. Example: "organizations/{organization_id}/policies/{constraint_name}"
     #[serde(default)]
     pub name: ::core::option::Option<String>,
-}
-
-/// Package is a generic definition of a package.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudSecuritycenterV2Package {
-    /// The CPE URI where the vulnerability was detected.
-    #[serde(default, rename = "cpeUri")]
-    pub cpe_uri: ::core::option::Option<String>,
-    /// The name of the package where the vulnerability was detected.
-    #[serde(default, rename = "packageName")]
-    pub package_name: ::core::option::Option<String>,
-    /// Type of package, for example, os, maven, or go.
-    #[serde(default, rename = "packageType")]
-    pub package_type: ::core::option::Option<String>,
-    /// The version of the package.
-    #[serde(default, rename = "packageVersion")]
-    pub package_version: ::core::option::Option<String>,
-}
-
-/// Vertex AI training pipeline associated with the finding.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudSecuritycenterV2Pipeline {
-    /// The user-defined display name of pipeline, e.g. plants-classification
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-    /// Resource name of the pipeline, e.g. projects/{project}/locations/{location}/trainingPipelines/5253428229225578496
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-}
-
-/// A Kubernetes Pod.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudSecuritycenterV2Pod {
-    /// Pod containers associated with this finding, if any.
-    #[serde(default)]
-    pub containers: ::core::option::Option<::std::vec::Vec<GoogleCloudSecuritycenterV2Container>>,
-    /// Pod labels. For Kubernetes containers, these are applied to the container.
-    #[serde(default)]
-    pub labels: ::core::option::Option<::std::vec::Vec<GoogleCloudSecuritycenterV2Label>>,
-    /// Kubernetes Pod name.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Kubernetes Pod namespace.
-    #[serde(default)]
-    pub ns: ::core::option::Option<String>,
-}
-
-/// The policy field that violates the deployed posture and its expected and detected values.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudSecuritycenterV2PolicyDriftDetails {
-    /// The detected value that violates the deployed posture, for example, false or allowed_values={"projects/22831892"}.
-    #[serde(default, rename = "detectedValue")]
-    pub detected_value: ::core::option::Option<String>,
-    /// The value of this field that was configured in a posture, for example, true or allowed_values={"projects/29831892"}.
-    #[serde(default, rename = "expectedValue")]
-    pub expected_value: ::core::option::Option<String>,
-    /// The name of the updated field, for example constraint.implementation.policy_rules[0].enforce
-    #[serde(default)]
-    pub field: ::core::option::Option<String>,
 }
 
 /// Metadata summarizing policy violations of child resources of the affected resource. finding_category and resource determine the exact semantics of the counts. For example, when category=DATA_SECURITY_POSTURE_OBJECT_PUBLIC_ACCESS_VIOLATION and resource=''storage.googleapis.com/buckets/my-bucket-name'' then this counts the number of Cloud Storage objects in my-bucket-name which violate a Public Access control.
@@ -4142,17 +2623,6 @@ pub struct GoogleCloudSecuritycenterV2PolicyViolationSummary {
     /// Count of child resources in violation of the policy.
     #[serde(default, rename = "policyViolationsCount")]
     pub policy_violations_count: ::core::option::Option<String>,
-}
-
-/// A port range which is inclusive of the min and max values. Values are between 0 and 2^16-1. The max can be equal / must be not smaller than the min value. If min and max are equal this indicates that it is a single port.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudSecuritycenterV2PortRange {
-    /// Maximum port value.
-    #[serde(default)]
-    pub max: ::core::option::Option<String>,
-    /// Minimum port value.
-    #[serde(default)]
-    pub min: ::core::option::Option<String>,
 }
 
 /// Represents an operating system process.
@@ -4194,240 +2664,6 @@ pub struct GoogleCloudSecuritycenterV2Process {
     pub user_id: ::core::option::Option<String>,
 }
 
-/// Indicates what signature matched this process.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudSecuritycenterV2ProcessSignature {
-    /// Signature indicating that a binary family was matched.
-    #[serde(default, rename = "memoryHashSignature")]
-    pub memory_hash_signature:
-        ::core::option::Option<GoogleCloudSecuritycenterV2MemoryHashSignature>,
-    /// Describes the type of resource associated with the signature. // TODO: enum values: ["SIGNATURE_TYPE_UNSPECIFIED", "SIGNATURE_TYPE_PROCESS", "SIGNATURE_TYPE_FILE"]
-    #[serde(default, rename = "signatureType")]
-    pub signature_type: ::core::option::Option<String>,
-    /// Signature indicating that a YARA rule was matched.
-    #[serde(default, rename = "yaraRuleSignature")]
-    pub yara_rule_signature: ::core::option::Option<GoogleCloudSecuritycenterV2YaraRuleSignature>,
-}
-
-/// Additional Links
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudSecuritycenterV2Reference {
-    /// Source of the reference e.g. NVD
-    #[serde(default)]
-    pub source: ::core::option::Option<String>,
-    /// Uri for the mentioned source e.g. https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2021-34527.
-    #[serde(default)]
-    pub uri: ::core::option::Option<String>,
-}
-
-/// Information about the requests relevant to the finding.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudSecuritycenterV2Requests {
-    /// Allowed RPS (requests per second) over the long term.
-    #[serde(default, rename = "longTermAllowed")]
-    pub long_term_allowed: ::core::option::Option<i32>,
-    /// Denied RPS (requests per second) over the long term.
-    #[serde(default, rename = "longTermDenied")]
-    pub long_term_denied: ::core::option::Option<i32>,
-    /// For ''Increasing deny ratio'', the ratio is the denied traffic divided by the allowed traffic. For ''Allowed traffic spike'', the ratio is the allowed traffic in the short term divided by allowed traffic in the long term.
-    #[serde(default)]
-    pub ratio: ::core::option::Option<f64>,
-    /// Allowed RPS (requests per second) in the short term.
-    #[serde(default, rename = "shortTermAllowed")]
-    pub short_term_allowed: ::core::option::Option<i32>,
-}
-
-/// Information related to the Google Cloud resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudSecuritycenterV2Resource {
-    /// The ADC application associated with the finding.
-    #[serde(default, rename = "adcApplication")]
-    pub adc_application: ::core::option::Option<GoogleCloudSecuritycenterV2AdcApplication>,
-    /// The ADC template associated with the finding.
-    #[serde(default, rename = "adcApplicationTemplate")]
-    pub adc_application_template:
-        ::core::option::Option<GoogleCloudSecuritycenterV2AdcApplicationTemplateRevision>,
-    /// The ADC shared template associated with the finding.
-    #[serde(default, rename = "adcSharedTemplate")]
-    pub adc_shared_template:
-        ::core::option::Option<GoogleCloudSecuritycenterV2AdcSharedTemplateRevision>,
-    /// The App Hub application this resource belongs to.
-    #[serde(default)]
-    pub application: ::core::option::Option<GoogleCloudSecuritycenterV2ResourceApplication>,
-    /// The AWS metadata associated with the finding.
-    #[serde(default, rename = "awsMetadata")]
-    pub aws_metadata: ::core::option::Option<GoogleCloudSecuritycenterV2AwsMetadata>,
-    /// The Azure metadata associated with the finding.
-    #[serde(default, rename = "azureMetadata")]
-    pub azure_metadata: ::core::option::Option<GoogleCloudSecuritycenterV2AzureMetadata>,
-    /// Indicates which cloud provider the finding is from. // TODO: enum values: ["CLOUD_PROVIDER_UNSPECIFIED", "GOOGLE_CLOUD_PLATFORM", "AMAZON_WEB_SERVICES", "MICROSOFT_AZURE"]
-    #[serde(default, rename = "cloudProvider")]
-    pub cloud_provider: ::core::option::Option<String>,
-    /// The human readable name of the resource.
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-    /// The Google Cloud metadata associated with the finding.
-    #[serde(default, rename = "gcpMetadata")]
-    pub gcp_metadata: ::core::option::Option<GcpMetadata>,
-    /// The region or location of the service (if applicable).
-    #[serde(default)]
-    pub location: ::core::option::Option<String>,
-    /// The full resource name of the resource. See: https://cloud.google.com/apis/design/resource_names#full_resource_name
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Provides the path to the resource within the resource hierarchy.
-    #[serde(default, rename = "resourcePath")]
-    pub resource_path: ::core::option::Option<GoogleCloudSecuritycenterV2ResourcePath>,
-    /// A string representation of the resource path. For Google Cloud, it has the format of organizations/{organization_id}/folders/{folder_id}/folders/{folder_id}/projects/{project_id} where there can be any number of folders. For AWS, it has the format of org/{organization_id}/ou/{organizational_unit_id}/ou/{organizational_unit_id}/account/{account_id} where there can be any number of organizational units. For Azure, it has the format of mg/{management_group_id}/mg/{management_group_id}/subscription/{subscription_id}/rg/{resource_group_name} where there can be any number of management groups.
-    #[serde(default, rename = "resourcePathString")]
-    pub resource_path_string: ::core::option::Option<String>,
-    /// The service or resource provider associated with the resource.
-    #[serde(default)]
-    pub service: ::core::option::Option<String>,
-    /// The full resource type of the resource.
-    #[serde(default, rename = "type")]
-    pub type_: ::core::option::Option<String>,
-}
-
-/// The App Hub Application associated with the finding''s resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudSecuritycenterV2ResourceApplication {
-    /// Consumer provided attributes for the application
-    #[serde(default)]
-    pub attributes:
-        ::core::option::Option<GoogleCloudSecuritycenterV2ResourceApplicationAttributes>,
-    /// The resource name of an Application. Format: projects/{host-project-id}/locations/{location}/applications/{application-id}
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-}
-
-/// Consumer provided attributes for the application
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudSecuritycenterV2ResourceApplicationAttributes {
-    /// Business team that ensures user needs are met and value is delivered
-    #[serde(default, rename = "businessOwners")]
-    pub business_owners: ::core::option::Option<
-        ::std::vec::Vec<GoogleCloudSecuritycenterV2ResourceApplicationAttributesContactInfo>,
-    >,
-    /// User-defined criticality information.
-    #[serde(default)]
-    pub criticality:
-        ::core::option::Option<GoogleCloudSecuritycenterV2ResourceApplicationAttributesCriticality>,
-    /// Developer team that owns development and coding.
-    #[serde(default, rename = "developerOwners")]
-    pub developer_owners: ::core::option::Option<
-        ::std::vec::Vec<GoogleCloudSecuritycenterV2ResourceApplicationAttributesContactInfo>,
-    >,
-    /// User-defined environment information.
-    #[serde(default)]
-    pub environment:
-        ::core::option::Option<GoogleCloudSecuritycenterV2ResourceApplicationAttributesEnvironment>,
-    /// Operator team that ensures runtime and operations.
-    #[serde(default, rename = "operatorOwners")]
-    pub operator_owners: ::core::option::Option<
-        ::std::vec::Vec<GoogleCloudSecuritycenterV2ResourceApplicationAttributesContactInfo>,
-    >,
-}
-
-/// Contact information of stakeholders.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudSecuritycenterV2ResourceApplicationAttributesContactInfo {
-    /// Email address of the contacts.
-    #[serde(default)]
-    pub email: ::core::option::Option<String>,
-}
-
-/// Criticality of the Application, Service, or Workload
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudSecuritycenterV2ResourceApplicationAttributesCriticality {
-    /// Criticality Type. // TODO: enum values: ["CRITICALITY_TYPE_UNSPECIFIED", "MISSION_CRITICAL", "HIGH", "MEDIUM", "LOW"]
-    #[serde(default, rename = "type")]
-    pub type_: ::core::option::Option<String>,
-}
-
-/// Environment of the Application, Service, or Workload
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudSecuritycenterV2ResourceApplicationAttributesEnvironment {
-    /// Environment Type. // TODO: enum values: ["ENVIRONMENT_TYPE_UNSPECIFIED", "PRODUCTION", "STAGING", "TEST", "DEVELOPMENT"]
-    #[serde(default, rename = "type")]
-    pub type_: ::core::option::Option<String>,
-}
-
-/// Represents the path of resources leading up to the resource this finding is about.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudSecuritycenterV2ResourcePath {
-    /// The list of nodes that make the up resource path, ordered from lowest level to highest level.
-    #[serde(default)]
-    pub nodes: ::core::option::Option<::std::vec::Vec<GoogleCloudSecuritycenterV2ResourcePathNode>>,
-}
-
-/// A node within the resource path. Each node represents a resource within the resource hierarchy.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudSecuritycenterV2ResourcePathNode {
-    /// The display name of the resource this node represents.
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-    /// The ID of the resource this node represents.
-    #[serde(default)]
-    pub id: ::core::option::Option<String>,
-    /// The type of resource this node represents. // TODO: enum values: ["RESOURCE_PATH_NODE_TYPE_UNSPECIFIED", "GCP_ORGANIZATION", "GCP_FOLDER", "GCP_PROJECT", "AWS_ORGANIZATION", "AWS_ORGANIZATIONAL_UNIT", "AWS_ACCOUNT", "AZURE_MANAGEMENT_GROUP", "AZURE_SUBSCRIPTION", "AZURE_RESOURCE_GROUP"]
-    #[serde(default, rename = "nodeType")]
-    pub node_type: ::core::option::Option<String>,
-}
-
-/// A resource value configuration (RVC) is a mapping configuration of user''s resources to resource values. Used in Attack path simulations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudSecuritycenterV2ResourceValueConfig {
-    /// Cloud provider this configuration applies to // TODO: enum values: ["CLOUD_PROVIDER_UNSPECIFIED", "GOOGLE_CLOUD_PLATFORM", "AMAZON_WEB_SERVICES", "MICROSOFT_AZURE"]
-    #[serde(default, rename = "cloudProvider")]
-    pub cloud_provider: ::core::option::Option<String>,
-    /// Output only. Timestamp this resource value configuration was created.
-    #[serde(default, rename = "createTime")]
-    pub create_time: ::core::option::Option<String>,
-    /// Description of the resource value configuration.
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// Identifier. Name for the resource value configuration
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// List of resource labels to search for, evaluated with AND. For example, "resource_labels_selector": {"key": "value", "env": "prod"} will match resources with labels "key": "value" AND "env": "prod" https://cloud.google.com/resource-manager/docs/creating-managing-labels
-    #[serde(default, rename = "resourceLabelsSelector")]
-    pub resource_labels_selector: ::core::option::Option<serde_json::Value>,
-    /// Apply resource_value only to resources that match resource_type. resource_type will be checked with AND of other resources. For example, "storage.googleapis.com/Bucket" with resource_value "HIGH" will apply "HIGH" value only to "storage.googleapis.com/Bucket" resources.
-    #[serde(default, rename = "resourceType")]
-    pub resource_type: ::core::option::Option<String>,
-    /// Resource value level this expression represents Only required when there is no Sensitive Data Protection mapping in the request // TODO: enum values: ["RESOURCE_VALUE_UNSPECIFIED", "HIGH", "MEDIUM", "LOW", "NONE"]
-    #[serde(default, rename = "resourceValue")]
-    pub resource_value: ::core::option::Option<String>,
-    /// Project or folder to scope this configuration to. For example, "project/456" would apply this configuration only to resources in "project/456" scope and will be checked with AND of other resources.
-    #[serde(default)]
-    pub scope: ::core::option::Option<String>,
-    /// A mapping of the sensitivity on Sensitive Data Protection finding to resource values. This mapping can only be used in combination with a resource_type that is related to BigQuery, e.g. "bigquery.googleapis.com/Dataset".
-    #[serde(default, rename = "sensitiveDataProtectionMapping")]
-    pub sensitive_data_protection_mapping:
-        ::core::option::Option<GoogleCloudSecuritycenterV2SensitiveDataProtectionMapping>,
-    /// Tag values combined with AND to check against. For Google Cloud resources, they are tag value IDs in the form of "tagValues/123". Example: [ "tagValues/123", "tagValues/456", "tagValues/789" ] https://cloud.google.com/resource-manager/docs/tags/tags-creating-and-managing
-    #[serde(default, rename = "tagValues")]
-    pub tag_values: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Output only. Timestamp this resource value configuration was last updated.
-    #[serde(default, rename = "updateTime")]
-    pub update_time: ::core::option::Option<String>,
-}
-
-/// Kubernetes Role or ClusterRole.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudSecuritycenterV2Role {
-    /// Role type. // TODO: enum values: ["KIND_UNSPECIFIED", "ROLE", "CLUSTER_ROLE"]
-    #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-    /// Role name.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Role namespace.
-    #[serde(default)]
-    pub ns: ::core::option::Option<String>,
-}
-
 /// Details about a secret or credential associated with the finding.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudSecuritycenterV2Secret {
@@ -4446,47 +2682,6 @@ pub struct GoogleCloudSecuritycenterV2Secret {
     pub type_: ::core::option::Option<String>,
 }
 
-/// Environment variable containing the secret.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudSecuritycenterV2SecretEnvironmentVariable {
-    /// Environment variable name as a JSON encoded string. Note that value is not included since the value contains the secret data, which is sensitive core content.
-    #[serde(default)]
-    pub key: ::core::option::Option<String>,
-}
-
-/// File path containing the secret.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudSecuritycenterV2SecretFilePath {
-    /// Path to the file.
-    #[serde(default)]
-    pub path: ::core::option::Option<String>,
-}
-
-/// The status of the secret.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudSecuritycenterV2SecretStatus {
-    /// Time that the secret was found.
-    #[serde(default, rename = "lastUpdatedTime")]
-    pub last_updated_time: ::core::option::Option<String>,
-    /// The validity of the secret. // TODO: enum values: ["SECRET_VALIDITY_UNSPECIFIED", "SECRET_VALIDITY_UNSUPPORTED", "SECRET_VALIDITY_FAILED", "SECRET_VALIDITY_INVALID", "SECRET_VALIDITY_VALID"]
-    #[serde(default)]
-    pub validity: ::core::option::Option<String>,
-}
-
-/// SecurityBulletin are notifications of vulnerabilities of Google products.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudSecuritycenterV2SecurityBulletin {
-    /// ID of the bulletin corresponding to the vulnerability.
-    #[serde(default, rename = "bulletinId")]
-    pub bulletin_id: ::core::option::Option<String>,
-    /// Submission time of this Security Bulletin.
-    #[serde(default, rename = "submissionTime")]
-    pub submission_time: ::core::option::Option<String>,
-    /// This represents a version that the cluster receiving this notification should be upgraded to, based on its current version. For example, 1.15.0
-    #[serde(default, rename = "suggestedUpgradeVersion")]
-    pub suggested_upgrade_version: ::core::option::Option<String>,
-}
-
 /// User specified security marks that are attached to the parent Security Command Center resource. Security marks are scoped within a Security Command Center organization -- they can be modified and viewed by all users who have proper permissions on the organization.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudSecuritycenterV2SecurityMarks {
@@ -4499,20 +2694,6 @@ pub struct GoogleCloudSecuritycenterV2SecurityMarks {
     /// The relative resource name of the SecurityMarks. See: https://cloud.google.com/apis/design/resource_names#relative_resource_name The following list shows some examples: + organizations/{organization_id}/assets/{asset_id}/securityMarks + organizations/{organization_id}/sources/{source_id}/findings/{finding_id}/securityMarks + organizations/{organization_id}/sources/{source_id}/locations/{location}/findings/{finding_id}/securityMarks
     #[serde(default)]
     pub name: ::core::option::Option<String>,
-}
-
-/// Information about the [Google Cloud Armor security policy](https://cloud.google.com/armor/docs/security-policy-overview) relevant to the finding.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudSecuritycenterV2SecurityPolicy {
-    /// The name of the Google Cloud Armor security policy, for example, "my-security-policy".
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Whether or not the associated rule or policy is in preview mode.
-    #[serde(default)]
-    pub preview: ::core::option::Option<bool>,
-    /// The type of Google Cloud Armor security policy for example, ''backend security policy'', ''edge security policy'', ''network edge security policy'', or ''always-on DDoS protection''.
-    #[serde(default, rename = "type")]
-    pub type_: ::core::option::Option<String>,
 }
 
 /// Represents a posture that is deployed on Google Cloud by the Security Command Center Posture Management service. A posture contains one or more policy sets. A policy set is a group of policies that enforce a set of security rules on Google Cloud.
@@ -4543,84 +2724,6 @@ pub struct GoogleCloudSecuritycenterV2SecurityPosture {
     /// The version of the posture, for example, c7cfa2a8.
     #[serde(default, rename = "revisionId")]
     pub revision_id: ::core::option::Option<String>,
-}
-
-/// Resource value mapping for Sensitive Data Protection findings If any of these mappings have a resource value that is not unspecified, the resource_value field will be ignored when reading this configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudSecuritycenterV2SensitiveDataProtectionMapping {
-    /// Resource value mapping for high-sensitivity Sensitive Data Protection findings // TODO: enum values: ["RESOURCE_VALUE_UNSPECIFIED", "HIGH", "MEDIUM", "LOW", "NONE"]
-    #[serde(default, rename = "highSensitivityMapping")]
-    pub high_sensitivity_mapping: ::core::option::Option<String>,
-    /// Resource value mapping for medium-sensitivity Sensitive Data Protection findings // TODO: enum values: ["RESOURCE_VALUE_UNSPECIFIED", "HIGH", "MEDIUM", "LOW", "NONE"]
-    #[serde(default, rename = "mediumSensitivityMapping")]
-    pub medium_sensitivity_mapping: ::core::option::Option<String>,
-}
-
-/// Score is calculated from of all elements in the data profile. A higher level means the data is more sensitive.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudSecuritycenterV2SensitivityScore {
-    /// The sensitivity score applied to the resource. // TODO: enum values: ["SENSITIVITY_SCORE_LEVEL_UNSPECIFIED", "SENSITIVITY_LOW", "SENSITIVITY_UNKNOWN", "SENSITIVITY_MODERATE", "SENSITIVITY_HIGH"]
-    #[serde(default)]
-    pub score: ::core::option::Option<String>,
-}
-
-/// Identity delegation history of an authenticated service account.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudSecuritycenterV2ServiceAccountDelegationInfo {
-    /// The email address of a Google account.
-    #[serde(default, rename = "principalEmail")]
-    pub principal_email: ::core::option::Option<String>,
-    /// A string representing the principal_subject associated with the identity. As compared to principal_email, supports principals that aren''t associated with email addresses, such as third party principals. For most identities, the format will be principal://iam.googleapis.com/{identity pool name}/subjects/{subject} except for some GKE identities (GKE_WORKLOAD, FREEFORM, GKE_HUB_WORKLOAD) that are still in the legacy format serviceAccount:{identity pool name}[{subject}]
-    #[serde(default, rename = "principalSubject")]
-    pub principal_subject: ::core::option::Option<String>,
-}
-
-/// Information about the static mute state. A static mute state overrides any dynamic mute rules that apply to this finding. The static mute state can be set by a static mute rule or by muting the finding directly.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudSecuritycenterV2StaticMute {
-    /// When the static mute was applied.
-    #[serde(default, rename = "applyTime")]
-    pub apply_time: ::core::option::Option<String>,
-    /// The static mute state. If the value is MUTED or UNMUTED, then the finding''s overall mute state will have the same value. // TODO: enum values: ["MUTE_UNSPECIFIED", "MUTED", "UNMUTED", "UNDEFINED"]
-    #[serde(default)]
-    pub state: ::core::option::Option<String>,
-}
-
-/// Represents a Kubernetes subject.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudSecuritycenterV2Subject {
-    /// Authentication type for the subject. // TODO: enum values: ["AUTH_TYPE_UNSPECIFIED", "USER", "SERVICEACCOUNT", "GROUP"]
-    #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-    /// Name for the subject.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Namespace for the subject.
-    #[serde(default)]
-    pub ns: ::core::option::Option<String>,
-}
-
-/// Information about the ticket, if any, that is being used to track the resolution of the issue that is identified by this finding.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudSecuritycenterV2TicketInfo {
-    /// The assignee of the ticket in the ticket system.
-    #[serde(default)]
-    pub assignee: ::core::option::Option<String>,
-    /// The description of the ticket in the ticket system.
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// The identifier of the ticket in the ticket system.
-    #[serde(default)]
-    pub id: ::core::option::Option<String>,
-    /// The latest status of the ticket, as reported by the ticket system.
-    #[serde(default)]
-    pub status: ::core::option::Option<String>,
-    /// The time when the ticket was last updated, as reported by the ticket system.
-    #[serde(default, rename = "updateTime")]
-    pub update_time: ::core::option::Option<String>,
-    /// The link to the ticket in the ticket system.
-    #[serde(default)]
-    pub uri: ::core::option::Option<String>,
 }
 
 /// Contains details about a group of security issues that, when the issues occur together, represent a greater risk than when the issues occur independently. A group of such issues is referred to as a toxic combination.
@@ -4671,92 +2774,1868 @@ pub struct GoogleCloudSecuritycenterV2Vulnerability {
     pub security_bulletin: ::core::option::Option<GoogleCloudSecuritycenterV2SecurityBulletin>,
 }
 
-/// A signature corresponding to a YARA rule.
+/// Represents an ADC application associated with the finding.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudSecuritycenterV2YaraRuleSignature {
-    /// The name of the YARA rule.
-    #[serde(default, rename = "yaraRule")]
-    pub yara_rule: ::core::option::Option<String>,
+pub struct GoogleCloudSecuritycenterV2AdcApplication {
+    /// Consumer provided attributes for the AppHub application.
+    #[serde(default)]
+    pub attributes:
+        ::core::option::Option<GoogleCloudSecuritycenterV2ResourceApplicationAttributes>,
+    /// The resource name of an ADC Application. Format: projects/{project}/locations/{location}/spaces/{space}/applications/{application}
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
 }
 
-/// Request message for grouping by assets.
+/// Represents an ADC template associated with the finding.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GroupAssetsRequest {
-    /// When compare_duration is set, the GroupResult''s "state_change" property is updated to indicate whether the asset was added, removed, or remained present during the compare_duration period of time that precedes the read_time. This is the time between (read_time - compare_duration) and read_time. The state change value is derived based on the presence of the asset at the two points in time. Intermediate state changes between the two times don''t affect the result. For example, the results aren''t affected if the asset is removed and re-created again. Possible "state_change" values when compare_duration is specified: * "ADDED": indicates that the asset was not present at the start of compare_duration, but present at reference_time. * "REMOVED": indicates that the asset was present at the start of compare_duration, but not present at reference_time. * "ACTIVE": indicates that the asset was present at both the start and the end of the time period defined by compare_duration and reference_time. If compare_duration is not specified, then the only possible state_change is "UNUSED", which will be the state_change set for all assets present at read_time. If this field is set then state_change must be a specified field in group_by.
-    #[serde(default, rename = "compareDuration")]
-    pub compare_duration: ::core::option::Option<String>,
-    /// Expression that defines the filter to apply across assets. The expression is a list of zero or more restrictions combined via logical operators AND and OR. Parentheses are supported, and OR has higher precedence than AND. Restrictions have the form   and may have a - character in front of them to indicate negation. The fields map to those defined in the Asset resource. Examples include: * name * security_center_properties.resource_name * resource_properties.a_property * security_marks.marks.marka The supported operators are: * = for all value types. * &gt;, &lt;, &gt;=, &lt;= for integer values. * :, meaning substring matching, for strings. The supported value types are: * string literals in quotes. * integer literals without quotes. * boolean literals true and false without quotes. The following field and operator combinations are supported: * name: = * update_time: =, &gt;, &lt;, &gt;=, &lt;= Usage: This should be milliseconds since epoch or an RFC3339 string. Examples: update_time = "2019-06-10T16:07:18-07:00" update_time = 1560208038000 * create_time: =, &gt;, &lt;, &gt;=, &lt;= Usage: This should be milliseconds since epoch or an RFC3339 string. Examples: create_time = "2019-06-10T16:07:18-07:00" create_time = 1560208038000 * iam_policy.policy_blob: =, : * resource_properties: =, :, &gt;, &lt;, &gt;=, &lt;= * security_marks.marks: =, : * security_center_properties.resource_name: =, : * security_center_properties.resource_display_name: =, : * security_center_properties.resource_type: =, : * security_center_properties.resource_parent: =, : * security_center_properties.resource_parent_display_name: =, : * security_center_properties.resource_project: =, : * security_center_properties.resource_project_display_name: =, : * security_center_properties.resource_owners: =, : For example, resource_properties.size = 100 is a valid filter string. Use a partial match on the empty string to filter based on a property existing: resource_properties.my_property : "" Use a negated partial match on the empty string to filter based on a property not existing: -resource_properties.my_property : ""
+pub struct GoogleCloudSecuritycenterV2AdcApplicationTemplateRevision {
+    /// The resource name of an ADC Application Template Revision. Format: projects/{project}/locations/{location}/spaces/{space}/applicationTemplates/{application_template}/revisions/{revision}
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+}
+
+/// Represents an ADC shared template associated with the finding.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudSecuritycenterV2AdcSharedTemplateRevision {
+    /// The resource name of an ADC Shared Template Revision. Format: projects/{project}/locations/{location}/spaces/{space}/applicationTemplates/{application_template}/revisions/{revision}
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+}
+
+/// The App Hub Application associated with the finding''s resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudSecuritycenterV2ResourceApplication {
+    /// Consumer provided attributes for the application
+    #[serde(default)]
+    pub attributes:
+        ::core::option::Option<GoogleCloudSecuritycenterV2ResourceApplicationAttributes>,
+    /// The resource name of an Application. Format: projects/{host-project-id}/locations/{location}/applications/{application-id}
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+}
+
+/// AWS metadata associated with the resource, only applicable if the finding''s cloud provider is Amazon Web Services.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudSecuritycenterV2AwsMetadata {
+    /// The AWS account associated with the resource.
+    #[serde(default)]
+    pub account: ::core::option::Option<GoogleCloudSecuritycenterV2AwsAccount>,
+    /// The AWS organization associated with the resource.
+    #[serde(default)]
+    pub organization: ::core::option::Option<GoogleCloudSecuritycenterV2AwsOrganization>,
+    /// A list of AWS organizational units associated with the resource, ordered from lowest level (closest to the account) to highest level.
+    #[serde(default, rename = "organizationalUnits")]
+    pub organizational_units:
+        ::core::option::Option<::std::vec::Vec<GoogleCloudSecuritycenterV2AwsOrganizationalUnit>>,
+}
+
+/// Azure metadata associated with the resource, only applicable if the finding''s cloud provider is Microsoft Azure.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudSecuritycenterV2AzureMetadata {
+    /// A list of Azure management groups associated with the resource, ordered from lowest level (closest to the subscription) to highest level.
+    #[serde(default, rename = "managementGroups")]
+    pub management_groups:
+        ::core::option::Option<::std::vec::Vec<GoogleCloudSecuritycenterV2AzureManagementGroup>>,
+    /// The Azure resource group associated with the resource.
+    #[serde(default, rename = "resourceGroup")]
+    pub resource_group: ::core::option::Option<GoogleCloudSecuritycenterV2AzureResourceGroup>,
+    /// The Azure subscription associated with the resource.
+    #[serde(default)]
+    pub subscription: ::core::option::Option<GoogleCloudSecuritycenterV2AzureSubscription>,
+    /// The Azure Entra tenant associated with the resource.
+    #[serde(default)]
+    pub tenant: ::core::option::Option<GoogleCloudSecuritycenterV2AzureTenant>,
+}
+
+/// Google Cloud metadata associated with the resource. Only applicable if the finding''s cloud provider is Google Cloud.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GcpMetadata {
+    /// Output only. Contains a Folder message for each folder in the assets ancestry. The first folder is the deepest nested folder, and the last folder is the folder directly under the Organization.
+    #[serde(default)]
+    pub folders: ::core::option::Option<::std::vec::Vec<GoogleCloudSecuritycenterV2Folder>>,
+    /// The name of the organization that the resource belongs to.
+    #[serde(default)]
+    pub organization: ::core::option::Option<String>,
+    /// The full resource name of resource''s parent.
+    #[serde(default)]
+    pub parent: ::core::option::Option<String>,
+    /// The human readable name of resource''s parent.
+    #[serde(default, rename = "parentDisplayName")]
+    pub parent_display_name: ::core::option::Option<String>,
+    /// The full resource name of project that the resource belongs to.
+    #[serde(default)]
+    pub project: ::core::option::Option<String>,
+    /// The project ID that the resource belongs to.
+    #[serde(default, rename = "projectDisplayName")]
+    pub project_display_name: ::core::option::Option<String>,
+}
+
+/// Represents the path of resources leading up to the resource this finding is about.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudSecuritycenterV2ResourcePath {
+    /// The list of nodes that make the up resource path, ordered from lowest level to highest level.
+    #[serde(default)]
+    pub nodes: ::core::option::Option<::std::vec::Vec<GoogleCloudSecuritycenterV2ResourcePathNode>>,
+}
+
+/// Security Command Center representation of a Google Cloud resource. The Asset is a Security Command Center resource that captures information about a single Google Cloud resource. All modifications to an Asset are only within the context of Security Command Center and don''t affect the referenced Google Cloud resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Asset {
+    /// The canonical name of the resource. It''s either "organizations/{organization_id}/assets/{asset_id}", "folders/{folder_id}/assets/{asset_id}" or "projects/{project_number}/assets/{asset_id}", depending on the closest CRM ancestor of the resource.
+    #[serde(default, rename = "canonicalName")]
+    pub canonical_name: ::core::option::Option<String>,
+    /// The time at which the asset was created in Security Command Center.
+    #[serde(default, rename = "createTime")]
+    pub create_time: ::core::option::Option<String>,
+    /// Cloud IAM Policy information associated with the Google Cloud resource described by the Security Command Center asset. This information is managed and defined by the Google Cloud resource and cannot be modified by the user.
+    #[serde(default, rename = "iamPolicy")]
+    pub iam_policy: ::core::option::Option<IamPolicy>,
+    /// The relative resource name of this asset. See: https://cloud.google.com/apis/design/resource_names#relative_resource_name Example: "organizations/{organization_id}/assets/{asset_id}".
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Resource managed properties. These properties are managed and defined by the Google Cloud resource and cannot be modified by the user.
+    #[serde(default, rename = "resourceProperties")]
+    pub resource_properties: ::core::option::Option<serde_json::Value>,
+    /// Security Command Center managed properties. These properties are managed by Security Command Center and cannot be modified by the user.
+    #[serde(default, rename = "securityCenterProperties")]
+    pub security_center_properties: ::core::option::Option<SecurityCenterProperties>,
+    /// User specified security marks. These marks are entirely managed by the user and come from the SecurityMarks resource that belongs to the asset.
+    #[serde(default, rename = "securityMarks")]
+    pub security_marks: ::core::option::Option<SecurityMarks>,
+    /// The time at which the asset was last updated or added in Cloud SCC.
+    #[serde(default, rename = "updateTime")]
+    pub update_time: ::core::option::Option<String>,
+}
+
+/// Represents a connection between a source node and a destination node in this attack path.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AttackPathEdge {
+    /// The attack node uuid of the destination node.
+    #[serde(default)]
+    pub destination: ::core::option::Option<String>,
+    /// The attack node uuid of the source node.
+    #[serde(default)]
+    pub source: ::core::option::Option<String>,
+}
+
+/// Represents one point that an attacker passes through in this attack path.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AttackPathNode {
+    /// The findings associated with this node in the attack path.
+    #[serde(default, rename = "associatedFindings")]
+    pub associated_findings: ::core::option::Option<::std::vec::Vec<PathNodeAssociatedFinding>>,
+    /// A list of attack step nodes that exist in this attack path node.
+    #[serde(default, rename = "attackSteps")]
+    pub attack_steps: ::core::option::Option<::std::vec::Vec<AttackStepNode>>,
+    /// Human-readable name of this resource.
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+    /// The name of the resource at this point in the attack path. The format of the name follows the Cloud Asset Inventory [resource name format](https://cloud.google.com/asset-inventory/docs/resource-name-format)
+    #[serde(default)]
+    pub resource: ::core::option::Option<String>,
+    /// The [supported resource type](https://cloud.google.com/asset-inventory/docs/supported-asset-types)
+    #[serde(default, rename = "resourceType")]
+    pub resource_type: ::core::option::Option<String>,
+    /// Unique id of the attack path node.
+    #[serde(default)]
+    pub uuid: ::core::option::Option<String>,
+}
+
+/// Information related to the Google Cloud resource that is associated with this finding.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Resource {
+    /// The ADC application associated with the finding.
+    #[serde(default, rename = "adcApplication")]
+    pub adc_application: ::core::option::Option<AdcApplication>,
+    /// The ADC template associated with the finding.
+    #[serde(default, rename = "adcApplicationTemplate")]
+    pub adc_application_template: ::core::option::Option<AdcApplicationTemplateRevision>,
+    /// The ADC shared template associated with the finding.
+    #[serde(default, rename = "adcSharedTemplate")]
+    pub adc_shared_template: ::core::option::Option<AdcSharedTemplateRevision>,
+    /// The App Hub application this resource belongs to.
+    #[serde(default)]
+    pub application: ::core::option::Option<GoogleCloudSecuritycenterV1ResourceApplication>,
+    /// The AWS metadata associated with the finding.
+    #[serde(default, rename = "awsMetadata")]
+    pub aws_metadata: ::core::option::Option<AwsMetadata>,
+    /// The Azure metadata associated with the finding.
+    #[serde(default, rename = "azureMetadata")]
+    pub azure_metadata: ::core::option::Option<AzureMetadata>,
+    /// Indicates which cloud provider the finding is from. // TODO: enum values: ["CLOUD_PROVIDER_UNSPECIFIED", "GOOGLE_CLOUD_PLATFORM", "AMAZON_WEB_SERVICES", "MICROSOFT_AZURE"]
+    #[serde(default, rename = "cloudProvider")]
+    pub cloud_provider: ::core::option::Option<String>,
+    /// The human readable name of the resource.
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+    /// Contains a Folder message for each folder in the assets ancestry. The first folder is the deepest nested folder, and the last folder is the folder directly under the Organization.
+    #[serde(default)]
+    pub folders: ::core::option::Option<::std::vec::Vec<Folder>>,
+    /// The region or location of the service (if applicable).
+    #[serde(default)]
+    pub location: ::core::option::Option<String>,
+    /// The full resource name of the resource. See: https://cloud.google.com/apis/design/resource_names#full_resource_name
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Indicates which organization / tenant the finding is for.
+    #[serde(default)]
+    pub organization: ::core::option::Option<String>,
+    /// The human readable name of resource''s parent.
+    #[serde(default, rename = "parentDisplayName")]
+    pub parent_display_name: ::core::option::Option<String>,
+    /// The full resource name of resource''s parent.
+    #[serde(default, rename = "parentName")]
+    pub parent_name: ::core::option::Option<String>,
+    /// The project ID that the resource belongs to.
+    #[serde(default, rename = "projectDisplayName")]
+    pub project_display_name: ::core::option::Option<String>,
+    /// The full resource name of project that the resource belongs to.
+    #[serde(default, rename = "projectName")]
+    pub project_name: ::core::option::Option<String>,
+    /// Provides the path to the resource within the resource hierarchy.
+    #[serde(default, rename = "resourcePath")]
+    pub resource_path: ::core::option::Option<ResourcePath>,
+    /// A string representation of the resource path. For Google Cloud, it has the format of org/{organization_id}/folder/{folder_id}/folder/{folder_id}/project/{project_id} where there can be any number of folders. For AWS, it has the format of org/{organization_id}/ou/{organizational_unit_id}/ou/{organizational_unit_id}/account/{account_id} where there can be any number of organizational units. For Azure, it has the format of mg/{management_group_id}/mg/{management_group_id}/subscription/{subscription_id}/rg/{resource_group_name} where there can be any number of management groups.
+    #[serde(default, rename = "resourcePathString")]
+    pub resource_path_string: ::core::option::Option<String>,
+    /// The service or resource provider associated with the resource.
+    #[serde(default)]
+    pub service: ::core::option::Option<String>,
+    /// The full resource type of the resource.
+    #[serde(default, rename = "type")]
+    pub type_: ::core::option::Option<String>,
+}
+
+/// The config for streaming-based notifications, which send each event as soon as it is detected.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct StreamingConfig {
+    /// Expression that defines the filter to apply across create/update events of assets or findings as specified by the event type. The expression is a list of zero or more restrictions combined via logical operators AND and OR. Parentheses are supported, and OR has higher precedence than AND. Restrictions have the form   and may have a - character in front of them to indicate negation. The fields map to those defined in the corresponding resource. The supported operators are: * = for all value types. * &gt;, &lt;, &gt;=, &lt;= for integer values. * :, meaning substring matching, for strings. The supported value types are: * string literals in quotes. * integer literals without quotes. * boolean literals true and false without quotes.
     #[serde(default)]
     pub filter: ::core::option::Option<String>,
-    /// Required. Expression that defines what assets fields to use for grouping. The string value should follow SQL syntax: comma separated list of fields. For example: "security_center_properties.resource_project,security_center_properties.project". The following fields are supported when compare_duration is not set: * security_center_properties.resource_project * security_center_properties.resource_project_display_name * security_center_properties.resource_type * security_center_properties.resource_parent * security_center_properties.resource_parent_display_name The following fields are supported when compare_duration is set: * security_center_properties.resource_type * security_center_properties.resource_project_display_name * security_center_properties.resource_parent_display_name
-    #[serde(default, rename = "groupBy")]
-    pub group_by: ::core::option::Option<String>,
-    /// The maximum number of results to return in a single response. Default is 10, minimum is 1, maximum is 1000.
-    #[serde(default, rename = "pageSize")]
-    pub page_size: ::core::option::Option<i32>,
-    /// The value returned by the last GroupAssetsResponse; indicates that this is a continuation of a prior GroupAssets call, and that the system should return the next page of data.
-    #[serde(default, rename = "pageToken")]
-    pub page_token: ::core::option::Option<String>,
-    /// Time used as a reference point when filtering assets. The filter is limited to assets existing at the supplied time and their values are those at that specific time. Absence of this field will default to the API''s version of NOW.
-    #[serde(default, rename = "readTime")]
-    pub read_time: ::core::option::Option<String>,
 }
 
-/// Response message for grouping by assets.
+/// Defines the properties in a custom module configuration for Security Health Analytics. Use the custom module configuration to create custom detectors that generate custom findings for resources that you specify.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GroupAssetsResponse {
-    /// Group results. There exists an element for each existing unique combination of property/values. The element contains a count for the number of times those specific property/values appear.
-    #[serde(default, rename = "groupByResults")]
-    pub group_by_results: ::core::option::Option<::std::vec::Vec<GroupResult>>,
-    /// Token to retrieve the next page of results, or empty if there are no more results.
-    #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: ::core::option::Option<String>,
-    /// Time used for executing the groupBy request.
-    #[serde(default, rename = "readTime")]
-    pub read_time: ::core::option::Option<String>,
-    /// The total number of results matching the query.
-    #[serde(default, rename = "totalSize")]
-    pub total_size: ::core::option::Option<i32>,
-}
-
-/// Request message for grouping by findings.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GroupFindingsRequest {
-    /// When compare_duration is set, the GroupResult''s "state_change" attribute is updated to indicate whether the finding had its state changed, the finding''s state remained unchanged, or if the finding was added during the compare_duration period of time that precedes the read_time. This is the time between (read_time - compare_duration) and read_time. The state_change value is derived based on the presence and state of the finding at the two points in time. Intermediate state changes between the two times don''t affect the result. For example, the results aren''t affected if the finding is made inactive and then active again. Possible "state_change" values when compare_duration is specified: * "CHANGED": indicates that the finding was present and matched the given filter at the start of compare_duration, but changed its state at read_time. * "UNCHANGED": indicates that the finding was present and matched the given filter at the start of compare_duration and did not change state at read_time. * "ADDED": indicates that the finding did not match the given filter or was not present at the start of compare_duration, but was present at read_time. * "REMOVED": indicates that the finding was present and matched the filter at the start of compare_duration, but did not match the filter at read_time. If compare_duration is not specified, then the only possible state_change is "UNUSED", which will be the state_change set for all findings present at read_time. If this field is set then state_change must be a specified field in group_by.
-    #[serde(default, rename = "compareDuration")]
-    pub compare_duration: ::core::option::Option<String>,
-    /// Expression that defines the filter to apply across findings. The expression is a list of one or more restrictions combined via logical operators AND and OR. Parentheses are supported, and OR has higher precedence than AND. Restrictions have the form   and may have a - character in front of them to indicate negation. Examples include: * name * source_properties.a_property * security_marks.marks.marka The supported operators are: * = for all value types. * &gt;, &lt;, &gt;=, &lt;= for integer values. * :, meaning substring matching, for strings. The supported value types are: * string literals in quotes. * integer literals without quotes. * boolean literals true and false without quotes. The following field and operator combinations are supported: * name: = * parent: =, : * resource_name: =, : * state: =, : * category: =, : * external_uri: =, : * event_time: =, &gt;, &lt;, &gt;=, &lt;= Usage: This should be milliseconds since epoch or an RFC3339 string. Examples: event_time = "2019-06-10T16:07:18-07:00" event_time = 1560208038000 * severity: =, : * workflow_state: =, : * security_marks.marks: =, : * source_properties: =, :, &gt;, &lt;, &gt;=, &lt;= For example, source_properties.size = 100 is a valid filter string. Use a partial match on the empty string to filter based on a property existing: source_properties.my_property : "" Use a negated partial match on the empty string to filter based on a property not existing: -source_properties.my_property : "" * resource: * resource.name: =, : * resource.parent_name: =, : * resource.parent_display_name: =, : * resource.project_name: =, : * resource.project_display_name: =, : * resource.type: =, :
+pub struct GoogleCloudSecuritycenterV1CustomConfig {
+    /// Custom output properties.
+    #[serde(default, rename = "customOutput")]
+    pub custom_output: ::core::option::Option<GoogleCloudSecuritycenterV1CustomOutputSpec>,
+    /// Text that describes the vulnerability or misconfiguration that the custom module detects. This explanation is returned with each finding instance to help investigators understand the detected issue. The text must be enclosed in quotation marks.
     #[serde(default)]
-    pub filter: ::core::option::Option<String>,
-    /// Required. Expression that defines what assets fields to use for grouping (including state_change). The string value should follow SQL syntax: comma separated list of fields. For example: "parent,resource_name". The following fields are supported when compare_duration is set: * state_change
-    #[serde(default, rename = "groupBy")]
-    pub group_by: ::core::option::Option<String>,
-    /// The maximum number of results to return in a single response. Default is 10, minimum is 1, maximum is 1000.
-    #[serde(default, rename = "pageSize")]
-    pub page_size: ::core::option::Option<i32>,
-    /// The value returned by the last GroupFindingsResponse; indicates that this is a continuation of a prior GroupFindings call, and that the system should return the next page of data.
-    #[serde(default, rename = "pageToken")]
-    pub page_token: ::core::option::Option<String>,
-    /// Time used as a reference point when filtering findings. The filter is limited to findings existing at the supplied time and their values are those at that specific time. Absence of this field will default to the API''s version of NOW.
-    #[serde(default, rename = "readTime")]
-    pub read_time: ::core::option::Option<String>,
+    pub description: ::core::option::Option<String>,
+    /// The CEL expression to evaluate to produce findings. When the expression evaluates to true against a resource, a finding is generated.
+    #[serde(default)]
+    pub predicate: ::core::option::Option<Expr>,
+    /// An explanation of the recommended steps that security teams can take to resolve the detected issue. This explanation is returned with each finding generated by this module in the nextSteps property of the finding JSON.
+    #[serde(default)]
+    pub recommendation: ::core::option::Option<String>,
+    /// The resource types that the custom module operates on. Each custom module can specify up to 5 resource types.
+    #[serde(default, rename = "resourceSelector")]
+    pub resource_selector: ::core::option::Option<GoogleCloudSecuritycenterV1ResourceSelector>,
+    /// The severity to assign to findings generated by the module. // TODO: enum values: ["SEVERITY_UNSPECIFIED", "CRITICAL", "HIGH", "MEDIUM", "LOW"]
+    #[serde(default)]
+    pub severity: ::core::option::Option<String>,
 }
 
-/// Response message for group by findings.
+/// Metadata about a ResourceValueConfig. For example, id and name.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GroupFindingsResponse {
-    /// Group results. There exists an element for each existing unique combination of property/values. The element contains a count for the number of times those specific property/values appear.
-    #[serde(default, rename = "groupByResults")]
-    pub group_by_results: ::core::option::Option<::std::vec::Vec<GroupResult>>,
-    /// Token to retrieve the next page of results, or empty if there are no more results.
-    #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: ::core::option::Option<String>,
-    /// Time used for executing the groupBy request.
-    #[serde(default, rename = "readTime")]
-    pub read_time: ::core::option::Option<String>,
-    /// The total number of results matching the query.
-    #[serde(default, rename = "totalSize")]
-    pub total_size: ::core::option::Option<i32>,
+pub struct ResourceValueConfigMetadata {
+    /// Resource value config name
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+}
+
+/// An Identity and Access Management (IAM) policy, which specifies access controls for Google Cloud resources. A Policy is a collection of bindings. A binding binds one or more members, or principals, to a single role. Principals can be user accounts, service accounts, Google groups, and domains (such as G Suite). A role is a named list of permissions; each role can be an IAM predefined role or a user-created custom role. For some types of Google Cloud resources, a binding can also specify a condition, which is a logical expression that allows access to a resource only if the expression evaluates to true. A condition can add constraints based on attributes of the request, the resource, or both. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies). **JSON example:**  { "bindings": [ { "role": "roles/resourcemanager.organizationAdmin", "members": [ "user:mike@example.com", "group:admins@example.com", "domain:google.com", "serviceAccount:my-project-id@appspot.gserviceaccount.com" ] }, { "role": "roles/resourcemanager.organizationViewer", "members": [ "user:eve@example.com" ], "condition": { "title": "expirable access", "description": "Does not grant access after Sep 2020", "expression": "request.time &lt; timestamp(''2020-10-01T00:00:00.000Z'')", } } ], "etag": "BwWWja0YfJA=", "version": 3 }  **YAML example:**  bindings: - members: - user:mike@example.com - group:admins@example.com - domain:google.com - serviceAccount:my-project-id@appspot.gserviceaccount.com role: roles/resourcemanager.organizationAdmin - members: - user:eve@example.com role: roles/resourcemanager.organizationViewer condition: title: expirable access description: Does not grant access after Sep 2020 expression: request.time &lt; timestamp(''2020-10-01T00:00:00.000Z'') etag: BwWWja0YfJA= version: 3  For a description of IAM and its features, see the [IAM documentation](https://cloud.google.com/iam/docs/).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Policy {
+    /// Specifies cloud audit logging configuration for this policy.
+    #[serde(default, rename = "auditConfigs")]
+    pub audit_configs: ::core::option::Option<::std::vec::Vec<AuditConfig>>,
+    /// Associates a list of members, or principals, with a role. Optionally, may specify a condition that determines how and when the bindings are applied. Each of the bindings must contain at least one principal. The bindings in a Policy can refer to up to 1,500 principals; up to 250 of these principals can be Google groups. Each occurrence of a principal counts towards these limits. For example, if the bindings grant 50 different roles to user:alice@example.com, and not to any other principal, then you can add another 1,450 principals to the bindings in the Policy.
+    #[serde(default)]
+    pub bindings: ::core::option::Option<::std::vec::Vec<Binding>>,
+    /// etag is used for optimistic concurrency control as a way to help prevent simultaneous updates of a policy from overwriting each other. It is strongly suggested that systems make use of the etag in the read-modify-write cycle to perform policy updates in order to avoid race conditions: An etag is returned in the response to getIamPolicy, and systems are expected to put that etag in the request to setIamPolicy to ensure that their change will be applied to the same version of the policy. **Important:** If you use IAM Conditions, you must include the etag field whenever you call setIamPolicy. If you omit this field, then IAM allows you to overwrite a version 3 policy with a version 1 policy, and all of the conditions in the version 3 policy are lost.
+    #[serde(default)]
+    pub etag: ::core::option::Option<String>,
+    /// Specifies the format of the policy. Valid values are 0, 1, and 3. Requests that specify an invalid value are rejected. Any operation that affects conditional role bindings must specify version 3. This requirement applies to the following operations: * Getting a policy that includes a conditional role binding * Adding a conditional role binding to a policy * Changing a conditional role binding in a policy * Removing any role binding, with or without a condition, from a policy that includes conditions **Important:** If you use IAM Conditions, you must include the etag field whenever you call setIamPolicy. If you omit this field, then IAM allows you to overwrite a version 3 policy with a version 1 policy, and all of the conditions in the version 3 policy are lost. If a policy does not include any conditions, operations on that policy may specify any valid version or leave the field unset. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies).
+    #[serde(default)]
+    pub version: ::core::option::Option<i32>,
+}
+
+/// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Status {
+    /// The status code, which should be an enum value of google.rpc.Code.
+    #[serde(default)]
+    pub code: ::core::option::Option<i32>,
+    /// A list of messages that carry the error details. There is a common set of message types for APIs to use.
+    #[serde(default)]
+    pub details: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
+    /// A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.
+    #[serde(default)]
+    pub message: ::core::option::Option<String>,
+}
+
+/// Security Command Center finding. A finding is a record of assessment data like security, risk, health, or privacy, that is ingested into Security Command Center for presentation, notification, analysis, policy testing, and enforcement. For example, a cross-site scripting (XSS) vulnerability in an App Engine application is a finding.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Finding {
+    /// Access details associated with the finding, such as more information on the caller, which method was accessed, and from where.
+    #[serde(default)]
+    pub access: ::core::option::Option<Access>,
+    /// AffectedResources associated with the finding.
+    #[serde(default, rename = "affectedResources")]
+    pub affected_resources: ::core::option::Option<AffectedResources>,
+    /// Agent data access events associated with the finding.
+    #[serde(default, rename = "agentDataAccessEvents")]
+    pub agent_data_access_events: ::core::option::Option<::std::vec::Vec<AgentDataAccessEvent>>,
+    /// The AI model associated with the finding.
+    #[serde(default, rename = "aiModel")]
+    pub ai_model: ::core::option::Option<AiModel>,
+    /// Represents an application associated with the finding.
+    #[serde(default)]
+    pub application: ::core::option::Option<Application>,
+    /// ArtifactGuardPolicies associated with the finding.
+    #[serde(default, rename = "artifactGuardPolicies")]
+    pub artifact_guard_policies: ::core::option::Option<ArtifactGuardPolicies>,
+    /// The results of an attack path simulation relevant to this finding.
+    #[serde(default, rename = "attackExposure")]
+    pub attack_exposure: ::core::option::Option<AttackExposure>,
+    /// Fields related to Backup and DR findings.
+    #[serde(default, rename = "backupDisasterRecovery")]
+    pub backup_disaster_recovery: ::core::option::Option<BackupDisasterRecovery>,
+    /// The canonical name of the finding. It''s either "organizations/{organization_id}/sources/{source_id}/findings/{finding_id}", "folders/{folder_id}/sources/{source_id}/findings/{finding_id}" or "projects/{project_number}/sources/{source_id}/findings/{finding_id}", depending on the closest CRM ancestor of the resource associated with the finding.
+    #[serde(default, rename = "canonicalName")]
+    pub canonical_name: ::core::option::Option<String>,
+    /// The additional taxonomy group within findings from a given source. This field is immutable after creation time. Example: "XSS_FLASH_INJECTION"
+    #[serde(default)]
+    pub category: ::core::option::Option<String>,
+    /// Contains details about a chokepoint, which is a resource or resource group where high-risk attack paths converge, based on [attack path simulations] (https://cloud.google.com/security-command-center/docs/attack-exposure-learn#attack_path_simulations). This field cannot be updated. Its value is ignored in all update requests.
+    #[serde(default)]
+    pub chokepoint: ::core::option::Option<Chokepoint>,
+    /// Fields related to Cloud Armor findings.
+    #[serde(default, rename = "cloudArmor")]
+    pub cloud_armor: ::core::option::Option<CloudArmor>,
+    /// Cloud DLP data profile that is associated with the finding.
+    #[serde(default, rename = "cloudDlpDataProfile")]
+    pub cloud_dlp_data_profile: ::core::option::Option<CloudDlpDataProfile>,
+    /// Cloud Data Loss Prevention (Cloud DLP) inspection results that are associated with the finding.
+    #[serde(default, rename = "cloudDlpInspection")]
+    pub cloud_dlp_inspection: ::core::option::Option<CloudDlpInspection>,
+    /// Details about the compliance implications of the finding.
+    #[serde(default, rename = "complianceDetails")]
+    pub compliance_details: ::core::option::Option<ComplianceDetails>,
+    /// Contains compliance information for security standards associated to the finding.
+    #[serde(default)]
+    pub compliances: ::core::option::Option<::std::vec::Vec<Compliance>>,
+    /// Contains information about the IP connection associated with the finding.
+    #[serde(default)]
+    pub connections: ::core::option::Option<::std::vec::Vec<Connection>>,
+    /// Output only. Map containing the points of contact for the given finding. The key represents the type of contact, while the value contains a list of all the contacts that pertain. Please refer to: https://cloud.google.com/resource-manager/docs/managing-notification-contacts#notification-categories { "security": { "contacts": [ { "email": "person1@company.com" }, { "email": "person2@company.com" } ] } }
+    #[serde(default)]
+    pub contacts: ::core::option::Option<serde_json::Value>,
+    /// Containers associated with the finding. This field provides information for both Kubernetes and non-Kubernetes containers.
+    #[serde(default)]
+    pub containers: ::core::option::Option<::std::vec::Vec<Container>>,
+    /// The time at which the finding was created in Security Command Center.
+    #[serde(default, rename = "createTime")]
+    pub create_time: ::core::option::Option<String>,
+    /// Data access events associated with the finding.
+    #[serde(default, rename = "dataAccessEvents")]
+    pub data_access_events: ::core::option::Option<::std::vec::Vec<DataAccessEvent>>,
+    /// Data flow events associated with the finding.
+    #[serde(default, rename = "dataFlowEvents")]
+    pub data_flow_events: ::core::option::Option<::std::vec::Vec<DataFlowEvent>>,
+    /// Data retention deletion events associated with the finding.
+    #[serde(default, rename = "dataRetentionDeletionEvents")]
+    pub data_retention_deletion_events:
+        ::core::option::Option<::std::vec::Vec<DataRetentionDeletionEvent>>,
+    /// Database associated with the finding.
+    #[serde(default)]
+    pub database: ::core::option::Option<Database>,
+    /// Contains more details about the finding.
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+    /// DiscoveredWorkload associated with the finding.
+    #[serde(default, rename = "discoveredWorkload")]
+    pub discovered_workload: ::core::option::Option<DiscoveredWorkload>,
+    /// Disk associated with the finding.
+    #[serde(default)]
+    pub disk: ::core::option::Option<Disk>,
+    /// The time the finding was first detected. If an existing finding is updated, then this is the time the update occurred. For example, if the finding represents an open firewall, this property captures the time the detector believes the firewall became open. The accuracy is determined by the detector. If the finding is later resolved, then this time reflects when the finding was resolved. This must not be set to a value greater than the current timestamp.
+    #[serde(default, rename = "eventTime")]
+    pub event_time: ::core::option::Option<String>,
+    /// Represents exfiltrations associated with the finding.
+    #[serde(default)]
+    pub exfiltration: ::core::option::Option<Exfiltration>,
+    /// External exposure associated with the finding.
+    #[serde(default, rename = "externalExposure")]
+    pub external_exposure: ::core::option::Option<ExternalExposure>,
+    /// Output only. Third party SIEM/SOAR fields within SCC, contains external system information and external system finding fields.
+    #[serde(default, rename = "externalSystems")]
+    pub external_systems: ::core::option::Option<serde_json::Value>,
+    /// The URI that, if available, points to a web page outside of Security Command Center where additional information about the finding can be found. This field is guaranteed to be either empty or a well formed URL.
+    #[serde(default, rename = "externalUri")]
+    pub external_uri: ::core::option::Option<String>,
+    /// File associated with the finding.
+    #[serde(default)]
+    pub files: ::core::option::Option<::std::vec::Vec<File>>,
+    /// The class of the finding. // TODO: enum values: ["FINDING_CLASS_UNSPECIFIED", "THREAT", "VULNERABILITY", "MISCONFIGURATION", "OBSERVATION", "SCC_ERROR", "POSTURE_VIOLATION", "TOXIC_COMBINATION", "SENSITIVE_DATA_RISK", "CHOKEPOINT", "EXTERNAL_EXPOSURE"]
+    #[serde(default, rename = "findingClass")]
+    pub finding_class: ::core::option::Option<String>,
+    /// Contains details about groups of which this finding is a member. A group is a collection of findings that are related in some way. This field cannot be updated. Its value is ignored in all update requests.
+    #[serde(default, rename = "groupMemberships")]
+    pub group_memberships: ::core::option::Option<::std::vec::Vec<GroupMembership>>,
+    /// Represents IAM bindings associated with the finding.
+    #[serde(default, rename = "iamBindings")]
+    pub iam_bindings: ::core::option::Option<::std::vec::Vec<IamBinding>>,
+    /// Represents what''s commonly known as an *indicator of compromise* (IoC) in computer forensics. This is an artifact observed on a network or in an operating system that, with high confidence, indicates a computer intrusion. For more information, see [Indicator of compromise](https://en.wikipedia.org/wiki/Indicator_of_compromise).
+    #[serde(default)]
+    pub indicator: ::core::option::Option<Indicator>,
+    /// IP rules associated with the finding.
+    #[serde(default, rename = "ipRules")]
+    pub ip_rules: ::core::option::Option<IpRules>,
+    /// Job associated with the finding.
+    #[serde(default)]
+    pub job: ::core::option::Option<Job>,
+    /// Signature of the kernel rootkit.
+    #[serde(default, rename = "kernelRootkit")]
+    pub kernel_rootkit: ::core::option::Option<KernelRootkit>,
+    /// Kubernetes resources associated with the finding.
+    #[serde(default)]
+    pub kubernetes: ::core::option::Option<Kubernetes>,
+    /// The load balancers associated with the finding.
+    #[serde(default, rename = "loadBalancers")]
+    pub load_balancers: ::core::option::Option<::std::vec::Vec<LoadBalancer>>,
+    /// Log entries that are relevant to the finding.
+    #[serde(default, rename = "logEntries")]
+    pub log_entries: ::core::option::Option<::std::vec::Vec<LogEntry>>,
+    /// MITRE ATT&CK tactics and techniques related to this finding. See: https://attack.mitre.org
+    #[serde(default, rename = "mitreAttack")]
+    pub mitre_attack: ::core::option::Option<MitreAttack>,
+    /// Unique identifier of the module which generated the finding. Example: folders/598186756061/securityHealthAnalyticsSettings/customModules/56799441161885
+    #[serde(default, rename = "moduleName")]
+    pub module_name: ::core::option::Option<String>,
+    /// Indicates the mute state of a finding (either muted, unmuted or undefined). Unlike other attributes of a finding, a finding provider shouldn''t set the value of mute. // TODO: enum values: ["MUTE_UNSPECIFIED", "MUTED", "UNMUTED", "UNDEFINED"]
+    #[serde(default)]
+    pub mute: ::core::option::Option<String>,
+    /// Output only. The mute information regarding this finding.
+    #[serde(default, rename = "muteInfo")]
+    pub mute_info: ::core::option::Option<MuteInfo>,
+    /// Records additional information about the mute operation, for example, the [mute configuration](/security-command-center/docs/how-to-mute-findings) that muted the finding and the user who muted the finding.
+    #[serde(default, rename = "muteInitiator")]
+    pub mute_initiator: ::core::option::Option<String>,
+    /// Output only. The most recent time this finding was muted or unmuted.
+    #[serde(default, rename = "muteUpdateTime")]
+    pub mute_update_time: ::core::option::Option<String>,
+    /// The [relative resource name](https://cloud.google.com/apis/design/resource_names#relative_resource_name) of the finding. Example: "organizations/{organization_id}/sources/{source_id}/findings/{finding_id}", "folders/{folder_id}/sources/{source_id}/findings/{finding_id}", "projects/{project_id}/sources/{source_id}/findings/{finding_id}".
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Represents the VPC networks that the resource is attached to.
+    #[serde(default)]
+    pub networks: ::core::option::Option<::std::vec::Vec<Network>>,
+    /// Steps to address the finding.
+    #[serde(default, rename = "nextSteps")]
+    pub next_steps: ::core::option::Option<String>,
+    /// Notebook associated with the finding.
+    #[serde(default)]
+    pub notebook: ::core::option::Option<Notebook>,
+    /// Contains information about the org policies associated with the finding.
+    #[serde(default, rename = "orgPolicies")]
+    pub org_policies: ::core::option::Option<::std::vec::Vec<OrgPolicy>>,
+    /// The relative resource name of the source the finding belongs to. See: https://cloud.google.com/apis/design/resource_names#relative_resource_name This field is immutable after creation time. For example: "organizations/{organization_id}/sources/{source_id}"
+    #[serde(default)]
+    pub parent: ::core::option::Option<String>,
+    /// Output only. The human readable display name of the finding source such as "Event Threat Detection" or "Security Health Analytics".
+    #[serde(default, rename = "parentDisplayName")]
+    pub parent_display_name: ::core::option::Option<String>,
+    /// PolicyViolationSummary associated with the finding.
+    #[serde(default, rename = "policyViolationSummary")]
+    pub policy_violation_summary: ::core::option::Option<PolicyViolationSummary>,
+    /// Represents operating system processes associated with the Finding.
+    #[serde(default)]
+    pub processes: ::core::option::Option<::std::vec::Vec<Process>>,
+    /// For findings on Google Cloud resources, the full resource name of the Google Cloud resource this finding is for. See: https://cloud.google.com/apis/design/resource_names#full_resource_name When the finding is for a non-Google Cloud resource, the resourceName can be a customer or partner defined string. This field is immutable after creation time.
+    #[serde(default, rename = "resourceName")]
+    pub resource_name: ::core::option::Option<String>,
+    /// Secret associated with the finding.
+    #[serde(default)]
+    pub secret: ::core::option::Option<Secret>,
+    /// Output only. User specified security marks. These marks are entirely managed by the user and come from the SecurityMarks resource that belongs to the finding.
+    #[serde(default, rename = "securityMarks")]
+    pub security_marks: ::core::option::Option<SecurityMarks>,
+    /// The security posture associated with the finding.
+    #[serde(default, rename = "securityPosture")]
+    pub security_posture: ::core::option::Option<SecurityPosture>,
+    /// The severity of the finding. This field is managed by the source that writes the finding. // TODO: enum values: ["SEVERITY_UNSPECIFIED", "CRITICAL", "HIGH", "MEDIUM", "LOW"]
+    #[serde(default)]
+    pub severity: ::core::option::Option<String>,
+    /// Source specific properties. These properties are managed by the source that writes the finding. The key names in the source_properties map must be between 1 and 255 characters, and must start with a letter and contain alphanumeric characters or underscores only.
+    #[serde(default, rename = "sourceProperties")]
+    pub source_properties: ::core::option::Option<serde_json::Value>,
+    /// The state of the finding. // TODO: enum values: ["STATE_UNSPECIFIED", "ACTIVE", "INACTIVE"]
+    #[serde(default)]
+    pub state: ::core::option::Option<String>,
+    /// Contains details about a group of security issues that, when the issues occur together, represent a greater risk than when the issues occur independently. A group of such issues is referred to as a toxic combination. This field cannot be updated. Its value is ignored in all update requests.
+    #[serde(default, rename = "toxicCombination")]
+    pub toxic_combination: ::core::option::Option<ToxicCombination>,
+    /// VertexAi associated with the finding.
+    #[serde(default, rename = "vertexAi")]
+    pub vertex_ai: ::core::option::Option<VertexAi>,
+    /// Represents vulnerability-specific fields like CVE and CVSS scores. CVE stands for Common Vulnerabilities and Exposures (https://cve.mitre.org/about/)
+    #[serde(default)]
+    pub vulnerability: ::core::option::Option<Vulnerability>,
+}
+
+/// An error encountered while validating the uploaded configuration of an Event Threat Detection Custom Module.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CustomModuleValidationError {
+    /// A description of the error, suitable for human consumption. Required.
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+    /// The end position of the error in the uploaded text version of the module. This field may be omitted if no specific position applies, or if one could not be computed.
+    #[serde(default)]
+    pub end: ::core::option::Option<Position>,
+    /// The path, in RFC 8901 JSON Pointer format, to the field that failed validation. This may be left empty if no specific field is affected.
+    #[serde(default, rename = "fieldPath")]
+    pub field_path: ::core::option::Option<String>,
+    /// The initial position of the error in the uploaded text version of the module. This field may be omitted if no specific position applies, or if one could not be computed.
+    #[serde(default)]
+    pub start: ::core::option::Option<Position>,
+}
+
+/// Resource value mapping for Sensitive Data Protection findings. If any of these mappings have a resource value that is not unspecified, the resource_value field will be ignored when reading this configuration.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudSecuritycenterV1SensitiveDataProtectionMapping {
+    /// Resource value mapping for high-sensitivity Sensitive Data Protection findings // TODO: enum values: ["RESOURCE_VALUE_UNSPECIFIED", "HIGH", "MEDIUM", "LOW", "NONE"]
+    #[serde(default, rename = "highSensitivityMapping")]
+    pub high_sensitivity_mapping: ::core::option::Option<String>,
+    /// Resource value mapping for medium-sensitivity Sensitive Data Protection findings // TODO: enum values: ["RESOURCE_VALUE_UNSPECIFIED", "HIGH", "MEDIUM", "LOW", "NONE"]
+    #[serde(default, rename = "mediumSensitivityMapping")]
+    pub medium_sensitivity_mapping: ::core::option::Option<String>,
+}
+
+/// Consumer provided attributes for the application
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudSecuritycenterV2IssueResourceApplicationAttributes {
+    /// Business team that ensures user needs are met and value is delivered
+    #[serde(default, rename = "businessOwners")]
+    pub business_owners: ::core::option::Option<
+        ::std::vec::Vec<GoogleCloudSecuritycenterV2IssueResourceApplicationAttributesContactInfo>,
+    >,
+    /// User-defined criticality information.
+    #[serde(default)]
+    pub criticality: ::core::option::Option<
+        GoogleCloudSecuritycenterV2IssueResourceApplicationAttributesCriticality,
+    >,
+    /// Developer team that owns development and coding.
+    #[serde(default, rename = "developerOwners")]
+    pub developer_owners: ::core::option::Option<
+        ::std::vec::Vec<GoogleCloudSecuritycenterV2IssueResourceApplicationAttributesContactInfo>,
+    >,
+    /// User-defined environment information.
+    #[serde(default)]
+    pub environment: ::core::option::Option<
+        GoogleCloudSecuritycenterV2IssueResourceApplicationAttributesEnvironment,
+    >,
+    /// Operator team that ensures runtime and operations.
+    #[serde(default, rename = "operatorOwners")]
+    pub operator_owners: ::core::option::Option<
+        ::std::vec::Vec<GoogleCloudSecuritycenterV2IssueResourceApplicationAttributesContactInfo>,
+    >,
+}
+
+/// The AWS account of the resource associated with the issue.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudSecuritycenterV2IssueResourceAwsMetadataAwsAccount {
+    /// The AWS account ID of the resource associated with the issue.
+    #[serde(default)]
+    pub id: ::core::option::Option<String>,
+    /// The AWS account name of the resource associated with the issue.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+}
+
+/// The Azure subscription of the resource associated with the issue.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudSecuritycenterV2IssueResourceAzureMetadataAzureSubscription {
+    /// The Azure subscription display name of the resource associated with the issue.
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+    /// The Azure subscription ID of the resource associated with the issue.
+    #[serde(default)]
+    pub id: ::core::option::Option<String>,
+}
+
+/// Represents a geographical location for a given access.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudSecuritycenterV2Geolocation {
+    /// A CLDR.
+    #[serde(default, rename = "regionCode")]
+    pub region_code: ::core::option::Option<String>,
+}
+
+/// Identity delegation history of an authenticated service account.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudSecuritycenterV2ServiceAccountDelegationInfo {
+    /// The email address of a Google account.
+    #[serde(default, rename = "principalEmail")]
+    pub principal_email: ::core::option::Option<String>,
+    /// A string representing the principal_subject associated with the identity. As compared to principal_email, supports principals that aren''t associated with email addresses, such as third party principals. For most identities, the format will be principal://iam.googleapis.com/{identity pool name}/subjects/{subject} except for some GKE identities (GKE_WORKLOAD, FREEFORM, GKE_HUB_WORKLOAD) that are still in the legacy format serviceAccount:{identity pool name}[{subject}]
+    #[serde(default, rename = "principalSubject")]
+    pub principal_subject: ::core::option::Option<String>,
+}
+
+/// Represents an artifact guard policy.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudSecuritycenterV2ArtifactGuardPolicy {
+    /// The reason for the policy failure, for example, "severity=HIGH AND max_vuln_count=2".
+    #[serde(default, rename = "failureReason")]
+    pub failure_reason: ::core::option::Option<String>,
+    /// The ID of the failing policy, for example, "organizations/3392779/locations/global/policies/prod-policy".
+    #[serde(default, rename = "policyId")]
+    pub policy_id: ::core::option::Option<String>,
+    /// The type of the policy evaluation. // TODO: enum values: ["ARTIFACT_GUARD_POLICY_TYPE_UNSPECIFIED", "VULNERABILITY"]
+    #[serde(default, rename = "type")]
+    pub type_: ::core::option::Option<String>,
+}
+
+/// Information about [Google Cloud Armor Adaptive Protection](https://cloud.google.com/armor/docs/cloud-armor-overview#google-cloud-armor-adaptive-protection).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudSecuritycenterV2AdaptiveProtection {
+    /// A score of 0 means that there is low confidence that the detected event is an actual attack. A score of 1 means that there is high confidence that the detected event is an attack. See the [Adaptive Protection documentation](https://cloud.google.com/armor/docs/adaptive-protection-overview#configure-alert-tuning) for further explanation.
+    #[serde(default)]
+    pub confidence: ::core::option::Option<f64>,
+}
+
+/// Information about DDoS attack volume and classification.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudSecuritycenterV2Attack {
+    /// Type of attack, for example, ''SYN-flood'', ''NTP-udp'', or ''CHARGEN-udp''.
+    #[serde(default)]
+    pub classification: ::core::option::Option<String>,
+    /// Total BPS (bytes per second) volume of attack. Deprecated - refer to volume_bps_long instead.
+    #[serde(default, rename = "volumeBps")]
+    pub volume_bps: ::core::option::Option<i32>,
+    /// Total BPS (bytes per second) volume of attack.
+    #[serde(default, rename = "volumeBpsLong")]
+    pub volume_bps_long: ::core::option::Option<String>,
+    /// Total PPS (packets per second) volume of attack. Deprecated - refer to volume_pps_long instead.
+    #[serde(default, rename = "volumePps")]
+    pub volume_pps: ::core::option::Option<i32>,
+    /// Total PPS (packets per second) volume of attack.
+    #[serde(default, rename = "volumePpsLong")]
+    pub volume_pps_long: ::core::option::Option<String>,
+}
+
+/// Information about the requests relevant to the finding.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudSecuritycenterV2Requests {
+    /// Allowed RPS (requests per second) over the long term.
+    #[serde(default, rename = "longTermAllowed")]
+    pub long_term_allowed: ::core::option::Option<i32>,
+    /// Denied RPS (requests per second) over the long term.
+    #[serde(default, rename = "longTermDenied")]
+    pub long_term_denied: ::core::option::Option<i32>,
+    /// For ''Increasing deny ratio'', the ratio is the denied traffic divided by the allowed traffic. For ''Allowed traffic spike'', the ratio is the allowed traffic in the short term divided by allowed traffic in the long term.
+    #[serde(default)]
+    pub ratio: ::core::option::Option<f64>,
+    /// Allowed RPS (requests per second) in the short term.
+    #[serde(default, rename = "shortTermAllowed")]
+    pub short_term_allowed: ::core::option::Option<i32>,
+}
+
+/// Information about the [Google Cloud Armor security policy](https://cloud.google.com/armor/docs/security-policy-overview) relevant to the finding.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudSecuritycenterV2SecurityPolicy {
+    /// The name of the Google Cloud Armor security policy, for example, "my-security-policy".
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Whether or not the associated rule or policy is in preview mode.
+    #[serde(default)]
+    pub preview: ::core::option::Option<bool>,
+    /// The type of Google Cloud Armor security policy for example, ''backend security policy'', ''edge security policy'', ''network edge security policy'', or ''always-on DDoS protection''.
+    #[serde(default, rename = "type")]
+    pub type_: ::core::option::Option<String>,
+}
+
+/// Type of information detected by the API.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudSecuritycenterV2InfoType {
+    /// Name of the information type. Either a name of your choosing when creating a CustomInfoType, or one of the names listed at https://cloud.google.com/sensitive-data-protection/docs/infotypes-reference when specifying a built-in type. When sending Cloud DLP results to Data Catalog, infoType names should conform to the pattern [A-Za-z0-9$_-]{1,64}.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Optional custom sensitivity for this InfoType. This only applies to data profiling.
+    #[serde(default, rename = "sensitivityScore")]
+    pub sensitivity_score: ::core::option::Option<GoogleCloudSecuritycenterV2SensitivityScore>,
+    /// Optional version name for this InfoType.
+    #[serde(default)]
+    pub version: ::core::option::Option<String>,
+}
+
+/// CloudControl associated with the finding.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudSecuritycenterV2CloudControl {
+    /// Name of the CloudControl associated with the finding.
+    #[serde(default, rename = "cloudControlName")]
+    pub cloud_control_name: ::core::option::Option<String>,
+    /// Policy type of the CloudControl
+    #[serde(default, rename = "policyType")]
+    pub policy_type: ::core::option::Option<String>,
+    /// Type of cloud control. // TODO: enum values: ["CLOUD_CONTROL_TYPE_UNSPECIFIED", "BUILT_IN", "CUSTOM"]
+    #[serde(default, rename = "type")]
+    pub type_: ::core::option::Option<String>,
+    /// Version of the Cloud Control
+    #[serde(default)]
+    pub version: ::core::option::Option<i32>,
+}
+
+/// Compliance framework associated with the finding.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudSecuritycenterV2Framework {
+    /// Category of the framework associated with the finding. E.g. Security Benchmark, or Assured Workloads
+    #[serde(default)]
+    pub category: ::core::option::Option<::std::vec::Vec<String>>,
+    /// The controls associated with the framework.
+    #[serde(default)]
+    pub controls: ::core::option::Option<::std::vec::Vec<GoogleCloudSecuritycenterV2Control>>,
+    /// Display name of the framework. For a standard framework, this will look like e.g. PCI DSS 3.2.1, whereas for a custom framework it can be a user defined string like MyFramework
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+    /// Name of the framework associated with the finding
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Type of the framework associated with the finding, to specify whether the framework is built-in (pre-defined and immutable) or a custom framework defined by the customer (equivalent to security posture) // TODO: enum values: ["FRAMEWORK_TYPE_UNSPECIFIED", "FRAMEWORK_TYPE_BUILT_IN", "FRAMEWORK_TYPE_CUSTOM"]
+    #[serde(default, rename = "type")]
+    pub type_: ::core::option::Option<String>,
+}
+
+/// Resource where data was exfiltrated from or exfiltrated to.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudSecuritycenterV2ExfilResource {
+    /// Subcomponents of the asset that was exfiltrated, like URIs used during exfiltration, table names, databases, and filenames. For example, multiple tables might have been exfiltrated from the same Cloud SQL instance, or multiple files might have been exfiltrated from the same Cloud Storage bucket.
+    #[serde(default)]
+    pub components: ::core::option::Option<::std::vec::Vec<String>>,
+    /// The resource''s [full resource name](https://cloud.google.com/apis/design/resource_names#full_resource_name).
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+}
+
+/// Indicates what signature matched this process.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudSecuritycenterV2ProcessSignature {
+    /// Signature indicating that a binary family was matched.
+    #[serde(default, rename = "memoryHashSignature")]
+    pub memory_hash_signature:
+        ::core::option::Option<GoogleCloudSecuritycenterV2MemoryHashSignature>,
+    /// Describes the type of resource associated with the signature. // TODO: enum values: ["SIGNATURE_TYPE_UNSPECIFIED", "SIGNATURE_TYPE_PROCESS", "SIGNATURE_TYPE_FILE"]
+    #[serde(default, rename = "signatureType")]
+    pub signature_type: ::core::option::Option<String>,
+    /// Signature indicating that a YARA rule was matched.
+    #[serde(default, rename = "yaraRuleSignature")]
+    pub yara_rule_signature: ::core::option::Option<GoogleCloudSecuritycenterV2YaraRuleSignature>,
+}
+
+/// Allowed IP rule.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudSecuritycenterV2Allowed {
+    /// Optional. Optional list of allowed IP rules.
+    #[serde(default, rename = "ipRules")]
+    pub ip_rules: ::core::option::Option<::std::vec::Vec<GoogleCloudSecuritycenterV2IpRule>>,
+}
+
+/// Denied IP rule.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudSecuritycenterV2Denied {
+    /// Optional. Optional list of denied IP rules.
+    #[serde(default, rename = "ipRules")]
+    pub ip_rules: ::core::option::Option<::std::vec::Vec<GoogleCloudSecuritycenterV2IpRule>>,
+}
+
+/// Conveys information about a Kubernetes access review (such as one returned by a [kubectl auth can-i](https://kubernetes.io/docs/reference/access-authn-authz/authorization/#checking-api-access) command) that was involved in a finding.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudSecuritycenterV2AccessReview {
+    /// The API group of the resource. "*" means all.
+    #[serde(default)]
+    pub group: ::core::option::Option<String>,
+    /// The name of the resource being requested. Empty means all.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Namespace of the action being requested. Currently, there is no distinction between no namespace and all namespaces. Both are represented by "" (empty).
+    #[serde(default)]
+    pub ns: ::core::option::Option<String>,
+    /// The optional resource type requested. "*" means all.
+    #[serde(default)]
+    pub resource: ::core::option::Option<String>,
+    /// The optional subresource type.
+    #[serde(default)]
+    pub subresource: ::core::option::Option<String>,
+    /// A Kubernetes resource API verb, like get, list, watch, create, update, delete, proxy. "*" means all.
+    #[serde(default)]
+    pub verb: ::core::option::Option<String>,
+    /// The API version of the resource. "*" means all.
+    #[serde(default)]
+    pub version: ::core::option::Option<String>,
+}
+
+/// Represents a Kubernetes RoleBinding or ClusterRoleBinding.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudSecuritycenterV2Binding {
+    /// Name for the binding.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Namespace for the binding.
+    #[serde(default)]
+    pub ns: ::core::option::Option<String>,
+    /// The Role or ClusterRole referenced by the binding.
+    #[serde(default)]
+    pub role: ::core::option::Option<GoogleCloudSecuritycenterV2Role>,
+    /// Represents one or more subjects that are bound to the role. Not always available for PATCH requests.
+    #[serde(default)]
+    pub subjects: ::core::option::Option<::std::vec::Vec<GoogleCloudSecuritycenterV2Subject>>,
+}
+
+/// Provides GKE node pool information.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudSecuritycenterV2NodePool {
+    /// Kubernetes node pool name.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Nodes associated with the finding.
+    #[serde(default)]
+    pub nodes: ::core::option::Option<::std::vec::Vec<GoogleCloudSecuritycenterV2Node>>,
+}
+
+/// Kubernetes object related to the finding, uniquely identified by GKNN. Used if the object Kind is not one of Pod, Node, NodePool, Binding, or AccessReview.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudSecuritycenterV2Object {
+    /// Pod containers associated with this finding, if any.
+    #[serde(default)]
+    pub containers: ::core::option::Option<::std::vec::Vec<GoogleCloudSecuritycenterV2Container>>,
+    /// Kubernetes object group, such as "policy.k8s.io/v1".
+    #[serde(default)]
+    pub group: ::core::option::Option<String>,
+    /// Kubernetes object kind, such as "Namespace".
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+    /// Kubernetes object name. For details see https://kubernetes.io/docs/concepts/overview/working-with-objects/names/.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Kubernetes object namespace. Must be a valid DNS label. Named "ns" to avoid collision with C++ namespace keyword. For details see https://kubernetes.io/docs/tasks/administer-cluster/namespaces/.
+    #[serde(default)]
+    pub ns: ::core::option::Option<String>,
+}
+
+/// A Kubernetes Pod.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudSecuritycenterV2Pod {
+    /// Pod containers associated with this finding, if any.
+    #[serde(default)]
+    pub containers: ::core::option::Option<::std::vec::Vec<GoogleCloudSecuritycenterV2Container>>,
+    /// Pod labels. For Kubernetes containers, these are applied to the container.
+    #[serde(default)]
+    pub labels: ::core::option::Option<::std::vec::Vec<GoogleCloudSecuritycenterV2Label>>,
+    /// Kubernetes Pod name.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Kubernetes Pod namespace.
+    #[serde(default)]
+    pub ns: ::core::option::Option<String>,
+}
+
+/// Metadata taken from a [Cloud Logging LogEntry](https://cloud.google.com/logging/docs/reference/v2/rest/v2/LogEntry)
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudSecuritycenterV2CloudLoggingEntry {
+    /// A unique identifier for the log entry.
+    #[serde(default, rename = "insertId")]
+    pub insert_id: ::core::option::Option<String>,
+    /// The type of the log (part of log_name. log_name is the resource name of the log to which this log entry belongs). For example: cloudresourcemanager.googleapis.com/activity Note that this field is not URL-encoded, unlike in LogEntry.
+    #[serde(default, rename = "logId")]
+    pub log_id: ::core::option::Option<String>,
+    /// The organization, folder, or project of the monitored resource that produced this log entry.
+    #[serde(default, rename = "resourceContainer")]
+    pub resource_container: ::core::option::Option<String>,
+    /// The time the event described by the log entry occurred.
+    #[serde(default)]
+    pub timestamp: ::core::option::Option<String>,
+}
+
+/// The record of a dynamic mute rule that matches the finding.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudSecuritycenterV2DynamicMuteRecord {
+    /// When the dynamic mute rule first matched the finding.
+    #[serde(default, rename = "matchTime")]
+    pub match_time: ::core::option::Option<String>,
+    /// The relative resource name of the mute rule, represented by a mute config, that created this record, for example organizations/123/muteConfigs/mymuteconfig or organizations/123/locations/global/muteConfigs/mymuteconfig.
+    #[serde(default, rename = "muteConfig")]
+    pub mute_config: ::core::option::Option<String>,
+}
+
+/// Information about the static mute state. A static mute state overrides any dynamic mute rules that apply to this finding. The static mute state can be set by a static mute rule or by muting the finding directly.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudSecuritycenterV2StaticMute {
+    /// When the static mute was applied.
+    #[serde(default, rename = "applyTime")]
+    pub apply_time: ::core::option::Option<String>,
+    /// The static mute state. If the value is MUTED or UNMUTED, then the finding''s overall mute state will have the same value. // TODO: enum values: ["MUTE_UNSPECIFIED", "MUTED", "UNMUTED", "UNDEFINED"]
+    #[serde(default)]
+    pub state: ::core::option::Option<String>,
+}
+
+/// File information about the related binary/library used by an executable, or the script used by a script interpreter
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudSecuritycenterV2File {
+    /// Prefix of the file contents as a JSON-encoded string.
+    #[serde(default)]
+    pub contents: ::core::option::Option<String>,
+    /// Path of the file in terms of underlying disk/partition identifiers.
+    #[serde(default, rename = "diskPath")]
+    pub disk_path: ::core::option::Option<GoogleCloudSecuritycenterV2DiskPath>,
+    /// The load state of the file. // TODO: enum values: ["FILE_LOAD_STATE_UNSPECIFIED", "LOADED_BY_PROCESS", "NOT_LOADED_BY_PROCESS"]
+    #[serde(default, rename = "fileLoadState")]
+    pub file_load_state: ::core::option::Option<String>,
+    /// The length in bytes of the file prefix that was hashed. If hashed_size == size, any hashes reported represent the entire file.
+    #[serde(default, rename = "hashedSize")]
+    pub hashed_size: ::core::option::Option<String>,
+    /// Operation(s) performed on a file.
+    #[serde(default)]
+    pub operations:
+        ::core::option::Option<::std::vec::Vec<GoogleCloudSecuritycenterV2FileOperation>>,
+    /// True when the hash covers only a prefix of the file.
+    #[serde(default, rename = "partiallyHashed")]
+    pub partially_hashed: ::core::option::Option<bool>,
+    /// Absolute path of the file as a JSON encoded string.
+    #[serde(default)]
+    pub path: ::core::option::Option<String>,
+    /// SHA256 hash of the first hashed_size bytes of the file encoded as a hex string. If hashed_size == size, sha256 represents the SHA256 hash of the entire file.
+    #[serde(default)]
+    pub sha256: ::core::option::Option<String>,
+    /// Size of the file in bytes.
+    #[serde(default)]
+    pub size: ::core::option::Option<String>,
+}
+
+/// A name-value pair representing an environment variable used in an operating system process.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudSecuritycenterV2EnvironmentVariable {
+    /// Environment variable name as a JSON encoded string.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Environment variable value as a JSON encoded string.
+    #[serde(default)]
+    pub val: ::core::option::Option<String>,
+}
+
+/// Environment variable containing the secret.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudSecuritycenterV2SecretEnvironmentVariable {
+    /// Environment variable name as a JSON encoded string. Note that value is not included since the value contains the secret data, which is sensitive core content.
+    #[serde(default)]
+    pub key: ::core::option::Option<String>,
+}
+
+/// File path containing the secret.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudSecuritycenterV2SecretFilePath {
+    /// Path to the file.
+    #[serde(default)]
+    pub path: ::core::option::Option<String>,
+}
+
+/// The status of the secret.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudSecuritycenterV2SecretStatus {
+    /// Time that the secret was found.
+    #[serde(default, rename = "lastUpdatedTime")]
+    pub last_updated_time: ::core::option::Option<String>,
+    /// The validity of the secret. // TODO: enum values: ["SECRET_VALIDITY_UNSPECIFIED", "SECRET_VALIDITY_UNSUPPORTED", "SECRET_VALIDITY_FAILED", "SECRET_VALIDITY_INVALID", "SECRET_VALIDITY_VALID"]
+    #[serde(default)]
+    pub validity: ::core::option::Option<String>,
+}
+
+/// The policy field that violates the deployed posture and its expected and detected values.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudSecuritycenterV2PolicyDriftDetails {
+    /// The detected value that violates the deployed posture, for example, false or allowed_values={"projects/22831892"}.
+    #[serde(default, rename = "detectedValue")]
+    pub detected_value: ::core::option::Option<String>,
+    /// The value of this field that was configured in a posture, for example, true or allowed_values={"projects/29831892"}.
+    #[serde(default, rename = "expectedValue")]
+    pub expected_value: ::core::option::Option<String>,
+    /// The name of the updated field, for example constraint.implementation.policy_rules[0].enforce
+    #[serde(default)]
+    pub field: ::core::option::Option<String>,
+}
+
+/// Vertex AI dataset associated with the finding.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudSecuritycenterV2Dataset {
+    /// The user defined display name of dataset, e.g. plants-dataset
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+    /// Resource name of the dataset, e.g. projects/{project}/locations/{location}/datasets/2094040236064505856
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Data source, such as a BigQuery source URI, e.g. bq://scc-nexus-test.AIPPtest.gsod
+    #[serde(default)]
+    pub source: ::core::option::Option<String>,
+}
+
+/// Vertex AI training pipeline associated with the finding.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudSecuritycenterV2Pipeline {
+    /// The user-defined display name of pipeline, e.g. plants-classification
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+    /// Resource name of the pipeline, e.g. projects/{project}/locations/{location}/trainingPipelines/5253428229225578496
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+}
+
+/// CVE stands for Common Vulnerabilities and Exposures. Information from the [CVE record](https://www.cve.org/ResourcesSupport/Glossary) that describes this vulnerability.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudSecuritycenterV2Cve {
+    /// Describe Common Vulnerability Scoring System specified at https://www.first.org/cvss/v3.1/specification-document
+    #[serde(default)]
+    pub cvssv3: ::core::option::Option<GoogleCloudSecuritycenterV2Cvssv3>,
+    /// Date the first publicly available exploit or PoC was released.
+    #[serde(default, rename = "exploitReleaseDate")]
+    pub exploit_release_date: ::core::option::Option<String>,
+    /// The exploitation activity of the vulnerability in the wild. // TODO: enum values: ["EXPLOITATION_ACTIVITY_UNSPECIFIED", "WIDE", "CONFIRMED", "AVAILABLE", "ANTICIPATED", "NO_KNOWN"]
+    #[serde(default, rename = "exploitationActivity")]
+    pub exploitation_activity: ::core::option::Option<String>,
+    /// Date of the earliest known exploitation.
+    #[serde(default, rename = "firstExploitationDate")]
+    pub first_exploitation_date: ::core::option::Option<String>,
+    /// The unique identifier for the vulnerability. e.g. CVE-2021-34527
+    #[serde(default)]
+    pub id: ::core::option::Option<String>,
+    /// The potential impact of the vulnerability if it was to be exploited. // TODO: enum values: ["RISK_RATING_UNSPECIFIED", "LOW", "MEDIUM", "HIGH", "CRITICAL"]
+    #[serde(default)]
+    pub impact: ::core::option::Option<String>,
+    /// Whether or not the vulnerability has been observed in the wild.
+    #[serde(default, rename = "observedInTheWild")]
+    pub observed_in_the_wild: ::core::option::Option<bool>,
+    /// Additional information about the CVE. e.g. https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2021-34527
+    #[serde(default)]
+    pub references: ::core::option::Option<::std::vec::Vec<GoogleCloudSecuritycenterV2Reference>>,
+    /// Whether upstream fix is available for the CVE.
+    #[serde(default, rename = "upstreamFixAvailable")]
+    pub upstream_fix_available: ::core::option::Option<bool>,
+    /// Whether or not the vulnerability was zero day when the finding was published.
+    #[serde(default, rename = "zeroDay")]
+    pub zero_day: ::core::option::Option<bool>,
+}
+
+/// CWE stands for Common Weakness Enumeration. Information about this weakness, as described by [CWE](https://cwe.mitre.org/).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudSecuritycenterV2Cwe {
+    /// The CWE identifier, e.g. CWE-94
+    #[serde(default)]
+    pub id: ::core::option::Option<String>,
+    /// Any reference to the details on the CWE, for example, https://cwe.mitre.org/data/definitions/94.html
+    #[serde(default)]
+    pub references: ::core::option::Option<::std::vec::Vec<GoogleCloudSecuritycenterV2Reference>>,
+}
+
+/// Package is a generic definition of a package.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudSecuritycenterV2Package {
+    /// The CPE URI where the vulnerability was detected.
+    #[serde(default, rename = "cpeUri")]
+    pub cpe_uri: ::core::option::Option<String>,
+    /// The name of the package where the vulnerability was detected.
+    #[serde(default, rename = "packageName")]
+    pub package_name: ::core::option::Option<String>,
+    /// Type of package, for example, os, maven, or go.
+    #[serde(default, rename = "packageType")]
+    pub package_type: ::core::option::Option<String>,
+    /// The version of the package.
+    #[serde(default, rename = "packageVersion")]
+    pub package_version: ::core::option::Option<String>,
+}
+
+/// SecurityBulletin are notifications of vulnerabilities of Google products.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudSecuritycenterV2SecurityBulletin {
+    /// ID of the bulletin corresponding to the vulnerability.
+    #[serde(default, rename = "bulletinId")]
+    pub bulletin_id: ::core::option::Option<String>,
+    /// Submission time of this Security Bulletin.
+    #[serde(default, rename = "submissionTime")]
+    pub submission_time: ::core::option::Option<String>,
+    /// This represents a version that the cluster receiving this notification should be upgraded to, based on its current version. For example, 1.15.0
+    #[serde(default, rename = "suggestedUpgradeVersion")]
+    pub suggested_upgrade_version: ::core::option::Option<String>,
+}
+
+/// Consumer provided attributes for the application
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudSecuritycenterV2ResourceApplicationAttributes {
+    /// Business team that ensures user needs are met and value is delivered
+    #[serde(default, rename = "businessOwners")]
+    pub business_owners: ::core::option::Option<
+        ::std::vec::Vec<GoogleCloudSecuritycenterV2ResourceApplicationAttributesContactInfo>,
+    >,
+    /// User-defined criticality information.
+    #[serde(default)]
+    pub criticality:
+        ::core::option::Option<GoogleCloudSecuritycenterV2ResourceApplicationAttributesCriticality>,
+    /// Developer team that owns development and coding.
+    #[serde(default, rename = "developerOwners")]
+    pub developer_owners: ::core::option::Option<
+        ::std::vec::Vec<GoogleCloudSecuritycenterV2ResourceApplicationAttributesContactInfo>,
+    >,
+    /// User-defined environment information.
+    #[serde(default)]
+    pub environment:
+        ::core::option::Option<GoogleCloudSecuritycenterV2ResourceApplicationAttributesEnvironment>,
+    /// Operator team that ensures runtime and operations.
+    #[serde(default, rename = "operatorOwners")]
+    pub operator_owners: ::core::option::Option<
+        ::std::vec::Vec<GoogleCloudSecuritycenterV2ResourceApplicationAttributesContactInfo>,
+    >,
+}
+
+/// An AWS account that is a member of an organization.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudSecuritycenterV2AwsAccount {
+    /// The unique identifier (ID) of the account, containing exactly 12 digits.
+    #[serde(default)]
+    pub id: ::core::option::Option<String>,
+    /// The friendly name of this account.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+}
+
+/// An organization is a collection of accounts that are centrally managed together using consolidated billing, organized hierarchically with organizational units (OUs), and controlled with policies.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudSecuritycenterV2AwsOrganization {
+    /// The unique identifier (ID) for the organization. The regex pattern for an organization ID string requires "o-" followed by from 10 to 32 lowercase letters or digits.
+    #[serde(default)]
+    pub id: ::core::option::Option<String>,
+}
+
+/// An Organizational Unit (OU) is a container of AWS accounts within a root of an organization. Policies that are attached to an OU apply to all accounts contained in that OU and in any child OUs.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudSecuritycenterV2AwsOrganizationalUnit {
+    /// The unique identifier (ID) associated with this OU. The regex pattern for an organizational unit ID string requires "ou-" followed by from 4 to 32 lowercase letters or digits (the ID of the root that contains the OU). This string is followed by a second "-" dash and from 8 to 32 additional lowercase letters or digits. For example, "ou-ab12-cd34ef56".
+    #[serde(default)]
+    pub id: ::core::option::Option<String>,
+    /// The friendly name of the OU.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+}
+
+/// Represents an Azure management group.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudSecuritycenterV2AzureManagementGroup {
+    /// The display name of the Azure management group.
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+    /// The UUID of the Azure management group, for example, 20000000-0001-0000-0000-000000000000.
+    #[serde(default)]
+    pub id: ::core::option::Option<String>,
+}
+
+/// Represents an Azure resource group.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudSecuritycenterV2AzureResourceGroup {
+    /// The ID of the Azure resource group.
+    #[serde(default)]
+    pub id: ::core::option::Option<String>,
+    /// The name of the Azure resource group. This is not a UUID.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+}
+
+/// Represents an Azure subscription.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudSecuritycenterV2AzureSubscription {
+    /// The display name of the Azure subscription.
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+    /// The UUID of the Azure subscription, for example, 291bba3f-e0a5-47bc-a099-3bdcb2a50a05.
+    #[serde(default)]
+    pub id: ::core::option::Option<String>,
+}
+
+/// Represents a Microsoft Entra tenant.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudSecuritycenterV2AzureTenant {
+    /// The display name of the Azure tenant.
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+    /// The ID of the Microsoft Entra tenant, for example, "a11aaa11-aa11-1aa1-11aa-1aaa11a".
+    #[serde(default)]
+    pub id: ::core::option::Option<String>,
+}
+
+/// Message that contains the resource name and display name of a folder resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudSecuritycenterV2Folder {
+    /// Full resource name of this folder. See: https://cloud.google.com/apis/design/resource_names#full_resource_name
+    #[serde(default, rename = "resourceFolder")]
+    pub resource_folder: ::core::option::Option<String>,
+    /// The user defined display name for this folder.
+    #[serde(default, rename = "resourceFolderDisplayName")]
+    pub resource_folder_display_name: ::core::option::Option<String>,
+}
+
+/// A node within the resource path. Each node represents a resource within the resource hierarchy.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudSecuritycenterV2ResourcePathNode {
+    /// The display name of the resource this node represents.
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+    /// The ID of the resource this node represents.
+    #[serde(default)]
+    pub id: ::core::option::Option<String>,
+    /// The type of resource this node represents. // TODO: enum values: ["RESOURCE_PATH_NODE_TYPE_UNSPECIFIED", "GCP_ORGANIZATION", "GCP_FOLDER", "GCP_PROJECT", "AWS_ORGANIZATION", "AWS_ORGANIZATIONAL_UNIT", "AWS_ACCOUNT", "AZURE_MANAGEMENT_GROUP", "AZURE_SUBSCRIPTION", "AZURE_RESOURCE_GROUP"]
+    #[serde(default, rename = "nodeType")]
+    pub node_type: ::core::option::Option<String>,
+}
+
+/// Cloud IAM Policy information associated with the Google Cloud resource described by the Security Command Center asset. This information is managed and defined by the Google Cloud resource and cannot be modified by the user.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct IamPolicy {
+    /// The JSON representation of the Policy associated with the asset. See https://cloud.google.com/iam/reference/rest/v1/Policy for format details.
+    #[serde(default, rename = "policyBlob")]
+    pub policy_blob: ::core::option::Option<String>,
+}
+
+/// Security Command Center managed properties. These properties are managed by Security Command Center and cannot be modified by the user.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SecurityCenterProperties {
+    /// Contains a Folder message for each folder in the assets ancestry. The first folder is the deepest nested folder, and the last folder is the folder directly under the Organization.
+    #[serde(default)]
+    pub folders: ::core::option::Option<::std::vec::Vec<Folder>>,
+    /// The user defined display name for this resource.
+    #[serde(default, rename = "resourceDisplayName")]
+    pub resource_display_name: ::core::option::Option<String>,
+    /// The full resource name of the Google Cloud resource this asset represents. This field is immutable after create time. See: https://cloud.google.com/apis/design/resource_names#full_resource_name
+    #[serde(default, rename = "resourceName")]
+    pub resource_name: ::core::option::Option<String>,
+    /// Owners of the Google Cloud resource.
+    #[serde(default, rename = "resourceOwners")]
+    pub resource_owners: ::core::option::Option<::std::vec::Vec<String>>,
+    /// The full resource name of the immediate parent of the resource. See: https://cloud.google.com/apis/design/resource_names#full_resource_name
+    #[serde(default, rename = "resourceParent")]
+    pub resource_parent: ::core::option::Option<String>,
+    /// The user defined display name for the parent of this resource.
+    #[serde(default, rename = "resourceParentDisplayName")]
+    pub resource_parent_display_name: ::core::option::Option<String>,
+    /// The full resource name of the project the resource belongs to. See: https://cloud.google.com/apis/design/resource_names#full_resource_name
+    #[serde(default, rename = "resourceProject")]
+    pub resource_project: ::core::option::Option<String>,
+    /// The user defined display name for the project of this resource.
+    #[serde(default, rename = "resourceProjectDisplayName")]
+    pub resource_project_display_name: ::core::option::Option<String>,
+    /// The type of the Google Cloud resource. Examples include: APPLICATION, PROJECT, and ORGANIZATION. This is a case insensitive field defined by Security Command Center and/or the producer of the resource and is immutable after create time.
+    #[serde(default, rename = "resourceType")]
+    pub resource_type: ::core::option::Option<String>,
+}
+
+/// A finding that is associated with this node in the attack path.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PathNodeAssociatedFinding {
+    /// Canonical name of the associated findings. Example: organizations/123/sources/456/findings/789
+    #[serde(default, rename = "canonicalFinding")]
+    pub canonical_finding: ::core::option::Option<String>,
+    /// The additional taxonomy group within findings from a given source.
+    #[serde(default, rename = "findingCategory")]
+    pub finding_category: ::core::option::Option<String>,
+    /// Full resource name of the finding.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+}
+
+/// Detailed steps the attack can take between path nodes.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AttackStepNode {
+    /// Attack step description
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+    /// User friendly name of the attack step
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+    /// Attack step labels for metadata
+    #[serde(default)]
+    pub labels: ::core::option::Option<serde_json::Value>,
+    /// Attack step type. Can be either AND, OR or DEFENSE // TODO: enum values: ["NODE_TYPE_UNSPECIFIED", "NODE_TYPE_AND", "NODE_TYPE_OR", "NODE_TYPE_DEFENSE", "NODE_TYPE_ATTACKER"]
+    #[serde(default, rename = "type")]
+    pub type_: ::core::option::Option<String>,
+    /// Unique ID for one Node
+    #[serde(default)]
+    pub uuid: ::core::option::Option<String>,
+}
+
+/// Represents an ADC application associated with the finding.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AdcApplication {
+    /// Consumer provided attributes for the AppHub application.
+    #[serde(default)]
+    pub attributes:
+        ::core::option::Option<GoogleCloudSecuritycenterV1ResourceApplicationAttributes>,
+    /// The resource name of an ADC Application. Format: projects/{project}/locations/{location}/spaces/{space}/applications/{application}
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+}
+
+/// Represents an ADC template associated with the finding.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AdcApplicationTemplateRevision {
+    /// The resource name of an ADC Application Template Revision. Format: projects/{project}/locations/{location}/spaces/{space}/applicationTemplates/{application_template}/revisions/{revision}
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+}
+
+/// Represents an ADC shared template associated with the finding.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AdcSharedTemplateRevision {
+    /// The resource name of an ADC Shared Template Revision. Format: projects/{project}/locations/{location}/spaces/{space}/applicationTemplates/{application_template}/revisions/{revision}
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+}
+
+/// The App Hub Application associated with the finding''s resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudSecuritycenterV1ResourceApplication {
+    /// Consumer provided attributes for the application
+    #[serde(default)]
+    pub attributes:
+        ::core::option::Option<GoogleCloudSecuritycenterV1ResourceApplicationAttributes>,
+    /// The resource name of an Application. Format: projects/{host-project-id}/locations/{location}/applications/{application-id}
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+}
+
+/// AWS metadata associated with the resource, only applicable if the finding''s cloud provider is Amazon Web Services.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AwsMetadata {
+    /// The AWS account associated with the resource.
+    #[serde(default)]
+    pub account: ::core::option::Option<AwsAccount>,
+    /// The AWS organization associated with the resource.
+    #[serde(default)]
+    pub organization: ::core::option::Option<AwsOrganization>,
+    /// A list of AWS organizational units associated with the resource, ordered from lowest level (closest to the account) to highest level.
+    #[serde(default, rename = "organizationalUnits")]
+    pub organizational_units: ::core::option::Option<::std::vec::Vec<AwsOrganizationalUnit>>,
+}
+
+/// Azure metadata associated with the resource, only applicable if the finding''s cloud provider is Microsoft Azure.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AzureMetadata {
+    /// A list of Azure management groups associated with the resource, ordered from lowest level (closest to the subscription) to highest level.
+    #[serde(default, rename = "managementGroups")]
+    pub management_groups: ::core::option::Option<::std::vec::Vec<AzureManagementGroup>>,
+    /// The Azure resource group associated with the resource.
+    #[serde(default, rename = "resourceGroup")]
+    pub resource_group: ::core::option::Option<AzureResourceGroup>,
+    /// The Azure subscription associated with the resource.
+    #[serde(default)]
+    pub subscription: ::core::option::Option<AzureSubscription>,
+    /// The Azure Entra tenant associated with the resource.
+    #[serde(default)]
+    pub tenant: ::core::option::Option<AzureTenant>,
+}
+
+/// Represents the path of resources leading up to the resource this finding is about.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ResourcePath {
+    /// The list of nodes that make the up resource path, ordered from lowest level to highest level.
+    #[serde(default)]
+    pub nodes: ::core::option::Option<::std::vec::Vec<ResourcePathNode>>,
+}
+
+/// A set of optional name-value pairs that define custom source properties to return with each finding that is generated by the custom module. The custom source properties that are defined here are included in the finding JSON under sourceProperties.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudSecuritycenterV1CustomOutputSpec {
+    /// A list of custom output properties to add to the finding.
+    #[serde(default)]
+    pub properties: ::core::option::Option<::std::vec::Vec<GoogleCloudSecuritycenterV1Property>>,
+}
+
+/// Resource for selecting resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudSecuritycenterV1ResourceSelector {
+    /// The resource types to run the detector on.
+    #[serde(default, rename = "resourceTypes")]
+    pub resource_types: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// Specifies the audit configuration for a service. The configuration determines which permission types are logged, and what identities, if any, are exempted from logging. An AuditConfig must have one or more AuditLogConfigs. If there are AuditConfigs for both allServices and a specific service, the union of the two AuditConfigs is used for that service: the log_types specified in each AuditConfig are enabled, and the exempted_members in each AuditLogConfig are exempted. Example Policy with multiple AuditConfigs: { "audit_configs": [ { "service": "allServices", "audit_log_configs": [ { "log_type": "DATA_READ", "exempted_members": [ "user:jose@example.com" ] }, { "log_type": "DATA_WRITE" }, { "log_type": "ADMIN_READ" } ] }, { "service": "sampleservice.googleapis.com", "audit_log_configs": [ { "log_type": "DATA_READ" }, { "log_type": "DATA_WRITE", "exempted_members": [ "user:aliya@example.com" ] } ] } ] } For sampleservice, this policy enables DATA_READ, DATA_WRITE and ADMIN_READ logging. It also exempts jose@example.com from DATA_READ logging, and aliya@example.com from DATA_WRITE logging.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AuditConfig {
+    /// The configuration for logging of each type of permission.
+    #[serde(default, rename = "auditLogConfigs")]
+    pub audit_log_configs: ::core::option::Option<::std::vec::Vec<AuditLogConfig>>,
+    /// Specifies a service that will be enabled for audit logging. For example, storage.googleapis.com, cloudsql.googleapis.com. allServices is a special value that covers all services.
+    #[serde(default)]
+    pub service: ::core::option::Option<String>,
+}
+
+/// Associates members, or principals, with a role.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Binding {
+    /// The condition that is associated with this binding. If the condition evaluates to true, then this binding applies to the current request. If the condition evaluates to false, then this binding does not apply to the current request. However, a different role binding might grant the same role to one or more of the principals in this binding. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies).
+    #[serde(default)]
+    pub condition: ::core::option::Option<Expr>,
+    /// Specifies the principals requesting access for a Google Cloud resource. members can have the following values: * allUsers: A special identifier that represents anyone who is on the internet; with or without a Google account. * allAuthenticatedUsers: A special identifier that represents anyone who is authenticated with a Google account or a service account. Does not include identities that come from external identity providers (IdPs) through identity federation. * user:{emailid}: An email address that represents a specific Google account. For example, alice@example.com . * serviceAccount:{emailid}: An email address that represents a Google service account. For example, my-other-app@appspot.gserviceaccount.com. * serviceAccount:{projectid}.svc.id.goog[{namespace}/{kubernetes-sa}]: An identifier for a [Kubernetes service account](https://cloud.google.com/kubernetes-engine/docs/how-to/kubernetes-service-accounts). For example, my-project.svc.id.goog[my-namespace/my-kubernetes-sa]. * group:{emailid}: An email address that represents a Google group. For example, admins@example.com. * domain:{domain}: The G Suite domain (primary) that represents all the users of that domain. For example, google.com or example.com. * principal://iam.googleapis.com/locations/global/workforcePools/{pool_id}/subject/{subject_attribute_value}: A single identity in a workforce identity pool. * principalSet://iam.googleapis.com/locations/global/workforcePools/{pool_id}/group/{group_id}: All workforce identities in a group. * principalSet://iam.googleapis.com/locations/global/workforcePools/{pool_id}/attribute.{attribute_name}/{attribute_value}: All workforce identities with a specific attribute value. * principalSet://iam.googleapis.com/locations/global/workforcePools/{pool_id}/*: All identities in a workforce identity pool. * principal://iam.googleapis.com/projects/{project_number}/locations/global/workloadIdentityPools/{pool_id}/subject/{subject_attribute_value}: A single identity in a workload identity pool. * principalSet://iam.googleapis.com/projects/{project_number}/locations/global/workloadIdentityPools/{pool_id}/group/{group_id}: A workload identity pool group. * principalSet://iam.googleapis.com/projects/{project_number}/locations/global/workloadIdentityPools/{pool_id}/attribute.{attribute_name}/{attribute_value}: All identities in a workload identity pool with a certain attribute. * principalSet://iam.googleapis.com/projects/{project_number}/locations/global/workloadIdentityPools/{pool_id}/*: All identities in a workload identity pool. * deleted:user:{emailid}?uid={uniqueid}: An email address (plus unique identifier) representing a user that has been recently deleted. For example, alice@example.com?uid=123456789012345678901. If the user is recovered, this value reverts to user:{emailid} and the recovered user retains the role in the binding. * deleted:serviceAccount:{emailid}?uid={uniqueid}: An email address (plus unique identifier) representing a service account that has been recently deleted. For example, my-other-app@appspot.gserviceaccount.com?uid=123456789012345678901. If the service account is undeleted, this value reverts to serviceAccount:{emailid} and the undeleted service account retains the role in the binding. * deleted:group:{emailid}?uid={uniqueid}: An email address (plus unique identifier) representing a Google group that has been recently deleted. For example, admins@example.com?uid=123456789012345678901. If the group is recovered, this value reverts to group:{emailid} and the recovered group retains the role in the binding. * deleted:principal://iam.googleapis.com/locations/global/workforcePools/{pool_id}/subject/{subject_attribute_value}: Deleted single identity in a workforce identity pool. For example, deleted:principal://iam.googleapis.com/locations/global/workforcePools/my-pool-id/subject/my-subject-attribute-value.
+    #[serde(default)]
+    pub members: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Role that is assigned to the list of members, or principals. For example, roles/viewer, roles/editor, or roles/owner. For an overview of the IAM roles and permissions, see the [IAM documentation](https://cloud.google.com/iam/docs/roles-overview). For a list of the available pre-defined roles, see [here](https://cloud.google.com/iam/docs/understanding-roles).
+    #[serde(default)]
+    pub role: ::core::option::Option<String>,
+}
+
+/// Represents an access event.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Access {
+    /// Caller''s IP address, such as "1.1.1.1".
+    #[serde(default, rename = "callerIp")]
+    pub caller_ip: ::core::option::Option<String>,
+    /// The caller IP''s geolocation, which identifies where the call came from.
+    #[serde(default, rename = "callerIpGeo")]
+    pub caller_ip_geo: ::core::option::Option<Geolocation>,
+    /// The method that the service account called, e.g. "SetIamPolicy".
+    #[serde(default, rename = "methodName")]
+    pub method_name: ::core::option::Option<String>,
+    /// Associated email, such as "foo@google.com". The email address of the authenticated user or a service account acting on behalf of a third party principal making the request. For third party identity callers, the principal_subject field is populated instead of this field. For privacy reasons, the principal email address is sometimes redacted. For more information, see [Caller identities in audit logs](https://cloud.google.com/logging/docs/audit#user-id).
+    #[serde(default, rename = "principalEmail")]
+    pub principal_email: ::core::option::Option<String>,
+    /// A string that represents the principal_subject that is associated with the identity. Unlike principal_email, principal_subject supports principals that aren''t associated with email addresses, such as third party principals. For most identities, the format is principal://iam.googleapis.com/{identity pool name}/subject/{subject}. Some GKE identities, such as GKE_WORKLOAD, FREEFORM, and GKE_HUB_WORKLOAD, still use the legacy format serviceAccount:{identity pool name}[{subject}].
+    #[serde(default, rename = "principalSubject")]
+    pub principal_subject: ::core::option::Option<String>,
+    /// The identity delegation history of an authenticated service account that made the request. The serviceAccountDelegationInfo[] object contains information about the real authorities that try to access Google Cloud resources by delegating on a service account. When multiple authorities are present, they are guaranteed to be sorted based on the original ordering of the identity delegation events.
+    #[serde(default, rename = "serviceAccountDelegationInfo")]
+    pub service_account_delegation_info:
+        ::core::option::Option<::std::vec::Vec<ServiceAccountDelegationInfo>>,
+    /// The name of the service account key that was used to create or exchange credentials when authenticating the service account that made the request. This is a scheme-less URI full resource name. For example: "//iam.googleapis.com/projects/{PROJECT_ID}/serviceAccounts/{ACCOUNT}/keys/{key}".
+    #[serde(default, rename = "serviceAccountKeyName")]
+    pub service_account_key_name: ::core::option::Option<String>,
+    /// This is the API service that the service account made a call to, e.g. "iam.googleapis.com"
+    #[serde(default, rename = "serviceName")]
+    pub service_name: ::core::option::Option<String>,
+    /// The caller''s user agent string associated with the finding.
+    #[serde(default, rename = "userAgent")]
+    pub user_agent: ::core::option::Option<String>,
+    /// Type of user agent associated with the finding. For example, an operating system shell or an embedded or standalone application.
+    #[serde(default, rename = "userAgentFamily")]
+    pub user_agent_family: ::core::option::Option<String>,
+    /// A string that represents a username. The username provided depends on the type of the finding and is likely not an IAM principal. For example, this can be a system username if the finding is related to a virtual machine, or it can be an application login username.
+    #[serde(default, rename = "userName")]
+    pub user_name: ::core::option::Option<String>,
+}
+
+/// Details about resources affected by this finding.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AffectedResources {
+    /// The count of resources affected by the finding.
+    #[serde(default)]
+    pub count: ::core::option::Option<String>,
+}
+
+/// Details about a data access attempt made by an agent principal not authorized under applicable data security policy.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AgentDataAccessEvent {
+    /// Unique identifier for data access event.
+    #[serde(default, rename = "eventId")]
+    pub event_id: ::core::option::Option<String>,
+    /// Timestamp of data access event.
+    #[serde(default, rename = "eventTime")]
+    pub event_time: ::core::option::Option<String>,
+    /// The operation performed by the principal to access the data. // TODO: enum values: ["OPERATION_UNSPECIFIED", "READ", "MOVE", "COPY"]
+    #[serde(default)]
+    pub operation: ::core::option::Option<String>,
+    /// The agent principal that accessed the data.
+    #[serde(default, rename = "principalSubject")]
+    pub principal_subject: ::core::option::Option<String>,
+}
+
+/// Contains information about the AI model associated with the finding.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AiModel {
+    /// The platform on which the model is deployed. // TODO: enum values: ["DEPLOYMENT_PLATFORM_UNSPECIFIED", "VERTEX_AI", "GKE", "GCE", "FINE_TUNED_MODEL"]
+    #[serde(default, rename = "deploymentPlatform")]
+    pub deployment_platform: ::core::option::Option<String>,
+    /// The user defined display name of model. Ex. baseline-classification-model
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+    /// The domain of the model, for example, “image-classification”.
+    #[serde(default)]
+    pub domain: ::core::option::Option<String>,
+    /// The name of the model library, for example, “transformers”.
+    #[serde(default)]
+    pub library: ::core::option::Option<String>,
+    /// The region in which the model is used, for example, “us-central1”.
+    #[serde(default)]
+    pub location: ::core::option::Option<String>,
+    /// The name of the AI model, for example, "gemini:1.0.0".
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// The publisher of the model, for example, “google” or “nvidia”.
+    #[serde(default)]
+    pub publisher: ::core::option::Option<String>,
+    /// The purpose of the model, for example, "Inteference" or "Training".
+    #[serde(default, rename = "usageCategory")]
+    pub usage_category: ::core::option::Option<String>,
+}
+
+/// Represents an application associated with a finding.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Application {
+    /// The base URI that identifies the network location of the application in which the vulnerability was detected. For example, http://example.com.
+    #[serde(default, rename = "baseUri")]
+    pub base_uri: ::core::option::Option<String>,
+    /// The full URI with payload that can be used to reproduce the vulnerability. For example, http://example.com?p=aMmYgI6H.
+    #[serde(default, rename = "fullUri")]
+    pub full_uri: ::core::option::Option<String>,
+}
+
+/// Represents the result of evaluating artifact guard policies.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ArtifactGuardPolicies {
+    /// A list of failing policies.
+    #[serde(default, rename = "failingPolicies")]
+    pub failing_policies: ::core::option::Option<::std::vec::Vec<ArtifactGuardPolicy>>,
+    /// The ID of the resource that has policies configured for it.
+    #[serde(default, rename = "resourceId")]
+    pub resource_id: ::core::option::Option<String>,
+}
+
+/// An attack exposure contains the results of an attack path simulation run.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AttackExposure {
+    /// The resource name of the attack path simulation result that contains the details regarding this attack exposure score. Example: organizations/123/simulations/456/attackExposureResults/789
+    #[serde(default, rename = "attackExposureResult")]
+    pub attack_exposure_result: ::core::option::Option<String>,
+    /// The number of high value resources that are exposed as a result of this finding.
+    #[serde(default, rename = "exposedHighValueResourcesCount")]
+    pub exposed_high_value_resources_count: ::core::option::Option<i32>,
+    /// The number of high value resources that are exposed as a result of this finding.
+    #[serde(default, rename = "exposedLowValueResourcesCount")]
+    pub exposed_low_value_resources_count: ::core::option::Option<i32>,
+    /// The number of medium value resources that are exposed as a result of this finding.
+    #[serde(default, rename = "exposedMediumValueResourcesCount")]
+    pub exposed_medium_value_resources_count: ::core::option::Option<i32>,
+    /// The most recent time the attack exposure was updated on this finding.
+    #[serde(default, rename = "latestCalculationTime")]
+    pub latest_calculation_time: ::core::option::Option<String>,
+    /// A number between 0 (inclusive) and infinity that represents how important this finding is to remediate. The higher the score, the more important it is to remediate.
+    #[serde(default)]
+    pub score: ::core::option::Option<f64>,
+    /// What state this AttackExposure is in. This captures whether or not an attack exposure has been calculated or not. // TODO: enum values: ["STATE_UNSPECIFIED", "CALCULATED", "NOT_CALCULATED"]
+    #[serde(default)]
+    pub state: ::core::option::Option<String>,
+}
+
+/// Information related to Google Cloud Backup and DR Service findings.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BackupDisasterRecovery {
+    /// The name of the Backup and DR appliance that captures, moves, and manages the lifecycle of backup data. For example, backup-server-57137.
+    #[serde(default)]
+    pub appliance: ::core::option::Option<String>,
+    /// The names of Backup and DR applications. An application is a VM, database, or file system on a managed host monitored by a backup and recovery appliance. For example, centos7-01-vol00, centos7-01-vol01, centos7-01-vol02.
+    #[serde(default)]
+    pub applications: ::core::option::Option<::std::vec::Vec<String>>,
+    /// The timestamp at which the Backup and DR backup was created.
+    #[serde(default, rename = "backupCreateTime")]
+    pub backup_create_time: ::core::option::Option<String>,
+    /// The name of a Backup and DR template which comprises one or more backup policies. See the [Backup and DR documentation](https://cloud.google.com/backup-disaster-recovery/docs/concepts/backup-plan#temp) for more information. For example, snap-ov.
+    #[serde(default, rename = "backupTemplate")]
+    pub backup_template: ::core::option::Option<String>,
+    /// The backup type of the Backup and DR image. For example, Snapshot, Remote Snapshot, OnVault.
+    #[serde(default, rename = "backupType")]
+    pub backup_type: ::core::option::Option<String>,
+    /// The name of a Backup and DR host, which is managed by the backup and recovery appliance and known to the management console. The host can be of type Generic (for example, Compute Engine, SQL Server, Oracle DB, SMB file system, etc.), vCenter, or an ESX server. See the [Backup and DR documentation on hosts](https://cloud.google.com/backup-disaster-recovery/docs/configuration/manage-hosts-and-their-applications) for more information. For example, centos7-01.
+    #[serde(default)]
+    pub host: ::core::option::Option<String>,
+    /// The names of Backup and DR policies that are associated with a template and that define when to run a backup, how frequently to run a backup, and how long to retain the backup image. For example, onvaults.
+    #[serde(default)]
+    pub policies: ::core::option::Option<::std::vec::Vec<String>>,
+    /// The names of Backup and DR advanced policy options of a policy applying to an application. See the [Backup and DR documentation on policy options](https://cloud.google.com/backup-disaster-recovery/docs/create-plan/policy-settings). For example, skipofflineappsincongrp, nounmap.
+    #[serde(default, rename = "policyOptions")]
+    pub policy_options: ::core::option::Option<::std::vec::Vec<String>>,
+    /// The name of the Backup and DR resource profile that specifies the storage media for backups of application and VM data. See the [Backup and DR documentation on profiles](https://cloud.google.com/backup-disaster-recovery/docs/concepts/backup-plan#profile). For example, GCP.
+    #[serde(default)]
+    pub profile: ::core::option::Option<String>,
+    /// The name of the Backup and DR storage pool that the backup and recovery appliance is storing data in. The storage pool could be of type Cloud, Primary, Snapshot, or OnVault. See the [Backup and DR documentation on storage pools](https://cloud.google.com/backup-disaster-recovery/docs/concepts/storage-pools). For example, DiskPoolOne.
+    #[serde(default, rename = "storagePool")]
+    pub storage_pool: ::core::option::Option<String>,
+}
+
+/// Contains details about a chokepoint, which is a resource or resource group where high-risk attack paths converge, based on [attack path simulations] (https://cloud.google.com/security-command-center/docs/attack-exposure-learn#attack_path_simulations).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Chokepoint {
+    /// List of resource names of findings associated with this chokepoint. For example, organizations/123/sources/456/findings/789. This list will have at most 100 findings.
+    #[serde(default, rename = "relatedFindings")]
+    pub related_findings: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// Fields related to Google Cloud Armor findings.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CloudArmor {
+    /// Information about potential Layer 7 DDoS attacks identified by [Google Cloud Armor Adaptive Protection](https://cloud.google.com/armor/docs/adaptive-protection-overview).
+    #[serde(default, rename = "adaptiveProtection")]
+    pub adaptive_protection: ::core::option::Option<AdaptiveProtection>,
+    /// Information about DDoS attack volume and classification.
+    #[serde(default)]
+    pub attack: ::core::option::Option<Attack>,
+    /// Duration of attack from the start until the current moment (updated every 5 minutes).
+    #[serde(default)]
+    pub duration: ::core::option::Option<String>,
+    /// Information about incoming requests evaluated by [Google Cloud Armor security policies](https://cloud.google.com/armor/docs/security-policy-overview).
+    #[serde(default)]
+    pub requests: ::core::option::Option<Requests>,
+    /// Information about the [Google Cloud Armor security policy](https://cloud.google.com/armor/docs/security-policy-overview) relevant to the finding.
+    #[serde(default, rename = "securityPolicy")]
+    pub security_policy: ::core::option::Option<SecurityPolicy>,
+    /// Distinguish between volumetric & protocol DDoS attack and application layer attacks. For example, "L3_4" for Layer 3 and Layer 4 DDoS attacks, or "L_7" for Layer 7 DDoS attacks.
+    #[serde(default, rename = "threatVector")]
+    pub threat_vector: ::core::option::Option<String>,
+}
+
+/// The [data profile](https://cloud.google.com/dlp/docs/data-profiles) associated with the finding.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CloudDlpDataProfile {
+    /// Name of the data profile, for example, projects/123/locations/europe/tableProfiles/8383929.
+    #[serde(default, rename = "dataProfile")]
+    pub data_profile: ::core::option::Option<String>,
+    /// Type of information detected by SDP. Info type includes name, version and sensitivity of the detected information type.
+    #[serde(default, rename = "infoTypes")]
+    pub info_types: ::core::option::Option<::std::vec::Vec<InfoType>>,
+    /// The resource hierarchy level at which the data profile was generated. // TODO: enum values: ["PARENT_TYPE_UNSPECIFIED", "ORGANIZATION", "PROJECT"]
+    #[serde(default, rename = "parentType")]
+    pub parent_type: ::core::option::Option<String>,
+}
+
+/// Details about the Cloud Data Loss Prevention (Cloud DLP) [inspection job](https://cloud.google.com/dlp/docs/concepts-job-triggers) that produced the finding.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CloudDlpInspection {
+    /// Whether Cloud DLP scanned the complete resource or a sampled subset.
+    #[serde(default, rename = "fullScan")]
+    pub full_scan: ::core::option::Option<bool>,
+    /// The type of information (or *[infoType](https://cloud.google.com/dlp/docs/infotypes-reference)*) found, for example, EMAIL_ADDRESS or STREET_ADDRESS.
+    #[serde(default, rename = "infoType")]
+    pub info_type: ::core::option::Option<String>,
+    /// The number of times Cloud DLP found this infoType within this job and resource.
+    #[serde(default, rename = "infoTypeCount")]
+    pub info_type_count: ::core::option::Option<String>,
+    /// Name of the inspection job, for example, projects/123/locations/europe/dlpJobs/i-8383929.
+    #[serde(default, rename = "inspectJob")]
+    pub inspect_job: ::core::option::Option<String>,
+}
+
+/// Compliance Details associated with the finding.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ComplianceDetails {
+    /// CloudControl associated with the finding
+    #[serde(default, rename = "cloudControl")]
+    pub cloud_control: ::core::option::Option<CloudControl>,
+    /// Cloud Control Deployments associated with the finding. For example, organizations/123/locations/global/cloudControlDeployments/deploymentIdentifier
+    #[serde(default, rename = "cloudControlDeploymentNames")]
+    pub cloud_control_deployment_names: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Details of Frameworks associated with the finding
+    #[serde(default)]
+    pub frameworks: ::core::option::Option<::std::vec::Vec<Framework>>,
+}
+
+/// Contains compliance information about a security standard indicating unmet recommendations.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Compliance {
+    /// Policies within the standard or benchmark, for example, A.12.4.1
+    #[serde(default)]
+    pub ids: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Industry-wide compliance standards or benchmarks, such as CIS, PCI, and OWASP.
+    #[serde(default)]
+    pub standard: ::core::option::Option<String>,
+    /// Version of the standard or benchmark, for example, 1.1
+    #[serde(default)]
+    pub version: ::core::option::Option<String>,
+}
+
+/// Contains information about the IP connection associated with the finding.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Connection {
+    /// Destination IP address. Not present for sockets that are listening and not connected.
+    #[serde(default, rename = "destinationIp")]
+    pub destination_ip: ::core::option::Option<String>,
+    /// Destination port. Not present for sockets that are listening and not connected.
+    #[serde(default, rename = "destinationPort")]
+    pub destination_port: ::core::option::Option<i32>,
+    /// IANA Internet Protocol Number such as TCP(6) and UDP(17). // TODO: enum values: ["PROTOCOL_UNSPECIFIED", "ICMP", "TCP", "UDP", "GRE", "ESP"]
+    #[serde(default)]
+    pub protocol: ::core::option::Option<String>,
+    /// Source IP address.
+    #[serde(default, rename = "sourceIp")]
+    pub source_ip: ::core::option::Option<String>,
+    /// Source port.
+    #[serde(default, rename = "sourcePort")]
+    pub source_port: ::core::option::Option<i32>,
+}
+
+/// Details about a data access attempt made by a principal not authorized under applicable data security policy.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DataAccessEvent {
+    /// Unique identifier for data access event.
+    #[serde(default, rename = "eventId")]
+    pub event_id: ::core::option::Option<String>,
+    /// Timestamp of data access event.
+    #[serde(default, rename = "eventTime")]
+    pub event_time: ::core::option::Option<String>,
+    /// The operation performed by the principal to access the data. // TODO: enum values: ["OPERATION_UNSPECIFIED", "READ", "MOVE", "COPY"]
+    #[serde(default)]
+    pub operation: ::core::option::Option<String>,
+    /// The email address of the principal that accessed the data. The principal could be a user account, service account, Google group, or other.
+    #[serde(default, rename = "principalEmail")]
+    pub principal_email: ::core::option::Option<String>,
+}
+
+/// Details about a data flow event, in which either the data is moved to or is accessed from a non-compliant geo-location, as defined in the applicable data security policy.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DataFlowEvent {
+    /// Unique identifier for data flow event.
+    #[serde(default, rename = "eventId")]
+    pub event_id: ::core::option::Option<String>,
+    /// Timestamp of data flow event.
+    #[serde(default, rename = "eventTime")]
+    pub event_time: ::core::option::Option<String>,
+    /// The operation performed by the principal for the data flow event. // TODO: enum values: ["OPERATION_UNSPECIFIED", "READ", "MOVE", "COPY"]
+    #[serde(default)]
+    pub operation: ::core::option::Option<String>,
+    /// The email address of the principal that initiated the data flow event. The principal could be a user account, service account, Google group, or other.
+    #[serde(default, rename = "principalEmail")]
+    pub principal_email: ::core::option::Option<String>,
+    /// Non-compliant location of the principal or the data destination.
+    #[serde(default, rename = "violatedLocation")]
+    pub violated_location: ::core::option::Option<String>,
+}
+
+/// Details about data retention deletion violations, in which the data is non-compliant based on their retention or deletion time, as defined in the applicable data security policy. The Data Retention Deletion (DRD) control is a control of the DSPM (Data Security Posture Management) suite that enables organizations to manage data retention and deletion policies in compliance with regulations, such as GDPR and CRPA. DRD supports two primary policy types: maximum storage length (max TTL) and minimum storage length (min TTL). Both are aimed at helping organizations meet regulatory and data management commitments.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DataRetentionDeletionEvent {
+    /// Number of objects that violated the policy for this resource. If the number is less than 1,000, then the value of this field is the exact number. If the number of objects that violated the policy is greater than or equal to 1,000, then the value of this field is 1000.
+    #[serde(default, rename = "dataObjectCount")]
+    pub data_object_count: ::core::option::Option<String>,
+    /// Timestamp indicating when the event was detected.
+    #[serde(default, rename = "eventDetectionTime")]
+    pub event_detection_time: ::core::option::Option<String>,
+    /// Type of the DRD event. // TODO: enum values: ["EVENT_TYPE_UNSPECIFIED", "EVENT_TYPE_MAX_TTL_EXCEEDED", "EVENT_TYPE_MAX_TTL_FROM_CREATION", "EVENT_TYPE_MAX_TTL_FROM_LAST_MODIFICATION", "EVENT_TYPE_MIN_TTL_FROM_CREATION"]
+    #[serde(default, rename = "eventType")]
+    pub event_type: ::core::option::Option<String>,
+    /// Maximum duration of retention allowed from the DRD control. This comes from the DRD control where users set a max TTL for their data. For example, suppose that a user sets the max TTL for a Cloud Storage bucket to 90 days. However, an object in that bucket is 100 days old. In this case, a DataRetentionDeletionEvent will be generated for that Cloud Storage bucket, and the max_retention_allowed is 90 days.
+    #[serde(default, rename = "maxRetentionAllowed")]
+    pub max_retention_allowed: ::core::option::Option<String>,
+    /// Min duration of retention allowed from the DSPM retention control. This field is only populated when event type is set to EVENT_TYPE_MIN_TTL_FROM_CREATION.
+    #[serde(default, rename = "minRetentionAllowed")]
+    pub min_retention_allowed: ::core::option::Option<String>,
+}
+
+/// Represents database access information, such as queries. A database may be a sub-resource of an instance (as in the case of Cloud SQL instances or Cloud Spanner instances), or the database instance itself. Some database resources might not have the [full resource name](https://google.aip.dev/122#full-resource-names) populated because these resource types, such as Cloud SQL databases, are not yet supported by Cloud Asset Inventory. In these cases only the display name is provided.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Database {
+    /// The human-readable name of the database that the user connected to.
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+    /// The target usernames, roles, or groups of an SQL privilege grant, which is not an IAM policy change.
+    #[serde(default)]
+    pub grantees: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Some database resources may not have the [full resource name](https://google.aip.dev/122#full-resource-names) populated because these resource types are not yet supported by Cloud Asset Inventory (e.g. Cloud SQL databases). In these cases only the display name will be provided. The [full resource name](https://google.aip.dev/122#full-resource-names) of the database that the user connected to, if it is supported by Cloud Asset Inventory.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// The SQL statement that is associated with the database access.
+    #[serde(default)]
+    pub query: ::core::option::Option<String>,
+    /// The username used to connect to the database. The username might not be an IAM principal and does not have a set format.
+    #[serde(default, rename = "userName")]
+    pub user_name: ::core::option::Option<String>,
+    /// The version of the database, for example, POSTGRES_14. See [the complete list](https://cloud.google.com/sql/docs/mysql/admin-api/rest/v1/SqlDatabaseVersion).
+    #[serde(default)]
+    pub version: ::core::option::Option<String>,
+}
+
+/// Represents discovered, customer managed workload that is not registered with the respective GCP service.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DiscoveredWorkload {
+    /// The confidence in detection of this workload. // TODO: enum values: ["CONFIDENCE_UNSPECIFIED", "CONFIDENCE_HIGH"]
+    #[serde(default)]
+    pub confidence: ::core::option::Option<String>,
+    /// A boolean flag set to true if associated hardware strongly predicts the workload type.
+    #[serde(default, rename = "detectedRelevantHardware")]
+    pub detected_relevant_hardware: ::core::option::Option<bool>,
+    /// A boolean flag set to true if associated keywords strongly predict the workload type.
+    #[serde(default, rename = "detectedRelevantKeywords")]
+    pub detected_relevant_keywords: ::core::option::Option<bool>,
+    /// A boolean flag set to true if installed packages strongly predict the workload type.
+    #[serde(default, rename = "detectedRelevantPackages")]
+    pub detected_relevant_packages: ::core::option::Option<bool>,
+    /// The type of workload. // TODO: enum values: ["WORKLOAD_TYPE_UNSPECIFIED", "MCP_SERVER", "AI_INFERENCE", "AGENT"]
+    #[serde(default, rename = "workloadType")]
+    pub workload_type: ::core::option::Option<String>,
+}
+
+/// Contains information about the disk associated with the finding.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Disk {
+    /// The name of the disk, for example, "https://www.googleapis.com/compute/v1/projects/{project-id}/zones/{zone-id}/disks/{disk-id}".
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+}
+
+/// Exfiltration represents a data exfiltration attempt from one or more sources to one or more targets. The sources attribute lists the sources of the exfiltrated data. The targets attribute lists the destinations the data was copied to.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Exfiltration {
+    /// If there are multiple sources, then the data is considered "joined" between them. For instance, BigQuery can join multiple tables, and each table would be considered a source.
+    #[serde(default)]
+    pub sources: ::core::option::Option<::std::vec::Vec<ExfilResource>>,
+    /// If there are multiple targets, each target would get a complete copy of the "joined" source data.
+    #[serde(default)]
+    pub targets: ::core::option::Option<::std::vec::Vec<ExfilResource>>,
+    /// Total exfiltrated bytes processed for the entire job.
+    #[serde(default, rename = "totalExfiltratedBytes")]
+    pub total_exfiltrated_bytes: ::core::option::Option<String>,
+}
+
+/// Details about the externally exposed resource associated with the finding.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ExternalExposure {
+    /// The full resource name of load balancer backend service, for example, "//compute.googleapis.com/projects/{project-id}/global/backendServices/{name}".
+    #[serde(default, rename = "backendService")]
+    pub backend_service: ::core::option::Option<String>,
+    /// The resource which is running the exposed service, for example, "//compute.googleapis.com/projects/{project-id}/zones/{zone}/instances/{instance}.”
+    #[serde(default, rename = "exposedEndpoint")]
+    pub exposed_endpoint: ::core::option::Option<String>,
+    /// The name and version of the service, for example, "Jupyter Notebook 6.14.0".
+    #[serde(default, rename = "exposedService")]
+    pub exposed_service: ::core::option::Option<String>,
+    /// The full resource name of the forwarding rule, for example, "//compute.googleapis.com/projects/{project-id}/global/forwardingRules/{forwarding-rule-name}".
+    #[serde(default, rename = "forwardingRule")]
+    pub forwarding_rule: ::core::option::Option<String>,
+    /// The full resource name of the instance group, for example, "//compute.googleapis.com/projects/{project-id}/global/instanceGroups/{name}".
+    #[serde(default, rename = "instanceGroup")]
+    pub instance_group: ::core::option::Option<String>,
+    /// The full resource name of the load balancer firewall policy, for example, "//compute.googleapis.com/projects/{project-id}/global/firewallPolicies/{policy-name}".
+    #[serde(default, rename = "loadBalancerFirewallPolicy")]
+    pub load_balancer_firewall_policy: ::core::option::Option<String>,
+    /// The full resource name of the network endpoint group, for example, "//compute.googleapis.com/projects/{project-id}/global/networkEndpointGroups/{name}".
+    #[serde(default, rename = "networkEndpointGroup")]
+    pub network_endpoint_group: ::core::option::Option<String>,
+    /// Private IP address of the exposed endpoint.
+    #[serde(default, rename = "privateIpAddress")]
+    pub private_ip_address: ::core::option::Option<String>,
+    /// Port number associated with private IP address.
+    #[serde(default, rename = "privatePort")]
+    pub private_port: ::core::option::Option<String>,
+    /// Public IP address of the exposed endpoint.
+    #[serde(default, rename = "publicIpAddress")]
+    pub public_ip_address: ::core::option::Option<String>,
+    /// Public port number of the exposed endpoint.
+    #[serde(default, rename = "publicPort")]
+    pub public_port: ::core::option::Option<String>,
+    /// The full resource name of the firewall policy of the exposed service, for example, "//compute.googleapis.com/projects/{project-id}/global/firewallPolicies/{policy-name}".
+    #[serde(default, rename = "serviceFirewallPolicy")]
+    pub service_firewall_policy: ::core::option::Option<String>,
 }
 
 /// Contains details about groups of which this finding is a member. A group is a collection of findings that are related in some way.
@@ -4768,17 +4647,6 @@ pub struct GroupMembership {
     /// Type of group. // TODO: enum values: ["GROUP_TYPE_UNSPECIFIED", "GROUP_TYPE_TOXIC_COMBINATION", "GROUP_TYPE_CHOKEPOINT"]
     #[serde(default, rename = "groupType")]
     pub group_type: ::core::option::Option<String>,
-}
-
-/// Result containing the properties and count of a groupBy request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GroupResult {
-    /// Total count of resources for the given properties.
-    #[serde(default)]
-    pub count: ::core::option::Option<String>,
-    /// Properties matching the groupBy fields in the request.
-    #[serde(default)]
-    pub properties: ::core::option::Option<serde_json::Value>,
 }
 
 /// Represents a particular IAM binding, which captures a member''s role addition, removal, or state.
@@ -4793,14 +4661,6 @@ pub struct IamBinding {
     /// Role that is assigned to "members". For example, "roles/viewer", "roles/editor", or "roles/owner".
     #[serde(default)]
     pub role: ::core::option::Option<String>,
-}
-
-/// Cloud IAM Policy information associated with the Google Cloud resource described by the Security Command Center asset. This information is managed and defined by the Google Cloud resource and cannot be modified by the user.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct IamPolicy {
-    /// The JSON representation of the Policy associated with the asset. See https://cloud.google.com/iam/reference/rest/v1/Policy for format details.
-    #[serde(default, rename = "policyBlob")]
-    pub policy_blob: ::core::option::Option<String>,
 }
 
 /// Represents what''s commonly known as an _indicator of compromise_ (IoC) in computer forensics. This is an artifact observed on a network or in an operating system that, with high confidence, indicates a computer intrusion. For more information, see [Indicator of compromise](https://en.wikipedia.org/wiki/Indicator_of_compromise).
@@ -4818,31 +4678,6 @@ pub struct Indicator {
     /// The list of URIs associated to the Findings.
     #[serde(default)]
     pub uris: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// Type of information detected by the API.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct InfoType {
-    /// Name of the information type. Either a name of your choosing when creating a CustomInfoType, or one of the names listed at https://cloud.google.com/sensitive-data-protection/docs/infotypes-reference when specifying a built-in type. When sending Cloud DLP results to Data Catalog, infoType names should conform to the pattern [A-Za-z0-9$_-]{1,64}.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Optional custom sensitivity for this InfoType. This only applies to data profiling.
-    #[serde(default, rename = "sensitivityScore")]
-    pub sensitivity_score: ::core::option::Option<SensitivityScore>,
-    /// Optional version name for this InfoType.
-    #[serde(default)]
-    pub version: ::core::option::Option<String>,
-}
-
-/// IP rule information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct IpRule {
-    /// Optional. An optional list of ports to which this rule applies. This field is only applicable for the UDP or (S)TCP protocols. Each entry must be either an integer or a range including a min and max port number.
-    #[serde(default, rename = "portRanges")]
-    pub port_ranges: ::core::option::Option<::std::vec::Vec<PortRange>>,
-    /// The IP protocol this rule applies to. This value can either be one of the following well known protocol strings (TCP, UDP, ICMP, ESP, AH, IPIP, SCTP) or a string representation of the integer value.
-    #[serde(default)]
-    pub protocol: ::core::option::Option<String>,
 }
 
 /// IP rules associated with the finding.
@@ -4943,248 +4778,6 @@ pub struct Kubernetes {
     pub roles: ::core::option::Option<::std::vec::Vec<Role>>,
 }
 
-/// Represents a generic name-value label. A label has separate name and value fields to support filtering with the contains() function. For more information, see [Filtering on array-type fields](https://cloud.google.com/security-command-center/docs/how-to-api-list-findings#array-contains-filtering).
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Label {
-    /// Name of the label.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Value that corresponds to the label''s name.
-    #[serde(default)]
-    pub value: ::core::option::Option<String>,
-}
-
-/// Response message for listing assets.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ListAssetsResponse {
-    /// Assets matching the list request.
-    #[serde(default, rename = "listAssetsResults")]
-    pub list_assets_results: ::core::option::Option<::std::vec::Vec<ListAssetsResult>>,
-    /// Token to retrieve the next page of results, or empty if there are no more results.
-    #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: ::core::option::Option<String>,
-    /// Time used for executing the list request.
-    #[serde(default, rename = "readTime")]
-    pub read_time: ::core::option::Option<String>,
-    /// The total number of assets matching the query.
-    #[serde(default, rename = "totalSize")]
-    pub total_size: ::core::option::Option<i32>,
-}
-
-/// Result containing the Asset and its State.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ListAssetsResult {
-    /// Asset matching the search request.
-    #[serde(default)]
-    pub asset: ::core::option::Option<Asset>,
-    /// State change of the asset between the points in time. // TODO: enum values: ["UNUSED", "ADDED", "REMOVED", "ACTIVE"]
-    #[serde(default, rename = "stateChange")]
-    pub state_change: ::core::option::Option<String>,
-}
-
-/// Response message for listing the attack paths for a given simulation or valued resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ListAttackPathsResponse {
-    /// The attack paths that the attack path simulation identified.
-    #[serde(default, rename = "attackPaths")]
-    pub attack_paths: ::core::option::Option<::std::vec::Vec<AttackPath>>,
-    /// Token to retrieve the next page of results, or empty if there are no more results.
-    #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: ::core::option::Option<String>,
-}
-
-/// Response message for listing BigQuery exports.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ListBigQueryExportsResponse {
-    /// The BigQuery exports from the specified parent.
-    #[serde(default, rename = "bigQueryExports")]
-    pub big_query_exports:
-        ::core::option::Option<::std::vec::Vec<GoogleCloudSecuritycenterV1BigQueryExport>>,
-    /// A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
-    #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: ::core::option::Option<String>,
-}
-
-/// Response for listing current and descendant resident Event Threat Detection custom modules.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ListDescendantEventThreatDetectionCustomModulesResponse {
-    /// Custom modules belonging to the requested parent.
-    #[serde(default, rename = "eventThreatDetectionCustomModules")]
-    pub event_threat_detection_custom_modules:
-        ::core::option::Option<::std::vec::Vec<EventThreatDetectionCustomModule>>,
-    /// A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
-    #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: ::core::option::Option<String>,
-}
-
-/// Response message for listing descendant Security Health Analytics custom modules.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ListDescendantSecurityHealthAnalyticsCustomModulesResponse {
-    /// If not empty, indicates that there may be more custom modules to be returned.
-    #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: ::core::option::Option<String>,
-    /// Custom modules belonging to the requested parent and its descendants.
-    #[serde(default, rename = "securityHealthAnalyticsCustomModules")]
-    pub security_health_analytics_custom_modules: ::core::option::Option<
-        ::std::vec::Vec<GoogleCloudSecuritycenterV1SecurityHealthAnalyticsCustomModule>,
-    >,
-}
-
-/// Response for listing EffectiveEventThreatDetectionCustomModules.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ListEffectiveEventThreatDetectionCustomModulesResponse {
-    /// Effective custom modules belonging to the requested parent.
-    #[serde(default, rename = "effectiveEventThreatDetectionCustomModules")]
-    pub effective_event_threat_detection_custom_modules:
-        ::core::option::Option<::std::vec::Vec<EffectiveEventThreatDetectionCustomModule>>,
-    /// A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
-    #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: ::core::option::Option<String>,
-}
-
-/// Response message for listing effective Security Health Analytics custom modules.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ListEffectiveSecurityHealthAnalyticsCustomModulesResponse {
-    /// Effective custom modules belonging to the requested parent.
-    #[serde(default, rename = "effectiveSecurityHealthAnalyticsCustomModules")]
-    pub effective_security_health_analytics_custom_modules: ::core::option::Option<
-        ::std::vec::Vec<GoogleCloudSecuritycenterV1EffectiveSecurityHealthAnalyticsCustomModule>,
-    >,
-    /// If not empty, indicates that there may be more effective custom modules to be returned.
-    #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: ::core::option::Option<String>,
-}
-
-/// Response for listing Event Threat Detection custom modules.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ListEventThreatDetectionCustomModulesResponse {
-    /// Custom modules belonging to the requested parent.
-    #[serde(default, rename = "eventThreatDetectionCustomModules")]
-    pub event_threat_detection_custom_modules:
-        ::core::option::Option<::std::vec::Vec<EventThreatDetectionCustomModule>>,
-    /// A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
-    #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: ::core::option::Option<String>,
-}
-
-/// Response message for listing findings.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ListFindingsResponse {
-    /// Findings matching the list request.
-    #[serde(default, rename = "listFindingsResults")]
-    pub list_findings_results: ::core::option::Option<::std::vec::Vec<ListFindingsResult>>,
-    /// Token to retrieve the next page of results, or empty if there are no more results.
-    #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: ::core::option::Option<String>,
-    /// Time used for executing the list request.
-    #[serde(default, rename = "readTime")]
-    pub read_time: ::core::option::Option<String>,
-    /// The total number of findings matching the query.
-    #[serde(default, rename = "totalSize")]
-    pub total_size: ::core::option::Option<i32>,
-}
-
-/// Result containing the Finding and its StateChange.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ListFindingsResult {
-    /// Finding matching the search request.
-    #[serde(default)]
-    pub finding: ::core::option::Option<Finding>,
-    /// Output only. Resource that is associated with this finding.
-    #[serde(default)]
-    pub resource: ::core::option::Option<Resource>,
-    /// State change of the finding between the points in time. // TODO: enum values: ["UNUSED", "CHANGED", "UNCHANGED", "ADDED", "REMOVED"]
-    #[serde(default, rename = "stateChange")]
-    pub state_change: ::core::option::Option<String>,
-}
-
-/// Response message for listing mute configs.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ListMuteConfigsResponse {
-    /// The mute configs from the specified parent.
-    #[serde(default, rename = "muteConfigs")]
-    pub mute_configs:
-        ::core::option::Option<::std::vec::Vec<GoogleCloudSecuritycenterV1MuteConfig>>,
-    /// A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
-    #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: ::core::option::Option<String>,
-}
-
-/// Response message for listing notification configs.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ListNotificationConfigsResponse {
-    /// Token to retrieve the next page of results, or empty if there are no more results.
-    #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: ::core::option::Option<String>,
-    /// Notification configs belonging to the requested parent.
-    #[serde(default, rename = "notificationConfigs")]
-    pub notification_configs: ::core::option::Option<::std::vec::Vec<NotificationConfig>>,
-}
-
-/// The response message for Operations.ListOperations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ListOperationsResponse {
-    /// The standard List next-page token.
-    #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: ::core::option::Option<String>,
-    /// A list of operations that matches the specified filter in the request.
-    #[serde(default)]
-    pub operations: ::core::option::Option<::std::vec::Vec<Operation>>,
-    /// Unordered list. Unreachable resources. Populated when the request sets ListOperationsRequest.return_partial_success and reads across collections. For example, when attempting to list all resources across all supported locations.
-    #[serde(default)]
-    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// Response message to list resource value configs
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ListResourceValueConfigsResponse {
-    /// A token, which can be sent as page_token to retrieve the next page. If this field is empty, there are no subsequent pages.
-    #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: ::core::option::Option<String>,
-    /// The resource value configs from the specified parent.
-    #[serde(default, rename = "resourceValueConfigs")]
-    pub resource_value_configs:
-        ::core::option::Option<::std::vec::Vec<GoogleCloudSecuritycenterV1ResourceValueConfig>>,
-}
-
-/// Response message for listing Security Health Analytics custom modules.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ListSecurityHealthAnalyticsCustomModulesResponse {
-    /// If not empty, indicates that there may be more custom modules to be returned.
-    #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: ::core::option::Option<String>,
-    /// Custom modules belonging to the requested parent.
-    #[serde(default, rename = "securityHealthAnalyticsCustomModules")]
-    pub security_health_analytics_custom_modules: ::core::option::Option<
-        ::std::vec::Vec<GoogleCloudSecuritycenterV1SecurityHealthAnalyticsCustomModule>,
-    >,
-}
-
-/// Response message for listing sources.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ListSourcesResponse {
-    /// Token to retrieve the next page of results, or empty if there are no more results.
-    #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: ::core::option::Option<String>,
-    /// Sources belonging to the requested parent.
-    #[serde(default)]
-    pub sources: ::core::option::Option<::std::vec::Vec<Source>>,
-}
-
-/// Response message for listing the valued resources for a given simulation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ListValuedResourcesResponse {
-    /// Token to retrieve the next page of results, or empty if there are no more results.
-    #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: ::core::option::Option<String>,
-    /// The estimated total number of results matching the query.
-    #[serde(default, rename = "totalSize")]
-    pub total_size: ::core::option::Option<i32>,
-    /// The valued resources that the attack path simulation identified.
-    #[serde(default, rename = "valuedResources")]
-    pub valued_resources: ::core::option::Option<::std::vec::Vec<ValuedResource>>,
-}
-
 /// Contains information related to the load balancer associated with the finding.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct LoadBalancer {
@@ -5199,17 +4792,6 @@ pub struct LogEntry {
     /// An individual entry in a log stored in Cloud Logging.
     #[serde(default, rename = "cloudLoggingEntry")]
     pub cloud_logging_entry: ::core::option::Option<CloudLoggingEntry>,
-}
-
-/// A signature corresponding to memory page hashes.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct MemoryHashSignature {
-    /// The binary family.
-    #[serde(default, rename = "binaryFamily")]
-    pub binary_family: ::core::option::Option<String>,
-    /// The list of memory hash detections contributing to the binary family match.
-    #[serde(default)]
-    pub detections: ::core::option::Option<::std::vec::Vec<Detection>>,
 }
 
 /// MITRE ATT&CK tactics and techniques related to this finding. See: https://attack.mitre.org
@@ -5251,25 +4833,6 @@ pub struct Network {
     pub name: ::core::option::Option<String>,
 }
 
-/// Kubernetes nodes associated with the finding.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Node {
-    /// [Full resource name](https://google.aip.dev/122#full-resource-names) of the Compute Engine VM running the cluster node.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-}
-
-/// Provides GKE node pool information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct NodePool {
-    /// Kubernetes node pool name.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Nodes associated with the finding.
-    #[serde(default)]
-    pub nodes: ::core::option::Option<::std::vec::Vec<Node>>,
-}
-
 /// Represents a Jupyter notebook IPYNB file, such as a [Colab Enterprise notebook](https://cloud.google.com/colab/docs/introduction) file, that is associated with a finding.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Notebook {
@@ -5287,176 +4850,12 @@ pub struct Notebook {
     pub service: ::core::option::Option<String>,
 }
 
-/// Cloud Security Command Center (Cloud SCC) notification configs. A notification config is a Cloud SCC resource that contains the configuration to send notifications for create/update events of findings, assets and etc.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct NotificationConfig {
-    /// The description of the notification config (max of 1024 characters).
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// The relative resource name of this notification config. See: https://cloud.google.com/apis/design/resource_names#relative_resource_name Example: "organizations/{organization_id}/notificationConfigs/notify_public_bucket", "folders/{folder_id}/notificationConfigs/notify_public_bucket", or "projects/{project_id}/notificationConfigs/notify_public_bucket".
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// The Pub/Sub topic to send notifications to. Its format is "projects/[project_id]/topics/[topic]".
-    #[serde(default, rename = "pubsubTopic")]
-    pub pubsub_topic: ::core::option::Option<String>,
-    /// Output only. The service account that needs "pubsub.topics.publish" permission to publish to the Pub/Sub topic.
-    #[serde(default, rename = "serviceAccount")]
-    pub service_account: ::core::option::Option<String>,
-    /// The config for triggering streaming-based notifications.
-    #[serde(default, rename = "streamingConfig")]
-    pub streaming_config: ::core::option::Option<StreamingConfig>,
-}
-
-/// Kubernetes object related to the finding, uniquely identified by GKNN. Used if the object Kind is not one of Pod, Node, NodePool, Binding, or AccessReview.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Object {
-    /// Pod containers associated with this finding, if any.
-    #[serde(default)]
-    pub containers: ::core::option::Option<::std::vec::Vec<Container>>,
-    /// Kubernetes object group, such as "policy.k8s.io/v1".
-    #[serde(default)]
-    pub group: ::core::option::Option<String>,
-    /// Kubernetes object kind, such as "Namespace".
-    #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-    /// Kubernetes object name. For details see https://kubernetes.io/docs/concepts/overview/working-with-objects/names/.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Kubernetes object namespace. Must be a valid DNS label. Named "ns" to avoid collision with C++ namespace keyword. For details see https://kubernetes.io/docs/tasks/administer-cluster/namespaces/.
-    #[serde(default)]
-    pub ns: ::core::option::Option<String>,
-}
-
-/// This resource represents a long-running operation that is the result of a network API call.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Operation {
-    /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
-    #[serde(default)]
-    pub done: ::core::option::Option<bool>,
-    /// The error result of the operation in case of failure or cancellation.
-    #[serde(default)]
-    pub error: ::core::option::Option<Status>,
-    /// Service-specific metadata associated with the operation. It typically contains progress information and common metadata such as create time. Some services might not provide such metadata. Any method that returns a long-running operation should document the metadata type, if any.
-    #[serde(default)]
-    pub metadata: ::core::option::Option<serde_json::Value>,
-    /// The server-assigned name, which is only unique within the same service that originally returns it. If you use the default HTTP mapping, the name should be a resource name ending with operations/{unique_id}.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// The normal, successful response of the operation. If the original method returns no data on success, such as Delete, the response is google.protobuf.Empty. If the original method is standard Get/Create/Update, the response should be the resource. For other methods, the response should have the type XxxResponse, where Xxx is the original method name. For example, if the original method name is TakeSnapshot(), the inferred response type is TakeSnapshotResponse.
-    #[serde(default)]
-    pub response: ::core::option::Option<serde_json::Value>,
-}
-
 /// Contains information about the org policies associated with the finding.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct OrgPolicy {
     /// The resource name of the org policy. Example: "organizations/{organization_id}/policies/{constraint_name}"
     #[serde(default)]
     pub name: ::core::option::Option<String>,
-}
-
-/// User specified settings that are attached to the Security Command Center organization.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct OrganizationSettings {
-    /// The configuration used for Asset Discovery runs.
-    #[serde(default, rename = "assetDiscoveryConfig")]
-    pub asset_discovery_config: ::core::option::Option<AssetDiscoveryConfig>,
-    /// A flag that indicates if Asset Discovery should be enabled. If the flag is set to true, then discovery of assets will occur. If it is set to false, all historical assets will remain, but discovery of future assets will not occur.
-    #[serde(default, rename = "enableAssetDiscovery")]
-    pub enable_asset_discovery: ::core::option::Option<bool>,
-    /// The relative resource name of the settings. See: https://cloud.google.com/apis/design/resource_names#relative_resource_name Example: "organizations/{organization_id}/organizationSettings".
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-}
-
-/// Package is a generic definition of a package.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Package {
-    /// The CPE URI where the vulnerability was detected.
-    #[serde(default, rename = "cpeUri")]
-    pub cpe_uri: ::core::option::Option<String>,
-    /// The name of the package where the vulnerability was detected.
-    #[serde(default, rename = "packageName")]
-    pub package_name: ::core::option::Option<String>,
-    /// Type of package, for example, os, maven, or go.
-    #[serde(default, rename = "packageType")]
-    pub package_type: ::core::option::Option<String>,
-    /// The version of the package.
-    #[serde(default, rename = "packageVersion")]
-    pub package_version: ::core::option::Option<String>,
-}
-
-/// A finding that is associated with this node in the attack path.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PathNodeAssociatedFinding {
-    /// Canonical name of the associated findings. Example: organizations/123/sources/456/findings/789
-    #[serde(default, rename = "canonicalFinding")]
-    pub canonical_finding: ::core::option::Option<String>,
-    /// The additional taxonomy group within findings from a given source.
-    #[serde(default, rename = "findingCategory")]
-    pub finding_category: ::core::option::Option<String>,
-    /// Full resource name of the finding.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-}
-
-/// Vertex AI training pipeline associated with the finding.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Pipeline {
-    /// The user defined display name of pipeline, e.g. plants-classification
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-    /// Resource name of the pipeline, e.g. projects/{project}/locations/{location}/trainingPipelines/5253428229225578496
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-}
-
-/// A Kubernetes Pod.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Pod {
-    /// Pod containers associated with this finding, if any.
-    #[serde(default)]
-    pub containers: ::core::option::Option<::std::vec::Vec<Container>>,
-    /// Pod labels. For Kubernetes containers, these are applied to the container.
-    #[serde(default)]
-    pub labels: ::core::option::Option<::std::vec::Vec<Label>>,
-    /// Kubernetes Pod name.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Kubernetes Pod namespace.
-    #[serde(default)]
-    pub ns: ::core::option::Option<String>,
-}
-
-/// An Identity and Access Management (IAM) policy, which specifies access controls for Google Cloud resources. A Policy is a collection of bindings. A binding binds one or more members, or principals, to a single role. Principals can be user accounts, service accounts, Google groups, and domains (such as G Suite). A role is a named list of permissions; each role can be an IAM predefined role or a user-created custom role. For some types of Google Cloud resources, a binding can also specify a condition, which is a logical expression that allows access to a resource only if the expression evaluates to true. A condition can add constraints based on attributes of the request, the resource, or both. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies). **JSON example:**  { "bindings": [ { "role": "roles/resourcemanager.organizationAdmin", "members": [ "user:mike@example.com", "group:admins@example.com", "domain:google.com", "serviceAccount:my-project-id@appspot.gserviceaccount.com" ] }, { "role": "roles/resourcemanager.organizationViewer", "members": [ "user:eve@example.com" ], "condition": { "title": "expirable access", "description": "Does not grant access after Sep 2020", "expression": "request.time &lt; timestamp(''2020-10-01T00:00:00.000Z'')", } } ], "etag": "BwWWja0YfJA=", "version": 3 }  **YAML example:**  bindings: - members: - user:mike@example.com - group:admins@example.com - domain:google.com - serviceAccount:my-project-id@appspot.gserviceaccount.com role: roles/resourcemanager.organizationAdmin - members: - user:eve@example.com role: roles/resourcemanager.organizationViewer condition: title: expirable access description: Does not grant access after Sep 2020 expression: request.time &lt; timestamp(''2020-10-01T00:00:00.000Z'') etag: BwWWja0YfJA= version: 3  For a description of IAM and its features, see the [IAM documentation](https://cloud.google.com/iam/docs/).
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Policy {
-    /// Specifies cloud audit logging configuration for this policy.
-    #[serde(default, rename = "auditConfigs")]
-    pub audit_configs: ::core::option::Option<::std::vec::Vec<AuditConfig>>,
-    /// Associates a list of members, or principals, with a role. Optionally, may specify a condition that determines how and when the bindings are applied. Each of the bindings must contain at least one principal. The bindings in a Policy can refer to up to 1,500 principals; up to 250 of these principals can be Google groups. Each occurrence of a principal counts towards these limits. For example, if the bindings grant 50 different roles to user:alice@example.com, and not to any other principal, then you can add another 1,450 principals to the bindings in the Policy.
-    #[serde(default)]
-    pub bindings: ::core::option::Option<::std::vec::Vec<Binding>>,
-    /// etag is used for optimistic concurrency control as a way to help prevent simultaneous updates of a policy from overwriting each other. It is strongly suggested that systems make use of the etag in the read-modify-write cycle to perform policy updates in order to avoid race conditions: An etag is returned in the response to getIamPolicy, and systems are expected to put that etag in the request to setIamPolicy to ensure that their change will be applied to the same version of the policy. **Important:** If you use IAM Conditions, you must include the etag field whenever you call setIamPolicy. If you omit this field, then IAM allows you to overwrite a version 3 policy with a version 1 policy, and all of the conditions in the version 3 policy are lost.
-    #[serde(default)]
-    pub etag: ::core::option::Option<String>,
-    /// Specifies the format of the policy. Valid values are 0, 1, and 3. Requests that specify an invalid value are rejected. Any operation that affects conditional role bindings must specify version 3. This requirement applies to the following operations: * Getting a policy that includes a conditional role binding * Adding a conditional role binding to a policy * Changing a conditional role binding in a policy * Removing any role binding, with or without a condition, from a policy that includes conditions **Important:** If you use IAM Conditions, you must include the etag field whenever you call setIamPolicy. If you omit this field, then IAM allows you to overwrite a version 3 policy with a version 1 policy, and all of the conditions in the version 3 policy are lost. If a policy does not include any conditions, operations on that policy may specify any valid version or leave the field unset. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies).
-    #[serde(default)]
-    pub version: ::core::option::Option<i32>,
-}
-
-/// The policy field that violates the deployed posture and its expected and detected values.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PolicyDriftDetails {
-    /// The detected value that violates the deployed posture, for example, false or allowed_values={"projects/22831892"}.
-    #[serde(default, rename = "detectedValue")]
-    pub detected_value: ::core::option::Option<String>,
-    /// The value of this field that was configured in a posture, for example, true or allowed_values={"projects/29831892"}.
-    #[serde(default, rename = "expectedValue")]
-    pub expected_value: ::core::option::Option<String>,
-    /// The name of the updated field, for example constraint.implementation.policy_rules[0].enforce
-    #[serde(default)]
-    pub field: ::core::option::Option<String>,
 }
 
 /// Metadata summarizing policy violations of child resources of the affected resource. finding_category and resource determine the exact semantics of the counts. For example, when category=DATA_SECURITY_POSTURE_OBJECT_PUBLIC_ACCESS_VIOLATION and resource=''storage.googleapis.com/buckets/my-bucket-name'' then this counts the number of Cloud Storage objects in my-bucket-name which violate a Public Access control.
@@ -5474,28 +4873,6 @@ pub struct PolicyViolationSummary {
     /// Count of child resources in violation of the policy.
     #[serde(default, rename = "policyViolationsCount")]
     pub policy_violations_count: ::core::option::Option<String>,
-}
-
-/// A port range which is inclusive of the min and max values. Values are between 0 and 2^16-1. The max can be equal / must be not smaller than the min value. If min and max are equal this indicates that it is a single port.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PortRange {
-    /// Maximum port value.
-    #[serde(default)]
-    pub max: ::core::option::Option<String>,
-    /// Minimum port value.
-    #[serde(default)]
-    pub min: ::core::option::Option<String>,
-}
-
-/// A position in the uploaded text version of a module.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Position {
-    /// The column number.
-    #[serde(default, rename = "columnNumber")]
-    pub column_number: ::core::option::Option<i32>,
-    /// The line number.
-    #[serde(default, rename = "lineNumber")]
-    pub line_number: ::core::option::Option<i32>,
 }
 
 /// Represents an operating system process.
@@ -5536,157 +4913,6 @@ pub struct Process {
     pub user_id: ::core::option::Option<String>,
 }
 
-/// Indicates what signature matched this process.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ProcessSignature {
-    /// Signature indicating that a binary family was matched.
-    #[serde(default, rename = "memoryHashSignature")]
-    pub memory_hash_signature: ::core::option::Option<MemoryHashSignature>,
-    /// Describes the type of resource associated with the signature. // TODO: enum values: ["SIGNATURE_TYPE_UNSPECIFIED", "SIGNATURE_TYPE_PROCESS", "SIGNATURE_TYPE_FILE"]
-    #[serde(default, rename = "signatureType")]
-    pub signature_type: ::core::option::Option<String>,
-    /// Signature indicating that a YARA rule was matched.
-    #[serde(default, rename = "yaraRuleSignature")]
-    pub yara_rule_signature: ::core::option::Option<YaraRuleSignature>,
-}
-
-/// Additional Links
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Reference {
-    /// Source of the reference e.g. NVD
-    #[serde(default)]
-    pub source: ::core::option::Option<String>,
-    /// Uri for the mentioned source e.g. https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2021-34527.
-    #[serde(default)]
-    pub uri: ::core::option::Option<String>,
-}
-
-/// Information about the requests relevant to the finding.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Requests {
-    /// Allowed RPS (requests per second) over the long term.
-    #[serde(default, rename = "longTermAllowed")]
-    pub long_term_allowed: ::core::option::Option<i32>,
-    /// Denied RPS (requests per second) over the long term.
-    #[serde(default, rename = "longTermDenied")]
-    pub long_term_denied: ::core::option::Option<i32>,
-    /// For ''Increasing deny ratio'', the ratio is the denied traffic divided by the allowed traffic. For ''Allowed traffic spike'', the ratio is the allowed traffic in the short term divided by allowed traffic in the long term.
-    #[serde(default)]
-    pub ratio: ::core::option::Option<f64>,
-    /// Allowed RPS (requests per second) in the short term.
-    #[serde(default, rename = "shortTermAllowed")]
-    pub short_term_allowed: ::core::option::Option<i32>,
-}
-
-/// Information related to the Google Cloud resource that is associated with this finding.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Resource {
-    /// The ADC application associated with the finding.
-    #[serde(default, rename = "adcApplication")]
-    pub adc_application: ::core::option::Option<AdcApplication>,
-    /// The ADC template associated with the finding.
-    #[serde(default, rename = "adcApplicationTemplate")]
-    pub adc_application_template: ::core::option::Option<AdcApplicationTemplateRevision>,
-    /// The ADC shared template associated with the finding.
-    #[serde(default, rename = "adcSharedTemplate")]
-    pub adc_shared_template: ::core::option::Option<AdcSharedTemplateRevision>,
-    /// The App Hub application this resource belongs to.
-    #[serde(default)]
-    pub application: ::core::option::Option<GoogleCloudSecuritycenterV1ResourceApplication>,
-    /// The AWS metadata associated with the finding.
-    #[serde(default, rename = "awsMetadata")]
-    pub aws_metadata: ::core::option::Option<AwsMetadata>,
-    /// The Azure metadata associated with the finding.
-    #[serde(default, rename = "azureMetadata")]
-    pub azure_metadata: ::core::option::Option<AzureMetadata>,
-    /// Indicates which cloud provider the finding is from. // TODO: enum values: ["CLOUD_PROVIDER_UNSPECIFIED", "GOOGLE_CLOUD_PLATFORM", "AMAZON_WEB_SERVICES", "MICROSOFT_AZURE"]
-    #[serde(default, rename = "cloudProvider")]
-    pub cloud_provider: ::core::option::Option<String>,
-    /// The human readable name of the resource.
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-    /// Contains a Folder message for each folder in the assets ancestry. The first folder is the deepest nested folder, and the last folder is the folder directly under the Organization.
-    #[serde(default)]
-    pub folders: ::core::option::Option<::std::vec::Vec<Folder>>,
-    /// The region or location of the service (if applicable).
-    #[serde(default)]
-    pub location: ::core::option::Option<String>,
-    /// The full resource name of the resource. See: https://cloud.google.com/apis/design/resource_names#full_resource_name
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Indicates which organization / tenant the finding is for.
-    #[serde(default)]
-    pub organization: ::core::option::Option<String>,
-    /// The human readable name of resource''s parent.
-    #[serde(default, rename = "parentDisplayName")]
-    pub parent_display_name: ::core::option::Option<String>,
-    /// The full resource name of resource''s parent.
-    #[serde(default, rename = "parentName")]
-    pub parent_name: ::core::option::Option<String>,
-    /// The project ID that the resource belongs to.
-    #[serde(default, rename = "projectDisplayName")]
-    pub project_display_name: ::core::option::Option<String>,
-    /// The full resource name of project that the resource belongs to.
-    #[serde(default, rename = "projectName")]
-    pub project_name: ::core::option::Option<String>,
-    /// Provides the path to the resource within the resource hierarchy.
-    #[serde(default, rename = "resourcePath")]
-    pub resource_path: ::core::option::Option<ResourcePath>,
-    /// A string representation of the resource path. For Google Cloud, it has the format of org/{organization_id}/folder/{folder_id}/folder/{folder_id}/project/{project_id} where there can be any number of folders. For AWS, it has the format of org/{organization_id}/ou/{organizational_unit_id}/ou/{organizational_unit_id}/account/{account_id} where there can be any number of organizational units. For Azure, it has the format of mg/{management_group_id}/mg/{management_group_id}/subscription/{subscription_id}/rg/{resource_group_name} where there can be any number of management groups.
-    #[serde(default, rename = "resourcePathString")]
-    pub resource_path_string: ::core::option::Option<String>,
-    /// The service or resource provider associated with the resource.
-    #[serde(default)]
-    pub service: ::core::option::Option<String>,
-    /// The full resource type of the resource.
-    #[serde(default, rename = "type")]
-    pub type_: ::core::option::Option<String>,
-}
-
-/// Represents the path of resources leading up to the resource this finding is about.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ResourcePath {
-    /// The list of nodes that make the up resource path, ordered from lowest level to highest level.
-    #[serde(default)]
-    pub nodes: ::core::option::Option<::std::vec::Vec<ResourcePathNode>>,
-}
-
-/// A node within the resource path. Each node represents a resource within the resource hierarchy.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ResourcePathNode {
-    /// The display name of the resource this node represents.
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-    /// The ID of the resource this node represents.
-    #[serde(default)]
-    pub id: ::core::option::Option<String>,
-    /// The type of resource this node represents. // TODO: enum values: ["RESOURCE_PATH_NODE_TYPE_UNSPECIFIED", "GCP_ORGANIZATION", "GCP_FOLDER", "GCP_PROJECT", "AWS_ORGANIZATION", "AWS_ORGANIZATIONAL_UNIT", "AWS_ACCOUNT", "AZURE_MANAGEMENT_GROUP", "AZURE_SUBSCRIPTION", "AZURE_RESOURCE_GROUP"]
-    #[serde(default, rename = "nodeType")]
-    pub node_type: ::core::option::Option<String>,
-}
-
-/// Metadata about a ResourceValueConfig. For example, id and name.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ResourceValueConfigMetadata {
-    /// Resource value config name
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-}
-
-/// Kubernetes Role or ClusterRole.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Role {
-    /// Role type. // TODO: enum values: ["KIND_UNSPECIFIED", "ROLE", "CLUSTER_ROLE"]
-    #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-    /// Role name.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Role namespace.
-    #[serde(default)]
-    pub ns: ::core::option::Option<String>,
-}
-
 /// Details about a secret or credential associated with the finding.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Secret {
@@ -5704,79 +4930,6 @@ pub struct Secret {
     pub type_: ::core::option::Option<String>,
 }
 
-/// Environment variable containing the secret.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SecretEnvironmentVariable {
-    /// Environment variable name as a JSON encoded string. Note that value is not included since the value contains the secret data, which is sensitive core content.
-    #[serde(default)]
-    pub key: ::core::option::Option<String>,
-}
-
-/// File path containing the secret.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SecretFilePath {
-    /// Path to the file.
-    #[serde(default)]
-    pub path: ::core::option::Option<String>,
-}
-
-/// The status of the secret.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SecretStatus {
-    /// Time that the secret was found.
-    #[serde(default, rename = "lastUpdatedTime")]
-    pub last_updated_time: ::core::option::Option<String>,
-    /// The validity of the secret. // TODO: enum values: ["SECRET_VALIDITY_UNSPECIFIED", "SECRET_VALIDITY_UNSUPPORTED", "SECRET_VALIDITY_FAILED", "SECRET_VALIDITY_INVALID", "SECRET_VALIDITY_VALID"]
-    #[serde(default)]
-    pub validity: ::core::option::Option<String>,
-}
-
-/// SecurityBulletin are notifications of vulnerabilities of Google products.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SecurityBulletin {
-    /// ID of the bulletin corresponding to the vulnerability.
-    #[serde(default, rename = "bulletinId")]
-    pub bulletin_id: ::core::option::Option<String>,
-    /// Submission time of this Security Bulletin.
-    #[serde(default, rename = "submissionTime")]
-    pub submission_time: ::core::option::Option<String>,
-    /// This represents a version that the cluster receiving this notification should be upgraded to, based on its current version. For example, 1.15.0
-    #[serde(default, rename = "suggestedUpgradeVersion")]
-    pub suggested_upgrade_version: ::core::option::Option<String>,
-}
-
-/// Security Command Center managed properties. These properties are managed by Security Command Center and cannot be modified by the user.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SecurityCenterProperties {
-    /// Contains a Folder message for each folder in the assets ancestry. The first folder is the deepest nested folder, and the last folder is the folder directly under the Organization.
-    #[serde(default)]
-    pub folders: ::core::option::Option<::std::vec::Vec<Folder>>,
-    /// The user defined display name for this resource.
-    #[serde(default, rename = "resourceDisplayName")]
-    pub resource_display_name: ::core::option::Option<String>,
-    /// The full resource name of the Google Cloud resource this asset represents. This field is immutable after create time. See: https://cloud.google.com/apis/design/resource_names#full_resource_name
-    #[serde(default, rename = "resourceName")]
-    pub resource_name: ::core::option::Option<String>,
-    /// Owners of the Google Cloud resource.
-    #[serde(default, rename = "resourceOwners")]
-    pub resource_owners: ::core::option::Option<::std::vec::Vec<String>>,
-    /// The full resource name of the immediate parent of the resource. See: https://cloud.google.com/apis/design/resource_names#full_resource_name
-    #[serde(default, rename = "resourceParent")]
-    pub resource_parent: ::core::option::Option<String>,
-    /// The user defined display name for the parent of this resource.
-    #[serde(default, rename = "resourceParentDisplayName")]
-    pub resource_parent_display_name: ::core::option::Option<String>,
-    /// The full resource name of the project the resource belongs to. See: https://cloud.google.com/apis/design/resource_names#full_resource_name
-    #[serde(default, rename = "resourceProject")]
-    pub resource_project: ::core::option::Option<String>,
-    /// The user defined display name for the project of this resource.
-    #[serde(default, rename = "resourceProjectDisplayName")]
-    pub resource_project_display_name: ::core::option::Option<String>,
-    /// The type of the Google Cloud resource. Examples include: APPLICATION, PROJECT, and ORGANIZATION. This is a case insensitive field defined by Security Command Center and/or the producer of the resource and is immutable after create time.
-    #[serde(default, rename = "resourceType")]
-    pub resource_type: ::core::option::Option<String>,
-}
-
 /// User specified security marks that are attached to the parent Security Command Center resource. Security marks are scoped within a Security Command Center organization -- they can be modified and viewed by all users who have proper permissions on the organization.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SecurityMarks {
@@ -5789,20 +4942,6 @@ pub struct SecurityMarks {
     /// The relative resource name of the SecurityMarks. See: https://cloud.google.com/apis/design/resource_names#relative_resource_name Examples: "organizations/{organization_id}/assets/{asset_id}/securityMarks" "organizations/{organization_id}/sources/{source_id}/findings/{finding_id}/securityMarks".
     #[serde(default)]
     pub name: ::core::option::Option<String>,
-}
-
-/// Information about the [Google Cloud Armor security policy](https://cloud.google.com/armor/docs/security-policy-overview) relevant to the finding.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SecurityPolicy {
-    /// The name of the Google Cloud Armor security policy, for example, "my-security-policy".
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Whether or not the associated rule or policy is in preview mode.
-    #[serde(default)]
-    pub preview: ::core::option::Option<bool>,
-    /// The type of Google Cloud Armor security policy for example, ''backend security policy'', ''edge security policy'', ''network edge security policy'', or ''always-on DDoS protection''.
-    #[serde(default, rename = "type")]
-    pub type_: ::core::option::Option<String>,
 }
 
 /// Represents a posture that is deployed on Google Cloud by the Security Command Center Posture Management service. A posture contains one or more policy sets. A policy set is a group of policies that enforce a set of security rules on Google Cloud.
@@ -5834,223 +4973,6 @@ pub struct SecurityPosture {
     pub revision_id: ::core::option::Option<String>,
 }
 
-/// Score is calculated from of all elements in the data profile. A higher level means the data is more sensitive.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SensitivityScore {
-    /// The sensitivity score applied to the resource. // TODO: enum values: ["SENSITIVITY_SCORE_LEVEL_UNSPECIFIED", "SENSITIVITY_LOW", "SENSITIVITY_UNKNOWN", "SENSITIVITY_MODERATE", "SENSITIVITY_HIGH"]
-    #[serde(default)]
-    pub score: ::core::option::Option<String>,
-}
-
-/// Identity delegation history of an authenticated service account.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ServiceAccountDelegationInfo {
-    /// The email address of a Google account.
-    #[serde(default, rename = "principalEmail")]
-    pub principal_email: ::core::option::Option<String>,
-    /// A string representing the principal_subject associated with the identity. As compared to principal_email, supports principals that aren''t associated with email addresses, such as third party principals. For most identities, the format will be principal://iam.googleapis.com/{identity pool name}/subjects/{subject} except for some GKE identities (GKE_WORKLOAD, FREEFORM, GKE_HUB_WORKLOAD) that are still in the legacy format serviceAccount:{identity pool name}[{subject}]
-    #[serde(default, rename = "principalSubject")]
-    pub principal_subject: ::core::option::Option<String>,
-}
-
-/// Request message for updating a finding''s state.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SetFindingStateRequest {
-    /// Optional. The time at which the updated state takes effect. If unset, defaults to the request time.
-    #[serde(default, rename = "startTime")]
-    pub start_time: ::core::option::Option<String>,
-    /// Required. The desired State of the finding. // TODO: enum values: ["STATE_UNSPECIFIED", "ACTIVE", "INACTIVE"]
-    #[serde(default)]
-    pub state: ::core::option::Option<String>,
-}
-
-/// Request message for SetIamPolicy method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SetIamPolicyRequest {
-    /// REQUIRED: The complete policy to be applied to the resource. The size of the policy is limited to a few 10s of KB. An empty policy is a valid policy but certain Google Cloud services (such as Projects) might reject them.
-    #[serde(default)]
-    pub policy: ::core::option::Option<Policy>,
-    /// OPTIONAL: A FieldMask specifying which fields of the policy to modify. Only the fields in the mask will be modified. If no mask is provided, the following default mask is used: paths: "bindings, etag"
-    #[serde(default, rename = "updateMask")]
-    pub update_mask: ::core::option::Option<String>,
-}
-
-/// Request message for updating a finding''s mute status.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SetMuteRequest {
-    /// Required. The desired state of the Mute. // TODO: enum values: ["MUTE_UNSPECIFIED", "MUTED", "UNMUTED", "UNDEFINED"]
-    #[serde(default)]
-    pub mute: ::core::option::Option<String>,
-}
-
-/// Request message to simulate a CustomConfig against a given test resource. Maximum size of the request is 4 MB by default.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SimulateSecurityHealthAnalyticsCustomModuleRequest {
-    /// Required. The custom configuration that you need to test.
-    #[serde(default, rename = "customConfig")]
-    pub custom_config: ::core::option::Option<GoogleCloudSecuritycenterV1CustomConfig>,
-    /// Required. Resource data to simulate custom module against.
-    #[serde(default)]
-    pub resource: ::core::option::Option<SimulatedResource>,
-}
-
-/// Response message for simulating a SecurityHealthAnalyticsCustomModule against a given resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SimulateSecurityHealthAnalyticsCustomModuleResponse {
-    /// Result for test case in the corresponding request.
-    #[serde(default)]
-    pub result: ::core::option::Option<SimulatedResult>,
-}
-
-/// Manually constructed resource name. If the custom module evaluates against only the resource data, you can omit the iam_policy_data field. If it evaluates only the iam_policy_data field, you can omit the resource data.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SimulatedResource {
-    /// Optional. A representation of the IAM policy.
-    #[serde(default, rename = "iamPolicyData")]
-    pub iam_policy_data: ::core::option::Option<Policy>,
-    /// Optional. A representation of the Google Cloud resource. Should match the Google Cloud resource JSON format.
-    #[serde(default, rename = "resourceData")]
-    pub resource_data: ::core::option::Option<serde_json::Value>,
-    /// Required. The type of the resource, for example, compute.googleapis.com/Disk.
-    #[serde(default, rename = "resourceType")]
-    pub resource_type: ::core::option::Option<String>,
-}
-
-/// Possible test result.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SimulatedResult {
-    /// Error encountered during the test.
-    #[serde(default)]
-    pub error: ::core::option::Option<Status>,
-    /// Finding that would be published for the test case, if a violation is detected.
-    #[serde(default)]
-    pub finding: ::core::option::Option<Finding>,
-    /// Indicates that the test case does not trigger any violation.
-    #[serde(default, rename = "noViolation")]
-    pub no_violation: ::core::option::Option<serde_json::Value>,
-}
-
-/// Attack path simulation
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Simulation {
-    /// Indicates which cloud provider was used in this simulation. // TODO: enum values: ["CLOUD_PROVIDER_UNSPECIFIED", "GOOGLE_CLOUD_PLATFORM", "AMAZON_WEB_SERVICES", "MICROSOFT_AZURE"]
-    #[serde(default, rename = "cloudProvider")]
-    pub cloud_provider: ::core::option::Option<String>,
-    /// Output only. Time simulation was created
-    #[serde(default, rename = "createTime")]
-    pub create_time: ::core::option::Option<String>,
-    /// Full resource name of the Simulation: organizations/123/simulations/456
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Resource value configurations'' metadata used in this simulation. Maximum of 100.
-    #[serde(default, rename = "resourceValueConfigsMetadata")]
-    pub resource_value_configs_metadata:
-        ::core::option::Option<::std::vec::Vec<ResourceValueConfigMetadata>>,
-}
-
-/// Security Command Center finding source. A finding source is an entity or a mechanism that can produce a finding. A source is like a container of findings that come from the same scanner, logger, monitor, and other tools.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Source {
-    /// The canonical name of the finding source. It''s either "organizations/{organization_id}/sources/{source_id}", "folders/{folder_id}/sources/{source_id}", or "projects/{project_number}/sources/{source_id}", depending on the closest CRM ancestor of the resource associated with the finding.
-    #[serde(default, rename = "canonicalName")]
-    pub canonical_name: ::core::option::Option<String>,
-    /// The description of the source (max of 1024 characters). Example: "Web Security Scanner is a web security scanner for common vulnerabilities in App Engine applications. It can automatically scan and detect four common vulnerabilities, including cross-site-scripting (XSS), Flash injection, mixed content (HTTP in HTTPS), and outdated or insecure libraries."
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// The source''s display name. A source''s display name must be unique amongst its siblings, for example, two sources with the same parent can''t share the same display name. The display name must have a length between 1 and 64 characters (inclusive).
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-    /// The relative resource name of this source. See: https://cloud.google.com/apis/design/resource_names#relative_resource_name Example: "organizations/{organization_id}/sources/{source_id}"
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-}
-
-/// Information about the static mute state. A static mute state overrides any dynamic mute rules that apply to this finding. The static mute state can be set by a static mute rule or by muting the finding directly.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct StaticMute {
-    /// When the static mute was applied.
-    #[serde(default, rename = "applyTime")]
-    pub apply_time: ::core::option::Option<String>,
-    /// The static mute state. If the value is MUTED or UNMUTED, then the finding''s overall mute state will have the same value. // TODO: enum values: ["MUTE_UNSPECIFIED", "MUTED", "UNMUTED", "UNDEFINED"]
-    #[serde(default)]
-    pub state: ::core::option::Option<String>,
-}
-
-/// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Status {
-    /// The status code, which should be an enum value of google.rpc.Code.
-    #[serde(default)]
-    pub code: ::core::option::Option<i32>,
-    /// A list of messages that carry the error details. There is a common set of message types for APIs to use.
-    #[serde(default)]
-    pub details: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
-    /// A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.
-    #[serde(default)]
-    pub message: ::core::option::Option<String>,
-}
-
-/// The config for streaming-based notifications, which send each event as soon as it is detected.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct StreamingConfig {
-    /// Expression that defines the filter to apply across create/update events of assets or findings as specified by the event type. The expression is a list of zero or more restrictions combined via logical operators AND and OR. Parentheses are supported, and OR has higher precedence than AND. Restrictions have the form   and may have a - character in front of them to indicate negation. The fields map to those defined in the corresponding resource. The supported operators are: * = for all value types. * &gt;, &lt;, &gt;=, &lt;= for integer values. * :, meaning substring matching, for strings. The supported value types are: * string literals in quotes. * integer literals without quotes. * boolean literals true and false without quotes.
-    #[serde(default)]
-    pub filter: ::core::option::Option<String>,
-}
-
-/// Represents a Kubernetes subject.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Subject {
-    /// Authentication type for the subject. // TODO: enum values: ["AUTH_TYPE_UNSPECIFIED", "USER", "SERVICEACCOUNT", "GROUP"]
-    #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-    /// Name for the subject.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Namespace for the subject.
-    #[serde(default)]
-    pub ns: ::core::option::Option<String>,
-}
-
-/// Request message for TestIamPermissions method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct TestIamPermissionsRequest {
-    /// The set of permissions to check for the resource. Permissions with wildcards (such as * or storage.*) are not allowed. For more information see [IAM Overview](https://cloud.google.com/iam/docs/overview#permissions).
-    #[serde(default)]
-    pub permissions: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// Response message for TestIamPermissions method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct TestIamPermissionsResponse {
-    /// A subset of TestPermissionsRequest.permissions that the caller is allowed.
-    #[serde(default)]
-    pub permissions: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// Information about the ticket, if any, that is being used to track the resolution of the issue that is identified by this finding.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct TicketInfo {
-    /// The assignee of the ticket in the ticket system.
-    #[serde(default)]
-    pub assignee: ::core::option::Option<String>,
-    /// The description of the ticket in the ticket system.
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// The identifier of the ticket in the ticket system.
-    #[serde(default)]
-    pub id: ::core::option::Option<String>,
-    /// The latest status of the ticket, as reported by the ticket system.
-    #[serde(default)]
-    pub status: ::core::option::Option<String>,
-    /// The time when the ticket was last updated, as reported by the ticket system.
-    #[serde(default, rename = "updateTime")]
-    pub update_time: ::core::option::Option<String>,
-    /// The link to the ticket in the ticket system.
-    #[serde(default)]
-    pub uri: ::core::option::Option<String>,
-}
-
 /// Contains details about a group of security issues that, when the issues occur together, represent a greater risk than when the issues occur independently. A group of such issues is referred to as a toxic combination.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ToxicCombination {
@@ -6060,52 +4982,6 @@ pub struct ToxicCombination {
     /// List of resource names of findings associated with this toxic combination. For example, organizations/123/sources/456/findings/789.
     #[serde(default, rename = "relatedFindings")]
     pub related_findings: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// Request to validate an Event Threat Detection custom module.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ValidateEventThreatDetectionCustomModuleRequest {
-    /// Required. The raw text of the module''s contents. Used to generate error messages.
-    #[serde(default, rename = "rawText")]
-    pub raw_text: ::core::option::Option<String>,
-    /// Required. The type of the module (e.g. CONFIGURABLE_BAD_IP).
-    #[serde(default, rename = "type")]
-    pub type_: ::core::option::Option<String>,
-}
-
-/// Response to validating an Event Threat Detection custom module.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ValidateEventThreatDetectionCustomModuleResponse {
-    /// A list of errors returned by the validator. If the list is empty, there were no errors.
-    #[serde(default)]
-    pub errors: ::core::option::Option<CustomModuleValidationErrors>,
-}
-
-/// A resource that is determined to have value to a user''s system
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ValuedResource {
-    /// Human-readable name of the valued resource.
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-    /// Exposed score for this valued resource. A value of 0 means no exposure was detected exposure.
-    #[serde(default, rename = "exposedScore")]
-    pub exposed_score: ::core::option::Option<f64>,
-    /// Valued resource name, for example, e.g.: organizations/123/simulations/456/valuedResources/789
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// The [full resource name](https://cloud.google.com/apis/design/resource_names#full_resource_name) of the valued resource.
-    #[serde(default)]
-    pub resource: ::core::option::Option<String>,
-    /// The [resource type](https://cloud.google.com/asset-inventory/docs/supported-asset-types) of the valued resource.
-    #[serde(default, rename = "resourceType")]
-    pub resource_type: ::core::option::Option<String>,
-    /// How valuable this resource is. // TODO: enum values: ["RESOURCE_VALUE_UNSPECIFIED", "RESOURCE_VALUE_LOW", "RESOURCE_VALUE_MEDIUM", "RESOURCE_VALUE_HIGH"]
-    #[serde(default, rename = "resourceValue")]
-    pub resource_value: ::core::option::Option<String>,
-    /// List of resource value configurations'' metadata used to determine the value of this resource. Maximum of 100.
-    #[serde(default, rename = "resourceValueConfigsUsed")]
-    pub resource_value_configs_used:
-        ::core::option::Option<::std::vec::Vec<ResourceValueConfigMetadata>>,
 }
 
 /// Vertex AI-related information associated with the finding.
@@ -6145,21 +5021,983 @@ pub struct Vulnerability {
     pub security_bulletin: ::core::option::Option<SecurityBulletin>,
 }
 
-/// Result containing the properties and count of a VulnerabilitySnapshot request.
+/// A position in the uploaded text version of a module.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct VulnerabilitySnapshot {
-    /// The cloud provider for the vulnerability snapshot. // TODO: enum values: ["CLOUD_PROVIDER_UNSPECIFIED", "GOOGLE_CLOUD_PLATFORM", "AMAZON_WEB_SERVICES", "MICROSOFT_AZURE"]
-    #[serde(default, rename = "cloudProvider")]
-    pub cloud_provider: ::core::option::Option<String>,
-    /// The vulnerability count by severity.
-    #[serde(default, rename = "findingCount")]
-    pub finding_count: ::core::option::Option<VulnerabilityCountBySeverity>,
-    /// Identifier. The vulnerability snapshot name. Format: //locations//vulnerabilitySnapshots/
+pub struct Position {
+    /// The column number.
+    #[serde(default, rename = "columnNumber")]
+    pub column_number: ::core::option::Option<i32>,
+    /// The line number.
+    #[serde(default, rename = "lineNumber")]
+    pub line_number: ::core::option::Option<i32>,
+}
+
+/// Contact information of stakeholders.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudSecuritycenterV2IssueResourceApplicationAttributesContactInfo {
+    /// Email address of the contacts.
+    #[serde(default)]
+    pub email: ::core::option::Option<String>,
+}
+
+/// Criticality of the Application, Service, or Workload
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudSecuritycenterV2IssueResourceApplicationAttributesCriticality {
+    /// Criticality Type. // TODO: enum values: ["CRITICALITY_TYPE_UNSPECIFIED", "MISSION_CRITICAL", "HIGH", "MEDIUM", "LOW"]
+    #[serde(default, rename = "type")]
+    pub type_: ::core::option::Option<String>,
+}
+
+/// Environment of the Application, Service, or Workload
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudSecuritycenterV2IssueResourceApplicationAttributesEnvironment {
+    /// Environment Type. // TODO: enum values: ["ENVIRONMENT_TYPE_UNSPECIFIED", "PRODUCTION", "STAGING", "TEST", "DEVELOPMENT"]
+    #[serde(default, rename = "type")]
+    pub type_: ::core::option::Option<String>,
+}
+
+/// Score is calculated from of all elements in the data profile. A higher level means the data is more sensitive.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudSecuritycenterV2SensitivityScore {
+    /// The sensitivity score applied to the resource. // TODO: enum values: ["SENSITIVITY_SCORE_LEVEL_UNSPECIFIED", "SENSITIVITY_LOW", "SENSITIVITY_UNKNOWN", "SENSITIVITY_MODERATE", "SENSITIVITY_HIGH"]
+    #[serde(default)]
+    pub score: ::core::option::Option<String>,
+}
+
+/// Compliance control associated with the finding.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudSecuritycenterV2Control {
+    /// Name of the Control
+    #[serde(default, rename = "controlName")]
+    pub control_name: ::core::option::Option<String>,
+    /// Display name of the control. For example, AU-02.
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+}
+
+/// A signature corresponding to memory page hashes.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudSecuritycenterV2MemoryHashSignature {
+    /// The binary family.
+    #[serde(default, rename = "binaryFamily")]
+    pub binary_family: ::core::option::Option<String>,
+    /// The list of memory hash detections contributing to the binary family match.
+    #[serde(default)]
+    pub detections: ::core::option::Option<::std::vec::Vec<GoogleCloudSecuritycenterV2Detection>>,
+}
+
+/// A signature corresponding to a YARA rule.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudSecuritycenterV2YaraRuleSignature {
+    /// The name of the YARA rule.
+    #[serde(default, rename = "yaraRule")]
+    pub yara_rule: ::core::option::Option<String>,
+}
+
+/// IP rule information.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudSecuritycenterV2IpRule {
+    /// Optional. An optional list of ports to which this rule applies. This field is only applicable for the UDP or (S)TCP protocols. Each entry must be either an integer or a range including a min and max port number.
+    #[serde(default, rename = "portRanges")]
+    pub port_ranges: ::core::option::Option<::std::vec::Vec<GoogleCloudSecuritycenterV2PortRange>>,
+    /// The IP protocol this rule applies to. This value can either be one of the following well known protocol strings (TCP, UDP, ICMP, ESP, AH, IPIP, SCTP) or a string representation of the integer value.
+    #[serde(default)]
+    pub protocol: ::core::option::Option<String>,
+}
+
+/// Kubernetes Role or ClusterRole.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudSecuritycenterV2Role {
+    /// Role type. // TODO: enum values: ["KIND_UNSPECIFIED", "ROLE", "CLUSTER_ROLE"]
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+    /// Role name.
     #[serde(default)]
     pub name: ::core::option::Option<String>,
-    /// The time that the snapshot was taken.
-    #[serde(default, rename = "snapshotTime")]
-    pub snapshot_time: ::core::option::Option<String>,
+    /// Role namespace.
+    #[serde(default)]
+    pub ns: ::core::option::Option<String>,
+}
+
+/// Represents a Kubernetes subject.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudSecuritycenterV2Subject {
+    /// Authentication type for the subject. // TODO: enum values: ["AUTH_TYPE_UNSPECIFIED", "USER", "SERVICEACCOUNT", "GROUP"]
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+    /// Name for the subject.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Namespace for the subject.
+    #[serde(default)]
+    pub ns: ::core::option::Option<String>,
+}
+
+/// Kubernetes nodes associated with the finding.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudSecuritycenterV2Node {
+    /// [Full resource name](https://google.aip.dev/122#full-resource-names) of the Compute Engine VM running the cluster node.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+}
+
+/// Container associated with the finding.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudSecuritycenterV2Container {
+    /// The time that the container was created.
+    #[serde(default, rename = "createTime")]
+    pub create_time: ::core::option::Option<String>,
+    /// Optional container image ID, if provided by the container runtime. Uniquely identifies the container image launched using a container image digest.
+    #[serde(default, rename = "imageId")]
+    pub image_id: ::core::option::Option<String>,
+    /// Container labels, as provided by the container runtime.
+    #[serde(default)]
+    pub labels: ::core::option::Option<::std::vec::Vec<GoogleCloudSecuritycenterV2Label>>,
+    /// Name of the container.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Container image URI provided when configuring a pod or container. This string can identify a container image version using mutable tags.
+    #[serde(default)]
+    pub uri: ::core::option::Option<String>,
+}
+
+/// Path of the file in terms of underlying disk/partition identifiers.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudSecuritycenterV2DiskPath {
+    /// UUID of the partition (format https://wiki.archlinux.org/title/persistent_block_device_naming#by-uuid)
+    #[serde(default, rename = "partitionUuid")]
+    pub partition_uuid: ::core::option::Option<String>,
+    /// Relative path of the file in the partition as a JSON encoded string. Example: /home/user1/executable_file.sh
+    #[serde(default, rename = "relativePath")]
+    pub relative_path: ::core::option::Option<String>,
+}
+
+/// Operation(s) performed on a file.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudSecuritycenterV2FileOperation {
+    /// The type of the operation // TODO: enum values: ["OPERATION_TYPE_UNSPECIFIED", "OPEN", "READ", "RENAME", "WRITE", "EXECUTE"]
+    #[serde(default, rename = "type")]
+    pub type_: ::core::option::Option<String>,
+}
+
+/// Common Vulnerability Scoring System version 3.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudSecuritycenterV2Cvssv3 {
+    /// This metric describes the conditions beyond the attacker''s control that must exist in order to exploit the vulnerability. // TODO: enum values: ["ATTACK_COMPLEXITY_UNSPECIFIED", "ATTACK_COMPLEXITY_LOW", "ATTACK_COMPLEXITY_HIGH"]
+    #[serde(default, rename = "attackComplexity")]
+    pub attack_complexity: ::core::option::Option<String>,
+    /// Base Metrics Represents the intrinsic characteristics of a vulnerability that are constant over time and across user environments. This metric reflects the context by which vulnerability exploitation is possible. // TODO: enum values: ["ATTACK_VECTOR_UNSPECIFIED", "ATTACK_VECTOR_NETWORK", "ATTACK_VECTOR_ADJACENT", "ATTACK_VECTOR_LOCAL", "ATTACK_VECTOR_PHYSICAL"]
+    #[serde(default, rename = "attackVector")]
+    pub attack_vector: ::core::option::Option<String>,
+    /// This metric measures the impact to the availability of the impacted component resulting from a successfully exploited vulnerability. // TODO: enum values: ["IMPACT_UNSPECIFIED", "IMPACT_HIGH", "IMPACT_LOW", "IMPACT_NONE"]
+    #[serde(default, rename = "availabilityImpact")]
+    pub availability_impact: ::core::option::Option<String>,
+    /// The base score is a function of the base metric scores.
+    #[serde(default, rename = "baseScore")]
+    pub base_score: ::core::option::Option<f64>,
+    /// This metric measures the impact to the confidentiality of the information resources managed by a software component due to a successfully exploited vulnerability. // TODO: enum values: ["IMPACT_UNSPECIFIED", "IMPACT_HIGH", "IMPACT_LOW", "IMPACT_NONE"]
+    #[serde(default, rename = "confidentialityImpact")]
+    pub confidentiality_impact: ::core::option::Option<String>,
+    /// This metric measures the impact to integrity of a successfully exploited vulnerability. // TODO: enum values: ["IMPACT_UNSPECIFIED", "IMPACT_HIGH", "IMPACT_LOW", "IMPACT_NONE"]
+    #[serde(default, rename = "integrityImpact")]
+    pub integrity_impact: ::core::option::Option<String>,
+    /// This metric describes the level of privileges an attacker must possess before successfully exploiting the vulnerability. // TODO: enum values: ["PRIVILEGES_REQUIRED_UNSPECIFIED", "PRIVILEGES_REQUIRED_NONE", "PRIVILEGES_REQUIRED_LOW", "PRIVILEGES_REQUIRED_HIGH"]
+    #[serde(default, rename = "privilegesRequired")]
+    pub privileges_required: ::core::option::Option<String>,
+    /// The Scope metric captures whether a vulnerability in one vulnerable component impacts resources in components beyond its security scope. // TODO: enum values: ["SCOPE_UNSPECIFIED", "SCOPE_UNCHANGED", "SCOPE_CHANGED"]
+    #[serde(default)]
+    pub scope: ::core::option::Option<String>,
+    /// This metric captures the requirement for a human user, other than the attacker, to participate in the successful compromise of the vulnerable component. // TODO: enum values: ["USER_INTERACTION_UNSPECIFIED", "USER_INTERACTION_NONE", "USER_INTERACTION_REQUIRED"]
+    #[serde(default, rename = "userInteraction")]
+    pub user_interaction: ::core::option::Option<String>,
+}
+
+/// Additional Links
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudSecuritycenterV2Reference {
+    /// Source of the reference e.g. NVD
+    #[serde(default)]
+    pub source: ::core::option::Option<String>,
+    /// Uri for the mentioned source e.g. https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2021-34527.
+    #[serde(default)]
+    pub uri: ::core::option::Option<String>,
+}
+
+/// Contact information of stakeholders.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudSecuritycenterV2ResourceApplicationAttributesContactInfo {
+    /// Email address of the contacts.
+    #[serde(default)]
+    pub email: ::core::option::Option<String>,
+}
+
+/// Criticality of the Application, Service, or Workload
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudSecuritycenterV2ResourceApplicationAttributesCriticality {
+    /// Criticality Type. // TODO: enum values: ["CRITICALITY_TYPE_UNSPECIFIED", "MISSION_CRITICAL", "HIGH", "MEDIUM", "LOW"]
+    #[serde(default, rename = "type")]
+    pub type_: ::core::option::Option<String>,
+}
+
+/// Environment of the Application, Service, or Workload
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudSecuritycenterV2ResourceApplicationAttributesEnvironment {
+    /// Environment Type. // TODO: enum values: ["ENVIRONMENT_TYPE_UNSPECIFIED", "PRODUCTION", "STAGING", "TEST", "DEVELOPMENT"]
+    #[serde(default, rename = "type")]
+    pub type_: ::core::option::Option<String>,
+}
+
+/// Message that contains the resource name and display name of a folder resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Folder {
+    /// Full resource name of this folder. See: https://cloud.google.com/apis/design/resource_names#full_resource_name
+    #[serde(default, rename = "resourceFolder")]
+    pub resource_folder: ::core::option::Option<String>,
+    /// The user defined display name for this folder.
+    #[serde(default, rename = "resourceFolderDisplayName")]
+    pub resource_folder_display_name: ::core::option::Option<String>,
+}
+
+/// Consumer provided attributes for the application
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudSecuritycenterV1ResourceApplicationAttributes {
+    /// Business team that ensures user needs are met and value is delivered
+    #[serde(default, rename = "businessOwners")]
+    pub business_owners: ::core::option::Option<
+        ::std::vec::Vec<GoogleCloudSecuritycenterV1ResourceApplicationAttributesContactInfo>,
+    >,
+    /// User-defined criticality information.
+    #[serde(default)]
+    pub criticality:
+        ::core::option::Option<GoogleCloudSecuritycenterV1ResourceApplicationAttributesCriticality>,
+    /// Developer team that owns development and coding.
+    #[serde(default, rename = "developerOwners")]
+    pub developer_owners: ::core::option::Option<
+        ::std::vec::Vec<GoogleCloudSecuritycenterV1ResourceApplicationAttributesContactInfo>,
+    >,
+    /// User-defined environment information.
+    #[serde(default)]
+    pub environment:
+        ::core::option::Option<GoogleCloudSecuritycenterV1ResourceApplicationAttributesEnvironment>,
+    /// Operator team that ensures runtime and operations.
+    #[serde(default, rename = "operatorOwners")]
+    pub operator_owners: ::core::option::Option<
+        ::std::vec::Vec<GoogleCloudSecuritycenterV1ResourceApplicationAttributesContactInfo>,
+    >,
+}
+
+/// An AWS account that is a member of an organization.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AwsAccount {
+    /// The unique identifier (ID) of the account, containing exactly 12 digits.
+    #[serde(default)]
+    pub id: ::core::option::Option<String>,
+    /// The friendly name of this account.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+}
+
+/// An organization is a collection of accounts that are centrally managed together using consolidated billing, organized hierarchically with organizational units (OUs), and controlled with policies.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AwsOrganization {
+    /// The unique identifier (ID) for the organization. The regex pattern for an organization ID string requires "o-" followed by from 10 to 32 lowercase letters or digits.
+    #[serde(default)]
+    pub id: ::core::option::Option<String>,
+}
+
+/// An Organizational Unit (OU) is a container of AWS accounts within a root of an organization. Policies that are attached to an OU apply to all accounts contained in that OU and in any child OUs.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AwsOrganizationalUnit {
+    /// The unique identifier (ID) associated with this OU. The regex pattern for an organizational unit ID string requires "ou-" followed by from 4 to 32 lowercase letters or digits (the ID of the root that contains the OU). This string is followed by a second "-" dash and from 8 to 32 additional lowercase letters or digits. For example, "ou-ab12-cd34ef56".
+    #[serde(default)]
+    pub id: ::core::option::Option<String>,
+    /// The friendly name of the OU.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+}
+
+/// Represents an Azure management group.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AzureManagementGroup {
+    /// The display name of the Azure management group.
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+    /// The UUID of the Azure management group, for example, 20000000-0001-0000-0000-000000000000.
+    #[serde(default)]
+    pub id: ::core::option::Option<String>,
+}
+
+/// Represents an Azure resource group.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AzureResourceGroup {
+    /// The ID of the Azure resource group.
+    #[serde(default)]
+    pub id: ::core::option::Option<String>,
+    /// The name of the Azure resource group. This is not a UUID.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+}
+
+/// Represents an Azure subscription.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AzureSubscription {
+    /// The display name of the Azure subscription.
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+    /// The UUID of the Azure subscription, for example, 291bba3f-e0a5-47bc-a099-3bdcb2a50a05.
+    #[serde(default)]
+    pub id: ::core::option::Option<String>,
+}
+
+/// Represents a Microsoft Entra tenant.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AzureTenant {
+    /// The display name of the Azure tenant.
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+    /// The ID of the Microsoft Entra tenant, for example, "a11aaa11-aa11-1aa1-11aa-1aaa11a".
+    #[serde(default)]
+    pub id: ::core::option::Option<String>,
+}
+
+/// A node within the resource path. Each node represents a resource within the resource hierarchy.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ResourcePathNode {
+    /// The display name of the resource this node represents.
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+    /// The ID of the resource this node represents.
+    #[serde(default)]
+    pub id: ::core::option::Option<String>,
+    /// The type of resource this node represents. // TODO: enum values: ["RESOURCE_PATH_NODE_TYPE_UNSPECIFIED", "GCP_ORGANIZATION", "GCP_FOLDER", "GCP_PROJECT", "AWS_ORGANIZATION", "AWS_ORGANIZATIONAL_UNIT", "AWS_ACCOUNT", "AZURE_MANAGEMENT_GROUP", "AZURE_SUBSCRIPTION", "AZURE_RESOURCE_GROUP"]
+    #[serde(default, rename = "nodeType")]
+    pub node_type: ::core::option::Option<String>,
+}
+
+/// An individual name-value pair that defines a custom source property.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudSecuritycenterV1Property {
+    /// Name of the property for the custom output.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// The CEL expression for the custom output. A resource property can be specified to return the value of the property or a text string enclosed in quotation marks.
+    #[serde(default, rename = "valueExpression")]
+    pub value_expression: ::core::option::Option<Expr>,
+}
+
+/// Provides the configuration for logging a type of permissions. Example: { "audit_log_configs": [ { "log_type": "DATA_READ", "exempted_members": [ "user:jose@example.com" ] }, { "log_type": "DATA_WRITE" } ] } This enables ''DATA_READ'' and ''DATA_WRITE'' logging, while exempting jose@example.com from DATA_READ logging.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AuditLogConfig {
+    /// Specifies the identities that do not cause logging for this type of permission. Follows the same format of Binding.members.
+    #[serde(default, rename = "exemptedMembers")]
+    pub exempted_members: ::core::option::Option<::std::vec::Vec<String>>,
+    /// The log type that this config enables. // TODO: enum values: ["LOG_TYPE_UNSPECIFIED", "ADMIN_READ", "DATA_WRITE", "DATA_READ"]
+    #[serde(default, rename = "logType")]
+    pub log_type: ::core::option::Option<String>,
+}
+
+/// Represents a geographical location for a given access.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Geolocation {
+    /// A CLDR.
+    #[serde(default, rename = "regionCode")]
+    pub region_code: ::core::option::Option<String>,
+}
+
+/// Identity delegation history of an authenticated service account.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ServiceAccountDelegationInfo {
+    /// The email address of a Google account.
+    #[serde(default, rename = "principalEmail")]
+    pub principal_email: ::core::option::Option<String>,
+    /// A string representing the principal_subject associated with the identity. As compared to principal_email, supports principals that aren''t associated with email addresses, such as third party principals. For most identities, the format will be principal://iam.googleapis.com/{identity pool name}/subjects/{subject} except for some GKE identities (GKE_WORKLOAD, FREEFORM, GKE_HUB_WORKLOAD) that are still in the legacy format serviceAccount:{identity pool name}[{subject}]
+    #[serde(default, rename = "principalSubject")]
+    pub principal_subject: ::core::option::Option<String>,
+}
+
+/// Represents an artifact guard policy.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ArtifactGuardPolicy {
+    /// The reason for the policy failure, for example, "severity=HIGH AND max_vuln_count=2".
+    #[serde(default, rename = "failureReason")]
+    pub failure_reason: ::core::option::Option<String>,
+    /// The ID of the failing policy, for example, "organizations/3392779/locations/global/policies/prod-policy".
+    #[serde(default, rename = "policyId")]
+    pub policy_id: ::core::option::Option<String>,
+    /// The type of the policy evaluation. // TODO: enum values: ["ARTIFACT_GUARD_POLICY_TYPE_UNSPECIFIED", "VULNERABILITY"]
+    #[serde(default, rename = "type")]
+    pub type_: ::core::option::Option<String>,
+}
+
+/// Information about [Google Cloud Armor Adaptive Protection](https://cloud.google.com/armor/docs/cloud-armor-overview#google-cloud-armor-adaptive-protection).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AdaptiveProtection {
+    /// A score of 0 means that there is low confidence that the detected event is an actual attack. A score of 1 means that there is high confidence that the detected event is an attack. See the [Adaptive Protection documentation](https://cloud.google.com/armor/docs/adaptive-protection-overview#configure-alert-tuning) for further explanation.
+    #[serde(default)]
+    pub confidence: ::core::option::Option<f64>,
+}
+
+/// Information about DDoS attack volume and classification.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Attack {
+    /// Type of attack, for example, ''SYN-flood'', ''NTP-udp'', or ''CHARGEN-udp''.
+    #[serde(default)]
+    pub classification: ::core::option::Option<String>,
+    /// Total BPS (bytes per second) volume of attack. Deprecated - refer to volume_bps_long instead.
+    #[serde(default, rename = "volumeBps")]
+    pub volume_bps: ::core::option::Option<i32>,
+    /// Total BPS (bytes per second) volume of attack.
+    #[serde(default, rename = "volumeBpsLong")]
+    pub volume_bps_long: ::core::option::Option<String>,
+    /// Total PPS (packets per second) volume of attack. Deprecated - refer to volume_pps_long instead.
+    #[serde(default, rename = "volumePps")]
+    pub volume_pps: ::core::option::Option<i32>,
+    /// Total PPS (packets per second) volume of attack.
+    #[serde(default, rename = "volumePpsLong")]
+    pub volume_pps_long: ::core::option::Option<String>,
+}
+
+/// Information about the requests relevant to the finding.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Requests {
+    /// Allowed RPS (requests per second) over the long term.
+    #[serde(default, rename = "longTermAllowed")]
+    pub long_term_allowed: ::core::option::Option<i32>,
+    /// Denied RPS (requests per second) over the long term.
+    #[serde(default, rename = "longTermDenied")]
+    pub long_term_denied: ::core::option::Option<i32>,
+    /// For ''Increasing deny ratio'', the ratio is the denied traffic divided by the allowed traffic. For ''Allowed traffic spike'', the ratio is the allowed traffic in the short term divided by allowed traffic in the long term.
+    #[serde(default)]
+    pub ratio: ::core::option::Option<f64>,
+    /// Allowed RPS (requests per second) in the short term.
+    #[serde(default, rename = "shortTermAllowed")]
+    pub short_term_allowed: ::core::option::Option<i32>,
+}
+
+/// Information about the [Google Cloud Armor security policy](https://cloud.google.com/armor/docs/security-policy-overview) relevant to the finding.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SecurityPolicy {
+    /// The name of the Google Cloud Armor security policy, for example, "my-security-policy".
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Whether or not the associated rule or policy is in preview mode.
+    #[serde(default)]
+    pub preview: ::core::option::Option<bool>,
+    /// The type of Google Cloud Armor security policy for example, ''backend security policy'', ''edge security policy'', ''network edge security policy'', or ''always-on DDoS protection''.
+    #[serde(default, rename = "type")]
+    pub type_: ::core::option::Option<String>,
+}
+
+/// Type of information detected by the API.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct InfoType {
+    /// Name of the information type. Either a name of your choosing when creating a CustomInfoType, or one of the names listed at https://cloud.google.com/sensitive-data-protection/docs/infotypes-reference when specifying a built-in type. When sending Cloud DLP results to Data Catalog, infoType names should conform to the pattern [A-Za-z0-9$_-]{1,64}.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Optional custom sensitivity for this InfoType. This only applies to data profiling.
+    #[serde(default, rename = "sensitivityScore")]
+    pub sensitivity_score: ::core::option::Option<SensitivityScore>,
+    /// Optional version name for this InfoType.
+    #[serde(default)]
+    pub version: ::core::option::Option<String>,
+}
+
+/// CloudControl associated with the finding.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CloudControl {
+    /// Name of the CloudControl associated with the finding.
+    #[serde(default, rename = "cloudControlName")]
+    pub cloud_control_name: ::core::option::Option<String>,
+    /// Policy type of the CloudControl
+    #[serde(default, rename = "policyType")]
+    pub policy_type: ::core::option::Option<String>,
+    /// Type of cloud control. // TODO: enum values: ["CLOUD_CONTROL_TYPE_UNSPECIFIED", "BUILT_IN", "CUSTOM"]
+    #[serde(default, rename = "type")]
+    pub type_: ::core::option::Option<String>,
+    /// Version of the Cloud Control
+    #[serde(default)]
+    pub version: ::core::option::Option<i32>,
+}
+
+/// Compliance framework associated with the finding.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Framework {
+    /// Category of the framework associated with the finding. E.g. Security Benchmark, or Assured Workloads
+    #[serde(default)]
+    pub category: ::core::option::Option<::std::vec::Vec<String>>,
+    /// The controls associated with the framework.
+    #[serde(default)]
+    pub controls: ::core::option::Option<::std::vec::Vec<Control>>,
+    /// Display name of the framework. For a standard framework, this will look like e.g. PCI DSS 3.2.1, whereas for a custom framework it can be a user defined string like MyFramework
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+    /// Name of the framework associated with the finding
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Type of the framework associated with the finding, to specify whether the framework is built-in (pre-defined and immutable) or a custom framework defined by the customer (equivalent to security posture) // TODO: enum values: ["FRAMEWORK_TYPE_UNSPECIFIED", "FRAMEWORK_TYPE_BUILT_IN", "FRAMEWORK_TYPE_CUSTOM"]
+    #[serde(default, rename = "type")]
+    pub type_: ::core::option::Option<String>,
+}
+
+/// Resource where data was exfiltrated from or exfiltrated to.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ExfilResource {
+    /// Subcomponents of the asset that was exfiltrated, like URIs used during exfiltration, table names, databases, and filenames. For example, multiple tables might have been exfiltrated from the same Cloud SQL instance, or multiple files might have been exfiltrated from the same Cloud Storage bucket.
+    #[serde(default)]
+    pub components: ::core::option::Option<::std::vec::Vec<String>>,
+    /// The resource''s [full resource name](https://cloud.google.com/apis/design/resource_names#full_resource_name).
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+}
+
+/// Indicates what signature matched this process.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ProcessSignature {
+    /// Signature indicating that a binary family was matched.
+    #[serde(default, rename = "memoryHashSignature")]
+    pub memory_hash_signature: ::core::option::Option<MemoryHashSignature>,
+    /// Describes the type of resource associated with the signature. // TODO: enum values: ["SIGNATURE_TYPE_UNSPECIFIED", "SIGNATURE_TYPE_PROCESS", "SIGNATURE_TYPE_FILE"]
+    #[serde(default, rename = "signatureType")]
+    pub signature_type: ::core::option::Option<String>,
+    /// Signature indicating that a YARA rule was matched.
+    #[serde(default, rename = "yaraRuleSignature")]
+    pub yara_rule_signature: ::core::option::Option<YaraRuleSignature>,
+}
+
+/// Allowed IP rule.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Allowed {
+    /// Optional. Optional list of allowed IP rules.
+    #[serde(default, rename = "ipRules")]
+    pub ip_rules: ::core::option::Option<::std::vec::Vec<IpRule>>,
+}
+
+/// Denied IP rule.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Denied {
+    /// Optional. Optional list of denied IP rules.
+    #[serde(default, rename = "ipRules")]
+    pub ip_rules: ::core::option::Option<::std::vec::Vec<IpRule>>,
+}
+
+/// Conveys information about a Kubernetes access review (such as one returned by a [kubectl auth can-i](https://kubernetes.io/docs/reference/access-authn-authz/authorization/#checking-api-access) command) that was involved in a finding.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AccessReview {
+    /// The API group of the resource. "*" means all.
+    #[serde(default)]
+    pub group: ::core::option::Option<String>,
+    /// The name of the resource being requested. Empty means all.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Namespace of the action being requested. Currently, there is no distinction between no namespace and all namespaces. Both are represented by "" (empty).
+    #[serde(default)]
+    pub ns: ::core::option::Option<String>,
+    /// The optional resource type requested. "*" means all.
+    #[serde(default)]
+    pub resource: ::core::option::Option<String>,
+    /// The optional subresource type.
+    #[serde(default)]
+    pub subresource: ::core::option::Option<String>,
+    /// A Kubernetes resource API verb, like get, list, watch, create, update, delete, proxy. "*" means all.
+    #[serde(default)]
+    pub verb: ::core::option::Option<String>,
+    /// The API version of the resource. "*" means all.
+    #[serde(default)]
+    pub version: ::core::option::Option<String>,
+}
+
+/// Represents a Kubernetes RoleBinding or ClusterRoleBinding.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudSecuritycenterV1Binding {
+    /// Name for the binding.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Namespace for the binding.
+    #[serde(default)]
+    pub ns: ::core::option::Option<String>,
+    /// The Role or ClusterRole referenced by the binding.
+    #[serde(default)]
+    pub role: ::core::option::Option<Role>,
+    /// Represents one or more subjects that are bound to the role. Not always available for PATCH requests.
+    #[serde(default)]
+    pub subjects: ::core::option::Option<::std::vec::Vec<Subject>>,
+}
+
+/// Provides GKE node pool information.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct NodePool {
+    /// Kubernetes node pool name.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Nodes associated with the finding.
+    #[serde(default)]
+    pub nodes: ::core::option::Option<::std::vec::Vec<Node>>,
+}
+
+/// Kubernetes object related to the finding, uniquely identified by GKNN. Used if the object Kind is not one of Pod, Node, NodePool, Binding, or AccessReview.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Object {
+    /// Pod containers associated with this finding, if any.
+    #[serde(default)]
+    pub containers: ::core::option::Option<::std::vec::Vec<Container>>,
+    /// Kubernetes object group, such as "policy.k8s.io/v1".
+    #[serde(default)]
+    pub group: ::core::option::Option<String>,
+    /// Kubernetes object kind, such as "Namespace".
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+    /// Kubernetes object name. For details see https://kubernetes.io/docs/concepts/overview/working-with-objects/names/.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Kubernetes object namespace. Must be a valid DNS label. Named "ns" to avoid collision with C++ namespace keyword. For details see https://kubernetes.io/docs/tasks/administer-cluster/namespaces/.
+    #[serde(default)]
+    pub ns: ::core::option::Option<String>,
+}
+
+/// A Kubernetes Pod.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Pod {
+    /// Pod containers associated with this finding, if any.
+    #[serde(default)]
+    pub containers: ::core::option::Option<::std::vec::Vec<Container>>,
+    /// Pod labels. For Kubernetes containers, these are applied to the container.
+    #[serde(default)]
+    pub labels: ::core::option::Option<::std::vec::Vec<Label>>,
+    /// Kubernetes Pod name.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Kubernetes Pod namespace.
+    #[serde(default)]
+    pub ns: ::core::option::Option<String>,
+}
+
+/// Metadata taken from a [Cloud Logging LogEntry](https://cloud.google.com/logging/docs/reference/v2/rest/v2/LogEntry)
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CloudLoggingEntry {
+    /// A unique identifier for the log entry.
+    #[serde(default, rename = "insertId")]
+    pub insert_id: ::core::option::Option<String>,
+    /// The type of the log (part of log_name. log_name is the resource name of the log to which this log entry belongs). For example: cloudresourcemanager.googleapis.com/activity. Note that this field is not URL-encoded, unlike the LOG_ID field in LogEntry.
+    #[serde(default, rename = "logId")]
+    pub log_id: ::core::option::Option<String>,
+    /// The organization, folder, or project of the monitored resource that produced this log entry.
+    #[serde(default, rename = "resourceContainer")]
+    pub resource_container: ::core::option::Option<String>,
+    /// The time the event described by the log entry occurred.
+    #[serde(default)]
+    pub timestamp: ::core::option::Option<String>,
+}
+
+/// The record of a dynamic mute rule that matches the finding.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DynamicMuteRecord {
+    /// When the dynamic mute rule first matched the finding.
+    #[serde(default, rename = "matchTime")]
+    pub match_time: ::core::option::Option<String>,
+    /// The relative resource name of the mute rule, represented by a mute config, that created this record, for example organizations/123/muteConfigs/mymuteconfig or organizations/123/locations/global/muteConfigs/mymuteconfig.
+    #[serde(default, rename = "muteConfig")]
+    pub mute_config: ::core::option::Option<String>,
+}
+
+/// Information about the static mute state. A static mute state overrides any dynamic mute rules that apply to this finding. The static mute state can be set by a static mute rule or by muting the finding directly.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct StaticMute {
+    /// When the static mute was applied.
+    #[serde(default, rename = "applyTime")]
+    pub apply_time: ::core::option::Option<String>,
+    /// The static mute state. If the value is MUTED or UNMUTED, then the finding''s overall mute state will have the same value. // TODO: enum values: ["MUTE_UNSPECIFIED", "MUTED", "UNMUTED", "UNDEFINED"]
+    #[serde(default)]
+    pub state: ::core::option::Option<String>,
+}
+
+/// File information about the related binary/library used by an executable, or the script used by a script interpreter
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct File {
+    /// Prefix of the file contents as a JSON-encoded string.
+    #[serde(default)]
+    pub contents: ::core::option::Option<String>,
+    /// Path of the file in terms of underlying disk/partition identifiers.
+    #[serde(default, rename = "diskPath")]
+    pub disk_path: ::core::option::Option<DiskPath>,
+    /// The load state of the file. // TODO: enum values: ["FILE_LOAD_STATE_UNSPECIFIED", "LOADED_BY_PROCESS", "NOT_LOADED_BY_PROCESS"]
+    #[serde(default, rename = "fileLoadState")]
+    pub file_load_state: ::core::option::Option<String>,
+    /// The length in bytes of the file prefix that was hashed. If hashed_size == size, any hashes reported represent the entire file.
+    #[serde(default, rename = "hashedSize")]
+    pub hashed_size: ::core::option::Option<String>,
+    /// Operation(s) performed on a file.
+    #[serde(default)]
+    pub operations: ::core::option::Option<::std::vec::Vec<FileOperation>>,
+    /// True when the hash covers only a prefix of the file.
+    #[serde(default, rename = "partiallyHashed")]
+    pub partially_hashed: ::core::option::Option<bool>,
+    /// Absolute path of the file as a JSON encoded string.
+    #[serde(default)]
+    pub path: ::core::option::Option<String>,
+    /// SHA256 hash of the first hashed_size bytes of the file encoded as a hex string. If hashed_size == size, sha256 represents the SHA256 hash of the entire file.
+    #[serde(default)]
+    pub sha256: ::core::option::Option<String>,
+    /// Size of the file in bytes.
+    #[serde(default)]
+    pub size: ::core::option::Option<String>,
+}
+
+/// A name-value pair representing an environment variable used in an operating system process.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct EnvironmentVariable {
+    /// Environment variable name as a JSON encoded string.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Environment variable value as a JSON encoded string.
+    #[serde(default)]
+    pub val: ::core::option::Option<String>,
+}
+
+/// Environment variable containing the secret.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SecretEnvironmentVariable {
+    /// Environment variable name as a JSON encoded string. Note that value is not included since the value contains the secret data, which is sensitive core content.
+    #[serde(default)]
+    pub key: ::core::option::Option<String>,
+}
+
+/// File path containing the secret.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SecretFilePath {
+    /// Path to the file.
+    #[serde(default)]
+    pub path: ::core::option::Option<String>,
+}
+
+/// The status of the secret.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SecretStatus {
+    /// Time that the secret was found.
+    #[serde(default, rename = "lastUpdatedTime")]
+    pub last_updated_time: ::core::option::Option<String>,
+    /// The validity of the secret. // TODO: enum values: ["SECRET_VALIDITY_UNSPECIFIED", "SECRET_VALIDITY_UNSUPPORTED", "SECRET_VALIDITY_FAILED", "SECRET_VALIDITY_INVALID", "SECRET_VALIDITY_VALID"]
+    #[serde(default)]
+    pub validity: ::core::option::Option<String>,
+}
+
+/// The policy field that violates the deployed posture and its expected and detected values.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PolicyDriftDetails {
+    /// The detected value that violates the deployed posture, for example, false or allowed_values={"projects/22831892"}.
+    #[serde(default, rename = "detectedValue")]
+    pub detected_value: ::core::option::Option<String>,
+    /// The value of this field that was configured in a posture, for example, true or allowed_values={"projects/29831892"}.
+    #[serde(default, rename = "expectedValue")]
+    pub expected_value: ::core::option::Option<String>,
+    /// The name of the updated field, for example constraint.implementation.policy_rules[0].enforce
+    #[serde(default)]
+    pub field: ::core::option::Option<String>,
+}
+
+/// Vertex AI dataset associated with the finding.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Dataset {
+    /// The user defined display name of dataset, e.g. plants-dataset
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+    /// Resource name of the dataset, e.g. projects/{project}/locations/{location}/datasets/2094040236064505856
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Data source, such as BigQuery source URI, e.g. bq://scc-nexus-test.AIPPtest.gsod
+    #[serde(default)]
+    pub source: ::core::option::Option<String>,
+}
+
+/// Vertex AI training pipeline associated with the finding.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Pipeline {
+    /// The user defined display name of pipeline, e.g. plants-classification
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+    /// Resource name of the pipeline, e.g. projects/{project}/locations/{location}/trainingPipelines/5253428229225578496
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+}
+
+/// CVE stands for Common Vulnerabilities and Exposures. Information from the [CVE record](https://www.cve.org/ResourcesSupport/Glossary) that describes this vulnerability.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Cve {
+    /// Describe Common Vulnerability Scoring System specified at https://www.first.org/cvss/v3.1/specification-document
+    #[serde(default)]
+    pub cvssv3: ::core::option::Option<Cvssv3>,
+    /// Date the first publicly available exploit or PoC was released.
+    #[serde(default, rename = "exploitReleaseDate")]
+    pub exploit_release_date: ::core::option::Option<String>,
+    /// The exploitation activity of the vulnerability in the wild. // TODO: enum values: ["EXPLOITATION_ACTIVITY_UNSPECIFIED", "WIDE", "CONFIRMED", "AVAILABLE", "ANTICIPATED", "NO_KNOWN"]
+    #[serde(default, rename = "exploitationActivity")]
+    pub exploitation_activity: ::core::option::Option<String>,
+    /// Date of the earliest known exploitation.
+    #[serde(default, rename = "firstExploitationDate")]
+    pub first_exploitation_date: ::core::option::Option<String>,
+    /// The unique identifier for the vulnerability. e.g. CVE-2021-34527
+    #[serde(default)]
+    pub id: ::core::option::Option<String>,
+    /// The potential impact of the vulnerability if it was to be exploited. // TODO: enum values: ["RISK_RATING_UNSPECIFIED", "LOW", "MEDIUM", "HIGH", "CRITICAL"]
+    #[serde(default)]
+    pub impact: ::core::option::Option<String>,
+    /// Whether or not the vulnerability has been observed in the wild.
+    #[serde(default, rename = "observedInTheWild")]
+    pub observed_in_the_wild: ::core::option::Option<bool>,
+    /// Additional information about the CVE. e.g. https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2021-34527
+    #[serde(default)]
+    pub references: ::core::option::Option<::std::vec::Vec<Reference>>,
+    /// Whether upstream fix is available for the CVE.
+    #[serde(default, rename = "upstreamFixAvailable")]
+    pub upstream_fix_available: ::core::option::Option<bool>,
+    /// Whether or not the vulnerability was zero day when the finding was published.
+    #[serde(default, rename = "zeroDay")]
+    pub zero_day: ::core::option::Option<bool>,
+}
+
+/// CWE stands for Common Weakness Enumeration. Information about this weakness, as described by [CWE](https://cwe.mitre.org/).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Cwe {
+    /// The CWE identifier, e.g. CWE-94
+    #[serde(default)]
+    pub id: ::core::option::Option<String>,
+    /// Any reference to the details on the CWE, for example, https://cwe.mitre.org/data/definitions/94.html
+    #[serde(default)]
+    pub references: ::core::option::Option<::std::vec::Vec<Reference>>,
+}
+
+/// Package is a generic definition of a package.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Package {
+    /// The CPE URI where the vulnerability was detected.
+    #[serde(default, rename = "cpeUri")]
+    pub cpe_uri: ::core::option::Option<String>,
+    /// The name of the package where the vulnerability was detected.
+    #[serde(default, rename = "packageName")]
+    pub package_name: ::core::option::Option<String>,
+    /// Type of package, for example, os, maven, or go.
+    #[serde(default, rename = "packageType")]
+    pub package_type: ::core::option::Option<String>,
+    /// The version of the package.
+    #[serde(default, rename = "packageVersion")]
+    pub package_version: ::core::option::Option<String>,
+}
+
+/// SecurityBulletin are notifications of vulnerabilities of Google products.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SecurityBulletin {
+    /// ID of the bulletin corresponding to the vulnerability.
+    #[serde(default, rename = "bulletinId")]
+    pub bulletin_id: ::core::option::Option<String>,
+    /// Submission time of this Security Bulletin.
+    #[serde(default, rename = "submissionTime")]
+    pub submission_time: ::core::option::Option<String>,
+    /// This represents a version that the cluster receiving this notification should be upgraded to, based on its current version. For example, 1.15.0
+    #[serde(default, rename = "suggestedUpgradeVersion")]
+    pub suggested_upgrade_version: ::core::option::Option<String>,
+}
+
+/// Memory hash detection contributing to the binary family match.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudSecuritycenterV2Detection {
+    /// The name of the binary associated with the memory hash signature detection.
+    #[serde(default)]
+    pub binary: ::core::option::Option<String>,
+    /// The percentage of memory page hashes in the signature that were matched.
+    #[serde(default, rename = "percentPagesMatched")]
+    pub percent_pages_matched: ::core::option::Option<f64>,
+}
+
+/// A port range which is inclusive of the min and max values. Values are between 0 and 2^16-1. The max can be equal / must be not smaller than the min value. If min and max are equal this indicates that it is a single port.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudSecuritycenterV2PortRange {
+    /// Maximum port value.
+    #[serde(default)]
+    pub max: ::core::option::Option<String>,
+    /// Minimum port value.
+    #[serde(default)]
+    pub min: ::core::option::Option<String>,
+}
+
+/// Represents a generic name-value label. A label has separate name and value fields to support filtering with the contains() function. For more information, see [Filtering on array-type fields](https://cloud.google.com/security-command-center/docs/how-to-api-list-findings#array-contains-filtering).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudSecuritycenterV2Label {
+    /// Name of the label.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Value that corresponds to the label''s name.
+    #[serde(default)]
+    pub value: ::core::option::Option<String>,
+}
+
+/// Contact information of stakeholders.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudSecuritycenterV1ResourceApplicationAttributesContactInfo {
+    /// Email address of the contacts.
+    #[serde(default)]
+    pub email: ::core::option::Option<String>,
+}
+
+/// Criticality of the Application, Service, or Workload
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudSecuritycenterV1ResourceApplicationAttributesCriticality {
+    /// Criticality Type. // TODO: enum values: ["CRITICALITY_TYPE_UNSPECIFIED", "MISSION_CRITICAL", "HIGH", "MEDIUM", "LOW"]
+    #[serde(default, rename = "type")]
+    pub type_: ::core::option::Option<String>,
+}
+
+/// Environment of the Application, Service, or Workload
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudSecuritycenterV1ResourceApplicationAttributesEnvironment {
+    /// Environment Type. // TODO: enum values: ["ENVIRONMENT_TYPE_UNSPECIFIED", "PRODUCTION", "STAGING", "TEST", "DEVELOPMENT"]
+    #[serde(default, rename = "type")]
+    pub type_: ::core::option::Option<String>,
+}
+
+/// Represents a textual expression in the Common Expression Language (CEL) syntax. CEL is a C-like expression language. The syntax and semantics of CEL are documented at https://github.com/google/cel-spec. Example (Comparison): title: "Summary size limit" description: "Determines if a summary is less than 100 chars" expression: "document.summary.size() &lt; 100" Example (Equality): title: "Requestor is owner" description: "Determines if requestor is the document owner" expression: "document.owner == request.auth.claims.email" Example (Logic): title: "Public documents" description: "Determine whether the document should be publicly visible" expression: "document.type != ''private'' && document.type != ''internal''" Example (Data Manipulation): title: "Notification string" description: "Create a notification string with a timestamp." expression: "''New message received at '' + string(document.create_time)" The exact variables and functions that may be referenced within an expression are determined by the service that evaluates it. See the service documentation for additional information.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Expr {
+    /// Optional. Description of the expression. This is a longer text which describes the expression, e.g. when hovered over it in a UI.
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+    /// Textual representation of an expression in Common Expression Language syntax.
+    #[serde(default)]
+    pub expression: ::core::option::Option<String>,
+    /// Optional. String indicating the location of the expression for error reporting, e.g. a file name and a position in the file.
+    #[serde(default)]
+    pub location: ::core::option::Option<String>,
+    /// Optional. Title for the expression, i.e. a short string describing its purpose. This can be used e.g. in UIs which allow to enter the expression.
+    #[serde(default)]
+    pub title: ::core::option::Option<String>,
+}
+
+/// Score is calculated from of all elements in the data profile. A higher level means the data is more sensitive.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SensitivityScore {
+    /// The sensitivity score applied to the resource. // TODO: enum values: ["SENSITIVITY_SCORE_LEVEL_UNSPECIFIED", "SENSITIVITY_LOW", "SENSITIVITY_UNKNOWN", "SENSITIVITY_MODERATE", "SENSITIVITY_HIGH"]
+    #[serde(default)]
+    pub score: ::core::option::Option<String>,
+}
+
+/// Compliance control associated with the finding.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Control {
+    /// Name of the Control
+    #[serde(default, rename = "controlName")]
+    pub control_name: ::core::option::Option<String>,
+    /// Display name of the control. For example, AU-02.
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+}
+
+/// A signature corresponding to memory page hashes.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MemoryHashSignature {
+    /// The binary family.
+    #[serde(default, rename = "binaryFamily")]
+    pub binary_family: ::core::option::Option<String>,
+    /// The list of memory hash detections contributing to the binary family match.
+    #[serde(default)]
+    pub detections: ::core::option::Option<::std::vec::Vec<Detection>>,
 }
 
 /// A signature corresponding to a YARA rule.
@@ -6168,4 +6006,166 @@ pub struct YaraRuleSignature {
     /// The name of the YARA rule.
     #[serde(default, rename = "yaraRule")]
     pub yara_rule: ::core::option::Option<String>,
+}
+
+/// IP rule information.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct IpRule {
+    /// Optional. An optional list of ports to which this rule applies. This field is only applicable for the UDP or (S)TCP protocols. Each entry must be either an integer or a range including a min and max port number.
+    #[serde(default, rename = "portRanges")]
+    pub port_ranges: ::core::option::Option<::std::vec::Vec<PortRange>>,
+    /// The IP protocol this rule applies to. This value can either be one of the following well known protocol strings (TCP, UDP, ICMP, ESP, AH, IPIP, SCTP) or a string representation of the integer value.
+    #[serde(default)]
+    pub protocol: ::core::option::Option<String>,
+}
+
+/// Kubernetes Role or ClusterRole.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Role {
+    /// Role type. // TODO: enum values: ["KIND_UNSPECIFIED", "ROLE", "CLUSTER_ROLE"]
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+    /// Role name.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Role namespace.
+    #[serde(default)]
+    pub ns: ::core::option::Option<String>,
+}
+
+/// Represents a Kubernetes subject.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Subject {
+    /// Authentication type for the subject. // TODO: enum values: ["AUTH_TYPE_UNSPECIFIED", "USER", "SERVICEACCOUNT", "GROUP"]
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+    /// Name for the subject.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Namespace for the subject.
+    #[serde(default)]
+    pub ns: ::core::option::Option<String>,
+}
+
+/// Kubernetes nodes associated with the finding.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Node {
+    /// [Full resource name](https://google.aip.dev/122#full-resource-names) of the Compute Engine VM running the cluster node.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+}
+
+/// Container associated with the finding.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Container {
+    /// The time that the container was created.
+    #[serde(default, rename = "createTime")]
+    pub create_time: ::core::option::Option<String>,
+    /// Optional container image ID, if provided by the container runtime. Uniquely identifies the container image launched using a container image digest.
+    #[serde(default, rename = "imageId")]
+    pub image_id: ::core::option::Option<String>,
+    /// Container labels, as provided by the container runtime.
+    #[serde(default)]
+    pub labels: ::core::option::Option<::std::vec::Vec<Label>>,
+    /// Name of the container.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Container image URI provided when configuring a pod or container. This string can identify a container image version using mutable tags.
+    #[serde(default)]
+    pub uri: ::core::option::Option<String>,
+}
+
+/// Path of the file in terms of underlying disk/partition identifiers.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DiskPath {
+    /// UUID of the partition (format https://wiki.archlinux.org/title/persistent_block_device_naming#by-uuid)
+    #[serde(default, rename = "partitionUuid")]
+    pub partition_uuid: ::core::option::Option<String>,
+    /// Relative path of the file in the partition as a JSON encoded string. Example: /home/user1/executable_file.sh
+    #[serde(default, rename = "relativePath")]
+    pub relative_path: ::core::option::Option<String>,
+}
+
+/// Operation(s) performed on a file.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct FileOperation {
+    /// The type of the operation // TODO: enum values: ["OPERATION_TYPE_UNSPECIFIED", "OPEN", "READ", "RENAME", "WRITE", "EXECUTE"]
+    #[serde(default, rename = "type")]
+    pub type_: ::core::option::Option<String>,
+}
+
+/// Common Vulnerability Scoring System version 3.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Cvssv3 {
+    /// This metric describes the conditions beyond the attacker''s control that must exist in order to exploit the vulnerability. // TODO: enum values: ["ATTACK_COMPLEXITY_UNSPECIFIED", "ATTACK_COMPLEXITY_LOW", "ATTACK_COMPLEXITY_HIGH"]
+    #[serde(default, rename = "attackComplexity")]
+    pub attack_complexity: ::core::option::Option<String>,
+    /// Base Metrics Represents the intrinsic characteristics of a vulnerability that are constant over time and across user environments. This metric reflects the context by which vulnerability exploitation is possible. // TODO: enum values: ["ATTACK_VECTOR_UNSPECIFIED", "ATTACK_VECTOR_NETWORK", "ATTACK_VECTOR_ADJACENT", "ATTACK_VECTOR_LOCAL", "ATTACK_VECTOR_PHYSICAL"]
+    #[serde(default, rename = "attackVector")]
+    pub attack_vector: ::core::option::Option<String>,
+    /// This metric measures the impact to the availability of the impacted component resulting from a successfully exploited vulnerability. // TODO: enum values: ["IMPACT_UNSPECIFIED", "IMPACT_HIGH", "IMPACT_LOW", "IMPACT_NONE"]
+    #[serde(default, rename = "availabilityImpact")]
+    pub availability_impact: ::core::option::Option<String>,
+    /// The base score is a function of the base metric scores.
+    #[serde(default, rename = "baseScore")]
+    pub base_score: ::core::option::Option<f64>,
+    /// This metric measures the impact to the confidentiality of the information resources managed by a software component due to a successfully exploited vulnerability. // TODO: enum values: ["IMPACT_UNSPECIFIED", "IMPACT_HIGH", "IMPACT_LOW", "IMPACT_NONE"]
+    #[serde(default, rename = "confidentialityImpact")]
+    pub confidentiality_impact: ::core::option::Option<String>,
+    /// This metric measures the impact to integrity of a successfully exploited vulnerability. // TODO: enum values: ["IMPACT_UNSPECIFIED", "IMPACT_HIGH", "IMPACT_LOW", "IMPACT_NONE"]
+    #[serde(default, rename = "integrityImpact")]
+    pub integrity_impact: ::core::option::Option<String>,
+    /// This metric describes the level of privileges an attacker must possess before successfully exploiting the vulnerability. // TODO: enum values: ["PRIVILEGES_REQUIRED_UNSPECIFIED", "PRIVILEGES_REQUIRED_NONE", "PRIVILEGES_REQUIRED_LOW", "PRIVILEGES_REQUIRED_HIGH"]
+    #[serde(default, rename = "privilegesRequired")]
+    pub privileges_required: ::core::option::Option<String>,
+    /// The Scope metric captures whether a vulnerability in one vulnerable component impacts resources in components beyond its security scope. // TODO: enum values: ["SCOPE_UNSPECIFIED", "SCOPE_UNCHANGED", "SCOPE_CHANGED"]
+    #[serde(default)]
+    pub scope: ::core::option::Option<String>,
+    /// This metric captures the requirement for a human user, other than the attacker, to participate in the successful compromise of the vulnerable component. // TODO: enum values: ["USER_INTERACTION_UNSPECIFIED", "USER_INTERACTION_NONE", "USER_INTERACTION_REQUIRED"]
+    #[serde(default, rename = "userInteraction")]
+    pub user_interaction: ::core::option::Option<String>,
+}
+
+/// Additional Links
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Reference {
+    /// Source of the reference e.g. NVD
+    #[serde(default)]
+    pub source: ::core::option::Option<String>,
+    /// Uri for the mentioned source e.g. https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2021-34527.
+    #[serde(default)]
+    pub uri: ::core::option::Option<String>,
+}
+
+/// Memory hash detection contributing to the binary family match.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Detection {
+    /// The name of the binary associated with the memory hash signature detection.
+    #[serde(default)]
+    pub binary: ::core::option::Option<String>,
+    /// The percentage of memory page hashes in the signature that were matched.
+    #[serde(default, rename = "percentPagesMatched")]
+    pub percent_pages_matched: ::core::option::Option<f64>,
+}
+
+/// A port range which is inclusive of the min and max values. Values are between 0 and 2^16-1. The max can be equal / must be not smaller than the min value. If min and max are equal this indicates that it is a single port.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PortRange {
+    /// Maximum port value.
+    #[serde(default)]
+    pub max: ::core::option::Option<String>,
+    /// Minimum port value.
+    #[serde(default)]
+    pub min: ::core::option::Option<String>,
+}
+
+/// Represents a generic name-value label. A label has separate name and value fields to support filtering with the contains() function. For more information, see [Filtering on array-type fields](https://cloud.google.com/security-command-center/docs/how-to-api-list-findings#array-contains-filtering).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Label {
+    /// Name of the label.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Value that corresponds to the label''s name.
+    #[serde(default)]
+    pub value: ::core::option::Option<String>,
 }

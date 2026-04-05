@@ -10,118 +10,6 @@
 use super::*;
 use serde::{Deserialize, Serialize};
 
-/// Details about the Access request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AccessApprovalRequest {
-    /// Identifier. Format: organizations/{organization}/locations/{location}/customers/{customer}/workloads/{workload}/accessApprovalRequests/{access_approval_request}
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// The time at which approval was requested.
-    #[serde(default, rename = "requestTime")]
-    pub request_time: ::core::option::Option<String>,
-    /// The requested expiration for the approval. If the request is approved, access will be granted from the time of approval until the expiration time.
-    #[serde(default, rename = "requestedExpirationTime")]
-    pub requested_expiration_time: ::core::option::Option<String>,
-    /// The justification for which approval is being requested.
-    #[serde(default, rename = "requestedReason")]
-    pub requested_reason: ::core::option::Option<AccessReason>,
-}
-
-/// Reason for the access.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AccessReason {
-    /// More detail about certain reason types. See comments for each type above.
-    #[serde(default)]
-    pub detail: ::core::option::Option<String>,
-    /// Type of access justification. // TODO: enum values: ["TYPE_UNSPECIFIED", "CUSTOMER_INITIATED_SUPPORT", "GOOGLE_INITIATED_SERVICE", "GOOGLE_INITIATED_REVIEW", "THIRD_PARTY_DATA_REQUEST", "GOOGLE_RESPONSE_TO_PRODUCTION_ALERT", "CLOUD_INITIATED_ACCESS"]
-    #[serde(default, rename = "type")]
-    pub type_: ::core::option::Option<String>,
-}
-
-/// Information around the error that occurred if the connection state is anything other than available or unspecified
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ConnectionError {
-    /// The error domain for the error
-    #[serde(default, rename = "errorDomain")]
-    pub error_domain: ::core::option::Option<String>,
-    /// The error message for the error
-    #[serde(default, rename = "errorMessage")]
-    pub error_message: ::core::option::Option<String>,
-}
-
-/// Remediation instructions to resolve violation via cloud console
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Console {
-    /// Additional urls for more information about steps
-    #[serde(default, rename = "additionalLinks")]
-    pub additional_links: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Link to console page where violations can be resolved
-    #[serde(default, rename = "consoleUris")]
-    pub console_uris: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Steps to resolve violation via cloud console
-    #[serde(default)]
-    pub steps: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// Contains metadata around a Cloud Controls Partner Customer
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Customer {
-    /// Output only. Container for customer onboarding steps
-    #[serde(default, rename = "customerOnboardingState")]
-    pub customer_onboarding_state: ::core::option::Option<CustomerOnboardingState>,
-    /// Required. Display name for the customer
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-    /// Output only. Indicates whether a customer is fully onboarded
-    #[serde(default, rename = "isOnboarded")]
-    pub is_onboarded: ::core::option::Option<bool>,
-    /// Identifier. Format: organizations/{organization}/locations/{location}/customers/{customer}
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Output only. The customer organization domain, extracted from CRM Organization’s display_name field. e.g. "google.com"
-    #[serde(default, rename = "organizationDomain")]
-    pub organization_domain: ::core::option::Option<String>,
-}
-
-/// Container for customer onboarding steps
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CustomerOnboardingState {
-    /// List of customer onboarding steps
-    #[serde(default, rename = "onboardingSteps")]
-    pub onboarding_steps: ::core::option::Option<::std::vec::Vec<CustomerOnboardingStep>>,
-}
-
-/// Container for customer onboarding information
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CustomerOnboardingStep {
-    /// Output only. Current state of the step // TODO: enum values: ["COMPLETION_STATE_UNSPECIFIED", "PENDING", "SUCCEEDED", "FAILED", "NOT_APPLICABLE"]
-    #[serde(default, rename = "completionState")]
-    pub completion_state: ::core::option::Option<String>,
-    /// The completion time of the onboarding step
-    #[serde(default, rename = "completionTime")]
-    pub completion_time: ::core::option::Option<String>,
-    /// The starting time of the onboarding step
-    #[serde(default, rename = "startTime")]
-    pub start_time: ::core::option::Option<String>,
-    /// The onboarding step // TODO: enum values: ["STEP_UNSPECIFIED", "KAJ_ENROLLMENT", "CUSTOMER_ENVIRONMENT"]
-    #[serde(default)]
-    pub step: ::core::option::Option<String>,
-}
-
-/// Details about the EKM connection
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct EkmConnection {
-    /// The connection error that occurred if any
-    #[serde(default, rename = "connectionError")]
-    pub connection_error: ::core::option::Option<ConnectionError>,
-    /// Resource name of the EKM connection in the format: projects/{project}/locations/{location}/ekmConnections/{ekm_connection}
-    #[serde(default, rename = "connectionName")]
-    pub connection_name: ::core::option::Option<String>,
-    /// Output only. The connection state // TODO: enum values: ["CONNECTION_STATE_UNSPECIFIED", "AVAILABLE", "NOT_AVAILABLE", "ERROR", "PERMISSION_DENIED"]
-    #[serde(default, rename = "connectionState")]
-    pub connection_state: ::core::option::Option<String>,
-}
-
 /// The EKM connections associated with a workload
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct EkmConnections {
@@ -131,42 +19,6 @@ pub struct EkmConnections {
     /// Identifier. Format: organizations/{organization}/locations/{location}/customers/{customer}/workloads/{workload}/ekmConnections
     #[serde(default)]
     pub name: ::core::option::Option<String>,
-}
-
-/// Holds information needed by Mudbray to use partner EKMs for workloads.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct EkmMetadata {
-    /// Endpoint for sending requests to the EKM for key provisioning during Assured Workload creation.
-    #[serde(default, rename = "ekmEndpointUri")]
-    pub ekm_endpoint_uri: ::core::option::Option<String>,
-    /// The Cloud EKM partner. // TODO: enum values: ["EKM_SOLUTION_UNSPECIFIED", "FORTANIX", "FUTUREX", "THALES", "VIRTRU"]
-    #[serde(default, rename = "ekmSolution")]
-    pub ekm_solution: ::core::option::Option<String>,
-}
-
-/// Remediation instructions to resolve violation via gcloud cli
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Gcloud {
-    /// Additional urls for more information about steps
-    #[serde(default, rename = "additionalLinks")]
-    pub additional_links: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Gcloud command to resolve violation
-    #[serde(default, rename = "gcloudCommands")]
-    pub gcloud_commands: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Steps to resolve violation via gcloud cli
-    #[serde(default)]
-    pub steps: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// Instructions to remediate violation
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Instructions {
-    /// Remediation instructions to resolve violation via cloud console
-    #[serde(default, rename = "consoleInstructions")]
-    pub console_instructions: ::core::option::Option<Console>,
-    /// Remediation instructions to resolve violation via gcloud cli
-    #[serde(default, rename = "gcloudInstructions")]
-    pub gcloud_instructions: ::core::option::Option<Gcloud>,
 }
 
 /// Response message for list access requests.
@@ -288,29 +140,55 @@ pub struct PartnerPermissions {
     pub partner_permissions: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
-/// Represents remediation guidance to resolve compliance violation for AssuredWorkload
+/// Details about the EKM connection
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Remediation {
-    /// Values that can resolve the violation For example: for list org policy violations, this will either be the list of allowed or denied values
-    #[serde(default, rename = "compliantValues")]
-    pub compliant_values: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Required. Remediation instructions to resolve violations
-    #[serde(default)]
-    pub instructions: ::core::option::Option<Instructions>,
-    /// Output only. Remediation type based on the type of org policy values violated // TODO: enum values: ["REMEDIATION_TYPE_UNSPECIFIED", "REMEDIATION_BOOLEAN_ORG_POLICY_VIOLATION", "REMEDIATION_LIST_ALLOWED_VALUES_ORG_POLICY_VIOLATION", "REMEDIATION_LIST_DENIED_VALUES_ORG_POLICY_VIOLATION", "REMEDIATION_RESTRICT_CMEK_CRYPTO_KEY_PROJECTS_ORG_POLICY_VIOLATION", "REMEDIATION_RESOURCE_VIOLATION"]
-    #[serde(default, rename = "remediationType")]
-    pub remediation_type: ::core::option::Option<String>,
+pub struct EkmConnection {
+    /// The connection error that occurred if any
+    #[serde(default, rename = "connectionError")]
+    pub connection_error: ::core::option::Option<ConnectionError>,
+    /// Resource name of the EKM connection in the format: projects/{project}/locations/{location}/ekmConnections/{ekm_connection}
+    #[serde(default, rename = "connectionName")]
+    pub connection_name: ::core::option::Option<String>,
+    /// Output only. The connection state // TODO: enum values: ["CONNECTION_STATE_UNSPECIFIED", "AVAILABLE", "NOT_AVAILABLE", "ERROR", "PERMISSION_DENIED"]
+    #[serde(default, rename = "connectionState")]
+    pub connection_state: ::core::option::Option<String>,
 }
 
-/// Represents the SKU a partner owns inside Google Cloud to sell to customers.
+/// Details about the Access request.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Sku {
-    /// Display name of the product identified by the SKU. A partner may want to show partner branded names for their offerings such as local sovereign cloud solutions.
+pub struct AccessApprovalRequest {
+    /// Identifier. Format: organizations/{organization}/locations/{location}/customers/{customer}/workloads/{workload}/accessApprovalRequests/{access_approval_request}
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// The time at which approval was requested.
+    #[serde(default, rename = "requestTime")]
+    pub request_time: ::core::option::Option<String>,
+    /// The requested expiration for the approval. If the request is approved, access will be granted from the time of approval until the expiration time.
+    #[serde(default, rename = "requestedExpirationTime")]
+    pub requested_expiration_time: ::core::option::Option<String>,
+    /// The justification for which approval is being requested.
+    #[serde(default, rename = "requestedReason")]
+    pub requested_reason: ::core::option::Option<AccessReason>,
+}
+
+/// Contains metadata around a Cloud Controls Partner Customer
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Customer {
+    /// Output only. Container for customer onboarding steps
+    #[serde(default, rename = "customerOnboardingState")]
+    pub customer_onboarding_state: ::core::option::Option<CustomerOnboardingState>,
+    /// Required. Display name for the customer
     #[serde(default, rename = "displayName")]
     pub display_name: ::core::option::Option<String>,
-    /// Argentum product SKU, that is associated with the partner offerings to customers used by Syntro for billing purposes. SKUs can represent resold Google products or support services.
+    /// Output only. Indicates whether a customer is fully onboarded
+    #[serde(default, rename = "isOnboarded")]
+    pub is_onboarded: ::core::option::Option<bool>,
+    /// Identifier. Format: organizations/{organization}/locations/{location}/customers/{customer}
     #[serde(default)]
-    pub id: ::core::option::Option<String>,
+    pub name: ::core::option::Option<String>,
+    /// Output only. The customer organization domain, extracted from CRM Organization’s display_name field. e.g. "google.com"
+    #[serde(default, rename = "organizationDomain")]
+    pub organization_domain: ::core::option::Option<String>,
 }
 
 /// Details of resource Violation
@@ -380,12 +258,106 @@ pub struct Workload {
     pub workload_onboarding_state: ::core::option::Option<WorkloadOnboardingState>,
 }
 
+/// Holds information needed by Mudbray to use partner EKMs for workloads.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct EkmMetadata {
+    /// Endpoint for sending requests to the EKM for key provisioning during Assured Workload creation.
+    #[serde(default, rename = "ekmEndpointUri")]
+    pub ekm_endpoint_uri: ::core::option::Option<String>,
+    /// The Cloud EKM partner. // TODO: enum values: ["EKM_SOLUTION_UNSPECIFIED", "FORTANIX", "FUTUREX", "THALES", "VIRTRU"]
+    #[serde(default, rename = "ekmSolution")]
+    pub ekm_solution: ::core::option::Option<String>,
+}
+
+/// Represents the SKU a partner owns inside Google Cloud to sell to customers.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Sku {
+    /// Display name of the product identified by the SKU. A partner may want to show partner branded names for their offerings such as local sovereign cloud solutions.
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+    /// Argentum product SKU, that is associated with the partner offerings to customers used by Syntro for billing purposes. SKUs can represent resold Google products or support services.
+    #[serde(default)]
+    pub id: ::core::option::Option<String>,
+}
+
+/// Information around the error that occurred if the connection state is anything other than available or unspecified
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ConnectionError {
+    /// The error domain for the error
+    #[serde(default, rename = "errorDomain")]
+    pub error_domain: ::core::option::Option<String>,
+    /// The error message for the error
+    #[serde(default, rename = "errorMessage")]
+    pub error_message: ::core::option::Option<String>,
+}
+
+/// Reason for the access.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AccessReason {
+    /// More detail about certain reason types. See comments for each type above.
+    #[serde(default)]
+    pub detail: ::core::option::Option<String>,
+    /// Type of access justification. // TODO: enum values: ["TYPE_UNSPECIFIED", "CUSTOMER_INITIATED_SUPPORT", "GOOGLE_INITIATED_SERVICE", "GOOGLE_INITIATED_REVIEW", "THIRD_PARTY_DATA_REQUEST", "GOOGLE_RESPONSE_TO_PRODUCTION_ALERT", "CLOUD_INITIATED_ACCESS"]
+    #[serde(default, rename = "type")]
+    pub type_: ::core::option::Option<String>,
+}
+
+/// Container for customer onboarding steps
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CustomerOnboardingState {
+    /// List of customer onboarding steps
+    #[serde(default, rename = "onboardingSteps")]
+    pub onboarding_steps: ::core::option::Option<::std::vec::Vec<CustomerOnboardingStep>>,
+}
+
+/// Represents remediation guidance to resolve compliance violation for AssuredWorkload
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Remediation {
+    /// Values that can resolve the violation For example: for list org policy violations, this will either be the list of allowed or denied values
+    #[serde(default, rename = "compliantValues")]
+    pub compliant_values: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Required. Remediation instructions to resolve violations
+    #[serde(default)]
+    pub instructions: ::core::option::Option<Instructions>,
+    /// Output only. Remediation type based on the type of org policy values violated // TODO: enum values: ["REMEDIATION_TYPE_UNSPECIFIED", "REMEDIATION_BOOLEAN_ORG_POLICY_VIOLATION", "REMEDIATION_LIST_ALLOWED_VALUES_ORG_POLICY_VIOLATION", "REMEDIATION_LIST_DENIED_VALUES_ORG_POLICY_VIOLATION", "REMEDIATION_RESTRICT_CMEK_CRYPTO_KEY_PROJECTS_ORG_POLICY_VIOLATION", "REMEDIATION_RESOURCE_VIOLATION"]
+    #[serde(default, rename = "remediationType")]
+    pub remediation_type: ::core::option::Option<String>,
+}
+
 /// Container for workload onboarding steps.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct WorkloadOnboardingState {
     /// List of workload onboarding steps.
     #[serde(default, rename = "onboardingSteps")]
     pub onboarding_steps: ::core::option::Option<::std::vec::Vec<WorkloadOnboardingStep>>,
+}
+
+/// Container for customer onboarding information
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CustomerOnboardingStep {
+    /// Output only. Current state of the step // TODO: enum values: ["COMPLETION_STATE_UNSPECIFIED", "PENDING", "SUCCEEDED", "FAILED", "NOT_APPLICABLE"]
+    #[serde(default, rename = "completionState")]
+    pub completion_state: ::core::option::Option<String>,
+    /// The completion time of the onboarding step
+    #[serde(default, rename = "completionTime")]
+    pub completion_time: ::core::option::Option<String>,
+    /// The starting time of the onboarding step
+    #[serde(default, rename = "startTime")]
+    pub start_time: ::core::option::Option<String>,
+    /// The onboarding step // TODO: enum values: ["STEP_UNSPECIFIED", "KAJ_ENROLLMENT", "CUSTOMER_ENVIRONMENT"]
+    #[serde(default)]
+    pub step: ::core::option::Option<String>,
+}
+
+/// Instructions to remediate violation
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Instructions {
+    /// Remediation instructions to resolve violation via cloud console
+    #[serde(default, rename = "consoleInstructions")]
+    pub console_instructions: ::core::option::Option<Console>,
+    /// Remediation instructions to resolve violation via gcloud cli
+    #[serde(default, rename = "gcloudInstructions")]
+    pub gcloud_instructions: ::core::option::Option<Gcloud>,
 }
 
 /// Container for workload onboarding information.
@@ -403,4 +375,32 @@ pub struct WorkloadOnboardingStep {
     /// The onboarding step. // TODO: enum values: ["STEP_UNSPECIFIED", "EKM_PROVISIONED", "SIGNED_ACCESS_APPROVAL_CONFIGURED"]
     #[serde(default)]
     pub step: ::core::option::Option<String>,
+}
+
+/// Remediation instructions to resolve violation via cloud console
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Console {
+    /// Additional urls for more information about steps
+    #[serde(default, rename = "additionalLinks")]
+    pub additional_links: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Link to console page where violations can be resolved
+    #[serde(default, rename = "consoleUris")]
+    pub console_uris: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Steps to resolve violation via cloud console
+    #[serde(default)]
+    pub steps: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// Remediation instructions to resolve violation via gcloud cli
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Gcloud {
+    /// Additional urls for more information about steps
+    #[serde(default, rename = "additionalLinks")]
+    pub additional_links: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Gcloud command to resolve violation
+    #[serde(default, rename = "gcloudCommands")]
+    pub gcloud_commands: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Steps to resolve violation via gcloud cli
+    #[serde(default)]
+    pub steps: ::core::option::Option<::std::vec::Vec<String>>,
 }

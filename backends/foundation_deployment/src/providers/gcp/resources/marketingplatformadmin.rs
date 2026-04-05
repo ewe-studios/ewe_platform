@@ -10,68 +10,6 @@
 use super::*;
 use serde::{Deserialize, Serialize};
 
-/// A resource message representing the link between a Google Analytics account and a Google Marketing Platform organization.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AnalyticsAccountLink {
-    /// Required. Immutable. The resource name of the AnalyticsAdmin API account. The account ID will be used as the ID of this AnalyticsAccountLink resource, which will become the final component of the resource name. Format: analyticsadmin.googleapis.com/accounts/{account_id}
-    #[serde(default, rename = "analyticsAccount")]
-    pub analytics_account: ::core::option::Option<String>,
-    /// Output only. The human-readable name for the Analytics account.
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-    /// Output only. The verification state of the link between the Analytics account and the parent organization. // TODO: enum values: ["LINK_VERIFICATION_STATE_UNSPECIFIED", "LINK_VERIFICATION_STATE_VERIFIED", "LINK_VERIFICATION_STATE_NOT_VERIFIED"]
-    #[serde(default, rename = "linkVerificationState")]
-    pub link_verification_state: ::core::option::Option<String>,
-    /// Identifier. Resource name of this AnalyticsAccountLink. Note the resource ID is the same as the ID of the Analtyics account. Format: organizations/{org_id}/analyticsAccountLinks/{analytics_account_link_id} Example: "organizations/xyz/analyticsAccountLinks/1234"
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-}
-
-/// Contains the bill amount.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct BillInfo {
-    /// The amount of the monthly base fee.
-    #[serde(default, rename = "baseFee")]
-    pub base_fee: ::core::option::Option<Money>,
-    /// The amount of the event fee.
-    #[serde(default, rename = "eventFee")]
-    pub event_fee: ::core::option::Option<Money>,
-    /// The amount of the price protection credit, this is only available for eligible customers.
-    #[serde(default, rename = "priceProtectionCredit")]
-    pub price_protection_credit: ::core::option::Option<Money>,
-    /// The total amount of the bill.
-    #[serde(default)]
-    pub total: ::core::option::Option<Money>,
-}
-
-/// Contains the client data.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ClientData {
-    /// The end date of the contract between the sales org and the end client.
-    #[serde(default, rename = "endDate")]
-    pub end_date: ::core::option::Option<Date>,
-    /// The end client that has/had contract with the requested sales org.
-    #[serde(default)]
-    pub organization: ::core::option::Option<Organization>,
-    /// The start date of the contract between the sales org and the end client.
-    #[serde(default, rename = "startDate")]
-    pub start_date: ::core::option::Option<Date>,
-}
-
-/// Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Date {
-    /// Day of a month. Must be from 1 to 31 and valid for the year and month, or 0 to specify a year by itself or a year and month where the day isn''t significant.
-    #[serde(default)]
-    pub day: ::core::option::Option<i32>,
-    /// Month of a year. Must be from 1 to 12, or 0 to specify a year without a month and day.
-    #[serde(default)]
-    pub month: ::core::option::Option<i32>,
-    /// Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.
-    #[serde(default)]
-    pub year: ::core::option::Option<i32>,
-}
-
 /// Request message for FindSalesPartnerManagedClients RPC.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct FindSalesPartnerManagedClientsRequest {
@@ -110,57 +48,6 @@ pub struct ListOrganizationsResponse {
     pub organizations: ::core::option::Option<::std::vec::Vec<Organization>>,
 }
 
-/// Represents an amount of money with its currency type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Money {
-    /// The three-letter currency code defined in ISO 4217.
-    #[serde(default, rename = "currencyCode")]
-    pub currency_code: ::core::option::Option<String>,
-    /// Number of nano (10^-9) units of the amount. The value must be between -999,999,999 and +999,999,999 inclusive. If units is positive, nanos must be positive or zero. If units is zero, nanos can be positive, zero, or negative. If units is negative, nanos must be negative or zero. For example $-1.75 is represented as units=-1 and nanos=-750,000,000.
-    #[serde(default)]
-    pub nanos: ::core::option::Option<i32>,
-    /// The whole units of the amount. For example if currencyCode is "USD", then 1 unit is one US dollar.
-    #[serde(default)]
-    pub units: ::core::option::Option<String>,
-}
-
-/// A resource message representing a Google Marketing Platform organization.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Organization {
-    /// The human-readable name for the organization.
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-    /// Identifier. The resource name of the GMP organization. Format: organizations/{org_id}
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-}
-
-/// Contains the count of events received by the property, along with metadata that influences the volume of billable events.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PropertyUsage {
-    /// The ID of the property''s parent account.
-    #[serde(default, rename = "accountId")]
-    pub account_id: ::core::option::Option<String>,
-    /// The number of events for which the property is billed in the requested month.
-    #[serde(default, rename = "billableEventCount")]
-    pub billable_event_count: ::core::option::Option<String>,
-    /// The display name of the property.
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-    /// The name of the Google Analytics Admin API property resource. Format: analyticsadmin.googleapis.com/properties/{property_id}
-    #[serde(default)]
-    pub property: ::core::option::Option<String>,
-    /// The subtype of the analytics property. This affects the billable event count. // TODO: enum values: ["ANALYTICS_PROPERTY_TYPE_UNSPECIFIED", "ANALYTICS_PROPERTY_TYPE_ORDINARY", "ANALYTICS_PROPERTY_TYPE_SUBPROPERTY", "ANALYTICS_PROPERTY_TYPE_ROLLUP"]
-    #[serde(default, rename = "propertyType")]
-    pub property_type: ::core::option::Option<String>,
-    /// The service level of the property. // TODO: enum values: ["ANALYTICS_SERVICE_LEVEL_UNSPECIFIED", "ANALYTICS_SERVICE_LEVEL_STANDARD", "ANALYTICS_SERVICE_LEVEL_360"]
-    #[serde(default, rename = "serviceLevel")]
-    pub service_level: ::core::option::Option<String>,
-    /// Total event count that the property received during the requested month.
-    #[serde(default, rename = "totalEventCount")]
-    pub total_event_count: ::core::option::Option<String>,
-}
-
 /// Request message for ReportPropertyUsage RPC.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ReportPropertyUsageRequest {
@@ -189,4 +76,117 @@ pub struct SetPropertyServiceLevelRequest {
     /// Required. The service level to set for this property. // TODO: enum values: ["ANALYTICS_SERVICE_LEVEL_UNSPECIFIED", "ANALYTICS_SERVICE_LEVEL_STANDARD", "ANALYTICS_SERVICE_LEVEL_360"]
     #[serde(default, rename = "serviceLevel")]
     pub service_level: ::core::option::Option<String>,
+}
+
+/// Contains the client data.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ClientData {
+    /// The end date of the contract between the sales org and the end client.
+    #[serde(default, rename = "endDate")]
+    pub end_date: ::core::option::Option<Date>,
+    /// The end client that has/had contract with the requested sales org.
+    #[serde(default)]
+    pub organization: ::core::option::Option<Organization>,
+    /// The start date of the contract between the sales org and the end client.
+    #[serde(default, rename = "startDate")]
+    pub start_date: ::core::option::Option<Date>,
+}
+
+/// A resource message representing the link between a Google Analytics account and a Google Marketing Platform organization.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AnalyticsAccountLink {
+    /// Required. Immutable. The resource name of the AnalyticsAdmin API account. The account ID will be used as the ID of this AnalyticsAccountLink resource, which will become the final component of the resource name. Format: analyticsadmin.googleapis.com/accounts/{account_id}
+    #[serde(default, rename = "analyticsAccount")]
+    pub analytics_account: ::core::option::Option<String>,
+    /// Output only. The human-readable name for the Analytics account.
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+    /// Output only. The verification state of the link between the Analytics account and the parent organization. // TODO: enum values: ["LINK_VERIFICATION_STATE_UNSPECIFIED", "LINK_VERIFICATION_STATE_VERIFIED", "LINK_VERIFICATION_STATE_NOT_VERIFIED"]
+    #[serde(default, rename = "linkVerificationState")]
+    pub link_verification_state: ::core::option::Option<String>,
+    /// Identifier. Resource name of this AnalyticsAccountLink. Note the resource ID is the same as the ID of the Analtyics account. Format: organizations/{org_id}/analyticsAccountLinks/{analytics_account_link_id} Example: "organizations/xyz/analyticsAccountLinks/1234"
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+}
+
+/// Contains the bill amount.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BillInfo {
+    /// The amount of the monthly base fee.
+    #[serde(default, rename = "baseFee")]
+    pub base_fee: ::core::option::Option<Money>,
+    /// The amount of the event fee.
+    #[serde(default, rename = "eventFee")]
+    pub event_fee: ::core::option::Option<Money>,
+    /// The amount of the price protection credit, this is only available for eligible customers.
+    #[serde(default, rename = "priceProtectionCredit")]
+    pub price_protection_credit: ::core::option::Option<Money>,
+    /// The total amount of the bill.
+    #[serde(default)]
+    pub total: ::core::option::Option<Money>,
+}
+
+/// Contains the count of events received by the property, along with metadata that influences the volume of billable events.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PropertyUsage {
+    /// The ID of the property''s parent account.
+    #[serde(default, rename = "accountId")]
+    pub account_id: ::core::option::Option<String>,
+    /// The number of events for which the property is billed in the requested month.
+    #[serde(default, rename = "billableEventCount")]
+    pub billable_event_count: ::core::option::Option<String>,
+    /// The display name of the property.
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+    /// The name of the Google Analytics Admin API property resource. Format: analyticsadmin.googleapis.com/properties/{property_id}
+    #[serde(default)]
+    pub property: ::core::option::Option<String>,
+    /// The subtype of the analytics property. This affects the billable event count. // TODO: enum values: ["ANALYTICS_PROPERTY_TYPE_UNSPECIFIED", "ANALYTICS_PROPERTY_TYPE_ORDINARY", "ANALYTICS_PROPERTY_TYPE_SUBPROPERTY", "ANALYTICS_PROPERTY_TYPE_ROLLUP"]
+    #[serde(default, rename = "propertyType")]
+    pub property_type: ::core::option::Option<String>,
+    /// The service level of the property. // TODO: enum values: ["ANALYTICS_SERVICE_LEVEL_UNSPECIFIED", "ANALYTICS_SERVICE_LEVEL_STANDARD", "ANALYTICS_SERVICE_LEVEL_360"]
+    #[serde(default, rename = "serviceLevel")]
+    pub service_level: ::core::option::Option<String>,
+    /// Total event count that the property received during the requested month.
+    #[serde(default, rename = "totalEventCount")]
+    pub total_event_count: ::core::option::Option<String>,
+}
+
+/// Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Date {
+    /// Day of a month. Must be from 1 to 31 and valid for the year and month, or 0 to specify a year by itself or a year and month where the day isn''t significant.
+    #[serde(default)]
+    pub day: ::core::option::Option<i32>,
+    /// Month of a year. Must be from 1 to 12, or 0 to specify a year without a month and day.
+    #[serde(default)]
+    pub month: ::core::option::Option<i32>,
+    /// Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.
+    #[serde(default)]
+    pub year: ::core::option::Option<i32>,
+}
+
+/// A resource message representing a Google Marketing Platform organization.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Organization {
+    /// The human-readable name for the organization.
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+    /// Identifier. The resource name of the GMP organization. Format: organizations/{org_id}
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+}
+
+/// Represents an amount of money with its currency type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Money {
+    /// The three-letter currency code defined in ISO 4217.
+    #[serde(default, rename = "currencyCode")]
+    pub currency_code: ::core::option::Option<String>,
+    /// Number of nano (10^-9) units of the amount. The value must be between -999,999,999 and +999,999,999 inclusive. If units is positive, nanos must be positive or zero. If units is zero, nanos can be positive, zero, or negative. If units is negative, nanos must be negative or zero. For example $-1.75 is represented as units=-1 and nanos=-750,000,000.
+    #[serde(default)]
+    pub nanos: ::core::option::Option<i32>,
+    /// The whole units of the amount. For example if currencyCode is "USD", then 1 unit is one US dollar.
+    #[serde(default)]
+    pub units: ::core::option::Option<String>,
 }

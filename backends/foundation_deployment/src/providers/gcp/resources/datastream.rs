@@ -10,238 +10,12 @@
 use super::*;
 use serde::{Deserialize, Serialize};
 
-/// Backfill strategy to automatically backfill the Stream''s objects. Specific objects can be excluded.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct BackfillAllStrategy {
-    /// MongoDB data source objects to avoid backfilling
-    #[serde(default, rename = "mongodbExcludedObjects")]
-    pub mongodb_excluded_objects: ::core::option::Option<MongodbCluster>,
-    /// MySQL data source objects to avoid backfilling.
-    #[serde(default, rename = "mysqlExcludedObjects")]
-    pub mysql_excluded_objects: ::core::option::Option<MysqlRdbms>,
-    /// Oracle data source objects to avoid backfilling.
-    #[serde(default, rename = "oracleExcludedObjects")]
-    pub oracle_excluded_objects: ::core::option::Option<OracleRdbms>,
-    /// PostgreSQL data source objects to avoid backfilling.
-    #[serde(default, rename = "postgresqlExcludedObjects")]
-    pub postgresql_excluded_objects: ::core::option::Option<PostgresqlRdbms>,
-    /// Salesforce data source objects to avoid backfilling
-    #[serde(default, rename = "salesforceExcludedObjects")]
-    pub salesforce_excluded_objects: ::core::option::Option<SalesforceOrg>,
-    /// Spanner data source objects to avoid backfilling.
-    #[serde(default, rename = "spannerExcludedObjects")]
-    pub spanner_excluded_objects: ::core::option::Option<SpannerDatabase>,
-    /// SQLServer data source objects to avoid backfilling
-    #[serde(default, rename = "sqlServerExcludedObjects")]
-    pub sql_server_excluded_objects: ::core::option::Option<SqlServerRdbms>,
-}
-
-/// Represents a backfill job on a specific stream object.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct BackfillJob {
-    /// Output only. Errors which caused the backfill job to fail.
-    #[serde(default)]
-    pub errors: ::core::option::Option<::std::vec::Vec<Error>>,
-    /// Output only. Backfill job''s end time.
-    #[serde(default, rename = "lastEndTime")]
-    pub last_end_time: ::core::option::Option<String>,
-    /// Output only. Backfill job''s start time.
-    #[serde(default, rename = "lastStartTime")]
-    pub last_start_time: ::core::option::Option<String>,
-    /// Output only. Backfill job state. // TODO: enum values: ["STATE_UNSPECIFIED", "NOT_STARTED", "PENDING", "ACTIVE", "STOPPED", "FAILED", "COMPLETED", "UNSUPPORTED"]
-    #[serde(default)]
-    pub state: ::core::option::Option<String>,
-    /// Backfill job''s triggering reason. // TODO: enum values: ["TRIGGER_UNSPECIFIED", "AUTOMATIC", "MANUAL"]
-    #[serde(default)]
-    pub trigger: ::core::option::Option<String>,
-}
-
 /// Describes violations in a client request. This error type focuses on the syntactic aspects of the request.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct BadRequest {
     /// Describes all violations in a client request.
     #[serde(default, rename = "fieldViolations")]
     pub field_violations: ::core::option::Option<::std::vec::Vec<FieldViolation>>,
-}
-
-/// BigQuery clustering configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct BigQueryClustering {
-    /// Required. Column names to set as clustering columns.
-    #[serde(default)]
-    pub columns: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// BigQuery destination configuration
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct BigQueryDestinationConfig {
-    /// Append only mode
-    #[serde(default, rename = "appendOnly")]
-    pub append_only: ::core::option::Option<serde_json::Value>,
-    /// Optional. Big Lake Managed Tables (BLMT) configuration.
-    #[serde(default, rename = "blmtConfig")]
-    pub blmt_config: ::core::option::Option<BlmtConfig>,
-    /// The guaranteed data freshness (in seconds) when querying tables created by the stream. Editing this field will only affect new tables created in the future, but existing tables will not be impacted. Lower values mean that queries will return fresher data, but may result in higher cost.
-    #[serde(default, rename = "dataFreshness")]
-    pub data_freshness: ::core::option::Option<String>,
-    /// The standard mode
-    #[serde(default)]
-    pub merge: ::core::option::Option<serde_json::Value>,
-    /// Single destination dataset.
-    #[serde(default, rename = "singleTargetDataset")]
-    pub single_target_dataset: ::core::option::Option<SingleTargetDataset>,
-    /// Source hierarchy datasets.
-    #[serde(default, rename = "sourceHierarchyDatasets")]
-    pub source_hierarchy_datasets: ::core::option::Option<SourceHierarchyDatasets>,
-}
-
-/// BigQuery partitioning configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct BigQueryPartitioning {
-    /// Ingestion time partitioning.
-    #[serde(default, rename = "ingestionTimePartition")]
-    pub ingestion_time_partition: ::core::option::Option<IngestionTimePartition>,
-    /// Integer range partitioning.
-    #[serde(default, rename = "integerRangePartition")]
-    pub integer_range_partition: ::core::option::Option<IntegerRangePartition>,
-    /// Optional. If true, queries over the table require a partition filter.
-    #[serde(default, rename = "requirePartitionFilter")]
-    pub require_partition_filter: ::core::option::Option<bool>,
-    /// Time unit column partitioning.
-    #[serde(default, rename = "timeUnitPartition")]
-    pub time_unit_partition: ::core::option::Option<TimeUnitPartition>,
-}
-
-/// Configuration to use Binary Log Parser CDC technique.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct BinaryLogParser {
-    /// Use Oracle directories.
-    #[serde(default, rename = "logFileDirectories")]
-    pub log_file_directories: ::core::option::Option<LogFileDirectories>,
-    /// Use Oracle ASM.
-    #[serde(default, rename = "oracleAsmLogFileAccess")]
-    pub oracle_asm_log_file_access: ::core::option::Option<serde_json::Value>,
-}
-
-/// The configuration for BLMT.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct BlmtConfig {
-    /// Required. The Cloud Storage bucket name.
-    #[serde(default)]
-    pub bucket: ::core::option::Option<String>,
-    /// Required. The bigquery connection. Format: {project}.{location}.{name}
-    #[serde(default, rename = "connectionName")]
-    pub connection_name: ::core::option::Option<String>,
-    /// Required. The file format. // TODO: enum values: ["FILE_FORMAT_UNSPECIFIED", "PARQUET"]
-    #[serde(default, rename = "fileFormat")]
-    pub file_format: ::core::option::Option<String>,
-    /// The root path inside the Cloud Storage bucket.
-    #[serde(default, rename = "rootPath")]
-    pub root_path: ::core::option::Option<String>,
-    /// Required. The table format. // TODO: enum values: ["TABLE_FORMAT_UNSPECIFIED", "ICEBERG"]
-    #[serde(default, rename = "tableFormat")]
-    pub table_format: ::core::option::Option<String>,
-}
-
-/// The strategy that the stream uses for CDC replication.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CdcStrategy {
-    /// Optional. Start replicating from the most recent position in the source.
-    #[serde(default, rename = "mostRecentStartPosition")]
-    pub most_recent_start_position: ::core::option::Option<serde_json::Value>,
-    /// Optional. Resume replication from the next available position in the source.
-    #[serde(default, rename = "nextAvailableStartPosition")]
-    pub next_available_start_position: ::core::option::Option<serde_json::Value>,
-    /// Optional. Start replicating from a specific position in the source.
-    #[serde(default, rename = "specificStartPosition")]
-    pub specific_start_position: ::core::option::Option<SpecificStartPosition>,
-}
-
-/// A set of reusable connection configurations to be used as a source or destination for a stream.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ConnectionProfile {
-    /// Profile for connecting to a BigQuery destination.
-    #[serde(default, rename = "bigqueryProfile")]
-    pub bigquery_profile: ::core::option::Option<serde_json::Value>,
-    /// Output only. The create time of the resource.
-    #[serde(default, rename = "createTime")]
-    pub create_time: ::core::option::Option<String>,
-    /// Required. Display name.
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-    /// Forward SSH tunnel connectivity.
-    #[serde(default, rename = "forwardSshConnectivity")]
-    pub forward_ssh_connectivity: ::core::option::Option<ForwardSshTunnelConnectivity>,
-    /// Profile for connecting to a Cloud Storage destination.
-    #[serde(default, rename = "gcsProfile")]
-    pub gcs_profile: ::core::option::Option<GcsProfile>,
-    /// Labels.
-    #[serde(default)]
-    pub labels: ::core::option::Option<serde_json::Value>,
-    /// Profile for connecting to a MongoDB source.
-    #[serde(default, rename = "mongodbProfile")]
-    pub mongodb_profile: ::core::option::Option<MongodbProfile>,
-    /// Profile for connecting to a MySQL source.
-    #[serde(default, rename = "mysqlProfile")]
-    pub mysql_profile: ::core::option::Option<MysqlProfile>,
-    /// Output only. Identifier. The resource''s name.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Profile for connecting to an Oracle source.
-    #[serde(default, rename = "oracleProfile")]
-    pub oracle_profile: ::core::option::Option<OracleProfile>,
-    /// Profile for connecting to a PostgreSQL source.
-    #[serde(default, rename = "postgresqlProfile")]
-    pub postgresql_profile: ::core::option::Option<PostgresqlProfile>,
-    /// Private connectivity.
-    #[serde(default, rename = "privateConnectivity")]
-    pub private_connectivity: ::core::option::Option<PrivateConnectivity>,
-    /// Profile for connecting to a Salesforce source.
-    #[serde(default, rename = "salesforceProfile")]
-    pub salesforce_profile: ::core::option::Option<SalesforceProfile>,
-    /// Output only. Reserved for future use.
-    #[serde(default, rename = "satisfiesPzi")]
-    pub satisfies_pzi: ::core::option::Option<bool>,
-    /// Output only. Reserved for future use.
-    #[serde(default, rename = "satisfiesPzs")]
-    pub satisfies_pzs: ::core::option::Option<bool>,
-    /// Profile for connecting to a Spanner source.
-    #[serde(default, rename = "spannerProfile")]
-    pub spanner_profile: ::core::option::Option<SpannerProfile>,
-    /// Profile for connecting to a SQLServer source.
-    #[serde(default, rename = "sqlServerProfile")]
-    pub sql_server_profile: ::core::option::Option<SqlServerProfile>,
-    /// Static Service IP connectivity.
-    #[serde(default, rename = "staticServiceIpConnectivity")]
-    pub static_service_ip_connectivity: ::core::option::Option<serde_json::Value>,
-    /// Output only. The update time of the resource.
-    #[serde(default, rename = "updateTime")]
-    pub update_time: ::core::option::Option<String>,
-}
-
-/// A customization rule to apply to a set of objects.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CustomizationRule {
-    /// BigQuery clustering rule.
-    #[serde(default, rename = "bigqueryClustering")]
-    pub bigquery_clustering: ::core::option::Option<BigQueryClustering>,
-    /// BigQuery partitioning rule.
-    #[serde(default, rename = "bigqueryPartitioning")]
-    pub bigquery_partitioning: ::core::option::Option<BigQueryPartitioning>,
-}
-
-/// Dataset template used for dynamic dataset creation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DatasetTemplate {
-    /// If supplied, every created dataset will have its name prefixed by the provided value. The prefix and name will be separated by an underscore. i.e. _.
-    #[serde(default, rename = "datasetIdPrefix")]
-    pub dataset_id_prefix: ::core::option::Option<String>,
-    /// Describes the Cloud KMS encryption key that will be used to protect destination BigQuery table. The BigQuery Service Account associated with your project requires access to this encryption key. i.e. projects/{project}/locations/{location}/keyRings/{key_ring}/cryptoKeys/{cryptoKey}. See https://cloud.google.com/bigquery/docs/customer-managed-encryption for more information.
-    #[serde(default, rename = "kmsKeyName")]
-    pub kms_key_name: ::core::option::Option<String>,
-    /// Required. The geographic location where the dataset should reside. See https://cloud.google.com/bigquery/docs/locations for supported locations.
-    #[serde(default)]
-    pub location: ::core::option::Option<String>,
 }
 
 /// Describes additional debugging info.
@@ -253,20 +27,6 @@ pub struct DebugInfo {
     /// The stack trace entries indicating where the error occurred.
     #[serde(default, rename = "stackEntries")]
     pub stack_entries: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// The configuration of the stream destination.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DestinationConfig {
-    /// BigQuery destination configuration.
-    #[serde(default, rename = "bigqueryDestinationConfig")]
-    pub bigquery_destination_config: ::core::option::Option<BigQueryDestinationConfig>,
-    /// Required. Destination connection profile resource. Format: projects/{project}/locations/{location}/connectionProfiles/{name}
-    #[serde(default, rename = "destinationConnectionProfile")]
-    pub destination_connection_profile: ::core::option::Option<String>,
-    /// A configuration for how data should be loaded to Cloud Storage.
-    #[serde(default, rename = "gcsDestinationConfig")]
-    pub gcs_destination_config: ::core::option::Option<GcsDestinationConfig>,
 }
 
 /// Request message for ''discover'' ConnectionProfile request.
@@ -333,37 +93,6 @@ pub struct DiscoverConnectionProfileResponse {
     pub sql_server_rdbms: ::core::option::Option<SqlServerRdbms>,
 }
 
-/// Message to represent the option where Datastream will enforce encryption and authenticate server identity. ca_certificate must be set if user selects this option.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct EncryptionAndServerValidation {
-    /// Optional. Input only. PEM-encoded certificate of the CA that signed the source database server''s certificate.
-    #[serde(default, rename = "caCertificate")]
-    pub ca_certificate: ::core::option::Option<String>,
-    /// Optional. The hostname mentioned in the Subject or SAN extension of the server certificate. This field is used for bypassing the hostname validation while verifying server certificate. This is required for scenarios where the host name that datastream connects to is different from the certificate''s subject. This specifically happens for private connectivity. It could also happen when the customer provides a public IP in connection profile but the same is not present in the server certificate.
-    #[serde(default, rename = "serverCertificateHostname")]
-    pub server_certificate_hostname: ::core::option::Option<String>,
-}
-
-/// Represent a user-facing Error.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Error {
-    /// Additional information about the error.
-    #[serde(default)]
-    pub details: ::core::option::Option<serde_json::Value>,
-    /// The time when the error occurred.
-    #[serde(default, rename = "errorTime")]
-    pub error_time: ::core::option::Option<String>,
-    /// A unique identifier for this specific error, allowing it to be traced throughout the system in logs and API responses.
-    #[serde(default, rename = "errorUuid")]
-    pub error_uuid: ::core::option::Option<String>,
-    /// A message containing more information about the error that occurred.
-    #[serde(default)]
-    pub message: ::core::option::Option<String>,
-    /// A title that explains the reason for the error.
-    #[serde(default)]
-    pub reason: ::core::option::Option<String>,
-}
-
 /// Describes the cause of the error with structured details. Example of an error when contacting the "pubsub.googleapis.com" API when it is not enabled: { "reason": "API_DISABLED" "domain": "googleapis.com" "metadata": { "resource": "projects/123", "service": "pubsub.googleapis.com" } } This response indicates that the pubsub.googleapis.com API is not enabled. Example of an error that is returned when attempting to create a Spanner instance in a region that is out of stock: { "reason": "STOCKOUT" "domain": "spanner.googleapis.com", "metadata": { "availableRegions": "us-central1,us-east2" } }
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ErrorInfo {
@@ -378,14 +107,6 @@ pub struct ErrorInfo {
     pub reason: ::core::option::Option<String>,
 }
 
-/// Represents a filter for included data on a stream object.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct EventFilter {
-    /// An SQL-query Where clause selecting which data should be included, not including the "WHERE" keyword. e.g., t.key1 = ''value1'' AND t.key2 = ''value2''
-    #[serde(default, rename = "sqlWhereClause")]
-    pub sql_where_clause: ::core::option::Option<String>,
-}
-
 /// Response message for a ''FetchStaticIps'' response.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct FetchStaticIpsResponse {
@@ -397,138 +118,12 @@ pub struct FetchStaticIpsResponse {
     pub static_ips: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
-/// A message type used to describe a single bad request field.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct FieldViolation {
-    /// A description of why the request element is bad.
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// A path that leads to a field in the request body. The value will be a sequence of dot-separated identifiers that identify a protocol buffer field. Consider the following: message CreateContactRequest { message EmailAddress { enum Type { TYPE_UNSPECIFIED = 0; HOME = 1; WORK = 2; } optional string email = 1; repeated EmailType type = 2; } string full_name = 1; repeated EmailAddress email_addresses = 2; } In this example, in proto field could take one of the following values: * full_name for a violation in the full_name value * email_addresses[0].email for a violation in the email field of the first email_addresses message * email_addresses[2].type[1] for a violation in the second type value in the third email_addresses message. In JSON, the same values are represented as: * fullName for a violation in the fullName value * emailAddresses[0].email for a violation in the email field of the first emailAddresses message * emailAddresses[2].type[1] for a violation in the second type value in the third emailAddresses message.
-    #[serde(default)]
-    pub field: ::core::option::Option<String>,
-    /// Provides a localized error message for field-level errors that is safe to return to the API consumer.
-    #[serde(default, rename = "localizedMessage")]
-    pub localized_message: ::core::option::Option<LocalizedMessage>,
-    /// The reason of the field-level error. This is a constant value that identifies the proximate cause of the field-level error. It should uniquely identify the type of the FieldViolation within the scope of the google.rpc.ErrorInfo.domain. This should be at most 63 characters and match a regular expression of A-Z+[A-Z0-9], which represents UPPER_SNAKE_CASE.
-    #[serde(default)]
-    pub reason: ::core::option::Option<String>,
-}
-
-/// Forward SSH Tunnel connectivity.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ForwardSshTunnelConnectivity {
-    /// Required. Hostname for the SSH tunnel.
-    #[serde(default)]
-    pub hostname: ::core::option::Option<String>,
-    /// Input only. SSH password.
-    #[serde(default)]
-    pub password: ::core::option::Option<String>,
-    /// Port for the SSH tunnel, default value is 22.
-    #[serde(default)]
-    pub port: ::core::option::Option<i32>,
-    /// Input only. SSH private key.
-    #[serde(default, rename = "privateKey")]
-    pub private_key: ::core::option::Option<String>,
-    /// Required. Username for the SSH tunnel.
-    #[serde(default)]
-    pub username: ::core::option::Option<String>,
-}
-
-/// Google Cloud Storage destination configuration
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GcsDestinationConfig {
-    /// AVRO file format configuration.
-    #[serde(default, rename = "avroFileFormat")]
-    pub avro_file_format: ::core::option::Option<serde_json::Value>,
-    /// The maximum duration for which new events are added before a file is closed and a new file is created. Values within the range of 15-60 seconds are allowed.
-    #[serde(default, rename = "fileRotationInterval")]
-    pub file_rotation_interval: ::core::option::Option<String>,
-    /// The maximum file size to be saved in the bucket.
-    #[serde(default, rename = "fileRotationMb")]
-    pub file_rotation_mb: ::core::option::Option<i32>,
-    /// JSON file format configuration.
-    #[serde(default, rename = "jsonFileFormat")]
-    pub json_file_format: ::core::option::Option<JsonFileFormat>,
-    /// Path inside the Cloud Storage bucket to write data to.
-    #[serde(default)]
-    pub path: ::core::option::Option<String>,
-}
-
-/// Profile for connecting to a Cloud Storage destination.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GcsProfile {
-    /// Required. The Cloud Storage bucket name.
-    #[serde(default)]
-    pub bucket: ::core::option::Option<String>,
-    /// Optional. The root path inside the Cloud Storage bucket.
-    #[serde(default, rename = "rootPath")]
-    pub root_path: ::core::option::Option<String>,
-}
-
 /// Provides links to documentation or for performing an out of band action. For example, if a quota check failed with an error indicating the calling project hasn''t enabled the accessed service, this can contain a URL pointing directly to the right place in the developer console to flip the bit.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Help {
     /// URL(s) pointing to additional information on handling the current error.
     #[serde(default)]
     pub links: ::core::option::Option<::std::vec::Vec<Link>>,
-}
-
-/// A HostAddress represents a transport end point, which is the combination of an IP address or hostname and a port number.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct HostAddress {
-    /// Required. Hostname for the connection.
-    #[serde(default)]
-    pub hostname: ::core::option::Option<String>,
-    /// Optional. Port for the connection.
-    #[serde(default)]
-    pub port: ::core::option::Option<i32>,
-}
-
-/// Ingestion time partitioning. see https://cloud.google.com/bigquery/docs/partitioned-tables#ingestion_time
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct IngestionTimePartition {
-    /// Optional. Partition granularity // TODO: enum values: ["PARTITIONING_TIME_GRANULARITY_UNSPECIFIED", "PARTITIONING_TIME_GRANULARITY_HOUR", "PARTITIONING_TIME_GRANULARITY_DAY", "PARTITIONING_TIME_GRANULARITY_MONTH", "PARTITIONING_TIME_GRANULARITY_YEAR"]
-    #[serde(default, rename = "partitioningTimeGranularity")]
-    pub partitioning_time_granularity: ::core::option::Option<String>,
-}
-
-/// Integer range partitioning. see https://cloud.google.com/bigquery/docs/partitioned-tables#integer_range
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct IntegerRangePartition {
-    /// Required. The partitioning column.
-    #[serde(default)]
-    pub column: ::core::option::Option<String>,
-    /// Required. The ending value for range partitioning (exclusive).
-    #[serde(default)]
-    pub end: ::core::option::Option<String>,
-    /// Required. The interval of each range within the partition.
-    #[serde(default)]
-    pub interval: ::core::option::Option<String>,
-    /// Required. The starting value for range partitioning (inclusive).
-    #[serde(default)]
-    pub start: ::core::option::Option<String>,
-}
-
-/// JSON file format configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct JsonFileFormat {
-    /// Compression of the loaded JSON file. // TODO: enum values: ["JSON_COMPRESSION_UNSPECIFIED", "NO_COMPRESSION", "GZIP"]
-    #[serde(default)]
-    pub compression: ::core::option::Option<String>,
-    /// The schema file format along JSON data files. // TODO: enum values: ["SCHEMA_FILE_FORMAT_UNSPECIFIED", "NO_SCHEMA_FILE", "AVRO_SCHEMA_FILE"]
-    #[serde(default, rename = "schemaFileFormat")]
-    pub schema_file_format: ::core::option::Option<String>,
-}
-
-/// Describes a URL link.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Link {
-    /// Describes what the link offers.
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// The URL of the link.
-    #[serde(default)]
-    pub url: ::core::option::Option<String>,
 }
 
 /// Response message for listing connection profiles.
@@ -623,389 +218,12 @@ pub struct ListStreamsResponse {
     pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
-/// Provides a localized error message that is safe to return to the user which can be attached to an RPC error.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct LocalizedMessage {
-    /// The locale used following the specification defined at https://www.rfc-editor.org/rfc/bcp/bcp47.txt. Examples are: "en-US", "fr-CH", "es-MX"
-    #[serde(default)]
-    pub locale: ::core::option::Option<String>,
-    /// The localized error message in the above locale.
-    #[serde(default)]
-    pub message: ::core::option::Option<String>,
-}
-
-/// A resource that represents a Google Cloud location.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Location {
-    /// The friendly name for this location, typically a nearby city name. For example, "Tokyo".
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-    /// Cross-service attributes for the location. For example {"cloud.googleapis.com/region": "us-east1"}
-    #[serde(default)]
-    pub labels: ::core::option::Option<serde_json::Value>,
-    /// The canonical id for this location. For example: "us-east1".
-    #[serde(default, rename = "locationId")]
-    pub location_id: ::core::option::Option<String>,
-    /// Service-specific metadata. For example the available capacity at the given location.
-    #[serde(default)]
-    pub metadata: ::core::option::Option<serde_json::Value>,
-    /// Resource name for the location, which may vary between implementations. For example: "projects/example-project/locations/us-east1"
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-}
-
-/// Configuration to specify the Oracle directories to access the log files.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct LogFileDirectories {
-    /// Required. Oracle directory for archived logs.
-    #[serde(default, rename = "archivedLogDirectory")]
-    pub archived_log_directory: ::core::option::Option<String>,
-    /// Required. Oracle directory for online logs.
-    #[serde(default, rename = "onlineLogDirectory")]
-    pub online_log_directory: ::core::option::Option<String>,
-}
-
 /// Request for looking up a specific stream object by its source object identifier.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct LookupStreamObjectRequest {
     /// Required. The source object identifier which maps to the stream object.
     #[serde(default, rename = "sourceObjectIdentifier")]
     pub source_object_identifier: ::core::option::Option<SourceObjectIdentifier>,
-}
-
-/// MongoDB change stream position
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct MongodbChangeStreamPosition {
-    /// Required. The timestamp to start change stream from.
-    #[serde(default, rename = "startTime")]
-    pub start_time: ::core::option::Option<String>,
-}
-
-/// MongoDB Cluster structure.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct MongodbCluster {
-    /// MongoDB databases in the cluster.
-    #[serde(default)]
-    pub databases: ::core::option::Option<::std::vec::Vec<MongodbDatabase>>,
-}
-
-/// MongoDB Collection.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct MongodbCollection {
-    /// The collection name.
-    #[serde(default)]
-    pub collection: ::core::option::Option<String>,
-    /// Fields in the collection.
-    #[serde(default)]
-    pub fields: ::core::option::Option<::std::vec::Vec<MongodbField>>,
-}
-
-/// MongoDB Database.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct MongodbDatabase {
-    /// Collections in the database.
-    #[serde(default)]
-    pub collections: ::core::option::Option<::std::vec::Vec<MongodbCollection>>,
-    /// The database name.
-    #[serde(default)]
-    pub database: ::core::option::Option<String>,
-}
-
-/// MongoDB Field.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct MongodbField {
-    /// The field name.
-    #[serde(default)]
-    pub field: ::core::option::Option<String>,
-}
-
-/// MongoDB data source object identifier.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct MongodbObjectIdentifier {
-    /// Required. The collection name.
-    #[serde(default)]
-    pub collection: ::core::option::Option<String>,
-    /// Required. The database name.
-    #[serde(default)]
-    pub database: ::core::option::Option<String>,
-}
-
-/// Profile for connecting to a MongoDB source.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct MongodbProfile {
-    /// Optional. Specifies additional options for the MongoDB connection. The options should be sent as key-value pairs, for example: additional_options = {"serverSelectionTimeoutMS": "10000", "directConnection": "true"}. Keys are case-sensitive and should match the official MongoDB connection string options: https://www.mongodb.com/docs/manual/reference/connection-string-options/ The server will not modify the values provided by the user.
-    #[serde(default, rename = "additionalOptions")]
-    pub additional_options: ::core::option::Option<serde_json::Value>,
-    /// Required. List of host addresses for a MongoDB cluster. For SRV connection format, this list must contain exactly one DNS host without a port. For Standard connection format, this list must contain all the required hosts in the cluster with their respective ports.
-    #[serde(default, rename = "hostAddresses")]
-    pub host_addresses: ::core::option::Option<::std::vec::Vec<HostAddress>>,
-    /// Optional. Password for the MongoDB connection. Mutually exclusive with the secret_manager_stored_password field.
-    #[serde(default)]
-    pub password: ::core::option::Option<String>,
-    /// Optional. Name of the replica set. Only needed for self hosted replica set type MongoDB cluster. For SRV connection format, this field must be empty. For Standard connection format, this field must be specified.
-    #[serde(default, rename = "replicaSet")]
-    pub replica_set: ::core::option::Option<String>,
-    /// Optional. A reference to a Secret Manager resource name storing the SQLServer connection password. Mutually exclusive with the password field.
-    #[serde(default, rename = "secretManagerStoredPassword")]
-    pub secret_manager_stored_password: ::core::option::Option<String>,
-    /// Srv connection format.
-    #[serde(default, rename = "srvConnectionFormat")]
-    pub srv_connection_format: ::core::option::Option<serde_json::Value>,
-    /// Optional. SSL configuration for the MongoDB connection.
-    #[serde(default, rename = "sslConfig")]
-    pub ssl_config: ::core::option::Option<MongodbSslConfig>,
-    /// Standard connection format.
-    #[serde(default, rename = "standardConnectionFormat")]
-    pub standard_connection_format: ::core::option::Option<StandardConnectionFormat>,
-    /// Required. Username for the MongoDB connection.
-    #[serde(default)]
-    pub username: ::core::option::Option<String>,
-}
-
-/// Configuration for syncing data from a MongoDB source.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct MongodbSourceConfig {
-    /// The MongoDB collections to exclude from the stream.
-    #[serde(default, rename = "excludeObjects")]
-    pub exclude_objects: ::core::option::Option<MongodbCluster>,
-    /// The MongoDB collections to include in the stream.
-    #[serde(default, rename = "includeObjects")]
-    pub include_objects: ::core::option::Option<MongodbCluster>,
-    /// Optional. MongoDB JSON mode to use for the stream. // TODO: enum values: ["MONGODB_JSON_MODE_UNSPECIFIED", "STRICT", "CANONICAL"]
-    #[serde(default, rename = "jsonMode")]
-    pub json_mode: ::core::option::Option<String>,
-    /// Optional. Maximum number of concurrent backfill tasks. The number should be non-negative and less than or equal to 50. If not set (or set to 0), the system''s default value is used
-    #[serde(default, rename = "maxConcurrentBackfillTasks")]
-    pub max_concurrent_backfill_tasks: ::core::option::Option<i32>,
-}
-
-/// MongoDB SSL configuration information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct MongodbSslConfig {
-    /// Optional. Input only. PEM-encoded certificate of the CA that signed the source database server''s certificate.
-    #[serde(default, rename = "caCertificate")]
-    pub ca_certificate: ::core::option::Option<String>,
-    /// Output only. Indicates whether the ca_certificate field is set.
-    #[serde(default, rename = "caCertificateSet")]
-    pub ca_certificate_set: ::core::option::Option<bool>,
-    /// Optional. Input only. PEM-encoded certificate that will be used by the replica to authenticate against the source database server. If this field is used then the ''client_key'' and the ''ca_certificate'' fields are mandatory.
-    #[serde(default, rename = "clientCertificate")]
-    pub client_certificate: ::core::option::Option<String>,
-    /// Output only. Indicates whether the client_certificate field is set.
-    #[serde(default, rename = "clientCertificateSet")]
-    pub client_certificate_set: ::core::option::Option<bool>,
-    /// Optional. Input only. PEM-encoded private key associated with the Client Certificate. If this field is used then the ''client_certificate'' and the ''ca_certificate'' fields are mandatory.
-    #[serde(default, rename = "clientKey")]
-    pub client_key: ::core::option::Option<String>,
-    /// Output only. Indicates whether the client_key field is set.
-    #[serde(default, rename = "clientKeySet")]
-    pub client_key_set: ::core::option::Option<bool>,
-    /// Optional. Input only. A reference to a Secret Manager resource name storing the PEM-encoded private key associated with the Client Certificate. If this field is used then the ''client_certificate'' and the ''ca_certificate'' fields are mandatory. Mutually exclusive with the client_key field.
-    #[serde(default, rename = "secretManagerStoredClientKey")]
-    pub secret_manager_stored_client_key: ::core::option::Option<String>,
-}
-
-/// MySQL Column.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct MysqlColumn {
-    /// Column collation.
-    #[serde(default)]
-    pub collation: ::core::option::Option<String>,
-    /// The column name.
-    #[serde(default)]
-    pub column: ::core::option::Option<String>,
-    /// The MySQL data type. Full data types list can be found here: https://dev.mysql.com/doc/refman/8.0/en/data-types.html
-    #[serde(default, rename = "dataType")]
-    pub data_type: ::core::option::Option<String>,
-    /// Column length.
-    #[serde(default)]
-    pub length: ::core::option::Option<i32>,
-    /// Whether or not the column can accept a null value.
-    #[serde(default)]
-    pub nullable: ::core::option::Option<bool>,
-    /// The ordinal position of the column in the table.
-    #[serde(default, rename = "ordinalPosition")]
-    pub ordinal_position: ::core::option::Option<i32>,
-    /// Column precision.
-    #[serde(default)]
-    pub precision: ::core::option::Option<i32>,
-    /// Whether or not the column represents a primary key.
-    #[serde(default, rename = "primaryKey")]
-    pub primary_key: ::core::option::Option<bool>,
-    /// Column scale.
-    #[serde(default)]
-    pub scale: ::core::option::Option<i32>,
-}
-
-/// MySQL database.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct MysqlDatabase {
-    /// The database name.
-    #[serde(default)]
-    pub database: ::core::option::Option<String>,
-    /// Tables in the database.
-    #[serde(default, rename = "mysqlTables")]
-    pub mysql_tables: ::core::option::Option<::std::vec::Vec<MysqlTable>>,
-}
-
-/// MySQL GTID position
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct MysqlGtidPosition {
-    /// Required. The gtid set to start replication from.
-    #[serde(default, rename = "gtidSet")]
-    pub gtid_set: ::core::option::Option<String>,
-}
-
-/// MySQL log position
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct MysqlLogPosition {
-    /// Required. The binary log file name.
-    #[serde(default, rename = "logFile")]
-    pub log_file: ::core::option::Option<String>,
-    /// Optional. The position within the binary log file. Default is head of file.
-    #[serde(default, rename = "logPosition")]
-    pub log_position: ::core::option::Option<i32>,
-}
-
-/// Mysql data source object identifier.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct MysqlObjectIdentifier {
-    /// Required. The database name.
-    #[serde(default)]
-    pub database: ::core::option::Option<String>,
-    /// Required. The table name.
-    #[serde(default)]
-    pub table: ::core::option::Option<String>,
-}
-
-/// Profile for connecting to a MySQL source.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct MysqlProfile {
-    /// Required. Hostname for the MySQL connection.
-    #[serde(default)]
-    pub hostname: ::core::option::Option<String>,
-    /// Optional. Input only. Password for the MySQL connection. Mutually exclusive with the secret_manager_stored_password field.
-    #[serde(default)]
-    pub password: ::core::option::Option<String>,
-    /// Port for the MySQL connection, default value is 3306.
-    #[serde(default)]
-    pub port: ::core::option::Option<i32>,
-    /// Optional. A reference to a Secret Manager resource name storing the MySQL connection password. Mutually exclusive with the password field.
-    #[serde(default, rename = "secretManagerStoredPassword")]
-    pub secret_manager_stored_password: ::core::option::Option<String>,
-    /// SSL configuration for the MySQL connection.
-    #[serde(default, rename = "sslConfig")]
-    pub ssl_config: ::core::option::Option<MysqlSslConfig>,
-    /// Required. Username for the MySQL connection.
-    #[serde(default)]
-    pub username: ::core::option::Option<String>,
-}
-
-/// MySQL database structure
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct MysqlRdbms {
-    /// Mysql databases on the server
-    #[serde(default, rename = "mysqlDatabases")]
-    pub mysql_databases: ::core::option::Option<::std::vec::Vec<MysqlDatabase>>,
-}
-
-/// Configuration for syncing data from a MySQL source.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct MysqlSourceConfig {
-    /// Use Binary log position based replication.
-    #[serde(default, rename = "binaryLogPosition")]
-    pub binary_log_position: ::core::option::Option<serde_json::Value>,
-    /// The MySQL objects to exclude from the stream.
-    #[serde(default, rename = "excludeObjects")]
-    pub exclude_objects: ::core::option::Option<MysqlRdbms>,
-    /// Use GTID based replication.
-    #[serde(default)]
-    pub gtid: ::core::option::Option<serde_json::Value>,
-    /// The MySQL objects to retrieve from the source.
-    #[serde(default, rename = "includeObjects")]
-    pub include_objects: ::core::option::Option<MysqlRdbms>,
-    /// Maximum number of concurrent backfill tasks. The number should be non negative. If not set (or set to 0), the system''s default value will be used.
-    #[serde(default, rename = "maxConcurrentBackfillTasks")]
-    pub max_concurrent_backfill_tasks: ::core::option::Option<i32>,
-    /// Maximum number of concurrent CDC tasks. The number should be non negative. If not set (or set to 0), the system''s default value will be used.
-    #[serde(default, rename = "maxConcurrentCdcTasks")]
-    pub max_concurrent_cdc_tasks: ::core::option::Option<i32>,
-}
-
-/// MySQL SSL configuration information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct MysqlSslConfig {
-    /// Input only. PEM-encoded certificate of the CA that signed the source database server''s certificate.
-    #[serde(default, rename = "caCertificate")]
-    pub ca_certificate: ::core::option::Option<String>,
-    /// Output only. Indicates whether the ca_certificate field is set.
-    #[serde(default, rename = "caCertificateSet")]
-    pub ca_certificate_set: ::core::option::Option<bool>,
-    /// Optional. Input only. PEM-encoded certificate that will be used by the replica to authenticate against the source database server. If this field is used then the ''client_key'' and the ''ca_certificate'' fields are mandatory.
-    #[serde(default, rename = "clientCertificate")]
-    pub client_certificate: ::core::option::Option<String>,
-    /// Output only. Indicates whether the client_certificate field is set.
-    #[serde(default, rename = "clientCertificateSet")]
-    pub client_certificate_set: ::core::option::Option<bool>,
-    /// Optional. Input only. PEM-encoded private key associated with the Client Certificate. If this field is used then the ''client_certificate'' and the ''ca_certificate'' fields are mandatory.
-    #[serde(default, rename = "clientKey")]
-    pub client_key: ::core::option::Option<String>,
-    /// Output only. Indicates whether the client_key field is set.
-    #[serde(default, rename = "clientKeySet")]
-    pub client_key_set: ::core::option::Option<bool>,
-}
-
-/// MySQL table.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct MysqlTable {
-    /// MySQL columns in the database. When unspecified as part of include/exclude objects, includes/excludes everything.
-    #[serde(default, rename = "mysqlColumns")]
-    pub mysql_columns: ::core::option::Option<::std::vec::Vec<MysqlColumn>>,
-    /// The table name.
-    #[serde(default)]
-    pub table: ::core::option::Option<String>,
-}
-
-/// OAuth2 Client Credentials.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Oauth2ClientCredentials {
-    /// Required. Client ID for Salesforce OAuth2 Client Credentials.
-    #[serde(default, rename = "clientId")]
-    pub client_id: ::core::option::Option<String>,
-    /// Optional. Client secret for Salesforce OAuth2 Client Credentials. Mutually exclusive with the secret_manager_stored_client_secret field.
-    #[serde(default, rename = "clientSecret")]
-    pub client_secret: ::core::option::Option<String>,
-    /// Optional. A reference to a Secret Manager resource name storing the Salesforce OAuth2 client_secret. Mutually exclusive with the client_secret field.
-    #[serde(default, rename = "secretManagerStoredClientSecret")]
-    pub secret_manager_stored_client_secret: ::core::option::Option<String>,
-}
-
-/// Object filter to apply the rules to.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ObjectFilter {
-    /// Specific source object identifier.
-    #[serde(default, rename = "sourceObjectIdentifier")]
-    pub source_object_identifier: ::core::option::Option<SourceObjectIdentifier>,
-}
-
-/// This resource represents a long-running operation that is the result of a network API call.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Operation {
-    /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
-    #[serde(default)]
-    pub done: ::core::option::Option<bool>,
-    /// The error result of the operation in case of failure or cancellation.
-    #[serde(default)]
-    pub error: ::core::option::Option<Status>,
-    /// Service-specific metadata associated with the operation. It typically contains progress information and common metadata such as create time. Some services might not provide such metadata. Any method that returns a long-running operation should document the metadata type, if any.
-    #[serde(default)]
-    pub metadata: ::core::option::Option<serde_json::Value>,
-    /// The server-assigned name, which is only unique within the same service that originally returns it. If you use the default HTTP mapping, the name should be a resource name ending with operations/{unique_id}.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// The normal, successful response of the operation. If the original method returns no data on success, such as Delete, the response is google.protobuf.Empty. If the original method is standard Get/Create/Update, the response should be the resource. For other methods, the response should have the type XxxResponse, where Xxx is the original method name. For example, if the original method name is TakeSnapshot(), the inferred response type is TakeSnapshotResponse.
-    #[serde(default)]
-    pub response: ::core::option::Option<serde_json::Value>,
 }
 
 /// Represents the metadata of the long-running operation.
@@ -1037,318 +255,6 @@ pub struct OperationMetadata {
     pub verb: ::core::option::Option<String>,
 }
 
-/// Configuration for Oracle Automatic Storage Management (ASM) connection.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct OracleAsmConfig {
-    /// Required. ASM service name for the Oracle ASM connection.
-    #[serde(default, rename = "asmService")]
-    pub asm_service: ::core::option::Option<String>,
-    /// Optional. Connection string attributes
-    #[serde(default, rename = "connectionAttributes")]
-    pub connection_attributes: ::core::option::Option<serde_json::Value>,
-    /// Required. Hostname for the Oracle ASM connection.
-    #[serde(default)]
-    pub hostname: ::core::option::Option<String>,
-    /// Optional. SSL configuration for the Oracle connection.
-    #[serde(default, rename = "oracleSslConfig")]
-    pub oracle_ssl_config: ::core::option::Option<OracleSslConfig>,
-    /// Optional. Password for the Oracle ASM connection. Mutually exclusive with the secret_manager_stored_password field.
-    #[serde(default)]
-    pub password: ::core::option::Option<String>,
-    /// Required. Port for the Oracle ASM connection.
-    #[serde(default)]
-    pub port: ::core::option::Option<i32>,
-    /// Optional. A reference to a Secret Manager resource name storing the Oracle ASM connection password. Mutually exclusive with the password field.
-    #[serde(default, rename = "secretManagerStoredPassword")]
-    pub secret_manager_stored_password: ::core::option::Option<String>,
-    /// Required. Username for the Oracle ASM connection.
-    #[serde(default)]
-    pub username: ::core::option::Option<String>,
-}
-
-/// Oracle Column.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct OracleColumn {
-    /// The column name.
-    #[serde(default)]
-    pub column: ::core::option::Option<String>,
-    /// The Oracle data type.
-    #[serde(default, rename = "dataType")]
-    pub data_type: ::core::option::Option<String>,
-    /// Column encoding.
-    #[serde(default)]
-    pub encoding: ::core::option::Option<String>,
-    /// Column length.
-    #[serde(default)]
-    pub length: ::core::option::Option<i32>,
-    /// Whether or not the column can accept a null value.
-    #[serde(default)]
-    pub nullable: ::core::option::Option<bool>,
-    /// The ordinal position of the column in the table.
-    #[serde(default, rename = "ordinalPosition")]
-    pub ordinal_position: ::core::option::Option<i32>,
-    /// Column precision.
-    #[serde(default)]
-    pub precision: ::core::option::Option<i32>,
-    /// Whether or not the column represents a primary key.
-    #[serde(default, rename = "primaryKey")]
-    pub primary_key: ::core::option::Option<bool>,
-    /// Column scale.
-    #[serde(default)]
-    pub scale: ::core::option::Option<i32>,
-}
-
-/// Oracle data source object identifier.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct OracleObjectIdentifier {
-    /// Required. The schema name.
-    #[serde(default)]
-    pub schema: ::core::option::Option<String>,
-    /// Required. The table name.
-    #[serde(default)]
-    pub table: ::core::option::Option<String>,
-}
-
-/// Profile for connecting to an Oracle source.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct OracleProfile {
-    /// Connection string attributes
-    #[serde(default, rename = "connectionAttributes")]
-    pub connection_attributes: ::core::option::Option<serde_json::Value>,
-    /// Required. Database for the Oracle connection.
-    #[serde(default, rename = "databaseService")]
-    pub database_service: ::core::option::Option<String>,
-    /// Required. Hostname for the Oracle connection.
-    #[serde(default)]
-    pub hostname: ::core::option::Option<String>,
-    /// Optional. Configuration for Oracle ASM connection.
-    #[serde(default, rename = "oracleAsmConfig")]
-    pub oracle_asm_config: ::core::option::Option<OracleAsmConfig>,
-    /// Optional. SSL configuration for the Oracle connection.
-    #[serde(default, rename = "oracleSslConfig")]
-    pub oracle_ssl_config: ::core::option::Option<OracleSslConfig>,
-    /// Optional. Password for the Oracle connection. Mutually exclusive with the secret_manager_stored_password field.
-    #[serde(default)]
-    pub password: ::core::option::Option<String>,
-    /// Port for the Oracle connection, default value is 1521.
-    #[serde(default)]
-    pub port: ::core::option::Option<i32>,
-    /// Optional. A reference to a Secret Manager resource name storing the Oracle connection password. Mutually exclusive with the password field.
-    #[serde(default, rename = "secretManagerStoredPassword")]
-    pub secret_manager_stored_password: ::core::option::Option<String>,
-    /// Required. Username for the Oracle connection.
-    #[serde(default)]
-    pub username: ::core::option::Option<String>,
-}
-
-/// Oracle database structure.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct OracleRdbms {
-    /// Oracle schemas/databases in the database server.
-    #[serde(default, rename = "oracleSchemas")]
-    pub oracle_schemas: ::core::option::Option<::std::vec::Vec<OracleSchema>>,
-}
-
-/// Oracle schema.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct OracleSchema {
-    /// Tables in the schema.
-    #[serde(default, rename = "oracleTables")]
-    pub oracle_tables: ::core::option::Option<::std::vec::Vec<OracleTable>>,
-    /// The schema name.
-    #[serde(default)]
-    pub schema: ::core::option::Option<String>,
-}
-
-/// Oracle SCN position
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct OracleScnPosition {
-    /// Required. SCN number from where Logs will be read
-    #[serde(default)]
-    pub scn: ::core::option::Option<String>,
-}
-
-/// Configuration for syncing data from an Oracle source.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct OracleSourceConfig {
-    /// Use Binary Log Parser.
-    #[serde(default, rename = "binaryLogParser")]
-    pub binary_log_parser: ::core::option::Option<BinaryLogParser>,
-    /// Drop large object values.
-    #[serde(default, rename = "dropLargeObjects")]
-    pub drop_large_objects: ::core::option::Option<serde_json::Value>,
-    /// The Oracle objects to exclude from the stream.
-    #[serde(default, rename = "excludeObjects")]
-    pub exclude_objects: ::core::option::Option<OracleRdbms>,
-    /// The Oracle objects to include in the stream.
-    #[serde(default, rename = "includeObjects")]
-    pub include_objects: ::core::option::Option<OracleRdbms>,
-    /// Use LogMiner.
-    #[serde(default, rename = "logMiner")]
-    pub log_miner: ::core::option::Option<serde_json::Value>,
-    /// Maximum number of concurrent backfill tasks. The number should be non-negative. If not set (or set to 0), the system''s default value is used.
-    #[serde(default, rename = "maxConcurrentBackfillTasks")]
-    pub max_concurrent_backfill_tasks: ::core::option::Option<i32>,
-    /// Maximum number of concurrent CDC tasks. The number should be non-negative. If not set (or set to 0), the system''s default value is used.
-    #[serde(default, rename = "maxConcurrentCdcTasks")]
-    pub max_concurrent_cdc_tasks: ::core::option::Option<i32>,
-    /// Stream large object values.
-    #[serde(default, rename = "streamLargeObjects")]
-    pub stream_large_objects: ::core::option::Option<serde_json::Value>,
-}
-
-/// Oracle SSL configuration information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct OracleSslConfig {
-    /// Input only. PEM-encoded certificate of the CA that signed the source database server''s certificate.
-    #[serde(default, rename = "caCertificate")]
-    pub ca_certificate: ::core::option::Option<String>,
-    /// Output only. Indicates whether the ca_certificate field has been set for this Connection-Profile.
-    #[serde(default, rename = "caCertificateSet")]
-    pub ca_certificate_set: ::core::option::Option<bool>,
-    /// Optional. The distinguished name (DN) mentioned in the server certificate. This corresponds to SSL_SERVER_CERT_DN sqlnet parameter. Refer https://docs.oracle.com/en/database/oracle/oracle-database/19/netrf/local-naming-parameters-in-tns-ora-file.html#GUID-70AB0695-A9AA-4A94-B141-4C605236EEB7 If this field is not provided, the DN matching is not enforced.
-    #[serde(default, rename = "serverCertificateDistinguishedName")]
-    pub server_certificate_distinguished_name: ::core::option::Option<String>,
-}
-
-/// Oracle table.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct OracleTable {
-    /// Oracle columns in the schema. When unspecified as part of include/exclude objects, includes/excludes everything.
-    #[serde(default, rename = "oracleColumns")]
-    pub oracle_columns: ::core::option::Option<::std::vec::Vec<OracleColumn>>,
-    /// The table name.
-    #[serde(default)]
-    pub table: ::core::option::Option<String>,
-}
-
-/// PostgreSQL Column.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PostgresqlColumn {
-    /// The column name.
-    #[serde(default)]
-    pub column: ::core::option::Option<String>,
-    /// The PostgreSQL data type.
-    #[serde(default, rename = "dataType")]
-    pub data_type: ::core::option::Option<String>,
-    /// Column length.
-    #[serde(default)]
-    pub length: ::core::option::Option<i32>,
-    /// Whether or not the column can accept a null value.
-    #[serde(default)]
-    pub nullable: ::core::option::Option<bool>,
-    /// The ordinal position of the column in the table.
-    #[serde(default, rename = "ordinalPosition")]
-    pub ordinal_position: ::core::option::Option<i32>,
-    /// Column precision.
-    #[serde(default)]
-    pub precision: ::core::option::Option<i32>,
-    /// Whether or not the column represents a primary key.
-    #[serde(default, rename = "primaryKey")]
-    pub primary_key: ::core::option::Option<bool>,
-    /// Column scale.
-    #[serde(default)]
-    pub scale: ::core::option::Option<i32>,
-}
-
-/// PostgreSQL data source object identifier.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PostgresqlObjectIdentifier {
-    /// Required. The schema name.
-    #[serde(default)]
-    pub schema: ::core::option::Option<String>,
-    /// Required. The table name.
-    #[serde(default)]
-    pub table: ::core::option::Option<String>,
-}
-
-/// Profile for connecting to a PostgreSQL source.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PostgresqlProfile {
-    /// Required. Database for the PostgreSQL connection.
-    #[serde(default)]
-    pub database: ::core::option::Option<String>,
-    /// Required. Hostname for the PostgreSQL connection.
-    #[serde(default)]
-    pub hostname: ::core::option::Option<String>,
-    /// Optional. Password for the PostgreSQL connection. Mutually exclusive with the secret_manager_stored_password field.
-    #[serde(default)]
-    pub password: ::core::option::Option<String>,
-    /// Port for the PostgreSQL connection, default value is 5432.
-    #[serde(default)]
-    pub port: ::core::option::Option<i32>,
-    /// Optional. A reference to a Secret Manager resource name storing the PostgreSQL connection password. Mutually exclusive with the password field.
-    #[serde(default, rename = "secretManagerStoredPassword")]
-    pub secret_manager_stored_password: ::core::option::Option<String>,
-    /// Optional. SSL configuration for the PostgreSQL connection. In case PostgresqlSslConfig is not set, the connection will use the default SSL mode, which is prefer (i.e. this mode will only use encryption if enabled from database side, otherwise will use unencrypted communication)
-    #[serde(default, rename = "sslConfig")]
-    pub ssl_config: ::core::option::Option<PostgresqlSslConfig>,
-    /// Required. Username for the PostgreSQL connection.
-    #[serde(default)]
-    pub username: ::core::option::Option<String>,
-}
-
-/// PostgreSQL database structure.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PostgresqlRdbms {
-    /// PostgreSQL schemas in the database server.
-    #[serde(default, rename = "postgresqlSchemas")]
-    pub postgresql_schemas: ::core::option::Option<::std::vec::Vec<PostgresqlSchema>>,
-}
-
-/// PostgreSQL schema.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PostgresqlSchema {
-    /// Tables in the schema.
-    #[serde(default, rename = "postgresqlTables")]
-    pub postgresql_tables: ::core::option::Option<::std::vec::Vec<PostgresqlTable>>,
-    /// The schema name.
-    #[serde(default)]
-    pub schema: ::core::option::Option<String>,
-}
-
-/// Configuration for syncing data from a PostgreSQL source.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PostgresqlSourceConfig {
-    /// The PostgreSQL objects to exclude from the stream.
-    #[serde(default, rename = "excludeObjects")]
-    pub exclude_objects: ::core::option::Option<PostgresqlRdbms>,
-    /// The PostgreSQL objects to include in the stream.
-    #[serde(default, rename = "includeObjects")]
-    pub include_objects: ::core::option::Option<PostgresqlRdbms>,
-    /// Maximum number of concurrent backfill tasks. The number should be non negative. If not set (or set to 0), the system''s default value will be used.
-    #[serde(default, rename = "maxConcurrentBackfillTasks")]
-    pub max_concurrent_backfill_tasks: ::core::option::Option<i32>,
-    /// Required. The name of the publication that includes the set of all tables that are defined in the stream''s include_objects.
-    #[serde(default)]
-    pub publication: ::core::option::Option<String>,
-    /// Required. Immutable. The name of the logical replication slot that''s configured with the pgoutput plugin.
-    #[serde(default, rename = "replicationSlot")]
-    pub replication_slot: ::core::option::Option<String>,
-}
-
-/// PostgreSQL SSL configuration information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PostgresqlSslConfig {
-    /// If this field is set, the communication will be encrypted with TLS encryption and both the server identity and the client identity will be authenticated.
-    #[serde(default, rename = "serverAndClientVerification")]
-    pub server_and_client_verification: ::core::option::Option<ServerAndClientVerification>,
-    ///  If this field is set, the communication will be encrypted with TLS encryption and the server identity will be authenticated.
-    #[serde(default, rename = "serverVerification")]
-    pub server_verification: ::core::option::Option<ServerVerification>,
-}
-
-/// PostgreSQL table.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PostgresqlTable {
-    /// PostgreSQL columns in the schema. When unspecified as part of include/exclude objects, includes/excludes everything.
-    #[serde(default, rename = "postgresqlColumns")]
-    pub postgresql_columns: ::core::option::Option<::std::vec::Vec<PostgresqlColumn>>,
-    /// The table name.
-    #[serde(default)]
-    pub table: ::core::option::Option<String>,
-}
-
 /// Describes what preconditions have failed. For example, if an RPC failed because it required the Terms of Service to be acknowledged, it could list the terms of service violation in the PreconditionFailure message.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PreconditionFailure {
@@ -1357,18 +263,213 @@ pub struct PreconditionFailure {
     pub violations: ::core::option::Option<::std::vec::Vec<PreconditionFailureViolation>>,
 }
 
-/// A message type used to describe a single precondition failure.
+/// Describes how a quota check failed. For example if a daily limit was exceeded for the calling project, a service could respond with a QuotaFailure detail containing the project id and the description of the quota limit that was exceeded. If the calling project hasn''t enabled the service in the developer console, then a service could respond with the project id and set service_disabled to true. Also see RetryInfo and Help types for other details about handling a quota failure.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PreconditionFailureViolation {
-    /// A description of how the precondition failed. Developers can use this description to understand how to fix the failure. For example: "Terms of service not accepted".
+pub struct QuotaFailure {
+    /// Describes all quota violations.
+    #[serde(default)]
+    pub violations: ::core::option::Option<::std::vec::Vec<QuotaFailureViolation>>,
+}
+
+/// Contains metadata about the request that clients can attach when filing a bug or providing other forms of feedback.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RequestInfo {
+    /// An opaque string that should only be interpreted by the service generating it. For example, it can be used to identify requests in the service''s logs.
+    #[serde(default, rename = "requestId")]
+    pub request_id: ::core::option::Option<String>,
+    /// Any data that was used to serve this request. For example, an encrypted stack trace that can be sent back to the service provider for debugging.
+    #[serde(default, rename = "servingData")]
+    pub serving_data: ::core::option::Option<String>,
+}
+
+/// Describes the resource that is being accessed.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ResourceInfo {
+    /// Describes what error is encountered when accessing this resource. For example, updating a cloud project may require the writer permission on the developer console project.
     #[serde(default)]
     pub description: ::core::option::Option<String>,
-    /// The subject, relative to the type, that failed. For example, "google.com/cloud" relative to the "TOS" type would indicate which terms of service is being referenced.
+    /// The owner of the resource (optional). For example, "user:" or "project:".
     #[serde(default)]
-    pub subject: ::core::option::Option<String>,
-    /// The type of PreconditionFailure. We recommend using a service-specific enum type to define the supported precondition violation subjects. For example, "TOS" for "Terms of Service violation".
-    #[serde(default, rename = "type")]
-    pub type_: ::core::option::Option<String>,
+    pub owner: ::core::option::Option<String>,
+    /// The name of the resource being accessed. For example, a shared calendar name: "example.com_4fghdhgsrgh@group.calendar.google.com", if the current error is google.rpc.Code.PERMISSION_DENIED.
+    #[serde(default, rename = "resourceName")]
+    pub resource_name: ::core::option::Option<String>,
+    /// A name for the type of resource being accessed, e.g. "sql table", "cloud storage bucket", "file", "Google calendar"; or the type URL of the resource: e.g. "type.googleapis.com/google.pubsub.v1.Topic".
+    #[serde(default, rename = "resourceType")]
+    pub resource_type: ::core::option::Option<String>,
+}
+
+/// Describes when the clients can retry a failed request. Clients could ignore the recommendation here or retry when this information is missing from error responses. It''s always recommended that clients should use exponential backoff when retrying. Clients should wait until retry_delay amount of time has passed since receiving the error response before retrying. If retrying requests also fail, clients should use an exponential backoff scheme to gradually increase the delay between retries based on retry_delay, until either a maximum number of retries have been reached or a maximum retry delay cap has been reached.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RetryInfo {
+    /// Clients should wait at least this long between retrying the same request.
+    #[serde(default, rename = "retryDelay")]
+    pub retry_delay: ::core::option::Option<String>,
+}
+
+/// Request message for running a stream.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RunStreamRequest {
+    /// Optional. The CDC strategy of the stream. If not set, the system''s default value will be used.
+    #[serde(default, rename = "cdcStrategy")]
+    pub cdc_strategy: ::core::option::Option<CdcStrategy>,
+    /// Optional. Update the stream without validating it.
+    #[serde(default)]
+    pub force: ::core::option::Option<bool>,
+}
+
+/// Request for manually initiating a backfill job for a specific stream object.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct StartBackfillJobRequest {
+    /// Optional. Optional event filter. If not set, or empty, the backfill will be performed on the entire object. This is currently used for partial backfill and only supported for SQL Server sources.
+    #[serde(default, rename = "eventFilter")]
+    pub event_filter: ::core::option::Option<EventFilter>,
+}
+
+/// Response for manually initiating a backfill job for a specific stream object.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct StartBackfillJobResponse {
+    /// The stream object resource a backfill job was started for.
+    #[serde(default)]
+    pub object: ::core::option::Option<StreamObject>,
+}
+
+/// Response for manually stop a backfill job for a specific stream object.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct StopBackfillJobResponse {
+    /// The stream object resource the backfill job was stopped for.
+    #[serde(default)]
+    pub object: ::core::option::Option<StreamObject>,
+}
+
+/// A message type used to describe a single bad request field.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct FieldViolation {
+    /// A description of why the request element is bad.
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+    /// A path that leads to a field in the request body. The value will be a sequence of dot-separated identifiers that identify a protocol buffer field. Consider the following: message CreateContactRequest { message EmailAddress { enum Type { TYPE_UNSPECIFIED = 0; HOME = 1; WORK = 2; } optional string email = 1; repeated EmailType type = 2; } string full_name = 1; repeated EmailAddress email_addresses = 2; } In this example, in proto field could take one of the following values: * full_name for a violation in the full_name value * email_addresses[0].email for a violation in the email field of the first email_addresses message * email_addresses[2].type[1] for a violation in the second type value in the third email_addresses message. In JSON, the same values are represented as: * fullName for a violation in the fullName value * emailAddresses[0].email for a violation in the email field of the first emailAddresses message * emailAddresses[2].type[1] for a violation in the second type value in the third emailAddresses message.
+    #[serde(default)]
+    pub field: ::core::option::Option<String>,
+    /// Provides a localized error message for field-level errors that is safe to return to the API consumer.
+    #[serde(default, rename = "localizedMessage")]
+    pub localized_message: ::core::option::Option<LocalizedMessage>,
+    /// The reason of the field-level error. This is a constant value that identifies the proximate cause of the field-level error. It should uniquely identify the type of the FieldViolation within the scope of the google.rpc.ErrorInfo.domain. This should be at most 63 characters and match a regular expression of A-Z+[A-Z0-9], which represents UPPER_SNAKE_CASE.
+    #[serde(default)]
+    pub reason: ::core::option::Option<String>,
+}
+
+/// Describes a URL link.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Link {
+    /// Describes what the link offers.
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+    /// The URL of the link.
+    #[serde(default)]
+    pub url: ::core::option::Option<String>,
+}
+
+/// A set of reusable connection configurations to be used as a source or destination for a stream.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ConnectionProfile {
+    /// Profile for connecting to a BigQuery destination.
+    #[serde(default, rename = "bigqueryProfile")]
+    pub bigquery_profile: ::core::option::Option<serde_json::Value>,
+    /// Output only. The create time of the resource.
+    #[serde(default, rename = "createTime")]
+    pub create_time: ::core::option::Option<String>,
+    /// Required. Display name.
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+    /// Forward SSH tunnel connectivity.
+    #[serde(default, rename = "forwardSshConnectivity")]
+    pub forward_ssh_connectivity: ::core::option::Option<ForwardSshTunnelConnectivity>,
+    /// Profile for connecting to a Cloud Storage destination.
+    #[serde(default, rename = "gcsProfile")]
+    pub gcs_profile: ::core::option::Option<GcsProfile>,
+    /// Labels.
+    #[serde(default)]
+    pub labels: ::core::option::Option<serde_json::Value>,
+    /// Profile for connecting to a MongoDB source.
+    #[serde(default, rename = "mongodbProfile")]
+    pub mongodb_profile: ::core::option::Option<MongodbProfile>,
+    /// Profile for connecting to a MySQL source.
+    #[serde(default, rename = "mysqlProfile")]
+    pub mysql_profile: ::core::option::Option<MysqlProfile>,
+    /// Output only. Identifier. The resource''s name.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Profile for connecting to an Oracle source.
+    #[serde(default, rename = "oracleProfile")]
+    pub oracle_profile: ::core::option::Option<OracleProfile>,
+    /// Profile for connecting to a PostgreSQL source.
+    #[serde(default, rename = "postgresqlProfile")]
+    pub postgresql_profile: ::core::option::Option<PostgresqlProfile>,
+    /// Private connectivity.
+    #[serde(default, rename = "privateConnectivity")]
+    pub private_connectivity: ::core::option::Option<PrivateConnectivity>,
+    /// Profile for connecting to a Salesforce source.
+    #[serde(default, rename = "salesforceProfile")]
+    pub salesforce_profile: ::core::option::Option<SalesforceProfile>,
+    /// Output only. Reserved for future use.
+    #[serde(default, rename = "satisfiesPzi")]
+    pub satisfies_pzi: ::core::option::Option<bool>,
+    /// Output only. Reserved for future use.
+    #[serde(default, rename = "satisfiesPzs")]
+    pub satisfies_pzs: ::core::option::Option<bool>,
+    /// Profile for connecting to a Spanner source.
+    #[serde(default, rename = "spannerProfile")]
+    pub spanner_profile: ::core::option::Option<SpannerProfile>,
+    /// Profile for connecting to a SQLServer source.
+    #[serde(default, rename = "sqlServerProfile")]
+    pub sql_server_profile: ::core::option::Option<SqlServerProfile>,
+    /// Static Service IP connectivity.
+    #[serde(default, rename = "staticServiceIpConnectivity")]
+    pub static_service_ip_connectivity: ::core::option::Option<serde_json::Value>,
+    /// Output only. The update time of the resource.
+    #[serde(default, rename = "updateTime")]
+    pub update_time: ::core::option::Option<String>,
+}
+
+/// A resource that represents a Google Cloud location.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Location {
+    /// The friendly name for this location, typically a nearby city name. For example, "Tokyo".
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+    /// Cross-service attributes for the location. For example {"cloud.googleapis.com/region": "us-east1"}
+    #[serde(default)]
+    pub labels: ::core::option::Option<serde_json::Value>,
+    /// The canonical id for this location. For example: "us-east1".
+    #[serde(default, rename = "locationId")]
+    pub location_id: ::core::option::Option<String>,
+    /// Service-specific metadata. For example the available capacity at the given location.
+    #[serde(default)]
+    pub metadata: ::core::option::Option<serde_json::Value>,
+    /// Resource name for the location, which may vary between implementations. For example: "projects/example-project/locations/us-east1"
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+}
+
+/// This resource represents a long-running operation that is the result of a network API call.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Operation {
+    /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
+    #[serde(default)]
+    pub done: ::core::option::Option<bool>,
+    /// The error result of the operation in case of failure or cancellation.
+    #[serde(default)]
+    pub error: ::core::option::Option<Status>,
+    /// Service-specific metadata associated with the operation. It typically contains progress information and common metadata such as create time. Some services might not provide such metadata. Any method that returns a long-running operation should document the metadata type, if any.
+    #[serde(default)]
+    pub metadata: ::core::option::Option<serde_json::Value>,
+    /// The server-assigned name, which is only unique within the same service that originally returns it. If you use the default HTTP mapping, the name should be a resource name ending with operations/{unique_id}.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// The normal, successful response of the operation. If the original method returns no data on success, such as Delete, the response is google.protobuf.Empty. If the original method is standard Get/Create/Update, the response should be the resource. For other methods, the response should have the type XxxResponse, where Xxx is the original method name. For example, if the original method name is TakeSnapshot(), the inferred response type is TakeSnapshotResponse.
+    #[serde(default)]
+    pub response: ::core::option::Option<serde_json::Value>,
 }
 
 /// The PrivateConnection resource is used to establish private connectivity between Datastream and a customer''s network.
@@ -1409,95 +510,6 @@ pub struct PrivateConnection {
     pub vpc_peering_config: ::core::option::Option<VpcPeeringConfig>,
 }
 
-/// Private Connectivity
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PrivateConnectivity {
-    /// Required. A reference to a private connection resource. Format: projects/{project}/locations/{location}/privateConnections/{name}
-    #[serde(default, rename = "privateConnection")]
-    pub private_connection: ::core::option::Option<String>,
-}
-
-/// The PSC Interface configuration is used to create PSC Interface between Datastream and the consumer''s PSC.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PscInterfaceConfig {
-    /// Required. Fully qualified name of the Network Attachment that Datastream will connect to. Format: projects/{project}/regions/{region}/networkAttachments/{name}
-    #[serde(default, rename = "networkAttachment")]
-    pub network_attachment: ::core::option::Option<String>,
-}
-
-/// Describes how a quota check failed. For example if a daily limit was exceeded for the calling project, a service could respond with a QuotaFailure detail containing the project id and the description of the quota limit that was exceeded. If the calling project hasn''t enabled the service in the developer console, then a service could respond with the project id and set service_disabled to true. Also see RetryInfo and Help types for other details about handling a quota failure.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct QuotaFailure {
-    /// Describes all quota violations.
-    #[serde(default)]
-    pub violations: ::core::option::Option<::std::vec::Vec<QuotaFailureViolation>>,
-}
-
-/// A message type used to describe a single quota violation. For example, a daily quota or a custom quota that was exceeded.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct QuotaFailureViolation {
-    /// The API Service from which the QuotaFailure.Violation orginates. In some cases, Quota issues originate from an API Service other than the one that was called. In other words, a dependency of the called API Service could be the cause of the QuotaFailure, and this field would have the dependency API service name. For example, if the called API is Kubernetes Engine API (container.googleapis.com), and a quota violation occurs in the Kubernetes Engine API itself, this field would be "container.googleapis.com". On the other hand, if the quota violation occurs when the Kubernetes Engine API creates VMs in the Compute Engine API (compute.googleapis.com), this field would be "compute.googleapis.com".
-    #[serde(default, rename = "apiService")]
-    pub api_service: ::core::option::Option<String>,
-    /// A description of how the quota check failed. Clients can use this description to find more about the quota configuration in the service''s public documentation, or find the relevant quota limit to adjust through developer console. For example: "Service disabled" or "Daily Limit for read operations exceeded".
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// The new quota value being rolled out at the time of the violation. At the completion of the rollout, this value will be enforced in place of quota_value. If no rollout is in progress at the time of the violation, this field is not set. For example, if at the time of the violation a rollout is in progress changing the number of CPUs quota from 10 to 20, 20 would be the value of this field.
-    #[serde(default, rename = "futureQuotaValue")]
-    pub future_quota_value: ::core::option::Option<String>,
-    /// The dimensions of the violated quota. Every non-global quota is enforced on a set of dimensions. While quota metric defines what to count, the dimensions specify for what aspects the counter should be increased. For example, the quota "CPUs per region per VM family" enforces a limit on the metric "compute.googleapis.com/cpus_per_vm_family" on dimensions "region" and "vm_family". And if the violation occurred in region "us-central1" and for VM family "n1", the quota_dimensions would be, { "region": "us-central1", "vm_family": "n1", } When a quota is enforced globally, the quota_dimensions would always be empty.
-    #[serde(default, rename = "quotaDimensions")]
-    pub quota_dimensions: ::core::option::Option<serde_json::Value>,
-    /// The id of the violated quota. Also know as "limit name", this is the unique identifier of a quota in the context of an API service. For example, "CPUS-PER-VM-FAMILY-per-project-region".
-    #[serde(default, rename = "quotaId")]
-    pub quota_id: ::core::option::Option<String>,
-    /// The metric of the violated quota. A quota metric is a named counter to measure usage, such as API requests or CPUs. When an activity occurs in a service, such as Virtual Machine allocation, one or more quota metrics may be affected. For example, "compute.googleapis.com/cpus_per_vm_family", "storage.googleapis.com/internet_egress_bandwidth".
-    #[serde(default, rename = "quotaMetric")]
-    pub quota_metric: ::core::option::Option<String>,
-    /// The enforced quota value at the time of the QuotaFailure. For example, if the enforced quota value at the time of the QuotaFailure on the number of CPUs is "10", then the value of this field would reflect this quantity.
-    #[serde(default, rename = "quotaValue")]
-    pub quota_value: ::core::option::Option<String>,
-    /// The subject on which the quota check failed. For example, "clientip:" or "project:".
-    #[serde(default)]
-    pub subject: ::core::option::Option<String>,
-}
-
-/// Contains metadata about the request that clients can attach when filing a bug or providing other forms of feedback.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct RequestInfo {
-    /// An opaque string that should only be interpreted by the service generating it. For example, it can be used to identify requests in the service''s logs.
-    #[serde(default, rename = "requestId")]
-    pub request_id: ::core::option::Option<String>,
-    /// Any data that was used to serve this request. For example, an encrypted stack trace that can be sent back to the service provider for debugging.
-    #[serde(default, rename = "servingData")]
-    pub serving_data: ::core::option::Option<String>,
-}
-
-/// Describes the resource that is being accessed.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ResourceInfo {
-    /// Describes what error is encountered when accessing this resource. For example, updating a cloud project may require the writer permission on the developer console project.
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// The owner of the resource (optional). For example, "user:" or "project:".
-    #[serde(default)]
-    pub owner: ::core::option::Option<String>,
-    /// The name of the resource being accessed. For example, a shared calendar name: "example.com_4fghdhgsrgh@group.calendar.google.com", if the current error is google.rpc.Code.PERMISSION_DENIED.
-    #[serde(default, rename = "resourceName")]
-    pub resource_name: ::core::option::Option<String>,
-    /// A name for the type of resource being accessed, e.g. "sql table", "cloud storage bucket", "file", "Google calendar"; or the type URL of the resource: e.g. "type.googleapis.com/google.pubsub.v1.Topic".
-    #[serde(default, rename = "resourceType")]
-    pub resource_type: ::core::option::Option<String>,
-}
-
-/// Describes when the clients can retry a failed request. Clients could ignore the recommendation here or retry when this information is missing from error responses. It''s always recommended that clients should use exponential backoff when retrying. Clients should wait until retry_delay amount of time has passed since receiving the error response before retrying. If retrying requests also fail, clients should use an exponential backoff scheme to gradually increase the delay between retries based on retry_delay, until either a maximum number of retries have been reached or a maximum retry delay cap has been reached.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct RetryInfo {
-    /// Clients should wait at least this long between retrying the same request.
-    #[serde(default, rename = "retryDelay")]
-    pub retry_delay: ::core::option::Option<String>,
-}
-
 /// The route resource is the child of the private connection resource, used for defining a route for a private connection.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Route {
@@ -1522,504 +534,6 @@ pub struct Route {
     /// Output only. The update time of the resource.
     #[serde(default, rename = "updateTime")]
     pub update_time: ::core::option::Option<String>,
-}
-
-/// A set of rules to apply to a set of objects.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct RuleSet {
-    /// Required. List of customization rules to apply.
-    #[serde(default, rename = "customizationRules")]
-    pub customization_rules: ::core::option::Option<::std::vec::Vec<CustomizationRule>>,
-    /// Required. Object filter to apply the customization rules to.
-    #[serde(default, rename = "objectFilter")]
-    pub object_filter: ::core::option::Option<ObjectFilter>,
-}
-
-/// Request message for running a stream.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct RunStreamRequest {
-    /// Optional. The CDC strategy of the stream. If not set, the system''s default value will be used.
-    #[serde(default, rename = "cdcStrategy")]
-    pub cdc_strategy: ::core::option::Option<CdcStrategy>,
-    /// Optional. Update the stream without validating it.
-    #[serde(default)]
-    pub force: ::core::option::Option<bool>,
-}
-
-/// Salesforce field.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SalesforceField {
-    /// The data type.
-    #[serde(default, rename = "dataType")]
-    pub data_type: ::core::option::Option<String>,
-    /// The field name.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Indicates whether the field can accept nil values.
-    #[serde(default)]
-    pub nillable: ::core::option::Option<bool>,
-}
-
-/// Salesforce object.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SalesforceObject {
-    /// Salesforce fields. When unspecified as part of include objects, includes everything, when unspecified as part of exclude objects, excludes nothing.
-    #[serde(default)]
-    pub fields: ::core::option::Option<::std::vec::Vec<SalesforceField>>,
-    /// The object name.
-    #[serde(default, rename = "objectName")]
-    pub object_name: ::core::option::Option<String>,
-}
-
-/// Salesforce data source object identifier.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SalesforceObjectIdentifier {
-    /// Required. The object name.
-    #[serde(default, rename = "objectName")]
-    pub object_name: ::core::option::Option<String>,
-}
-
-/// Salesforce organization structure.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SalesforceOrg {
-    /// Salesforce objects in the database server.
-    #[serde(default)]
-    pub objects: ::core::option::Option<::std::vec::Vec<SalesforceObject>>,
-}
-
-/// Profile for connecting to a Salesforce source.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SalesforceProfile {
-    /// Required. Domain endpoint for the Salesforce connection.
-    #[serde(default)]
-    pub domain: ::core::option::Option<String>,
-    /// Connected app authentication.
-    #[serde(default, rename = "oauth2ClientCredentials")]
-    pub oauth2_client_credentials: ::core::option::Option<Oauth2ClientCredentials>,
-    /// User-password authentication.
-    #[serde(default, rename = "userCredentials")]
-    pub user_credentials: ::core::option::Option<UserCredentials>,
-}
-
-/// Configuration for syncing data from a Salesforce source.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SalesforceSourceConfig {
-    /// The Salesforce objects to exclude from the stream.
-    #[serde(default, rename = "excludeObjects")]
-    pub exclude_objects: ::core::option::Option<SalesforceOrg>,
-    /// The Salesforce objects to retrieve from the source.
-    #[serde(default, rename = "includeObjects")]
-    pub include_objects: ::core::option::Option<SalesforceOrg>,
-    /// Required. Salesforce objects polling interval. The interval at which new changes will be polled for each object. The duration must be from 5 minutes to 24 hours, inclusive.
-    #[serde(default, rename = "pollingInterval")]
-    pub polling_interval: ::core::option::Option<String>,
-}
-
-/// Message represents the option where Datastream will enforce the encryption and authenticate the server identity as well as the client identity. ca_certificate, client_certificate and client_key must be set if user selects this option.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ServerAndClientVerification {
-    /// Required. Input only. PEM-encoded server root CA certificate.
-    #[serde(default, rename = "caCertificate")]
-    pub ca_certificate: ::core::option::Option<String>,
-    /// Required. Input only. PEM-encoded certificate used by the source database to authenticate the client identity (i.e., the Datastream''s identity). This certificate is signed by either a root certificate trusted by the server or one or more intermediate certificates (which is stored with the leaf certificate) to link the this certificate to the trusted root certificate.
-    #[serde(default, rename = "clientCertificate")]
-    pub client_certificate: ::core::option::Option<String>,
-    /// Optional. Input only. PEM-encoded private key associated with the client certificate. This value will be used during the SSL/TLS handshake, allowing the PostgreSQL server to authenticate the client''s identity, i.e. identity of the Datastream.
-    #[serde(default, rename = "clientKey")]
-    pub client_key: ::core::option::Option<String>,
-    /// Optional. The hostname mentioned in the Subject or SAN extension of the server certificate. If this field is not provided, the hostname in the server certificate is not validated.
-    #[serde(default, rename = "serverCertificateHostname")]
-    pub server_certificate_hostname: ::core::option::Option<String>,
-}
-
-/// Message represents the option where Datastream will enforce the encryption and authenticate the server identity. ca_certificate must be set if user selects this option.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ServerVerification {
-    /// Required. Input only. PEM-encoded server root CA certificate.
-    #[serde(default, rename = "caCertificate")]
-    pub ca_certificate: ::core::option::Option<String>,
-    /// Optional. The hostname mentioned in the Subject or SAN extension of the server certificate. If this field is not provided, the hostname in the server certificate is not validated.
-    #[serde(default, rename = "serverCertificateHostname")]
-    pub server_certificate_hostname: ::core::option::Option<String>,
-}
-
-/// A single target dataset to which all data will be streamed.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SingleTargetDataset {
-    /// The dataset ID of the target dataset. DatasetIds allowed characters: https://cloud.google.com/bigquery/docs/reference/rest/v2/datasets#datasetreference.
-    #[serde(default, rename = "datasetId")]
-    pub dataset_id: ::core::option::Option<String>,
-}
-
-/// The configuration of the stream source.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SourceConfig {
-    /// MongoDB data source configuration.
-    #[serde(default, rename = "mongodbSourceConfig")]
-    pub mongodb_source_config: ::core::option::Option<MongodbSourceConfig>,
-    /// MySQL data source configuration.
-    #[serde(default, rename = "mysqlSourceConfig")]
-    pub mysql_source_config: ::core::option::Option<MysqlSourceConfig>,
-    /// Oracle data source configuration.
-    #[serde(default, rename = "oracleSourceConfig")]
-    pub oracle_source_config: ::core::option::Option<OracleSourceConfig>,
-    /// PostgreSQL data source configuration.
-    #[serde(default, rename = "postgresqlSourceConfig")]
-    pub postgresql_source_config: ::core::option::Option<PostgresqlSourceConfig>,
-    /// Salesforce data source configuration.
-    #[serde(default, rename = "salesforceSourceConfig")]
-    pub salesforce_source_config: ::core::option::Option<SalesforceSourceConfig>,
-    /// Required. Source connection profile resource. Format: projects/{project}/locations/{location}/connectionProfiles/{name}
-    #[serde(default, rename = "sourceConnectionProfile")]
-    pub source_connection_profile: ::core::option::Option<String>,
-    /// Spanner data source configuration.
-    #[serde(default, rename = "spannerSourceConfig")]
-    pub spanner_source_config: ::core::option::Option<SpannerSourceConfig>,
-    /// SQLServer data source configuration.
-    #[serde(default, rename = "sqlServerSourceConfig")]
-    pub sql_server_source_config: ::core::option::Option<SqlServerSourceConfig>,
-}
-
-/// Destination datasets are created so that hierarchy of the destination data objects matches the source hierarchy.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SourceHierarchyDatasets {
-    /// The dataset template to use for dynamic dataset creation.
-    #[serde(default, rename = "datasetTemplate")]
-    pub dataset_template: ::core::option::Option<DatasetTemplate>,
-    /// Optional. The project id of the BigQuery dataset. If not specified, the project will be inferred from the stream resource.
-    #[serde(default, rename = "projectId")]
-    pub project_id: ::core::option::Option<String>,
-}
-
-/// Represents an identifier of an object in the data source.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SourceObjectIdentifier {
-    /// MongoDB data source object identifier.
-    #[serde(default, rename = "mongodbIdentifier")]
-    pub mongodb_identifier: ::core::option::Option<MongodbObjectIdentifier>,
-    /// Mysql data source object identifier.
-    #[serde(default, rename = "mysqlIdentifier")]
-    pub mysql_identifier: ::core::option::Option<MysqlObjectIdentifier>,
-    /// Oracle data source object identifier.
-    #[serde(default, rename = "oracleIdentifier")]
-    pub oracle_identifier: ::core::option::Option<OracleObjectIdentifier>,
-    /// PostgreSQL data source object identifier.
-    #[serde(default, rename = "postgresqlIdentifier")]
-    pub postgresql_identifier: ::core::option::Option<PostgresqlObjectIdentifier>,
-    /// Salesforce data source object identifier.
-    #[serde(default, rename = "salesforceIdentifier")]
-    pub salesforce_identifier: ::core::option::Option<SalesforceObjectIdentifier>,
-    /// Spanner data source object identifier.
-    #[serde(default, rename = "spannerIdentifier")]
-    pub spanner_identifier: ::core::option::Option<SpannerObjectIdentifier>,
-    /// SQLServer data source object identifier.
-    #[serde(default, rename = "sqlServerIdentifier")]
-    pub sql_server_identifier: ::core::option::Option<SqlServerObjectIdentifier>,
-}
-
-/// Spanner column.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SpannerColumn {
-    /// Required. The column name.
-    #[serde(default)]
-    pub column: ::core::option::Option<String>,
-    /// Optional. Spanner data type.
-    #[serde(default, rename = "dataType")]
-    pub data_type: ::core::option::Option<String>,
-    /// Optional. Whether or not the column is a primary key.
-    #[serde(default, rename = "isPrimaryKey")]
-    pub is_primary_key: ::core::option::Option<bool>,
-    /// Optional. The ordinal position of the column in the table.
-    #[serde(default, rename = "ordinalPosition")]
-    pub ordinal_position: ::core::option::Option<String>,
-}
-
-/// Spanner database structure.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SpannerDatabase {
-    /// Optional. Spanner schemas in the database.
-    #[serde(default)]
-    pub schemas: ::core::option::Option<::std::vec::Vec<SpannerSchema>>,
-}
-
-/// Spanner data source object identifier.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SpannerObjectIdentifier {
-    /// Optional. The schema name.
-    #[serde(default)]
-    pub schema: ::core::option::Option<String>,
-    /// Required. The table name.
-    #[serde(default)]
-    pub table: ::core::option::Option<String>,
-}
-
-/// Profile for connecting to a Spanner source.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SpannerProfile {
-    /// Required. Immutable. Cloud Spanner database resource. This field is immutable. Must be in the format: projects/{project}/instances/{instance}/databases/{database_id}.
-    #[serde(default)]
-    pub database: ::core::option::Option<String>,
-    /// Optional. The Spanner endpoint to connect to. Defaults to the global endpoint (https://spanner.googleapis.com). Must be in the format: https://spanner.{region}.rep.googleapis.com.
-    #[serde(default)]
-    pub host: ::core::option::Option<String>,
-}
-
-/// Spanner schema.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SpannerSchema {
-    /// Required. The schema name.
-    #[serde(default)]
-    pub schema: ::core::option::Option<String>,
-    /// Optional. Spanner tables in the schema.
-    #[serde(default)]
-    pub tables: ::core::option::Option<::std::vec::Vec<SpannerTable>>,
-}
-
-/// Configuration for syncing data from a Spanner source.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SpannerSourceConfig {
-    /// Optional. Whether to use Data Boost for Spanner backfills. Defaults to false if not set.
-    #[serde(default, rename = "backfillDataBoostEnabled")]
-    pub backfill_data_boost_enabled: ::core::option::Option<bool>,
-    /// Required. Immutable. The change stream name to use for the stream.
-    #[serde(default, rename = "changeStreamName")]
-    pub change_stream_name: ::core::option::Option<String>,
-    /// Optional. The Spanner objects to avoid retrieving. If some objects are both included and excluded, an error will be thrown.
-    #[serde(default, rename = "excludeObjects")]
-    pub exclude_objects: ::core::option::Option<SpannerDatabase>,
-    /// Optional. The FGAC role to use for the stream.
-    #[serde(default, rename = "fgacRole")]
-    pub fgac_role: ::core::option::Option<String>,
-    /// Optional. The Spanner objects to retrieve from the data source. If some objects are both included and excluded, an error will be thrown.
-    #[serde(default, rename = "includeObjects")]
-    pub include_objects: ::core::option::Option<SpannerDatabase>,
-    /// Optional. Maximum number of concurrent backfill tasks.
-    #[serde(default, rename = "maxConcurrentBackfillTasks")]
-    pub max_concurrent_backfill_tasks: ::core::option::Option<i32>,
-    /// Optional. Maximum number of concurrent CDC tasks.
-    #[serde(default, rename = "maxConcurrentCdcTasks")]
-    pub max_concurrent_cdc_tasks: ::core::option::Option<i32>,
-    /// Optional. The RPC priority to use for the stream. // TODO: enum values: ["SPANNER_RPC_PRIORITY_UNSPECIFIED", "LOW", "MEDIUM", "HIGH"]
-    #[serde(default, rename = "spannerRpcPriority")]
-    pub spanner_rpc_priority: ::core::option::Option<String>,
-}
-
-/// Spanner table.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SpannerTable {
-    /// Optional. Spanner columns in the table.
-    #[serde(default)]
-    pub columns: ::core::option::Option<::std::vec::Vec<SpannerColumn>>,
-    /// Required. The table name.
-    #[serde(default)]
-    pub table: ::core::option::Option<String>,
-}
-
-/// CDC strategy to start replicating from a specific position in the source.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SpecificStartPosition {
-    /// MongoDB change stream position to start replicating from.
-    #[serde(default, rename = "mongodbChangeStreamPosition")]
-    pub mongodb_change_stream_position: ::core::option::Option<MongodbChangeStreamPosition>,
-    /// MySQL GTID set to start replicating from.
-    #[serde(default, rename = "mysqlGtidPosition")]
-    pub mysql_gtid_position: ::core::option::Option<MysqlGtidPosition>,
-    /// MySQL specific log position to start replicating from.
-    #[serde(default, rename = "mysqlLogPosition")]
-    pub mysql_log_position: ::core::option::Option<MysqlLogPosition>,
-    /// Oracle SCN to start replicating from.
-    #[serde(default, rename = "oracleScnPosition")]
-    pub oracle_scn_position: ::core::option::Option<OracleScnPosition>,
-    /// SqlServer LSN to start replicating from.
-    #[serde(default, rename = "sqlServerLsnPosition")]
-    pub sql_server_lsn_position: ::core::option::Option<SqlServerLsnPosition>,
-}
-
-/// SQLServer Column.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SqlServerColumn {
-    /// The column name.
-    #[serde(default)]
-    pub column: ::core::option::Option<String>,
-    /// The SQLServer data type.
-    #[serde(default, rename = "dataType")]
-    pub data_type: ::core::option::Option<String>,
-    /// Column length.
-    #[serde(default)]
-    pub length: ::core::option::Option<i32>,
-    /// Whether or not the column can accept a null value.
-    #[serde(default)]
-    pub nullable: ::core::option::Option<bool>,
-    /// The ordinal position of the column in the table.
-    #[serde(default, rename = "ordinalPosition")]
-    pub ordinal_position: ::core::option::Option<i32>,
-    /// Column precision.
-    #[serde(default)]
-    pub precision: ::core::option::Option<i32>,
-    /// Whether or not the column represents a primary key.
-    #[serde(default, rename = "primaryKey")]
-    pub primary_key: ::core::option::Option<bool>,
-    /// Column scale.
-    #[serde(default)]
-    pub scale: ::core::option::Option<i32>,
-}
-
-/// SQL Server LSN position
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SqlServerLsnPosition {
-    /// Required. Log sequence number (LSN) from where Logs will be read
-    #[serde(default)]
-    pub lsn: ::core::option::Option<String>,
-}
-
-/// SQLServer data source object identifier.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SqlServerObjectIdentifier {
-    /// Required. The schema name.
-    #[serde(default)]
-    pub schema: ::core::option::Option<String>,
-    /// Required. The table name.
-    #[serde(default)]
-    pub table: ::core::option::Option<String>,
-}
-
-/// Profile for connecting to a SQLServer source.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SqlServerProfile {
-    /// Required. Database for the SQLServer connection.
-    #[serde(default)]
-    pub database: ::core::option::Option<String>,
-    /// Required. Hostname for the SQLServer connection.
-    #[serde(default)]
-    pub hostname: ::core::option::Option<String>,
-    /// Optional. Password for the SQLServer connection. Mutually exclusive with the secret_manager_stored_password field.
-    #[serde(default)]
-    pub password: ::core::option::Option<String>,
-    /// Port for the SQLServer connection, default value is 1433.
-    #[serde(default)]
-    pub port: ::core::option::Option<i32>,
-    /// Optional. A reference to a Secret Manager resource name storing the SQLServer connection password. Mutually exclusive with the password field.
-    #[serde(default, rename = "secretManagerStoredPassword")]
-    pub secret_manager_stored_password: ::core::option::Option<String>,
-    /// Optional. SSL configuration for the SQLServer connection.
-    #[serde(default, rename = "sslConfig")]
-    pub ssl_config: ::core::option::Option<SqlServerSslConfig>,
-    /// Required. Username for the SQLServer connection.
-    #[serde(default)]
-    pub username: ::core::option::Option<String>,
-}
-
-/// SQLServer database structure.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SqlServerRdbms {
-    /// SQLServer schemas in the database server.
-    #[serde(default)]
-    pub schemas: ::core::option::Option<::std::vec::Vec<SqlServerSchema>>,
-}
-
-/// SQLServer schema.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SqlServerSchema {
-    /// The schema name.
-    #[serde(default)]
-    pub schema: ::core::option::Option<String>,
-    /// Tables in the schema.
-    #[serde(default)]
-    pub tables: ::core::option::Option<::std::vec::Vec<SqlServerTable>>,
-}
-
-/// Configuration for syncing data from a SQLServer source.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SqlServerSourceConfig {
-    /// CDC reader reads from change tables.
-    #[serde(default, rename = "changeTables")]
-    pub change_tables: ::core::option::Option<serde_json::Value>,
-    /// The SQLServer objects to exclude from the stream.
-    #[serde(default, rename = "excludeObjects")]
-    pub exclude_objects: ::core::option::Option<SqlServerRdbms>,
-    /// The SQLServer objects to include in the stream.
-    #[serde(default, rename = "includeObjects")]
-    pub include_objects: ::core::option::Option<SqlServerRdbms>,
-    /// Max concurrent backfill tasks.
-    #[serde(default, rename = "maxConcurrentBackfillTasks")]
-    pub max_concurrent_backfill_tasks: ::core::option::Option<i32>,
-    /// Max concurrent CDC tasks.
-    #[serde(default, rename = "maxConcurrentCdcTasks")]
-    pub max_concurrent_cdc_tasks: ::core::option::Option<i32>,
-    /// CDC reader reads from transaction logs.
-    #[serde(default, rename = "transactionLogs")]
-    pub transaction_logs: ::core::option::Option<serde_json::Value>,
-}
-
-/// SQL Server SSL configuration information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SqlServerSslConfig {
-    /// If set, Datastream will enforce encryption without authenticating server identity. Server certificates will be trusted by default.
-    #[serde(default, rename = "basicEncryption")]
-    pub basic_encryption: ::core::option::Option<serde_json::Value>,
-    /// If set, Datastream will enforce encryption and authenticate server identity.
-    #[serde(default, rename = "encryptionAndServerValidation")]
-    pub encryption_and_server_validation: ::core::option::Option<EncryptionAndServerValidation>,
-    /// If set, Datastream will not enforce encryption. If the DB server mandates encryption, then connection will be encrypted but server identity will not be authenticated.
-    #[serde(default, rename = "encryptionNotEnforced")]
-    pub encryption_not_enforced: ::core::option::Option<serde_json::Value>,
-}
-
-/// SQLServer table.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SqlServerTable {
-    /// SQLServer columns in the schema. When unspecified as part of include/exclude objects, includes/excludes everything.
-    #[serde(default)]
-    pub columns: ::core::option::Option<::std::vec::Vec<SqlServerColumn>>,
-    /// The table name.
-    #[serde(default)]
-    pub table: ::core::option::Option<String>,
-}
-
-/// Standard connection format.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct StandardConnectionFormat {
-    /// Optional. Deprecated: Use the additional_options map to specify the directConnection parameter instead. For example: additional_options = {"directConnection": "true"}. Specifies whether the client connects directly to the host[:port] in the connection URI.
-    #[serde(default, rename = "directConnection")]
-    pub direct_connection: ::core::option::Option<bool>,
-}
-
-/// Request for manually initiating a backfill job for a specific stream object.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct StartBackfillJobRequest {
-    /// Optional. Optional event filter. If not set, or empty, the backfill will be performed on the entire object. This is currently used for partial backfill and only supported for SQL Server sources.
-    #[serde(default, rename = "eventFilter")]
-    pub event_filter: ::core::option::Option<EventFilter>,
-}
-
-/// Response for manually initiating a backfill job for a specific stream object.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct StartBackfillJobResponse {
-    /// The stream object resource a backfill job was started for.
-    #[serde(default)]
-    pub object: ::core::option::Option<StreamObject>,
-}
-
-/// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Status {
-    /// The status code, which should be an enum value of google.rpc.Code.
-    #[serde(default)]
-    pub code: ::core::option::Option<i32>,
-    /// A list of messages that carry the error details. There is a common set of message types for APIs to use.
-    #[serde(default)]
-    pub details: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
-    /// A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.
-    #[serde(default)]
-    pub message: ::core::option::Option<String>,
-}
-
-/// Response for manually stop a backfill job for a specific stream object.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct StopBackfillJobResponse {
-    /// The stream object resource the backfill job was stopped for.
-    #[serde(default)]
-    pub object: ::core::option::Option<StreamObject>,
 }
 
 /// A resource representing streaming data from a source to a destination.
@@ -2075,6 +589,79 @@ pub struct Stream {
     pub update_time: ::core::option::Option<String>,
 }
 
+/// Contains the current validation results.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ValidationResult {
+    /// A list of validations (includes both executed as well as not executed validations).
+    #[serde(default)]
+    pub validations: ::core::option::Option<::std::vec::Vec<Validation>>,
+}
+
+/// A message type used to describe a single precondition failure.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PreconditionFailureViolation {
+    /// A description of how the precondition failed. Developers can use this description to understand how to fix the failure. For example: "Terms of service not accepted".
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+    /// The subject, relative to the type, that failed. For example, "google.com/cloud" relative to the "TOS" type would indicate which terms of service is being referenced.
+    #[serde(default)]
+    pub subject: ::core::option::Option<String>,
+    /// The type of PreconditionFailure. We recommend using a service-specific enum type to define the supported precondition violation subjects. For example, "TOS" for "Terms of Service violation".
+    #[serde(default, rename = "type")]
+    pub type_: ::core::option::Option<String>,
+}
+
+/// A message type used to describe a single quota violation. For example, a daily quota or a custom quota that was exceeded.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct QuotaFailureViolation {
+    /// The API Service from which the QuotaFailure.Violation orginates. In some cases, Quota issues originate from an API Service other than the one that was called. In other words, a dependency of the called API Service could be the cause of the QuotaFailure, and this field would have the dependency API service name. For example, if the called API is Kubernetes Engine API (container.googleapis.com), and a quota violation occurs in the Kubernetes Engine API itself, this field would be "container.googleapis.com". On the other hand, if the quota violation occurs when the Kubernetes Engine API creates VMs in the Compute Engine API (compute.googleapis.com), this field would be "compute.googleapis.com".
+    #[serde(default, rename = "apiService")]
+    pub api_service: ::core::option::Option<String>,
+    /// A description of how the quota check failed. Clients can use this description to find more about the quota configuration in the service''s public documentation, or find the relevant quota limit to adjust through developer console. For example: "Service disabled" or "Daily Limit for read operations exceeded".
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+    /// The new quota value being rolled out at the time of the violation. At the completion of the rollout, this value will be enforced in place of quota_value. If no rollout is in progress at the time of the violation, this field is not set. For example, if at the time of the violation a rollout is in progress changing the number of CPUs quota from 10 to 20, 20 would be the value of this field.
+    #[serde(default, rename = "futureQuotaValue")]
+    pub future_quota_value: ::core::option::Option<String>,
+    /// The dimensions of the violated quota. Every non-global quota is enforced on a set of dimensions. While quota metric defines what to count, the dimensions specify for what aspects the counter should be increased. For example, the quota "CPUs per region per VM family" enforces a limit on the metric "compute.googleapis.com/cpus_per_vm_family" on dimensions "region" and "vm_family". And if the violation occurred in region "us-central1" and for VM family "n1", the quota_dimensions would be, { "region": "us-central1", "vm_family": "n1", } When a quota is enforced globally, the quota_dimensions would always be empty.
+    #[serde(default, rename = "quotaDimensions")]
+    pub quota_dimensions: ::core::option::Option<serde_json::Value>,
+    /// The id of the violated quota. Also know as "limit name", this is the unique identifier of a quota in the context of an API service. For example, "CPUS-PER-VM-FAMILY-per-project-region".
+    #[serde(default, rename = "quotaId")]
+    pub quota_id: ::core::option::Option<String>,
+    /// The metric of the violated quota. A quota metric is a named counter to measure usage, such as API requests or CPUs. When an activity occurs in a service, such as Virtual Machine allocation, one or more quota metrics may be affected. For example, "compute.googleapis.com/cpus_per_vm_family", "storage.googleapis.com/internet_egress_bandwidth".
+    #[serde(default, rename = "quotaMetric")]
+    pub quota_metric: ::core::option::Option<String>,
+    /// The enforced quota value at the time of the QuotaFailure. For example, if the enforced quota value at the time of the QuotaFailure on the number of CPUs is "10", then the value of this field would reflect this quantity.
+    #[serde(default, rename = "quotaValue")]
+    pub quota_value: ::core::option::Option<String>,
+    /// The subject on which the quota check failed. For example, "clientip:" or "project:".
+    #[serde(default)]
+    pub subject: ::core::option::Option<String>,
+}
+
+/// The strategy that the stream uses for CDC replication.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CdcStrategy {
+    /// Optional. Start replicating from the most recent position in the source.
+    #[serde(default, rename = "mostRecentStartPosition")]
+    pub most_recent_start_position: ::core::option::Option<serde_json::Value>,
+    /// Optional. Resume replication from the next available position in the source.
+    #[serde(default, rename = "nextAvailableStartPosition")]
+    pub next_available_start_position: ::core::option::Option<serde_json::Value>,
+    /// Optional. Start replicating from a specific position in the source.
+    #[serde(default, rename = "specificStartPosition")]
+    pub specific_start_position: ::core::option::Option<SpecificStartPosition>,
+}
+
+/// Represents a filter for included data on a stream object.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct EventFilter {
+    /// An SQL-query Where clause selecting which data should be included, not including the "WHERE" keyword. e.g., t.key1 = ''value1'' AND t.key2 = ''value2''
+    #[serde(default, rename = "sqlWhereClause")]
+    pub sql_where_clause: ::core::option::Option<String>,
+}
+
 /// A specific stream object (e.g a specific DB table).
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct StreamObject {
@@ -2104,15 +691,510 @@ pub struct StreamObject {
     pub update_time: ::core::option::Option<String>,
 }
 
-/// Time unit column partitioning. see https://cloud.google.com/bigquery/docs/partitioned-tables#date_timestamp_partitioned_tables
+/// Provides a localized error message that is safe to return to the user which can be attached to an RPC error.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct TimeUnitPartition {
-    /// Required. The partitioning column.
+pub struct LocalizedMessage {
+    /// The locale used following the specification defined at https://www.rfc-editor.org/rfc/bcp/bcp47.txt. Examples are: "en-US", "fr-CH", "es-MX"
     #[serde(default)]
-    pub column: ::core::option::Option<String>,
-    /// Optional. Partition granularity. // TODO: enum values: ["PARTITIONING_TIME_GRANULARITY_UNSPECIFIED", "PARTITIONING_TIME_GRANULARITY_HOUR", "PARTITIONING_TIME_GRANULARITY_DAY", "PARTITIONING_TIME_GRANULARITY_MONTH", "PARTITIONING_TIME_GRANULARITY_YEAR"]
-    #[serde(default, rename = "partitioningTimeGranularity")]
-    pub partitioning_time_granularity: ::core::option::Option<String>,
+    pub locale: ::core::option::Option<String>,
+    /// The localized error message in the above locale.
+    #[serde(default)]
+    pub message: ::core::option::Option<String>,
+}
+
+/// Forward SSH Tunnel connectivity.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ForwardSshTunnelConnectivity {
+    /// Required. Hostname for the SSH tunnel.
+    #[serde(default)]
+    pub hostname: ::core::option::Option<String>,
+    /// Input only. SSH password.
+    #[serde(default)]
+    pub password: ::core::option::Option<String>,
+    /// Port for the SSH tunnel, default value is 22.
+    #[serde(default)]
+    pub port: ::core::option::Option<i32>,
+    /// Input only. SSH private key.
+    #[serde(default, rename = "privateKey")]
+    pub private_key: ::core::option::Option<String>,
+    /// Required. Username for the SSH tunnel.
+    #[serde(default)]
+    pub username: ::core::option::Option<String>,
+}
+
+/// Profile for connecting to a Cloud Storage destination.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GcsProfile {
+    /// Required. The Cloud Storage bucket name.
+    #[serde(default)]
+    pub bucket: ::core::option::Option<String>,
+    /// Optional. The root path inside the Cloud Storage bucket.
+    #[serde(default, rename = "rootPath")]
+    pub root_path: ::core::option::Option<String>,
+}
+
+/// Profile for connecting to a MongoDB source.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MongodbProfile {
+    /// Optional. Specifies additional options for the MongoDB connection. The options should be sent as key-value pairs, for example: additional_options = {"serverSelectionTimeoutMS": "10000", "directConnection": "true"}. Keys are case-sensitive and should match the official MongoDB connection string options: https://www.mongodb.com/docs/manual/reference/connection-string-options/ The server will not modify the values provided by the user.
+    #[serde(default, rename = "additionalOptions")]
+    pub additional_options: ::core::option::Option<serde_json::Value>,
+    /// Required. List of host addresses for a MongoDB cluster. For SRV connection format, this list must contain exactly one DNS host without a port. For Standard connection format, this list must contain all the required hosts in the cluster with their respective ports.
+    #[serde(default, rename = "hostAddresses")]
+    pub host_addresses: ::core::option::Option<::std::vec::Vec<HostAddress>>,
+    /// Optional. Password for the MongoDB connection. Mutually exclusive with the secret_manager_stored_password field.
+    #[serde(default)]
+    pub password: ::core::option::Option<String>,
+    /// Optional. Name of the replica set. Only needed for self hosted replica set type MongoDB cluster. For SRV connection format, this field must be empty. For Standard connection format, this field must be specified.
+    #[serde(default, rename = "replicaSet")]
+    pub replica_set: ::core::option::Option<String>,
+    /// Optional. A reference to a Secret Manager resource name storing the SQLServer connection password. Mutually exclusive with the password field.
+    #[serde(default, rename = "secretManagerStoredPassword")]
+    pub secret_manager_stored_password: ::core::option::Option<String>,
+    /// Srv connection format.
+    #[serde(default, rename = "srvConnectionFormat")]
+    pub srv_connection_format: ::core::option::Option<serde_json::Value>,
+    /// Optional. SSL configuration for the MongoDB connection.
+    #[serde(default, rename = "sslConfig")]
+    pub ssl_config: ::core::option::Option<MongodbSslConfig>,
+    /// Standard connection format.
+    #[serde(default, rename = "standardConnectionFormat")]
+    pub standard_connection_format: ::core::option::Option<StandardConnectionFormat>,
+    /// Required. Username for the MongoDB connection.
+    #[serde(default)]
+    pub username: ::core::option::Option<String>,
+}
+
+/// Profile for connecting to a MySQL source.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MysqlProfile {
+    /// Required. Hostname for the MySQL connection.
+    #[serde(default)]
+    pub hostname: ::core::option::Option<String>,
+    /// Optional. Input only. Password for the MySQL connection. Mutually exclusive with the secret_manager_stored_password field.
+    #[serde(default)]
+    pub password: ::core::option::Option<String>,
+    /// Port for the MySQL connection, default value is 3306.
+    #[serde(default)]
+    pub port: ::core::option::Option<i32>,
+    /// Optional. A reference to a Secret Manager resource name storing the MySQL connection password. Mutually exclusive with the password field.
+    #[serde(default, rename = "secretManagerStoredPassword")]
+    pub secret_manager_stored_password: ::core::option::Option<String>,
+    /// SSL configuration for the MySQL connection.
+    #[serde(default, rename = "sslConfig")]
+    pub ssl_config: ::core::option::Option<MysqlSslConfig>,
+    /// Required. Username for the MySQL connection.
+    #[serde(default)]
+    pub username: ::core::option::Option<String>,
+}
+
+/// Profile for connecting to an Oracle source.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct OracleProfile {
+    /// Connection string attributes
+    #[serde(default, rename = "connectionAttributes")]
+    pub connection_attributes: ::core::option::Option<serde_json::Value>,
+    /// Required. Database for the Oracle connection.
+    #[serde(default, rename = "databaseService")]
+    pub database_service: ::core::option::Option<String>,
+    /// Required. Hostname for the Oracle connection.
+    #[serde(default)]
+    pub hostname: ::core::option::Option<String>,
+    /// Optional. Configuration for Oracle ASM connection.
+    #[serde(default, rename = "oracleAsmConfig")]
+    pub oracle_asm_config: ::core::option::Option<OracleAsmConfig>,
+    /// Optional. SSL configuration for the Oracle connection.
+    #[serde(default, rename = "oracleSslConfig")]
+    pub oracle_ssl_config: ::core::option::Option<OracleSslConfig>,
+    /// Optional. Password for the Oracle connection. Mutually exclusive with the secret_manager_stored_password field.
+    #[serde(default)]
+    pub password: ::core::option::Option<String>,
+    /// Port for the Oracle connection, default value is 1521.
+    #[serde(default)]
+    pub port: ::core::option::Option<i32>,
+    /// Optional. A reference to a Secret Manager resource name storing the Oracle connection password. Mutually exclusive with the password field.
+    #[serde(default, rename = "secretManagerStoredPassword")]
+    pub secret_manager_stored_password: ::core::option::Option<String>,
+    /// Required. Username for the Oracle connection.
+    #[serde(default)]
+    pub username: ::core::option::Option<String>,
+}
+
+/// Profile for connecting to a PostgreSQL source.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PostgresqlProfile {
+    /// Required. Database for the PostgreSQL connection.
+    #[serde(default)]
+    pub database: ::core::option::Option<String>,
+    /// Required. Hostname for the PostgreSQL connection.
+    #[serde(default)]
+    pub hostname: ::core::option::Option<String>,
+    /// Optional. Password for the PostgreSQL connection. Mutually exclusive with the secret_manager_stored_password field.
+    #[serde(default)]
+    pub password: ::core::option::Option<String>,
+    /// Port for the PostgreSQL connection, default value is 5432.
+    #[serde(default)]
+    pub port: ::core::option::Option<i32>,
+    /// Optional. A reference to a Secret Manager resource name storing the PostgreSQL connection password. Mutually exclusive with the password field.
+    #[serde(default, rename = "secretManagerStoredPassword")]
+    pub secret_manager_stored_password: ::core::option::Option<String>,
+    /// Optional. SSL configuration for the PostgreSQL connection. In case PostgresqlSslConfig is not set, the connection will use the default SSL mode, which is prefer (i.e. this mode will only use encryption if enabled from database side, otherwise will use unencrypted communication)
+    #[serde(default, rename = "sslConfig")]
+    pub ssl_config: ::core::option::Option<PostgresqlSslConfig>,
+    /// Required. Username for the PostgreSQL connection.
+    #[serde(default)]
+    pub username: ::core::option::Option<String>,
+}
+
+/// Private Connectivity
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PrivateConnectivity {
+    /// Required. A reference to a private connection resource. Format: projects/{project}/locations/{location}/privateConnections/{name}
+    #[serde(default, rename = "privateConnection")]
+    pub private_connection: ::core::option::Option<String>,
+}
+
+/// Profile for connecting to a Salesforce source.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SalesforceProfile {
+    /// Required. Domain endpoint for the Salesforce connection.
+    #[serde(default)]
+    pub domain: ::core::option::Option<String>,
+    /// Connected app authentication.
+    #[serde(default, rename = "oauth2ClientCredentials")]
+    pub oauth2_client_credentials: ::core::option::Option<Oauth2ClientCredentials>,
+    /// User-password authentication.
+    #[serde(default, rename = "userCredentials")]
+    pub user_credentials: ::core::option::Option<UserCredentials>,
+}
+
+/// Profile for connecting to a Spanner source.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SpannerProfile {
+    /// Required. Immutable. Cloud Spanner database resource. This field is immutable. Must be in the format: projects/{project}/instances/{instance}/databases/{database_id}.
+    #[serde(default)]
+    pub database: ::core::option::Option<String>,
+    /// Optional. The Spanner endpoint to connect to. Defaults to the global endpoint (https://spanner.googleapis.com). Must be in the format: https://spanner.{region}.rep.googleapis.com.
+    #[serde(default)]
+    pub host: ::core::option::Option<String>,
+}
+
+/// Profile for connecting to a SQLServer source.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SqlServerProfile {
+    /// Required. Database for the SQLServer connection.
+    #[serde(default)]
+    pub database: ::core::option::Option<String>,
+    /// Required. Hostname for the SQLServer connection.
+    #[serde(default)]
+    pub hostname: ::core::option::Option<String>,
+    /// Optional. Password for the SQLServer connection. Mutually exclusive with the secret_manager_stored_password field.
+    #[serde(default)]
+    pub password: ::core::option::Option<String>,
+    /// Port for the SQLServer connection, default value is 1433.
+    #[serde(default)]
+    pub port: ::core::option::Option<i32>,
+    /// Optional. A reference to a Secret Manager resource name storing the SQLServer connection password. Mutually exclusive with the password field.
+    #[serde(default, rename = "secretManagerStoredPassword")]
+    pub secret_manager_stored_password: ::core::option::Option<String>,
+    /// Optional. SSL configuration for the SQLServer connection.
+    #[serde(default, rename = "sslConfig")]
+    pub ssl_config: ::core::option::Option<SqlServerSslConfig>,
+    /// Required. Username for the SQLServer connection.
+    #[serde(default)]
+    pub username: ::core::option::Option<String>,
+}
+
+/// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Status {
+    /// The status code, which should be an enum value of google.rpc.Code.
+    #[serde(default)]
+    pub code: ::core::option::Option<i32>,
+    /// A list of messages that carry the error details. There is a common set of message types for APIs to use.
+    #[serde(default)]
+    pub details: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
+    /// A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.
+    #[serde(default)]
+    pub message: ::core::option::Option<String>,
+}
+
+/// The PSC Interface configuration is used to create PSC Interface between Datastream and the consumer''s PSC.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PscInterfaceConfig {
+    /// Required. Fully qualified name of the Network Attachment that Datastream will connect to. Format: projects/{project}/regions/{region}/networkAttachments/{name}
+    #[serde(default, rename = "networkAttachment")]
+    pub network_attachment: ::core::option::Option<String>,
+}
+
+/// The VPC Peering configuration is used to create VPC peering between Datastream and the consumer''s VPC.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct VpcPeeringConfig {
+    /// Required. A free subnet for peering. (CIDR of /29)
+    #[serde(default)]
+    pub subnet: ::core::option::Option<String>,
+    /// Required. Fully qualified name of the VPC that Datastream will peer to. Format: projects/{project}/global/{networks}/{name}
+    #[serde(default)]
+    pub vpc: ::core::option::Option<String>,
+}
+
+/// Backfill strategy to automatically backfill the Stream''s objects. Specific objects can be excluded.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BackfillAllStrategy {
+    /// MongoDB data source objects to avoid backfilling
+    #[serde(default, rename = "mongodbExcludedObjects")]
+    pub mongodb_excluded_objects: ::core::option::Option<MongodbCluster>,
+    /// MySQL data source objects to avoid backfilling.
+    #[serde(default, rename = "mysqlExcludedObjects")]
+    pub mysql_excluded_objects: ::core::option::Option<MysqlRdbms>,
+    /// Oracle data source objects to avoid backfilling.
+    #[serde(default, rename = "oracleExcludedObjects")]
+    pub oracle_excluded_objects: ::core::option::Option<OracleRdbms>,
+    /// PostgreSQL data source objects to avoid backfilling.
+    #[serde(default, rename = "postgresqlExcludedObjects")]
+    pub postgresql_excluded_objects: ::core::option::Option<PostgresqlRdbms>,
+    /// Salesforce data source objects to avoid backfilling
+    #[serde(default, rename = "salesforceExcludedObjects")]
+    pub salesforce_excluded_objects: ::core::option::Option<SalesforceOrg>,
+    /// Spanner data source objects to avoid backfilling.
+    #[serde(default, rename = "spannerExcludedObjects")]
+    pub spanner_excluded_objects: ::core::option::Option<SpannerDatabase>,
+    /// SQLServer data source objects to avoid backfilling
+    #[serde(default, rename = "sqlServerExcludedObjects")]
+    pub sql_server_excluded_objects: ::core::option::Option<SqlServerRdbms>,
+}
+
+/// The configuration of the stream destination.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DestinationConfig {
+    /// BigQuery destination configuration.
+    #[serde(default, rename = "bigqueryDestinationConfig")]
+    pub bigquery_destination_config: ::core::option::Option<BigQueryDestinationConfig>,
+    /// Required. Destination connection profile resource. Format: projects/{project}/locations/{location}/connectionProfiles/{name}
+    #[serde(default, rename = "destinationConnectionProfile")]
+    pub destination_connection_profile: ::core::option::Option<String>,
+    /// A configuration for how data should be loaded to Cloud Storage.
+    #[serde(default, rename = "gcsDestinationConfig")]
+    pub gcs_destination_config: ::core::option::Option<GcsDestinationConfig>,
+}
+
+/// A set of rules to apply to a set of objects.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RuleSet {
+    /// Required. List of customization rules to apply.
+    #[serde(default, rename = "customizationRules")]
+    pub customization_rules: ::core::option::Option<::std::vec::Vec<CustomizationRule>>,
+    /// Required. Object filter to apply the customization rules to.
+    #[serde(default, rename = "objectFilter")]
+    pub object_filter: ::core::option::Option<ObjectFilter>,
+}
+
+/// The configuration of the stream source.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SourceConfig {
+    /// MongoDB data source configuration.
+    #[serde(default, rename = "mongodbSourceConfig")]
+    pub mongodb_source_config: ::core::option::Option<MongodbSourceConfig>,
+    /// MySQL data source configuration.
+    #[serde(default, rename = "mysqlSourceConfig")]
+    pub mysql_source_config: ::core::option::Option<MysqlSourceConfig>,
+    /// Oracle data source configuration.
+    #[serde(default, rename = "oracleSourceConfig")]
+    pub oracle_source_config: ::core::option::Option<OracleSourceConfig>,
+    /// PostgreSQL data source configuration.
+    #[serde(default, rename = "postgresqlSourceConfig")]
+    pub postgresql_source_config: ::core::option::Option<PostgresqlSourceConfig>,
+    /// Salesforce data source configuration.
+    #[serde(default, rename = "salesforceSourceConfig")]
+    pub salesforce_source_config: ::core::option::Option<SalesforceSourceConfig>,
+    /// Required. Source connection profile resource. Format: projects/{project}/locations/{location}/connectionProfiles/{name}
+    #[serde(default, rename = "sourceConnectionProfile")]
+    pub source_connection_profile: ::core::option::Option<String>,
+    /// Spanner data source configuration.
+    #[serde(default, rename = "spannerSourceConfig")]
+    pub spanner_source_config: ::core::option::Option<SpannerSourceConfig>,
+    /// SQLServer data source configuration.
+    #[serde(default, rename = "sqlServerSourceConfig")]
+    pub sql_server_source_config: ::core::option::Option<SqlServerSourceConfig>,
+}
+
+/// A validation to perform on a stream.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Validation {
+    /// A custom code identifying this validation.
+    #[serde(default)]
+    pub code: ::core::option::Option<String>,
+    /// A short description of the validation.
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+    /// Messages reflecting the validation results.
+    #[serde(default)]
+    pub message: ::core::option::Option<::std::vec::Vec<ValidationMessage>>,
+    /// Output only. Validation execution status. // TODO: enum values: ["STATE_UNSPECIFIED", "NOT_EXECUTED", "FAILED", "PASSED", "WARNING"]
+    #[serde(default)]
+    pub state: ::core::option::Option<String>,
+}
+
+/// CDC strategy to start replicating from a specific position in the source.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SpecificStartPosition {
+    /// MongoDB change stream position to start replicating from.
+    #[serde(default, rename = "mongodbChangeStreamPosition")]
+    pub mongodb_change_stream_position: ::core::option::Option<MongodbChangeStreamPosition>,
+    /// MySQL GTID set to start replicating from.
+    #[serde(default, rename = "mysqlGtidPosition")]
+    pub mysql_gtid_position: ::core::option::Option<MysqlGtidPosition>,
+    /// MySQL specific log position to start replicating from.
+    #[serde(default, rename = "mysqlLogPosition")]
+    pub mysql_log_position: ::core::option::Option<MysqlLogPosition>,
+    /// Oracle SCN to start replicating from.
+    #[serde(default, rename = "oracleScnPosition")]
+    pub oracle_scn_position: ::core::option::Option<OracleScnPosition>,
+    /// SqlServer LSN to start replicating from.
+    #[serde(default, rename = "sqlServerLsnPosition")]
+    pub sql_server_lsn_position: ::core::option::Option<SqlServerLsnPosition>,
+}
+
+/// Represents a backfill job on a specific stream object.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BackfillJob {
+    /// Output only. Errors which caused the backfill job to fail.
+    #[serde(default)]
+    pub errors: ::core::option::Option<::std::vec::Vec<Error>>,
+    /// Output only. Backfill job''s end time.
+    #[serde(default, rename = "lastEndTime")]
+    pub last_end_time: ::core::option::Option<String>,
+    /// Output only. Backfill job''s start time.
+    #[serde(default, rename = "lastStartTime")]
+    pub last_start_time: ::core::option::Option<String>,
+    /// Output only. Backfill job state. // TODO: enum values: ["STATE_UNSPECIFIED", "NOT_STARTED", "PENDING", "ACTIVE", "STOPPED", "FAILED", "COMPLETED", "UNSUPPORTED"]
+    #[serde(default)]
+    pub state: ::core::option::Option<String>,
+    /// Backfill job''s triggering reason. // TODO: enum values: ["TRIGGER_UNSPECIFIED", "AUTOMATIC", "MANUAL"]
+    #[serde(default)]
+    pub trigger: ::core::option::Option<String>,
+}
+
+/// A HostAddress represents a transport end point, which is the combination of an IP address or hostname and a port number.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct HostAddress {
+    /// Required. Hostname for the connection.
+    #[serde(default)]
+    pub hostname: ::core::option::Option<String>,
+    /// Optional. Port for the connection.
+    #[serde(default)]
+    pub port: ::core::option::Option<i32>,
+}
+
+/// MongoDB SSL configuration information.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MongodbSslConfig {
+    /// Optional. Input only. PEM-encoded certificate of the CA that signed the source database server''s certificate.
+    #[serde(default, rename = "caCertificate")]
+    pub ca_certificate: ::core::option::Option<String>,
+    /// Output only. Indicates whether the ca_certificate field is set.
+    #[serde(default, rename = "caCertificateSet")]
+    pub ca_certificate_set: ::core::option::Option<bool>,
+    /// Optional. Input only. PEM-encoded certificate that will be used by the replica to authenticate against the source database server. If this field is used then the ''client_key'' and the ''ca_certificate'' fields are mandatory.
+    #[serde(default, rename = "clientCertificate")]
+    pub client_certificate: ::core::option::Option<String>,
+    /// Output only. Indicates whether the client_certificate field is set.
+    #[serde(default, rename = "clientCertificateSet")]
+    pub client_certificate_set: ::core::option::Option<bool>,
+    /// Optional. Input only. PEM-encoded private key associated with the Client Certificate. If this field is used then the ''client_certificate'' and the ''ca_certificate'' fields are mandatory.
+    #[serde(default, rename = "clientKey")]
+    pub client_key: ::core::option::Option<String>,
+    /// Output only. Indicates whether the client_key field is set.
+    #[serde(default, rename = "clientKeySet")]
+    pub client_key_set: ::core::option::Option<bool>,
+    /// Optional. Input only. A reference to a Secret Manager resource name storing the PEM-encoded private key associated with the Client Certificate. If this field is used then the ''client_certificate'' and the ''ca_certificate'' fields are mandatory. Mutually exclusive with the client_key field.
+    #[serde(default, rename = "secretManagerStoredClientKey")]
+    pub secret_manager_stored_client_key: ::core::option::Option<String>,
+}
+
+/// Standard connection format.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct StandardConnectionFormat {
+    /// Optional. Deprecated: Use the additional_options map to specify the directConnection parameter instead. For example: additional_options = {"directConnection": "true"}. Specifies whether the client connects directly to the host[:port] in the connection URI.
+    #[serde(default, rename = "directConnection")]
+    pub direct_connection: ::core::option::Option<bool>,
+}
+
+/// MySQL SSL configuration information.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MysqlSslConfig {
+    /// Input only. PEM-encoded certificate of the CA that signed the source database server''s certificate.
+    #[serde(default, rename = "caCertificate")]
+    pub ca_certificate: ::core::option::Option<String>,
+    /// Output only. Indicates whether the ca_certificate field is set.
+    #[serde(default, rename = "caCertificateSet")]
+    pub ca_certificate_set: ::core::option::Option<bool>,
+    /// Optional. Input only. PEM-encoded certificate that will be used by the replica to authenticate against the source database server. If this field is used then the ''client_key'' and the ''ca_certificate'' fields are mandatory.
+    #[serde(default, rename = "clientCertificate")]
+    pub client_certificate: ::core::option::Option<String>,
+    /// Output only. Indicates whether the client_certificate field is set.
+    #[serde(default, rename = "clientCertificateSet")]
+    pub client_certificate_set: ::core::option::Option<bool>,
+    /// Optional. Input only. PEM-encoded private key associated with the Client Certificate. If this field is used then the ''client_certificate'' and the ''ca_certificate'' fields are mandatory.
+    #[serde(default, rename = "clientKey")]
+    pub client_key: ::core::option::Option<String>,
+    /// Output only. Indicates whether the client_key field is set.
+    #[serde(default, rename = "clientKeySet")]
+    pub client_key_set: ::core::option::Option<bool>,
+}
+
+/// Configuration for Oracle Automatic Storage Management (ASM) connection.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct OracleAsmConfig {
+    /// Required. ASM service name for the Oracle ASM connection.
+    #[serde(default, rename = "asmService")]
+    pub asm_service: ::core::option::Option<String>,
+    /// Optional. Connection string attributes
+    #[serde(default, rename = "connectionAttributes")]
+    pub connection_attributes: ::core::option::Option<serde_json::Value>,
+    /// Required. Hostname for the Oracle ASM connection.
+    #[serde(default)]
+    pub hostname: ::core::option::Option<String>,
+    /// Optional. SSL configuration for the Oracle connection.
+    #[serde(default, rename = "oracleSslConfig")]
+    pub oracle_ssl_config: ::core::option::Option<OracleSslConfig>,
+    /// Optional. Password for the Oracle ASM connection. Mutually exclusive with the secret_manager_stored_password field.
+    #[serde(default)]
+    pub password: ::core::option::Option<String>,
+    /// Required. Port for the Oracle ASM connection.
+    #[serde(default)]
+    pub port: ::core::option::Option<i32>,
+    /// Optional. A reference to a Secret Manager resource name storing the Oracle ASM connection password. Mutually exclusive with the password field.
+    #[serde(default, rename = "secretManagerStoredPassword")]
+    pub secret_manager_stored_password: ::core::option::Option<String>,
+    /// Required. Username for the Oracle ASM connection.
+    #[serde(default)]
+    pub username: ::core::option::Option<String>,
+}
+
+/// PostgreSQL SSL configuration information.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PostgresqlSslConfig {
+    /// If this field is set, the communication will be encrypted with TLS encryption and both the server identity and the client identity will be authenticated.
+    #[serde(default, rename = "serverAndClientVerification")]
+    pub server_and_client_verification: ::core::option::Option<ServerAndClientVerification>,
+    ///  If this field is set, the communication will be encrypted with TLS encryption and the server identity will be authenticated.
+    #[serde(default, rename = "serverVerification")]
+    pub server_verification: ::core::option::Option<ServerVerification>,
+}
+
+/// OAuth2 Client Credentials.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Oauth2ClientCredentials {
+    /// Required. Client ID for Salesforce OAuth2 Client Credentials.
+    #[serde(default, rename = "clientId")]
+    pub client_id: ::core::option::Option<String>,
+    /// Optional. Client secret for Salesforce OAuth2 Client Credentials. Mutually exclusive with the secret_manager_stored_client_secret field.
+    #[serde(default, rename = "clientSecret")]
+    pub client_secret: ::core::option::Option<String>,
+    /// Optional. A reference to a Secret Manager resource name storing the Salesforce OAuth2 client_secret. Mutually exclusive with the client_secret field.
+    #[serde(default, rename = "secretManagerStoredClientSecret")]
+    pub secret_manager_stored_client_secret: ::core::option::Option<String>,
 }
 
 /// Username-password credentials.
@@ -2135,21 +1217,235 @@ pub struct UserCredentials {
     pub username: ::core::option::Option<String>,
 }
 
-/// A validation to perform on a stream.
+/// SQL Server SSL configuration information.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Validation {
-    /// A custom code identifying this validation.
+pub struct SqlServerSslConfig {
+    /// If set, Datastream will enforce encryption without authenticating server identity. Server certificates will be trusted by default.
+    #[serde(default, rename = "basicEncryption")]
+    pub basic_encryption: ::core::option::Option<serde_json::Value>,
+    /// If set, Datastream will enforce encryption and authenticate server identity.
+    #[serde(default, rename = "encryptionAndServerValidation")]
+    pub encryption_and_server_validation: ::core::option::Option<EncryptionAndServerValidation>,
+    /// If set, Datastream will not enforce encryption. If the DB server mandates encryption, then connection will be encrypted but server identity will not be authenticated.
+    #[serde(default, rename = "encryptionNotEnforced")]
+    pub encryption_not_enforced: ::core::option::Option<serde_json::Value>,
+}
+
+/// BigQuery destination configuration
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BigQueryDestinationConfig {
+    /// Append only mode
+    #[serde(default, rename = "appendOnly")]
+    pub append_only: ::core::option::Option<serde_json::Value>,
+    /// Optional. Big Lake Managed Tables (BLMT) configuration.
+    #[serde(default, rename = "blmtConfig")]
+    pub blmt_config: ::core::option::Option<BlmtConfig>,
+    /// The guaranteed data freshness (in seconds) when querying tables created by the stream. Editing this field will only affect new tables created in the future, but existing tables will not be impacted. Lower values mean that queries will return fresher data, but may result in higher cost.
+    #[serde(default, rename = "dataFreshness")]
+    pub data_freshness: ::core::option::Option<String>,
+    /// The standard mode
     #[serde(default)]
-    pub code: ::core::option::Option<String>,
-    /// A short description of the validation.
+    pub merge: ::core::option::Option<serde_json::Value>,
+    /// Single destination dataset.
+    #[serde(default, rename = "singleTargetDataset")]
+    pub single_target_dataset: ::core::option::Option<SingleTargetDataset>,
+    /// Source hierarchy datasets.
+    #[serde(default, rename = "sourceHierarchyDatasets")]
+    pub source_hierarchy_datasets: ::core::option::Option<SourceHierarchyDatasets>,
+}
+
+/// Google Cloud Storage destination configuration
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GcsDestinationConfig {
+    /// AVRO file format configuration.
+    #[serde(default, rename = "avroFileFormat")]
+    pub avro_file_format: ::core::option::Option<serde_json::Value>,
+    /// The maximum duration for which new events are added before a file is closed and a new file is created. Values within the range of 15-60 seconds are allowed.
+    #[serde(default, rename = "fileRotationInterval")]
+    pub file_rotation_interval: ::core::option::Option<String>,
+    /// The maximum file size to be saved in the bucket.
+    #[serde(default, rename = "fileRotationMb")]
+    pub file_rotation_mb: ::core::option::Option<i32>,
+    /// JSON file format configuration.
+    #[serde(default, rename = "jsonFileFormat")]
+    pub json_file_format: ::core::option::Option<JsonFileFormat>,
+    /// Path inside the Cloud Storage bucket to write data to.
     #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// Messages reflecting the validation results.
+    pub path: ::core::option::Option<String>,
+}
+
+/// A customization rule to apply to a set of objects.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CustomizationRule {
+    /// BigQuery clustering rule.
+    #[serde(default, rename = "bigqueryClustering")]
+    pub bigquery_clustering: ::core::option::Option<BigQueryClustering>,
+    /// BigQuery partitioning rule.
+    #[serde(default, rename = "bigqueryPartitioning")]
+    pub bigquery_partitioning: ::core::option::Option<BigQueryPartitioning>,
+}
+
+/// Object filter to apply the rules to.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ObjectFilter {
+    /// Specific source object identifier.
+    #[serde(default, rename = "sourceObjectIdentifier")]
+    pub source_object_identifier: ::core::option::Option<SourceObjectIdentifier>,
+}
+
+/// Configuration for syncing data from a MongoDB source.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MongodbSourceConfig {
+    /// The MongoDB collections to exclude from the stream.
+    #[serde(default, rename = "excludeObjects")]
+    pub exclude_objects: ::core::option::Option<MongodbCluster>,
+    /// The MongoDB collections to include in the stream.
+    #[serde(default, rename = "includeObjects")]
+    pub include_objects: ::core::option::Option<MongodbCluster>,
+    /// Optional. MongoDB JSON mode to use for the stream. // TODO: enum values: ["MONGODB_JSON_MODE_UNSPECIFIED", "STRICT", "CANONICAL"]
+    #[serde(default, rename = "jsonMode")]
+    pub json_mode: ::core::option::Option<String>,
+    /// Optional. Maximum number of concurrent backfill tasks. The number should be non-negative and less than or equal to 50. If not set (or set to 0), the system''s default value is used
+    #[serde(default, rename = "maxConcurrentBackfillTasks")]
+    pub max_concurrent_backfill_tasks: ::core::option::Option<i32>,
+}
+
+/// Configuration for syncing data from a MySQL source.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MysqlSourceConfig {
+    /// Use Binary log position based replication.
+    #[serde(default, rename = "binaryLogPosition")]
+    pub binary_log_position: ::core::option::Option<serde_json::Value>,
+    /// The MySQL objects to exclude from the stream.
+    #[serde(default, rename = "excludeObjects")]
+    pub exclude_objects: ::core::option::Option<MysqlRdbms>,
+    /// Use GTID based replication.
     #[serde(default)]
-    pub message: ::core::option::Option<::std::vec::Vec<ValidationMessage>>,
-    /// Output only. Validation execution status. // TODO: enum values: ["STATE_UNSPECIFIED", "NOT_EXECUTED", "FAILED", "PASSED", "WARNING"]
+    pub gtid: ::core::option::Option<serde_json::Value>,
+    /// The MySQL objects to retrieve from the source.
+    #[serde(default, rename = "includeObjects")]
+    pub include_objects: ::core::option::Option<MysqlRdbms>,
+    /// Maximum number of concurrent backfill tasks. The number should be non negative. If not set (or set to 0), the system''s default value will be used.
+    #[serde(default, rename = "maxConcurrentBackfillTasks")]
+    pub max_concurrent_backfill_tasks: ::core::option::Option<i32>,
+    /// Maximum number of concurrent CDC tasks. The number should be non negative. If not set (or set to 0), the system''s default value will be used.
+    #[serde(default, rename = "maxConcurrentCdcTasks")]
+    pub max_concurrent_cdc_tasks: ::core::option::Option<i32>,
+}
+
+/// Configuration for syncing data from an Oracle source.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct OracleSourceConfig {
+    /// Use Binary Log Parser.
+    #[serde(default, rename = "binaryLogParser")]
+    pub binary_log_parser: ::core::option::Option<BinaryLogParser>,
+    /// Drop large object values.
+    #[serde(default, rename = "dropLargeObjects")]
+    pub drop_large_objects: ::core::option::Option<serde_json::Value>,
+    /// The Oracle objects to exclude from the stream.
+    #[serde(default, rename = "excludeObjects")]
+    pub exclude_objects: ::core::option::Option<OracleRdbms>,
+    /// The Oracle objects to include in the stream.
+    #[serde(default, rename = "includeObjects")]
+    pub include_objects: ::core::option::Option<OracleRdbms>,
+    /// Use LogMiner.
+    #[serde(default, rename = "logMiner")]
+    pub log_miner: ::core::option::Option<serde_json::Value>,
+    /// Maximum number of concurrent backfill tasks. The number should be non-negative. If not set (or set to 0), the system''s default value is used.
+    #[serde(default, rename = "maxConcurrentBackfillTasks")]
+    pub max_concurrent_backfill_tasks: ::core::option::Option<i32>,
+    /// Maximum number of concurrent CDC tasks. The number should be non-negative. If not set (or set to 0), the system''s default value is used.
+    #[serde(default, rename = "maxConcurrentCdcTasks")]
+    pub max_concurrent_cdc_tasks: ::core::option::Option<i32>,
+    /// Stream large object values.
+    #[serde(default, rename = "streamLargeObjects")]
+    pub stream_large_objects: ::core::option::Option<serde_json::Value>,
+}
+
+/// Configuration for syncing data from a PostgreSQL source.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PostgresqlSourceConfig {
+    /// The PostgreSQL objects to exclude from the stream.
+    #[serde(default, rename = "excludeObjects")]
+    pub exclude_objects: ::core::option::Option<PostgresqlRdbms>,
+    /// The PostgreSQL objects to include in the stream.
+    #[serde(default, rename = "includeObjects")]
+    pub include_objects: ::core::option::Option<PostgresqlRdbms>,
+    /// Maximum number of concurrent backfill tasks. The number should be non negative. If not set (or set to 0), the system''s default value will be used.
+    #[serde(default, rename = "maxConcurrentBackfillTasks")]
+    pub max_concurrent_backfill_tasks: ::core::option::Option<i32>,
+    /// Required. The name of the publication that includes the set of all tables that are defined in the stream''s include_objects.
     #[serde(default)]
-    pub state: ::core::option::Option<String>,
+    pub publication: ::core::option::Option<String>,
+    /// Required. Immutable. The name of the logical replication slot that''s configured with the pgoutput plugin.
+    #[serde(default, rename = "replicationSlot")]
+    pub replication_slot: ::core::option::Option<String>,
+}
+
+/// Configuration for syncing data from a Salesforce source.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SalesforceSourceConfig {
+    /// The Salesforce objects to exclude from the stream.
+    #[serde(default, rename = "excludeObjects")]
+    pub exclude_objects: ::core::option::Option<SalesforceOrg>,
+    /// The Salesforce objects to retrieve from the source.
+    #[serde(default, rename = "includeObjects")]
+    pub include_objects: ::core::option::Option<SalesforceOrg>,
+    /// Required. Salesforce objects polling interval. The interval at which new changes will be polled for each object. The duration must be from 5 minutes to 24 hours, inclusive.
+    #[serde(default, rename = "pollingInterval")]
+    pub polling_interval: ::core::option::Option<String>,
+}
+
+/// Configuration for syncing data from a Spanner source.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SpannerSourceConfig {
+    /// Optional. Whether to use Data Boost for Spanner backfills. Defaults to false if not set.
+    #[serde(default, rename = "backfillDataBoostEnabled")]
+    pub backfill_data_boost_enabled: ::core::option::Option<bool>,
+    /// Required. Immutable. The change stream name to use for the stream.
+    #[serde(default, rename = "changeStreamName")]
+    pub change_stream_name: ::core::option::Option<String>,
+    /// Optional. The Spanner objects to avoid retrieving. If some objects are both included and excluded, an error will be thrown.
+    #[serde(default, rename = "excludeObjects")]
+    pub exclude_objects: ::core::option::Option<SpannerDatabase>,
+    /// Optional. The FGAC role to use for the stream.
+    #[serde(default, rename = "fgacRole")]
+    pub fgac_role: ::core::option::Option<String>,
+    /// Optional. The Spanner objects to retrieve from the data source. If some objects are both included and excluded, an error will be thrown.
+    #[serde(default, rename = "includeObjects")]
+    pub include_objects: ::core::option::Option<SpannerDatabase>,
+    /// Optional. Maximum number of concurrent backfill tasks.
+    #[serde(default, rename = "maxConcurrentBackfillTasks")]
+    pub max_concurrent_backfill_tasks: ::core::option::Option<i32>,
+    /// Optional. Maximum number of concurrent CDC tasks.
+    #[serde(default, rename = "maxConcurrentCdcTasks")]
+    pub max_concurrent_cdc_tasks: ::core::option::Option<i32>,
+    /// Optional. The RPC priority to use for the stream. // TODO: enum values: ["SPANNER_RPC_PRIORITY_UNSPECIFIED", "LOW", "MEDIUM", "HIGH"]
+    #[serde(default, rename = "spannerRpcPriority")]
+    pub spanner_rpc_priority: ::core::option::Option<String>,
+}
+
+/// Configuration for syncing data from a SQLServer source.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SqlServerSourceConfig {
+    /// CDC reader reads from change tables.
+    #[serde(default, rename = "changeTables")]
+    pub change_tables: ::core::option::Option<serde_json::Value>,
+    /// The SQLServer objects to exclude from the stream.
+    #[serde(default, rename = "excludeObjects")]
+    pub exclude_objects: ::core::option::Option<SqlServerRdbms>,
+    /// The SQLServer objects to include in the stream.
+    #[serde(default, rename = "includeObjects")]
+    pub include_objects: ::core::option::Option<SqlServerRdbms>,
+    /// Max concurrent backfill tasks.
+    #[serde(default, rename = "maxConcurrentBackfillTasks")]
+    pub max_concurrent_backfill_tasks: ::core::option::Option<i32>,
+    /// Max concurrent CDC tasks.
+    #[serde(default, rename = "maxConcurrentCdcTasks")]
+    pub max_concurrent_cdc_tasks: ::core::option::Option<i32>,
+    /// CDC reader reads from transaction logs.
+    #[serde(default, rename = "transactionLogs")]
+    pub transaction_logs: ::core::option::Option<serde_json::Value>,
 }
 
 /// Represent user-facing validation result message.
@@ -2169,21 +1465,725 @@ pub struct ValidationMessage {
     pub metadata: ::core::option::Option<serde_json::Value>,
 }
 
-/// Contains the current validation results.
+/// MongoDB change stream position
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ValidationResult {
-    /// A list of validations (includes both executed as well as not executed validations).
-    #[serde(default)]
-    pub validations: ::core::option::Option<::std::vec::Vec<Validation>>,
+pub struct MongodbChangeStreamPosition {
+    /// Required. The timestamp to start change stream from.
+    #[serde(default, rename = "startTime")]
+    pub start_time: ::core::option::Option<String>,
 }
 
-/// The VPC Peering configuration is used to create VPC peering between Datastream and the consumer''s VPC.
+/// MySQL GTID position
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct VpcPeeringConfig {
-    /// Required. A free subnet for peering. (CIDR of /29)
+pub struct MysqlGtidPosition {
+    /// Required. The gtid set to start replication from.
+    #[serde(default, rename = "gtidSet")]
+    pub gtid_set: ::core::option::Option<String>,
+}
+
+/// MySQL log position
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MysqlLogPosition {
+    /// Required. The binary log file name.
+    #[serde(default, rename = "logFile")]
+    pub log_file: ::core::option::Option<String>,
+    /// Optional. The position within the binary log file. Default is head of file.
+    #[serde(default, rename = "logPosition")]
+    pub log_position: ::core::option::Option<i32>,
+}
+
+/// Oracle SCN position
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct OracleScnPosition {
+    /// Required. SCN number from where Logs will be read
     #[serde(default)]
-    pub subnet: ::core::option::Option<String>,
-    /// Required. Fully qualified name of the VPC that Datastream will peer to. Format: projects/{project}/global/{networks}/{name}
+    pub scn: ::core::option::Option<String>,
+}
+
+/// SQL Server LSN position
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SqlServerLsnPosition {
+    /// Required. Log sequence number (LSN) from where Logs will be read
     #[serde(default)]
-    pub vpc: ::core::option::Option<String>,
+    pub lsn: ::core::option::Option<String>,
+}
+
+/// Represent a user-facing Error.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Error {
+    /// Additional information about the error.
+    #[serde(default)]
+    pub details: ::core::option::Option<serde_json::Value>,
+    /// The time when the error occurred.
+    #[serde(default, rename = "errorTime")]
+    pub error_time: ::core::option::Option<String>,
+    /// A unique identifier for this specific error, allowing it to be traced throughout the system in logs and API responses.
+    #[serde(default, rename = "errorUuid")]
+    pub error_uuid: ::core::option::Option<String>,
+    /// A message containing more information about the error that occurred.
+    #[serde(default)]
+    pub message: ::core::option::Option<String>,
+    /// A title that explains the reason for the error.
+    #[serde(default)]
+    pub reason: ::core::option::Option<String>,
+}
+
+/// Oracle SSL configuration information.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct OracleSslConfig {
+    /// Input only. PEM-encoded certificate of the CA that signed the source database server''s certificate.
+    #[serde(default, rename = "caCertificate")]
+    pub ca_certificate: ::core::option::Option<String>,
+    /// Output only. Indicates whether the ca_certificate field has been set for this Connection-Profile.
+    #[serde(default, rename = "caCertificateSet")]
+    pub ca_certificate_set: ::core::option::Option<bool>,
+    /// Optional. The distinguished name (DN) mentioned in the server certificate. This corresponds to SSL_SERVER_CERT_DN sqlnet parameter. Refer https://docs.oracle.com/en/database/oracle/oracle-database/19/netrf/local-naming-parameters-in-tns-ora-file.html#GUID-70AB0695-A9AA-4A94-B141-4C605236EEB7 If this field is not provided, the DN matching is not enforced.
+    #[serde(default, rename = "serverCertificateDistinguishedName")]
+    pub server_certificate_distinguished_name: ::core::option::Option<String>,
+}
+
+/// Message represents the option where Datastream will enforce the encryption and authenticate the server identity as well as the client identity. ca_certificate, client_certificate and client_key must be set if user selects this option.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ServerAndClientVerification {
+    /// Required. Input only. PEM-encoded server root CA certificate.
+    #[serde(default, rename = "caCertificate")]
+    pub ca_certificate: ::core::option::Option<String>,
+    /// Required. Input only. PEM-encoded certificate used by the source database to authenticate the client identity (i.e., the Datastream''s identity). This certificate is signed by either a root certificate trusted by the server or one or more intermediate certificates (which is stored with the leaf certificate) to link the this certificate to the trusted root certificate.
+    #[serde(default, rename = "clientCertificate")]
+    pub client_certificate: ::core::option::Option<String>,
+    /// Optional. Input only. PEM-encoded private key associated with the client certificate. This value will be used during the SSL/TLS handshake, allowing the PostgreSQL server to authenticate the client''s identity, i.e. identity of the Datastream.
+    #[serde(default, rename = "clientKey")]
+    pub client_key: ::core::option::Option<String>,
+    /// Optional. The hostname mentioned in the Subject or SAN extension of the server certificate. If this field is not provided, the hostname in the server certificate is not validated.
+    #[serde(default, rename = "serverCertificateHostname")]
+    pub server_certificate_hostname: ::core::option::Option<String>,
+}
+
+/// Message represents the option where Datastream will enforce the encryption and authenticate the server identity. ca_certificate must be set if user selects this option.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ServerVerification {
+    /// Required. Input only. PEM-encoded server root CA certificate.
+    #[serde(default, rename = "caCertificate")]
+    pub ca_certificate: ::core::option::Option<String>,
+    /// Optional. The hostname mentioned in the Subject or SAN extension of the server certificate. If this field is not provided, the hostname in the server certificate is not validated.
+    #[serde(default, rename = "serverCertificateHostname")]
+    pub server_certificate_hostname: ::core::option::Option<String>,
+}
+
+/// Message to represent the option where Datastream will enforce encryption and authenticate server identity. ca_certificate must be set if user selects this option.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct EncryptionAndServerValidation {
+    /// Optional. Input only. PEM-encoded certificate of the CA that signed the source database server''s certificate.
+    #[serde(default, rename = "caCertificate")]
+    pub ca_certificate: ::core::option::Option<String>,
+    /// Optional. The hostname mentioned in the Subject or SAN extension of the server certificate. This field is used for bypassing the hostname validation while verifying server certificate. This is required for scenarios where the host name that datastream connects to is different from the certificate''s subject. This specifically happens for private connectivity. It could also happen when the customer provides a public IP in connection profile but the same is not present in the server certificate.
+    #[serde(default, rename = "serverCertificateHostname")]
+    pub server_certificate_hostname: ::core::option::Option<String>,
+}
+
+/// The configuration for BLMT.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BlmtConfig {
+    /// Required. The Cloud Storage bucket name.
+    #[serde(default)]
+    pub bucket: ::core::option::Option<String>,
+    /// Required. The bigquery connection. Format: {project}.{location}.{name}
+    #[serde(default, rename = "connectionName")]
+    pub connection_name: ::core::option::Option<String>,
+    /// Required. The file format. // TODO: enum values: ["FILE_FORMAT_UNSPECIFIED", "PARQUET"]
+    #[serde(default, rename = "fileFormat")]
+    pub file_format: ::core::option::Option<String>,
+    /// The root path inside the Cloud Storage bucket.
+    #[serde(default, rename = "rootPath")]
+    pub root_path: ::core::option::Option<String>,
+    /// Required. The table format. // TODO: enum values: ["TABLE_FORMAT_UNSPECIFIED", "ICEBERG"]
+    #[serde(default, rename = "tableFormat")]
+    pub table_format: ::core::option::Option<String>,
+}
+
+/// A single target dataset to which all data will be streamed.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SingleTargetDataset {
+    /// The dataset ID of the target dataset. DatasetIds allowed characters: https://cloud.google.com/bigquery/docs/reference/rest/v2/datasets#datasetreference.
+    #[serde(default, rename = "datasetId")]
+    pub dataset_id: ::core::option::Option<String>,
+}
+
+/// Destination datasets are created so that hierarchy of the destination data objects matches the source hierarchy.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SourceHierarchyDatasets {
+    /// The dataset template to use for dynamic dataset creation.
+    #[serde(default, rename = "datasetTemplate")]
+    pub dataset_template: ::core::option::Option<DatasetTemplate>,
+    /// Optional. The project id of the BigQuery dataset. If not specified, the project will be inferred from the stream resource.
+    #[serde(default, rename = "projectId")]
+    pub project_id: ::core::option::Option<String>,
+}
+
+/// JSON file format configuration.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct JsonFileFormat {
+    /// Compression of the loaded JSON file. // TODO: enum values: ["JSON_COMPRESSION_UNSPECIFIED", "NO_COMPRESSION", "GZIP"]
+    #[serde(default)]
+    pub compression: ::core::option::Option<String>,
+    /// The schema file format along JSON data files. // TODO: enum values: ["SCHEMA_FILE_FORMAT_UNSPECIFIED", "NO_SCHEMA_FILE", "AVRO_SCHEMA_FILE"]
+    #[serde(default, rename = "schemaFileFormat")]
+    pub schema_file_format: ::core::option::Option<String>,
+}
+
+/// BigQuery clustering configuration.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BigQueryClustering {
+    /// Required. Column names to set as clustering columns.
+    #[serde(default)]
+    pub columns: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// BigQuery partitioning configuration.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BigQueryPartitioning {
+    /// Ingestion time partitioning.
+    #[serde(default, rename = "ingestionTimePartition")]
+    pub ingestion_time_partition: ::core::option::Option<IngestionTimePartition>,
+    /// Integer range partitioning.
+    #[serde(default, rename = "integerRangePartition")]
+    pub integer_range_partition: ::core::option::Option<IntegerRangePartition>,
+    /// Optional. If true, queries over the table require a partition filter.
+    #[serde(default, rename = "requirePartitionFilter")]
+    pub require_partition_filter: ::core::option::Option<bool>,
+    /// Time unit column partitioning.
+    #[serde(default, rename = "timeUnitPartition")]
+    pub time_unit_partition: ::core::option::Option<TimeUnitPartition>,
+}
+
+/// Represents an identifier of an object in the data source.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SourceObjectIdentifier {
+    /// MongoDB data source object identifier.
+    #[serde(default, rename = "mongodbIdentifier")]
+    pub mongodb_identifier: ::core::option::Option<MongodbObjectIdentifier>,
+    /// Mysql data source object identifier.
+    #[serde(default, rename = "mysqlIdentifier")]
+    pub mysql_identifier: ::core::option::Option<MysqlObjectIdentifier>,
+    /// Oracle data source object identifier.
+    #[serde(default, rename = "oracleIdentifier")]
+    pub oracle_identifier: ::core::option::Option<OracleObjectIdentifier>,
+    /// PostgreSQL data source object identifier.
+    #[serde(default, rename = "postgresqlIdentifier")]
+    pub postgresql_identifier: ::core::option::Option<PostgresqlObjectIdentifier>,
+    /// Salesforce data source object identifier.
+    #[serde(default, rename = "salesforceIdentifier")]
+    pub salesforce_identifier: ::core::option::Option<SalesforceObjectIdentifier>,
+    /// Spanner data source object identifier.
+    #[serde(default, rename = "spannerIdentifier")]
+    pub spanner_identifier: ::core::option::Option<SpannerObjectIdentifier>,
+    /// SQLServer data source object identifier.
+    #[serde(default, rename = "sqlServerIdentifier")]
+    pub sql_server_identifier: ::core::option::Option<SqlServerObjectIdentifier>,
+}
+
+/// MongoDB Cluster structure.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MongodbCluster {
+    /// MongoDB databases in the cluster.
+    #[serde(default)]
+    pub databases: ::core::option::Option<::std::vec::Vec<MongodbDatabase>>,
+}
+
+/// MySQL database structure
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MysqlRdbms {
+    /// Mysql databases on the server
+    #[serde(default, rename = "mysqlDatabases")]
+    pub mysql_databases: ::core::option::Option<::std::vec::Vec<MysqlDatabase>>,
+}
+
+/// Configuration to use Binary Log Parser CDC technique.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BinaryLogParser {
+    /// Use Oracle directories.
+    #[serde(default, rename = "logFileDirectories")]
+    pub log_file_directories: ::core::option::Option<LogFileDirectories>,
+    /// Use Oracle ASM.
+    #[serde(default, rename = "oracleAsmLogFileAccess")]
+    pub oracle_asm_log_file_access: ::core::option::Option<serde_json::Value>,
+}
+
+/// Oracle database structure.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct OracleRdbms {
+    /// Oracle schemas/databases in the database server.
+    #[serde(default, rename = "oracleSchemas")]
+    pub oracle_schemas: ::core::option::Option<::std::vec::Vec<OracleSchema>>,
+}
+
+/// PostgreSQL database structure.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PostgresqlRdbms {
+    /// PostgreSQL schemas in the database server.
+    #[serde(default, rename = "postgresqlSchemas")]
+    pub postgresql_schemas: ::core::option::Option<::std::vec::Vec<PostgresqlSchema>>,
+}
+
+/// Salesforce organization structure.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SalesforceOrg {
+    /// Salesforce objects in the database server.
+    #[serde(default)]
+    pub objects: ::core::option::Option<::std::vec::Vec<SalesforceObject>>,
+}
+
+/// Spanner database structure.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SpannerDatabase {
+    /// Optional. Spanner schemas in the database.
+    #[serde(default)]
+    pub schemas: ::core::option::Option<::std::vec::Vec<SpannerSchema>>,
+}
+
+/// SQLServer database structure.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SqlServerRdbms {
+    /// SQLServer schemas in the database server.
+    #[serde(default)]
+    pub schemas: ::core::option::Option<::std::vec::Vec<SqlServerSchema>>,
+}
+
+/// Dataset template used for dynamic dataset creation.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DatasetTemplate {
+    /// If supplied, every created dataset will have its name prefixed by the provided value. The prefix and name will be separated by an underscore. i.e. _.
+    #[serde(default, rename = "datasetIdPrefix")]
+    pub dataset_id_prefix: ::core::option::Option<String>,
+    /// Describes the Cloud KMS encryption key that will be used to protect destination BigQuery table. The BigQuery Service Account associated with your project requires access to this encryption key. i.e. projects/{project}/locations/{location}/keyRings/{key_ring}/cryptoKeys/{cryptoKey}. See https://cloud.google.com/bigquery/docs/customer-managed-encryption for more information.
+    #[serde(default, rename = "kmsKeyName")]
+    pub kms_key_name: ::core::option::Option<String>,
+    /// Required. The geographic location where the dataset should reside. See https://cloud.google.com/bigquery/docs/locations for supported locations.
+    #[serde(default)]
+    pub location: ::core::option::Option<String>,
+}
+
+/// Ingestion time partitioning. see https://cloud.google.com/bigquery/docs/partitioned-tables#ingestion_time
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct IngestionTimePartition {
+    /// Optional. Partition granularity // TODO: enum values: ["PARTITIONING_TIME_GRANULARITY_UNSPECIFIED", "PARTITIONING_TIME_GRANULARITY_HOUR", "PARTITIONING_TIME_GRANULARITY_DAY", "PARTITIONING_TIME_GRANULARITY_MONTH", "PARTITIONING_TIME_GRANULARITY_YEAR"]
+    #[serde(default, rename = "partitioningTimeGranularity")]
+    pub partitioning_time_granularity: ::core::option::Option<String>,
+}
+
+/// Integer range partitioning. see https://cloud.google.com/bigquery/docs/partitioned-tables#integer_range
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct IntegerRangePartition {
+    /// Required. The partitioning column.
+    #[serde(default)]
+    pub column: ::core::option::Option<String>,
+    /// Required. The ending value for range partitioning (exclusive).
+    #[serde(default)]
+    pub end: ::core::option::Option<String>,
+    /// Required. The interval of each range within the partition.
+    #[serde(default)]
+    pub interval: ::core::option::Option<String>,
+    /// Required. The starting value for range partitioning (inclusive).
+    #[serde(default)]
+    pub start: ::core::option::Option<String>,
+}
+
+/// Time unit column partitioning. see https://cloud.google.com/bigquery/docs/partitioned-tables#date_timestamp_partitioned_tables
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TimeUnitPartition {
+    /// Required. The partitioning column.
+    #[serde(default)]
+    pub column: ::core::option::Option<String>,
+    /// Optional. Partition granularity. // TODO: enum values: ["PARTITIONING_TIME_GRANULARITY_UNSPECIFIED", "PARTITIONING_TIME_GRANULARITY_HOUR", "PARTITIONING_TIME_GRANULARITY_DAY", "PARTITIONING_TIME_GRANULARITY_MONTH", "PARTITIONING_TIME_GRANULARITY_YEAR"]
+    #[serde(default, rename = "partitioningTimeGranularity")]
+    pub partitioning_time_granularity: ::core::option::Option<String>,
+}
+
+/// MongoDB data source object identifier.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MongodbObjectIdentifier {
+    /// Required. The collection name.
+    #[serde(default)]
+    pub collection: ::core::option::Option<String>,
+    /// Required. The database name.
+    #[serde(default)]
+    pub database: ::core::option::Option<String>,
+}
+
+/// Mysql data source object identifier.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MysqlObjectIdentifier {
+    /// Required. The database name.
+    #[serde(default)]
+    pub database: ::core::option::Option<String>,
+    /// Required. The table name.
+    #[serde(default)]
+    pub table: ::core::option::Option<String>,
+}
+
+/// Oracle data source object identifier.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct OracleObjectIdentifier {
+    /// Required. The schema name.
+    #[serde(default)]
+    pub schema: ::core::option::Option<String>,
+    /// Required. The table name.
+    #[serde(default)]
+    pub table: ::core::option::Option<String>,
+}
+
+/// PostgreSQL data source object identifier.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PostgresqlObjectIdentifier {
+    /// Required. The schema name.
+    #[serde(default)]
+    pub schema: ::core::option::Option<String>,
+    /// Required. The table name.
+    #[serde(default)]
+    pub table: ::core::option::Option<String>,
+}
+
+/// Salesforce data source object identifier.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SalesforceObjectIdentifier {
+    /// Required. The object name.
+    #[serde(default, rename = "objectName")]
+    pub object_name: ::core::option::Option<String>,
+}
+
+/// Spanner data source object identifier.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SpannerObjectIdentifier {
+    /// Optional. The schema name.
+    #[serde(default)]
+    pub schema: ::core::option::Option<String>,
+    /// Required. The table name.
+    #[serde(default)]
+    pub table: ::core::option::Option<String>,
+}
+
+/// SQLServer data source object identifier.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SqlServerObjectIdentifier {
+    /// Required. The schema name.
+    #[serde(default)]
+    pub schema: ::core::option::Option<String>,
+    /// Required. The table name.
+    #[serde(default)]
+    pub table: ::core::option::Option<String>,
+}
+
+/// MongoDB Database.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MongodbDatabase {
+    /// Collections in the database.
+    #[serde(default)]
+    pub collections: ::core::option::Option<::std::vec::Vec<MongodbCollection>>,
+    /// The database name.
+    #[serde(default)]
+    pub database: ::core::option::Option<String>,
+}
+
+/// MySQL database.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MysqlDatabase {
+    /// The database name.
+    #[serde(default)]
+    pub database: ::core::option::Option<String>,
+    /// Tables in the database.
+    #[serde(default, rename = "mysqlTables")]
+    pub mysql_tables: ::core::option::Option<::std::vec::Vec<MysqlTable>>,
+}
+
+/// Configuration to specify the Oracle directories to access the log files.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LogFileDirectories {
+    /// Required. Oracle directory for archived logs.
+    #[serde(default, rename = "archivedLogDirectory")]
+    pub archived_log_directory: ::core::option::Option<String>,
+    /// Required. Oracle directory for online logs.
+    #[serde(default, rename = "onlineLogDirectory")]
+    pub online_log_directory: ::core::option::Option<String>,
+}
+
+/// Oracle schema.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct OracleSchema {
+    /// Tables in the schema.
+    #[serde(default, rename = "oracleTables")]
+    pub oracle_tables: ::core::option::Option<::std::vec::Vec<OracleTable>>,
+    /// The schema name.
+    #[serde(default)]
+    pub schema: ::core::option::Option<String>,
+}
+
+/// PostgreSQL schema.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PostgresqlSchema {
+    /// Tables in the schema.
+    #[serde(default, rename = "postgresqlTables")]
+    pub postgresql_tables: ::core::option::Option<::std::vec::Vec<PostgresqlTable>>,
+    /// The schema name.
+    #[serde(default)]
+    pub schema: ::core::option::Option<String>,
+}
+
+/// Salesforce object.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SalesforceObject {
+    /// Salesforce fields. When unspecified as part of include objects, includes everything, when unspecified as part of exclude objects, excludes nothing.
+    #[serde(default)]
+    pub fields: ::core::option::Option<::std::vec::Vec<SalesforceField>>,
+    /// The object name.
+    #[serde(default, rename = "objectName")]
+    pub object_name: ::core::option::Option<String>,
+}
+
+/// Spanner schema.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SpannerSchema {
+    /// Required. The schema name.
+    #[serde(default)]
+    pub schema: ::core::option::Option<String>,
+    /// Optional. Spanner tables in the schema.
+    #[serde(default)]
+    pub tables: ::core::option::Option<::std::vec::Vec<SpannerTable>>,
+}
+
+/// SQLServer schema.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SqlServerSchema {
+    /// The schema name.
+    #[serde(default)]
+    pub schema: ::core::option::Option<String>,
+    /// Tables in the schema.
+    #[serde(default)]
+    pub tables: ::core::option::Option<::std::vec::Vec<SqlServerTable>>,
+}
+
+/// MongoDB Collection.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MongodbCollection {
+    /// The collection name.
+    #[serde(default)]
+    pub collection: ::core::option::Option<String>,
+    /// Fields in the collection.
+    #[serde(default)]
+    pub fields: ::core::option::Option<::std::vec::Vec<MongodbField>>,
+}
+
+/// MySQL table.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MysqlTable {
+    /// MySQL columns in the database. When unspecified as part of include/exclude objects, includes/excludes everything.
+    #[serde(default, rename = "mysqlColumns")]
+    pub mysql_columns: ::core::option::Option<::std::vec::Vec<MysqlColumn>>,
+    /// The table name.
+    #[serde(default)]
+    pub table: ::core::option::Option<String>,
+}
+
+/// Oracle table.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct OracleTable {
+    /// Oracle columns in the schema. When unspecified as part of include/exclude objects, includes/excludes everything.
+    #[serde(default, rename = "oracleColumns")]
+    pub oracle_columns: ::core::option::Option<::std::vec::Vec<OracleColumn>>,
+    /// The table name.
+    #[serde(default)]
+    pub table: ::core::option::Option<String>,
+}
+
+/// PostgreSQL table.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PostgresqlTable {
+    /// PostgreSQL columns in the schema. When unspecified as part of include/exclude objects, includes/excludes everything.
+    #[serde(default, rename = "postgresqlColumns")]
+    pub postgresql_columns: ::core::option::Option<::std::vec::Vec<PostgresqlColumn>>,
+    /// The table name.
+    #[serde(default)]
+    pub table: ::core::option::Option<String>,
+}
+
+/// Salesforce field.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SalesforceField {
+    /// The data type.
+    #[serde(default, rename = "dataType")]
+    pub data_type: ::core::option::Option<String>,
+    /// The field name.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Indicates whether the field can accept nil values.
+    #[serde(default)]
+    pub nillable: ::core::option::Option<bool>,
+}
+
+/// Spanner table.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SpannerTable {
+    /// Optional. Spanner columns in the table.
+    #[serde(default)]
+    pub columns: ::core::option::Option<::std::vec::Vec<SpannerColumn>>,
+    /// Required. The table name.
+    #[serde(default)]
+    pub table: ::core::option::Option<String>,
+}
+
+/// SQLServer table.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SqlServerTable {
+    /// SQLServer columns in the schema. When unspecified as part of include/exclude objects, includes/excludes everything.
+    #[serde(default)]
+    pub columns: ::core::option::Option<::std::vec::Vec<SqlServerColumn>>,
+    /// The table name.
+    #[serde(default)]
+    pub table: ::core::option::Option<String>,
+}
+
+/// MongoDB Field.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MongodbField {
+    /// The field name.
+    #[serde(default)]
+    pub field: ::core::option::Option<String>,
+}
+
+/// MySQL Column.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MysqlColumn {
+    /// Column collation.
+    #[serde(default)]
+    pub collation: ::core::option::Option<String>,
+    /// The column name.
+    #[serde(default)]
+    pub column: ::core::option::Option<String>,
+    /// The MySQL data type. Full data types list can be found here: https://dev.mysql.com/doc/refman/8.0/en/data-types.html
+    #[serde(default, rename = "dataType")]
+    pub data_type: ::core::option::Option<String>,
+    /// Column length.
+    #[serde(default)]
+    pub length: ::core::option::Option<i32>,
+    /// Whether or not the column can accept a null value.
+    #[serde(default)]
+    pub nullable: ::core::option::Option<bool>,
+    /// The ordinal position of the column in the table.
+    #[serde(default, rename = "ordinalPosition")]
+    pub ordinal_position: ::core::option::Option<i32>,
+    /// Column precision.
+    #[serde(default)]
+    pub precision: ::core::option::Option<i32>,
+    /// Whether or not the column represents a primary key.
+    #[serde(default, rename = "primaryKey")]
+    pub primary_key: ::core::option::Option<bool>,
+    /// Column scale.
+    #[serde(default)]
+    pub scale: ::core::option::Option<i32>,
+}
+
+/// Oracle Column.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct OracleColumn {
+    /// The column name.
+    #[serde(default)]
+    pub column: ::core::option::Option<String>,
+    /// The Oracle data type.
+    #[serde(default, rename = "dataType")]
+    pub data_type: ::core::option::Option<String>,
+    /// Column encoding.
+    #[serde(default)]
+    pub encoding: ::core::option::Option<String>,
+    /// Column length.
+    #[serde(default)]
+    pub length: ::core::option::Option<i32>,
+    /// Whether or not the column can accept a null value.
+    #[serde(default)]
+    pub nullable: ::core::option::Option<bool>,
+    /// The ordinal position of the column in the table.
+    #[serde(default, rename = "ordinalPosition")]
+    pub ordinal_position: ::core::option::Option<i32>,
+    /// Column precision.
+    #[serde(default)]
+    pub precision: ::core::option::Option<i32>,
+    /// Whether or not the column represents a primary key.
+    #[serde(default, rename = "primaryKey")]
+    pub primary_key: ::core::option::Option<bool>,
+    /// Column scale.
+    #[serde(default)]
+    pub scale: ::core::option::Option<i32>,
+}
+
+/// PostgreSQL Column.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PostgresqlColumn {
+    /// The column name.
+    #[serde(default)]
+    pub column: ::core::option::Option<String>,
+    /// The PostgreSQL data type.
+    #[serde(default, rename = "dataType")]
+    pub data_type: ::core::option::Option<String>,
+    /// Column length.
+    #[serde(default)]
+    pub length: ::core::option::Option<i32>,
+    /// Whether or not the column can accept a null value.
+    #[serde(default)]
+    pub nullable: ::core::option::Option<bool>,
+    /// The ordinal position of the column in the table.
+    #[serde(default, rename = "ordinalPosition")]
+    pub ordinal_position: ::core::option::Option<i32>,
+    /// Column precision.
+    #[serde(default)]
+    pub precision: ::core::option::Option<i32>,
+    /// Whether or not the column represents a primary key.
+    #[serde(default, rename = "primaryKey")]
+    pub primary_key: ::core::option::Option<bool>,
+    /// Column scale.
+    #[serde(default)]
+    pub scale: ::core::option::Option<i32>,
+}
+
+/// Spanner column.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SpannerColumn {
+    /// Required. The column name.
+    #[serde(default)]
+    pub column: ::core::option::Option<String>,
+    /// Optional. Spanner data type.
+    #[serde(default, rename = "dataType")]
+    pub data_type: ::core::option::Option<String>,
+    /// Optional. Whether or not the column is a primary key.
+    #[serde(default, rename = "isPrimaryKey")]
+    pub is_primary_key: ::core::option::Option<bool>,
+    /// Optional. The ordinal position of the column in the table.
+    #[serde(default, rename = "ordinalPosition")]
+    pub ordinal_position: ::core::option::Option<String>,
+}
+
+/// SQLServer Column.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SqlServerColumn {
+    /// The column name.
+    #[serde(default)]
+    pub column: ::core::option::Option<String>,
+    /// The SQLServer data type.
+    #[serde(default, rename = "dataType")]
+    pub data_type: ::core::option::Option<String>,
+    /// Column length.
+    #[serde(default)]
+    pub length: ::core::option::Option<i32>,
+    /// Whether or not the column can accept a null value.
+    #[serde(default)]
+    pub nullable: ::core::option::Option<bool>,
+    /// The ordinal position of the column in the table.
+    #[serde(default, rename = "ordinalPosition")]
+    pub ordinal_position: ::core::option::Option<i32>,
+    /// Column precision.
+    #[serde(default)]
+    pub precision: ::core::option::Option<i32>,
+    /// Whether or not the column represents a primary key.
+    #[serde(default, rename = "primaryKey")]
+    pub primary_key: ::core::option::Option<bool>,
+    /// Column scale.
+    #[serde(default)]
+    pub scale: ::core::option::Option<i32>,
 }

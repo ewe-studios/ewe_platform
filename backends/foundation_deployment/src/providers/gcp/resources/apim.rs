@@ -10,61 +10,6 @@
 use super::*;
 use serde::{Deserialize, Serialize};
 
-/// Message describing ApiObservation object
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ApiObservation {
-    /// The number of observed API Operations.
-    #[serde(default, rename = "apiOperationCount")]
-    pub api_operation_count: ::core::option::Option<String>,
-    /// Create time stamp
-    #[serde(default, rename = "createTime")]
-    pub create_time: ::core::option::Option<String>,
-    /// The hostname of requests processed for this Observation.
-    #[serde(default)]
-    pub hostname: ::core::option::Option<String>,
-    /// Last event detected time stamp
-    #[serde(default, rename = "lastEventDetectedTime")]
-    pub last_event_detected_time: ::core::option::Option<String>,
-    /// Identifier. Name of resource
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// The IP address (IPv4 or IPv6) of the origin server that the request was sent to. This field can include port information. Examples: "192.168.1.1", "10.0.0.1:80", "FE80::0202:B3FF:FE1E:8329".
-    #[serde(default, rename = "serverIps")]
-    pub server_ips: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Location of the Observation Source, for example "us-central1" or "europe-west1."
-    #[serde(default, rename = "sourceLocations")]
-    pub source_locations: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Style of ApiObservation // TODO: enum values: ["STYLE_UNSPECIFIED", "REST", "GRPC", "GRAPHQL"]
-    #[serde(default)]
-    pub style: ::core::option::Option<String>,
-    /// User-defined tags to organize and sort
-    #[serde(default)]
-    pub tags: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Update time stamp
-    #[serde(default, rename = "updateTime")]
-    pub update_time: ::core::option::Option<String>,
-}
-
-/// Message describing ApiOperation object
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ApiOperation {
-    /// The number of occurrences of this API Operation.
-    #[serde(default)]
-    pub count: ::core::option::Option<String>,
-    /// First seen time stamp
-    #[serde(default, rename = "firstSeenTime")]
-    pub first_seen_time: ::core::option::Option<String>,
-    /// An HTTP Operation.
-    #[serde(default, rename = "httpOperation")]
-    pub http_operation: ::core::option::Option<HttpOperation>,
-    /// Last seen time stamp
-    #[serde(default, rename = "lastSeenTime")]
-    pub last_seen_time: ::core::option::Option<String>,
-    /// Identifier. Name of resource
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-}
-
 /// Message for requesting batch edit tags for ApiObservations
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct BatchEditTagsApiObservationsRequest {
@@ -79,17 +24,6 @@ pub struct BatchEditTagsApiObservationsResponse {
     /// ApiObservations that were changed
     #[serde(default, rename = "apiObservations")]
     pub api_observations: ::core::option::Option<::std::vec::Vec<ApiObservation>>,
-}
-
-/// Message for requesting edit tags for ApiObservation
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct EditTagsApiObservationsRequest {
-    /// Required. Identifier of ApiObservation need to be edit tags Format example: "apigee.googleapis.com|us-west1|443"
-    #[serde(default, rename = "apiObservationId")]
-    pub api_observation_id: ::core::option::Option<String>,
-    /// Required. Tag actions to be applied
-    #[serde(default, rename = "tagActions")]
-    pub tag_actions: ::core::option::Option<::std::vec::Vec<TagAction>>,
 }
 
 /// Entitlement stores data related to API Observation entitlement for a given project
@@ -112,49 +46,6 @@ pub struct Entitlement {
     pub update_time: ::core::option::Option<String>,
 }
 
-/// The GCLB observation source.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GclbObservationSource {
-    /// Required. The VPC networks where traffic will be observed. All load balancers within this network will be observed. Currently, this is limited to only one network.
-    #[serde(default, rename = "pscNetworkConfigs")]
-    pub psc_network_configs:
-        ::core::option::Option<::std::vec::Vec<GclbObservationSourcePscNetworkConfig>>,
-}
-
-/// Network information for setting up a PSC connection.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GclbObservationSourcePscNetworkConfig {
-    /// Required. The VPC network. Format: projects/{project_id}/global/networks/{network}
-    #[serde(default)]
-    pub network: ::core::option::Option<String>,
-    /// Required. The subnetwork in the source region that will be used to connect to the Cloud Load Balancers via PSC NEGs. Must belong to network. Format: projects/{project_id}/regions/{region}/subnetworks/{subnet}
-    #[serde(default)]
-    pub subnetwork: ::core::option::Option<String>,
-}
-
-/// An HTTP-based API Operation, sometimes called a "REST" Operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct HttpOperation {
-    /// HTTP Method. // TODO: enum values: ["HTTP_METHOD_UNSPECIFIED", "GET", "HEAD", "POST", "PUT", "PATCH", "DELETE", "TRACE", "OPTIONS", "CONNECT"]
-    #[serde(default)]
-    pub method: ::core::option::Option<String>,
-    /// Path of the HTTP request.
-    #[serde(default)]
-    pub path: ::core::option::Option<String>,
-    /// Path params of HttpOperation
-    #[serde(default, rename = "pathParams")]
-    pub path_params: ::core::option::Option<::std::vec::Vec<HttpOperationPathParam>>,
-    /// Query params of HttpOperation
-    #[serde(default, rename = "queryParams")]
-    pub query_params: ::core::option::Option<serde_json::Value>,
-    /// Request metadata.
-    #[serde(default)]
-    pub request: ::core::option::Option<HttpOperationHttpRequest>,
-    /// Response metadata.
-    #[serde(default)]
-    pub response: ::core::option::Option<HttpOperationHttpResponse>,
-}
-
 /// An aggregation of HTTP header occurrences.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct HttpOperationHeader {
@@ -167,28 +58,6 @@ pub struct HttpOperationHeader {
     /// Header name.
     #[serde(default)]
     pub name: ::core::option::Option<String>,
-}
-
-/// An aggregation of HTTP responses.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct HttpOperationHttpResponse {
-    /// Unordered map from header name to header metadata
-    #[serde(default)]
-    pub headers: ::core::option::Option<serde_json::Value>,
-    /// Map of status code to observed count
-    #[serde(default, rename = "responseCodes")]
-    pub response_codes: ::core::option::Option<serde_json::Value>,
-}
-
-/// HTTP Path parameter.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct HttpOperationPathParam {
-    /// Data type of path param // TODO: enum values: ["DATA_TYPE_UNSPECIFIED", "BOOL", "INTEGER", "FLOAT", "STRING", "UUID"]
-    #[serde(default, rename = "dataType")]
-    pub data_type: ::core::option::Option<String>,
-    /// Segment location in the path, 1-indexed
-    #[serde(default)]
-    pub position: ::core::option::Option<i32>,
 }
 
 /// An aggregation of HTTP query parameter occurrences.
@@ -291,6 +160,98 @@ pub struct ListOperationsResponse {
     pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
+/// Represents the metadata of the long-running operation.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct OperationMetadata {
+    /// Output only. API version used to start the operation.
+    #[serde(default, rename = "apiVersion")]
+    pub api_version: ::core::option::Option<String>,
+    /// Output only. The time the operation was created.
+    #[serde(default, rename = "createTime")]
+    pub create_time: ::core::option::Option<String>,
+    /// Output only. The time the operation finished running.
+    #[serde(default, rename = "endTime")]
+    pub end_time: ::core::option::Option<String>,
+    /// Output only. Identifies whether the user has requested cancellation of the operation. Operations that have been cancelled successfully have Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+    #[serde(default, rename = "requestedCancellation")]
+    pub requested_cancellation: ::core::option::Option<bool>,
+    /// Output only. Human-readable status of the operation, if any.
+    #[serde(default, rename = "statusMessage")]
+    pub status_message: ::core::option::Option<String>,
+    /// Output only. Server-defined resource path for the target of the operation.
+    #[serde(default)]
+    pub target: ::core::option::Option<String>,
+    /// Output only. Name of the verb executed by the operation.
+    #[serde(default)]
+    pub verb: ::core::option::Option<String>,
+}
+
+/// Message for requesting edit tags for ApiObservation
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct EditTagsApiObservationsRequest {
+    /// Required. Identifier of ApiObservation need to be edit tags Format example: "apigee.googleapis.com|us-west1|443"
+    #[serde(default, rename = "apiObservationId")]
+    pub api_observation_id: ::core::option::Option<String>,
+    /// Required. Tag actions to be applied
+    #[serde(default, rename = "tagActions")]
+    pub tag_actions: ::core::option::Option<::std::vec::Vec<TagAction>>,
+}
+
+/// Message describing ApiObservation object
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ApiObservation {
+    /// The number of observed API Operations.
+    #[serde(default, rename = "apiOperationCount")]
+    pub api_operation_count: ::core::option::Option<String>,
+    /// Create time stamp
+    #[serde(default, rename = "createTime")]
+    pub create_time: ::core::option::Option<String>,
+    /// The hostname of requests processed for this Observation.
+    #[serde(default)]
+    pub hostname: ::core::option::Option<String>,
+    /// Last event detected time stamp
+    #[serde(default, rename = "lastEventDetectedTime")]
+    pub last_event_detected_time: ::core::option::Option<String>,
+    /// Identifier. Name of resource
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// The IP address (IPv4 or IPv6) of the origin server that the request was sent to. This field can include port information. Examples: "192.168.1.1", "10.0.0.1:80", "FE80::0202:B3FF:FE1E:8329".
+    #[serde(default, rename = "serverIps")]
+    pub server_ips: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Location of the Observation Source, for example "us-central1" or "europe-west1."
+    #[serde(default, rename = "sourceLocations")]
+    pub source_locations: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Style of ApiObservation // TODO: enum values: ["STYLE_UNSPECIFIED", "REST", "GRPC", "GRAPHQL"]
+    #[serde(default)]
+    pub style: ::core::option::Option<String>,
+    /// User-defined tags to organize and sort
+    #[serde(default)]
+    pub tags: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Update time stamp
+    #[serde(default, rename = "updateTime")]
+    pub update_time: ::core::option::Option<String>,
+}
+
+/// Message describing ApiOperation object
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ApiOperation {
+    /// The number of occurrences of this API Operation.
+    #[serde(default)]
+    pub count: ::core::option::Option<String>,
+    /// First seen time stamp
+    #[serde(default, rename = "firstSeenTime")]
+    pub first_seen_time: ::core::option::Option<String>,
+    /// An HTTP Operation.
+    #[serde(default, rename = "httpOperation")]
+    pub http_operation: ::core::option::Option<HttpOperation>,
+    /// Last seen time stamp
+    #[serde(default, rename = "lastSeenTime")]
+    pub last_seen_time: ::core::option::Option<String>,
+    /// Identifier. Name of resource
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+}
+
 /// A resource that represents a Google Cloud location.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Location {
@@ -371,30 +332,47 @@ pub struct Operation {
     pub response: ::core::option::Option<serde_json::Value>,
 }
 
-/// Represents the metadata of the long-running operation.
+/// Message for edit tag action
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct OperationMetadata {
-    /// Output only. API version used to start the operation.
-    #[serde(default, rename = "apiVersion")]
-    pub api_version: ::core::option::Option<String>,
-    /// Output only. The time the operation was created.
-    #[serde(default, rename = "createTime")]
-    pub create_time: ::core::option::Option<String>,
-    /// Output only. The time the operation finished running.
-    #[serde(default, rename = "endTime")]
-    pub end_time: ::core::option::Option<String>,
-    /// Output only. Identifies whether the user has requested cancellation of the operation. Operations that have been cancelled successfully have Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
-    #[serde(default, rename = "requestedCancellation")]
-    pub requested_cancellation: ::core::option::Option<bool>,
-    /// Output only. Human-readable status of the operation, if any.
-    #[serde(default, rename = "statusMessage")]
-    pub status_message: ::core::option::Option<String>,
-    /// Output only. Server-defined resource path for the target of the operation.
+pub struct TagAction {
+    /// Required. Action to be applied // TODO: enum values: ["ACTION_UNSPECIFIED", "ADD", "REMOVE"]
     #[serde(default)]
-    pub target: ::core::option::Option<String>,
-    /// Output only. Name of the verb executed by the operation.
+    pub action: ::core::option::Option<String>,
+    /// Required. Tag to be added or removed
     #[serde(default)]
-    pub verb: ::core::option::Option<String>,
+    pub tag: ::core::option::Option<String>,
+}
+
+/// An HTTP-based API Operation, sometimes called a "REST" Operation.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct HttpOperation {
+    /// HTTP Method. // TODO: enum values: ["HTTP_METHOD_UNSPECIFIED", "GET", "HEAD", "POST", "PUT", "PATCH", "DELETE", "TRACE", "OPTIONS", "CONNECT"]
+    #[serde(default)]
+    pub method: ::core::option::Option<String>,
+    /// Path of the HTTP request.
+    #[serde(default)]
+    pub path: ::core::option::Option<String>,
+    /// Path params of HttpOperation
+    #[serde(default, rename = "pathParams")]
+    pub path_params: ::core::option::Option<::std::vec::Vec<HttpOperationPathParam>>,
+    /// Query params of HttpOperation
+    #[serde(default, rename = "queryParams")]
+    pub query_params: ::core::option::Option<serde_json::Value>,
+    /// Request metadata.
+    #[serde(default)]
+    pub request: ::core::option::Option<HttpOperationHttpRequest>,
+    /// Response metadata.
+    #[serde(default)]
+    pub response: ::core::option::Option<HttpOperationHttpResponse>,
+}
+
+/// The GCLB observation source.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GclbObservationSource {
+    /// Required. The VPC networks where traffic will be observed. All load balancers within this network will be observed. Currently, this is limited to only one network.
+    #[serde(default, rename = "pscNetworkConfigs")]
+    pub psc_network_configs:
+        ::core::option::Option<::std::vec::Vec<GclbObservationSourcePscNetworkConfig>>,
 }
 
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
@@ -411,13 +389,35 @@ pub struct Status {
     pub message: ::core::option::Option<String>,
 }
 
-/// Message for edit tag action
+/// HTTP Path parameter.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct TagAction {
-    /// Required. Action to be applied // TODO: enum values: ["ACTION_UNSPECIFIED", "ADD", "REMOVE"]
+pub struct HttpOperationPathParam {
+    /// Data type of path param // TODO: enum values: ["DATA_TYPE_UNSPECIFIED", "BOOL", "INTEGER", "FLOAT", "STRING", "UUID"]
+    #[serde(default, rename = "dataType")]
+    pub data_type: ::core::option::Option<String>,
+    /// Segment location in the path, 1-indexed
     #[serde(default)]
-    pub action: ::core::option::Option<String>,
-    /// Required. Tag to be added or removed
+    pub position: ::core::option::Option<i32>,
+}
+
+/// An aggregation of HTTP responses.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct HttpOperationHttpResponse {
+    /// Unordered map from header name to header metadata
     #[serde(default)]
-    pub tag: ::core::option::Option<String>,
+    pub headers: ::core::option::Option<serde_json::Value>,
+    /// Map of status code to observed count
+    #[serde(default, rename = "responseCodes")]
+    pub response_codes: ::core::option::Option<serde_json::Value>,
+}
+
+/// Network information for setting up a PSC connection.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GclbObservationSourcePscNetworkConfig {
+    /// Required. The VPC network. Format: projects/{project_id}/global/networks/{network}
+    #[serde(default)]
+    pub network: ::core::option::Option<String>,
+    /// Required. The subnetwork in the source region that will be used to connect to the Cloud Load Balancers via PSC NEGs. Must belong to network. Format: projects/{project_id}/regions/{region}/subnetworks/{subnet}
+    #[serde(default)]
+    pub subnetwork: ::core::option::Option<String>,
 }

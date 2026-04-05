@@ -27,38 +27,6 @@ pub struct Activities {
     pub next_page_token: ::core::option::Option<String>,
 }
 
-/// JSON template for the activity resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Activity {
-    /// User doing the action.
-    #[serde(default)]
-    pub actor: ::core::option::Option<serde_json::Value>,
-    /// ETag of the entry.
-    #[serde(default)]
-    pub etag: ::core::option::Option<String>,
-    /// Activity events in the report.
-    #[serde(default)]
-    pub events: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
-    /// Unique identifier for each activity record.
-    #[serde(default)]
-    pub id: ::core::option::Option<serde_json::Value>,
-    /// IP address of the user doing the action. This is the Internet Protocol (IP) address of the user when logging into Google Workspace, which may or may not reflect the user''s physical location. For example, the IP address can be the user''s proxy server''s address or a virtual private network (VPN) address. The API supports IPv4 and IPv6.
-    #[serde(default, rename = "ipAddress")]
-    pub ip_address: ::core::option::Option<String>,
-    /// The type of API resource. For an activity report, the value is audit#activity.
-    #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-    /// Network information of the user doing the action.
-    #[serde(default, rename = "networkInfo")]
-    pub network_info: ::core::option::Option<ActivityNetworkInfo>,
-    /// This is the domain that is affected by the report''s event. For example domain of Admin console or the Drive application''s document owner.
-    #[serde(default, rename = "ownerDomain")]
-    pub owner_domain: ::core::option::Option<String>,
-    /// Details of the resource on which the action was performed.
-    #[serde(default, rename = "resourceDetails")]
-    pub resource_details: ::core::option::Option<::std::vec::Vec<ResourceDetails>>,
-}
-
 /// Status of the event. Note: Not all events have status.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ActivityEventsStatus {
@@ -74,37 +42,6 @@ pub struct ActivityEventsStatus {
     /// Status code of the event. Note: Field can be empty.
     #[serde(default, rename = "httpStatusCode")]
     pub http_status_code: ::core::option::Option<i32>,
-}
-
-/// Network information of the user doing the action.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ActivityNetworkInfo {
-    /// IP Address of the user doing the action.
-    #[serde(default, rename = "ipAsn")]
-    pub ip_asn: ::core::option::Option<::std::vec::Vec<i32>>,
-    /// ISO 3166-1 alpha-2 region code of the user doing the action.
-    #[serde(default, rename = "regionCode")]
-    pub region_code: ::core::option::Option<String>,
-    /// ISO 3166-2 region code (states and provinces) for countries of the user doing the action.
-    #[serde(default, rename = "subdivisionCode")]
-    pub subdivision_code: ::core::option::Option<String>,
-}
-
-/// Details of the label applied on the resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AppliedLabel {
-    /// List of fields which are part of the label and have been set by the user. If label has a field which was not set by the user, it would not be present in this list.
-    #[serde(default, rename = "fieldValues")]
-    pub field_values: ::core::option::Option<::std::vec::Vec<FieldValue>>,
-    /// Identifier of the label - Only the label id, not the full OnePlatform resource name.
-    #[serde(default)]
-    pub id: ::core::option::Option<String>,
-    /// The reason why the label was applied on the resource.
-    #[serde(default)]
-    pub reason: ::core::option::Option<Reason>,
-    /// Title of the label
-    #[serde(default)]
-    pub title: ::core::option::Option<String>,
 }
 
 /// A notification channel used to watch for resource changes.
@@ -142,26 +79,167 @@ pub struct Channel {
     pub type_: ::core::option::Option<String>,
 }
 
-/// Identity of the Google Workspace customer who owns the resource.
+/// JSON template for a parameter used in various reports.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CustomerIdentity {
-    /// Customer id.
+pub struct NestedParameter {
+    /// Boolean value of the parameter.
+    #[serde(default, rename = "boolValue")]
+    pub bool_value: ::core::option::Option<bool>,
+    /// Integer value of the parameter.
+    #[serde(default, rename = "intValue")]
+    pub int_value: ::core::option::Option<String>,
+    /// Multiple boolean values of the parameter.
+    #[serde(default, rename = "multiBoolValue")]
+    pub multi_bool_value: ::core::option::Option<::std::vec::Vec<bool>>,
+    /// Multiple integer values of the parameter.
+    #[serde(default, rename = "multiIntValue")]
+    pub multi_int_value: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Multiple string values of the parameter.
+    #[serde(default, rename = "multiValue")]
+    pub multi_value: ::core::option::Option<::std::vec::Vec<String>>,
+    /// The name of the parameter.
     #[serde(default)]
-    pub id: ::core::option::Option<String>,
+    pub name: ::core::option::Option<String>,
+    /// String value of the parameter.
+    #[serde(default)]
+    pub value: ::core::option::Option<String>,
 }
 
-/// Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp
+/// UsageReports resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Date {
-    /// Day of a month. Must be from 1 to 31 and valid for the year and month, or 0 to specify a year by itself or a year and month where the day isn''t significant.
+pub struct UsageReports {
+    /// ETag of the resource.
     #[serde(default)]
-    pub day: ::core::option::Option<i32>,
-    /// Month of a year. Must be from 1 to 12, or 0 to specify a year without a month and day.
+    pub etag: ::core::option::Option<String>,
+    /// The type of API resource. For a usage report, the value is admin#reports#usageReports.
     #[serde(default)]
-    pub month: ::core::option::Option<i32>,
-    /// Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.
+    pub kind: ::core::option::Option<String>,
+    /// Token to specify next page. A report with multiple pages has a nextPageToken property in the response. For your follow-on requests getting all of the report''s pages, enter the nextPageToken value in the pageToken query string.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+    /// Various application parameter records.
+    #[serde(default, rename = "usageReports")]
+    pub usage_reports: ::core::option::Option<::std::vec::Vec<UsageReport>>,
+    /// Warnings, if any.
     #[serde(default)]
-    pub year: ::core::option::Option<i32>,
+    pub warnings: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
+}
+
+/// JSON template for the activity resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Activity {
+    /// User doing the action.
+    #[serde(default)]
+    pub actor: ::core::option::Option<serde_json::Value>,
+    /// ETag of the entry.
+    #[serde(default)]
+    pub etag: ::core::option::Option<String>,
+    /// Activity events in the report.
+    #[serde(default)]
+    pub events: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
+    /// Unique identifier for each activity record.
+    #[serde(default)]
+    pub id: ::core::option::Option<serde_json::Value>,
+    /// IP address of the user doing the action. This is the Internet Protocol (IP) address of the user when logging into Google Workspace, which may or may not reflect the user''s physical location. For example, the IP address can be the user''s proxy server''s address or a virtual private network (VPN) address. The API supports IPv4 and IPv6.
+    #[serde(default, rename = "ipAddress")]
+    pub ip_address: ::core::option::Option<String>,
+    /// The type of API resource. For an activity report, the value is audit#activity.
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+    /// Network information of the user doing the action.
+    #[serde(default, rename = "networkInfo")]
+    pub network_info: ::core::option::Option<ActivityNetworkInfo>,
+    /// This is the domain that is affected by the report''s event. For example domain of Admin console or the Drive application''s document owner.
+    #[serde(default, rename = "ownerDomain")]
+    pub owner_domain: ::core::option::Option<String>,
+    /// Details of the resource on which the action was performed.
+    #[serde(default, rename = "resourceDetails")]
+    pub resource_details: ::core::option::Option<::std::vec::Vec<ResourceDetails>>,
+}
+
+/// JSON template for a usage report.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct UsageReport {
+    /// Output only. The date of the report request.
+    #[serde(default)]
+    pub date: ::core::option::Option<String>,
+    /// Output only. Information about the type of the item.
+    #[serde(default)]
+    pub entity: ::core::option::Option<serde_json::Value>,
+    /// ETag of the resource.
+    #[serde(default)]
+    pub etag: ::core::option::Option<String>,
+    /// The type of API resource. For a usage report, the value is admin#reports#usageReport.
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+    /// Output only. Parameter value pairs for various applications. For the Entity Usage Report parameters and values, see [the Entity Usage parameters reference](https://developers.google.com/workspace/admin/reports/v1/reference/usage-ref-appendix-a/entities).
+    #[serde(default)]
+    pub parameters: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
+}
+
+/// Network information of the user doing the action.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ActivityNetworkInfo {
+    /// IP Address of the user doing the action.
+    #[serde(default, rename = "ipAsn")]
+    pub ip_asn: ::core::option::Option<::std::vec::Vec<i32>>,
+    /// ISO 3166-1 alpha-2 region code of the user doing the action.
+    #[serde(default, rename = "regionCode")]
+    pub region_code: ::core::option::Option<String>,
+    /// ISO 3166-2 region code (states and provinces) for countries of the user doing the action.
+    #[serde(default, rename = "subdivisionCode")]
+    pub subdivision_code: ::core::option::Option<String>,
+}
+
+/// Details of the resource on which the action was performed.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ResourceDetails {
+    /// List of labels applied on the resource
+    #[serde(default, rename = "appliedLabels")]
+    pub applied_labels: ::core::option::Option<::std::vec::Vec<AppliedLabel>>,
+    /// Identifier of the resource, such as a doc_id for a Drive document, a conference_id for a Meet conference, or a "gaia_id/rfc2822_message_id" for an email.
+    #[serde(default)]
+    pub id: ::core::option::Option<String>,
+    /// Owner details of the resource.
+    #[serde(default, rename = "ownerDetails")]
+    pub owner_details: ::core::option::Option<OwnerDetails>,
+    /// Defines relationship of the resource to the events
+    #[serde(default)]
+    pub relation: ::core::option::Option<String>,
+    /// Title of the resource. For instance, in case of a drive document, this would be the title of the document. In case of an email, this would be the subject.
+    #[serde(default)]
+    pub title: ::core::option::Option<String>,
+    /// Type of the resource - document, email, chat message
+    #[serde(default, rename = "type")]
+    pub type_: ::core::option::Option<String>,
+}
+
+/// Details of the label applied on the resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AppliedLabel {
+    /// List of fields which are part of the label and have been set by the user. If label has a field which was not set by the user, it would not be present in this list.
+    #[serde(default, rename = "fieldValues")]
+    pub field_values: ::core::option::Option<::std::vec::Vec<FieldValue>>,
+    /// Identifier of the label - Only the label id, not the full OnePlatform resource name.
+    #[serde(default)]
+    pub id: ::core::option::Option<String>,
+    /// The reason why the label was applied on the resource.
+    #[serde(default)]
+    pub reason: ::core::option::Option<Reason>,
+    /// Title of the label
+    #[serde(default)]
+    pub title: ::core::option::Option<String>,
+}
+
+/// Details of the owner of the resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct OwnerDetails {
+    /// Identity details of the owner(s) of the resource.
+    #[serde(default, rename = "ownerIdentity")]
+    pub owner_identity: ::core::option::Option<::std::vec::Vec<OwnerIdentity>>,
+    /// Type of the owner of the resource.
+    #[serde(default, rename = "ownerType")]
+    pub owner_type: ::core::option::Option<String>,
 }
 
 /// Details of the field value set by the user for the particular label.
@@ -211,26 +289,48 @@ pub struct FieldValue {
     pub user_value: ::core::option::Option<FieldValueUserValue>,
 }
 
+/// Identity details of the owner of the resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct OwnerIdentity {
+    /// Identity of the Google Workspace customer who owns the resource.
+    #[serde(default, rename = "customerIdentity")]
+    pub customer_identity: ::core::option::Option<CustomerIdentity>,
+    /// Identity of the group who owns the resource.
+    #[serde(default, rename = "groupIdentity")]
+    pub group_identity: ::core::option::Option<GroupIdentity>,
+    /// Identity of the user who owns the resource.
+    #[serde(default, rename = "userIdentity")]
+    pub user_identity: ::core::option::Option<UserIdentity>,
+}
+
+/// Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Date {
+    /// Day of a month. Must be from 1 to 31 and valid for the year and month, or 0 to specify a year by itself or a year and month where the day isn''t significant.
+    #[serde(default)]
+    pub day: ::core::option::Option<i32>,
+    /// Month of a year. Must be from 1 to 12, or 0 to specify a year without a month and day.
+    #[serde(default)]
+    pub month: ::core::option::Option<i32>,
+    /// Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.
+    #[serde(default)]
+    pub year: ::core::option::Option<i32>,
+}
+
+/// The reason why the label/field was applied.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Reason {
+    /// The type of the reason.
+    #[serde(default, rename = "reasonType")]
+    pub reason_type: ::core::option::Option<String>,
+}
+
 /// Setting a selection list value by selecting multiple values from a dropdown.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct FieldValueSelectionListValue {
     /// List of selections.
     #[serde(default)]
     pub values: ::core::option::Option<::std::vec::Vec<FieldValueSelectionValue>>,
-}
-
-/// Setting a selection value by selecting a single value from a dropdown.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct FieldValueSelectionValue {
-    /// Whether the selection is badged.
-    #[serde(default)]
-    pub badged: ::core::option::Option<bool>,
-    /// Display name of the selection.
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-    /// Identifier of the selection.
-    #[serde(default)]
-    pub id: ::core::option::Option<String>,
 }
 
 /// Setting a text list value.
@@ -249,12 +349,12 @@ pub struct FieldValueUserListValue {
     pub values: ::core::option::Option<::std::vec::Vec<FieldValueUserValue>>,
 }
 
-/// Setting a user value by selecting a single user.
+/// Identity of the Google Workspace customer who owns the resource.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct FieldValueUserValue {
-    /// Email of the user.
+pub struct CustomerIdentity {
+    /// Customer id.
     #[serde(default)]
-    pub email: ::core::option::Option<String>,
+    pub id: ::core::option::Option<String>,
 }
 
 /// Identity of the group who owns the resource.
@@ -268,128 +368,6 @@ pub struct GroupIdentity {
     pub id: ::core::option::Option<String>,
 }
 
-/// JSON template for a parameter used in various reports.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct NestedParameter {
-    /// Boolean value of the parameter.
-    #[serde(default, rename = "boolValue")]
-    pub bool_value: ::core::option::Option<bool>,
-    /// Integer value of the parameter.
-    #[serde(default, rename = "intValue")]
-    pub int_value: ::core::option::Option<String>,
-    /// Multiple boolean values of the parameter.
-    #[serde(default, rename = "multiBoolValue")]
-    pub multi_bool_value: ::core::option::Option<::std::vec::Vec<bool>>,
-    /// Multiple integer values of the parameter.
-    #[serde(default, rename = "multiIntValue")]
-    pub multi_int_value: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Multiple string values of the parameter.
-    #[serde(default, rename = "multiValue")]
-    pub multi_value: ::core::option::Option<::std::vec::Vec<String>>,
-    /// The name of the parameter.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// String value of the parameter.
-    #[serde(default)]
-    pub value: ::core::option::Option<String>,
-}
-
-/// Details of the owner of the resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct OwnerDetails {
-    /// Identity details of the owner(s) of the resource.
-    #[serde(default, rename = "ownerIdentity")]
-    pub owner_identity: ::core::option::Option<::std::vec::Vec<OwnerIdentity>>,
-    /// Type of the owner of the resource.
-    #[serde(default, rename = "ownerType")]
-    pub owner_type: ::core::option::Option<String>,
-}
-
-/// Identity details of the owner of the resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct OwnerIdentity {
-    /// Identity of the Google Workspace customer who owns the resource.
-    #[serde(default, rename = "customerIdentity")]
-    pub customer_identity: ::core::option::Option<CustomerIdentity>,
-    /// Identity of the group who owns the resource.
-    #[serde(default, rename = "groupIdentity")]
-    pub group_identity: ::core::option::Option<GroupIdentity>,
-    /// Identity of the user who owns the resource.
-    #[serde(default, rename = "userIdentity")]
-    pub user_identity: ::core::option::Option<UserIdentity>,
-}
-
-/// The reason why the label/field was applied.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Reason {
-    /// The type of the reason.
-    #[serde(default, rename = "reasonType")]
-    pub reason_type: ::core::option::Option<String>,
-}
-
-/// Details of the resource on which the action was performed.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ResourceDetails {
-    /// List of labels applied on the resource
-    #[serde(default, rename = "appliedLabels")]
-    pub applied_labels: ::core::option::Option<::std::vec::Vec<AppliedLabel>>,
-    /// Identifier of the resource, such as a doc_id for a Drive document, a conference_id for a Meet conference, or a "gaia_id/rfc2822_message_id" for an email.
-    #[serde(default)]
-    pub id: ::core::option::Option<String>,
-    /// Owner details of the resource.
-    #[serde(default, rename = "ownerDetails")]
-    pub owner_details: ::core::option::Option<OwnerDetails>,
-    /// Defines relationship of the resource to the events
-    #[serde(default)]
-    pub relation: ::core::option::Option<String>,
-    /// Title of the resource. For instance, in case of a drive document, this would be the title of the document. In case of an email, this would be the subject.
-    #[serde(default)]
-    pub title: ::core::option::Option<String>,
-    /// Type of the resource - document, email, chat message
-    #[serde(default, rename = "type")]
-    pub type_: ::core::option::Option<String>,
-}
-
-/// JSON template for a usage report.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct UsageReport {
-    /// Output only. The date of the report request.
-    #[serde(default)]
-    pub date: ::core::option::Option<String>,
-    /// Output only. Information about the type of the item.
-    #[serde(default)]
-    pub entity: ::core::option::Option<serde_json::Value>,
-    /// ETag of the resource.
-    #[serde(default)]
-    pub etag: ::core::option::Option<String>,
-    /// The type of API resource. For a usage report, the value is admin#reports#usageReport.
-    #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-    /// Output only. Parameter value pairs for various applications. For the Entity Usage Report parameters and values, see [the Entity Usage parameters reference](https://developers.google.com/workspace/admin/reports/v1/reference/usage-ref-appendix-a/entities).
-    #[serde(default)]
-    pub parameters: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
-}
-
-/// UsageReports resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct UsageReports {
-    /// ETag of the resource.
-    #[serde(default)]
-    pub etag: ::core::option::Option<String>,
-    /// The type of API resource. For a usage report, the value is admin#reports#usageReports.
-    #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-    /// Token to specify next page. A report with multiple pages has a nextPageToken property in the response. For your follow-on requests getting all of the report''s pages, enter the nextPageToken value in the pageToken query string.
-    #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: ::core::option::Option<String>,
-    /// Various application parameter records.
-    #[serde(default, rename = "usageReports")]
-    pub usage_reports: ::core::option::Option<::std::vec::Vec<UsageReport>>,
-    /// Warnings, if any.
-    #[serde(default)]
-    pub warnings: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
-}
-
 /// Identity of the user who owns the resource.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct UserIdentity {
@@ -399,4 +377,26 @@ pub struct UserIdentity {
     /// User email.
     #[serde(default, rename = "userEmail")]
     pub user_email: ::core::option::Option<String>,
+}
+
+/// Setting a selection value by selecting a single value from a dropdown.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct FieldValueSelectionValue {
+    /// Whether the selection is badged.
+    #[serde(default)]
+    pub badged: ::core::option::Option<bool>,
+    /// Display name of the selection.
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+    /// Identifier of the selection.
+    #[serde(default)]
+    pub id: ::core::option::Option<String>,
+}
+
+/// Setting a user value by selecting a single user.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct FieldValueUserValue {
+    /// Email of the user.
+    #[serde(default)]
+    pub email: ::core::option::Option<String>,
 }

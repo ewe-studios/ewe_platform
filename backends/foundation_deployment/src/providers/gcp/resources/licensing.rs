@@ -12,6 +12,31 @@ use serde::{Deserialize, Serialize};
 
 /// Representation of a license assignment.
 #[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LicenseAssignmentInsert {
+    /// Email id of the user
+    #[serde(default, rename = "userId")]
+    pub user_id: ::core::option::Option<String>,
+}
+
+/// LicenseAssignmentList resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LicenseAssignmentList {
+    /// ETag of the resource.
+    #[serde(default)]
+    pub etag: ::core::option::Option<String>,
+    /// The LicenseAssignments in this page of results.
+    #[serde(default)]
+    pub items: ::core::option::Option<::std::vec::Vec<LicenseAssignment>>,
+    /// Identifies the resource as a collection of LicenseAssignments.
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+    /// The token that you must submit in a subsequent request to retrieve additional license results matching your query parameters. The maxResults query string is related to the nextPageToken since maxResults determines how many entries are returned on each next page.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+}
+
+/// Representation of a license assignment.
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct LicenseAssignment {
     /// ETag of the resource.
     #[serde(default)]
@@ -37,29 +62,4 @@ pub struct LicenseAssignment {
     /// The user''s current primary email address. If the user''s email address changes, use the new email address in your API requests. Since a userId is subject to change, do not use a userId value as a key for persistent data. This key could break if the current user''s email address changes. If the userId is suspended, the license status changes.
     #[serde(default, rename = "userId")]
     pub user_id: ::core::option::Option<String>,
-}
-
-/// Representation of a license assignment.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct LicenseAssignmentInsert {
-    /// Email id of the user
-    #[serde(default, rename = "userId")]
-    pub user_id: ::core::option::Option<String>,
-}
-
-/// LicenseAssignmentList resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct LicenseAssignmentList {
-    /// ETag of the resource.
-    #[serde(default)]
-    pub etag: ::core::option::Option<String>,
-    /// The LicenseAssignments in this page of results.
-    #[serde(default)]
-    pub items: ::core::option::Option<::std::vec::Vec<LicenseAssignment>>,
-    /// Identifies the resource as a collection of LicenseAssignments.
-    #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-    /// The token that you must submit in a subsequent request to retrieve additional license results matching your query parameters. The maxResults query string is related to the nextPageToken since maxResults determines how many entries are returned on each next page.
-    #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: ::core::option::Option<String>,
 }

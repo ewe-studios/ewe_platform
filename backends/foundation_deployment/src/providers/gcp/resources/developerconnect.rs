@@ -10,329 +10,6 @@
 use super::*;
 use serde::{Deserialize, Serialize};
 
-/// AccountConnector encapsulates what a platform administrator needs to configure for users to connect to the service providers, which includes, among other fields, the OAuth client ID, client secret, and authorization and token endpoints.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AccountConnector {
-    /// Optional. Allows users to store small amounts of arbitrary data.
-    #[serde(default)]
-    pub annotations: ::core::option::Option<serde_json::Value>,
-    /// Output only. The timestamp when the accountConnector was created.
-    #[serde(default, rename = "createTime")]
-    pub create_time: ::core::option::Option<String>,
-    /// Custom OAuth config.
-    #[serde(default, rename = "customOauthConfig")]
-    pub custom_oauth_config: ::core::option::Option<CustomOAuthConfig>,
-    /// Optional. This checksum is computed by the server based on the value of other fields, and may be sent on update and delete requests to ensure the client has an up-to-date value before proceeding.
-    #[serde(default)]
-    pub etag: ::core::option::Option<String>,
-    /// Optional. Labels as key value pairs
-    #[serde(default)]
-    pub labels: ::core::option::Option<serde_json::Value>,
-    /// Identifier. The resource name of the accountConnector, in the format projects/{project}/locations/{location}/accountConnectors/{account_connector_id}.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Output only. Start OAuth flow by clicking on this URL.
-    #[serde(default, rename = "oauthStartUri")]
-    pub oauth_start_uri: ::core::option::Option<String>,
-    /// Optional. Provider OAuth config.
-    #[serde(default, rename = "providerOauthConfig")]
-    pub provider_oauth_config: ::core::option::Option<ProviderOAuthConfig>,
-    /// Optional. Configuration for the http and git proxy features.
-    #[serde(default, rename = "proxyConfig")]
-    pub proxy_config: ::core::option::Option<ProxyConfig>,
-    /// Output only. The timestamp when the accountConnector was updated.
-    #[serde(default, rename = "updateTime")]
-    pub update_time: ::core::option::Option<String>,
-}
-
-/// AppHubService represents the App Hub Service.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AppHubService {
-    /// Required. Output only. Immutable. The name of the App Hub Service. Format: projects/{project}/locations/{location}/applications/{application}/services/{service}.
-    #[serde(default, rename = "apphubService")]
-    pub apphub_service: ::core::option::Option<String>,
-    /// Output only. The criticality of the App Hub Service.
-    #[serde(default)]
-    pub criticality: ::core::option::Option<String>,
-    /// Output only. The environment of the App Hub Service.
-    #[serde(default)]
-    pub environment: ::core::option::Option<String>,
-}
-
-/// AppHubWorkload represents the App Hub Workload.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AppHubWorkload {
-    /// Output only. The criticality of the App Hub Workload.
-    #[serde(default)]
-    pub criticality: ::core::option::Option<String>,
-    /// Output only. The environment of the App Hub Workload.
-    #[serde(default)]
-    pub environment: ::core::option::Option<String>,
-    /// Required. Output only. Immutable. The name of the App Hub Workload. Format: projects/{project}/locations/{location}/applications/{application}/workloads/{workload}.
-    #[serde(default)]
-    pub workload: ::core::option::Option<String>,
-}
-
-/// The artifact config of the artifact that is deployed.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ArtifactConfig {
-    /// Optional. Set if the artifact metadata is stored in Artifact analysis.
-    #[serde(default, rename = "googleArtifactAnalysis")]
-    pub google_artifact_analysis: ::core::option::Option<GoogleArtifactAnalysis>,
-    /// Optional. Set if the artifact is stored in Artifact registry.
-    #[serde(default, rename = "googleArtifactRegistry")]
-    pub google_artifact_registry: ::core::option::Option<GoogleArtifactRegistry>,
-    /// Required. Immutable. The URI of the artifact that is deployed. e.g. us-docker.pkg.dev/my-project/my-repo/image. The URI does not include the tag / digest because it captures a lineage of artifacts.
-    #[serde(default)]
-    pub uri: ::core::option::Option<String>,
-}
-
-/// The ArtifactDeployment resource represents the deployment of the artifact within the InsightsConfig resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ArtifactDeployment {
-    /// Output only. The artifact alias in the deployment spec, with Tag/SHA. e.g. us-docker.pkg.dev/my-project/my-repo/image:1.0.0
-    #[serde(default, rename = "artifactAlias")]
-    pub artifact_alias: ::core::option::Option<String>,
-    /// Output only. The artifact that is deployed.
-    #[serde(default, rename = "artifactReference")]
-    pub artifact_reference: ::core::option::Option<String>,
-    /// Output only. The summary of container status of the artifact deployment. Format as ContainerStatusState-Reason : restartCount e.g. "Waiting-ImagePullBackOff : 3"
-    #[serde(default, rename = "containerStatusSummary")]
-    pub container_status_summary: ::core::option::Option<String>,
-    /// Output only. The time at which the deployment was deployed.
-    #[serde(default, rename = "deployTime")]
-    pub deploy_time: ::core::option::Option<String>,
-    /// Output only. Unique identifier of ArtifactDeployment.
-    #[serde(default)]
-    pub id: ::core::option::Option<String>,
-    /// Output only. The source commits at which this artifact was built. Extracted from provenance.
-    #[serde(default, rename = "sourceCommitUris")]
-    pub source_commit_uris: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Output only. The time at which the deployment was undeployed, all artifacts are considered undeployed once this time is set.
-    #[serde(default, rename = "undeployTime")]
-    pub undeploy_time: ::core::option::Option<String>,
-}
-
-/// Basic authentication with username and password.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct BasicAuthentication {
-    /// The password SecretManager secret version to authenticate as.
-    #[serde(default, rename = "passwordSecretVersion")]
-    pub password_secret_version: ::core::option::Option<String>,
-    /// Required. The username to authenticate as.
-    #[serde(default)]
-    pub username: ::core::option::Option<String>,
-}
-
-/// Bearer token authentication with a token.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct BearerTokenAuthentication {
-    /// Optional. The token SecretManager secret version to authenticate as.
-    #[serde(default, rename = "tokenSecretVersion")]
-    pub token_secret_version: ::core::option::Option<String>,
-}
-
-/// Configuration for connections to an instance of Bitbucket Cloud.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct BitbucketCloudConfig {
-    /// Required. An access token with the minimum repository, pullrequest and webhook scope access. It can either be a workspace, project or repository access token. This is needed to create webhooks. It''s recommended to use a system account to generate these credentials.
-    #[serde(default, rename = "authorizerCredential")]
-    pub authorizer_credential: ::core::option::Option<UserCredential>,
-    /// Required. An access token with the minimum repository access. It can either be a workspace, project or repository access token. It''s recommended to use a system account to generate the credentials.
-    #[serde(default, rename = "readAuthorizerCredential")]
-    pub read_authorizer_credential: ::core::option::Option<UserCredential>,
-    /// Required. Immutable. SecretManager resource containing the webhook secret used to verify webhook events, formatted as projects/*/secrets/*/versions/* or projects/*/locations/*/secrets/*/versions/* (if regional secrets are supported in that location). This is used to validate and create webhooks.
-    #[serde(default, rename = "webhookSecretSecretVersion")]
-    pub webhook_secret_secret_version: ::core::option::Option<String>,
-    /// Required. The Bitbucket Cloud Workspace ID to be connected to Google Cloud Platform.
-    #[serde(default)]
-    pub workspace: ::core::option::Option<String>,
-}
-
-/// Configuration for connections to an instance of Bitbucket Data Center.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct BitbucketDataCenterConfig {
-    /// Required. An http access token with the minimum Repository admin scope access. This is needed to create webhooks. It''s recommended to use a system account to generate these credentials.
-    #[serde(default, rename = "authorizerCredential")]
-    pub authorizer_credential: ::core::option::Option<UserCredential>,
-    /// Required. The URI of the Bitbucket Data Center host this connection is for.
-    #[serde(default, rename = "hostUri")]
-    pub host_uri: ::core::option::Option<String>,
-    /// Required. An http access token with the minimum Repository read access. It''s recommended to use a system account to generate the credentials.
-    #[serde(default, rename = "readAuthorizerCredential")]
-    pub read_authorizer_credential: ::core::option::Option<UserCredential>,
-    /// Output only. Version of the Bitbucket Data Center server running on the host_uri.
-    #[serde(default, rename = "serverVersion")]
-    pub server_version: ::core::option::Option<String>,
-    /// Optional. Configuration for using Service Directory to privately connect to a Bitbucket Data Center instance. This should only be set if the Bitbucket Data Center is hosted on-premises and not reachable by public internet. If this field is left empty, calls to the Bitbucket Data Center will be made over the public internet.
-    #[serde(default, rename = "serviceDirectoryConfig")]
-    pub service_directory_config: ::core::option::Option<ServiceDirectoryConfig>,
-    /// Optional. SSL certificate authority to trust when making requests to Bitbucket Data Center.
-    #[serde(default, rename = "sslCaCertificate")]
-    pub ssl_ca_certificate: ::core::option::Option<String>,
-    /// Required. Immutable. SecretManager resource containing the webhook secret used to verify webhook events, formatted as projects/*/secrets/*/versions/* or projects/*/locations/*/secrets/*/versions/* (if regional secrets are supported in that location). This is used to validate webhooks.
-    #[serde(default, rename = "webhookSecretSecretVersion")]
-    pub webhook_secret_secret_version: ::core::option::Option<String>,
-}
-
-/// Message describing Connection object
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Connection {
-    /// Optional. Allows clients to store small amounts of arbitrary data.
-    #[serde(default)]
-    pub annotations: ::core::option::Option<serde_json::Value>,
-    /// Configuration for connections to an instance of Bitbucket Clouds.
-    #[serde(default, rename = "bitbucketCloudConfig")]
-    pub bitbucket_cloud_config: ::core::option::Option<BitbucketCloudConfig>,
-    /// Configuration for connections to an instance of Bitbucket Data Center.
-    #[serde(default, rename = "bitbucketDataCenterConfig")]
-    pub bitbucket_data_center_config: ::core::option::Option<BitbucketDataCenterConfig>,
-    /// Output only. [Output only] Create timestamp
-    #[serde(default, rename = "createTime")]
-    pub create_time: ::core::option::Option<String>,
-    /// Optional. The crypto key configuration. This field is used by the Customer-Managed Encryption Keys (CMEK) feature.
-    #[serde(default, rename = "cryptoKeyConfig")]
-    pub crypto_key_config: ::core::option::Option<CryptoKeyConfig>,
-    /// Output only. [Output only] Delete timestamp
-    #[serde(default, rename = "deleteTime")]
-    pub delete_time: ::core::option::Option<String>,
-    /// Optional. If disabled is set to true, functionality is disabled for this connection. Repository based API methods and webhooks processing for repositories in this connection will be disabled.
-    #[serde(default)]
-    pub disabled: ::core::option::Option<bool>,
-    /// Optional. This checksum is computed by the server based on the value of other fields, and may be sent on update and delete requests to ensure the client has an up-to-date value before proceeding.
-    #[serde(default)]
-    pub etag: ::core::option::Option<String>,
-    /// Optional. Configuration for the git proxy feature. Enabling the git proxy allows clients to perform git operations on the repositories linked in the connection. [Learn more](https://docs.cloud.google.com/developer-connect/docs/configure-git-proxy).
-    #[serde(default, rename = "gitProxyConfig")]
-    pub git_proxy_config: ::core::option::Option<GitProxyConfig>,
-    /// Configuration for connections to github.com.
-    #[serde(default, rename = "githubConfig")]
-    pub github_config: ::core::option::Option<GitHubConfig>,
-    /// Configuration for connections to an instance of GitHub Enterprise.
-    #[serde(default, rename = "githubEnterpriseConfig")]
-    pub github_enterprise_config: ::core::option::Option<GitHubEnterpriseConfig>,
-    /// Configuration for connections to gitlab.com.
-    #[serde(default, rename = "gitlabConfig")]
-    pub gitlab_config: ::core::option::Option<GitLabConfig>,
-    /// Configuration for connections to an instance of GitLab Enterprise.
-    #[serde(default, rename = "gitlabEnterpriseConfig")]
-    pub gitlab_enterprise_config: ::core::option::Option<GitLabEnterpriseConfig>,
-    /// Optional. Configuration for connections to an HTTP service provider.
-    #[serde(default, rename = "httpConfig")]
-    pub http_config: ::core::option::Option<GenericHTTPEndpointConfig>,
-    /// Output only. Installation state of the Connection.
-    #[serde(default, rename = "installationState")]
-    pub installation_state: ::core::option::Option<InstallationState>,
-    /// Optional. Labels as key value pairs
-    #[serde(default)]
-    pub labels: ::core::option::Option<serde_json::Value>,
-    /// Identifier. The resource name of the connection, in the format projects/{project}/locations/{location}/connections/{connection_id}.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Output only. Set to true when the connection is being set up or updated in the background.
-    #[serde(default)]
-    pub reconciling: ::core::option::Option<bool>,
-    /// Configuration for connections to an instance of Secure Source Manager.
-    #[serde(default, rename = "secureSourceManagerInstanceConfig")]
-    pub secure_source_manager_instance_config:
-        ::core::option::Option<SecureSourceManagerInstanceConfig>,
-    /// Output only. A system-assigned unique identifier for the Connection.
-    #[serde(default)]
-    pub uid: ::core::option::Option<String>,
-    /// Output only. [Output only] Update timestamp
-    #[serde(default, rename = "updateTime")]
-    pub update_time: ::core::option::Option<String>,
-}
-
-/// The crypto key configuration. This field is used by the Customer-managed encryption keys (CMEK) feature.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CryptoKeyConfig {
-    /// Required. The name of the key which is used to encrypt/decrypt customer data. For key in Cloud KMS, the key should be in the format of projects/*/locations/*/keyRings/*/cryptoKeys/*.
-    #[serde(default, rename = "keyReference")]
-    pub key_reference: ::core::option::Option<String>,
-}
-
-/// Message for a customized OAuth config.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CustomOAuthConfig {
-    /// Required. Immutable. The OAuth2 authorization server URL.
-    #[serde(default, rename = "authUri")]
-    pub auth_uri: ::core::option::Option<String>,
-    /// Required. The client ID of the OAuth application.
-    #[serde(default, rename = "clientId")]
-    pub client_id: ::core::option::Option<String>,
-    /// Required. Input only. The client secret of the OAuth application. It will be provided as plain text, but encrypted and stored in developer connect. As INPUT_ONLY field, it will not be included in the output.
-    #[serde(default, rename = "clientSecret")]
-    pub client_secret: ::core::option::Option<String>,
-    /// Required. The host URI of the OAuth application.
-    #[serde(default, rename = "hostUri")]
-    pub host_uri: ::core::option::Option<String>,
-    /// Optional. Disable PKCE for this OAuth config. PKCE is enabled by default.
-    #[serde(default, rename = "pkceDisabled")]
-    pub pkce_disabled: ::core::option::Option<bool>,
-    /// Required. The type of the SCM provider. // TODO: enum values: ["SCM_PROVIDER_UNKNOWN", "GITHUB_ENTERPRISE", "GITLAB_ENTERPRISE", "BITBUCKET_DATA_CENTER"]
-    #[serde(default, rename = "scmProvider")]
-    pub scm_provider: ::core::option::Option<String>,
-    /// Required. The scopes to be requested during OAuth.
-    #[serde(default)]
-    pub scopes: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Output only. SCM server version installed at the host URI.
-    #[serde(default, rename = "serverVersion")]
-    pub server_version: ::core::option::Option<String>,
-    /// Optional. Configuration for using Service Directory to connect to a private service.
-    #[serde(default, rename = "serviceDirectoryConfig")]
-    pub service_directory_config: ::core::option::Option<ServiceDirectoryConfig>,
-    /// Optional. SSL certificate to use for requests to a private service.
-    #[serde(default, rename = "sslCaCertificate")]
-    pub ssl_ca_certificate: ::core::option::Option<String>,
-    /// Required. Immutable. The OAuth2 token request URL.
-    #[serde(default, rename = "tokenUri")]
-    pub token_uri: ::core::option::Option<String>,
-}
-
-/// The DeploymentEvent resource represents the deployment of the artifact within the InsightsConfig resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DeploymentEvent {
-    /// Output only. The artifact deployments of the DeploymentEvent. Each artifact deployment contains the artifact uri and the runtime configuration uri. For GKE, this would be all the containers images that are deployed in the pod.
-    #[serde(default, rename = "artifactDeployments")]
-    pub artifact_deployments: ::core::option::Option<::std::vec::Vec<ArtifactDeployment>>,
-    /// Output only. The create time of the DeploymentEvent.
-    #[serde(default, rename = "createTime")]
-    pub create_time: ::core::option::Option<String>,
-    /// Output only. The time at which the DeploymentEvent was deployed. This would be the min of all ArtifactDeployment deploy_times.
-    #[serde(default, rename = "deployTime")]
-    pub deploy_time: ::core::option::Option<String>,
-    /// Identifier. The name of the DeploymentEvent. This name is provided by Developer Connect insights. Format: projects/{project}/locations/{location}/insightsConfigs/{insights_config}/deploymentEvents/{uuid}
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Output only. The runtime configurations where the DeploymentEvent happened.
-    #[serde(default, rename = "runtimeConfig")]
-    pub runtime_config: ::core::option::Option<RuntimeConfig>,
-    /// Output only. The runtime assigned URI of the DeploymentEvent. For GKE, this is the fully qualified replica set uri. e.g. container.googleapis.com/projects/{project}/locations/{location}/clusters/{cluster}/k8s/namespaces/{namespace}/apps/replicasets/{replica-set-id} For Cloud Run, this is the revision name.
-    #[serde(default, rename = "runtimeDeploymentUri")]
-    pub runtime_deployment_uri: ::core::option::Option<String>,
-    /// Output only. The state of the DeploymentEvent. // TODO: enum values: ["STATE_UNSPECIFIED", "STATE_ACTIVE", "STATE_INACTIVE"]
-    #[serde(default)]
-    pub state: ::core::option::Option<String>,
-    /// Output only. The time at which the DeploymentEvent was undeployed, all artifacts are considered undeployed once this time is set. This would be the max of all ArtifactDeployment undeploy_times. If any ArtifactDeployment is still active (i.e. does not have an undeploy_time), this field will be empty.
-    #[serde(default, rename = "undeployTime")]
-    pub undeploy_time: ::core::option::Option<String>,
-    /// Output only. The update time of the DeploymentEvent.
-    #[serde(default, rename = "updateTime")]
-    pub update_time: ::core::option::Option<String>,
-}
-
-/// Message for representing an error from exchanging OAuth tokens.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ExchangeError {
-    /// https://datatracker.ietf.org/doc/html/rfc6749#section-5.2 - error
-    #[serde(default)]
-    pub code: ::core::option::Option<String>,
-    /// https://datatracker.ietf.org/doc/html/rfc6749#section-5.2 - error_description
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-}
-
 /// Message for responding to getting an OAuth access token.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct FetchAccessTokenResponse {
@@ -425,302 +102,6 @@ pub struct FinishOAuthResponse {
     /// The error resulted from exchanging OAuth tokens from the service provider.
     #[serde(default, rename = "exchangeError")]
     pub exchange_error: ::core::option::Option<ExchangeError>,
-}
-
-/// GKEWorkload represents the Google Kubernetes Engine runtime.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GKEWorkload {
-    /// Required. Immutable. The name of the GKE cluster. Format: projects/{project}/locations/{location}/clusters/{cluster}.
-    #[serde(default)]
-    pub cluster: ::core::option::Option<String>,
-    /// Output only. The name of the GKE deployment. Format: projects/{project}/locations/{location}/clusters/{cluster}/namespaces/{namespace}/deployments/{deployment}.
-    #[serde(default)]
-    pub deployment: ::core::option::Option<String>,
-}
-
-/// Defines the configuration for connections to an HTTP service provider.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GenericHTTPEndpointConfig {
-    /// Optional. Basic authentication with username and password.
-    #[serde(default, rename = "basicAuthentication")]
-    pub basic_authentication: ::core::option::Option<BasicAuthentication>,
-    /// Optional. Bearer token authentication with a token.
-    #[serde(default, rename = "bearerTokenAuthentication")]
-    pub bearer_token_authentication: ::core::option::Option<BearerTokenAuthentication>,
-    /// Required. Immutable. The service provider''s https endpoint.
-    #[serde(default, rename = "hostUri")]
-    pub host_uri: ::core::option::Option<String>,
-    /// Optional. Configuration for using Service Directory to privately connect to a HTTP service provider. This should only be set if the Http service provider is hosted on-premises and not reachable by public internet. If this field is left empty, calls to the HTTP service provider will be made over the public internet.
-    #[serde(default, rename = "serviceDirectoryConfig")]
-    pub service_directory_config: ::core::option::Option<ServiceDirectoryConfig>,
-    /// Optional. The SSL certificate to use for requests to the HTTP service provider.
-    #[serde(default, rename = "sslCaCertificate")]
-    pub ssl_ca_certificate: ::core::option::Option<String>,
-}
-
-/// Configuration for connections to github.com.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GitHubConfig {
-    /// Optional. GitHub App installation id.
-    #[serde(default, rename = "appInstallationId")]
-    pub app_installation_id: ::core::option::Option<String>,
-    /// Optional. OAuth credential of the account that authorized the GitHub App. It is recommended to use a robot account instead of a human user account. The OAuth token must be tied to the GitHub App of this config.
-    #[serde(default, rename = "authorizerCredential")]
-    pub authorizer_credential: ::core::option::Option<OAuthCredential>,
-    /// Required. Immutable. The GitHub Application that was installed to the GitHub user or organization. // TODO: enum values: ["GIT_HUB_APP_UNSPECIFIED", "DEVELOPER_CONNECT", "FIREBASE", "GEMINI_CODE_ASSIST", "DATAFORM"]
-    #[serde(default, rename = "githubApp")]
-    pub github_app: ::core::option::Option<String>,
-    /// Output only. The URI to navigate to in order to manage the installation associated with this GitHubConfig.
-    #[serde(default, rename = "installationUri")]
-    pub installation_uri: ::core::option::Option<String>,
-}
-
-/// Configuration for connections to an instance of GitHub Enterprise.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GitHubEnterpriseConfig {
-    /// Optional. ID of the GitHub App created from the manifest.
-    #[serde(default, rename = "appId")]
-    pub app_id: ::core::option::Option<String>,
-    /// Optional. ID of the installation of the GitHub App.
-    #[serde(default, rename = "appInstallationId")]
-    pub app_installation_id: ::core::option::Option<String>,
-    /// Output only. The URL-friendly name of the GitHub App.
-    #[serde(default, rename = "appSlug")]
-    pub app_slug: ::core::option::Option<String>,
-    /// Required. The URI of the GitHub Enterprise host this connection is for.
-    #[serde(default, rename = "hostUri")]
-    pub host_uri: ::core::option::Option<String>,
-    /// Output only. The URI to navigate to in order to manage the installation associated with this GitHubEnterpriseConfig.
-    #[serde(default, rename = "installationUri")]
-    pub installation_uri: ::core::option::Option<String>,
-    /// Optional. Immutable. GitHub Enterprise organization in which the GitHub App is created.
-    #[serde(default)]
-    pub organization: ::core::option::Option<String>,
-    /// Optional. SecretManager resource containing the private key of the GitHub App, formatted as projects/*/secrets/*/versions/* or projects/*/locations/*/secrets/*/versions/* (if regional secrets are supported in that location).
-    #[serde(default, rename = "privateKeySecretVersion")]
-    pub private_key_secret_version: ::core::option::Option<String>,
-    /// Output only. GitHub Enterprise version installed at the host_uri.
-    #[serde(default, rename = "serverVersion")]
-    pub server_version: ::core::option::Option<String>,
-    /// Optional. Configuration for using Service Directory to privately connect to a GitHub Enterprise server. This should only be set if the GitHub Enterprise server is hosted on-premises and not reachable by public internet. If this field is left empty, calls to the GitHub Enterprise server will be made over the public internet.
-    #[serde(default, rename = "serviceDirectoryConfig")]
-    pub service_directory_config: ::core::option::Option<ServiceDirectoryConfig>,
-    /// Optional. SSL certificate to use for requests to GitHub Enterprise.
-    #[serde(default, rename = "sslCaCertificate")]
-    pub ssl_ca_certificate: ::core::option::Option<String>,
-    /// Optional. SecretManager resource containing the webhook secret of the GitHub App, formatted as projects/*/secrets/*/versions/* or projects/*/locations/*/secrets/*/versions/* (if regional secrets are supported in that location).
-    #[serde(default, rename = "webhookSecretSecretVersion")]
-    pub webhook_secret_secret_version: ::core::option::Option<String>,
-}
-
-/// Configuration for connections to gitlab.com.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GitLabConfig {
-    /// Required. A GitLab personal access token with the minimum api scope access and a minimum role of maintainer. The GitLab Projects visible to this Personal Access Token will control which Projects Developer Connect has access to.
-    #[serde(default, rename = "authorizerCredential")]
-    pub authorizer_credential: ::core::option::Option<UserCredential>,
-    /// Required. A GitLab personal access token with the minimum read_api scope access and a minimum role of reporter. The GitLab Projects visible to this Personal Access Token will control which Projects Developer Connect has access to.
-    #[serde(default, rename = "readAuthorizerCredential")]
-    pub read_authorizer_credential: ::core::option::Option<UserCredential>,
-    /// Required. Immutable. SecretManager resource containing the webhook secret of a GitLab project, formatted as projects/*/secrets/*/versions/* or projects/*/locations/*/secrets/*/versions/* (if regional secrets are supported in that location). This is used to validate webhooks.
-    #[serde(default, rename = "webhookSecretSecretVersion")]
-    pub webhook_secret_secret_version: ::core::option::Option<String>,
-}
-
-/// Configuration for connections to an instance of GitLab Enterprise.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GitLabEnterpriseConfig {
-    /// Required. A GitLab personal access token with the minimum api scope access and a minimum role of maintainer. The GitLab Projects visible to this Personal Access Token will control which Projects Developer Connect has access to.
-    #[serde(default, rename = "authorizerCredential")]
-    pub authorizer_credential: ::core::option::Option<UserCredential>,
-    /// Required. The URI of the GitLab Enterprise host this connection is for.
-    #[serde(default, rename = "hostUri")]
-    pub host_uri: ::core::option::Option<String>,
-    /// Required. A GitLab personal access token with the minimum read_api scope access and a minimum role of reporter. The GitLab Projects visible to this Personal Access Token will control which Projects Developer Connect has access to.
-    #[serde(default, rename = "readAuthorizerCredential")]
-    pub read_authorizer_credential: ::core::option::Option<UserCredential>,
-    /// Output only. Version of the GitLab Enterprise server running on the host_uri.
-    #[serde(default, rename = "serverVersion")]
-    pub server_version: ::core::option::Option<String>,
-    /// Optional. Configuration for using Service Directory to privately connect to a GitLab Enterprise instance. This should only be set if the GitLab Enterprise server is hosted on-premises and not reachable by public internet. If this field is left empty, calls to the GitLab Enterprise server will be made over the public internet.
-    #[serde(default, rename = "serviceDirectoryConfig")]
-    pub service_directory_config: ::core::option::Option<ServiceDirectoryConfig>,
-    /// Optional. SSL Certificate Authority certificate to use for requests to GitLab Enterprise instance.
-    #[serde(default, rename = "sslCaCertificate")]
-    pub ssl_ca_certificate: ::core::option::Option<String>,
-    /// Required. Immutable. SecretManager resource containing the webhook secret of a GitLab project, formatted as projects/*/secrets/*/versions/* or projects/*/locations/*/secrets/*/versions/* (if regional secrets are supported in that location). This is used to validate webhooks.
-    #[serde(default, rename = "webhookSecretSecretVersion")]
-    pub webhook_secret_secret_version: ::core::option::Option<String>,
-}
-
-/// The git proxy configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GitProxyConfig {
-    /// Optional. Setting this to true allows the git proxy to be used for performing git operations on the repositories linked in the connection.
-    #[serde(default)]
-    pub enabled: ::core::option::Option<bool>,
-    /// Output only. The base URI for the HTTP proxy endpoint. Has the format https://{generatedID}-c-h-{shortRegion}.developerconnect.dev Populated only when enabled is set to true. This endpoint is used by other Google services that integrate with Developer Connect.
-    #[serde(default, rename = "httpProxyBaseUri")]
-    pub http_proxy_base_uri: ::core::option::Option<String>,
-}
-
-/// Message describing the GitRepositoryLink object
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GitRepositoryLink {
-    /// Optional. Allows clients to store small amounts of arbitrary data.
-    #[serde(default)]
-    pub annotations: ::core::option::Option<serde_json::Value>,
-    /// Required. Git Clone URI.
-    #[serde(default, rename = "cloneUri")]
-    pub clone_uri: ::core::option::Option<String>,
-    /// Output only. [Output only] Create timestamp
-    #[serde(default, rename = "createTime")]
-    pub create_time: ::core::option::Option<String>,
-    /// Output only. [Output only] Delete timestamp
-    #[serde(default, rename = "deleteTime")]
-    pub delete_time: ::core::option::Option<String>,
-    /// Optional. This checksum is computed by the server based on the value of other fields, and may be sent on update and delete requests to ensure the client has an up-to-date value before proceeding.
-    #[serde(default)]
-    pub etag: ::core::option::Option<String>,
-    /// Output only. URI to access the linked repository through the Git Proxy. This field is only populated if the git proxy is enabled for the connection.
-    #[serde(default, rename = "gitProxyUri")]
-    pub git_proxy_uri: ::core::option::Option<String>,
-    /// Optional. Labels as key value pairs
-    #[serde(default)]
-    pub labels: ::core::option::Option<serde_json::Value>,
-    /// Identifier. Resource name of the repository, in the format projects/*/locations/*/connections/*/gitRepositoryLinks/*.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Output only. Set to true when the connection is being set up or updated in the background.
-    #[serde(default)]
-    pub reconciling: ::core::option::Option<bool>,
-    /// Output only. A system-assigned unique identifier for the GitRepositoryLink.
-    #[serde(default)]
-    pub uid: ::core::option::Option<String>,
-    /// Output only. [Output only] Update timestamp
-    #[serde(default, rename = "updateTime")]
-    pub update_time: ::core::option::Option<String>,
-    /// Output only. External ID of the webhook created for the repository.
-    #[serde(default, rename = "webhookId")]
-    pub webhook_id: ::core::option::Option<String>,
-}
-
-/// Google Artifact Analysis configurations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleArtifactAnalysis {
-    /// Required. The project id of the project where the provenance is stored.
-    #[serde(default, rename = "projectId")]
-    pub project_id: ::core::option::Option<String>,
-}
-
-/// Google Artifact Registry configurations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleArtifactRegistry {
-    /// Required. Immutable. The name of the artifact registry package.
-    #[serde(default, rename = "artifactRegistryPackage")]
-    pub artifact_registry_package: ::core::option::Option<String>,
-    /// Required. The host project of Artifact Registry.
-    #[serde(default, rename = "projectId")]
-    pub project_id: ::core::option::Option<String>,
-}
-
-/// GoogleCloudRun represents the Cloud Run runtime.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudRun {
-    /// Required. Immutable. The name of the Cloud Run service. Format: projects/{project}/locations/{location}/services/{service}.
-    #[serde(default, rename = "serviceUri")]
-    pub service_uri: ::core::option::Option<String>,
-}
-
-/// Message that represents an arbitrary HTTP body. It should only be used for payload formats that can''t be represented as JSON, such as raw binary or an HTML page. This message can be used both in streaming and non-streaming API methods in the request as well as the response. It can be used as a top-level request field, which is convenient if one wants to extract parameters from either the URL or HTTP template into the request fields and also want access to the raw HTTP body. Example: message GetResourceRequest { // A unique request id. string request_id = 1; // The raw HTTP body is bound to this field. google.api.HttpBody http_body = 2; } service ResourceService { rpc GetResource(GetResourceRequest) returns (google.api.HttpBody); rpc UpdateResource(google.api.HttpBody) returns (google.protobuf.Empty); } Example with streaming methods: service CaldavService { rpc GetCalendar(stream google.api.HttpBody) returns (stream google.api.HttpBody); rpc UpdateCalendar(stream google.api.HttpBody) returns (stream google.api.HttpBody); } Use of this type only changes how the request and response bodies are handled, all other features will continue to work unchanged.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct HttpBody {
-    /// The HTTP Content-Type header value specifying the content type of the body.
-    #[serde(default, rename = "contentType")]
-    pub content_type: ::core::option::Option<String>,
-    /// The HTTP request/response body as raw binary.
-    #[serde(default)]
-    pub data: ::core::option::Option<String>,
-    /// Application specific response metadata. Must be set in the first response for streaming APIs.
-    #[serde(default)]
-    pub extensions: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
-}
-
-/// The InsightsConfig resource is the core configuration object to capture events from your Software Development Lifecycle. It acts as the central hub for managing how Developer Connect understands your application, its runtime environments, and the artifacts deployed within them.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct InsightsConfig {
-    /// Optional. User specified annotations. See https://google.aip.dev/148#annotations for more details such as format and size limitations.
-    #[serde(default)]
-    pub annotations: ::core::option::Option<serde_json::Value>,
-    /// Optional. The name of the App Hub Application. Format: projects/{project}/locations/{location}/applications/{application}
-    #[serde(default, rename = "appHubApplication")]
-    pub app_hub_application: ::core::option::Option<String>,
-    /// Optional. The artifact configurations of the artifacts that are deployed.
-    #[serde(default, rename = "artifactConfigs")]
-    pub artifact_configs: ::core::option::Option<::std::vec::Vec<ArtifactConfig>>,
-    /// Output only. Create timestamp.
-    #[serde(default, rename = "createTime")]
-    pub create_time: ::core::option::Option<String>,
-    /// Output only. Any errors that occurred while setting up the InsightsConfig. Each error will be in the format: field_name: error_message, e.g. GetAppHubApplication: Permission denied while getting App Hub application. Please grant permissions to the P4SA.
-    #[serde(default)]
-    pub errors: ::core::option::Option<::std::vec::Vec<Status>>,
-    /// Optional. Set of labels associated with an InsightsConfig.
-    #[serde(default)]
-    pub labels: ::core::option::Option<serde_json::Value>,
-    /// Identifier. The name of the InsightsConfig. Format: projects/{project}/locations/{location}/insightsConfigs/{insightsConfig}
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Optional. The projects to track with the InsightsConfig.
-    #[serde(default)]
-    pub projects: ::core::option::Option<Projects>,
-    /// Output only. Reconciling (https://google.aip.dev/128#reconciliation). Set to true if the current state of InsightsConfig does not match the user''s intended state, and the service is actively updating the resource to reconcile them. This can happen due to user-triggered updates or system actions like failover or maintenance.
-    #[serde(default)]
-    pub reconciling: ::core::option::Option<bool>,
-    /// Output only. The runtime configurations where the application is deployed.
-    #[serde(default, rename = "runtimeConfigs")]
-    pub runtime_configs: ::core::option::Option<::std::vec::Vec<RuntimeConfig>>,
-    /// Optional. Output only. The state of the InsightsConfig. // TODO: enum values: ["STATE_UNSPECIFIED", "PENDING", "COMPLETE", "ERROR"]
-    #[serde(default)]
-    pub state: ::core::option::Option<String>,
-    /// Output only. Update timestamp.
-    #[serde(default, rename = "updateTime")]
-    pub update_time: ::core::option::Option<String>,
-}
-
-/// Represents an installation of the GitHub App.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Installation {
-    /// ID of the installation in GitHub.
-    #[serde(default)]
-    pub id: ::core::option::Option<String>,
-    /// Name of the GitHub user or organization that owns this installation.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Either "user" or "organization".
-    #[serde(default, rename = "type")]
-    pub type_: ::core::option::Option<String>,
-}
-
-/// Describes stage and necessary actions to be taken by the user to complete the installation. Used for GitHub and GitHub Enterprise based connections.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct InstallationState {
-    /// Output only. Link to follow for next action. Empty string if the installation is already complete.
-    #[serde(default, rename = "actionUri")]
-    pub action_uri: ::core::option::Option<String>,
-    /// Output only. Message of what the user should do next to continue the installation. Empty string if the installation is already complete.
-    #[serde(default)]
-    pub message: ::core::option::Option<String>,
-    /// Output only. Current step of the installation process. // TODO: enum values: ["STAGE_UNSPECIFIED", "PENDING_CREATE_APP", "PENDING_USER_OAUTH", "PENDING_INSTALL_APP", "COMPLETE"]
-    #[serde(default)]
-    pub stage: ::core::option::Option<String>,
-}
-
-/// LinkableGitRepository represents a git repository that can be linked to a connection.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct LinkableGitRepository {
-    /// The clone uri of the repository.
-    #[serde(default, rename = "cloneUri")]
-    pub clone_uri: ::core::option::Option<String>,
 }
 
 /// Message for response to listing AccountConnectors
@@ -829,57 +210,6 @@ pub struct ListUsersResponse {
     pub users: ::core::option::Option<::std::vec::Vec<User>>,
 }
 
-/// A resource that represents a Google Cloud location.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Location {
-    /// The friendly name for this location, typically a nearby city name. For example, "Tokyo".
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-    /// Cross-service attributes for the location. For example {"cloud.googleapis.com/region": "us-east1"}
-    #[serde(default)]
-    pub labels: ::core::option::Option<serde_json::Value>,
-    /// The canonical id for this location. For example: "us-east1".
-    #[serde(default, rename = "locationId")]
-    pub location_id: ::core::option::Option<String>,
-    /// Service-specific metadata. For example the available capacity at the given location.
-    #[serde(default)]
-    pub metadata: ::core::option::Option<serde_json::Value>,
-    /// Resource name for the location, which may vary between implementations. For example: "projects/example-project/locations/us-east1"
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-}
-
-/// Represents an OAuth token of the account that authorized the Connection, and associated metadata.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct OAuthCredential {
-    /// Required. A SecretManager resource containing the OAuth token that authorizes the connection. Format: projects/*/secrets/*/versions/* or projects/*/locations/*/secrets/*/versions/* (if regional secrets are supported in that location).
-    #[serde(default, rename = "oauthTokenSecretVersion")]
-    pub oauth_token_secret_version: ::core::option::Option<String>,
-    /// Output only. The username associated with this token.
-    #[serde(default)]
-    pub username: ::core::option::Option<String>,
-}
-
-/// This resource represents a long-running operation that is the result of a network API call.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Operation {
-    /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
-    #[serde(default)]
-    pub done: ::core::option::Option<bool>,
-    /// The error result of the operation in case of failure or cancellation.
-    #[serde(default)]
-    pub error: ::core::option::Option<Status>,
-    /// Service-specific metadata associated with the operation. It typically contains progress information and common metadata such as create time. Some services might not provide such metadata. Any method that returns a long-running operation should document the metadata type, if any.
-    #[serde(default)]
-    pub metadata: ::core::option::Option<serde_json::Value>,
-    /// The server-assigned name, which is only unique within the same service that originally returns it. If you use the default HTTP mapping, the name should be a resource name ending with operations/{unique_id}.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// The normal, successful response of the operation. If the original method returns no data on success, such as Delete, the response is google.protobuf.Empty. If the original method is standard Get/Create/Update, the response should be the resource. For other methods, the response should have the type XxxResponse, where Xxx is the original method name. For example, if the original method name is TakeSnapshot(), the inferred response type is TakeSnapshotResponse.
-    #[serde(default)]
-    pub response: ::core::option::Option<serde_json::Value>,
-}
-
 /// Represents the metadata of the long-running operation.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct OperationMetadata {
@@ -946,72 +276,6 @@ pub struct ProcessGitLabWebhookRequest {
     pub body: ::core::option::Option<HttpBody>,
 }
 
-/// Projects represents the projects to track with the InsightsConfig.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Projects {
-    /// Optional. The project IDs. Format: {project}
-    #[serde(default, rename = "projectIds")]
-    pub project_ids: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// ProviderOAuthConfig is the OAuth config for a provider.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ProviderOAuthConfig {
-    /// Required. User selected scopes to apply to the Oauth config In the event of changing scopes, user records under AccountConnector will be deleted and users will re-auth again.
-    #[serde(default)]
-    pub scopes: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Optional. Immutable. Developer Connect provided OAuth. // TODO: enum values: ["SYSTEM_PROVIDER_UNSPECIFIED", "GITHUB", "GITLAB", "GOOGLE", "SENTRY", "ROVO", "NEW_RELIC", "DATASTAX", "DYNATRACE"]
-    #[serde(default, rename = "systemProviderId")]
-    pub system_provider_id: ::core::option::Option<String>,
-}
-
-/// The proxy configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ProxyConfig {
-    /// Optional. Setting this to true allows the git and http proxies to perform actions on behalf of the user configured under the account connector.
-    #[serde(default)]
-    pub enabled: ::core::option::Option<bool>,
-}
-
-/// RuntimeConfig represents the runtimes where the application is deployed.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct RuntimeConfig {
-    /// Output only. App Hub Service.
-    #[serde(default, rename = "appHubService")]
-    pub app_hub_service: ::core::option::Option<AppHubService>,
-    /// Output only. App Hub Workload.
-    #[serde(default, rename = "appHubWorkload")]
-    pub app_hub_workload: ::core::option::Option<AppHubWorkload>,
-    /// Output only. Google Kubernetes Engine runtime.
-    #[serde(default, rename = "gkeWorkload")]
-    pub gke_workload: ::core::option::Option<GKEWorkload>,
-    /// Output only. Cloud Run runtime.
-    #[serde(default, rename = "googleCloudRun")]
-    pub google_cloud_run: ::core::option::Option<GoogleCloudRun>,
-    /// Output only. The state of the Runtime. // TODO: enum values: ["STATE_UNSPECIFIED", "LINKED", "UNLINKED"]
-    #[serde(default)]
-    pub state: ::core::option::Option<String>,
-    /// Required. Immutable. The URI of the runtime configuration. For GKE, this is the cluster name. For Cloud Run, this is the service name.
-    #[serde(default)]
-    pub uri: ::core::option::Option<String>,
-}
-
-/// Configuration for connections to Secure Source Manager instance
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SecureSourceManagerInstanceConfig {
-    /// Required. Immutable. Secure Source Manager instance resource, formatted as projects/*/locations/*/instances/*
-    #[serde(default)]
-    pub instance: ::core::option::Option<String>,
-}
-
-/// ServiceDirectoryConfig represents Service Directory configuration for a connection.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ServiceDirectoryConfig {
-    /// Required. The Service Directory service name. Format: projects/{project}/locations/{location}/namespaces/{namespace}/services/{service}.
-    #[serde(default)]
-    pub service: ::core::option::Option<String>,
-}
-
 /// Message for responding to starting an OAuth flow.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct StartOAuthResponse {
@@ -1038,18 +302,309 @@ pub struct StartOAuthResponse {
     pub ticket: ::core::option::Option<String>,
 }
 
-/// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
+/// Represents an installation of the GitHub App.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Status {
-    /// The status code, which should be an enum value of google.rpc.Code.
+pub struct Installation {
+    /// ID of the installation in GitHub.
     #[serde(default)]
-    pub code: ::core::option::Option<i32>,
-    /// A list of messages that carry the error details. There is a common set of message types for APIs to use.
+    pub id: ::core::option::Option<String>,
+    /// Name of the GitHub user or organization that owns this installation.
     #[serde(default)]
-    pub details: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
-    /// A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.
+    pub name: ::core::option::Option<String>,
+    /// Either "user" or "organization".
+    #[serde(default, rename = "type")]
+    pub type_: ::core::option::Option<String>,
+}
+
+/// LinkableGitRepository represents a git repository that can be linked to a connection.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LinkableGitRepository {
+    /// The clone uri of the repository.
+    #[serde(default, rename = "cloneUri")]
+    pub clone_uri: ::core::option::Option<String>,
+}
+
+/// A user repository that can be linked to the account connector. Consists of the repo name and the git proxy URL to forward requests to this repo.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct UserRepository {
+    /// Output only. The git clone URL of the repo. For example: https://github.com/myuser/myrepo.git
+    #[serde(default, rename = "cloneUri")]
+    pub clone_uri: ::core::option::Option<String>,
+    /// Output only. The user friendly repo name (e.g., myuser/myrepo)
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+    /// Output only. The Git proxy URL for this repo. For example: https://us-west1-git.developerconnect.dev/a/my-proj/my-ac/myuser/myrepo.git. Populated only when proxy_config.enabled is set to true in the Account Connector. This URL is used by other Google services that integrate with Developer Connect.
+    #[serde(default, rename = "gitProxyUri")]
+    pub git_proxy_uri: ::core::option::Option<String>,
+}
+
+/// Message for representing an error from exchanging OAuth tokens.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ExchangeError {
+    /// https://datatracker.ietf.org/doc/html/rfc6749#section-5.2 - error
     #[serde(default)]
-    pub message: ::core::option::Option<String>,
+    pub code: ::core::option::Option<String>,
+    /// https://datatracker.ietf.org/doc/html/rfc6749#section-5.2 - error_description
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+}
+
+/// AccountConnector encapsulates what a platform administrator needs to configure for users to connect to the service providers, which includes, among other fields, the OAuth client ID, client secret, and authorization and token endpoints.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AccountConnector {
+    /// Optional. Allows users to store small amounts of arbitrary data.
+    #[serde(default)]
+    pub annotations: ::core::option::Option<serde_json::Value>,
+    /// Output only. The timestamp when the accountConnector was created.
+    #[serde(default, rename = "createTime")]
+    pub create_time: ::core::option::Option<String>,
+    /// Custom OAuth config.
+    #[serde(default, rename = "customOauthConfig")]
+    pub custom_oauth_config: ::core::option::Option<CustomOAuthConfig>,
+    /// Optional. This checksum is computed by the server based on the value of other fields, and may be sent on update and delete requests to ensure the client has an up-to-date value before proceeding.
+    #[serde(default)]
+    pub etag: ::core::option::Option<String>,
+    /// Optional. Labels as key value pairs
+    #[serde(default)]
+    pub labels: ::core::option::Option<serde_json::Value>,
+    /// Identifier. The resource name of the accountConnector, in the format projects/{project}/locations/{location}/accountConnectors/{account_connector_id}.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Output only. Start OAuth flow by clicking on this URL.
+    #[serde(default, rename = "oauthStartUri")]
+    pub oauth_start_uri: ::core::option::Option<String>,
+    /// Optional. Provider OAuth config.
+    #[serde(default, rename = "providerOauthConfig")]
+    pub provider_oauth_config: ::core::option::Option<ProviderOAuthConfig>,
+    /// Optional. Configuration for the http and git proxy features.
+    #[serde(default, rename = "proxyConfig")]
+    pub proxy_config: ::core::option::Option<ProxyConfig>,
+    /// Output only. The timestamp when the accountConnector was updated.
+    #[serde(default, rename = "updateTime")]
+    pub update_time: ::core::option::Option<String>,
+}
+
+/// Message describing Connection object
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Connection {
+    /// Optional. Allows clients to store small amounts of arbitrary data.
+    #[serde(default)]
+    pub annotations: ::core::option::Option<serde_json::Value>,
+    /// Configuration for connections to an instance of Bitbucket Clouds.
+    #[serde(default, rename = "bitbucketCloudConfig")]
+    pub bitbucket_cloud_config: ::core::option::Option<BitbucketCloudConfig>,
+    /// Configuration for connections to an instance of Bitbucket Data Center.
+    #[serde(default, rename = "bitbucketDataCenterConfig")]
+    pub bitbucket_data_center_config: ::core::option::Option<BitbucketDataCenterConfig>,
+    /// Output only. [Output only] Create timestamp
+    #[serde(default, rename = "createTime")]
+    pub create_time: ::core::option::Option<String>,
+    /// Optional. The crypto key configuration. This field is used by the Customer-Managed Encryption Keys (CMEK) feature.
+    #[serde(default, rename = "cryptoKeyConfig")]
+    pub crypto_key_config: ::core::option::Option<CryptoKeyConfig>,
+    /// Output only. [Output only] Delete timestamp
+    #[serde(default, rename = "deleteTime")]
+    pub delete_time: ::core::option::Option<String>,
+    /// Optional. If disabled is set to true, functionality is disabled for this connection. Repository based API methods and webhooks processing for repositories in this connection will be disabled.
+    #[serde(default)]
+    pub disabled: ::core::option::Option<bool>,
+    /// Optional. This checksum is computed by the server based on the value of other fields, and may be sent on update and delete requests to ensure the client has an up-to-date value before proceeding.
+    #[serde(default)]
+    pub etag: ::core::option::Option<String>,
+    /// Optional. Configuration for the git proxy feature. Enabling the git proxy allows clients to perform git operations on the repositories linked in the connection. [Learn more](https://docs.cloud.google.com/developer-connect/docs/configure-git-proxy).
+    #[serde(default, rename = "gitProxyConfig")]
+    pub git_proxy_config: ::core::option::Option<GitProxyConfig>,
+    /// Configuration for connections to github.com.
+    #[serde(default, rename = "githubConfig")]
+    pub github_config: ::core::option::Option<GitHubConfig>,
+    /// Configuration for connections to an instance of GitHub Enterprise.
+    #[serde(default, rename = "githubEnterpriseConfig")]
+    pub github_enterprise_config: ::core::option::Option<GitHubEnterpriseConfig>,
+    /// Configuration for connections to gitlab.com.
+    #[serde(default, rename = "gitlabConfig")]
+    pub gitlab_config: ::core::option::Option<GitLabConfig>,
+    /// Configuration for connections to an instance of GitLab Enterprise.
+    #[serde(default, rename = "gitlabEnterpriseConfig")]
+    pub gitlab_enterprise_config: ::core::option::Option<GitLabEnterpriseConfig>,
+    /// Optional. Configuration for connections to an HTTP service provider.
+    #[serde(default, rename = "httpConfig")]
+    pub http_config: ::core::option::Option<GenericHTTPEndpointConfig>,
+    /// Output only. Installation state of the Connection.
+    #[serde(default, rename = "installationState")]
+    pub installation_state: ::core::option::Option<InstallationState>,
+    /// Optional. Labels as key value pairs
+    #[serde(default)]
+    pub labels: ::core::option::Option<serde_json::Value>,
+    /// Identifier. The resource name of the connection, in the format projects/{project}/locations/{location}/connections/{connection_id}.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Output only. Set to true when the connection is being set up or updated in the background.
+    #[serde(default)]
+    pub reconciling: ::core::option::Option<bool>,
+    /// Configuration for connections to an instance of Secure Source Manager.
+    #[serde(default, rename = "secureSourceManagerInstanceConfig")]
+    pub secure_source_manager_instance_config:
+        ::core::option::Option<SecureSourceManagerInstanceConfig>,
+    /// Output only. A system-assigned unique identifier for the Connection.
+    #[serde(default)]
+    pub uid: ::core::option::Option<String>,
+    /// Output only. [Output only] Update timestamp
+    #[serde(default, rename = "updateTime")]
+    pub update_time: ::core::option::Option<String>,
+}
+
+/// The DeploymentEvent resource represents the deployment of the artifact within the InsightsConfig resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DeploymentEvent {
+    /// Output only. The artifact deployments of the DeploymentEvent. Each artifact deployment contains the artifact uri and the runtime configuration uri. For GKE, this would be all the containers images that are deployed in the pod.
+    #[serde(default, rename = "artifactDeployments")]
+    pub artifact_deployments: ::core::option::Option<::std::vec::Vec<ArtifactDeployment>>,
+    /// Output only. The create time of the DeploymentEvent.
+    #[serde(default, rename = "createTime")]
+    pub create_time: ::core::option::Option<String>,
+    /// Output only. The time at which the DeploymentEvent was deployed. This would be the min of all ArtifactDeployment deploy_times.
+    #[serde(default, rename = "deployTime")]
+    pub deploy_time: ::core::option::Option<String>,
+    /// Identifier. The name of the DeploymentEvent. This name is provided by Developer Connect insights. Format: projects/{project}/locations/{location}/insightsConfigs/{insights_config}/deploymentEvents/{uuid}
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Output only. The runtime configurations where the DeploymentEvent happened.
+    #[serde(default, rename = "runtimeConfig")]
+    pub runtime_config: ::core::option::Option<RuntimeConfig>,
+    /// Output only. The runtime assigned URI of the DeploymentEvent. For GKE, this is the fully qualified replica set uri. e.g. container.googleapis.com/projects/{project}/locations/{location}/clusters/{cluster}/k8s/namespaces/{namespace}/apps/replicasets/{replica-set-id} For Cloud Run, this is the revision name.
+    #[serde(default, rename = "runtimeDeploymentUri")]
+    pub runtime_deployment_uri: ::core::option::Option<String>,
+    /// Output only. The state of the DeploymentEvent. // TODO: enum values: ["STATE_UNSPECIFIED", "STATE_ACTIVE", "STATE_INACTIVE"]
+    #[serde(default)]
+    pub state: ::core::option::Option<String>,
+    /// Output only. The time at which the DeploymentEvent was undeployed, all artifacts are considered undeployed once this time is set. This would be the max of all ArtifactDeployment undeploy_times. If any ArtifactDeployment is still active (i.e. does not have an undeploy_time), this field will be empty.
+    #[serde(default, rename = "undeployTime")]
+    pub undeploy_time: ::core::option::Option<String>,
+    /// Output only. The update time of the DeploymentEvent.
+    #[serde(default, rename = "updateTime")]
+    pub update_time: ::core::option::Option<String>,
+}
+
+/// Message describing the GitRepositoryLink object
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GitRepositoryLink {
+    /// Optional. Allows clients to store small amounts of arbitrary data.
+    #[serde(default)]
+    pub annotations: ::core::option::Option<serde_json::Value>,
+    /// Required. Git Clone URI.
+    #[serde(default, rename = "cloneUri")]
+    pub clone_uri: ::core::option::Option<String>,
+    /// Output only. [Output only] Create timestamp
+    #[serde(default, rename = "createTime")]
+    pub create_time: ::core::option::Option<String>,
+    /// Output only. [Output only] Delete timestamp
+    #[serde(default, rename = "deleteTime")]
+    pub delete_time: ::core::option::Option<String>,
+    /// Optional. This checksum is computed by the server based on the value of other fields, and may be sent on update and delete requests to ensure the client has an up-to-date value before proceeding.
+    #[serde(default)]
+    pub etag: ::core::option::Option<String>,
+    /// Output only. URI to access the linked repository through the Git Proxy. This field is only populated if the git proxy is enabled for the connection.
+    #[serde(default, rename = "gitProxyUri")]
+    pub git_proxy_uri: ::core::option::Option<String>,
+    /// Optional. Labels as key value pairs
+    #[serde(default)]
+    pub labels: ::core::option::Option<serde_json::Value>,
+    /// Identifier. Resource name of the repository, in the format projects/*/locations/*/connections/*/gitRepositoryLinks/*.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Output only. Set to true when the connection is being set up or updated in the background.
+    #[serde(default)]
+    pub reconciling: ::core::option::Option<bool>,
+    /// Output only. A system-assigned unique identifier for the GitRepositoryLink.
+    #[serde(default)]
+    pub uid: ::core::option::Option<String>,
+    /// Output only. [Output only] Update timestamp
+    #[serde(default, rename = "updateTime")]
+    pub update_time: ::core::option::Option<String>,
+    /// Output only. External ID of the webhook created for the repository.
+    #[serde(default, rename = "webhookId")]
+    pub webhook_id: ::core::option::Option<String>,
+}
+
+/// The InsightsConfig resource is the core configuration object to capture events from your Software Development Lifecycle. It acts as the central hub for managing how Developer Connect understands your application, its runtime environments, and the artifacts deployed within them.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct InsightsConfig {
+    /// Optional. User specified annotations. See https://google.aip.dev/148#annotations for more details such as format and size limitations.
+    #[serde(default)]
+    pub annotations: ::core::option::Option<serde_json::Value>,
+    /// Optional. The name of the App Hub Application. Format: projects/{project}/locations/{location}/applications/{application}
+    #[serde(default, rename = "appHubApplication")]
+    pub app_hub_application: ::core::option::Option<String>,
+    /// Optional. The artifact configurations of the artifacts that are deployed.
+    #[serde(default, rename = "artifactConfigs")]
+    pub artifact_configs: ::core::option::Option<::std::vec::Vec<ArtifactConfig>>,
+    /// Output only. Create timestamp.
+    #[serde(default, rename = "createTime")]
+    pub create_time: ::core::option::Option<String>,
+    /// Output only. Any errors that occurred while setting up the InsightsConfig. Each error will be in the format: field_name: error_message, e.g. GetAppHubApplication: Permission denied while getting App Hub application. Please grant permissions to the P4SA.
+    #[serde(default)]
+    pub errors: ::core::option::Option<::std::vec::Vec<Status>>,
+    /// Optional. Set of labels associated with an InsightsConfig.
+    #[serde(default)]
+    pub labels: ::core::option::Option<serde_json::Value>,
+    /// Identifier. The name of the InsightsConfig. Format: projects/{project}/locations/{location}/insightsConfigs/{insightsConfig}
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Optional. The projects to track with the InsightsConfig.
+    #[serde(default)]
+    pub projects: ::core::option::Option<Projects>,
+    /// Output only. Reconciling (https://google.aip.dev/128#reconciliation). Set to true if the current state of InsightsConfig does not match the user''s intended state, and the service is actively updating the resource to reconcile them. This can happen due to user-triggered updates or system actions like failover or maintenance.
+    #[serde(default)]
+    pub reconciling: ::core::option::Option<bool>,
+    /// Output only. The runtime configurations where the application is deployed.
+    #[serde(default, rename = "runtimeConfigs")]
+    pub runtime_configs: ::core::option::Option<::std::vec::Vec<RuntimeConfig>>,
+    /// Optional. Output only. The state of the InsightsConfig. // TODO: enum values: ["STATE_UNSPECIFIED", "PENDING", "COMPLETE", "ERROR"]
+    #[serde(default)]
+    pub state: ::core::option::Option<String>,
+    /// Output only. Update timestamp.
+    #[serde(default, rename = "updateTime")]
+    pub update_time: ::core::option::Option<String>,
+}
+
+/// A resource that represents a Google Cloud location.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Location {
+    /// The friendly name for this location, typically a nearby city name. For example, "Tokyo".
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+    /// Cross-service attributes for the location. For example {"cloud.googleapis.com/region": "us-east1"}
+    #[serde(default)]
+    pub labels: ::core::option::Option<serde_json::Value>,
+    /// The canonical id for this location. For example: "us-east1".
+    #[serde(default, rename = "locationId")]
+    pub location_id: ::core::option::Option<String>,
+    /// Service-specific metadata. For example the available capacity at the given location.
+    #[serde(default)]
+    pub metadata: ::core::option::Option<serde_json::Value>,
+    /// Resource name for the location, which may vary between implementations. For example: "projects/example-project/locations/us-east1"
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+}
+
+/// This resource represents a long-running operation that is the result of a network API call.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Operation {
+    /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
+    #[serde(default)]
+    pub done: ::core::option::Option<bool>,
+    /// The error result of the operation in case of failure or cancellation.
+    #[serde(default)]
+    pub error: ::core::option::Option<Status>,
+    /// Service-specific metadata associated with the operation. It typically contains progress information and common metadata such as create time. Some services might not provide such metadata. Any method that returns a long-running operation should document the metadata type, if any.
+    #[serde(default)]
+    pub metadata: ::core::option::Option<serde_json::Value>,
+    /// The server-assigned name, which is only unique within the same service that originally returns it. If you use the default HTTP mapping, the name should be a resource name ending with operations/{unique_id}.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// The normal, successful response of the operation. If the original method returns no data on success, such as Delete, the response is google.protobuf.Empty. If the original method is standard Get/Create/Update, the response should be the resource. For other methods, the response should have the type XxxResponse, where Xxx is the original method name. For example, if the original method name is TakeSnapshot(), the inferred response type is TakeSnapshotResponse.
+    #[serde(default)]
+    pub response: ::core::option::Option<serde_json::Value>,
 }
 
 /// User represents a user connected to the service providers through a AccountConnector.
@@ -1069,6 +624,372 @@ pub struct User {
     pub name: ::core::option::Option<String>,
 }
 
+/// Message that represents an arbitrary HTTP body. It should only be used for payload formats that can''t be represented as JSON, such as raw binary or an HTML page. This message can be used both in streaming and non-streaming API methods in the request as well as the response. It can be used as a top-level request field, which is convenient if one wants to extract parameters from either the URL or HTTP template into the request fields and also want access to the raw HTTP body. Example: message GetResourceRequest { // A unique request id. string request_id = 1; // The raw HTTP body is bound to this field. google.api.HttpBody http_body = 2; } service ResourceService { rpc GetResource(GetResourceRequest) returns (google.api.HttpBody); rpc UpdateResource(google.api.HttpBody) returns (google.protobuf.Empty); } Example with streaming methods: service CaldavService { rpc GetCalendar(stream google.api.HttpBody) returns (stream google.api.HttpBody); rpc UpdateCalendar(stream google.api.HttpBody) returns (stream google.api.HttpBody); } Use of this type only changes how the request and response bodies are handled, all other features will continue to work unchanged.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct HttpBody {
+    /// The HTTP Content-Type header value specifying the content type of the body.
+    #[serde(default, rename = "contentType")]
+    pub content_type: ::core::option::Option<String>,
+    /// The HTTP request/response body as raw binary.
+    #[serde(default)]
+    pub data: ::core::option::Option<String>,
+    /// Application specific response metadata. Must be set in the first response for streaming APIs.
+    #[serde(default)]
+    pub extensions: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
+}
+
+/// Message for a customized OAuth config.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CustomOAuthConfig {
+    /// Required. Immutable. The OAuth2 authorization server URL.
+    #[serde(default, rename = "authUri")]
+    pub auth_uri: ::core::option::Option<String>,
+    /// Required. The client ID of the OAuth application.
+    #[serde(default, rename = "clientId")]
+    pub client_id: ::core::option::Option<String>,
+    /// Required. Input only. The client secret of the OAuth application. It will be provided as plain text, but encrypted and stored in developer connect. As INPUT_ONLY field, it will not be included in the output.
+    #[serde(default, rename = "clientSecret")]
+    pub client_secret: ::core::option::Option<String>,
+    /// Required. The host URI of the OAuth application.
+    #[serde(default, rename = "hostUri")]
+    pub host_uri: ::core::option::Option<String>,
+    /// Optional. Disable PKCE for this OAuth config. PKCE is enabled by default.
+    #[serde(default, rename = "pkceDisabled")]
+    pub pkce_disabled: ::core::option::Option<bool>,
+    /// Required. The type of the SCM provider. // TODO: enum values: ["SCM_PROVIDER_UNKNOWN", "GITHUB_ENTERPRISE", "GITLAB_ENTERPRISE", "BITBUCKET_DATA_CENTER"]
+    #[serde(default, rename = "scmProvider")]
+    pub scm_provider: ::core::option::Option<String>,
+    /// Required. The scopes to be requested during OAuth.
+    #[serde(default)]
+    pub scopes: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Output only. SCM server version installed at the host URI.
+    #[serde(default, rename = "serverVersion")]
+    pub server_version: ::core::option::Option<String>,
+    /// Optional. Configuration for using Service Directory to connect to a private service.
+    #[serde(default, rename = "serviceDirectoryConfig")]
+    pub service_directory_config: ::core::option::Option<ServiceDirectoryConfig>,
+    /// Optional. SSL certificate to use for requests to a private service.
+    #[serde(default, rename = "sslCaCertificate")]
+    pub ssl_ca_certificate: ::core::option::Option<String>,
+    /// Required. Immutable. The OAuth2 token request URL.
+    #[serde(default, rename = "tokenUri")]
+    pub token_uri: ::core::option::Option<String>,
+}
+
+/// ProviderOAuthConfig is the OAuth config for a provider.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ProviderOAuthConfig {
+    /// Required. User selected scopes to apply to the Oauth config In the event of changing scopes, user records under AccountConnector will be deleted and users will re-auth again.
+    #[serde(default)]
+    pub scopes: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Optional. Immutable. Developer Connect provided OAuth. // TODO: enum values: ["SYSTEM_PROVIDER_UNSPECIFIED", "GITHUB", "GITLAB", "GOOGLE", "SENTRY", "ROVO", "NEW_RELIC", "DATASTAX", "DYNATRACE"]
+    #[serde(default, rename = "systemProviderId")]
+    pub system_provider_id: ::core::option::Option<String>,
+}
+
+/// The proxy configuration.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ProxyConfig {
+    /// Optional. Setting this to true allows the git and http proxies to perform actions on behalf of the user configured under the account connector.
+    #[serde(default)]
+    pub enabled: ::core::option::Option<bool>,
+}
+
+/// Configuration for connections to an instance of Bitbucket Cloud.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BitbucketCloudConfig {
+    /// Required. An access token with the minimum repository, pullrequest and webhook scope access. It can either be a workspace, project or repository access token. This is needed to create webhooks. It''s recommended to use a system account to generate these credentials.
+    #[serde(default, rename = "authorizerCredential")]
+    pub authorizer_credential: ::core::option::Option<UserCredential>,
+    /// Required. An access token with the minimum repository access. It can either be a workspace, project or repository access token. It''s recommended to use a system account to generate the credentials.
+    #[serde(default, rename = "readAuthorizerCredential")]
+    pub read_authorizer_credential: ::core::option::Option<UserCredential>,
+    /// Required. Immutable. SecretManager resource containing the webhook secret used to verify webhook events, formatted as projects/*/secrets/*/versions/* or projects/*/locations/*/secrets/*/versions/* (if regional secrets are supported in that location). This is used to validate and create webhooks.
+    #[serde(default, rename = "webhookSecretSecretVersion")]
+    pub webhook_secret_secret_version: ::core::option::Option<String>,
+    /// Required. The Bitbucket Cloud Workspace ID to be connected to Google Cloud Platform.
+    #[serde(default)]
+    pub workspace: ::core::option::Option<String>,
+}
+
+/// Configuration for connections to an instance of Bitbucket Data Center.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BitbucketDataCenterConfig {
+    /// Required. An http access token with the minimum Repository admin scope access. This is needed to create webhooks. It''s recommended to use a system account to generate these credentials.
+    #[serde(default, rename = "authorizerCredential")]
+    pub authorizer_credential: ::core::option::Option<UserCredential>,
+    /// Required. The URI of the Bitbucket Data Center host this connection is for.
+    #[serde(default, rename = "hostUri")]
+    pub host_uri: ::core::option::Option<String>,
+    /// Required. An http access token with the minimum Repository read access. It''s recommended to use a system account to generate the credentials.
+    #[serde(default, rename = "readAuthorizerCredential")]
+    pub read_authorizer_credential: ::core::option::Option<UserCredential>,
+    /// Output only. Version of the Bitbucket Data Center server running on the host_uri.
+    #[serde(default, rename = "serverVersion")]
+    pub server_version: ::core::option::Option<String>,
+    /// Optional. Configuration for using Service Directory to privately connect to a Bitbucket Data Center instance. This should only be set if the Bitbucket Data Center is hosted on-premises and not reachable by public internet. If this field is left empty, calls to the Bitbucket Data Center will be made over the public internet.
+    #[serde(default, rename = "serviceDirectoryConfig")]
+    pub service_directory_config: ::core::option::Option<ServiceDirectoryConfig>,
+    /// Optional. SSL certificate authority to trust when making requests to Bitbucket Data Center.
+    #[serde(default, rename = "sslCaCertificate")]
+    pub ssl_ca_certificate: ::core::option::Option<String>,
+    /// Required. Immutable. SecretManager resource containing the webhook secret used to verify webhook events, formatted as projects/*/secrets/*/versions/* or projects/*/locations/*/secrets/*/versions/* (if regional secrets are supported in that location). This is used to validate webhooks.
+    #[serde(default, rename = "webhookSecretSecretVersion")]
+    pub webhook_secret_secret_version: ::core::option::Option<String>,
+}
+
+/// The crypto key configuration. This field is used by the Customer-managed encryption keys (CMEK) feature.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CryptoKeyConfig {
+    /// Required. The name of the key which is used to encrypt/decrypt customer data. For key in Cloud KMS, the key should be in the format of projects/*/locations/*/keyRings/*/cryptoKeys/*.
+    #[serde(default, rename = "keyReference")]
+    pub key_reference: ::core::option::Option<String>,
+}
+
+/// The git proxy configuration.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GitProxyConfig {
+    /// Optional. Setting this to true allows the git proxy to be used for performing git operations on the repositories linked in the connection.
+    #[serde(default)]
+    pub enabled: ::core::option::Option<bool>,
+    /// Output only. The base URI for the HTTP proxy endpoint. Has the format https://{generatedID}-c-h-{shortRegion}.developerconnect.dev Populated only when enabled is set to true. This endpoint is used by other Google services that integrate with Developer Connect.
+    #[serde(default, rename = "httpProxyBaseUri")]
+    pub http_proxy_base_uri: ::core::option::Option<String>,
+}
+
+/// Configuration for connections to github.com.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GitHubConfig {
+    /// Optional. GitHub App installation id.
+    #[serde(default, rename = "appInstallationId")]
+    pub app_installation_id: ::core::option::Option<String>,
+    /// Optional. OAuth credential of the account that authorized the GitHub App. It is recommended to use a robot account instead of a human user account. The OAuth token must be tied to the GitHub App of this config.
+    #[serde(default, rename = "authorizerCredential")]
+    pub authorizer_credential: ::core::option::Option<OAuthCredential>,
+    /// Required. Immutable. The GitHub Application that was installed to the GitHub user or organization. // TODO: enum values: ["GIT_HUB_APP_UNSPECIFIED", "DEVELOPER_CONNECT", "FIREBASE", "GEMINI_CODE_ASSIST", "DATAFORM"]
+    #[serde(default, rename = "githubApp")]
+    pub github_app: ::core::option::Option<String>,
+    /// Output only. The URI to navigate to in order to manage the installation associated with this GitHubConfig.
+    #[serde(default, rename = "installationUri")]
+    pub installation_uri: ::core::option::Option<String>,
+}
+
+/// Configuration for connections to an instance of GitHub Enterprise.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GitHubEnterpriseConfig {
+    /// Optional. ID of the GitHub App created from the manifest.
+    #[serde(default, rename = "appId")]
+    pub app_id: ::core::option::Option<String>,
+    /// Optional. ID of the installation of the GitHub App.
+    #[serde(default, rename = "appInstallationId")]
+    pub app_installation_id: ::core::option::Option<String>,
+    /// Output only. The URL-friendly name of the GitHub App.
+    #[serde(default, rename = "appSlug")]
+    pub app_slug: ::core::option::Option<String>,
+    /// Required. The URI of the GitHub Enterprise host this connection is for.
+    #[serde(default, rename = "hostUri")]
+    pub host_uri: ::core::option::Option<String>,
+    /// Output only. The URI to navigate to in order to manage the installation associated with this GitHubEnterpriseConfig.
+    #[serde(default, rename = "installationUri")]
+    pub installation_uri: ::core::option::Option<String>,
+    /// Optional. Immutable. GitHub Enterprise organization in which the GitHub App is created.
+    #[serde(default)]
+    pub organization: ::core::option::Option<String>,
+    /// Optional. SecretManager resource containing the private key of the GitHub App, formatted as projects/*/secrets/*/versions/* or projects/*/locations/*/secrets/*/versions/* (if regional secrets are supported in that location).
+    #[serde(default, rename = "privateKeySecretVersion")]
+    pub private_key_secret_version: ::core::option::Option<String>,
+    /// Output only. GitHub Enterprise version installed at the host_uri.
+    #[serde(default, rename = "serverVersion")]
+    pub server_version: ::core::option::Option<String>,
+    /// Optional. Configuration for using Service Directory to privately connect to a GitHub Enterprise server. This should only be set if the GitHub Enterprise server is hosted on-premises and not reachable by public internet. If this field is left empty, calls to the GitHub Enterprise server will be made over the public internet.
+    #[serde(default, rename = "serviceDirectoryConfig")]
+    pub service_directory_config: ::core::option::Option<ServiceDirectoryConfig>,
+    /// Optional. SSL certificate to use for requests to GitHub Enterprise.
+    #[serde(default, rename = "sslCaCertificate")]
+    pub ssl_ca_certificate: ::core::option::Option<String>,
+    /// Optional. SecretManager resource containing the webhook secret of the GitHub App, formatted as projects/*/secrets/*/versions/* or projects/*/locations/*/secrets/*/versions/* (if regional secrets are supported in that location).
+    #[serde(default, rename = "webhookSecretSecretVersion")]
+    pub webhook_secret_secret_version: ::core::option::Option<String>,
+}
+
+/// Configuration for connections to gitlab.com.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GitLabConfig {
+    /// Required. A GitLab personal access token with the minimum api scope access and a minimum role of maintainer. The GitLab Projects visible to this Personal Access Token will control which Projects Developer Connect has access to.
+    #[serde(default, rename = "authorizerCredential")]
+    pub authorizer_credential: ::core::option::Option<UserCredential>,
+    /// Required. A GitLab personal access token with the minimum read_api scope access and a minimum role of reporter. The GitLab Projects visible to this Personal Access Token will control which Projects Developer Connect has access to.
+    #[serde(default, rename = "readAuthorizerCredential")]
+    pub read_authorizer_credential: ::core::option::Option<UserCredential>,
+    /// Required. Immutable. SecretManager resource containing the webhook secret of a GitLab project, formatted as projects/*/secrets/*/versions/* or projects/*/locations/*/secrets/*/versions/* (if regional secrets are supported in that location). This is used to validate webhooks.
+    #[serde(default, rename = "webhookSecretSecretVersion")]
+    pub webhook_secret_secret_version: ::core::option::Option<String>,
+}
+
+/// Configuration for connections to an instance of GitLab Enterprise.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GitLabEnterpriseConfig {
+    /// Required. A GitLab personal access token with the minimum api scope access and a minimum role of maintainer. The GitLab Projects visible to this Personal Access Token will control which Projects Developer Connect has access to.
+    #[serde(default, rename = "authorizerCredential")]
+    pub authorizer_credential: ::core::option::Option<UserCredential>,
+    /// Required. The URI of the GitLab Enterprise host this connection is for.
+    #[serde(default, rename = "hostUri")]
+    pub host_uri: ::core::option::Option<String>,
+    /// Required. A GitLab personal access token with the minimum read_api scope access and a minimum role of reporter. The GitLab Projects visible to this Personal Access Token will control which Projects Developer Connect has access to.
+    #[serde(default, rename = "readAuthorizerCredential")]
+    pub read_authorizer_credential: ::core::option::Option<UserCredential>,
+    /// Output only. Version of the GitLab Enterprise server running on the host_uri.
+    #[serde(default, rename = "serverVersion")]
+    pub server_version: ::core::option::Option<String>,
+    /// Optional. Configuration for using Service Directory to privately connect to a GitLab Enterprise instance. This should only be set if the GitLab Enterprise server is hosted on-premises and not reachable by public internet. If this field is left empty, calls to the GitLab Enterprise server will be made over the public internet.
+    #[serde(default, rename = "serviceDirectoryConfig")]
+    pub service_directory_config: ::core::option::Option<ServiceDirectoryConfig>,
+    /// Optional. SSL Certificate Authority certificate to use for requests to GitLab Enterprise instance.
+    #[serde(default, rename = "sslCaCertificate")]
+    pub ssl_ca_certificate: ::core::option::Option<String>,
+    /// Required. Immutable. SecretManager resource containing the webhook secret of a GitLab project, formatted as projects/*/secrets/*/versions/* or projects/*/locations/*/secrets/*/versions/* (if regional secrets are supported in that location). This is used to validate webhooks.
+    #[serde(default, rename = "webhookSecretSecretVersion")]
+    pub webhook_secret_secret_version: ::core::option::Option<String>,
+}
+
+/// Defines the configuration for connections to an HTTP service provider.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GenericHTTPEndpointConfig {
+    /// Optional. Basic authentication with username and password.
+    #[serde(default, rename = "basicAuthentication")]
+    pub basic_authentication: ::core::option::Option<BasicAuthentication>,
+    /// Optional. Bearer token authentication with a token.
+    #[serde(default, rename = "bearerTokenAuthentication")]
+    pub bearer_token_authentication: ::core::option::Option<BearerTokenAuthentication>,
+    /// Required. Immutable. The service provider''s https endpoint.
+    #[serde(default, rename = "hostUri")]
+    pub host_uri: ::core::option::Option<String>,
+    /// Optional. Configuration for using Service Directory to privately connect to a HTTP service provider. This should only be set if the Http service provider is hosted on-premises and not reachable by public internet. If this field is left empty, calls to the HTTP service provider will be made over the public internet.
+    #[serde(default, rename = "serviceDirectoryConfig")]
+    pub service_directory_config: ::core::option::Option<ServiceDirectoryConfig>,
+    /// Optional. The SSL certificate to use for requests to the HTTP service provider.
+    #[serde(default, rename = "sslCaCertificate")]
+    pub ssl_ca_certificate: ::core::option::Option<String>,
+}
+
+/// Describes stage and necessary actions to be taken by the user to complete the installation. Used for GitHub and GitHub Enterprise based connections.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct InstallationState {
+    /// Output only. Link to follow for next action. Empty string if the installation is already complete.
+    #[serde(default, rename = "actionUri")]
+    pub action_uri: ::core::option::Option<String>,
+    /// Output only. Message of what the user should do next to continue the installation. Empty string if the installation is already complete.
+    #[serde(default)]
+    pub message: ::core::option::Option<String>,
+    /// Output only. Current step of the installation process. // TODO: enum values: ["STAGE_UNSPECIFIED", "PENDING_CREATE_APP", "PENDING_USER_OAUTH", "PENDING_INSTALL_APP", "COMPLETE"]
+    #[serde(default)]
+    pub stage: ::core::option::Option<String>,
+}
+
+/// Configuration for connections to Secure Source Manager instance
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SecureSourceManagerInstanceConfig {
+    /// Required. Immutable. Secure Source Manager instance resource, formatted as projects/*/locations/*/instances/*
+    #[serde(default)]
+    pub instance: ::core::option::Option<String>,
+}
+
+/// The ArtifactDeployment resource represents the deployment of the artifact within the InsightsConfig resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ArtifactDeployment {
+    /// Output only. The artifact alias in the deployment spec, with Tag/SHA. e.g. us-docker.pkg.dev/my-project/my-repo/image:1.0.0
+    #[serde(default, rename = "artifactAlias")]
+    pub artifact_alias: ::core::option::Option<String>,
+    /// Output only. The artifact that is deployed.
+    #[serde(default, rename = "artifactReference")]
+    pub artifact_reference: ::core::option::Option<String>,
+    /// Output only. The summary of container status of the artifact deployment. Format as ContainerStatusState-Reason : restartCount e.g. "Waiting-ImagePullBackOff : 3"
+    #[serde(default, rename = "containerStatusSummary")]
+    pub container_status_summary: ::core::option::Option<String>,
+    /// Output only. The time at which the deployment was deployed.
+    #[serde(default, rename = "deployTime")]
+    pub deploy_time: ::core::option::Option<String>,
+    /// Output only. Unique identifier of ArtifactDeployment.
+    #[serde(default)]
+    pub id: ::core::option::Option<String>,
+    /// Output only. The source commits at which this artifact was built. Extracted from provenance.
+    #[serde(default, rename = "sourceCommitUris")]
+    pub source_commit_uris: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Output only. The time at which the deployment was undeployed, all artifacts are considered undeployed once this time is set.
+    #[serde(default, rename = "undeployTime")]
+    pub undeploy_time: ::core::option::Option<String>,
+}
+
+/// The artifact config of the artifact that is deployed.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ArtifactConfig {
+    /// Optional. Set if the artifact metadata is stored in Artifact analysis.
+    #[serde(default, rename = "googleArtifactAnalysis")]
+    pub google_artifact_analysis: ::core::option::Option<GoogleArtifactAnalysis>,
+    /// Optional. Set if the artifact is stored in Artifact registry.
+    #[serde(default, rename = "googleArtifactRegistry")]
+    pub google_artifact_registry: ::core::option::Option<GoogleArtifactRegistry>,
+    /// Required. Immutable. The URI of the artifact that is deployed. e.g. us-docker.pkg.dev/my-project/my-repo/image. The URI does not include the tag / digest because it captures a lineage of artifacts.
+    #[serde(default)]
+    pub uri: ::core::option::Option<String>,
+}
+
+/// Projects represents the projects to track with the InsightsConfig.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Projects {
+    /// Optional. The project IDs. Format: {project}
+    #[serde(default, rename = "projectIds")]
+    pub project_ids: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// RuntimeConfig represents the runtimes where the application is deployed.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RuntimeConfig {
+    /// Output only. App Hub Service.
+    #[serde(default, rename = "appHubService")]
+    pub app_hub_service: ::core::option::Option<AppHubService>,
+    /// Output only. App Hub Workload.
+    #[serde(default, rename = "appHubWorkload")]
+    pub app_hub_workload: ::core::option::Option<AppHubWorkload>,
+    /// Output only. Google Kubernetes Engine runtime.
+    #[serde(default, rename = "gkeWorkload")]
+    pub gke_workload: ::core::option::Option<GKEWorkload>,
+    /// Output only. Cloud Run runtime.
+    #[serde(default, rename = "googleCloudRun")]
+    pub google_cloud_run: ::core::option::Option<GoogleCloudRun>,
+    /// Output only. The state of the Runtime. // TODO: enum values: ["STATE_UNSPECIFIED", "LINKED", "UNLINKED"]
+    #[serde(default)]
+    pub state: ::core::option::Option<String>,
+    /// Required. Immutable. The URI of the runtime configuration. For GKE, this is the cluster name. For Cloud Run, this is the service name.
+    #[serde(default)]
+    pub uri: ::core::option::Option<String>,
+}
+
+/// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Status {
+    /// The status code, which should be an enum value of google.rpc.Code.
+    #[serde(default)]
+    pub code: ::core::option::Option<i32>,
+    /// A list of messages that carry the error details. There is a common set of message types for APIs to use.
+    #[serde(default)]
+    pub details: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
+    /// A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.
+    #[serde(default)]
+    pub message: ::core::option::Option<String>,
+}
+
+/// Represents an OAuth token of the account that authorized the Connection, and associated metadata.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct OAuthCredential {
+    /// Required. A SecretManager resource containing the OAuth token that authorizes the connection. Format: projects/*/secrets/*/versions/* or projects/*/locations/*/secrets/*/versions/* (if regional secrets are supported in that location).
+    #[serde(default, rename = "oauthTokenSecretVersion")]
+    pub oauth_token_secret_version: ::core::option::Option<String>,
+    /// Output only. The username associated with this token.
+    #[serde(default)]
+    pub username: ::core::option::Option<String>,
+}
+
 /// Represents a personal access token that authorized the Connection, and associated metadata.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct UserCredential {
@@ -1080,16 +1001,95 @@ pub struct UserCredential {
     pub username: ::core::option::Option<String>,
 }
 
-/// A user repository that can be linked to the account connector. Consists of the repo name and the git proxy URL to forward requests to this repo.
+/// Basic authentication with username and password.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct UserRepository {
-    /// Output only. The git clone URL of the repo. For example: https://github.com/myuser/myrepo.git
-    #[serde(default, rename = "cloneUri")]
-    pub clone_uri: ::core::option::Option<String>,
-    /// Output only. The user friendly repo name (e.g., myuser/myrepo)
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-    /// Output only. The Git proxy URL for this repo. For example: https://us-west1-git.developerconnect.dev/a/my-proj/my-ac/myuser/myrepo.git. Populated only when proxy_config.enabled is set to true in the Account Connector. This URL is used by other Google services that integrate with Developer Connect.
-    #[serde(default, rename = "gitProxyUri")]
-    pub git_proxy_uri: ::core::option::Option<String>,
+pub struct BasicAuthentication {
+    /// The password SecretManager secret version to authenticate as.
+    #[serde(default, rename = "passwordSecretVersion")]
+    pub password_secret_version: ::core::option::Option<String>,
+    /// Required. The username to authenticate as.
+    #[serde(default)]
+    pub username: ::core::option::Option<String>,
+}
+
+/// Bearer token authentication with a token.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BearerTokenAuthentication {
+    /// Optional. The token SecretManager secret version to authenticate as.
+    #[serde(default, rename = "tokenSecretVersion")]
+    pub token_secret_version: ::core::option::Option<String>,
+}
+
+/// ServiceDirectoryConfig represents Service Directory configuration for a connection.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ServiceDirectoryConfig {
+    /// Required. The Service Directory service name. Format: projects/{project}/locations/{location}/namespaces/{namespace}/services/{service}.
+    #[serde(default)]
+    pub service: ::core::option::Option<String>,
+}
+
+/// Google Artifact Analysis configurations.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleArtifactAnalysis {
+    /// Required. The project id of the project where the provenance is stored.
+    #[serde(default, rename = "projectId")]
+    pub project_id: ::core::option::Option<String>,
+}
+
+/// Google Artifact Registry configurations.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleArtifactRegistry {
+    /// Required. Immutable. The name of the artifact registry package.
+    #[serde(default, rename = "artifactRegistryPackage")]
+    pub artifact_registry_package: ::core::option::Option<String>,
+    /// Required. The host project of Artifact Registry.
+    #[serde(default, rename = "projectId")]
+    pub project_id: ::core::option::Option<String>,
+}
+
+/// AppHubService represents the App Hub Service.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AppHubService {
+    /// Required. Output only. Immutable. The name of the App Hub Service. Format: projects/{project}/locations/{location}/applications/{application}/services/{service}.
+    #[serde(default, rename = "apphubService")]
+    pub apphub_service: ::core::option::Option<String>,
+    /// Output only. The criticality of the App Hub Service.
+    #[serde(default)]
+    pub criticality: ::core::option::Option<String>,
+    /// Output only. The environment of the App Hub Service.
+    #[serde(default)]
+    pub environment: ::core::option::Option<String>,
+}
+
+/// AppHubWorkload represents the App Hub Workload.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AppHubWorkload {
+    /// Output only. The criticality of the App Hub Workload.
+    #[serde(default)]
+    pub criticality: ::core::option::Option<String>,
+    /// Output only. The environment of the App Hub Workload.
+    #[serde(default)]
+    pub environment: ::core::option::Option<String>,
+    /// Required. Output only. Immutable. The name of the App Hub Workload. Format: projects/{project}/locations/{location}/applications/{application}/workloads/{workload}.
+    #[serde(default)]
+    pub workload: ::core::option::Option<String>,
+}
+
+/// GKEWorkload represents the Google Kubernetes Engine runtime.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GKEWorkload {
+    /// Required. Immutable. The name of the GKE cluster. Format: projects/{project}/locations/{location}/clusters/{cluster}.
+    #[serde(default)]
+    pub cluster: ::core::option::Option<String>,
+    /// Output only. The name of the GKE deployment. Format: projects/{project}/locations/{location}/clusters/{cluster}/namespaces/{namespace}/deployments/{deployment}.
+    #[serde(default)]
+    pub deployment: ::core::option::Option<String>,
+}
+
+/// GoogleCloudRun represents the Cloud Run runtime.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudRun {
+    /// Required. Immutable. The name of the Cloud Run service. Format: projects/{project}/locations/{location}/services/{service}.
+    #[serde(default, rename = "serviceUri")]
+    pub service_uri: ::core::option::Option<String>,
 }

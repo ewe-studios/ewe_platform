@@ -10,25 +10,6 @@
 use super::*;
 use serde::{Deserialize, Serialize};
 
-/// Deployment information for a specific release channel. Used in requests to update deployment parameters.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DeployInfo {
-    /// Required. The current deploy percentage for the release channel (nonnegative number between 0 and 100).
-    #[serde(default, rename = "deployPercentage")]
-    pub deploy_percentage: ::core::option::Option<i32>,
-}
-
-/// Deployment information for a specific release channel
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DistributionChannel {
-    /// The extension version provided in the manifest of the uploaded package.
-    #[serde(default, rename = "crxVersion")]
-    pub crx_version: ::core::option::Option<String>,
-    /// The current deploy percentage for the release channel (nonnegative number between 0 and 100).
-    #[serde(default, rename = "deployPercentage")]
-    pub deploy_percentage: ::core::option::Option<i32>,
-}
-
 /// Response message for FetchItemStatus.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct FetchItemStatusResponse {
@@ -56,17 +37,6 @@ pub struct FetchItemStatusResponse {
     /// If true, the item has been warned for a policy violation and will be taken down if not resolved. Check the developer dashboard for details.
     #[serde(default)]
     pub warned: ::core::option::Option<bool>,
-}
-
-/// Details on the status of an item revision.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ItemRevisionStatus {
-    /// Details on the package of the item
-    #[serde(default, rename = "distributionChannels")]
-    pub distribution_channels: ::core::option::Option<::std::vec::Vec<DistributionChannel>>,
-    /// Output only. Current state of the item // TODO: enum values: ["ITEM_STATE_UNSPECIFIED", "PENDING_REVIEW", "STAGED", "PUBLISHED", "PUBLISHED_TO_TESTERS", "REJECTED", "CANCELLED"]
-    #[serde(default)]
-    pub state: ::core::option::Option<String>,
 }
 
 /// Request message for PublishItem.
@@ -120,4 +90,34 @@ pub struct UploadItemPackageResponse {
     /// Output only. The state of the upload. If upload_state is UPLOAD_IN_PROGRESS, you can poll for updates using the fetchStatus method. // TODO: enum values: ["UPLOAD_STATE_UNSPECIFIED", "SUCCEEDED", "IN_PROGRESS", "FAILED", "NOT_FOUND"]
     #[serde(default, rename = "uploadState")]
     pub upload_state: ::core::option::Option<String>,
+}
+
+/// Details on the status of an item revision.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ItemRevisionStatus {
+    /// Details on the package of the item
+    #[serde(default, rename = "distributionChannels")]
+    pub distribution_channels: ::core::option::Option<::std::vec::Vec<DistributionChannel>>,
+    /// Output only. Current state of the item // TODO: enum values: ["ITEM_STATE_UNSPECIFIED", "PENDING_REVIEW", "STAGED", "PUBLISHED", "PUBLISHED_TO_TESTERS", "REJECTED", "CANCELLED"]
+    #[serde(default)]
+    pub state: ::core::option::Option<String>,
+}
+
+/// Deployment information for a specific release channel. Used in requests to update deployment parameters.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DeployInfo {
+    /// Required. The current deploy percentage for the release channel (nonnegative number between 0 and 100).
+    #[serde(default, rename = "deployPercentage")]
+    pub deploy_percentage: ::core::option::Option<i32>,
+}
+
+/// Deployment information for a specific release channel
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DistributionChannel {
+    /// The extension version provided in the manifest of the uploaded package.
+    #[serde(default, rename = "crxVersion")]
+    pub crx_version: ::core::option::Option<String>,
+    /// The current deploy percentage for the release channel (nonnegative number between 0 and 100).
+    #[serde(default, rename = "deployPercentage")]
+    pub deploy_percentage: ::core::option::Option<i32>,
 }

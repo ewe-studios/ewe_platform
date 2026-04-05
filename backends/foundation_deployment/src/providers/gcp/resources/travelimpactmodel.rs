@@ -70,74 +70,6 @@ pub struct ComputeTypicalFlightEmissionsResponse {
     pub typical_flight_emissions: ::core::option::Option<::std::vec::Vec<TypicalFlightEmissions>>,
 }
 
-/// Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Date {
-    /// Day of a month. Must be from 1 to 31 and valid for the year and month, or 0 to specify a year by itself or a year and month where the day isn''t significant.
-    #[serde(default)]
-    pub day: ::core::option::Option<i32>,
-    /// Month of a year. Must be from 1 to 12, or 0 to specify a year without a month and day.
-    #[serde(default)]
-    pub month: ::core::option::Option<i32>,
-    /// Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.
-    #[serde(default)]
-    pub year: ::core::option::Option<i32>,
-}
-
-/// Metadata about the EASA Flight Emissions Label.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct EasaLabelMetadata {
-    /// The date when the label expires. The label can be displayed until the end of this date.
-    #[serde(default, rename = "labelExpiryDate")]
-    pub label_expiry_date: ::core::option::Option<Date>,
-    /// The date when the label was issued.
-    #[serde(default, rename = "labelIssueDate")]
-    pub label_issue_date: ::core::option::Option<Date>,
-    /// Version of the label.
-    #[serde(default, rename = "labelVersion")]
-    pub label_version: ::core::option::Option<String>,
-    /// Sustainable Aviation Fuel (SAF) emissions discount percentage applied to the label. It is a percentage as a decimal. The values are in the interval [0,1]. For example, 0.0021 means 0.21%. This discount and reduction in emissions are reported by the EASA label but they are not included in the CO2e estimates distributed by this API.
-    #[serde(default, rename = "safDiscountPercentage")]
-    pub saf_discount_percentage: ::core::option::Option<f64>,
-}
-
-/// Grouped emissions per seating class results.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct EmissionsGramsPerPax {
-    /// Emissions for one passenger in business class in grams. This field is always computed and populated, regardless of whether the aircraft has business class seats or not.
-    #[serde(default)]
-    pub business: ::core::option::Option<i32>,
-    /// Emissions for one passenger in economy class in grams. This field is always computed and populated, regardless of whether the aircraft has economy class seats or not.
-    #[serde(default)]
-    pub economy: ::core::option::Option<i32>,
-    /// Emissions for one passenger in first class in grams. This field is always computed and populated, regardless of whether the aircraft has first class seats or not.
-    #[serde(default)]
-    pub first: ::core::option::Option<i32>,
-    /// Emissions for one passenger in premium economy class in grams. This field is always computed and populated, regardless of whether the aircraft has premium economy class seats or not.
-    #[serde(default, rename = "premiumEconomy")]
-    pub premium_economy: ::core::option::Option<i32>,
-}
-
-/// All details related to a single request item for a direct flight emission estimates.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Flight {
-    /// Required. Date of the flight in the time zone of the origin airport. Must be a date in the present or future.
-    #[serde(default, rename = "departureDate")]
-    pub departure_date: ::core::option::Option<Date>,
-    /// Required. IATA airport code for flight destination, e.g. "JFK".
-    #[serde(default)]
-    pub destination: ::core::option::Option<String>,
-    /// Required. Flight number, e.g. 324.
-    #[serde(default, rename = "flightNumber")]
-    pub flight_number: ::core::option::Option<i32>,
-    /// Required. IATA carrier code, e.g. "AA".
-    #[serde(default, rename = "operatingCarrierCode")]
-    pub operating_carrier_code: ::core::option::Option<String>,
-    /// Required. IATA airport code for flight origin, e.g. "LHR".
-    #[serde(default)]
-    pub origin: ::core::option::Option<String>,
-}
-
 /// Direct flight with emission estimates.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct FlightWithEmissions {
@@ -158,15 +90,24 @@ pub struct FlightWithEmissions {
     pub source: ::core::option::Option<String>,
 }
 
-/// A pair of airports.
+/// Scope 3 flight with emission estimates.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Market {
-    /// Required. IATA airport code for flight destination, e.g. "JFK".
+pub struct Scope3FlightEmissions {
+    /// Identifier. Matches the flight identifiers in the request.
     #[serde(default)]
-    pub destination: ::core::option::Option<String>,
-    /// Required. IATA airport code for flight origin, e.g. "LHR".
+    pub flight: ::core::option::Option<Scope3FlightSegment>,
+    /// Optional. The source of the emissions data. // TODO: enum values: ["SCOPE3_DATA_TYPE_UNSPECIFIED", "TIM_EMISSIONS", "TYPICAL_FLIGHT_EMISSIONS", "DISTANCE_BASED_EMISSIONS"]
     #[serde(default)]
-    pub origin: ::core::option::Option<String>,
+    pub source: ::core::option::Option<String>,
+    /// Optional. Tank-to-wake flight emissions per passenger based on the requested info.
+    #[serde(default, rename = "ttwEmissionsGramsPerPax")]
+    pub ttw_emissions_grams_per_pax: ::core::option::Option<String>,
+    /// Optional. Well-to-tank flight emissions per passenger based on the requested info.
+    #[serde(default, rename = "wttEmissionsGramsPerPax")]
+    pub wtt_emissions_grams_per_pax: ::core::option::Option<String>,
+    /// Optional. Total flight emissions (sum of well-to-tank and tank-to-wake) per passenger based on the requested info. This is the total emissions and unless you have specific reasons for using TTW or WTT emissions, you should use this number.
+    #[serde(default, rename = "wtwEmissionsGramsPerPax")]
+    pub wtw_emissions_grams_per_pax: ::core::option::Option<String>,
 }
 
 /// Travel Impact Model version. For more information about the model versioning see [GitHub](https://github.com/google/travel-impact-model/#versioning).
@@ -186,24 +127,52 @@ pub struct ModelVersion {
     pub patch: ::core::option::Option<i32>,
 }
 
-/// Scope 3 flight with emission estimates.
+/// Typical flight emission estimates for a certain market
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Scope3FlightEmissions {
-    /// Identifier. Matches the flight identifiers in the request.
+pub struct TypicalFlightEmissions {
+    /// Optional. Typical flight emissions per passenger for requested market. Will not be present if a typical emissions could not be computed. For the list of reasons why typical flight emissions could not be computed, see [GitHub](https://github.com/google/travel-impact-model/blob/main/projects/typical_flight_emissions.md#step-7-validate-dataset).
+    #[serde(default, rename = "emissionsGramsPerPax")]
+    pub emissions_grams_per_pax: ::core::option::Option<EmissionsGramsPerPax>,
+    /// Identifier. Matches the flight identifiers in the request. Note: all IATA codes are capitalized.
     #[serde(default)]
-    pub flight: ::core::option::Option<Scope3FlightSegment>,
-    /// Optional. The source of the emissions data. // TODO: enum values: ["SCOPE3_DATA_TYPE_UNSPECIFIED", "TIM_EMISSIONS", "TYPICAL_FLIGHT_EMISSIONS", "DISTANCE_BASED_EMISSIONS"]
+    pub market: ::core::option::Option<Market>,
+}
+
+/// Metadata about the EASA Flight Emissions Label.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct EasaLabelMetadata {
+    /// The date when the label expires. The label can be displayed until the end of this date.
+    #[serde(default, rename = "labelExpiryDate")]
+    pub label_expiry_date: ::core::option::Option<Date>,
+    /// The date when the label was issued.
+    #[serde(default, rename = "labelIssueDate")]
+    pub label_issue_date: ::core::option::Option<Date>,
+    /// Version of the label.
+    #[serde(default, rename = "labelVersion")]
+    pub label_version: ::core::option::Option<String>,
+    /// Sustainable Aviation Fuel (SAF) emissions discount percentage applied to the label. It is a percentage as a decimal. The values are in the interval [0,1]. For example, 0.0021 means 0.21%. This discount and reduction in emissions are reported by the EASA label but they are not included in the CO2e estimates distributed by this API.
+    #[serde(default, rename = "safDiscountPercentage")]
+    pub saf_discount_percentage: ::core::option::Option<f64>,
+}
+
+/// All details related to a single request item for a direct flight emission estimates.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Flight {
+    /// Required. Date of the flight in the time zone of the origin airport. Must be a date in the present or future.
+    #[serde(default, rename = "departureDate")]
+    pub departure_date: ::core::option::Option<Date>,
+    /// Required. IATA airport code for flight destination, e.g. "JFK".
     #[serde(default)]
-    pub source: ::core::option::Option<String>,
-    /// Optional. Tank-to-wake flight emissions per passenger based on the requested info.
-    #[serde(default, rename = "ttwEmissionsGramsPerPax")]
-    pub ttw_emissions_grams_per_pax: ::core::option::Option<String>,
-    /// Optional. Well-to-tank flight emissions per passenger based on the requested info.
-    #[serde(default, rename = "wttEmissionsGramsPerPax")]
-    pub wtt_emissions_grams_per_pax: ::core::option::Option<String>,
-    /// Optional. Total flight emissions (sum of well-to-tank and tank-to-wake) per passenger based on the requested info. This is the total emissions and unless you have specific reasons for using TTW or WTT emissions, you should use this number.
-    #[serde(default, rename = "wtwEmissionsGramsPerPax")]
-    pub wtw_emissions_grams_per_pax: ::core::option::Option<String>,
+    pub destination: ::core::option::Option<String>,
+    /// Required. Flight number, e.g. 324.
+    #[serde(default, rename = "flightNumber")]
+    pub flight_number: ::core::option::Option<i32>,
+    /// Required. IATA carrier code, e.g. "AA".
+    #[serde(default, rename = "operatingCarrierCode")]
+    pub operating_carrier_code: ::core::option::Option<String>,
+    /// Required. IATA airport code for flight origin, e.g. "LHR".
+    #[serde(default)]
+    pub origin: ::core::option::Option<String>,
 }
 
 /// Flight parameters with which the Scope 3 emissions are fetched.
@@ -232,13 +201,44 @@ pub struct Scope3FlightSegment {
     pub origin: ::core::option::Option<String>,
 }
 
-/// Typical flight emission estimates for a certain market
+/// Grouped emissions per seating class results.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct TypicalFlightEmissions {
-    /// Optional. Typical flight emissions per passenger for requested market. Will not be present if a typical emissions could not be computed. For the list of reasons why typical flight emissions could not be computed, see [GitHub](https://github.com/google/travel-impact-model/blob/main/projects/typical_flight_emissions.md#step-7-validate-dataset).
-    #[serde(default, rename = "emissionsGramsPerPax")]
-    pub emissions_grams_per_pax: ::core::option::Option<EmissionsGramsPerPax>,
-    /// Identifier. Matches the flight identifiers in the request. Note: all IATA codes are capitalized.
+pub struct EmissionsGramsPerPax {
+    /// Emissions for one passenger in business class in grams. This field is always computed and populated, regardless of whether the aircraft has business class seats or not.
     #[serde(default)]
-    pub market: ::core::option::Option<Market>,
+    pub business: ::core::option::Option<i32>,
+    /// Emissions for one passenger in economy class in grams. This field is always computed and populated, regardless of whether the aircraft has economy class seats or not.
+    #[serde(default)]
+    pub economy: ::core::option::Option<i32>,
+    /// Emissions for one passenger in first class in grams. This field is always computed and populated, regardless of whether the aircraft has first class seats or not.
+    #[serde(default)]
+    pub first: ::core::option::Option<i32>,
+    /// Emissions for one passenger in premium economy class in grams. This field is always computed and populated, regardless of whether the aircraft has premium economy class seats or not.
+    #[serde(default, rename = "premiumEconomy")]
+    pub premium_economy: ::core::option::Option<i32>,
+}
+
+/// A pair of airports.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Market {
+    /// Required. IATA airport code for flight destination, e.g. "JFK".
+    #[serde(default)]
+    pub destination: ::core::option::Option<String>,
+    /// Required. IATA airport code for flight origin, e.g. "LHR".
+    #[serde(default)]
+    pub origin: ::core::option::Option<String>,
+}
+
+/// Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Date {
+    /// Day of a month. Must be from 1 to 31 and valid for the year and month, or 0 to specify a year by itself or a year and month where the day isn''t significant.
+    #[serde(default)]
+    pub day: ::core::option::Option<i32>,
+    /// Month of a year. Must be from 1 to 12, or 0 to specify a year without a month and day.
+    #[serde(default)]
+    pub month: ::core::option::Option<i32>,
+    /// Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.
+    #[serde(default)]
+    pub year: ::core::option::Option<i32>,
 }

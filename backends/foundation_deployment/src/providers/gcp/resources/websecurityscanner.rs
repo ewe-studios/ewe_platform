@@ -10,18 +10,56 @@
 use super::*;
 use serde::{Deserialize, Serialize};
 
-/// Scan authentication configuration.
+/// Response for the ListCrawledUrls method.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Authentication {
-    /// Authentication using a custom account.
-    #[serde(default, rename = "customAccount")]
-    pub custom_account: ::core::option::Option<CustomAccount>,
-    /// Authentication using a Google account.
-    #[serde(default, rename = "googleAccount")]
-    pub google_account: ::core::option::Option<GoogleAccount>,
-    /// Authentication using Identity-Aware-Proxy (IAP).
-    #[serde(default, rename = "iapCredential")]
-    pub iap_credential: ::core::option::Option<IapCredential>,
+pub struct ListCrawledUrlsResponse {
+    /// The list of CrawledUrls returned.
+    #[serde(default, rename = "crawledUrls")]
+    pub crawled_urls: ::core::option::Option<::std::vec::Vec<CrawledUrl>>,
+    /// Token to retrieve the next page of results, or empty if there are no more results in the list.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+}
+
+/// Response for the ListFindingTypeStats method.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ListFindingTypeStatsResponse {
+    /// The list of FindingTypeStats returned.
+    #[serde(default, rename = "findingTypeStats")]
+    pub finding_type_stats: ::core::option::Option<::std::vec::Vec<FindingTypeStats>>,
+}
+
+/// Response for the ListFindings method.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ListFindingsResponse {
+    /// The list of Findings returned.
+    #[serde(default)]
+    pub findings: ::core::option::Option<::std::vec::Vec<Finding>>,
+    /// Token to retrieve the next page of results, or empty if there are no more results in the list.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+}
+
+/// Response for the ListScanConfigs method.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ListScanConfigsResponse {
+    /// Token to retrieve the next page of results, or empty if there are no more results in the list.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+    /// The list of ScanConfigs returned.
+    #[serde(default, rename = "scanConfigs")]
+    pub scan_configs: ::core::option::Option<::std::vec::Vec<ScanConfig>>,
+}
+
+/// Response for the ListScanRuns method.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ListScanRunsResponse {
+    /// Token to retrieve the next page of results, or empty if there are no more results in the list.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+    /// The list of ScanRuns returned.
+    #[serde(default, rename = "scanRuns")]
+    pub scan_runs: ::core::option::Option<::std::vec::Vec<ScanRun>>,
 }
 
 /// A CrawledUrl resource represents a URL that was crawled during a ScanRun. Web Security Scanner Service crawls the web applications, following all links within the scope of sites, to find the URLs to test against.
@@ -38,18 +76,15 @@ pub struct CrawledUrl {
     pub url: ::core::option::Option<String>,
 }
 
-/// Describes authentication configuration that uses a custom account.
+/// A FindingTypeStats resource represents stats regarding a specific FindingType of Findings under a given ScanRun.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CustomAccount {
-    /// Required. The login form URL of the website.
-    #[serde(default, rename = "loginUrl")]
-    pub login_url: ::core::option::Option<String>,
-    /// Required. Input only. The password of the custom account. The credential is stored encrypted and not returned in any response nor included in audit logs.
-    #[serde(default)]
-    pub password: ::core::option::Option<String>,
-    /// Required. The user name of the custom account.
-    #[serde(default)]
-    pub username: ::core::option::Option<String>,
+pub struct FindingTypeStats {
+    /// Output only. The count of findings belonging to this finding type.
+    #[serde(default, rename = "findingCount")]
+    pub finding_count: ::core::option::Option<i32>,
+    /// Output only. The finding type associated with the stats.
+    #[serde(default, rename = "findingType")]
+    pub finding_type: ::core::option::Option<String>,
 }
 
 /// A Finding resource represents a vulnerability instance identified during a ScanRun.
@@ -111,132 +146,6 @@ pub struct Finding {
     pub xxe: ::core::option::Option<Xxe>,
 }
 
-/// A FindingTypeStats resource represents stats regarding a specific FindingType of Findings under a given ScanRun.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct FindingTypeStats {
-    /// Output only. The count of findings belonging to this finding type.
-    #[serde(default, rename = "findingCount")]
-    pub finding_count: ::core::option::Option<i32>,
-    /// Output only. The finding type associated with the stats.
-    #[serde(default, rename = "findingType")]
-    pub finding_type: ::core::option::Option<String>,
-}
-
-/// ! Information about a vulnerability with an HTML.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Form {
-    /// ! The URI where to send the form when it''s submitted.
-    #[serde(default, rename = "actionUri")]
-    pub action_uri: ::core::option::Option<String>,
-    /// ! The names of form fields related to the vulnerability.
-    #[serde(default)]
-    pub fields: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// Describes authentication configuration that uses a Google account.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleAccount {
-    /// Required. Input only. The password of the Google account. The credential is stored encrypted and not returned in any response nor included in audit logs.
-    #[serde(default)]
-    pub password: ::core::option::Option<String>,
-    /// Required. The user name of the Google account.
-    #[serde(default)]
-    pub username: ::core::option::Option<String>,
-}
-
-/// Describes a HTTP Header.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Header {
-    /// Header name.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Header value.
-    #[serde(default)]
-    pub value: ::core::option::Option<String>,
-}
-
-/// Describes authentication configuration for Identity-Aware-Proxy (IAP).
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct IapCredential {
-    /// Authentication configuration when Web-Security-Scanner service account is added in Identity-Aware-Proxy (IAP) access policies.
-    #[serde(default, rename = "iapTestServiceAccountInfo")]
-    pub iap_test_service_account_info: ::core::option::Option<IapTestServiceAccountInfo>,
-}
-
-/// Describes authentication configuration when Web-Security-Scanner service account is added in Identity-Aware-Proxy (IAP) access policies.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct IapTestServiceAccountInfo {
-    /// Required. Describes OAuth2 client id of resources protected by Identity-Aware-Proxy (IAP).
-    #[serde(default, rename = "targetAudienceClientId")]
-    pub target_audience_client_id: ::core::option::Option<String>,
-}
-
-/// Response for the ListCrawledUrls method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ListCrawledUrlsResponse {
-    /// The list of CrawledUrls returned.
-    #[serde(default, rename = "crawledUrls")]
-    pub crawled_urls: ::core::option::Option<::std::vec::Vec<CrawledUrl>>,
-    /// Token to retrieve the next page of results, or empty if there are no more results in the list.
-    #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: ::core::option::Option<String>,
-}
-
-/// Response for the ListFindingTypeStats method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ListFindingTypeStatsResponse {
-    /// The list of FindingTypeStats returned.
-    #[serde(default, rename = "findingTypeStats")]
-    pub finding_type_stats: ::core::option::Option<::std::vec::Vec<FindingTypeStats>>,
-}
-
-/// Response for the ListFindings method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ListFindingsResponse {
-    /// The list of Findings returned.
-    #[serde(default)]
-    pub findings: ::core::option::Option<::std::vec::Vec<Finding>>,
-    /// Token to retrieve the next page of results, or empty if there are no more results in the list.
-    #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: ::core::option::Option<String>,
-}
-
-/// Response for the ListScanConfigs method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ListScanConfigsResponse {
-    /// Token to retrieve the next page of results, or empty if there are no more results in the list.
-    #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: ::core::option::Option<String>,
-    /// The list of ScanConfigs returned.
-    #[serde(default, rename = "scanConfigs")]
-    pub scan_configs: ::core::option::Option<::std::vec::Vec<ScanConfig>>,
-}
-
-/// Response for the ListScanRuns method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ListScanRunsResponse {
-    /// Token to retrieve the next page of results, or empty if there are no more results in the list.
-    #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: ::core::option::Option<String>,
-    /// The list of ScanRuns returned.
-    #[serde(default, rename = "scanRuns")]
-    pub scan_runs: ::core::option::Option<::std::vec::Vec<ScanRun>>,
-}
-
-/// Information reported for an outdated library.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct OutdatedLibrary {
-    /// URLs to learn more information about the vulnerabilities in the library.
-    #[serde(default, rename = "learnMoreUrls")]
-    pub learn_more_urls: ::core::option::Option<::std::vec::Vec<String>>,
-    /// The name of the outdated library.
-    #[serde(default, rename = "libraryName")]
-    pub library_name: ::core::option::Option<String>,
-    /// The version number.
-    #[serde(default)]
-    pub version: ::core::option::Option<String>,
-}
-
 /// A ScanConfig resource contains the configurations to launch a scan.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ScanConfig {
@@ -286,86 +195,29 @@ pub struct ScanConfig {
     pub user_agent: ::core::option::Option<String>,
 }
 
-/// Defines a custom error message used by CreateScanConfig and UpdateScanConfig APIs when scan configuration validation fails. It is also reported as part of a ScanRunErrorTrace message if scan validation fails due to a scan configuration error.
+/// ! Information about a vulnerability with an HTML.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ScanConfigError {
-    /// Output only. Indicates the reason code for a configuration failure. // TODO: enum values: ["CODE_UNSPECIFIED", "OK", "INTERNAL_ERROR", "APPENGINE_API_BACKEND_ERROR", "APPENGINE_API_NOT_ACCESSIBLE", "APPENGINE_DEFAULT_HOST_MISSING", "CANNOT_USE_GOOGLE_COM_ACCOUNT", "CANNOT_USE_OWNER_ACCOUNT", "COMPUTE_API_BACKEND_ERROR", "COMPUTE_API_NOT_ACCESSIBLE", "CUSTOM_LOGIN_URL_DOES_NOT_BELONG_TO_CURRENT_PROJECT", "CUSTOM_LOGIN_URL_MALFORMED", "CUSTOM_LOGIN_URL_MAPPED_TO_NON_ROUTABLE_ADDRESS", "CUSTOM_LOGIN_URL_MAPPED_TO_UNRESERVED_ADDRESS", "CUSTOM_LOGIN_URL_HAS_NON_ROUTABLE_IP_ADDRESS", "CUSTOM_LOGIN_URL_HAS_UNRESERVED_IP_ADDRESS", "DUPLICATE_SCAN_NAME", "INVALID_FIELD_VALUE", "FAILED_TO_AUTHENTICATE_TO_TARGET", "FINDING_TYPE_UNSPECIFIED", "FORBIDDEN_TO_SCAN_COMPUTE", "FORBIDDEN_UPDATE_TO_MANAGED_SCAN", "MALFORMED_FILTER", "MALFORMED_RESOURCE_NAME", "PROJECT_INACTIVE", "REQUIRED_FIELD", "RESOURCE_NAME_INCONSISTENT", "SCAN_ALREADY_RUNNING", "SCAN_NOT_RUNNING", "SEED_URL_DOES_NOT_BELONG_TO_CURRENT_PROJECT", "SEED_URL_MALFORMED", "SEED_URL_MAPPED_TO_NON_ROUTABLE_ADDRESS", "SEED_URL_MAPPED_TO_UNRESERVED_ADDRESS", "SEED_URL_HAS_NON_ROUTABLE_IP_ADDRESS", "SEED_URL_HAS_UNRESERVED_IP_ADDRESS", "SERVICE_ACCOUNT_NOT_CONFIGURED", "TOO_MANY_SCANS", "UNABLE_TO_RESOLVE_PROJECT_INFO", "UNSUPPORTED_BLACKLIST_PATTERN_FORMAT", "UNSUPPORTED_FILTER", "UNSUPPORTED_FINDING_TYPE", "UNSUPPORTED_URL_SCHEME", "CLOUD_ASSET_INVENTORY_ASSET_NOT_FOUND"]
+pub struct Form {
+    /// ! The URI where to send the form when it''s submitted.
+    #[serde(default, rename = "actionUri")]
+    pub action_uri: ::core::option::Option<String>,
+    /// ! The names of form fields related to the vulnerability.
     #[serde(default)]
-    pub code: ::core::option::Option<String>,
-    /// Output only. Indicates the full name of the ScanConfig field that triggers this error, for example "scan_config.max_qps". This field is provided for troubleshooting purposes only and its actual value can change in the future.
-    #[serde(default, rename = "fieldName")]
-    pub field_name: ::core::option::Option<String>,
+    pub fields: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
-/// A ScanRun is a output-only resource representing an actual run of the scan. Next id: 12
+/// Information reported for an outdated library.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ScanRun {
-    /// Output only. The time at which the ScanRun reached termination state - that the ScanRun is either finished or stopped by user.
-    #[serde(default, rename = "endTime")]
-    pub end_time: ::core::option::Option<String>,
-    /// Output only. If result_state is an ERROR, this field provides the primary reason for scan''s termination and more details, if such are available.
-    #[serde(default, rename = "errorTrace")]
-    pub error_trace: ::core::option::Option<ScanRunErrorTrace>,
-    /// Output only. The execution state of the ScanRun. // TODO: enum values: ["EXECUTION_STATE_UNSPECIFIED", "QUEUED", "SCANNING", "FINISHED"]
-    #[serde(default, rename = "executionState")]
-    pub execution_state: ::core::option::Option<String>,
-    /// Output only. Whether the scan run has found any vulnerabilities.
-    #[serde(default, rename = "hasVulnerabilities")]
-    pub has_vulnerabilities: ::core::option::Option<bool>,
-    /// Output only. The resource name of the ScanRun. The name follows the format of ''projects/{projectId}/scanConfigs/{scanConfigId}/scanRuns/{scanRunId}''. The ScanRun IDs are generated by the system.
+pub struct OutdatedLibrary {
+    /// URLs to learn more information about the vulnerabilities in the library.
+    #[serde(default, rename = "learnMoreUrls")]
+    pub learn_more_urls: ::core::option::Option<::std::vec::Vec<String>>,
+    /// The name of the outdated library.
+    #[serde(default, rename = "libraryName")]
+    pub library_name: ::core::option::Option<String>,
+    /// The version number.
     #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Output only. The percentage of total completion ranging from 0 to 100. If the scan is in queue, the value is 0. If the scan is running, the value ranges from 0 to 100. If the scan is finished, the value is 100.
-    #[serde(default, rename = "progressPercent")]
-    pub progress_percent: ::core::option::Option<i32>,
-    /// Output only. The result state of the ScanRun. This field is only available after the execution state reaches "FINISHED". // TODO: enum values: ["RESULT_STATE_UNSPECIFIED", "SUCCESS", "ERROR", "KILLED"]
-    #[serde(default, rename = "resultState")]
-    pub result_state: ::core::option::Option<String>,
-    /// Output only. The time at which the ScanRun started.
-    #[serde(default, rename = "startTime")]
-    pub start_time: ::core::option::Option<String>,
-    /// Output only. The number of URLs crawled during this ScanRun. If the scan is in progress, the value represents the number of URLs crawled up to now.
-    #[serde(default, rename = "urlsCrawledCount")]
-    pub urls_crawled_count: ::core::option::Option<String>,
-    /// Output only. The number of URLs tested during this ScanRun. If the scan is in progress, the value represents the number of URLs tested up to now. The number of URLs tested is usually larger than the number URLS crawled because typically a crawled URL is tested with multiple test payloads.
-    #[serde(default, rename = "urlsTestedCount")]
-    pub urls_tested_count: ::core::option::Option<String>,
-    /// Output only. A list of warnings, if such are encountered during this scan run.
-    #[serde(default, rename = "warningTraces")]
-    pub warning_traces: ::core::option::Option<::std::vec::Vec<ScanRunWarningTrace>>,
-}
-
-/// Output only. Defines an error trace message for a ScanRun.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ScanRunErrorTrace {
-    /// Output only. Indicates the error reason code. // TODO: enum values: ["CODE_UNSPECIFIED", "INTERNAL_ERROR", "SCAN_CONFIG_ISSUE", "AUTHENTICATION_CONFIG_ISSUE", "TIMED_OUT_WHILE_SCANNING", "TOO_MANY_REDIRECTS", "TOO_MANY_HTTP_ERRORS", "STARTING_URLS_CRAWL_HTTP_ERRORS"]
-    #[serde(default)]
-    pub code: ::core::option::Option<String>,
-    /// Output only. If the scan encounters TOO_MANY_HTTP_ERRORS, this field indicates the most common HTTP error code, if such is available. For example, if this code is 404, the scan has encountered too many NOT_FOUND responses.
-    #[serde(default, rename = "mostCommonHttpErrorCode")]
-    pub most_common_http_error_code: ::core::option::Option<i32>,
-    /// Output only. If the scan encounters SCAN_CONFIG_ISSUE error, this field has the error message encountered during scan configuration validation that is performed before each scan run.
-    #[serde(default, rename = "scanConfigError")]
-    pub scan_config_error: ::core::option::Option<ScanConfigError>,
-}
-
-/// Output only. Defines a warning trace message for ScanRun. Warning traces provide customers with useful information that helps make the scanning process more effective.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ScanRunWarningTrace {
-    /// Output only. Indicates the warning code. // TODO: enum values: ["CODE_UNSPECIFIED", "INSUFFICIENT_CRAWL_RESULTS", "TOO_MANY_CRAWL_RESULTS", "TOO_MANY_FUZZ_TASKS", "BLOCKED_BY_IAP", "NO_STARTING_URL_FOUND_FOR_MANAGED_SCAN"]
-    #[serde(default)]
-    pub code: ::core::option::Option<String>,
-}
-
-/// Scan schedule configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Schedule {
-    /// Required. The duration of time between executions in days.
-    #[serde(default, rename = "intervalDurationDays")]
-    pub interval_duration_days: ::core::option::Option<i32>,
-    /// A timestamp indicates when the next run will be scheduled. The value is refreshed by the server after each run. If unspecified, it will default to current server time, which means the scan will be scheduled to start immediately.
-    #[serde(default, rename = "scheduleTime")]
-    pub schedule_time: ::core::option::Option<String>,
+    pub version: ::core::option::Option<String>,
 }
 
 /// Information regarding any resource causing the vulnerability such as JavaScript sources, image, audio files, etc.
@@ -424,4 +276,152 @@ pub struct Xxe {
     /// The XML string that triggered the XXE vulnerability. Non-payload values might be redacted.
     #[serde(default, rename = "payloadValue")]
     pub payload_value: ::core::option::Option<String>,
+}
+
+/// Scan authentication configuration.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Authentication {
+    /// Authentication using a custom account.
+    #[serde(default, rename = "customAccount")]
+    pub custom_account: ::core::option::Option<CustomAccount>,
+    /// Authentication using a Google account.
+    #[serde(default, rename = "googleAccount")]
+    pub google_account: ::core::option::Option<GoogleAccount>,
+    /// Authentication using Identity-Aware-Proxy (IAP).
+    #[serde(default, rename = "iapCredential")]
+    pub iap_credential: ::core::option::Option<IapCredential>,
+}
+
+/// A ScanRun is a output-only resource representing an actual run of the scan. Next id: 12
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ScanRun {
+    /// Output only. The time at which the ScanRun reached termination state - that the ScanRun is either finished or stopped by user.
+    #[serde(default, rename = "endTime")]
+    pub end_time: ::core::option::Option<String>,
+    /// Output only. If result_state is an ERROR, this field provides the primary reason for scan''s termination and more details, if such are available.
+    #[serde(default, rename = "errorTrace")]
+    pub error_trace: ::core::option::Option<ScanRunErrorTrace>,
+    /// Output only. The execution state of the ScanRun. // TODO: enum values: ["EXECUTION_STATE_UNSPECIFIED", "QUEUED", "SCANNING", "FINISHED"]
+    #[serde(default, rename = "executionState")]
+    pub execution_state: ::core::option::Option<String>,
+    /// Output only. Whether the scan run has found any vulnerabilities.
+    #[serde(default, rename = "hasVulnerabilities")]
+    pub has_vulnerabilities: ::core::option::Option<bool>,
+    /// Output only. The resource name of the ScanRun. The name follows the format of ''projects/{projectId}/scanConfigs/{scanConfigId}/scanRuns/{scanRunId}''. The ScanRun IDs are generated by the system.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Output only. The percentage of total completion ranging from 0 to 100. If the scan is in queue, the value is 0. If the scan is running, the value ranges from 0 to 100. If the scan is finished, the value is 100.
+    #[serde(default, rename = "progressPercent")]
+    pub progress_percent: ::core::option::Option<i32>,
+    /// Output only. The result state of the ScanRun. This field is only available after the execution state reaches "FINISHED". // TODO: enum values: ["RESULT_STATE_UNSPECIFIED", "SUCCESS", "ERROR", "KILLED"]
+    #[serde(default, rename = "resultState")]
+    pub result_state: ::core::option::Option<String>,
+    /// Output only. The time at which the ScanRun started.
+    #[serde(default, rename = "startTime")]
+    pub start_time: ::core::option::Option<String>,
+    /// Output only. The number of URLs crawled during this ScanRun. If the scan is in progress, the value represents the number of URLs crawled up to now.
+    #[serde(default, rename = "urlsCrawledCount")]
+    pub urls_crawled_count: ::core::option::Option<String>,
+    /// Output only. The number of URLs tested during this ScanRun. If the scan is in progress, the value represents the number of URLs tested up to now. The number of URLs tested is usually larger than the number URLS crawled because typically a crawled URL is tested with multiple test payloads.
+    #[serde(default, rename = "urlsTestedCount")]
+    pub urls_tested_count: ::core::option::Option<String>,
+    /// Output only. A list of warnings, if such are encountered during this scan run.
+    #[serde(default, rename = "warningTraces")]
+    pub warning_traces: ::core::option::Option<::std::vec::Vec<ScanRunWarningTrace>>,
+}
+
+/// Scan schedule configuration.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Schedule {
+    /// Required. The duration of time between executions in days.
+    #[serde(default, rename = "intervalDurationDays")]
+    pub interval_duration_days: ::core::option::Option<i32>,
+    /// A timestamp indicates when the next run will be scheduled. The value is refreshed by the server after each run. If unspecified, it will default to current server time, which means the scan will be scheduled to start immediately.
+    #[serde(default, rename = "scheduleTime")]
+    pub schedule_time: ::core::option::Option<String>,
+}
+
+/// Describes a HTTP Header.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Header {
+    /// Header name.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Header value.
+    #[serde(default)]
+    pub value: ::core::option::Option<String>,
+}
+
+/// Describes authentication configuration that uses a custom account.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CustomAccount {
+    /// Required. The login form URL of the website.
+    #[serde(default, rename = "loginUrl")]
+    pub login_url: ::core::option::Option<String>,
+    /// Required. Input only. The password of the custom account. The credential is stored encrypted and not returned in any response nor included in audit logs.
+    #[serde(default)]
+    pub password: ::core::option::Option<String>,
+    /// Required. The user name of the custom account.
+    #[serde(default)]
+    pub username: ::core::option::Option<String>,
+}
+
+/// Describes authentication configuration that uses a Google account.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleAccount {
+    /// Required. Input only. The password of the Google account. The credential is stored encrypted and not returned in any response nor included in audit logs.
+    #[serde(default)]
+    pub password: ::core::option::Option<String>,
+    /// Required. The user name of the Google account.
+    #[serde(default)]
+    pub username: ::core::option::Option<String>,
+}
+
+/// Describes authentication configuration for Identity-Aware-Proxy (IAP).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct IapCredential {
+    /// Authentication configuration when Web-Security-Scanner service account is added in Identity-Aware-Proxy (IAP) access policies.
+    #[serde(default, rename = "iapTestServiceAccountInfo")]
+    pub iap_test_service_account_info: ::core::option::Option<IapTestServiceAccountInfo>,
+}
+
+/// Output only. Defines an error trace message for a ScanRun.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ScanRunErrorTrace {
+    /// Output only. Indicates the error reason code. // TODO: enum values: ["CODE_UNSPECIFIED", "INTERNAL_ERROR", "SCAN_CONFIG_ISSUE", "AUTHENTICATION_CONFIG_ISSUE", "TIMED_OUT_WHILE_SCANNING", "TOO_MANY_REDIRECTS", "TOO_MANY_HTTP_ERRORS", "STARTING_URLS_CRAWL_HTTP_ERRORS"]
+    #[serde(default)]
+    pub code: ::core::option::Option<String>,
+    /// Output only. If the scan encounters TOO_MANY_HTTP_ERRORS, this field indicates the most common HTTP error code, if such is available. For example, if this code is 404, the scan has encountered too many NOT_FOUND responses.
+    #[serde(default, rename = "mostCommonHttpErrorCode")]
+    pub most_common_http_error_code: ::core::option::Option<i32>,
+    /// Output only. If the scan encounters SCAN_CONFIG_ISSUE error, this field has the error message encountered during scan configuration validation that is performed before each scan run.
+    #[serde(default, rename = "scanConfigError")]
+    pub scan_config_error: ::core::option::Option<ScanConfigError>,
+}
+
+/// Output only. Defines a warning trace message for ScanRun. Warning traces provide customers with useful information that helps make the scanning process more effective.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ScanRunWarningTrace {
+    /// Output only. Indicates the warning code. // TODO: enum values: ["CODE_UNSPECIFIED", "INSUFFICIENT_CRAWL_RESULTS", "TOO_MANY_CRAWL_RESULTS", "TOO_MANY_FUZZ_TASKS", "BLOCKED_BY_IAP", "NO_STARTING_URL_FOUND_FOR_MANAGED_SCAN"]
+    #[serde(default)]
+    pub code: ::core::option::Option<String>,
+}
+
+/// Describes authentication configuration when Web-Security-Scanner service account is added in Identity-Aware-Proxy (IAP) access policies.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct IapTestServiceAccountInfo {
+    /// Required. Describes OAuth2 client id of resources protected by Identity-Aware-Proxy (IAP).
+    #[serde(default, rename = "targetAudienceClientId")]
+    pub target_audience_client_id: ::core::option::Option<String>,
+}
+
+/// Defines a custom error message used by CreateScanConfig and UpdateScanConfig APIs when scan configuration validation fails. It is also reported as part of a ScanRunErrorTrace message if scan validation fails due to a scan configuration error.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ScanConfigError {
+    /// Output only. Indicates the reason code for a configuration failure. // TODO: enum values: ["CODE_UNSPECIFIED", "OK", "INTERNAL_ERROR", "APPENGINE_API_BACKEND_ERROR", "APPENGINE_API_NOT_ACCESSIBLE", "APPENGINE_DEFAULT_HOST_MISSING", "CANNOT_USE_GOOGLE_COM_ACCOUNT", "CANNOT_USE_OWNER_ACCOUNT", "COMPUTE_API_BACKEND_ERROR", "COMPUTE_API_NOT_ACCESSIBLE", "CUSTOM_LOGIN_URL_DOES_NOT_BELONG_TO_CURRENT_PROJECT", "CUSTOM_LOGIN_URL_MALFORMED", "CUSTOM_LOGIN_URL_MAPPED_TO_NON_ROUTABLE_ADDRESS", "CUSTOM_LOGIN_URL_MAPPED_TO_UNRESERVED_ADDRESS", "CUSTOM_LOGIN_URL_HAS_NON_ROUTABLE_IP_ADDRESS", "CUSTOM_LOGIN_URL_HAS_UNRESERVED_IP_ADDRESS", "DUPLICATE_SCAN_NAME", "INVALID_FIELD_VALUE", "FAILED_TO_AUTHENTICATE_TO_TARGET", "FINDING_TYPE_UNSPECIFIED", "FORBIDDEN_TO_SCAN_COMPUTE", "FORBIDDEN_UPDATE_TO_MANAGED_SCAN", "MALFORMED_FILTER", "MALFORMED_RESOURCE_NAME", "PROJECT_INACTIVE", "REQUIRED_FIELD", "RESOURCE_NAME_INCONSISTENT", "SCAN_ALREADY_RUNNING", "SCAN_NOT_RUNNING", "SEED_URL_DOES_NOT_BELONG_TO_CURRENT_PROJECT", "SEED_URL_MALFORMED", "SEED_URL_MAPPED_TO_NON_ROUTABLE_ADDRESS", "SEED_URL_MAPPED_TO_UNRESERVED_ADDRESS", "SEED_URL_HAS_NON_ROUTABLE_IP_ADDRESS", "SEED_URL_HAS_UNRESERVED_IP_ADDRESS", "SERVICE_ACCOUNT_NOT_CONFIGURED", "TOO_MANY_SCANS", "UNABLE_TO_RESOLVE_PROJECT_INFO", "UNSUPPORTED_BLACKLIST_PATTERN_FORMAT", "UNSUPPORTED_FILTER", "UNSUPPORTED_FINDING_TYPE", "UNSUPPORTED_URL_SCHEME", "CLOUD_ASSET_INVENTORY_ASSET_NOT_FOUND"]
+    #[serde(default)]
+    pub code: ::core::option::Option<String>,
+    /// Output only. Indicates the full name of the ScanConfig field that triggers this error, for example "scan_config.max_qps". This field is provided for troubleshooting purposes only and its actual value can change in the future.
+    #[serde(default, rename = "fieldName")]
+    pub field_name: ::core::option::Option<String>,
 }

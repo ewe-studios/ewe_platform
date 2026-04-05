@@ -10,23 +10,6 @@
 use super::*;
 use serde::{Deserialize, Serialize};
 
-/// A single book in the library.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleExampleLibraryagentV1Book {
-    /// The name of the book author.
-    #[serde(default)]
-    pub author: ::core::option::Option<String>,
-    /// The resource name of the book. Book names have the form shelves/{shelf_id}/books/{book_id}. The name is ignored when creating a book.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Value indicating whether the book has been read.
-    #[serde(default)]
-    pub read: ::core::option::Option<bool>,
-    /// The title of the book.
-    #[serde(default)]
-    pub title: ::core::option::Option<String>,
-}
-
 /// Response message for LibraryAgent.ListBooks.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleExampleLibraryagentV1ListBooksResponse {
@@ -47,6 +30,23 @@ pub struct GoogleExampleLibraryagentV1ListShelvesResponse {
     /// The list of shelves.
     #[serde(default)]
     pub shelves: ::core::option::Option<::std::vec::Vec<GoogleExampleLibraryagentV1Shelf>>,
+}
+
+/// A single book in the library.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleExampleLibraryagentV1Book {
+    /// The name of the book author.
+    #[serde(default)]
+    pub author: ::core::option::Option<String>,
+    /// The resource name of the book. Book names have the form shelves/{shelf_id}/books/{book_id}. The name is ignored when creating a book.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Value indicating whether the book has been read.
+    #[serde(default)]
+    pub read: ::core::option::Option<bool>,
+    /// The title of the book.
+    #[serde(default)]
+    pub title: ::core::option::Option<String>,
 }
 
 /// A Shelf contains a collection of books with a theme.

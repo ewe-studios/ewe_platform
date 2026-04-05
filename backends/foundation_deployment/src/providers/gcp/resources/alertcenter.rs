@@ -50,17 +50,6 @@ pub struct AccessApproval {
     pub tickets: ::core::option::Option<::std::vec::Vec<SupportTicket>>,
 }
 
-/// Details about why an account is receiving an account suspension warning.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AccountSuspensionDetails {
-    /// The reason why this account is receiving an account suspension warning. // TODO: enum values: ["ACCOUNT_SUSPENSION_ABUSE_REASON_UNSPECIFIED", "TOS_VIOLATION", "SPAM", "PHISHING", "TRAFFIC_PUMPING", "FRAUD", "NUMBER_HARVESTING", "PAYMENTS_FRAUD", "UNWANTED_CONTENT", "UNQUALIFIED_EDU"]
-    #[serde(default, rename = "abuseReason")]
-    pub abuse_reason: ::core::option::Option<String>,
-    /// The name of the product being abused. This is restricted to only the following values: "Gmail" "Google Workspace" "Payments" "Voice" "YouTube" "Other"
-    #[serde(default, rename = "productName")]
-    pub product_name: ::core::option::Option<String>,
-}
-
 /// A warning that the customer''s account is about to be suspended.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AccountSuspensionWarning {
@@ -84,14 +73,6 @@ pub struct AccountWarning {
     /// Optional. Details of the login action associated with the warning event. This is only available for: * Suspicious login * Suspicious login (less secure app) * Suspicious programmatic login * User suspended (suspicious activity)
     #[serde(default, rename = "loginDetails")]
     pub login_details: ::core::option::Option<LoginDetails>,
-}
-
-/// Metadata related to the action.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ActionInfo {
-    /// Google Cloud Storage location of the content that violated the rule. This field has format: "/"
-    #[serde(default, rename = "evidenceLockerFilePath")]
-    pub evidence_locker_file_path: ::core::option::Option<String>,
 }
 
 /// Alerts from Google Workspace Security Center rules service configured by an admin.
@@ -133,99 +114,6 @@ pub struct ActivityRule {
     /// Rule window size. Possible values are 1 hour or 24 hours.
     #[serde(default, rename = "windowSize")]
     pub window_size: ::core::option::Option<String>,
-}
-
-/// An alert affecting a customer.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Alert {
-    /// Output only. The unique identifier for the alert.
-    #[serde(default, rename = "alertId")]
-    pub alert_id: ::core::option::Option<String>,
-    /// Output only. The time this alert was created.
-    #[serde(default, rename = "createTime")]
-    pub create_time: ::core::option::Option<String>,
-    /// Output only. The unique identifier of the Google Workspace account of the customer.
-    #[serde(default, rename = "customerId")]
-    pub customer_id: ::core::option::Option<String>,
-    /// Optional. The data associated with this alert, for example google.apps.alertcenter.type.DeviceCompromised.
-    #[serde(default)]
-    pub data: ::core::option::Option<serde_json::Value>,
-    /// Output only. True if this alert is marked for deletion.
-    #[serde(default)]
-    pub deleted: ::core::option::Option<bool>,
-    /// Optional. The time the event that caused this alert ceased being active. If provided, the end time must not be earlier than the start time. If not provided, it indicates an ongoing alert.
-    #[serde(default, rename = "endTime")]
-    pub end_time: ::core::option::Option<String>,
-    /// Optional. etag is used for optimistic concurrency control as a way to help prevent simultaneous updates of an alert from overwriting each other. It is strongly suggested that systems make use of the etag in the read-modify-write cycle to perform alert updates in order to avoid race conditions: An etag is returned in the response which contains alerts, and systems are expected to put that etag in the request to update alert to ensure that their change will be applied to the same version of the alert. If no etag is provided in the call to update alert, then the existing alert is overwritten blindly.
-    #[serde(default)]
-    pub etag: ::core::option::Option<String>,
-    /// Output only. The metadata associated with this alert.
-    #[serde(default)]
-    pub metadata: ::core::option::Option<AlertMetadata>,
-    /// Output only. An optional [Security Investigation Tool](https://support.google.com/a/answer/7575955) query for this alert.
-    #[serde(default, rename = "securityInvestigationToolLink")]
-    pub security_investigation_tool_link: ::core::option::Option<String>,
-    /// Required. A unique identifier for the system that reported the alert. This is output only after alert is created. Supported sources are any of the following: * Google Operations * Mobile device management * Gmail phishing * Data Loss Prevention * Domain wide takeout * State sponsored attack * Google identity * Apps outage
-    #[serde(default)]
-    pub source: ::core::option::Option<String>,
-    /// Required. The time the event that caused this alert was started or detected.
-    #[serde(default, rename = "startTime")]
-    pub start_time: ::core::option::Option<String>,
-    /// Required. The type of the alert. This is output only after alert is created. For a list of available alert types see [Google Workspace Alert types](https://developers.google.com/workspace/admin/alertcenter/reference/alert-types).
-    #[serde(default, rename = "type")]
-    pub type_: ::core::option::Option<String>,
-    /// Output only. The time this alert was last updated.
-    #[serde(default, rename = "updateTime")]
-    pub update_time: ::core::option::Option<String>,
-}
-
-/// A customer feedback about an alert.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AlertFeedback {
-    /// Output only. The alert identifier.
-    #[serde(default, rename = "alertId")]
-    pub alert_id: ::core::option::Option<String>,
-    /// Output only. The time this feedback was created.
-    #[serde(default, rename = "createTime")]
-    pub create_time: ::core::option::Option<String>,
-    /// Output only. The unique identifier of the Google Workspace account of the customer.
-    #[serde(default, rename = "customerId")]
-    pub customer_id: ::core::option::Option<String>,
-    /// Output only. The email of the user that provided the feedback.
-    #[serde(default)]
-    pub email: ::core::option::Option<String>,
-    /// Output only. The unique identifier for the feedback.
-    #[serde(default, rename = "feedbackId")]
-    pub feedback_id: ::core::option::Option<String>,
-    /// Required. The type of the feedback. // TODO: enum values: ["ALERT_FEEDBACK_TYPE_UNSPECIFIED", "NOT_USEFUL", "SOMEWHAT_USEFUL", "VERY_USEFUL"]
-    #[serde(default, rename = "type")]
-    pub type_: ::core::option::Option<String>,
-}
-
-/// An alert metadata.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AlertMetadata {
-    /// Output only. The alert identifier.
-    #[serde(default, rename = "alertId")]
-    pub alert_id: ::core::option::Option<String>,
-    /// The email address of the user assigned to the alert.
-    #[serde(default)]
-    pub assignee: ::core::option::Option<String>,
-    /// Output only. The unique identifier of the Google Workspace account of the customer.
-    #[serde(default, rename = "customerId")]
-    pub customer_id: ::core::option::Option<String>,
-    /// Optional. etag is used for optimistic concurrency control as a way to help prevent simultaneous updates of an alert metadata from overwriting each other. It is strongly suggested that systems make use of the etag in the read-modify-write cycle to perform metadata updates in order to avoid race conditions: An etag is returned in the response which contains alert metadata, and systems are expected to put that etag in the request to update alert metadata to ensure that their change will be applied to the same version of the alert metadata. If no etag is provided in the call to update alert metadata, then the existing alert metadata is overwritten blindly.
-    #[serde(default)]
-    pub etag: ::core::option::Option<String>,
-    /// The severity value of the alert. Alert Center will set this field at alert creation time, default''s to an empty string when it could not be determined. The supported values for update actions on this field are the following: * HIGH * MEDIUM * LOW
-    #[serde(default)]
-    pub severity: ::core::option::Option<String>,
-    /// The current status of the alert. The supported values are the following: * NOT_STARTED * IN_PROGRESS * CLOSED
-    #[serde(default)]
-    pub status: ::core::option::Option<String>,
-    /// Output only. The time this metadata was last updated.
-    #[serde(default, rename = "updateTime")]
-    pub update_time: ::core::option::Option<String>,
 }
 
 /// The explanation message associated with "APNS certificate is expiring soon" and "APNS certificate has expired" alerts.
@@ -285,14 +173,6 @@ pub struct AppsOutage {
     /// Current outage status. // TODO: enum values: ["STATUS_UNSPECIFIED", "NEW", "ONGOING", "RESOLVED", "FALSE_POSITIVE", "PARTIALLY_RESOLVED", "MERGED", "DOWNGRADED"]
     #[serde(default)]
     pub status: ::core::option::Option<String>,
-}
-
-/// Attachment with application-specific information about an alert.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Attachment {
-    /// A CSV file attachment.
-    #[serde(default)]
-    pub csv: ::core::option::Option<Csv>,
 }
 
 /// Alert for setting the domain or IP that malicious email comes from as whitelisted domain or IP in Gmail advanced settings.
@@ -367,36 +247,6 @@ pub struct ClientSideEncryptionServiceUnavailable {
     pub key_service_error: ::core::option::Option<::std::vec::Vec<KeyServiceError>>,
 }
 
-/// A reference to a Cloud Pubsub topic. To register for notifications, the owner of the topic must grant alerts-api-push-notifications@system.gserviceaccount.com the projects.topics.publish permission.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CloudPubsubTopic {
-    /// Optional. The format of the payload that would be sent. If not specified the format will be JSON. // TODO: enum values: ["PAYLOAD_FORMAT_UNSPECIFIED", "JSON"]
-    #[serde(default, rename = "payloadFormat")]
-    pub payload_format: ::core::option::Option<String>,
-    /// The name field of a Cloud Pubsub [Topic] (https://cloud.google.com/pubsub/docs/reference/rest/v1/projects.topics#Topic).
-    #[serde(default, rename = "topicName")]
-    pub topic_name: ::core::option::Option<String>,
-}
-
-/// A representation of a CSV file attachment, as a list of column headers and a list of data rows.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Csv {
-    /// The list of data rows in a CSV file, as string arrays rather than as a single comma-separated string.
-    #[serde(default, rename = "dataRows")]
-    pub data_rows: ::core::option::Option<::std::vec::Vec<CsvRow>>,
-    /// The list of headers for data columns in a CSV file.
-    #[serde(default)]
-    pub headers: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// A representation of a single data row in a CSV file.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CsvRow {
-    /// The data entries in a CSV file row, as a string array rather than a single comma-separated string.
-    #[serde(default)]
-    pub entries: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
 /// A mobile device compromised alert. Derived from audit logs.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct DeviceCompromised {
@@ -406,32 +256,6 @@ pub struct DeviceCompromised {
     /// Required. The list of security events.
     #[serde(default)]
     pub events: ::core::option::Option<::std::vec::Vec<DeviceCompromisedSecurityDetail>>,
-}
-
-/// Detailed information of a single MDM device compromised event.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DeviceCompromisedSecurityDetail {
-    /// The device compromised state. Possible values are "Compromised" or "Not Compromised".
-    #[serde(default, rename = "deviceCompromisedState")]
-    pub device_compromised_state: ::core::option::Option<String>,
-    /// Required. The device ID.
-    #[serde(default, rename = "deviceId")]
-    pub device_id: ::core::option::Option<String>,
-    /// The model of the device.
-    #[serde(default, rename = "deviceModel")]
-    pub device_model: ::core::option::Option<String>,
-    /// The type of the device.
-    #[serde(default, rename = "deviceType")]
-    pub device_type: ::core::option::Option<String>,
-    /// Required for iOS, empty for others.
-    #[serde(default, rename = "iosVendorId")]
-    pub ios_vendor_id: ::core::option::Option<String>,
-    /// The device resource ID.
-    #[serde(default, rename = "resourceId")]
-    pub resource_id: ::core::option::Option<String>,
-    /// The serial number of the device.
-    #[serde(default, rename = "serialNumber")]
-    pub serial_number: ::core::option::Option<String>,
 }
 
 /// Alerts from Device Management Rules configured by Admin.
@@ -477,14 +301,6 @@ pub struct DlpRuleViolation {
     pub rule_violation_info: ::core::option::Option<RuleViolationInfo>,
 }
 
-/// Domain ID of Gmail phishing alerts.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DomainId {
-    /// The primary domain for the customer.
-    #[serde(default, rename = "customerPrimaryDomain")]
-    pub customer_primary_domain: ::core::option::Option<String>,
-}
-
 /// A takeout operation for the entire domain was initiated by an admin. Derived from audit logs.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct DomainWideTakeoutInitiated {
@@ -494,66 +310,6 @@ pub struct DomainWideTakeoutInitiated {
     /// The takeout request ID.
     #[serde(default, rename = "takeoutRequestId")]
     pub takeout_request_id: ::core::option::Option<String>,
-}
-
-/// Individual entity affected by, or related to, an alert.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Entity {
-    /// Link to a Security Investigation Tool search based on this entity, if available.
-    #[serde(default)]
-    pub link: ::core::option::Option<String>,
-    /// Human-readable name of this entity, such as an email address, file ID, or device name.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Extra values beyond name. The order of values should align with headers in EntityList.
-    #[serde(default)]
-    pub values: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// EntityList stores entities in a format that can be translated to a table in the Alert Center UI.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct EntityList {
-    /// List of entities affected by the alert.
-    #[serde(default)]
-    pub entities: ::core::option::Option<::std::vec::Vec<Entity>>,
-    /// Headers of the values in entities. If no value is defined in Entity, this field should be empty.
-    #[serde(default)]
-    pub headers: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Name of the key detail used to display this entity list.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-}
-
-/// Details of a message in phishing spike alert.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GmailMessageInfo {
-    /// The SHA256 hash of email''s attachment and all MIME parts.
-    #[serde(default, rename = "attachmentsSha256Hash")]
-    pub attachments_sha256_hash: ::core::option::Option<::std::vec::Vec<String>>,
-    /// The date of the event related to this email.
-    #[serde(default)]
-    pub date: ::core::option::Option<String>,
-    /// The hash of the message body text.
-    #[serde(default, rename = "md5HashMessageBody")]
-    pub md5_hash_message_body: ::core::option::Option<String>,
-    /// The MD5 Hash of email''s subject (only available for reported emails).
-    #[serde(default, rename = "md5HashSubject")]
-    pub md5_hash_subject: ::core::option::Option<String>,
-    /// The snippet of the message body text (only available for reported emails).
-    #[serde(default, rename = "messageBodySnippet")]
-    pub message_body_snippet: ::core::option::Option<String>,
-    /// The message ID.
-    #[serde(default, rename = "messageId")]
-    pub message_id: ::core::option::Option<String>,
-    /// The recipient of this email.
-    #[serde(default)]
-    pub recipient: ::core::option::Option<String>,
-    /// The sent time of the email.
-    #[serde(default, rename = "sentTime")]
-    pub sent_time: ::core::option::Option<String>,
-    /// The email subject text (only available for reported emails).
-    #[serde(default, rename = "subjectText")]
-    pub subject_text: ::core::option::Option<String>,
 }
 
 /// An incident reported by Google Operations for a Google Workspace application.
@@ -579,37 +335,6 @@ pub struct GoogleOperations {
     pub title: ::core::option::Option<String>,
 }
 
-/// Error related to an identity provider.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct IdentityProviderError {
-    /// Authorization base url of the identity provider.
-    #[serde(default, rename = "authorizationBaseUrl")]
-    pub authorization_base_url: ::core::option::Option<String>,
-    /// Number of similar errors encountered.
-    #[serde(default, rename = "errorCount")]
-    pub error_count: ::core::option::Option<String>,
-    /// Info on the identity provider error. // TODO: enum values: ["IDENTITY_PROVIDER_ERROR_INFO_UNSPECIFIED", "EMAIL_MISMATCH", "UNAVAILABLE_DISCOVERY_CONTENT", "INVALID_DISCOVERY_CONTENT", "UNAVAILABLE_CSE_CONFIGURATION_CONTENT", "INVALID_CSE_CONFIGURATION_CONTENT", "INVALID_ID_TOKEN", "INVALID_OIDC_SETUP", "UNAVAILABLE_IDP", "AUTH_CODE_EXCHANGE_ERROR", "AUTHENTICATION_TOKEN_MISSING_CLAIM_EMAIL"]
-    #[serde(default, rename = "errorInfo")]
-    pub error_info: ::core::option::Option<String>,
-}
-
-/// Error related to an external key service.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct KeyServiceError {
-    /// Number of similar errors encountered.
-    #[serde(default, rename = "errorCount")]
-    pub error_count: ::core::option::Option<String>,
-    /// Info on the key service error. // TODO: enum values: ["KEY_SERVICE_ERROR_INFO_UNSPECIFIED", "MALFORMED_JSON", "MISSING_KEY", "MISSING_SIGNATURE", "MISSING_ALGORITHM_NAME", "UNSUPPORTED_ALGORITHM", "FETCH_REQUEST_ERROR"]
-    #[serde(default, rename = "errorInfo")]
-    pub error_info: ::core::option::Option<String>,
-    /// HTTP response status code from the key service.
-    #[serde(default, rename = "httpResponseCode")]
-    pub http_response_code: ::core::option::Option<String>,
-    /// Url of the external key service.
-    #[serde(default, rename = "keyServiceUrl")]
-    pub key_service_url: ::core::option::Option<String>,
-}
-
 /// Response message for an alert feedback listing request.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ListAlertFeedbackResponse {
@@ -627,17 +352,6 @@ pub struct ListAlertsResponse {
     /// The token for the next page. If not empty, indicates that there may be more alerts that match the listing request; this value can be used in a subsequent ListAlertsRequest to get alerts continuing from last result of the current list call.
     #[serde(default, rename = "nextPageToken")]
     pub next_page_token: ::core::option::Option<String>,
-}
-
-/// The details of the login action.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct LoginDetails {
-    /// Optional. The human-readable IP address (for example, 11.22.33.44) that is associated with the warning event.
-    #[serde(default, rename = "ipAddress")]
-    pub ip_address: ::core::option::Option<String>,
-    /// Optional. The successful login time that is associated with the warning event. This isn''t present for blocked login attempts.
-    #[serde(default, rename = "loginTime")]
-    pub login_time: ::core::option::Option<String>,
 }
 
 /// Proto for all phishing alerts with common payload. Supported types are any of the following: * User reported phishing * User reported spam spike * Suspicious message reported * Phishing reclassification * Malware reclassification * Gmail potential employee spoofing
@@ -660,20 +374,6 @@ pub struct MailPhishing {
     pub system_action_type: ::core::option::Option<String>,
 }
 
-/// Entity whose actions triggered a Gmail phishing alert.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct MaliciousEntity {
-    /// The header from display name.
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-    /// The actor who triggered a gmail phishing alert.
-    #[serde(default)]
-    pub entity: ::core::option::Option<User>,
-    /// The sender email address.
-    #[serde(default, rename = "fromHeader")]
-    pub from_header: ::core::option::Option<String>,
-}
-
 /// Alert Created by the MSA team for communications necessary for continued use of Google Workspace Products.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct MandatoryServiceAnnouncement {
@@ -683,36 +383,6 @@ pub struct MandatoryServiceAnnouncement {
     /// One line summary of the announcement
     #[serde(default)]
     pub title: ::core::option::Option<String>,
-}
-
-/// Proto that contains match information from the condition part of the rule.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct MatchInfo {
-    /// For matched detector predefined by Google.
-    #[serde(default, rename = "predefinedDetector")]
-    pub predefined_detector: ::core::option::Option<PredefinedDetectorInfo>,
-    /// For matched detector defined by administrators.
-    #[serde(default, rename = "userDefinedDetector")]
-    pub user_defined_detector: ::core::option::Option<UserDefinedDetectorInfo>,
-}
-
-/// New alert tracking numbers.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct MergeInfo {
-    /// Optional. New alert ID. Reference the [google.apps.alertcenter.Alert] with this ID for the current state.
-    #[serde(default, rename = "newAlertId")]
-    pub new_alert_id: ::core::option::Option<String>,
-    /// The new tracking ID from the parent incident.
-    #[serde(default, rename = "newIncidentTrackingId")]
-    pub new_incident_tracking_id: ::core::option::Option<String>,
-}
-
-/// Settings for callback notifications. For more details see [Google Workspace Alert Notification](https://developers.google.com/workspace/admin/alertcenter/guides/notifications).
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Notification {
-    /// A Google Cloud Pub/sub topic destination.
-    #[serde(default, rename = "cloudPubsubTopic")]
-    pub cloud_pubsub_topic: ::core::option::Option<CloudPubsubTopic>,
 }
 
 /// Alert for a spike in user reported phishing. *Warning*: This type has been deprecated. Use [MailPhishing](https://developers.google.com/workspace/admin/alertcenter/reference/rest/v1beta1/MailPhishing) instead.
@@ -732,28 +402,6 @@ pub struct PhishingSpike {
     pub messages: ::core::option::Option<::std::vec::Vec<GmailMessageInfo>>,
 }
 
-/// Detector provided by Google.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PredefinedDetectorInfo {
-    /// Name that uniquely identifies the detector.
-    #[serde(default, rename = "detectorName")]
-    pub detector_name: ::core::option::Option<String>,
-}
-
-/// Event occurred when primary admin changed in customer''s account. The event are being received from insight forwarder
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PrimaryAdminChangedEvent {
-    /// domain in which actioned occurred
-    #[serde(default)]
-    pub domain: ::core::option::Option<String>,
-    /// Email of person who was the primary admin before the action
-    #[serde(default, rename = "previousAdminEmail")]
-    pub previous_admin_email: ::core::option::Option<String>,
-    /// Email of person who is the primary admin after the action
-    #[serde(default, rename = "updatedAdminEmail")]
-    pub updated_admin_email: ::core::option::Option<String>,
-}
-
 /// Alerts from Reporting Rules configured by Admin.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ReportingRule {
@@ -766,119 +414,6 @@ pub struct ReportingRule {
     /// Alert Rule query Sample Query query { condition { filter { expected_application_id: 777491262838 expected_event_name: "indexable_content_change" filter_op: IN } } conjunction_operator: OR }
     #[serde(default)]
     pub query: ::core::option::Option<String>,
-}
-
-/// Requests for one application that needs default SQL setup.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct RequestInfo {
-    /// List of app developers who triggered notifications for above application.
-    #[serde(default, rename = "appDeveloperEmail")]
-    pub app_developer_email: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Required. The application that requires the SQL setup.
-    #[serde(default, rename = "appKey")]
-    pub app_key: ::core::option::Option<String>,
-    /// Required. Number of requests sent for this application to set up default SQL instance.
-    #[serde(default, rename = "numberOfRequests")]
-    pub number_of_requests: ::core::option::Option<String>,
-}
-
-/// Proto that contains resource information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ResourceInfo {
-    /// Chat attachment ID.
-    #[serde(default, rename = "chatAttachmentId")]
-    pub chat_attachment_id: ::core::option::Option<String>,
-    /// Chat message ID.
-    #[serde(default, rename = "chatMessageId")]
-    pub chat_message_id: ::core::option::Option<String>,
-    /// Id to identify a device. For example, for Android devices, this is the "Android Device Id" and for Chrome OS devices, it''s the "Device Virtual Id".
-    #[serde(default, rename = "deviceId")]
-    pub device_id: ::core::option::Option<String>,
-    /// Drive file ID.
-    #[serde(default, rename = "documentId")]
-    pub document_id: ::core::option::Option<String>,
-    /// RFC2822 message ID.
-    #[serde(default, rename = "messageId")]
-    pub message_id: ::core::option::Option<String>,
-    /// Title of the resource, for example email subject, or document title.
-    #[serde(default, rename = "resourceTitle")]
-    pub resource_title: ::core::option::Option<String>,
-}
-
-/// Proto that contains rule information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct RuleInfo {
-    /// User provided name of the rule.
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-    /// Resource name that uniquely identifies the rule.
-    #[serde(default, rename = "resourceName")]
-    pub resource_name: ::core::option::Option<String>,
-}
-
-/// Common alert information about violated rules that are configured by Google Workspace administrators.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct RuleViolationInfo {
-    /// Source of the data. // TODO: enum values: ["DATA_SOURCE_UNSPECIFIED", "DRIVE", "GMAIL", "CHROME", "CHAT"]
-    #[serde(default, rename = "dataSource")]
-    pub data_source: ::core::option::Option<String>,
-    /// Event associated with this alert after applying the rule. // TODO: enum values: ["EVENT_TYPE_UNSPECIFIED", "ACCESS_BLOCKED", "SHARING_BLOCKED"]
-    #[serde(default, rename = "eventType")]
-    pub event_type: ::core::option::Option<String>,
-    /// List of matches that were found in the resource content.
-    #[serde(default, rename = "matchInfo")]
-    pub match_info: ::core::option::Option<::std::vec::Vec<MatchInfo>>,
-    /// Resource recipients. For Drive, they are grantees that the Drive file was shared with at the time of rule triggering. Valid values include user emails, group emails, domains, or ''anyone'' if the file was publicly accessible. If the file was private the recipients list will be empty. For Gmail, they are emails of the users or groups that the Gmail message was sent to.
-    #[serde(default)]
-    pub recipients: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Details of the resource which violated the rule.
-    #[serde(default, rename = "resourceInfo")]
-    pub resource_info: ::core::option::Option<ResourceInfo>,
-    /// Details of the violated rule.
-    #[serde(default, rename = "ruleInfo")]
-    pub rule_info: ::core::option::Option<RuleInfo>,
-    /// Actions suppressed due to other actions with higher priority.
-    #[serde(default, rename = "suppressedActionTypes")]
-    pub suppressed_action_types: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Trigger of the rule. // TODO: enum values: ["TRIGGER_UNSPECIFIED", "DRIVE_SHARE", "MAIL_BEING_SENT", "CHROME_FILE_DOWNLOAD", "CHROME_FILE_UPLOAD", "CHROME_WEB_CONTENT_UPLOAD", "CHAT_MESSAGE_SENT", "CHAT_ATTACHMENT_UPLOADED", "CHROME_PAGE_PRINT", "CHROME_URL_VISITED", "CHROMEOS_FILE_TRANSFER"]
-    #[serde(default)]
-    pub trigger: ::core::option::Option<String>,
-    /// Metadata related to the triggered actions.
-    #[serde(default, rename = "triggeredActionInfo")]
-    pub triggered_action_info: ::core::option::Option<::std::vec::Vec<ActionInfo>>,
-    /// Actions applied as a consequence of the rule being triggered.
-    #[serde(default, rename = "triggeredActionTypes")]
-    pub triggered_action_types: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Email of the user who caused the violation. Value could be empty if not applicable, for example, a violation found by drive continuous scan.
-    #[serde(default, rename = "triggeringUserEmail")]
-    pub triggering_user_email: ::core::option::Option<String>,
-}
-
-/// Event occurred when SSO Profile created in customer''s account. The event are being received from insight forwarder
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SSOProfileCreatedEvent {
-    /// sso profile name which got created
-    #[serde(default, rename = "inboundSsoProfileName")]
-    pub inbound_sso_profile_name: ::core::option::Option<String>,
-}
-
-/// Event occurred when SSO Profile deleted in customer''s account. The event are being received from insight forwarder
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SSOProfileDeletedEvent {
-    /// sso profile name which got deleted
-    #[serde(default, rename = "inboundSsoProfileName")]
-    pub inbound_sso_profile_name: ::core::option::Option<String>,
-}
-
-/// Event occurred when SSO Profile updated in customer''s account. The event are being received from insight forwarder
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SSOProfileUpdatedEvent {
-    /// changes made to sso profile
-    #[serde(default, rename = "inboundSsoProfileChanges")]
-    pub inbound_sso_profile_changes: ::core::option::Option<String>,
-    /// sso profile name which got updated
-    #[serde(default, rename = "inboundSsoProfileName")]
-    pub inbound_sso_profile_name: ::core::option::Option<String>,
 }
 
 /// Alert that is triggered when Sensitive Admin Action occur in customer account.
@@ -937,25 +472,6 @@ pub struct Status {
     pub message: ::core::option::Option<String>,
 }
 
-/// Event occurred when password was reset for super admin in customer''s account. The event are being received from insight forwarder
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SuperAdminPasswordResetEvent {
-    /// email of person whose password was reset
-    #[serde(default, rename = "userEmail")]
-    pub user_email: ::core::option::Option<String>,
-}
-
-/// Support ticket related to Access Approvals request
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SupportTicket {
-    /// Support ticket ID
-    #[serde(default, rename = "ticketId")]
-    pub ticket_id: ::core::option::Option<String>,
-    /// Link to support ticket
-    #[serde(default, rename = "ticketUrl")]
-    pub ticket_url: ::core::option::Option<String>,
-}
-
 /// A mobile suspicious activity alert. Derived from audit logs.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SuspiciousActivity {
@@ -967,66 +483,6 @@ pub struct SuspiciousActivity {
     pub events: ::core::option::Option<::std::vec::Vec<SuspiciousActivitySecurityDetail>>,
 }
 
-/// Detailed information of a single MDM suspicious activity event.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SuspiciousActivitySecurityDetail {
-    /// Required. The device ID.
-    #[serde(default, rename = "deviceId")]
-    pub device_id: ::core::option::Option<String>,
-    /// The model of the device.
-    #[serde(default, rename = "deviceModel")]
-    pub device_model: ::core::option::Option<String>,
-    /// The device property which was changed.
-    #[serde(default, rename = "deviceProperty")]
-    pub device_property: ::core::option::Option<String>,
-    /// The type of the device.
-    #[serde(default, rename = "deviceType")]
-    pub device_type: ::core::option::Option<String>,
-    /// Required for iOS, empty for others.
-    #[serde(default, rename = "iosVendorId")]
-    pub ios_vendor_id: ::core::option::Option<String>,
-    /// The new value of the device property after the change.
-    #[serde(default, rename = "newValue")]
-    pub new_value: ::core::option::Option<String>,
-    /// The old value of the device property before the change.
-    #[serde(default, rename = "oldValue")]
-    pub old_value: ::core::option::Option<String>,
-    /// The device resource ID.
-    #[serde(default, rename = "resourceId")]
-    pub resource_id: ::core::option::Option<String>,
-    /// The serial number of the device.
-    #[serde(default, rename = "serialNumber")]
-    pub serial_number: ::core::option::Option<String>,
-}
-
-/// Details for an invalid transfer or forward.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct TransferError {
-    /// User''s email address. This may be unavailable if the entity was deleted.
-    #[serde(default)]
-    pub email: ::core::option::Option<String>,
-    /// Type of entity being transferred to. For ring group members, this should always be USER. // TODO: enum values: ["TRANSFER_ENTITY_TYPE_UNSPECIFIED", "TRANSFER_AUTO_ATTENDANT", "TRANSFER_RING_GROUP", "TRANSFER_USER"]
-    #[serde(default, rename = "entityType")]
-    pub entity_type: ::core::option::Option<String>,
-    /// Ring group or auto attendant ID. Not set for users.
-    #[serde(default)]
-    pub id: ::core::option::Option<String>,
-    /// Reason for the error. // TODO: enum values: ["TRANSFER_INVALID_REASON_UNSPECIFIED", "TRANSFER_TARGET_DELETED", "UNLICENSED", "SUSPENDED", "NO_PHONE_NUMBER"]
-    #[serde(default, rename = "invalidReason")]
-    pub invalid_reason: ::core::option::Option<String>,
-    /// User''s full name, or the ring group / auto attendant name. This may be unavailable if the entity was deleted.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-}
-
-/// Error related to transferring or forwarding a phone call.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct TransferMisconfiguration {
-    /// Details for each invalid transfer or forward.
-    #[serde(default)]
-    pub errors: ::core::option::Option<::std::vec::Vec<TransferError>>,
-}
-
 /// A request to undelete a specific alert that was marked for deletion.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct UndeleteAlertRequest {
@@ -1035,34 +491,12 @@ pub struct UndeleteAlertRequest {
     pub customer_id: ::core::option::Option<String>,
 }
 
-/// A user.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct User {
-    /// Display name of the user.
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-    /// Email address of the user.
-    #[serde(default, rename = "emailAddress")]
-    pub email_address: ::core::option::Option<String>,
-}
-
 /// Alerts from UserChanges bucket Rules for predefined rules which contain the following rules: - Suspended user made active - New user added - User suspended (by admin) - User granted admin privileges - User admin privileges revoked - User deleted - Users password changed
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct UserChanges {
     /// Rule name
     #[serde(default)]
     pub name: ::core::option::Option<String>,
-}
-
-/// Detector defined by administrators.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct UserDefinedDetectorInfo {
-    /// Display name of the detector.
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-    /// Resource name that uniquely identifies the detector.
-    #[serde(default, rename = "resourceName")]
-    pub resource_name: ::core::option::Option<String>,
 }
 
 /// Alert that is triggered when a Vault accelerated deletion request is created or canceled.
@@ -1108,12 +542,551 @@ pub struct VoiceMisconfiguration {
     pub voicemail_misconfiguration: ::core::option::Option<VoicemailMisconfiguration>,
 }
 
+/// EntityList stores entities in a format that can be translated to a table in the Alert Center UI.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct EntityList {
+    /// List of entities affected by the alert.
+    #[serde(default)]
+    pub entities: ::core::option::Option<::std::vec::Vec<Entity>>,
+    /// Headers of the values in entities. If no value is defined in Entity, this field should be empty.
+    #[serde(default)]
+    pub headers: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Name of the key detail used to display this entity list.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+}
+
+/// Support ticket related to Access Approvals request
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SupportTicket {
+    /// Support ticket ID
+    #[serde(default, rename = "ticketId")]
+    pub ticket_id: ::core::option::Option<String>,
+    /// Link to support ticket
+    #[serde(default, rename = "ticketUrl")]
+    pub ticket_url: ::core::option::Option<String>,
+}
+
+/// Details about why an account is receiving an account suspension warning.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AccountSuspensionDetails {
+    /// The reason why this account is receiving an account suspension warning. // TODO: enum values: ["ACCOUNT_SUSPENSION_ABUSE_REASON_UNSPECIFIED", "TOS_VIOLATION", "SPAM", "PHISHING", "TRAFFIC_PUMPING", "FRAUD", "NUMBER_HARVESTING", "PAYMENTS_FRAUD", "UNWANTED_CONTENT", "UNQUALIFIED_EDU"]
+    #[serde(default, rename = "abuseReason")]
+    pub abuse_reason: ::core::option::Option<String>,
+    /// The name of the product being abused. This is restricted to only the following values: "Gmail" "Google Workspace" "Payments" "Voice" "YouTube" "Other"
+    #[serde(default, rename = "productName")]
+    pub product_name: ::core::option::Option<String>,
+}
+
+/// The details of the login action.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LoginDetails {
+    /// Optional. The human-readable IP address (for example, 11.22.33.44) that is associated with the warning event.
+    #[serde(default, rename = "ipAddress")]
+    pub ip_address: ::core::option::Option<String>,
+    /// Optional. The successful login time that is associated with the warning event. This isn''t present for blocked login attempts.
+    #[serde(default, rename = "loginTime")]
+    pub login_time: ::core::option::Option<String>,
+}
+
+/// Requests for one application that needs default SQL setup.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RequestInfo {
+    /// List of app developers who triggered notifications for above application.
+    #[serde(default, rename = "appDeveloperEmail")]
+    pub app_developer_email: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Required. The application that requires the SQL setup.
+    #[serde(default, rename = "appKey")]
+    pub app_key: ::core::option::Option<String>,
+    /// Required. Number of requests sent for this application to set up default SQL instance.
+    #[serde(default, rename = "numberOfRequests")]
+    pub number_of_requests: ::core::option::Option<String>,
+}
+
+/// New alert tracking numbers.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MergeInfo {
+    /// Optional. New alert ID. Reference the [google.apps.alertcenter.Alert] with this ID for the current state.
+    #[serde(default, rename = "newAlertId")]
+    pub new_alert_id: ::core::option::Option<String>,
+    /// The new tracking ID from the parent incident.
+    #[serde(default, rename = "newIncidentTrackingId")]
+    pub new_incident_tracking_id: ::core::option::Option<String>,
+}
+
+/// Error related to an identity provider.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct IdentityProviderError {
+    /// Authorization base url of the identity provider.
+    #[serde(default, rename = "authorizationBaseUrl")]
+    pub authorization_base_url: ::core::option::Option<String>,
+    /// Number of similar errors encountered.
+    #[serde(default, rename = "errorCount")]
+    pub error_count: ::core::option::Option<String>,
+    /// Info on the identity provider error. // TODO: enum values: ["IDENTITY_PROVIDER_ERROR_INFO_UNSPECIFIED", "EMAIL_MISMATCH", "UNAVAILABLE_DISCOVERY_CONTENT", "INVALID_DISCOVERY_CONTENT", "UNAVAILABLE_CSE_CONFIGURATION_CONTENT", "INVALID_CSE_CONFIGURATION_CONTENT", "INVALID_ID_TOKEN", "INVALID_OIDC_SETUP", "UNAVAILABLE_IDP", "AUTH_CODE_EXCHANGE_ERROR", "AUTHENTICATION_TOKEN_MISSING_CLAIM_EMAIL"]
+    #[serde(default, rename = "errorInfo")]
+    pub error_info: ::core::option::Option<String>,
+}
+
+/// Error related to an external key service.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct KeyServiceError {
+    /// Number of similar errors encountered.
+    #[serde(default, rename = "errorCount")]
+    pub error_count: ::core::option::Option<String>,
+    /// Info on the key service error. // TODO: enum values: ["KEY_SERVICE_ERROR_INFO_UNSPECIFIED", "MALFORMED_JSON", "MISSING_KEY", "MISSING_SIGNATURE", "MISSING_ALGORITHM_NAME", "UNSUPPORTED_ALGORITHM", "FETCH_REQUEST_ERROR"]
+    #[serde(default, rename = "errorInfo")]
+    pub error_info: ::core::option::Option<String>,
+    /// HTTP response status code from the key service.
+    #[serde(default, rename = "httpResponseCode")]
+    pub http_response_code: ::core::option::Option<String>,
+    /// Url of the external key service.
+    #[serde(default, rename = "keyServiceUrl")]
+    pub key_service_url: ::core::option::Option<String>,
+}
+
+/// Detailed information of a single MDM device compromised event.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DeviceCompromisedSecurityDetail {
+    /// The device compromised state. Possible values are "Compromised" or "Not Compromised".
+    #[serde(default, rename = "deviceCompromisedState")]
+    pub device_compromised_state: ::core::option::Option<String>,
+    /// Required. The device ID.
+    #[serde(default, rename = "deviceId")]
+    pub device_id: ::core::option::Option<String>,
+    /// The model of the device.
+    #[serde(default, rename = "deviceModel")]
+    pub device_model: ::core::option::Option<String>,
+    /// The type of the device.
+    #[serde(default, rename = "deviceType")]
+    pub device_type: ::core::option::Option<String>,
+    /// Required for iOS, empty for others.
+    #[serde(default, rename = "iosVendorId")]
+    pub ios_vendor_id: ::core::option::Option<String>,
+    /// The device resource ID.
+    #[serde(default, rename = "resourceId")]
+    pub resource_id: ::core::option::Option<String>,
+    /// The serial number of the device.
+    #[serde(default, rename = "serialNumber")]
+    pub serial_number: ::core::option::Option<String>,
+}
+
+/// Common alert information about violated rules that are configured by Google Workspace administrators.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RuleViolationInfo {
+    /// Source of the data. // TODO: enum values: ["DATA_SOURCE_UNSPECIFIED", "DRIVE", "GMAIL", "CHROME", "CHAT"]
+    #[serde(default, rename = "dataSource")]
+    pub data_source: ::core::option::Option<String>,
+    /// Event associated with this alert after applying the rule. // TODO: enum values: ["EVENT_TYPE_UNSPECIFIED", "ACCESS_BLOCKED", "SHARING_BLOCKED"]
+    #[serde(default, rename = "eventType")]
+    pub event_type: ::core::option::Option<String>,
+    /// List of matches that were found in the resource content.
+    #[serde(default, rename = "matchInfo")]
+    pub match_info: ::core::option::Option<::std::vec::Vec<MatchInfo>>,
+    /// Resource recipients. For Drive, they are grantees that the Drive file was shared with at the time of rule triggering. Valid values include user emails, group emails, domains, or ''anyone'' if the file was publicly accessible. If the file was private the recipients list will be empty. For Gmail, they are emails of the users or groups that the Gmail message was sent to.
+    #[serde(default)]
+    pub recipients: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Details of the resource which violated the rule.
+    #[serde(default, rename = "resourceInfo")]
+    pub resource_info: ::core::option::Option<ResourceInfo>,
+    /// Details of the violated rule.
+    #[serde(default, rename = "ruleInfo")]
+    pub rule_info: ::core::option::Option<RuleInfo>,
+    /// Actions suppressed due to other actions with higher priority.
+    #[serde(default, rename = "suppressedActionTypes")]
+    pub suppressed_action_types: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Trigger of the rule. // TODO: enum values: ["TRIGGER_UNSPECIFIED", "DRIVE_SHARE", "MAIL_BEING_SENT", "CHROME_FILE_DOWNLOAD", "CHROME_FILE_UPLOAD", "CHROME_WEB_CONTENT_UPLOAD", "CHAT_MESSAGE_SENT", "CHAT_ATTACHMENT_UPLOADED", "CHROME_PAGE_PRINT", "CHROME_URL_VISITED", "CHROMEOS_FILE_TRANSFER"]
+    #[serde(default)]
+    pub trigger: ::core::option::Option<String>,
+    /// Metadata related to the triggered actions.
+    #[serde(default, rename = "triggeredActionInfo")]
+    pub triggered_action_info: ::core::option::Option<::std::vec::Vec<ActionInfo>>,
+    /// Actions applied as a consequence of the rule being triggered.
+    #[serde(default, rename = "triggeredActionTypes")]
+    pub triggered_action_types: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Email of the user who caused the violation. Value could be empty if not applicable, for example, a violation found by drive continuous scan.
+    #[serde(default, rename = "triggeringUserEmail")]
+    pub triggering_user_email: ::core::option::Option<String>,
+}
+
+/// Attachment with application-specific information about an alert.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Attachment {
+    /// A CSV file attachment.
+    #[serde(default)]
+    pub csv: ::core::option::Option<Csv>,
+}
+
+/// A customer feedback about an alert.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AlertFeedback {
+    /// Output only. The alert identifier.
+    #[serde(default, rename = "alertId")]
+    pub alert_id: ::core::option::Option<String>,
+    /// Output only. The time this feedback was created.
+    #[serde(default, rename = "createTime")]
+    pub create_time: ::core::option::Option<String>,
+    /// Output only. The unique identifier of the Google Workspace account of the customer.
+    #[serde(default, rename = "customerId")]
+    pub customer_id: ::core::option::Option<String>,
+    /// Output only. The email of the user that provided the feedback.
+    #[serde(default)]
+    pub email: ::core::option::Option<String>,
+    /// Output only. The unique identifier for the feedback.
+    #[serde(default, rename = "feedbackId")]
+    pub feedback_id: ::core::option::Option<String>,
+    /// Required. The type of the feedback. // TODO: enum values: ["ALERT_FEEDBACK_TYPE_UNSPECIFIED", "NOT_USEFUL", "SOMEWHAT_USEFUL", "VERY_USEFUL"]
+    #[serde(default, rename = "type")]
+    pub type_: ::core::option::Option<String>,
+}
+
+/// An alert affecting a customer.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Alert {
+    /// Output only. The unique identifier for the alert.
+    #[serde(default, rename = "alertId")]
+    pub alert_id: ::core::option::Option<String>,
+    /// Output only. The time this alert was created.
+    #[serde(default, rename = "createTime")]
+    pub create_time: ::core::option::Option<String>,
+    /// Output only. The unique identifier of the Google Workspace account of the customer.
+    #[serde(default, rename = "customerId")]
+    pub customer_id: ::core::option::Option<String>,
+    /// Optional. The data associated with this alert, for example google.apps.alertcenter.type.DeviceCompromised.
+    #[serde(default)]
+    pub data: ::core::option::Option<serde_json::Value>,
+    /// Output only. True if this alert is marked for deletion.
+    #[serde(default)]
+    pub deleted: ::core::option::Option<bool>,
+    /// Optional. The time the event that caused this alert ceased being active. If provided, the end time must not be earlier than the start time. If not provided, it indicates an ongoing alert.
+    #[serde(default, rename = "endTime")]
+    pub end_time: ::core::option::Option<String>,
+    /// Optional. etag is used for optimistic concurrency control as a way to help prevent simultaneous updates of an alert from overwriting each other. It is strongly suggested that systems make use of the etag in the read-modify-write cycle to perform alert updates in order to avoid race conditions: An etag is returned in the response which contains alerts, and systems are expected to put that etag in the request to update alert to ensure that their change will be applied to the same version of the alert. If no etag is provided in the call to update alert, then the existing alert is overwritten blindly.
+    #[serde(default)]
+    pub etag: ::core::option::Option<String>,
+    /// Output only. The metadata associated with this alert.
+    #[serde(default)]
+    pub metadata: ::core::option::Option<AlertMetadata>,
+    /// Output only. An optional [Security Investigation Tool](https://support.google.com/a/answer/7575955) query for this alert.
+    #[serde(default, rename = "securityInvestigationToolLink")]
+    pub security_investigation_tool_link: ::core::option::Option<String>,
+    /// Required. A unique identifier for the system that reported the alert. This is output only after alert is created. Supported sources are any of the following: * Google Operations * Mobile device management * Gmail phishing * Data Loss Prevention * Domain wide takeout * State sponsored attack * Google identity * Apps outage
+    #[serde(default)]
+    pub source: ::core::option::Option<String>,
+    /// Required. The time the event that caused this alert was started or detected.
+    #[serde(default, rename = "startTime")]
+    pub start_time: ::core::option::Option<String>,
+    /// Required. The type of the alert. This is output only after alert is created. For a list of available alert types see [Google Workspace Alert types](https://developers.google.com/workspace/admin/alertcenter/reference/alert-types).
+    #[serde(default, rename = "type")]
+    pub type_: ::core::option::Option<String>,
+    /// Output only. The time this alert was last updated.
+    #[serde(default, rename = "updateTime")]
+    pub update_time: ::core::option::Option<String>,
+}
+
+/// Domain ID of Gmail phishing alerts.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DomainId {
+    /// The primary domain for the customer.
+    #[serde(default, rename = "customerPrimaryDomain")]
+    pub customer_primary_domain: ::core::option::Option<String>,
+}
+
+/// Entity whose actions triggered a Gmail phishing alert.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MaliciousEntity {
+    /// The header from display name.
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+    /// The actor who triggered a gmail phishing alert.
+    #[serde(default)]
+    pub entity: ::core::option::Option<User>,
+    /// The sender email address.
+    #[serde(default, rename = "fromHeader")]
+    pub from_header: ::core::option::Option<String>,
+}
+
+/// Details of a message in phishing spike alert.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GmailMessageInfo {
+    /// The SHA256 hash of email''s attachment and all MIME parts.
+    #[serde(default, rename = "attachmentsSha256Hash")]
+    pub attachments_sha256_hash: ::core::option::Option<::std::vec::Vec<String>>,
+    /// The date of the event related to this email.
+    #[serde(default)]
+    pub date: ::core::option::Option<String>,
+    /// The hash of the message body text.
+    #[serde(default, rename = "md5HashMessageBody")]
+    pub md5_hash_message_body: ::core::option::Option<String>,
+    /// The MD5 Hash of email''s subject (only available for reported emails).
+    #[serde(default, rename = "md5HashSubject")]
+    pub md5_hash_subject: ::core::option::Option<String>,
+    /// The snippet of the message body text (only available for reported emails).
+    #[serde(default, rename = "messageBodySnippet")]
+    pub message_body_snippet: ::core::option::Option<String>,
+    /// The message ID.
+    #[serde(default, rename = "messageId")]
+    pub message_id: ::core::option::Option<String>,
+    /// The recipient of this email.
+    #[serde(default)]
+    pub recipient: ::core::option::Option<String>,
+    /// The sent time of the email.
+    #[serde(default, rename = "sentTime")]
+    pub sent_time: ::core::option::Option<String>,
+    /// The email subject text (only available for reported emails).
+    #[serde(default, rename = "subjectText")]
+    pub subject_text: ::core::option::Option<String>,
+}
+
+/// Event occurred when primary admin changed in customer''s account. The event are being received from insight forwarder
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PrimaryAdminChangedEvent {
+    /// domain in which actioned occurred
+    #[serde(default)]
+    pub domain: ::core::option::Option<String>,
+    /// Email of person who was the primary admin before the action
+    #[serde(default, rename = "previousAdminEmail")]
+    pub previous_admin_email: ::core::option::Option<String>,
+    /// Email of person who is the primary admin after the action
+    #[serde(default, rename = "updatedAdminEmail")]
+    pub updated_admin_email: ::core::option::Option<String>,
+}
+
+/// Event occurred when SSO Profile created in customer''s account. The event are being received from insight forwarder
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SSOProfileCreatedEvent {
+    /// sso profile name which got created
+    #[serde(default, rename = "inboundSsoProfileName")]
+    pub inbound_sso_profile_name: ::core::option::Option<String>,
+}
+
+/// Event occurred when SSO Profile deleted in customer''s account. The event are being received from insight forwarder
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SSOProfileDeletedEvent {
+    /// sso profile name which got deleted
+    #[serde(default, rename = "inboundSsoProfileName")]
+    pub inbound_sso_profile_name: ::core::option::Option<String>,
+}
+
+/// Event occurred when SSO Profile updated in customer''s account. The event are being received from insight forwarder
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SSOProfileUpdatedEvent {
+    /// changes made to sso profile
+    #[serde(default, rename = "inboundSsoProfileChanges")]
+    pub inbound_sso_profile_changes: ::core::option::Option<String>,
+    /// sso profile name which got updated
+    #[serde(default, rename = "inboundSsoProfileName")]
+    pub inbound_sso_profile_name: ::core::option::Option<String>,
+}
+
+/// Event occurred when password was reset for super admin in customer''s account. The event are being received from insight forwarder
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SuperAdminPasswordResetEvent {
+    /// email of person whose password was reset
+    #[serde(default, rename = "userEmail")]
+    pub user_email: ::core::option::Option<String>,
+}
+
+/// Settings for callback notifications. For more details see [Google Workspace Alert Notification](https://developers.google.com/workspace/admin/alertcenter/guides/notifications).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Notification {
+    /// A Google Cloud Pub/sub topic destination.
+    #[serde(default, rename = "cloudPubsubTopic")]
+    pub cloud_pubsub_topic: ::core::option::Option<CloudPubsubTopic>,
+}
+
+/// Detailed information of a single MDM suspicious activity event.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SuspiciousActivitySecurityDetail {
+    /// Required. The device ID.
+    #[serde(default, rename = "deviceId")]
+    pub device_id: ::core::option::Option<String>,
+    /// The model of the device.
+    #[serde(default, rename = "deviceModel")]
+    pub device_model: ::core::option::Option<String>,
+    /// The device property which was changed.
+    #[serde(default, rename = "deviceProperty")]
+    pub device_property: ::core::option::Option<String>,
+    /// The type of the device.
+    #[serde(default, rename = "deviceType")]
+    pub device_type: ::core::option::Option<String>,
+    /// Required for iOS, empty for others.
+    #[serde(default, rename = "iosVendorId")]
+    pub ios_vendor_id: ::core::option::Option<String>,
+    /// The new value of the device property after the change.
+    #[serde(default, rename = "newValue")]
+    pub new_value: ::core::option::Option<String>,
+    /// The old value of the device property before the change.
+    #[serde(default, rename = "oldValue")]
+    pub old_value: ::core::option::Option<String>,
+    /// The device resource ID.
+    #[serde(default, rename = "resourceId")]
+    pub resource_id: ::core::option::Option<String>,
+    /// The serial number of the device.
+    #[serde(default, rename = "serialNumber")]
+    pub serial_number: ::core::option::Option<String>,
+}
+
+/// Error related to transferring or forwarding a phone call.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TransferMisconfiguration {
+    /// Details for each invalid transfer or forward.
+    #[serde(default)]
+    pub errors: ::core::option::Option<::std::vec::Vec<TransferError>>,
+}
+
 /// Issue(s) with sending to voicemail.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct VoicemailMisconfiguration {
     /// Issue(s) with voicemail recipients.
     #[serde(default)]
     pub errors: ::core::option::Option<::std::vec::Vec<VoicemailRecipientError>>,
+}
+
+/// Individual entity affected by, or related to, an alert.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Entity {
+    /// Link to a Security Investigation Tool search based on this entity, if available.
+    #[serde(default)]
+    pub link: ::core::option::Option<String>,
+    /// Human-readable name of this entity, such as an email address, file ID, or device name.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Extra values beyond name. The order of values should align with headers in EntityList.
+    #[serde(default)]
+    pub values: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// Proto that contains match information from the condition part of the rule.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MatchInfo {
+    /// For matched detector predefined by Google.
+    #[serde(default, rename = "predefinedDetector")]
+    pub predefined_detector: ::core::option::Option<PredefinedDetectorInfo>,
+    /// For matched detector defined by administrators.
+    #[serde(default, rename = "userDefinedDetector")]
+    pub user_defined_detector: ::core::option::Option<UserDefinedDetectorInfo>,
+}
+
+/// Proto that contains resource information.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ResourceInfo {
+    /// Chat attachment ID.
+    #[serde(default, rename = "chatAttachmentId")]
+    pub chat_attachment_id: ::core::option::Option<String>,
+    /// Chat message ID.
+    #[serde(default, rename = "chatMessageId")]
+    pub chat_message_id: ::core::option::Option<String>,
+    /// Id to identify a device. For example, for Android devices, this is the "Android Device Id" and for Chrome OS devices, it''s the "Device Virtual Id".
+    #[serde(default, rename = "deviceId")]
+    pub device_id: ::core::option::Option<String>,
+    /// Drive file ID.
+    #[serde(default, rename = "documentId")]
+    pub document_id: ::core::option::Option<String>,
+    /// RFC2822 message ID.
+    #[serde(default, rename = "messageId")]
+    pub message_id: ::core::option::Option<String>,
+    /// Title of the resource, for example email subject, or document title.
+    #[serde(default, rename = "resourceTitle")]
+    pub resource_title: ::core::option::Option<String>,
+}
+
+/// Proto that contains rule information.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RuleInfo {
+    /// User provided name of the rule.
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+    /// Resource name that uniquely identifies the rule.
+    #[serde(default, rename = "resourceName")]
+    pub resource_name: ::core::option::Option<String>,
+}
+
+/// Metadata related to the action.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ActionInfo {
+    /// Google Cloud Storage location of the content that violated the rule. This field has format: "/"
+    #[serde(default, rename = "evidenceLockerFilePath")]
+    pub evidence_locker_file_path: ::core::option::Option<String>,
+}
+
+/// A representation of a CSV file attachment, as a list of column headers and a list of data rows.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Csv {
+    /// The list of data rows in a CSV file, as string arrays rather than as a single comma-separated string.
+    #[serde(default, rename = "dataRows")]
+    pub data_rows: ::core::option::Option<::std::vec::Vec<CsvRow>>,
+    /// The list of headers for data columns in a CSV file.
+    #[serde(default)]
+    pub headers: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// An alert metadata.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AlertMetadata {
+    /// Output only. The alert identifier.
+    #[serde(default, rename = "alertId")]
+    pub alert_id: ::core::option::Option<String>,
+    /// The email address of the user assigned to the alert.
+    #[serde(default)]
+    pub assignee: ::core::option::Option<String>,
+    /// Output only. The unique identifier of the Google Workspace account of the customer.
+    #[serde(default, rename = "customerId")]
+    pub customer_id: ::core::option::Option<String>,
+    /// Optional. etag is used for optimistic concurrency control as a way to help prevent simultaneous updates of an alert metadata from overwriting each other. It is strongly suggested that systems make use of the etag in the read-modify-write cycle to perform metadata updates in order to avoid race conditions: An etag is returned in the response which contains alert metadata, and systems are expected to put that etag in the request to update alert metadata to ensure that their change will be applied to the same version of the alert metadata. If no etag is provided in the call to update alert metadata, then the existing alert metadata is overwritten blindly.
+    #[serde(default)]
+    pub etag: ::core::option::Option<String>,
+    /// The severity value of the alert. Alert Center will set this field at alert creation time, default''s to an empty string when it could not be determined. The supported values for update actions on this field are the following: * HIGH * MEDIUM * LOW
+    #[serde(default)]
+    pub severity: ::core::option::Option<String>,
+    /// The current status of the alert. The supported values are the following: * NOT_STARTED * IN_PROGRESS * CLOSED
+    #[serde(default)]
+    pub status: ::core::option::Option<String>,
+    /// Output only. The time this metadata was last updated.
+    #[serde(default, rename = "updateTime")]
+    pub update_time: ::core::option::Option<String>,
+}
+
+/// A user.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct User {
+    /// Display name of the user.
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+    /// Email address of the user.
+    #[serde(default, rename = "emailAddress")]
+    pub email_address: ::core::option::Option<String>,
+}
+
+/// A reference to a Cloud Pubsub topic. To register for notifications, the owner of the topic must grant alerts-api-push-notifications@system.gserviceaccount.com the projects.topics.publish permission.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CloudPubsubTopic {
+    /// Optional. The format of the payload that would be sent. If not specified the format will be JSON. // TODO: enum values: ["PAYLOAD_FORMAT_UNSPECIFIED", "JSON"]
+    #[serde(default, rename = "payloadFormat")]
+    pub payload_format: ::core::option::Option<String>,
+    /// The name field of a Cloud Pubsub [Topic] (https://cloud.google.com/pubsub/docs/reference/rest/v1/projects.topics#Topic).
+    #[serde(default, rename = "topicName")]
+    pub topic_name: ::core::option::Option<String>,
+}
+
+/// Details for an invalid transfer or forward.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TransferError {
+    /// User''s email address. This may be unavailable if the entity was deleted.
+    #[serde(default)]
+    pub email: ::core::option::Option<String>,
+    /// Type of entity being transferred to. For ring group members, this should always be USER. // TODO: enum values: ["TRANSFER_ENTITY_TYPE_UNSPECIFIED", "TRANSFER_AUTO_ATTENDANT", "TRANSFER_RING_GROUP", "TRANSFER_USER"]
+    #[serde(default, rename = "entityType")]
+    pub entity_type: ::core::option::Option<String>,
+    /// Ring group or auto attendant ID. Not set for users.
+    #[serde(default)]
+    pub id: ::core::option::Option<String>,
+    /// Reason for the error. // TODO: enum values: ["TRANSFER_INVALID_REASON_UNSPECIFIED", "TRANSFER_TARGET_DELETED", "UNLICENSED", "SUSPENDED", "NO_PHONE_NUMBER"]
+    #[serde(default, rename = "invalidReason")]
+    pub invalid_reason: ::core::option::Option<String>,
+    /// User''s full name, or the ring group / auto attendant name. This may be unavailable if the entity was deleted.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
 }
 
 /// Issue(s) with a voicemail recipient.
@@ -1125,4 +1098,31 @@ pub struct VoicemailRecipientError {
     /// Reason for the error. // TODO: enum values: ["EMAIL_INVALID_REASON_UNSPECIFIED", "OUT_OF_QUOTA", "RECIPIENT_DELETED"]
     #[serde(default, rename = "invalidReason")]
     pub invalid_reason: ::core::option::Option<String>,
+}
+
+/// Detector provided by Google.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PredefinedDetectorInfo {
+    /// Name that uniquely identifies the detector.
+    #[serde(default, rename = "detectorName")]
+    pub detector_name: ::core::option::Option<String>,
+}
+
+/// Detector defined by administrators.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct UserDefinedDetectorInfo {
+    /// Display name of the detector.
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+    /// Resource name that uniquely identifies the detector.
+    #[serde(default, rename = "resourceName")]
+    pub resource_name: ::core::option::Option<String>,
+}
+
+/// A representation of a single data row in a CSV file.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CsvRow {
+    /// The data entries in a CSV file row, as a string array rather than a single comma-separated string.
+    #[serde(default)]
+    pub entries: ::core::option::Option<::std::vec::Vec<String>>,
 }

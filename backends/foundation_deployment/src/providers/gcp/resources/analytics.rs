@@ -10,38 +10,6 @@
 use super::*;
 use serde::{Deserialize, Serialize};
 
-/// JSON template for Analytics account entry.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Account {
-    /// Child link for an account entry. Points to the list of web properties for this account.
-    #[serde(default, rename = "childLink")]
-    pub child_link: ::core::option::Option<serde_json::Value>,
-    /// Time the account was created.
-    #[serde(default)]
-    pub created: ::core::option::Option<String>,
-    /// Account ID.
-    #[serde(default)]
-    pub id: ::core::option::Option<String>,
-    /// Resource type for Analytics account.
-    #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-    /// Account name.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Permissions the user has for this account.
-    #[serde(default)]
-    pub permissions: ::core::option::Option<serde_json::Value>,
-    /// Link for this account.
-    #[serde(default, rename = "selfLink")]
-    pub self_link: ::core::option::Option<String>,
-    /// Indicates whether this account is starred or not.
-    #[serde(default)]
-    pub starred: ::core::option::Option<bool>,
-    /// Time the account was last modified.
-    #[serde(default)]
-    pub updated: ::core::option::Option<String>,
-}
-
 /// JSON template for a linked account.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AccountRef {
@@ -86,26 +54,6 @@ pub struct AccountSummaries {
     /// Email ID of the authenticated user
     #[serde(default)]
     pub username: ::core::option::Option<String>,
-}
-
-/// JSON template for an Analytics AccountSummary. An AccountSummary is a lightweight tree comprised of properties/profiles.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AccountSummary {
-    /// Account ID.
-    #[serde(default)]
-    pub id: ::core::option::Option<String>,
-    /// Resource type for Analytics AccountSummary.
-    #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-    /// Account name.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Indicates whether this account is starred or not.
-    #[serde(default)]
-    pub starred: ::core::option::Option<bool>,
-    /// List of web properties under this account.
-    #[serde(default, rename = "webProperties")]
-    pub web_properties: ::core::option::Option<::std::vec::Vec<WebPropertySummary>>,
 }
 
 /// JSON template for an Analytics account ticket. The account ticket consists of the ticket ID and the basic information for the account, property and profile.
@@ -195,40 +143,12 @@ pub struct Accounts {
     pub username: ::core::option::Option<String>,
 }
 
-/// JSON template for an Google Ads account.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AdWordsAccount {
-    /// True if auto-tagging is enabled on the Google Ads account. Read-only after the insert operation.
-    #[serde(default, rename = "autoTaggingEnabled")]
-    pub auto_tagging_enabled: ::core::option::Option<bool>,
-    /// Customer ID. This field is required when creating a Google Ads link.
-    #[serde(default, rename = "customerId")]
-    pub customer_id: ::core::option::Option<String>,
-    /// Resource type for Google Ads account.
-    #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-}
-
 /// Request template for the delete upload data request.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AnalyticsDataimportDeleteUploadDataRequest {
     /// A list of upload UIDs.
     #[serde(default, rename = "customDataImportUids")]
     pub custom_data_import_uids: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// JSON template for a metadata column.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Column {
-    /// Map of attribute name and value for this column.
-    #[serde(default)]
-    pub attributes: ::core::option::Option<serde_json::Value>,
-    /// Column id.
-    #[serde(default)]
-    pub id: ::core::option::Option<String>,
-    /// Resource type for Analytics column.
-    #[serde(default)]
-    pub kind: ::core::option::Option<String>,
 }
 
 /// Lists columns (dimensions and metrics) for a particular report type.
@@ -249,6 +169,725 @@ pub struct Columns {
     /// Total number of columns returned in the response.
     #[serde(default, rename = "totalResults")]
     pub total_results: ::core::option::Option<i32>,
+}
+
+/// Lists Analytics custom data sources to which the user has access. Each resource in the collection corresponds to a single Analytics custom data source.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CustomDataSources {
+    /// Collection of custom data sources.
+    #[serde(default)]
+    pub items: ::core::option::Option<::std::vec::Vec<CustomDataSource>>,
+    /// The maximum number of resources the response can contain, regardless of the actual number of resources returned. Its value ranges from 1 to 1000 with a value of 1000 by default, or otherwise specified by the max-results query parameter.
+    #[serde(default, rename = "itemsPerPage")]
+    pub items_per_page: ::core::option::Option<i32>,
+    /// Collection type.
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+    /// Link to next page for this custom data source collection.
+    #[serde(default, rename = "nextLink")]
+    pub next_link: ::core::option::Option<String>,
+    /// Link to previous page for this custom data source collection.
+    #[serde(default, rename = "previousLink")]
+    pub previous_link: ::core::option::Option<String>,
+    /// The starting index of the resources, which is 1 by default or otherwise specified by the start-index query parameter.
+    #[serde(default, rename = "startIndex")]
+    pub start_index: ::core::option::Option<i32>,
+    /// The total number of results for the query, regardless of the number of results in the response.
+    #[serde(default, rename = "totalResults")]
+    pub total_results: ::core::option::Option<i32>,
+    /// Email ID of the authenticated user
+    #[serde(default)]
+    pub username: ::core::option::Option<String>,
+}
+
+/// A custom dimension collection lists Analytics custom dimensions to which the user has access. Each resource in the collection corresponds to a single Analytics custom dimension.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CustomDimensions {
+    /// Collection of custom dimensions.
+    #[serde(default)]
+    pub items: ::core::option::Option<::std::vec::Vec<CustomDimension>>,
+    /// The maximum number of resources the response can contain, regardless of the actual number of resources returned. Its value ranges from 1 to 1000 with a value of 1000 by default, or otherwise specified by the max-results query parameter.
+    #[serde(default, rename = "itemsPerPage")]
+    pub items_per_page: ::core::option::Option<i32>,
+    /// Collection type.
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+    /// Link to next page for this custom dimension collection.
+    #[serde(default, rename = "nextLink")]
+    pub next_link: ::core::option::Option<String>,
+    /// Link to previous page for this custom dimension collection.
+    #[serde(default, rename = "previousLink")]
+    pub previous_link: ::core::option::Option<String>,
+    /// The starting index of the resources, which is 1 by default or otherwise specified by the start-index query parameter.
+    #[serde(default, rename = "startIndex")]
+    pub start_index: ::core::option::Option<i32>,
+    /// The total number of results for the query, regardless of the number of results in the response.
+    #[serde(default, rename = "totalResults")]
+    pub total_results: ::core::option::Option<i32>,
+    /// Email ID of the authenticated user
+    #[serde(default)]
+    pub username: ::core::option::Option<String>,
+}
+
+/// A custom metric collection lists Analytics custom metrics to which the user has access. Each resource in the collection corresponds to a single Analytics custom metric.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CustomMetrics {
+    /// Collection of custom metrics.
+    #[serde(default)]
+    pub items: ::core::option::Option<::std::vec::Vec<CustomMetric>>,
+    /// The maximum number of resources the response can contain, regardless of the actual number of resources returned. Its value ranges from 1 to 1000 with a value of 1000 by default, or otherwise specified by the max-results query parameter.
+    #[serde(default, rename = "itemsPerPage")]
+    pub items_per_page: ::core::option::Option<i32>,
+    /// Collection type.
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+    /// Link to next page for this custom metric collection.
+    #[serde(default, rename = "nextLink")]
+    pub next_link: ::core::option::Option<String>,
+    /// Link to previous page for this custom metric collection.
+    #[serde(default, rename = "previousLink")]
+    pub previous_link: ::core::option::Option<String>,
+    /// The starting index of the resources, which is 1 by default or otherwise specified by the start-index query parameter.
+    #[serde(default, rename = "startIndex")]
+    pub start_index: ::core::option::Option<i32>,
+    /// The total number of results for the query, regardless of the number of results in the response.
+    #[serde(default, rename = "totalResults")]
+    pub total_results: ::core::option::Option<i32>,
+    /// Email ID of the authenticated user
+    #[serde(default)]
+    pub username: ::core::option::Option<String>,
+}
+
+/// An entity Google Ads link collection provides a list of GA-Google Ads links Each resource in this collection corresponds to a single link.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct EntityAdWordsLinks {
+    /// A list of entity Google Ads links.
+    #[serde(default)]
+    pub items: ::core::option::Option<::std::vec::Vec<EntityAdWordsLink>>,
+    /// The maximum number of entries the response can contain, regardless of the actual number of entries returned. Its value ranges from 1 to 1000 with a value of 1000 by default, or otherwise specified by the max-results query parameter.
+    #[serde(default, rename = "itemsPerPage")]
+    pub items_per_page: ::core::option::Option<i32>,
+    /// Collection type.
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+    /// Next link for this Google Ads link collection.
+    #[serde(default, rename = "nextLink")]
+    pub next_link: ::core::option::Option<String>,
+    /// Previous link for this Google Ads link collection.
+    #[serde(default, rename = "previousLink")]
+    pub previous_link: ::core::option::Option<String>,
+    /// The starting index of the entries, which is 1 by default or otherwise specified by the start-index query parameter.
+    #[serde(default, rename = "startIndex")]
+    pub start_index: ::core::option::Option<i32>,
+    /// The total number of results for the query, regardless of the number of results in the response.
+    #[serde(default, rename = "totalResults")]
+    pub total_results: ::core::option::Option<i32>,
+}
+
+/// An entity user link collection provides a list of Analytics ACL links Each resource in this collection corresponds to a single link.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct EntityUserLinks {
+    /// A list of entity user links.
+    #[serde(default)]
+    pub items: ::core::option::Option<::std::vec::Vec<EntityUserLink>>,
+    /// The maximum number of entries the response can contain, regardless of the actual number of entries returned. Its value ranges from 1 to 1000 with a value of 1000 by default, or otherwise specified by the max-results query parameter.
+    #[serde(default, rename = "itemsPerPage")]
+    pub items_per_page: ::core::option::Option<i32>,
+    /// Collection type.
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+    /// Next link for this account collection.
+    #[serde(default, rename = "nextLink")]
+    pub next_link: ::core::option::Option<String>,
+    /// Previous link for this account collection.
+    #[serde(default, rename = "previousLink")]
+    pub previous_link: ::core::option::Option<String>,
+    /// The starting index of the entries, which is 1 by default or otherwise specified by the start-index query parameter.
+    #[serde(default, rename = "startIndex")]
+    pub start_index: ::core::option::Option<i32>,
+    /// The total number of results for the query, regardless of the number of results in the response.
+    #[serde(default, rename = "totalResults")]
+    pub total_results: ::core::option::Option<i32>,
+}
+
+/// An experiment collection lists Analytics experiments to which the user has access. Each view (profile) can have a set of experiments. Each resource in the Experiment collection corresponds to a single Analytics experiment.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Experiments {
+    /// A list of experiments.
+    #[serde(default)]
+    pub items: ::core::option::Option<::std::vec::Vec<Experiment>>,
+    /// The maximum number of resources the response can contain, regardless of the actual number of resources returned. Its value ranges from 1 to 1000 with a value of 1000 by default, or otherwise specified by the max-results query parameter.
+    #[serde(default, rename = "itemsPerPage")]
+    pub items_per_page: ::core::option::Option<i32>,
+    /// Collection type.
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+    /// Link to next page for this experiment collection.
+    #[serde(default, rename = "nextLink")]
+    pub next_link: ::core::option::Option<String>,
+    /// Link to previous page for this experiment collection.
+    #[serde(default, rename = "previousLink")]
+    pub previous_link: ::core::option::Option<String>,
+    /// The starting index of the resources, which is 1 by default or otherwise specified by the start-index query parameter.
+    #[serde(default, rename = "startIndex")]
+    pub start_index: ::core::option::Option<i32>,
+    /// The total number of results for the query, regardless of the number of resources in the result.
+    #[serde(default, rename = "totalResults")]
+    pub total_results: ::core::option::Option<i32>,
+    /// Email ID of the authenticated user
+    #[serde(default)]
+    pub username: ::core::option::Option<String>,
+}
+
+/// A filter collection lists filters created by users in an Analytics account. Each resource in the collection corresponds to a filter.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Filters {
+    /// A list of filters.
+    #[serde(default)]
+    pub items: ::core::option::Option<::std::vec::Vec<Filter>>,
+    /// The maximum number of resources the response can contain, regardless of the actual number of resources returned. Its value ranges from 1 to 1,000 with a value of 1000 by default, or otherwise specified by the max-results query parameter.
+    #[serde(default, rename = "itemsPerPage")]
+    pub items_per_page: ::core::option::Option<i32>,
+    /// Collection type.
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+    /// Link to next page for this filter collection.
+    #[serde(default, rename = "nextLink")]
+    pub next_link: ::core::option::Option<String>,
+    /// Link to previous page for this filter collection.
+    #[serde(default, rename = "previousLink")]
+    pub previous_link: ::core::option::Option<String>,
+    /// The starting index of the resources, which is 1 by default or otherwise specified by the start-index query parameter.
+    #[serde(default, rename = "startIndex")]
+    pub start_index: ::core::option::Option<i32>,
+    /// The total number of results for the query, regardless of the number of results in the response.
+    #[serde(default, rename = "totalResults")]
+    pub total_results: ::core::option::Option<i32>,
+    /// Email ID of the authenticated user
+    #[serde(default)]
+    pub username: ::core::option::Option<String>,
+}
+
+/// Analytics data for a given view (profile).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GaData {
+    /// Column headers that list dimension names followed by the metric names. The order of dimensions and metrics is same as specified in the request.
+    #[serde(default, rename = "columnHeaders")]
+    pub column_headers: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
+    /// Determines if Analytics data contains samples.
+    #[serde(default, rename = "containsSampledData")]
+    pub contains_sampled_data: ::core::option::Option<bool>,
+    /// The last refreshed time in seconds for Analytics data.
+    #[serde(default, rename = "dataLastRefreshed")]
+    pub data_last_refreshed: ::core::option::Option<String>,
+    #[serde(default, rename = "dataTable")]
+    pub data_table: ::core::option::Option<serde_json::Value>,
+    /// Unique ID for this data response.
+    #[serde(default)]
+    pub id: ::core::option::Option<String>,
+    /// The maximum number of rows the response can contain, regardless of the actual number of rows returned. Its value ranges from 1 to 10,000 with a value of 1000 by default, or otherwise specified by the max-results query parameter.
+    #[serde(default, rename = "itemsPerPage")]
+    pub items_per_page: ::core::option::Option<i32>,
+    /// Resource type.
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+    /// Link to next page for this Analytics data query.
+    #[serde(default, rename = "nextLink")]
+    pub next_link: ::core::option::Option<String>,
+    /// Link to previous page for this Analytics data query.
+    #[serde(default, rename = "previousLink")]
+    pub previous_link: ::core::option::Option<String>,
+    /// Information for the view (profile), for which the Analytics data was requested.
+    #[serde(default, rename = "profileInfo")]
+    pub profile_info: ::core::option::Option<serde_json::Value>,
+    /// Analytics data request query parameters.
+    #[serde(default)]
+    pub query: ::core::option::Option<serde_json::Value>,
+    /// Analytics data rows, where each row contains a list of dimension values followed by the metric values. The order of dimensions and metrics is same as specified in the request.
+    #[serde(default)]
+    pub rows: ::core::option::Option<::std::vec::Vec<::std::vec::Vec<String>>>,
+    /// The number of samples used to calculate the result.
+    #[serde(default, rename = "sampleSize")]
+    pub sample_size: ::core::option::Option<String>,
+    /// Total size of the sample space from which the samples were selected.
+    #[serde(default, rename = "sampleSpace")]
+    pub sample_space: ::core::option::Option<String>,
+    /// Link to this page.
+    #[serde(default, rename = "selfLink")]
+    pub self_link: ::core::option::Option<String>,
+    /// The total number of rows for the query, regardless of the number of rows in the response.
+    #[serde(default, rename = "totalResults")]
+    pub total_results: ::core::option::Option<i32>,
+    /// Total values for the requested metrics over all the results, not just the results returned in this response. The order of the metric totals is same as the metric order specified in the request.
+    #[serde(default, rename = "totalsForAllResults")]
+    pub totals_for_all_results: ::core::option::Option<serde_json::Value>,
+}
+
+/// A goal collection lists Analytics goals to which the user has access. Each view (profile) can have a set of goals. Each resource in the Goal collection corresponds to a single Analytics goal.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Goals {
+    /// A list of goals.
+    #[serde(default)]
+    pub items: ::core::option::Option<::std::vec::Vec<Goal>>,
+    /// The maximum number of resources the response can contain, regardless of the actual number of resources returned. Its value ranges from 1 to 1000 with a value of 1000 by default, or otherwise specified by the max-results query parameter.
+    #[serde(default, rename = "itemsPerPage")]
+    pub items_per_page: ::core::option::Option<i32>,
+    /// Collection type.
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+    /// Link to next page for this goal collection.
+    #[serde(default, rename = "nextLink")]
+    pub next_link: ::core::option::Option<String>,
+    /// Link to previous page for this goal collection.
+    #[serde(default, rename = "previousLink")]
+    pub previous_link: ::core::option::Option<String>,
+    /// The starting index of the resources, which is 1 by default or otherwise specified by the start-index query parameter.
+    #[serde(default, rename = "startIndex")]
+    pub start_index: ::core::option::Option<i32>,
+    /// The total number of results for the query, regardless of the number of resources in the result.
+    #[serde(default, rename = "totalResults")]
+    pub total_results: ::core::option::Option<i32>,
+    /// Email ID of the authenticated user
+    #[serde(default)]
+    pub username: ::core::option::Option<String>,
+}
+
+/// JSON template for a hash Client Id request resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct HashClientIdRequest {
+    #[serde(default, rename = "clientId")]
+    pub client_id: ::core::option::Option<String>,
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+    #[serde(default, rename = "webPropertyId")]
+    pub web_property_id: ::core::option::Option<String>,
+}
+
+/// JSON template for a hash Client Id response resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct HashClientIdResponse {
+    #[serde(default, rename = "clientId")]
+    pub client_id: ::core::option::Option<String>,
+    #[serde(default, rename = "hashedClientId")]
+    pub hashed_client_id: ::core::option::Option<String>,
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+    #[serde(default, rename = "webPropertyId")]
+    pub web_property_id: ::core::option::Option<String>,
+}
+
+/// JSON template for an Analytics Remarketing Include Conditions.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct IncludeConditions {
+    /// The look-back window lets you specify a time frame for evaluating the behavior that qualifies users for your audience. For example, if your filters include users from Central Asia, and Transactions Greater than 2, and you set the look-back window to 14 days, then any user from Central Asia whose cumulative transactions exceed 2 during the last 14 days is added to the audience.
+    #[serde(default, rename = "daysToLookBack")]
+    pub days_to_look_back: ::core::option::Option<i32>,
+    /// Boolean indicating whether this segment is a smart list. https://support.google.com/analytics/answer/4628577
+    #[serde(default, rename = "isSmartList")]
+    pub is_smart_list: ::core::option::Option<bool>,
+    /// Resource type for include conditions.
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+    /// Number of days (in the range 1 to 540) a user remains in the audience.
+    #[serde(default, rename = "membershipDurationDays")]
+    pub membership_duration_days: ::core::option::Option<i32>,
+    /// The segment condition that will cause a user to be added to an audience.
+    #[serde(default)]
+    pub segment: ::core::option::Option<String>,
+}
+
+/// Multi-Channel Funnels data for a given view (profile).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct McfData {
+    /// Column headers that list dimension names followed by the metric names. The order of dimensions and metrics is same as specified in the request.
+    #[serde(default, rename = "columnHeaders")]
+    pub column_headers: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
+    /// Determines if the Analytics data contains sampled data.
+    #[serde(default, rename = "containsSampledData")]
+    pub contains_sampled_data: ::core::option::Option<bool>,
+    /// Unique ID for this data response.
+    #[serde(default)]
+    pub id: ::core::option::Option<String>,
+    /// The maximum number of rows the response can contain, regardless of the actual number of rows returned. Its value ranges from 1 to 10,000 with a value of 1000 by default, or otherwise specified by the max-results query parameter.
+    #[serde(default, rename = "itemsPerPage")]
+    pub items_per_page: ::core::option::Option<i32>,
+    /// Resource type.
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+    /// Link to next page for this Analytics data query.
+    #[serde(default, rename = "nextLink")]
+    pub next_link: ::core::option::Option<String>,
+    /// Link to previous page for this Analytics data query.
+    #[serde(default, rename = "previousLink")]
+    pub previous_link: ::core::option::Option<String>,
+    /// Information for the view (profile), for which the Analytics data was requested.
+    #[serde(default, rename = "profileInfo")]
+    pub profile_info: ::core::option::Option<serde_json::Value>,
+    /// Analytics data request query parameters.
+    #[serde(default)]
+    pub query: ::core::option::Option<serde_json::Value>,
+    /// Analytics data rows, where each row contains a list of dimension values followed by the metric values. The order of dimensions and metrics is same as specified in the request.
+    #[serde(default)]
+    pub rows: ::core::option::Option<::std::vec::Vec<::std::vec::Vec<serde_json::Value>>>,
+    /// The number of samples used to calculate the result.
+    #[serde(default, rename = "sampleSize")]
+    pub sample_size: ::core::option::Option<String>,
+    /// Total size of the sample space from which the samples were selected.
+    #[serde(default, rename = "sampleSpace")]
+    pub sample_space: ::core::option::Option<String>,
+    /// Link to this page.
+    #[serde(default, rename = "selfLink")]
+    pub self_link: ::core::option::Option<String>,
+    /// The total number of rows for the query, regardless of the number of rows in the response.
+    #[serde(default, rename = "totalResults")]
+    pub total_results: ::core::option::Option<i32>,
+    /// Total values for the requested metrics over all the results, not just the results returned in this response. The order of the metric totals is same as the metric order specified in the request.
+    #[serde(default, rename = "totalsForAllResults")]
+    pub totals_for_all_results: ::core::option::Option<serde_json::Value>,
+}
+
+/// A profile filter link collection lists profile filter links between profiles and filters. Each resource in the collection corresponds to a profile filter link.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ProfileFilterLinks {
+    /// A list of profile filter links.
+    #[serde(default)]
+    pub items: ::core::option::Option<::std::vec::Vec<ProfileFilterLink>>,
+    /// The maximum number of resources the response can contain, regardless of the actual number of resources returned. Its value ranges from 1 to 1,000 with a value of 1000 by default, or otherwise specified by the max-results query parameter.
+    #[serde(default, rename = "itemsPerPage")]
+    pub items_per_page: ::core::option::Option<i32>,
+    /// Collection type.
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+    /// Link to next page for this profile filter link collection.
+    #[serde(default, rename = "nextLink")]
+    pub next_link: ::core::option::Option<String>,
+    /// Link to previous page for this profile filter link collection.
+    #[serde(default, rename = "previousLink")]
+    pub previous_link: ::core::option::Option<String>,
+    /// The starting index of the resources, which is 1 by default or otherwise specified by the start-index query parameter.
+    #[serde(default, rename = "startIndex")]
+    pub start_index: ::core::option::Option<i32>,
+    /// The total number of results for the query, regardless of the number of results in the response.
+    #[serde(default, rename = "totalResults")]
+    pub total_results: ::core::option::Option<i32>,
+    /// Email ID of the authenticated user
+    #[serde(default)]
+    pub username: ::core::option::Option<String>,
+}
+
+/// A view (profile) collection lists Analytics views (profiles) to which the user has access. Each resource in the collection corresponds to a single Analytics view (profile).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Profiles {
+    /// A list of views (profiles).
+    #[serde(default)]
+    pub items: ::core::option::Option<::std::vec::Vec<Profile>>,
+    /// The maximum number of resources the response can contain, regardless of the actual number of resources returned. Its value ranges from 1 to 1000 with a value of 1000 by default, or otherwise specified by the max-results query parameter.
+    #[serde(default, rename = "itemsPerPage")]
+    pub items_per_page: ::core::option::Option<i32>,
+    /// Collection type.
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+    /// Link to next page for this view (profile) collection.
+    #[serde(default, rename = "nextLink")]
+    pub next_link: ::core::option::Option<String>,
+    /// Link to previous page for this view (profile) collection.
+    #[serde(default, rename = "previousLink")]
+    pub previous_link: ::core::option::Option<String>,
+    /// The starting index of the resources, which is 1 by default or otherwise specified by the start-index query parameter.
+    #[serde(default, rename = "startIndex")]
+    pub start_index: ::core::option::Option<i32>,
+    /// The total number of results for the query, regardless of the number of results in the response.
+    #[serde(default, rename = "totalResults")]
+    pub total_results: ::core::option::Option<i32>,
+    /// Email ID of the authenticated user
+    #[serde(default)]
+    pub username: ::core::option::Option<String>,
+}
+
+/// Real time data for a given view (profile).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RealtimeData {
+    /// Column headers that list dimension names followed by the metric names. The order of dimensions and metrics is same as specified in the request.
+    #[serde(default, rename = "columnHeaders")]
+    pub column_headers: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
+    /// Unique ID for this data response.
+    #[serde(default)]
+    pub id: ::core::option::Option<String>,
+    /// Resource type.
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+    /// Information for the view (profile), for which the real time data was requested.
+    #[serde(default, rename = "profileInfo")]
+    pub profile_info: ::core::option::Option<serde_json::Value>,
+    /// Real time data request query parameters.
+    #[serde(default)]
+    pub query: ::core::option::Option<serde_json::Value>,
+    /// Real time data rows, where each row contains a list of dimension values followed by the metric values. The order of dimensions and metrics is same as specified in the request.
+    #[serde(default)]
+    pub rows: ::core::option::Option<::std::vec::Vec<::std::vec::Vec<String>>>,
+    /// Link to this page.
+    #[serde(default, rename = "selfLink")]
+    pub self_link: ::core::option::Option<String>,
+    /// The total number of rows for the query, regardless of the number of rows in the response.
+    #[serde(default, rename = "totalResults")]
+    pub total_results: ::core::option::Option<i32>,
+    /// Total values for the requested metrics over all the results, not just the results returned in this response. The order of the metric totals is same as the metric order specified in the request.
+    #[serde(default, rename = "totalsForAllResults")]
+    pub totals_for_all_results: ::core::option::Option<serde_json::Value>,
+}
+
+/// A remarketing audience collection lists Analytics remarketing audiences to which the user has access. Each resource in the collection corresponds to a single Analytics remarketing audience.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RemarketingAudiences {
+    /// A list of remarketing audiences.
+    #[serde(default)]
+    pub items: ::core::option::Option<::std::vec::Vec<RemarketingAudience>>,
+    /// The maximum number of resources the response can contain, regardless of the actual number of resources returned. Its value ranges from 1 to 1000 with a value of 1000 by default, or otherwise specified by the max-results query parameter.
+    #[serde(default, rename = "itemsPerPage")]
+    pub items_per_page: ::core::option::Option<i32>,
+    /// Collection type.
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+    /// Link to next page for this remarketing audience collection.
+    #[serde(default, rename = "nextLink")]
+    pub next_link: ::core::option::Option<String>,
+    /// Link to previous page for this view (profile) collection.
+    #[serde(default, rename = "previousLink")]
+    pub previous_link: ::core::option::Option<String>,
+    /// The starting index of the resources, which is 1 by default or otherwise specified by the start-index query parameter.
+    #[serde(default, rename = "startIndex")]
+    pub start_index: ::core::option::Option<i32>,
+    /// The total number of results for the query, regardless of the number of results in the response.
+    #[serde(default, rename = "totalResults")]
+    pub total_results: ::core::option::Option<i32>,
+    /// Email ID of the authenticated user
+    #[serde(default)]
+    pub username: ::core::option::Option<String>,
+}
+
+/// An segment collection lists Analytics segments that the user has access to. Each resource in the collection corresponds to a single Analytics segment.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Segments {
+    /// A list of segments.
+    #[serde(default)]
+    pub items: ::core::option::Option<::std::vec::Vec<Segment>>,
+    /// The maximum number of resources the response can contain, regardless of the actual number of resources returned. Its value ranges from 1 to 1000 with a value of 1000 by default, or otherwise specified by the max-results query parameter.
+    #[serde(default, rename = "itemsPerPage")]
+    pub items_per_page: ::core::option::Option<i32>,
+    /// Collection type for segments.
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+    /// Link to next page for this segment collection.
+    #[serde(default, rename = "nextLink")]
+    pub next_link: ::core::option::Option<String>,
+    /// Link to previous page for this segment collection.
+    #[serde(default, rename = "previousLink")]
+    pub previous_link: ::core::option::Option<String>,
+    /// The starting index of the resources, which is 1 by default or otherwise specified by the start-index query parameter.
+    #[serde(default, rename = "startIndex")]
+    pub start_index: ::core::option::Option<i32>,
+    /// The total number of results for the query, regardless of the number of results in the response.
+    #[serde(default, rename = "totalResults")]
+    pub total_results: ::core::option::Option<i32>,
+    /// Email ID of the authenticated user
+    #[serde(default)]
+    pub username: ::core::option::Option<String>,
+}
+
+/// An unsampled report collection lists Analytics unsampled reports to which the user has access. Each view (profile) can have a set of unsampled reports. Each resource in the unsampled report collection corresponds to a single Analytics unsampled report.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct UnsampledReports {
+    /// A list of unsampled reports.
+    #[serde(default)]
+    pub items: ::core::option::Option<::std::vec::Vec<UnsampledReport>>,
+    /// The maximum number of resources the response can contain, regardless of the actual number of resources returned. Its value ranges from 1 to 1000 with a value of 1000 by default, or otherwise specified by the max-results query parameter.
+    #[serde(default, rename = "itemsPerPage")]
+    pub items_per_page: ::core::option::Option<i32>,
+    /// Collection type.
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+    /// Link to next page for this unsampled report collection.
+    #[serde(default, rename = "nextLink")]
+    pub next_link: ::core::option::Option<String>,
+    /// Link to previous page for this unsampled report collection.
+    #[serde(default, rename = "previousLink")]
+    pub previous_link: ::core::option::Option<String>,
+    /// The starting index of the resources, which is 1 by default or otherwise specified by the start-index query parameter.
+    #[serde(default, rename = "startIndex")]
+    pub start_index: ::core::option::Option<i32>,
+    /// The total number of results for the query, regardless of the number of resources in the result.
+    #[serde(default, rename = "totalResults")]
+    pub total_results: ::core::option::Option<i32>,
+    /// Email ID of the authenticated user
+    #[serde(default)]
+    pub username: ::core::option::Option<String>,
+}
+
+/// Upload collection lists Analytics uploads to which the user has access. Each custom data source can have a set of uploads. Each resource in the upload collection corresponds to a single Analytics data upload.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Uploads {
+    /// A list of uploads.
+    #[serde(default)]
+    pub items: ::core::option::Option<::std::vec::Vec<Upload>>,
+    /// The maximum number of resources the response can contain, regardless of the actual number of resources returned. Its value ranges from 1 to 1000 with a value of 1000 by default, or otherwise specified by the max-results query parameter.
+    #[serde(default, rename = "itemsPerPage")]
+    pub items_per_page: ::core::option::Option<i32>,
+    /// Collection type.
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+    /// Link to next page for this upload collection.
+    #[serde(default, rename = "nextLink")]
+    pub next_link: ::core::option::Option<String>,
+    /// Link to previous page for this upload collection.
+    #[serde(default, rename = "previousLink")]
+    pub previous_link: ::core::option::Option<String>,
+    /// The starting index of the resources, which is 1 by default or otherwise specified by the start-index query parameter.
+    #[serde(default, rename = "startIndex")]
+    pub start_index: ::core::option::Option<i32>,
+    /// The total number of results for the query, regardless of the number of resources in the result.
+    #[serde(default, rename = "totalResults")]
+    pub total_results: ::core::option::Option<i32>,
+}
+
+/// JSON template for a user deletion request resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct UserDeletionRequest {
+    /// This marks the point in time for which all user data before should be deleted
+    #[serde(default, rename = "deletionRequestTime")]
+    pub deletion_request_time: ::core::option::Option<String>,
+    /// Firebase Project Id
+    #[serde(default, rename = "firebaseProjectId")]
+    pub firebase_project_id: ::core::option::Option<String>,
+    /// User ID.
+    #[serde(default)]
+    pub id: ::core::option::Option<serde_json::Value>,
+    /// Value is "analytics#userDeletionRequest".
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+    /// Property ID
+    #[serde(default, rename = "propertyId")]
+    pub property_id: ::core::option::Option<String>,
+    /// Web property ID of the form UA-XXXXX-YY.
+    #[serde(default, rename = "webPropertyId")]
+    pub web_property_id: ::core::option::Option<String>,
+}
+
+/// JSON template for a web property reference.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct WebPropertyRef {
+    /// Account ID to which this web property belongs.
+    #[serde(default, rename = "accountId")]
+    pub account_id: ::core::option::Option<String>,
+    /// Link for this web property.
+    #[serde(default)]
+    pub href: ::core::option::Option<String>,
+    /// Web property ID of the form UA-XXXXX-YY.
+    #[serde(default)]
+    pub id: ::core::option::Option<String>,
+    /// Internal ID for this web property.
+    #[serde(default, rename = "internalWebPropertyId")]
+    pub internal_web_property_id: ::core::option::Option<String>,
+    /// Analytics web property reference.
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+    /// Name of this web property.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+}
+
+/// A web property collection lists Analytics web properties to which the user has access. Each resource in the collection corresponds to a single Analytics web property.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Webproperties {
+    /// A list of web properties.
+    #[serde(default)]
+    pub items: ::core::option::Option<::std::vec::Vec<Webproperty>>,
+    /// The maximum number of resources the response can contain, regardless of the actual number of resources returned. Its value ranges from 1 to 1000 with a value of 1000 by default, or otherwise specified by the max-results query parameter.
+    #[serde(default, rename = "itemsPerPage")]
+    pub items_per_page: ::core::option::Option<i32>,
+    /// Collection type.
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+    /// Link to next page for this web property collection.
+    #[serde(default, rename = "nextLink")]
+    pub next_link: ::core::option::Option<String>,
+    /// Link to previous page for this web property collection.
+    #[serde(default, rename = "previousLink")]
+    pub previous_link: ::core::option::Option<String>,
+    /// The starting index of the resources, which is 1 by default or otherwise specified by the start-index query parameter.
+    #[serde(default, rename = "startIndex")]
+    pub start_index: ::core::option::Option<i32>,
+    /// The total number of results for the query, regardless of the number of results in the response.
+    #[serde(default, rename = "totalResults")]
+    pub total_results: ::core::option::Option<i32>,
+    /// Email ID of the authenticated user
+    #[serde(default)]
+    pub username: ::core::option::Option<String>,
+}
+
+/// JSON template for an Analytics AccountSummary. An AccountSummary is a lightweight tree comprised of properties/profiles.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AccountSummary {
+    /// Account ID.
+    #[serde(default)]
+    pub id: ::core::option::Option<String>,
+    /// Resource type for Analytics AccountSummary.
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+    /// Account name.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Indicates whether this account is starred or not.
+    #[serde(default)]
+    pub starred: ::core::option::Option<bool>,
+    /// List of web properties under this account.
+    #[serde(default, rename = "webProperties")]
+    pub web_properties: ::core::option::Option<::std::vec::Vec<WebPropertySummary>>,
+}
+
+/// JSON template for Analytics account entry.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Account {
+    /// Child link for an account entry. Points to the list of web properties for this account.
+    #[serde(default, rename = "childLink")]
+    pub child_link: ::core::option::Option<serde_json::Value>,
+    /// Time the account was created.
+    #[serde(default)]
+    pub created: ::core::option::Option<String>,
+    /// Account ID.
+    #[serde(default)]
+    pub id: ::core::option::Option<String>,
+    /// Resource type for Analytics account.
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+    /// Account name.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Permissions the user has for this account.
+    #[serde(default)]
+    pub permissions: ::core::option::Option<serde_json::Value>,
+    /// Link for this account.
+    #[serde(default, rename = "selfLink")]
+    pub self_link: ::core::option::Option<String>,
+    /// Indicates whether this account is starred or not.
+    #[serde(default)]
+    pub starred: ::core::option::Option<bool>,
+    /// Time the account was last modified.
+    #[serde(default)]
+    pub updated: ::core::option::Option<String>,
+}
+
+/// JSON template for a metadata column.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Column {
+    /// Map of attribute name and value for this column.
+    #[serde(default)]
+    pub attributes: ::core::option::Option<serde_json::Value>,
+    /// Column id.
+    #[serde(default)]
+    pub id: ::core::option::Option<String>,
+    /// Resource type for Analytics column.
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
 }
 
 /// JSON template for an Analytics custom data source.
@@ -302,35 +941,6 @@ pub struct CustomDataSource {
     pub web_property_id: ::core::option::Option<String>,
 }
 
-/// Lists Analytics custom data sources to which the user has access. Each resource in the collection corresponds to a single Analytics custom data source.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CustomDataSources {
-    /// Collection of custom data sources.
-    #[serde(default)]
-    pub items: ::core::option::Option<::std::vec::Vec<CustomDataSource>>,
-    /// The maximum number of resources the response can contain, regardless of the actual number of resources returned. Its value ranges from 1 to 1000 with a value of 1000 by default, or otherwise specified by the max-results query parameter.
-    #[serde(default, rename = "itemsPerPage")]
-    pub items_per_page: ::core::option::Option<i32>,
-    /// Collection type.
-    #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-    /// Link to next page for this custom data source collection.
-    #[serde(default, rename = "nextLink")]
-    pub next_link: ::core::option::Option<String>,
-    /// Link to previous page for this custom data source collection.
-    #[serde(default, rename = "previousLink")]
-    pub previous_link: ::core::option::Option<String>,
-    /// The starting index of the resources, which is 1 by default or otherwise specified by the start-index query parameter.
-    #[serde(default, rename = "startIndex")]
-    pub start_index: ::core::option::Option<i32>,
-    /// The total number of results for the query, regardless of the number of results in the response.
-    #[serde(default, rename = "totalResults")]
-    pub total_results: ::core::option::Option<i32>,
-    /// Email ID of the authenticated user
-    #[serde(default)]
-    pub username: ::core::option::Option<String>,
-}
-
 /// JSON template for Analytics Custom Dimension.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CustomDimension {
@@ -370,35 +980,6 @@ pub struct CustomDimension {
     /// Property ID.
     #[serde(default, rename = "webPropertyId")]
     pub web_property_id: ::core::option::Option<String>,
-}
-
-/// A custom dimension collection lists Analytics custom dimensions to which the user has access. Each resource in the collection corresponds to a single Analytics custom dimension.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CustomDimensions {
-    /// Collection of custom dimensions.
-    #[serde(default)]
-    pub items: ::core::option::Option<::std::vec::Vec<CustomDimension>>,
-    /// The maximum number of resources the response can contain, regardless of the actual number of resources returned. Its value ranges from 1 to 1000 with a value of 1000 by default, or otherwise specified by the max-results query parameter.
-    #[serde(default, rename = "itemsPerPage")]
-    pub items_per_page: ::core::option::Option<i32>,
-    /// Collection type.
-    #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-    /// Link to next page for this custom dimension collection.
-    #[serde(default, rename = "nextLink")]
-    pub next_link: ::core::option::Option<String>,
-    /// Link to previous page for this custom dimension collection.
-    #[serde(default, rename = "previousLink")]
-    pub previous_link: ::core::option::Option<String>,
-    /// The starting index of the resources, which is 1 by default or otherwise specified by the start-index query parameter.
-    #[serde(default, rename = "startIndex")]
-    pub start_index: ::core::option::Option<i32>,
-    /// The total number of results for the query, regardless of the number of results in the response.
-    #[serde(default, rename = "totalResults")]
-    pub total_results: ::core::option::Option<i32>,
-    /// Email ID of the authenticated user
-    #[serde(default)]
-    pub username: ::core::option::Option<String>,
 }
 
 /// JSON template for Analytics Custom Metric.
@@ -451,35 +1032,6 @@ pub struct CustomMetric {
     pub web_property_id: ::core::option::Option<String>,
 }
 
-/// A custom metric collection lists Analytics custom metrics to which the user has access. Each resource in the collection corresponds to a single Analytics custom metric.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CustomMetrics {
-    /// Collection of custom metrics.
-    #[serde(default)]
-    pub items: ::core::option::Option<::std::vec::Vec<CustomMetric>>,
-    /// The maximum number of resources the response can contain, regardless of the actual number of resources returned. Its value ranges from 1 to 1000 with a value of 1000 by default, or otherwise specified by the max-results query parameter.
-    #[serde(default, rename = "itemsPerPage")]
-    pub items_per_page: ::core::option::Option<i32>,
-    /// Collection type.
-    #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-    /// Link to next page for this custom metric collection.
-    #[serde(default, rename = "nextLink")]
-    pub next_link: ::core::option::Option<String>,
-    /// Link to previous page for this custom metric collection.
-    #[serde(default, rename = "previousLink")]
-    pub previous_link: ::core::option::Option<String>,
-    /// The starting index of the resources, which is 1 by default or otherwise specified by the start-index query parameter.
-    #[serde(default, rename = "startIndex")]
-    pub start_index: ::core::option::Option<i32>,
-    /// The total number of results for the query, regardless of the number of results in the response.
-    #[serde(default, rename = "totalResults")]
-    pub total_results: ::core::option::Option<i32>,
-    /// Email ID of the authenticated user
-    #[serde(default)]
-    pub username: ::core::option::Option<String>,
-}
-
 /// JSON template for Analytics Entity Google Ads Link.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct EntityAdWordsLink {
@@ -506,32 +1058,6 @@ pub struct EntityAdWordsLink {
     pub self_link: ::core::option::Option<String>,
 }
 
-/// An entity Google Ads link collection provides a list of GA-Google Ads links Each resource in this collection corresponds to a single link.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct EntityAdWordsLinks {
-    /// A list of entity Google Ads links.
-    #[serde(default)]
-    pub items: ::core::option::Option<::std::vec::Vec<EntityAdWordsLink>>,
-    /// The maximum number of entries the response can contain, regardless of the actual number of entries returned. Its value ranges from 1 to 1000 with a value of 1000 by default, or otherwise specified by the max-results query parameter.
-    #[serde(default, rename = "itemsPerPage")]
-    pub items_per_page: ::core::option::Option<i32>,
-    /// Collection type.
-    #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-    /// Next link for this Google Ads link collection.
-    #[serde(default, rename = "nextLink")]
-    pub next_link: ::core::option::Option<String>,
-    /// Previous link for this Google Ads link collection.
-    #[serde(default, rename = "previousLink")]
-    pub previous_link: ::core::option::Option<String>,
-    /// The starting index of the entries, which is 1 by default or otherwise specified by the start-index query parameter.
-    #[serde(default, rename = "startIndex")]
-    pub start_index: ::core::option::Option<i32>,
-    /// The total number of results for the query, regardless of the number of results in the response.
-    #[serde(default, rename = "totalResults")]
-    pub total_results: ::core::option::Option<i32>,
-}
-
 /// JSON template for an Analytics Entity-User Link. Returns permissions that a user has for an entity.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct EntityUserLink {
@@ -553,32 +1079,6 @@ pub struct EntityUserLink {
     /// User reference.
     #[serde(default, rename = "userRef")]
     pub user_ref: ::core::option::Option<UserRef>,
-}
-
-/// An entity user link collection provides a list of Analytics ACL links Each resource in this collection corresponds to a single link.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct EntityUserLinks {
-    /// A list of entity user links.
-    #[serde(default)]
-    pub items: ::core::option::Option<::std::vec::Vec<EntityUserLink>>,
-    /// The maximum number of entries the response can contain, regardless of the actual number of entries returned. Its value ranges from 1 to 1000 with a value of 1000 by default, or otherwise specified by the max-results query parameter.
-    #[serde(default, rename = "itemsPerPage")]
-    pub items_per_page: ::core::option::Option<i32>,
-    /// Collection type.
-    #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-    /// Next link for this account collection.
-    #[serde(default, rename = "nextLink")]
-    pub next_link: ::core::option::Option<String>,
-    /// Previous link for this account collection.
-    #[serde(default, rename = "previousLink")]
-    pub previous_link: ::core::option::Option<String>,
-    /// The starting index of the entries, which is 1 by default or otherwise specified by the start-index query parameter.
-    #[serde(default, rename = "startIndex")]
-    pub start_index: ::core::option::Option<i32>,
-    /// The total number of results for the query, regardless of the number of results in the response.
-    #[serde(default, rename = "totalResults")]
-    pub total_results: ::core::option::Option<i32>,
 }
 
 /// JSON template for Analytics experiment resource.
@@ -670,35 +1170,6 @@ pub struct Experiment {
     pub winner_found: ::core::option::Option<bool>,
 }
 
-/// An experiment collection lists Analytics experiments to which the user has access. Each view (profile) can have a set of experiments. Each resource in the Experiment collection corresponds to a single Analytics experiment.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Experiments {
-    /// A list of experiments.
-    #[serde(default)]
-    pub items: ::core::option::Option<::std::vec::Vec<Experiment>>,
-    /// The maximum number of resources the response can contain, regardless of the actual number of resources returned. Its value ranges from 1 to 1000 with a value of 1000 by default, or otherwise specified by the max-results query parameter.
-    #[serde(default, rename = "itemsPerPage")]
-    pub items_per_page: ::core::option::Option<i32>,
-    /// Collection type.
-    #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-    /// Link to next page for this experiment collection.
-    #[serde(default, rename = "nextLink")]
-    pub next_link: ::core::option::Option<String>,
-    /// Link to previous page for this experiment collection.
-    #[serde(default, rename = "previousLink")]
-    pub previous_link: ::core::option::Option<String>,
-    /// The starting index of the resources, which is 1 by default or otherwise specified by the start-index query parameter.
-    #[serde(default, rename = "startIndex")]
-    pub start_index: ::core::option::Option<i32>,
-    /// The total number of results for the query, regardless of the number of resources in the result.
-    #[serde(default, rename = "totalResults")]
-    pub total_results: ::core::option::Option<i32>,
-    /// Email ID of the authenticated user
-    #[serde(default)]
-    pub username: ::core::option::Option<String>,
-}
-
 /// JSON template for an Analytics account filter.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Filter {
@@ -747,133 +1218,6 @@ pub struct Filter {
     /// Details for the filter of the type UPPER.
     #[serde(default, rename = "uppercaseDetails")]
     pub uppercase_details: ::core::option::Option<serde_json::Value>,
-}
-
-/// JSON template for an Analytics filter expression.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct FilterExpression {
-    /// Determines if the filter is case sensitive.
-    #[serde(default, rename = "caseSensitive")]
-    pub case_sensitive: ::core::option::Option<bool>,
-    /// Filter expression value
-    #[serde(default, rename = "expressionValue")]
-    pub expression_value: ::core::option::Option<String>,
-    /// Field to filter. Possible values:  
-    #[serde(default)]
-    pub field: ::core::option::Option<String>,
-    /// The Index of the custom dimension. Set only if the field is a is CUSTOM_DIMENSION.
-    #[serde(default, rename = "fieldIndex")]
-    pub field_index: ::core::option::Option<i32>,
-    /// Kind value for filter expression
-    #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-    /// Match type for this filter. Possible values are BEGINS_WITH, EQUAL, ENDS_WITH, CONTAINS, or MATCHES. GEO_DOMAIN, GEO_IP_ADDRESS, PAGE_REQUEST_URI, or PAGE_HOSTNAME filters can use any match type; all other filters must use MATCHES.
-    #[serde(default, rename = "matchType")]
-    pub match_type: ::core::option::Option<String>,
-}
-
-/// JSON template for a profile filter link.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct FilterRef {
-    /// Account ID to which this filter belongs.
-    #[serde(default, rename = "accountId")]
-    pub account_id: ::core::option::Option<String>,
-    /// Link for this filter.
-    #[serde(default)]
-    pub href: ::core::option::Option<String>,
-    /// Filter ID.
-    #[serde(default)]
-    pub id: ::core::option::Option<String>,
-    /// Kind value for filter reference.
-    #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-    /// Name of this filter.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-}
-
-/// A filter collection lists filters created by users in an Analytics account. Each resource in the collection corresponds to a filter.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Filters {
-    /// A list of filters.
-    #[serde(default)]
-    pub items: ::core::option::Option<::std::vec::Vec<Filter>>,
-    /// The maximum number of resources the response can contain, regardless of the actual number of resources returned. Its value ranges from 1 to 1,000 with a value of 1000 by default, or otherwise specified by the max-results query parameter.
-    #[serde(default, rename = "itemsPerPage")]
-    pub items_per_page: ::core::option::Option<i32>,
-    /// Collection type.
-    #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-    /// Link to next page for this filter collection.
-    #[serde(default, rename = "nextLink")]
-    pub next_link: ::core::option::Option<String>,
-    /// Link to previous page for this filter collection.
-    #[serde(default, rename = "previousLink")]
-    pub previous_link: ::core::option::Option<String>,
-    /// The starting index of the resources, which is 1 by default or otherwise specified by the start-index query parameter.
-    #[serde(default, rename = "startIndex")]
-    pub start_index: ::core::option::Option<i32>,
-    /// The total number of results for the query, regardless of the number of results in the response.
-    #[serde(default, rename = "totalResults")]
-    pub total_results: ::core::option::Option<i32>,
-    /// Email ID of the authenticated user
-    #[serde(default)]
-    pub username: ::core::option::Option<String>,
-}
-
-/// Analytics data for a given view (profile).
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GaData {
-    /// Column headers that list dimension names followed by the metric names. The order of dimensions and metrics is same as specified in the request.
-    #[serde(default, rename = "columnHeaders")]
-    pub column_headers: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
-    /// Determines if Analytics data contains samples.
-    #[serde(default, rename = "containsSampledData")]
-    pub contains_sampled_data: ::core::option::Option<bool>,
-    /// The last refreshed time in seconds for Analytics data.
-    #[serde(default, rename = "dataLastRefreshed")]
-    pub data_last_refreshed: ::core::option::Option<String>,
-    #[serde(default, rename = "dataTable")]
-    pub data_table: ::core::option::Option<serde_json::Value>,
-    /// Unique ID for this data response.
-    #[serde(default)]
-    pub id: ::core::option::Option<String>,
-    /// The maximum number of rows the response can contain, regardless of the actual number of rows returned. Its value ranges from 1 to 10,000 with a value of 1000 by default, or otherwise specified by the max-results query parameter.
-    #[serde(default, rename = "itemsPerPage")]
-    pub items_per_page: ::core::option::Option<i32>,
-    /// Resource type.
-    #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-    /// Link to next page for this Analytics data query.
-    #[serde(default, rename = "nextLink")]
-    pub next_link: ::core::option::Option<String>,
-    /// Link to previous page for this Analytics data query.
-    #[serde(default, rename = "previousLink")]
-    pub previous_link: ::core::option::Option<String>,
-    /// Information for the view (profile), for which the Analytics data was requested.
-    #[serde(default, rename = "profileInfo")]
-    pub profile_info: ::core::option::Option<serde_json::Value>,
-    /// Analytics data request query parameters.
-    #[serde(default)]
-    pub query: ::core::option::Option<serde_json::Value>,
-    /// Analytics data rows, where each row contains a list of dimension values followed by the metric values. The order of dimensions and metrics is same as specified in the request.
-    #[serde(default)]
-    pub rows: ::core::option::Option<::std::vec::Vec<::std::vec::Vec<String>>>,
-    /// The number of samples used to calculate the result.
-    #[serde(default, rename = "sampleSize")]
-    pub sample_size: ::core::option::Option<String>,
-    /// Total size of the sample space from which the samples were selected.
-    #[serde(default, rename = "sampleSpace")]
-    pub sample_space: ::core::option::Option<String>,
-    /// Link to this page.
-    #[serde(default, rename = "selfLink")]
-    pub self_link: ::core::option::Option<String>,
-    /// The total number of rows for the query, regardless of the number of rows in the response.
-    #[serde(default, rename = "totalResults")]
-    pub total_results: ::core::option::Option<i32>,
-    /// Total values for the requested metrics over all the results, not just the results returned in this response. The order of the metric totals is same as the metric order specified in the request.
-    #[serde(default, rename = "totalsForAllResults")]
-    pub totals_for_all_results: ::core::option::Option<serde_json::Value>,
 }
 
 /// JSON template for Analytics goal resource.
@@ -935,162 +1279,27 @@ pub struct Goal {
     pub web_property_id: ::core::option::Option<String>,
 }
 
-/// A goal collection lists Analytics goals to which the user has access. Each view (profile) can have a set of goals. Each resource in the Goal collection corresponds to a single Analytics goal.
+/// JSON template for an Analytics profile filter link.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Goals {
-    /// A list of goals.
-    #[serde(default)]
-    pub items: ::core::option::Option<::std::vec::Vec<Goal>>,
-    /// The maximum number of resources the response can contain, regardless of the actual number of resources returned. Its value ranges from 1 to 1000 with a value of 1000 by default, or otherwise specified by the max-results query parameter.
-    #[serde(default, rename = "itemsPerPage")]
-    pub items_per_page: ::core::option::Option<i32>,
-    /// Collection type.
-    #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-    /// Link to next page for this goal collection.
-    #[serde(default, rename = "nextLink")]
-    pub next_link: ::core::option::Option<String>,
-    /// Link to previous page for this goal collection.
-    #[serde(default, rename = "previousLink")]
-    pub previous_link: ::core::option::Option<String>,
-    /// The starting index of the resources, which is 1 by default or otherwise specified by the start-index query parameter.
-    #[serde(default, rename = "startIndex")]
-    pub start_index: ::core::option::Option<i32>,
-    /// The total number of results for the query, regardless of the number of resources in the result.
-    #[serde(default, rename = "totalResults")]
-    pub total_results: ::core::option::Option<i32>,
-    /// Email ID of the authenticated user
-    #[serde(default)]
-    pub username: ::core::option::Option<String>,
-}
-
-/// JSON template for a hash Client Id request resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct HashClientIdRequest {
-    #[serde(default, rename = "clientId")]
-    pub client_id: ::core::option::Option<String>,
-    #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-    #[serde(default, rename = "webPropertyId")]
-    pub web_property_id: ::core::option::Option<String>,
-}
-
-/// JSON template for a hash Client Id response resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct HashClientIdResponse {
-    #[serde(default, rename = "clientId")]
-    pub client_id: ::core::option::Option<String>,
-    #[serde(default, rename = "hashedClientId")]
-    pub hashed_client_id: ::core::option::Option<String>,
-    #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-    #[serde(default, rename = "webPropertyId")]
-    pub web_property_id: ::core::option::Option<String>,
-}
-
-/// JSON template for an Analytics Remarketing Include Conditions.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct IncludeConditions {
-    /// The look-back window lets you specify a time frame for evaluating the behavior that qualifies users for your audience. For example, if your filters include users from Central Asia, and Transactions Greater than 2, and you set the look-back window to 14 days, then any user from Central Asia whose cumulative transactions exceed 2 during the last 14 days is added to the audience.
-    #[serde(default, rename = "daysToLookBack")]
-    pub days_to_look_back: ::core::option::Option<i32>,
-    /// Boolean indicating whether this segment is a smart list. https://support.google.com/analytics/answer/4628577
-    #[serde(default, rename = "isSmartList")]
-    pub is_smart_list: ::core::option::Option<bool>,
-    /// Resource type for include conditions.
-    #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-    /// Number of days (in the range 1 to 540) a user remains in the audience.
-    #[serde(default, rename = "membershipDurationDays")]
-    pub membership_duration_days: ::core::option::Option<i32>,
-    /// The segment condition that will cause a user to be added to an audience.
-    #[serde(default)]
-    pub segment: ::core::option::Option<String>,
-}
-
-/// JSON template for an Analytics Remarketing Audience Foreign Link.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct LinkedForeignAccount {
-    /// Account ID to which this linked foreign account belongs.
-    #[serde(default, rename = "accountId")]
-    pub account_id: ::core::option::Option<String>,
-    /// Boolean indicating whether this is eligible for search.
-    #[serde(default, rename = "eligibleForSearch")]
-    pub eligible_for_search: ::core::option::Option<bool>,
-    /// Entity ad account link ID.
+pub struct ProfileFilterLink {
+    /// Filter for this link.
+    #[serde(default, rename = "filterRef")]
+    pub filter_ref: ::core::option::Option<FilterRef>,
+    /// Profile filter link ID.
     #[serde(default)]
     pub id: ::core::option::Option<String>,
-    /// Internal ID for the web property to which this linked foreign account belongs.
-    #[serde(default, rename = "internalWebPropertyId")]
-    pub internal_web_property_id: ::core::option::Option<String>,
-    /// Resource type for linked foreign account.
+    /// Resource type for Analytics filter.
     #[serde(default)]
     pub kind: ::core::option::Option<String>,
-    /// The foreign account ID. For example the an Google Ads linkedAccountId has the following format XXX-XXX-XXXX.
-    #[serde(default, rename = "linkedAccountId")]
-    pub linked_account_id: ::core::option::Option<String>,
-    /// Remarketing audience ID to which this linked foreign account belongs.
-    #[serde(default, rename = "remarketingAudienceId")]
-    pub remarketing_audience_id: ::core::option::Option<String>,
-    /// The status of this foreign account link.
+    /// View (Profile) for this link.
+    #[serde(default, rename = "profileRef")]
+    pub profile_ref: ::core::option::Option<ProfileRef>,
+    /// The rank of this profile filter link relative to the other filters linked to the same profile.
     #[serde(default)]
-    pub status: ::core::option::Option<String>,
-    /// The type of the foreign account. For example, ADWORDS_LINKS, DBM_LINKS, MCC_LINKS or OPTIMIZE.
-    #[serde(default, rename = "type")]
-    pub type_: ::core::option::Option<String>,
-    /// Web property ID of the form UA-XXXXX-YY to which this linked foreign account belongs.
-    #[serde(default, rename = "webPropertyId")]
-    pub web_property_id: ::core::option::Option<String>,
-}
-
-/// Multi-Channel Funnels data for a given view (profile).
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct McfData {
-    /// Column headers that list dimension names followed by the metric names. The order of dimensions and metrics is same as specified in the request.
-    #[serde(default, rename = "columnHeaders")]
-    pub column_headers: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
-    /// Determines if the Analytics data contains sampled data.
-    #[serde(default, rename = "containsSampledData")]
-    pub contains_sampled_data: ::core::option::Option<bool>,
-    /// Unique ID for this data response.
-    #[serde(default)]
-    pub id: ::core::option::Option<String>,
-    /// The maximum number of rows the response can contain, regardless of the actual number of rows returned. Its value ranges from 1 to 10,000 with a value of 1000 by default, or otherwise specified by the max-results query parameter.
-    #[serde(default, rename = "itemsPerPage")]
-    pub items_per_page: ::core::option::Option<i32>,
-    /// Resource type.
-    #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-    /// Link to next page for this Analytics data query.
-    #[serde(default, rename = "nextLink")]
-    pub next_link: ::core::option::Option<String>,
-    /// Link to previous page for this Analytics data query.
-    #[serde(default, rename = "previousLink")]
-    pub previous_link: ::core::option::Option<String>,
-    /// Information for the view (profile), for which the Analytics data was requested.
-    #[serde(default, rename = "profileInfo")]
-    pub profile_info: ::core::option::Option<serde_json::Value>,
-    /// Analytics data request query parameters.
-    #[serde(default)]
-    pub query: ::core::option::Option<serde_json::Value>,
-    /// Analytics data rows, where each row contains a list of dimension values followed by the metric values. The order of dimensions and metrics is same as specified in the request.
-    #[serde(default)]
-    pub rows: ::core::option::Option<::std::vec::Vec<::std::vec::Vec<serde_json::Value>>>,
-    /// The number of samples used to calculate the result.
-    #[serde(default, rename = "sampleSize")]
-    pub sample_size: ::core::option::Option<String>,
-    /// Total size of the sample space from which the samples were selected.
-    #[serde(default, rename = "sampleSpace")]
-    pub sample_space: ::core::option::Option<String>,
-    /// Link to this page.
+    pub rank: ::core::option::Option<i32>,
+    /// Link for this profile filter link.
     #[serde(default, rename = "selfLink")]
     pub self_link: ::core::option::Option<String>,
-    /// The total number of rows for the query, regardless of the number of rows in the response.
-    #[serde(default, rename = "totalResults")]
-    pub total_results: ::core::option::Option<i32>,
-    /// Total values for the requested metrics over all the results, not just the results returned in this response. The order of the metric totals is same as the metric order specified in the request.
-    #[serde(default, rename = "totalsForAllResults")]
-    pub totals_for_all_results: ::core::option::Option<serde_json::Value>,
 }
 
 /// JSON template for an Analytics view (profile).
@@ -1176,165 +1385,6 @@ pub struct Profile {
     pub website_url: ::core::option::Option<String>,
 }
 
-/// JSON template for an Analytics profile filter link.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ProfileFilterLink {
-    /// Filter for this link.
-    #[serde(default, rename = "filterRef")]
-    pub filter_ref: ::core::option::Option<FilterRef>,
-    /// Profile filter link ID.
-    #[serde(default)]
-    pub id: ::core::option::Option<String>,
-    /// Resource type for Analytics filter.
-    #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-    /// View (Profile) for this link.
-    #[serde(default, rename = "profileRef")]
-    pub profile_ref: ::core::option::Option<ProfileRef>,
-    /// The rank of this profile filter link relative to the other filters linked to the same profile.
-    #[serde(default)]
-    pub rank: ::core::option::Option<i32>,
-    /// Link for this profile filter link.
-    #[serde(default, rename = "selfLink")]
-    pub self_link: ::core::option::Option<String>,
-}
-
-/// A profile filter link collection lists profile filter links between profiles and filters. Each resource in the collection corresponds to a profile filter link.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ProfileFilterLinks {
-    /// A list of profile filter links.
-    #[serde(default)]
-    pub items: ::core::option::Option<::std::vec::Vec<ProfileFilterLink>>,
-    /// The maximum number of resources the response can contain, regardless of the actual number of resources returned. Its value ranges from 1 to 1,000 with a value of 1000 by default, or otherwise specified by the max-results query parameter.
-    #[serde(default, rename = "itemsPerPage")]
-    pub items_per_page: ::core::option::Option<i32>,
-    /// Collection type.
-    #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-    /// Link to next page for this profile filter link collection.
-    #[serde(default, rename = "nextLink")]
-    pub next_link: ::core::option::Option<String>,
-    /// Link to previous page for this profile filter link collection.
-    #[serde(default, rename = "previousLink")]
-    pub previous_link: ::core::option::Option<String>,
-    /// The starting index of the resources, which is 1 by default or otherwise specified by the start-index query parameter.
-    #[serde(default, rename = "startIndex")]
-    pub start_index: ::core::option::Option<i32>,
-    /// The total number of results for the query, regardless of the number of results in the response.
-    #[serde(default, rename = "totalResults")]
-    pub total_results: ::core::option::Option<i32>,
-    /// Email ID of the authenticated user
-    #[serde(default)]
-    pub username: ::core::option::Option<String>,
-}
-
-/// JSON template for a linked view (profile).
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ProfileRef {
-    /// Account ID to which this view (profile) belongs.
-    #[serde(default, rename = "accountId")]
-    pub account_id: ::core::option::Option<String>,
-    /// Link for this view (profile).
-    #[serde(default)]
-    pub href: ::core::option::Option<String>,
-    /// View (Profile) ID.
-    #[serde(default)]
-    pub id: ::core::option::Option<String>,
-    /// Internal ID for the web property to which this view (profile) belongs.
-    #[serde(default, rename = "internalWebPropertyId")]
-    pub internal_web_property_id: ::core::option::Option<String>,
-    /// Analytics view (profile) reference.
-    #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-    /// Name of this view (profile).
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Web property ID of the form UA-XXXXX-YY to which this view (profile) belongs.
-    #[serde(default, rename = "webPropertyId")]
-    pub web_property_id: ::core::option::Option<String>,
-}
-
-/// JSON template for an Analytics ProfileSummary. ProfileSummary returns basic information (i.e., summary) for a profile.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ProfileSummary {
-    /// View (profile) ID.
-    #[serde(default)]
-    pub id: ::core::option::Option<String>,
-    /// Resource type for Analytics ProfileSummary.
-    #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-    /// View (profile) name.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Indicates whether this view (profile) is starred or not.
-    #[serde(default)]
-    pub starred: ::core::option::Option<bool>,
-    /// View (Profile) type. Supported types: WEB or APP.
-    #[serde(default, rename = "type")]
-    pub type_: ::core::option::Option<String>,
-}
-
-/// A view (profile) collection lists Analytics views (profiles) to which the user has access. Each resource in the collection corresponds to a single Analytics view (profile).
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Profiles {
-    /// A list of views (profiles).
-    #[serde(default)]
-    pub items: ::core::option::Option<::std::vec::Vec<Profile>>,
-    /// The maximum number of resources the response can contain, regardless of the actual number of resources returned. Its value ranges from 1 to 1000 with a value of 1000 by default, or otherwise specified by the max-results query parameter.
-    #[serde(default, rename = "itemsPerPage")]
-    pub items_per_page: ::core::option::Option<i32>,
-    /// Collection type.
-    #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-    /// Link to next page for this view (profile) collection.
-    #[serde(default, rename = "nextLink")]
-    pub next_link: ::core::option::Option<String>,
-    /// Link to previous page for this view (profile) collection.
-    #[serde(default, rename = "previousLink")]
-    pub previous_link: ::core::option::Option<String>,
-    /// The starting index of the resources, which is 1 by default or otherwise specified by the start-index query parameter.
-    #[serde(default, rename = "startIndex")]
-    pub start_index: ::core::option::Option<i32>,
-    /// The total number of results for the query, regardless of the number of results in the response.
-    #[serde(default, rename = "totalResults")]
-    pub total_results: ::core::option::Option<i32>,
-    /// Email ID of the authenticated user
-    #[serde(default)]
-    pub username: ::core::option::Option<String>,
-}
-
-/// Real time data for a given view (profile).
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct RealtimeData {
-    /// Column headers that list dimension names followed by the metric names. The order of dimensions and metrics is same as specified in the request.
-    #[serde(default, rename = "columnHeaders")]
-    pub column_headers: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
-    /// Unique ID for this data response.
-    #[serde(default)]
-    pub id: ::core::option::Option<String>,
-    /// Resource type.
-    #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-    /// Information for the view (profile), for which the real time data was requested.
-    #[serde(default, rename = "profileInfo")]
-    pub profile_info: ::core::option::Option<serde_json::Value>,
-    /// Real time data request query parameters.
-    #[serde(default)]
-    pub query: ::core::option::Option<serde_json::Value>,
-    /// Real time data rows, where each row contains a list of dimension values followed by the metric values. The order of dimensions and metrics is same as specified in the request.
-    #[serde(default)]
-    pub rows: ::core::option::Option<::std::vec::Vec<::std::vec::Vec<String>>>,
-    /// Link to this page.
-    #[serde(default, rename = "selfLink")]
-    pub self_link: ::core::option::Option<String>,
-    /// The total number of rows for the query, regardless of the number of rows in the response.
-    #[serde(default, rename = "totalResults")]
-    pub total_results: ::core::option::Option<i32>,
-    /// Total values for the requested metrics over all the results, not just the results returned in this response. The order of the metric totals is same as the metric order specified in the request.
-    #[serde(default, rename = "totalsForAllResults")]
-    pub totals_for_all_results: ::core::option::Option<serde_json::Value>,
-}
-
 /// JSON template for an Analytics remarketing audience.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct RemarketingAudience {
@@ -1382,35 +1432,6 @@ pub struct RemarketingAudience {
     pub web_property_id: ::core::option::Option<String>,
 }
 
-/// A remarketing audience collection lists Analytics remarketing audiences to which the user has access. Each resource in the collection corresponds to a single Analytics remarketing audience.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct RemarketingAudiences {
-    /// A list of remarketing audiences.
-    #[serde(default)]
-    pub items: ::core::option::Option<::std::vec::Vec<RemarketingAudience>>,
-    /// The maximum number of resources the response can contain, regardless of the actual number of resources returned. Its value ranges from 1 to 1000 with a value of 1000 by default, or otherwise specified by the max-results query parameter.
-    #[serde(default, rename = "itemsPerPage")]
-    pub items_per_page: ::core::option::Option<i32>,
-    /// Collection type.
-    #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-    /// Link to next page for this remarketing audience collection.
-    #[serde(default, rename = "nextLink")]
-    pub next_link: ::core::option::Option<String>,
-    /// Link to previous page for this view (profile) collection.
-    #[serde(default, rename = "previousLink")]
-    pub previous_link: ::core::option::Option<String>,
-    /// The starting index of the resources, which is 1 by default or otherwise specified by the start-index query parameter.
-    #[serde(default, rename = "startIndex")]
-    pub start_index: ::core::option::Option<i32>,
-    /// The total number of results for the query, regardless of the number of results in the response.
-    #[serde(default, rename = "totalResults")]
-    pub total_results: ::core::option::Option<i32>,
-    /// Email ID of the authenticated user
-    #[serde(default)]
-    pub username: ::core::option::Option<String>,
-}
-
 /// JSON template for an Analytics segment.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Segment {
@@ -1441,35 +1462,6 @@ pub struct Segment {
     /// Time the segment was last modified.
     #[serde(default)]
     pub updated: ::core::option::Option<String>,
-}
-
-/// An segment collection lists Analytics segments that the user has access to. Each resource in the collection corresponds to a single Analytics segment.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Segments {
-    /// A list of segments.
-    #[serde(default)]
-    pub items: ::core::option::Option<::std::vec::Vec<Segment>>,
-    /// The maximum number of resources the response can contain, regardless of the actual number of resources returned. Its value ranges from 1 to 1000 with a value of 1000 by default, or otherwise specified by the max-results query parameter.
-    #[serde(default, rename = "itemsPerPage")]
-    pub items_per_page: ::core::option::Option<i32>,
-    /// Collection type for segments.
-    #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-    /// Link to next page for this segment collection.
-    #[serde(default, rename = "nextLink")]
-    pub next_link: ::core::option::Option<String>,
-    /// Link to previous page for this segment collection.
-    #[serde(default, rename = "previousLink")]
-    pub previous_link: ::core::option::Option<String>,
-    /// The starting index of the resources, which is 1 by default or otherwise specified by the start-index query parameter.
-    #[serde(default, rename = "startIndex")]
-    pub start_index: ::core::option::Option<i32>,
-    /// The total number of results for the query, regardless of the number of results in the response.
-    #[serde(default, rename = "totalResults")]
-    pub total_results: ::core::option::Option<i32>,
-    /// Email ID of the authenticated user
-    #[serde(default)]
-    pub username: ::core::option::Option<String>,
 }
 
 /// JSON template for Analytics unsampled report resource.
@@ -1534,35 +1526,6 @@ pub struct UnsampledReport {
     pub web_property_id: ::core::option::Option<String>,
 }
 
-/// An unsampled report collection lists Analytics unsampled reports to which the user has access. Each view (profile) can have a set of unsampled reports. Each resource in the unsampled report collection corresponds to a single Analytics unsampled report.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct UnsampledReports {
-    /// A list of unsampled reports.
-    #[serde(default)]
-    pub items: ::core::option::Option<::std::vec::Vec<UnsampledReport>>,
-    /// The maximum number of resources the response can contain, regardless of the actual number of resources returned. Its value ranges from 1 to 1000 with a value of 1000 by default, or otherwise specified by the max-results query parameter.
-    #[serde(default, rename = "itemsPerPage")]
-    pub items_per_page: ::core::option::Option<i32>,
-    /// Collection type.
-    #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-    /// Link to next page for this unsampled report collection.
-    #[serde(default, rename = "nextLink")]
-    pub next_link: ::core::option::Option<String>,
-    /// Link to previous page for this unsampled report collection.
-    #[serde(default, rename = "previousLink")]
-    pub previous_link: ::core::option::Option<String>,
-    /// The starting index of the resources, which is 1 by default or otherwise specified by the start-index query parameter.
-    #[serde(default, rename = "startIndex")]
-    pub start_index: ::core::option::Option<i32>,
-    /// The total number of results for the query, regardless of the number of resources in the result.
-    #[serde(default, rename = "totalResults")]
-    pub total_results: ::core::option::Option<i32>,
-    /// Email ID of the authenticated user
-    #[serde(default)]
-    pub username: ::core::option::Option<String>,
-}
-
 /// Metadata returned for an upload operation.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Upload {
@@ -1587,149 +1550,6 @@ pub struct Upload {
     /// Time this file is uploaded.
     #[serde(default, rename = "uploadTime")]
     pub upload_time: ::core::option::Option<String>,
-}
-
-/// Upload collection lists Analytics uploads to which the user has access. Each custom data source can have a set of uploads. Each resource in the upload collection corresponds to a single Analytics data upload.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Uploads {
-    /// A list of uploads.
-    #[serde(default)]
-    pub items: ::core::option::Option<::std::vec::Vec<Upload>>,
-    /// The maximum number of resources the response can contain, regardless of the actual number of resources returned. Its value ranges from 1 to 1000 with a value of 1000 by default, or otherwise specified by the max-results query parameter.
-    #[serde(default, rename = "itemsPerPage")]
-    pub items_per_page: ::core::option::Option<i32>,
-    /// Collection type.
-    #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-    /// Link to next page for this upload collection.
-    #[serde(default, rename = "nextLink")]
-    pub next_link: ::core::option::Option<String>,
-    /// Link to previous page for this upload collection.
-    #[serde(default, rename = "previousLink")]
-    pub previous_link: ::core::option::Option<String>,
-    /// The starting index of the resources, which is 1 by default or otherwise specified by the start-index query parameter.
-    #[serde(default, rename = "startIndex")]
-    pub start_index: ::core::option::Option<i32>,
-    /// The total number of results for the query, regardless of the number of resources in the result.
-    #[serde(default, rename = "totalResults")]
-    pub total_results: ::core::option::Option<i32>,
-}
-
-/// JSON template for a user deletion request resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct UserDeletionRequest {
-    /// This marks the point in time for which all user data before should be deleted
-    #[serde(default, rename = "deletionRequestTime")]
-    pub deletion_request_time: ::core::option::Option<String>,
-    /// Firebase Project Id
-    #[serde(default, rename = "firebaseProjectId")]
-    pub firebase_project_id: ::core::option::Option<String>,
-    /// User ID.
-    #[serde(default)]
-    pub id: ::core::option::Option<serde_json::Value>,
-    /// Value is "analytics#userDeletionRequest".
-    #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-    /// Property ID
-    #[serde(default, rename = "propertyId")]
-    pub property_id: ::core::option::Option<String>,
-    /// Web property ID of the form UA-XXXXX-YY.
-    #[serde(default, rename = "webPropertyId")]
-    pub web_property_id: ::core::option::Option<String>,
-}
-
-/// JSON template for a user reference.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct UserRef {
-    /// Email ID of this user.
-    #[serde(default)]
-    pub email: ::core::option::Option<String>,
-    /// User ID.
-    #[serde(default)]
-    pub id: ::core::option::Option<String>,
-    #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-}
-
-/// JSON template for a web property reference.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct WebPropertyRef {
-    /// Account ID to which this web property belongs.
-    #[serde(default, rename = "accountId")]
-    pub account_id: ::core::option::Option<String>,
-    /// Link for this web property.
-    #[serde(default)]
-    pub href: ::core::option::Option<String>,
-    /// Web property ID of the form UA-XXXXX-YY.
-    #[serde(default)]
-    pub id: ::core::option::Option<String>,
-    /// Internal ID for this web property.
-    #[serde(default, rename = "internalWebPropertyId")]
-    pub internal_web_property_id: ::core::option::Option<String>,
-    /// Analytics web property reference.
-    #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-    /// Name of this web property.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-}
-
-/// JSON template for an Analytics WebPropertySummary. WebPropertySummary returns basic information (i.e., summary) for a web property.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct WebPropertySummary {
-    /// Web property ID of the form UA-XXXXX-YY.
-    #[serde(default)]
-    pub id: ::core::option::Option<String>,
-    /// Internal ID for this web property.
-    #[serde(default, rename = "internalWebPropertyId")]
-    pub internal_web_property_id: ::core::option::Option<String>,
-    /// Resource type for Analytics WebPropertySummary.
-    #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-    /// Level for this web property. Possible values are STANDARD or PREMIUM.
-    #[serde(default)]
-    pub level: ::core::option::Option<String>,
-    /// Web property name.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// List of profiles under this web property.
-    #[serde(default)]
-    pub profiles: ::core::option::Option<::std::vec::Vec<ProfileSummary>>,
-    /// Indicates whether this web property is starred or not.
-    #[serde(default)]
-    pub starred: ::core::option::Option<bool>,
-    /// Website url for this web property.
-    #[serde(default, rename = "websiteUrl")]
-    pub website_url: ::core::option::Option<String>,
-}
-
-/// A web property collection lists Analytics web properties to which the user has access. Each resource in the collection corresponds to a single Analytics web property.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Webproperties {
-    /// A list of web properties.
-    #[serde(default)]
-    pub items: ::core::option::Option<::std::vec::Vec<Webproperty>>,
-    /// The maximum number of resources the response can contain, regardless of the actual number of resources returned. Its value ranges from 1 to 1000 with a value of 1000 by default, or otherwise specified by the max-results query parameter.
-    #[serde(default, rename = "itemsPerPage")]
-    pub items_per_page: ::core::option::Option<i32>,
-    /// Collection type.
-    #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-    /// Link to next page for this web property collection.
-    #[serde(default, rename = "nextLink")]
-    pub next_link: ::core::option::Option<String>,
-    /// Link to previous page for this web property collection.
-    #[serde(default, rename = "previousLink")]
-    pub previous_link: ::core::option::Option<String>,
-    /// The starting index of the resources, which is 1 by default or otherwise specified by the start-index query parameter.
-    #[serde(default, rename = "startIndex")]
-    pub start_index: ::core::option::Option<i32>,
-    /// The total number of results for the query, regardless of the number of results in the response.
-    #[serde(default, rename = "totalResults")]
-    pub total_results: ::core::option::Option<i32>,
-    /// Email ID of the authenticated user
-    #[serde(default)]
-    pub username: ::core::option::Option<String>,
 }
 
 /// JSON template for an Analytics web property.
@@ -1792,4 +1612,184 @@ pub struct Webproperty {
     /// Website url for this web property.
     #[serde(default, rename = "websiteUrl")]
     pub website_url: ::core::option::Option<String>,
+}
+
+/// JSON template for an Analytics WebPropertySummary. WebPropertySummary returns basic information (i.e., summary) for a web property.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct WebPropertySummary {
+    /// Web property ID of the form UA-XXXXX-YY.
+    #[serde(default)]
+    pub id: ::core::option::Option<String>,
+    /// Internal ID for this web property.
+    #[serde(default, rename = "internalWebPropertyId")]
+    pub internal_web_property_id: ::core::option::Option<String>,
+    /// Resource type for Analytics WebPropertySummary.
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+    /// Level for this web property. Possible values are STANDARD or PREMIUM.
+    #[serde(default)]
+    pub level: ::core::option::Option<String>,
+    /// Web property name.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// List of profiles under this web property.
+    #[serde(default)]
+    pub profiles: ::core::option::Option<::std::vec::Vec<ProfileSummary>>,
+    /// Indicates whether this web property is starred or not.
+    #[serde(default)]
+    pub starred: ::core::option::Option<bool>,
+    /// Website url for this web property.
+    #[serde(default, rename = "websiteUrl")]
+    pub website_url: ::core::option::Option<String>,
+}
+
+/// JSON template for an Google Ads account.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AdWordsAccount {
+    /// True if auto-tagging is enabled on the Google Ads account. Read-only after the insert operation.
+    #[serde(default, rename = "autoTaggingEnabled")]
+    pub auto_tagging_enabled: ::core::option::Option<bool>,
+    /// Customer ID. This field is required when creating a Google Ads link.
+    #[serde(default, rename = "customerId")]
+    pub customer_id: ::core::option::Option<String>,
+    /// Resource type for Google Ads account.
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+}
+
+/// JSON template for a user reference.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct UserRef {
+    /// Email ID of this user.
+    #[serde(default)]
+    pub email: ::core::option::Option<String>,
+    /// User ID.
+    #[serde(default)]
+    pub id: ::core::option::Option<String>,
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+}
+
+/// JSON template for an Analytics filter expression.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct FilterExpression {
+    /// Determines if the filter is case sensitive.
+    #[serde(default, rename = "caseSensitive")]
+    pub case_sensitive: ::core::option::Option<bool>,
+    /// Filter expression value
+    #[serde(default, rename = "expressionValue")]
+    pub expression_value: ::core::option::Option<String>,
+    /// Field to filter. Possible values:  
+    #[serde(default)]
+    pub field: ::core::option::Option<String>,
+    /// The Index of the custom dimension. Set only if the field is a is CUSTOM_DIMENSION.
+    #[serde(default, rename = "fieldIndex")]
+    pub field_index: ::core::option::Option<i32>,
+    /// Kind value for filter expression
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+    /// Match type for this filter. Possible values are BEGINS_WITH, EQUAL, ENDS_WITH, CONTAINS, or MATCHES. GEO_DOMAIN, GEO_IP_ADDRESS, PAGE_REQUEST_URI, or PAGE_HOSTNAME filters can use any match type; all other filters must use MATCHES.
+    #[serde(default, rename = "matchType")]
+    pub match_type: ::core::option::Option<String>,
+}
+
+/// JSON template for a profile filter link.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct FilterRef {
+    /// Account ID to which this filter belongs.
+    #[serde(default, rename = "accountId")]
+    pub account_id: ::core::option::Option<String>,
+    /// Link for this filter.
+    #[serde(default)]
+    pub href: ::core::option::Option<String>,
+    /// Filter ID.
+    #[serde(default)]
+    pub id: ::core::option::Option<String>,
+    /// Kind value for filter reference.
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+    /// Name of this filter.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+}
+
+/// JSON template for a linked view (profile).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ProfileRef {
+    /// Account ID to which this view (profile) belongs.
+    #[serde(default, rename = "accountId")]
+    pub account_id: ::core::option::Option<String>,
+    /// Link for this view (profile).
+    #[serde(default)]
+    pub href: ::core::option::Option<String>,
+    /// View (Profile) ID.
+    #[serde(default)]
+    pub id: ::core::option::Option<String>,
+    /// Internal ID for the web property to which this view (profile) belongs.
+    #[serde(default, rename = "internalWebPropertyId")]
+    pub internal_web_property_id: ::core::option::Option<String>,
+    /// Analytics view (profile) reference.
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+    /// Name of this view (profile).
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Web property ID of the form UA-XXXXX-YY to which this view (profile) belongs.
+    #[serde(default, rename = "webPropertyId")]
+    pub web_property_id: ::core::option::Option<String>,
+}
+
+/// JSON template for an Analytics Remarketing Audience Foreign Link.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LinkedForeignAccount {
+    /// Account ID to which this linked foreign account belongs.
+    #[serde(default, rename = "accountId")]
+    pub account_id: ::core::option::Option<String>,
+    /// Boolean indicating whether this is eligible for search.
+    #[serde(default, rename = "eligibleForSearch")]
+    pub eligible_for_search: ::core::option::Option<bool>,
+    /// Entity ad account link ID.
+    #[serde(default)]
+    pub id: ::core::option::Option<String>,
+    /// Internal ID for the web property to which this linked foreign account belongs.
+    #[serde(default, rename = "internalWebPropertyId")]
+    pub internal_web_property_id: ::core::option::Option<String>,
+    /// Resource type for linked foreign account.
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+    /// The foreign account ID. For example the an Google Ads linkedAccountId has the following format XXX-XXX-XXXX.
+    #[serde(default, rename = "linkedAccountId")]
+    pub linked_account_id: ::core::option::Option<String>,
+    /// Remarketing audience ID to which this linked foreign account belongs.
+    #[serde(default, rename = "remarketingAudienceId")]
+    pub remarketing_audience_id: ::core::option::Option<String>,
+    /// The status of this foreign account link.
+    #[serde(default)]
+    pub status: ::core::option::Option<String>,
+    /// The type of the foreign account. For example, ADWORDS_LINKS, DBM_LINKS, MCC_LINKS or OPTIMIZE.
+    #[serde(default, rename = "type")]
+    pub type_: ::core::option::Option<String>,
+    /// Web property ID of the form UA-XXXXX-YY to which this linked foreign account belongs.
+    #[serde(default, rename = "webPropertyId")]
+    pub web_property_id: ::core::option::Option<String>,
+}
+
+/// JSON template for an Analytics ProfileSummary. ProfileSummary returns basic information (i.e., summary) for a profile.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ProfileSummary {
+    /// View (profile) ID.
+    #[serde(default)]
+    pub id: ::core::option::Option<String>,
+    /// Resource type for Analytics ProfileSummary.
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+    /// View (profile) name.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Indicates whether this view (profile) is starred or not.
+    #[serde(default)]
+    pub starred: ::core::option::Option<bool>,
+    /// View (Profile) type. Supported types: WEB or APP.
+    #[serde(default, rename = "type")]
+    pub type_: ::core::option::Option<String>,
 }

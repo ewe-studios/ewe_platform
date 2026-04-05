@@ -10,40 +10,6 @@
 use super::*;
 use serde::{Deserialize, Serialize};
 
-/// Specifies required connection parameters, and the parameters required to create an AlloyDB destination cluster.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AlloyDbConnectionProfile {
-    /// Required. The AlloyDB cluster ID that this connection profile is associated with.
-    #[serde(default, rename = "clusterId")]
-    pub cluster_id: ::core::option::Option<String>,
-    /// Immutable. Metadata used to create the destination AlloyDB cluster.
-    #[serde(default)]
-    pub settings: ::core::option::Option<AlloyDbSettings>,
-}
-
-/// Settings for creating an AlloyDB cluster.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AlloyDbSettings {
-    /// Optional. The database engine major version. This is an optional field. If a database version is not supplied at cluster creation time, then a default database version will be used. // TODO: enum values: ["DATABASE_VERSION_UNSPECIFIED", "POSTGRES_14", "POSTGRES_15", "POSTGRES_16", "POSTGRES_17", "POSTGRES_18"]
-    #[serde(default, rename = "databaseVersion")]
-    pub database_version: ::core::option::Option<String>,
-    /// Optional. The encryption config can be specified to encrypt the data disks and other persistent data resources of a cluster with a customer-managed encryption key (CMEK). When this field is not specified, the cluster will then use default encryption scheme to protect the user data.
-    #[serde(default, rename = "encryptionConfig")]
-    pub encryption_config: ::core::option::Option<EncryptionConfig>,
-    /// Required. Input only. Initial user to setup during cluster creation. Required.
-    #[serde(default, rename = "initialUser")]
-    pub initial_user: ::core::option::Option<UserPassword>,
-    /// Labels for the AlloyDB cluster created by DMS. An object containing a list of ''key'', ''value'' pairs.
-    #[serde(default)]
-    pub labels: ::core::option::Option<serde_json::Value>,
-    /// Settings for the cluster''s primary instance
-    #[serde(default, rename = "primaryInstanceSettings")]
-    pub primary_instance_settings: ::core::option::Option<PrimaryInstanceSettings>,
-    /// Required. The resource link for the VPC network in which cluster resources are created and from which they are accessible via Private IP. The network must belong to the same project as the cluster. It is specified in the form: "projects/{project_number}/global/networks/{network_id}". This is required to create a cluster.
-    #[serde(default, rename = "vpcNetwork")]
-    pub vpc_network: ::core::option::Option<String>,
-}
-
 /// Request message for ''ApplyConversionWorkspace'' request.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ApplyConversionWorkspaceRequest {
@@ -61,93 +27,6 @@ pub struct ApplyConversionWorkspaceRequest {
     pub filter: ::core::option::Option<String>,
 }
 
-/// Details regarding an Apply background job.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ApplyJobDetails {
-    /// Output only. The connection profile which was used for the apply job.
-    #[serde(default, rename = "connectionProfile")]
-    pub connection_profile: ::core::option::Option<String>,
-    /// Output only. AIP-160 based filter used to specify the entities to apply
-    #[serde(default)]
-    pub filter: ::core::option::Option<String>,
-}
-
-/// Set to a specific value (value is converted to fit the target data type)
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AssignSpecificValue {
-    /// Required. Specific value to be assigned
-    #[serde(default)]
-    pub value: ::core::option::Option<String>,
-}
-
-/// Specifies the audit configuration for a service. The configuration determines which permission types are logged, and what identities, if any, are exempted from logging. An AuditConfig must have one or more AuditLogConfigs. If there are AuditConfigs for both allServices and a specific service, the union of the two AuditConfigs is used for that service: the log_types specified in each AuditConfig are enabled, and the exempted_members in each AuditLogConfig are exempted. Example Policy with multiple AuditConfigs: { "audit_configs": [ { "service": "allServices", "audit_log_configs": [ { "log_type": "DATA_READ", "exempted_members": [ "user:jose@example.com" ] }, { "log_type": "DATA_WRITE" }, { "log_type": "ADMIN_READ" } ] }, { "service": "sampleservice.googleapis.com", "audit_log_configs": [ { "log_type": "DATA_READ" }, { "log_type": "DATA_WRITE", "exempted_members": [ "user:aliya@example.com" ] } ] } ] } For sampleservice, this policy enables DATA_READ, DATA_WRITE and ADMIN_READ logging. It also exempts jose@example.com from DATA_READ logging, and aliya@example.com from DATA_WRITE logging.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AuditConfig {
-    /// The configuration for logging of each type of permission.
-    #[serde(default, rename = "auditLogConfigs")]
-    pub audit_log_configs: ::core::option::Option<::std::vec::Vec<AuditLogConfig>>,
-    /// Specifies a service that will be enabled for audit logging. For example, storage.googleapis.com, cloudsql.googleapis.com. allServices is a special value that covers all services.
-    #[serde(default)]
-    pub service: ::core::option::Option<String>,
-}
-
-/// Provides the configuration for logging a type of permissions. Example: { "audit_log_configs": [ { "log_type": "DATA_READ", "exempted_members": [ "user:jose@example.com" ] }, { "log_type": "DATA_WRITE" } ] } This enables ''DATA_READ'' and ''DATA_WRITE'' logging, while exempting jose@example.com from DATA_READ logging.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AuditLogConfig {
-    /// Specifies the identities that do not cause logging for this type of permission. Follows the same format of Binding.members.
-    #[serde(default, rename = "exemptedMembers")]
-    pub exempted_members: ::core::option::Option<::std::vec::Vec<String>>,
-    /// The log type that this config enables. // TODO: enum values: ["LOG_TYPE_UNSPECIFIED", "ADMIN_READ", "DATA_WRITE", "DATA_READ"]
-    #[serde(default, rename = "logType")]
-    pub log_type: ::core::option::Option<String>,
-}
-
-/// AuthorizedNetwork contains metadata for an authorized network.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AuthorizedNetwork {
-    /// Optional. CIDR range for one authorzied network of the instance.
-    #[serde(default, rename = "cidrRange")]
-    pub cidr_range: ::core::option::Option<String>,
-}
-
-/// Execution log of a background job.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct BackgroundJobLogEntry {
-    /// Output only. Apply job details.
-    #[serde(default, rename = "applyJobDetails")]
-    pub apply_job_details: ::core::option::Option<ApplyJobDetails>,
-    /// Output only. Job completion comment, such as how many entities were seeded, how many warnings were found during conversion, and similar information.
-    #[serde(default, rename = "completionComment")]
-    pub completion_comment: ::core::option::Option<String>,
-    /// Output only. Job completion state, i.e. the final state after the job completed. // TODO: enum values: ["JOB_COMPLETION_STATE_UNSPECIFIED", "SUCCEEDED", "FAILED"]
-    #[serde(default, rename = "completionState")]
-    pub completion_state: ::core::option::Option<String>,
-    /// Output only. Convert job details.
-    #[serde(default, rename = "convertJobDetails")]
-    pub convert_job_details: ::core::option::Option<ConvertJobDetails>,
-    /// The timestamp when the background job was finished.
-    #[serde(default, rename = "finishTime")]
-    pub finish_time: ::core::option::Option<String>,
-    /// The background job log entry ID.
-    #[serde(default)]
-    pub id: ::core::option::Option<String>,
-    /// Output only. Import rules job details.
-    #[serde(default, rename = "importRulesJobDetails")]
-    pub import_rules_job_details: ::core::option::Option<ImportRulesJobDetails>,
-    /// The type of job that was executed. // TODO: enum values: ["BACKGROUND_JOB_TYPE_UNSPECIFIED", "BACKGROUND_JOB_TYPE_SOURCE_SEED", "BACKGROUND_JOB_TYPE_CONVERT", "BACKGROUND_JOB_TYPE_APPLY_DESTINATION", "BACKGROUND_JOB_TYPE_IMPORT_RULES_FILE"]
-    #[serde(default, rename = "jobType")]
-    pub job_type: ::core::option::Option<String>,
-    /// Output only. Whether the client requested the conversion workspace to be committed after a successful completion of the job.
-    #[serde(default, rename = "requestAutocommit")]
-    pub request_autocommit: ::core::option::Option<bool>,
-    /// Output only. Seed job details.
-    #[serde(default, rename = "seedJobDetails")]
-    pub seed_job_details: ::core::option::Option<SeedJobDetails>,
-    /// The timestamp when the background job was started.
-    #[serde(default, rename = "startTime")]
-    pub start_time: ::core::option::Option<String>,
-}
-
 /// Describes violations in a client request. This error type focuses on the syntactic aspects of the request.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct BadRequest {
@@ -156,344 +35,12 @@ pub struct BadRequest {
     pub field_violations: ::core::option::Option<::std::vec::Vec<FieldViolation>>,
 }
 
-/// Configuration to use Binary Log Parser CDC technique.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct BinaryLogParser {
-    /// Use Oracle directories.
-    #[serde(default, rename = "logFileDirectories")]
-    pub log_file_directories: ::core::option::Option<LogFileDirectories>,
-    /// Use Oracle ASM.
-    #[serde(default, rename = "oracleAsmLogFileAccess")]
-    pub oracle_asm_log_file_access: ::core::option::Option<serde_json::Value>,
-}
-
-/// Associates members, or principals, with a role.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Binding {
-    /// The condition that is associated with this binding. If the condition evaluates to true, then this binding applies to the current request. If the condition evaluates to false, then this binding does not apply to the current request. However, a different role binding might grant the same role to one or more of the principals in this binding. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies).
-    #[serde(default)]
-    pub condition: ::core::option::Option<Expr>,
-    /// Specifies the principals requesting access for a Google Cloud resource. members can have the following values: * allUsers: A special identifier that represents anyone who is on the internet; with or without a Google account. * allAuthenticatedUsers: A special identifier that represents anyone who is authenticated with a Google account or a service account. Does not include identities that come from external identity providers (IdPs) through identity federation. * user:{emailid}: An email address that represents a specific Google account. For example, alice@example.com . * serviceAccount:{emailid}: An email address that represents a Google service account. For example, my-other-app@appspot.gserviceaccount.com. * serviceAccount:{projectid}.svc.id.goog[{namespace}/{kubernetes-sa}]: An identifier for a [Kubernetes service account](https://cloud.google.com/kubernetes-engine/docs/how-to/kubernetes-service-accounts). For example, my-project.svc.id.goog[my-namespace/my-kubernetes-sa]. * group:{emailid}: An email address that represents a Google group. For example, admins@example.com. * domain:{domain}: The G Suite domain (primary) that represents all the users of that domain. For example, google.com or example.com. * principal://iam.googleapis.com/locations/global/workforcePools/{pool_id}/subject/{subject_attribute_value}: A single identity in a workforce identity pool. * principalSet://iam.googleapis.com/locations/global/workforcePools/{pool_id}/group/{group_id}: All workforce identities in a group. * principalSet://iam.googleapis.com/locations/global/workforcePools/{pool_id}/attribute.{attribute_name}/{attribute_value}: All workforce identities with a specific attribute value. * principalSet://iam.googleapis.com/locations/global/workforcePools/{pool_id}/*: All identities in a workforce identity pool. * principal://iam.googleapis.com/projects/{project_number}/locations/global/workloadIdentityPools/{pool_id}/subject/{subject_attribute_value}: A single identity in a workload identity pool. * principalSet://iam.googleapis.com/projects/{project_number}/locations/global/workloadIdentityPools/{pool_id}/group/{group_id}: A workload identity pool group. * principalSet://iam.googleapis.com/projects/{project_number}/locations/global/workloadIdentityPools/{pool_id}/attribute.{attribute_name}/{attribute_value}: All identities in a workload identity pool with a certain attribute. * principalSet://iam.googleapis.com/projects/{project_number}/locations/global/workloadIdentityPools/{pool_id}/*: All identities in a workload identity pool. * deleted:user:{emailid}?uid={uniqueid}: An email address (plus unique identifier) representing a user that has been recently deleted. For example, alice@example.com?uid=123456789012345678901. If the user is recovered, this value reverts to user:{emailid} and the recovered user retains the role in the binding. * deleted:serviceAccount:{emailid}?uid={uniqueid}: An email address (plus unique identifier) representing a service account that has been recently deleted. For example, my-other-app@appspot.gserviceaccount.com?uid=123456789012345678901. If the service account is undeleted, this value reverts to serviceAccount:{emailid} and the undeleted service account retains the role in the binding. * deleted:group:{emailid}?uid={uniqueid}: An email address (plus unique identifier) representing a Google group that has been recently deleted. For example, admins@example.com?uid=123456789012345678901. If the group is recovered, this value reverts to group:{emailid} and the recovered group retains the role in the binding. * deleted:principal://iam.googleapis.com/locations/global/workforcePools/{pool_id}/subject/{subject_attribute_value}: Deleted single identity in a workforce identity pool. For example, deleted:principal://iam.googleapis.com/locations/global/workforcePools/my-pool-id/subject/my-subject-attribute-value.
-    #[serde(default)]
-    pub members: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Role that is assigned to the list of members, or principals. For example, roles/viewer, roles/editor, or roles/owner. For an overview of the IAM roles and permissions, see the [IAM documentation](https://cloud.google.com/iam/docs/roles-overview). For a list of the available pre-defined roles, see [here](https://cloud.google.com/iam/docs/understanding-roles).
-    #[serde(default)]
-    pub role: ::core::option::Option<String>,
-}
-
-/// Specifies required connection parameters, and, optionally, the parameters required to create a Cloud SQL destination database instance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CloudSqlConnectionProfile {
-    /// Output only. The Cloud SQL database instance''s additional (outgoing) public IP. Used when the Cloud SQL database availability type is REGIONAL (i.e. multiple zones / highly available).
-    #[serde(default, rename = "additionalPublicIp")]
-    pub additional_public_ip: ::core::option::Option<String>,
-    /// Output only. The Cloud SQL instance ID that this connection profile is associated with.
-    #[serde(default, rename = "cloudSqlId")]
-    pub cloud_sql_id: ::core::option::Option<String>,
-    /// Output only. The Cloud SQL database instance''s private IP.
-    #[serde(default, rename = "privateIp")]
-    pub private_ip: ::core::option::Option<String>,
-    /// Output only. The Cloud SQL database instance''s public IP.
-    #[serde(default, rename = "publicIp")]
-    pub public_ip: ::core::option::Option<String>,
-    /// Immutable. Metadata used to create the destination Cloud SQL database.
-    #[serde(default)]
-    pub settings: ::core::option::Option<CloudSqlSettings>,
-}
-
-/// Settings for creating a Cloud SQL database instance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CloudSqlSettings {
-    /// The activation policy specifies when the instance is activated; it is applicable only when the instance state is ''RUNNABLE''. Valid values: ''ALWAYS'': The instance is on, and remains so even in the absence of connection requests. NEVER: The instance is off; it is not activated, even if a connection request arrives. // TODO: enum values: ["SQL_ACTIVATION_POLICY_UNSPECIFIED", "ALWAYS", "NEVER"]
-    #[serde(default, rename = "activationPolicy")]
-    pub activation_policy: ::core::option::Option<String>,
-    /// [default: ON] If you enable this setting, Cloud SQL checks your available storage every 30 seconds. If the available storage falls below a threshold size, Cloud SQL automatically adds additional storage capacity. If the available storage repeatedly falls below the threshold size, Cloud SQL continues to add storage until it reaches the maximum of 30 TB.
-    #[serde(default, rename = "autoStorageIncrease")]
-    pub auto_storage_increase: ::core::option::Option<bool>,
-    /// Optional. Availability type. Potential values: * ZONAL: The instance serves data from only one zone. Outages in that zone affect data availability. * REGIONAL: The instance can serve data from more than one zone in a region (it is highly available). // TODO: enum values: ["SQL_AVAILABILITY_TYPE_UNSPECIFIED", "ZONAL", "REGIONAL"]
-    #[serde(default, rename = "availabilityType")]
-    pub availability_type: ::core::option::Option<String>,
-    /// The KMS key name used for the csql instance.
-    #[serde(default, rename = "cmekKeyName")]
-    pub cmek_key_name: ::core::option::Option<String>,
-    /// The Cloud SQL default instance level collation.
-    #[serde(default)]
-    pub collation: ::core::option::Option<String>,
-    /// Optional. Data cache is an optional feature available for Cloud SQL for MySQL Enterprise Plus edition only. For more information on data cache, see [Data cache overview](https://cloud.google.com/sql/help/mysql-data-cache) in Cloud SQL documentation.
-    #[serde(default, rename = "dataCacheConfig")]
-    pub data_cache_config: ::core::option::Option<DataCacheConfig>,
-    /// Optional. Provisioned number of I/O operations per second for the data disk. This field is only used for hyperdisk-balanced disk types.
-    #[serde(default, rename = "dataDiskProvisionedIops")]
-    pub data_disk_provisioned_iops: ::core::option::Option<String>,
-    /// Optional. Provisioned throughput measured in MiB per second for the data disk. This field is only used for hyperdisk-balanced disk types.
-    #[serde(default, rename = "dataDiskProvisionedThroughput")]
-    pub data_disk_provisioned_throughput: ::core::option::Option<String>,
-    /// The storage capacity available to the database, in GB. The minimum (and default) size is 10GB.
-    #[serde(default, rename = "dataDiskSizeGb")]
-    pub data_disk_size_gb: ::core::option::Option<String>,
-    /// The type of storage: PD_SSD (default) or PD_HDD or HYPERDISK_BALANCED. // TODO: enum values: ["SQL_DATA_DISK_TYPE_UNSPECIFIED", "PD_SSD", "PD_HDD", "HYPERDISK_BALANCED"]
-    #[serde(default, rename = "dataDiskType")]
-    pub data_disk_type: ::core::option::Option<String>,
-    /// The database flags passed to the Cloud SQL instance at startup. An object containing a list of "key": value pairs. Example: { "name": "wrench", "mass": "1.3kg", "count": "3" }.
-    #[serde(default, rename = "databaseFlags")]
-    pub database_flags: ::core::option::Option<serde_json::Value>,
-    /// The database engine type and version. Deprecated. Use database_version_name instead. // TODO: enum values: ["SQL_DATABASE_VERSION_UNSPECIFIED", "MYSQL_5_6", "MYSQL_5_7", "MYSQL_8_0", "MYSQL_8_0_18", "MYSQL_8_0_26", "MYSQL_8_0_27", "MYSQL_8_0_28", "MYSQL_8_0_30", "MYSQL_8_0_31", "MYSQL_8_0_32", "MYSQL_8_0_33", "MYSQL_8_0_34", "MYSQL_8_0_35", "MYSQL_8_0_36", "MYSQL_8_0_37", "MYSQL_8_4", "POSTGRES_9_6", "POSTGRES_11", "POSTGRES_10", "POSTGRES_12", "POSTGRES_13", "POSTGRES_14", "POSTGRES_15", "POSTGRES_16"]
-    #[serde(default, rename = "databaseVersion")]
-    pub database_version: ::core::option::Option<String>,
-    /// Optional. The database engine type and version name.
-    #[serde(default, rename = "databaseVersionName")]
-    pub database_version_name: ::core::option::Option<String>,
-    /// Optional. The edition of the given Cloud SQL instance. // TODO: enum values: ["EDITION_UNSPECIFIED", "ENTERPRISE", "ENTERPRISE_PLUS"]
-    #[serde(default)]
-    pub edition: ::core::option::Option<String>,
-    /// The settings for IP Management. This allows to enable or disable the instance IP and manage which external networks can connect to the instance. The IPv4 address cannot be disabled.
-    #[serde(default, rename = "ipConfig")]
-    pub ip_config: ::core::option::Option<SqlIpConfig>,
-    /// Input only. Initial root password.
-    #[serde(default, rename = "rootPassword")]
-    pub root_password: ::core::option::Option<String>,
-    /// Output only. Indicates If this connection profile root password is stored.
-    #[serde(default, rename = "rootPasswordSet")]
-    pub root_password_set: ::core::option::Option<bool>,
-    /// Optional. The Google Cloud Platform zone where the failover Cloud SQL database instance is located. Used when the Cloud SQL database availability type is REGIONAL (i.e. multiple zones / highly available).
-    #[serde(default, rename = "secondaryZone")]
-    pub secondary_zone: ::core::option::Option<String>,
-    /// The Database Migration Service source connection profile ID, in the format: projects/my_project_name/locations/us-central1/connectionProfiles/connection_profile_ID
-    #[serde(default, rename = "sourceId")]
-    pub source_id: ::core::option::Option<String>,
-    /// The maximum size to which storage capacity can be automatically increased. The default value is 0, which specifies that there is no limit.
-    #[serde(default, rename = "storageAutoResizeLimit")]
-    pub storage_auto_resize_limit: ::core::option::Option<String>,
-    /// The tier (or machine type) for this instance, for example: db-n1-standard-1 (MySQL instances) or db-custom-1-3840 (PostgreSQL instances). For more information, see [Cloud SQL Instance Settings](https://cloud.google.com/sql/docs/mysql/instance-settings).
-    #[serde(default)]
-    pub tier: ::core::option::Option<String>,
-    /// The resource labels for a Cloud SQL instance to use to annotate any related underlying resources such as Compute Engine VMs. An object containing a list of "key": "value" pairs. Example: { "name": "wrench", "mass": "18kg", "count": "3" }.
-    #[serde(default, rename = "userLabels")]
-    pub user_labels: ::core::option::Option<serde_json::Value>,
-    /// The Google Cloud Platform zone where your Cloud SQL database instance is located.
-    #[serde(default)]
-    pub zone: ::core::option::Option<String>,
-}
-
-/// Column is not used as an independent entity, it is retrieved as part of a Table entity.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ColumnEntity {
-    /// Is the column of array type.
-    #[serde(default)]
-    pub array: ::core::option::Option<bool>,
-    /// If the column is array, of which length.
-    #[serde(default, rename = "arrayLength")]
-    pub array_length: ::core::option::Option<i32>,
-    /// Is the column auto-generated/identity.
-    #[serde(default, rename = "autoGenerated")]
-    pub auto_generated: ::core::option::Option<bool>,
-    /// Charset override - instead of table level charset.
-    #[serde(default)]
-    pub charset: ::core::option::Option<String>,
-    /// Collation override - instead of table level collation.
-    #[serde(default)]
-    pub collation: ::core::option::Option<String>,
-    /// Comment associated with the column.
-    #[serde(default)]
-    pub comment: ::core::option::Option<String>,
-    /// Is the column a computed column.
-    #[serde(default)]
-    pub computed: ::core::option::Option<bool>,
-    /// Custom engine specific features.
-    #[serde(default, rename = "customFeatures")]
-    pub custom_features: ::core::option::Option<serde_json::Value>,
-    /// Column data type.
-    #[serde(default, rename = "dataType")]
-    pub data_type: ::core::option::Option<String>,
-    /// Default value of the column.
-    #[serde(default, rename = "defaultValue")]
-    pub default_value: ::core::option::Option<String>,
-    /// Column fractional second precision - used for timestamp based datatypes.
-    #[serde(default, rename = "fractionalSecondsPrecision")]
-    pub fractional_seconds_precision: ::core::option::Option<i32>,
-    /// Column length - e.g. varchar (50).
-    #[serde(default)]
-    pub length: ::core::option::Option<String>,
-    /// Column name.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Is the column nullable.
-    #[serde(default)]
-    pub nullable: ::core::option::Option<bool>,
-    /// Column order in the table.
-    #[serde(default, rename = "ordinalPosition")]
-    pub ordinal_position: ::core::option::Option<i32>,
-    /// Column precision - when relevant.
-    #[serde(default)]
-    pub precision: ::core::option::Option<i32>,
-    /// Column scale - when relevant.
-    #[serde(default)]
-    pub scale: ::core::option::Option<i32>,
-    /// Specifies the list of values allowed in the column. Only used for set data type.
-    #[serde(default, rename = "setValues")]
-    pub set_values: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Is the column a UDT.
-    #[serde(default)]
-    pub udt: ::core::option::Option<bool>,
-}
-
 /// Request message for ''CommitConversionWorkspace'' request.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CommitConversionWorkspaceRequest {
     /// Optional. Optional name of the commit.
     #[serde(default, rename = "commitName")]
     pub commit_name: ::core::option::Option<String>,
-}
-
-/// Options to configure rule type ConditionalColumnSetValue. The rule is used to transform the data which is being replicated/migrated. The rule filter field can refer to one or more entities. The rule scope can be one of: Column.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ConditionalColumnSetValue {
-    /// Optional. Custom engine specific features.
-    #[serde(default, rename = "customFeatures")]
-    pub custom_features: ::core::option::Option<serde_json::Value>,
-    /// Optional. Optional filter on source column precision and scale. Used for fixed point numbers such as NUMERIC/NUMBER data types.
-    #[serde(default, rename = "sourceNumericFilter")]
-    pub source_numeric_filter: ::core::option::Option<SourceNumericFilter>,
-    /// Optional. Optional filter on source column length. Used for text based data types like varchar.
-    #[serde(default, rename = "sourceTextFilter")]
-    pub source_text_filter: ::core::option::Option<SourceTextFilter>,
-    /// Required. Description of data transformation during migration.
-    #[serde(default, rename = "valueTransformation")]
-    pub value_transformation: ::core::option::Option<ValueTransformation>,
-}
-
-/// A connection profile definition.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ConnectionProfile {
-    /// An AlloyDB cluster connection profile.
-    #[serde(default)]
-    pub alloydb: ::core::option::Option<AlloyDbConnectionProfile>,
-    /// A CloudSQL database connection profile.
-    #[serde(default)]
-    pub cloudsql: ::core::option::Option<CloudSqlConnectionProfile>,
-    /// Output only. The timestamp when the resource was created. A timestamp in RFC3339 UTC "Zulu" format, accurate to nanoseconds. Example: "2014-10-02T15:01:23.045123456Z".
-    #[serde(default, rename = "createTime")]
-    pub create_time: ::core::option::Option<String>,
-    /// The connection profile display name.
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-    /// Output only. The error details in case of state FAILED.
-    #[serde(default)]
-    pub error: ::core::option::Option<Status>,
-    /// The resource labels for connection profile to use to annotate any related underlying resources such as Compute Engine VMs. An object containing a list of "key": "value" pairs. Example: { "name": "wrench", "mass": "1.3kg", "count": "3" }.
-    #[serde(default)]
-    pub labels: ::core::option::Option<serde_json::Value>,
-    /// A MySQL database connection profile.
-    #[serde(default)]
-    pub mysql: ::core::option::Option<MySqlConnectionProfile>,
-    /// The name of this connection profile resource in the form of projects/{project}/locations/{location}/connectionProfiles/{connectionProfile}.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// An Oracle database connection profile.
-    #[serde(default)]
-    pub oracle: ::core::option::Option<OracleConnectionProfile>,
-    /// A PostgreSQL database connection profile.
-    #[serde(default)]
-    pub postgresql: ::core::option::Option<PostgreSqlConnectionProfile>,
-    /// The database provider. // TODO: enum values: ["DATABASE_PROVIDER_UNSPECIFIED", "CLOUDSQL", "RDS", "AURORA", "ALLOYDB", "AZURE_DATABASE"]
-    #[serde(default)]
-    pub provider: ::core::option::Option<String>,
-    /// Optional. The connection profile role. // TODO: enum values: ["ROLE_UNSPECIFIED", "SOURCE", "DESTINATION"]
-    #[serde(default)]
-    pub role: ::core::option::Option<String>,
-    /// Output only. Reserved for future use.
-    #[serde(default, rename = "satisfiesPzi")]
-    pub satisfies_pzi: ::core::option::Option<bool>,
-    /// Output only. Reserved for future use.
-    #[serde(default, rename = "satisfiesPzs")]
-    pub satisfies_pzs: ::core::option::Option<bool>,
-    /// Connection profile for a SQL Server data source.
-    #[serde(default)]
-    pub sqlserver: ::core::option::Option<SqlServerConnectionProfile>,
-    /// The current connection profile state (e.g. DRAFT, READY, or FAILED). // TODO: enum values: ["STATE_UNSPECIFIED", "DRAFT", "CREATING", "READY", "UPDATING", "DELETING", "DELETED", "FAILED"]
-    #[serde(default)]
-    pub state: ::core::option::Option<String>,
-    /// Output only. The timestamp when the resource was last updated. A timestamp in RFC3339 UTC "Zulu" format, accurate to nanoseconds. Example: "2014-10-02T15:01:23.045123456Z".
-    #[serde(default, rename = "updateTime")]
-    pub update_time: ::core::option::Option<String>,
-}
-
-/// Constraint is not used as an independent entity, it is retrieved as part of another entity such as Table or View.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ConstraintEntity {
-    /// Custom engine specific features.
-    #[serde(default, rename = "customFeatures")]
-    pub custom_features: ::core::option::Option<serde_json::Value>,
-    /// The name of the table constraint.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Reference columns which may be associated with the constraint. For example, if the constraint is a FOREIGN_KEY, this represents the list of full names of referenced columns by the foreign key.
-    #[serde(default, rename = "referenceColumns")]
-    pub reference_columns: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Reference table which may be associated with the constraint. For example, if the constraint is a FOREIGN_KEY, this represents the list of full name of the referenced table by the foreign key.
-    #[serde(default, rename = "referenceTable")]
-    pub reference_table: ::core::option::Option<String>,
-    /// Table columns used as part of the Constraint, for example primary key constraint should list the columns which constitutes the key.
-    #[serde(default, rename = "tableColumns")]
-    pub table_columns: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Table which is associated with the constraint. In case the constraint is defined on a table, this field is left empty as this information is stored in parent_name. However, if constraint is defined on a view, this field stores the table name on which the view is defined.
-    #[serde(default, rename = "tableName")]
-    pub table_name: ::core::option::Option<String>,
-    /// Type of constraint, for example unique, primary key, foreign key (currently only primary key is supported).
-    #[serde(default, rename = "type")]
-    pub type_: ::core::option::Option<String>,
-}
-
-/// The main conversion workspace resource entity.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ConversionWorkspace {
-    /// Output only. The timestamp when the workspace resource was created.
-    #[serde(default, rename = "createTime")]
-    pub create_time: ::core::option::Option<String>,
-    /// Required. The destination engine details.
-    #[serde(default)]
-    pub destination: ::core::option::Option<DatabaseEngineInfo>,
-    /// Optional. The provider for the destination database. // TODO: enum values: ["DATABASE_PROVIDER_UNSPECIFIED", "CLOUDSQL", "RDS", "AURORA", "ALLOYDB", "AZURE_DATABASE"]
-    #[serde(default, rename = "destinationProvider")]
-    pub destination_provider: ::core::option::Option<String>,
-    /// Optional. The display name for the workspace.
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-    /// Optional. A generic list of settings for the workspace. The settings are database pair dependant and can indicate default behavior for the mapping rules engine or turn on or off specific features. Such examples can be: convert_foreign_key_to_interleave=true, skip_triggers=false, ignore_non_table_synonyms=true
-    #[serde(default, rename = "globalSettings")]
-    pub global_settings: ::core::option::Option<serde_json::Value>,
-    /// Output only. Whether the workspace has uncommitted changes (changes which were made after the workspace was committed).
-    #[serde(default, rename = "hasUncommittedChanges")]
-    pub has_uncommitted_changes: ::core::option::Option<bool>,
-    /// Output only. The latest commit ID.
-    #[serde(default, rename = "latestCommitId")]
-    pub latest_commit_id: ::core::option::Option<String>,
-    /// Output only. The timestamp when the workspace was committed.
-    #[serde(default, rename = "latestCommitTime")]
-    pub latest_commit_time: ::core::option::Option<String>,
-    /// Full name of the workspace resource, in the form of: projects/{project}/locations/{location}/conversionWorkspaces/{conversion_workspace}.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Required. The source engine details.
-    #[serde(default)]
-    pub source: ::core::option::Option<DatabaseEngineInfo>,
-    /// Optional. The provider for the source database. // TODO: enum values: ["DATABASE_PROVIDER_UNSPECIFIED", "CLOUDSQL", "RDS", "AURORA", "ALLOYDB", "AZURE_DATABASE"]
-    #[serde(default, rename = "sourceProvider")]
-    pub source_provider: ::core::option::Option<String>,
-    /// Output only. The timestamp when the workspace resource was last updated.
-    #[serde(default, rename = "updateTime")]
-    pub update_time: ::core::option::Option<String>,
-}
-
-/// A conversion workspace''s version.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ConversionWorkspaceInfo {
-    /// The commit ID of the conversion workspace.
-    #[serde(default, rename = "commitId")]
-    pub commit_id: ::core::option::Option<String>,
-    /// The resource name (URI) of the conversion workspace.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
 }
 
 /// Request message for ''ConvertConversionWorkspace'' request.
@@ -508,111 +55,6 @@ pub struct ConvertConversionWorkspaceRequest {
     /// Optional. Filter the entities to convert. Leaving this field empty will convert all of the entities. Supports Google AIP-160 style filtering.
     #[serde(default)]
     pub filter: ::core::option::Option<String>,
-}
-
-/// Details regarding a Convert background job.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ConvertJobDetails {
-    /// Output only. AIP-160 based filter used to specify the entities to convert
-    #[serde(default)]
-    pub filter: ::core::option::Option<String>,
-}
-
-/// Options to configure rule type ConvertROWIDToColumn. The rule is used to add column rowid to destination tables based on an Oracle rowid function/property. The rule filter field can refer to one or more entities. The rule scope can be one of: Table. This rule requires additional filter to be specified beyond the basic rule filter field, which is whether or not to work on tables which already have a primary key defined.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ConvertRowIdToColumn {
-    /// Required. Only work on tables without primary key defined
-    #[serde(default, rename = "onlyIfNoPrimaryKey")]
-    pub only_if_no_primary_key: ::core::option::Option<bool>,
-}
-
-/// Data cache is an optional feature available for Cloud SQL for MySQL Enterprise Plus edition only. For more information on data cache, see [Data cache overview](https://cloud.google.com/sql/help/mysql-data-cache) in Cloud SQL documentation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DataCacheConfig {
-    /// Optional. Whether data cache is enabled for the instance.
-    #[serde(default, rename = "dataCacheEnabled")]
-    pub data_cache_enabled: ::core::option::Option<bool>,
-}
-
-/// The type and version of a source or destination database.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DatabaseEngineInfo {
-    /// Required. Engine type. // TODO: enum values: ["DATABASE_ENGINE_UNSPECIFIED", "MYSQL", "POSTGRESQL", "SQLSERVER", "ORACLE"]
-    #[serde(default)]
-    pub engine: ::core::option::Option<String>,
-    /// Required. Engine version, for example "12.c.1".
-    #[serde(default)]
-    pub version: ::core::option::Option<String>,
-}
-
-/// The base entity type for all the database related entities. The message contains the entity name, the name of its parent, the entity type, and the specific details per entity type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DatabaseEntity {
-    /// Database.
-    #[serde(default)]
-    pub database: ::core::option::Option<DatabaseInstanceEntity>,
-    /// Function.
-    #[serde(default, rename = "databaseFunction")]
-    pub database_function: ::core::option::Option<FunctionEntity>,
-    /// Package.
-    #[serde(default, rename = "databasePackage")]
-    pub database_package: ::core::option::Option<PackageEntity>,
-    /// Details about the entity DDL script. Multiple DDL scripts are provided for child entities such as a table entity will have one DDL for the table with additional DDLs for each index, constraint and such.
-    #[serde(default, rename = "entityDdl")]
-    pub entity_ddl: ::core::option::Option<::std::vec::Vec<EntityDdl>>,
-    /// The type of the database entity (table, view, index, ...). // TODO: enum values: ["DATABASE_ENTITY_TYPE_UNSPECIFIED", "DATABASE_ENTITY_TYPE_SCHEMA", "DATABASE_ENTITY_TYPE_TABLE", "DATABASE_ENTITY_TYPE_COLUMN", "DATABASE_ENTITY_TYPE_CONSTRAINT", "DATABASE_ENTITY_TYPE_INDEX", "DATABASE_ENTITY_TYPE_TRIGGER", "DATABASE_ENTITY_TYPE_VIEW", "DATABASE_ENTITY_TYPE_SEQUENCE", "DATABASE_ENTITY_TYPE_STORED_PROCEDURE", "DATABASE_ENTITY_TYPE_FUNCTION", "DATABASE_ENTITY_TYPE_SYNONYM", "DATABASE_ENTITY_TYPE_DATABASE_PACKAGE", "DATABASE_ENTITY_TYPE_UDT", "DATABASE_ENTITY_TYPE_MATERIALIZED_VIEW", "DATABASE_ENTITY_TYPE_DATABASE"]
-    #[serde(default, rename = "entityType")]
-    pub entity_type: ::core::option::Option<String>,
-    /// Details about the various issues found for the entity.
-    #[serde(default)]
-    pub issues: ::core::option::Option<::std::vec::Vec<EntityIssue>>,
-    /// Details about entity mappings. For source tree entities, this holds the draft entities which were generated by the mapping rules. For draft tree entities, this holds the source entities which were converted to form the draft entity. Destination entities will have no mapping details.
-    #[serde(default)]
-    pub mappings: ::core::option::Option<::std::vec::Vec<EntityMapping>>,
-    /// Materialized view.
-    #[serde(default, rename = "materializedView")]
-    pub materialized_view: ::core::option::Option<MaterializedViewEntity>,
-    /// The full name of the parent entity (e.g. schema name).
-    #[serde(default, rename = "parentEntity")]
-    pub parent_entity: ::core::option::Option<String>,
-    /// Schema.
-    #[serde(default)]
-    pub schema: ::core::option::Option<SchemaEntity>,
-    /// Sequence.
-    #[serde(default)]
-    pub sequence: ::core::option::Option<SequenceEntity>,
-    /// The short name (e.g. table name) of the entity.
-    #[serde(default, rename = "shortName")]
-    pub short_name: ::core::option::Option<String>,
-    /// Stored procedure.
-    #[serde(default, rename = "storedProcedure")]
-    pub stored_procedure: ::core::option::Option<StoredProcedureEntity>,
-    /// Synonym.
-    #[serde(default)]
-    pub synonym: ::core::option::Option<SynonymEntity>,
-    /// Table.
-    #[serde(default)]
-    pub table: ::core::option::Option<TableEntity>,
-    /// The type of tree the entity belongs to. // TODO: enum values: ["TREE_TYPE_UNSPECIFIED", "SOURCE", "DRAFT", "DESTINATION"]
-    #[serde(default)]
-    pub tree: ::core::option::Option<String>,
-    /// UDT.
-    #[serde(default)]
-    pub udt: ::core::option::Option<UDTEntity>,
-    /// View.
-    #[serde(default)]
-    pub view: ::core::option::Option<ViewEntity>,
-}
-
-/// A message defining the database engine and provider.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DatabaseType {
-    /// The database engine. // TODO: enum values: ["DATABASE_ENGINE_UNSPECIFIED", "MYSQL", "POSTGRESQL", "SQLSERVER", "ORACLE"]
-    #[serde(default)]
-    pub engine: ::core::option::Option<String>,
-    /// The database provider. // TODO: enum values: ["DATABASE_PROVIDER_UNSPECIFIED", "CLOUDSQL", "RDS", "AURORA", "ALLOYDB", "AZURE_DATABASE"]
-    #[serde(default)]
-    pub provider: ::core::option::Option<String>,
 }
 
 /// Describes additional debugging info.
@@ -645,141 +87,6 @@ pub struct DescribeDatabaseEntitiesResponse {
     pub next_page_token: ::core::option::Option<String>,
 }
 
-/// Filter based on relation between source value and compare value of type double in ConditionalColumnSetValue
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DoubleComparisonFilter {
-    /// Required. Double compare value to be used
-    #[serde(default)]
-    pub value: ::core::option::Option<f64>,
-    /// Required. Relation between source value and compare value // TODO: enum values: ["VALUE_COMPARISON_UNSPECIFIED", "VALUE_COMPARISON_IF_VALUE_SMALLER_THAN", "VALUE_COMPARISON_IF_VALUE_SMALLER_EQUAL_THAN", "VALUE_COMPARISON_IF_VALUE_LARGER_THAN", "VALUE_COMPARISON_IF_VALUE_LARGER_EQUAL_THAN"]
-    #[serde(default, rename = "valueComparison")]
-    pub value_comparison: ::core::option::Option<String>,
-}
-
-/// Dump flag definition.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DumpFlag {
-    /// The name of the flag
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// The value of the flag.
-    #[serde(default)]
-    pub value: ::core::option::Option<String>,
-}
-
-/// Dump flags definition.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DumpFlags {
-    /// The flags for the initial dump.
-    #[serde(default, rename = "dumpFlags")]
-    pub dump_flags: ::core::option::Option<::std::vec::Vec<DumpFlag>>,
-}
-
-/// EncryptionConfig describes the encryption config of a cluster that is encrypted with a CMEK (customer-managed encryption key).
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct EncryptionConfig {
-    /// The fully-qualified resource name of the KMS key. Each Cloud KMS key is regionalized and has the following format: projects/[PROJECT]/locations/[REGION]/keyRings/[RING]/cryptoKeys/[KEY_NAME]
-    #[serde(default, rename = "kmsKeyName")]
-    pub kms_key_name: ::core::option::Option<String>,
-}
-
-/// A single DDL statement for a specific entity
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct EntityDdl {
-    /// The actual ddl code.
-    #[serde(default)]
-    pub ddl: ::core::option::Option<String>,
-    /// The DDL Kind selected for apply, or UNSPECIFIED if the entity wasn''t converted yet. // TODO: enum values: ["DDL_KIND_UNSPECIFIED", "SOURCE", "DETERMINISTIC", "AI", "USER_EDIT"]
-    #[serde(default, rename = "ddlKind")]
-    pub ddl_kind: ::core::option::Option<String>,
-    /// Type of DDL (Create, Alter).
-    #[serde(default, rename = "ddlType")]
-    pub ddl_type: ::core::option::Option<String>,
-    /// If ddl_kind is USER_EDIT, this holds the DDL kind of the original content - DETERMINISTIC or AI. Otherwise, this is DDL_KIND_UNSPECIFIED. // TODO: enum values: ["DDL_KIND_UNSPECIFIED", "SOURCE", "DETERMINISTIC", "AI", "USER_EDIT"]
-    #[serde(default, rename = "editedDdlKind")]
-    pub edited_ddl_kind: ::core::option::Option<String>,
-    /// The name of the database entity the ddl refers to.
-    #[serde(default)]
-    pub entity: ::core::option::Option<String>,
-    /// The entity type (if the DDL is for a sub entity). // TODO: enum values: ["DATABASE_ENTITY_TYPE_UNSPECIFIED", "DATABASE_ENTITY_TYPE_SCHEMA", "DATABASE_ENTITY_TYPE_TABLE", "DATABASE_ENTITY_TYPE_COLUMN", "DATABASE_ENTITY_TYPE_CONSTRAINT", "DATABASE_ENTITY_TYPE_INDEX", "DATABASE_ENTITY_TYPE_TRIGGER", "DATABASE_ENTITY_TYPE_VIEW", "DATABASE_ENTITY_TYPE_SEQUENCE", "DATABASE_ENTITY_TYPE_STORED_PROCEDURE", "DATABASE_ENTITY_TYPE_FUNCTION", "DATABASE_ENTITY_TYPE_SYNONYM", "DATABASE_ENTITY_TYPE_DATABASE_PACKAGE", "DATABASE_ENTITY_TYPE_UDT", "DATABASE_ENTITY_TYPE_MATERIALIZED_VIEW", "DATABASE_ENTITY_TYPE_DATABASE"]
-    #[serde(default, rename = "entityType")]
-    pub entity_type: ::core::option::Option<String>,
-    /// EntityIssues found for this ddl.
-    #[serde(default, rename = "issueId")]
-    pub issue_id: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// Issue related to the entity.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct EntityIssue {
-    /// Error/Warning code
-    #[serde(default)]
-    pub code: ::core::option::Option<String>,
-    /// The ddl which caused the issue, if relevant.
-    #[serde(default)]
-    pub ddl: ::core::option::Option<String>,
-    /// The entity type (if the DDL is for a sub entity). // TODO: enum values: ["DATABASE_ENTITY_TYPE_UNSPECIFIED", "DATABASE_ENTITY_TYPE_SCHEMA", "DATABASE_ENTITY_TYPE_TABLE", "DATABASE_ENTITY_TYPE_COLUMN", "DATABASE_ENTITY_TYPE_CONSTRAINT", "DATABASE_ENTITY_TYPE_INDEX", "DATABASE_ENTITY_TYPE_TRIGGER", "DATABASE_ENTITY_TYPE_VIEW", "DATABASE_ENTITY_TYPE_SEQUENCE", "DATABASE_ENTITY_TYPE_STORED_PROCEDURE", "DATABASE_ENTITY_TYPE_FUNCTION", "DATABASE_ENTITY_TYPE_SYNONYM", "DATABASE_ENTITY_TYPE_DATABASE_PACKAGE", "DATABASE_ENTITY_TYPE_UDT", "DATABASE_ENTITY_TYPE_MATERIALIZED_VIEW", "DATABASE_ENTITY_TYPE_DATABASE"]
-    #[serde(default, rename = "entityType")]
-    pub entity_type: ::core::option::Option<String>,
-    /// Unique Issue ID.
-    #[serde(default)]
-    pub id: ::core::option::Option<String>,
-    /// Issue detailed message
-    #[serde(default)]
-    pub message: ::core::option::Option<String>,
-    /// The position of the issue found, if relevant.
-    #[serde(default)]
-    pub position: ::core::option::Option<Position>,
-    /// Severity of the issue // TODO: enum values: ["ISSUE_SEVERITY_UNSPECIFIED", "ISSUE_SEVERITY_INFO", "ISSUE_SEVERITY_WARNING", "ISSUE_SEVERITY_ERROR"]
-    #[serde(default)]
-    pub severity: ::core::option::Option<String>,
-    /// The type of the issue. // TODO: enum values: ["ISSUE_TYPE_UNSPECIFIED", "ISSUE_TYPE_DDL", "ISSUE_TYPE_APPLY", "ISSUE_TYPE_CONVERT"]
-    #[serde(default, rename = "type")]
-    pub type_: ::core::option::Option<String>,
-}
-
-/// Details of the mappings of a database entity.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct EntityMapping {
-    /// Target entity full name. The draft entity can also include a column, index or constraint using the same naming notation schema.table.column.
-    #[serde(default, rename = "draftEntity")]
-    pub draft_entity: ::core::option::Option<String>,
-    /// Type of draft entity. // TODO: enum values: ["DATABASE_ENTITY_TYPE_UNSPECIFIED", "DATABASE_ENTITY_TYPE_SCHEMA", "DATABASE_ENTITY_TYPE_TABLE", "DATABASE_ENTITY_TYPE_COLUMN", "DATABASE_ENTITY_TYPE_CONSTRAINT", "DATABASE_ENTITY_TYPE_INDEX", "DATABASE_ENTITY_TYPE_TRIGGER", "DATABASE_ENTITY_TYPE_VIEW", "DATABASE_ENTITY_TYPE_SEQUENCE", "DATABASE_ENTITY_TYPE_STORED_PROCEDURE", "DATABASE_ENTITY_TYPE_FUNCTION", "DATABASE_ENTITY_TYPE_SYNONYM", "DATABASE_ENTITY_TYPE_DATABASE_PACKAGE", "DATABASE_ENTITY_TYPE_UDT", "DATABASE_ENTITY_TYPE_MATERIALIZED_VIEW", "DATABASE_ENTITY_TYPE_DATABASE"]
-    #[serde(default, rename = "draftType")]
-    pub draft_type: ::core::option::Option<String>,
-    /// Entity mapping log entries. Multiple rules can be effective and contribute changes to a converted entity, such as a rule can handle the entity name, another rule can handle an entity type. In addition, rules which did not change the entity are also logged along with the reason preventing them to do so.
-    #[serde(default, rename = "mappingLog")]
-    pub mapping_log: ::core::option::Option<::std::vec::Vec<EntityMappingLogEntry>>,
-    /// Source entity full name. The source entity can also be a column, index or constraint using the same naming notation schema.table.column.
-    #[serde(default, rename = "sourceEntity")]
-    pub source_entity: ::core::option::Option<String>,
-    /// Type of source entity. // TODO: enum values: ["DATABASE_ENTITY_TYPE_UNSPECIFIED", "DATABASE_ENTITY_TYPE_SCHEMA", "DATABASE_ENTITY_TYPE_TABLE", "DATABASE_ENTITY_TYPE_COLUMN", "DATABASE_ENTITY_TYPE_CONSTRAINT", "DATABASE_ENTITY_TYPE_INDEX", "DATABASE_ENTITY_TYPE_TRIGGER", "DATABASE_ENTITY_TYPE_VIEW", "DATABASE_ENTITY_TYPE_SEQUENCE", "DATABASE_ENTITY_TYPE_STORED_PROCEDURE", "DATABASE_ENTITY_TYPE_FUNCTION", "DATABASE_ENTITY_TYPE_SYNONYM", "DATABASE_ENTITY_TYPE_DATABASE_PACKAGE", "DATABASE_ENTITY_TYPE_UDT", "DATABASE_ENTITY_TYPE_MATERIALIZED_VIEW", "DATABASE_ENTITY_TYPE_DATABASE"]
-    #[serde(default, rename = "sourceType")]
-    pub source_type: ::core::option::Option<String>,
-}
-
-/// A single record of a rule which was used for a mapping.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct EntityMappingLogEntry {
-    /// Comment.
-    #[serde(default, rename = "mappingComment")]
-    pub mapping_comment: ::core::option::Option<String>,
-    /// Which rule caused this log entry.
-    #[serde(default, rename = "ruleId")]
-    pub rule_id: ::core::option::Option<String>,
-    /// Rule revision ID.
-    #[serde(default, rename = "ruleRevisionId")]
-    pub rule_revision_id: ::core::option::Option<String>,
-}
-
-/// Options to configure rule type EntityMove. The rule is used to move an entity to a new schema. The rule filter field can refer to one or more entities. The rule scope can be one of: Table, Column, Constraint, Index, View, Function, Stored Procedure, Materialized View, Sequence, UDT
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct EntityMove {
-    /// Required. The new schema
-    #[serde(default, rename = "newSchema")]
-    pub new_schema: ::core::option::Option<String>,
-}
-
 /// Describes the cause of the error with structured details. Example of an error when contacting the "pubsub.googleapis.com" API when it is not enabled: { "reason": "API_DISABLED" "domain": "googleapis.com" "metadata": { "resource": "projects/123", "service": "pubsub.googleapis.com" } } This response indicates that the pubsub.googleapis.com API is not enabled. Example of an error that is returned when attempting to create a Spanner instance in a region that is out of stock: { "reason": "STOCKOUT" "domain": "spanner.googleapis.com", "metadata": { "availableRegions": "us-central1,us-east2" } }
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ErrorInfo {
@@ -794,23 +101,6 @@ pub struct ErrorInfo {
     pub reason: ::core::option::Option<String>,
 }
 
-/// Represents a textual expression in the Common Expression Language (CEL) syntax. CEL is a C-like expression language. The syntax and semantics of CEL are documented at https://github.com/google/cel-spec. Example (Comparison): title: "Summary size limit" description: "Determines if a summary is less than 100 chars" expression: "document.summary.size() &lt; 100" Example (Equality): title: "Requestor is owner" description: "Determines if requestor is the document owner" expression: "document.owner == request.auth.claims.email" Example (Logic): title: "Public documents" description: "Determine whether the document should be publicly visible" expression: "document.type != ''private'' && document.type != ''internal''" Example (Data Manipulation): title: "Notification string" description: "Create a notification string with a timestamp." expression: "''New message received at '' + string(document.create_time)" The exact variables and functions that may be referenced within an expression are determined by the service that evaluates it. See the service documentation for additional information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Expr {
-    /// Optional. Description of the expression. This is a longer text which describes the expression, e.g. when hovered over it in a UI.
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// Textual representation of an expression in Common Expression Language syntax.
-    #[serde(default)]
-    pub expression: ::core::option::Option<String>,
-    /// Optional. String indicating the location of the expression for error reporting, e.g. a file name and a position in the file.
-    #[serde(default)]
-    pub location: ::core::option::Option<String>,
-    /// Optional. Title for the expression, i.e. a short string describing its purpose. This can be used e.g. in UIs which allow to enter the expression.
-    #[serde(default)]
-    pub title: ::core::option::Option<String>,
-}
-
 /// Response message for a ''FetchStaticIps'' request.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct FetchStaticIpsResponse {
@@ -820,65 +110,6 @@ pub struct FetchStaticIpsResponse {
     /// List of static IPs.
     #[serde(default, rename = "staticIps")]
     pub static_ips: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// A message type used to describe a single bad request field.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct FieldViolation {
-    /// A description of why the request element is bad.
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// A path that leads to a field in the request body. The value will be a sequence of dot-separated identifiers that identify a protocol buffer field. Consider the following: message CreateContactRequest { message EmailAddress { enum Type { TYPE_UNSPECIFIED = 0; HOME = 1; WORK = 2; } optional string email = 1; repeated EmailType type = 2; } string full_name = 1; repeated EmailAddress email_addresses = 2; } In this example, in proto field could take one of the following values: * full_name for a violation in the full_name value * email_addresses[1].email for a violation in the email field of the first email_addresses message * email_addresses[3].type[2] for a violation in the second type value in the third email_addresses message. In JSON, the same values are represented as: * fullName for a violation in the fullName value * emailAddresses[1].email for a violation in the email field of the first emailAddresses message * emailAddresses[3].type[2] for a violation in the second type value in the third emailAddresses message.
-    #[serde(default)]
-    pub field: ::core::option::Option<String>,
-    /// Provides a localized error message for field-level errors that is safe to return to the API consumer.
-    #[serde(default, rename = "localizedMessage")]
-    pub localized_message: ::core::option::Option<LocalizedMessage>,
-    /// The reason of the field-level error. This is a constant value that identifies the proximate cause of the field-level error. It should uniquely identify the type of the FieldViolation within the scope of the google.rpc.ErrorInfo.domain. This should be at most 63 characters and match a regular expression of A-Z+[A-Z0-9], which represents UPPER_SNAKE_CASE.
-    #[serde(default)]
-    pub reason: ::core::option::Option<String>,
-}
-
-/// Options to configure rule type FilterTableColumns. The rule is used to filter the list of columns to include or exclude from a table. The rule filter field can refer to one entity. The rule scope can be: Table Only one of the two lists can be specified for the rule.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct FilterTableColumns {
-    /// Optional. List of columns to be excluded for a particular table.
-    #[serde(default, rename = "excludeColumns")]
-    pub exclude_columns: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Optional. List of columns to be included for a particular table.
-    #[serde(default, rename = "includeColumns")]
-    pub include_columns: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// Forward SSH Tunnel connectivity.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ForwardSshTunnelConnectivity {
-    /// Required. Hostname for the SSH tunnel.
-    #[serde(default)]
-    pub hostname: ::core::option::Option<String>,
-    /// Input only. SSH password.
-    #[serde(default)]
-    pub password: ::core::option::Option<String>,
-    /// Port for the SSH tunnel, default value is 22.
-    #[serde(default)]
-    pub port: ::core::option::Option<i32>,
-    /// Input only. SSH private key.
-    #[serde(default, rename = "privateKey")]
-    pub private_key: ::core::option::Option<String>,
-    /// Required. Username for the SSH tunnel.
-    #[serde(default)]
-    pub username: ::core::option::Option<String>,
-}
-
-/// Function''s parent is a schema.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct FunctionEntity {
-    /// Custom engine specific features.
-    #[serde(default, rename = "customFeatures")]
-    pub custom_features: ::core::option::Option<serde_json::Value>,
-    /// The SQL code which creates the function.
-    #[serde(default, rename = "sqlCode")]
-    pub sql_code: ::core::option::Option<String>,
 }
 
 /// Request message for ''GenerateSshScript'' request.
@@ -952,14 +183,6 @@ pub struct Help {
     pub links: ::core::option::Option<::std::vec::Vec<Link>>,
 }
 
-/// Metadata for heterogeneous migration jobs objects.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct HeterogeneousMetadata {
-    /// The number of unsupported events.
-    #[serde(default, rename = "unsupportedEventsCount")]
-    pub unsupported_events_count: ::core::option::Option<String>,
-}
-
 /// Request message for ''ImportMappingRules'' request.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ImportMappingRulesRequest {
@@ -972,76 +195,6 @@ pub struct ImportMappingRulesRequest {
     /// Required. The format of the rules content file. // TODO: enum values: ["IMPORT_RULES_FILE_FORMAT_UNSPECIFIED", "IMPORT_RULES_FILE_FORMAT_HARBOUR_BRIDGE_SESSION_FILE", "IMPORT_RULES_FILE_FORMAT_ORATOPG_CONFIG_FILE"]
     #[serde(default, rename = "rulesFormat")]
     pub rules_format: ::core::option::Option<String>,
-}
-
-/// Details regarding an Import Rules background job.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ImportRulesJobDetails {
-    /// Output only. The requested file format. // TODO: enum values: ["IMPORT_RULES_FILE_FORMAT_UNSPECIFIED", "IMPORT_RULES_FILE_FORMAT_HARBOUR_BRIDGE_SESSION_FILE", "IMPORT_RULES_FILE_FORMAT_ORATOPG_CONFIG_FILE"]
-    #[serde(default, rename = "fileFormat")]
-    pub file_format: ::core::option::Option<String>,
-    /// Output only. File names used for the import rules job.
-    #[serde(default)]
-    pub files: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// Index is not used as an independent entity, it is retrieved as part of a Table entity.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct IndexEntity {
-    /// Custom engine specific features.
-    #[serde(default, rename = "customFeatures")]
-    pub custom_features: ::core::option::Option<serde_json::Value>,
-    /// The name of the index.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Table columns used as part of the Index, for example B-TREE index should list the columns which constitutes the index.
-    #[serde(default, rename = "tableColumns")]
-    pub table_columns: ::core::option::Option<::std::vec::Vec<String>>,
-    /// For each table_column, mark whether it''s sorting order is ascending (false) or descending (true). If no value is defined, assume all columns are sorted in ascending order. Otherwise, the number of items must match that of table_columns with each value specifying the direction of the matched column by its index.
-    #[serde(default, rename = "tableColumnsDescending")]
-    pub table_columns_descending: ::core::option::Option<::std::vec::Vec<bool>>,
-    /// Type of index, for example B-TREE.
-    #[serde(default, rename = "type")]
-    pub type_: ::core::option::Option<String>,
-    /// Boolean value indicating whether the index is unique.
-    #[serde(default)]
-    pub unique: ::core::option::Option<bool>,
-}
-
-/// Metadata related to instance level network configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct InstanceNetworkConfig {
-    /// Optional. A list of external network authorized to access this instance.
-    #[serde(default, rename = "authorizedExternalNetworks")]
-    pub authorized_external_networks: ::core::option::Option<::std::vec::Vec<AuthorizedNetwork>>,
-    /// Optional. Enabling an outbound public IP address to support a database server sending requests out into the internet.
-    #[serde(default, rename = "enableOutboundPublicIp")]
-    pub enable_outbound_public_ip: ::core::option::Option<bool>,
-    /// Optional. Enabling public ip for the instance.
-    #[serde(default, rename = "enablePublicIp")]
-    pub enable_public_ip: ::core::option::Option<bool>,
-}
-
-/// Filter based on relation between source value and compare value of type integer in ConditionalColumnSetValue
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct IntComparisonFilter {
-    /// Required. Integer compare value to be used
-    #[serde(default)]
-    pub value: ::core::option::Option<String>,
-    /// Required. Relation between source value and compare value // TODO: enum values: ["VALUE_COMPARISON_UNSPECIFIED", "VALUE_COMPARISON_IF_VALUE_SMALLER_THAN", "VALUE_COMPARISON_IF_VALUE_SMALLER_EQUAL_THAN", "VALUE_COMPARISON_IF_VALUE_LARGER_THAN", "VALUE_COMPARISON_IF_VALUE_LARGER_EQUAL_THAN"]
-    #[serde(default, rename = "valueComparison")]
-    pub value_comparison: ::core::option::Option<String>,
-}
-
-/// Describes a URL link.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Link {
-    /// Describes what the link offers.
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// The URL of the link.
-    #[serde(default)]
-    pub url: ::core::option::Option<String>,
 }
 
 /// Response message for ''ListConnectionProfiles'' request.
@@ -1147,15 +300,409 @@ pub struct ListPrivateConnectionsResponse {
     pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
-/// Provides a localized error message that is safe to return to the user which can be attached to an RPC error.
+/// Request for looking up a specific migration job object by its source object identifier.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct LocalizedMessage {
-    /// The locale used following the specification defined at https://www.rfc-editor.org/rfc/bcp/bcp47.txt. Examples are: "en-US", "fr-CH", "es-MX"
+pub struct LookupMigrationJobObjectRequest {
+    /// Required. The source object identifier which maps to the migration job object.
+    #[serde(default, rename = "sourceObjectIdentifier")]
+    pub source_object_identifier: ::core::option::Option<SourceObjectIdentifier>,
+}
+
+/// Error message of a verification Migration job.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MigrationJobVerificationError {
+    /// Output only. An instance of ErrorCode specifying the error that occurred. // TODO: enum values: ["ERROR_CODE_UNSPECIFIED", "CONNECTION_FAILURE", "AUTHENTICATION_FAILURE", "INVALID_CONNECTION_PROFILE_CONFIG", "VERSION_INCOMPATIBILITY", "CONNECTION_PROFILE_TYPES_INCOMPATIBILITY", "NO_PGLOGICAL_INSTALLED", "PGLOGICAL_NODE_ALREADY_EXISTS", "INVALID_WAL_LEVEL", "INVALID_SHARED_PRELOAD_LIBRARY", "INSUFFICIENT_MAX_REPLICATION_SLOTS", "INSUFFICIENT_MAX_WAL_SENDERS", "INSUFFICIENT_MAX_WORKER_PROCESSES", "UNSUPPORTED_EXTENSIONS", "UNSUPPORTED_MIGRATION_TYPE", "INVALID_RDS_LOGICAL_REPLICATION", "UNSUPPORTED_GTID_MODE", "UNSUPPORTED_TABLE_DEFINITION", "UNSUPPORTED_DEFINER", "CANT_RESTART_RUNNING_MIGRATION", "SOURCE_ALREADY_SETUP", "TABLES_WITH_LIMITED_SUPPORT", "UNSUPPORTED_DATABASE_LOCALE", "UNSUPPORTED_DATABASE_FDW_CONFIG", "ERROR_RDBMS", "SOURCE_SIZE_EXCEEDS_THRESHOLD", "EXISTING_CONFLICTING_DATABASES", "PARALLEL_IMPORT_INSUFFICIENT_PRIVILEGE", "EXISTING_DATA", "SOURCE_MAX_SUBSCRIPTIONS"]
+    #[serde(default, rename = "errorCode")]
+    pub error_code: ::core::option::Option<String>,
+    /// Output only. A specific detailed error message, if supplied by the engine.
+    #[serde(default, rename = "errorDetailMessage")]
+    pub error_detail_message: ::core::option::Option<String>,
+    /// Output only. A formatted message with further details about the error and a CTA.
+    #[serde(default, rename = "errorMessage")]
+    pub error_message: ::core::option::Option<String>,
+}
+
+/// Describes what preconditions have failed. For example, if an RPC failed because it required the Terms of Service to be acknowledged, it could list the terms of service violation in the PreconditionFailure message.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PreconditionFailure {
+    /// Describes all precondition violations.
     #[serde(default)]
-    pub locale: ::core::option::Option<String>,
-    /// The localized error message in the above locale.
+    pub violations: ::core::option::Option<::std::vec::Vec<PreconditionFailureViolation>>,
+}
+
+/// Request message for ''PromoteMigrationJob'' request.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PromoteMigrationJobRequest {
+    /// Optional. The object filter to apply to the migration job.
+    #[serde(default, rename = "objectsFilter")]
+    pub objects_filter: ::core::option::Option<MigrationJobObjectsConfig>,
+}
+
+/// Describes how a quota check failed. For example if a daily limit was exceeded for the calling project, a service could respond with a QuotaFailure detail containing the project id and the description of the quota limit that was exceeded. If the calling project hasn''t enabled the service in the developer console, then a service could respond with the project id and set service_disabled to true. Also see RetryInfo and Help types for other details about handling a quota failure.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct QuotaFailure {
+    /// Describes all quota violations.
     #[serde(default)]
-    pub message: ::core::option::Option<String>,
+    pub violations: ::core::option::Option<::std::vec::Vec<QuotaFailureViolation>>,
+}
+
+/// Contains metadata about the request that clients can attach when filing a bug or providing other forms of feedback.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RequestInfo {
+    /// An opaque string that should only be interpreted by the service generating it. For example, it can be used to identify requests in the service''s logs.
+    #[serde(default, rename = "requestId")]
+    pub request_id: ::core::option::Option<String>,
+    /// Any data that was used to serve this request. For example, an encrypted stack trace that can be sent back to the service provider for debugging.
+    #[serde(default, rename = "servingData")]
+    pub serving_data: ::core::option::Option<String>,
+}
+
+/// Describes the resource that is being accessed.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ResourceInfo {
+    /// Describes what error is encountered when accessing this resource. For example, updating a cloud project may require the writer permission on the developer console project.
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+    /// The owner of the resource (optional). For example, "user:" or "project:".
+    #[serde(default)]
+    pub owner: ::core::option::Option<String>,
+    /// The name of the resource being accessed. For example, a shared calendar name: "example.com_4fghdhgsrgh@group.calendar.google.com", if the current error is google.rpc.Code.PERMISSION_DENIED.
+    #[serde(default, rename = "resourceName")]
+    pub resource_name: ::core::option::Option<String>,
+    /// A name for the type of resource being accessed, e.g. "sql table", "cloud storage bucket", "file", "Google calendar"; or the type URL of the resource: e.g. "type.googleapis.com/google.pubsub.v1.Topic".
+    #[serde(default, rename = "resourceType")]
+    pub resource_type: ::core::option::Option<String>,
+}
+
+/// Request message for ''RestartMigrationJob'' request.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RestartMigrationJobRequest {
+    /// Optional. The object filter to apply to the migration job.
+    #[serde(default, rename = "objectsFilter")]
+    pub objects_filter: ::core::option::Option<MigrationJobObjectsConfig>,
+    /// Optional. If true, only failed objects will be restarted.
+    #[serde(default, rename = "restartFailedObjects")]
+    pub restart_failed_objects: ::core::option::Option<bool>,
+    /// Optional. Restart the migration job without running prior configuration verification. Defaults to false.
+    #[serde(default, rename = "skipValidation")]
+    pub skip_validation: ::core::option::Option<bool>,
+}
+
+/// Request message for ''ResumeMigrationJob'' request.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ResumeMigrationJobRequest {
+    /// Optional. Resume the migration job without running prior configuration verification. Defaults to false.
+    #[serde(default, rename = "skipValidation")]
+    pub skip_validation: ::core::option::Option<bool>,
+}
+
+/// Describes when the clients can retry a failed request. Clients could ignore the recommendation here or retry when this information is missing from error responses. It''s always recommended that clients should use exponential backoff when retrying. Clients should wait until retry_delay amount of time has passed since receiving the error response before retrying. If retrying requests also fail, clients should use an exponential backoff scheme to gradually increase the delay between retries based on retry_delay, until either a maximum number of retries have been reached or a maximum retry delay cap has been reached.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RetryInfo {
+    /// Clients should wait at least this long between retrying the same request.
+    #[serde(default, rename = "retryDelay")]
+    pub retry_delay: ::core::option::Option<String>,
+}
+
+/// Response message for ''SearchBackgroundJobs'' request.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SearchBackgroundJobsResponse {
+    /// The list of conversion workspace mapping rules.
+    #[serde(default)]
+    pub jobs: ::core::option::Option<::std::vec::Vec<BackgroundJobLogEntry>>,
+}
+
+/// Request message for ''SeedConversionWorkspace'' request.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SeedConversionWorkspaceRequest {
+    /// Should the conversion workspace be committed automatically after the seed operation.
+    #[serde(default, rename = "autoCommit")]
+    pub auto_commit: ::core::option::Option<bool>,
+    /// Optional. Fully qualified (Uri) name of the destination connection profile.
+    #[serde(default, rename = "destinationConnectionProfile")]
+    pub destination_connection_profile: ::core::option::Option<String>,
+    /// Optional. Fully qualified (Uri) name of the source connection profile.
+    #[serde(default, rename = "sourceConnectionProfile")]
+    pub source_connection_profile: ::core::option::Option<String>,
+}
+
+/// Request message for SetIamPolicy method.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SetIamPolicyRequest {
+    /// REQUIRED: The complete policy to be applied to the resource. The size of the policy is limited to a few 10s of KB. An empty policy is a valid policy but certain Google Cloud services (such as Projects) might reject them.
+    #[serde(default)]
+    pub policy: ::core::option::Option<Policy>,
+    /// OPTIONAL: A FieldMask specifying which fields of the policy to modify. Only the fields in the mask will be modified. If no mask is provided, the following default mask is used: paths: "bindings, etag"
+    #[serde(default, rename = "updateMask")]
+    pub update_mask: ::core::option::Option<String>,
+}
+
+/// Response message for ''GenerateSshScript'' request.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SshScript {
+    /// The ssh configuration script.
+    #[serde(default)]
+    pub script: ::core::option::Option<String>,
+}
+
+/// Request message for ''StartMigrationJob'' request.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct StartMigrationJobRequest {
+    /// Optional. Start the migration job without running prior configuration verification. Defaults to false.
+    #[serde(default, rename = "skipValidation")]
+    pub skip_validation: ::core::option::Option<bool>,
+}
+
+/// Response message for ''GenerateTcpProxyScript'' request.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TcpProxyScript {
+    /// The TCP Proxy configuration script.
+    #[serde(default)]
+    pub script: ::core::option::Option<String>,
+}
+
+/// Request message for TestIamPermissions method.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TestIamPermissionsRequest {
+    /// The set of permissions to check for the resource. Permissions with wildcards (such as * or storage.*) are not allowed. For more information see [IAM Overview](https://cloud.google.com/iam/docs/overview#permissions).
+    #[serde(default)]
+    pub permissions: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// Response message for TestIamPermissions method.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TestIamPermissionsResponse {
+    /// A subset of TestPermissionsRequest.permissions that the caller is allowed.
+    #[serde(default)]
+    pub permissions: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// Request message for ''VerifyMigrationJob'' request.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct VerifyMigrationJobRequest {
+    /// Optional. The changed migration job parameters to verify. It will not update the migration job.
+    #[serde(default, rename = "migrationJob")]
+    pub migration_job: ::core::option::Option<MigrationJob>,
+    /// Optional. Field mask is used to specify the changed fields to be verified. It will not update the migration job.
+    #[serde(default, rename = "updateMask")]
+    pub update_mask: ::core::option::Option<String>,
+}
+
+/// A message type used to describe a single bad request field.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct FieldViolation {
+    /// A description of why the request element is bad.
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+    /// A path that leads to a field in the request body. The value will be a sequence of dot-separated identifiers that identify a protocol buffer field. Consider the following: message CreateContactRequest { message EmailAddress { enum Type { TYPE_UNSPECIFIED = 0; HOME = 1; WORK = 2; } optional string email = 1; repeated EmailType type = 2; } string full_name = 1; repeated EmailAddress email_addresses = 2; } In this example, in proto field could take one of the following values: * full_name for a violation in the full_name value * email_addresses[1].email for a violation in the email field of the first email_addresses message * email_addresses[3].type[2] for a violation in the second type value in the third email_addresses message. In JSON, the same values are represented as: * fullName for a violation in the fullName value * emailAddresses[1].email for a violation in the email field of the first emailAddresses message * emailAddresses[3].type[2] for a violation in the second type value in the third emailAddresses message.
+    #[serde(default)]
+    pub field: ::core::option::Option<String>,
+    /// Provides a localized error message for field-level errors that is safe to return to the API consumer.
+    #[serde(default, rename = "localizedMessage")]
+    pub localized_message: ::core::option::Option<LocalizedMessage>,
+    /// The reason of the field-level error. This is a constant value that identifies the proximate cause of the field-level error. It should uniquely identify the type of the FieldViolation within the scope of the google.rpc.ErrorInfo.domain. This should be at most 63 characters and match a regular expression of A-Z+[A-Z0-9], which represents UPPER_SNAKE_CASE.
+    #[serde(default)]
+    pub reason: ::core::option::Option<String>,
+}
+
+/// The base entity type for all the database related entities. The message contains the entity name, the name of its parent, the entity type, and the specific details per entity type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DatabaseEntity {
+    /// Database.
+    #[serde(default)]
+    pub database: ::core::option::Option<DatabaseInstanceEntity>,
+    /// Function.
+    #[serde(default, rename = "databaseFunction")]
+    pub database_function: ::core::option::Option<FunctionEntity>,
+    /// Package.
+    #[serde(default, rename = "databasePackage")]
+    pub database_package: ::core::option::Option<PackageEntity>,
+    /// Details about the entity DDL script. Multiple DDL scripts are provided for child entities such as a table entity will have one DDL for the table with additional DDLs for each index, constraint and such.
+    #[serde(default, rename = "entityDdl")]
+    pub entity_ddl: ::core::option::Option<::std::vec::Vec<EntityDdl>>,
+    /// The type of the database entity (table, view, index, ...). // TODO: enum values: ["DATABASE_ENTITY_TYPE_UNSPECIFIED", "DATABASE_ENTITY_TYPE_SCHEMA", "DATABASE_ENTITY_TYPE_TABLE", "DATABASE_ENTITY_TYPE_COLUMN", "DATABASE_ENTITY_TYPE_CONSTRAINT", "DATABASE_ENTITY_TYPE_INDEX", "DATABASE_ENTITY_TYPE_TRIGGER", "DATABASE_ENTITY_TYPE_VIEW", "DATABASE_ENTITY_TYPE_SEQUENCE", "DATABASE_ENTITY_TYPE_STORED_PROCEDURE", "DATABASE_ENTITY_TYPE_FUNCTION", "DATABASE_ENTITY_TYPE_SYNONYM", "DATABASE_ENTITY_TYPE_DATABASE_PACKAGE", "DATABASE_ENTITY_TYPE_UDT", "DATABASE_ENTITY_TYPE_MATERIALIZED_VIEW", "DATABASE_ENTITY_TYPE_DATABASE"]
+    #[serde(default, rename = "entityType")]
+    pub entity_type: ::core::option::Option<String>,
+    /// Details about the various issues found for the entity.
+    #[serde(default)]
+    pub issues: ::core::option::Option<::std::vec::Vec<EntityIssue>>,
+    /// Details about entity mappings. For source tree entities, this holds the draft entities which were generated by the mapping rules. For draft tree entities, this holds the source entities which were converted to form the draft entity. Destination entities will have no mapping details.
+    #[serde(default)]
+    pub mappings: ::core::option::Option<::std::vec::Vec<EntityMapping>>,
+    /// Materialized view.
+    #[serde(default, rename = "materializedView")]
+    pub materialized_view: ::core::option::Option<MaterializedViewEntity>,
+    /// The full name of the parent entity (e.g. schema name).
+    #[serde(default, rename = "parentEntity")]
+    pub parent_entity: ::core::option::Option<String>,
+    /// Schema.
+    #[serde(default)]
+    pub schema: ::core::option::Option<SchemaEntity>,
+    /// Sequence.
+    #[serde(default)]
+    pub sequence: ::core::option::Option<SequenceEntity>,
+    /// The short name (e.g. table name) of the entity.
+    #[serde(default, rename = "shortName")]
+    pub short_name: ::core::option::Option<String>,
+    /// Stored procedure.
+    #[serde(default, rename = "storedProcedure")]
+    pub stored_procedure: ::core::option::Option<StoredProcedureEntity>,
+    /// Synonym.
+    #[serde(default)]
+    pub synonym: ::core::option::Option<SynonymEntity>,
+    /// Table.
+    #[serde(default)]
+    pub table: ::core::option::Option<TableEntity>,
+    /// The type of tree the entity belongs to. // TODO: enum values: ["TREE_TYPE_UNSPECIFIED", "SOURCE", "DRAFT", "DESTINATION"]
+    #[serde(default)]
+    pub tree: ::core::option::Option<String>,
+    /// UDT.
+    #[serde(default)]
+    pub udt: ::core::option::Option<UDTEntity>,
+    /// View.
+    #[serde(default)]
+    pub view: ::core::option::Option<ViewEntity>,
+}
+
+/// VM creation configuration message
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct VmCreationConfig {
+    /// The subnet name the vm needs to be created in.
+    #[serde(default)]
+    pub subnet: ::core::option::Option<String>,
+    /// Required. VM instance machine type to create.
+    #[serde(default, rename = "vmMachineType")]
+    pub vm_machine_type: ::core::option::Option<String>,
+    /// The Google Cloud Platform zone to create the VM in.
+    #[serde(default, rename = "vmZone")]
+    pub vm_zone: ::core::option::Option<String>,
+}
+
+/// VM selection configuration message
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct VmSelectionConfig {
+    /// Required. The Google Cloud Platform zone the VM is located.
+    #[serde(default, rename = "vmZone")]
+    pub vm_zone: ::core::option::Option<String>,
+}
+
+/// Describes a URL link.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Link {
+    /// Describes what the link offers.
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+    /// The URL of the link.
+    #[serde(default)]
+    pub url: ::core::option::Option<String>,
+}
+
+/// Details of a single rules file.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RulesFile {
+    /// Required. The text content of the rules that needs to be converted.
+    #[serde(default, rename = "rulesContent")]
+    pub rules_content: ::core::option::Option<String>,
+    /// Required. The filename of the rules that needs to be converted. The filename is used mainly so that future logs of the import rules job contain it, and can therefore be searched by it.
+    #[serde(default, rename = "rulesSourceFilename")]
+    pub rules_source_filename: ::core::option::Option<String>,
+}
+
+/// A connection profile definition.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ConnectionProfile {
+    /// An AlloyDB cluster connection profile.
+    #[serde(default)]
+    pub alloydb: ::core::option::Option<AlloyDbConnectionProfile>,
+    /// A CloudSQL database connection profile.
+    #[serde(default)]
+    pub cloudsql: ::core::option::Option<CloudSqlConnectionProfile>,
+    /// Output only. The timestamp when the resource was created. A timestamp in RFC3339 UTC "Zulu" format, accurate to nanoseconds. Example: "2014-10-02T15:01:23.045123456Z".
+    #[serde(default, rename = "createTime")]
+    pub create_time: ::core::option::Option<String>,
+    /// The connection profile display name.
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+    /// Output only. The error details in case of state FAILED.
+    #[serde(default)]
+    pub error: ::core::option::Option<Status>,
+    /// The resource labels for connection profile to use to annotate any related underlying resources such as Compute Engine VMs. An object containing a list of "key": "value" pairs. Example: { "name": "wrench", "mass": "1.3kg", "count": "3" }.
+    #[serde(default)]
+    pub labels: ::core::option::Option<serde_json::Value>,
+    /// A MySQL database connection profile.
+    #[serde(default)]
+    pub mysql: ::core::option::Option<MySqlConnectionProfile>,
+    /// The name of this connection profile resource in the form of projects/{project}/locations/{location}/connectionProfiles/{connectionProfile}.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// An Oracle database connection profile.
+    #[serde(default)]
+    pub oracle: ::core::option::Option<OracleConnectionProfile>,
+    /// A PostgreSQL database connection profile.
+    #[serde(default)]
+    pub postgresql: ::core::option::Option<PostgreSqlConnectionProfile>,
+    /// The database provider. // TODO: enum values: ["DATABASE_PROVIDER_UNSPECIFIED", "CLOUDSQL", "RDS", "AURORA", "ALLOYDB", "AZURE_DATABASE"]
+    #[serde(default)]
+    pub provider: ::core::option::Option<String>,
+    /// Optional. The connection profile role. // TODO: enum values: ["ROLE_UNSPECIFIED", "SOURCE", "DESTINATION"]
+    #[serde(default)]
+    pub role: ::core::option::Option<String>,
+    /// Output only. Reserved for future use.
+    #[serde(default, rename = "satisfiesPzi")]
+    pub satisfies_pzi: ::core::option::Option<bool>,
+    /// Output only. Reserved for future use.
+    #[serde(default, rename = "satisfiesPzs")]
+    pub satisfies_pzs: ::core::option::Option<bool>,
+    /// Connection profile for a SQL Server data source.
+    #[serde(default)]
+    pub sqlserver: ::core::option::Option<SqlServerConnectionProfile>,
+    /// The current connection profile state (e.g. DRAFT, READY, or FAILED). // TODO: enum values: ["STATE_UNSPECIFIED", "DRAFT", "CREATING", "READY", "UPDATING", "DELETING", "DELETED", "FAILED"]
+    #[serde(default)]
+    pub state: ::core::option::Option<String>,
+    /// Output only. The timestamp when the resource was last updated. A timestamp in RFC3339 UTC "Zulu" format, accurate to nanoseconds. Example: "2014-10-02T15:01:23.045123456Z".
+    #[serde(default, rename = "updateTime")]
+    pub update_time: ::core::option::Option<String>,
+}
+
+/// The main conversion workspace resource entity.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ConversionWorkspace {
+    /// Output only. The timestamp when the workspace resource was created.
+    #[serde(default, rename = "createTime")]
+    pub create_time: ::core::option::Option<String>,
+    /// Required. The destination engine details.
+    #[serde(default)]
+    pub destination: ::core::option::Option<DatabaseEngineInfo>,
+    /// Optional. The provider for the destination database. // TODO: enum values: ["DATABASE_PROVIDER_UNSPECIFIED", "CLOUDSQL", "RDS", "AURORA", "ALLOYDB", "AZURE_DATABASE"]
+    #[serde(default, rename = "destinationProvider")]
+    pub destination_provider: ::core::option::Option<String>,
+    /// Optional. The display name for the workspace.
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+    /// Optional. A generic list of settings for the workspace. The settings are database pair dependant and can indicate default behavior for the mapping rules engine or turn on or off specific features. Such examples can be: convert_foreign_key_to_interleave=true, skip_triggers=false, ignore_non_table_synonyms=true
+    #[serde(default, rename = "globalSettings")]
+    pub global_settings: ::core::option::Option<serde_json::Value>,
+    /// Output only. Whether the workspace has uncommitted changes (changes which were made after the workspace was committed).
+    #[serde(default, rename = "hasUncommittedChanges")]
+    pub has_uncommitted_changes: ::core::option::Option<bool>,
+    /// Output only. The latest commit ID.
+    #[serde(default, rename = "latestCommitId")]
+    pub latest_commit_id: ::core::option::Option<String>,
+    /// Output only. The timestamp when the workspace was committed.
+    #[serde(default, rename = "latestCommitTime")]
+    pub latest_commit_time: ::core::option::Option<String>,
+    /// Full name of the workspace resource, in the form of: projects/{project}/locations/{location}/conversionWorkspaces/{conversion_workspace}.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Required. The source engine details.
+    #[serde(default)]
+    pub source: ::core::option::Option<DatabaseEngineInfo>,
+    /// Optional. The provider for the source database. // TODO: enum values: ["DATABASE_PROVIDER_UNSPECIFIED", "CLOUDSQL", "RDS", "AURORA", "ALLOYDB", "AZURE_DATABASE"]
+    #[serde(default, rename = "sourceProvider")]
+    pub source_provider: ::core::option::Option<String>,
+    /// Output only. The timestamp when the workspace resource was last updated.
+    #[serde(default, rename = "updateTime")]
+    pub update_time: ::core::option::Option<String>,
 }
 
 /// A resource that represents a Google Cloud location.
@@ -1176,36 +723,6 @@ pub struct Location {
     /// Resource name for the location, which may vary between implementations. For example: "projects/example-project/locations/us-east1"
     #[serde(default)]
     pub name: ::core::option::Option<String>,
-}
-
-/// Configuration to specify the Oracle directories to access the log files.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct LogFileDirectories {
-    /// Required. Oracle directory for archived logs.
-    #[serde(default, rename = "archivedLogDirectory")]
-    pub archived_log_directory: ::core::option::Option<String>,
-    /// Required. Oracle directory for online logs.
-    #[serde(default, rename = "onlineLogDirectory")]
-    pub online_log_directory: ::core::option::Option<String>,
-}
-
-/// Request for looking up a specific migration job object by its source object identifier.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct LookupMigrationJobObjectRequest {
-    /// Required. The source object identifier which maps to the migration job object.
-    #[serde(default, rename = "sourceObjectIdentifier")]
-    pub source_object_identifier: ::core::option::Option<SourceObjectIdentifier>,
-}
-
-/// MachineConfig describes the configuration of a machine.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct MachineConfig {
-    /// The number of CPU''s in the VM instance.
-    #[serde(default, rename = "cpuCount")]
-    pub cpu_count: ::core::option::Option<i32>,
-    /// Optional. Machine type of the VM instance. E.g. "n2-highmem-4", "n2-highmem-8", "c4a-highmem-4-lssd". cpu_count must match the number of vCPUs in the machine type.
-    #[serde(default, rename = "machineType")]
-    pub machine_type: ::core::option::Option<String>,
 }
 
 /// Definition of a transformation that is to be applied to a group of entities in the source schema. Several such transformations can be applied to an entity sequentially to define the corresponding entity in the target schema.
@@ -1270,38 +787,189 @@ pub struct MappingRule {
     pub state: ::core::option::Option<String>,
 }
 
-/// A filter defining the entities that a mapping rule should be applied to. When more than one field is specified, the rule is applied only to entities which match all the fields.
+/// A specific Migration Job Object (e.g. a specifc DB Table)
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct MappingRuleFilter {
-    /// Optional. The rule should be applied to specific entities defined by their fully qualified names.
+pub struct MigrationJobObject {
+    /// Output only. The creation time of the migration job object.
+    #[serde(default, rename = "createTime")]
+    pub create_time: ::core::option::Option<String>,
+    /// Output only. The error details in case of failure.
     #[serde(default)]
-    pub entities: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Optional. The rule should be applied to entities whose non-qualified name contains the given string.
-    #[serde(default, rename = "entityNameContains")]
-    pub entity_name_contains: ::core::option::Option<String>,
-    /// Optional. The rule should be applied to entities whose non-qualified name starts with the given prefix.
-    #[serde(default, rename = "entityNamePrefix")]
-    pub entity_name_prefix: ::core::option::Option<String>,
-    /// Optional. The rule should be applied to entities whose non-qualified name ends with the given suffix.
-    #[serde(default, rename = "entityNameSuffix")]
-    pub entity_name_suffix: ::core::option::Option<String>,
-    /// Optional. The rule should be applied to entities whose parent entity (fully qualified name) matches the given value. For example, if the rule applies to a table entity, the expected value should be a schema (schema). If the rule applies to a column or index entity, the expected value can be either a schema (schema) or a table (schema.table)
-    #[serde(default, rename = "parentEntity")]
-    pub parent_entity: ::core::option::Option<String>,
+    pub error: ::core::option::Option<Status>,
+    /// Output only. Metadata for heterogeneous migration jobs objects.
+    #[serde(default, rename = "heterogeneousMetadata")]
+    pub heterogeneous_metadata: ::core::option::Option<HeterogeneousMetadata>,
+    /// The object''s name.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Output only. The phase of the migration job object. // TODO: enum values: ["PHASE_UNSPECIFIED", "FULL_DUMP", "CDC", "READY_FOR_PROMOTE", "PROMOTE_IN_PROGRESS", "PROMOTED", "DIFF_BACKUP"]
+    #[serde(default)]
+    pub phase: ::core::option::Option<String>,
+    /// The object identifier in the data source.
+    #[serde(default, rename = "sourceObject")]
+    pub source_object: ::core::option::Option<SourceObjectIdentifier>,
+    /// The state of the migration job object. // TODO: enum values: ["STATE_UNSPECIFIED", "NOT_STARTED", "RUNNING", "STOPPING", "STOPPED", "RESTARTING", "FAILED", "REMOVING", "NOT_SELECTED", "COMPLETED"]
+    #[serde(default)]
+    pub state: ::core::option::Option<String>,
+    /// Output only. The last update time of the migration job object.
+    #[serde(default, rename = "updateTime")]
+    pub update_time: ::core::option::Option<String>,
 }
 
-/// MaterializedView''s parent is a schema.
+/// This resource represents a long-running operation that is the result of a network API call.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct MaterializedViewEntity {
-    /// Custom engine specific features.
-    #[serde(default, rename = "customFeatures")]
-    pub custom_features: ::core::option::Option<serde_json::Value>,
-    /// View indices.
+pub struct Operation {
+    /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
     #[serde(default)]
-    pub indices: ::core::option::Option<::std::vec::Vec<IndexEntity>>,
-    /// The SQL code which creates the view.
-    #[serde(default, rename = "sqlCode")]
-    pub sql_code: ::core::option::Option<String>,
+    pub done: ::core::option::Option<bool>,
+    /// The error result of the operation in case of failure or cancellation.
+    #[serde(default)]
+    pub error: ::core::option::Option<Status>,
+    /// Service-specific metadata associated with the operation. It typically contains progress information and common metadata such as create time. Some services might not provide such metadata. Any method that returns a long-running operation should document the metadata type, if any.
+    #[serde(default)]
+    pub metadata: ::core::option::Option<serde_json::Value>,
+    /// The server-assigned name, which is only unique within the same service that originally returns it. If you use the default HTTP mapping, the name should be a resource name ending with operations/{unique_id}.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// The normal, successful response of the operation. If the original method returns no data on success, such as Delete, the response is google.protobuf.Empty. If the original method is standard Get/Create/Update, the response should be the resource. For other methods, the response should have the type XxxResponse, where Xxx is the original method name. For example, if the original method name is TakeSnapshot(), the inferred response type is TakeSnapshotResponse.
+    #[serde(default)]
+    pub response: ::core::option::Option<serde_json::Value>,
+}
+
+/// The PrivateConnection resource is used to establish private connectivity with the customer''s network.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PrivateConnection {
+    /// Output only. The create time of the resource.
+    #[serde(default, rename = "createTime")]
+    pub create_time: ::core::option::Option<String>,
+    /// The private connection display name.
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+    /// Output only. The error details in case of state FAILED.
+    #[serde(default)]
+    pub error: ::core::option::Option<Status>,
+    /// The resource labels for private connections to use to annotate any related underlying resources such as Compute Engine VMs. An object containing a list of "key": "value" pairs. Example: { "name": "wrench", "mass": "1.3kg", "count": "3" }.
+    #[serde(default)]
+    pub labels: ::core::option::Option<serde_json::Value>,
+    /// The name of the resource.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// PSC Interface configuration.
+    #[serde(default, rename = "pscInterfaceConfig")]
+    pub psc_interface_config: ::core::option::Option<PscInterfaceConfig>,
+    /// Output only. Reserved for future use.
+    #[serde(default, rename = "satisfiesPzi")]
+    pub satisfies_pzi: ::core::option::Option<bool>,
+    /// Output only. Reserved for future use.
+    #[serde(default, rename = "satisfiesPzs")]
+    pub satisfies_pzs: ::core::option::Option<bool>,
+    /// Output only. The state of the private connection. // TODO: enum values: ["STATE_UNSPECIFIED", "CREATING", "CREATED", "FAILED", "DELETING", "FAILED_TO_DELETE", "DELETED"]
+    #[serde(default)]
+    pub state: ::core::option::Option<String>,
+    /// Output only. The last update time of the resource.
+    #[serde(default, rename = "updateTime")]
+    pub update_time: ::core::option::Option<String>,
+    /// VPC peering configuration.
+    #[serde(default, rename = "vpcPeeringConfig")]
+    pub vpc_peering_config: ::core::option::Option<VpcPeeringConfig>,
+}
+
+/// A message type used to describe a single precondition failure.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PreconditionFailureViolation {
+    /// A description of how the precondition failed. Developers can use this description to understand how to fix the failure. For example: "Terms of service not accepted".
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+    /// The subject, relative to the type, that failed. For example, "google.com/cloud" relative to the "TOS" type would indicate which terms of service is being referenced.
+    #[serde(default)]
+    pub subject: ::core::option::Option<String>,
+    /// The type of PreconditionFailure. We recommend using a service-specific enum type to define the supported precondition violation subjects. For example, "TOS" for "Terms of Service violation".
+    #[serde(default, rename = "type")]
+    pub type_: ::core::option::Option<String>,
+}
+
+/// A message type used to describe a single quota violation. For example, a daily quota or a custom quota that was exceeded.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct QuotaFailureViolation {
+    /// The API Service from which the QuotaFailure.Violation orginates. In some cases, Quota issues originate from an API Service other than the one that was called. In other words, a dependency of the called API Service could be the cause of the QuotaFailure, and this field would have the dependency API service name. For example, if the called API is Kubernetes Engine API (container.googleapis.com), and a quota violation occurs in the Kubernetes Engine API itself, this field would be "container.googleapis.com". On the other hand, if the quota violation occurs when the Kubernetes Engine API creates VMs in the Compute Engine API (compute.googleapis.com), this field would be "compute.googleapis.com".
+    #[serde(default, rename = "apiService")]
+    pub api_service: ::core::option::Option<String>,
+    /// A description of how the quota check failed. Clients can use this description to find more about the quota configuration in the service''s public documentation, or find the relevant quota limit to adjust through developer console. For example: "Service disabled" or "Daily Limit for read operations exceeded".
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+    /// The new quota value being rolled out at the time of the violation. At the completion of the rollout, this value will be enforced in place of quota_value. If no rollout is in progress at the time of the violation, this field is not set. For example, if at the time of the violation a rollout is in progress changing the number of CPUs quota from 10 to 20, 20 would be the value of this field.
+    #[serde(default, rename = "futureQuotaValue")]
+    pub future_quota_value: ::core::option::Option<String>,
+    /// The dimensions of the violated quota. Every non-global quota is enforced on a set of dimensions. While quota metric defines what to count, the dimensions specify for what aspects the counter should be increased. For example, the quota "CPUs per region per VM family" enforces a limit on the metric "compute.googleapis.com/cpus_per_vm_family" on dimensions "region" and "vm_family". And if the violation occurred in region "us-central1" and for VM family "n1", the quota_dimensions would be, { "region": "us-central1", "vm_family": "n1", } When a quota is enforced globally, the quota_dimensions would always be empty.
+    #[serde(default, rename = "quotaDimensions")]
+    pub quota_dimensions: ::core::option::Option<serde_json::Value>,
+    /// The id of the violated quota. Also know as "limit name", this is the unique identifier of a quota in the context of an API service. For example, "CPUS-PER-VM-FAMILY-per-project-region".
+    #[serde(default, rename = "quotaId")]
+    pub quota_id: ::core::option::Option<String>,
+    /// The metric of the violated quota. A quota metric is a named counter to measure usage, such as API requests or CPUs. When an activity occurs in a service, such as Virtual Machine allocation, one or more quota metrics may be affected. For example, "compute.googleapis.com/cpus_per_vm_family", "storage.googleapis.com/internet_egress_bandwidth".
+    #[serde(default, rename = "quotaMetric")]
+    pub quota_metric: ::core::option::Option<String>,
+    /// The enforced quota value at the time of the QuotaFailure. For example, if the enforced quota value at the time of the QuotaFailure on the number of CPUs is "10", then the value of this field would reflect this quantity.
+    #[serde(default, rename = "quotaValue")]
+    pub quota_value: ::core::option::Option<String>,
+    /// The subject on which the quota check failed. For example, "clientip:" or "project:".
+    #[serde(default)]
+    pub subject: ::core::option::Option<String>,
+}
+
+/// Execution log of a background job.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BackgroundJobLogEntry {
+    /// Output only. Apply job details.
+    #[serde(default, rename = "applyJobDetails")]
+    pub apply_job_details: ::core::option::Option<ApplyJobDetails>,
+    /// Output only. Job completion comment, such as how many entities were seeded, how many warnings were found during conversion, and similar information.
+    #[serde(default, rename = "completionComment")]
+    pub completion_comment: ::core::option::Option<String>,
+    /// Output only. Job completion state, i.e. the final state after the job completed. // TODO: enum values: ["JOB_COMPLETION_STATE_UNSPECIFIED", "SUCCEEDED", "FAILED"]
+    #[serde(default, rename = "completionState")]
+    pub completion_state: ::core::option::Option<String>,
+    /// Output only. Convert job details.
+    #[serde(default, rename = "convertJobDetails")]
+    pub convert_job_details: ::core::option::Option<ConvertJobDetails>,
+    /// The timestamp when the background job was finished.
+    #[serde(default, rename = "finishTime")]
+    pub finish_time: ::core::option::Option<String>,
+    /// The background job log entry ID.
+    #[serde(default)]
+    pub id: ::core::option::Option<String>,
+    /// Output only. Import rules job details.
+    #[serde(default, rename = "importRulesJobDetails")]
+    pub import_rules_job_details: ::core::option::Option<ImportRulesJobDetails>,
+    /// The type of job that was executed. // TODO: enum values: ["BACKGROUND_JOB_TYPE_UNSPECIFIED", "BACKGROUND_JOB_TYPE_SOURCE_SEED", "BACKGROUND_JOB_TYPE_CONVERT", "BACKGROUND_JOB_TYPE_APPLY_DESTINATION", "BACKGROUND_JOB_TYPE_IMPORT_RULES_FILE"]
+    #[serde(default, rename = "jobType")]
+    pub job_type: ::core::option::Option<String>,
+    /// Output only. Whether the client requested the conversion workspace to be committed after a successful completion of the job.
+    #[serde(default, rename = "requestAutocommit")]
+    pub request_autocommit: ::core::option::Option<bool>,
+    /// Output only. Seed job details.
+    #[serde(default, rename = "seedJobDetails")]
+    pub seed_job_details: ::core::option::Option<SeedJobDetails>,
+    /// The timestamp when the background job was started.
+    #[serde(default, rename = "startTime")]
+    pub start_time: ::core::option::Option<String>,
+}
+
+/// An Identity and Access Management (IAM) policy, which specifies access controls for Google Cloud resources. A Policy is a collection of bindings. A binding binds one or more members, or principals, to a single role. Principals can be user accounts, service accounts, Google groups, and domains (such as G Suite). A role is a named list of permissions; each role can be an IAM predefined role or a user-created custom role. For some types of Google Cloud resources, a binding can also specify a condition, which is a logical expression that allows access to a resource only if the expression evaluates to true. A condition can add constraints based on attributes of the request, the resource, or both. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies). **JSON example:**  { "bindings": [ { "role": "roles/resourcemanager.organizationAdmin", "members": [ "user:mike@example.com", "group:admins@example.com", "domain:google.com", "serviceAccount:my-project-id@appspot.gserviceaccount.com" ] }, { "role": "roles/resourcemanager.organizationViewer", "members": [ "user:eve@example.com" ], "condition": { "title": "expirable access", "description": "Does not grant access after Sep 2020", "expression": "request.time &lt; timestamp(''2020-10-01T00:00:00.000Z'')", } } ], "etag": "BwWWja0YfJA=", "version": 3 }  **YAML example:**  bindings: - members: - user:mike@example.com - group:admins@example.com - domain:google.com - serviceAccount:my-project-id@appspot.gserviceaccount.com role: roles/resourcemanager.organizationAdmin - members: - user:eve@example.com role: roles/resourcemanager.organizationViewer condition: title: expirable access description: Does not grant access after Sep 2020 expression: request.time &lt; timestamp(''2020-10-01T00:00:00.000Z'') etag: BwWWja0YfJA= version: 3  For a description of IAM and its features, see the [IAM documentation](https://cloud.google.com/iam/docs/).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Policy {
+    /// Specifies cloud audit logging configuration for this policy.
+    #[serde(default, rename = "auditConfigs")]
+    pub audit_configs: ::core::option::Option<::std::vec::Vec<AuditConfig>>,
+    /// Associates a list of members, or principals, with a role. Optionally, may specify a condition that determines how and when the bindings are applied. Each of the bindings must contain at least one principal. The bindings in a Policy can refer to up to 1,500 principals; up to 250 of these principals can be Google groups. Each occurrence of a principal counts towards these limits. For example, if the bindings grant 50 different roles to user:alice@example.com, and not to any other principal, then you can add another 1,450 principals to the bindings in the Policy.
+    #[serde(default)]
+    pub bindings: ::core::option::Option<::std::vec::Vec<Binding>>,
+    /// etag is used for optimistic concurrency control as a way to help prevent simultaneous updates of a policy from overwriting each other. It is strongly suggested that systems make use of the etag in the read-modify-write cycle to perform policy updates in order to avoid race conditions: An etag is returned in the response to getIamPolicy, and systems are expected to put that etag in the request to setIamPolicy to ensure that their change will be applied to the same version of the policy. **Important:** If you use IAM Conditions, you must include the etag field whenever you call setIamPolicy. If you omit this field, then IAM allows you to overwrite a version 3 policy with a version 1 policy, and all of the conditions in the version 3 policy are lost.
+    #[serde(default)]
+    pub etag: ::core::option::Option<String>,
+    /// Specifies the format of the policy. Valid values are 0, 1, and 3. Requests that specify an invalid value are rejected. Any operation that affects conditional role bindings must specify version 3. This requirement applies to the following operations: * Getting a policy that includes a conditional role binding * Adding a conditional role binding to a policy * Changing a conditional role binding in a policy * Removing any role binding, with or without a condition, from a policy that includes conditions **Important:** If you use IAM Conditions, you must include the etag field whenever you call setIamPolicy. If you omit this field, then IAM allows you to overwrite a version 3 policy with a version 1 policy, and all of the conditions in the version 3 policy are lost. If a policy does not include any conditions, operations on that policy may specify any valid version or leave the field unset. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies).
+    #[serde(default)]
+    pub version: ::core::option::Option<i32>,
 }
 
 /// Represents a Database Migration Service migration job object.
@@ -1412,98 +1080,262 @@ pub struct MigrationJob {
     pub vpc_peering_connectivity: ::core::option::Option<VpcPeeringConnectivity>,
 }
 
-/// A specific Migration Job Object (e.g. a specifc DB Table)
+/// Provides a localized error message that is safe to return to the user which can be attached to an RPC error.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct MigrationJobObject {
-    /// Output only. The creation time of the migration job object.
-    #[serde(default, rename = "createTime")]
-    pub create_time: ::core::option::Option<String>,
-    /// Output only. The error details in case of failure.
+pub struct LocalizedMessage {
+    /// The locale used following the specification defined at https://www.rfc-editor.org/rfc/bcp/bcp47.txt. Examples are: "en-US", "fr-CH", "es-MX"
     #[serde(default)]
-    pub error: ::core::option::Option<Status>,
-    /// Output only. Metadata for heterogeneous migration jobs objects.
-    #[serde(default, rename = "heterogeneousMetadata")]
-    pub heterogeneous_metadata: ::core::option::Option<HeterogeneousMetadata>,
-    /// The object''s name.
+    pub locale: ::core::option::Option<String>,
+    /// The localized error message in the above locale.
     #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Output only. The phase of the migration job object. // TODO: enum values: ["PHASE_UNSPECIFIED", "FULL_DUMP", "CDC", "READY_FOR_PROMOTE", "PROMOTE_IN_PROGRESS", "PROMOTED", "DIFF_BACKUP"]
-    #[serde(default)]
-    pub phase: ::core::option::Option<String>,
-    /// The object identifier in the data source.
-    #[serde(default, rename = "sourceObject")]
-    pub source_object: ::core::option::Option<SourceObjectIdentifier>,
-    /// The state of the migration job object. // TODO: enum values: ["STATE_UNSPECIFIED", "NOT_STARTED", "RUNNING", "STOPPING", "STOPPED", "RESTARTING", "FAILED", "REMOVING", "NOT_SELECTED", "COMPLETED"]
-    #[serde(default)]
-    pub state: ::core::option::Option<String>,
-    /// Output only. The last update time of the migration job object.
-    #[serde(default, rename = "updateTime")]
-    pub update_time: ::core::option::Option<String>,
+    pub message: ::core::option::Option<String>,
 }
 
-/// Configuration for the objects to be migrated.
+/// Function''s parent is a schema.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct MigrationJobObjectsConfig {
-    /// The list of the migration job objects.
-    #[serde(default, rename = "sourceObjectsConfig")]
-    pub source_objects_config: ::core::option::Option<SourceObjectsConfig>,
-}
-
-/// Error message of a verification Migration job.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct MigrationJobVerificationError {
-    /// Output only. An instance of ErrorCode specifying the error that occurred. // TODO: enum values: ["ERROR_CODE_UNSPECIFIED", "CONNECTION_FAILURE", "AUTHENTICATION_FAILURE", "INVALID_CONNECTION_PROFILE_CONFIG", "VERSION_INCOMPATIBILITY", "CONNECTION_PROFILE_TYPES_INCOMPATIBILITY", "NO_PGLOGICAL_INSTALLED", "PGLOGICAL_NODE_ALREADY_EXISTS", "INVALID_WAL_LEVEL", "INVALID_SHARED_PRELOAD_LIBRARY", "INSUFFICIENT_MAX_REPLICATION_SLOTS", "INSUFFICIENT_MAX_WAL_SENDERS", "INSUFFICIENT_MAX_WORKER_PROCESSES", "UNSUPPORTED_EXTENSIONS", "UNSUPPORTED_MIGRATION_TYPE", "INVALID_RDS_LOGICAL_REPLICATION", "UNSUPPORTED_GTID_MODE", "UNSUPPORTED_TABLE_DEFINITION", "UNSUPPORTED_DEFINER", "CANT_RESTART_RUNNING_MIGRATION", "SOURCE_ALREADY_SETUP", "TABLES_WITH_LIMITED_SUPPORT", "UNSUPPORTED_DATABASE_LOCALE", "UNSUPPORTED_DATABASE_FDW_CONFIG", "ERROR_RDBMS", "SOURCE_SIZE_EXCEEDS_THRESHOLD", "EXISTING_CONFLICTING_DATABASES", "PARALLEL_IMPORT_INSUFFICIENT_PRIVILEGE", "EXISTING_DATA", "SOURCE_MAX_SUBSCRIPTIONS"]
-    #[serde(default, rename = "errorCode")]
-    pub error_code: ::core::option::Option<String>,
-    /// Output only. A specific detailed error message, if supplied by the engine.
-    #[serde(default, rename = "errorDetailMessage")]
-    pub error_detail_message: ::core::option::Option<String>,
-    /// Output only. A formatted message with further details about the error and a CTA.
-    #[serde(default, rename = "errorMessage")]
-    pub error_message: ::core::option::Option<String>,
-}
-
-/// Options to configure rule type MultiColumnDatatypeChange. The rule is used to change the data type and associated properties of multiple columns at once. The rule filter field can refer to one or more entities. The rule scope can be one of:Column. This rule requires additional filters to be specified beyond the basic rule filter field, which is the source data type, but the rule supports additional filtering capabilities such as the minimum and maximum field length. All additional filters which are specified are required to be met in order for the rule to be applied (logical AND between the fields).
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct MultiColumnDatatypeChange {
-    /// Optional. Custom engine specific features.
+pub struct FunctionEntity {
+    /// Custom engine specific features.
     #[serde(default, rename = "customFeatures")]
     pub custom_features: ::core::option::Option<serde_json::Value>,
-    /// Required. New data type.
-    #[serde(default, rename = "newDataType")]
-    pub new_data_type: ::core::option::Option<String>,
-    /// Optional. Column fractional seconds precision - used only for timestamp based datatypes - if not specified and relevant uses the source column fractional seconds precision.
-    #[serde(default, rename = "overrideFractionalSecondsPrecision")]
-    pub override_fractional_seconds_precision: ::core::option::Option<i32>,
-    /// Optional. Column length - e.g. varchar (50) - if not specified and relevant uses the source column length.
-    #[serde(default, rename = "overrideLength")]
-    pub override_length: ::core::option::Option<String>,
-    /// Optional. Column precision - when relevant - if not specified and relevant uses the source column precision.
-    #[serde(default, rename = "overridePrecision")]
-    pub override_precision: ::core::option::Option<i32>,
-    /// Optional. Column scale - when relevant - if not specified and relevant uses the source column scale.
-    #[serde(default, rename = "overrideScale")]
-    pub override_scale: ::core::option::Option<i32>,
-    /// Required. Filter on source data type.
-    #[serde(default, rename = "sourceDataTypeFilter")]
-    pub source_data_type_filter: ::core::option::Option<String>,
-    /// Optional. Filter for fixed point number data types such as NUMERIC/NUMBER.
-    #[serde(default, rename = "sourceNumericFilter")]
-    pub source_numeric_filter: ::core::option::Option<SourceNumericFilter>,
-    /// Optional. Filter for text-based data types like varchar.
-    #[serde(default, rename = "sourceTextFilter")]
-    pub source_text_filter: ::core::option::Option<SourceTextFilter>,
+    /// The SQL code which creates the function.
+    #[serde(default, rename = "sqlCode")]
+    pub sql_code: ::core::option::Option<String>,
 }
 
-/// Options to configure rule type MultiEntityRename. The rule is used to rename multiple entities. The rule filter field can refer to one or more entities. The rule scope can be one of: Database, Schema, Table, Column, Constraint, Index, View, Function, Stored Procedure, Materialized View, Sequence, UDT
+/// Package''s parent is a schema.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct MultiEntityRename {
-    /// Optional. The pattern used to generate the new entity''s name. This pattern must include the characters ''{name}'', which will be replaced with the name of the original entity. For example, the pattern ''t_{name}'' for an entity name jobs would be converted to ''t_jobs''. If unspecified, the default value for this field is ''{name}''
-    #[serde(default, rename = "newNamePattern")]
-    pub new_name_pattern: ::core::option::Option<String>,
-    /// Optional. Additional transformation that can be done on the source entity name before it is being used by the new_name_pattern, for example lower case. If no transformation is desired, use NO_TRANSFORMATION // TODO: enum values: ["ENTITY_NAME_TRANSFORMATION_UNSPECIFIED", "ENTITY_NAME_TRANSFORMATION_NO_TRANSFORMATION", "ENTITY_NAME_TRANSFORMATION_LOWER_CASE", "ENTITY_NAME_TRANSFORMATION_UPPER_CASE", "ENTITY_NAME_TRANSFORMATION_CAPITALIZED_CASE"]
-    #[serde(default, rename = "sourceNameTransformation")]
-    pub source_name_transformation: ::core::option::Option<String>,
+pub struct PackageEntity {
+    /// Custom engine specific features.
+    #[serde(default, rename = "customFeatures")]
+    pub custom_features: ::core::option::Option<serde_json::Value>,
+    /// The SQL code which creates the package body. If the package specification has cursors or subprograms, then the package body is mandatory.
+    #[serde(default, rename = "packageBody")]
+    pub package_body: ::core::option::Option<String>,
+    /// The SQL code which creates the package.
+    #[serde(default, rename = "packageSqlCode")]
+    pub package_sql_code: ::core::option::Option<String>,
+}
+
+/// A single DDL statement for a specific entity
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct EntityDdl {
+    /// The actual ddl code.
+    #[serde(default)]
+    pub ddl: ::core::option::Option<String>,
+    /// The DDL Kind selected for apply, or UNSPECIFIED if the entity wasn''t converted yet. // TODO: enum values: ["DDL_KIND_UNSPECIFIED", "SOURCE", "DETERMINISTIC", "AI", "USER_EDIT"]
+    #[serde(default, rename = "ddlKind")]
+    pub ddl_kind: ::core::option::Option<String>,
+    /// Type of DDL (Create, Alter).
+    #[serde(default, rename = "ddlType")]
+    pub ddl_type: ::core::option::Option<String>,
+    /// If ddl_kind is USER_EDIT, this holds the DDL kind of the original content - DETERMINISTIC or AI. Otherwise, this is DDL_KIND_UNSPECIFIED. // TODO: enum values: ["DDL_KIND_UNSPECIFIED", "SOURCE", "DETERMINISTIC", "AI", "USER_EDIT"]
+    #[serde(default, rename = "editedDdlKind")]
+    pub edited_ddl_kind: ::core::option::Option<String>,
+    /// The name of the database entity the ddl refers to.
+    #[serde(default)]
+    pub entity: ::core::option::Option<String>,
+    /// The entity type (if the DDL is for a sub entity). // TODO: enum values: ["DATABASE_ENTITY_TYPE_UNSPECIFIED", "DATABASE_ENTITY_TYPE_SCHEMA", "DATABASE_ENTITY_TYPE_TABLE", "DATABASE_ENTITY_TYPE_COLUMN", "DATABASE_ENTITY_TYPE_CONSTRAINT", "DATABASE_ENTITY_TYPE_INDEX", "DATABASE_ENTITY_TYPE_TRIGGER", "DATABASE_ENTITY_TYPE_VIEW", "DATABASE_ENTITY_TYPE_SEQUENCE", "DATABASE_ENTITY_TYPE_STORED_PROCEDURE", "DATABASE_ENTITY_TYPE_FUNCTION", "DATABASE_ENTITY_TYPE_SYNONYM", "DATABASE_ENTITY_TYPE_DATABASE_PACKAGE", "DATABASE_ENTITY_TYPE_UDT", "DATABASE_ENTITY_TYPE_MATERIALIZED_VIEW", "DATABASE_ENTITY_TYPE_DATABASE"]
+    #[serde(default, rename = "entityType")]
+    pub entity_type: ::core::option::Option<String>,
+    /// EntityIssues found for this ddl.
+    #[serde(default, rename = "issueId")]
+    pub issue_id: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// Issue related to the entity.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct EntityIssue {
+    /// Error/Warning code
+    #[serde(default)]
+    pub code: ::core::option::Option<String>,
+    /// The ddl which caused the issue, if relevant.
+    #[serde(default)]
+    pub ddl: ::core::option::Option<String>,
+    /// The entity type (if the DDL is for a sub entity). // TODO: enum values: ["DATABASE_ENTITY_TYPE_UNSPECIFIED", "DATABASE_ENTITY_TYPE_SCHEMA", "DATABASE_ENTITY_TYPE_TABLE", "DATABASE_ENTITY_TYPE_COLUMN", "DATABASE_ENTITY_TYPE_CONSTRAINT", "DATABASE_ENTITY_TYPE_INDEX", "DATABASE_ENTITY_TYPE_TRIGGER", "DATABASE_ENTITY_TYPE_VIEW", "DATABASE_ENTITY_TYPE_SEQUENCE", "DATABASE_ENTITY_TYPE_STORED_PROCEDURE", "DATABASE_ENTITY_TYPE_FUNCTION", "DATABASE_ENTITY_TYPE_SYNONYM", "DATABASE_ENTITY_TYPE_DATABASE_PACKAGE", "DATABASE_ENTITY_TYPE_UDT", "DATABASE_ENTITY_TYPE_MATERIALIZED_VIEW", "DATABASE_ENTITY_TYPE_DATABASE"]
+    #[serde(default, rename = "entityType")]
+    pub entity_type: ::core::option::Option<String>,
+    /// Unique Issue ID.
+    #[serde(default)]
+    pub id: ::core::option::Option<String>,
+    /// Issue detailed message
+    #[serde(default)]
+    pub message: ::core::option::Option<String>,
+    /// The position of the issue found, if relevant.
+    #[serde(default)]
+    pub position: ::core::option::Option<Position>,
+    /// Severity of the issue // TODO: enum values: ["ISSUE_SEVERITY_UNSPECIFIED", "ISSUE_SEVERITY_INFO", "ISSUE_SEVERITY_WARNING", "ISSUE_SEVERITY_ERROR"]
+    #[serde(default)]
+    pub severity: ::core::option::Option<String>,
+    /// The type of the issue. // TODO: enum values: ["ISSUE_TYPE_UNSPECIFIED", "ISSUE_TYPE_DDL", "ISSUE_TYPE_APPLY", "ISSUE_TYPE_CONVERT"]
+    #[serde(default, rename = "type")]
+    pub type_: ::core::option::Option<String>,
+}
+
+/// Details of the mappings of a database entity.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct EntityMapping {
+    /// Target entity full name. The draft entity can also include a column, index or constraint using the same naming notation schema.table.column.
+    #[serde(default, rename = "draftEntity")]
+    pub draft_entity: ::core::option::Option<String>,
+    /// Type of draft entity. // TODO: enum values: ["DATABASE_ENTITY_TYPE_UNSPECIFIED", "DATABASE_ENTITY_TYPE_SCHEMA", "DATABASE_ENTITY_TYPE_TABLE", "DATABASE_ENTITY_TYPE_COLUMN", "DATABASE_ENTITY_TYPE_CONSTRAINT", "DATABASE_ENTITY_TYPE_INDEX", "DATABASE_ENTITY_TYPE_TRIGGER", "DATABASE_ENTITY_TYPE_VIEW", "DATABASE_ENTITY_TYPE_SEQUENCE", "DATABASE_ENTITY_TYPE_STORED_PROCEDURE", "DATABASE_ENTITY_TYPE_FUNCTION", "DATABASE_ENTITY_TYPE_SYNONYM", "DATABASE_ENTITY_TYPE_DATABASE_PACKAGE", "DATABASE_ENTITY_TYPE_UDT", "DATABASE_ENTITY_TYPE_MATERIALIZED_VIEW", "DATABASE_ENTITY_TYPE_DATABASE"]
+    #[serde(default, rename = "draftType")]
+    pub draft_type: ::core::option::Option<String>,
+    /// Entity mapping log entries. Multiple rules can be effective and contribute changes to a converted entity, such as a rule can handle the entity name, another rule can handle an entity type. In addition, rules which did not change the entity are also logged along with the reason preventing them to do so.
+    #[serde(default, rename = "mappingLog")]
+    pub mapping_log: ::core::option::Option<::std::vec::Vec<EntityMappingLogEntry>>,
+    /// Source entity full name. The source entity can also be a column, index or constraint using the same naming notation schema.table.column.
+    #[serde(default, rename = "sourceEntity")]
+    pub source_entity: ::core::option::Option<String>,
+    /// Type of source entity. // TODO: enum values: ["DATABASE_ENTITY_TYPE_UNSPECIFIED", "DATABASE_ENTITY_TYPE_SCHEMA", "DATABASE_ENTITY_TYPE_TABLE", "DATABASE_ENTITY_TYPE_COLUMN", "DATABASE_ENTITY_TYPE_CONSTRAINT", "DATABASE_ENTITY_TYPE_INDEX", "DATABASE_ENTITY_TYPE_TRIGGER", "DATABASE_ENTITY_TYPE_VIEW", "DATABASE_ENTITY_TYPE_SEQUENCE", "DATABASE_ENTITY_TYPE_STORED_PROCEDURE", "DATABASE_ENTITY_TYPE_FUNCTION", "DATABASE_ENTITY_TYPE_SYNONYM", "DATABASE_ENTITY_TYPE_DATABASE_PACKAGE", "DATABASE_ENTITY_TYPE_UDT", "DATABASE_ENTITY_TYPE_MATERIALIZED_VIEW", "DATABASE_ENTITY_TYPE_DATABASE"]
+    #[serde(default, rename = "sourceType")]
+    pub source_type: ::core::option::Option<String>,
+}
+
+/// MaterializedView''s parent is a schema.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MaterializedViewEntity {
+    /// Custom engine specific features.
+    #[serde(default, rename = "customFeatures")]
+    pub custom_features: ::core::option::Option<serde_json::Value>,
+    /// View indices.
+    #[serde(default)]
+    pub indices: ::core::option::Option<::std::vec::Vec<IndexEntity>>,
+    /// The SQL code which creates the view.
+    #[serde(default, rename = "sqlCode")]
+    pub sql_code: ::core::option::Option<String>,
+}
+
+/// Sequence''s parent is a schema.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SequenceEntity {
+    /// Indicates number of entries to cache / precreate.
+    #[serde(default)]
+    pub cache: ::core::option::Option<String>,
+    /// Custom engine specific features.
+    #[serde(default, rename = "customFeatures")]
+    pub custom_features: ::core::option::Option<serde_json::Value>,
+    /// Indicates whether the sequence value should cycle through.
+    #[serde(default)]
+    pub cycle: ::core::option::Option<bool>,
+    /// Increment value for the sequence.
+    #[serde(default)]
+    pub increment: ::core::option::Option<String>,
+    /// Maximum number for the sequence represented as bytes to accommodate large. numbers
+    #[serde(default, rename = "maxValue")]
+    pub max_value: ::core::option::Option<String>,
+    /// Minimum number for the sequence represented as bytes to accommodate large. numbers
+    #[serde(default, rename = "minValue")]
+    pub min_value: ::core::option::Option<String>,
+    /// Start number for the sequence represented as bytes to accommodate large. numbers
+    #[serde(default, rename = "startValue")]
+    pub start_value: ::core::option::Option<String>,
+}
+
+/// Stored procedure''s parent is a schema.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct StoredProcedureEntity {
+    /// Custom engine specific features.
+    #[serde(default, rename = "customFeatures")]
+    pub custom_features: ::core::option::Option<serde_json::Value>,
+    /// The SQL code which creates the stored procedure.
+    #[serde(default, rename = "sqlCode")]
+    pub sql_code: ::core::option::Option<String>,
+}
+
+/// Synonym''s parent is a schema.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SynonymEntity {
+    /// Custom engine specific features.
+    #[serde(default, rename = "customFeatures")]
+    pub custom_features: ::core::option::Option<serde_json::Value>,
+    /// The name of the entity for which the synonym is being created (the source).
+    #[serde(default, rename = "sourceEntity")]
+    pub source_entity: ::core::option::Option<String>,
+    /// The type of the entity for which the synonym is being created (usually a table or a sequence). // TODO: enum values: ["DATABASE_ENTITY_TYPE_UNSPECIFIED", "DATABASE_ENTITY_TYPE_SCHEMA", "DATABASE_ENTITY_TYPE_TABLE", "DATABASE_ENTITY_TYPE_COLUMN", "DATABASE_ENTITY_TYPE_CONSTRAINT", "DATABASE_ENTITY_TYPE_INDEX", "DATABASE_ENTITY_TYPE_TRIGGER", "DATABASE_ENTITY_TYPE_VIEW", "DATABASE_ENTITY_TYPE_SEQUENCE", "DATABASE_ENTITY_TYPE_STORED_PROCEDURE", "DATABASE_ENTITY_TYPE_FUNCTION", "DATABASE_ENTITY_TYPE_SYNONYM", "DATABASE_ENTITY_TYPE_DATABASE_PACKAGE", "DATABASE_ENTITY_TYPE_UDT", "DATABASE_ENTITY_TYPE_MATERIALIZED_VIEW", "DATABASE_ENTITY_TYPE_DATABASE"]
+    #[serde(default, rename = "sourceType")]
+    pub source_type: ::core::option::Option<String>,
+}
+
+/// Table''s parent is a schema.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TableEntity {
+    /// Table columns.
+    #[serde(default)]
+    pub columns: ::core::option::Option<::std::vec::Vec<ColumnEntity>>,
+    /// Comment associated with the table.
+    #[serde(default)]
+    pub comment: ::core::option::Option<String>,
+    /// Table constraints.
+    #[serde(default)]
+    pub constraints: ::core::option::Option<::std::vec::Vec<ConstraintEntity>>,
+    /// Custom engine specific features.
+    #[serde(default, rename = "customFeatures")]
+    pub custom_features: ::core::option::Option<serde_json::Value>,
+    /// Table indices.
+    #[serde(default)]
+    pub indices: ::core::option::Option<::std::vec::Vec<IndexEntity>>,
+    /// Table triggers.
+    #[serde(default)]
+    pub triggers: ::core::option::Option<::std::vec::Vec<TriggerEntity>>,
+}
+
+/// UDT''s parent is a schema.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct UDTEntity {
+    /// Custom engine specific features.
+    #[serde(default, rename = "customFeatures")]
+    pub custom_features: ::core::option::Option<serde_json::Value>,
+    /// The SQL code which creates the udt body.
+    #[serde(default, rename = "udtBody")]
+    pub udt_body: ::core::option::Option<String>,
+    /// The SQL code which creates the udt.
+    #[serde(default, rename = "udtSqlCode")]
+    pub udt_sql_code: ::core::option::Option<String>,
+}
+
+/// View''s parent is a schema.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ViewEntity {
+    /// View constraints.
+    #[serde(default)]
+    pub constraints: ::core::option::Option<::std::vec::Vec<ConstraintEntity>>,
+    /// Custom engine specific features.
+    #[serde(default, rename = "customFeatures")]
+    pub custom_features: ::core::option::Option<serde_json::Value>,
+    /// The SQL code which creates the view.
+    #[serde(default, rename = "sqlCode")]
+    pub sql_code: ::core::option::Option<String>,
+}
+
+/// Specifies required connection parameters, and the parameters required to create an AlloyDB destination cluster.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AlloyDbConnectionProfile {
+    /// Required. The AlloyDB cluster ID that this connection profile is associated with.
+    #[serde(default, rename = "clusterId")]
+    pub cluster_id: ::core::option::Option<String>,
+    /// Immutable. Metadata used to create the destination AlloyDB cluster.
+    #[serde(default)]
+    pub settings: ::core::option::Option<AlloyDbSettings>,
+}
+
+/// Specifies required connection parameters, and, optionally, the parameters required to create a Cloud SQL destination database instance.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CloudSqlConnectionProfile {
+    /// Output only. The Cloud SQL database instance''s additional (outgoing) public IP. Used when the Cloud SQL database availability type is REGIONAL (i.e. multiple zones / highly available).
+    #[serde(default, rename = "additionalPublicIp")]
+    pub additional_public_ip: ::core::option::Option<String>,
+    /// Output only. The Cloud SQL instance ID that this connection profile is associated with.
+    #[serde(default, rename = "cloudSqlId")]
+    pub cloud_sql_id: ::core::option::Option<String>,
+    /// Output only. The Cloud SQL database instance''s private IP.
+    #[serde(default, rename = "privateIp")]
+    pub private_ip: ::core::option::Option<String>,
+    /// Output only. The Cloud SQL database instance''s public IP.
+    #[serde(default, rename = "publicIp")]
+    pub public_ip: ::core::option::Option<String>,
+    /// Immutable. Metadata used to create the destination Cloud SQL database.
+    #[serde(default)]
+    pub settings: ::core::option::Option<CloudSqlSettings>,
 }
 
 /// Specifies connection parameters required specifically for MySQL databases.
@@ -1528,52 +1360,6 @@ pub struct MySqlConnectionProfile {
     #[serde(default)]
     pub ssl: ::core::option::Option<SslConfig>,
     /// Required. The username that Database Migration Service will use to connect to the database. The value is encrypted when stored in Database Migration Service.
-    #[serde(default)]
-    pub username: ::core::option::Option<String>,
-}
-
-/// This resource represents a long-running operation that is the result of a network API call.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Operation {
-    /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
-    #[serde(default)]
-    pub done: ::core::option::Option<bool>,
-    /// The error result of the operation in case of failure or cancellation.
-    #[serde(default)]
-    pub error: ::core::option::Option<Status>,
-    /// Service-specific metadata associated with the operation. It typically contains progress information and common metadata such as create time. Some services might not provide such metadata. Any method that returns a long-running operation should document the metadata type, if any.
-    #[serde(default)]
-    pub metadata: ::core::option::Option<serde_json::Value>,
-    /// The server-assigned name, which is only unique within the same service that originally returns it. If you use the default HTTP mapping, the name should be a resource name ending with operations/{unique_id}.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// The normal, successful response of the operation. If the original method returns no data on success, such as Delete, the response is google.protobuf.Empty. If the original method is standard Get/Create/Update, the response should be the resource. For other methods, the response should have the type XxxResponse, where Xxx is the original method name. For example, if the original method name is TakeSnapshot(), the inferred response type is TakeSnapshotResponse.
-    #[serde(default)]
-    pub response: ::core::option::Option<serde_json::Value>,
-}
-
-/// Configuration for Oracle Automatic Storage Management (ASM) connection.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct OracleAsmConfig {
-    /// Required. ASM service name for the Oracle ASM connection.
-    #[serde(default, rename = "asmService")]
-    pub asm_service: ::core::option::Option<String>,
-    /// Required. Hostname for the Oracle ASM connection.
-    #[serde(default)]
-    pub hostname: ::core::option::Option<String>,
-    /// Required. Input only. Password for the Oracle ASM connection.
-    #[serde(default)]
-    pub password: ::core::option::Option<String>,
-    /// Output only. Indicates whether a new password is included in the request.
-    #[serde(default, rename = "passwordSet")]
-    pub password_set: ::core::option::Option<bool>,
-    /// Required. Port for the Oracle ASM connection.
-    #[serde(default)]
-    pub port: ::core::option::Option<i32>,
-    /// Optional. SSL configuration for the Oracle connection.
-    #[serde(default)]
-    pub ssl: ::core::option::Option<SslConfig>,
-    /// Required. Username for the Oracle ASM connection.
     #[serde(default)]
     pub username: ::core::option::Option<String>,
 }
@@ -1614,96 +1400,6 @@ pub struct OracleConnectionProfile {
     /// Required. The username that Database Migration Service will use to connect to the database. The value is encrypted when stored in Database Migration Service.
     #[serde(default)]
     pub username: ::core::option::Option<String>,
-}
-
-/// Configuration for Oracle as a source in a migration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct OracleSourceConfig {
-    /// Use Binary Log Parser.
-    #[serde(default, rename = "binaryLogParser")]
-    pub binary_log_parser: ::core::option::Option<BinaryLogParser>,
-    /// Optional. The schema change number (SCN) to start CDC data migration from.
-    #[serde(default, rename = "cdcStartPosition")]
-    pub cdc_start_position: ::core::option::Option<String>,
-    /// Use LogMiner.
-    #[serde(default, rename = "logMiner")]
-    pub log_miner: ::core::option::Option<serde_json::Value>,
-    /// Optional. Maximum number of connections Database Migration Service will open to the source for CDC phase.
-    #[serde(default, rename = "maxConcurrentCdcConnections")]
-    pub max_concurrent_cdc_connections: ::core::option::Option<i32>,
-    /// Optional. Maximum number of connections Database Migration Service will open to the source for full dump phase.
-    #[serde(default, rename = "maxConcurrentFullDumpConnections")]
-    pub max_concurrent_full_dump_connections: ::core::option::Option<i32>,
-    /// Optional. Whether to skip full dump or not.
-    #[serde(default, rename = "skipFullDump")]
-    pub skip_full_dump: ::core::option::Option<bool>,
-}
-
-/// Configuration for heterogeneous **Oracle to Cloud SQL for PostgreSQL** and **Oracle to AlloyDB for PostgreSQL** migrations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct OracleToPostgresConfig {
-    /// Optional. Configuration for Oracle source.
-    #[serde(default, rename = "oracleSourceConfig")]
-    pub oracle_source_config: ::core::option::Option<OracleSourceConfig>,
-    /// Optional. Configuration for Postgres destination.
-    #[serde(default, rename = "postgresDestinationConfig")]
-    pub postgres_destination_config: ::core::option::Option<PostgresDestinationConfig>,
-}
-
-/// Package''s parent is a schema.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PackageEntity {
-    /// Custom engine specific features.
-    #[serde(default, rename = "customFeatures")]
-    pub custom_features: ::core::option::Option<serde_json::Value>,
-    /// The SQL code which creates the package body. If the package specification has cursors or subprograms, then the package body is mandatory.
-    #[serde(default, rename = "packageBody")]
-    pub package_body: ::core::option::Option<String>,
-    /// The SQL code which creates the package.
-    #[serde(default, rename = "packageSqlCode")]
-    pub package_sql_code: ::core::option::Option<String>,
-}
-
-/// Performance configuration definition.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PerformanceConfig {
-    /// Initial dump parallelism level. // TODO: enum values: ["DUMP_PARALLEL_LEVEL_UNSPECIFIED", "MIN", "OPTIMAL", "MAX"]
-    #[serde(default, rename = "dumpParallelLevel")]
-    pub dump_parallel_level: ::core::option::Option<String>,
-}
-
-/// An Identity and Access Management (IAM) policy, which specifies access controls for Google Cloud resources. A Policy is a collection of bindings. A binding binds one or more members, or principals, to a single role. Principals can be user accounts, service accounts, Google groups, and domains (such as G Suite). A role is a named list of permissions; each role can be an IAM predefined role or a user-created custom role. For some types of Google Cloud resources, a binding can also specify a condition, which is a logical expression that allows access to a resource only if the expression evaluates to true. A condition can add constraints based on attributes of the request, the resource, or both. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies). **JSON example:**  { "bindings": [ { "role": "roles/resourcemanager.organizationAdmin", "members": [ "user:mike@example.com", "group:admins@example.com", "domain:google.com", "serviceAccount:my-project-id@appspot.gserviceaccount.com" ] }, { "role": "roles/resourcemanager.organizationViewer", "members": [ "user:eve@example.com" ], "condition": { "title": "expirable access", "description": "Does not grant access after Sep 2020", "expression": "request.time &lt; timestamp(''2020-10-01T00:00:00.000Z'')", } } ], "etag": "BwWWja0YfJA=", "version": 3 }  **YAML example:**  bindings: - members: - user:mike@example.com - group:admins@example.com - domain:google.com - serviceAccount:my-project-id@appspot.gserviceaccount.com role: roles/resourcemanager.organizationAdmin - members: - user:eve@example.com role: roles/resourcemanager.organizationViewer condition: title: expirable access description: Does not grant access after Sep 2020 expression: request.time &lt; timestamp(''2020-10-01T00:00:00.000Z'') etag: BwWWja0YfJA= version: 3  For a description of IAM and its features, see the [IAM documentation](https://cloud.google.com/iam/docs/).
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Policy {
-    /// Specifies cloud audit logging configuration for this policy.
-    #[serde(default, rename = "auditConfigs")]
-    pub audit_configs: ::core::option::Option<::std::vec::Vec<AuditConfig>>,
-    /// Associates a list of members, or principals, with a role. Optionally, may specify a condition that determines how and when the bindings are applied. Each of the bindings must contain at least one principal. The bindings in a Policy can refer to up to 1,500 principals; up to 250 of these principals can be Google groups. Each occurrence of a principal counts towards these limits. For example, if the bindings grant 50 different roles to user:alice@example.com, and not to any other principal, then you can add another 1,450 principals to the bindings in the Policy.
-    #[serde(default)]
-    pub bindings: ::core::option::Option<::std::vec::Vec<Binding>>,
-    /// etag is used for optimistic concurrency control as a way to help prevent simultaneous updates of a policy from overwriting each other. It is strongly suggested that systems make use of the etag in the read-modify-write cycle to perform policy updates in order to avoid race conditions: An etag is returned in the response to getIamPolicy, and systems are expected to put that etag in the request to setIamPolicy to ensure that their change will be applied to the same version of the policy. **Important:** If you use IAM Conditions, you must include the etag field whenever you call setIamPolicy. If you omit this field, then IAM allows you to overwrite a version 3 policy with a version 1 policy, and all of the conditions in the version 3 policy are lost.
-    #[serde(default)]
-    pub etag: ::core::option::Option<String>,
-    /// Specifies the format of the policy. Valid values are 0, 1, and 3. Requests that specify an invalid value are rejected. Any operation that affects conditional role bindings must specify version 3. This requirement applies to the following operations: * Getting a policy that includes a conditional role binding * Adding a conditional role binding to a policy * Changing a conditional role binding in a policy * Removing any role binding, with or without a condition, from a policy that includes conditions **Important:** If you use IAM Conditions, you must include the etag field whenever you call setIamPolicy. If you omit this field, then IAM allows you to overwrite a version 3 policy with a version 1 policy, and all of the conditions in the version 3 policy are lost. If a policy does not include any conditions, operations on that policy may specify any valid version or leave the field unset. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies).
-    #[serde(default)]
-    pub version: ::core::option::Option<i32>,
-}
-
-/// Issue position.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Position {
-    /// Issue column number
-    #[serde(default)]
-    pub column: ::core::option::Option<i32>,
-    /// Issue length
-    #[serde(default)]
-    pub length: ::core::option::Option<i32>,
-    /// Issue line number
-    #[serde(default)]
-    pub line: ::core::option::Option<i32>,
-    /// Issue offset
-    #[serde(default)]
-    pub offset: ::core::option::Option<i32>,
 }
 
 /// Specifies connection parameters required specifically for PostgreSQL databases.
@@ -1757,350 +1453,173 @@ pub struct PostgreSqlConnectionProfile {
     pub username: ::core::option::Option<String>,
 }
 
-/// Configuration for Postgres as a destination in a migration.
+/// Specifies connection parameters required specifically for SQL Server databases.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PostgresDestinationConfig {
-    /// Optional. Maximum number of connections Database Migration Service will open to the destination for data migration.
-    #[serde(default, rename = "maxConcurrentConnections")]
-    pub max_concurrent_connections: ::core::option::Option<i32>,
-    /// Optional. Timeout for data migration transactions.
-    #[serde(default, rename = "transactionTimeout")]
-    pub transaction_timeout: ::core::option::Option<String>,
-}
-
-/// Configuration for Postgres as a source in a migration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PostgresSourceConfig {
-    /// Optional. Whether to skip full dump or not.
-    #[serde(default, rename = "skipFullDump")]
-    pub skip_full_dump: ::core::option::Option<bool>,
-}
-
-/// Configuration for heterogeneous failback migrations from **PostgreSQL to SQL Server**.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PostgresToSqlServerConfig {
-    /// Optional. Configuration for PostgreSQL source.
-    #[serde(default, rename = "postgresSourceConfig")]
-    pub postgres_source_config: ::core::option::Option<PostgresSourceConfig>,
-    /// Optional. Configuration for SQL Server destination.
-    #[serde(default, rename = "sqlserverDestinationConfig")]
-    pub sqlserver_destination_config: ::core::option::Option<SqlServerDestinationConfig>,
-}
-
-/// Describes what preconditions have failed. For example, if an RPC failed because it required the Terms of Service to be acknowledged, it could list the terms of service violation in the PreconditionFailure message.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PreconditionFailure {
-    /// Describes all precondition violations.
+pub struct SqlServerConnectionProfile {
+    /// The backup details in Cloud Storage for homogeneous migration to Cloud SQL for SQL Server.
     #[serde(default)]
-    pub violations: ::core::option::Option<::std::vec::Vec<PreconditionFailureViolation>>,
-}
-
-/// A message type used to describe a single precondition failure.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PreconditionFailureViolation {
-    /// A description of how the precondition failed. Developers can use this description to understand how to fix the failure. For example: "Terms of service not accepted".
+    pub backups: ::core::option::Option<SqlServerBackups>,
+    /// If the source is a Cloud SQL database, use this field to provide the Cloud SQL instance ID of the source.
+    #[serde(default, rename = "cloudSqlId")]
+    pub cloud_sql_id: ::core::option::Option<String>,
+    /// Optional. The project id of the Cloud SQL instance. If not provided, the project id of the connection profile will be used.
+    #[serde(default, rename = "cloudSqlProjectId")]
+    pub cloud_sql_project_id: ::core::option::Option<String>,
+    /// Required. The name of the specific database within the host.
     #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// The subject, relative to the type, that failed. For example, "google.com/cloud" relative to the "TOS" type would indicate which terms of service is being referenced.
+    pub database: ::core::option::Option<String>,
+    /// Optional. The Database Mirroring (DBM) port of the source SQL Server instance.
+    #[serde(default, rename = "dbmPort")]
+    pub dbm_port: ::core::option::Option<i32>,
+    /// Forward SSH tunnel connectivity.
+    #[serde(default, rename = "forwardSshConnectivity")]
+    pub forward_ssh_connectivity: ::core::option::Option<ForwardSshTunnelConnectivity>,
+    /// Required. The IP or hostname of the source SQL Server database.
     #[serde(default)]
-    pub subject: ::core::option::Option<String>,
-    /// The type of PreconditionFailure. We recommend using a service-specific enum type to define the supported precondition violation subjects. For example, "TOS" for "Terms of Service violation".
-    #[serde(default, rename = "type")]
-    pub type_: ::core::option::Option<String>,
-}
-
-/// Settings for the cluster''s primary instance
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PrimaryInstanceSettings {
-    /// Database flags to pass to AlloyDB when DMS is creating the AlloyDB cluster and instances. See the AlloyDB documentation for how these can be used.
-    #[serde(default, rename = "databaseFlags")]
-    pub database_flags: ::core::option::Option<serde_json::Value>,
-    /// Required. The ID of the AlloyDB primary instance. The ID must satisfy the regex expression "[a-z0-9-]+".
+    pub host: ::core::option::Option<String>,
+    /// Required. Input only. The password for the user that Database Migration Service will be using to connect to the database. This field is not returned on request, and the value is encrypted when stored in Database Migration Service.
     #[serde(default)]
-    pub id: ::core::option::Option<String>,
-    /// Optional. Metadata related to instance level network configuration.
-    #[serde(default, rename = "instanceNetworkConfig")]
-    pub instance_network_config: ::core::option::Option<InstanceNetworkConfig>,
-    /// Labels for the AlloyDB primary instance created by DMS. An object containing a list of ''key'', ''value'' pairs.
+    pub password: ::core::option::Option<String>,
+    /// Output only. Indicates whether a new password is included in the request.
+    #[serde(default, rename = "passwordSet")]
+    pub password_set: ::core::option::Option<bool>,
+    /// Required. The network port of the source SQL Server database.
     #[serde(default)]
-    pub labels: ::core::option::Option<serde_json::Value>,
-    /// Configuration for the machines that host the underlying database engine.
-    #[serde(default, rename = "machineConfig")]
-    pub machine_config: ::core::option::Option<MachineConfig>,
-    /// Output only. All outbound public IP addresses configured for the instance.
-    #[serde(default, rename = "outboundPublicIpAddresses")]
-    pub outbound_public_ip_addresses: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Output only. The private IP address for the Instance. This is the connection endpoint for an end-user application.
-    #[serde(default, rename = "privateIp")]
-    pub private_ip: ::core::option::Option<String>,
-}
-
-/// The PrivateConnection resource is used to establish private connectivity with the customer''s network.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PrivateConnection {
-    /// Output only. The create time of the resource.
-    #[serde(default, rename = "createTime")]
-    pub create_time: ::core::option::Option<String>,
-    /// The private connection display name.
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-    /// Output only. The error details in case of state FAILED.
+    pub port: ::core::option::Option<i32>,
+    /// Private connectivity.
+    #[serde(default, rename = "privateConnectivity")]
+    pub private_connectivity: ::core::option::Option<PrivateConnectivity>,
+    /// Private Service Connect connectivity.
+    #[serde(default, rename = "privateServiceConnectConnectivity")]
+    pub private_service_connect_connectivity:
+        ::core::option::Option<PrivateServiceConnectConnectivity>,
+    /// SSL configuration for the destination to connect to the source database.
     #[serde(default)]
-    pub error: ::core::option::Option<Status>,
-    /// The resource labels for private connections to use to annotate any related underlying resources such as Compute Engine VMs. An object containing a list of "key": "value" pairs. Example: { "name": "wrench", "mass": "1.3kg", "count": "3" }.
+    pub ssl: ::core::option::Option<SslConfig>,
+    /// Static IP connectivity data (default, no additional details needed).
+    #[serde(default, rename = "staticIpConnectivity")]
+    pub static_ip_connectivity: ::core::option::Option<serde_json::Value>,
+    /// Required. The username that Database Migration Service will use to connect to the database. The value is encrypted when stored in Database Migration Service.
     #[serde(default)]
-    pub labels: ::core::option::Option<serde_json::Value>,
-    /// The name of the resource.
+    pub username: ::core::option::Option<String>,
+}
+
+/// The type and version of a source or destination database.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DatabaseEngineInfo {
+    /// Required. Engine type. // TODO: enum values: ["DATABASE_ENGINE_UNSPECIFIED", "MYSQL", "POSTGRESQL", "SQLSERVER", "ORACLE"]
     #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// PSC Interface configuration.
-    #[serde(default, rename = "pscInterfaceConfig")]
-    pub psc_interface_config: ::core::option::Option<PscInterfaceConfig>,
-    /// Output only. Reserved for future use.
-    #[serde(default, rename = "satisfiesPzi")]
-    pub satisfies_pzi: ::core::option::Option<bool>,
-    /// Output only. Reserved for future use.
-    #[serde(default, rename = "satisfiesPzs")]
-    pub satisfies_pzs: ::core::option::Option<bool>,
-    /// Output only. The state of the private connection. // TODO: enum values: ["STATE_UNSPECIFIED", "CREATING", "CREATED", "FAILED", "DELETING", "FAILED_TO_DELETE", "DELETED"]
+    pub engine: ::core::option::Option<String>,
+    /// Required. Engine version, for example "12.c.1".
     #[serde(default)]
-    pub state: ::core::option::Option<String>,
-    /// Output only. The last update time of the resource.
-    #[serde(default, rename = "updateTime")]
-    pub update_time: ::core::option::Option<String>,
-    /// VPC peering configuration.
-    #[serde(default, rename = "vpcPeeringConfig")]
-    pub vpc_peering_config: ::core::option::Option<VpcPeeringConfig>,
+    pub version: ::core::option::Option<String>,
 }
 
-/// Private Connectivity.
+/// Options to configure rule type ConditionalColumnSetValue. The rule is used to transform the data which is being replicated/migrated. The rule filter field can refer to one or more entities. The rule scope can be one of: Column.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PrivateConnectivity {
-    /// Required. The resource name (URI) of the private connection.
-    #[serde(default, rename = "privateConnection")]
-    pub private_connection: ::core::option::Option<String>,
-}
-
-/// [Private Service Connect connectivity](https://cloud.google.com/vpc/docs/private-service-connect#service-attachments)
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PrivateServiceConnectConnectivity {
-    /// Required. A service attachment that exposes a database, and has the following format: projects/{project}/regions/{region}/serviceAttachments/{service_attachment_name}
-    #[serde(default, rename = "serviceAttachment")]
-    pub service_attachment: ::core::option::Option<String>,
-}
-
-/// Request message for ''PromoteMigrationJob'' request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PromoteMigrationJobRequest {
-    /// Optional. The object filter to apply to the migration job.
-    #[serde(default, rename = "objectsFilter")]
-    pub objects_filter: ::core::option::Option<MigrationJobObjectsConfig>,
-}
-
-/// The PSC Interface configuration is used to create PSC Interface between DMS''s internal VPC and the consumer''s PSC.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PscInterfaceConfig {
-    /// Required. Fully qualified name of the Network Attachment that DMS will connect to. Format: projects/{{project}}/regions/{{region}}/networkAttachments/{{name}}
-    #[serde(default, rename = "networkAttachment")]
-    pub network_attachment: ::core::option::Option<String>,
-}
-
-/// Describes how a quota check failed. For example if a daily limit was exceeded for the calling project, a service could respond with a QuotaFailure detail containing the project id and the description of the quota limit that was exceeded. If the calling project hasn''t enabled the service in the developer console, then a service could respond with the project id and set service_disabled to true. Also see RetryInfo and Help types for other details about handling a quota failure.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct QuotaFailure {
-    /// Describes all quota violations.
-    #[serde(default)]
-    pub violations: ::core::option::Option<::std::vec::Vec<QuotaFailureViolation>>,
-}
-
-/// A message type used to describe a single quota violation. For example, a daily quota or a custom quota that was exceeded.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct QuotaFailureViolation {
-    /// The API Service from which the QuotaFailure.Violation orginates. In some cases, Quota issues originate from an API Service other than the one that was called. In other words, a dependency of the called API Service could be the cause of the QuotaFailure, and this field would have the dependency API service name. For example, if the called API is Kubernetes Engine API (container.googleapis.com), and a quota violation occurs in the Kubernetes Engine API itself, this field would be "container.googleapis.com". On the other hand, if the quota violation occurs when the Kubernetes Engine API creates VMs in the Compute Engine API (compute.googleapis.com), this field would be "compute.googleapis.com".
-    #[serde(default, rename = "apiService")]
-    pub api_service: ::core::option::Option<String>,
-    /// A description of how the quota check failed. Clients can use this description to find more about the quota configuration in the service''s public documentation, or find the relevant quota limit to adjust through developer console. For example: "Service disabled" or "Daily Limit for read operations exceeded".
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// The new quota value being rolled out at the time of the violation. At the completion of the rollout, this value will be enforced in place of quota_value. If no rollout is in progress at the time of the violation, this field is not set. For example, if at the time of the violation a rollout is in progress changing the number of CPUs quota from 10 to 20, 20 would be the value of this field.
-    #[serde(default, rename = "futureQuotaValue")]
-    pub future_quota_value: ::core::option::Option<String>,
-    /// The dimensions of the violated quota. Every non-global quota is enforced on a set of dimensions. While quota metric defines what to count, the dimensions specify for what aspects the counter should be increased. For example, the quota "CPUs per region per VM family" enforces a limit on the metric "compute.googleapis.com/cpus_per_vm_family" on dimensions "region" and "vm_family". And if the violation occurred in region "us-central1" and for VM family "n1", the quota_dimensions would be, { "region": "us-central1", "vm_family": "n1", } When a quota is enforced globally, the quota_dimensions would always be empty.
-    #[serde(default, rename = "quotaDimensions")]
-    pub quota_dimensions: ::core::option::Option<serde_json::Value>,
-    /// The id of the violated quota. Also know as "limit name", this is the unique identifier of a quota in the context of an API service. For example, "CPUS-PER-VM-FAMILY-per-project-region".
-    #[serde(default, rename = "quotaId")]
-    pub quota_id: ::core::option::Option<String>,
-    /// The metric of the violated quota. A quota metric is a named counter to measure usage, such as API requests or CPUs. When an activity occurs in a service, such as Virtual Machine allocation, one or more quota metrics may be affected. For example, "compute.googleapis.com/cpus_per_vm_family", "storage.googleapis.com/internet_egress_bandwidth".
-    #[serde(default, rename = "quotaMetric")]
-    pub quota_metric: ::core::option::Option<String>,
-    /// The enforced quota value at the time of the QuotaFailure. For example, if the enforced quota value at the time of the QuotaFailure on the number of CPUs is "10", then the value of this field would reflect this quantity.
-    #[serde(default, rename = "quotaValue")]
-    pub quota_value: ::core::option::Option<String>,
-    /// The subject on which the quota check failed. For example, "clientip:" or "project:".
-    #[serde(default)]
-    pub subject: ::core::option::Option<String>,
-}
-
-/// Contains metadata about the request that clients can attach when filing a bug or providing other forms of feedback.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct RequestInfo {
-    /// An opaque string that should only be interpreted by the service generating it. For example, it can be used to identify requests in the service''s logs.
-    #[serde(default, rename = "requestId")]
-    pub request_id: ::core::option::Option<String>,
-    /// Any data that was used to serve this request. For example, an encrypted stack trace that can be sent back to the service provider for debugging.
-    #[serde(default, rename = "servingData")]
-    pub serving_data: ::core::option::Option<String>,
-}
-
-/// Describes the resource that is being accessed.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ResourceInfo {
-    /// Describes what error is encountered when accessing this resource. For example, updating a cloud project may require the writer permission on the developer console project.
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// The owner of the resource (optional). For example, "user:" or "project:".
-    #[serde(default)]
-    pub owner: ::core::option::Option<String>,
-    /// The name of the resource being accessed. For example, a shared calendar name: "example.com_4fghdhgsrgh@group.calendar.google.com", if the current error is google.rpc.Code.PERMISSION_DENIED.
-    #[serde(default, rename = "resourceName")]
-    pub resource_name: ::core::option::Option<String>,
-    /// A name for the type of resource being accessed, e.g. "sql table", "cloud storage bucket", "file", "Google calendar"; or the type URL of the resource: e.g. "type.googleapis.com/google.pubsub.v1.Topic".
-    #[serde(default, rename = "resourceType")]
-    pub resource_type: ::core::option::Option<String>,
-}
-
-/// Request message for ''RestartMigrationJob'' request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct RestartMigrationJobRequest {
-    /// Optional. The object filter to apply to the migration job.
-    #[serde(default, rename = "objectsFilter")]
-    pub objects_filter: ::core::option::Option<MigrationJobObjectsConfig>,
-    /// Optional. If true, only failed objects will be restarted.
-    #[serde(default, rename = "restartFailedObjects")]
-    pub restart_failed_objects: ::core::option::Option<bool>,
-    /// Optional. Restart the migration job without running prior configuration verification. Defaults to false.
-    #[serde(default, rename = "skipValidation")]
-    pub skip_validation: ::core::option::Option<bool>,
-}
-
-/// Request message for ''ResumeMigrationJob'' request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ResumeMigrationJobRequest {
-    /// Optional. Resume the migration job without running prior configuration verification. Defaults to false.
-    #[serde(default, rename = "skipValidation")]
-    pub skip_validation: ::core::option::Option<bool>,
-}
-
-/// Describes when the clients can retry a failed request. Clients could ignore the recommendation here or retry when this information is missing from error responses. It''s always recommended that clients should use exponential backoff when retrying. Clients should wait until retry_delay amount of time has passed since receiving the error response before retrying. If retrying requests also fail, clients should use an exponential backoff scheme to gradually increase the delay between retries based on retry_delay, until either a maximum number of retries have been reached or a maximum retry delay cap has been reached.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct RetryInfo {
-    /// Clients should wait at least this long between retrying the same request.
-    #[serde(default, rename = "retryDelay")]
-    pub retry_delay: ::core::option::Option<String>,
-}
-
-/// The details needed to configure a reverse SSH tunnel between the source and destination databases. These details will be used when calling the generateSshScript method (see https://cloud.google.com/database-migration/docs/reference/rest/v1/projects.locations.migrationJobs/generateSshScript) to produce the script that will help set up the reverse SSH tunnel, and to set up the VPC peering between the Cloud SQL private network and the VPC.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ReverseSshConnectivity {
-    /// The name of the virtual machine (Compute Engine) used as the bastion server for the SSH tunnel.
-    #[serde(default)]
-    pub vm: ::core::option::Option<String>,
-    /// Required. The IP of the virtual machine (Compute Engine) used as the bastion server for the SSH tunnel.
-    #[serde(default, rename = "vmIp")]
-    pub vm_ip: ::core::option::Option<String>,
-    /// Required. The forwarding port of the virtual machine (Compute Engine) used as the bastion server for the SSH tunnel.
-    #[serde(default, rename = "vmPort")]
-    pub vm_port: ::core::option::Option<i32>,
-    /// The name of the VPC to peer with the Cloud SQL private network.
-    #[serde(default)]
-    pub vpc: ::core::option::Option<String>,
-}
-
-/// This allows the data to change scale, for example if the source is 2 digits after the decimal point, specify round to scale value = 2. If for example the value needs to be converted to an integer, use round to scale value = 0.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct RoundToScale {
-    /// Required. Scale value to be used
-    #[serde(default)]
-    pub scale: ::core::option::Option<i32>,
-}
-
-/// Details of a single rules file.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct RulesFile {
-    /// Required. The text content of the rules that needs to be converted.
-    #[serde(default, rename = "rulesContent")]
-    pub rules_content: ::core::option::Option<String>,
-    /// Required. The filename of the rules that needs to be converted. The filename is used mainly so that future logs of the import rules job contain it, and can therefore be searched by it.
-    #[serde(default, rename = "rulesSourceFilename")]
-    pub rules_source_filename: ::core::option::Option<String>,
-}
-
-/// Response message for ''SearchBackgroundJobs'' request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SearchBackgroundJobsResponse {
-    /// The list of conversion workspace mapping rules.
-    #[serde(default)]
-    pub jobs: ::core::option::Option<::std::vec::Vec<BackgroundJobLogEntry>>,
-}
-
-/// Request message for ''SeedConversionWorkspace'' request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SeedConversionWorkspaceRequest {
-    /// Should the conversion workspace be committed automatically after the seed operation.
-    #[serde(default, rename = "autoCommit")]
-    pub auto_commit: ::core::option::Option<bool>,
-    /// Optional. Fully qualified (Uri) name of the destination connection profile.
-    #[serde(default, rename = "destinationConnectionProfile")]
-    pub destination_connection_profile: ::core::option::Option<String>,
-    /// Optional. Fully qualified (Uri) name of the source connection profile.
-    #[serde(default, rename = "sourceConnectionProfile")]
-    pub source_connection_profile: ::core::option::Option<String>,
-}
-
-/// Details regarding a Seed background job.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SeedJobDetails {
-    /// Output only. The connection profile which was used for the seed job.
-    #[serde(default, rename = "connectionProfile")]
-    pub connection_profile: ::core::option::Option<String>,
-}
-
-/// Sequence''s parent is a schema.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SequenceEntity {
-    /// Indicates number of entries to cache / precreate.
-    #[serde(default)]
-    pub cache: ::core::option::Option<String>,
-    /// Custom engine specific features.
+pub struct ConditionalColumnSetValue {
+    /// Optional. Custom engine specific features.
     #[serde(default, rename = "customFeatures")]
     pub custom_features: ::core::option::Option<serde_json::Value>,
-    /// Indicates whether the sequence value should cycle through.
-    #[serde(default)]
-    pub cycle: ::core::option::Option<bool>,
-    /// Increment value for the sequence.
-    #[serde(default)]
-    pub increment: ::core::option::Option<String>,
-    /// Maximum number for the sequence represented as bytes to accommodate large. numbers
-    #[serde(default, rename = "maxValue")]
-    pub max_value: ::core::option::Option<String>,
-    /// Minimum number for the sequence represented as bytes to accommodate large. numbers
-    #[serde(default, rename = "minValue")]
-    pub min_value: ::core::option::Option<String>,
-    /// Start number for the sequence represented as bytes to accommodate large. numbers
-    #[serde(default, rename = "startValue")]
-    pub start_value: ::core::option::Option<String>,
+    /// Optional. Optional filter on source column precision and scale. Used for fixed point numbers such as NUMERIC/NUMBER data types.
+    #[serde(default, rename = "sourceNumericFilter")]
+    pub source_numeric_filter: ::core::option::Option<SourceNumericFilter>,
+    /// Optional. Optional filter on source column length. Used for text based data types like varchar.
+    #[serde(default, rename = "sourceTextFilter")]
+    pub source_text_filter: ::core::option::Option<SourceTextFilter>,
+    /// Required. Description of data transformation during migration.
+    #[serde(default, rename = "valueTransformation")]
+    pub value_transformation: ::core::option::Option<ValueTransformation>,
 }
 
-/// Request message for SetIamPolicy method.
+/// Options to configure rule type ConvertROWIDToColumn. The rule is used to add column rowid to destination tables based on an Oracle rowid function/property. The rule filter field can refer to one or more entities. The rule scope can be one of: Table. This rule requires additional filter to be specified beyond the basic rule filter field, which is whether or not to work on tables which already have a primary key defined.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SetIamPolicyRequest {
-    /// REQUIRED: The complete policy to be applied to the resource. The size of the policy is limited to a few 10s of KB. An empty policy is a valid policy but certain Google Cloud services (such as Projects) might reject them.
+pub struct ConvertRowIdToColumn {
+    /// Required. Only work on tables without primary key defined
+    #[serde(default, rename = "onlyIfNoPrimaryKey")]
+    pub only_if_no_primary_key: ::core::option::Option<bool>,
+}
+
+/// Options to configure rule type EntityMove. The rule is used to move an entity to a new schema. The rule filter field can refer to one or more entities. The rule scope can be one of: Table, Column, Constraint, Index, View, Function, Stored Procedure, Materialized View, Sequence, UDT
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct EntityMove {
+    /// Required. The new schema
+    #[serde(default, rename = "newSchema")]
+    pub new_schema: ::core::option::Option<String>,
+}
+
+/// A filter defining the entities that a mapping rule should be applied to. When more than one field is specified, the rule is applied only to entities which match all the fields.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MappingRuleFilter {
+    /// Optional. The rule should be applied to specific entities defined by their fully qualified names.
     #[serde(default)]
-    pub policy: ::core::option::Option<Policy>,
-    /// OPTIONAL: A FieldMask specifying which fields of the policy to modify. Only the fields in the mask will be modified. If no mask is provided, the following default mask is used: paths: "bindings, etag"
-    #[serde(default, rename = "updateMask")]
-    pub update_mask: ::core::option::Option<String>,
+    pub entities: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Optional. The rule should be applied to entities whose non-qualified name contains the given string.
+    #[serde(default, rename = "entityNameContains")]
+    pub entity_name_contains: ::core::option::Option<String>,
+    /// Optional. The rule should be applied to entities whose non-qualified name starts with the given prefix.
+    #[serde(default, rename = "entityNamePrefix")]
+    pub entity_name_prefix: ::core::option::Option<String>,
+    /// Optional. The rule should be applied to entities whose non-qualified name ends with the given suffix.
+    #[serde(default, rename = "entityNameSuffix")]
+    pub entity_name_suffix: ::core::option::Option<String>,
+    /// Optional. The rule should be applied to entities whose parent entity (fully qualified name) matches the given value. For example, if the rule applies to a table entity, the expected value should be a schema (schema). If the rule applies to a column or index entity, the expected value can be either a schema (schema) or a table (schema.table)
+    #[serde(default, rename = "parentEntity")]
+    pub parent_entity: ::core::option::Option<String>,
+}
+
+/// Options to configure rule type FilterTableColumns. The rule is used to filter the list of columns to include or exclude from a table. The rule filter field can refer to one entity. The rule scope can be: Table Only one of the two lists can be specified for the rule.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct FilterTableColumns {
+    /// Optional. List of columns to be excluded for a particular table.
+    #[serde(default, rename = "excludeColumns")]
+    pub exclude_columns: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Optional. List of columns to be included for a particular table.
+    #[serde(default, rename = "includeColumns")]
+    pub include_columns: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// Options to configure rule type MultiColumnDatatypeChange. The rule is used to change the data type and associated properties of multiple columns at once. The rule filter field can refer to one or more entities. The rule scope can be one of:Column. This rule requires additional filters to be specified beyond the basic rule filter field, which is the source data type, but the rule supports additional filtering capabilities such as the minimum and maximum field length. All additional filters which are specified are required to be met in order for the rule to be applied (logical AND between the fields).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MultiColumnDatatypeChange {
+    /// Optional. Custom engine specific features.
+    #[serde(default, rename = "customFeatures")]
+    pub custom_features: ::core::option::Option<serde_json::Value>,
+    /// Required. New data type.
+    #[serde(default, rename = "newDataType")]
+    pub new_data_type: ::core::option::Option<String>,
+    /// Optional. Column fractional seconds precision - used only for timestamp based datatypes - if not specified and relevant uses the source column fractional seconds precision.
+    #[serde(default, rename = "overrideFractionalSecondsPrecision")]
+    pub override_fractional_seconds_precision: ::core::option::Option<i32>,
+    /// Optional. Column length - e.g. varchar (50) - if not specified and relevant uses the source column length.
+    #[serde(default, rename = "overrideLength")]
+    pub override_length: ::core::option::Option<String>,
+    /// Optional. Column precision - when relevant - if not specified and relevant uses the source column precision.
+    #[serde(default, rename = "overridePrecision")]
+    pub override_precision: ::core::option::Option<i32>,
+    /// Optional. Column scale - when relevant - if not specified and relevant uses the source column scale.
+    #[serde(default, rename = "overrideScale")]
+    pub override_scale: ::core::option::Option<i32>,
+    /// Required. Filter on source data type.
+    #[serde(default, rename = "sourceDataTypeFilter")]
+    pub source_data_type_filter: ::core::option::Option<String>,
+    /// Optional. Filter for fixed point number data types such as NUMERIC/NUMBER.
+    #[serde(default, rename = "sourceNumericFilter")]
+    pub source_numeric_filter: ::core::option::Option<SourceNumericFilter>,
+    /// Optional. Filter for text-based data types like varchar.
+    #[serde(default, rename = "sourceTextFilter")]
+    pub source_text_filter: ::core::option::Option<SourceTextFilter>,
+}
+
+/// Options to configure rule type MultiEntityRename. The rule is used to rename multiple entities. The rule filter field can refer to one or more entities. The rule scope can be one of: Database, Schema, Table, Column, Constraint, Index, View, Function, Stored Procedure, Materialized View, Sequence, UDT
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MultiEntityRename {
+    /// Optional. The pattern used to generate the new entity''s name. This pattern must include the characters ''{name}'', which will be replaced with the name of the original entity. For example, the pattern ''t_{name}'' for an entity name jobs would be converted to ''t_jobs''. If unspecified, the default value for this field is ''{name}''
+    #[serde(default, rename = "newNamePattern")]
+    pub new_name_pattern: ::core::option::Option<String>,
+    /// Optional. Additional transformation that can be done on the source entity name before it is being used by the new_name_pattern, for example lower case. If no transformation is desired, use NO_TRANSFORMATION // TODO: enum values: ["ENTITY_NAME_TRANSFORMATION_UNSPECIFIED", "ENTITY_NAME_TRANSFORMATION_NO_TRANSFORMATION", "ENTITY_NAME_TRANSFORMATION_LOWER_CASE", "ENTITY_NAME_TRANSFORMATION_UPPER_CASE", "ENTITY_NAME_TRANSFORMATION_CAPITALIZED_CASE"]
+    #[serde(default, rename = "sourceNameTransformation")]
+    pub source_name_transformation: ::core::option::Option<String>,
 }
 
 /// Options to configure rule type SetTablePrimaryKey. The rule is used to specify the columns and name to configure/alter the primary key of a table. The rule filter field can refer to one entity. The rule scope can be one of: Table.
@@ -2183,62 +1702,6 @@ pub struct SinglePackageChange {
     pub package_description: ::core::option::Option<String>,
 }
 
-/// Filter for fixed point number data types such as NUMERIC/NUMBER
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SourceNumericFilter {
-    /// Required. Enum to set the option defining the datatypes numeric filter has to be applied to // TODO: enum values: ["NUMERIC_FILTER_OPTION_UNSPECIFIED", "NUMERIC_FILTER_OPTION_ALL", "NUMERIC_FILTER_OPTION_LIMIT", "NUMERIC_FILTER_OPTION_LIMITLESS"]
-    #[serde(default, rename = "numericFilterOption")]
-    pub numeric_filter_option: ::core::option::Option<String>,
-    /// Optional. The filter will match columns with precision smaller than or equal to this number.
-    #[serde(default, rename = "sourceMaxPrecisionFilter")]
-    pub source_max_precision_filter: ::core::option::Option<i32>,
-    /// Optional. The filter will match columns with scale smaller than or equal to this number.
-    #[serde(default, rename = "sourceMaxScaleFilter")]
-    pub source_max_scale_filter: ::core::option::Option<i32>,
-    /// Optional. The filter will match columns with precision greater than or equal to this number.
-    #[serde(default, rename = "sourceMinPrecisionFilter")]
-    pub source_min_precision_filter: ::core::option::Option<i32>,
-    /// Optional. The filter will match columns with scale greater than or equal to this number.
-    #[serde(default, rename = "sourceMinScaleFilter")]
-    pub source_min_scale_filter: ::core::option::Option<i32>,
-}
-
-/// Config for a single migration job object.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SourceObjectConfig {
-    /// Optional. The object identifier.
-    #[serde(default, rename = "objectIdentifier")]
-    pub object_identifier: ::core::option::Option<SourceObjectIdentifier>,
-}
-
-/// An identifier for the Migration Job Object.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SourceObjectIdentifier {
-    /// Optional. The database name. This will be required only if the object uses a database name as part of its unique identifier.
-    #[serde(default)]
-    pub database: ::core::option::Option<String>,
-    /// Optional. The schema name. This will be required only if the object uses a schema name as part of its unique identifier.
-    #[serde(default)]
-    pub schema: ::core::option::Option<String>,
-    /// Optional. The table name. This will be required only if the object is a level below database or schema.
-    #[serde(default)]
-    pub table: ::core::option::Option<String>,
-    /// Required. The type of the migration job object. // TODO: enum values: ["MIGRATION_JOB_OBJECT_TYPE_UNSPECIFIED", "DATABASE", "SCHEMA", "TABLE"]
-    #[serde(default, rename = "type")]
-    pub type_: ::core::option::Option<String>,
-}
-
-/// List of configurations for the source objects to be migrated.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SourceObjectsConfig {
-    /// Optional. The list of the objects to be migrated.
-    #[serde(default, rename = "objectConfigs")]
-    pub object_configs: ::core::option::Option<::std::vec::Vec<SourceObjectConfig>>,
-    /// Optional. The objects selection type of the migration job. // TODO: enum values: ["OBJECTS_SELECTION_TYPE_UNSPECIFIED", "ALL_OBJECTS", "SPECIFIED_OBJECTS"]
-    #[serde(default, rename = "objectsSelectionType")]
-    pub objects_selection_type: ::core::option::Option<String>,
-}
-
 /// Options to configure rule type SourceSqlChange. The rule is used to alter the sql code for database entities. The rule filter field can refer to one entity. The rule scope can be: StoredProcedure, Function, Trigger, View
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SourceSqlChange {
@@ -2247,161 +1710,193 @@ pub struct SourceSqlChange {
     pub sql_code: ::core::option::Option<String>,
 }
 
-/// Filter for text-based data types like varchar.
+/// Metadata for heterogeneous migration jobs objects.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SourceTextFilter {
-    /// Optional. The filter will match columns with length smaller than or equal to this number.
-    #[serde(default, rename = "sourceMaxLengthFilter")]
-    pub source_max_length_filter: ::core::option::Option<String>,
-    /// Optional. The filter will match columns with length greater than or equal to this number.
-    #[serde(default, rename = "sourceMinLengthFilter")]
-    pub source_min_length_filter: ::core::option::Option<String>,
+pub struct HeterogeneousMetadata {
+    /// The number of unsupported events.
+    #[serde(default, rename = "unsupportedEventsCount")]
+    pub unsupported_events_count: ::core::option::Option<String>,
 }
 
-/// An entry for an Access Control list.
+/// The PSC Interface configuration is used to create PSC Interface between DMS''s internal VPC and the consumer''s PSC.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SqlAclEntry {
-    /// The time when this access control entry expires in [RFC 3339](https://tools.ietf.org/html/rfc3339) format, for example: 2012-11-15T16:19:00.094Z.
-    #[serde(default, rename = "expireTime")]
-    pub expire_time: ::core::option::Option<String>,
-    /// A label to identify this entry.
-    #[serde(default)]
-    pub label: ::core::option::Option<String>,
-    /// Input only. The time-to-leave of this access control entry.
-    #[serde(default)]
-    pub ttl: ::core::option::Option<String>,
-    /// The allowlisted value for the access control list.
-    #[serde(default)]
-    pub value: ::core::option::Option<String>,
+pub struct PscInterfaceConfig {
+    /// Required. Fully qualified name of the Network Attachment that DMS will connect to. Format: projects/{{project}}/regions/{{region}}/networkAttachments/{{name}}
+    #[serde(default, rename = "networkAttachment")]
+    pub network_attachment: ::core::option::Option<String>,
 }
 
-/// IP Management configuration.
+/// The VPC peering configuration is used to create VPC peering with the consumer''s VPC.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SqlIpConfig {
-    /// Optional. The name of the allocated IP address range for the private IP Cloud SQL instance. This name refers to an already allocated IP range address. If set, the instance IP address will be created in the allocated range. Note that this IP address range can''t be modified after the instance is created. If you change the VPC when configuring connectivity settings for the migration job, this field is not relevant.
-    #[serde(default, rename = "allocatedIpRange")]
-    pub allocated_ip_range: ::core::option::Option<String>,
-    /// The list of external networks that are allowed to connect to the instance using the IP. See https://en.wikipedia.org/wiki/CIDR_notation#CIDR_notation, also known as ''slash'' notation (e.g. 192.168.100.0/24).
-    #[serde(default, rename = "authorizedNetworks")]
-    pub authorized_networks: ::core::option::Option<::std::vec::Vec<SqlAclEntry>>,
-    /// Whether the instance should be assigned an IPv4 address or not.
-    #[serde(default, rename = "enableIpv4")]
-    pub enable_ipv4: ::core::option::Option<bool>,
-    /// The resource link for the VPC network from which the Cloud SQL instance is accessible for private IP. For example, projects/myProject/global/networks/default. This setting can be updated, but it cannot be removed after it is set.
-    #[serde(default, rename = "privateNetwork")]
-    pub private_network: ::core::option::Option<String>,
-    /// Whether SSL connections over IP should be enforced or not.
-    #[serde(default, rename = "requireSsl")]
-    pub require_ssl: ::core::option::Option<bool>,
+pub struct VpcPeeringConfig {
+    /// Required. A free subnet for peering. (CIDR of /29)
+    #[serde(default)]
+    pub subnet: ::core::option::Option<String>,
+    /// Required. Fully qualified name of the VPC that Database Migration Service will peer to.
+    #[serde(default, rename = "vpcName")]
+    pub vpc_name: ::core::option::Option<String>,
 }
 
-/// Specifies the backup details in Cloud Storage for homogeneous migration to Cloud SQL for SQL Server.
+/// Details regarding an Apply background job.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SqlServerBackups {
-    /// Required. The Cloud Storage bucket that stores backups for all replicated databases.
-    #[serde(default, rename = "gcsBucket")]
-    pub gcs_bucket: ::core::option::Option<String>,
-    /// Optional. Cloud Storage path inside the bucket that stores backups.
-    #[serde(default, rename = "gcsPrefix")]
-    pub gcs_prefix: ::core::option::Option<String>,
+pub struct ApplyJobDetails {
+    /// Output only. The connection profile which was used for the apply job.
+    #[serde(default, rename = "connectionProfile")]
+    pub connection_profile: ::core::option::Option<String>,
+    /// Output only. AIP-160 based filter used to specify the entities to apply
+    #[serde(default)]
+    pub filter: ::core::option::Option<String>,
 }
 
-/// Specifies connection parameters required specifically for SQL Server databases.
+/// Details regarding a Convert background job.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SqlServerConnectionProfile {
-    /// The backup details in Cloud Storage for homogeneous migration to Cloud SQL for SQL Server.
+pub struct ConvertJobDetails {
+    /// Output only. AIP-160 based filter used to specify the entities to convert
     #[serde(default)]
-    pub backups: ::core::option::Option<SqlServerBackups>,
-    /// If the source is a Cloud SQL database, use this field to provide the Cloud SQL instance ID of the source.
-    #[serde(default, rename = "cloudSqlId")]
-    pub cloud_sql_id: ::core::option::Option<String>,
-    /// Optional. The project id of the Cloud SQL instance. If not provided, the project id of the connection profile will be used.
-    #[serde(default, rename = "cloudSqlProjectId")]
-    pub cloud_sql_project_id: ::core::option::Option<String>,
-    /// Required. The name of the specific database within the host.
-    #[serde(default)]
-    pub database: ::core::option::Option<String>,
-    /// Optional. The Database Mirroring (DBM) port of the source SQL Server instance.
-    #[serde(default, rename = "dbmPort")]
-    pub dbm_port: ::core::option::Option<i32>,
-    /// Forward SSH tunnel connectivity.
-    #[serde(default, rename = "forwardSshConnectivity")]
-    pub forward_ssh_connectivity: ::core::option::Option<ForwardSshTunnelConnectivity>,
-    /// Required. The IP or hostname of the source SQL Server database.
-    #[serde(default)]
-    pub host: ::core::option::Option<String>,
-    /// Required. Input only. The password for the user that Database Migration Service will be using to connect to the database. This field is not returned on request, and the value is encrypted when stored in Database Migration Service.
-    #[serde(default)]
-    pub password: ::core::option::Option<String>,
-    /// Output only. Indicates whether a new password is included in the request.
-    #[serde(default, rename = "passwordSet")]
-    pub password_set: ::core::option::Option<bool>,
-    /// Required. The network port of the source SQL Server database.
-    #[serde(default)]
-    pub port: ::core::option::Option<i32>,
-    /// Private connectivity.
-    #[serde(default, rename = "privateConnectivity")]
-    pub private_connectivity: ::core::option::Option<PrivateConnectivity>,
-    /// Private Service Connect connectivity.
-    #[serde(default, rename = "privateServiceConnectConnectivity")]
-    pub private_service_connect_connectivity:
-        ::core::option::Option<PrivateServiceConnectConnectivity>,
-    /// SSL configuration for the destination to connect to the source database.
-    #[serde(default)]
-    pub ssl: ::core::option::Option<SslConfig>,
-    /// Static IP connectivity data (default, no additional details needed).
-    #[serde(default, rename = "staticIpConnectivity")]
-    pub static_ip_connectivity: ::core::option::Option<serde_json::Value>,
-    /// Required. The username that Database Migration Service will use to connect to the database. The value is encrypted when stored in Database Migration Service.
-    #[serde(default)]
-    pub username: ::core::option::Option<String>,
+    pub filter: ::core::option::Option<String>,
 }
 
-/// Configuration for distributed availability group (DAG) for the SQL Server homogeneous migration.
+/// Details regarding an Import Rules background job.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SqlServerDagConfig {
-    /// Required. The name of the linked server that points to the source SQL Server instance. Only used by DAG migrations.
-    #[serde(default, rename = "linkedServer")]
-    pub linked_server: ::core::option::Option<String>,
-    /// Required. The name of the source availability group. Only used by DAG migrations.
-    #[serde(default, rename = "sourceAg")]
-    pub source_ag: ::core::option::Option<String>,
-}
-
-/// Specifies the backup details for a single database in Cloud Storage for homogeneous migration to Cloud SQL for SQL Server.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SqlServerDatabaseBackup {
-    /// Required. Name of a SQL Server database for which to define backup configuration.
+pub struct ImportRulesJobDetails {
+    /// Output only. The requested file format. // TODO: enum values: ["IMPORT_RULES_FILE_FORMAT_UNSPECIFIED", "IMPORT_RULES_FILE_FORMAT_HARBOUR_BRIDGE_SESSION_FILE", "IMPORT_RULES_FILE_FORMAT_ORATOPG_CONFIG_FILE"]
+    #[serde(default, rename = "fileFormat")]
+    pub file_format: ::core::option::Option<String>,
+    /// Output only. File names used for the import rules job.
     #[serde(default)]
-    pub database: ::core::option::Option<String>,
-    /// Optional. Encryption settings for the database. Required if provided database backups are encrypted. Encryption settings include path to certificate, path to certificate private key, and key password.
-    #[serde(default, rename = "encryptionOptions")]
-    pub encryption_options: ::core::option::Option<SqlServerEncryptionOptions>,
+    pub files: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
-/// Configuration for SQL Server as a destination in a migration.
+/// Details regarding a Seed background job.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SqlServerDestinationConfig {
-    /// Optional. Maximum number of connections Database Migration Service will open to the destination for data migration.
-    #[serde(default, rename = "maxConcurrentConnections")]
-    pub max_concurrent_connections: ::core::option::Option<i32>,
-    /// Optional. Timeout for data migration transactions.
-    #[serde(default, rename = "transactionTimeout")]
-    pub transaction_timeout: ::core::option::Option<String>,
+pub struct SeedJobDetails {
+    /// Output only. The connection profile which was used for the seed job.
+    #[serde(default, rename = "connectionProfile")]
+    pub connection_profile: ::core::option::Option<String>,
 }
 
-/// Encryption settings for the SQL Server database.
+/// Specifies the audit configuration for a service. The configuration determines which permission types are logged, and what identities, if any, are exempted from logging. An AuditConfig must have one or more AuditLogConfigs. If there are AuditConfigs for both allServices and a specific service, the union of the two AuditConfigs is used for that service: the log_types specified in each AuditConfig are enabled, and the exempted_members in each AuditLogConfig are exempted. Example Policy with multiple AuditConfigs: { "audit_configs": [ { "service": "allServices", "audit_log_configs": [ { "log_type": "DATA_READ", "exempted_members": [ "user:jose@example.com" ] }, { "log_type": "DATA_WRITE" }, { "log_type": "ADMIN_READ" } ] }, { "service": "sampleservice.googleapis.com", "audit_log_configs": [ { "log_type": "DATA_READ" }, { "log_type": "DATA_WRITE", "exempted_members": [ "user:aliya@example.com" ] } ] } ] } For sampleservice, this policy enables DATA_READ, DATA_WRITE and ADMIN_READ logging. It also exempts jose@example.com from DATA_READ logging, and aliya@example.com from DATA_WRITE logging.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SqlServerEncryptionOptions {
-    /// Required. Path to the Certificate (.cer) in Cloud Storage, in the form gs://bucketName/fileName. The instance must have write permissions to the bucket and read access to the file.
-    #[serde(default, rename = "certPath")]
-    pub cert_path: ::core::option::Option<String>,
-    /// Required. Input only. Password that encrypts the private key.
-    #[serde(default, rename = "pvkPassword")]
-    pub pvk_password: ::core::option::Option<String>,
-    /// Required. Path to the Certificate Private Key (.pvk) in Cloud Storage, in the form gs://bucketName/fileName. The instance must have write permissions to the bucket and read access to the file.
-    #[serde(default, rename = "pvkPath")]
-    pub pvk_path: ::core::option::Option<String>,
+pub struct AuditConfig {
+    /// The configuration for logging of each type of permission.
+    #[serde(default, rename = "auditLogConfigs")]
+    pub audit_log_configs: ::core::option::Option<::std::vec::Vec<AuditLogConfig>>,
+    /// Specifies a service that will be enabled for audit logging. For example, storage.googleapis.com, cloudsql.googleapis.com. allServices is a special value that covers all services.
+    #[serde(default)]
+    pub service: ::core::option::Option<String>,
+}
+
+/// Associates members, or principals, with a role.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Binding {
+    /// The condition that is associated with this binding. If the condition evaluates to true, then this binding applies to the current request. If the condition evaluates to false, then this binding does not apply to the current request. However, a different role binding might grant the same role to one or more of the principals in this binding. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies).
+    #[serde(default)]
+    pub condition: ::core::option::Option<Expr>,
+    /// Specifies the principals requesting access for a Google Cloud resource. members can have the following values: * allUsers: A special identifier that represents anyone who is on the internet; with or without a Google account. * allAuthenticatedUsers: A special identifier that represents anyone who is authenticated with a Google account or a service account. Does not include identities that come from external identity providers (IdPs) through identity federation. * user:{emailid}: An email address that represents a specific Google account. For example, alice@example.com . * serviceAccount:{emailid}: An email address that represents a Google service account. For example, my-other-app@appspot.gserviceaccount.com. * serviceAccount:{projectid}.svc.id.goog[{namespace}/{kubernetes-sa}]: An identifier for a [Kubernetes service account](https://cloud.google.com/kubernetes-engine/docs/how-to/kubernetes-service-accounts). For example, my-project.svc.id.goog[my-namespace/my-kubernetes-sa]. * group:{emailid}: An email address that represents a Google group. For example, admins@example.com. * domain:{domain}: The G Suite domain (primary) that represents all the users of that domain. For example, google.com or example.com. * principal://iam.googleapis.com/locations/global/workforcePools/{pool_id}/subject/{subject_attribute_value}: A single identity in a workforce identity pool. * principalSet://iam.googleapis.com/locations/global/workforcePools/{pool_id}/group/{group_id}: All workforce identities in a group. * principalSet://iam.googleapis.com/locations/global/workforcePools/{pool_id}/attribute.{attribute_name}/{attribute_value}: All workforce identities with a specific attribute value. * principalSet://iam.googleapis.com/locations/global/workforcePools/{pool_id}/*: All identities in a workforce identity pool. * principal://iam.googleapis.com/projects/{project_number}/locations/global/workloadIdentityPools/{pool_id}/subject/{subject_attribute_value}: A single identity in a workload identity pool. * principalSet://iam.googleapis.com/projects/{project_number}/locations/global/workloadIdentityPools/{pool_id}/group/{group_id}: A workload identity pool group. * principalSet://iam.googleapis.com/projects/{project_number}/locations/global/workloadIdentityPools/{pool_id}/attribute.{attribute_name}/{attribute_value}: All identities in a workload identity pool with a certain attribute. * principalSet://iam.googleapis.com/projects/{project_number}/locations/global/workloadIdentityPools/{pool_id}/*: All identities in a workload identity pool. * deleted:user:{emailid}?uid={uniqueid}: An email address (plus unique identifier) representing a user that has been recently deleted. For example, alice@example.com?uid=123456789012345678901. If the user is recovered, this value reverts to user:{emailid} and the recovered user retains the role in the binding. * deleted:serviceAccount:{emailid}?uid={uniqueid}: An email address (plus unique identifier) representing a service account that has been recently deleted. For example, my-other-app@appspot.gserviceaccount.com?uid=123456789012345678901. If the service account is undeleted, this value reverts to serviceAccount:{emailid} and the undeleted service account retains the role in the binding. * deleted:group:{emailid}?uid={uniqueid}: An email address (plus unique identifier) representing a Google group that has been recently deleted. For example, admins@example.com?uid=123456789012345678901. If the group is recovered, this value reverts to group:{emailid} and the recovered group retains the role in the binding. * deleted:principal://iam.googleapis.com/locations/global/workforcePools/{pool_id}/subject/{subject_attribute_value}: Deleted single identity in a workforce identity pool. For example, deleted:principal://iam.googleapis.com/locations/global/workforcePools/my-pool-id/subject/my-subject-attribute-value.
+    #[serde(default)]
+    pub members: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Role that is assigned to the list of members, or principals. For example, roles/viewer, roles/editor, or roles/owner. For an overview of the IAM roles and permissions, see the [IAM documentation](https://cloud.google.com/iam/docs/roles-overview). For a list of the available pre-defined roles, see [here](https://cloud.google.com/iam/docs/understanding-roles).
+    #[serde(default)]
+    pub role: ::core::option::Option<String>,
+}
+
+/// A conversion workspace''s version.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ConversionWorkspaceInfo {
+    /// The commit ID of the conversion workspace.
+    #[serde(default, rename = "commitId")]
+    pub commit_id: ::core::option::Option<String>,
+    /// The resource name (URI) of the conversion workspace.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+}
+
+/// A message defining the database engine and provider.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DatabaseType {
+    /// The database engine. // TODO: enum values: ["DATABASE_ENGINE_UNSPECIFIED", "MYSQL", "POSTGRESQL", "SQLSERVER", "ORACLE"]
+    #[serde(default)]
+    pub engine: ::core::option::Option<String>,
+    /// The database provider. // TODO: enum values: ["DATABASE_PROVIDER_UNSPECIFIED", "CLOUDSQL", "RDS", "AURORA", "ALLOYDB", "AZURE_DATABASE"]
+    #[serde(default)]
+    pub provider: ::core::option::Option<String>,
+}
+
+/// Dump flags definition.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DumpFlags {
+    /// The flags for the initial dump.
+    #[serde(default, rename = "dumpFlags")]
+    pub dump_flags: ::core::option::Option<::std::vec::Vec<DumpFlag>>,
+}
+
+/// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Status {
+    /// The status code, which should be an enum value of google.rpc.Code.
+    #[serde(default)]
+    pub code: ::core::option::Option<i32>,
+    /// A list of messages that carry the error details. There is a common set of message types for APIs to use.
+    #[serde(default)]
+    pub details: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
+    /// A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.
+    #[serde(default)]
+    pub message: ::core::option::Option<String>,
+}
+
+/// Configuration for the objects to be migrated.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MigrationJobObjectsConfig {
+    /// The list of the migration job objects.
+    #[serde(default, rename = "sourceObjectsConfig")]
+    pub source_objects_config: ::core::option::Option<SourceObjectsConfig>,
+}
+
+/// Configuration for heterogeneous **Oracle to Cloud SQL for PostgreSQL** and **Oracle to AlloyDB for PostgreSQL** migrations.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct OracleToPostgresConfig {
+    /// Optional. Configuration for Oracle source.
+    #[serde(default, rename = "oracleSourceConfig")]
+    pub oracle_source_config: ::core::option::Option<OracleSourceConfig>,
+    /// Optional. Configuration for Postgres destination.
+    #[serde(default, rename = "postgresDestinationConfig")]
+    pub postgres_destination_config: ::core::option::Option<PostgresDestinationConfig>,
+}
+
+/// Performance configuration definition.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PerformanceConfig {
+    /// Initial dump parallelism level. // TODO: enum values: ["DUMP_PARALLEL_LEVEL_UNSPECIFIED", "MIN", "OPTIMAL", "MAX"]
+    #[serde(default, rename = "dumpParallelLevel")]
+    pub dump_parallel_level: ::core::option::Option<String>,
+}
+
+/// Configuration for heterogeneous failback migrations from **PostgreSQL to SQL Server**.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PostgresToSqlServerConfig {
+    /// Optional. Configuration for PostgreSQL source.
+    #[serde(default, rename = "postgresSourceConfig")]
+    pub postgres_source_config: ::core::option::Option<PostgresSourceConfig>,
+    /// Optional. Configuration for SQL Server destination.
+    #[serde(default, rename = "sqlserverDestinationConfig")]
+    pub sqlserver_destination_config: ::core::option::Option<SqlServerDestinationConfig>,
+}
+
+/// The details needed to configure a reverse SSH tunnel between the source and destination databases. These details will be used when calling the generateSshScript method (see https://cloud.google.com/database-migration/docs/reference/rest/v1/projects.locations.migrationJobs/generateSshScript) to produce the script that will help set up the reverse SSH tunnel, and to set up the VPC peering between the Cloud SQL private network and the VPC.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ReverseSshConnectivity {
+    /// The name of the virtual machine (Compute Engine) used as the bastion server for the SSH tunnel.
+    #[serde(default)]
+    pub vm: ::core::option::Option<String>,
+    /// Required. The IP of the virtual machine (Compute Engine) used as the bastion server for the SSH tunnel.
+    #[serde(default, rename = "vmIp")]
+    pub vm_ip: ::core::option::Option<String>,
+    /// Required. The forwarding port of the virtual machine (Compute Engine) used as the bastion server for the SSH tunnel.
+    #[serde(default, rename = "vmPort")]
+    pub vm_port: ::core::option::Option<i32>,
+    /// The name of the VPC to peer with the Cloud SQL private network.
+    #[serde(default)]
+    pub vpc: ::core::option::Option<String>,
 }
 
 /// Configuration for homogeneous migration to Cloud SQL for SQL Server.
@@ -2424,23 +1919,6 @@ pub struct SqlServerHomogeneousMigrationJobConfig {
     pub use_diff_backup: ::core::option::Option<bool>,
 }
 
-/// Configuration for SQL Server as a source in a migration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SqlServerSourceConfig {
-    /// Optional. The log sequence number (LSN) to start CDC data migration from.
-    #[serde(default, rename = "cdcStartPosition")]
-    pub cdc_start_position: ::core::option::Option<String>,
-    /// Optional. Maximum number of connections Database Migration Service will open to the source for CDC phase.
-    #[serde(default, rename = "maxConcurrentCdcConnections")]
-    pub max_concurrent_cdc_connections: ::core::option::Option<i32>,
-    /// Optional. Maximum number of connections Database Migration Service will open to the source for full dump phase.
-    #[serde(default, rename = "maxConcurrentFullDumpConnections")]
-    pub max_concurrent_full_dump_connections: ::core::option::Option<i32>,
-    /// Optional. Whether to skip full dump or not.
-    #[serde(default, rename = "skipFullDump")]
-    pub skip_full_dump: ::core::option::Option<bool>,
-}
-
 /// Configuration for heterogeneous **SQL Server to Cloud SQL for PostgreSQL** migrations.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SqlServerToPostgresConfig {
@@ -2452,126 +1930,128 @@ pub struct SqlServerToPostgresConfig {
     pub sqlserver_source_config: ::core::option::Option<SqlServerSourceConfig>,
 }
 
-/// Response message for ''GenerateSshScript'' request.
+/// The details of the VPC where the source database is located in Google Cloud. We will use this information to set up the VPC peering connection between Cloud SQL and this VPC.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SshScript {
-    /// The ssh configuration script.
+pub struct VpcPeeringConnectivity {
+    /// The name of the VPC network to peer with the Cloud SQL private network.
     #[serde(default)]
-    pub script: ::core::option::Option<String>,
+    pub vpc: ::core::option::Option<String>,
 }
 
-/// SSL configuration information.
+/// Issue position.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SslConfig {
-    /// Required. Input only. The x509 PEM-encoded certificate of the CA that signed the source database server''s certificate. The replica will use this certificate to verify it''s connecting to the right host.
-    #[serde(default, rename = "caCertificate")]
-    pub ca_certificate: ::core::option::Option<String>,
-    /// Input only. The x509 PEM-encoded certificate that will be used by the replica to authenticate against the source database server.If this field is used then the ''client_key'' field is mandatory.
-    #[serde(default, rename = "clientCertificate")]
-    pub client_certificate: ::core::option::Option<String>,
-    /// Input only. The unencrypted PKCS#1 or PKCS#8 PEM-encoded private key associated with the Client Certificate. If this field is used then the ''client_certificate'' field is mandatory.
-    #[serde(default, rename = "clientKey")]
-    pub client_key: ::core::option::Option<String>,
-    /// Optional. SSL flags used for establishing SSL connection to the source database. Only source specific flags are supported. An object containing a list of "key": "value" pairs. Example: { "server_certificate_hostname": "server.com"}.
-    #[serde(default, rename = "sslFlags")]
-    pub ssl_flags: ::core::option::Option<serde_json::Value>,
-    /// Optional. The ssl config type according to ''client_key'', ''client_certificate'' and ''ca_certificate''. // TODO: enum values: ["SSL_TYPE_UNSPECIFIED", "SERVER_ONLY", "SERVER_CLIENT", "REQUIRED", "NONE"]
-    #[serde(default, rename = "type")]
-    pub type_: ::core::option::Option<String>,
-}
-
-/// Request message for ''StartMigrationJob'' request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct StartMigrationJobRequest {
-    /// Optional. Start the migration job without running prior configuration verification. Defaults to false.
-    #[serde(default, rename = "skipValidation")]
-    pub skip_validation: ::core::option::Option<bool>,
-}
-
-/// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Status {
-    /// The status code, which should be an enum value of google.rpc.Code.
+pub struct Position {
+    /// Issue column number
     #[serde(default)]
-    pub code: ::core::option::Option<i32>,
-    /// A list of messages that carry the error details. There is a common set of message types for APIs to use.
+    pub column: ::core::option::Option<i32>,
+    /// Issue length
     #[serde(default)]
-    pub details: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
-    /// A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.
+    pub length: ::core::option::Option<i32>,
+    /// Issue line number
     #[serde(default)]
-    pub message: ::core::option::Option<String>,
+    pub line: ::core::option::Option<i32>,
+    /// Issue offset
+    #[serde(default)]
+    pub offset: ::core::option::Option<i32>,
 }
 
-/// Stored procedure''s parent is a schema.
+/// A single record of a rule which was used for a mapping.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct StoredProcedureEntity {
-    /// Custom engine specific features.
-    #[serde(default, rename = "customFeatures")]
-    pub custom_features: ::core::option::Option<serde_json::Value>,
-    /// The SQL code which creates the stored procedure.
-    #[serde(default, rename = "sqlCode")]
-    pub sql_code: ::core::option::Option<String>,
+pub struct EntityMappingLogEntry {
+    /// Comment.
+    #[serde(default, rename = "mappingComment")]
+    pub mapping_comment: ::core::option::Option<String>,
+    /// Which rule caused this log entry.
+    #[serde(default, rename = "ruleId")]
+    pub rule_id: ::core::option::Option<String>,
+    /// Rule revision ID.
+    #[serde(default, rename = "ruleRevisionId")]
+    pub rule_revision_id: ::core::option::Option<String>,
 }
 
-/// Synonym''s parent is a schema.
+/// Column is not used as an independent entity, it is retrieved as part of a Table entity.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SynonymEntity {
-    /// Custom engine specific features.
-    #[serde(default, rename = "customFeatures")]
-    pub custom_features: ::core::option::Option<serde_json::Value>,
-    /// The name of the entity for which the synonym is being created (the source).
-    #[serde(default, rename = "sourceEntity")]
-    pub source_entity: ::core::option::Option<String>,
-    /// The type of the entity for which the synonym is being created (usually a table or a sequence). // TODO: enum values: ["DATABASE_ENTITY_TYPE_UNSPECIFIED", "DATABASE_ENTITY_TYPE_SCHEMA", "DATABASE_ENTITY_TYPE_TABLE", "DATABASE_ENTITY_TYPE_COLUMN", "DATABASE_ENTITY_TYPE_CONSTRAINT", "DATABASE_ENTITY_TYPE_INDEX", "DATABASE_ENTITY_TYPE_TRIGGER", "DATABASE_ENTITY_TYPE_VIEW", "DATABASE_ENTITY_TYPE_SEQUENCE", "DATABASE_ENTITY_TYPE_STORED_PROCEDURE", "DATABASE_ENTITY_TYPE_FUNCTION", "DATABASE_ENTITY_TYPE_SYNONYM", "DATABASE_ENTITY_TYPE_DATABASE_PACKAGE", "DATABASE_ENTITY_TYPE_UDT", "DATABASE_ENTITY_TYPE_MATERIALIZED_VIEW", "DATABASE_ENTITY_TYPE_DATABASE"]
-    #[serde(default, rename = "sourceType")]
-    pub source_type: ::core::option::Option<String>,
-}
-
-/// Table''s parent is a schema.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct TableEntity {
-    /// Table columns.
+pub struct ColumnEntity {
+    /// Is the column of array type.
     #[serde(default)]
-    pub columns: ::core::option::Option<::std::vec::Vec<ColumnEntity>>,
-    /// Comment associated with the table.
+    pub array: ::core::option::Option<bool>,
+    /// If the column is array, of which length.
+    #[serde(default, rename = "arrayLength")]
+    pub array_length: ::core::option::Option<i32>,
+    /// Is the column auto-generated/identity.
+    #[serde(default, rename = "autoGenerated")]
+    pub auto_generated: ::core::option::Option<bool>,
+    /// Charset override - instead of table level charset.
+    #[serde(default)]
+    pub charset: ::core::option::Option<String>,
+    /// Collation override - instead of table level collation.
+    #[serde(default)]
+    pub collation: ::core::option::Option<String>,
+    /// Comment associated with the column.
     #[serde(default)]
     pub comment: ::core::option::Option<String>,
-    /// Table constraints.
+    /// Is the column a computed column.
     #[serde(default)]
-    pub constraints: ::core::option::Option<::std::vec::Vec<ConstraintEntity>>,
+    pub computed: ::core::option::Option<bool>,
     /// Custom engine specific features.
     #[serde(default, rename = "customFeatures")]
     pub custom_features: ::core::option::Option<serde_json::Value>,
-    /// Table indices.
+    /// Column data type.
+    #[serde(default, rename = "dataType")]
+    pub data_type: ::core::option::Option<String>,
+    /// Default value of the column.
+    #[serde(default, rename = "defaultValue")]
+    pub default_value: ::core::option::Option<String>,
+    /// Column fractional second precision - used for timestamp based datatypes.
+    #[serde(default, rename = "fractionalSecondsPrecision")]
+    pub fractional_seconds_precision: ::core::option::Option<i32>,
+    /// Column length - e.g. varchar (50).
     #[serde(default)]
-    pub indices: ::core::option::Option<::std::vec::Vec<IndexEntity>>,
-    /// Table triggers.
+    pub length: ::core::option::Option<String>,
+    /// Column name.
     #[serde(default)]
-    pub triggers: ::core::option::Option<::std::vec::Vec<TriggerEntity>>,
+    pub name: ::core::option::Option<String>,
+    /// Is the column nullable.
+    #[serde(default)]
+    pub nullable: ::core::option::Option<bool>,
+    /// Column order in the table.
+    #[serde(default, rename = "ordinalPosition")]
+    pub ordinal_position: ::core::option::Option<i32>,
+    /// Column precision - when relevant.
+    #[serde(default)]
+    pub precision: ::core::option::Option<i32>,
+    /// Column scale - when relevant.
+    #[serde(default)]
+    pub scale: ::core::option::Option<i32>,
+    /// Specifies the list of values allowed in the column. Only used for set data type.
+    #[serde(default, rename = "setValues")]
+    pub set_values: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Is the column a UDT.
+    #[serde(default)]
+    pub udt: ::core::option::Option<bool>,
 }
 
-/// Response message for ''GenerateTcpProxyScript'' request.
+/// Index is not used as an independent entity, it is retrieved as part of a Table entity.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct TcpProxyScript {
-    /// The TCP Proxy configuration script.
+pub struct IndexEntity {
+    /// Custom engine specific features.
+    #[serde(default, rename = "customFeatures")]
+    pub custom_features: ::core::option::Option<serde_json::Value>,
+    /// The name of the index.
     #[serde(default)]
-    pub script: ::core::option::Option<String>,
-}
-
-/// Request message for TestIamPermissions method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct TestIamPermissionsRequest {
-    /// The set of permissions to check for the resource. Permissions with wildcards (such as * or storage.*) are not allowed. For more information see [IAM Overview](https://cloud.google.com/iam/docs/overview#permissions).
+    pub name: ::core::option::Option<String>,
+    /// Table columns used as part of the Index, for example B-TREE index should list the columns which constitutes the index.
+    #[serde(default, rename = "tableColumns")]
+    pub table_columns: ::core::option::Option<::std::vec::Vec<String>>,
+    /// For each table_column, mark whether it''s sorting order is ascending (false) or descending (true). If no value is defined, assume all columns are sorted in ascending order. Otherwise, the number of items must match that of table_columns with each value specifying the direction of the matched column by its index.
+    #[serde(default, rename = "tableColumnsDescending")]
+    pub table_columns_descending: ::core::option::Option<::std::vec::Vec<bool>>,
+    /// Type of index, for example B-TREE.
+    #[serde(default, rename = "type")]
+    pub type_: ::core::option::Option<String>,
+    /// Boolean value indicating whether the index is unique.
     #[serde(default)]
-    pub permissions: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// Response message for TestIamPermissions method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct TestIamPermissionsResponse {
-    /// A subset of TestPermissionsRequest.permissions that the caller is allowed.
-    #[serde(default)]
-    pub permissions: ::core::option::Option<::std::vec::Vec<String>>,
+    pub unique: ::core::option::Option<bool>,
 }
 
 /// Trigger is not used as an independent entity, it is retrieved as part of a Table entity.
@@ -2594,46 +2074,200 @@ pub struct TriggerEntity {
     pub triggering_events: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
-/// UDT''s parent is a schema.
+/// Constraint is not used as an independent entity, it is retrieved as part of another entity such as Table or View.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct UDTEntity {
+pub struct ConstraintEntity {
     /// Custom engine specific features.
     #[serde(default, rename = "customFeatures")]
     pub custom_features: ::core::option::Option<serde_json::Value>,
-    /// The SQL code which creates the udt body.
-    #[serde(default, rename = "udtBody")]
-    pub udt_body: ::core::option::Option<String>,
-    /// The SQL code which creates the udt.
-    #[serde(default, rename = "udtSqlCode")]
-    pub udt_sql_code: ::core::option::Option<String>,
+    /// The name of the table constraint.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Reference columns which may be associated with the constraint. For example, if the constraint is a FOREIGN_KEY, this represents the list of full names of referenced columns by the foreign key.
+    #[serde(default, rename = "referenceColumns")]
+    pub reference_columns: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Reference table which may be associated with the constraint. For example, if the constraint is a FOREIGN_KEY, this represents the list of full name of the referenced table by the foreign key.
+    #[serde(default, rename = "referenceTable")]
+    pub reference_table: ::core::option::Option<String>,
+    /// Table columns used as part of the Constraint, for example primary key constraint should list the columns which constitutes the key.
+    #[serde(default, rename = "tableColumns")]
+    pub table_columns: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Table which is associated with the constraint. In case the constraint is defined on a table, this field is left empty as this information is stored in parent_name. However, if constraint is defined on a view, this field stores the table name on which the view is defined.
+    #[serde(default, rename = "tableName")]
+    pub table_name: ::core::option::Option<String>,
+    /// Type of constraint, for example unique, primary key, foreign key (currently only primary key is supported).
+    #[serde(default, rename = "type")]
+    pub type_: ::core::option::Option<String>,
 }
 
-/// The username/password for a database user. Used for specifying initial users at cluster creation time.
+/// Settings for creating an AlloyDB cluster.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct UserPassword {
-    /// The initial password for the user.
+pub struct AlloyDbSettings {
+    /// Optional. The database engine major version. This is an optional field. If a database version is not supplied at cluster creation time, then a default database version will be used. // TODO: enum values: ["DATABASE_VERSION_UNSPECIFIED", "POSTGRES_14", "POSTGRES_15", "POSTGRES_16", "POSTGRES_17", "POSTGRES_18"]
+    #[serde(default, rename = "databaseVersion")]
+    pub database_version: ::core::option::Option<String>,
+    /// Optional. The encryption config can be specified to encrypt the data disks and other persistent data resources of a cluster with a customer-managed encryption key (CMEK). When this field is not specified, the cluster will then use default encryption scheme to protect the user data.
+    #[serde(default, rename = "encryptionConfig")]
+    pub encryption_config: ::core::option::Option<EncryptionConfig>,
+    /// Required. Input only. Initial user to setup during cluster creation. Required.
+    #[serde(default, rename = "initialUser")]
+    pub initial_user: ::core::option::Option<UserPassword>,
+    /// Labels for the AlloyDB cluster created by DMS. An object containing a list of ''key'', ''value'' pairs.
+    #[serde(default)]
+    pub labels: ::core::option::Option<serde_json::Value>,
+    /// Settings for the cluster''s primary instance
+    #[serde(default, rename = "primaryInstanceSettings")]
+    pub primary_instance_settings: ::core::option::Option<PrimaryInstanceSettings>,
+    /// Required. The resource link for the VPC network in which cluster resources are created and from which they are accessible via Private IP. The network must belong to the same project as the cluster. It is specified in the form: "projects/{project_number}/global/networks/{network_id}". This is required to create a cluster.
+    #[serde(default, rename = "vpcNetwork")]
+    pub vpc_network: ::core::option::Option<String>,
+}
+
+/// Settings for creating a Cloud SQL database instance.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CloudSqlSettings {
+    /// The activation policy specifies when the instance is activated; it is applicable only when the instance state is ''RUNNABLE''. Valid values: ''ALWAYS'': The instance is on, and remains so even in the absence of connection requests. NEVER: The instance is off; it is not activated, even if a connection request arrives. // TODO: enum values: ["SQL_ACTIVATION_POLICY_UNSPECIFIED", "ALWAYS", "NEVER"]
+    #[serde(default, rename = "activationPolicy")]
+    pub activation_policy: ::core::option::Option<String>,
+    /// [default: ON] If you enable this setting, Cloud SQL checks your available storage every 30 seconds. If the available storage falls below a threshold size, Cloud SQL automatically adds additional storage capacity. If the available storage repeatedly falls below the threshold size, Cloud SQL continues to add storage until it reaches the maximum of 30 TB.
+    #[serde(default, rename = "autoStorageIncrease")]
+    pub auto_storage_increase: ::core::option::Option<bool>,
+    /// Optional. Availability type. Potential values: * ZONAL: The instance serves data from only one zone. Outages in that zone affect data availability. * REGIONAL: The instance can serve data from more than one zone in a region (it is highly available). // TODO: enum values: ["SQL_AVAILABILITY_TYPE_UNSPECIFIED", "ZONAL", "REGIONAL"]
+    #[serde(default, rename = "availabilityType")]
+    pub availability_type: ::core::option::Option<String>,
+    /// The KMS key name used for the csql instance.
+    #[serde(default, rename = "cmekKeyName")]
+    pub cmek_key_name: ::core::option::Option<String>,
+    /// The Cloud SQL default instance level collation.
+    #[serde(default)]
+    pub collation: ::core::option::Option<String>,
+    /// Optional. Data cache is an optional feature available for Cloud SQL for MySQL Enterprise Plus edition only. For more information on data cache, see [Data cache overview](https://cloud.google.com/sql/help/mysql-data-cache) in Cloud SQL documentation.
+    #[serde(default, rename = "dataCacheConfig")]
+    pub data_cache_config: ::core::option::Option<DataCacheConfig>,
+    /// Optional. Provisioned number of I/O operations per second for the data disk. This field is only used for hyperdisk-balanced disk types.
+    #[serde(default, rename = "dataDiskProvisionedIops")]
+    pub data_disk_provisioned_iops: ::core::option::Option<String>,
+    /// Optional. Provisioned throughput measured in MiB per second for the data disk. This field is only used for hyperdisk-balanced disk types.
+    #[serde(default, rename = "dataDiskProvisionedThroughput")]
+    pub data_disk_provisioned_throughput: ::core::option::Option<String>,
+    /// The storage capacity available to the database, in GB. The minimum (and default) size is 10GB.
+    #[serde(default, rename = "dataDiskSizeGb")]
+    pub data_disk_size_gb: ::core::option::Option<String>,
+    /// The type of storage: PD_SSD (default) or PD_HDD or HYPERDISK_BALANCED. // TODO: enum values: ["SQL_DATA_DISK_TYPE_UNSPECIFIED", "PD_SSD", "PD_HDD", "HYPERDISK_BALANCED"]
+    #[serde(default, rename = "dataDiskType")]
+    pub data_disk_type: ::core::option::Option<String>,
+    /// The database flags passed to the Cloud SQL instance at startup. An object containing a list of "key": value pairs. Example: { "name": "wrench", "mass": "1.3kg", "count": "3" }.
+    #[serde(default, rename = "databaseFlags")]
+    pub database_flags: ::core::option::Option<serde_json::Value>,
+    /// The database engine type and version. Deprecated. Use database_version_name instead. // TODO: enum values: ["SQL_DATABASE_VERSION_UNSPECIFIED", "MYSQL_5_6", "MYSQL_5_7", "MYSQL_8_0", "MYSQL_8_0_18", "MYSQL_8_0_26", "MYSQL_8_0_27", "MYSQL_8_0_28", "MYSQL_8_0_30", "MYSQL_8_0_31", "MYSQL_8_0_32", "MYSQL_8_0_33", "MYSQL_8_0_34", "MYSQL_8_0_35", "MYSQL_8_0_36", "MYSQL_8_0_37", "MYSQL_8_4", "POSTGRES_9_6", "POSTGRES_11", "POSTGRES_10", "POSTGRES_12", "POSTGRES_13", "POSTGRES_14", "POSTGRES_15", "POSTGRES_16"]
+    #[serde(default, rename = "databaseVersion")]
+    pub database_version: ::core::option::Option<String>,
+    /// Optional. The database engine type and version name.
+    #[serde(default, rename = "databaseVersionName")]
+    pub database_version_name: ::core::option::Option<String>,
+    /// Optional. The edition of the given Cloud SQL instance. // TODO: enum values: ["EDITION_UNSPECIFIED", "ENTERPRISE", "ENTERPRISE_PLUS"]
+    #[serde(default)]
+    pub edition: ::core::option::Option<String>,
+    /// The settings for IP Management. This allows to enable or disable the instance IP and manage which external networks can connect to the instance. The IPv4 address cannot be disabled.
+    #[serde(default, rename = "ipConfig")]
+    pub ip_config: ::core::option::Option<SqlIpConfig>,
+    /// Input only. Initial root password.
+    #[serde(default, rename = "rootPassword")]
+    pub root_password: ::core::option::Option<String>,
+    /// Output only. Indicates If this connection profile root password is stored.
+    #[serde(default, rename = "rootPasswordSet")]
+    pub root_password_set: ::core::option::Option<bool>,
+    /// Optional. The Google Cloud Platform zone where the failover Cloud SQL database instance is located. Used when the Cloud SQL database availability type is REGIONAL (i.e. multiple zones / highly available).
+    #[serde(default, rename = "secondaryZone")]
+    pub secondary_zone: ::core::option::Option<String>,
+    /// The Database Migration Service source connection profile ID, in the format: projects/my_project_name/locations/us-central1/connectionProfiles/connection_profile_ID
+    #[serde(default, rename = "sourceId")]
+    pub source_id: ::core::option::Option<String>,
+    /// The maximum size to which storage capacity can be automatically increased. The default value is 0, which specifies that there is no limit.
+    #[serde(default, rename = "storageAutoResizeLimit")]
+    pub storage_auto_resize_limit: ::core::option::Option<String>,
+    /// The tier (or machine type) for this instance, for example: db-n1-standard-1 (MySQL instances) or db-custom-1-3840 (PostgreSQL instances). For more information, see [Cloud SQL Instance Settings](https://cloud.google.com/sql/docs/mysql/instance-settings).
+    #[serde(default)]
+    pub tier: ::core::option::Option<String>,
+    /// The resource labels for a Cloud SQL instance to use to annotate any related underlying resources such as Compute Engine VMs. An object containing a list of "key": "value" pairs. Example: { "name": "wrench", "mass": "18kg", "count": "3" }.
+    #[serde(default, rename = "userLabels")]
+    pub user_labels: ::core::option::Option<serde_json::Value>,
+    /// The Google Cloud Platform zone where your Cloud SQL database instance is located.
+    #[serde(default)]
+    pub zone: ::core::option::Option<String>,
+}
+
+/// Configuration for Oracle Automatic Storage Management (ASM) connection.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct OracleAsmConfig {
+    /// Required. ASM service name for the Oracle ASM connection.
+    #[serde(default, rename = "asmService")]
+    pub asm_service: ::core::option::Option<String>,
+    /// Required. Hostname for the Oracle ASM connection.
+    #[serde(default)]
+    pub hostname: ::core::option::Option<String>,
+    /// Required. Input only. Password for the Oracle ASM connection.
     #[serde(default)]
     pub password: ::core::option::Option<String>,
-    /// Output only. Indicates if the initial_user.password field has been set.
+    /// Output only. Indicates whether a new password is included in the request.
     #[serde(default, rename = "passwordSet")]
     pub password_set: ::core::option::Option<bool>,
-    /// The database username.
+    /// Required. Port for the Oracle ASM connection.
     #[serde(default)]
-    pub user: ::core::option::Option<String>,
+    pub port: ::core::option::Option<i32>,
+    /// Optional. SSL configuration for the Oracle connection.
+    #[serde(default)]
+    pub ssl: ::core::option::Option<SslConfig>,
+    /// Required. Username for the Oracle ASM connection.
+    #[serde(default)]
+    pub username: ::core::option::Option<String>,
 }
 
-/// A list of values to filter by in ConditionalColumnSetValue
+/// Specifies the backup details in Cloud Storage for homogeneous migration to Cloud SQL for SQL Server.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ValueListFilter {
-    /// Required. Whether to ignore case when filtering by values. Defaults to false
-    #[serde(default, rename = "ignoreCase")]
-    pub ignore_case: ::core::option::Option<bool>,
-    /// Required. Indicates whether the filter matches rows with values that are present in the list or those with values not present in it. // TODO: enum values: ["VALUE_PRESENT_IN_LIST_UNSPECIFIED", "VALUE_PRESENT_IN_LIST_IF_VALUE_LIST", "VALUE_PRESENT_IN_LIST_IF_VALUE_NOT_LIST"]
-    #[serde(default, rename = "valuePresentList")]
-    pub value_present_list: ::core::option::Option<String>,
-    /// Required. The list to be used to filter by
+pub struct SqlServerBackups {
+    /// Required. The Cloud Storage bucket that stores backups for all replicated databases.
+    #[serde(default, rename = "gcsBucket")]
+    pub gcs_bucket: ::core::option::Option<String>,
+    /// Optional. Cloud Storage path inside the bucket that stores backups.
+    #[serde(default, rename = "gcsPrefix")]
+    pub gcs_prefix: ::core::option::Option<String>,
+}
+
+/// Forward SSH Tunnel connectivity.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ForwardSshTunnelConnectivity {
+    /// Required. Hostname for the SSH tunnel.
     #[serde(default)]
-    pub values: ::core::option::Option<::std::vec::Vec<String>>,
+    pub hostname: ::core::option::Option<String>,
+    /// Input only. SSH password.
+    #[serde(default)]
+    pub password: ::core::option::Option<String>,
+    /// Port for the SSH tunnel, default value is 22.
+    #[serde(default)]
+    pub port: ::core::option::Option<i32>,
+    /// Input only. SSH private key.
+    #[serde(default, rename = "privateKey")]
+    pub private_key: ::core::option::Option<String>,
+    /// Required. Username for the SSH tunnel.
+    #[serde(default)]
+    pub username: ::core::option::Option<String>,
+}
+
+/// Private Connectivity.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PrivateConnectivity {
+    /// Required. The resource name (URI) of the private connection.
+    #[serde(default, rename = "privateConnection")]
+    pub private_connection: ::core::option::Option<String>,
+}
+
+/// [Private Service Connect connectivity](https://cloud.google.com/vpc/docs/private-service-connect#service-attachments)
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PrivateServiceConnectConnectivity {
+    /// Required. A service attachment that exposes a database, and has the following format: projects/{project}/regions/{region}/serviceAttachments/{service_attachment_name}
+    #[serde(default, rename = "serviceAttachment")]
+    pub service_attachment: ::core::option::Option<String>,
 }
 
 /// Description of data transformation during migration as part of the ConditionalColumnSetValue.
@@ -2671,68 +2305,434 @@ pub struct ValueTransformation {
     pub value_list: ::core::option::Option<ValueListFilter>,
 }
 
-/// Request message for ''VerifyMigrationJob'' request.
+/// Filter for fixed point number data types such as NUMERIC/NUMBER
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct VerifyMigrationJobRequest {
-    /// Optional. The changed migration job parameters to verify. It will not update the migration job.
-    #[serde(default, rename = "migrationJob")]
-    pub migration_job: ::core::option::Option<MigrationJob>,
-    /// Optional. Field mask is used to specify the changed fields to be verified. It will not update the migration job.
-    #[serde(default, rename = "updateMask")]
-    pub update_mask: ::core::option::Option<String>,
+pub struct SourceNumericFilter {
+    /// Required. Enum to set the option defining the datatypes numeric filter has to be applied to // TODO: enum values: ["NUMERIC_FILTER_OPTION_UNSPECIFIED", "NUMERIC_FILTER_OPTION_ALL", "NUMERIC_FILTER_OPTION_LIMIT", "NUMERIC_FILTER_OPTION_LIMITLESS"]
+    #[serde(default, rename = "numericFilterOption")]
+    pub numeric_filter_option: ::core::option::Option<String>,
+    /// Optional. The filter will match columns with precision smaller than or equal to this number.
+    #[serde(default, rename = "sourceMaxPrecisionFilter")]
+    pub source_max_precision_filter: ::core::option::Option<i32>,
+    /// Optional. The filter will match columns with scale smaller than or equal to this number.
+    #[serde(default, rename = "sourceMaxScaleFilter")]
+    pub source_max_scale_filter: ::core::option::Option<i32>,
+    /// Optional. The filter will match columns with precision greater than or equal to this number.
+    #[serde(default, rename = "sourceMinPrecisionFilter")]
+    pub source_min_precision_filter: ::core::option::Option<i32>,
+    /// Optional. The filter will match columns with scale greater than or equal to this number.
+    #[serde(default, rename = "sourceMinScaleFilter")]
+    pub source_min_scale_filter: ::core::option::Option<i32>,
 }
 
-/// View''s parent is a schema.
+/// Filter for text-based data types like varchar.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ViewEntity {
-    /// View constraints.
+pub struct SourceTextFilter {
+    /// Optional. The filter will match columns with length smaller than or equal to this number.
+    #[serde(default, rename = "sourceMaxLengthFilter")]
+    pub source_max_length_filter: ::core::option::Option<String>,
+    /// Optional. The filter will match columns with length greater than or equal to this number.
+    #[serde(default, rename = "sourceMinLengthFilter")]
+    pub source_min_length_filter: ::core::option::Option<String>,
+}
+
+/// Provides the configuration for logging a type of permissions. Example: { "audit_log_configs": [ { "log_type": "DATA_READ", "exempted_members": [ "user:jose@example.com" ] }, { "log_type": "DATA_WRITE" } ] } This enables ''DATA_READ'' and ''DATA_WRITE'' logging, while exempting jose@example.com from DATA_READ logging.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AuditLogConfig {
+    /// Specifies the identities that do not cause logging for this type of permission. Follows the same format of Binding.members.
+    #[serde(default, rename = "exemptedMembers")]
+    pub exempted_members: ::core::option::Option<::std::vec::Vec<String>>,
+    /// The log type that this config enables. // TODO: enum values: ["LOG_TYPE_UNSPECIFIED", "ADMIN_READ", "DATA_WRITE", "DATA_READ"]
+    #[serde(default, rename = "logType")]
+    pub log_type: ::core::option::Option<String>,
+}
+
+/// Represents a textual expression in the Common Expression Language (CEL) syntax. CEL is a C-like expression language. The syntax and semantics of CEL are documented at https://github.com/google/cel-spec. Example (Comparison): title: "Summary size limit" description: "Determines if a summary is less than 100 chars" expression: "document.summary.size() &lt; 100" Example (Equality): title: "Requestor is owner" description: "Determines if requestor is the document owner" expression: "document.owner == request.auth.claims.email" Example (Logic): title: "Public documents" description: "Determine whether the document should be publicly visible" expression: "document.type != ''private'' && document.type != ''internal''" Example (Data Manipulation): title: "Notification string" description: "Create a notification string with a timestamp." expression: "''New message received at '' + string(document.create_time)" The exact variables and functions that may be referenced within an expression are determined by the service that evaluates it. See the service documentation for additional information.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Expr {
+    /// Optional. Description of the expression. This is a longer text which describes the expression, e.g. when hovered over it in a UI.
     #[serde(default)]
-    pub constraints: ::core::option::Option<::std::vec::Vec<ConstraintEntity>>,
-    /// Custom engine specific features.
-    #[serde(default, rename = "customFeatures")]
-    pub custom_features: ::core::option::Option<serde_json::Value>,
-    /// The SQL code which creates the view.
-    #[serde(default, rename = "sqlCode")]
-    pub sql_code: ::core::option::Option<String>,
-}
-
-/// VM creation configuration message
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct VmCreationConfig {
-    /// The subnet name the vm needs to be created in.
+    pub description: ::core::option::Option<String>,
+    /// Textual representation of an expression in Common Expression Language syntax.
     #[serde(default)]
-    pub subnet: ::core::option::Option<String>,
-    /// Required. VM instance machine type to create.
-    #[serde(default, rename = "vmMachineType")]
-    pub vm_machine_type: ::core::option::Option<String>,
-    /// The Google Cloud Platform zone to create the VM in.
-    #[serde(default, rename = "vmZone")]
-    pub vm_zone: ::core::option::Option<String>,
-}
-
-/// VM selection configuration message
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct VmSelectionConfig {
-    /// Required. The Google Cloud Platform zone the VM is located.
-    #[serde(default, rename = "vmZone")]
-    pub vm_zone: ::core::option::Option<String>,
-}
-
-/// The VPC peering configuration is used to create VPC peering with the consumer''s VPC.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct VpcPeeringConfig {
-    /// Required. A free subnet for peering. (CIDR of /29)
+    pub expression: ::core::option::Option<String>,
+    /// Optional. String indicating the location of the expression for error reporting, e.g. a file name and a position in the file.
     #[serde(default)]
-    pub subnet: ::core::option::Option<String>,
-    /// Required. Fully qualified name of the VPC that Database Migration Service will peer to.
-    #[serde(default, rename = "vpcName")]
-    pub vpc_name: ::core::option::Option<String>,
+    pub location: ::core::option::Option<String>,
+    /// Optional. Title for the expression, i.e. a short string describing its purpose. This can be used e.g. in UIs which allow to enter the expression.
+    #[serde(default)]
+    pub title: ::core::option::Option<String>,
 }
 
-/// The details of the VPC where the source database is located in Google Cloud. We will use this information to set up the VPC peering connection between Cloud SQL and this VPC.
+/// Dump flag definition.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct VpcPeeringConnectivity {
-    /// The name of the VPC network to peer with the Cloud SQL private network.
+pub struct DumpFlag {
+    /// The name of the flag
     #[serde(default)]
-    pub vpc: ::core::option::Option<String>,
+    pub name: ::core::option::Option<String>,
+    /// The value of the flag.
+    #[serde(default)]
+    pub value: ::core::option::Option<String>,
+}
+
+/// List of configurations for the source objects to be migrated.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SourceObjectsConfig {
+    /// Optional. The list of the objects to be migrated.
+    #[serde(default, rename = "objectConfigs")]
+    pub object_configs: ::core::option::Option<::std::vec::Vec<SourceObjectConfig>>,
+    /// Optional. The objects selection type of the migration job. // TODO: enum values: ["OBJECTS_SELECTION_TYPE_UNSPECIFIED", "ALL_OBJECTS", "SPECIFIED_OBJECTS"]
+    #[serde(default, rename = "objectsSelectionType")]
+    pub objects_selection_type: ::core::option::Option<String>,
+}
+
+/// Configuration for Oracle as a source in a migration.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct OracleSourceConfig {
+    /// Use Binary Log Parser.
+    #[serde(default, rename = "binaryLogParser")]
+    pub binary_log_parser: ::core::option::Option<BinaryLogParser>,
+    /// Optional. The schema change number (SCN) to start CDC data migration from.
+    #[serde(default, rename = "cdcStartPosition")]
+    pub cdc_start_position: ::core::option::Option<String>,
+    /// Use LogMiner.
+    #[serde(default, rename = "logMiner")]
+    pub log_miner: ::core::option::Option<serde_json::Value>,
+    /// Optional. Maximum number of connections Database Migration Service will open to the source for CDC phase.
+    #[serde(default, rename = "maxConcurrentCdcConnections")]
+    pub max_concurrent_cdc_connections: ::core::option::Option<i32>,
+    /// Optional. Maximum number of connections Database Migration Service will open to the source for full dump phase.
+    #[serde(default, rename = "maxConcurrentFullDumpConnections")]
+    pub max_concurrent_full_dump_connections: ::core::option::Option<i32>,
+    /// Optional. Whether to skip full dump or not.
+    #[serde(default, rename = "skipFullDump")]
+    pub skip_full_dump: ::core::option::Option<bool>,
+}
+
+/// Configuration for Postgres as a source in a migration.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PostgresSourceConfig {
+    /// Optional. Whether to skip full dump or not.
+    #[serde(default, rename = "skipFullDump")]
+    pub skip_full_dump: ::core::option::Option<bool>,
+}
+
+/// Configuration for SQL Server as a destination in a migration.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SqlServerDestinationConfig {
+    /// Optional. Maximum number of connections Database Migration Service will open to the destination for data migration.
+    #[serde(default, rename = "maxConcurrentConnections")]
+    pub max_concurrent_connections: ::core::option::Option<i32>,
+    /// Optional. Timeout for data migration transactions.
+    #[serde(default, rename = "transactionTimeout")]
+    pub transaction_timeout: ::core::option::Option<String>,
+}
+
+/// Configuration for distributed availability group (DAG) for the SQL Server homogeneous migration.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SqlServerDagConfig {
+    /// Required. The name of the linked server that points to the source SQL Server instance. Only used by DAG migrations.
+    #[serde(default, rename = "linkedServer")]
+    pub linked_server: ::core::option::Option<String>,
+    /// Required. The name of the source availability group. Only used by DAG migrations.
+    #[serde(default, rename = "sourceAg")]
+    pub source_ag: ::core::option::Option<String>,
+}
+
+/// Specifies the backup details for a single database in Cloud Storage for homogeneous migration to Cloud SQL for SQL Server.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SqlServerDatabaseBackup {
+    /// Required. Name of a SQL Server database for which to define backup configuration.
+    #[serde(default)]
+    pub database: ::core::option::Option<String>,
+    /// Optional. Encryption settings for the database. Required if provided database backups are encrypted. Encryption settings include path to certificate, path to certificate private key, and key password.
+    #[serde(default, rename = "encryptionOptions")]
+    pub encryption_options: ::core::option::Option<SqlServerEncryptionOptions>,
+}
+
+/// Configuration for Postgres as a destination in a migration.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PostgresDestinationConfig {
+    /// Optional. Maximum number of connections Database Migration Service will open to the destination for data migration.
+    #[serde(default, rename = "maxConcurrentConnections")]
+    pub max_concurrent_connections: ::core::option::Option<i32>,
+    /// Optional. Timeout for data migration transactions.
+    #[serde(default, rename = "transactionTimeout")]
+    pub transaction_timeout: ::core::option::Option<String>,
+}
+
+/// Configuration for SQL Server as a source in a migration.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SqlServerSourceConfig {
+    /// Optional. The log sequence number (LSN) to start CDC data migration from.
+    #[serde(default, rename = "cdcStartPosition")]
+    pub cdc_start_position: ::core::option::Option<String>,
+    /// Optional. Maximum number of connections Database Migration Service will open to the source for CDC phase.
+    #[serde(default, rename = "maxConcurrentCdcConnections")]
+    pub max_concurrent_cdc_connections: ::core::option::Option<i32>,
+    /// Optional. Maximum number of connections Database Migration Service will open to the source for full dump phase.
+    #[serde(default, rename = "maxConcurrentFullDumpConnections")]
+    pub max_concurrent_full_dump_connections: ::core::option::Option<i32>,
+    /// Optional. Whether to skip full dump or not.
+    #[serde(default, rename = "skipFullDump")]
+    pub skip_full_dump: ::core::option::Option<bool>,
+}
+
+/// EncryptionConfig describes the encryption config of a cluster that is encrypted with a CMEK (customer-managed encryption key).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct EncryptionConfig {
+    /// The fully-qualified resource name of the KMS key. Each Cloud KMS key is regionalized and has the following format: projects/[PROJECT]/locations/[REGION]/keyRings/[RING]/cryptoKeys/[KEY_NAME]
+    #[serde(default, rename = "kmsKeyName")]
+    pub kms_key_name: ::core::option::Option<String>,
+}
+
+/// The username/password for a database user. Used for specifying initial users at cluster creation time.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct UserPassword {
+    /// The initial password for the user.
+    #[serde(default)]
+    pub password: ::core::option::Option<String>,
+    /// Output only. Indicates if the initial_user.password field has been set.
+    #[serde(default, rename = "passwordSet")]
+    pub password_set: ::core::option::Option<bool>,
+    /// The database username.
+    #[serde(default)]
+    pub user: ::core::option::Option<String>,
+}
+
+/// Settings for the cluster''s primary instance
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PrimaryInstanceSettings {
+    /// Database flags to pass to AlloyDB when DMS is creating the AlloyDB cluster and instances. See the AlloyDB documentation for how these can be used.
+    #[serde(default, rename = "databaseFlags")]
+    pub database_flags: ::core::option::Option<serde_json::Value>,
+    /// Required. The ID of the AlloyDB primary instance. The ID must satisfy the regex expression "[a-z0-9-]+".
+    #[serde(default)]
+    pub id: ::core::option::Option<String>,
+    /// Optional. Metadata related to instance level network configuration.
+    #[serde(default, rename = "instanceNetworkConfig")]
+    pub instance_network_config: ::core::option::Option<InstanceNetworkConfig>,
+    /// Labels for the AlloyDB primary instance created by DMS. An object containing a list of ''key'', ''value'' pairs.
+    #[serde(default)]
+    pub labels: ::core::option::Option<serde_json::Value>,
+    /// Configuration for the machines that host the underlying database engine.
+    #[serde(default, rename = "machineConfig")]
+    pub machine_config: ::core::option::Option<MachineConfig>,
+    /// Output only. All outbound public IP addresses configured for the instance.
+    #[serde(default, rename = "outboundPublicIpAddresses")]
+    pub outbound_public_ip_addresses: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Output only. The private IP address for the Instance. This is the connection endpoint for an end-user application.
+    #[serde(default, rename = "privateIp")]
+    pub private_ip: ::core::option::Option<String>,
+}
+
+/// Data cache is an optional feature available for Cloud SQL for MySQL Enterprise Plus edition only. For more information on data cache, see [Data cache overview](https://cloud.google.com/sql/help/mysql-data-cache) in Cloud SQL documentation.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DataCacheConfig {
+    /// Optional. Whether data cache is enabled for the instance.
+    #[serde(default, rename = "dataCacheEnabled")]
+    pub data_cache_enabled: ::core::option::Option<bool>,
+}
+
+/// IP Management configuration.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SqlIpConfig {
+    /// Optional. The name of the allocated IP address range for the private IP Cloud SQL instance. This name refers to an already allocated IP range address. If set, the instance IP address will be created in the allocated range. Note that this IP address range can''t be modified after the instance is created. If you change the VPC when configuring connectivity settings for the migration job, this field is not relevant.
+    #[serde(default, rename = "allocatedIpRange")]
+    pub allocated_ip_range: ::core::option::Option<String>,
+    /// The list of external networks that are allowed to connect to the instance using the IP. See https://en.wikipedia.org/wiki/CIDR_notation#CIDR_notation, also known as ''slash'' notation (e.g. 192.168.100.0/24).
+    #[serde(default, rename = "authorizedNetworks")]
+    pub authorized_networks: ::core::option::Option<::std::vec::Vec<SqlAclEntry>>,
+    /// Whether the instance should be assigned an IPv4 address or not.
+    #[serde(default, rename = "enableIpv4")]
+    pub enable_ipv4: ::core::option::Option<bool>,
+    /// The resource link for the VPC network from which the Cloud SQL instance is accessible for private IP. For example, projects/myProject/global/networks/default. This setting can be updated, but it cannot be removed after it is set.
+    #[serde(default, rename = "privateNetwork")]
+    pub private_network: ::core::option::Option<String>,
+    /// Whether SSL connections over IP should be enforced or not.
+    #[serde(default, rename = "requireSsl")]
+    pub require_ssl: ::core::option::Option<bool>,
+}
+
+/// SSL configuration information.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SslConfig {
+    /// Required. Input only. The x509 PEM-encoded certificate of the CA that signed the source database server''s certificate. The replica will use this certificate to verify it''s connecting to the right host.
+    #[serde(default, rename = "caCertificate")]
+    pub ca_certificate: ::core::option::Option<String>,
+    /// Input only. The x509 PEM-encoded certificate that will be used by the replica to authenticate against the source database server.If this field is used then the ''client_key'' field is mandatory.
+    #[serde(default, rename = "clientCertificate")]
+    pub client_certificate: ::core::option::Option<String>,
+    /// Input only. The unencrypted PKCS#1 or PKCS#8 PEM-encoded private key associated with the Client Certificate. If this field is used then the ''client_certificate'' field is mandatory.
+    #[serde(default, rename = "clientKey")]
+    pub client_key: ::core::option::Option<String>,
+    /// Optional. SSL flags used for establishing SSL connection to the source database. Only source specific flags are supported. An object containing a list of "key": "value" pairs. Example: { "server_certificate_hostname": "server.com"}.
+    #[serde(default, rename = "sslFlags")]
+    pub ssl_flags: ::core::option::Option<serde_json::Value>,
+    /// Optional. The ssl config type according to ''client_key'', ''client_certificate'' and ''ca_certificate''. // TODO: enum values: ["SSL_TYPE_UNSPECIFIED", "SERVER_ONLY", "SERVER_CLIENT", "REQUIRED", "NONE"]
+    #[serde(default, rename = "type")]
+    pub type_: ::core::option::Option<String>,
+}
+
+/// Set to a specific value (value is converted to fit the target data type)
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AssignSpecificValue {
+    /// Required. Specific value to be assigned
+    #[serde(default)]
+    pub value: ::core::option::Option<String>,
+}
+
+/// Filter based on relation between source value and compare value of type double in ConditionalColumnSetValue
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DoubleComparisonFilter {
+    /// Required. Double compare value to be used
+    #[serde(default)]
+    pub value: ::core::option::Option<f64>,
+    /// Required. Relation between source value and compare value // TODO: enum values: ["VALUE_COMPARISON_UNSPECIFIED", "VALUE_COMPARISON_IF_VALUE_SMALLER_THAN", "VALUE_COMPARISON_IF_VALUE_SMALLER_EQUAL_THAN", "VALUE_COMPARISON_IF_VALUE_LARGER_THAN", "VALUE_COMPARISON_IF_VALUE_LARGER_EQUAL_THAN"]
+    #[serde(default, rename = "valueComparison")]
+    pub value_comparison: ::core::option::Option<String>,
+}
+
+/// Filter based on relation between source value and compare value of type integer in ConditionalColumnSetValue
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct IntComparisonFilter {
+    /// Required. Integer compare value to be used
+    #[serde(default)]
+    pub value: ::core::option::Option<String>,
+    /// Required. Relation between source value and compare value // TODO: enum values: ["VALUE_COMPARISON_UNSPECIFIED", "VALUE_COMPARISON_IF_VALUE_SMALLER_THAN", "VALUE_COMPARISON_IF_VALUE_SMALLER_EQUAL_THAN", "VALUE_COMPARISON_IF_VALUE_LARGER_THAN", "VALUE_COMPARISON_IF_VALUE_LARGER_EQUAL_THAN"]
+    #[serde(default, rename = "valueComparison")]
+    pub value_comparison: ::core::option::Option<String>,
+}
+
+/// This allows the data to change scale, for example if the source is 2 digits after the decimal point, specify round to scale value = 2. If for example the value needs to be converted to an integer, use round to scale value = 0.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RoundToScale {
+    /// Required. Scale value to be used
+    #[serde(default)]
+    pub scale: ::core::option::Option<i32>,
+}
+
+/// A list of values to filter by in ConditionalColumnSetValue
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ValueListFilter {
+    /// Required. Whether to ignore case when filtering by values. Defaults to false
+    #[serde(default, rename = "ignoreCase")]
+    pub ignore_case: ::core::option::Option<bool>,
+    /// Required. Indicates whether the filter matches rows with values that are present in the list or those with values not present in it. // TODO: enum values: ["VALUE_PRESENT_IN_LIST_UNSPECIFIED", "VALUE_PRESENT_IN_LIST_IF_VALUE_LIST", "VALUE_PRESENT_IN_LIST_IF_VALUE_NOT_LIST"]
+    #[serde(default, rename = "valuePresentList")]
+    pub value_present_list: ::core::option::Option<String>,
+    /// Required. The list to be used to filter by
+    #[serde(default)]
+    pub values: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// Config for a single migration job object.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SourceObjectConfig {
+    /// Optional. The object identifier.
+    #[serde(default, rename = "objectIdentifier")]
+    pub object_identifier: ::core::option::Option<SourceObjectIdentifier>,
+}
+
+/// Configuration to use Binary Log Parser CDC technique.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BinaryLogParser {
+    /// Use Oracle directories.
+    #[serde(default, rename = "logFileDirectories")]
+    pub log_file_directories: ::core::option::Option<LogFileDirectories>,
+    /// Use Oracle ASM.
+    #[serde(default, rename = "oracleAsmLogFileAccess")]
+    pub oracle_asm_log_file_access: ::core::option::Option<serde_json::Value>,
+}
+
+/// Encryption settings for the SQL Server database.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SqlServerEncryptionOptions {
+    /// Required. Path to the Certificate (.cer) in Cloud Storage, in the form gs://bucketName/fileName. The instance must have write permissions to the bucket and read access to the file.
+    #[serde(default, rename = "certPath")]
+    pub cert_path: ::core::option::Option<String>,
+    /// Required. Input only. Password that encrypts the private key.
+    #[serde(default, rename = "pvkPassword")]
+    pub pvk_password: ::core::option::Option<String>,
+    /// Required. Path to the Certificate Private Key (.pvk) in Cloud Storage, in the form gs://bucketName/fileName. The instance must have write permissions to the bucket and read access to the file.
+    #[serde(default, rename = "pvkPath")]
+    pub pvk_path: ::core::option::Option<String>,
+}
+
+/// Metadata related to instance level network configuration.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct InstanceNetworkConfig {
+    /// Optional. A list of external network authorized to access this instance.
+    #[serde(default, rename = "authorizedExternalNetworks")]
+    pub authorized_external_networks: ::core::option::Option<::std::vec::Vec<AuthorizedNetwork>>,
+    /// Optional. Enabling an outbound public IP address to support a database server sending requests out into the internet.
+    #[serde(default, rename = "enableOutboundPublicIp")]
+    pub enable_outbound_public_ip: ::core::option::Option<bool>,
+    /// Optional. Enabling public ip for the instance.
+    #[serde(default, rename = "enablePublicIp")]
+    pub enable_public_ip: ::core::option::Option<bool>,
+}
+
+/// MachineConfig describes the configuration of a machine.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MachineConfig {
+    /// The number of CPU''s in the VM instance.
+    #[serde(default, rename = "cpuCount")]
+    pub cpu_count: ::core::option::Option<i32>,
+    /// Optional. Machine type of the VM instance. E.g. "n2-highmem-4", "n2-highmem-8", "c4a-highmem-4-lssd". cpu_count must match the number of vCPUs in the machine type.
+    #[serde(default, rename = "machineType")]
+    pub machine_type: ::core::option::Option<String>,
+}
+
+/// An entry for an Access Control list.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SqlAclEntry {
+    /// The time when this access control entry expires in [RFC 3339](https://tools.ietf.org/html/rfc3339) format, for example: 2012-11-15T16:19:00.094Z.
+    #[serde(default, rename = "expireTime")]
+    pub expire_time: ::core::option::Option<String>,
+    /// A label to identify this entry.
+    #[serde(default)]
+    pub label: ::core::option::Option<String>,
+    /// Input only. The time-to-leave of this access control entry.
+    #[serde(default)]
+    pub ttl: ::core::option::Option<String>,
+    /// The allowlisted value for the access control list.
+    #[serde(default)]
+    pub value: ::core::option::Option<String>,
+}
+
+/// An identifier for the Migration Job Object.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SourceObjectIdentifier {
+    /// Optional. The database name. This will be required only if the object uses a database name as part of its unique identifier.
+    #[serde(default)]
+    pub database: ::core::option::Option<String>,
+    /// Optional. The schema name. This will be required only if the object uses a schema name as part of its unique identifier.
+    #[serde(default)]
+    pub schema: ::core::option::Option<String>,
+    /// Optional. The table name. This will be required only if the object is a level below database or schema.
+    #[serde(default)]
+    pub table: ::core::option::Option<String>,
+    /// Required. The type of the migration job object. // TODO: enum values: ["MIGRATION_JOB_OBJECT_TYPE_UNSPECIFIED", "DATABASE", "SCHEMA", "TABLE"]
+    #[serde(default, rename = "type")]
+    pub type_: ::core::option::Option<String>,
+}
+
+/// Configuration to specify the Oracle directories to access the log files.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LogFileDirectories {
+    /// Required. Oracle directory for archived logs.
+    #[serde(default, rename = "archivedLogDirectory")]
+    pub archived_log_directory: ::core::option::Option<String>,
+    /// Required. Oracle directory for online logs.
+    #[serde(default, rename = "onlineLogDirectory")]
+    pub online_log_directory: ::core::option::Option<String>,
+}
+
+/// AuthorizedNetwork contains metadata for an authorized network.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AuthorizedNetwork {
+    /// Optional. CIDR range for one authorzied network of the instance.
+    #[serde(default, rename = "cidrRange")]
+    pub cidr_range: ::core::option::Option<String>,
 }

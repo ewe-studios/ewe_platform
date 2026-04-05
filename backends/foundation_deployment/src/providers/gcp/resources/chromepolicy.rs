@@ -10,17 +10,6 @@
 use super::*;
 use serde::{Deserialize, Serialize};
 
-/// Additional key names that will be used to identify the target of the policy value.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleChromePolicyVersionsV1AdditionalTargetKeyName {
-    /// Key name.
-    #[serde(default)]
-    pub key: ::core::option::Option<String>,
-    /// Key description.
-    #[serde(default, rename = "keyDescription")]
-    pub key_description: ::core::option::Option<String>,
-}
-
 /// Request message for specifying that multiple policy values will be deleted.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleChromePolicyVersionsV1BatchDeleteGroupPoliciesRequest {
@@ -59,17 +48,6 @@ pub struct GoogleChromePolicyVersionsV1BatchModifyOrgUnitPoliciesRequest {
     pub requests: ::core::option::Option<
         ::std::vec::Vec<GoogleChromePolicyVersionsV1ModifyOrgUnitPolicyRequest>,
     >,
-}
-
-/// Error information for removing of a specific certificate on a specific target. A reference to a certificate.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleChromePolicyVersionsV1CertificateReference {
-    /// Output only. The name of the referencing network.
-    #[serde(default)]
-    pub network: ::core::option::Option<String>,
-    /// Output only. The obfuscated id of the org unit the referencing network is in.
-    #[serde(default, rename = "orgUnitId")]
-    pub org_unit_id: ::core::option::Option<String>,
 }
 
 /// Request object for creating a certificate.
@@ -135,41 +113,6 @@ pub struct GoogleChromePolicyVersionsV1DefineNetworkResponse {
     pub target_resource: ::core::option::Option<String>,
 }
 
-/// Request parameters for deleting the policy value of a specific group target.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleChromePolicyVersionsV1DeleteGroupPolicyRequest {
-    /// The fully qualified name of the policy schema that is being inherited.
-    #[serde(default, rename = "policySchema")]
-    pub policy_schema: ::core::option::Option<String>,
-    /// Required. The key of the target for which we want to modify a policy. The target resource must point to a Group.
-    #[serde(default, rename = "policyTargetKey")]
-    pub policy_target_key: ::core::option::Option<GoogleChromePolicyVersionsV1PolicyTargetKey>,
-}
-
-/// Information about any range constraints.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleChromePolicyVersionsV1FieldConstraints {
-    /// The allowed range for numeric fields.
-    #[serde(default, rename = "numericRangeConstraint")]
-    pub numeric_range_constraint:
-        ::core::option::Option<GoogleChromePolicyVersionsV1NumericRangeConstraint>,
-    /// Constraints on the uploaded file of a file policy. If present, this policy requires a URL that can be fetched by uploading a file with the constraints specified in this proto.
-    #[serde(default, rename = "uploadedFileConstraints")]
-    pub uploaded_file_constraints:
-        ::core::option::Option<GoogleChromePolicyVersionsV1UploadedFileConstraints>,
-}
-
-/// Request parameters for inheriting policy value of a specific org unit target from the policy value of its parent org unit.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleChromePolicyVersionsV1InheritOrgUnitPolicyRequest {
-    /// The fully qualified name of the policy schema that is being inherited.
-    #[serde(default, rename = "policySchema")]
-    pub policy_schema: ::core::option::Option<String>,
-    /// Required. The key of the target for which we want to modify a policy. The target resource must point to an Org Unit.
-    #[serde(default, rename = "policyTargetKey")]
-    pub policy_target_key: ::core::option::Option<GoogleChromePolicyVersionsV1PolicyTargetKey>,
-}
-
 /// Request message for listing the group priority ordering of an app.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleChromePolicyVersionsV1ListGroupPriorityOrderingRequest {
@@ -213,95 +156,6 @@ pub struct GoogleChromePolicyVersionsV1ListPolicySchemasResponse {
         ::core::option::Option<::std::vec::Vec<GoogleChromePolicyVersionsV1PolicySchema>>,
 }
 
-/// Request parameters for modifying a policy value for a specific group target.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleChromePolicyVersionsV1ModifyGroupPolicyRequest {
-    /// Required. The key of the target for which we want to modify a policy. The target resource must point to a Group.
-    #[serde(default, rename = "policyTargetKey")]
-    pub policy_target_key: ::core::option::Option<GoogleChromePolicyVersionsV1PolicyTargetKey>,
-    /// The new value for the policy.
-    #[serde(default, rename = "policyValue")]
-    pub policy_value: ::core::option::Option<GoogleChromePolicyVersionsV1PolicyValue>,
-    /// Required. Policy fields to update. Only fields in this mask will be updated; other fields in policy_value will be ignored (even if they have values). If a field is in this list it must have a value in ''policy_value''.
-    #[serde(default, rename = "updateMask")]
-    pub update_mask: ::core::option::Option<String>,
-}
-
-/// Request parameters for modifying a policy value for a specific org unit target.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleChromePolicyVersionsV1ModifyOrgUnitPolicyRequest {
-    /// Required. The key of the target for which we want to modify a policy. The target resource must point to an Org Unit.
-    #[serde(default, rename = "policyTargetKey")]
-    pub policy_target_key: ::core::option::Option<GoogleChromePolicyVersionsV1PolicyTargetKey>,
-    /// The new value for the policy.
-    #[serde(default, rename = "policyValue")]
-    pub policy_value: ::core::option::Option<GoogleChromePolicyVersionsV1PolicyValue>,
-    /// Required. Policy fields to update. Only fields in this mask will be updated; other fields in policy_value will be ignored (even if they have values). If a field is in this list it must have a value in ''policy_value''.
-    #[serde(default, rename = "updateMask")]
-    pub update_mask: ::core::option::Option<String>,
-}
-
-/// A network setting contains network configurations. It adheres to the PolicyAPI formats defined under the namespace chrome.networks.{wifi/ethernet/cellular/vpn}.Details
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleChromePolicyVersionsV1NetworkSetting {
-    /// The fully qualified name of the network setting.
-    #[serde(default, rename = "policySchema")]
-    pub policy_schema: ::core::option::Option<String>,
-    /// The value of the network setting.
-    #[serde(default)]
-    pub value: ::core::option::Option<serde_json::Value>,
-}
-
-/// A constraint on upper and/or lower bounds, with at least one being set.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleChromePolicyVersionsV1NumericRangeConstraint {
-    /// Maximum value.
-    #[serde(default)]
-    pub maximum: ::core::option::Option<String>,
-    /// Minimum value.
-    #[serde(default)]
-    pub minimum: ::core::option::Option<String>,
-}
-
-/// Lifecycle information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleChromePolicyVersionsV1PolicyApiLifecycle {
-    /// In the event that this policy was deprecated in favor of another policy, the fully qualified namespace(s) of the new policies as they will show in PolicyAPI. Could only be set if policy_api_lifecycle_stage is API_DEPRECATED.
-    #[serde(default, rename = "deprecatedInFavorOf")]
-    pub deprecated_in_favor_of: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Description about current life cycle.
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// End supporting date for current policy. Attempting to modify a policy after its end support date will result in a Bad Request (400 error). Could only be set if policy_api_lifecycle_stage is API_DEPRECATED.
-    #[serde(default, rename = "endSupport")]
-    pub end_support: ::core::option::Option<GoogleTypeDate>,
-    /// Indicates current life cycle stage of the policy API. // TODO: enum values: ["API_UNSPECIFIED", "API_PREVIEW", "API_DEVELOPMENT", "API_CURRENT", "API_DEPRECATED"]
-    #[serde(default, rename = "policyApiLifecycleStage")]
-    pub policy_api_lifecycle_stage: ::core::option::Option<String>,
-    /// Corresponding to deprecated_in_favor_of, the fully qualified namespace(s) of the old policies that will be deprecated because of introduction of this policy.
-    #[serde(default, rename = "scheduledToDeprecatePolicies")]
-    pub scheduled_to_deprecate_policies: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// Error information for a modification request of a specific policy on a specific target.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleChromePolicyVersionsV1PolicyModificationError {
-    /// Output only. The non-field errors related to the modification.
-    #[serde(default)]
-    pub errors: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Output only. The error messages related to the modification.
-    #[serde(default, rename = "fieldErrors")]
-    pub field_errors: ::core::option::Option<
-        ::std::vec::Vec<GoogleChromePolicyVersionsV1PolicyModificationFieldError>,
-    >,
-    /// Output only. The specific policy schema modification that had an error.
-    #[serde(default, rename = "policySchema")]
-    pub policy_schema: ::core::option::Option<String>,
-    /// Output only. The specific policy target modification that had error.
-    #[serde(default, rename = "policyTargetKey")]
-    pub policy_target_key: ::core::option::Option<GoogleChromePolicyVersionsV1PolicyTargetKey>,
-}
-
 /// Details of the errors encountered during a policy modification request. This message will be returned as part of the details of a google.rpc.Status returned to the user when there is an error in their request.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleChromePolicyVersionsV1PolicyModificationErrorDetails {
@@ -310,191 +164,6 @@ pub struct GoogleChromePolicyVersionsV1PolicyModificationErrorDetails {
     pub modification_errors: ::core::option::Option<
         ::std::vec::Vec<GoogleChromePolicyVersionsV1PolicyModificationError>,
     >,
-}
-
-/// Error information for a modification request of a specific field on a specific policy.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleChromePolicyVersionsV1PolicyModificationFieldError {
-    /// Output only. The error message related to the field.
-    #[serde(default)]
-    pub error: ::core::option::Option<String>,
-    /// Output only. The name of the field with the error.
-    #[serde(default)]
-    pub field: ::core::option::Option<String>,
-}
-
-/// Resource representing a policy schema.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleChromePolicyVersionsV1PolicySchema {
-    /// Output only. Specific access restrictions related to this policy.
-    #[serde(default, rename = "accessRestrictions")]
-    pub access_restrictions: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Output only. Additional key names that will be used to identify the target of the policy value. When specifying a policyTargetKey, each of the additional keys specified here will have to be included in the additionalTargetKeys map.
-    #[serde(default, rename = "additionalTargetKeyNames")]
-    pub additional_target_key_names: ::core::option::Option<
-        ::std::vec::Vec<GoogleChromePolicyVersionsV1AdditionalTargetKeyName>,
-    >,
-    /// Title of the category in which a setting belongs.
-    #[serde(default, rename = "categoryTitle")]
-    pub category_title: ::core::option::Option<String>,
-    /// Schema definition using proto descriptor.
-    #[serde(default)]
-    pub definition: ::core::option::Option<Proto2FileDescriptorProto>,
-    /// Output only. Detailed description of each field that is part of the schema. Fields are suggested to be displayed by the ordering in this list, not by field number.
-    #[serde(default, rename = "fieldDescriptions")]
-    pub field_descriptions: ::core::option::Option<
-        ::std::vec::Vec<GoogleChromePolicyVersionsV1PolicySchemaFieldDescription>,
-    >,
-    /// Format: name=customers/{customer}/policySchemas/{schema_namespace}
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Output only. Special notice messages related to setting certain values in certain fields in the schema.
-    #[serde(default)]
-    pub notices: ::core::option::Option<
-        ::std::vec::Vec<GoogleChromePolicyVersionsV1PolicySchemaNoticeDescription>,
-    >,
-    /// Output only. Current lifecycle information.
-    #[serde(default, rename = "policyApiLifecycle")]
-    pub policy_api_lifecycle:
-        ::core::option::Option<GoogleChromePolicyVersionsV1PolicyApiLifecycle>,
-    /// Output only. Description about the policy schema for user consumption.
-    #[serde(default, rename = "policyDescription")]
-    pub policy_description: ::core::option::Option<String>,
-    /// Output only. The fully qualified name of the policy schema. This value is used to fill the field policy_schema in PolicyValue when calling BatchInheritOrgUnitPolicies BatchModifyOrgUnitPolicies BatchModifyGroupPolicies or BatchDeleteGroupPolicies.
-    #[serde(default, rename = "schemaName")]
-    pub schema_name: ::core::option::Option<String>,
-    /// Output only. URI to related support article for this schema.
-    #[serde(default, rename = "supportUri")]
-    pub support_uri: ::core::option::Option<String>,
-    /// Output only. List indicates that the policy will only apply to devices/users on these platforms.
-    #[serde(default, rename = "supportedPlatforms")]
-    pub supported_platforms: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Output only. Information about applicable target resources for the policy.
-    #[serde(default, rename = "validTargetResources")]
-    pub valid_target_resources: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// The field and the value it must have for another field to be allowed to be set.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleChromePolicyVersionsV1PolicySchemaFieldDependencies {
-    /// The source field which this field depends on.
-    #[serde(default, rename = "sourceField")]
-    pub source_field: ::core::option::Option<String>,
-    /// The value which the source field must have for this field to be allowed to be set.
-    #[serde(default, rename = "sourceFieldValue")]
-    pub source_field_value: ::core::option::Option<String>,
-}
-
-/// Provides detailed information for a particular field that is part of a PolicySchema.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleChromePolicyVersionsV1PolicySchemaFieldDescription {
-    /// Output only. Client default if the policy is unset.
-    #[serde(default, rename = "defaultValue")]
-    pub default_value: ::core::option::Option<serde_json::Value>,
-    /// Deprecated. Use name and field_description instead. The description for the field.
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// Output only. The name of the field for associated with this description.
-    #[serde(default)]
-    pub field: ::core::option::Option<String>,
-    /// Output only. Information on any input constraints associated on the values for the field.
-    #[serde(default, rename = "fieldConstraints")]
-    pub field_constraints: ::core::option::Option<GoogleChromePolicyVersionsV1FieldConstraints>,
-    /// Output only. Provides a list of fields and values. At least one of the fields must have the corresponding value in order for this field to be allowed to be set.
-    #[serde(default, rename = "fieldDependencies")]
-    pub field_dependencies: ::core::option::Option<
-        ::std::vec::Vec<GoogleChromePolicyVersionsV1PolicySchemaFieldDependencies>,
-    >,
-    /// Output only. The description of the field.
-    #[serde(default, rename = "fieldDescription")]
-    pub field_description: ::core::option::Option<String>,
-    /// Output only. Any input constraints associated on the values for the field.
-    #[serde(default, rename = "inputConstraint")]
-    pub input_constraint: ::core::option::Option<String>,
-    /// Output only. If the field has a set of known values, this field will provide a description for these values.
-    #[serde(default, rename = "knownValueDescriptions")]
-    pub known_value_descriptions: ::core::option::Option<
-        ::std::vec::Vec<GoogleChromePolicyVersionsV1PolicySchemaFieldKnownValueDescription>,
-    >,
-    /// Output only. The name of the field.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Output only. Provides the description of the fields nested in this field, if the field is a message type that defines multiple fields. Fields are suggested to be displayed by the ordering in this list, not by field number.
-    #[serde(default, rename = "nestedFieldDescriptions")]
-    pub nested_field_descriptions: ::core::option::Option<
-        ::std::vec::Vec<GoogleChromePolicyVersionsV1PolicySchemaFieldDescription>,
-    >,
-    /// Output only. Provides a list of fields that are required to be set if this field has a certain value.
-    #[serde(default, rename = "requiredItems")]
-    pub required_items: ::core::option::Option<
-        ::std::vec::Vec<GoogleChromePolicyVersionsV1PolicySchemaRequiredItems>,
-    >,
-}
-
-/// Provides detailed information about a known value that is allowed for a particular field in a PolicySchema.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleChromePolicyVersionsV1PolicySchemaFieldKnownValueDescription {
-    /// Output only. Additional description for this value.
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// Output only. Field conditions required for this value to be valid.
-    #[serde(default, rename = "fieldDependencies")]
-    pub field_dependencies: ::core::option::Option<
-        ::std::vec::Vec<GoogleChromePolicyVersionsV1PolicySchemaFieldDependencies>,
-    >,
-    /// Output only. The string represenstation of the value that can be set for the field.
-    #[serde(default)]
-    pub value: ::core::option::Option<String>,
-}
-
-/// Provides special notice messages related to a particular value in a field that is part of a PolicySchema.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleChromePolicyVersionsV1PolicySchemaNoticeDescription {
-    /// Output only. Whether the user needs to acknowledge the notice message before the value can be set.
-    #[serde(default, rename = "acknowledgementRequired")]
-    pub acknowledgement_required: ::core::option::Option<bool>,
-    /// Output only. The field name associated with the notice.
-    #[serde(default)]
-    pub field: ::core::option::Option<String>,
-    /// Output only. The notice message associate with the value of the field.
-    #[serde(default, rename = "noticeMessage")]
-    pub notice_message: ::core::option::Option<String>,
-    /// Output only. The value of the field that has a notice. When setting the field to this value, the user may be required to acknowledge the notice message in order for the value to be set.
-    #[serde(default, rename = "noticeValue")]
-    pub notice_value: ::core::option::Option<String>,
-}
-
-/// The fields that will become required based on the value of this field.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleChromePolicyVersionsV1PolicySchemaRequiredItems {
-    /// The value(s) of the field that provoke required field enforcement. An empty field_conditions implies that any value assigned to this field will provoke required field enforcement.
-    #[serde(default, rename = "fieldConditions")]
-    pub field_conditions: ::core::option::Option<::std::vec::Vec<String>>,
-    /// The fields that are required as a consequence of the field conditions.
-    #[serde(default, rename = "requiredFields")]
-    pub required_fields: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// The key used to identify the target on which the policy will be applied.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleChromePolicyVersionsV1PolicyTargetKey {
-    /// Map containing the additional target key name and value pairs used to further identify the target of the policy.
-    #[serde(default, rename = "additionalTargetKeys")]
-    pub additional_target_keys: ::core::option::Option<serde_json::Value>,
-    /// The target resource on which this policy is applied. The following resources are supported: * Organizational Unit ("orgunits/{orgunit_id}") * Group ("groups/{group_id}")
-    #[serde(default, rename = "targetResource")]
-    pub target_resource: ::core::option::Option<String>,
-}
-
-/// A particular value for a policy managed by the service.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleChromePolicyVersionsV1PolicyValue {
-    /// The fully qualified name of the policy schema associated with this policy.
-    #[serde(default, rename = "policySchema")]
-    pub policy_schema: ::core::option::Option<String>,
-    /// The value of the policy that is compatible with the schema that it is associated with.
-    #[serde(default)]
-    pub value: ::core::option::Option<serde_json::Value>,
 }
 
 /// Details of the errors encountered during a remove certificate request. This message will be returned as part of the details of a google.rpc.Status returned to the user when there is an error in their request.
@@ -557,23 +226,6 @@ pub struct GoogleChromePolicyVersionsV1ResolveResponse {
         ::core::option::Option<::std::vec::Vec<GoogleChromePolicyVersionsV1ResolvedPolicy>>,
 }
 
-/// The resolved value of a policy for a given target.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleChromePolicyVersionsV1ResolvedPolicy {
-    /// Output only. The added source key establishes at which level an entity was explicitly added for management. This is useful for certain type of policies that are only applied if they are explicitly added for management. For example: apps and networks. An entity can only be deleted from management in an Organizational Unit that it was explicitly added to. If this is not present it means that the policy is managed without the need to explicitly add an entity, for example: standard user or device policies.
-    #[serde(default, rename = "addedSourceKey")]
-    pub added_source_key: ::core::option::Option<GoogleChromePolicyVersionsV1PolicyTargetKey>,
-    /// Output only. The source resource from which this policy value is obtained. May be the same as targetKey if the policy is directly modified on the target, otherwise it would be another resource from which the policy gets its value (if applicable). If not present, the source is the default value for the customer.
-    #[serde(default, rename = "sourceKey")]
-    pub source_key: ::core::option::Option<GoogleChromePolicyVersionsV1PolicyTargetKey>,
-    /// Output only. The target resource for which the resolved policy value applies.
-    #[serde(default, rename = "targetKey")]
-    pub target_key: ::core::option::Option<GoogleChromePolicyVersionsV1PolicyTargetKey>,
-    /// Output only. The resolved value of the policy.
-    #[serde(default)]
-    pub value: ::core::option::Option<GoogleChromePolicyVersionsV1PolicyValue>,
-}
-
 /// Request message for updating the group priority ordering of an app.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleChromePolicyVersionsV1UpdateGroupPriorityOrderingRequest {
@@ -607,29 +259,315 @@ pub struct GoogleChromePolicyVersionsV1UploadPolicyFileResponse {
     pub download_uri: ::core::option::Option<String>,
 }
 
-/// Constraints on the uploaded file of a file policy.
+/// Request parameters for deleting the policy value of a specific group target.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleChromePolicyVersionsV1UploadedFileConstraints {
-    /// The size limit of uploaded files for a setting, in bytes.
-    #[serde(default, rename = "sizeLimitBytes")]
-    pub size_limit_bytes: ::core::option::Option<String>,
-    /// File types that can be uploaded for a setting.
-    #[serde(default, rename = "supportedContentTypes")]
-    pub supported_content_types: ::core::option::Option<::std::vec::Vec<String>>,
+pub struct GoogleChromePolicyVersionsV1DeleteGroupPolicyRequest {
+    /// The fully qualified name of the policy schema that is being inherited.
+    #[serde(default, rename = "policySchema")]
+    pub policy_schema: ::core::option::Option<String>,
+    /// Required. The key of the target for which we want to modify a policy. The target resource must point to a Group.
+    #[serde(default, rename = "policyTargetKey")]
+    pub policy_target_key: ::core::option::Option<GoogleChromePolicyVersionsV1PolicyTargetKey>,
 }
 
-/// Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp
+/// Request parameters for inheriting policy value of a specific org unit target from the policy value of its parent org unit.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleTypeDate {
-    /// Day of a month. Must be from 1 to 31 and valid for the year and month, or 0 to specify a year by itself or a year and month where the day isn''t significant.
+pub struct GoogleChromePolicyVersionsV1InheritOrgUnitPolicyRequest {
+    /// The fully qualified name of the policy schema that is being inherited.
+    #[serde(default, rename = "policySchema")]
+    pub policy_schema: ::core::option::Option<String>,
+    /// Required. The key of the target for which we want to modify a policy. The target resource must point to an Org Unit.
+    #[serde(default, rename = "policyTargetKey")]
+    pub policy_target_key: ::core::option::Option<GoogleChromePolicyVersionsV1PolicyTargetKey>,
+}
+
+/// Request parameters for modifying a policy value for a specific group target.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleChromePolicyVersionsV1ModifyGroupPolicyRequest {
+    /// Required. The key of the target for which we want to modify a policy. The target resource must point to a Group.
+    #[serde(default, rename = "policyTargetKey")]
+    pub policy_target_key: ::core::option::Option<GoogleChromePolicyVersionsV1PolicyTargetKey>,
+    /// The new value for the policy.
+    #[serde(default, rename = "policyValue")]
+    pub policy_value: ::core::option::Option<GoogleChromePolicyVersionsV1PolicyValue>,
+    /// Required. Policy fields to update. Only fields in this mask will be updated; other fields in policy_value will be ignored (even if they have values). If a field is in this list it must have a value in ''policy_value''.
+    #[serde(default, rename = "updateMask")]
+    pub update_mask: ::core::option::Option<String>,
+}
+
+/// Request parameters for modifying a policy value for a specific org unit target.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleChromePolicyVersionsV1ModifyOrgUnitPolicyRequest {
+    /// Required. The key of the target for which we want to modify a policy. The target resource must point to an Org Unit.
+    #[serde(default, rename = "policyTargetKey")]
+    pub policy_target_key: ::core::option::Option<GoogleChromePolicyVersionsV1PolicyTargetKey>,
+    /// The new value for the policy.
+    #[serde(default, rename = "policyValue")]
+    pub policy_value: ::core::option::Option<GoogleChromePolicyVersionsV1PolicyValue>,
+    /// Required. Policy fields to update. Only fields in this mask will be updated; other fields in policy_value will be ignored (even if they have values). If a field is in this list it must have a value in ''policy_value''.
+    #[serde(default, rename = "updateMask")]
+    pub update_mask: ::core::option::Option<String>,
+}
+
+/// A network setting contains network configurations. It adheres to the PolicyAPI formats defined under the namespace chrome.networks.{wifi/ethernet/cellular/vpn}.Details
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleChromePolicyVersionsV1NetworkSetting {
+    /// The fully qualified name of the network setting.
+    #[serde(default, rename = "policySchema")]
+    pub policy_schema: ::core::option::Option<String>,
+    /// The value of the network setting.
     #[serde(default)]
-    pub day: ::core::option::Option<i32>,
-    /// Month of a year. Must be from 1 to 12, or 0 to specify a year without a month and day.
+    pub value: ::core::option::Option<serde_json::Value>,
+}
+
+/// Resource representing a policy schema.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleChromePolicyVersionsV1PolicySchema {
+    /// Output only. Specific access restrictions related to this policy.
+    #[serde(default, rename = "accessRestrictions")]
+    pub access_restrictions: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Output only. Additional key names that will be used to identify the target of the policy value. When specifying a policyTargetKey, each of the additional keys specified here will have to be included in the additionalTargetKeys map.
+    #[serde(default, rename = "additionalTargetKeyNames")]
+    pub additional_target_key_names: ::core::option::Option<
+        ::std::vec::Vec<GoogleChromePolicyVersionsV1AdditionalTargetKeyName>,
+    >,
+    /// Title of the category in which a setting belongs.
+    #[serde(default, rename = "categoryTitle")]
+    pub category_title: ::core::option::Option<String>,
+    /// Schema definition using proto descriptor.
     #[serde(default)]
-    pub month: ::core::option::Option<i32>,
-    /// Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.
+    pub definition: ::core::option::Option<Proto2FileDescriptorProto>,
+    /// Output only. Detailed description of each field that is part of the schema. Fields are suggested to be displayed by the ordering in this list, not by field number.
+    #[serde(default, rename = "fieldDescriptions")]
+    pub field_descriptions: ::core::option::Option<
+        ::std::vec::Vec<GoogleChromePolicyVersionsV1PolicySchemaFieldDescription>,
+    >,
+    /// Format: name=customers/{customer}/policySchemas/{schema_namespace}
     #[serde(default)]
-    pub year: ::core::option::Option<i32>,
+    pub name: ::core::option::Option<String>,
+    /// Output only. Special notice messages related to setting certain values in certain fields in the schema.
+    #[serde(default)]
+    pub notices: ::core::option::Option<
+        ::std::vec::Vec<GoogleChromePolicyVersionsV1PolicySchemaNoticeDescription>,
+    >,
+    /// Output only. Current lifecycle information.
+    #[serde(default, rename = "policyApiLifecycle")]
+    pub policy_api_lifecycle:
+        ::core::option::Option<GoogleChromePolicyVersionsV1PolicyApiLifecycle>,
+    /// Output only. Description about the policy schema for user consumption.
+    #[serde(default, rename = "policyDescription")]
+    pub policy_description: ::core::option::Option<String>,
+    /// Output only. The fully qualified name of the policy schema. This value is used to fill the field policy_schema in PolicyValue when calling BatchInheritOrgUnitPolicies BatchModifyOrgUnitPolicies BatchModifyGroupPolicies or BatchDeleteGroupPolicies.
+    #[serde(default, rename = "schemaName")]
+    pub schema_name: ::core::option::Option<String>,
+    /// Output only. URI to related support article for this schema.
+    #[serde(default, rename = "supportUri")]
+    pub support_uri: ::core::option::Option<String>,
+    /// Output only. List indicates that the policy will only apply to devices/users on these platforms.
+    #[serde(default, rename = "supportedPlatforms")]
+    pub supported_platforms: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Output only. Information about applicable target resources for the policy.
+    #[serde(default, rename = "validTargetResources")]
+    pub valid_target_resources: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// Error information for a modification request of a specific policy on a specific target.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleChromePolicyVersionsV1PolicyModificationError {
+    /// Output only. The non-field errors related to the modification.
+    #[serde(default)]
+    pub errors: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Output only. The error messages related to the modification.
+    #[serde(default, rename = "fieldErrors")]
+    pub field_errors: ::core::option::Option<
+        ::std::vec::Vec<GoogleChromePolicyVersionsV1PolicyModificationFieldError>,
+    >,
+    /// Output only. The specific policy schema modification that had an error.
+    #[serde(default, rename = "policySchema")]
+    pub policy_schema: ::core::option::Option<String>,
+    /// Output only. The specific policy target modification that had error.
+    #[serde(default, rename = "policyTargetKey")]
+    pub policy_target_key: ::core::option::Option<GoogleChromePolicyVersionsV1PolicyTargetKey>,
+}
+
+/// Error information for removing of a specific certificate on a specific target. A reference to a certificate.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleChromePolicyVersionsV1CertificateReference {
+    /// Output only. The name of the referencing network.
+    #[serde(default)]
+    pub network: ::core::option::Option<String>,
+    /// Output only. The obfuscated id of the org unit the referencing network is in.
+    #[serde(default, rename = "orgUnitId")]
+    pub org_unit_id: ::core::option::Option<String>,
+}
+
+/// The resolved value of a policy for a given target.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleChromePolicyVersionsV1ResolvedPolicy {
+    /// Output only. The added source key establishes at which level an entity was explicitly added for management. This is useful for certain type of policies that are only applied if they are explicitly added for management. For example: apps and networks. An entity can only be deleted from management in an Organizational Unit that it was explicitly added to. If this is not present it means that the policy is managed without the need to explicitly add an entity, for example: standard user or device policies.
+    #[serde(default, rename = "addedSourceKey")]
+    pub added_source_key: ::core::option::Option<GoogleChromePolicyVersionsV1PolicyTargetKey>,
+    /// Output only. The source resource from which this policy value is obtained. May be the same as targetKey if the policy is directly modified on the target, otherwise it would be another resource from which the policy gets its value (if applicable). If not present, the source is the default value for the customer.
+    #[serde(default, rename = "sourceKey")]
+    pub source_key: ::core::option::Option<GoogleChromePolicyVersionsV1PolicyTargetKey>,
+    /// Output only. The target resource for which the resolved policy value applies.
+    #[serde(default, rename = "targetKey")]
+    pub target_key: ::core::option::Option<GoogleChromePolicyVersionsV1PolicyTargetKey>,
+    /// Output only. The resolved value of the policy.
+    #[serde(default)]
+    pub value: ::core::option::Option<GoogleChromePolicyVersionsV1PolicyValue>,
+}
+
+/// Additional key names that will be used to identify the target of the policy value.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleChromePolicyVersionsV1AdditionalTargetKeyName {
+    /// Key name.
+    #[serde(default)]
+    pub key: ::core::option::Option<String>,
+    /// Key description.
+    #[serde(default, rename = "keyDescription")]
+    pub key_description: ::core::option::Option<String>,
+}
+
+/// Describes a complete .proto file.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Proto2FileDescriptorProto {
+    /// copybara:strip_begin TODO(b/297898292) Deprecate and remove this field in favor of enums. copybara:strip_end
+    #[serde(default, rename = "editionDeprecated")]
+    pub edition_deprecated: ::core::option::Option<String>,
+    #[serde(default, rename = "enumType")]
+    pub enum_type: ::core::option::Option<::std::vec::Vec<Proto2EnumDescriptorProto>>,
+    /// All top-level definitions in this file.
+    #[serde(default, rename = "messageType")]
+    pub message_type: ::core::option::Option<::std::vec::Vec<Proto2DescriptorProto>>,
+    /// file name, relative to root of source tree
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Names of files imported by this file purely for the purpose of providing option extensions. These are excluded from the dependency list above.
+    #[serde(default, rename = "optionDependency")]
+    pub option_dependency: ::core::option::Option<::std::vec::Vec<String>>,
+    /// e.g. "foo", "foo.bar", etc.
+    #[serde(default)]
+    pub package: ::core::option::Option<String>,
+    /// The syntax of the proto file. The supported values are "proto2", "proto3", and "editions". If edition is present, this value must be "editions". WARNING: This field should only be used by protobuf plugins or special cases like the proto compiler. Other uses are discouraged and developers should rely on the protoreflect APIs for their client language.
+    #[serde(default)]
+    pub syntax: ::core::option::Option<String>,
+}
+
+/// Provides detailed information for a particular field that is part of a PolicySchema.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleChromePolicyVersionsV1PolicySchemaFieldDescription {
+    /// Output only. Client default if the policy is unset.
+    #[serde(default, rename = "defaultValue")]
+    pub default_value: ::core::option::Option<serde_json::Value>,
+    /// Deprecated. Use name and field_description instead. The description for the field.
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+    /// Output only. The name of the field for associated with this description.
+    #[serde(default)]
+    pub field: ::core::option::Option<String>,
+    /// Output only. Information on any input constraints associated on the values for the field.
+    #[serde(default, rename = "fieldConstraints")]
+    pub field_constraints: ::core::option::Option<GoogleChromePolicyVersionsV1FieldConstraints>,
+    /// Output only. Provides a list of fields and values. At least one of the fields must have the corresponding value in order for this field to be allowed to be set.
+    #[serde(default, rename = "fieldDependencies")]
+    pub field_dependencies: ::core::option::Option<
+        ::std::vec::Vec<GoogleChromePolicyVersionsV1PolicySchemaFieldDependencies>,
+    >,
+    /// Output only. The description of the field.
+    #[serde(default, rename = "fieldDescription")]
+    pub field_description: ::core::option::Option<String>,
+    /// Output only. Any input constraints associated on the values for the field.
+    #[serde(default, rename = "inputConstraint")]
+    pub input_constraint: ::core::option::Option<String>,
+    /// Output only. If the field has a set of known values, this field will provide a description for these values.
+    #[serde(default, rename = "knownValueDescriptions")]
+    pub known_value_descriptions: ::core::option::Option<
+        ::std::vec::Vec<GoogleChromePolicyVersionsV1PolicySchemaFieldKnownValueDescription>,
+    >,
+    /// Output only. The name of the field.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Output only. Provides the description of the fields nested in this field, if the field is a message type that defines multiple fields. Fields are suggested to be displayed by the ordering in this list, not by field number.
+    #[serde(default, rename = "nestedFieldDescriptions")]
+    pub nested_field_descriptions: ::core::option::Option<
+        ::std::vec::Vec<GoogleChromePolicyVersionsV1PolicySchemaFieldDescription>,
+    >,
+    /// Output only. Provides a list of fields that are required to be set if this field has a certain value.
+    #[serde(default, rename = "requiredItems")]
+    pub required_items: ::core::option::Option<
+        ::std::vec::Vec<GoogleChromePolicyVersionsV1PolicySchemaRequiredItems>,
+    >,
+}
+
+/// Provides special notice messages related to a particular value in a field that is part of a PolicySchema.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleChromePolicyVersionsV1PolicySchemaNoticeDescription {
+    /// Output only. Whether the user needs to acknowledge the notice message before the value can be set.
+    #[serde(default, rename = "acknowledgementRequired")]
+    pub acknowledgement_required: ::core::option::Option<bool>,
+    /// Output only. The field name associated with the notice.
+    #[serde(default)]
+    pub field: ::core::option::Option<String>,
+    /// Output only. The notice message associate with the value of the field.
+    #[serde(default, rename = "noticeMessage")]
+    pub notice_message: ::core::option::Option<String>,
+    /// Output only. The value of the field that has a notice. When setting the field to this value, the user may be required to acknowledge the notice message in order for the value to be set.
+    #[serde(default, rename = "noticeValue")]
+    pub notice_value: ::core::option::Option<String>,
+}
+
+/// Lifecycle information.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleChromePolicyVersionsV1PolicyApiLifecycle {
+    /// In the event that this policy was deprecated in favor of another policy, the fully qualified namespace(s) of the new policies as they will show in PolicyAPI. Could only be set if policy_api_lifecycle_stage is API_DEPRECATED.
+    #[serde(default, rename = "deprecatedInFavorOf")]
+    pub deprecated_in_favor_of: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Description about current life cycle.
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+    /// End supporting date for current policy. Attempting to modify a policy after its end support date will result in a Bad Request (400 error). Could only be set if policy_api_lifecycle_stage is API_DEPRECATED.
+    #[serde(default, rename = "endSupport")]
+    pub end_support: ::core::option::Option<GoogleTypeDate>,
+    /// Indicates current life cycle stage of the policy API. // TODO: enum values: ["API_UNSPECIFIED", "API_PREVIEW", "API_DEVELOPMENT", "API_CURRENT", "API_DEPRECATED"]
+    #[serde(default, rename = "policyApiLifecycleStage")]
+    pub policy_api_lifecycle_stage: ::core::option::Option<String>,
+    /// Corresponding to deprecated_in_favor_of, the fully qualified namespace(s) of the old policies that will be deprecated because of introduction of this policy.
+    #[serde(default, rename = "scheduledToDeprecatePolicies")]
+    pub scheduled_to_deprecate_policies: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// Error information for a modification request of a specific field on a specific policy.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleChromePolicyVersionsV1PolicyModificationFieldError {
+    /// Output only. The error message related to the field.
+    #[serde(default)]
+    pub error: ::core::option::Option<String>,
+    /// Output only. The name of the field with the error.
+    #[serde(default)]
+    pub field: ::core::option::Option<String>,
+}
+
+/// The key used to identify the target on which the policy will be applied.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleChromePolicyVersionsV1PolicyTargetKey {
+    /// Map containing the additional target key name and value pairs used to further identify the target of the policy.
+    #[serde(default, rename = "additionalTargetKeys")]
+    pub additional_target_keys: ::core::option::Option<serde_json::Value>,
+    /// The target resource on which this policy is applied. The following resources are supported: * Organizational Unit ("orgunits/{orgunit_id}") * Group ("groups/{group_id}")
+    #[serde(default, rename = "targetResource")]
+    pub target_resource: ::core::option::Option<String>,
+}
+
+/// A particular value for a policy managed by the service.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleChromePolicyVersionsV1PolicyValue {
+    /// The fully qualified name of the policy schema associated with this policy.
+    #[serde(default, rename = "policySchema")]
+    pub policy_schema: ::core::option::Option<String>,
+    /// The value of the policy that is compatible with the schema that it is associated with.
+    #[serde(default)]
+    pub value: ::core::option::Option<serde_json::Value>,
 }
 
 /// Describes a message type.
@@ -650,6 +588,60 @@ pub struct Proto2DescriptorProto {
     pub visibility: ::core::option::Option<String>,
 }
 
+/// Information about any range constraints.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleChromePolicyVersionsV1FieldConstraints {
+    /// The allowed range for numeric fields.
+    #[serde(default, rename = "numericRangeConstraint")]
+    pub numeric_range_constraint:
+        ::core::option::Option<GoogleChromePolicyVersionsV1NumericRangeConstraint>,
+    /// Constraints on the uploaded file of a file policy. If present, this policy requires a URL that can be fetched by uploading a file with the constraints specified in this proto.
+    #[serde(default, rename = "uploadedFileConstraints")]
+    pub uploaded_file_constraints:
+        ::core::option::Option<GoogleChromePolicyVersionsV1UploadedFileConstraints>,
+}
+
+/// Provides detailed information about a known value that is allowed for a particular field in a PolicySchema.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleChromePolicyVersionsV1PolicySchemaFieldKnownValueDescription {
+    /// Output only. Additional description for this value.
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+    /// Output only. Field conditions required for this value to be valid.
+    #[serde(default, rename = "fieldDependencies")]
+    pub field_dependencies: ::core::option::Option<
+        ::std::vec::Vec<GoogleChromePolicyVersionsV1PolicySchemaFieldDependencies>,
+    >,
+    /// Output only. The string represenstation of the value that can be set for the field.
+    #[serde(default)]
+    pub value: ::core::option::Option<String>,
+}
+
+/// The fields that will become required based on the value of this field.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleChromePolicyVersionsV1PolicySchemaRequiredItems {
+    /// The value(s) of the field that provoke required field enforcement. An empty field_conditions implies that any value assigned to this field will provoke required field enforcement.
+    #[serde(default, rename = "fieldConditions")]
+    pub field_conditions: ::core::option::Option<::std::vec::Vec<String>>,
+    /// The fields that are required as a consequence of the field conditions.
+    #[serde(default, rename = "requiredFields")]
+    pub required_fields: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleTypeDate {
+    /// Day of a month. Must be from 1 to 31 and valid for the year and month, or 0 to specify a year by itself or a year and month where the day isn''t significant.
+    #[serde(default)]
+    pub day: ::core::option::Option<i32>,
+    /// Month of a year. Must be from 1 to 12, or 0 to specify a year without a month and day.
+    #[serde(default)]
+    pub month: ::core::option::Option<i32>,
+    /// Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.
+    #[serde(default)]
+    pub year: ::core::option::Option<i32>,
+}
+
 /// Describes an enum type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Proto2EnumDescriptorProto {
@@ -660,15 +652,6 @@ pub struct Proto2EnumDescriptorProto {
     /// Support for export and local keywords on enums. // TODO: enum values: ["VISIBILITY_UNSET", "VISIBILITY_LOCAL", "VISIBILITY_EXPORT"]
     #[serde(default)]
     pub visibility: ::core::option::Option<String>,
-}
-
-/// Describes a value within an enum.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Proto2EnumValueDescriptorProto {
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    #[serde(default)]
-    pub number: ::core::option::Option<i32>,
 }
 
 /// Describes a field within a message.
@@ -701,34 +684,51 @@ pub struct Proto2FieldDescriptorProto {
     pub type_name: ::core::option::Option<String>,
 }
 
-/// Describes a complete .proto file.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Proto2FileDescriptorProto {
-    /// copybara:strip_begin TODO(b/297898292) Deprecate and remove this field in favor of enums. copybara:strip_end
-    #[serde(default, rename = "editionDeprecated")]
-    pub edition_deprecated: ::core::option::Option<String>,
-    #[serde(default, rename = "enumType")]
-    pub enum_type: ::core::option::Option<::std::vec::Vec<Proto2EnumDescriptorProto>>,
-    /// All top-level definitions in this file.
-    #[serde(default, rename = "messageType")]
-    pub message_type: ::core::option::Option<::std::vec::Vec<Proto2DescriptorProto>>,
-    /// file name, relative to root of source tree
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Names of files imported by this file purely for the purpose of providing option extensions. These are excluded from the dependency list above.
-    #[serde(default, rename = "optionDependency")]
-    pub option_dependency: ::core::option::Option<::std::vec::Vec<String>>,
-    /// e.g. "foo", "foo.bar", etc.
-    #[serde(default)]
-    pub package: ::core::option::Option<String>,
-    /// The syntax of the proto file. The supported values are "proto2", "proto3", and "editions". If edition is present, this value must be "editions". WARNING: This field should only be used by protobuf plugins or special cases like the proto compiler. Other uses are discouraged and developers should rely on the protoreflect APIs for their client language.
-    #[serde(default)]
-    pub syntax: ::core::option::Option<String>,
-}
-
 /// Describes a oneof.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Proto2OneofDescriptorProto {
     #[serde(default)]
     pub name: ::core::option::Option<String>,
+}
+
+/// A constraint on upper and/or lower bounds, with at least one being set.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleChromePolicyVersionsV1NumericRangeConstraint {
+    /// Maximum value.
+    #[serde(default)]
+    pub maximum: ::core::option::Option<String>,
+    /// Minimum value.
+    #[serde(default)]
+    pub minimum: ::core::option::Option<String>,
+}
+
+/// Constraints on the uploaded file of a file policy.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleChromePolicyVersionsV1UploadedFileConstraints {
+    /// The size limit of uploaded files for a setting, in bytes.
+    #[serde(default, rename = "sizeLimitBytes")]
+    pub size_limit_bytes: ::core::option::Option<String>,
+    /// File types that can be uploaded for a setting.
+    #[serde(default, rename = "supportedContentTypes")]
+    pub supported_content_types: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// The field and the value it must have for another field to be allowed to be set.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleChromePolicyVersionsV1PolicySchemaFieldDependencies {
+    /// The source field which this field depends on.
+    #[serde(default, rename = "sourceField")]
+    pub source_field: ::core::option::Option<String>,
+    /// The value which the source field must have for this field to be allowed to be set.
+    #[serde(default, rename = "sourceFieldValue")]
+    pub source_field_value: ::core::option::Option<String>,
+}
+
+/// Describes a value within an enum.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Proto2EnumValueDescriptorProto {
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    #[serde(default)]
+    pub number: ::core::option::Option<i32>,
 }

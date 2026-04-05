@@ -10,6 +10,113 @@
 use super::*;
 use serde::{Deserialize, Serialize};
 
+/// This resource represents input data you submit for a CSS Product, not the processed CSS Product that you see in CSS Center, in Shopping Ads, or across Google surfaces.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CssProductInput {
+    /// A list of CSS Product attributes.
+    #[serde(default)]
+    pub attributes: ::core::option::Option<Attributes>,
+    /// Required. The two-letter [ISO 639-1](http://en.wikipedia.org/wiki/ISO_639-1) language code for the CSS Product.
+    #[serde(default, rename = "contentLanguage")]
+    pub content_language: ::core::option::Option<String>,
+    /// A list of custom (CSS-provided) attributes. It can also be used for submitting any attribute of the feed specification in its generic form (for example: { "name": "size type", "value": "regular" }). This is useful for submitting attributes not explicitly exposed by the API, such as additional attributes used for Buy on Google.
+    #[serde(default, rename = "customAttributes")]
+    pub custom_attributes: ::core::option::Option<::std::vec::Vec<CustomAttribute>>,
+    /// Required. The [feed label](https://developers.google.com/shopping-content/guides/products/feed-labels) for the CSS Product. Feed Label is synonymous to "target country" and hence should always be a valid region code. For example: ''DE'' for Germany, ''FR'' for France.
+    #[serde(default, rename = "feedLabel")]
+    pub feed_label: ::core::option::Option<String>,
+    /// Output only. The name of the processed CSS Product. Format: accounts/{account}/cssProducts/{css_product} "
+    #[serde(default, rename = "finalName")]
+    pub final_name: ::core::option::Option<String>,
+    /// DEPRECATED. Use expiration_date instead. Represents the existing version (freshness) of the CSS Product, which can be used to preserve the right order when multiple updates are done at the same time. This field must not be set to the future time. If set, the update is prevented if a newer version of the item already exists in our system (that is the last update time of the existing CSS products is later than the freshness time set in the update). If the update happens, the last update time is then set to this freshness time. If not set, the update will not be prevented and the last update time will default to when this request was received by the CSS API. If the operation is prevented, the aborted exception will be thrown.
+    #[serde(default, rename = "freshnessTime")]
+    pub freshness_time: ::core::option::Option<String>,
+    /// Identifier. The name of the CSS Product input. Format: accounts/{account}/cssProductInputs/{css_product_input}, where the last section css_product_input consists of 3 parts: contentLanguage~feedLabel~offerId. Example: accounts/123/cssProductInputs/de~DE~rawProvidedId123
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Required. Your unique identifier for the CSS Product. This is the same for the CSS Product input and processed CSS Product. We only allow ids with alphanumerics, underscores and dashes. See the [products feed specification](https://support.google.com/merchants/answer/188494#id) for details.
+    #[serde(default, rename = "rawProvidedId")]
+    pub raw_provided_id: ::core::option::Option<String>,
+}
+
+/// Response message for the ListAccountLabels method.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ListAccountLabelsResponse {
+    /// The labels from the specified account.
+    #[serde(default, rename = "accountLabels")]
+    pub account_labels: ::core::option::Option<::std::vec::Vec<AccountLabel>>,
+    /// A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+}
+
+/// Response message for the ListChildAccounts method.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ListChildAccountsResponse {
+    /// The CSS/MC accounts returned for the specified CSS parent account.
+    #[serde(default)]
+    pub accounts: ::core::option::Option<::std::vec::Vec<Account>>,
+    /// A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+}
+
+/// Response message for the ListCssProducts method.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ListCssProductsResponse {
+    /// The processed CSS products from the specified account. These are your processed CSS products after applying rules and supplemental feeds.
+    #[serde(default, rename = "cssProducts")]
+    pub css_products: ::core::option::Option<::std::vec::Vec<CssProduct>>,
+    /// A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+}
+
+/// Response message for the ListMethodGroups method.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ListQuotaGroupsResponse {
+    /// A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+    /// The methods, current quota usage and limits per each group. The quota is shared between all methods in the group. The groups are sorted in descending order based on quota_usage.
+    #[serde(default, rename = "quotaGroups")]
+    pub quota_groups: ::core::option::Option<::std::vec::Vec<QuotaGroup>>,
+}
+
+/// The request message for the UpdateLabels method.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct UpdateAccountLabelsRequest {
+    /// The list of label IDs to overwrite the existing account label IDs. If the list is empty, all currently assigned label IDs will be deleted.
+    #[serde(default, rename = "labelIds")]
+    pub label_ids: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Optional. Only required when updating MC account labels. The CSS domain that is the parent resource of the MC account. Format: accounts/{account}
+    #[serde(default)]
+    pub parent: ::core::option::Option<String>,
+}
+
+/// Label assigned by CSS domain or CSS group to one of its sub-accounts.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AccountLabel {
+    /// Output only. The ID of account this label belongs to.
+    #[serde(default, rename = "accountId")]
+    pub account_id: ::core::option::Option<String>,
+    /// The description of this label.
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+    /// The display name of this label.
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+    /// Output only. The ID of the label.
+    #[serde(default, rename = "labelId")]
+    pub label_id: ::core::option::Option<String>,
+    /// Output only. The type of this label. // TODO: enum values: ["LABEL_TYPE_UNSPECIFIED", "MANUAL", "AUTOMATIC"]
+    #[serde(default, rename = "labelType")]
+    pub label_type: ::core::option::Option<String>,
+    /// Identifier. The resource name of the label. Format: accounts/{account}/labels/{label}
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+}
+
 /// Information about CSS/MC account.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Account {
@@ -39,27 +146,50 @@ pub struct Account {
     pub parent: ::core::option::Option<String>,
 }
 
-/// Label assigned by CSS domain or CSS group to one of its sub-accounts.
+/// The processed CSS Product.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AccountLabel {
-    /// Output only. The ID of account this label belongs to.
-    #[serde(default, rename = "accountId")]
-    pub account_id: ::core::option::Option<String>,
-    /// The description of this label.
+pub struct CssProduct {
+    /// Output only. A list of product attributes.
     #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// The display name of this label.
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-    /// Output only. The ID of the label.
-    #[serde(default, rename = "labelId")]
-    pub label_id: ::core::option::Option<String>,
-    /// Output only. The type of this label. // TODO: enum values: ["LABEL_TYPE_UNSPECIFIED", "MANUAL", "AUTOMATIC"]
-    #[serde(default, rename = "labelType")]
-    pub label_type: ::core::option::Option<String>,
-    /// Identifier. The resource name of the label. Format: accounts/{account}/labels/{label}
+    pub attributes: ::core::option::Option<Attributes>,
+    /// Output only. The two-letter [ISO 639-1](http://en.wikipedia.org/wiki/ISO_639-1) language code for the product.
+    #[serde(default, rename = "contentLanguage")]
+    pub content_language: ::core::option::Option<String>,
+    /// Output only. The status of a product, data validation issues, that is, information about a product computed asynchronously.
+    #[serde(default, rename = "cssProductStatus")]
+    pub css_product_status: ::core::option::Option<CssProductStatus>,
+    /// Output only. A list of custom (CSS-provided) attributes. It can also be used to submit any attribute of the feed specification in its generic form (for example, { "name": "size type", "value": "regular" }). This is useful for submitting attributes not explicitly exposed by the API, such as additional attributes used for Buy on Google.
+    #[serde(default, rename = "customAttributes")]
+    pub custom_attributes: ::core::option::Option<::std::vec::Vec<CustomAttribute>>,
+    /// Output only. The feed label for the product.
+    #[serde(default, rename = "feedLabel")]
+    pub feed_label: ::core::option::Option<String>,
+    /// The name of the CSS Product. Format: "accounts/{account}/cssProducts/{css_product}"
     #[serde(default)]
     pub name: ::core::option::Option<String>,
+    /// Output only. Your unique raw identifier for the product.
+    #[serde(default, rename = "rawProvidedId")]
+    pub raw_provided_id: ::core::option::Option<String>,
+}
+
+/// The group information for methods in the CSS API. The quota is shared between all methods in the group. Even if none of the methods within the group have usage the information for the group is returned.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct QuotaGroup {
+    /// Output only. List of all methods group quota applies to.
+    #[serde(default, rename = "methodDetails")]
+    pub method_details: ::core::option::Option<::std::vec::Vec<MethodDetails>>,
+    /// Identifier. The resource name of the quota group. Format: accounts/{account}/quotas/{group} Example: accounts/12345678/quotas/css-products-insert Note: The {group} part is not guaranteed to follow a specific pattern.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Output only. The maximum number of calls allowed per day for the group.
+    #[serde(default, rename = "quotaLimit")]
+    pub quota_limit: ::core::option::Option<String>,
+    /// Output only. The maximum number of calls allowed per minute for the group.
+    #[serde(default, rename = "quotaMinuteLimit")]
+    pub quota_minute_limit: ::core::option::Option<String>,
+    /// Output only. The current quota usage, meaning the number of calls already made on a given day to the methods in the group. The daily quota limits reset at at 12:00 PM midday UTC.
+    #[serde(default, rename = "quotaUsage")]
+    pub quota_usage: ::core::option::Option<String>,
 }
 
 /// Attributes for CSS Product.
@@ -229,75 +359,6 @@ pub struct Attributes {
     pub title: ::core::option::Option<String>,
 }
 
-/// The certification for the product. Use the this attribute to describe certifications, such as energy efficiency ratings, associated with a product.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Certification {
-    /// The authority or certification body responsible for issuing the certification. At this time, the most common value is "EC" or “European_Commission” for energy labels in the EU.
-    #[serde(default)]
-    pub authority: ::core::option::Option<String>,
-    /// The code of the certification. For example, for the EPREL certificate with the link https://eprel.ec.europa.eu/screen/product/dishwashers2019/123456 the code is 123456. The code is required for European Energy Labels.
-    #[serde(default)]
-    pub code: ::core::option::Option<String>,
-    /// The name of the certification. At this time, the most common value is "EPREL", which represents energy efficiency certifications in the EU European Registry for Energy Labeling (EPREL) database.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-}
-
-/// The processed CSS Product.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CssProduct {
-    /// Output only. A list of product attributes.
-    #[serde(default)]
-    pub attributes: ::core::option::Option<Attributes>,
-    /// Output only. The two-letter [ISO 639-1](http://en.wikipedia.org/wiki/ISO_639-1) language code for the product.
-    #[serde(default, rename = "contentLanguage")]
-    pub content_language: ::core::option::Option<String>,
-    /// Output only. The status of a product, data validation issues, that is, information about a product computed asynchronously.
-    #[serde(default, rename = "cssProductStatus")]
-    pub css_product_status: ::core::option::Option<CssProductStatus>,
-    /// Output only. A list of custom (CSS-provided) attributes. It can also be used to submit any attribute of the feed specification in its generic form (for example, { "name": "size type", "value": "regular" }). This is useful for submitting attributes not explicitly exposed by the API, such as additional attributes used for Buy on Google.
-    #[serde(default, rename = "customAttributes")]
-    pub custom_attributes: ::core::option::Option<::std::vec::Vec<CustomAttribute>>,
-    /// Output only. The feed label for the product.
-    #[serde(default, rename = "feedLabel")]
-    pub feed_label: ::core::option::Option<String>,
-    /// The name of the CSS Product. Format: "accounts/{account}/cssProducts/{css_product}"
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Output only. Your unique raw identifier for the product.
-    #[serde(default, rename = "rawProvidedId")]
-    pub raw_provided_id: ::core::option::Option<String>,
-}
-
-/// This resource represents input data you submit for a CSS Product, not the processed CSS Product that you see in CSS Center, in Shopping Ads, or across Google surfaces.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CssProductInput {
-    /// A list of CSS Product attributes.
-    #[serde(default)]
-    pub attributes: ::core::option::Option<Attributes>,
-    /// Required. The two-letter [ISO 639-1](http://en.wikipedia.org/wiki/ISO_639-1) language code for the CSS Product.
-    #[serde(default, rename = "contentLanguage")]
-    pub content_language: ::core::option::Option<String>,
-    /// A list of custom (CSS-provided) attributes. It can also be used for submitting any attribute of the feed specification in its generic form (for example: { "name": "size type", "value": "regular" }). This is useful for submitting attributes not explicitly exposed by the API, such as additional attributes used for Buy on Google.
-    #[serde(default, rename = "customAttributes")]
-    pub custom_attributes: ::core::option::Option<::std::vec::Vec<CustomAttribute>>,
-    /// Required. The [feed label](https://developers.google.com/shopping-content/guides/products/feed-labels) for the CSS Product. Feed Label is synonymous to "target country" and hence should always be a valid region code. For example: ''DE'' for Germany, ''FR'' for France.
-    #[serde(default, rename = "feedLabel")]
-    pub feed_label: ::core::option::Option<String>,
-    /// Output only. The name of the processed CSS Product. Format: accounts/{account}/cssProducts/{css_product} "
-    #[serde(default, rename = "finalName")]
-    pub final_name: ::core::option::Option<String>,
-    /// DEPRECATED. Use expiration_date instead. Represents the existing version (freshness) of the CSS Product, which can be used to preserve the right order when multiple updates are done at the same time. This field must not be set to the future time. If set, the update is prevented if a newer version of the item already exists in our system (that is the last update time of the existing CSS products is later than the freshness time set in the update). If the update happens, the last update time is then set to this freshness time. If not set, the update will not be prevented and the last update time will default to when this request was received by the CSS API. If the operation is prevented, the aborted exception will be thrown.
-    #[serde(default, rename = "freshnessTime")]
-    pub freshness_time: ::core::option::Option<String>,
-    /// Identifier. The name of the CSS Product input. Format: accounts/{account}/cssProductInputs/{css_product_input}, where the last section css_product_input consists of 3 parts: contentLanguage~feedLabel~offerId. Example: accounts/123/cssProductInputs/de~DE~rawProvidedId123
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Required. Your unique identifier for the CSS Product. This is the same for the CSS Product input and processed CSS Product. We only allow ids with alphanumerics, underscores and dashes. See the [products feed specification](https://support.google.com/merchants/answer/188494#id) for details.
-    #[serde(default, rename = "rawProvidedId")]
-    pub raw_provided_id: ::core::option::Option<String>,
-}
-
 /// The status of the Css Product, data validation issues, that is, information about the Css Product computed asynchronously.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CssProductStatus {
@@ -332,21 +393,35 @@ pub struct CustomAttribute {
     pub value: ::core::option::Option<String>,
 }
 
-/// The destination status of the product status.
+/// The method details per method in the CSS API.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DestinationStatus {
-    /// List of country codes (ISO 3166-1 alpha-2) where the CSS Product is approved.
-    #[serde(default, rename = "approvedCountries")]
-    pub approved_countries: ::core::option::Option<::std::vec::Vec<String>>,
-    /// The name of the destination
+pub struct MethodDetails {
+    /// Output only. The name of the method for example cssproductsservice.listcssproducts.
     #[serde(default)]
-    pub destination: ::core::option::Option<String>,
-    /// List of country codes (ISO 3166-1 alpha-2) where the CSS Product is disapproved.
-    #[serde(default, rename = "disapprovedCountries")]
-    pub disapproved_countries: ::core::option::Option<::std::vec::Vec<String>>,
-    /// List of country codes (ISO 3166-1 alpha-2) where the CSS Product is pending approval.
-    #[serde(default, rename = "pendingCountries")]
-    pub pending_countries: ::core::option::Option<::std::vec::Vec<String>>,
+    pub method: ::core::option::Option<String>,
+    /// Output only. The path for the method such as v1/cssproductsservice.listcssproducts.
+    #[serde(default)]
+    pub path: ::core::option::Option<String>,
+    /// Output only. The sub-API that the method belongs to. In the CSS API, this is always css.
+    #[serde(default)]
+    pub subapi: ::core::option::Option<String>,
+    /// Output only. The API version that the method belongs to.
+    #[serde(default)]
+    pub version: ::core::option::Option<String>,
+}
+
+/// The certification for the product. Use the this attribute to describe certifications, such as energy efficiency ratings, associated with a product.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Certification {
+    /// The authority or certification body responsible for issuing the certification. At this time, the most common value is "EC" or “European_Commission” for energy labels in the EU.
+    #[serde(default)]
+    pub authority: ::core::option::Option<String>,
+    /// The code of the certification. For example, for the EPREL certificate with the link https://eprel.ec.europa.eu/screen/product/dishwashers2019/123456 the code is 123456. The code is required for European Energy Labels.
+    #[serde(default)]
+    pub code: ::core::option::Option<String>,
+    /// The name of the certification. At this time, the most common value is "EPREL", which represents energy efficiency certifications in the EU European Registry for Energy Labeling (EPREL) database.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
 }
 
 /// A message that represents installment.
@@ -375,110 +450,6 @@ pub struct HeadlineOfferSubscriptionCost {
     /// The number of subscription periods the buyer has to pay.
     #[serde(default, rename = "periodLength")]
     pub period_length: ::core::option::Option<String>,
-}
-
-/// The ItemLevelIssue of the product status.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ItemLevelIssue {
-    /// List of country codes (ISO 3166-1 alpha-2) where issue applies to the CSS Product.
-    #[serde(default, rename = "applicableCountries")]
-    pub applicable_countries: ::core::option::Option<::std::vec::Vec<String>>,
-    /// The attribute''s name, if the issue is caused by a single attribute.
-    #[serde(default)]
-    pub attribute: ::core::option::Option<String>,
-    /// The error code of the issue.
-    #[serde(default)]
-    pub code: ::core::option::Option<String>,
-    /// A short issue description in English.
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// The destination the issue applies to.
-    #[serde(default)]
-    pub destination: ::core::option::Option<String>,
-    /// A detailed issue description in English.
-    #[serde(default)]
-    pub detail: ::core::option::Option<String>,
-    /// The URL of a web page to help with resolving this issue.
-    #[serde(default)]
-    pub documentation: ::core::option::Option<String>,
-    /// Whether the issue can be resolved by the merchant.
-    #[serde(default)]
-    pub resolution: ::core::option::Option<String>,
-    /// How this issue affects serving of the CSS Product.
-    #[serde(default)]
-    pub servability: ::core::option::Option<String>,
-}
-
-/// Response message for the ListAccountLabels method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ListAccountLabelsResponse {
-    /// The labels from the specified account.
-    #[serde(default, rename = "accountLabels")]
-    pub account_labels: ::core::option::Option<::std::vec::Vec<AccountLabel>>,
-    /// A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
-    #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: ::core::option::Option<String>,
-}
-
-/// Response message for the ListChildAccounts method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ListChildAccountsResponse {
-    /// The CSS/MC accounts returned for the specified CSS parent account.
-    #[serde(default)]
-    pub accounts: ::core::option::Option<::std::vec::Vec<Account>>,
-    /// A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
-    #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: ::core::option::Option<String>,
-}
-
-/// Response message for the ListCssProducts method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ListCssProductsResponse {
-    /// The processed CSS products from the specified account. These are your processed CSS products after applying rules and supplemental feeds.
-    #[serde(default, rename = "cssProducts")]
-    pub css_products: ::core::option::Option<::std::vec::Vec<CssProduct>>,
-    /// A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
-    #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: ::core::option::Option<String>,
-}
-
-/// Response message for the ListMethodGroups method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ListQuotaGroupsResponse {
-    /// A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
-    #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: ::core::option::Option<String>,
-    /// The methods, current quota usage and limits per each group. The quota is shared between all methods in the group. The groups are sorted in descending order based on quota_usage.
-    #[serde(default, rename = "quotaGroups")]
-    pub quota_groups: ::core::option::Option<::std::vec::Vec<QuotaGroup>>,
-}
-
-/// The method details per method in the CSS API.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct MethodDetails {
-    /// Output only. The name of the method for example cssproductsservice.listcssproducts.
-    #[serde(default)]
-    pub method: ::core::option::Option<String>,
-    /// Output only. The path for the method such as v1/cssproductsservice.listcssproducts.
-    #[serde(default)]
-    pub path: ::core::option::Option<String>,
-    /// Output only. The sub-API that the method belongs to. In the CSS API, this is always css.
-    #[serde(default)]
-    pub subapi: ::core::option::Option<String>,
-    /// Output only. The API version that the method belongs to.
-    #[serde(default)]
-    pub version: ::core::option::Option<String>,
-}
-
-/// The price represented as a number and currency.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Price {
-    /// The price represented as a number in micros (1 million micros is an equivalent to one''s currency standard unit, for example, 1 USD = 1000000 micros).
-    #[serde(default, rename = "amountMicros")]
-    pub amount_micros: ::core::option::Option<String>,
-    /// The currency of the price using three-letter acronyms according to [ISO 4217](http://en.wikipedia.org/wiki/ISO_4217).
-    #[serde(default, rename = "currencyCode")]
-    pub currency_code: ::core::option::Option<String>,
 }
 
 /// The product details.
@@ -517,33 +488,62 @@ pub struct ProductWeight {
     pub value: ::core::option::Option<f64>,
 }
 
-/// The group information for methods in the CSS API. The quota is shared between all methods in the group. Even if none of the methods within the group have usage the information for the group is returned.
+/// The destination status of the product status.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct QuotaGroup {
-    /// Output only. List of all methods group quota applies to.
-    #[serde(default, rename = "methodDetails")]
-    pub method_details: ::core::option::Option<::std::vec::Vec<MethodDetails>>,
-    /// Identifier. The resource name of the quota group. Format: accounts/{account}/quotas/{group} Example: accounts/12345678/quotas/css-products-insert Note: The {group} part is not guaranteed to follow a specific pattern.
+pub struct DestinationStatus {
+    /// List of country codes (ISO 3166-1 alpha-2) where the CSS Product is approved.
+    #[serde(default, rename = "approvedCountries")]
+    pub approved_countries: ::core::option::Option<::std::vec::Vec<String>>,
+    /// The name of the destination
     #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Output only. The maximum number of calls allowed per day for the group.
-    #[serde(default, rename = "quotaLimit")]
-    pub quota_limit: ::core::option::Option<String>,
-    /// Output only. The maximum number of calls allowed per minute for the group.
-    #[serde(default, rename = "quotaMinuteLimit")]
-    pub quota_minute_limit: ::core::option::Option<String>,
-    /// Output only. The current quota usage, meaning the number of calls already made on a given day to the methods in the group. The daily quota limits reset at at 12:00 PM midday UTC.
-    #[serde(default, rename = "quotaUsage")]
-    pub quota_usage: ::core::option::Option<String>,
+    pub destination: ::core::option::Option<String>,
+    /// List of country codes (ISO 3166-1 alpha-2) where the CSS Product is disapproved.
+    #[serde(default, rename = "disapprovedCountries")]
+    pub disapproved_countries: ::core::option::Option<::std::vec::Vec<String>>,
+    /// List of country codes (ISO 3166-1 alpha-2) where the CSS Product is pending approval.
+    #[serde(default, rename = "pendingCountries")]
+    pub pending_countries: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
-/// The request message for the UpdateLabels method.
+/// The ItemLevelIssue of the product status.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct UpdateAccountLabelsRequest {
-    /// The list of label IDs to overwrite the existing account label IDs. If the list is empty, all currently assigned label IDs will be deleted.
-    #[serde(default, rename = "labelIds")]
-    pub label_ids: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Optional. Only required when updating MC account labels. The CSS domain that is the parent resource of the MC account. Format: accounts/{account}
+pub struct ItemLevelIssue {
+    /// List of country codes (ISO 3166-1 alpha-2) where issue applies to the CSS Product.
+    #[serde(default, rename = "applicableCountries")]
+    pub applicable_countries: ::core::option::Option<::std::vec::Vec<String>>,
+    /// The attribute''s name, if the issue is caused by a single attribute.
     #[serde(default)]
-    pub parent: ::core::option::Option<String>,
+    pub attribute: ::core::option::Option<String>,
+    /// The error code of the issue.
+    #[serde(default)]
+    pub code: ::core::option::Option<String>,
+    /// A short issue description in English.
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+    /// The destination the issue applies to.
+    #[serde(default)]
+    pub destination: ::core::option::Option<String>,
+    /// A detailed issue description in English.
+    #[serde(default)]
+    pub detail: ::core::option::Option<String>,
+    /// The URL of a web page to help with resolving this issue.
+    #[serde(default)]
+    pub documentation: ::core::option::Option<String>,
+    /// Whether the issue can be resolved by the merchant.
+    #[serde(default)]
+    pub resolution: ::core::option::Option<String>,
+    /// How this issue affects serving of the CSS Product.
+    #[serde(default)]
+    pub servability: ::core::option::Option<String>,
+}
+
+/// The price represented as a number and currency.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Price {
+    /// The price represented as a number in micros (1 million micros is an equivalent to one''s currency standard unit, for example, 1 USD = 1000000 micros).
+    #[serde(default, rename = "amountMicros")]
+    pub amount_micros: ::core::option::Option<String>,
+    /// The currency of the price using three-letter acronyms according to [ISO 4217](http://en.wikipedia.org/wiki/ISO_4217).
+    #[serde(default, rename = "currencyCode")]
+    pub currency_code: ::core::option::Option<String>,
 }

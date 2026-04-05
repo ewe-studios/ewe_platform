@@ -55,68 +55,12 @@ pub struct GoogleIamAdminV1AuditData {
     pub permission_delta: ::core::option::Option<GoogleIamAdminV1AuditDataPermissionDelta>,
 }
 
-/// A PermissionDelta message to record the added_permissions and removed_permissions inside a role.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleIamAdminV1AuditDataPermissionDelta {
-    /// Added permissions.
-    #[serde(default, rename = "addedPermissions")]
-    pub added_permissions: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Removed permissions.
-    #[serde(default, rename = "removedPermissions")]
-    pub removed_permissions: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// One delta entry for Binding. Each individual change (only one member in each entry) to a binding will be a separate entry.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleIamV1BindingDelta {
-    /// The action that was performed on a Binding. Required // TODO: enum values: ["ACTION_UNSPECIFIED", "ADD", "REMOVE"]
-    #[serde(default)]
-    pub action: ::core::option::Option<String>,
-    /// The condition that is associated with this binding.
-    #[serde(default)]
-    pub condition: ::core::option::Option<GoogleTypeExpr>,
-    /// A single identity requesting access for a Google Cloud resource. Follows the same format of Binding.members. Required
-    #[serde(default)]
-    pub member: ::core::option::Option<String>,
-    /// Role that is assigned to members. For example, roles/viewer, roles/editor, or roles/owner. Required
-    #[serde(default)]
-    pub role: ::core::option::Option<String>,
-}
-
 /// Audit log information specific to Cloud IAM. This message is serialized as an Any type in the ServiceData message of an AuditLog message.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleIamV1LoggingAuditData {
     /// Policy delta between the original policy and the newly set policy.
     #[serde(default, rename = "policyDelta")]
     pub policy_delta: ::core::option::Option<GoogleIamV1PolicyDelta>,
-}
-
-/// The difference delta between two policies.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleIamV1PolicyDelta {
-    /// The delta for Bindings between two policies.
-    #[serde(default, rename = "bindingDeltas")]
-    pub binding_deltas: ::core::option::Option<::std::vec::Vec<GoogleIamV1BindingDelta>>,
-}
-
-/// A deny rule in an IAM deny policy.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleIamV2DenyRule {
-    /// The condition that determines whether this deny rule applies to a request. If the condition expression evaluates to true, then the deny rule is applied; otherwise, the deny rule is not applied. Each deny rule is evaluated independently. If this deny rule does not apply to a request, other deny rules might still apply. The condition can use CEL functions that evaluate [resource tags](https://cloud.google.com/iam/help/conditions/resource-tags). Other functions and operators are not supported.
-    #[serde(default, rename = "denialCondition")]
-    pub denial_condition: ::core::option::Option<GoogleTypeExpr>,
-    /// The permissions that are explicitly denied by this rule. Each permission uses the format {service_fqdn}/{resource}.{verb}, where {service_fqdn} is the fully qualified domain name for the service. For example, iam.googleapis.com/roles.list.
-    #[serde(default, rename = "deniedPermissions")]
-    pub denied_permissions: ::core::option::Option<::std::vec::Vec<String>>,
-    ///  The identities that are prevented from using one or more permissions on Google Cloud resources. This field can contain the following values: * principal://goog/subject/{email_id}: A specific Google Account. Includes Gmail, Cloud Identity, and Google Workspace user accounts. For example, principal://goog/subject/alice@example.com. * principal://iam.googleapis.com/projects/-/serviceAccounts/{service_account_id}: A Google Cloud service account. For example, principal://iam.googleapis.com/projects/-/serviceAccounts/my-service-account@iam.gserviceaccount.com. * principalSet://goog/group/{group_id}: A Google group. For example, principalSet://goog/group/admins@example.com. * principalSet://goog/public:all: A special identifier that represents any principal that is on the internet, even if they do not have a Google Account or are not logged in. * principalSet://goog/cloudIdentityCustomerId/{customer_id}: All of the principals associated with the specified Google Workspace or Cloud Identity customer ID. For example, principalSet://goog/cloudIdentityCustomerId/C01Abc35. * principal://iam.googleapis.com/locations/global/workforcePools/{pool_id}/subject/{subject_attribute_value}: A single identity in a workforce identity pool. * principalSet://iam.googleapis.com/locations/global/workforcePools/{pool_id}/group/{group_id}: All workforce identities in a group. * principalSet://iam.googleapis.com/locations/global/workforcePools/{pool_id}/attribute.{attribute_name}/{attribute_value}: All workforce identities with a specific attribute value. * principalSet://iam.googleapis.com/locations/global/workforcePools/{pool_id}/*: All identities in a workforce identity pool. * principal://iam.googleapis.com/projects/{project_number}/locations/global/workloadIdentityPools/{pool_id}/subject/{subject_attribute_value}: A single identity in a workload identity pool. * principalSet://iam.googleapis.com/projects/{project_number}/locations/global/workloadIdentityPools/{pool_id}/group/{group_id}: A workload identity pool group. * principalSet://iam.googleapis.com/projects/{project_number}/locations/global/workloadIdentityPools/{pool_id}/attribute.{attribute_name}/{attribute_value}: All identities in a workload identity pool with a certain attribute. * principalSet://iam.googleapis.com/projects/{project_number}/locations/global/workloadIdentityPools/{pool_id}/*: All identities in a workload identity pool. * principalSet://cloudresourcemanager.googleapis.com/[projects|folders|organizations]/{project_number|folder_number|org_number}/type/ServiceAccount: All service accounts grouped under a resource (project, folder, or organization). * principalSet://cloudresourcemanager.googleapis.com/[projects|folders|organizations]/{project_number|folder_number|org_number}/type/ServiceAgent: All service agents grouped under a resource (project, folder, or organization). * deleted:principal://goog/subject/{email_id}?uid={uid}: A specific Google Account that was deleted recently. For example, deleted:principal://goog/subject/alice@example.com?uid=1234567890. If the Google Account is recovered, this identifier reverts to the standard identifier for a Google Account. * deleted:principalSet://goog/group/{group_id}?uid={uid}: A Google group that was deleted recently. For example, deleted:principalSet://goog/group/admins@example.com?uid=1234567890. If the Google group is restored, this identifier reverts to the standard identifier for a Google group. * deleted:principal://iam.googleapis.com/projects/-/serviceAccounts/{service_account_id}?uid={uid}: A Google Cloud service account that was deleted recently. For example, deleted:principal://iam.googleapis.com/projects/-/serviceAccounts/my-service-account@iam.gserviceaccount.com?uid=1234567890. If the service account is undeleted, this identifier reverts to the standard identifier for a service account. * deleted:principal://iam.googleapis.com/locations/global/workforcePools/{pool_id}/subject/{subject_attribute_value}: Deleted single identity in a workforce identity pool. For example, deleted:principal://iam.googleapis.com/locations/global/workforcePools/my-pool-id/subject/my-subject-attribute-value.
-    #[serde(default, rename = "deniedPrincipals")]
-    pub denied_principals: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Specifies the permissions that this rule excludes from the set of denied permissions given by denied_permissions. If a permission appears in denied_permissions _and_ in exception_permissions then it will _not_ be denied. The excluded permissions can be specified using the same syntax as denied_permissions.
-    #[serde(default, rename = "exceptionPermissions")]
-    pub exception_permissions: ::core::option::Option<::std::vec::Vec<String>>,
-    /// The identities that are excluded from the deny rule, even if they are listed in the denied_principals. For example, you could add a Google group to the denied_principals, then exclude specific users who belong to that group. This field can contain the same values as the denied_principals field, excluding principalSet://goog/public:all, which represents all users on the internet.
-    #[serde(default, rename = "exceptionPrincipals")]
-    pub exception_principals: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Response message for ListPolicies.
@@ -130,58 +74,12 @@ pub struct GoogleIamV2ListPoliciesResponse {
     pub policies: ::core::option::Option<::std::vec::Vec<GoogleIamV2Policy>>,
 }
 
-/// Data for an IAM policy.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleIamV2Policy {
-    /// A key-value map to store arbitrary metadata for the Policy. Keys can be up to 63 characters. Values can be up to 255 characters.
-    #[serde(default)]
-    pub annotations: ::core::option::Option<serde_json::Value>,
-    /// Output only. The time when the Policy was created.
-    #[serde(default, rename = "createTime")]
-    pub create_time: ::core::option::Option<String>,
-    /// Output only. The time when the Policy was deleted. Empty if the policy is not deleted.
-    #[serde(default, rename = "deleteTime")]
-    pub delete_time: ::core::option::Option<String>,
-    /// A user-specified description of the Policy. This value can be up to 63 characters.
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-    /// An opaque tag that identifies the current version of the Policy. IAM uses this value to help manage concurrent updates, so they do not cause one update to be overwritten by another. If this field is present in a CreatePolicyRequest, the value is ignored.
-    #[serde(default)]
-    pub etag: ::core::option::Option<String>,
-    /// Output only. The kind of the Policy. Always contains the value DenyPolicy.
-    #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-    /// Immutable. The resource name of the Policy, which must be unique. Format: policies/{attachment_point}/denypolicies/{policy_id} The attachment point is identified by its URL-encoded full resource name, which means that the forward-slash character, /, must be written as %2F. For example, policies/cloudresourcemanager.googleapis.com%2Fprojects%2Fmy-project/denypolicies/my-deny-policy. For organizations and folders, use the numeric ID in the full resource name. For projects, requests can use the alphanumeric or the numeric ID. Responses always contain the numeric ID.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// A list of rules that specify the behavior of the Policy. All of the rules should be of the kind specified in the Policy.
-    #[serde(default)]
-    pub rules: ::core::option::Option<::std::vec::Vec<GoogleIamV2PolicyRule>>,
-    /// Immutable. The globally unique ID of the Policy. Assigned automatically when the Policy is created.
-    #[serde(default)]
-    pub uid: ::core::option::Option<String>,
-    /// Output only. The time when the Policy was last updated.
-    #[serde(default, rename = "updateTime")]
-    pub update_time: ::core::option::Option<String>,
-}
-
 /// Metadata for long-running Policy operations.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleIamV2PolicyOperationMetadata {
     /// Timestamp when the google.longrunning.Operation was created.
     #[serde(default, rename = "createTime")]
     pub create_time: ::core::option::Option<String>,
-}
-
-/// A single rule in a Policy.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleIamV2PolicyRule {
-    /// A rule for a deny policy.
-    #[serde(default, rename = "denyRule")]
-    pub deny_rule: ::core::option::Option<GoogleIamV2DenyRule>,
-    /// A user-specified description of the rule. This value can be up to 256 characters.
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
 }
 
 /// Represents the metadata of the long-running operation.
@@ -308,6 +206,60 @@ pub struct GoogleLongrunningOperation {
     pub response: ::core::option::Option<serde_json::Value>,
 }
 
+/// A PermissionDelta message to record the added_permissions and removed_permissions inside a role.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleIamAdminV1AuditDataPermissionDelta {
+    /// Added permissions.
+    #[serde(default, rename = "addedPermissions")]
+    pub added_permissions: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Removed permissions.
+    #[serde(default, rename = "removedPermissions")]
+    pub removed_permissions: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// The difference delta between two policies.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleIamV1PolicyDelta {
+    /// The delta for Bindings between two policies.
+    #[serde(default, rename = "bindingDeltas")]
+    pub binding_deltas: ::core::option::Option<::std::vec::Vec<GoogleIamV1BindingDelta>>,
+}
+
+/// Data for an IAM policy.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleIamV2Policy {
+    /// A key-value map to store arbitrary metadata for the Policy. Keys can be up to 63 characters. Values can be up to 255 characters.
+    #[serde(default)]
+    pub annotations: ::core::option::Option<serde_json::Value>,
+    /// Output only. The time when the Policy was created.
+    #[serde(default, rename = "createTime")]
+    pub create_time: ::core::option::Option<String>,
+    /// Output only. The time when the Policy was deleted. Empty if the policy is not deleted.
+    #[serde(default, rename = "deleteTime")]
+    pub delete_time: ::core::option::Option<String>,
+    /// A user-specified description of the Policy. This value can be up to 63 characters.
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+    /// An opaque tag that identifies the current version of the Policy. IAM uses this value to help manage concurrent updates, so they do not cause one update to be overwritten by another. If this field is present in a CreatePolicyRequest, the value is ignored.
+    #[serde(default)]
+    pub etag: ::core::option::Option<String>,
+    /// Output only. The kind of the Policy. Always contains the value DenyPolicy.
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+    /// Immutable. The resource name of the Policy, which must be unique. Format: policies/{attachment_point}/denypolicies/{policy_id} The attachment point is identified by its URL-encoded full resource name, which means that the forward-slash character, /, must be written as %2F. For example, policies/cloudresourcemanager.googleapis.com%2Fprojects%2Fmy-project/denypolicies/my-deny-policy. For organizations and folders, use the numeric ID in the full resource name. For projects, requests can use the alphanumeric or the numeric ID. Responses always contain the numeric ID.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// A list of rules that specify the behavior of the Policy. All of the rules should be of the kind specified in the Policy.
+    #[serde(default)]
+    pub rules: ::core::option::Option<::std::vec::Vec<GoogleIamV2PolicyRule>>,
+    /// Immutable. The globally unique ID of the Policy. Assigned automatically when the Policy is created.
+    #[serde(default)]
+    pub uid: ::core::option::Option<String>,
+    /// Output only. The time when the Policy was last updated.
+    #[serde(default, rename = "updateTime")]
+    pub update_time: ::core::option::Option<String>,
+}
+
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleRpcStatus {
@@ -320,6 +272,54 @@ pub struct GoogleRpcStatus {
     /// A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.
     #[serde(default)]
     pub message: ::core::option::Option<String>,
+}
+
+/// One delta entry for Binding. Each individual change (only one member in each entry) to a binding will be a separate entry.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleIamV1BindingDelta {
+    /// The action that was performed on a Binding. Required // TODO: enum values: ["ACTION_UNSPECIFIED", "ADD", "REMOVE"]
+    #[serde(default)]
+    pub action: ::core::option::Option<String>,
+    /// The condition that is associated with this binding.
+    #[serde(default)]
+    pub condition: ::core::option::Option<GoogleTypeExpr>,
+    /// A single identity requesting access for a Google Cloud resource. Follows the same format of Binding.members. Required
+    #[serde(default)]
+    pub member: ::core::option::Option<String>,
+    /// Role that is assigned to members. For example, roles/viewer, roles/editor, or roles/owner. Required
+    #[serde(default)]
+    pub role: ::core::option::Option<String>,
+}
+
+/// A single rule in a Policy.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleIamV2PolicyRule {
+    /// A rule for a deny policy.
+    #[serde(default, rename = "denyRule")]
+    pub deny_rule: ::core::option::Option<GoogleIamV2DenyRule>,
+    /// A user-specified description of the rule. This value can be up to 256 characters.
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+}
+
+/// A deny rule in an IAM deny policy.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleIamV2DenyRule {
+    /// The condition that determines whether this deny rule applies to a request. If the condition expression evaluates to true, then the deny rule is applied; otherwise, the deny rule is not applied. Each deny rule is evaluated independently. If this deny rule does not apply to a request, other deny rules might still apply. The condition can use CEL functions that evaluate [resource tags](https://cloud.google.com/iam/help/conditions/resource-tags). Other functions and operators are not supported.
+    #[serde(default, rename = "denialCondition")]
+    pub denial_condition: ::core::option::Option<GoogleTypeExpr>,
+    /// The permissions that are explicitly denied by this rule. Each permission uses the format {service_fqdn}/{resource}.{verb}, where {service_fqdn} is the fully qualified domain name for the service. For example, iam.googleapis.com/roles.list.
+    #[serde(default, rename = "deniedPermissions")]
+    pub denied_permissions: ::core::option::Option<::std::vec::Vec<String>>,
+    ///  The identities that are prevented from using one or more permissions on Google Cloud resources. This field can contain the following values: * principal://goog/subject/{email_id}: A specific Google Account. Includes Gmail, Cloud Identity, and Google Workspace user accounts. For example, principal://goog/subject/alice@example.com. * principal://iam.googleapis.com/projects/-/serviceAccounts/{service_account_id}: A Google Cloud service account. For example, principal://iam.googleapis.com/projects/-/serviceAccounts/my-service-account@iam.gserviceaccount.com. * principalSet://goog/group/{group_id}: A Google group. For example, principalSet://goog/group/admins@example.com. * principalSet://goog/public:all: A special identifier that represents any principal that is on the internet, even if they do not have a Google Account or are not logged in. * principalSet://goog/cloudIdentityCustomerId/{customer_id}: All of the principals associated with the specified Google Workspace or Cloud Identity customer ID. For example, principalSet://goog/cloudIdentityCustomerId/C01Abc35. * principal://iam.googleapis.com/locations/global/workforcePools/{pool_id}/subject/{subject_attribute_value}: A single identity in a workforce identity pool. * principalSet://iam.googleapis.com/locations/global/workforcePools/{pool_id}/group/{group_id}: All workforce identities in a group. * principalSet://iam.googleapis.com/locations/global/workforcePools/{pool_id}/attribute.{attribute_name}/{attribute_value}: All workforce identities with a specific attribute value. * principalSet://iam.googleapis.com/locations/global/workforcePools/{pool_id}/*: All identities in a workforce identity pool. * principal://iam.googleapis.com/projects/{project_number}/locations/global/workloadIdentityPools/{pool_id}/subject/{subject_attribute_value}: A single identity in a workload identity pool. * principalSet://iam.googleapis.com/projects/{project_number}/locations/global/workloadIdentityPools/{pool_id}/group/{group_id}: A workload identity pool group. * principalSet://iam.googleapis.com/projects/{project_number}/locations/global/workloadIdentityPools/{pool_id}/attribute.{attribute_name}/{attribute_value}: All identities in a workload identity pool with a certain attribute. * principalSet://iam.googleapis.com/projects/{project_number}/locations/global/workloadIdentityPools/{pool_id}/*: All identities in a workload identity pool. * principalSet://cloudresourcemanager.googleapis.com/[projects|folders|organizations]/{project_number|folder_number|org_number}/type/ServiceAccount: All service accounts grouped under a resource (project, folder, or organization). * principalSet://cloudresourcemanager.googleapis.com/[projects|folders|organizations]/{project_number|folder_number|org_number}/type/ServiceAgent: All service agents grouped under a resource (project, folder, or organization). * deleted:principal://goog/subject/{email_id}?uid={uid}: A specific Google Account that was deleted recently. For example, deleted:principal://goog/subject/alice@example.com?uid=1234567890. If the Google Account is recovered, this identifier reverts to the standard identifier for a Google Account. * deleted:principalSet://goog/group/{group_id}?uid={uid}: A Google group that was deleted recently. For example, deleted:principalSet://goog/group/admins@example.com?uid=1234567890. If the Google group is restored, this identifier reverts to the standard identifier for a Google group. * deleted:principal://iam.googleapis.com/projects/-/serviceAccounts/{service_account_id}?uid={uid}: A Google Cloud service account that was deleted recently. For example, deleted:principal://iam.googleapis.com/projects/-/serviceAccounts/my-service-account@iam.gserviceaccount.com?uid=1234567890. If the service account is undeleted, this identifier reverts to the standard identifier for a service account. * deleted:principal://iam.googleapis.com/locations/global/workforcePools/{pool_id}/subject/{subject_attribute_value}: Deleted single identity in a workforce identity pool. For example, deleted:principal://iam.googleapis.com/locations/global/workforcePools/my-pool-id/subject/my-subject-attribute-value.
+    #[serde(default, rename = "deniedPrincipals")]
+    pub denied_principals: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Specifies the permissions that this rule excludes from the set of denied permissions given by denied_permissions. If a permission appears in denied_permissions _and_ in exception_permissions then it will _not_ be denied. The excluded permissions can be specified using the same syntax as denied_permissions.
+    #[serde(default, rename = "exceptionPermissions")]
+    pub exception_permissions: ::core::option::Option<::std::vec::Vec<String>>,
+    /// The identities that are excluded from the deny rule, even if they are listed in the denied_principals. For example, you could add a Google group to the denied_principals, then exclude specific users who belong to that group. This field can contain the same values as the denied_principals field, excluding principalSet://goog/public:all, which represents all users on the internet.
+    #[serde(default, rename = "exceptionPrincipals")]
+    pub exception_principals: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Represents a textual expression in the Common Expression Language (CEL) syntax. CEL is a C-like expression language. The syntax and semantics of CEL are documented at https://github.com/google/cel-spec. Example (Comparison): title: "Summary size limit" description: "Determines if a summary is less than 100 chars" expression: "document.summary.size() &lt; 100" Example (Equality): title: "Requestor is owner" description: "Determines if requestor is the document owner" expression: "document.owner == request.auth.claims.email" Example (Logic): title: "Public documents" description: "Determine whether the document should be publicly visible" expression: "document.type != ''private'' && document.type != ''internal''" Example (Data Manipulation): title: "Notification string" description: "Create a notification string with a timestamp." expression: "''New message received at '' + string(document.create_time)" The exact variables and functions that may be referenced within an expression are determined by the service that evaluates it. See the service documentation for additional information.

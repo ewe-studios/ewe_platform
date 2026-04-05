@@ -19,165 +19,6 @@ pub struct CloudAiDocumentaiLabHifiaToolsValidationValidatorInput {
     >,
 }
 
-/// Next ID: 9
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CloudAiDocumentaiLabHifiaToolsValidationValidatorInputValidationRule {
-    #[serde(default, rename = "childAlignmentRule")]
-    pub child_alignment_rule: ::core::option::Option<
-        CloudAiDocumentaiLabHifiaToolsValidationValidatorInputValidationRuleChildAlignmentRule,
-    >,
-    /// Description of the validation rule. This has no use but for documentation.
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    #[serde(default, rename = "entityAlignmentRule")]
-    pub entity_alignment_rule: ::core::option::Option<
-        CloudAiDocumentaiLabHifiaToolsValidationValidatorInputValidationRuleEntityAlignmentRule,
-    >,
-    #[serde(default, rename = "fieldOccurrences")]
-    pub field_occurrences: ::core::option::Option<
-        CloudAiDocumentaiLabHifiaToolsValidationValidatorInputValidationRuleFieldOccurrences,
-    >,
-    #[serde(default, rename = "fieldRegex")]
-    pub field_regex: ::core::option::Option<
-        CloudAiDocumentaiLabHifiaToolsValidationValidatorInputValidationRuleFieldRegex,
-    >,
-    #[serde(default, rename = "formValidation")]
-    pub form_validation: ::core::option::Option<
-        CloudAiDocumentaiLabHifiaToolsValidationValidatorInputValidationRuleFormValidation,
-    >,
-    /// Name of the validation rule.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Unique identifier of the rule. Optional.
-    #[serde(default, rename = "ruleId")]
-    pub rule_id: ::core::option::Option<String>,
-}
-
-/// A rule for checking field alignment. Horizontal alignment checks if fields are on the same row by comparing y-coordinates of bounding box centers, while vertical alignment checks if fields are on the same column by comparing x-coordinates of bounding box centers.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CloudAiDocumentaiLabHifiaToolsValidationValidatorInputValidationRuleAlignmentRule {
-    /// TODO: enum values: ["ALIGNMENT_TYPE_UNSPECIFIED", "ALIGNMENT_TYPE_HORIZONTAL", "ALIGNMENT_TYPE_VERTICAL"]
-    #[serde(default, rename = "alignmentType")]
-    pub alignment_type: ::core::option::Option<String>,
-    /// The tolerance to use when comparing coordinates.
-    #[serde(default)]
-    pub tolerance: ::core::option::Option<f32>,
-}
-
-/// A rule that aligns specified child fields with a parent field.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CloudAiDocumentaiLabHifiaToolsValidationValidatorInputValidationRuleChildAlignmentRule {
-    /// The alignment rule to apply to the child fields.
-    #[serde(default, rename = "alignmentRule")]
-    pub alignment_rule: ::core::option::Option<
-        CloudAiDocumentaiLabHifiaToolsValidationValidatorInputValidationRuleAlignmentRule,
-    >,
-    /// The child fields to be aligned within the parent field.
-    #[serde(default, rename = "childFields")]
-    pub child_fields: ::core::option::Option<
-        ::std::vec::Vec<CloudAiDocumentaiLabHifiaToolsValidationValidatorInputValidationRuleField>,
-    >,
-    /// The full path of the parent field.
-    #[serde(default, rename = "parentField")]
-    pub parent_field: ::core::option::Option<
-        CloudAiDocumentaiLabHifiaToolsValidationValidatorInputValidationRuleField,
-    >,
-}
-
-/// The constant value used in the validation rules.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CloudAiDocumentaiLabHifiaToolsValidationValidatorInputValidationRuleConstant {
-    #[serde(default, rename = "floatValue")]
-    pub float_value: ::core::option::Option<f32>,
-}
-
-/// A rule that aligns specified fields with each other.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CloudAiDocumentaiLabHifiaToolsValidationValidatorInputValidationRuleEntityAlignmentRule {
-    /// The alignment rule to apply to the fields.
-    #[serde(default, rename = "alignmentRule")]
-    pub alignment_rule: ::core::option::Option<
-        CloudAiDocumentaiLabHifiaToolsValidationValidatorInputValidationRuleAlignmentRule,
-    >,
-    /// The fields to be aligned.
-    #[serde(default)]
-    pub fields: ::core::option::Option<
-        ::std::vec::Vec<CloudAiDocumentaiLabHifiaToolsValidationValidatorInputValidationRuleField>,
-    >,
-}
-
-/// CloudAiDocumentaiLabHifiaToolsValidationValidatorInputValidationRuleField resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CloudAiDocumentaiLabHifiaToolsValidationValidatorInputValidationRuleField {
-    /// Default value to use if the field is not present. If the field is missing and the default value is not set, the validation run as if the field is not present in the validation logic.
-    #[serde(default, rename = "defaultValue")]
-    pub default_value: ::core::option::Option<
-        CloudAiDocumentaiLabHifiaToolsValidationValidatorInputValidationRuleConstant,
-    >,
-    /// The field name to validate. This can be a simple field name or a nested field one using the '':'' (meant as an aggregator) or ''*'' (meant as foreach) operators.
-    #[serde(default, rename = "fieldName")]
-    pub field_name: ::core::option::Option<String>,
-}
-
-/// CloudAiDocumentaiLabHifiaToolsValidationValidatorInputValidationRuleFieldOccurrences resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CloudAiDocumentaiLabHifiaToolsValidationValidatorInputValidationRuleFieldOccurrences {
-    #[serde(default)]
-    pub field: ::core::option::Option<
-        CloudAiDocumentaiLabHifiaToolsValidationValidatorInputValidationRuleField,
-    >,
-    #[serde(default, rename = "maxOccurrences")]
-    pub max_occurrences: ::core::option::Option<i64>,
-    /// Min and max occurrences of the field. If not set, there is limit set. The defined interval is a closed-closed interval, i.e. [min, max].
-    #[serde(default, rename = "minOccurrences")]
-    pub min_occurrences: ::core::option::Option<i64>,
-}
-
-/// CloudAiDocumentaiLabHifiaToolsValidationValidatorInputValidationRuleFieldRegex resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CloudAiDocumentaiLabHifiaToolsValidationValidatorInputValidationRuleFieldRegex {
-    #[serde(default)]
-    pub field: ::core::option::Option<
-        CloudAiDocumentaiLabHifiaToolsValidationValidatorInputValidationRuleField,
-    >,
-    /// Python regex to validate the field values.
-    #[serde(default)]
-    pub pattern: ::core::option::Option<String>,
-}
-
-/// CloudAiDocumentaiLabHifiaToolsValidationValidatorInputValidationRuleFormValidation resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CloudAiDocumentaiLabHifiaToolsValidationValidatorInputValidationRuleFormValidation {
-    #[serde(default, rename = "leftOperand")]
-    pub left_operand: ::core::option::Option<
-        CloudAiDocumentaiLabHifiaToolsValidationValidatorInputValidationRuleFormValidationOperation,
-    >,
-    #[serde(default, rename = "rightOperand")]
-    pub right_operand: ::core::option::Option<
-        CloudAiDocumentaiLabHifiaToolsValidationValidatorInputValidationRuleFormValidationOperation,
-    >,
-    /// The relational operator to be applied to the operands. // TODO: enum values: ["OPERATION_TYPE_UNSPECIFIED", "OPERATION_TYPE_EQ", "OPERATION_TYPE_NE", "OPERATION_TYPE_LT", "OPERATION_TYPE_LE", "OPERATION_TYPE_GT", "OPERATION_TYPE_GE"]
-    #[serde(default, rename = "validationOperator")]
-    pub validation_operator: ::core::option::Option<String>,
-}
-
-/// CloudAiDocumentaiLabHifiaToolsValidationValidatorInputValidationRuleFormValidationOperation resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CloudAiDocumentaiLabHifiaToolsValidationValidatorInputValidationRuleFormValidationOperation {
-    /// A list of constants to be used as operands.
-    #[serde(default)]
-    pub constants: ::core::option::Option<::std::vec::Vec<CloudAiDocumentaiLabHifiaToolsValidationValidatorInputValidationRuleConstant>>,
-    /// A list of fields to be used as operands.
-    #[serde(default)]
-    pub fields: ::core::option::Option<::std::vec::Vec<CloudAiDocumentaiLabHifiaToolsValidationValidatorInputValidationRuleField>>,
-    /// The operation type to be applied to all the operands. // TODO: enum values: ["OPERATION_TYPE_UNSPECIFIED", "OPERATION_TYPE_SUM", "OPERATION_TYPE_SUB", "OPERATION_TYPE_MUL", "OPERATION_TYPE_DIV", "OPERATION_TYPE_MAX", "OPERATION_TYPE_MIN", "OPERATION_TYPE_ABS", "OPERATION_TYPE_UNIQUE", "OPERATION_TYPE_COUNT"]
-    #[serde(default, rename = "operationType")]
-    pub operation_type: ::core::option::Option<String>,
-    /// A list of recursive operations to be used as operands.
-    #[serde(default)]
-    pub operations: ::core::option::Option<::std::vec::Vec<CloudAiDocumentaiLabHifiaToolsValidationValidatorInputValidationRuleFormValidationOperation>>,
-}
-
 /// Metadata of the auto-labeling documents operation.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDocumentaiUiv1beta3AutoLabelDocumentsMetadata {
@@ -195,17 +36,6 @@ pub struct GoogleCloudDocumentaiUiv1beta3AutoLabelDocumentsMetadata {
     /// Total number of the auto-labeling documents.
     #[serde(default, rename = "totalDocumentCount")]
     pub total_document_count: ::core::option::Option<i32>,
-}
-
-/// The status of individual documents in the auto-labeling process.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiUiv1beta3AutoLabelDocumentsMetadataIndividualAutoLabelStatus {
-    /// The document id of the auto-labeled document. This will replace the gcs_uri.
-    #[serde(default, rename = "documentId")]
-    pub document_id: ::core::option::Option<GoogleCloudDocumentaiUiv1beta3DocumentId>,
-    /// The status of the document auto-labeling.
-    #[serde(default)]
-    pub status: ::core::option::Option<GoogleRpcStatus>,
 }
 
 /// GoogleCloudDocumentaiUiv1beta3BatchDeleteDocumentsMetadata resource type.
@@ -230,17 +60,6 @@ pub struct GoogleCloudDocumentaiUiv1beta3BatchDeleteDocumentsMetadata {
     pub total_document_count: ::core::option::Option<i32>,
 }
 
-/// The status of each individual document in the batch delete process.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiUiv1beta3BatchDeleteDocumentsMetadataIndividualBatchDeleteStatus {
-    /// The document id of the document.
-    #[serde(default, rename = "documentId")]
-    pub document_id: ::core::option::Option<GoogleCloudDocumentaiUiv1beta3DocumentId>,
-    /// The status of deleting the document in storage.
-    #[serde(default)]
-    pub status: ::core::option::Option<GoogleRpcStatus>,
-}
-
 /// GoogleCloudDocumentaiUiv1beta3BatchMoveDocumentsMetadata resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDocumentaiUiv1beta3BatchMoveDocumentsMetadata {
@@ -263,17 +82,6 @@ pub struct GoogleCloudDocumentaiUiv1beta3BatchMoveDocumentsMetadata {
     >,
 }
 
-/// The status of each individual document in the batch move process.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiUiv1beta3BatchMoveDocumentsMetadataIndividualBatchMoveStatus {
-    /// The document id of the document.
-    #[serde(default, rename = "documentId")]
-    pub document_id: ::core::option::Option<GoogleCloudDocumentaiUiv1beta3DocumentId>,
-    /// The status of moving the document.
-    #[serde(default)]
-    pub status: ::core::option::Option<GoogleRpcStatus>,
-}
-
 /// GoogleCloudDocumentaiUiv1beta3BatchUpdateDocumentsMetadata resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDocumentaiUiv1beta3BatchUpdateDocumentsMetadata {
@@ -288,37 +96,6 @@ pub struct GoogleCloudDocumentaiUiv1beta3BatchUpdateDocumentsMetadata {
             GoogleCloudDocumentaiUiv1beta3BatchUpdateDocumentsMetadataIndividualBatchUpdateStatus,
         >,
     >,
-}
-
-/// The status of each individual document in the batch update process.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiUiv1beta3BatchUpdateDocumentsMetadataIndividualBatchUpdateStatus {
-    /// The document id of the document.
-    #[serde(default, rename = "documentId")]
-    pub document_id: ::core::option::Option<GoogleCloudDocumentaiUiv1beta3DocumentId>,
-    /// The status of updating the document in storage.
-    #[serde(default)]
-    pub status: ::core::option::Option<GoogleRpcStatus>,
-}
-
-/// The common metadata for long running operations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiUiv1beta3CommonOperationMetadata {
-    /// The creation time of the operation.
-    #[serde(default, rename = "createTime")]
-    pub create_time: ::core::option::Option<String>,
-    /// A related resource to this operation.
-    #[serde(default)]
-    pub resource: ::core::option::Option<String>,
-    /// The state of the operation. // TODO: enum values: ["STATE_UNSPECIFIED", "RUNNING", "CANCELLING", "SUCCEEDED", "FAILED", "CANCELLED"]
-    #[serde(default)]
-    pub state: ::core::option::Option<String>,
-    /// A message providing more details about the current state of processing.
-    #[serde(default, rename = "stateMessage")]
-    pub state_message: ::core::option::Option<String>,
-    /// The last update time of the operation.
-    #[serde(default, rename = "updateTime")]
-    pub update_time: ::core::option::Option<String>,
 }
 
 /// The long-running operation metadata for the CreateLabelerPool method.
@@ -375,144 +152,6 @@ pub struct GoogleCloudDocumentaiUiv1beta3DisableProcessorMetadata {
         ::core::option::Option<GoogleCloudDocumentaiUiv1beta3CommonOperationMetadata>,
 }
 
-/// Document Identifier.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiUiv1beta3DocumentId {
-    /// A document id within user-managed Cloud Storage.
-    #[serde(default, rename = "gcsManagedDocId")]
-    pub gcs_managed_doc_id:
-        ::core::option::Option<GoogleCloudDocumentaiUiv1beta3DocumentIdGCSManagedDocumentId>,
-    /// Points to a specific revision of the document if set.
-    #[serde(default, rename = "revisionRef")]
-    pub revision_ref: ::core::option::Option<GoogleCloudDocumentaiUiv1beta3RevisionRef>,
-    /// A document id within unmanaged dataset.
-    #[serde(default, rename = "unmanagedDocId")]
-    pub unmanaged_doc_id:
-        ::core::option::Option<GoogleCloudDocumentaiUiv1beta3DocumentIdUnmanagedDocumentId>,
-}
-
-/// Identifies a document uniquely within the scope of a dataset in the user-managed Cloud Storage option.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiUiv1beta3DocumentIdGCSManagedDocumentId {
-    /// Id of the document (indexed) managed by Content Warehouse.
-    #[serde(default, rename = "cwDocId")]
-    pub cw_doc_id: ::core::option::Option<String>,
-    /// Required. The Cloud Storage URI where the actual document is stored.
-    #[serde(default, rename = "gcsUri")]
-    pub gcs_uri: ::core::option::Option<String>,
-}
-
-/// Identifies a document uniquely within the scope of a dataset in unmanaged option.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiUiv1beta3DocumentIdUnmanagedDocumentId {
-    /// Required. The id of the document.
-    #[serde(default, rename = "docId")]
-    pub doc_id: ::core::option::Option<String>,
-}
-
-/// The schema defines the output of the processed document by a processor.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiUiv1beta3DocumentSchema {
-    /// Description of the schema.
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// Display name to show users.
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-    /// Optional. Document level prompt provided by the user. This custom text is injected into the AI model''s prompt to provide extra, document-wide guidance for processing.
-    #[serde(default, rename = "documentPrompt")]
-    pub document_prompt: ::core::option::Option<String>,
-    /// Entity types of the schema.
-    #[serde(default, rename = "entityTypes")]
-    pub entity_types: ::core::option::Option<
-        ::std::vec::Vec<GoogleCloudDocumentaiUiv1beta3DocumentSchemaEntityType>,
-    >,
-    /// Metadata of the schema.
-    #[serde(default)]
-    pub metadata: ::core::option::Option<GoogleCloudDocumentaiUiv1beta3DocumentSchemaMetadata>,
-}
-
-/// EntityType is the wrapper of a label of the corresponding model with detailed attributes and limitations for entity-based processors. Multiple types can also compose a dependency tree to represent nested types.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiUiv1beta3DocumentSchemaEntityType {
-    /// The entity type that this type is derived from. For now, one and only one should be set.
-    #[serde(default, rename = "baseTypes")]
-    pub base_types: ::core::option::Option<::std::vec::Vec<String>>,
-    /// The description of the entity type. Could be used to provide more information about the entity type for model calls.
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// User defined name for the type.
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-    /// Metadata for the entity type.
-    #[serde(default, rename = "entityTypeMetadata")]
-    pub entity_type_metadata:
-        ::core::option::Option<GoogleCloudDocumentaiUiv1beta3EntityTypeMetadata>,
-    /// If specified, lists all the possible values for this entity. This should not be more than a handful of values. If the number of values is &gt;10 or could change frequently, use the EntityType.value_ontology field and specify a list of all possible values in a value ontology file.
-    #[serde(default, rename = "enumValues")]
-    pub enum_values:
-        ::core::option::Option<GoogleCloudDocumentaiUiv1beta3DocumentSchemaEntityTypeEnumValues>,
-    /// Name of the type. It must be unique within the schema file and cannot be a "Common Type". The following naming conventions are used: - Use snake_casing. - Name matching is case-sensitive. - Maximum 64 characters. - Must start with a letter. - Allowed characters: ASCII letters [a-z0-9_-]. (For backward compatibility, internal infrastructure and tooling can handle any ASCII character.) - The / is sometimes used to denote a property of a type. For example line_item/amount. This convention is deprecated, but will still be honored for backward compatibility.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Description the nested structure, or composition of an entity.
-    #[serde(default)]
-    pub properties: ::core::option::Option<
-        ::std::vec::Vec<GoogleCloudDocumentaiUiv1beta3DocumentSchemaEntityTypeProperty>,
-    >,
-}
-
-/// Defines the a list of enum values.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiUiv1beta3DocumentSchemaEntityTypeEnumValues {
-    /// The individual values that this enum values type can include.
-    #[serde(default)]
-    pub values: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// Defines properties that can be part of the entity type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiUiv1beta3DocumentSchemaEntityTypeProperty {
-    /// The description of the property. Could be used to provide more information about the property for model calls.
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// User defined name for the property.
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-    /// Specifies how the entity''s value is obtained. // TODO: enum values: ["METHOD_UNSPECIFIED", "EXTRACT", "DERIVE", "RELAXED_EXTRACT"]
-    #[serde(default)]
-    pub method: ::core::option::Option<String>,
-    /// The name of the property. Follows the same guidelines as the EntityType name.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Occurrence type limits the number of instances an entity type appears in the document. // TODO: enum values: ["OCCURRENCE_TYPE_UNSPECIFIED", "OPTIONAL_ONCE", "OPTIONAL_MULTIPLE", "REQUIRED_ONCE", "REQUIRED_MULTIPLE"]
-    #[serde(default, rename = "occurrenceType")]
-    pub occurrence_type: ::core::option::Option<String>,
-    /// Any additional metadata about the property can be added here.
-    #[serde(default, rename = "propertyMetadata")]
-    pub property_metadata: ::core::option::Option<GoogleCloudDocumentaiUiv1beta3PropertyMetadata>,
-    /// A reference to the value type of the property. This type is subject to the same conventions as the Entity.base_types field.
-    #[serde(default, rename = "valueType")]
-    pub value_type: ::core::option::Option<String>,
-}
-
-/// Metadata for global schema behavior.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiUiv1beta3DocumentSchemaMetadata {
-    /// If true, on a given page, there can be multiple document annotations covering it.
-    #[serde(default, rename = "documentAllowMultipleLabels")]
-    pub document_allow_multiple_labels: ::core::option::Option<bool>,
-    /// If true, a document entity type can be applied to subdocument (splitting). Otherwise, it can only be applied to the entire document (classification).
-    #[serde(default, rename = "documentSplitter")]
-    pub document_splitter: ::core::option::Option<bool>,
-    /// If set, all the nested entities must be prefixed with the parents.
-    #[serde(default, rename = "prefixedNamingOnProperties")]
-    pub prefixed_naming_on_properties: ::core::option::Option<bool>,
-    /// If set, this will skip the naming format validation in the schema. So the string values in DocumentSchema.EntityType.name and DocumentSchema.EntityType.Property.name will not be checked.
-    #[serde(default, rename = "skipNamingValidation")]
-    pub skip_naming_validation: ::core::option::Option<bool>,
-}
-
 /// The long-running operation metadata for the EnableProcessor method.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDocumentaiUiv1beta3EnableProcessorMetadata {
@@ -520,34 +159,6 @@ pub struct GoogleCloudDocumentaiUiv1beta3EnableProcessorMetadata {
     #[serde(default, rename = "commonMetadata")]
     pub common_metadata:
         ::core::option::Option<GoogleCloudDocumentaiUiv1beta3CommonOperationMetadata>,
-}
-
-/// Metadata about an entity type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiUiv1beta3EntityTypeMetadata {
-    /// Field tier metadata on the property
-    #[serde(default, rename = "fieldTierMetadata")]
-    pub field_tier_metadata:
-        ::core::option::Option<GoogleCloudDocumentaiUiv1beta3FieldTierMetadata>,
-    /// Human review labeling config on the entity.
-    #[serde(default, rename = "humanReviewLabelingMetadata")]
-    pub human_review_labeling_metadata:
-        ::core::option::Option<GoogleCloudDocumentaiUiv1beta3HumanReviewLabelingMetadata>,
-    /// Human review config on the entity.
-    #[serde(default, rename = "humanReviewMetadata")]
-    pub human_review_metadata:
-        ::core::option::Option<GoogleCloudDocumentaiUiv1beta3HumanReviewValidationMetadata>,
-    /// Whether the entity type should be considered inactive.
-    #[serde(default)]
-    pub inactive: ::core::option::Option<bool>,
-    /// Schema editability metadata on the entity.
-    #[serde(default, rename = "schemaEditabilityMetadata")]
-    pub schema_editability_metadata:
-        ::core::option::Option<GoogleCloudDocumentaiUiv1beta3SchemaEditabilityMetadata>,
-    /// Schema inference metadata on the entity.
-    #[serde(default, rename = "schemaInferenceMetadata")]
-    pub schema_inference_metadata:
-        ::core::option::Option<GoogleCloudDocumentaiUiv1beta3SchemaInferenceMetadata>,
 }
 
 /// Metadata of the EvaluateProcessorVersion method.
@@ -565,62 +176,6 @@ pub struct GoogleCloudDocumentaiUiv1beta3EvaluateProcessorVersionResponse {
     /// The resource name of the created evaluation.
     #[serde(default)]
     pub evaluation: ::core::option::Option<String>,
-}
-
-/// Evaluation metrics, either in aggregate or about a specific entity.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiUiv1beta3EvaluationMetrics {
-    /// The calculated F1 score.
-    #[serde(default, rename = "f1Score")]
-    pub f1_score: ::core::option::Option<f32>,
-    /// The amount of false negatives.
-    #[serde(default, rename = "falseNegativesCount")]
-    pub false_negatives_count: ::core::option::Option<i32>,
-    /// The amount of false positives.
-    #[serde(default, rename = "falsePositivesCount")]
-    pub false_positives_count: ::core::option::Option<i32>,
-    /// The amount of documents with a ground truth occurrence.
-    #[serde(default, rename = "groundTruthDocumentCount")]
-    pub ground_truth_document_count: ::core::option::Option<i32>,
-    /// The amount of occurrences in ground truth documents.
-    #[serde(default, rename = "groundTruthOccurrencesCount")]
-    pub ground_truth_occurrences_count: ::core::option::Option<i32>,
-    /// The calculated precision.
-    #[serde(default)]
-    pub precision: ::core::option::Option<f32>,
-    /// The amount of documents with a predicted occurrence.
-    #[serde(default, rename = "predictedDocumentCount")]
-    pub predicted_document_count: ::core::option::Option<i32>,
-    /// The amount of occurrences in predicted documents.
-    #[serde(default, rename = "predictedOccurrencesCount")]
-    pub predicted_occurrences_count: ::core::option::Option<i32>,
-    /// The calculated recall.
-    #[serde(default)]
-    pub recall: ::core::option::Option<f32>,
-    /// The amount of documents that had an occurrence of this label.
-    #[serde(default, rename = "totalDocumentsCount")]
-    pub total_documents_count: ::core::option::Option<i32>,
-    /// The amount of true positives.
-    #[serde(default, rename = "truePositivesCount")]
-    pub true_positives_count: ::core::option::Option<i32>,
-}
-
-/// Gives a short summary of an evaluation, and links to the evaluation itself.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiUiv1beta3EvaluationReference {
-    /// An aggregate of the statistics for the evaluation with fuzzy matching on.
-    #[serde(default, rename = "aggregateMetrics")]
-    pub aggregate_metrics: ::core::option::Option<GoogleCloudDocumentaiUiv1beta3EvaluationMetrics>,
-    /// An aggregate of the statistics for the evaluation with fuzzy matching off.
-    #[serde(default, rename = "aggregateMetricsExact")]
-    pub aggregate_metrics_exact:
-        ::core::option::Option<GoogleCloudDocumentaiUiv1beta3EvaluationMetrics>,
-    /// The resource name of the evaluation.
-    #[serde(default)]
-    pub evaluation: ::core::option::Option<String>,
-    /// The resource name of the Long Running Operation for the evaluation.
-    #[serde(default)]
-    pub operation: ::core::option::Option<String>,
 }
 
 /// Metadata of the batch export documents operation.
@@ -644,31 +199,6 @@ pub struct GoogleCloudDocumentaiUiv1beta3ExportDocumentsMetadata {
     >,
 }
 
-/// The status of each individual document in the export process.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiUiv1beta3ExportDocumentsMetadataIndividualExportStatus {
-    /// The path to source docproto of the document.
-    #[serde(default, rename = "documentId")]
-    pub document_id: ::core::option::Option<GoogleCloudDocumentaiUiv1beta3DocumentId>,
-    /// The output_gcs_destination of the exported document if it was successful, otherwise empty.
-    #[serde(default, rename = "outputGcsDestination")]
-    pub output_gcs_destination: ::core::option::Option<String>,
-    /// The status of the exporting of the document.
-    #[serde(default)]
-    pub status: ::core::option::Option<GoogleRpcStatus>,
-}
-
-/// The statistic representing a dataset split type for this export.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiUiv1beta3ExportDocumentsMetadataSplitExportStat {
-    /// The dataset split type. // TODO: enum values: ["DATASET_SPLIT_TYPE_UNSPECIFIED", "DATASET_SPLIT_TRAIN", "DATASET_SPLIT_TEST", "DATASET_SPLIT_UNASSIGNED"]
-    #[serde(default, rename = "splitType")]
-    pub split_type: ::core::option::Option<String>,
-    /// Total number of documents with the given dataset split type to be exported.
-    #[serde(default, rename = "totalDocumentCount")]
-    pub total_document_count: ::core::option::Option<i32>,
-}
-
 /// Metadata message associated with the ExportProcessorVersion operation.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDocumentaiUiv1beta3ExportProcessorVersionMetadata {
@@ -684,53 +214,6 @@ pub struct GoogleCloudDocumentaiUiv1beta3ExportProcessorVersionResponse {
     /// The Cloud Storage URI containing the output artifacts.
     #[serde(default, rename = "gcsUri")]
     pub gcs_uri: ::core::option::Option<String>,
-}
-
-/// Metadata for how this field value is extracted.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiUiv1beta3FieldExtractionMetadata {
-    /// Entity query config.
-    #[serde(default, rename = "entityQuery")]
-    pub entity_query:
-        ::core::option::Option<GoogleCloudDocumentaiUiv1beta3FieldExtractionMetadataEntityQuery>,
-    /// Summary options config.
-    #[serde(default, rename = "summaryOptions")]
-    pub summary_options: ::core::option::Option<GoogleCloudDocumentaiUiv1beta3SummaryOptions>,
-}
-
-/// Message for entity query.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiUiv1beta3FieldExtractionMetadataEntityQuery {
-    /// The original entity query inputed by the user.
-    #[serde(default, rename = "userEntityQuery")]
-    pub user_entity_query: ::core::option::Option<String>,
-}
-
-/// Metadata for the field tier of a property.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiUiv1beta3FieldTierMetadata {
-    /// Integer that indicates the tier of a property. e.g. Invoice has entities that are classified as tier 1 which is the most important, while tier 2 and tier 3 less so. This attribute can be used to filter schema attributes before running eval. e.g. compute F1 score for only tier 1 entities. If not present this attribute should be inferred as 1.
-    #[serde(default, rename = "tierLevel")]
-    pub tier_level: ::core::option::Option<i32>,
-}
-
-/// Metadata for human review labeling config.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiUiv1beta3HumanReviewLabelingMetadata {
-    /// Whether to enable normalization editing.
-    #[serde(default, rename = "enableNormalizationEditing")]
-    pub enable_normalization_editing: ::core::option::Option<bool>,
-}
-
-/// Metadata for Human Review config.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiUiv1beta3HumanReviewValidationMetadata {
-    /// The confidence threshold if human review validation is enabled.
-    #[serde(default, rename = "confidenceThreshold")]
-    pub confidence_threshold: ::core::option::Option<f32>,
-    /// Whether to enable human review validation.
-    #[serde(default, rename = "enableValidation")]
-    pub enable_validation: ::core::option::Option<bool>,
 }
 
 /// Metadata of the import document operation.
@@ -757,34 +240,6 @@ pub struct GoogleCloudDocumentaiUiv1beta3ImportDocumentsMetadata {
     /// Total number of the documents that are qualified for importing.
     #[serde(default, rename = "totalDocumentCount")]
     pub total_document_count: ::core::option::Option<i32>,
-}
-
-/// The validation status of each import config. Status is set to an error if there are no documents to import in the import_config, or OK if the operation will try to proceed with at least one document.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiUiv1beta3ImportDocumentsMetadataImportConfigValidationResult {
-    /// The source Cloud Storage URI specified in the import config.
-    #[serde(default, rename = "inputGcsSource")]
-    pub input_gcs_source: ::core::option::Option<String>,
-    /// The validation status of import config.
-    #[serde(default)]
-    pub status: ::core::option::Option<GoogleRpcStatus>,
-}
-
-/// The status of each individual document in the import process.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiUiv1beta3ImportDocumentsMetadataIndividualImportStatus {
-    /// The source Cloud Storage URI of the document.
-    #[serde(default, rename = "inputGcsSource")]
-    pub input_gcs_source: ::core::option::Option<String>,
-    /// The document id of imported document if it was successful, otherwise empty.
-    #[serde(default, rename = "outputDocumentId")]
-    pub output_document_id: ::core::option::Option<GoogleCloudDocumentaiUiv1beta3DocumentId>,
-    /// The output_gcs_destination of the processed document if it was successful, otherwise empty.
-    #[serde(default, rename = "outputGcsDestination")]
-    pub output_gcs_destination: ::core::option::Option<String>,
-    /// The status of the importing of the document.
-    #[serde(default)]
-    pub status: ::core::option::Option<GoogleRpcStatus>,
 }
 
 /// The long-running operation metadata for the ImportProcessorVersion method.
@@ -903,97 +358,6 @@ pub struct GoogleCloudDocumentaiUiv1beta3ProcessorVersion {
     pub state: ::core::option::Option<String>,
 }
 
-/// Contains the alias and the aliased resource name of processor version.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiUiv1beta3ProcessorVersionAlias {
-    /// The alias in the form of processor_version resource name.
-    #[serde(default)]
-    pub alias: ::core::option::Option<String>,
-    /// The resource name of aliased processor version.
-    #[serde(default, rename = "processorVersion")]
-    pub processor_version: ::core::option::Option<String>,
-}
-
-/// Information about the upcoming deprecation of this processor version.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiUiv1beta3ProcessorVersionDeprecationInfo {
-    /// The time at which this processor version will be deprecated.
-    #[serde(default, rename = "deprecationTime")]
-    pub deprecation_time: ::core::option::Option<String>,
-    /// If set, the processor version that will be used as a replacement.
-    #[serde(default, rename = "replacementProcessorVersion")]
-    pub replacement_processor_version: ::core::option::Option<String>,
-}
-
-/// Information about Generative AI model-based processor versions.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiUiv1beta3ProcessorVersionGenAiModelInfo {
-    /// Information for a custom Generative AI model created by the user.
-    #[serde(default, rename = "customGenAiModelInfo")]
-    pub custom_gen_ai_model_info: ::core::option::Option<
-        GoogleCloudDocumentaiUiv1beta3ProcessorVersionGenAiModelInfoCustomGenAiModelInfo,
-    >,
-    /// Information for a pretrained Google-managed foundation model.
-    #[serde(default, rename = "foundationGenAiModelInfo")]
-    pub foundation_gen_ai_model_info: ::core::option::Option<
-        GoogleCloudDocumentaiUiv1beta3ProcessorVersionGenAiModelInfoFoundationGenAiModelInfo,
-    >,
-}
-
-/// Information for a custom Generative AI model created by the user. These are created with Create New Version in either the Call foundation model or Fine tuning tabs.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiUiv1beta3ProcessorVersionGenAiModelInfoCustomGenAiModelInfo {
-    /// The base processor version ID for the custom model.
-    #[serde(default, rename = "baseProcessorVersionId")]
-    pub base_processor_version_id: ::core::option::Option<String>,
-    /// The type of custom model created by the user. // TODO: enum values: ["CUSTOM_MODEL_TYPE_UNSPECIFIED", "VERSIONED_FOUNDATION", "FINE_TUNED"]
-    #[serde(default, rename = "customModelType")]
-    pub custom_model_type: ::core::option::Option<String>,
-}
-
-/// Information for a pretrained Google-managed foundation model.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiUiv1beta3ProcessorVersionGenAiModelInfoFoundationGenAiModelInfo {
-    /// Whether fine tuning is allowed for this base processor version.
-    #[serde(default, rename = "finetuningAllowed")]
-    pub finetuning_allowed: ::core::option::Option<bool>,
-    /// The minimum number of labeled documents in the training dataset required for fine tuning.
-    #[serde(default, rename = "minTrainLabeledDocuments")]
-    pub min_train_labeled_documents: ::core::option::Option<i32>,
-}
-
-/// Metadata about a property.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiUiv1beta3PropertyMetadata {
-    /// Field extraction metadata on the property.
-    #[serde(default, rename = "fieldExtractionMetadata")]
-    pub field_extraction_metadata:
-        ::core::option::Option<GoogleCloudDocumentaiUiv1beta3FieldExtractionMetadata>,
-    /// Field tier metadata on the property
-    #[serde(default, rename = "fieldTierMetadata")]
-    pub field_tier_metadata:
-        ::core::option::Option<GoogleCloudDocumentaiUiv1beta3FieldTierMetadata>,
-    /// Human review labeling config on the property.
-    #[serde(default, rename = "humanReviewLabelingMetadata")]
-    pub human_review_labeling_metadata:
-        ::core::option::Option<GoogleCloudDocumentaiUiv1beta3HumanReviewLabelingMetadata>,
-    /// Human review validation config on the property.
-    #[serde(default, rename = "humanReviewMetadata")]
-    pub human_review_metadata:
-        ::core::option::Option<GoogleCloudDocumentaiUiv1beta3HumanReviewValidationMetadata>,
-    /// Whether the property should be considered as "inactive".
-    #[serde(default)]
-    pub inactive: ::core::option::Option<bool>,
-    /// Schema editability metadata on the property.
-    #[serde(default, rename = "schemaEditabilityMetadata")]
-    pub schema_editability_metadata:
-        ::core::option::Option<GoogleCloudDocumentaiUiv1beta3SchemaEditabilityMetadata>,
-    /// Schema inference metadata on the property.
-    #[serde(default, rename = "schemaInferenceMetadata")]
-    pub schema_inference_metadata:
-        ::core::option::Option<GoogleCloudDocumentaiUiv1beta3SchemaInferenceMetadata>,
-}
-
 /// The metadata proto of ResyncDataset method.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDocumentaiUiv1beta3ResyncDatasetMetadata {
@@ -1013,45 +377,6 @@ pub struct GoogleCloudDocumentaiUiv1beta3ResyncDatasetMetadata {
             GoogleCloudDocumentaiUiv1beta3ResyncDatasetMetadataIndividualDocumentResyncStatus,
         >,
     >,
-}
-
-/// Resync status against inconsistency types on the dataset level.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiUiv1beta3ResyncDatasetMetadataDatasetResyncStatus {
-    /// The type of the inconsistency of the dataset. // TODO: enum values: ["DATASET_INCONSISTENCY_TYPE_UNSPECIFIED", "DATASET_INCONSISTENCY_TYPE_NO_STORAGE_MARKER"]
-    #[serde(default, rename = "datasetInconsistencyType")]
-    pub dataset_inconsistency_type: ::core::option::Option<String>,
-    /// The status of resyncing the dataset with regards to the detected inconsistency. Empty if ResyncDatasetRequest.validate_only is true.
-    #[serde(default)]
-    pub status: ::core::option::Option<GoogleRpcStatus>,
-}
-
-/// Resync status for each document per inconsistency type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiUiv1beta3ResyncDatasetMetadataIndividualDocumentResyncStatus {
-    /// The document identifier.
-    #[serde(default, rename = "documentId")]
-    pub document_id: ::core::option::Option<GoogleCloudDocumentaiUiv1beta3DocumentId>,
-    /// The type of document inconsistency. // TODO: enum values: ["DOCUMENT_INCONSISTENCY_TYPE_UNSPECIFIED", "DOCUMENT_INCONSISTENCY_TYPE_INVALID_DOCPROTO", "DOCUMENT_INCONSISTENCY_TYPE_MISMATCHED_METADATA", "DOCUMENT_INCONSISTENCY_TYPE_NO_PAGE_IMAGE"]
-    #[serde(default, rename = "documentInconsistencyType")]
-    pub document_inconsistency_type: ::core::option::Option<String>,
-    /// The status of resyncing the document with regards to the detected inconsistency. Empty if ResyncDatasetRequest.validate_only is true.
-    #[serde(default)]
-    pub status: ::core::option::Option<GoogleRpcStatus>,
-}
-
-/// The revision reference specifies which revision on the document to read.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiUiv1beta3RevisionRef {
-    /// Reads the revision generated by the processor version. The format takes the full resource name of processor version. projects/{project}/locations/{location}/processors/{processor}/processorVersions/{processorVersion}
-    #[serde(default, rename = "latestProcessorVersion")]
-    pub latest_processor_version: ::core::option::Option<String>,
-    /// Reads the revision by the predefined case. // TODO: enum values: ["REVISION_CASE_UNSPECIFIED", "LATEST_HUMAN_REVIEW", "LATEST_TIMESTAMP", "BASE_OCR_REVISION"]
-    #[serde(default, rename = "revisionCase")]
-    pub revision_case: ::core::option::Option<String>,
-    /// Reads the revision given by the id.
-    #[serde(default, rename = "revisionId")]
-    pub revision_id: ::core::option::Option<String>,
 }
 
 /// Metadata of the sample documents operation.
@@ -1079,80 +404,6 @@ pub struct GoogleCloudDocumentaiUiv1beta3SampleDocumentsResponse {
     >,
 }
 
-/// GoogleCloudDocumentaiUiv1beta3SampleDocumentsResponseSelectedDocument resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiUiv1beta3SampleDocumentsResponseSelectedDocument {
-    /// An internal identifier for document.
-    #[serde(default, rename = "documentId")]
-    pub document_id: ::core::option::Option<String>,
-}
-
-/// The schema defines the output of the processed document by a processor.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiUiv1beta3Schema {
-    /// Description of the schema.
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// Display name to show users.
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-    /// Entity types of the schema.
-    #[serde(default, rename = "entityTypes")]
-    pub entity_types:
-        ::core::option::Option<::std::vec::Vec<GoogleCloudDocumentaiUiv1beta3SchemaEntityType>>,
-}
-
-/// Metadata that specifies whether a label is editable and reasons why. These fields are read-only. Changing these fields has no impact on the backend.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiUiv1beta3SchemaEditabilityMetadata {
-    /// Explicit flag that controls whether the label is editable.
-    #[serde(default)]
-    pub editable: ::core::option::Option<bool>,
-    /// Full resource name of processor versions that contain this label. e.g. projects/{project}/locations/{location}/processors/{processor}/processorVersions/{processorVersion}
-    #[serde(default, rename = "processorVersions")]
-    pub processor_versions: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// EntityType is the wrapper of a label of the corresponding model with detailed attributes and limitations for entity-based processors. Multiple types can also compose a dependency tree to represent nested types.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiUiv1beta3SchemaEntityType {
-    #[serde(default, rename = "baseType")]
-    pub base_type: ::core::option::Option<String>,
-    /// Description of the entity type.
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// If specified, lists all the possible values for this entity.
-    #[serde(default, rename = "enumValues")]
-    pub enum_values: ::core::option::Option<::std::vec::Vec<String>>,
-    /// If the entity type is hidden in the schema. This provides the functionality to temporally "disable" an entity without deleting it.
-    #[serde(default)]
-    pub hide: ::core::option::Option<bool>,
-    /// Specifies how the entity''s value is obtained. // TODO: enum values: ["METHOD_UNSPECIFIED", "EXTRACT", "DERIVE", "RELAXED_EXTRACT"]
-    #[serde(default)]
-    pub method: ::core::option::Option<String>,
-    /// Occurrence type limits the number of times an entity type appears in the document. // TODO: enum values: ["OCCURRENCE_TYPE_UNSPECIFIED", "OPTIONAL_ONCE", "OPTIONAL_MULTIPLE", "REQUIRED_ONCE", "REQUIRED_MULTIPLE"]
-    #[serde(default, rename = "occurrenceType")]
-    pub occurrence_type: ::core::option::Option<String>,
-    /// Describing the nested structure of an entity. An EntityType may consist of several other EntityTypes. For example, in a document there can be an EntityType ID, which consists of EntityType name and address, with corresponding attributes, such as TEXT for both types and ONCE for occurrence types.
-    #[serde(default)]
-    pub properties:
-        ::core::option::Option<::std::vec::Vec<GoogleCloudDocumentaiUiv1beta3SchemaEntityType>>,
-    /// Source of this entity type. // TODO: enum values: ["SOURCE_UNSPECIFIED", "PREDEFINED", "USER_INPUT"]
-    #[serde(default)]
-    pub source: ::core::option::Option<String>,
-    /// Name of the type. It must satisfy the following constraints: 1. Must be unique within the set of same level types (with case-insensitive match). 2. Maximum 64 characters. 3. Must start with a letter. 4. Allowed characters: ASCII letters [a-zA-Z], ASCII digits [0-9], or one of the following punctuation characters: * underscore ''_'' (recommended) * hyphen ''-'' (allowed, not recommended) * colon '':'' (allowed, not recommended) NOTE: Whitespace characters are not allowed. 5. Cannot end with a punctuation character. 6. Cannot contain the following restricted strings: "google", "DocumentAI" (case-insensitive match). 7. A slash character ''/'' is reserved as a separator in flattened representations of nested entity types (e.g., "line_item/amount") in which case each part (e.g., "line_item", "amount") must comply with the rules defined above. We recommend using the snake case ("snake_case") in entity type names.
-    #[serde(default, rename = "type")]
-    pub type_: ::core::option::Option<String>,
-}
-
-/// Metadata for schema inference. Only used on dataset.schema for schema inference, can be safely ignored elsewhere.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiUiv1beta3SchemaInferenceMetadata {
-    /// True if is inferred by schema inference.
-    #[serde(default)]
-    pub inferred: ::core::option::Option<bool>,
-}
-
 /// The long-running operation metadata for the SetDefaultProcessorVersion method.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDocumentaiUiv1beta3SetDefaultProcessorVersionMetadata {
@@ -1160,17 +411,6 @@ pub struct GoogleCloudDocumentaiUiv1beta3SetDefaultProcessorVersionMetadata {
     #[serde(default, rename = "commonMetadata")]
     pub common_metadata:
         ::core::option::Option<GoogleCloudDocumentaiUiv1beta3CommonOperationMetadata>,
-}
-
-/// Metadata for document summarization.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiUiv1beta3SummaryOptions {
-    /// The format the summary should be in. // TODO: enum values: ["FORMAT_UNSPECIFIED", "PARAGRAPH", "BULLETS"]
-    #[serde(default)]
-    pub format: ::core::option::Option<String>,
-    /// How long the summary should be. // TODO: enum values: ["LENGTH_UNSPECIFIED", "BRIEF", "MODERATE", "COMPREHENSIVE"]
-    #[serde(default)]
-    pub length: ::core::option::Option<String>,
 }
 
 /// The metadata that represents a processor version being created.
@@ -1190,23 +430,6 @@ pub struct GoogleCloudDocumentaiUiv1beta3TrainProcessorVersionMetadata {
     pub training_dataset_validation: ::core::option::Option<
         GoogleCloudDocumentaiUiv1beta3TrainProcessorVersionMetadataDatasetValidation,
     >,
-}
-
-/// The dataset validation information. This includes any and all errors with documents and the dataset.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiUiv1beta3TrainProcessorVersionMetadataDatasetValidation {
-    /// The total number of dataset errors.
-    #[serde(default, rename = "datasetErrorCount")]
-    pub dataset_error_count: ::core::option::Option<i32>,
-    /// Error information for the dataset as a whole. A maximum of 10 dataset errors will be returned. A single dataset error is terminal for training.
-    #[serde(default, rename = "datasetErrors")]
-    pub dataset_errors: ::core::option::Option<::std::vec::Vec<GoogleRpcStatus>>,
-    /// The total number of document errors.
-    #[serde(default, rename = "documentErrorCount")]
-    pub document_error_count: ::core::option::Option<i32>,
-    /// Error information pertaining to specific documents. A maximum of 10 document errors will be returned. Any document with errors will not be used throughout training.
-    #[serde(default, rename = "documentErrors")]
-    pub document_errors: ::core::option::Option<::std::vec::Vec<GoogleRpcStatus>>,
 }
 
 /// The response for TrainProcessorVersion.
@@ -1262,31 +485,6 @@ pub struct GoogleCloudDocumentaiUiv1beta3UpdateProcessorVersionMetadata {
         ::core::option::Option<GoogleCloudDocumentaiUiv1beta3CommonOperationMetadata>,
 }
 
-/// Encodes the detailed information of a barcode.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiV1Barcode {
-    /// Format of a barcode. The supported formats are: - CODE_128: Code 128 type. - CODE_39: Code 39 type. - CODE_93: Code 93 type. - CODABAR: Codabar type. - DATA_MATRIX: 2D Data Matrix type. - ITF: ITF type. - EAN_13: EAN-13 type. - EAN_8: EAN-8 type. - QR_CODE: 2D QR code type. - UPC_A: UPC-A type. - UPC_E: UPC-E type. - PDF417: PDF417 type. - AZTEC: 2D Aztec code type. - DATABAR: GS1 DataBar code type.
-    #[serde(default)]
-    pub format: ::core::option::Option<String>,
-    /// Raw value encoded in the barcode. For example: ''MEBKM:TITLE:Google;URL:https://www.google.com;;''.
-    #[serde(default, rename = "rawValue")]
-    pub raw_value: ::core::option::Option<String>,
-    /// Value format describes the format of the value that a barcode encodes. The supported formats are: - CONTACT_INFO: Contact information. - EMAIL: Email address. - ISBN: ISBN identifier. - PHONE: Phone number. - PRODUCT: Product. - SMS: SMS message. - TEXT: Text string. - URL: URL address. - WIFI: Wifi information. - GEO: Geo-localization. - CALENDAR_EVENT: Calendar event. - DRIVER_LICENSE: Driver''s license.
-    #[serde(default, rename = "valueFormat")]
-    pub value_format: ::core::option::Option<String>,
-}
-
-/// The common config to specify a set of documents used as input.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiV1BatchDocumentsInputConfig {
-    /// The set of documents individually specified on Cloud Storage.
-    #[serde(default, rename = "gcsDocuments")]
-    pub gcs_documents: ::core::option::Option<GoogleCloudDocumentaiV1GcsDocuments>,
-    /// The set of documents that match the specified Cloud Storage gcs_prefix.
-    #[serde(default, rename = "gcsPrefix")]
-    pub gcs_prefix: ::core::option::Option<GoogleCloudDocumentaiV1GcsPrefix>,
-}
-
 /// The long-running operation metadata for BatchProcessDocuments.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDocumentaiV1BatchProcessMetadata {
@@ -1309,23 +507,6 @@ pub struct GoogleCloudDocumentaiV1BatchProcessMetadata {
     pub update_time: ::core::option::Option<String>,
 }
 
-/// The status of a each individual document in the batch process.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiV1BatchProcessMetadataIndividualProcessStatus {
-    /// The status of human review on the processed document.
-    #[serde(default, rename = "humanReviewStatus")]
-    pub human_review_status: ::core::option::Option<GoogleCloudDocumentaiV1HumanReviewStatus>,
-    /// The source of the document, same as the input_gcs_source field in the request when the batch process started.
-    #[serde(default, rename = "inputGcsSource")]
-    pub input_gcs_source: ::core::option::Option<String>,
-    /// The Cloud Storage output destination (in the request as DocumentOutputConfig.GcsOutputConfig.gcs_uri) of the processed document if it was successful, otherwise empty.
-    #[serde(default, rename = "outputGcsDestination")]
-    pub output_gcs_destination: ::core::option::Option<String>,
-    /// The status processing the document.
-    #[serde(default)]
-    pub status: ::core::option::Option<GoogleRpcStatus>,
-}
-
 /// Request message for BatchProcessDocuments.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDocumentaiV1BatchProcessRequest {
@@ -1344,38 +525,6 @@ pub struct GoogleCloudDocumentaiV1BatchProcessRequest {
     /// Whether human review should be skipped for this request. Default to false.
     #[serde(default, rename = "skipHumanReview")]
     pub skip_human_review: ::core::option::Option<bool>,
-}
-
-/// A bounding polygon for the detected image annotation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiV1BoundingPoly {
-    /// The bounding polygon normalized vertices.
-    #[serde(default, rename = "normalizedVertices")]
-    pub normalized_vertices:
-        ::core::option::Option<::std::vec::Vec<GoogleCloudDocumentaiV1NormalizedVertex>>,
-    /// The bounding polygon vertices.
-    #[serde(default)]
-    pub vertices: ::core::option::Option<::std::vec::Vec<GoogleCloudDocumentaiV1Vertex>>,
-}
-
-/// The common metadata for long running operations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiV1CommonOperationMetadata {
-    /// The creation time of the operation.
-    #[serde(default, rename = "createTime")]
-    pub create_time: ::core::option::Option<String>,
-    /// A related resource to this operation.
-    #[serde(default)]
-    pub resource: ::core::option::Option<String>,
-    /// The state of the operation. // TODO: enum values: ["STATE_UNSPECIFIED", "RUNNING", "CANCELLING", "SUCCEEDED", "FAILED", "CANCELLED"]
-    #[serde(default)]
-    pub state: ::core::option::Option<String>,
-    /// A message providing more details about the current state of processing.
-    #[serde(default, rename = "stateMessage")]
-    pub state_message: ::core::option::Option<String>,
-    /// The last update time of the operation.
-    #[serde(default, rename = "updateTime")]
-    pub update_time: ::core::option::Option<String>,
 }
 
 /// The long-running operation metadata for the DeleteProcessor method.
@@ -1408,6 +557,1813 @@ pub struct GoogleCloudDocumentaiV1DisableProcessorMetadata {
     /// The basic metadata of the long-running operation.
     #[serde(default, rename = "commonMetadata")]
     pub common_metadata: ::core::option::Option<GoogleCloudDocumentaiV1CommonOperationMetadata>,
+}
+
+/// The long-running operation metadata for the EnableProcessor method.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1EnableProcessorMetadata {
+    /// The basic metadata of the long-running operation.
+    #[serde(default, rename = "commonMetadata")]
+    pub common_metadata: ::core::option::Option<GoogleCloudDocumentaiV1CommonOperationMetadata>,
+}
+
+/// Metadata of the EvaluateProcessorVersion method.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1EvaluateProcessorVersionMetadata {
+    /// The basic metadata of the long-running operation.
+    #[serde(default, rename = "commonMetadata")]
+    pub common_metadata: ::core::option::Option<GoogleCloudDocumentaiV1CommonOperationMetadata>,
+}
+
+/// Evaluates the given ProcessorVersion against the supplied documents.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1EvaluateProcessorVersionRequest {
+    /// Optional. The documents used in the evaluation. If unspecified, use the processor''s dataset as evaluation input.
+    #[serde(default, rename = "evaluationDocuments")]
+    pub evaluation_documents:
+        ::core::option::Option<GoogleCloudDocumentaiV1BatchDocumentsInputConfig>,
+}
+
+/// Response of the EvaluateProcessorVersion method.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1EvaluateProcessorVersionResponse {
+    /// The resource name of the created evaluation.
+    #[serde(default)]
+    pub evaluation: ::core::option::Option<String>,
+}
+
+/// Response message for the FetchProcessorTypes method.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1FetchProcessorTypesResponse {
+    /// The list of processor types.
+    #[serde(default, rename = "processorTypes")]
+    pub processor_types:
+        ::core::option::Option<::std::vec::Vec<GoogleCloudDocumentaiV1ProcessorType>>,
+}
+
+/// Request message for GenerateSchemaVersion.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1GenerateSchemaVersionRequest {
+    /// The base schema version name to use for the schema generation. Format: projects/{project}/locations/{location}/schemas/{schema}/schemaVersions/{schema_version}
+    #[serde(default, rename = "baseSchemaVersion")]
+    pub base_schema_version: ::core::option::Option<String>,
+    /// The set of documents placed on Cloud Storage.
+    #[serde(default, rename = "gcsDocuments")]
+    pub gcs_documents: ::core::option::Option<GoogleCloudDocumentaiV1GcsDocuments>,
+    /// The common prefix of documents placed on Cloud Storage.
+    #[serde(default, rename = "gcsPrefix")]
+    pub gcs_prefix: ::core::option::Option<GoogleCloudDocumentaiV1GcsPrefix>,
+    /// Optional. User specified parameters for the schema generation.
+    #[serde(default, rename = "generateSchemaVersionParams")]
+    pub generate_schema_version_params: ::core::option::Option<
+        GoogleCloudDocumentaiV1GenerateSchemaVersionRequestGenerateSchemaVersionParams,
+    >,
+    /// The set of documents specified inline. For each document, its uri or content field must be set.
+    #[serde(default, rename = "inlineDocuments")]
+    pub inline_documents: ::core::option::Option<GoogleCloudDocumentaiV1Documents>,
+    /// The set of raw documents.
+    #[serde(default, rename = "rawDocuments")]
+    pub raw_documents: ::core::option::Option<GoogleCloudDocumentaiV1RawDocuments>,
+}
+
+/// Response message for GenerateSchemaVersion.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1GenerateSchemaVersionResponse {
+    /// The schema version generated by the model.
+    #[serde(default, rename = "schemaVersion")]
+    pub schema_version: ::core::option::Option<GoogleCloudDocumentaiV1SchemaVersion>,
+}
+
+/// The response from ListEvaluations.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1ListEvaluationsResponse {
+    /// The evaluations requested.
+    #[serde(default)]
+    pub evaluations: ::core::option::Option<::std::vec::Vec<GoogleCloudDocumentaiV1Evaluation>>,
+    /// A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+}
+
+/// Response message for the ListProcessorTypes method.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1ListProcessorTypesResponse {
+    /// Points to the next page, otherwise empty.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+    /// The processor types.
+    #[serde(default, rename = "processorTypes")]
+    pub processor_types:
+        ::core::option::Option<::std::vec::Vec<GoogleCloudDocumentaiV1ProcessorType>>,
+}
+
+/// Response message for the ListProcessorVersions method.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1ListProcessorVersionsResponse {
+    /// Points to the next processor, otherwise empty.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+    /// The list of processors.
+    #[serde(default, rename = "processorVersions")]
+    pub processor_versions:
+        ::core::option::Option<::std::vec::Vec<GoogleCloudDocumentaiV1ProcessorVersion>>,
+}
+
+/// Response message for the ListProcessors method.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1ListProcessorsResponse {
+    /// Points to the next processor, otherwise empty.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+    /// The list of processors.
+    #[serde(default)]
+    pub processors: ::core::option::Option<::std::vec::Vec<GoogleCloudDocumentaiV1Processor>>,
+}
+
+/// Response message for ListSchemaVersions.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1ListSchemaVersionsResponse {
+    /// Points to the next SchemaVersion, otherwise empty.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+    /// The list of SchemaVersions.
+    #[serde(default, rename = "schemaVersions")]
+    pub schema_versions:
+        ::core::option::Option<::std::vec::Vec<GoogleCloudDocumentaiV1SchemaVersion>>,
+}
+
+/// Response message for ListSchemas.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1ListSchemasResponse {
+    /// Points to the next Schema, otherwise empty.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+    /// The list of Schemas.
+    #[serde(default)]
+    pub schemas: ::core::option::Option<::std::vec::Vec<GoogleCloudDocumentaiV1NextSchema>>,
+}
+
+/// Request message for the ProcessDocument method.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1ProcessRequest {
+    /// Specifies which fields to include in the ProcessResponse.document output. Only supports top-level document and pages field, so it must be in the form of {document_field_name} or pages.{page_field_name}.
+    #[serde(default, rename = "fieldMask")]
+    pub field_mask: ::core::option::Option<String>,
+    /// A raw document on Google Cloud Storage.
+    #[serde(default, rename = "gcsDocument")]
+    pub gcs_document: ::core::option::Option<GoogleCloudDocumentaiV1GcsDocument>,
+    /// Optional. Option to remove images from the document.
+    #[serde(default, rename = "imagelessMode")]
+    pub imageless_mode: ::core::option::Option<bool>,
+    /// An inline document proto.
+    #[serde(default, rename = "inlineDocument")]
+    pub inline_document: ::core::option::Option<GoogleCloudDocumentaiV1Document>,
+    /// Optional. The labels with user-defined metadata for the request. Label keys and values can be no longer than 63 characters (Unicode codepoints) and can only contain lowercase letters, numeric characters, underscores, and dashes. International characters are allowed. Label values are optional. Label keys must start with a letter.
+    #[serde(default)]
+    pub labels: ::core::option::Option<serde_json::Value>,
+    /// Inference-time options for the process API
+    #[serde(default, rename = "processOptions")]
+    pub process_options: ::core::option::Option<GoogleCloudDocumentaiV1ProcessOptions>,
+    /// A raw document content (bytes).
+    #[serde(default, rename = "rawDocument")]
+    pub raw_document: ::core::option::Option<GoogleCloudDocumentaiV1RawDocument>,
+    /// Whether human review should be skipped for this request. Default to false.
+    #[serde(default, rename = "skipHumanReview")]
+    pub skip_human_review: ::core::option::Option<bool>,
+}
+
+/// Response message for the ProcessDocument method.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1ProcessResponse {
+    /// The document payload, will populate fields based on the processor''s behavior.
+    #[serde(default)]
+    pub document: ::core::option::Option<GoogleCloudDocumentaiV1Document>,
+    /// The status of human review on the processed document.
+    #[serde(default, rename = "humanReviewStatus")]
+    pub human_review_status: ::core::option::Option<GoogleCloudDocumentaiV1HumanReviewStatus>,
+}
+
+/// The long-running operation metadata for the ReviewDocument method.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1ReviewDocumentOperationMetadata {
+    /// The basic metadata of the long-running operation.
+    #[serde(default, rename = "commonMetadata")]
+    pub common_metadata: ::core::option::Option<GoogleCloudDocumentaiV1CommonOperationMetadata>,
+    /// The Crowd Compute question ID.
+    #[serde(default, rename = "questionId")]
+    pub question_id: ::core::option::Option<String>,
+}
+
+/// Request message for the ReviewDocument method.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1ReviewDocumentRequest {
+    /// The document schema of the human review task.
+    #[serde(default, rename = "documentSchema")]
+    pub document_schema: ::core::option::Option<GoogleCloudDocumentaiV1DocumentSchema>,
+    /// Whether the validation should be performed on the ad-hoc review request.
+    #[serde(default, rename = "enableSchemaValidation")]
+    pub enable_schema_validation: ::core::option::Option<bool>,
+    /// An inline document proto.
+    #[serde(default, rename = "inlineDocument")]
+    pub inline_document: ::core::option::Option<GoogleCloudDocumentaiV1Document>,
+    /// The priority of the human review task. // TODO: enum values: ["DEFAULT", "URGENT"]
+    #[serde(default)]
+    pub priority: ::core::option::Option<String>,
+}
+
+/// Response message for the ReviewDocument method.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1ReviewDocumentResponse {
+    /// The Cloud Storage uri for the human reviewed document if the review is succeeded.
+    #[serde(default, rename = "gcsDestination")]
+    pub gcs_destination: ::core::option::Option<String>,
+    /// The reason why the review is rejected by reviewer.
+    #[serde(default, rename = "rejectionReason")]
+    pub rejection_reason: ::core::option::Option<String>,
+    /// The state of the review operation. // TODO: enum values: ["STATE_UNSPECIFIED", "REJECTED", "SUCCEEDED"]
+    #[serde(default)]
+    pub state: ::core::option::Option<String>,
+}
+
+/// The long-running operation metadata for the SetDefaultProcessorVersion method.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1SetDefaultProcessorVersionMetadata {
+    /// The basic metadata of the long-running operation.
+    #[serde(default, rename = "commonMetadata")]
+    pub common_metadata: ::core::option::Option<GoogleCloudDocumentaiV1CommonOperationMetadata>,
+}
+
+/// Request message for the SetDefaultProcessorVersion method.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1SetDefaultProcessorVersionRequest {
+    /// Required. The resource name of child ProcessorVersion to use as default. Format: projects/{project}/locations/{location}/processors/{processor}/processorVersions/{version}
+    #[serde(default, rename = "defaultProcessorVersion")]
+    pub default_processor_version: ::core::option::Option<String>,
+}
+
+/// The metadata that represents a processor version being created.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1TrainProcessorVersionMetadata {
+    /// The basic metadata of the long-running operation.
+    #[serde(default, rename = "commonMetadata")]
+    pub common_metadata: ::core::option::Option<GoogleCloudDocumentaiV1CommonOperationMetadata>,
+    /// The test dataset validation information.
+    #[serde(default, rename = "testDatasetValidation")]
+    pub test_dataset_validation: ::core::option::Option<
+        GoogleCloudDocumentaiV1TrainProcessorVersionMetadataDatasetValidation,
+    >,
+    /// The training dataset validation information.
+    #[serde(default, rename = "trainingDatasetValidation")]
+    pub training_dataset_validation: ::core::option::Option<
+        GoogleCloudDocumentaiV1TrainProcessorVersionMetadataDatasetValidation,
+    >,
+}
+
+/// Request message for the TrainProcessorVersion method.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1TrainProcessorVersionRequest {
+    /// Optional. The processor version to use as a base for training. This processor version must be a child of parent. Format: projects/{project}/locations/{location}/processors/{processor}/processorVersions/{processorVersion}.
+    #[serde(default, rename = "baseProcessorVersion")]
+    pub base_processor_version: ::core::option::Option<String>,
+    /// Options to control Custom Document Extraction (CDE) Processor.
+    #[serde(default, rename = "customDocumentExtractionOptions")]
+    pub custom_document_extraction_options: ::core::option::Option<
+        GoogleCloudDocumentaiV1TrainProcessorVersionRequestCustomDocumentExtractionOptions,
+    >,
+    /// Optional. The schema the processor version will be trained with.
+    #[serde(default, rename = "documentSchema")]
+    pub document_schema: ::core::option::Option<GoogleCloudDocumentaiV1DocumentSchema>,
+    /// Options to control foundation model tuning of a processor.
+    #[serde(default, rename = "foundationModelTuningOptions")]
+    pub foundation_model_tuning_options: ::core::option::Option<
+        GoogleCloudDocumentaiV1TrainProcessorVersionRequestFoundationModelTuningOptions,
+    >,
+    /// Optional. The input data used to train the ProcessorVersion.
+    #[serde(default, rename = "inputData")]
+    pub input_data:
+        ::core::option::Option<GoogleCloudDocumentaiV1TrainProcessorVersionRequestInputData>,
+    /// Required. The processor version to be created.
+    #[serde(default, rename = "processorVersion")]
+    pub processor_version: ::core::option::Option<GoogleCloudDocumentaiV1ProcessorVersion>,
+}
+
+/// The response for TrainProcessorVersion.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1TrainProcessorVersionResponse {
+    /// The resource name of the processor version produced by training.
+    #[serde(default, rename = "processorVersion")]
+    pub processor_version: ::core::option::Option<String>,
+}
+
+/// The long-running operation metadata for the UndeployProcessorVersion method.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1UndeployProcessorVersionMetadata {
+    /// The basic metadata of the long-running operation.
+    #[serde(default, rename = "commonMetadata")]
+    pub common_metadata: ::core::option::Option<GoogleCloudDocumentaiV1CommonOperationMetadata>,
+}
+
+/// GoogleCloudDocumentaiV1beta3BatchDeleteDocumentsMetadata resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1beta3BatchDeleteDocumentsMetadata {
+    /// The basic metadata of the long-running operation.
+    #[serde(default, rename = "commonMetadata")]
+    pub common_metadata:
+        ::core::option::Option<GoogleCloudDocumentaiV1beta3CommonOperationMetadata>,
+    /// Total number of documents that failed to be deleted in storage.
+    #[serde(default, rename = "errorDocumentCount")]
+    pub error_document_count: ::core::option::Option<i32>,
+    /// The list of response details of each document.
+    #[serde(default, rename = "individualBatchDeleteStatuses")]
+    pub individual_batch_delete_statuses: ::core::option::Option<
+        ::std::vec::Vec<
+            GoogleCloudDocumentaiV1beta3BatchDeleteDocumentsMetadataIndividualBatchDeleteStatus,
+        >,
+    >,
+    /// Total number of documents deleting from dataset.
+    #[serde(default, rename = "totalDocumentCount")]
+    pub total_document_count: ::core::option::Option<i32>,
+}
+
+/// The long-running operation metadata for BatchProcessDocuments.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1beta3BatchProcessMetadata {
+    /// The creation time of the operation.
+    #[serde(default, rename = "createTime")]
+    pub create_time: ::core::option::Option<String>,
+    /// The list of response details of each document.
+    #[serde(default, rename = "individualProcessStatuses")]
+    pub individual_process_statuses: ::core::option::Option<
+        ::std::vec::Vec<GoogleCloudDocumentaiV1beta3BatchProcessMetadataIndividualProcessStatus>,
+    >,
+    /// The state of the current batch processing. // TODO: enum values: ["STATE_UNSPECIFIED", "WAITING", "RUNNING", "SUCCEEDED", "CANCELLING", "CANCELLED", "FAILED"]
+    #[serde(default)]
+    pub state: ::core::option::Option<String>,
+    /// A message providing more details about the current state of processing. For example, the error message if the operation is failed.
+    #[serde(default, rename = "stateMessage")]
+    pub state_message: ::core::option::Option<String>,
+    /// The last update time of the operation.
+    #[serde(default, rename = "updateTime")]
+    pub update_time: ::core::option::Option<String>,
+}
+
+/// A singleton resource under a Processor which configures a collection of documents.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1beta3Dataset {
+    /// Optional. Deprecated. Warehouse-based dataset configuration is not supported.
+    #[serde(default, rename = "documentWarehouseConfig")]
+    pub document_warehouse_config:
+        ::core::option::Option<GoogleCloudDocumentaiV1beta3DatasetDocumentWarehouseConfig>,
+    /// Optional. User-managed Cloud Storage dataset configuration. Use this configuration if the dataset documents are stored under a user-managed Cloud Storage location.
+    #[serde(default, rename = "gcsManagedConfig")]
+    pub gcs_managed_config:
+        ::core::option::Option<GoogleCloudDocumentaiV1beta3DatasetGCSManagedConfig>,
+    /// Dataset resource name. Format: projects/{project}/locations/{location}/processors/{processor}/dataset
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Output only. Reserved for future use.
+    #[serde(default, rename = "satisfiesPzi")]
+    pub satisfies_pzi: ::core::option::Option<bool>,
+    /// Output only. Reserved for future use.
+    #[serde(default, rename = "satisfiesPzs")]
+    pub satisfies_pzs: ::core::option::Option<bool>,
+    /// Required. State of the dataset. Ignored when updating dataset. // TODO: enum values: ["STATE_UNSPECIFIED", "UNINITIALIZED", "INITIALIZING", "INITIALIZED"]
+    #[serde(default)]
+    pub state: ::core::option::Option<String>,
+    /// Optional. Unmanaged dataset configuration. Use this configuration if the dataset documents are managed by the document service internally (not user-managed).
+    #[serde(default, rename = "unmanagedDatasetConfig")]
+    pub unmanaged_dataset_config: ::core::option::Option<serde_json::Value>,
+}
+
+/// The long-running operation metadata for the DeleteProcessor method.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1beta3DeleteProcessorMetadata {
+    /// The basic metadata of the long-running operation.
+    #[serde(default, rename = "commonMetadata")]
+    pub common_metadata:
+        ::core::option::Option<GoogleCloudDocumentaiV1beta3CommonOperationMetadata>,
+}
+
+/// The long-running operation metadata for the DeleteProcessorVersion method.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1beta3DeleteProcessorVersionMetadata {
+    /// The basic metadata of the long-running operation.
+    #[serde(default, rename = "commonMetadata")]
+    pub common_metadata:
+        ::core::option::Option<GoogleCloudDocumentaiV1beta3CommonOperationMetadata>,
+}
+
+/// The long-running operation metadata for the DeployProcessorVersion method.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1beta3DeployProcessorVersionMetadata {
+    /// The basic metadata of the long-running operation.
+    #[serde(default, rename = "commonMetadata")]
+    pub common_metadata:
+        ::core::option::Option<GoogleCloudDocumentaiV1beta3CommonOperationMetadata>,
+}
+
+/// The long-running operation metadata for the DisableProcessor method.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1beta3DisableProcessorMetadata {
+    /// The basic metadata of the long-running operation.
+    #[serde(default, rename = "commonMetadata")]
+    pub common_metadata:
+        ::core::option::Option<GoogleCloudDocumentaiV1beta3CommonOperationMetadata>,
+}
+
+/// The long-running operation metadata for the EnableProcessor method.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1beta3EnableProcessorMetadata {
+    /// The basic metadata of the long-running operation.
+    #[serde(default, rename = "commonMetadata")]
+    pub common_metadata:
+        ::core::option::Option<GoogleCloudDocumentaiV1beta3CommonOperationMetadata>,
+}
+
+/// Metadata of the EvaluateProcessorVersion method.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1beta3EvaluateProcessorVersionMetadata {
+    /// The basic metadata of the long-running operation.
+    #[serde(default, rename = "commonMetadata")]
+    pub common_metadata:
+        ::core::option::Option<GoogleCloudDocumentaiV1beta3CommonOperationMetadata>,
+}
+
+/// Response of the EvaluateProcessorVersion method.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1beta3EvaluateProcessorVersionResponse {
+    /// The resource name of the created evaluation.
+    #[serde(default)]
+    pub evaluation: ::core::option::Option<String>,
+}
+
+/// Metadata of the import document operation.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1beta3ImportDocumentsMetadata {
+    /// The basic metadata of the long-running operation.
+    #[serde(default, rename = "commonMetadata")]
+    pub common_metadata:
+        ::core::option::Option<GoogleCloudDocumentaiV1beta3CommonOperationMetadata>,
+    /// Validation statuses of the batch documents import config.
+    #[serde(default, rename = "importConfigValidationResults")]
+    pub import_config_validation_results: ::core::option::Option<
+        ::std::vec::Vec<
+            GoogleCloudDocumentaiV1beta3ImportDocumentsMetadataImportConfigValidationResult,
+        >,
+    >,
+    /// The list of response details of each document.
+    #[serde(default, rename = "individualImportStatuses")]
+    pub individual_import_statuses: ::core::option::Option<
+        ::std::vec::Vec<GoogleCloudDocumentaiV1beta3ImportDocumentsMetadataIndividualImportStatus>,
+    >,
+    /// Total number of the documents that are qualified for importing.
+    #[serde(default, rename = "totalDocumentCount")]
+    pub total_document_count: ::core::option::Option<i32>,
+}
+
+/// The long-running operation metadata for the ImportProcessorVersion method.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1beta3ImportProcessorVersionMetadata {
+    /// The basic metadata for the long-running operation.
+    #[serde(default, rename = "commonMetadata")]
+    pub common_metadata:
+        ::core::option::Option<GoogleCloudDocumentaiV1beta3CommonOperationMetadata>,
+}
+
+/// The response message for the ImportProcessorVersion method.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1beta3ImportProcessorVersionResponse {
+    /// The destination processor version name.
+    #[serde(default, rename = "processorVersion")]
+    pub processor_version: ::core::option::Option<String>,
+}
+
+/// The first-class citizen for Document AI. Each processor defines how to extract structural information from a document.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1beta3Processor {
+    /// Optional. SchemaVersion used by the Processor. It is the same as Processor''s DatasetSchema.schema_version Format is projects/{project}/locations/{location}/schemas/{schema}/schemaVersions/{schema_version}
+    #[serde(default, rename = "activeSchemaVersion")]
+    pub active_schema_version: ::core::option::Option<String>,
+    /// Output only. The time the processor was created.
+    #[serde(default, rename = "createTime")]
+    pub create_time: ::core::option::Option<String>,
+    /// The default processor version.
+    #[serde(default, rename = "defaultProcessorVersion")]
+    pub default_processor_version: ::core::option::Option<String>,
+    /// The display name of the processor.
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+    /// The [KMS key](https://cloud.google.com/security-key-management) used for encryption and decryption in CMEK scenarios.
+    #[serde(default, rename = "kmsKeyName")]
+    pub kms_key_name: ::core::option::Option<String>,
+    /// Output only. Immutable. The resource name of the processor. Format: projects/{project}/locations/{location}/processors/{processor}
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Output only. Immutable. The http endpoint that can be called to invoke processing.
+    #[serde(default, rename = "processEndpoint")]
+    pub process_endpoint: ::core::option::Option<String>,
+    /// Output only. The processor version aliases.
+    #[serde(default, rename = "processorVersionAliases")]
+    pub processor_version_aliases:
+        ::core::option::Option<::std::vec::Vec<GoogleCloudDocumentaiV1beta3ProcessorVersionAlias>>,
+    /// Output only. Reserved for future use.
+    #[serde(default, rename = "satisfiesPzi")]
+    pub satisfies_pzi: ::core::option::Option<bool>,
+    /// Output only. Reserved for future use.
+    #[serde(default, rename = "satisfiesPzs")]
+    pub satisfies_pzs: ::core::option::Option<bool>,
+    /// Output only. The state of the processor. // TODO: enum values: ["STATE_UNSPECIFIED", "ENABLED", "DISABLED", "ENABLING", "DISABLING", "CREATING", "FAILED", "DELETING"]
+    #[serde(default)]
+    pub state: ::core::option::Option<String>,
+    /// The processor type, such as: OCR_PROCESSOR, INVOICE_PROCESSOR. To get a list of processor types, see FetchProcessorTypes.
+    #[serde(default, rename = "type")]
+    pub type_: ::core::option::Option<String>,
+}
+
+/// A processor version is an implementation of a processor. Each processor can have multiple versions, pretrained by Google internally or uptrained by the customer. A processor can only have one default version at a time. Its document-processing behavior is defined by that version.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1beta3ProcessorVersion {
+    /// Output only. The time the processor version was created.
+    #[serde(default, rename = "createTime")]
+    pub create_time: ::core::option::Option<String>,
+    /// Output only. If set, information about the eventual deprecation of this version.
+    #[serde(default, rename = "deprecationInfo")]
+    pub deprecation_info:
+        ::core::option::Option<GoogleCloudDocumentaiV1beta3ProcessorVersionDeprecationInfo>,
+    /// The display name of the processor version.
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+    /// Output only. The schema of the processor version. Describes the output.
+    #[serde(default, rename = "documentSchema")]
+    pub document_schema: ::core::option::Option<GoogleCloudDocumentaiV1beta3DocumentSchema>,
+    /// Output only. Information about Generative AI model-based processor versions.
+    #[serde(default, rename = "genAiModelInfo")]
+    pub gen_ai_model_info:
+        ::core::option::Option<GoogleCloudDocumentaiV1beta3ProcessorVersionGenAiModelInfo>,
+    /// Output only. Denotes that this ProcessorVersion is managed by Google.
+    #[serde(default, rename = "googleManaged")]
+    pub google_managed: ::core::option::Option<bool>,
+    /// Output only. The KMS key name used for encryption.
+    #[serde(default, rename = "kmsKeyName")]
+    pub kms_key_name: ::core::option::Option<String>,
+    /// Output only. The KMS key version with which data is encrypted.
+    #[serde(default, rename = "kmsKeyVersionName")]
+    pub kms_key_version_name: ::core::option::Option<String>,
+    /// Output only. The most recently invoked evaluation for the processor version.
+    #[serde(default, rename = "latestEvaluation")]
+    pub latest_evaluation: ::core::option::Option<GoogleCloudDocumentaiV1beta3EvaluationReference>,
+    /// Output only. The model type of this processor version. // TODO: enum values: ["MODEL_TYPE_UNSPECIFIED", "MODEL_TYPE_GENERATIVE", "MODEL_TYPE_CUSTOM"]
+    #[serde(default, rename = "modelType")]
+    pub model_type: ::core::option::Option<String>,
+    /// Identifier. The resource name of the processor version. Format: projects/{project}/locations/{location}/processors/{processor}/processorVersions/{processor_version}
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Output only. Reserved for future use.
+    #[serde(default, rename = "satisfiesPzi")]
+    pub satisfies_pzi: ::core::option::Option<bool>,
+    /// Output only. Reserved for future use.
+    #[serde(default, rename = "satisfiesPzs")]
+    pub satisfies_pzs: ::core::option::Option<bool>,
+    /// Output only. The state of the processor version. // TODO: enum values: ["STATE_UNSPECIFIED", "DEPLOYED", "DEPLOYING", "UNDEPLOYED", "UNDEPLOYING", "CREATING", "DELETING", "FAILED", "IMPORTING"]
+    #[serde(default)]
+    pub state: ::core::option::Option<String>,
+}
+
+/// The long-running operation metadata for the ReviewDocument method.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1beta3ReviewDocumentOperationMetadata {
+    /// The basic metadata of the long-running operation.
+    #[serde(default, rename = "commonMetadata")]
+    pub common_metadata:
+        ::core::option::Option<GoogleCloudDocumentaiV1beta3CommonOperationMetadata>,
+    /// The creation time of the operation.
+    #[serde(default, rename = "createTime")]
+    pub create_time: ::core::option::Option<String>,
+    /// The Crowd Compute question ID.
+    #[serde(default, rename = "questionId")]
+    pub question_id: ::core::option::Option<String>,
+    /// Used only when Operation.done is false. // TODO: enum values: ["STATE_UNSPECIFIED", "RUNNING", "CANCELLING", "SUCCEEDED", "FAILED", "CANCELLED"]
+    #[serde(default)]
+    pub state: ::core::option::Option<String>,
+    /// A message providing more details about the current state of processing. For example, the error message if the operation is failed.
+    #[serde(default, rename = "stateMessage")]
+    pub state_message: ::core::option::Option<String>,
+    /// The last update time of the operation.
+    #[serde(default, rename = "updateTime")]
+    pub update_time: ::core::option::Option<String>,
+}
+
+/// Response message for the ReviewDocument method.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1beta3ReviewDocumentResponse {
+    /// The Cloud Storage uri for the human reviewed document if the review is succeeded.
+    #[serde(default, rename = "gcsDestination")]
+    pub gcs_destination: ::core::option::Option<String>,
+    /// The reason why the review is rejected by reviewer.
+    #[serde(default, rename = "rejectionReason")]
+    pub rejection_reason: ::core::option::Option<String>,
+    /// The state of the review operation. // TODO: enum values: ["STATE_UNSPECIFIED", "REJECTED", "SUCCEEDED"]
+    #[serde(default)]
+    pub state: ::core::option::Option<String>,
+}
+
+/// The long-running operation metadata for the SetDefaultProcessorVersion method.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1beta3SetDefaultProcessorVersionMetadata {
+    /// The basic metadata of the long-running operation.
+    #[serde(default, rename = "commonMetadata")]
+    pub common_metadata:
+        ::core::option::Option<GoogleCloudDocumentaiV1beta3CommonOperationMetadata>,
+}
+
+/// The metadata that represents a processor version being created.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1beta3TrainProcessorVersionMetadata {
+    /// The basic metadata of the long-running operation.
+    #[serde(default, rename = "commonMetadata")]
+    pub common_metadata:
+        ::core::option::Option<GoogleCloudDocumentaiV1beta3CommonOperationMetadata>,
+    /// The test dataset validation information.
+    #[serde(default, rename = "testDatasetValidation")]
+    pub test_dataset_validation: ::core::option::Option<
+        GoogleCloudDocumentaiV1beta3TrainProcessorVersionMetadataDatasetValidation,
+    >,
+    /// The training dataset validation information.
+    #[serde(default, rename = "trainingDatasetValidation")]
+    pub training_dataset_validation: ::core::option::Option<
+        GoogleCloudDocumentaiV1beta3TrainProcessorVersionMetadataDatasetValidation,
+    >,
+}
+
+/// The response for TrainProcessorVersion.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1beta3TrainProcessorVersionResponse {
+    /// The resource name of the processor version produced by training.
+    #[serde(default, rename = "processorVersion")]
+    pub processor_version: ::core::option::Option<String>,
+}
+
+/// The long-running operation metadata for the UndeployProcessorVersion method.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1beta3UndeployProcessorVersionMetadata {
+    /// The basic metadata of the long-running operation.
+    #[serde(default, rename = "commonMetadata")]
+    pub common_metadata:
+        ::core::option::Option<GoogleCloudDocumentaiV1beta3CommonOperationMetadata>,
+}
+
+/// GoogleCloudDocumentaiV1beta3UpdateDatasetOperationMetadata resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1beta3UpdateDatasetOperationMetadata {
+    /// The basic metadata of the long-running operation.
+    #[serde(default, rename = "commonMetadata")]
+    pub common_metadata:
+        ::core::option::Option<GoogleCloudDocumentaiV1beta3CommonOperationMetadata>,
+}
+
+/// The long-running operation metadata for the UpdateProcessorVersion method.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1beta3UpdateProcessorVersionMetadata {
+    /// The basic metadata for the long-running operation.
+    #[serde(default, rename = "commonMetadata")]
+    pub common_metadata:
+        ::core::option::Option<GoogleCloudDocumentaiV1beta3CommonOperationMetadata>,
+}
+
+/// The response message for Locations.ListLocations.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudLocationListLocationsResponse {
+    /// A list of locations that matches the specified filter in the request.
+    #[serde(default)]
+    pub locations: ::core::option::Option<::std::vec::Vec<GoogleCloudLocationLocation>>,
+    /// The standard List next-page token.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+}
+
+/// The response message for Operations.ListOperations.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleLongrunningListOperationsResponse {
+    /// The standard List next-page token.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+    /// A list of operations that matches the specified filter in the request.
+    #[serde(default)]
+    pub operations: ::core::option::Option<::std::vec::Vec<GoogleLongrunningOperation>>,
+    /// Unordered list. Unreachable resources. Populated when the request sets ListOperationsRequest.return_partial_success and reads across collections. For example, when attempting to list all resources across all supported locations.
+    #[serde(default)]
+    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// Next ID: 9
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CloudAiDocumentaiLabHifiaToolsValidationValidatorInputValidationRule {
+    #[serde(default, rename = "childAlignmentRule")]
+    pub child_alignment_rule: ::core::option::Option<
+        CloudAiDocumentaiLabHifiaToolsValidationValidatorInputValidationRuleChildAlignmentRule,
+    >,
+    /// Description of the validation rule. This has no use but for documentation.
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+    #[serde(default, rename = "entityAlignmentRule")]
+    pub entity_alignment_rule: ::core::option::Option<
+        CloudAiDocumentaiLabHifiaToolsValidationValidatorInputValidationRuleEntityAlignmentRule,
+    >,
+    #[serde(default, rename = "fieldOccurrences")]
+    pub field_occurrences: ::core::option::Option<
+        CloudAiDocumentaiLabHifiaToolsValidationValidatorInputValidationRuleFieldOccurrences,
+    >,
+    #[serde(default, rename = "fieldRegex")]
+    pub field_regex: ::core::option::Option<
+        CloudAiDocumentaiLabHifiaToolsValidationValidatorInputValidationRuleFieldRegex,
+    >,
+    #[serde(default, rename = "formValidation")]
+    pub form_validation: ::core::option::Option<
+        CloudAiDocumentaiLabHifiaToolsValidationValidatorInputValidationRuleFormValidation,
+    >,
+    /// Name of the validation rule.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Unique identifier of the rule. Optional.
+    #[serde(default, rename = "ruleId")]
+    pub rule_id: ::core::option::Option<String>,
+}
+
+/// The status of individual documents in the auto-labeling process.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiUiv1beta3AutoLabelDocumentsMetadataIndividualAutoLabelStatus {
+    /// The document id of the auto-labeled document. This will replace the gcs_uri.
+    #[serde(default, rename = "documentId")]
+    pub document_id: ::core::option::Option<GoogleCloudDocumentaiUiv1beta3DocumentId>,
+    /// The status of the document auto-labeling.
+    #[serde(default)]
+    pub status: ::core::option::Option<GoogleRpcStatus>,
+}
+
+/// The status of each individual document in the batch delete process.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiUiv1beta3BatchDeleteDocumentsMetadataIndividualBatchDeleteStatus {
+    /// The document id of the document.
+    #[serde(default, rename = "documentId")]
+    pub document_id: ::core::option::Option<GoogleCloudDocumentaiUiv1beta3DocumentId>,
+    /// The status of deleting the document in storage.
+    #[serde(default)]
+    pub status: ::core::option::Option<GoogleRpcStatus>,
+}
+
+/// The status of each individual document in the batch move process.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiUiv1beta3BatchMoveDocumentsMetadataIndividualBatchMoveStatus {
+    /// The document id of the document.
+    #[serde(default, rename = "documentId")]
+    pub document_id: ::core::option::Option<GoogleCloudDocumentaiUiv1beta3DocumentId>,
+    /// The status of moving the document.
+    #[serde(default)]
+    pub status: ::core::option::Option<GoogleRpcStatus>,
+}
+
+/// The status of each individual document in the batch update process.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiUiv1beta3BatchUpdateDocumentsMetadataIndividualBatchUpdateStatus {
+    /// The document id of the document.
+    #[serde(default, rename = "documentId")]
+    pub document_id: ::core::option::Option<GoogleCloudDocumentaiUiv1beta3DocumentId>,
+    /// The status of updating the document in storage.
+    #[serde(default)]
+    pub status: ::core::option::Option<GoogleRpcStatus>,
+}
+
+/// The status of each individual document in the export process.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiUiv1beta3ExportDocumentsMetadataIndividualExportStatus {
+    /// The path to source docproto of the document.
+    #[serde(default, rename = "documentId")]
+    pub document_id: ::core::option::Option<GoogleCloudDocumentaiUiv1beta3DocumentId>,
+    /// The output_gcs_destination of the exported document if it was successful, otherwise empty.
+    #[serde(default, rename = "outputGcsDestination")]
+    pub output_gcs_destination: ::core::option::Option<String>,
+    /// The status of the exporting of the document.
+    #[serde(default)]
+    pub status: ::core::option::Option<GoogleRpcStatus>,
+}
+
+/// The statistic representing a dataset split type for this export.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiUiv1beta3ExportDocumentsMetadataSplitExportStat {
+    /// The dataset split type. // TODO: enum values: ["DATASET_SPLIT_TYPE_UNSPECIFIED", "DATASET_SPLIT_TRAIN", "DATASET_SPLIT_TEST", "DATASET_SPLIT_UNASSIGNED"]
+    #[serde(default, rename = "splitType")]
+    pub split_type: ::core::option::Option<String>,
+    /// Total number of documents with the given dataset split type to be exported.
+    #[serde(default, rename = "totalDocumentCount")]
+    pub total_document_count: ::core::option::Option<i32>,
+}
+
+/// The validation status of each import config. Status is set to an error if there are no documents to import in the import_config, or OK if the operation will try to proceed with at least one document.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiUiv1beta3ImportDocumentsMetadataImportConfigValidationResult {
+    /// The source Cloud Storage URI specified in the import config.
+    #[serde(default, rename = "inputGcsSource")]
+    pub input_gcs_source: ::core::option::Option<String>,
+    /// The validation status of import config.
+    #[serde(default)]
+    pub status: ::core::option::Option<GoogleRpcStatus>,
+}
+
+/// The status of each individual document in the import process.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiUiv1beta3ImportDocumentsMetadataIndividualImportStatus {
+    /// The source Cloud Storage URI of the document.
+    #[serde(default, rename = "inputGcsSource")]
+    pub input_gcs_source: ::core::option::Option<String>,
+    /// The document id of imported document if it was successful, otherwise empty.
+    #[serde(default, rename = "outputDocumentId")]
+    pub output_document_id: ::core::option::Option<GoogleCloudDocumentaiUiv1beta3DocumentId>,
+    /// The output_gcs_destination of the processed document if it was successful, otherwise empty.
+    #[serde(default, rename = "outputGcsDestination")]
+    pub output_gcs_destination: ::core::option::Option<String>,
+    /// The status of the importing of the document.
+    #[serde(default)]
+    pub status: ::core::option::Option<GoogleRpcStatus>,
+}
+
+/// Contains the alias and the aliased resource name of processor version.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiUiv1beta3ProcessorVersionAlias {
+    /// The alias in the form of processor_version resource name.
+    #[serde(default)]
+    pub alias: ::core::option::Option<String>,
+    /// The resource name of aliased processor version.
+    #[serde(default, rename = "processorVersion")]
+    pub processor_version: ::core::option::Option<String>,
+}
+
+/// Information about the upcoming deprecation of this processor version.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiUiv1beta3ProcessorVersionDeprecationInfo {
+    /// The time at which this processor version will be deprecated.
+    #[serde(default, rename = "deprecationTime")]
+    pub deprecation_time: ::core::option::Option<String>,
+    /// If set, the processor version that will be used as a replacement.
+    #[serde(default, rename = "replacementProcessorVersion")]
+    pub replacement_processor_version: ::core::option::Option<String>,
+}
+
+/// The schema defines the output of the processed document by a processor.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiUiv1beta3DocumentSchema {
+    /// Description of the schema.
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+    /// Display name to show users.
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+    /// Optional. Document level prompt provided by the user. This custom text is injected into the AI model''s prompt to provide extra, document-wide guidance for processing.
+    #[serde(default, rename = "documentPrompt")]
+    pub document_prompt: ::core::option::Option<String>,
+    /// Entity types of the schema.
+    #[serde(default, rename = "entityTypes")]
+    pub entity_types: ::core::option::Option<
+        ::std::vec::Vec<GoogleCloudDocumentaiUiv1beta3DocumentSchemaEntityType>,
+    >,
+    /// Metadata of the schema.
+    #[serde(default)]
+    pub metadata: ::core::option::Option<GoogleCloudDocumentaiUiv1beta3DocumentSchemaMetadata>,
+}
+
+/// Information about Generative AI model-based processor versions.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiUiv1beta3ProcessorVersionGenAiModelInfo {
+    /// Information for a custom Generative AI model created by the user.
+    #[serde(default, rename = "customGenAiModelInfo")]
+    pub custom_gen_ai_model_info: ::core::option::Option<
+        GoogleCloudDocumentaiUiv1beta3ProcessorVersionGenAiModelInfoCustomGenAiModelInfo,
+    >,
+    /// Information for a pretrained Google-managed foundation model.
+    #[serde(default, rename = "foundationGenAiModelInfo")]
+    pub foundation_gen_ai_model_info: ::core::option::Option<
+        GoogleCloudDocumentaiUiv1beta3ProcessorVersionGenAiModelInfoFoundationGenAiModelInfo,
+    >,
+}
+
+/// Gives a short summary of an evaluation, and links to the evaluation itself.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiUiv1beta3EvaluationReference {
+    /// An aggregate of the statistics for the evaluation with fuzzy matching on.
+    #[serde(default, rename = "aggregateMetrics")]
+    pub aggregate_metrics: ::core::option::Option<GoogleCloudDocumentaiUiv1beta3EvaluationMetrics>,
+    /// An aggregate of the statistics for the evaluation with fuzzy matching off.
+    #[serde(default, rename = "aggregateMetricsExact")]
+    pub aggregate_metrics_exact:
+        ::core::option::Option<GoogleCloudDocumentaiUiv1beta3EvaluationMetrics>,
+    /// The resource name of the evaluation.
+    #[serde(default)]
+    pub evaluation: ::core::option::Option<String>,
+    /// The resource name of the Long Running Operation for the evaluation.
+    #[serde(default)]
+    pub operation: ::core::option::Option<String>,
+}
+
+/// The schema defines the output of the processed document by a processor.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiUiv1beta3Schema {
+    /// Description of the schema.
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+    /// Display name to show users.
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+    /// Entity types of the schema.
+    #[serde(default, rename = "entityTypes")]
+    pub entity_types:
+        ::core::option::Option<::std::vec::Vec<GoogleCloudDocumentaiUiv1beta3SchemaEntityType>>,
+}
+
+/// Resync status against inconsistency types on the dataset level.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiUiv1beta3ResyncDatasetMetadataDatasetResyncStatus {
+    /// The type of the inconsistency of the dataset. // TODO: enum values: ["DATASET_INCONSISTENCY_TYPE_UNSPECIFIED", "DATASET_INCONSISTENCY_TYPE_NO_STORAGE_MARKER"]
+    #[serde(default, rename = "datasetInconsistencyType")]
+    pub dataset_inconsistency_type: ::core::option::Option<String>,
+    /// The status of resyncing the dataset with regards to the detected inconsistency. Empty if ResyncDatasetRequest.validate_only is true.
+    #[serde(default)]
+    pub status: ::core::option::Option<GoogleRpcStatus>,
+}
+
+/// Resync status for each document per inconsistency type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiUiv1beta3ResyncDatasetMetadataIndividualDocumentResyncStatus {
+    /// The document identifier.
+    #[serde(default, rename = "documentId")]
+    pub document_id: ::core::option::Option<GoogleCloudDocumentaiUiv1beta3DocumentId>,
+    /// The type of document inconsistency. // TODO: enum values: ["DOCUMENT_INCONSISTENCY_TYPE_UNSPECIFIED", "DOCUMENT_INCONSISTENCY_TYPE_INVALID_DOCPROTO", "DOCUMENT_INCONSISTENCY_TYPE_MISMATCHED_METADATA", "DOCUMENT_INCONSISTENCY_TYPE_NO_PAGE_IMAGE"]
+    #[serde(default, rename = "documentInconsistencyType")]
+    pub document_inconsistency_type: ::core::option::Option<String>,
+    /// The status of resyncing the document with regards to the detected inconsistency. Empty if ResyncDatasetRequest.validate_only is true.
+    #[serde(default)]
+    pub status: ::core::option::Option<GoogleRpcStatus>,
+}
+
+/// GoogleCloudDocumentaiUiv1beta3SampleDocumentsResponseSelectedDocument resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiUiv1beta3SampleDocumentsResponseSelectedDocument {
+    /// An internal identifier for document.
+    #[serde(default, rename = "documentId")]
+    pub document_id: ::core::option::Option<String>,
+}
+
+/// The dataset validation information. This includes any and all errors with documents and the dataset.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiUiv1beta3TrainProcessorVersionMetadataDatasetValidation {
+    /// The total number of dataset errors.
+    #[serde(default, rename = "datasetErrorCount")]
+    pub dataset_error_count: ::core::option::Option<i32>,
+    /// Error information for the dataset as a whole. A maximum of 10 dataset errors will be returned. A single dataset error is terminal for training.
+    #[serde(default, rename = "datasetErrors")]
+    pub dataset_errors: ::core::option::Option<::std::vec::Vec<GoogleRpcStatus>>,
+    /// The total number of document errors.
+    #[serde(default, rename = "documentErrorCount")]
+    pub document_error_count: ::core::option::Option<i32>,
+    /// Error information pertaining to specific documents. A maximum of 10 document errors will be returned. Any document with errors will not be used throughout training.
+    #[serde(default, rename = "documentErrors")]
+    pub document_errors: ::core::option::Option<::std::vec::Vec<GoogleRpcStatus>>,
+}
+
+/// The common metadata for long running operations.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiUiv1beta3CommonOperationMetadata {
+    /// The creation time of the operation.
+    #[serde(default, rename = "createTime")]
+    pub create_time: ::core::option::Option<String>,
+    /// A related resource to this operation.
+    #[serde(default)]
+    pub resource: ::core::option::Option<String>,
+    /// The state of the operation. // TODO: enum values: ["STATE_UNSPECIFIED", "RUNNING", "CANCELLING", "SUCCEEDED", "FAILED", "CANCELLED"]
+    #[serde(default)]
+    pub state: ::core::option::Option<String>,
+    /// A message providing more details about the current state of processing.
+    #[serde(default, rename = "stateMessage")]
+    pub state_message: ::core::option::Option<String>,
+    /// The last update time of the operation.
+    #[serde(default, rename = "updateTime")]
+    pub update_time: ::core::option::Option<String>,
+}
+
+/// The status of a each individual document in the batch process.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1BatchProcessMetadataIndividualProcessStatus {
+    /// The status of human review on the processed document.
+    #[serde(default, rename = "humanReviewStatus")]
+    pub human_review_status: ::core::option::Option<GoogleCloudDocumentaiV1HumanReviewStatus>,
+    /// The source of the document, same as the input_gcs_source field in the request when the batch process started.
+    #[serde(default, rename = "inputGcsSource")]
+    pub input_gcs_source: ::core::option::Option<String>,
+    /// The Cloud Storage output destination (in the request as DocumentOutputConfig.GcsOutputConfig.gcs_uri) of the processed document if it was successful, otherwise empty.
+    #[serde(default, rename = "outputGcsDestination")]
+    pub output_gcs_destination: ::core::option::Option<String>,
+    /// The status processing the document.
+    #[serde(default)]
+    pub status: ::core::option::Option<GoogleRpcStatus>,
+}
+
+/// Config that controls the output of documents. All documents will be written as a JSON file.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1DocumentOutputConfig {
+    /// Output config to write the results to Cloud Storage.
+    #[serde(default, rename = "gcsOutputConfig")]
+    pub gcs_output_config:
+        ::core::option::Option<GoogleCloudDocumentaiV1DocumentOutputConfigGcsOutputConfig>,
+}
+
+/// The parameters for the schema generation.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1GenerateSchemaVersionRequestGenerateSchemaVersionParams {
+    /// Optional. Previous prompt-answers in a chronological order.
+    #[serde(default)]
+    pub history: ::core::option::Option<GoogleCloudDocumentaiV1SchemaGenerationHistory>,
+    /// Optional. The prompt used for the schema generation.
+    #[serde(default)]
+    pub prompt: ::core::option::Option<String>,
+}
+
+/// A set of inline documents.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1Documents {
+    /// The list of documents.
+    #[serde(default)]
+    pub documents: ::core::option::Option<::std::vec::Vec<GoogleCloudDocumentaiV1Document>>,
+}
+
+/// Specifies a set of raw documents.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1RawDocuments {
+    /// Specifies raw document content and mime type.
+    #[serde(default)]
+    pub documents: ::core::option::Option<::std::vec::Vec<GoogleCloudDocumentaiV1RawDocument>>,
+}
+
+/// An evaluation of a ProcessorVersion''s performance.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1Evaluation {
+    /// Metrics for all the entities in aggregate.
+    #[serde(default, rename = "allEntitiesMetrics")]
+    pub all_entities_metrics:
+        ::core::option::Option<GoogleCloudDocumentaiV1EvaluationMultiConfidenceMetrics>,
+    /// The time that the evaluation was created.
+    #[serde(default, rename = "createTime")]
+    pub create_time: ::core::option::Option<String>,
+    /// Counters for the documents used in the evaluation.
+    #[serde(default, rename = "documentCounters")]
+    pub document_counters: ::core::option::Option<GoogleCloudDocumentaiV1EvaluationCounters>,
+    /// Metrics across confidence levels, for different entities.
+    #[serde(default, rename = "entityMetrics")]
+    pub entity_metrics: ::core::option::Option<serde_json::Value>,
+    /// The KMS key name used for encryption.
+    #[serde(default, rename = "kmsKeyName")]
+    pub kms_key_name: ::core::option::Option<String>,
+    /// The KMS key version with which data is encrypted.
+    #[serde(default, rename = "kmsKeyVersionName")]
+    pub kms_key_version_name: ::core::option::Option<String>,
+    /// The resource name of the evaluation. Format: projects/{project}/locations/{location}/processors/{processor}/processorVersions/{processor_version}/evaluations/{evaluation}
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Contains all revisions of the evaluation, excluding the latest one.
+    #[serde(default)]
+    pub revisions: ::core::option::Option<
+        ::std::vec::Vec<GoogleCloudDocumentaiV1EvaluationEvaluationRevision>,
+    >,
+}
+
+/// A processor type is responsible for performing a certain document understanding task on a certain type of document.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1ProcessorType {
+    /// Whether the processor type allows creation. If true, users can create a processor of this processor type. Otherwise, users need to request access.
+    #[serde(default, rename = "allowCreation")]
+    pub allow_creation: ::core::option::Option<bool>,
+    /// The locations in which this processor is available.
+    #[serde(default, rename = "availableLocations")]
+    pub available_locations:
+        ::core::option::Option<::std::vec::Vec<GoogleCloudDocumentaiV1ProcessorTypeLocationInfo>>,
+    /// The processor category, used by UI to group processor types.
+    #[serde(default)]
+    pub category: ::core::option::Option<String>,
+    /// Launch stage of the processor type // TODO: enum values: ["LAUNCH_STAGE_UNSPECIFIED", "UNIMPLEMENTED", "PRELAUNCH", "EARLY_ACCESS", "ALPHA", "BETA", "GA", "DEPRECATED"]
+    #[serde(default, rename = "launchStage")]
+    pub launch_stage: ::core::option::Option<String>,
+    /// The resource name of the processor type. Format: projects/{project}/processorTypes/{processor_type}
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// A set of Cloud Storage URIs of sample documents for this processor.
+    #[serde(default, rename = "sampleDocumentUris")]
+    pub sample_document_uris: ::core::option::Option<::std::vec::Vec<String>>,
+    /// The processor type, such as: OCR_PROCESSOR, INVOICE_PROCESSOR.
+    #[serde(default, rename = "type")]
+    pub type_: ::core::option::Option<String>,
+}
+
+/// The first-class citizen for Document AI. Each processor defines how to extract structural information from a document.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1Processor {
+    /// Optional. SchemaVersion used by the Processor. It is the same as Processor''s DatasetSchema.schema_version Format is projects/{project}/locations/{location}/schemas/{schema}/schemaVersions/{schema_version}
+    #[serde(default, rename = "activeSchemaVersion")]
+    pub active_schema_version: ::core::option::Option<String>,
+    /// Output only. The time the processor was created.
+    #[serde(default, rename = "createTime")]
+    pub create_time: ::core::option::Option<String>,
+    /// The default processor version.
+    #[serde(default, rename = "defaultProcessorVersion")]
+    pub default_processor_version: ::core::option::Option<String>,
+    /// The display name of the processor.
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+    /// The [KMS key](https://cloud.google.com/security-key-management) used for encryption and decryption in CMEK scenarios.
+    #[serde(default, rename = "kmsKeyName")]
+    pub kms_key_name: ::core::option::Option<String>,
+    /// Output only. Immutable. The resource name of the processor. Format: projects/{project}/locations/{location}/processors/{processor}
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Output only. Immutable. The http endpoint that can be called to invoke processing.
+    #[serde(default, rename = "processEndpoint")]
+    pub process_endpoint: ::core::option::Option<String>,
+    /// Output only. The processor version aliases.
+    #[serde(default, rename = "processorVersionAliases")]
+    pub processor_version_aliases:
+        ::core::option::Option<::std::vec::Vec<GoogleCloudDocumentaiV1ProcessorVersionAlias>>,
+    /// Output only. Reserved for future use.
+    #[serde(default, rename = "satisfiesPzi")]
+    pub satisfies_pzi: ::core::option::Option<bool>,
+    /// Output only. Reserved for future use.
+    #[serde(default, rename = "satisfiesPzs")]
+    pub satisfies_pzs: ::core::option::Option<bool>,
+    /// Output only. The state of the processor. // TODO: enum values: ["STATE_UNSPECIFIED", "ENABLED", "DISABLED", "ENABLING", "DISABLING", "CREATING", "FAILED", "DELETING"]
+    #[serde(default)]
+    pub state: ::core::option::Option<String>,
+    /// The processor type, such as: OCR_PROCESSOR, INVOICE_PROCESSOR. To get a list of processor types, see FetchProcessorTypes.
+    #[serde(default, rename = "type")]
+    pub type_: ::core::option::Option<String>,
+}
+
+/// NextSchema is a collection of SchemaVersions.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1NextSchema {
+    /// Output only. The time when the Schema was created.
+    #[serde(default, rename = "createTime")]
+    pub create_time: ::core::option::Option<String>,
+    /// Required. The user-defined name of the Schema.
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+    /// Optional. The {{gcp_name_short}} labels for the Schema.
+    #[serde(default)]
+    pub labels: ::core::option::Option<serde_json::Value>,
+    /// Identifier. The resource name of the Schema. Format: projects/{project}/locations/{location}/schemas/{schema}
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Output only. The time when the Schema was last updated.
+    #[serde(default, rename = "updateTime")]
+    pub update_time: ::core::option::Option<String>,
+}
+
+/// Options for Process API
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1ProcessOptions {
+    /// Only process certain pages from the end, same as above.
+    #[serde(default, rename = "fromEnd")]
+    pub from_end: ::core::option::Option<i32>,
+    /// Only process certain pages from the start. Process all if the document has fewer pages.
+    #[serde(default, rename = "fromStart")]
+    pub from_start: ::core::option::Option<i32>,
+    /// Which pages to process (1-indexed).
+    #[serde(default, rename = "individualPageSelector")]
+    pub individual_page_selector:
+        ::core::option::Option<GoogleCloudDocumentaiV1ProcessOptionsIndividualPageSelector>,
+    /// Optional. Only applicable to LAYOUT_PARSER_PROCESSOR. Returns error if set on other processor types.
+    #[serde(default, rename = "layoutConfig")]
+    pub layout_config: ::core::option::Option<GoogleCloudDocumentaiV1ProcessOptionsLayoutConfig>,
+    /// Only applicable to OCR_PROCESSOR and FORM_PARSER_PROCESSOR. Returns error if set on other processor types.
+    #[serde(default, rename = "ocrConfig")]
+    pub ocr_config: ::core::option::Option<GoogleCloudDocumentaiV1OcrConfig>,
+    /// Optional. Override the schema of the ProcessorVersion. Will return an Invalid Argument error if this field is set when the underlying ProcessorVersion doesn''t support schema override.
+    #[serde(default, rename = "schemaOverride")]
+    pub schema_override: ::core::option::Option<GoogleCloudDocumentaiV1DocumentSchema>,
+}
+
+/// The dataset validation information. This includes any and all errors with documents and the dataset.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1TrainProcessorVersionMetadataDatasetValidation {
+    /// The total number of dataset errors.
+    #[serde(default, rename = "datasetErrorCount")]
+    pub dataset_error_count: ::core::option::Option<i32>,
+    /// Error information for the dataset as a whole. A maximum of 10 dataset errors will be returned. A single dataset error is terminal for training.
+    #[serde(default, rename = "datasetErrors")]
+    pub dataset_errors: ::core::option::Option<::std::vec::Vec<GoogleRpcStatus>>,
+    /// The total number of document errors.
+    #[serde(default, rename = "documentErrorCount")]
+    pub document_error_count: ::core::option::Option<i32>,
+    /// Error information pertaining to specific documents. A maximum of 10 document errors will be returned. Any document with errors will not be used throughout training.
+    #[serde(default, rename = "documentErrors")]
+    pub document_errors: ::core::option::Option<::std::vec::Vec<GoogleRpcStatus>>,
+}
+
+/// Options to control the training of the Custom Document Extraction (CDE) Processor.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1TrainProcessorVersionRequestCustomDocumentExtractionOptions {
+    /// Optional. Training method to use for CDE training. // TODO: enum values: ["TRAINING_METHOD_UNSPECIFIED", "MODEL_BASED", "TEMPLATE_BASED"]
+    #[serde(default, rename = "trainingMethod")]
+    pub training_method: ::core::option::Option<String>,
+}
+
+/// Options to control foundation model tuning of the processor.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1TrainProcessorVersionRequestFoundationModelTuningOptions {
+    /// Optional. The multiplier to apply to the recommended learning rate. Valid values are between 0.1 and 10. If not provided, recommended learning rate will be used.
+    #[serde(default, rename = "learningRateMultiplier")]
+    pub learning_rate_multiplier: ::core::option::Option<f32>,
+    /// Optional. Resource name of a previously fine tuned version id to copy the overwritten configs from. The base_processor_version should be newer than the base processor version used to fine tune this provided processor version. Format: projects/{project}/locations/{location}/processors/{processor}/processorVersions/{processorVersion}.
+    #[serde(default, rename = "previousFineTunedProcessorVersionName")]
+    pub previous_fine_tuned_processor_version_name: ::core::option::Option<String>,
+    /// Optional. The number of steps to run for model tuning. Valid values are between 1 and 400. If not provided, recommended steps will be used.
+    #[serde(default, rename = "trainSteps")]
+    pub train_steps: ::core::option::Option<i32>,
+}
+
+/// The input data used to train a new ProcessorVersion.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1TrainProcessorVersionRequestInputData {
+    /// The documents used for testing the trained version.
+    #[serde(default, rename = "testDocuments")]
+    pub test_documents: ::core::option::Option<GoogleCloudDocumentaiV1BatchDocumentsInputConfig>,
+    /// The documents used for training the new version.
+    #[serde(default, rename = "trainingDocuments")]
+    pub training_documents:
+        ::core::option::Option<GoogleCloudDocumentaiV1BatchDocumentsInputConfig>,
+}
+
+/// A processor version is an implementation of a processor. Each processor can have multiple versions, pretrained by Google internally or uptrained by the customer. A processor can only have one default version at a time. Its document-processing behavior is defined by that version.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1ProcessorVersion {
+    /// Output only. The time the processor version was created.
+    #[serde(default, rename = "createTime")]
+    pub create_time: ::core::option::Option<String>,
+    /// Output only. If set, information about the eventual deprecation of this version.
+    #[serde(default, rename = "deprecationInfo")]
+    pub deprecation_info:
+        ::core::option::Option<GoogleCloudDocumentaiV1ProcessorVersionDeprecationInfo>,
+    /// The display name of the processor version.
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+    /// Output only. The schema of the processor version. Describes the output.
+    #[serde(default, rename = "documentSchema")]
+    pub document_schema: ::core::option::Option<GoogleCloudDocumentaiV1DocumentSchema>,
+    /// Output only. Information about Generative AI model-based processor versions.
+    #[serde(default, rename = "genAiModelInfo")]
+    pub gen_ai_model_info:
+        ::core::option::Option<GoogleCloudDocumentaiV1ProcessorVersionGenAiModelInfo>,
+    /// Output only. Denotes that this ProcessorVersion is managed by Google.
+    #[serde(default, rename = "googleManaged")]
+    pub google_managed: ::core::option::Option<bool>,
+    /// Output only. The KMS key name used for encryption.
+    #[serde(default, rename = "kmsKeyName")]
+    pub kms_key_name: ::core::option::Option<String>,
+    /// Output only. The KMS key version with which data is encrypted.
+    #[serde(default, rename = "kmsKeyVersionName")]
+    pub kms_key_version_name: ::core::option::Option<String>,
+    /// Output only. The most recently invoked evaluation for the processor version.
+    #[serde(default, rename = "latestEvaluation")]
+    pub latest_evaluation: ::core::option::Option<GoogleCloudDocumentaiV1EvaluationReference>,
+    /// Output only. The model type of this processor version. // TODO: enum values: ["MODEL_TYPE_UNSPECIFIED", "MODEL_TYPE_GENERATIVE", "MODEL_TYPE_CUSTOM"]
+    #[serde(default, rename = "modelType")]
+    pub model_type: ::core::option::Option<String>,
+    /// Identifier. The resource name of the processor version. Format: projects/{project}/locations/{location}/processors/{processor}/processorVersions/{processor_version}
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Output only. Reserved for future use.
+    #[serde(default, rename = "satisfiesPzi")]
+    pub satisfies_pzi: ::core::option::Option<bool>,
+    /// Output only. Reserved for future use.
+    #[serde(default, rename = "satisfiesPzs")]
+    pub satisfies_pzs: ::core::option::Option<bool>,
+    /// Output only. The state of the processor version. // TODO: enum values: ["STATE_UNSPECIFIED", "DEPLOYED", "DEPLOYING", "UNDEPLOYED", "UNDEPLOYING", "CREATING", "DELETING", "FAILED", "IMPORTING"]
+    #[serde(default)]
+    pub state: ::core::option::Option<String>,
+}
+
+/// The common metadata for long running operations.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1CommonOperationMetadata {
+    /// The creation time of the operation.
+    #[serde(default, rename = "createTime")]
+    pub create_time: ::core::option::Option<String>,
+    /// A related resource to this operation.
+    #[serde(default)]
+    pub resource: ::core::option::Option<String>,
+    /// The state of the operation. // TODO: enum values: ["STATE_UNSPECIFIED", "RUNNING", "CANCELLING", "SUCCEEDED", "FAILED", "CANCELLED"]
+    #[serde(default)]
+    pub state: ::core::option::Option<String>,
+    /// A message providing more details about the current state of processing.
+    #[serde(default, rename = "stateMessage")]
+    pub state_message: ::core::option::Option<String>,
+    /// The last update time of the operation.
+    #[serde(default, rename = "updateTime")]
+    pub update_time: ::core::option::Option<String>,
+}
+
+/// The status of each individual document in the batch delete process.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1beta3BatchDeleteDocumentsMetadataIndividualBatchDeleteStatus {
+    /// The document id of the document.
+    #[serde(default, rename = "documentId")]
+    pub document_id: ::core::option::Option<GoogleCloudDocumentaiV1beta3DocumentId>,
+    /// The status of deleting the document in storage.
+    #[serde(default)]
+    pub status: ::core::option::Option<GoogleRpcStatus>,
+}
+
+/// The status of a each individual document in the batch process.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1beta3BatchProcessMetadataIndividualProcessStatus {
+    /// The name of the operation triggered by the processed document. If the human review process isn''t triggered, this field will be empty. It has the same response type and metadata as the long-running operation returned by the ReviewDocument method.
+    #[serde(default, rename = "humanReviewOperation")]
+    pub human_review_operation: ::core::option::Option<String>,
+    /// The status of human review on the processed document.
+    #[serde(default, rename = "humanReviewStatus")]
+    pub human_review_status: ::core::option::Option<GoogleCloudDocumentaiV1beta3HumanReviewStatus>,
+    /// The source of the document, same as the input_gcs_source field in the request when the batch process started.
+    #[serde(default, rename = "inputGcsSource")]
+    pub input_gcs_source: ::core::option::Option<String>,
+    /// The Cloud Storage output destination (in the request as DocumentOutputConfig.GcsOutputConfig.gcs_uri) of the processed document if it was successful, otherwise empty.
+    #[serde(default, rename = "outputGcsDestination")]
+    pub output_gcs_destination: ::core::option::Option<String>,
+    /// The status processing the document.
+    #[serde(default)]
+    pub status: ::core::option::Option<GoogleRpcStatus>,
+}
+
+/// Configuration specific to the Document AI Warehouse-based implementation.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1beta3DatasetDocumentWarehouseConfig {
+    /// Output only. The collection in Document AI Warehouse associated with the dataset.
+    #[serde(default)]
+    pub collection: ::core::option::Option<String>,
+    /// Output only. The schema in Document AI Warehouse associated with the dataset.
+    #[serde(default)]
+    pub schema: ::core::option::Option<String>,
+}
+
+/// Configuration specific to the Cloud Storage-based implementation.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1beta3DatasetGCSManagedConfig {
+    /// Required. The Cloud Storage URI (a directory) where the documents belonging to the dataset must be stored.
+    #[serde(default, rename = "gcsPrefix")]
+    pub gcs_prefix: ::core::option::Option<GoogleCloudDocumentaiV1beta3GcsPrefix>,
+}
+
+/// The validation status of each import config. Status is set to an error if there are no documents to import in the import_config, or OK if the operation will try to proceed with at least one document.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1beta3ImportDocumentsMetadataImportConfigValidationResult {
+    /// The source Cloud Storage URI specified in the import config.
+    #[serde(default, rename = "inputGcsSource")]
+    pub input_gcs_source: ::core::option::Option<String>,
+    /// The validation status of import config.
+    #[serde(default)]
+    pub status: ::core::option::Option<GoogleRpcStatus>,
+}
+
+/// The status of each individual document in the import process.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1beta3ImportDocumentsMetadataIndividualImportStatus {
+    /// The source Cloud Storage URI of the document.
+    #[serde(default, rename = "inputGcsSource")]
+    pub input_gcs_source: ::core::option::Option<String>,
+    /// The document id of imported document if it was successful, otherwise empty.
+    #[serde(default, rename = "outputDocumentId")]
+    pub output_document_id: ::core::option::Option<GoogleCloudDocumentaiV1beta3DocumentId>,
+    /// The status of the importing of the document.
+    #[serde(default)]
+    pub status: ::core::option::Option<GoogleRpcStatus>,
+}
+
+/// Contains the alias and the aliased resource name of processor version.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1beta3ProcessorVersionAlias {
+    /// The alias in the form of processor_version resource name.
+    #[serde(default)]
+    pub alias: ::core::option::Option<String>,
+    /// The resource name of aliased processor version.
+    #[serde(default, rename = "processorVersion")]
+    pub processor_version: ::core::option::Option<String>,
+}
+
+/// Information about the upcoming deprecation of this processor version.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1beta3ProcessorVersionDeprecationInfo {
+    /// The time at which this processor version will be deprecated.
+    #[serde(default, rename = "deprecationTime")]
+    pub deprecation_time: ::core::option::Option<String>,
+    /// If set, the processor version that will be used as a replacement.
+    #[serde(default, rename = "replacementProcessorVersion")]
+    pub replacement_processor_version: ::core::option::Option<String>,
+}
+
+/// The schema defines the output of the processed document by a processor.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1beta3DocumentSchema {
+    /// Description of the schema.
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+    /// Display name to show users.
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+    /// Optional. Document level prompt provided by the user. This custom text is injected into the AI model''s prompt to provide extra, document-wide guidance for processing.
+    #[serde(default, rename = "documentPrompt")]
+    pub document_prompt: ::core::option::Option<String>,
+    /// Entity types of the schema.
+    #[serde(default, rename = "entityTypes")]
+    pub entity_types: ::core::option::Option<
+        ::std::vec::Vec<GoogleCloudDocumentaiV1beta3DocumentSchemaEntityType>,
+    >,
+    /// Metadata of the schema.
+    #[serde(default)]
+    pub metadata: ::core::option::Option<GoogleCloudDocumentaiV1beta3DocumentSchemaMetadata>,
+}
+
+/// Information about Generative AI model-based processor versions.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1beta3ProcessorVersionGenAiModelInfo {
+    /// Information for a custom Generative AI model created by the user.
+    #[serde(default, rename = "customGenAiModelInfo")]
+    pub custom_gen_ai_model_info: ::core::option::Option<
+        GoogleCloudDocumentaiV1beta3ProcessorVersionGenAiModelInfoCustomGenAiModelInfo,
+    >,
+    /// Information for a pretrained Google-managed foundation model.
+    #[serde(default, rename = "foundationGenAiModelInfo")]
+    pub foundation_gen_ai_model_info: ::core::option::Option<
+        GoogleCloudDocumentaiV1beta3ProcessorVersionGenAiModelInfoFoundationGenAiModelInfo,
+    >,
+}
+
+/// Gives a short summary of an evaluation, and links to the evaluation itself.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1beta3EvaluationReference {
+    /// An aggregate of the statistics for the evaluation with fuzzy matching on.
+    #[serde(default, rename = "aggregateMetrics")]
+    pub aggregate_metrics: ::core::option::Option<GoogleCloudDocumentaiV1beta3EvaluationMetrics>,
+    /// An aggregate of the statistics for the evaluation with fuzzy matching off.
+    #[serde(default, rename = "aggregateMetricsExact")]
+    pub aggregate_metrics_exact:
+        ::core::option::Option<GoogleCloudDocumentaiV1beta3EvaluationMetrics>,
+    /// The resource name of the evaluation.
+    #[serde(default)]
+    pub evaluation: ::core::option::Option<String>,
+    /// The resource name of the Long Running Operation for the evaluation.
+    #[serde(default)]
+    pub operation: ::core::option::Option<String>,
+}
+
+/// The dataset validation information. This includes any and all errors with documents and the dataset.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1beta3TrainProcessorVersionMetadataDatasetValidation {
+    /// The total number of dataset errors.
+    #[serde(default, rename = "datasetErrorCount")]
+    pub dataset_error_count: ::core::option::Option<i32>,
+    /// Error information for the dataset as a whole. A maximum of 10 dataset errors will be returned. A single dataset error is terminal for training.
+    #[serde(default, rename = "datasetErrors")]
+    pub dataset_errors: ::core::option::Option<::std::vec::Vec<GoogleRpcStatus>>,
+    /// The total number of document errors.
+    #[serde(default, rename = "documentErrorCount")]
+    pub document_error_count: ::core::option::Option<i32>,
+    /// Error information pertaining to specific documents. A maximum of 10 document errors will be returned. Any document with errors will not be used throughout training.
+    #[serde(default, rename = "documentErrors")]
+    pub document_errors: ::core::option::Option<::std::vec::Vec<GoogleRpcStatus>>,
+}
+
+/// The common metadata for long running operations.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1beta3CommonOperationMetadata {
+    /// The creation time of the operation.
+    #[serde(default, rename = "createTime")]
+    pub create_time: ::core::option::Option<String>,
+    /// A related resource to this operation.
+    #[serde(default)]
+    pub resource: ::core::option::Option<String>,
+    /// The state of the operation. // TODO: enum values: ["STATE_UNSPECIFIED", "RUNNING", "CANCELLING", "SUCCEEDED", "FAILED", "CANCELLED"]
+    #[serde(default)]
+    pub state: ::core::option::Option<String>,
+    /// A message providing more details about the current state of processing.
+    #[serde(default, rename = "stateMessage")]
+    pub state_message: ::core::option::Option<String>,
+    /// The last update time of the operation.
+    #[serde(default, rename = "updateTime")]
+    pub update_time: ::core::option::Option<String>,
+}
+
+/// A resource that represents a Google Cloud location.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudLocationLocation {
+    /// The friendly name for this location, typically a nearby city name. For example, "Tokyo".
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+    /// Cross-service attributes for the location. For example {"cloud.googleapis.com/region": "us-east1"}
+    #[serde(default)]
+    pub labels: ::core::option::Option<serde_json::Value>,
+    /// The canonical id for this location. For example: "us-east1".
+    #[serde(default, rename = "locationId")]
+    pub location_id: ::core::option::Option<String>,
+    /// Service-specific metadata. For example the available capacity at the given location.
+    #[serde(default)]
+    pub metadata: ::core::option::Option<serde_json::Value>,
+    /// Resource name for the location, which may vary between implementations. For example: "projects/example-project/locations/us-east1"
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+}
+
+/// This resource represents a long-running operation that is the result of a network API call.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleLongrunningOperation {
+    /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
+    #[serde(default)]
+    pub done: ::core::option::Option<bool>,
+    /// The error result of the operation in case of failure or cancellation.
+    #[serde(default)]
+    pub error: ::core::option::Option<GoogleRpcStatus>,
+    /// Service-specific metadata associated with the operation. It typically contains progress information and common metadata such as create time. Some services might not provide such metadata. Any method that returns a long-running operation should document the metadata type, if any.
+    #[serde(default)]
+    pub metadata: ::core::option::Option<serde_json::Value>,
+    /// The server-assigned name, which is only unique within the same service that originally returns it. If you use the default HTTP mapping, the name should be a resource name ending with operations/{unique_id}.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// The normal, successful response of the operation. If the original method returns no data on success, such as Delete, the response is google.protobuf.Empty. If the original method is standard Get/Create/Update, the response should be the resource. For other methods, the response should have the type XxxResponse, where Xxx is the original method name. For example, if the original method name is TakeSnapshot(), the inferred response type is TakeSnapshotResponse.
+    #[serde(default)]
+    pub response: ::core::option::Option<serde_json::Value>,
+}
+
+/// A rule that aligns specified child fields with a parent field.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CloudAiDocumentaiLabHifiaToolsValidationValidatorInputValidationRuleChildAlignmentRule {
+    /// The alignment rule to apply to the child fields.
+    #[serde(default, rename = "alignmentRule")]
+    pub alignment_rule: ::core::option::Option<
+        CloudAiDocumentaiLabHifiaToolsValidationValidatorInputValidationRuleAlignmentRule,
+    >,
+    /// The child fields to be aligned within the parent field.
+    #[serde(default, rename = "childFields")]
+    pub child_fields: ::core::option::Option<
+        ::std::vec::Vec<CloudAiDocumentaiLabHifiaToolsValidationValidatorInputValidationRuleField>,
+    >,
+    /// The full path of the parent field.
+    #[serde(default, rename = "parentField")]
+    pub parent_field: ::core::option::Option<
+        CloudAiDocumentaiLabHifiaToolsValidationValidatorInputValidationRuleField,
+    >,
+}
+
+/// A rule that aligns specified fields with each other.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CloudAiDocumentaiLabHifiaToolsValidationValidatorInputValidationRuleEntityAlignmentRule {
+    /// The alignment rule to apply to the fields.
+    #[serde(default, rename = "alignmentRule")]
+    pub alignment_rule: ::core::option::Option<
+        CloudAiDocumentaiLabHifiaToolsValidationValidatorInputValidationRuleAlignmentRule,
+    >,
+    /// The fields to be aligned.
+    #[serde(default)]
+    pub fields: ::core::option::Option<
+        ::std::vec::Vec<CloudAiDocumentaiLabHifiaToolsValidationValidatorInputValidationRuleField>,
+    >,
+}
+
+/// CloudAiDocumentaiLabHifiaToolsValidationValidatorInputValidationRuleFieldOccurrences resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CloudAiDocumentaiLabHifiaToolsValidationValidatorInputValidationRuleFieldOccurrences {
+    #[serde(default)]
+    pub field: ::core::option::Option<
+        CloudAiDocumentaiLabHifiaToolsValidationValidatorInputValidationRuleField,
+    >,
+    #[serde(default, rename = "maxOccurrences")]
+    pub max_occurrences: ::core::option::Option<i64>,
+    /// Min and max occurrences of the field. If not set, there is limit set. The defined interval is a closed-closed interval, i.e. [min, max].
+    #[serde(default, rename = "minOccurrences")]
+    pub min_occurrences: ::core::option::Option<i64>,
+}
+
+/// CloudAiDocumentaiLabHifiaToolsValidationValidatorInputValidationRuleFieldRegex resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CloudAiDocumentaiLabHifiaToolsValidationValidatorInputValidationRuleFieldRegex {
+    #[serde(default)]
+    pub field: ::core::option::Option<
+        CloudAiDocumentaiLabHifiaToolsValidationValidatorInputValidationRuleField,
+    >,
+    /// Python regex to validate the field values.
+    #[serde(default)]
+    pub pattern: ::core::option::Option<String>,
+}
+
+/// CloudAiDocumentaiLabHifiaToolsValidationValidatorInputValidationRuleFormValidation resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CloudAiDocumentaiLabHifiaToolsValidationValidatorInputValidationRuleFormValidation {
+    #[serde(default, rename = "leftOperand")]
+    pub left_operand: ::core::option::Option<
+        CloudAiDocumentaiLabHifiaToolsValidationValidatorInputValidationRuleFormValidationOperation,
+    >,
+    #[serde(default, rename = "rightOperand")]
+    pub right_operand: ::core::option::Option<
+        CloudAiDocumentaiLabHifiaToolsValidationValidatorInputValidationRuleFormValidationOperation,
+    >,
+    /// The relational operator to be applied to the operands. // TODO: enum values: ["OPERATION_TYPE_UNSPECIFIED", "OPERATION_TYPE_EQ", "OPERATION_TYPE_NE", "OPERATION_TYPE_LT", "OPERATION_TYPE_LE", "OPERATION_TYPE_GT", "OPERATION_TYPE_GE"]
+    #[serde(default, rename = "validationOperator")]
+    pub validation_operator: ::core::option::Option<String>,
+}
+
+/// EntityType is the wrapper of a label of the corresponding model with detailed attributes and limitations for entity-based processors. Multiple types can also compose a dependency tree to represent nested types.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiUiv1beta3DocumentSchemaEntityType {
+    /// The entity type that this type is derived from. For now, one and only one should be set.
+    #[serde(default, rename = "baseTypes")]
+    pub base_types: ::core::option::Option<::std::vec::Vec<String>>,
+    /// The description of the entity type. Could be used to provide more information about the entity type for model calls.
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+    /// User defined name for the type.
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+    /// Metadata for the entity type.
+    #[serde(default, rename = "entityTypeMetadata")]
+    pub entity_type_metadata:
+        ::core::option::Option<GoogleCloudDocumentaiUiv1beta3EntityTypeMetadata>,
+    /// If specified, lists all the possible values for this entity. This should not be more than a handful of values. If the number of values is &gt;10 or could change frequently, use the EntityType.value_ontology field and specify a list of all possible values in a value ontology file.
+    #[serde(default, rename = "enumValues")]
+    pub enum_values:
+        ::core::option::Option<GoogleCloudDocumentaiUiv1beta3DocumentSchemaEntityTypeEnumValues>,
+    /// Name of the type. It must be unique within the schema file and cannot be a "Common Type". The following naming conventions are used: - Use snake_casing. - Name matching is case-sensitive. - Maximum 64 characters. - Must start with a letter. - Allowed characters: ASCII letters [a-z0-9_-]. (For backward compatibility, internal infrastructure and tooling can handle any ASCII character.) - The / is sometimes used to denote a property of a type. For example line_item/amount. This convention is deprecated, but will still be honored for backward compatibility.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Description the nested structure, or composition of an entity.
+    #[serde(default)]
+    pub properties: ::core::option::Option<
+        ::std::vec::Vec<GoogleCloudDocumentaiUiv1beta3DocumentSchemaEntityTypeProperty>,
+    >,
+}
+
+/// Metadata for global schema behavior.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiUiv1beta3DocumentSchemaMetadata {
+    /// If true, on a given page, there can be multiple document annotations covering it.
+    #[serde(default, rename = "documentAllowMultipleLabels")]
+    pub document_allow_multiple_labels: ::core::option::Option<bool>,
+    /// If true, a document entity type can be applied to subdocument (splitting). Otherwise, it can only be applied to the entire document (classification).
+    #[serde(default, rename = "documentSplitter")]
+    pub document_splitter: ::core::option::Option<bool>,
+    /// If set, all the nested entities must be prefixed with the parents.
+    #[serde(default, rename = "prefixedNamingOnProperties")]
+    pub prefixed_naming_on_properties: ::core::option::Option<bool>,
+    /// If set, this will skip the naming format validation in the schema. So the string values in DocumentSchema.EntityType.name and DocumentSchema.EntityType.Property.name will not be checked.
+    #[serde(default, rename = "skipNamingValidation")]
+    pub skip_naming_validation: ::core::option::Option<bool>,
+}
+
+/// Information for a custom Generative AI model created by the user. These are created with Create New Version in either the Call foundation model or Fine tuning tabs.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiUiv1beta3ProcessorVersionGenAiModelInfoCustomGenAiModelInfo {
+    /// The base processor version ID for the custom model.
+    #[serde(default, rename = "baseProcessorVersionId")]
+    pub base_processor_version_id: ::core::option::Option<String>,
+    /// The type of custom model created by the user. // TODO: enum values: ["CUSTOM_MODEL_TYPE_UNSPECIFIED", "VERSIONED_FOUNDATION", "FINE_TUNED"]
+    #[serde(default, rename = "customModelType")]
+    pub custom_model_type: ::core::option::Option<String>,
+}
+
+/// Information for a pretrained Google-managed foundation model.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiUiv1beta3ProcessorVersionGenAiModelInfoFoundationGenAiModelInfo {
+    /// Whether fine tuning is allowed for this base processor version.
+    #[serde(default, rename = "finetuningAllowed")]
+    pub finetuning_allowed: ::core::option::Option<bool>,
+    /// The minimum number of labeled documents in the training dataset required for fine tuning.
+    #[serde(default, rename = "minTrainLabeledDocuments")]
+    pub min_train_labeled_documents: ::core::option::Option<i32>,
+}
+
+/// Evaluation metrics, either in aggregate or about a specific entity.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiUiv1beta3EvaluationMetrics {
+    /// The calculated F1 score.
+    #[serde(default, rename = "f1Score")]
+    pub f1_score: ::core::option::Option<f32>,
+    /// The amount of false negatives.
+    #[serde(default, rename = "falseNegativesCount")]
+    pub false_negatives_count: ::core::option::Option<i32>,
+    /// The amount of false positives.
+    #[serde(default, rename = "falsePositivesCount")]
+    pub false_positives_count: ::core::option::Option<i32>,
+    /// The amount of documents with a ground truth occurrence.
+    #[serde(default, rename = "groundTruthDocumentCount")]
+    pub ground_truth_document_count: ::core::option::Option<i32>,
+    /// The amount of occurrences in ground truth documents.
+    #[serde(default, rename = "groundTruthOccurrencesCount")]
+    pub ground_truth_occurrences_count: ::core::option::Option<i32>,
+    /// The calculated precision.
+    #[serde(default)]
+    pub precision: ::core::option::Option<f32>,
+    /// The amount of documents with a predicted occurrence.
+    #[serde(default, rename = "predictedDocumentCount")]
+    pub predicted_document_count: ::core::option::Option<i32>,
+    /// The amount of occurrences in predicted documents.
+    #[serde(default, rename = "predictedOccurrencesCount")]
+    pub predicted_occurrences_count: ::core::option::Option<i32>,
+    /// The calculated recall.
+    #[serde(default)]
+    pub recall: ::core::option::Option<f32>,
+    /// The amount of documents that had an occurrence of this label.
+    #[serde(default, rename = "totalDocumentsCount")]
+    pub total_documents_count: ::core::option::Option<i32>,
+    /// The amount of true positives.
+    #[serde(default, rename = "truePositivesCount")]
+    pub true_positives_count: ::core::option::Option<i32>,
+}
+
+/// EntityType is the wrapper of a label of the corresponding model with detailed attributes and limitations for entity-based processors. Multiple types can also compose a dependency tree to represent nested types.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiUiv1beta3SchemaEntityType {
+    #[serde(default, rename = "baseType")]
+    pub base_type: ::core::option::Option<String>,
+    /// Description of the entity type.
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+    /// If specified, lists all the possible values for this entity.
+    #[serde(default, rename = "enumValues")]
+    pub enum_values: ::core::option::Option<::std::vec::Vec<String>>,
+    /// If the entity type is hidden in the schema. This provides the functionality to temporally "disable" an entity without deleting it.
+    #[serde(default)]
+    pub hide: ::core::option::Option<bool>,
+    /// Specifies how the entity''s value is obtained. // TODO: enum values: ["METHOD_UNSPECIFIED", "EXTRACT", "DERIVE", "RELAXED_EXTRACT"]
+    #[serde(default)]
+    pub method: ::core::option::Option<String>,
+    /// Occurrence type limits the number of times an entity type appears in the document. // TODO: enum values: ["OCCURRENCE_TYPE_UNSPECIFIED", "OPTIONAL_ONCE", "OPTIONAL_MULTIPLE", "REQUIRED_ONCE", "REQUIRED_MULTIPLE"]
+    #[serde(default, rename = "occurrenceType")]
+    pub occurrence_type: ::core::option::Option<String>,
+    /// Describing the nested structure of an entity. An EntityType may consist of several other EntityTypes. For example, in a document there can be an EntityType ID, which consists of EntityType name and address, with corresponding attributes, such as TEXT for both types and ONCE for occurrence types.
+    #[serde(default)]
+    pub properties:
+        ::core::option::Option<::std::vec::Vec<GoogleCloudDocumentaiUiv1beta3SchemaEntityType>>,
+    /// Source of this entity type. // TODO: enum values: ["SOURCE_UNSPECIFIED", "PREDEFINED", "USER_INPUT"]
+    #[serde(default)]
+    pub source: ::core::option::Option<String>,
+    /// Name of the type. It must satisfy the following constraints: 1. Must be unique within the set of same level types (with case-insensitive match). 2. Maximum 64 characters. 3. Must start with a letter. 4. Allowed characters: ASCII letters [a-zA-Z], ASCII digits [0-9], or one of the following punctuation characters: * underscore ''_'' (recommended) * hyphen ''-'' (allowed, not recommended) * colon '':'' (allowed, not recommended) NOTE: Whitespace characters are not allowed. 5. Cannot end with a punctuation character. 6. Cannot contain the following restricted strings: "google", "DocumentAI" (case-insensitive match). 7. A slash character ''/'' is reserved as a separator in flattened representations of nested entity types (e.g., "line_item/amount") in which case each part (e.g., "line_item", "amount") must comply with the rules defined above. We recommend using the snake case ("snake_case") in entity type names.
+    #[serde(default, rename = "type")]
+    pub type_: ::core::option::Option<String>,
+}
+
+/// Document Identifier.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiUiv1beta3DocumentId {
+    /// A document id within user-managed Cloud Storage.
+    #[serde(default, rename = "gcsManagedDocId")]
+    pub gcs_managed_doc_id:
+        ::core::option::Option<GoogleCloudDocumentaiUiv1beta3DocumentIdGCSManagedDocumentId>,
+    /// Points to a specific revision of the document if set.
+    #[serde(default, rename = "revisionRef")]
+    pub revision_ref: ::core::option::Option<GoogleCloudDocumentaiUiv1beta3RevisionRef>,
+    /// A document id within unmanaged dataset.
+    #[serde(default, rename = "unmanagedDocId")]
+    pub unmanaged_doc_id:
+        ::core::option::Option<GoogleCloudDocumentaiUiv1beta3DocumentIdUnmanagedDocumentId>,
+}
+
+/// The status of human review on a processed document.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1HumanReviewStatus {
+    /// The name of the operation triggered by the processed document. This field is populated only when the state is HUMAN_REVIEW_IN_PROGRESS. It has the same response type and metadata as the long-running operation returned by ReviewDocument.
+    #[serde(default, rename = "humanReviewOperation")]
+    pub human_review_operation: ::core::option::Option<String>,
+    /// The state of human review on the processing request. // TODO: enum values: ["STATE_UNSPECIFIED", "SKIPPED", "VALIDATION_PASSED", "IN_PROGRESS", "ERROR"]
+    #[serde(default)]
+    pub state: ::core::option::Option<String>,
+    /// A message providing more details about the human review state.
+    #[serde(default, rename = "stateMessage")]
+    pub state_message: ::core::option::Option<String>,
+}
+
+/// The configuration used when outputting documents.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1DocumentOutputConfigGcsOutputConfig {
+    /// Specifies which fields to include in the output documents. Only supports top level document and pages field so it must be in the form of {document_field_name} or pages.{page_field_name}.
+    #[serde(default, rename = "fieldMask")]
+    pub field_mask: ::core::option::Option<String>,
+    /// The Cloud Storage uri (a directory) of the output.
+    #[serde(default, rename = "gcsUri")]
+    pub gcs_uri: ::core::option::Option<String>,
+    /// Specifies the sharding config for the output document.
+    #[serde(default, rename = "shardingConfig")]
+    pub sharding_config: ::core::option::Option<
+        GoogleCloudDocumentaiV1DocumentOutputConfigGcsOutputConfigShardingConfig,
+    >,
+}
+
+/// The history of schema generation iterations.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1SchemaGenerationHistory {
+    /// Required. Previous prompt-answers in a chronological order.
+    #[serde(default)]
+    pub iterations:
+        ::core::option::Option<::std::vec::Vec<GoogleCloudDocumentaiV1SchemaGenerationIteration>>,
 }
 
 /// Document represents the canonical document resource in Document AI. It is an interchange format that provides insights into documents and allows for collaboration between users and Document AI to iterate and optimize for quality.
@@ -1473,6 +2429,462 @@ pub struct GoogleCloudDocumentaiV1Document {
     pub uri: ::core::option::Option<String>,
 }
 
+/// Payload message of raw document content (bytes).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1RawDocument {
+    /// Inline document content.
+    #[serde(default)]
+    pub content: ::core::option::Option<String>,
+    /// The display name of the document, it supports all Unicode characters except the following: *, ?, [, ], %, {, },'', \", , ~, = and : are reserved. If not specified, a default ID is generated.
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+    /// An IANA MIME type (RFC6838) indicating the nature and format of the content.
+    #[serde(default, rename = "mimeType")]
+    pub mime_type: ::core::option::Option<String>,
+}
+
+/// A revision of the evaluation.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1EvaluationEvaluationRevision {
+    /// Output only. Metrics for all the entities in aggregate.
+    #[serde(default, rename = "allEntitiesMetrics")]
+    pub all_entities_metrics:
+        ::core::option::Option<GoogleCloudDocumentaiV1EvaluationMultiConfidenceMetrics>,
+    /// Output only. Counters for the documents used in the evaluation.
+    #[serde(default, rename = "documentCounters")]
+    pub document_counters: ::core::option::Option<GoogleCloudDocumentaiV1EvaluationCounters>,
+    /// Output only. Metrics across confidence levels, for different entities.
+    #[serde(default, rename = "entityMetrics")]
+    pub entity_metrics: ::core::option::Option<serde_json::Value>,
+    /// Output only. The revision ID of the evaluation.
+    #[serde(default, rename = "revisionId")]
+    pub revision_id: ::core::option::Option<String>,
+}
+
+/// The location information about where the processor is available.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1ProcessorTypeLocationInfo {
+    /// The location ID. For supported locations, refer to [regional and multi-regional support](/document-ai/docs/regions).
+    #[serde(default, rename = "locationId")]
+    pub location_id: ::core::option::Option<String>,
+}
+
+/// Contains the alias and the aliased resource name of processor version.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1ProcessorVersionAlias {
+    /// The alias in the form of processor_version resource name.
+    #[serde(default)]
+    pub alias: ::core::option::Option<String>,
+    /// The resource name of aliased processor version.
+    #[serde(default, rename = "processorVersion")]
+    pub processor_version: ::core::option::Option<String>,
+}
+
+/// A list of individual page numbers.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1ProcessOptionsIndividualPageSelector {
+    /// Optional. Indices of the pages (starting from 1).
+    #[serde(default)]
+    pub pages: ::core::option::Option<::std::vec::Vec<i32>>,
+}
+
+/// Serving config for layout parser processor.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1ProcessOptionsLayoutConfig {
+    /// Optional. Config for chunking in layout parser processor.
+    #[serde(default, rename = "chunkingConfig")]
+    pub chunking_config:
+        ::core::option::Option<GoogleCloudDocumentaiV1ProcessOptionsLayoutConfigChunkingConfig>,
+    /// Optional. Whether to include image annotations in layout parser response.
+    #[serde(default, rename = "enableImageAnnotation")]
+    pub enable_image_annotation: ::core::option::Option<bool>,
+    /// Optional. Whether to include table annotations in layout parser response.
+    #[serde(default, rename = "enableTableAnnotation")]
+    pub enable_table_annotation: ::core::option::Option<bool>,
+    /// Optional. Whether to include bounding boxes in layout parser processor response.
+    #[serde(default, rename = "returnBoundingBoxes")]
+    pub return_bounding_boxes: ::core::option::Option<bool>,
+    /// Optional. Whether to include images in layout parser processor response.
+    #[serde(default, rename = "returnImages")]
+    pub return_images: ::core::option::Option<bool>,
+}
+
+/// Config for Document OCR.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1OcrConfig {
+    /// A list of advanced OCR options to further fine-tune OCR behavior. Current valid values are: - legacy_layout: a heuristics layout detection algorithm, which serves as an alternative to the current ML-based layout detection algorithm. Customers can choose the best suitable layout algorithm based on their situation.
+    #[serde(default, rename = "advancedOcrOptions")]
+    pub advanced_ocr_options: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Turn on font identification model and return font style information. Deprecated, use PremiumFeatures.compute_style_info instead.
+    #[serde(default, rename = "computeStyleInfo")]
+    pub compute_style_info: ::core::option::Option<bool>,
+    /// Turn off character box detector in OCR engine. Character box detection is enabled by default in OCR 2.0 (and later) processors.
+    #[serde(default, rename = "disableCharacterBoxesDetection")]
+    pub disable_character_boxes_detection: ::core::option::Option<bool>,
+    /// Enables intelligent document quality scores after OCR. Can help with diagnosing why OCR responses are of poor quality for a given input. Adds additional latency comparable to regular OCR to the process call.
+    #[serde(default, rename = "enableImageQualityScores")]
+    pub enable_image_quality_scores: ::core::option::Option<bool>,
+    /// Enables special handling for PDFs with existing text information. Results in better text extraction quality in such PDF inputs.
+    #[serde(default, rename = "enableNativePdfParsing")]
+    pub enable_native_pdf_parsing: ::core::option::Option<bool>,
+    /// Includes symbol level OCR information if set to true.
+    #[serde(default, rename = "enableSymbol")]
+    pub enable_symbol: ::core::option::Option<bool>,
+    /// Hints for the OCR model.
+    #[serde(default)]
+    pub hints: ::core::option::Option<GoogleCloudDocumentaiV1OcrConfigHints>,
+    /// Configurations for premium OCR features.
+    #[serde(default, rename = "premiumFeatures")]
+    pub premium_features: ::core::option::Option<GoogleCloudDocumentaiV1OcrConfigPremiumFeatures>,
+}
+
+/// The common config to specify a set of documents used as input.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1BatchDocumentsInputConfig {
+    /// The set of documents individually specified on Cloud Storage.
+    #[serde(default, rename = "gcsDocuments")]
+    pub gcs_documents: ::core::option::Option<GoogleCloudDocumentaiV1GcsDocuments>,
+    /// The set of documents that match the specified Cloud Storage gcs_prefix.
+    #[serde(default, rename = "gcsPrefix")]
+    pub gcs_prefix: ::core::option::Option<GoogleCloudDocumentaiV1GcsPrefix>,
+}
+
+/// Information about the upcoming deprecation of this processor version.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1ProcessorVersionDeprecationInfo {
+    /// The time at which this processor version will be deprecated.
+    #[serde(default, rename = "deprecationTime")]
+    pub deprecation_time: ::core::option::Option<String>,
+    /// If set, the processor version that will be used as a replacement.
+    #[serde(default, rename = "replacementProcessorVersion")]
+    pub replacement_processor_version: ::core::option::Option<String>,
+}
+
+/// Information about Generative AI model-based processor versions.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1ProcessorVersionGenAiModelInfo {
+    /// Information for a custom Generative AI model created by the user.
+    #[serde(default, rename = "customGenAiModelInfo")]
+    pub custom_gen_ai_model_info: ::core::option::Option<
+        GoogleCloudDocumentaiV1ProcessorVersionGenAiModelInfoCustomGenAiModelInfo,
+    >,
+    /// Information for a pretrained Google-managed foundation model.
+    #[serde(default, rename = "foundationGenAiModelInfo")]
+    pub foundation_gen_ai_model_info: ::core::option::Option<
+        GoogleCloudDocumentaiV1ProcessorVersionGenAiModelInfoFoundationGenAiModelInfo,
+    >,
+}
+
+/// Gives a short summary of an evaluation, and links to the evaluation itself.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1EvaluationReference {
+    /// An aggregate of the statistics for the evaluation with fuzzy matching on.
+    #[serde(default, rename = "aggregateMetrics")]
+    pub aggregate_metrics: ::core::option::Option<GoogleCloudDocumentaiV1EvaluationMetrics>,
+    /// An aggregate of the statistics for the evaluation with fuzzy matching off.
+    #[serde(default, rename = "aggregateMetricsExact")]
+    pub aggregate_metrics_exact: ::core::option::Option<GoogleCloudDocumentaiV1EvaluationMetrics>,
+    /// The resource name of the evaluation.
+    #[serde(default)]
+    pub evaluation: ::core::option::Option<String>,
+    /// The resource name of the Long Running Operation for the evaluation.
+    #[serde(default)]
+    pub operation: ::core::option::Option<String>,
+}
+
+/// The status of human review on a processed document.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1beta3HumanReviewStatus {
+    /// The name of the operation triggered by the processed document. This field is populated only when the state is HUMAN_REVIEW_IN_PROGRESS. It has the same response type and metadata as the long-running operation returned by ReviewDocument.
+    #[serde(default, rename = "humanReviewOperation")]
+    pub human_review_operation: ::core::option::Option<String>,
+    /// The state of human review on the processing request. // TODO: enum values: ["STATE_UNSPECIFIED", "SKIPPED", "VALIDATION_PASSED", "IN_PROGRESS", "ERROR"]
+    #[serde(default)]
+    pub state: ::core::option::Option<String>,
+    /// A message providing more details about the human review state.
+    #[serde(default, rename = "stateMessage")]
+    pub state_message: ::core::option::Option<String>,
+}
+
+/// Specifies all documents on Cloud Storage with a common prefix.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1beta3GcsPrefix {
+    /// The URI prefix.
+    #[serde(default, rename = "gcsUriPrefix")]
+    pub gcs_uri_prefix: ::core::option::Option<String>,
+}
+
+/// Document Identifier.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1beta3DocumentId {
+    /// A document id within user-managed Cloud Storage.
+    #[serde(default, rename = "gcsManagedDocId")]
+    pub gcs_managed_doc_id:
+        ::core::option::Option<GoogleCloudDocumentaiV1beta3DocumentIdGCSManagedDocumentId>,
+    /// Points to a specific revision of the document if set.
+    #[serde(default, rename = "revisionRef")]
+    pub revision_ref: ::core::option::Option<GoogleCloudDocumentaiV1beta3RevisionRef>,
+    /// A document id within unmanaged dataset.
+    #[serde(default, rename = "unmanagedDocId")]
+    pub unmanaged_doc_id:
+        ::core::option::Option<GoogleCloudDocumentaiV1beta3DocumentIdUnmanagedDocumentId>,
+}
+
+/// EntityType is the wrapper of a label of the corresponding model with detailed attributes and limitations for entity-based processors. Multiple types can also compose a dependency tree to represent nested types.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1beta3DocumentSchemaEntityType {
+    /// The entity type that this type is derived from. For now, one and only one should be set.
+    #[serde(default, rename = "baseTypes")]
+    pub base_types: ::core::option::Option<::std::vec::Vec<String>>,
+    /// The description of the entity type. Could be used to provide more information about the entity type for model calls.
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+    /// User defined name for the type.
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+    /// Metadata for the entity type.
+    #[serde(default, rename = "entityTypeMetadata")]
+    pub entity_type_metadata:
+        ::core::option::Option<GoogleCloudDocumentaiV1beta3EntityTypeMetadata>,
+    /// If specified, lists all the possible values for this entity. This should not be more than a handful of values. If the number of values is &gt;10 or could change frequently, use the EntityType.value_ontology field and specify a list of all possible values in a value ontology file.
+    #[serde(default, rename = "enumValues")]
+    pub enum_values:
+        ::core::option::Option<GoogleCloudDocumentaiV1beta3DocumentSchemaEntityTypeEnumValues>,
+    /// Name of the type. It must be unique within the schema file and cannot be a "Common Type". The following naming conventions are used: - Use snake_casing. - Name matching is case-sensitive. - Maximum 64 characters. - Must start with a letter. - Allowed characters: ASCII letters [a-z0-9_-]. (For backward compatibility, internal infrastructure and tooling can handle any ASCII character.) - The / is sometimes used to denote a property of a type. For example line_item/amount. This convention is deprecated, but will still be honored for backward compatibility.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Description the nested structure, or composition of an entity.
+    #[serde(default)]
+    pub properties: ::core::option::Option<
+        ::std::vec::Vec<GoogleCloudDocumentaiV1beta3DocumentSchemaEntityTypeProperty>,
+    >,
+}
+
+/// Metadata for global schema behavior.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1beta3DocumentSchemaMetadata {
+    /// If true, on a given page, there can be multiple document annotations covering it.
+    #[serde(default, rename = "documentAllowMultipleLabels")]
+    pub document_allow_multiple_labels: ::core::option::Option<bool>,
+    /// If true, a document entity type can be applied to subdocument (splitting). Otherwise, it can only be applied to the entire document (classification).
+    #[serde(default, rename = "documentSplitter")]
+    pub document_splitter: ::core::option::Option<bool>,
+    /// If set, all the nested entities must be prefixed with the parents.
+    #[serde(default, rename = "prefixedNamingOnProperties")]
+    pub prefixed_naming_on_properties: ::core::option::Option<bool>,
+    /// If set, this will skip the naming format validation in the schema. So the string values in DocumentSchema.EntityType.name and DocumentSchema.EntityType.Property.name will not be checked.
+    #[serde(default, rename = "skipNamingValidation")]
+    pub skip_naming_validation: ::core::option::Option<bool>,
+}
+
+/// Information for a custom Generative AI model created by the user. These are created with Create New Version in either the Call foundation model or Fine tuning tabs.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1beta3ProcessorVersionGenAiModelInfoCustomGenAiModelInfo {
+    /// The base processor version ID for the custom model.
+    #[serde(default, rename = "baseProcessorVersionId")]
+    pub base_processor_version_id: ::core::option::Option<String>,
+    /// The type of custom model created by the user. // TODO: enum values: ["CUSTOM_MODEL_TYPE_UNSPECIFIED", "VERSIONED_FOUNDATION", "FINE_TUNED"]
+    #[serde(default, rename = "customModelType")]
+    pub custom_model_type: ::core::option::Option<String>,
+}
+
+/// Information for a pretrained Google-managed foundation model.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1beta3ProcessorVersionGenAiModelInfoFoundationGenAiModelInfo {
+    /// Whether fine tuning is allowed for this base processor version.
+    #[serde(default, rename = "finetuningAllowed")]
+    pub finetuning_allowed: ::core::option::Option<bool>,
+    /// The minimum number of labeled documents in the training dataset required for fine tuning.
+    #[serde(default, rename = "minTrainLabeledDocuments")]
+    pub min_train_labeled_documents: ::core::option::Option<i32>,
+}
+
+/// Evaluation metrics, either in aggregate or about a specific entity.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1beta3EvaluationMetrics {
+    /// The calculated F1 score.
+    #[serde(default, rename = "f1Score")]
+    pub f1_score: ::core::option::Option<f32>,
+    /// The amount of false negatives.
+    #[serde(default, rename = "falseNegativesCount")]
+    pub false_negatives_count: ::core::option::Option<i32>,
+    /// The amount of false positives.
+    #[serde(default, rename = "falsePositivesCount")]
+    pub false_positives_count: ::core::option::Option<i32>,
+    /// The amount of documents with a ground truth occurrence.
+    #[serde(default, rename = "groundTruthDocumentCount")]
+    pub ground_truth_document_count: ::core::option::Option<i32>,
+    /// The amount of occurrences in ground truth documents.
+    #[serde(default, rename = "groundTruthOccurrencesCount")]
+    pub ground_truth_occurrences_count: ::core::option::Option<i32>,
+    /// The calculated precision.
+    #[serde(default)]
+    pub precision: ::core::option::Option<f32>,
+    /// The amount of documents with a predicted occurrence.
+    #[serde(default, rename = "predictedDocumentCount")]
+    pub predicted_document_count: ::core::option::Option<i32>,
+    /// The amount of occurrences in predicted documents.
+    #[serde(default, rename = "predictedOccurrencesCount")]
+    pub predicted_occurrences_count: ::core::option::Option<i32>,
+    /// The calculated recall.
+    #[serde(default)]
+    pub recall: ::core::option::Option<f32>,
+    /// The amount of documents that had an occurrence of this label.
+    #[serde(default, rename = "totalDocumentsCount")]
+    pub total_documents_count: ::core::option::Option<i32>,
+    /// The amount of true positives.
+    #[serde(default, rename = "truePositivesCount")]
+    pub true_positives_count: ::core::option::Option<i32>,
+}
+
+/// A rule for checking field alignment. Horizontal alignment checks if fields are on the same row by comparing y-coordinates of bounding box centers, while vertical alignment checks if fields are on the same column by comparing x-coordinates of bounding box centers.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CloudAiDocumentaiLabHifiaToolsValidationValidatorInputValidationRuleAlignmentRule {
+    /// TODO: enum values: ["ALIGNMENT_TYPE_UNSPECIFIED", "ALIGNMENT_TYPE_HORIZONTAL", "ALIGNMENT_TYPE_VERTICAL"]
+    #[serde(default, rename = "alignmentType")]
+    pub alignment_type: ::core::option::Option<String>,
+    /// The tolerance to use when comparing coordinates.
+    #[serde(default)]
+    pub tolerance: ::core::option::Option<f32>,
+}
+
+/// CloudAiDocumentaiLabHifiaToolsValidationValidatorInputValidationRuleFormValidationOperation resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CloudAiDocumentaiLabHifiaToolsValidationValidatorInputValidationRuleFormValidationOperation {
+    /// A list of constants to be used as operands.
+    #[serde(default)]
+    pub constants: ::core::option::Option<::std::vec::Vec<CloudAiDocumentaiLabHifiaToolsValidationValidatorInputValidationRuleConstant>>,
+    /// A list of fields to be used as operands.
+    #[serde(default)]
+    pub fields: ::core::option::Option<::std::vec::Vec<CloudAiDocumentaiLabHifiaToolsValidationValidatorInputValidationRuleField>>,
+    /// The operation type to be applied to all the operands. // TODO: enum values: ["OPERATION_TYPE_UNSPECIFIED", "OPERATION_TYPE_SUM", "OPERATION_TYPE_SUB", "OPERATION_TYPE_MUL", "OPERATION_TYPE_DIV", "OPERATION_TYPE_MAX", "OPERATION_TYPE_MIN", "OPERATION_TYPE_ABS", "OPERATION_TYPE_UNIQUE", "OPERATION_TYPE_COUNT"]
+    #[serde(default, rename = "operationType")]
+    pub operation_type: ::core::option::Option<String>,
+    /// A list of recursive operations to be used as operands.
+    #[serde(default)]
+    pub operations: ::core::option::Option<::std::vec::Vec<CloudAiDocumentaiLabHifiaToolsValidationValidatorInputValidationRuleFormValidationOperation>>,
+}
+
+/// Metadata about an entity type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiUiv1beta3EntityTypeMetadata {
+    /// Field tier metadata on the property
+    #[serde(default, rename = "fieldTierMetadata")]
+    pub field_tier_metadata:
+        ::core::option::Option<GoogleCloudDocumentaiUiv1beta3FieldTierMetadata>,
+    /// Human review labeling config on the entity.
+    #[serde(default, rename = "humanReviewLabelingMetadata")]
+    pub human_review_labeling_metadata:
+        ::core::option::Option<GoogleCloudDocumentaiUiv1beta3HumanReviewLabelingMetadata>,
+    /// Human review config on the entity.
+    #[serde(default, rename = "humanReviewMetadata")]
+    pub human_review_metadata:
+        ::core::option::Option<GoogleCloudDocumentaiUiv1beta3HumanReviewValidationMetadata>,
+    /// Whether the entity type should be considered inactive.
+    #[serde(default)]
+    pub inactive: ::core::option::Option<bool>,
+    /// Schema editability metadata on the entity.
+    #[serde(default, rename = "schemaEditabilityMetadata")]
+    pub schema_editability_metadata:
+        ::core::option::Option<GoogleCloudDocumentaiUiv1beta3SchemaEditabilityMetadata>,
+    /// Schema inference metadata on the entity.
+    #[serde(default, rename = "schemaInferenceMetadata")]
+    pub schema_inference_metadata:
+        ::core::option::Option<GoogleCloudDocumentaiUiv1beta3SchemaInferenceMetadata>,
+}
+
+/// Defines the a list of enum values.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiUiv1beta3DocumentSchemaEntityTypeEnumValues {
+    /// The individual values that this enum values type can include.
+    #[serde(default)]
+    pub values: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// Defines properties that can be part of the entity type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiUiv1beta3DocumentSchemaEntityTypeProperty {
+    /// The description of the property. Could be used to provide more information about the property for model calls.
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+    /// User defined name for the property.
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+    /// Specifies how the entity''s value is obtained. // TODO: enum values: ["METHOD_UNSPECIFIED", "EXTRACT", "DERIVE", "RELAXED_EXTRACT"]
+    #[serde(default)]
+    pub method: ::core::option::Option<String>,
+    /// The name of the property. Follows the same guidelines as the EntityType name.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Occurrence type limits the number of instances an entity type appears in the document. // TODO: enum values: ["OCCURRENCE_TYPE_UNSPECIFIED", "OPTIONAL_ONCE", "OPTIONAL_MULTIPLE", "REQUIRED_ONCE", "REQUIRED_MULTIPLE"]
+    #[serde(default, rename = "occurrenceType")]
+    pub occurrence_type: ::core::option::Option<String>,
+    /// Any additional metadata about the property can be added here.
+    #[serde(default, rename = "propertyMetadata")]
+    pub property_metadata: ::core::option::Option<GoogleCloudDocumentaiUiv1beta3PropertyMetadata>,
+    /// A reference to the value type of the property. This type is subject to the same conventions as the Entity.base_types field.
+    #[serde(default, rename = "valueType")]
+    pub value_type: ::core::option::Option<String>,
+}
+
+/// Identifies a document uniquely within the scope of a dataset in the user-managed Cloud Storage option.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiUiv1beta3DocumentIdGCSManagedDocumentId {
+    /// Id of the document (indexed) managed by Content Warehouse.
+    #[serde(default, rename = "cwDocId")]
+    pub cw_doc_id: ::core::option::Option<String>,
+    /// Required. The Cloud Storage URI where the actual document is stored.
+    #[serde(default, rename = "gcsUri")]
+    pub gcs_uri: ::core::option::Option<String>,
+}
+
+/// The revision reference specifies which revision on the document to read.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiUiv1beta3RevisionRef {
+    /// Reads the revision generated by the processor version. The format takes the full resource name of processor version. projects/{project}/locations/{location}/processors/{processor}/processorVersions/{processorVersion}
+    #[serde(default, rename = "latestProcessorVersion")]
+    pub latest_processor_version: ::core::option::Option<String>,
+    /// Reads the revision by the predefined case. // TODO: enum values: ["REVISION_CASE_UNSPECIFIED", "LATEST_HUMAN_REVIEW", "LATEST_TIMESTAMP", "BASE_OCR_REVISION"]
+    #[serde(default, rename = "revisionCase")]
+    pub revision_case: ::core::option::Option<String>,
+    /// Reads the revision given by the id.
+    #[serde(default, rename = "revisionId")]
+    pub revision_id: ::core::option::Option<String>,
+}
+
+/// Identifies a document uniquely within the scope of a dataset in unmanaged option.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiUiv1beta3DocumentIdUnmanagedDocumentId {
+    /// Required. The id of the document.
+    #[serde(default, rename = "docId")]
+    pub doc_id: ::core::option::Option<String>,
+}
+
+/// The sharding config for the output document.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1DocumentOutputConfigGcsOutputConfigShardingConfig {
+    /// The number of overlapping pages between consecutive shards.
+    #[serde(default, rename = "pagesOverlap")]
+    pub pages_overlap: ::core::option::Option<i32>,
+    /// The number of pages per shard.
+    #[serde(default, rename = "pagesPerShard")]
+    pub pages_per_shard: ::core::option::Option<i32>,
+}
+
+/// A single iteration of the schema generation.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1SchemaGenerationIteration {
+    /// Optional. The previous schema version adjusted by the model.
+    #[serde(default, rename = "adjustedSchema")]
+    pub adjusted_schema: ::core::option::Option<GoogleCloudDocumentaiV1SchemaVersion>,
+    /// Required. The schema version generated by the model.
+    #[serde(default, rename = "generatedSchema")]
+    pub generated_schema: ::core::option::Option<GoogleCloudDocumentaiV1SchemaVersion>,
+    /// Optional. The prompt used for the iteration.
+    #[serde(default)]
+    pub prompt: ::core::option::Option<String>,
+}
+
 /// Represents the chunks that the document is divided into.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDocumentaiV1DocumentChunkedDocument {
@@ -1481,6 +2893,471 @@ pub struct GoogleCloudDocumentaiV1DocumentChunkedDocument {
     pub chunks: ::core::option::Option<
         ::std::vec::Vec<GoogleCloudDocumentaiV1DocumentChunkedDocumentChunk>,
     >,
+}
+
+/// Represents the parsed layout of a document as a collection of blocks that the document is divided into.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1DocumentDocumentLayout {
+    /// List of blocks in the document.
+    #[serde(default)]
+    pub blocks: ::core::option::Option<
+        ::std::vec::Vec<GoogleCloudDocumentaiV1DocumentDocumentLayoutDocumentLayoutBlock>,
+    >,
+}
+
+/// Entity revision.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1DocumentEntitiesRevision {
+    /// The entities in this revision.
+    #[serde(default)]
+    pub entities: ::core::option::Option<::std::vec::Vec<GoogleCloudDocumentaiV1DocumentEntity>>,
+    /// The entity validation output for this revision.
+    #[serde(default, rename = "entityValidationOutput")]
+    pub entity_validation_output:
+        ::core::option::Option<GoogleCloudDocumentaiV1DocumentEntityValidationOutput>,
+    /// Optional. The history of this revision.
+    #[serde(default)]
+    pub provenance: ::core::option::Option<GoogleCloudDocumentaiV1DocumentProvenance>,
+    /// The revision id.
+    #[serde(default, rename = "revisionId")]
+    pub revision_id: ::core::option::Option<String>,
+}
+
+/// Relationship between Entities.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1DocumentEntityRelation {
+    /// Object entity id.
+    #[serde(default, rename = "objectId")]
+    pub object_id: ::core::option::Option<String>,
+    /// Relationship description.
+    #[serde(default)]
+    pub relation: ::core::option::Option<String>,
+    /// Subject entity id.
+    #[serde(default, rename = "subjectId")]
+    pub subject_id: ::core::option::Option<String>,
+}
+
+/// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleRpcStatus {
+    /// The status code, which should be an enum value of google.rpc.Code.
+    #[serde(default)]
+    pub code: ::core::option::Option<i32>,
+    /// A list of messages that carry the error details. There is a common set of message types for APIs to use.
+    #[serde(default)]
+    pub details: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
+    /// A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.
+    #[serde(default)]
+    pub message: ::core::option::Option<String>,
+}
+
+/// A page in a Document.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1DocumentPage {
+    /// A list of visually detected text blocks on the page. A block has a set of lines (collected into paragraphs) that have a common line-spacing and orientation.
+    #[serde(default)]
+    pub blocks: ::core::option::Option<::std::vec::Vec<GoogleCloudDocumentaiV1DocumentPageBlock>>,
+    /// A list of detected barcodes.
+    #[serde(default, rename = "detectedBarcodes")]
+    pub detected_barcodes:
+        ::core::option::Option<::std::vec::Vec<GoogleCloudDocumentaiV1DocumentPageDetectedBarcode>>,
+    /// A list of detected languages together with confidence.
+    #[serde(default, rename = "detectedLanguages")]
+    pub detected_languages: ::core::option::Option<
+        ::std::vec::Vec<GoogleCloudDocumentaiV1DocumentPageDetectedLanguage>,
+    >,
+    /// Physical dimension of the page.
+    #[serde(default)]
+    pub dimension: ::core::option::Option<GoogleCloudDocumentaiV1DocumentPageDimension>,
+    /// A list of visually detected form fields on the page.
+    #[serde(default, rename = "formFields")]
+    pub form_fields:
+        ::core::option::Option<::std::vec::Vec<GoogleCloudDocumentaiV1DocumentPageFormField>>,
+    /// Rendered image for this page. This image is preprocessed to remove any skew, rotation, and distortions such that the annotation bounding boxes can be upright and axis-aligned.
+    #[serde(default)]
+    pub image: ::core::option::Option<GoogleCloudDocumentaiV1DocumentPageImage>,
+    /// Image quality scores.
+    #[serde(default, rename = "imageQualityScores")]
+    pub image_quality_scores:
+        ::core::option::Option<GoogleCloudDocumentaiV1DocumentPageImageQualityScores>,
+    /// Layout for the page.
+    #[serde(default)]
+    pub layout: ::core::option::Option<GoogleCloudDocumentaiV1DocumentPageLayout>,
+    /// A list of visually detected text lines on the page. A collection of tokens that a human would perceive as a line.
+    #[serde(default)]
+    pub lines: ::core::option::Option<::std::vec::Vec<GoogleCloudDocumentaiV1DocumentPageLine>>,
+    /// 1-based index for current Page in a parent Document. Useful when a page is taken out of a Document for individual processing.
+    #[serde(default, rename = "pageNumber")]
+    pub page_number: ::core::option::Option<i32>,
+    /// A list of visually detected text paragraphs on the page. A collection of lines that a human would perceive as a paragraph.
+    #[serde(default)]
+    pub paragraphs:
+        ::core::option::Option<::std::vec::Vec<GoogleCloudDocumentaiV1DocumentPageParagraph>>,
+    /// The history of this page.
+    #[serde(default)]
+    pub provenance: ::core::option::Option<GoogleCloudDocumentaiV1DocumentProvenance>,
+    /// A list of visually detected symbols on the page.
+    #[serde(default)]
+    pub symbols: ::core::option::Option<::std::vec::Vec<GoogleCloudDocumentaiV1DocumentPageSymbol>>,
+    /// A list of visually detected tables on the page.
+    #[serde(default)]
+    pub tables: ::core::option::Option<::std::vec::Vec<GoogleCloudDocumentaiV1DocumentPageTable>>,
+    /// A list of visually detected tokens on the page.
+    #[serde(default)]
+    pub tokens: ::core::option::Option<::std::vec::Vec<GoogleCloudDocumentaiV1DocumentPageToken>>,
+    /// Transformation matrices that were applied to the original document image to produce Page.image.
+    #[serde(default)]
+    pub transforms:
+        ::core::option::Option<::std::vec::Vec<GoogleCloudDocumentaiV1DocumentPageMatrix>>,
+    /// A list of detected non-text visual elements, for example, checkbox, signature etc. on the page.
+    #[serde(default, rename = "visualElements")]
+    pub visual_elements:
+        ::core::option::Option<::std::vec::Vec<GoogleCloudDocumentaiV1DocumentPageVisualElement>>,
+}
+
+/// Contains past or forward revisions of this document.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1DocumentRevision {
+    /// If the change was made by a person specify the name or id of that person.
+    #[serde(default)]
+    pub agent: ::core::option::Option<String>,
+    /// The time that the revision was created, internally generated by doc proto storage at the time of create.
+    #[serde(default, rename = "createTime")]
+    pub create_time: ::core::option::Option<String>,
+    /// Human Review information of this revision.
+    #[serde(default, rename = "humanReview")]
+    pub human_review: ::core::option::Option<GoogleCloudDocumentaiV1DocumentRevisionHumanReview>,
+    /// Id of the revision, internally generated by doc proto storage. Unique within the context of the document.
+    #[serde(default)]
+    pub id: ::core::option::Option<String>,
+    /// The revisions that this revision is based on. This can include one or more parent (when documents are merged.) This field represents the index into the revisions field.
+    #[serde(default)]
+    pub parent: ::core::option::Option<::std::vec::Vec<i32>>,
+    /// The revisions that this revision is based on. Must include all the ids that have anything to do with this revision - eg. there are provenance.parent.revision fields that index into this field.
+    #[serde(default, rename = "parentIds")]
+    pub parent_ids: ::core::option::Option<::std::vec::Vec<String>>,
+    /// If the annotation was made by processor identify the processor by its resource name.
+    #[serde(default)]
+    pub processor: ::core::option::Option<String>,
+}
+
+/// For a large document, sharding may be performed to produce several document shards. Each document shard contains this field to detail which shard it is.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1DocumentShardInfo {
+    /// The index of the first page in Document.pages in the overall document global pages. Available for document shards created by the document splitter.
+    #[serde(default, rename = "pageOffset")]
+    pub page_offset: ::core::option::Option<i32>,
+    /// Total number of shards.
+    #[serde(default, rename = "shardCount")]
+    pub shard_count: ::core::option::Option<String>,
+    /// The 0-based index of this shard.
+    #[serde(default, rename = "shardIndex")]
+    pub shard_index: ::core::option::Option<String>,
+    /// The index of the first character in Document.text in the overall document global text.
+    #[serde(default, rename = "textOffset")]
+    pub text_offset: ::core::option::Option<String>,
+}
+
+/// This message is used for text changes aka. OCR corrections.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1DocumentTextChange {
+    /// The text that replaces the text identified in the text_anchor.
+    #[serde(default, rename = "changedText")]
+    pub changed_text: ::core::option::Option<String>,
+    /// The history of this annotation.
+    #[serde(default)]
+    pub provenance:
+        ::core::option::Option<::std::vec::Vec<GoogleCloudDocumentaiV1DocumentProvenance>>,
+    /// Provenance of the correction. Text anchor indexing into the Document.text. There can only be a single TextAnchor.text_segments element. If the start and end index of the text segment are the same, the text change is inserted before that index.
+    #[serde(default, rename = "textAnchor")]
+    pub text_anchor: ::core::option::Option<GoogleCloudDocumentaiV1DocumentTextAnchor>,
+}
+
+/// Annotation for common text style attributes. This adheres to CSS conventions as much as possible.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1DocumentStyle {
+    /// Text background color.
+    #[serde(default, rename = "backgroundColor")]
+    pub background_color: ::core::option::Option<GoogleTypeColor>,
+    /// Text color.
+    #[serde(default)]
+    pub color: ::core::option::Option<GoogleTypeColor>,
+    /// Font family such as Arial, Times New Roman. https://www.w3schools.com/cssref/pr_font_font-family.asp
+    #[serde(default, rename = "fontFamily")]
+    pub font_family: ::core::option::Option<String>,
+    /// Font size.
+    #[serde(default, rename = "fontSize")]
+    pub font_size: ::core::option::Option<GoogleCloudDocumentaiV1DocumentStyleFontSize>,
+    /// [Font weight](https://www.w3schools.com/cssref/pr_font_weight.asp). Possible values are normal, bold, bolder, and lighter.
+    #[serde(default, rename = "fontWeight")]
+    pub font_weight: ::core::option::Option<String>,
+    /// Text anchor indexing into the Document.text.
+    #[serde(default, rename = "textAnchor")]
+    pub text_anchor: ::core::option::Option<GoogleCloudDocumentaiV1DocumentTextAnchor>,
+    /// [Text decoration](https://www.w3schools.com/cssref/pr_text_text-decoration.asp). Follows CSS standard.
+    #[serde(default, rename = "textDecoration")]
+    pub text_decoration: ::core::option::Option<String>,
+    /// [Text style](https://www.w3schools.com/cssref/pr_font_font-style.asp). Possible values are normal, italic, and oblique.
+    #[serde(default, rename = "textStyle")]
+    pub text_style: ::core::option::Option<String>,
+}
+
+/// Metrics across multiple confidence levels.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1EvaluationMultiConfidenceMetrics {
+    /// The calculated area under the precision recall curve (AUPRC), computed by integrating over all confidence thresholds.
+    #[serde(default)]
+    pub auprc: ::core::option::Option<f32>,
+    /// The AUPRC for metrics with fuzzy matching disabled, i.e., exact matching only.
+    #[serde(default, rename = "auprcExact")]
+    pub auprc_exact: ::core::option::Option<f32>,
+    /// Metrics across confidence levels with fuzzy matching enabled.
+    #[serde(default, rename = "confidenceLevelMetrics")]
+    pub confidence_level_metrics: ::core::option::Option<
+        ::std::vec::Vec<GoogleCloudDocumentaiV1EvaluationConfidenceLevelMetrics>,
+    >,
+    /// Metrics across confidence levels with only exact matching.
+    #[serde(default, rename = "confidenceLevelMetricsExact")]
+    pub confidence_level_metrics_exact: ::core::option::Option<
+        ::std::vec::Vec<GoogleCloudDocumentaiV1EvaluationConfidenceLevelMetrics>,
+    >,
+    /// The Estimated Calibration Error (ECE) of the confidence of the predicted entities.
+    #[serde(default, rename = "estimatedCalibrationError")]
+    pub estimated_calibration_error: ::core::option::Option<f32>,
+    /// The ECE for the predicted entities with fuzzy matching disabled, i.e., exact matching only.
+    #[serde(default, rename = "estimatedCalibrationErrorExact")]
+    pub estimated_calibration_error_exact: ::core::option::Option<f32>,
+    /// The metrics type for the label. // TODO: enum values: ["METRICS_TYPE_UNSPECIFIED", "AGGREGATE"]
+    #[serde(default, rename = "metricsType")]
+    pub metrics_type: ::core::option::Option<String>,
+}
+
+/// Evaluation counters for the documents that were used.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1EvaluationCounters {
+    /// How many documents were used in the evaluation.
+    #[serde(default, rename = "evaluatedDocumentsCount")]
+    pub evaluated_documents_count: ::core::option::Option<i32>,
+    /// How many documents were not included in the evaluation as Document AI failed to process them.
+    #[serde(default, rename = "failedDocumentsCount")]
+    pub failed_documents_count: ::core::option::Option<i32>,
+    /// How many documents were sent for evaluation.
+    #[serde(default, rename = "inputDocumentsCount")]
+    pub input_documents_count: ::core::option::Option<i32>,
+    /// How many documents were not included in the evaluation as they didn''t pass validation.
+    #[serde(default, rename = "invalidDocumentsCount")]
+    pub invalid_documents_count: ::core::option::Option<i32>,
+}
+
+/// Serving config for chunking.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1ProcessOptionsLayoutConfigChunkingConfig {
+    /// Optional. The chunk sizes to use when splitting documents, in order of level.
+    #[serde(default, rename = "chunkSize")]
+    pub chunk_size: ::core::option::Option<i32>,
+    /// Optional. Whether or not to include ancestor headings when splitting.
+    #[serde(default, rename = "includeAncestorHeadings")]
+    pub include_ancestor_headings: ::core::option::Option<bool>,
+}
+
+/// Hints for OCR Engine
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1OcrConfigHints {
+    /// List of BCP-47 language codes to use for OCR. In most cases, not specifying it yields the best results since it enables automatic language detection. For languages based on the Latin alphabet, setting hints is not needed. In rare cases, when the language of the text in the image is known, setting a hint will help get better results (although it will be a significant hindrance if the hint is wrong).
+    #[serde(default, rename = "languageHints")]
+    pub language_hints: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// Configurations for premium OCR features.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1OcrConfigPremiumFeatures {
+    /// Turn on font identification model and return font style information.
+    #[serde(default, rename = "computeStyleInfo")]
+    pub compute_style_info: ::core::option::Option<bool>,
+    /// Turn on the model that can extract LaTeX math formulas.
+    #[serde(default, rename = "enableMathOcr")]
+    pub enable_math_ocr: ::core::option::Option<bool>,
+    /// Turn on selection mark detector in OCR engine. Only available in OCR 2.0 (and later) processors.
+    #[serde(default, rename = "enableSelectionMarkDetection")]
+    pub enable_selection_mark_detection: ::core::option::Option<bool>,
+}
+
+/// Specifies a set of documents on Cloud Storage.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1GcsDocuments {
+    /// The list of documents.
+    #[serde(default)]
+    pub documents: ::core::option::Option<::std::vec::Vec<GoogleCloudDocumentaiV1GcsDocument>>,
+}
+
+/// Specifies all documents on Cloud Storage with a common prefix.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1GcsPrefix {
+    /// The URI prefix.
+    #[serde(default, rename = "gcsUriPrefix")]
+    pub gcs_uri_prefix: ::core::option::Option<String>,
+}
+
+/// Information for a custom Generative AI model created by the user. These are created with Create New Version in either the Call foundation model or Fine tuning tabs.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1ProcessorVersionGenAiModelInfoCustomGenAiModelInfo {
+    /// The base processor version ID for the custom model.
+    #[serde(default, rename = "baseProcessorVersionId")]
+    pub base_processor_version_id: ::core::option::Option<String>,
+    /// The type of custom model created by the user. // TODO: enum values: ["CUSTOM_MODEL_TYPE_UNSPECIFIED", "VERSIONED_FOUNDATION", "FINE_TUNED"]
+    #[serde(default, rename = "customModelType")]
+    pub custom_model_type: ::core::option::Option<String>,
+}
+
+/// Information for a pretrained Google-managed foundation model.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1ProcessorVersionGenAiModelInfoFoundationGenAiModelInfo {
+    /// Whether fine tuning is allowed for this base processor version.
+    #[serde(default, rename = "finetuningAllowed")]
+    pub finetuning_allowed: ::core::option::Option<bool>,
+    /// The minimum number of labeled documents in the training dataset required for fine tuning.
+    #[serde(default, rename = "minTrainLabeledDocuments")]
+    pub min_train_labeled_documents: ::core::option::Option<i32>,
+}
+
+/// Identifies a document uniquely within the scope of a dataset in the user-managed Cloud Storage option.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1beta3DocumentIdGCSManagedDocumentId {
+    /// Id of the document (indexed) managed by Content Warehouse.
+    #[serde(default, rename = "cwDocId")]
+    pub cw_doc_id: ::core::option::Option<String>,
+    /// Required. The Cloud Storage URI where the actual document is stored.
+    #[serde(default, rename = "gcsUri")]
+    pub gcs_uri: ::core::option::Option<String>,
+}
+
+/// The revision reference specifies which revision on the document to read.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1beta3RevisionRef {
+    /// Reads the revision generated by the processor version. The format takes the full resource name of processor version. projects/{project}/locations/{location}/processors/{processor}/processorVersions/{processorVersion}
+    #[serde(default, rename = "latestProcessorVersion")]
+    pub latest_processor_version: ::core::option::Option<String>,
+    /// Reads the revision by the predefined case. // TODO: enum values: ["REVISION_CASE_UNSPECIFIED", "LATEST_HUMAN_REVIEW", "LATEST_TIMESTAMP", "BASE_OCR_REVISION"]
+    #[serde(default, rename = "revisionCase")]
+    pub revision_case: ::core::option::Option<String>,
+    /// Reads the revision given by the id.
+    #[serde(default, rename = "revisionId")]
+    pub revision_id: ::core::option::Option<String>,
+}
+
+/// Identifies a document uniquely within the scope of a dataset in unmanaged option.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1beta3DocumentIdUnmanagedDocumentId {
+    /// Required. The id of the document.
+    #[serde(default, rename = "docId")]
+    pub doc_id: ::core::option::Option<String>,
+}
+
+/// Metadata about an entity type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1beta3EntityTypeMetadata {
+    /// Whether the entity type should be considered inactive.
+    #[serde(default)]
+    pub inactive: ::core::option::Option<bool>,
+}
+
+/// Defines the a list of enum values.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1beta3DocumentSchemaEntityTypeEnumValues {
+    /// The individual values that this enum values type can include.
+    #[serde(default)]
+    pub values: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// Defines properties that can be part of the entity type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1beta3DocumentSchemaEntityTypeProperty {
+    /// The description of the property. Could be used to provide more information about the property for model calls.
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+    /// User defined name for the property.
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+    /// Specifies how the entity''s value is obtained. // TODO: enum values: ["METHOD_UNSPECIFIED", "EXTRACT", "DERIVE", "RELAXED_EXTRACT"]
+    #[serde(default)]
+    pub method: ::core::option::Option<String>,
+    /// The name of the property. Follows the same guidelines as the EntityType name.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Occurrence type limits the number of instances an entity type appears in the document. // TODO: enum values: ["OCCURRENCE_TYPE_UNSPECIFIED", "OPTIONAL_ONCE", "OPTIONAL_MULTIPLE", "REQUIRED_ONCE", "REQUIRED_MULTIPLE"]
+    #[serde(default, rename = "occurrenceType")]
+    pub occurrence_type: ::core::option::Option<String>,
+    /// Any additional metadata about the property can be added here.
+    #[serde(default, rename = "propertyMetadata")]
+    pub property_metadata: ::core::option::Option<GoogleCloudDocumentaiV1beta3PropertyMetadata>,
+    /// A reference to the value type of the property. This type is subject to the same conventions as the Entity.base_types field.
+    #[serde(default, rename = "valueType")]
+    pub value_type: ::core::option::Option<String>,
+}
+
+/// CloudAiDocumentaiLabHifiaToolsValidationValidatorInputValidationRuleField resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CloudAiDocumentaiLabHifiaToolsValidationValidatorInputValidationRuleField {
+    /// Default value to use if the field is not present. If the field is missing and the default value is not set, the validation run as if the field is not present in the validation logic.
+    #[serde(default, rename = "defaultValue")]
+    pub default_value: ::core::option::Option<
+        CloudAiDocumentaiLabHifiaToolsValidationValidatorInputValidationRuleConstant,
+    >,
+    /// The field name to validate. This can be a simple field name or a nested field one using the '':'' (meant as an aggregator) or ''*'' (meant as foreach) operators.
+    #[serde(default, rename = "fieldName")]
+    pub field_name: ::core::option::Option<String>,
+}
+
+/// Metadata about a property.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiUiv1beta3PropertyMetadata {
+    /// Field extraction metadata on the property.
+    #[serde(default, rename = "fieldExtractionMetadata")]
+    pub field_extraction_metadata:
+        ::core::option::Option<GoogleCloudDocumentaiUiv1beta3FieldExtractionMetadata>,
+    /// Field tier metadata on the property
+    #[serde(default, rename = "fieldTierMetadata")]
+    pub field_tier_metadata:
+        ::core::option::Option<GoogleCloudDocumentaiUiv1beta3FieldTierMetadata>,
+    /// Human review labeling config on the property.
+    #[serde(default, rename = "humanReviewLabelingMetadata")]
+    pub human_review_labeling_metadata:
+        ::core::option::Option<GoogleCloudDocumentaiUiv1beta3HumanReviewLabelingMetadata>,
+    /// Human review validation config on the property.
+    #[serde(default, rename = "humanReviewMetadata")]
+    pub human_review_metadata:
+        ::core::option::Option<GoogleCloudDocumentaiUiv1beta3HumanReviewValidationMetadata>,
+    /// Whether the property should be considered as "inactive".
+    #[serde(default)]
+    pub inactive: ::core::option::Option<bool>,
+    /// Schema editability metadata on the property.
+    #[serde(default, rename = "schemaEditabilityMetadata")]
+    pub schema_editability_metadata:
+        ::core::option::Option<GoogleCloudDocumentaiUiv1beta3SchemaEditabilityMetadata>,
+    /// Schema inference metadata on the property.
+    #[serde(default, rename = "schemaInferenceMetadata")]
+    pub schema_inference_metadata:
+        ::core::option::Option<GoogleCloudDocumentaiUiv1beta3SchemaInferenceMetadata>,
+}
+
+/// SchemaVersion is a version of the Schema which is created in SchemaGroup.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1SchemaVersion {
+    /// Output only. The time when the SchemaVersion was created.
+    #[serde(default, rename = "createTime")]
+    pub create_time: ::core::option::Option<String>,
+    /// Required. The user-defined name of the SchemaVersion.
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+    /// Optional. The {{gcp_name_short}} labels for the SchemaVersion.
+    #[serde(default)]
+    pub labels: ::core::option::Option<serde_json::Value>,
+    /// Identifier. The resource name of the SchemaVersion. Format: projects/{project}/locations/{location}/schemas/{schema}/schemaVersions/{schema_version}
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Required. The schema of the SchemaVersion.
+    #[serde(default)]
+    pub schema: ::core::option::Option<GoogleCloudDocumentaiV1DocumentSchema>,
 }
 
 /// Represents a chunk.
@@ -1511,6 +3388,432 @@ pub struct GoogleCloudDocumentaiV1DocumentChunkedDocumentChunk {
     pub source_block_ids: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
+/// An entity that could be a phrase in the text or a property that belongs to the document. It is a known entity type, such as a person, an organization, or location.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1DocumentEntity {
+    /// Optional. Confidence of detected Schema entity. Range [0, 1].
+    #[serde(default)]
+    pub confidence: ::core::option::Option<f32>,
+    /// Optional. Canonical id. This will be a unique value in the entity list for this document.
+    #[serde(default)]
+    pub id: ::core::option::Option<String>,
+    /// Optional. Deprecated. Use id field instead.
+    #[serde(default, rename = "mentionId")]
+    pub mention_id: ::core::option::Option<String>,
+    /// Optional. Text value of the entity, for example, 1600 Amphitheatre Pkwy.
+    #[serde(default, rename = "mentionText")]
+    pub mention_text: ::core::option::Option<String>,
+    /// Optional. Specifies how the entity''s value is obtained. // TODO: enum values: ["METHOD_UNSPECIFIED", "EXTRACT", "DERIVE"]
+    #[serde(default)]
+    pub method: ::core::option::Option<String>,
+    /// Optional. Normalized entity value. Absent if the extracted value could not be converted or the type (for example, address) is not supported for certain parsers. This field is also only populated for certain supported document types.
+    #[serde(default, rename = "normalizedValue")]
+    pub normalized_value:
+        ::core::option::Option<GoogleCloudDocumentaiV1DocumentEntityNormalizedValue>,
+    /// Optional. Represents the provenance of this entity wrt. the location on the page where it was found.
+    #[serde(default, rename = "pageAnchor")]
+    pub page_anchor: ::core::option::Option<GoogleCloudDocumentaiV1DocumentPageAnchor>,
+    /// Optional. Entities can be nested to form a hierarchical data structure representing the content in the document.
+    #[serde(default)]
+    pub properties: ::core::option::Option<::std::vec::Vec<GoogleCloudDocumentaiV1DocumentEntity>>,
+    /// Optional. The history of this annotation.
+    #[serde(default)]
+    pub provenance: ::core::option::Option<GoogleCloudDocumentaiV1DocumentProvenance>,
+    /// Optional. Whether the entity will be redacted for de-identification purposes.
+    #[serde(default)]
+    pub redacted: ::core::option::Option<bool>,
+    /// Optional. Provenance of the entity. Text anchor indexing into the Document.text.
+    #[serde(default, rename = "textAnchor")]
+    pub text_anchor: ::core::option::Option<GoogleCloudDocumentaiV1DocumentTextAnchor>,
+    /// Required. Entity type from a schema, for example, Address.
+    #[serde(default, rename = "type")]
+    pub type_: ::core::option::Option<String>,
+}
+
+/// The output of the validation given the document and the validation rules.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1DocumentEntityValidationOutput {
+    /// The overall result of the validation, true if all applicable rules are valid.
+    #[serde(default, rename = "passAllRules")]
+    pub pass_all_rules: ::core::option::Option<bool>,
+    /// The result of each validation rule.
+    #[serde(default, rename = "validationResults")]
+    pub validation_results: ::core::option::Option<
+        ::std::vec::Vec<GoogleCloudDocumentaiV1DocumentEntityValidationOutputValidationResult>,
+    >,
+}
+
+/// A block has a set of lines (collected into paragraphs) that have a common line-spacing and orientation.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1DocumentPageBlock {
+    /// A list of detected languages together with confidence.
+    #[serde(default, rename = "detectedLanguages")]
+    pub detected_languages: ::core::option::Option<
+        ::std::vec::Vec<GoogleCloudDocumentaiV1DocumentPageDetectedLanguage>,
+    >,
+    /// Layout for Block.
+    #[serde(default)]
+    pub layout: ::core::option::Option<GoogleCloudDocumentaiV1DocumentPageLayout>,
+    /// The history of this annotation.
+    #[serde(default)]
+    pub provenance: ::core::option::Option<GoogleCloudDocumentaiV1DocumentProvenance>,
+}
+
+/// A detected barcode.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1DocumentPageDetectedBarcode {
+    /// Detailed barcode information of the DetectedBarcode.
+    #[serde(default)]
+    pub barcode: ::core::option::Option<GoogleCloudDocumentaiV1Barcode>,
+    /// Layout for DetectedBarcode.
+    #[serde(default)]
+    pub layout: ::core::option::Option<GoogleCloudDocumentaiV1DocumentPageLayout>,
+}
+
+/// Dimension for the page.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1DocumentPageDimension {
+    /// Page height.
+    #[serde(default)]
+    pub height: ::core::option::Option<f32>,
+    /// Dimension unit.
+    #[serde(default)]
+    pub unit: ::core::option::Option<String>,
+    /// Page width.
+    #[serde(default)]
+    pub width: ::core::option::Option<f32>,
+}
+
+/// A form field detected on the page.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1DocumentPageFormField {
+    /// Created for Labeling UI to export key text. If corrections were made to the text identified by the field_name.text_anchor, this field will contain the correction.
+    #[serde(default, rename = "correctedKeyText")]
+    pub corrected_key_text: ::core::option::Option<String>,
+    /// Created for Labeling UI to export value text. If corrections were made to the text identified by the field_value.text_anchor, this field will contain the correction.
+    #[serde(default, rename = "correctedValueText")]
+    pub corrected_value_text: ::core::option::Option<String>,
+    /// Layout for the FormField name. For example, Address, Email, Grand total, Phone number, etc.
+    #[serde(default, rename = "fieldName")]
+    pub field_name: ::core::option::Option<GoogleCloudDocumentaiV1DocumentPageLayout>,
+    /// Layout for the FormField value.
+    #[serde(default, rename = "fieldValue")]
+    pub field_value: ::core::option::Option<GoogleCloudDocumentaiV1DocumentPageLayout>,
+    /// A list of detected languages for name together with confidence.
+    #[serde(default, rename = "nameDetectedLanguages")]
+    pub name_detected_languages: ::core::option::Option<
+        ::std::vec::Vec<GoogleCloudDocumentaiV1DocumentPageDetectedLanguage>,
+    >,
+    /// The history of this annotation.
+    #[serde(default)]
+    pub provenance: ::core::option::Option<GoogleCloudDocumentaiV1DocumentProvenance>,
+    /// A list of detected languages for value together with confidence.
+    #[serde(default, rename = "valueDetectedLanguages")]
+    pub value_detected_languages: ::core::option::Option<
+        ::std::vec::Vec<GoogleCloudDocumentaiV1DocumentPageDetectedLanguage>,
+    >,
+    /// If the value is non-textual, this field represents the type. Current valid values are: - blank (this indicates the field_value is normal text) - unfilled_checkbox - filled_checkbox
+    #[serde(default, rename = "valueType")]
+    pub value_type: ::core::option::Option<String>,
+}
+
+/// Rendered image contents for this page.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1DocumentPageImage {
+    /// Raw byte content of the image.
+    #[serde(default)]
+    pub content: ::core::option::Option<String>,
+    /// Height of the image in pixels.
+    #[serde(default)]
+    pub height: ::core::option::Option<i32>,
+    /// Encoding [media type (MIME type)](https://www.iana.org/assignments/media-types/media-types.xhtml) for the image.
+    #[serde(default, rename = "mimeType")]
+    pub mime_type: ::core::option::Option<String>,
+    /// Width of the image in pixels.
+    #[serde(default)]
+    pub width: ::core::option::Option<i32>,
+}
+
+/// Image quality scores for the page image.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1DocumentPageImageQualityScores {
+    /// A list of detected defects.
+    #[serde(default, rename = "detectedDefects")]
+    pub detected_defects: ::core::option::Option<
+        ::std::vec::Vec<GoogleCloudDocumentaiV1DocumentPageImageQualityScoresDetectedDefect>,
+    >,
+    /// The overall quality score. Range [0, 1] where 1 is perfect quality.
+    #[serde(default, rename = "qualityScore")]
+    pub quality_score: ::core::option::Option<f32>,
+}
+
+/// A collection of tokens that a human would perceive as a line. Does not cross column boundaries, can be horizontal, vertical, etc.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1DocumentPageLine {
+    /// A list of detected languages together with confidence.
+    #[serde(default, rename = "detectedLanguages")]
+    pub detected_languages: ::core::option::Option<
+        ::std::vec::Vec<GoogleCloudDocumentaiV1DocumentPageDetectedLanguage>,
+    >,
+    /// Layout for Line.
+    #[serde(default)]
+    pub layout: ::core::option::Option<GoogleCloudDocumentaiV1DocumentPageLayout>,
+    /// The history of this annotation.
+    #[serde(default)]
+    pub provenance: ::core::option::Option<GoogleCloudDocumentaiV1DocumentProvenance>,
+}
+
+/// A collection of lines that a human would perceive as a paragraph.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1DocumentPageParagraph {
+    /// A list of detected languages together with confidence.
+    #[serde(default, rename = "detectedLanguages")]
+    pub detected_languages: ::core::option::Option<
+        ::std::vec::Vec<GoogleCloudDocumentaiV1DocumentPageDetectedLanguage>,
+    >,
+    /// Layout for Paragraph.
+    #[serde(default)]
+    pub layout: ::core::option::Option<GoogleCloudDocumentaiV1DocumentPageLayout>,
+    /// The history of this annotation.
+    #[serde(default)]
+    pub provenance: ::core::option::Option<GoogleCloudDocumentaiV1DocumentProvenance>,
+}
+
+/// A detected symbol.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1DocumentPageSymbol {
+    /// A list of detected languages together with confidence.
+    #[serde(default, rename = "detectedLanguages")]
+    pub detected_languages: ::core::option::Option<
+        ::std::vec::Vec<GoogleCloudDocumentaiV1DocumentPageDetectedLanguage>,
+    >,
+    /// Layout for Symbol.
+    #[serde(default)]
+    pub layout: ::core::option::Option<GoogleCloudDocumentaiV1DocumentPageLayout>,
+}
+
+/// A table representation similar to HTML table structure.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1DocumentPageTable {
+    /// Body rows of the table.
+    #[serde(default, rename = "bodyRows")]
+    pub body_rows:
+        ::core::option::Option<::std::vec::Vec<GoogleCloudDocumentaiV1DocumentPageTableTableRow>>,
+    /// A list of detected languages together with confidence.
+    #[serde(default, rename = "detectedLanguages")]
+    pub detected_languages: ::core::option::Option<
+        ::std::vec::Vec<GoogleCloudDocumentaiV1DocumentPageDetectedLanguage>,
+    >,
+    /// Header rows of the table.
+    #[serde(default, rename = "headerRows")]
+    pub header_rows:
+        ::core::option::Option<::std::vec::Vec<GoogleCloudDocumentaiV1DocumentPageTableTableRow>>,
+    /// Layout for Table.
+    #[serde(default)]
+    pub layout: ::core::option::Option<GoogleCloudDocumentaiV1DocumentPageLayout>,
+    /// The history of this table.
+    #[serde(default)]
+    pub provenance: ::core::option::Option<GoogleCloudDocumentaiV1DocumentProvenance>,
+}
+
+/// A detected token.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1DocumentPageToken {
+    /// Detected break at the end of a Token.
+    #[serde(default, rename = "detectedBreak")]
+    pub detected_break:
+        ::core::option::Option<GoogleCloudDocumentaiV1DocumentPageTokenDetectedBreak>,
+    /// A list of detected languages together with confidence.
+    #[serde(default, rename = "detectedLanguages")]
+    pub detected_languages: ::core::option::Option<
+        ::std::vec::Vec<GoogleCloudDocumentaiV1DocumentPageDetectedLanguage>,
+    >,
+    /// Layout for Token.
+    #[serde(default)]
+    pub layout: ::core::option::Option<GoogleCloudDocumentaiV1DocumentPageLayout>,
+    /// The history of this annotation.
+    #[serde(default)]
+    pub provenance: ::core::option::Option<GoogleCloudDocumentaiV1DocumentProvenance>,
+    /// Text style attributes.
+    #[serde(default, rename = "styleInfo")]
+    pub style_info: ::core::option::Option<GoogleCloudDocumentaiV1DocumentPageTokenStyleInfo>,
+}
+
+/// Representation for transformation matrix, intended to be compatible and used with OpenCV format for image manipulation.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1DocumentPageMatrix {
+    /// Number of columns in the matrix.
+    #[serde(default)]
+    pub cols: ::core::option::Option<i32>,
+    /// The matrix data.
+    #[serde(default)]
+    pub data: ::core::option::Option<String>,
+    /// Number of rows in the matrix.
+    #[serde(default)]
+    pub rows: ::core::option::Option<i32>,
+    /// This encodes information about what data type the matrix uses. For example, 0 (CV_8U) is an unsigned 8-bit image. For the full list of OpenCV primitive data types, please refer to https://docs.opencv.org/4.3.0/d1/d1b/group__core__hal__interface.html
+    #[serde(default, rename = "type")]
+    pub type_: ::core::option::Option<i32>,
+}
+
+/// Detected non-text visual elements, for example, checkbox, signature etc. on the page.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1DocumentPageVisualElement {
+    /// A list of detected languages together with confidence.
+    #[serde(default, rename = "detectedLanguages")]
+    pub detected_languages: ::core::option::Option<
+        ::std::vec::Vec<GoogleCloudDocumentaiV1DocumentPageDetectedLanguage>,
+    >,
+    /// Layout for VisualElement.
+    #[serde(default)]
+    pub layout: ::core::option::Option<GoogleCloudDocumentaiV1DocumentPageLayout>,
+    /// Type of the VisualElement.
+    #[serde(default, rename = "type")]
+    pub type_: ::core::option::Option<String>,
+}
+
+/// Human Review information of the document.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1DocumentRevisionHumanReview {
+    /// Human review state. For example, requested, succeeded, rejected.
+    #[serde(default)]
+    pub state: ::core::option::Option<String>,
+    /// A message providing more details about the current state of processing. For example, the rejection reason when the state is rejected.
+    #[serde(default, rename = "stateMessage")]
+    pub state_message: ::core::option::Option<String>,
+}
+
+/// Font size with unit.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1DocumentStyleFontSize {
+    /// Font size for the text.
+    #[serde(default)]
+    pub size: ::core::option::Option<f32>,
+    /// Unit for the font size. Follows CSS naming (such as in, px, and pt).
+    #[serde(default)]
+    pub unit: ::core::option::Option<String>,
+}
+
+/// Evaluations metrics, at a specific confidence level.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1EvaluationConfidenceLevelMetrics {
+    /// The confidence level.
+    #[serde(default, rename = "confidenceLevel")]
+    pub confidence_level: ::core::option::Option<f32>,
+    /// The metrics at the specific confidence level.
+    #[serde(default)]
+    pub metrics: ::core::option::Option<GoogleCloudDocumentaiV1EvaluationMetrics>,
+}
+
+/// Specifies a document stored on Cloud Storage.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1GcsDocument {
+    /// The Cloud Storage object uri.
+    #[serde(default, rename = "gcsUri")]
+    pub gcs_uri: ::core::option::Option<String>,
+    /// An IANA MIME type (RFC6838) of the content.
+    #[serde(default, rename = "mimeType")]
+    pub mime_type: ::core::option::Option<String>,
+}
+
+/// Metadata about a property.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1beta3PropertyMetadata {
+    /// Field extraction metadata on the property.
+    #[serde(default, rename = "fieldExtractionMetadata")]
+    pub field_extraction_metadata:
+        ::core::option::Option<GoogleCloudDocumentaiV1beta3FieldExtractionMetadata>,
+    /// Whether the property should be considered as "inactive".
+    #[serde(default)]
+    pub inactive: ::core::option::Option<bool>,
+}
+
+/// The constant value used in the validation rules.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CloudAiDocumentaiLabHifiaToolsValidationValidatorInputValidationRuleConstant {
+    #[serde(default, rename = "floatValue")]
+    pub float_value: ::core::option::Option<f32>,
+}
+
+/// Metadata for how this field value is extracted.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiUiv1beta3FieldExtractionMetadata {
+    /// Entity query config.
+    #[serde(default, rename = "entityQuery")]
+    pub entity_query:
+        ::core::option::Option<GoogleCloudDocumentaiUiv1beta3FieldExtractionMetadataEntityQuery>,
+    /// Summary options config.
+    #[serde(default, rename = "summaryOptions")]
+    pub summary_options: ::core::option::Option<GoogleCloudDocumentaiUiv1beta3SummaryOptions>,
+}
+
+/// Metadata for the field tier of a property.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiUiv1beta3FieldTierMetadata {
+    /// Integer that indicates the tier of a property. e.g. Invoice has entities that are classified as tier 1 which is the most important, while tier 2 and tier 3 less so. This attribute can be used to filter schema attributes before running eval. e.g. compute F1 score for only tier 1 entities. If not present this attribute should be inferred as 1.
+    #[serde(default, rename = "tierLevel")]
+    pub tier_level: ::core::option::Option<i32>,
+}
+
+/// Metadata for human review labeling config.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiUiv1beta3HumanReviewLabelingMetadata {
+    /// Whether to enable normalization editing.
+    #[serde(default, rename = "enableNormalizationEditing")]
+    pub enable_normalization_editing: ::core::option::Option<bool>,
+}
+
+/// Metadata for Human Review config.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiUiv1beta3HumanReviewValidationMetadata {
+    /// The confidence threshold if human review validation is enabled.
+    #[serde(default, rename = "confidenceThreshold")]
+    pub confidence_threshold: ::core::option::Option<f32>,
+    /// Whether to enable human review validation.
+    #[serde(default, rename = "enableValidation")]
+    pub enable_validation: ::core::option::Option<bool>,
+}
+
+/// Metadata that specifies whether a label is editable and reasons why. These fields are read-only. Changing these fields has no impact on the backend.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiUiv1beta3SchemaEditabilityMetadata {
+    /// Explicit flag that controls whether the label is editable.
+    #[serde(default)]
+    pub editable: ::core::option::Option<bool>,
+    /// Full resource name of processor versions that contain this label. e.g. projects/{project}/locations/{location}/processors/{processor}/processorVersions/{processorVersion}
+    #[serde(default, rename = "processorVersions")]
+    pub processor_versions: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// Metadata for schema inference. Only used on dataset.schema for schema inference, can be safely ignored elsewhere.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiUiv1beta3SchemaInferenceMetadata {
+    /// True if is inferred by schema inference.
+    #[serde(default)]
+    pub inferred: ::core::option::Option<bool>,
+}
+
+/// The schema defines the output of the processed document by a processor.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1DocumentSchema {
+    /// Description of the schema.
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+    /// Display name to show users.
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+    /// Optional. Document level prompt provided by the user. This custom text is injected into the AI model''s prompt to provide extra, document-wide guidance for processing.
+    #[serde(default, rename = "documentPrompt")]
+    pub document_prompt: ::core::option::Option<String>,
+    /// Entity types of the schema.
+    #[serde(default, rename = "entityTypes")]
+    pub entity_types:
+        ::core::option::Option<::std::vec::Vec<GoogleCloudDocumentaiV1DocumentSchemaEntityType>>,
+    /// Metadata of the schema.
+    #[serde(default)]
+    pub metadata: ::core::option::Option<GoogleCloudDocumentaiV1DocumentSchemaMetadata>,
+}
+
 /// Represents the page footer associated with the chunk.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDocumentaiV1DocumentChunkedDocumentChunkChunkPageFooter {
@@ -1535,6 +3838,282 @@ pub struct GoogleCloudDocumentaiV1DocumentChunkedDocumentChunkChunkPageHeader {
     pub text: ::core::option::Option<String>,
 }
 
+/// Parsed and normalized entity value.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1DocumentEntityNormalizedValue {
+    /// Postal address. See also: https://github.com/googleapis/googleapis/blob/master/google/type/postal_address.proto
+    #[serde(default, rename = "addressValue")]
+    pub address_value: ::core::option::Option<GoogleTypePostalAddress>,
+    /// Boolean value. Can be used for entities with binary values, or for checkboxes.
+    #[serde(default, rename = "booleanValue")]
+    pub boolean_value: ::core::option::Option<bool>,
+    /// Date value. Includes year, month, day. See also: https://github.com/googleapis/googleapis/blob/master/google/type/date.proto
+    #[serde(default, rename = "dateValue")]
+    pub date_value: ::core::option::Option<GoogleTypeDate>,
+    /// DateTime value. Includes date, time, and timezone. See also: https://github.com/googleapis/googleapis/blob/master/google/type/datetime.proto
+    #[serde(default, rename = "datetimeValue")]
+    pub datetime_value: ::core::option::Option<GoogleTypeDateTime>,
+    /// Float value.
+    #[serde(default, rename = "floatValue")]
+    pub float_value: ::core::option::Option<f32>,
+    /// Integer value.
+    #[serde(default, rename = "integerValue")]
+    pub integer_value: ::core::option::Option<i32>,
+    /// Money value. See also: https://github.com/googleapis/googleapis/blob/master/google/type/money.proto
+    #[serde(default, rename = "moneyValue")]
+    pub money_value: ::core::option::Option<GoogleTypeMoney>,
+    /// A signature - a graphical representation of a person''s name, often used to sign a document.
+    #[serde(default, rename = "signatureValue")]
+    pub signature_value: ::core::option::Option<bool>,
+    /// Optional. An optional field to store a normalized string. For some entity types, one of respective structured_value fields may also be populated. Also not all the types of structured_value will be normalized. For example, some processors may not generate float or integer normalized text by default. Below are sample formats mapped to structured values. - Money/Currency type (money_value) is in the ISO 4217 text format. - Date type (date_value) is in the ISO 8601 text format. - Datetime type (datetime_value) is in the ISO 8601 text format.
+    #[serde(default)]
+    pub text: ::core::option::Option<String>,
+}
+
+/// Referencing the visual context of the entity in the Document.pages. Page anchors can be cross-page, consist of multiple bounding polygons and optionally reference specific layout element types.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1DocumentPageAnchor {
+    /// One or more references to visual page elements
+    #[serde(default, rename = "pageRefs")]
+    pub page_refs:
+        ::core::option::Option<::std::vec::Vec<GoogleCloudDocumentaiV1DocumentPageAnchorPageRef>>,
+}
+
+/// Validation result for a single validation rule.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1DocumentEntityValidationOutputValidationResult {
+    /// Optional. The name of the rule resource that is used for validation. Format: projects/{project}/locations/{location}/rules/{rule}
+    #[serde(default)]
+    pub rule: ::core::option::Option<String>,
+    /// The description of the validation rule.
+    #[serde(default, rename = "ruleDescription")]
+    pub rule_description: ::core::option::Option<String>,
+    /// The display name of the validation rule.
+    #[serde(default, rename = "ruleName")]
+    pub rule_name: ::core::option::Option<String>,
+    /// The detailed information of the running the validation process using the entity from the document based on the validation rule.
+    #[serde(default, rename = "validationDetails")]
+    pub validation_details: ::core::option::Option<String>,
+    /// The result of the validation rule. // TODO: enum values: ["VALIDATION_RESULT_TYPE_UNSPECIFIED", "VALIDATION_RESULT_TYPE_VALID", "VALIDATION_RESULT_TYPE_INVALID", "VALIDATION_RESULT_TYPE_SKIPPED", "VALIDATION_RESULT_TYPE_NOT_APPLICABLE"]
+    #[serde(default, rename = "validationResultType")]
+    pub validation_result_type: ::core::option::Option<String>,
+}
+
+/// Encodes the detailed information of a barcode.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1Barcode {
+    /// Format of a barcode. The supported formats are: - CODE_128: Code 128 type. - CODE_39: Code 39 type. - CODE_93: Code 93 type. - CODABAR: Codabar type. - DATA_MATRIX: 2D Data Matrix type. - ITF: ITF type. - EAN_13: EAN-13 type. - EAN_8: EAN-8 type. - QR_CODE: 2D QR code type. - UPC_A: UPC-A type. - UPC_E: UPC-E type. - PDF417: PDF417 type. - AZTEC: 2D Aztec code type. - DATABAR: GS1 DataBar code type.
+    #[serde(default)]
+    pub format: ::core::option::Option<String>,
+    /// Raw value encoded in the barcode. For example: ''MEBKM:TITLE:Google;URL:https://www.google.com;;''.
+    #[serde(default, rename = "rawValue")]
+    pub raw_value: ::core::option::Option<String>,
+    /// Value format describes the format of the value that a barcode encodes. The supported formats are: - CONTACT_INFO: Contact information. - EMAIL: Email address. - ISBN: ISBN identifier. - PHONE: Phone number. - PRODUCT: Product. - SMS: SMS message. - TEXT: Text string. - URL: URL address. - WIFI: Wifi information. - GEO: Geo-localization. - CALENDAR_EVENT: Calendar event. - DRIVER_LICENSE: Driver''s license.
+    #[serde(default, rename = "valueFormat")]
+    pub value_format: ::core::option::Option<String>,
+}
+
+/// Image Quality Defects
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1DocumentPageImageQualityScoresDetectedDefect {
+    /// Confidence of detected defect. Range [0, 1] where 1 indicates strong confidence that the defect exists.
+    #[serde(default)]
+    pub confidence: ::core::option::Option<f32>,
+    /// Name of the defect type. Supported values are: - quality/defect_blurry - quality/defect_noisy - quality/defect_dark - quality/defect_faint - quality/defect_text_too_small - quality/defect_document_cutoff - quality/defect_text_cutoff - quality/defect_glare
+    #[serde(default, rename = "type")]
+    pub type_: ::core::option::Option<String>,
+}
+
+/// A row of table cells.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1DocumentPageTableTableRow {
+    /// Cells that make up this row.
+    #[serde(default)]
+    pub cells:
+        ::core::option::Option<::std::vec::Vec<GoogleCloudDocumentaiV1DocumentPageTableTableCell>>,
+}
+
+/// Detected break at the end of a Token.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1DocumentPageTokenDetectedBreak {
+    /// Detected break type. // TODO: enum values: ["TYPE_UNSPECIFIED", "SPACE", "WIDE_SPACE", "HYPHEN"]
+    #[serde(default, rename = "type")]
+    pub type_: ::core::option::Option<String>,
+}
+
+/// Structure to identify provenance relationships between annotations in different revisions.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1DocumentProvenance {
+    /// The Id of this operation. Needs to be unique within the scope of the revision.
+    #[serde(default)]
+    pub id: ::core::option::Option<i32>,
+    /// References to the original elements that are replaced.
+    #[serde(default)]
+    pub parents:
+        ::core::option::Option<::std::vec::Vec<GoogleCloudDocumentaiV1DocumentProvenanceParent>>,
+    /// The index of the revision that produced this element.
+    #[serde(default)]
+    pub revision: ::core::option::Option<i32>,
+    /// The type of provenance operation. // TODO: enum values: ["OPERATION_TYPE_UNSPECIFIED", "ADD", "REMOVE", "UPDATE", "REPLACE", "EVAL_REQUESTED", "EVAL_APPROVED", "EVAL_SKIPPED"]
+    #[serde(default, rename = "type")]
+    pub type_: ::core::option::Option<String>,
+}
+
+/// Font and other text style attributes.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1DocumentPageTokenStyleInfo {
+    /// Color of the background.
+    #[serde(default, rename = "backgroundColor")]
+    pub background_color: ::core::option::Option<GoogleTypeColor>,
+    /// Whether the text is bold (equivalent to font_weight is at least 700).
+    #[serde(default)]
+    pub bold: ::core::option::Option<bool>,
+    /// Font size in points (1 point is ¹⁄₇₂ inches).
+    #[serde(default, rename = "fontSize")]
+    pub font_size: ::core::option::Option<i32>,
+    /// Name or style of the font.
+    #[serde(default, rename = "fontType")]
+    pub font_type: ::core::option::Option<String>,
+    /// TrueType weight on a scale 100 (thin) to 1000 (ultra-heavy). Normal is 400, bold is 700.
+    #[serde(default, rename = "fontWeight")]
+    pub font_weight: ::core::option::Option<i32>,
+    /// Whether the text is handwritten.
+    #[serde(default)]
+    pub handwritten: ::core::option::Option<bool>,
+    /// Whether the text is italic.
+    #[serde(default)]
+    pub italic: ::core::option::Option<bool>,
+    /// Letter spacing in points.
+    #[serde(default, rename = "letterSpacing")]
+    pub letter_spacing: ::core::option::Option<f64>,
+    /// Font size in pixels, equal to _unrounded font_size_ * _resolution_ ÷ 72.0.
+    #[serde(default, rename = "pixelFontSize")]
+    pub pixel_font_size: ::core::option::Option<f64>,
+    /// Whether the text is in small caps. This feature is not supported yet.
+    #[serde(default)]
+    pub smallcaps: ::core::option::Option<bool>,
+    /// Whether the text is strikethrough. This feature is not supported yet.
+    #[serde(default)]
+    pub strikeout: ::core::option::Option<bool>,
+    /// Whether the text is a subscript. This feature is not supported yet.
+    #[serde(default)]
+    pub subscript: ::core::option::Option<bool>,
+    /// Whether the text is a superscript. This feature is not supported yet.
+    #[serde(default)]
+    pub superscript: ::core::option::Option<bool>,
+    /// Color of the text.
+    #[serde(default, rename = "textColor")]
+    pub text_color: ::core::option::Option<GoogleTypeColor>,
+    /// Whether the text is underlined.
+    #[serde(default)]
+    pub underlined: ::core::option::Option<bool>,
+}
+
+/// Evaluation metrics, either in aggregate or about a specific entity.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1EvaluationMetrics {
+    /// The calculated F1 score.
+    #[serde(default, rename = "f1Score")]
+    pub f1_score: ::core::option::Option<f32>,
+    /// The amount of false negatives.
+    #[serde(default, rename = "falseNegativesCount")]
+    pub false_negatives_count: ::core::option::Option<i32>,
+    /// The amount of false positives.
+    #[serde(default, rename = "falsePositivesCount")]
+    pub false_positives_count: ::core::option::Option<i32>,
+    /// The amount of documents with a ground truth occurrence.
+    #[serde(default, rename = "groundTruthDocumentCount")]
+    pub ground_truth_document_count: ::core::option::Option<i32>,
+    /// The amount of occurrences in ground truth documents.
+    #[serde(default, rename = "groundTruthOccurrencesCount")]
+    pub ground_truth_occurrences_count: ::core::option::Option<i32>,
+    /// The calculated precision.
+    #[serde(default)]
+    pub precision: ::core::option::Option<f32>,
+    /// The amount of documents with a predicted occurrence.
+    #[serde(default, rename = "predictedDocumentCount")]
+    pub predicted_document_count: ::core::option::Option<i32>,
+    /// The amount of occurrences in predicted documents.
+    #[serde(default, rename = "predictedOccurrencesCount")]
+    pub predicted_occurrences_count: ::core::option::Option<i32>,
+    /// The calculated recall.
+    #[serde(default)]
+    pub recall: ::core::option::Option<f32>,
+    /// The amount of documents that had an occurrence of this label.
+    #[serde(default, rename = "totalDocumentsCount")]
+    pub total_documents_count: ::core::option::Option<i32>,
+    /// The amount of true positives.
+    #[serde(default, rename = "truePositivesCount")]
+    pub true_positives_count: ::core::option::Option<i32>,
+}
+
+/// Metadata for how this field value is extracted.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1beta3FieldExtractionMetadata {
+    /// Summary options config.
+    #[serde(default, rename = "summaryOptions")]
+    pub summary_options: ::core::option::Option<GoogleCloudDocumentaiV1beta3SummaryOptions>,
+}
+
+/// Message for entity query.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiUiv1beta3FieldExtractionMetadataEntityQuery {
+    /// The original entity query inputed by the user.
+    #[serde(default, rename = "userEntityQuery")]
+    pub user_entity_query: ::core::option::Option<String>,
+}
+
+/// Metadata for document summarization.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiUiv1beta3SummaryOptions {
+    /// The format the summary should be in. // TODO: enum values: ["FORMAT_UNSPECIFIED", "PARAGRAPH", "BULLETS"]
+    #[serde(default)]
+    pub format: ::core::option::Option<String>,
+    /// How long the summary should be. // TODO: enum values: ["LENGTH_UNSPECIFIED", "BRIEF", "MODERATE", "COMPREHENSIVE"]
+    #[serde(default)]
+    pub length: ::core::option::Option<String>,
+}
+
+/// EntityType is the wrapper of a label of the corresponding model with detailed attributes and limitations for entity-based processors. Multiple types can also compose a dependency tree to represent nested types.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1DocumentSchemaEntityType {
+    /// The entity type that this type is derived from. For now, one and only one should be set.
+    #[serde(default, rename = "baseTypes")]
+    pub base_types: ::core::option::Option<::std::vec::Vec<String>>,
+    /// User defined name for the type.
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+    /// If specified, lists all the possible values for this entity. This should not be more than a handful of values. If the number of values is &gt;10 or could change frequently, use the EntityType.value_ontology field and specify a list of all possible values in a value ontology file.
+    #[serde(default, rename = "enumValues")]
+    pub enum_values:
+        ::core::option::Option<GoogleCloudDocumentaiV1DocumentSchemaEntityTypeEnumValues>,
+    /// Name of the type. It must be unique within the schema file and cannot be a "Common Type". The following naming conventions are used: - Use snake_casing. - Name matching is case-sensitive. - Maximum 64 characters. - Must start with a letter. - Allowed characters: ASCII letters [a-z0-9_-]. (For backward compatibility, internal infrastructure and tooling can handle any ASCII character.) - The / is sometimes used to denote a property of a type. For example line_item/amount. This convention is deprecated, but will still be honored for backward compatibility.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Description the nested structure, or composition of an entity.
+    #[serde(default)]
+    pub properties: ::core::option::Option<
+        ::std::vec::Vec<GoogleCloudDocumentaiV1DocumentSchemaEntityTypeProperty>,
+    >,
+}
+
+/// Metadata for global schema behavior.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1DocumentSchemaMetadata {
+    /// If true, on a given page, there can be multiple document annotations covering it.
+    #[serde(default, rename = "documentAllowMultipleLabels")]
+    pub document_allow_multiple_labels: ::core::option::Option<bool>,
+    /// If true, a document entity type can be applied to subdocument (splitting). Otherwise, it can only be applied to the entire document (classification).
+    #[serde(default, rename = "documentSplitter")]
+    pub document_splitter: ::core::option::Option<bool>,
+    /// If set, all the nested entities must be prefixed with the parents.
+    #[serde(default, rename = "prefixedNamingOnProperties")]
+    pub prefixed_naming_on_properties: ::core::option::Option<bool>,
+    /// If set, this will skip the naming format validation in the schema. So the string values in DocumentSchema.EntityType.name and DocumentSchema.EntityType.Property.name will not be checked.
+    #[serde(default, rename = "skipNamingValidation")]
+    pub skip_naming_validation: ::core::option::Option<bool>,
+}
+
 /// Represents where the chunk starts and ends in the document.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDocumentaiV1DocumentChunkedDocumentChunkChunkPageSpan {
@@ -1546,14 +4125,286 @@ pub struct GoogleCloudDocumentaiV1DocumentChunkedDocumentChunkChunkPageSpan {
     pub page_start: ::core::option::Option<i32>,
 }
 
-/// Represents the parsed layout of a document as a collection of blocks that the document is divided into.
+/// Represents a postal address, such as for postal delivery or payments addresses. With a postal address, a postal service can deliver items to a premise, P.O. box, or similar. A postal address is not intended to model geographical locations like roads, towns, or mountains. In typical usage, an address would be created by user input or from importing existing data, depending on the type of process. Advice on address input or editing: - Use an internationalization-ready address widget such as https://github.com/google/libaddressinput. - Users should not be presented with UI elements for input or editing of fields outside countries where that field is used. For more guidance on how to use this schema, see: https://support.google.com/business/answer/6397478.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiV1DocumentDocumentLayout {
-    /// List of blocks in the document.
+pub struct GoogleTypePostalAddress {
+    /// Unstructured address lines describing the lower levels of an address. Because values in address_lines do not have type information and may sometimes contain multiple values in a single field (for example, "Austin, TX"), it is important that the line order is clear. The order of address lines should be "envelope order" for the country or region of the address. In places where this can vary (for example, Japan), address_language is used to make it explicit (for example, "ja" for large-to-small ordering and "ja-Latn" or "en" for small-to-large). In this way, the most specific line of an address can be selected based on the language. The minimum permitted structural representation of an address consists of a region_code with all remaining information placed in the address_lines. It would be possible to format such an address very approximately without geocoding, but no semantic reasoning could be made about any of the address components until it was at least partially resolved. Creating an address only containing a region_code and address_lines and then geocoding is the recommended way to handle completely unstructured addresses (as opposed to guessing which parts of the address should be localities or administrative areas).
+    #[serde(default, rename = "addressLines")]
+    pub address_lines: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Optional. Highest administrative subdivision which is used for postal addresses of a country or region. For example, this can be a state, a province, an oblast, or a prefecture. For Spain, this is the province and not the autonomous community (for example, "Barcelona" and not "Catalonia"). Many countries don''t use an administrative area in postal addresses. For example, in Switzerland, this should be left unpopulated.
+    #[serde(default, rename = "administrativeArea")]
+    pub administrative_area: ::core::option::Option<String>,
+    /// Optional. BCP-47 language code of the contents of this address (if known). This is often the UI language of the input form or is expected to match one of the languages used in the address'' country/region, or their transliterated equivalents. This can affect formatting in certain countries, but is not critical to the correctness of the data and will never affect any validation or other non-formatting related operations. If this value is not known, it should be omitted (rather than specifying a possibly incorrect default). Examples: "zh-Hant", "ja", "ja-Latn", "en".
+    #[serde(default, rename = "languageCode")]
+    pub language_code: ::core::option::Option<String>,
+    /// Optional. Generally refers to the city or town portion of the address. Examples: US city, IT comune, UK post town. In regions of the world where localities are not well defined or do not fit into this structure well, leave locality empty and use address_lines.
     #[serde(default)]
-    pub blocks: ::core::option::Option<
-        ::std::vec::Vec<GoogleCloudDocumentaiV1DocumentDocumentLayoutDocumentLayoutBlock>,
+    pub locality: ::core::option::Option<String>,
+    /// Optional. The name of the organization at the address.
+    #[serde(default)]
+    pub organization: ::core::option::Option<String>,
+    /// Optional. Postal code of the address. Not all countries use or require postal codes to be present, but where they are used, they may trigger additional validation with other parts of the address (for example, state or zip code validation in the United States).
+    #[serde(default, rename = "postalCode")]
+    pub postal_code: ::core::option::Option<String>,
+    /// Optional. The recipient at the address. This field may, under certain circumstances, contain multiline information. For example, it might contain "care of" information.
+    #[serde(default)]
+    pub recipients: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Required. CLDR region code of the country/region of the address. This is never inferred and it is up to the user to ensure the value is correct. See https://cldr.unicode.org/ and https://www.unicode.org/cldr/charts/30/supplemental/territory_information.html for details. Example: "CH" for Switzerland.
+    #[serde(default, rename = "regionCode")]
+    pub region_code: ::core::option::Option<String>,
+    /// The schema revision of the PostalAddress. This must be set to 0, which is the latest revision. All new revisions **must** be backward compatible with old revisions.
+    #[serde(default)]
+    pub revision: ::core::option::Option<i32>,
+    /// Optional. Additional, country-specific, sorting code. This is not used in most regions. Where it is used, the value is either a string like "CEDEX", optionally followed by a number (for example, "CEDEX 7"), or just a number alone, representing the "sector code" (Jamaica), "delivery area indicator" (Malawi) or "post office indicator" (Côte d''Ivoire).
+    #[serde(default, rename = "sortingCode")]
+    pub sorting_code: ::core::option::Option<String>,
+    /// Optional. Sublocality of the address. For example, this can be a neighborhood, borough, or district.
+    #[serde(default)]
+    pub sublocality: ::core::option::Option<String>,
+}
+
+/// Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleTypeDate {
+    /// Day of a month. Must be from 1 to 31 and valid for the year and month, or 0 to specify a year by itself or a year and month where the day isn''t significant.
+    #[serde(default)]
+    pub day: ::core::option::Option<i32>,
+    /// Month of a year. Must be from 1 to 12, or 0 to specify a year without a month and day.
+    #[serde(default)]
+    pub month: ::core::option::Option<i32>,
+    /// Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.
+    #[serde(default)]
+    pub year: ::core::option::Option<i32>,
+}
+
+/// Represents civil time (or occasionally physical time). This type can represent a civil time in one of a few possible ways: * When utc_offset is set and time_zone is unset: a civil time on a calendar day with a particular offset from UTC. * When time_zone is set and utc_offset is unset: a civil time on a calendar day in a particular time zone. * When neither time_zone nor utc_offset is set: a civil time on a calendar day in local time. The date is relative to the Proleptic Gregorian Calendar. If year, month, or day are 0, the DateTime is considered not to have a specific year, month, or day respectively. This type may also be used to represent a physical time if all the date and time fields are set and either case of the time_offset oneof is set. Consider using Timestamp message for physical time instead. If your use case also would like to store the user''s timezone, that can be done in another field. This type is more flexible than some applications may want. Make sure to document and validate your application''s limitations.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleTypeDateTime {
+    /// Optional. Day of month. Must be from 1 to 31 and valid for the year and month, or 0 if specifying a datetime without a day.
+    #[serde(default)]
+    pub day: ::core::option::Option<i32>,
+    /// Optional. Hours of day in 24 hour format. Should be from 0 to 23, defaults to 0 (midnight). An API may choose to allow the value "24:00:00" for scenarios like business closing time.
+    #[serde(default)]
+    pub hours: ::core::option::Option<i32>,
+    /// Optional. Minutes of hour of day. Must be from 0 to 59, defaults to 0.
+    #[serde(default)]
+    pub minutes: ::core::option::Option<i32>,
+    /// Optional. Month of year. Must be from 1 to 12, or 0 if specifying a datetime without a month.
+    #[serde(default)]
+    pub month: ::core::option::Option<i32>,
+    /// Optional. Fractions of seconds in nanoseconds. Must be from 0 to 999,999,999, defaults to 0.
+    #[serde(default)]
+    pub nanos: ::core::option::Option<i32>,
+    /// Optional. Seconds of minutes of the time. Must normally be from 0 to 59, defaults to 0. An API may allow the value 60 if it allows leap-seconds.
+    #[serde(default)]
+    pub seconds: ::core::option::Option<i32>,
+    /// Time zone.
+    #[serde(default, rename = "timeZone")]
+    pub time_zone: ::core::option::Option<GoogleTypeTimeZone>,
+    /// UTC offset. Must be whole seconds, between -18 hours and +18 hours. For example, a UTC offset of -4:00 would be represented as { seconds: -14400 }.
+    #[serde(default, rename = "utcOffset")]
+    pub utc_offset: ::core::option::Option<String>,
+    /// Optional. Year of date. Must be from 1 to 9999, or 0 if specifying a datetime without a year.
+    #[serde(default)]
+    pub year: ::core::option::Option<i32>,
+}
+
+/// Represents an amount of money with its currency type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleTypeMoney {
+    /// The three-letter currency code defined in ISO 4217.
+    #[serde(default, rename = "currencyCode")]
+    pub currency_code: ::core::option::Option<String>,
+    /// Number of nano (10^-9) units of the amount. The value must be between -999,999,999 and +999,999,999 inclusive. If units is positive, nanos must be positive or zero. If units is zero, nanos can be positive, zero, or negative. If units is negative, nanos must be negative or zero. For example $-1.75 is represented as units=-1 and nanos=-750,000,000.
+    #[serde(default)]
+    pub nanos: ::core::option::Option<i32>,
+    /// The whole units of the amount. For example if currencyCode is "USD", then 1 unit is one US dollar.
+    #[serde(default)]
+    pub units: ::core::option::Option<String>,
+}
+
+/// Represents a weak reference to a page element within a document.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1DocumentPageAnchorPageRef {
+    /// Optional. Identifies the bounding polygon of a layout element on the page. If layout_type is set, the bounding polygon must be exactly the same to the layout element it''s referring to.
+    #[serde(default, rename = "boundingPoly")]
+    pub bounding_poly: ::core::option::Option<GoogleCloudDocumentaiV1BoundingPoly>,
+    /// Optional. Confidence of detected page element, if applicable. Range [0, 1].
+    #[serde(default)]
+    pub confidence: ::core::option::Option<f32>,
+    /// Optional. Deprecated. Use PageRef.bounding_poly instead.
+    #[serde(default, rename = "layoutId")]
+    pub layout_id: ::core::option::Option<String>,
+    /// Optional. The type of the layout element that is being referenced if any. // TODO: enum values: ["LAYOUT_TYPE_UNSPECIFIED", "BLOCK", "PARAGRAPH", "LINE", "TOKEN", "VISUAL_ELEMENT", "TABLE", "FORM_FIELD"]
+    #[serde(default, rename = "layoutType")]
+    pub layout_type: ::core::option::Option<String>,
+    /// Required. Index into the Document.pages element, for example using Document.pages to locate the related page element. This field is skipped when its value is the default 0. See https://developers.google.com/protocol-buffers/docs/proto3#json.
+    #[serde(default)]
+    pub page: ::core::option::Option<String>,
+}
+
+/// A cell representation inside the table.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1DocumentPageTableTableCell {
+    /// How many columns this cell spans.
+    #[serde(default, rename = "colSpan")]
+    pub col_span: ::core::option::Option<i32>,
+    /// A list of detected languages together with confidence.
+    #[serde(default, rename = "detectedLanguages")]
+    pub detected_languages: ::core::option::Option<
+        ::std::vec::Vec<GoogleCloudDocumentaiV1DocumentPageDetectedLanguage>,
     >,
+    /// Layout for TableCell.
+    #[serde(default)]
+    pub layout: ::core::option::Option<GoogleCloudDocumentaiV1DocumentPageLayout>,
+    /// How many rows this cell spans.
+    #[serde(default, rename = "rowSpan")]
+    pub row_span: ::core::option::Option<i32>,
+}
+
+/// The parent element the current element is based on. Used for referencing/aligning, removal and replacement operations.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1DocumentProvenanceParent {
+    /// The id of the parent provenance.
+    #[serde(default)]
+    pub id: ::core::option::Option<i32>,
+    /// The index of the parent item in the corresponding item list (eg. list of entities, properties within entities, etc.) in the parent revision.
+    #[serde(default)]
+    pub index: ::core::option::Option<i32>,
+    /// The index of the index into current revision''s parent_ids list.
+    #[serde(default)]
+    pub revision: ::core::option::Option<i32>,
+}
+
+/// Represents a color in the RGBA color space. This representation is designed for simplicity of conversion to and from color representations in various languages over compactness. For example, the fields of this representation can be trivially provided to the constructor of java.awt.Color in Java; it can also be trivially provided to UIColor''s +colorWithRed:green:blue:alpha method in iOS; and, with just a little work, it can be easily formatted into a CSS rgba() string in JavaScript. This reference page doesn''t have information about the absolute color space that should be used to interpret the RGB value—for example, sRGB, Adobe RGB, DCI-P3, and BT.2020. By default, applications should assume the sRGB color space. When color equality needs to be decided, implementations, unless documented otherwise, treat two colors as equal if all their red, green, blue, and alpha values each differ by at most 1e-5. Example (Java): import com.google.type.Color; // ... public static java.awt.Color fromProto(Color protocolor) { float alpha = protocolor.hasAlpha() ? protocolor.getAlpha().getValue() : 1.0; return new java.awt.Color( protocolor.getRed(), protocolor.getGreen(), protocolor.getBlue(), alpha); } public static Color toProto(java.awt.Color color) { float red = (float) color.getRed(); float green = (float) color.getGreen(); float blue = (float) color.getBlue(); float denominator = 255.0; Color.Builder resultBuilder = Color .newBuilder() .setRed(red / denominator) .setGreen(green / denominator) .setBlue(blue / denominator); int alpha = color.getAlpha(); if (alpha != 255) { result.setAlpha( FloatValue .newBuilder() .setValue(((float) alpha) / denominator) .build()); } return resultBuilder.build(); } // ... Example (iOS / Obj-C): // ... static UIColor* fromProto(Color* protocolor) { float red = [protocolor red]; float green = [protocolor green]; float blue = [protocolor blue]; FloatValue* alpha_wrapper = [protocolor alpha]; float alpha = 1.0; if (alpha_wrapper != nil) { alpha = [alpha_wrapper value]; } return [UIColor colorWithRed:red green:green blue:blue alpha:alpha]; } static Color* toProto(UIColor* color) { CGFloat red, green, blue, alpha; if (![color getRed:&red green:&green blue:&blue alpha:&alpha]) { return nil; } Color* result = [[Color alloc] init]; [result setRed:red]; [result setGreen:green]; [result setBlue:blue]; if (alpha &lt;= 0.9999) { [result setAlpha:floatWrapperWithValue(alpha)]; } [result autorelease]; return result; } // ... Example (JavaScript): // ... var protoToCssColor = function(rgb_color) { var redFrac = rgb_color.red || 0.0; var greenFrac = rgb_color.green || 0.0; var blueFrac = rgb_color.blue || 0.0; var red = Math.floor(redFrac * 255); var green = Math.floor(greenFrac * 255); var blue = Math.floor(blueFrac * 255); if (!(''alpha'' in rgb_color)) { return rgbToCssColor(red, green, blue); } var alphaFrac = rgb_color.alpha.value || 0.0; var rgbParams = [red, green, blue].join('',''); return [''rgba('', rgbParams, '','', alphaFrac, '')''].join(''''); }; var rgbToCssColor = function(red, green, blue) { var rgbNumber = new Number((red &lt;&lt; 16) | (green &lt;&lt; 8) | blue); var hexString = rgbNumber.toString(16); var missingZeros = 6 - hexString.length; var resultBuilder = [''#'']; for (var i = 0; i &lt; missingZeros; i++) { resultBuilder.push(''0''); } resultBuilder.push(hexString); return resultBuilder.join(''''); }; // ...
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleTypeColor {
+    /// The fraction of this color that should be applied to the pixel. That is, the final pixel color is defined by the equation: pixel color = alpha * (this color) + (1.0 - alpha) * (background color) This means that a value of 1.0 corresponds to a solid color, whereas a value of 0.0 corresponds to a completely transparent color. This uses a wrapper message rather than a simple float scalar so that it is possible to distinguish between a default value and the value being unset. If omitted, this color object is rendered as a solid color (as if the alpha value had been explicitly given a value of 1.0).
+    #[serde(default)]
+    pub alpha: ::core::option::Option<f32>,
+    /// The amount of blue in the color as a value in the interval [0, 1].
+    #[serde(default)]
+    pub blue: ::core::option::Option<f32>,
+    /// The amount of green in the color as a value in the interval [0, 1].
+    #[serde(default)]
+    pub green: ::core::option::Option<f32>,
+    /// The amount of red in the color as a value in the interval [0, 1].
+    #[serde(default)]
+    pub red: ::core::option::Option<f32>,
+}
+
+/// Metadata for document summarization.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1beta3SummaryOptions {
+    /// The format the summary should be in. // TODO: enum values: ["FORMAT_UNSPECIFIED", "PARAGRAPH", "BULLETS"]
+    #[serde(default)]
+    pub format: ::core::option::Option<String>,
+    /// How long the summary should be. // TODO: enum values: ["LENGTH_UNSPECIFIED", "BRIEF", "MODERATE", "COMPREHENSIVE"]
+    #[serde(default)]
+    pub length: ::core::option::Option<String>,
+}
+
+/// Defines the a list of enum values.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1DocumentSchemaEntityTypeEnumValues {
+    /// The individual values that this enum values type can include.
+    #[serde(default)]
+    pub values: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// Defines properties that can be part of the entity type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1DocumentSchemaEntityTypeProperty {
+    /// User defined name for the property.
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+    /// Specifies how the entity''s value is obtained. // TODO: enum values: ["METHOD_UNSPECIFIED", "EXTRACT", "DERIVE", "RELAXED_EXTRACT"]
+    #[serde(default)]
+    pub method: ::core::option::Option<String>,
+    /// The name of the property. Follows the same guidelines as the EntityType name.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Occurrence type limits the number of instances an entity type appears in the document. // TODO: enum values: ["OCCURRENCE_TYPE_UNSPECIFIED", "OPTIONAL_ONCE", "OPTIONAL_MULTIPLE", "REQUIRED_ONCE", "REQUIRED_MULTIPLE"]
+    #[serde(default, rename = "occurrenceType")]
+    pub occurrence_type: ::core::option::Option<String>,
+    /// A reference to the value type of the property. This type is subject to the same conventions as the Entity.base_types field.
+    #[serde(default, rename = "valueType")]
+    pub value_type: ::core::option::Option<String>,
+}
+
+/// Represents a time zone from the [IANA Time Zone Database](https://www.iana.org/time-zones).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleTypeTimeZone {
+    /// IANA Time Zone Database time zone. For example "America/New_York".
+    #[serde(default)]
+    pub id: ::core::option::Option<String>,
+    /// Optional. IANA Time Zone Database version number. For example "2019a".
+    #[serde(default)]
+    pub version: ::core::option::Option<String>,
+}
+
+/// Detected language for a structural component.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1DocumentPageDetectedLanguage {
+    /// Confidence of detected language. Range [0, 1].
+    #[serde(default)]
+    pub confidence: ::core::option::Option<f32>,
+    /// The [BCP-47 language code](https://www.unicode.org/reports/tr35/#Unicode_locale_identifier), such as en-US or sr-Latn.
+    #[serde(default, rename = "languageCode")]
+    pub language_code: ::core::option::Option<String>,
+}
+
+/// Visual element describing a layout unit on a page.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1DocumentPageLayout {
+    /// The bounding polygon for the Layout.
+    #[serde(default, rename = "boundingPoly")]
+    pub bounding_poly: ::core::option::Option<GoogleCloudDocumentaiV1BoundingPoly>,
+    /// Confidence of the current Layout within context of the object this layout is for. For example, confidence can be for a single token, a table, a visual element, etc. depending on context. Range [0, 1].
+    #[serde(default)]
+    pub confidence: ::core::option::Option<f32>,
+    /// Detected orientation for the Layout. // TODO: enum values: ["ORIENTATION_UNSPECIFIED", "PAGE_UP", "PAGE_RIGHT", "PAGE_DOWN", "PAGE_LEFT"]
+    #[serde(default)]
+    pub orientation: ::core::option::Option<String>,
+    /// Text anchor indexing into the Document.text.
+    #[serde(default, rename = "textAnchor")]
+    pub text_anchor: ::core::option::Option<GoogleCloudDocumentaiV1DocumentTextAnchor>,
+}
+
+/// Text reference indexing into the Document.text.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1DocumentTextAnchor {
+    /// Contains the content of the text span so that users do not have to look it up in the text_segments. It is always populated for formFields.
+    #[serde(default)]
+    pub content: ::core::option::Option<String>,
+    /// The text segments from the Document.text.
+    #[serde(default, rename = "textSegments")]
+    pub text_segments: ::core::option::Option<
+        ::std::vec::Vec<GoogleCloudDocumentaiV1DocumentTextAnchorTextSegment>,
+    >,
+}
+
+/// A text segment in the Document.text. The indices may be out of bounds which indicate that the text extends into another document shard for large sharded documents. See ShardInfo.text_offset
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1DocumentTextAnchorTextSegment {
+    /// TextSegment half open end UTF-8 char index in the Document.text.
+    #[serde(default, rename = "endIndex")]
+    pub end_index: ::core::option::Option<String>,
+    /// TextSegment start UTF-8 char index in the Document.text.
+    #[serde(default, rename = "startIndex")]
+    pub start_index: ::core::option::Option<String>,
+}
+
+/// A bounding polygon for the detected image annotation.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1BoundingPoly {
+    /// The bounding polygon normalized vertices.
+    #[serde(default, rename = "normalizedVertices")]
+    pub normalized_vertices:
+        ::core::option::Option<::std::vec::Vec<GoogleCloudDocumentaiV1NormalizedVertex>>,
+    /// The bounding polygon vertices.
+    #[serde(default)]
+    pub vertices: ::core::option::Option<::std::vec::Vec<GoogleCloudDocumentaiV1Vertex>>,
 }
 
 /// Represents a block. A block could be one of the various types (text, table, list) supported.
@@ -1689,1269 +4540,6 @@ pub struct GoogleCloudDocumentaiV1DocumentDocumentLayoutDocumentLayoutBlockLayou
     pub type_: ::core::option::Option<String>,
 }
 
-/// Entity revision.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiV1DocumentEntitiesRevision {
-    /// The entities in this revision.
-    #[serde(default)]
-    pub entities: ::core::option::Option<::std::vec::Vec<GoogleCloudDocumentaiV1DocumentEntity>>,
-    /// The entity validation output for this revision.
-    #[serde(default, rename = "entityValidationOutput")]
-    pub entity_validation_output:
-        ::core::option::Option<GoogleCloudDocumentaiV1DocumentEntityValidationOutput>,
-    /// Optional. The history of this revision.
-    #[serde(default)]
-    pub provenance: ::core::option::Option<GoogleCloudDocumentaiV1DocumentProvenance>,
-    /// The revision id.
-    #[serde(default, rename = "revisionId")]
-    pub revision_id: ::core::option::Option<String>,
-}
-
-/// An entity that could be a phrase in the text or a property that belongs to the document. It is a known entity type, such as a person, an organization, or location.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiV1DocumentEntity {
-    /// Optional. Confidence of detected Schema entity. Range [0, 1].
-    #[serde(default)]
-    pub confidence: ::core::option::Option<f32>,
-    /// Optional. Canonical id. This will be a unique value in the entity list for this document.
-    #[serde(default)]
-    pub id: ::core::option::Option<String>,
-    /// Optional. Deprecated. Use id field instead.
-    #[serde(default, rename = "mentionId")]
-    pub mention_id: ::core::option::Option<String>,
-    /// Optional. Text value of the entity, for example, 1600 Amphitheatre Pkwy.
-    #[serde(default, rename = "mentionText")]
-    pub mention_text: ::core::option::Option<String>,
-    /// Optional. Specifies how the entity''s value is obtained. // TODO: enum values: ["METHOD_UNSPECIFIED", "EXTRACT", "DERIVE"]
-    #[serde(default)]
-    pub method: ::core::option::Option<String>,
-    /// Optional. Normalized entity value. Absent if the extracted value could not be converted or the type (for example, address) is not supported for certain parsers. This field is also only populated for certain supported document types.
-    #[serde(default, rename = "normalizedValue")]
-    pub normalized_value:
-        ::core::option::Option<GoogleCloudDocumentaiV1DocumentEntityNormalizedValue>,
-    /// Optional. Represents the provenance of this entity wrt. the location on the page where it was found.
-    #[serde(default, rename = "pageAnchor")]
-    pub page_anchor: ::core::option::Option<GoogleCloudDocumentaiV1DocumentPageAnchor>,
-    /// Optional. Entities can be nested to form a hierarchical data structure representing the content in the document.
-    #[serde(default)]
-    pub properties: ::core::option::Option<::std::vec::Vec<GoogleCloudDocumentaiV1DocumentEntity>>,
-    /// Optional. The history of this annotation.
-    #[serde(default)]
-    pub provenance: ::core::option::Option<GoogleCloudDocumentaiV1DocumentProvenance>,
-    /// Optional. Whether the entity will be redacted for de-identification purposes.
-    #[serde(default)]
-    pub redacted: ::core::option::Option<bool>,
-    /// Optional. Provenance of the entity. Text anchor indexing into the Document.text.
-    #[serde(default, rename = "textAnchor")]
-    pub text_anchor: ::core::option::Option<GoogleCloudDocumentaiV1DocumentTextAnchor>,
-    /// Required. Entity type from a schema, for example, Address.
-    #[serde(default, rename = "type")]
-    pub type_: ::core::option::Option<String>,
-}
-
-/// Parsed and normalized entity value.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiV1DocumentEntityNormalizedValue {
-    /// Postal address. See also: https://github.com/googleapis/googleapis/blob/master/google/type/postal_address.proto
-    #[serde(default, rename = "addressValue")]
-    pub address_value: ::core::option::Option<GoogleTypePostalAddress>,
-    /// Boolean value. Can be used for entities with binary values, or for checkboxes.
-    #[serde(default, rename = "booleanValue")]
-    pub boolean_value: ::core::option::Option<bool>,
-    /// Date value. Includes year, month, day. See also: https://github.com/googleapis/googleapis/blob/master/google/type/date.proto
-    #[serde(default, rename = "dateValue")]
-    pub date_value: ::core::option::Option<GoogleTypeDate>,
-    /// DateTime value. Includes date, time, and timezone. See also: https://github.com/googleapis/googleapis/blob/master/google/type/datetime.proto
-    #[serde(default, rename = "datetimeValue")]
-    pub datetime_value: ::core::option::Option<GoogleTypeDateTime>,
-    /// Float value.
-    #[serde(default, rename = "floatValue")]
-    pub float_value: ::core::option::Option<f32>,
-    /// Integer value.
-    #[serde(default, rename = "integerValue")]
-    pub integer_value: ::core::option::Option<i32>,
-    /// Money value. See also: https://github.com/googleapis/googleapis/blob/master/google/type/money.proto
-    #[serde(default, rename = "moneyValue")]
-    pub money_value: ::core::option::Option<GoogleTypeMoney>,
-    /// A signature - a graphical representation of a person''s name, often used to sign a document.
-    #[serde(default, rename = "signatureValue")]
-    pub signature_value: ::core::option::Option<bool>,
-    /// Optional. An optional field to store a normalized string. For some entity types, one of respective structured_value fields may also be populated. Also not all the types of structured_value will be normalized. For example, some processors may not generate float or integer normalized text by default. Below are sample formats mapped to structured values. - Money/Currency type (money_value) is in the ISO 4217 text format. - Date type (date_value) is in the ISO 8601 text format. - Datetime type (datetime_value) is in the ISO 8601 text format.
-    #[serde(default)]
-    pub text: ::core::option::Option<String>,
-}
-
-/// Relationship between Entities.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiV1DocumentEntityRelation {
-    /// Object entity id.
-    #[serde(default, rename = "objectId")]
-    pub object_id: ::core::option::Option<String>,
-    /// Relationship description.
-    #[serde(default)]
-    pub relation: ::core::option::Option<String>,
-    /// Subject entity id.
-    #[serde(default, rename = "subjectId")]
-    pub subject_id: ::core::option::Option<String>,
-}
-
-/// The output of the validation given the document and the validation rules.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiV1DocumentEntityValidationOutput {
-    /// The overall result of the validation, true if all applicable rules are valid.
-    #[serde(default, rename = "passAllRules")]
-    pub pass_all_rules: ::core::option::Option<bool>,
-    /// The result of each validation rule.
-    #[serde(default, rename = "validationResults")]
-    pub validation_results: ::core::option::Option<
-        ::std::vec::Vec<GoogleCloudDocumentaiV1DocumentEntityValidationOutputValidationResult>,
-    >,
-}
-
-/// Validation result for a single validation rule.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiV1DocumentEntityValidationOutputValidationResult {
-    /// Optional. The name of the rule resource that is used for validation. Format: projects/{project}/locations/{location}/rules/{rule}
-    #[serde(default)]
-    pub rule: ::core::option::Option<String>,
-    /// The description of the validation rule.
-    #[serde(default, rename = "ruleDescription")]
-    pub rule_description: ::core::option::Option<String>,
-    /// The display name of the validation rule.
-    #[serde(default, rename = "ruleName")]
-    pub rule_name: ::core::option::Option<String>,
-    /// The detailed information of the running the validation process using the entity from the document based on the validation rule.
-    #[serde(default, rename = "validationDetails")]
-    pub validation_details: ::core::option::Option<String>,
-    /// The result of the validation rule. // TODO: enum values: ["VALIDATION_RESULT_TYPE_UNSPECIFIED", "VALIDATION_RESULT_TYPE_VALID", "VALIDATION_RESULT_TYPE_INVALID", "VALIDATION_RESULT_TYPE_SKIPPED", "VALIDATION_RESULT_TYPE_NOT_APPLICABLE"]
-    #[serde(default, rename = "validationResultType")]
-    pub validation_result_type: ::core::option::Option<String>,
-}
-
-/// Config that controls the output of documents. All documents will be written as a JSON file.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiV1DocumentOutputConfig {
-    /// Output config to write the results to Cloud Storage.
-    #[serde(default, rename = "gcsOutputConfig")]
-    pub gcs_output_config:
-        ::core::option::Option<GoogleCloudDocumentaiV1DocumentOutputConfigGcsOutputConfig>,
-}
-
-/// The configuration used when outputting documents.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiV1DocumentOutputConfigGcsOutputConfig {
-    /// Specifies which fields to include in the output documents. Only supports top level document and pages field so it must be in the form of {document_field_name} or pages.{page_field_name}.
-    #[serde(default, rename = "fieldMask")]
-    pub field_mask: ::core::option::Option<String>,
-    /// The Cloud Storage uri (a directory) of the output.
-    #[serde(default, rename = "gcsUri")]
-    pub gcs_uri: ::core::option::Option<String>,
-    /// Specifies the sharding config for the output document.
-    #[serde(default, rename = "shardingConfig")]
-    pub sharding_config: ::core::option::Option<
-        GoogleCloudDocumentaiV1DocumentOutputConfigGcsOutputConfigShardingConfig,
-    >,
-}
-
-/// The sharding config for the output document.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiV1DocumentOutputConfigGcsOutputConfigShardingConfig {
-    /// The number of overlapping pages between consecutive shards.
-    #[serde(default, rename = "pagesOverlap")]
-    pub pages_overlap: ::core::option::Option<i32>,
-    /// The number of pages per shard.
-    #[serde(default, rename = "pagesPerShard")]
-    pub pages_per_shard: ::core::option::Option<i32>,
-}
-
-/// A page in a Document.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiV1DocumentPage {
-    /// A list of visually detected text blocks on the page. A block has a set of lines (collected into paragraphs) that have a common line-spacing and orientation.
-    #[serde(default)]
-    pub blocks: ::core::option::Option<::std::vec::Vec<GoogleCloudDocumentaiV1DocumentPageBlock>>,
-    /// A list of detected barcodes.
-    #[serde(default, rename = "detectedBarcodes")]
-    pub detected_barcodes:
-        ::core::option::Option<::std::vec::Vec<GoogleCloudDocumentaiV1DocumentPageDetectedBarcode>>,
-    /// A list of detected languages together with confidence.
-    #[serde(default, rename = "detectedLanguages")]
-    pub detected_languages: ::core::option::Option<
-        ::std::vec::Vec<GoogleCloudDocumentaiV1DocumentPageDetectedLanguage>,
-    >,
-    /// Physical dimension of the page.
-    #[serde(default)]
-    pub dimension: ::core::option::Option<GoogleCloudDocumentaiV1DocumentPageDimension>,
-    /// A list of visually detected form fields on the page.
-    #[serde(default, rename = "formFields")]
-    pub form_fields:
-        ::core::option::Option<::std::vec::Vec<GoogleCloudDocumentaiV1DocumentPageFormField>>,
-    /// Rendered image for this page. This image is preprocessed to remove any skew, rotation, and distortions such that the annotation bounding boxes can be upright and axis-aligned.
-    #[serde(default)]
-    pub image: ::core::option::Option<GoogleCloudDocumentaiV1DocumentPageImage>,
-    /// Image quality scores.
-    #[serde(default, rename = "imageQualityScores")]
-    pub image_quality_scores:
-        ::core::option::Option<GoogleCloudDocumentaiV1DocumentPageImageQualityScores>,
-    /// Layout for the page.
-    #[serde(default)]
-    pub layout: ::core::option::Option<GoogleCloudDocumentaiV1DocumentPageLayout>,
-    /// A list of visually detected text lines on the page. A collection of tokens that a human would perceive as a line.
-    #[serde(default)]
-    pub lines: ::core::option::Option<::std::vec::Vec<GoogleCloudDocumentaiV1DocumentPageLine>>,
-    /// 1-based index for current Page in a parent Document. Useful when a page is taken out of a Document for individual processing.
-    #[serde(default, rename = "pageNumber")]
-    pub page_number: ::core::option::Option<i32>,
-    /// A list of visually detected text paragraphs on the page. A collection of lines that a human would perceive as a paragraph.
-    #[serde(default)]
-    pub paragraphs:
-        ::core::option::Option<::std::vec::Vec<GoogleCloudDocumentaiV1DocumentPageParagraph>>,
-    /// The history of this page.
-    #[serde(default)]
-    pub provenance: ::core::option::Option<GoogleCloudDocumentaiV1DocumentProvenance>,
-    /// A list of visually detected symbols on the page.
-    #[serde(default)]
-    pub symbols: ::core::option::Option<::std::vec::Vec<GoogleCloudDocumentaiV1DocumentPageSymbol>>,
-    /// A list of visually detected tables on the page.
-    #[serde(default)]
-    pub tables: ::core::option::Option<::std::vec::Vec<GoogleCloudDocumentaiV1DocumentPageTable>>,
-    /// A list of visually detected tokens on the page.
-    #[serde(default)]
-    pub tokens: ::core::option::Option<::std::vec::Vec<GoogleCloudDocumentaiV1DocumentPageToken>>,
-    /// Transformation matrices that were applied to the original document image to produce Page.image.
-    #[serde(default)]
-    pub transforms:
-        ::core::option::Option<::std::vec::Vec<GoogleCloudDocumentaiV1DocumentPageMatrix>>,
-    /// A list of detected non-text visual elements, for example, checkbox, signature etc. on the page.
-    #[serde(default, rename = "visualElements")]
-    pub visual_elements:
-        ::core::option::Option<::std::vec::Vec<GoogleCloudDocumentaiV1DocumentPageVisualElement>>,
-}
-
-/// Referencing the visual context of the entity in the Document.pages. Page anchors can be cross-page, consist of multiple bounding polygons and optionally reference specific layout element types.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiV1DocumentPageAnchor {
-    /// One or more references to visual page elements
-    #[serde(default, rename = "pageRefs")]
-    pub page_refs:
-        ::core::option::Option<::std::vec::Vec<GoogleCloudDocumentaiV1DocumentPageAnchorPageRef>>,
-}
-
-/// Represents a weak reference to a page element within a document.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiV1DocumentPageAnchorPageRef {
-    /// Optional. Identifies the bounding polygon of a layout element on the page. If layout_type is set, the bounding polygon must be exactly the same to the layout element it''s referring to.
-    #[serde(default, rename = "boundingPoly")]
-    pub bounding_poly: ::core::option::Option<GoogleCloudDocumentaiV1BoundingPoly>,
-    /// Optional. Confidence of detected page element, if applicable. Range [0, 1].
-    #[serde(default)]
-    pub confidence: ::core::option::Option<f32>,
-    /// Optional. Deprecated. Use PageRef.bounding_poly instead.
-    #[serde(default, rename = "layoutId")]
-    pub layout_id: ::core::option::Option<String>,
-    /// Optional. The type of the layout element that is being referenced if any. // TODO: enum values: ["LAYOUT_TYPE_UNSPECIFIED", "BLOCK", "PARAGRAPH", "LINE", "TOKEN", "VISUAL_ELEMENT", "TABLE", "FORM_FIELD"]
-    #[serde(default, rename = "layoutType")]
-    pub layout_type: ::core::option::Option<String>,
-    /// Required. Index into the Document.pages element, for example using Document.pages to locate the related page element. This field is skipped when its value is the default 0. See https://developers.google.com/protocol-buffers/docs/proto3#json.
-    #[serde(default)]
-    pub page: ::core::option::Option<String>,
-}
-
-/// A block has a set of lines (collected into paragraphs) that have a common line-spacing and orientation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiV1DocumentPageBlock {
-    /// A list of detected languages together with confidence.
-    #[serde(default, rename = "detectedLanguages")]
-    pub detected_languages: ::core::option::Option<
-        ::std::vec::Vec<GoogleCloudDocumentaiV1DocumentPageDetectedLanguage>,
-    >,
-    /// Layout for Block.
-    #[serde(default)]
-    pub layout: ::core::option::Option<GoogleCloudDocumentaiV1DocumentPageLayout>,
-    /// The history of this annotation.
-    #[serde(default)]
-    pub provenance: ::core::option::Option<GoogleCloudDocumentaiV1DocumentProvenance>,
-}
-
-/// A detected barcode.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiV1DocumentPageDetectedBarcode {
-    /// Detailed barcode information of the DetectedBarcode.
-    #[serde(default)]
-    pub barcode: ::core::option::Option<GoogleCloudDocumentaiV1Barcode>,
-    /// Layout for DetectedBarcode.
-    #[serde(default)]
-    pub layout: ::core::option::Option<GoogleCloudDocumentaiV1DocumentPageLayout>,
-}
-
-/// Detected language for a structural component.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiV1DocumentPageDetectedLanguage {
-    /// Confidence of detected language. Range [0, 1].
-    #[serde(default)]
-    pub confidence: ::core::option::Option<f32>,
-    /// The [BCP-47 language code](https://www.unicode.org/reports/tr35/#Unicode_locale_identifier), such as en-US or sr-Latn.
-    #[serde(default, rename = "languageCode")]
-    pub language_code: ::core::option::Option<String>,
-}
-
-/// Dimension for the page.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiV1DocumentPageDimension {
-    /// Page height.
-    #[serde(default)]
-    pub height: ::core::option::Option<f32>,
-    /// Dimension unit.
-    #[serde(default)]
-    pub unit: ::core::option::Option<String>,
-    /// Page width.
-    #[serde(default)]
-    pub width: ::core::option::Option<f32>,
-}
-
-/// A form field detected on the page.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiV1DocumentPageFormField {
-    /// Created for Labeling UI to export key text. If corrections were made to the text identified by the field_name.text_anchor, this field will contain the correction.
-    #[serde(default, rename = "correctedKeyText")]
-    pub corrected_key_text: ::core::option::Option<String>,
-    /// Created for Labeling UI to export value text. If corrections were made to the text identified by the field_value.text_anchor, this field will contain the correction.
-    #[serde(default, rename = "correctedValueText")]
-    pub corrected_value_text: ::core::option::Option<String>,
-    /// Layout for the FormField name. For example, Address, Email, Grand total, Phone number, etc.
-    #[serde(default, rename = "fieldName")]
-    pub field_name: ::core::option::Option<GoogleCloudDocumentaiV1DocumentPageLayout>,
-    /// Layout for the FormField value.
-    #[serde(default, rename = "fieldValue")]
-    pub field_value: ::core::option::Option<GoogleCloudDocumentaiV1DocumentPageLayout>,
-    /// A list of detected languages for name together with confidence.
-    #[serde(default, rename = "nameDetectedLanguages")]
-    pub name_detected_languages: ::core::option::Option<
-        ::std::vec::Vec<GoogleCloudDocumentaiV1DocumentPageDetectedLanguage>,
-    >,
-    /// The history of this annotation.
-    #[serde(default)]
-    pub provenance: ::core::option::Option<GoogleCloudDocumentaiV1DocumentProvenance>,
-    /// A list of detected languages for value together with confidence.
-    #[serde(default, rename = "valueDetectedLanguages")]
-    pub value_detected_languages: ::core::option::Option<
-        ::std::vec::Vec<GoogleCloudDocumentaiV1DocumentPageDetectedLanguage>,
-    >,
-    /// If the value is non-textual, this field represents the type. Current valid values are: - blank (this indicates the field_value is normal text) - unfilled_checkbox - filled_checkbox
-    #[serde(default, rename = "valueType")]
-    pub value_type: ::core::option::Option<String>,
-}
-
-/// Rendered image contents for this page.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiV1DocumentPageImage {
-    /// Raw byte content of the image.
-    #[serde(default)]
-    pub content: ::core::option::Option<String>,
-    /// Height of the image in pixels.
-    #[serde(default)]
-    pub height: ::core::option::Option<i32>,
-    /// Encoding [media type (MIME type)](https://www.iana.org/assignments/media-types/media-types.xhtml) for the image.
-    #[serde(default, rename = "mimeType")]
-    pub mime_type: ::core::option::Option<String>,
-    /// Width of the image in pixels.
-    #[serde(default)]
-    pub width: ::core::option::Option<i32>,
-}
-
-/// Image quality scores for the page image.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiV1DocumentPageImageQualityScores {
-    /// A list of detected defects.
-    #[serde(default, rename = "detectedDefects")]
-    pub detected_defects: ::core::option::Option<
-        ::std::vec::Vec<GoogleCloudDocumentaiV1DocumentPageImageQualityScoresDetectedDefect>,
-    >,
-    /// The overall quality score. Range [0, 1] where 1 is perfect quality.
-    #[serde(default, rename = "qualityScore")]
-    pub quality_score: ::core::option::Option<f32>,
-}
-
-/// Image Quality Defects
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiV1DocumentPageImageQualityScoresDetectedDefect {
-    /// Confidence of detected defect. Range [0, 1] where 1 indicates strong confidence that the defect exists.
-    #[serde(default)]
-    pub confidence: ::core::option::Option<f32>,
-    /// Name of the defect type. Supported values are: - quality/defect_blurry - quality/defect_noisy - quality/defect_dark - quality/defect_faint - quality/defect_text_too_small - quality/defect_document_cutoff - quality/defect_text_cutoff - quality/defect_glare
-    #[serde(default, rename = "type")]
-    pub type_: ::core::option::Option<String>,
-}
-
-/// Visual element describing a layout unit on a page.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiV1DocumentPageLayout {
-    /// The bounding polygon for the Layout.
-    #[serde(default, rename = "boundingPoly")]
-    pub bounding_poly: ::core::option::Option<GoogleCloudDocumentaiV1BoundingPoly>,
-    /// Confidence of the current Layout within context of the object this layout is for. For example, confidence can be for a single token, a table, a visual element, etc. depending on context. Range [0, 1].
-    #[serde(default)]
-    pub confidence: ::core::option::Option<f32>,
-    /// Detected orientation for the Layout. // TODO: enum values: ["ORIENTATION_UNSPECIFIED", "PAGE_UP", "PAGE_RIGHT", "PAGE_DOWN", "PAGE_LEFT"]
-    #[serde(default)]
-    pub orientation: ::core::option::Option<String>,
-    /// Text anchor indexing into the Document.text.
-    #[serde(default, rename = "textAnchor")]
-    pub text_anchor: ::core::option::Option<GoogleCloudDocumentaiV1DocumentTextAnchor>,
-}
-
-/// A collection of tokens that a human would perceive as a line. Does not cross column boundaries, can be horizontal, vertical, etc.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiV1DocumentPageLine {
-    /// A list of detected languages together with confidence.
-    #[serde(default, rename = "detectedLanguages")]
-    pub detected_languages: ::core::option::Option<
-        ::std::vec::Vec<GoogleCloudDocumentaiV1DocumentPageDetectedLanguage>,
-    >,
-    /// Layout for Line.
-    #[serde(default)]
-    pub layout: ::core::option::Option<GoogleCloudDocumentaiV1DocumentPageLayout>,
-    /// The history of this annotation.
-    #[serde(default)]
-    pub provenance: ::core::option::Option<GoogleCloudDocumentaiV1DocumentProvenance>,
-}
-
-/// Representation for transformation matrix, intended to be compatible and used with OpenCV format for image manipulation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiV1DocumentPageMatrix {
-    /// Number of columns in the matrix.
-    #[serde(default)]
-    pub cols: ::core::option::Option<i32>,
-    /// The matrix data.
-    #[serde(default)]
-    pub data: ::core::option::Option<String>,
-    /// Number of rows in the matrix.
-    #[serde(default)]
-    pub rows: ::core::option::Option<i32>,
-    /// This encodes information about what data type the matrix uses. For example, 0 (CV_8U) is an unsigned 8-bit image. For the full list of OpenCV primitive data types, please refer to https://docs.opencv.org/4.3.0/d1/d1b/group__core__hal__interface.html
-    #[serde(default, rename = "type")]
-    pub type_: ::core::option::Option<i32>,
-}
-
-/// A collection of lines that a human would perceive as a paragraph.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiV1DocumentPageParagraph {
-    /// A list of detected languages together with confidence.
-    #[serde(default, rename = "detectedLanguages")]
-    pub detected_languages: ::core::option::Option<
-        ::std::vec::Vec<GoogleCloudDocumentaiV1DocumentPageDetectedLanguage>,
-    >,
-    /// Layout for Paragraph.
-    #[serde(default)]
-    pub layout: ::core::option::Option<GoogleCloudDocumentaiV1DocumentPageLayout>,
-    /// The history of this annotation.
-    #[serde(default)]
-    pub provenance: ::core::option::Option<GoogleCloudDocumentaiV1DocumentProvenance>,
-}
-
-/// A detected symbol.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiV1DocumentPageSymbol {
-    /// A list of detected languages together with confidence.
-    #[serde(default, rename = "detectedLanguages")]
-    pub detected_languages: ::core::option::Option<
-        ::std::vec::Vec<GoogleCloudDocumentaiV1DocumentPageDetectedLanguage>,
-    >,
-    /// Layout for Symbol.
-    #[serde(default)]
-    pub layout: ::core::option::Option<GoogleCloudDocumentaiV1DocumentPageLayout>,
-}
-
-/// A table representation similar to HTML table structure.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiV1DocumentPageTable {
-    /// Body rows of the table.
-    #[serde(default, rename = "bodyRows")]
-    pub body_rows:
-        ::core::option::Option<::std::vec::Vec<GoogleCloudDocumentaiV1DocumentPageTableTableRow>>,
-    /// A list of detected languages together with confidence.
-    #[serde(default, rename = "detectedLanguages")]
-    pub detected_languages: ::core::option::Option<
-        ::std::vec::Vec<GoogleCloudDocumentaiV1DocumentPageDetectedLanguage>,
-    >,
-    /// Header rows of the table.
-    #[serde(default, rename = "headerRows")]
-    pub header_rows:
-        ::core::option::Option<::std::vec::Vec<GoogleCloudDocumentaiV1DocumentPageTableTableRow>>,
-    /// Layout for Table.
-    #[serde(default)]
-    pub layout: ::core::option::Option<GoogleCloudDocumentaiV1DocumentPageLayout>,
-    /// The history of this table.
-    #[serde(default)]
-    pub provenance: ::core::option::Option<GoogleCloudDocumentaiV1DocumentProvenance>,
-}
-
-/// A cell representation inside the table.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiV1DocumentPageTableTableCell {
-    /// How many columns this cell spans.
-    #[serde(default, rename = "colSpan")]
-    pub col_span: ::core::option::Option<i32>,
-    /// A list of detected languages together with confidence.
-    #[serde(default, rename = "detectedLanguages")]
-    pub detected_languages: ::core::option::Option<
-        ::std::vec::Vec<GoogleCloudDocumentaiV1DocumentPageDetectedLanguage>,
-    >,
-    /// Layout for TableCell.
-    #[serde(default)]
-    pub layout: ::core::option::Option<GoogleCloudDocumentaiV1DocumentPageLayout>,
-    /// How many rows this cell spans.
-    #[serde(default, rename = "rowSpan")]
-    pub row_span: ::core::option::Option<i32>,
-}
-
-/// A row of table cells.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiV1DocumentPageTableTableRow {
-    /// Cells that make up this row.
-    #[serde(default)]
-    pub cells:
-        ::core::option::Option<::std::vec::Vec<GoogleCloudDocumentaiV1DocumentPageTableTableCell>>,
-}
-
-/// A detected token.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiV1DocumentPageToken {
-    /// Detected break at the end of a Token.
-    #[serde(default, rename = "detectedBreak")]
-    pub detected_break:
-        ::core::option::Option<GoogleCloudDocumentaiV1DocumentPageTokenDetectedBreak>,
-    /// A list of detected languages together with confidence.
-    #[serde(default, rename = "detectedLanguages")]
-    pub detected_languages: ::core::option::Option<
-        ::std::vec::Vec<GoogleCloudDocumentaiV1DocumentPageDetectedLanguage>,
-    >,
-    /// Layout for Token.
-    #[serde(default)]
-    pub layout: ::core::option::Option<GoogleCloudDocumentaiV1DocumentPageLayout>,
-    /// The history of this annotation.
-    #[serde(default)]
-    pub provenance: ::core::option::Option<GoogleCloudDocumentaiV1DocumentProvenance>,
-    /// Text style attributes.
-    #[serde(default, rename = "styleInfo")]
-    pub style_info: ::core::option::Option<GoogleCloudDocumentaiV1DocumentPageTokenStyleInfo>,
-}
-
-/// Detected break at the end of a Token.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiV1DocumentPageTokenDetectedBreak {
-    /// Detected break type. // TODO: enum values: ["TYPE_UNSPECIFIED", "SPACE", "WIDE_SPACE", "HYPHEN"]
-    #[serde(default, rename = "type")]
-    pub type_: ::core::option::Option<String>,
-}
-
-/// Font and other text style attributes.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiV1DocumentPageTokenStyleInfo {
-    /// Color of the background.
-    #[serde(default, rename = "backgroundColor")]
-    pub background_color: ::core::option::Option<GoogleTypeColor>,
-    /// Whether the text is bold (equivalent to font_weight is at least 700).
-    #[serde(default)]
-    pub bold: ::core::option::Option<bool>,
-    /// Font size in points (1 point is ¹⁄₇₂ inches).
-    #[serde(default, rename = "fontSize")]
-    pub font_size: ::core::option::Option<i32>,
-    /// Name or style of the font.
-    #[serde(default, rename = "fontType")]
-    pub font_type: ::core::option::Option<String>,
-    /// TrueType weight on a scale 100 (thin) to 1000 (ultra-heavy). Normal is 400, bold is 700.
-    #[serde(default, rename = "fontWeight")]
-    pub font_weight: ::core::option::Option<i32>,
-    /// Whether the text is handwritten.
-    #[serde(default)]
-    pub handwritten: ::core::option::Option<bool>,
-    /// Whether the text is italic.
-    #[serde(default)]
-    pub italic: ::core::option::Option<bool>,
-    /// Letter spacing in points.
-    #[serde(default, rename = "letterSpacing")]
-    pub letter_spacing: ::core::option::Option<f64>,
-    /// Font size in pixels, equal to _unrounded font_size_ * _resolution_ ÷ 72.0.
-    #[serde(default, rename = "pixelFontSize")]
-    pub pixel_font_size: ::core::option::Option<f64>,
-    /// Whether the text is in small caps. This feature is not supported yet.
-    #[serde(default)]
-    pub smallcaps: ::core::option::Option<bool>,
-    /// Whether the text is strikethrough. This feature is not supported yet.
-    #[serde(default)]
-    pub strikeout: ::core::option::Option<bool>,
-    /// Whether the text is a subscript. This feature is not supported yet.
-    #[serde(default)]
-    pub subscript: ::core::option::Option<bool>,
-    /// Whether the text is a superscript. This feature is not supported yet.
-    #[serde(default)]
-    pub superscript: ::core::option::Option<bool>,
-    /// Color of the text.
-    #[serde(default, rename = "textColor")]
-    pub text_color: ::core::option::Option<GoogleTypeColor>,
-    /// Whether the text is underlined.
-    #[serde(default)]
-    pub underlined: ::core::option::Option<bool>,
-}
-
-/// Detected non-text visual elements, for example, checkbox, signature etc. on the page.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiV1DocumentPageVisualElement {
-    /// A list of detected languages together with confidence.
-    #[serde(default, rename = "detectedLanguages")]
-    pub detected_languages: ::core::option::Option<
-        ::std::vec::Vec<GoogleCloudDocumentaiV1DocumentPageDetectedLanguage>,
-    >,
-    /// Layout for VisualElement.
-    #[serde(default)]
-    pub layout: ::core::option::Option<GoogleCloudDocumentaiV1DocumentPageLayout>,
-    /// Type of the VisualElement.
-    #[serde(default, rename = "type")]
-    pub type_: ::core::option::Option<String>,
-}
-
-/// Structure to identify provenance relationships between annotations in different revisions.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiV1DocumentProvenance {
-    /// The Id of this operation. Needs to be unique within the scope of the revision.
-    #[serde(default)]
-    pub id: ::core::option::Option<i32>,
-    /// References to the original elements that are replaced.
-    #[serde(default)]
-    pub parents:
-        ::core::option::Option<::std::vec::Vec<GoogleCloudDocumentaiV1DocumentProvenanceParent>>,
-    /// The index of the revision that produced this element.
-    #[serde(default)]
-    pub revision: ::core::option::Option<i32>,
-    /// The type of provenance operation. // TODO: enum values: ["OPERATION_TYPE_UNSPECIFIED", "ADD", "REMOVE", "UPDATE", "REPLACE", "EVAL_REQUESTED", "EVAL_APPROVED", "EVAL_SKIPPED"]
-    #[serde(default, rename = "type")]
-    pub type_: ::core::option::Option<String>,
-}
-
-/// The parent element the current element is based on. Used for referencing/aligning, removal and replacement operations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiV1DocumentProvenanceParent {
-    /// The id of the parent provenance.
-    #[serde(default)]
-    pub id: ::core::option::Option<i32>,
-    /// The index of the parent item in the corresponding item list (eg. list of entities, properties within entities, etc.) in the parent revision.
-    #[serde(default)]
-    pub index: ::core::option::Option<i32>,
-    /// The index of the index into current revision''s parent_ids list.
-    #[serde(default)]
-    pub revision: ::core::option::Option<i32>,
-}
-
-/// Contains past or forward revisions of this document.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiV1DocumentRevision {
-    /// If the change was made by a person specify the name or id of that person.
-    #[serde(default)]
-    pub agent: ::core::option::Option<String>,
-    /// The time that the revision was created, internally generated by doc proto storage at the time of create.
-    #[serde(default, rename = "createTime")]
-    pub create_time: ::core::option::Option<String>,
-    /// Human Review information of this revision.
-    #[serde(default, rename = "humanReview")]
-    pub human_review: ::core::option::Option<GoogleCloudDocumentaiV1DocumentRevisionHumanReview>,
-    /// Id of the revision, internally generated by doc proto storage. Unique within the context of the document.
-    #[serde(default)]
-    pub id: ::core::option::Option<String>,
-    /// The revisions that this revision is based on. This can include one or more parent (when documents are merged.) This field represents the index into the revisions field.
-    #[serde(default)]
-    pub parent: ::core::option::Option<::std::vec::Vec<i32>>,
-    /// The revisions that this revision is based on. Must include all the ids that have anything to do with this revision - eg. there are provenance.parent.revision fields that index into this field.
-    #[serde(default, rename = "parentIds")]
-    pub parent_ids: ::core::option::Option<::std::vec::Vec<String>>,
-    /// If the annotation was made by processor identify the processor by its resource name.
-    #[serde(default)]
-    pub processor: ::core::option::Option<String>,
-}
-
-/// Human Review information of the document.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiV1DocumentRevisionHumanReview {
-    /// Human review state. For example, requested, succeeded, rejected.
-    #[serde(default)]
-    pub state: ::core::option::Option<String>,
-    /// A message providing more details about the current state of processing. For example, the rejection reason when the state is rejected.
-    #[serde(default, rename = "stateMessage")]
-    pub state_message: ::core::option::Option<String>,
-}
-
-/// The schema defines the output of the processed document by a processor.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiV1DocumentSchema {
-    /// Description of the schema.
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// Display name to show users.
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-    /// Optional. Document level prompt provided by the user. This custom text is injected into the AI model''s prompt to provide extra, document-wide guidance for processing.
-    #[serde(default, rename = "documentPrompt")]
-    pub document_prompt: ::core::option::Option<String>,
-    /// Entity types of the schema.
-    #[serde(default, rename = "entityTypes")]
-    pub entity_types:
-        ::core::option::Option<::std::vec::Vec<GoogleCloudDocumentaiV1DocumentSchemaEntityType>>,
-    /// Metadata of the schema.
-    #[serde(default)]
-    pub metadata: ::core::option::Option<GoogleCloudDocumentaiV1DocumentSchemaMetadata>,
-}
-
-/// EntityType is the wrapper of a label of the corresponding model with detailed attributes and limitations for entity-based processors. Multiple types can also compose a dependency tree to represent nested types.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiV1DocumentSchemaEntityType {
-    /// The entity type that this type is derived from. For now, one and only one should be set.
-    #[serde(default, rename = "baseTypes")]
-    pub base_types: ::core::option::Option<::std::vec::Vec<String>>,
-    /// User defined name for the type.
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-    /// If specified, lists all the possible values for this entity. This should not be more than a handful of values. If the number of values is &gt;10 or could change frequently, use the EntityType.value_ontology field and specify a list of all possible values in a value ontology file.
-    #[serde(default, rename = "enumValues")]
-    pub enum_values:
-        ::core::option::Option<GoogleCloudDocumentaiV1DocumentSchemaEntityTypeEnumValues>,
-    /// Name of the type. It must be unique within the schema file and cannot be a "Common Type". The following naming conventions are used: - Use snake_casing. - Name matching is case-sensitive. - Maximum 64 characters. - Must start with a letter. - Allowed characters: ASCII letters [a-z0-9_-]. (For backward compatibility, internal infrastructure and tooling can handle any ASCII character.) - The / is sometimes used to denote a property of a type. For example line_item/amount. This convention is deprecated, but will still be honored for backward compatibility.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Description the nested structure, or composition of an entity.
-    #[serde(default)]
-    pub properties: ::core::option::Option<
-        ::std::vec::Vec<GoogleCloudDocumentaiV1DocumentSchemaEntityTypeProperty>,
-    >,
-}
-
-/// Defines the a list of enum values.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiV1DocumentSchemaEntityTypeEnumValues {
-    /// The individual values that this enum values type can include.
-    #[serde(default)]
-    pub values: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// Defines properties that can be part of the entity type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiV1DocumentSchemaEntityTypeProperty {
-    /// User defined name for the property.
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-    /// Specifies how the entity''s value is obtained. // TODO: enum values: ["METHOD_UNSPECIFIED", "EXTRACT", "DERIVE", "RELAXED_EXTRACT"]
-    #[serde(default)]
-    pub method: ::core::option::Option<String>,
-    /// The name of the property. Follows the same guidelines as the EntityType name.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Occurrence type limits the number of instances an entity type appears in the document. // TODO: enum values: ["OCCURRENCE_TYPE_UNSPECIFIED", "OPTIONAL_ONCE", "OPTIONAL_MULTIPLE", "REQUIRED_ONCE", "REQUIRED_MULTIPLE"]
-    #[serde(default, rename = "occurrenceType")]
-    pub occurrence_type: ::core::option::Option<String>,
-    /// A reference to the value type of the property. This type is subject to the same conventions as the Entity.base_types field.
-    #[serde(default, rename = "valueType")]
-    pub value_type: ::core::option::Option<String>,
-}
-
-/// Metadata for global schema behavior.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiV1DocumentSchemaMetadata {
-    /// If true, on a given page, there can be multiple document annotations covering it.
-    #[serde(default, rename = "documentAllowMultipleLabels")]
-    pub document_allow_multiple_labels: ::core::option::Option<bool>,
-    /// If true, a document entity type can be applied to subdocument (splitting). Otherwise, it can only be applied to the entire document (classification).
-    #[serde(default, rename = "documentSplitter")]
-    pub document_splitter: ::core::option::Option<bool>,
-    /// If set, all the nested entities must be prefixed with the parents.
-    #[serde(default, rename = "prefixedNamingOnProperties")]
-    pub prefixed_naming_on_properties: ::core::option::Option<bool>,
-    /// If set, this will skip the naming format validation in the schema. So the string values in DocumentSchema.EntityType.name and DocumentSchema.EntityType.Property.name will not be checked.
-    #[serde(default, rename = "skipNamingValidation")]
-    pub skip_naming_validation: ::core::option::Option<bool>,
-}
-
-/// For a large document, sharding may be performed to produce several document shards. Each document shard contains this field to detail which shard it is.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiV1DocumentShardInfo {
-    /// The index of the first page in Document.pages in the overall document global pages. Available for document shards created by the document splitter.
-    #[serde(default, rename = "pageOffset")]
-    pub page_offset: ::core::option::Option<i32>,
-    /// Total number of shards.
-    #[serde(default, rename = "shardCount")]
-    pub shard_count: ::core::option::Option<String>,
-    /// The 0-based index of this shard.
-    #[serde(default, rename = "shardIndex")]
-    pub shard_index: ::core::option::Option<String>,
-    /// The index of the first character in Document.text in the overall document global text.
-    #[serde(default, rename = "textOffset")]
-    pub text_offset: ::core::option::Option<String>,
-}
-
-/// Annotation for common text style attributes. This adheres to CSS conventions as much as possible.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiV1DocumentStyle {
-    /// Text background color.
-    #[serde(default, rename = "backgroundColor")]
-    pub background_color: ::core::option::Option<GoogleTypeColor>,
-    /// Text color.
-    #[serde(default)]
-    pub color: ::core::option::Option<GoogleTypeColor>,
-    /// Font family such as Arial, Times New Roman. https://www.w3schools.com/cssref/pr_font_font-family.asp
-    #[serde(default, rename = "fontFamily")]
-    pub font_family: ::core::option::Option<String>,
-    /// Font size.
-    #[serde(default, rename = "fontSize")]
-    pub font_size: ::core::option::Option<GoogleCloudDocumentaiV1DocumentStyleFontSize>,
-    /// [Font weight](https://www.w3schools.com/cssref/pr_font_weight.asp). Possible values are normal, bold, bolder, and lighter.
-    #[serde(default, rename = "fontWeight")]
-    pub font_weight: ::core::option::Option<String>,
-    /// Text anchor indexing into the Document.text.
-    #[serde(default, rename = "textAnchor")]
-    pub text_anchor: ::core::option::Option<GoogleCloudDocumentaiV1DocumentTextAnchor>,
-    /// [Text decoration](https://www.w3schools.com/cssref/pr_text_text-decoration.asp). Follows CSS standard.
-    #[serde(default, rename = "textDecoration")]
-    pub text_decoration: ::core::option::Option<String>,
-    /// [Text style](https://www.w3schools.com/cssref/pr_font_font-style.asp). Possible values are normal, italic, and oblique.
-    #[serde(default, rename = "textStyle")]
-    pub text_style: ::core::option::Option<String>,
-}
-
-/// Font size with unit.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiV1DocumentStyleFontSize {
-    /// Font size for the text.
-    #[serde(default)]
-    pub size: ::core::option::Option<f32>,
-    /// Unit for the font size. Follows CSS naming (such as in, px, and pt).
-    #[serde(default)]
-    pub unit: ::core::option::Option<String>,
-}
-
-/// Text reference indexing into the Document.text.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiV1DocumentTextAnchor {
-    /// Contains the content of the text span so that users do not have to look it up in the text_segments. It is always populated for formFields.
-    #[serde(default)]
-    pub content: ::core::option::Option<String>,
-    /// The text segments from the Document.text.
-    #[serde(default, rename = "textSegments")]
-    pub text_segments: ::core::option::Option<
-        ::std::vec::Vec<GoogleCloudDocumentaiV1DocumentTextAnchorTextSegment>,
-    >,
-}
-
-/// A text segment in the Document.text. The indices may be out of bounds which indicate that the text extends into another document shard for large sharded documents. See ShardInfo.text_offset
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiV1DocumentTextAnchorTextSegment {
-    /// TextSegment half open end UTF-8 char index in the Document.text.
-    #[serde(default, rename = "endIndex")]
-    pub end_index: ::core::option::Option<String>,
-    /// TextSegment start UTF-8 char index in the Document.text.
-    #[serde(default, rename = "startIndex")]
-    pub start_index: ::core::option::Option<String>,
-}
-
-/// This message is used for text changes aka. OCR corrections.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiV1DocumentTextChange {
-    /// The text that replaces the text identified in the text_anchor.
-    #[serde(default, rename = "changedText")]
-    pub changed_text: ::core::option::Option<String>,
-    /// The history of this annotation.
-    #[serde(default)]
-    pub provenance:
-        ::core::option::Option<::std::vec::Vec<GoogleCloudDocumentaiV1DocumentProvenance>>,
-    /// Provenance of the correction. Text anchor indexing into the Document.text. There can only be a single TextAnchor.text_segments element. If the start and end index of the text segment are the same, the text change is inserted before that index.
-    #[serde(default, rename = "textAnchor")]
-    pub text_anchor: ::core::option::Option<GoogleCloudDocumentaiV1DocumentTextAnchor>,
-}
-
-/// A set of inline documents.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiV1Documents {
-    /// The list of documents.
-    #[serde(default)]
-    pub documents: ::core::option::Option<::std::vec::Vec<GoogleCloudDocumentaiV1Document>>,
-}
-
-/// The long-running operation metadata for the EnableProcessor method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiV1EnableProcessorMetadata {
-    /// The basic metadata of the long-running operation.
-    #[serde(default, rename = "commonMetadata")]
-    pub common_metadata: ::core::option::Option<GoogleCloudDocumentaiV1CommonOperationMetadata>,
-}
-
-/// Metadata of the EvaluateProcessorVersion method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiV1EvaluateProcessorVersionMetadata {
-    /// The basic metadata of the long-running operation.
-    #[serde(default, rename = "commonMetadata")]
-    pub common_metadata: ::core::option::Option<GoogleCloudDocumentaiV1CommonOperationMetadata>,
-}
-
-/// Evaluates the given ProcessorVersion against the supplied documents.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiV1EvaluateProcessorVersionRequest {
-    /// Optional. The documents used in the evaluation. If unspecified, use the processor''s dataset as evaluation input.
-    #[serde(default, rename = "evaluationDocuments")]
-    pub evaluation_documents:
-        ::core::option::Option<GoogleCloudDocumentaiV1BatchDocumentsInputConfig>,
-}
-
-/// Response of the EvaluateProcessorVersion method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiV1EvaluateProcessorVersionResponse {
-    /// The resource name of the created evaluation.
-    #[serde(default)]
-    pub evaluation: ::core::option::Option<String>,
-}
-
-/// An evaluation of a ProcessorVersion''s performance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiV1Evaluation {
-    /// Metrics for all the entities in aggregate.
-    #[serde(default, rename = "allEntitiesMetrics")]
-    pub all_entities_metrics:
-        ::core::option::Option<GoogleCloudDocumentaiV1EvaluationMultiConfidenceMetrics>,
-    /// The time that the evaluation was created.
-    #[serde(default, rename = "createTime")]
-    pub create_time: ::core::option::Option<String>,
-    /// Counters for the documents used in the evaluation.
-    #[serde(default, rename = "documentCounters")]
-    pub document_counters: ::core::option::Option<GoogleCloudDocumentaiV1EvaluationCounters>,
-    /// Metrics across confidence levels, for different entities.
-    #[serde(default, rename = "entityMetrics")]
-    pub entity_metrics: ::core::option::Option<serde_json::Value>,
-    /// The KMS key name used for encryption.
-    #[serde(default, rename = "kmsKeyName")]
-    pub kms_key_name: ::core::option::Option<String>,
-    /// The KMS key version with which data is encrypted.
-    #[serde(default, rename = "kmsKeyVersionName")]
-    pub kms_key_version_name: ::core::option::Option<String>,
-    /// The resource name of the evaluation. Format: projects/{project}/locations/{location}/processors/{processor}/processorVersions/{processor_version}/evaluations/{evaluation}
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Contains all revisions of the evaluation, excluding the latest one.
-    #[serde(default)]
-    pub revisions: ::core::option::Option<
-        ::std::vec::Vec<GoogleCloudDocumentaiV1EvaluationEvaluationRevision>,
-    >,
-}
-
-/// Evaluations metrics, at a specific confidence level.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiV1EvaluationConfidenceLevelMetrics {
-    /// The confidence level.
-    #[serde(default, rename = "confidenceLevel")]
-    pub confidence_level: ::core::option::Option<f32>,
-    /// The metrics at the specific confidence level.
-    #[serde(default)]
-    pub metrics: ::core::option::Option<GoogleCloudDocumentaiV1EvaluationMetrics>,
-}
-
-/// Evaluation counters for the documents that were used.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiV1EvaluationCounters {
-    /// How many documents were used in the evaluation.
-    #[serde(default, rename = "evaluatedDocumentsCount")]
-    pub evaluated_documents_count: ::core::option::Option<i32>,
-    /// How many documents were not included in the evaluation as Document AI failed to process them.
-    #[serde(default, rename = "failedDocumentsCount")]
-    pub failed_documents_count: ::core::option::Option<i32>,
-    /// How many documents were sent for evaluation.
-    #[serde(default, rename = "inputDocumentsCount")]
-    pub input_documents_count: ::core::option::Option<i32>,
-    /// How many documents were not included in the evaluation as they didn''t pass validation.
-    #[serde(default, rename = "invalidDocumentsCount")]
-    pub invalid_documents_count: ::core::option::Option<i32>,
-}
-
-/// A revision of the evaluation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiV1EvaluationEvaluationRevision {
-    /// Output only. Metrics for all the entities in aggregate.
-    #[serde(default, rename = "allEntitiesMetrics")]
-    pub all_entities_metrics:
-        ::core::option::Option<GoogleCloudDocumentaiV1EvaluationMultiConfidenceMetrics>,
-    /// Output only. Counters for the documents used in the evaluation.
-    #[serde(default, rename = "documentCounters")]
-    pub document_counters: ::core::option::Option<GoogleCloudDocumentaiV1EvaluationCounters>,
-    /// Output only. Metrics across confidence levels, for different entities.
-    #[serde(default, rename = "entityMetrics")]
-    pub entity_metrics: ::core::option::Option<serde_json::Value>,
-    /// Output only. The revision ID of the evaluation.
-    #[serde(default, rename = "revisionId")]
-    pub revision_id: ::core::option::Option<String>,
-}
-
-/// Evaluation metrics, either in aggregate or about a specific entity.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiV1EvaluationMetrics {
-    /// The calculated F1 score.
-    #[serde(default, rename = "f1Score")]
-    pub f1_score: ::core::option::Option<f32>,
-    /// The amount of false negatives.
-    #[serde(default, rename = "falseNegativesCount")]
-    pub false_negatives_count: ::core::option::Option<i32>,
-    /// The amount of false positives.
-    #[serde(default, rename = "falsePositivesCount")]
-    pub false_positives_count: ::core::option::Option<i32>,
-    /// The amount of documents with a ground truth occurrence.
-    #[serde(default, rename = "groundTruthDocumentCount")]
-    pub ground_truth_document_count: ::core::option::Option<i32>,
-    /// The amount of occurrences in ground truth documents.
-    #[serde(default, rename = "groundTruthOccurrencesCount")]
-    pub ground_truth_occurrences_count: ::core::option::Option<i32>,
-    /// The calculated precision.
-    #[serde(default)]
-    pub precision: ::core::option::Option<f32>,
-    /// The amount of documents with a predicted occurrence.
-    #[serde(default, rename = "predictedDocumentCount")]
-    pub predicted_document_count: ::core::option::Option<i32>,
-    /// The amount of occurrences in predicted documents.
-    #[serde(default, rename = "predictedOccurrencesCount")]
-    pub predicted_occurrences_count: ::core::option::Option<i32>,
-    /// The calculated recall.
-    #[serde(default)]
-    pub recall: ::core::option::Option<f32>,
-    /// The amount of documents that had an occurrence of this label.
-    #[serde(default, rename = "totalDocumentsCount")]
-    pub total_documents_count: ::core::option::Option<i32>,
-    /// The amount of true positives.
-    #[serde(default, rename = "truePositivesCount")]
-    pub true_positives_count: ::core::option::Option<i32>,
-}
-
-/// Metrics across multiple confidence levels.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiV1EvaluationMultiConfidenceMetrics {
-    /// The calculated area under the precision recall curve (AUPRC), computed by integrating over all confidence thresholds.
-    #[serde(default)]
-    pub auprc: ::core::option::Option<f32>,
-    /// The AUPRC for metrics with fuzzy matching disabled, i.e., exact matching only.
-    #[serde(default, rename = "auprcExact")]
-    pub auprc_exact: ::core::option::Option<f32>,
-    /// Metrics across confidence levels with fuzzy matching enabled.
-    #[serde(default, rename = "confidenceLevelMetrics")]
-    pub confidence_level_metrics: ::core::option::Option<
-        ::std::vec::Vec<GoogleCloudDocumentaiV1EvaluationConfidenceLevelMetrics>,
-    >,
-    /// Metrics across confidence levels with only exact matching.
-    #[serde(default, rename = "confidenceLevelMetricsExact")]
-    pub confidence_level_metrics_exact: ::core::option::Option<
-        ::std::vec::Vec<GoogleCloudDocumentaiV1EvaluationConfidenceLevelMetrics>,
-    >,
-    /// The Estimated Calibration Error (ECE) of the confidence of the predicted entities.
-    #[serde(default, rename = "estimatedCalibrationError")]
-    pub estimated_calibration_error: ::core::option::Option<f32>,
-    /// The ECE for the predicted entities with fuzzy matching disabled, i.e., exact matching only.
-    #[serde(default, rename = "estimatedCalibrationErrorExact")]
-    pub estimated_calibration_error_exact: ::core::option::Option<f32>,
-    /// The metrics type for the label. // TODO: enum values: ["METRICS_TYPE_UNSPECIFIED", "AGGREGATE"]
-    #[serde(default, rename = "metricsType")]
-    pub metrics_type: ::core::option::Option<String>,
-}
-
-/// Gives a short summary of an evaluation, and links to the evaluation itself.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiV1EvaluationReference {
-    /// An aggregate of the statistics for the evaluation with fuzzy matching on.
-    #[serde(default, rename = "aggregateMetrics")]
-    pub aggregate_metrics: ::core::option::Option<GoogleCloudDocumentaiV1EvaluationMetrics>,
-    /// An aggregate of the statistics for the evaluation with fuzzy matching off.
-    #[serde(default, rename = "aggregateMetricsExact")]
-    pub aggregate_metrics_exact: ::core::option::Option<GoogleCloudDocumentaiV1EvaluationMetrics>,
-    /// The resource name of the evaluation.
-    #[serde(default)]
-    pub evaluation: ::core::option::Option<String>,
-    /// The resource name of the Long Running Operation for the evaluation.
-    #[serde(default)]
-    pub operation: ::core::option::Option<String>,
-}
-
-/// Response message for the FetchProcessorTypes method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiV1FetchProcessorTypesResponse {
-    /// The list of processor types.
-    #[serde(default, rename = "processorTypes")]
-    pub processor_types:
-        ::core::option::Option<::std::vec::Vec<GoogleCloudDocumentaiV1ProcessorType>>,
-}
-
-/// Specifies a document stored on Cloud Storage.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiV1GcsDocument {
-    /// The Cloud Storage object uri.
-    #[serde(default, rename = "gcsUri")]
-    pub gcs_uri: ::core::option::Option<String>,
-    /// An IANA MIME type (RFC6838) of the content.
-    #[serde(default, rename = "mimeType")]
-    pub mime_type: ::core::option::Option<String>,
-}
-
-/// Specifies a set of documents on Cloud Storage.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiV1GcsDocuments {
-    /// The list of documents.
-    #[serde(default)]
-    pub documents: ::core::option::Option<::std::vec::Vec<GoogleCloudDocumentaiV1GcsDocument>>,
-}
-
-/// Specifies all documents on Cloud Storage with a common prefix.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiV1GcsPrefix {
-    /// The URI prefix.
-    #[serde(default, rename = "gcsUriPrefix")]
-    pub gcs_uri_prefix: ::core::option::Option<String>,
-}
-
-/// Request message for GenerateSchemaVersion.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiV1GenerateSchemaVersionRequest {
-    /// The base schema version name to use for the schema generation. Format: projects/{project}/locations/{location}/schemas/{schema}/schemaVersions/{schema_version}
-    #[serde(default, rename = "baseSchemaVersion")]
-    pub base_schema_version: ::core::option::Option<String>,
-    /// The set of documents placed on Cloud Storage.
-    #[serde(default, rename = "gcsDocuments")]
-    pub gcs_documents: ::core::option::Option<GoogleCloudDocumentaiV1GcsDocuments>,
-    /// The common prefix of documents placed on Cloud Storage.
-    #[serde(default, rename = "gcsPrefix")]
-    pub gcs_prefix: ::core::option::Option<GoogleCloudDocumentaiV1GcsPrefix>,
-    /// Optional. User specified parameters for the schema generation.
-    #[serde(default, rename = "generateSchemaVersionParams")]
-    pub generate_schema_version_params: ::core::option::Option<
-        GoogleCloudDocumentaiV1GenerateSchemaVersionRequestGenerateSchemaVersionParams,
-    >,
-    /// The set of documents specified inline. For each document, its uri or content field must be set.
-    #[serde(default, rename = "inlineDocuments")]
-    pub inline_documents: ::core::option::Option<GoogleCloudDocumentaiV1Documents>,
-    /// The set of raw documents.
-    #[serde(default, rename = "rawDocuments")]
-    pub raw_documents: ::core::option::Option<GoogleCloudDocumentaiV1RawDocuments>,
-}
-
-/// The parameters for the schema generation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiV1GenerateSchemaVersionRequestGenerateSchemaVersionParams {
-    /// Optional. Previous prompt-answers in a chronological order.
-    #[serde(default)]
-    pub history: ::core::option::Option<GoogleCloudDocumentaiV1SchemaGenerationHistory>,
-    /// Optional. The prompt used for the schema generation.
-    #[serde(default)]
-    pub prompt: ::core::option::Option<String>,
-}
-
-/// Response message for GenerateSchemaVersion.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiV1GenerateSchemaVersionResponse {
-    /// The schema version generated by the model.
-    #[serde(default, rename = "schemaVersion")]
-    pub schema_version: ::core::option::Option<GoogleCloudDocumentaiV1SchemaVersion>,
-}
-
-/// The status of human review on a processed document.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiV1HumanReviewStatus {
-    /// The name of the operation triggered by the processed document. This field is populated only when the state is HUMAN_REVIEW_IN_PROGRESS. It has the same response type and metadata as the long-running operation returned by ReviewDocument.
-    #[serde(default, rename = "humanReviewOperation")]
-    pub human_review_operation: ::core::option::Option<String>,
-    /// The state of human review on the processing request. // TODO: enum values: ["STATE_UNSPECIFIED", "SKIPPED", "VALIDATION_PASSED", "IN_PROGRESS", "ERROR"]
-    #[serde(default)]
-    pub state: ::core::option::Option<String>,
-    /// A message providing more details about the human review state.
-    #[serde(default, rename = "stateMessage")]
-    pub state_message: ::core::option::Option<String>,
-}
-
-/// The response from ListEvaluations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiV1ListEvaluationsResponse {
-    /// The evaluations requested.
-    #[serde(default)]
-    pub evaluations: ::core::option::Option<::std::vec::Vec<GoogleCloudDocumentaiV1Evaluation>>,
-    /// A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
-    #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: ::core::option::Option<String>,
-}
-
-/// Response message for the ListProcessorTypes method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiV1ListProcessorTypesResponse {
-    /// Points to the next page, otherwise empty.
-    #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: ::core::option::Option<String>,
-    /// The processor types.
-    #[serde(default, rename = "processorTypes")]
-    pub processor_types:
-        ::core::option::Option<::std::vec::Vec<GoogleCloudDocumentaiV1ProcessorType>>,
-}
-
-/// Response message for the ListProcessorVersions method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiV1ListProcessorVersionsResponse {
-    /// Points to the next processor, otherwise empty.
-    #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: ::core::option::Option<String>,
-    /// The list of processors.
-    #[serde(default, rename = "processorVersions")]
-    pub processor_versions:
-        ::core::option::Option<::std::vec::Vec<GoogleCloudDocumentaiV1ProcessorVersion>>,
-}
-
-/// Response message for the ListProcessors method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiV1ListProcessorsResponse {
-    /// Points to the next processor, otherwise empty.
-    #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: ::core::option::Option<String>,
-    /// The list of processors.
-    #[serde(default)]
-    pub processors: ::core::option::Option<::std::vec::Vec<GoogleCloudDocumentaiV1Processor>>,
-}
-
-/// Response message for ListSchemaVersions.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiV1ListSchemaVersionsResponse {
-    /// Points to the next SchemaVersion, otherwise empty.
-    #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: ::core::option::Option<String>,
-    /// The list of SchemaVersions.
-    #[serde(default, rename = "schemaVersions")]
-    pub schema_versions:
-        ::core::option::Option<::std::vec::Vec<GoogleCloudDocumentaiV1SchemaVersion>>,
-}
-
-/// Response message for ListSchemas.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiV1ListSchemasResponse {
-    /// Points to the next Schema, otherwise empty.
-    #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: ::core::option::Option<String>,
-    /// The list of Schemas.
-    #[serde(default)]
-    pub schemas: ::core::option::Option<::std::vec::Vec<GoogleCloudDocumentaiV1NextSchema>>,
-}
-
-/// NextSchema is a collection of SchemaVersions.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiV1NextSchema {
-    /// Output only. The time when the Schema was created.
-    #[serde(default, rename = "createTime")]
-    pub create_time: ::core::option::Option<String>,
-    /// Required. The user-defined name of the Schema.
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-    /// Optional. The {{gcp_name_short}} labels for the Schema.
-    #[serde(default)]
-    pub labels: ::core::option::Option<serde_json::Value>,
-    /// Identifier. The resource name of the Schema. Format: projects/{project}/locations/{location}/schemas/{schema}
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Output only. The time when the Schema was last updated.
-    #[serde(default, rename = "updateTime")]
-    pub update_time: ::core::option::Option<String>,
-}
-
 /// A vertex represents a 2D point in the image. NOTE: the normalized vertex coordinates are relative to the original image and range from 0 to 1.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDocumentaiV1NormalizedVertex {
@@ -2963,582 +4551,6 @@ pub struct GoogleCloudDocumentaiV1NormalizedVertex {
     pub y: ::core::option::Option<f32>,
 }
 
-/// Config for Document OCR.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiV1OcrConfig {
-    /// A list of advanced OCR options to further fine-tune OCR behavior. Current valid values are: - legacy_layout: a heuristics layout detection algorithm, which serves as an alternative to the current ML-based layout detection algorithm. Customers can choose the best suitable layout algorithm based on their situation.
-    #[serde(default, rename = "advancedOcrOptions")]
-    pub advanced_ocr_options: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Turn on font identification model and return font style information. Deprecated, use PremiumFeatures.compute_style_info instead.
-    #[serde(default, rename = "computeStyleInfo")]
-    pub compute_style_info: ::core::option::Option<bool>,
-    /// Turn off character box detector in OCR engine. Character box detection is enabled by default in OCR 2.0 (and later) processors.
-    #[serde(default, rename = "disableCharacterBoxesDetection")]
-    pub disable_character_boxes_detection: ::core::option::Option<bool>,
-    /// Enables intelligent document quality scores after OCR. Can help with diagnosing why OCR responses are of poor quality for a given input. Adds additional latency comparable to regular OCR to the process call.
-    #[serde(default, rename = "enableImageQualityScores")]
-    pub enable_image_quality_scores: ::core::option::Option<bool>,
-    /// Enables special handling for PDFs with existing text information. Results in better text extraction quality in such PDF inputs.
-    #[serde(default, rename = "enableNativePdfParsing")]
-    pub enable_native_pdf_parsing: ::core::option::Option<bool>,
-    /// Includes symbol level OCR information if set to true.
-    #[serde(default, rename = "enableSymbol")]
-    pub enable_symbol: ::core::option::Option<bool>,
-    /// Hints for the OCR model.
-    #[serde(default)]
-    pub hints: ::core::option::Option<GoogleCloudDocumentaiV1OcrConfigHints>,
-    /// Configurations for premium OCR features.
-    #[serde(default, rename = "premiumFeatures")]
-    pub premium_features: ::core::option::Option<GoogleCloudDocumentaiV1OcrConfigPremiumFeatures>,
-}
-
-/// Hints for OCR Engine
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiV1OcrConfigHints {
-    /// List of BCP-47 language codes to use for OCR. In most cases, not specifying it yields the best results since it enables automatic language detection. For languages based on the Latin alphabet, setting hints is not needed. In rare cases, when the language of the text in the image is known, setting a hint will help get better results (although it will be a significant hindrance if the hint is wrong).
-    #[serde(default, rename = "languageHints")]
-    pub language_hints: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// Configurations for premium OCR features.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiV1OcrConfigPremiumFeatures {
-    /// Turn on font identification model and return font style information.
-    #[serde(default, rename = "computeStyleInfo")]
-    pub compute_style_info: ::core::option::Option<bool>,
-    /// Turn on the model that can extract LaTeX math formulas.
-    #[serde(default, rename = "enableMathOcr")]
-    pub enable_math_ocr: ::core::option::Option<bool>,
-    /// Turn on selection mark detector in OCR engine. Only available in OCR 2.0 (and later) processors.
-    #[serde(default, rename = "enableSelectionMarkDetection")]
-    pub enable_selection_mark_detection: ::core::option::Option<bool>,
-}
-
-/// Options for Process API
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiV1ProcessOptions {
-    /// Only process certain pages from the end, same as above.
-    #[serde(default, rename = "fromEnd")]
-    pub from_end: ::core::option::Option<i32>,
-    /// Only process certain pages from the start. Process all if the document has fewer pages.
-    #[serde(default, rename = "fromStart")]
-    pub from_start: ::core::option::Option<i32>,
-    /// Which pages to process (1-indexed).
-    #[serde(default, rename = "individualPageSelector")]
-    pub individual_page_selector:
-        ::core::option::Option<GoogleCloudDocumentaiV1ProcessOptionsIndividualPageSelector>,
-    /// Optional. Only applicable to LAYOUT_PARSER_PROCESSOR. Returns error if set on other processor types.
-    #[serde(default, rename = "layoutConfig")]
-    pub layout_config: ::core::option::Option<GoogleCloudDocumentaiV1ProcessOptionsLayoutConfig>,
-    /// Only applicable to OCR_PROCESSOR and FORM_PARSER_PROCESSOR. Returns error if set on other processor types.
-    #[serde(default, rename = "ocrConfig")]
-    pub ocr_config: ::core::option::Option<GoogleCloudDocumentaiV1OcrConfig>,
-    /// Optional. Override the schema of the ProcessorVersion. Will return an Invalid Argument error if this field is set when the underlying ProcessorVersion doesn''t support schema override.
-    #[serde(default, rename = "schemaOverride")]
-    pub schema_override: ::core::option::Option<GoogleCloudDocumentaiV1DocumentSchema>,
-}
-
-/// A list of individual page numbers.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiV1ProcessOptionsIndividualPageSelector {
-    /// Optional. Indices of the pages (starting from 1).
-    #[serde(default)]
-    pub pages: ::core::option::Option<::std::vec::Vec<i32>>,
-}
-
-/// Serving config for layout parser processor.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiV1ProcessOptionsLayoutConfig {
-    /// Optional. Config for chunking in layout parser processor.
-    #[serde(default, rename = "chunkingConfig")]
-    pub chunking_config:
-        ::core::option::Option<GoogleCloudDocumentaiV1ProcessOptionsLayoutConfigChunkingConfig>,
-    /// Optional. Whether to include image annotations in layout parser response.
-    #[serde(default, rename = "enableImageAnnotation")]
-    pub enable_image_annotation: ::core::option::Option<bool>,
-    /// Optional. Whether to include table annotations in layout parser response.
-    #[serde(default, rename = "enableTableAnnotation")]
-    pub enable_table_annotation: ::core::option::Option<bool>,
-    /// Optional. Whether to include bounding boxes in layout parser processor response.
-    #[serde(default, rename = "returnBoundingBoxes")]
-    pub return_bounding_boxes: ::core::option::Option<bool>,
-    /// Optional. Whether to include images in layout parser processor response.
-    #[serde(default, rename = "returnImages")]
-    pub return_images: ::core::option::Option<bool>,
-}
-
-/// Serving config for chunking.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiV1ProcessOptionsLayoutConfigChunkingConfig {
-    /// Optional. The chunk sizes to use when splitting documents, in order of level.
-    #[serde(default, rename = "chunkSize")]
-    pub chunk_size: ::core::option::Option<i32>,
-    /// Optional. Whether or not to include ancestor headings when splitting.
-    #[serde(default, rename = "includeAncestorHeadings")]
-    pub include_ancestor_headings: ::core::option::Option<bool>,
-}
-
-/// Request message for the ProcessDocument method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiV1ProcessRequest {
-    /// Specifies which fields to include in the ProcessResponse.document output. Only supports top-level document and pages field, so it must be in the form of {document_field_name} or pages.{page_field_name}.
-    #[serde(default, rename = "fieldMask")]
-    pub field_mask: ::core::option::Option<String>,
-    /// A raw document on Google Cloud Storage.
-    #[serde(default, rename = "gcsDocument")]
-    pub gcs_document: ::core::option::Option<GoogleCloudDocumentaiV1GcsDocument>,
-    /// Optional. Option to remove images from the document.
-    #[serde(default, rename = "imagelessMode")]
-    pub imageless_mode: ::core::option::Option<bool>,
-    /// An inline document proto.
-    #[serde(default, rename = "inlineDocument")]
-    pub inline_document: ::core::option::Option<GoogleCloudDocumentaiV1Document>,
-    /// Optional. The labels with user-defined metadata for the request. Label keys and values can be no longer than 63 characters (Unicode codepoints) and can only contain lowercase letters, numeric characters, underscores, and dashes. International characters are allowed. Label values are optional. Label keys must start with a letter.
-    #[serde(default)]
-    pub labels: ::core::option::Option<serde_json::Value>,
-    /// Inference-time options for the process API
-    #[serde(default, rename = "processOptions")]
-    pub process_options: ::core::option::Option<GoogleCloudDocumentaiV1ProcessOptions>,
-    /// A raw document content (bytes).
-    #[serde(default, rename = "rawDocument")]
-    pub raw_document: ::core::option::Option<GoogleCloudDocumentaiV1RawDocument>,
-    /// Whether human review should be skipped for this request. Default to false.
-    #[serde(default, rename = "skipHumanReview")]
-    pub skip_human_review: ::core::option::Option<bool>,
-}
-
-/// Response message for the ProcessDocument method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiV1ProcessResponse {
-    /// The document payload, will populate fields based on the processor''s behavior.
-    #[serde(default)]
-    pub document: ::core::option::Option<GoogleCloudDocumentaiV1Document>,
-    /// The status of human review on the processed document.
-    #[serde(default, rename = "humanReviewStatus")]
-    pub human_review_status: ::core::option::Option<GoogleCloudDocumentaiV1HumanReviewStatus>,
-}
-
-/// The first-class citizen for Document AI. Each processor defines how to extract structural information from a document.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiV1Processor {
-    /// Optional. SchemaVersion used by the Processor. It is the same as Processor''s DatasetSchema.schema_version Format is projects/{project}/locations/{location}/schemas/{schema}/schemaVersions/{schema_version}
-    #[serde(default, rename = "activeSchemaVersion")]
-    pub active_schema_version: ::core::option::Option<String>,
-    /// Output only. The time the processor was created.
-    #[serde(default, rename = "createTime")]
-    pub create_time: ::core::option::Option<String>,
-    /// The default processor version.
-    #[serde(default, rename = "defaultProcessorVersion")]
-    pub default_processor_version: ::core::option::Option<String>,
-    /// The display name of the processor.
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-    /// The [KMS key](https://cloud.google.com/security-key-management) used for encryption and decryption in CMEK scenarios.
-    #[serde(default, rename = "kmsKeyName")]
-    pub kms_key_name: ::core::option::Option<String>,
-    /// Output only. Immutable. The resource name of the processor. Format: projects/{project}/locations/{location}/processors/{processor}
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Output only. Immutable. The http endpoint that can be called to invoke processing.
-    #[serde(default, rename = "processEndpoint")]
-    pub process_endpoint: ::core::option::Option<String>,
-    /// Output only. The processor version aliases.
-    #[serde(default, rename = "processorVersionAliases")]
-    pub processor_version_aliases:
-        ::core::option::Option<::std::vec::Vec<GoogleCloudDocumentaiV1ProcessorVersionAlias>>,
-    /// Output only. Reserved for future use.
-    #[serde(default, rename = "satisfiesPzi")]
-    pub satisfies_pzi: ::core::option::Option<bool>,
-    /// Output only. Reserved for future use.
-    #[serde(default, rename = "satisfiesPzs")]
-    pub satisfies_pzs: ::core::option::Option<bool>,
-    /// Output only. The state of the processor. // TODO: enum values: ["STATE_UNSPECIFIED", "ENABLED", "DISABLED", "ENABLING", "DISABLING", "CREATING", "FAILED", "DELETING"]
-    #[serde(default)]
-    pub state: ::core::option::Option<String>,
-    /// The processor type, such as: OCR_PROCESSOR, INVOICE_PROCESSOR. To get a list of processor types, see FetchProcessorTypes.
-    #[serde(default, rename = "type")]
-    pub type_: ::core::option::Option<String>,
-}
-
-/// A processor type is responsible for performing a certain document understanding task on a certain type of document.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiV1ProcessorType {
-    /// Whether the processor type allows creation. If true, users can create a processor of this processor type. Otherwise, users need to request access.
-    #[serde(default, rename = "allowCreation")]
-    pub allow_creation: ::core::option::Option<bool>,
-    /// The locations in which this processor is available.
-    #[serde(default, rename = "availableLocations")]
-    pub available_locations:
-        ::core::option::Option<::std::vec::Vec<GoogleCloudDocumentaiV1ProcessorTypeLocationInfo>>,
-    /// The processor category, used by UI to group processor types.
-    #[serde(default)]
-    pub category: ::core::option::Option<String>,
-    /// Launch stage of the processor type // TODO: enum values: ["LAUNCH_STAGE_UNSPECIFIED", "UNIMPLEMENTED", "PRELAUNCH", "EARLY_ACCESS", "ALPHA", "BETA", "GA", "DEPRECATED"]
-    #[serde(default, rename = "launchStage")]
-    pub launch_stage: ::core::option::Option<String>,
-    /// The resource name of the processor type. Format: projects/{project}/processorTypes/{processor_type}
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// A set of Cloud Storage URIs of sample documents for this processor.
-    #[serde(default, rename = "sampleDocumentUris")]
-    pub sample_document_uris: ::core::option::Option<::std::vec::Vec<String>>,
-    /// The processor type, such as: OCR_PROCESSOR, INVOICE_PROCESSOR.
-    #[serde(default, rename = "type")]
-    pub type_: ::core::option::Option<String>,
-}
-
-/// The location information about where the processor is available.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiV1ProcessorTypeLocationInfo {
-    /// The location ID. For supported locations, refer to [regional and multi-regional support](/document-ai/docs/regions).
-    #[serde(default, rename = "locationId")]
-    pub location_id: ::core::option::Option<String>,
-}
-
-/// A processor version is an implementation of a processor. Each processor can have multiple versions, pretrained by Google internally or uptrained by the customer. A processor can only have one default version at a time. Its document-processing behavior is defined by that version.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiV1ProcessorVersion {
-    /// Output only. The time the processor version was created.
-    #[serde(default, rename = "createTime")]
-    pub create_time: ::core::option::Option<String>,
-    /// Output only. If set, information about the eventual deprecation of this version.
-    #[serde(default, rename = "deprecationInfo")]
-    pub deprecation_info:
-        ::core::option::Option<GoogleCloudDocumentaiV1ProcessorVersionDeprecationInfo>,
-    /// The display name of the processor version.
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-    /// Output only. The schema of the processor version. Describes the output.
-    #[serde(default, rename = "documentSchema")]
-    pub document_schema: ::core::option::Option<GoogleCloudDocumentaiV1DocumentSchema>,
-    /// Output only. Information about Generative AI model-based processor versions.
-    #[serde(default, rename = "genAiModelInfo")]
-    pub gen_ai_model_info:
-        ::core::option::Option<GoogleCloudDocumentaiV1ProcessorVersionGenAiModelInfo>,
-    /// Output only. Denotes that this ProcessorVersion is managed by Google.
-    #[serde(default, rename = "googleManaged")]
-    pub google_managed: ::core::option::Option<bool>,
-    /// Output only. The KMS key name used for encryption.
-    #[serde(default, rename = "kmsKeyName")]
-    pub kms_key_name: ::core::option::Option<String>,
-    /// Output only. The KMS key version with which data is encrypted.
-    #[serde(default, rename = "kmsKeyVersionName")]
-    pub kms_key_version_name: ::core::option::Option<String>,
-    /// Output only. The most recently invoked evaluation for the processor version.
-    #[serde(default, rename = "latestEvaluation")]
-    pub latest_evaluation: ::core::option::Option<GoogleCloudDocumentaiV1EvaluationReference>,
-    /// Output only. The model type of this processor version. // TODO: enum values: ["MODEL_TYPE_UNSPECIFIED", "MODEL_TYPE_GENERATIVE", "MODEL_TYPE_CUSTOM"]
-    #[serde(default, rename = "modelType")]
-    pub model_type: ::core::option::Option<String>,
-    /// Identifier. The resource name of the processor version. Format: projects/{project}/locations/{location}/processors/{processor}/processorVersions/{processor_version}
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Output only. Reserved for future use.
-    #[serde(default, rename = "satisfiesPzi")]
-    pub satisfies_pzi: ::core::option::Option<bool>,
-    /// Output only. Reserved for future use.
-    #[serde(default, rename = "satisfiesPzs")]
-    pub satisfies_pzs: ::core::option::Option<bool>,
-    /// Output only. The state of the processor version. // TODO: enum values: ["STATE_UNSPECIFIED", "DEPLOYED", "DEPLOYING", "UNDEPLOYED", "UNDEPLOYING", "CREATING", "DELETING", "FAILED", "IMPORTING"]
-    #[serde(default)]
-    pub state: ::core::option::Option<String>,
-}
-
-/// Contains the alias and the aliased resource name of processor version.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiV1ProcessorVersionAlias {
-    /// The alias in the form of processor_version resource name.
-    #[serde(default)]
-    pub alias: ::core::option::Option<String>,
-    /// The resource name of aliased processor version.
-    #[serde(default, rename = "processorVersion")]
-    pub processor_version: ::core::option::Option<String>,
-}
-
-/// Information about the upcoming deprecation of this processor version.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiV1ProcessorVersionDeprecationInfo {
-    /// The time at which this processor version will be deprecated.
-    #[serde(default, rename = "deprecationTime")]
-    pub deprecation_time: ::core::option::Option<String>,
-    /// If set, the processor version that will be used as a replacement.
-    #[serde(default, rename = "replacementProcessorVersion")]
-    pub replacement_processor_version: ::core::option::Option<String>,
-}
-
-/// Information about Generative AI model-based processor versions.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiV1ProcessorVersionGenAiModelInfo {
-    /// Information for a custom Generative AI model created by the user.
-    #[serde(default, rename = "customGenAiModelInfo")]
-    pub custom_gen_ai_model_info: ::core::option::Option<
-        GoogleCloudDocumentaiV1ProcessorVersionGenAiModelInfoCustomGenAiModelInfo,
-    >,
-    /// Information for a pretrained Google-managed foundation model.
-    #[serde(default, rename = "foundationGenAiModelInfo")]
-    pub foundation_gen_ai_model_info: ::core::option::Option<
-        GoogleCloudDocumentaiV1ProcessorVersionGenAiModelInfoFoundationGenAiModelInfo,
-    >,
-}
-
-/// Information for a custom Generative AI model created by the user. These are created with Create New Version in either the Call foundation model or Fine tuning tabs.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiV1ProcessorVersionGenAiModelInfoCustomGenAiModelInfo {
-    /// The base processor version ID for the custom model.
-    #[serde(default, rename = "baseProcessorVersionId")]
-    pub base_processor_version_id: ::core::option::Option<String>,
-    /// The type of custom model created by the user. // TODO: enum values: ["CUSTOM_MODEL_TYPE_UNSPECIFIED", "VERSIONED_FOUNDATION", "FINE_TUNED"]
-    #[serde(default, rename = "customModelType")]
-    pub custom_model_type: ::core::option::Option<String>,
-}
-
-/// Information for a pretrained Google-managed foundation model.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiV1ProcessorVersionGenAiModelInfoFoundationGenAiModelInfo {
-    /// Whether fine tuning is allowed for this base processor version.
-    #[serde(default, rename = "finetuningAllowed")]
-    pub finetuning_allowed: ::core::option::Option<bool>,
-    /// The minimum number of labeled documents in the training dataset required for fine tuning.
-    #[serde(default, rename = "minTrainLabeledDocuments")]
-    pub min_train_labeled_documents: ::core::option::Option<i32>,
-}
-
-/// Payload message of raw document content (bytes).
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiV1RawDocument {
-    /// Inline document content.
-    #[serde(default)]
-    pub content: ::core::option::Option<String>,
-    /// The display name of the document, it supports all Unicode characters except the following: *, ?, [, ], %, {, },'', \", , ~, = and : are reserved. If not specified, a default ID is generated.
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-    /// An IANA MIME type (RFC6838) indicating the nature and format of the content.
-    #[serde(default, rename = "mimeType")]
-    pub mime_type: ::core::option::Option<String>,
-}
-
-/// Specifies a set of raw documents.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiV1RawDocuments {
-    /// Specifies raw document content and mime type.
-    #[serde(default)]
-    pub documents: ::core::option::Option<::std::vec::Vec<GoogleCloudDocumentaiV1RawDocument>>,
-}
-
-/// The long-running operation metadata for the ReviewDocument method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiV1ReviewDocumentOperationMetadata {
-    /// The basic metadata of the long-running operation.
-    #[serde(default, rename = "commonMetadata")]
-    pub common_metadata: ::core::option::Option<GoogleCloudDocumentaiV1CommonOperationMetadata>,
-    /// The Crowd Compute question ID.
-    #[serde(default, rename = "questionId")]
-    pub question_id: ::core::option::Option<String>,
-}
-
-/// Request message for the ReviewDocument method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiV1ReviewDocumentRequest {
-    /// The document schema of the human review task.
-    #[serde(default, rename = "documentSchema")]
-    pub document_schema: ::core::option::Option<GoogleCloudDocumentaiV1DocumentSchema>,
-    /// Whether the validation should be performed on the ad-hoc review request.
-    #[serde(default, rename = "enableSchemaValidation")]
-    pub enable_schema_validation: ::core::option::Option<bool>,
-    /// An inline document proto.
-    #[serde(default, rename = "inlineDocument")]
-    pub inline_document: ::core::option::Option<GoogleCloudDocumentaiV1Document>,
-    /// The priority of the human review task. // TODO: enum values: ["DEFAULT", "URGENT"]
-    #[serde(default)]
-    pub priority: ::core::option::Option<String>,
-}
-
-/// Response message for the ReviewDocument method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiV1ReviewDocumentResponse {
-    /// The Cloud Storage uri for the human reviewed document if the review is succeeded.
-    #[serde(default, rename = "gcsDestination")]
-    pub gcs_destination: ::core::option::Option<String>,
-    /// The reason why the review is rejected by reviewer.
-    #[serde(default, rename = "rejectionReason")]
-    pub rejection_reason: ::core::option::Option<String>,
-    /// The state of the review operation. // TODO: enum values: ["STATE_UNSPECIFIED", "REJECTED", "SUCCEEDED"]
-    #[serde(default)]
-    pub state: ::core::option::Option<String>,
-}
-
-/// The history of schema generation iterations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiV1SchemaGenerationHistory {
-    /// Required. Previous prompt-answers in a chronological order.
-    #[serde(default)]
-    pub iterations:
-        ::core::option::Option<::std::vec::Vec<GoogleCloudDocumentaiV1SchemaGenerationIteration>>,
-}
-
-/// A single iteration of the schema generation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiV1SchemaGenerationIteration {
-    /// Optional. The previous schema version adjusted by the model.
-    #[serde(default, rename = "adjustedSchema")]
-    pub adjusted_schema: ::core::option::Option<GoogleCloudDocumentaiV1SchemaVersion>,
-    /// Required. The schema version generated by the model.
-    #[serde(default, rename = "generatedSchema")]
-    pub generated_schema: ::core::option::Option<GoogleCloudDocumentaiV1SchemaVersion>,
-    /// Optional. The prompt used for the iteration.
-    #[serde(default)]
-    pub prompt: ::core::option::Option<String>,
-}
-
-/// SchemaVersion is a version of the Schema which is created in SchemaGroup.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiV1SchemaVersion {
-    /// Output only. The time when the SchemaVersion was created.
-    #[serde(default, rename = "createTime")]
-    pub create_time: ::core::option::Option<String>,
-    /// Required. The user-defined name of the SchemaVersion.
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-    /// Optional. The {{gcp_name_short}} labels for the SchemaVersion.
-    #[serde(default)]
-    pub labels: ::core::option::Option<serde_json::Value>,
-    /// Identifier. The resource name of the SchemaVersion. Format: projects/{project}/locations/{location}/schemas/{schema}/schemaVersions/{schema_version}
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Required. The schema of the SchemaVersion.
-    #[serde(default)]
-    pub schema: ::core::option::Option<GoogleCloudDocumentaiV1DocumentSchema>,
-}
-
-/// The long-running operation metadata for the SetDefaultProcessorVersion method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiV1SetDefaultProcessorVersionMetadata {
-    /// The basic metadata of the long-running operation.
-    #[serde(default, rename = "commonMetadata")]
-    pub common_metadata: ::core::option::Option<GoogleCloudDocumentaiV1CommonOperationMetadata>,
-}
-
-/// Request message for the SetDefaultProcessorVersion method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiV1SetDefaultProcessorVersionRequest {
-    /// Required. The resource name of child ProcessorVersion to use as default. Format: projects/{project}/locations/{location}/processors/{processor}/processorVersions/{version}
-    #[serde(default, rename = "defaultProcessorVersion")]
-    pub default_processor_version: ::core::option::Option<String>,
-}
-
-/// The metadata that represents a processor version being created.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiV1TrainProcessorVersionMetadata {
-    /// The basic metadata of the long-running operation.
-    #[serde(default, rename = "commonMetadata")]
-    pub common_metadata: ::core::option::Option<GoogleCloudDocumentaiV1CommonOperationMetadata>,
-    /// The test dataset validation information.
-    #[serde(default, rename = "testDatasetValidation")]
-    pub test_dataset_validation: ::core::option::Option<
-        GoogleCloudDocumentaiV1TrainProcessorVersionMetadataDatasetValidation,
-    >,
-    /// The training dataset validation information.
-    #[serde(default, rename = "trainingDatasetValidation")]
-    pub training_dataset_validation: ::core::option::Option<
-        GoogleCloudDocumentaiV1TrainProcessorVersionMetadataDatasetValidation,
-    >,
-}
-
-/// The dataset validation information. This includes any and all errors with documents and the dataset.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiV1TrainProcessorVersionMetadataDatasetValidation {
-    /// The total number of dataset errors.
-    #[serde(default, rename = "datasetErrorCount")]
-    pub dataset_error_count: ::core::option::Option<i32>,
-    /// Error information for the dataset as a whole. A maximum of 10 dataset errors will be returned. A single dataset error is terminal for training.
-    #[serde(default, rename = "datasetErrors")]
-    pub dataset_errors: ::core::option::Option<::std::vec::Vec<GoogleRpcStatus>>,
-    /// The total number of document errors.
-    #[serde(default, rename = "documentErrorCount")]
-    pub document_error_count: ::core::option::Option<i32>,
-    /// Error information pertaining to specific documents. A maximum of 10 document errors will be returned. Any document with errors will not be used throughout training.
-    #[serde(default, rename = "documentErrors")]
-    pub document_errors: ::core::option::Option<::std::vec::Vec<GoogleRpcStatus>>,
-}
-
-/// Request message for the TrainProcessorVersion method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiV1TrainProcessorVersionRequest {
-    /// Optional. The processor version to use as a base for training. This processor version must be a child of parent. Format: projects/{project}/locations/{location}/processors/{processor}/processorVersions/{processorVersion}.
-    #[serde(default, rename = "baseProcessorVersion")]
-    pub base_processor_version: ::core::option::Option<String>,
-    /// Options to control Custom Document Extraction (CDE) Processor.
-    #[serde(default, rename = "customDocumentExtractionOptions")]
-    pub custom_document_extraction_options: ::core::option::Option<
-        GoogleCloudDocumentaiV1TrainProcessorVersionRequestCustomDocumentExtractionOptions,
-    >,
-    /// Optional. The schema the processor version will be trained with.
-    #[serde(default, rename = "documentSchema")]
-    pub document_schema: ::core::option::Option<GoogleCloudDocumentaiV1DocumentSchema>,
-    /// Options to control foundation model tuning of a processor.
-    #[serde(default, rename = "foundationModelTuningOptions")]
-    pub foundation_model_tuning_options: ::core::option::Option<
-        GoogleCloudDocumentaiV1TrainProcessorVersionRequestFoundationModelTuningOptions,
-    >,
-    /// Optional. The input data used to train the ProcessorVersion.
-    #[serde(default, rename = "inputData")]
-    pub input_data:
-        ::core::option::Option<GoogleCloudDocumentaiV1TrainProcessorVersionRequestInputData>,
-    /// Required. The processor version to be created.
-    #[serde(default, rename = "processorVersion")]
-    pub processor_version: ::core::option::Option<GoogleCloudDocumentaiV1ProcessorVersion>,
-}
-
-/// Options to control the training of the Custom Document Extraction (CDE) Processor.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiV1TrainProcessorVersionRequestCustomDocumentExtractionOptions {
-    /// Optional. Training method to use for CDE training. // TODO: enum values: ["TRAINING_METHOD_UNSPECIFIED", "MODEL_BASED", "TEMPLATE_BASED"]
-    #[serde(default, rename = "trainingMethod")]
-    pub training_method: ::core::option::Option<String>,
-}
-
-/// Options to control foundation model tuning of the processor.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiV1TrainProcessorVersionRequestFoundationModelTuningOptions {
-    /// Optional. The multiplier to apply to the recommended learning rate. Valid values are between 0.1 and 10. If not provided, recommended learning rate will be used.
-    #[serde(default, rename = "learningRateMultiplier")]
-    pub learning_rate_multiplier: ::core::option::Option<f32>,
-    /// Optional. Resource name of a previously fine tuned version id to copy the overwritten configs from. The base_processor_version should be newer than the base processor version used to fine tune this provided processor version. Format: projects/{project}/locations/{location}/processors/{processor}/processorVersions/{processorVersion}.
-    #[serde(default, rename = "previousFineTunedProcessorVersionName")]
-    pub previous_fine_tuned_processor_version_name: ::core::option::Option<String>,
-    /// Optional. The number of steps to run for model tuning. Valid values are between 1 and 400. If not provided, recommended steps will be used.
-    #[serde(default, rename = "trainSteps")]
-    pub train_steps: ::core::option::Option<i32>,
-}
-
-/// The input data used to train a new ProcessorVersion.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiV1TrainProcessorVersionRequestInputData {
-    /// The documents used for testing the trained version.
-    #[serde(default, rename = "testDocuments")]
-    pub test_documents: ::core::option::Option<GoogleCloudDocumentaiV1BatchDocumentsInputConfig>,
-    /// The documents used for training the new version.
-    #[serde(default, rename = "trainingDocuments")]
-    pub training_documents:
-        ::core::option::Option<GoogleCloudDocumentaiV1BatchDocumentsInputConfig>,
-}
-
-/// The response for TrainProcessorVersion.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiV1TrainProcessorVersionResponse {
-    /// The resource name of the processor version produced by training.
-    #[serde(default, rename = "processorVersion")]
-    pub processor_version: ::core::option::Option<String>,
-}
-
-/// The long-running operation metadata for the UndeployProcessorVersion method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiV1UndeployProcessorVersionMetadata {
-    /// The basic metadata of the long-running operation.
-    #[serde(default, rename = "commonMetadata")]
-    pub common_metadata: ::core::option::Option<GoogleCloudDocumentaiV1CommonOperationMetadata>,
-}
-
 /// A vertex represents a 2D point in the image. NOTE: the vertex coordinates are in the same scale as the original image.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDocumentaiV1Vertex {
@@ -3548,1016 +4560,4 @@ pub struct GoogleCloudDocumentaiV1Vertex {
     /// Y coordinate (starts from the top of the image).
     #[serde(default)]
     pub y: ::core::option::Option<i32>,
-}
-
-/// GoogleCloudDocumentaiV1beta3BatchDeleteDocumentsMetadata resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiV1beta3BatchDeleteDocumentsMetadata {
-    /// The basic metadata of the long-running operation.
-    #[serde(default, rename = "commonMetadata")]
-    pub common_metadata:
-        ::core::option::Option<GoogleCloudDocumentaiV1beta3CommonOperationMetadata>,
-    /// Total number of documents that failed to be deleted in storage.
-    #[serde(default, rename = "errorDocumentCount")]
-    pub error_document_count: ::core::option::Option<i32>,
-    /// The list of response details of each document.
-    #[serde(default, rename = "individualBatchDeleteStatuses")]
-    pub individual_batch_delete_statuses: ::core::option::Option<
-        ::std::vec::Vec<
-            GoogleCloudDocumentaiV1beta3BatchDeleteDocumentsMetadataIndividualBatchDeleteStatus,
-        >,
-    >,
-    /// Total number of documents deleting from dataset.
-    #[serde(default, rename = "totalDocumentCount")]
-    pub total_document_count: ::core::option::Option<i32>,
-}
-
-/// The status of each individual document in the batch delete process.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiV1beta3BatchDeleteDocumentsMetadataIndividualBatchDeleteStatus {
-    /// The document id of the document.
-    #[serde(default, rename = "documentId")]
-    pub document_id: ::core::option::Option<GoogleCloudDocumentaiV1beta3DocumentId>,
-    /// The status of deleting the document in storage.
-    #[serde(default)]
-    pub status: ::core::option::Option<GoogleRpcStatus>,
-}
-
-/// The long-running operation metadata for BatchProcessDocuments.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiV1beta3BatchProcessMetadata {
-    /// The creation time of the operation.
-    #[serde(default, rename = "createTime")]
-    pub create_time: ::core::option::Option<String>,
-    /// The list of response details of each document.
-    #[serde(default, rename = "individualProcessStatuses")]
-    pub individual_process_statuses: ::core::option::Option<
-        ::std::vec::Vec<GoogleCloudDocumentaiV1beta3BatchProcessMetadataIndividualProcessStatus>,
-    >,
-    /// The state of the current batch processing. // TODO: enum values: ["STATE_UNSPECIFIED", "WAITING", "RUNNING", "SUCCEEDED", "CANCELLING", "CANCELLED", "FAILED"]
-    #[serde(default)]
-    pub state: ::core::option::Option<String>,
-    /// A message providing more details about the current state of processing. For example, the error message if the operation is failed.
-    #[serde(default, rename = "stateMessage")]
-    pub state_message: ::core::option::Option<String>,
-    /// The last update time of the operation.
-    #[serde(default, rename = "updateTime")]
-    pub update_time: ::core::option::Option<String>,
-}
-
-/// The status of a each individual document in the batch process.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiV1beta3BatchProcessMetadataIndividualProcessStatus {
-    /// The name of the operation triggered by the processed document. If the human review process isn''t triggered, this field will be empty. It has the same response type and metadata as the long-running operation returned by the ReviewDocument method.
-    #[serde(default, rename = "humanReviewOperation")]
-    pub human_review_operation: ::core::option::Option<String>,
-    /// The status of human review on the processed document.
-    #[serde(default, rename = "humanReviewStatus")]
-    pub human_review_status: ::core::option::Option<GoogleCloudDocumentaiV1beta3HumanReviewStatus>,
-    /// The source of the document, same as the input_gcs_source field in the request when the batch process started.
-    #[serde(default, rename = "inputGcsSource")]
-    pub input_gcs_source: ::core::option::Option<String>,
-    /// The Cloud Storage output destination (in the request as DocumentOutputConfig.GcsOutputConfig.gcs_uri) of the processed document if it was successful, otherwise empty.
-    #[serde(default, rename = "outputGcsDestination")]
-    pub output_gcs_destination: ::core::option::Option<String>,
-    /// The status processing the document.
-    #[serde(default)]
-    pub status: ::core::option::Option<GoogleRpcStatus>,
-}
-
-/// The common metadata for long running operations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiV1beta3CommonOperationMetadata {
-    /// The creation time of the operation.
-    #[serde(default, rename = "createTime")]
-    pub create_time: ::core::option::Option<String>,
-    /// A related resource to this operation.
-    #[serde(default)]
-    pub resource: ::core::option::Option<String>,
-    /// The state of the operation. // TODO: enum values: ["STATE_UNSPECIFIED", "RUNNING", "CANCELLING", "SUCCEEDED", "FAILED", "CANCELLED"]
-    #[serde(default)]
-    pub state: ::core::option::Option<String>,
-    /// A message providing more details about the current state of processing.
-    #[serde(default, rename = "stateMessage")]
-    pub state_message: ::core::option::Option<String>,
-    /// The last update time of the operation.
-    #[serde(default, rename = "updateTime")]
-    pub update_time: ::core::option::Option<String>,
-}
-
-/// A singleton resource under a Processor which configures a collection of documents.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiV1beta3Dataset {
-    /// Optional. Deprecated. Warehouse-based dataset configuration is not supported.
-    #[serde(default, rename = "documentWarehouseConfig")]
-    pub document_warehouse_config:
-        ::core::option::Option<GoogleCloudDocumentaiV1beta3DatasetDocumentWarehouseConfig>,
-    /// Optional. User-managed Cloud Storage dataset configuration. Use this configuration if the dataset documents are stored under a user-managed Cloud Storage location.
-    #[serde(default, rename = "gcsManagedConfig")]
-    pub gcs_managed_config:
-        ::core::option::Option<GoogleCloudDocumentaiV1beta3DatasetGCSManagedConfig>,
-    /// Dataset resource name. Format: projects/{project}/locations/{location}/processors/{processor}/dataset
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Output only. Reserved for future use.
-    #[serde(default, rename = "satisfiesPzi")]
-    pub satisfies_pzi: ::core::option::Option<bool>,
-    /// Output only. Reserved for future use.
-    #[serde(default, rename = "satisfiesPzs")]
-    pub satisfies_pzs: ::core::option::Option<bool>,
-    /// Required. State of the dataset. Ignored when updating dataset. // TODO: enum values: ["STATE_UNSPECIFIED", "UNINITIALIZED", "INITIALIZING", "INITIALIZED"]
-    #[serde(default)]
-    pub state: ::core::option::Option<String>,
-    /// Optional. Unmanaged dataset configuration. Use this configuration if the dataset documents are managed by the document service internally (not user-managed).
-    #[serde(default, rename = "unmanagedDatasetConfig")]
-    pub unmanaged_dataset_config: ::core::option::Option<serde_json::Value>,
-}
-
-/// Configuration specific to the Document AI Warehouse-based implementation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiV1beta3DatasetDocumentWarehouseConfig {
-    /// Output only. The collection in Document AI Warehouse associated with the dataset.
-    #[serde(default)]
-    pub collection: ::core::option::Option<String>,
-    /// Output only. The schema in Document AI Warehouse associated with the dataset.
-    #[serde(default)]
-    pub schema: ::core::option::Option<String>,
-}
-
-/// Configuration specific to the Cloud Storage-based implementation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiV1beta3DatasetGCSManagedConfig {
-    /// Required. The Cloud Storage URI (a directory) where the documents belonging to the dataset must be stored.
-    #[serde(default, rename = "gcsPrefix")]
-    pub gcs_prefix: ::core::option::Option<GoogleCloudDocumentaiV1beta3GcsPrefix>,
-}
-
-/// The long-running operation metadata for the DeleteProcessor method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiV1beta3DeleteProcessorMetadata {
-    /// The basic metadata of the long-running operation.
-    #[serde(default, rename = "commonMetadata")]
-    pub common_metadata:
-        ::core::option::Option<GoogleCloudDocumentaiV1beta3CommonOperationMetadata>,
-}
-
-/// The long-running operation metadata for the DeleteProcessorVersion method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiV1beta3DeleteProcessorVersionMetadata {
-    /// The basic metadata of the long-running operation.
-    #[serde(default, rename = "commonMetadata")]
-    pub common_metadata:
-        ::core::option::Option<GoogleCloudDocumentaiV1beta3CommonOperationMetadata>,
-}
-
-/// The long-running operation metadata for the DeployProcessorVersion method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiV1beta3DeployProcessorVersionMetadata {
-    /// The basic metadata of the long-running operation.
-    #[serde(default, rename = "commonMetadata")]
-    pub common_metadata:
-        ::core::option::Option<GoogleCloudDocumentaiV1beta3CommonOperationMetadata>,
-}
-
-/// The long-running operation metadata for the DisableProcessor method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiV1beta3DisableProcessorMetadata {
-    /// The basic metadata of the long-running operation.
-    #[serde(default, rename = "commonMetadata")]
-    pub common_metadata:
-        ::core::option::Option<GoogleCloudDocumentaiV1beta3CommonOperationMetadata>,
-}
-
-/// Document Identifier.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiV1beta3DocumentId {
-    /// A document id within user-managed Cloud Storage.
-    #[serde(default, rename = "gcsManagedDocId")]
-    pub gcs_managed_doc_id:
-        ::core::option::Option<GoogleCloudDocumentaiV1beta3DocumentIdGCSManagedDocumentId>,
-    /// Points to a specific revision of the document if set.
-    #[serde(default, rename = "revisionRef")]
-    pub revision_ref: ::core::option::Option<GoogleCloudDocumentaiV1beta3RevisionRef>,
-    /// A document id within unmanaged dataset.
-    #[serde(default, rename = "unmanagedDocId")]
-    pub unmanaged_doc_id:
-        ::core::option::Option<GoogleCloudDocumentaiV1beta3DocumentIdUnmanagedDocumentId>,
-}
-
-/// Identifies a document uniquely within the scope of a dataset in the user-managed Cloud Storage option.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiV1beta3DocumentIdGCSManagedDocumentId {
-    /// Id of the document (indexed) managed by Content Warehouse.
-    #[serde(default, rename = "cwDocId")]
-    pub cw_doc_id: ::core::option::Option<String>,
-    /// Required. The Cloud Storage URI where the actual document is stored.
-    #[serde(default, rename = "gcsUri")]
-    pub gcs_uri: ::core::option::Option<String>,
-}
-
-/// Identifies a document uniquely within the scope of a dataset in unmanaged option.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiV1beta3DocumentIdUnmanagedDocumentId {
-    /// Required. The id of the document.
-    #[serde(default, rename = "docId")]
-    pub doc_id: ::core::option::Option<String>,
-}
-
-/// The schema defines the output of the processed document by a processor.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiV1beta3DocumentSchema {
-    /// Description of the schema.
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// Display name to show users.
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-    /// Optional. Document level prompt provided by the user. This custom text is injected into the AI model''s prompt to provide extra, document-wide guidance for processing.
-    #[serde(default, rename = "documentPrompt")]
-    pub document_prompt: ::core::option::Option<String>,
-    /// Entity types of the schema.
-    #[serde(default, rename = "entityTypes")]
-    pub entity_types: ::core::option::Option<
-        ::std::vec::Vec<GoogleCloudDocumentaiV1beta3DocumentSchemaEntityType>,
-    >,
-    /// Metadata of the schema.
-    #[serde(default)]
-    pub metadata: ::core::option::Option<GoogleCloudDocumentaiV1beta3DocumentSchemaMetadata>,
-}
-
-/// EntityType is the wrapper of a label of the corresponding model with detailed attributes and limitations for entity-based processors. Multiple types can also compose a dependency tree to represent nested types.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiV1beta3DocumentSchemaEntityType {
-    /// The entity type that this type is derived from. For now, one and only one should be set.
-    #[serde(default, rename = "baseTypes")]
-    pub base_types: ::core::option::Option<::std::vec::Vec<String>>,
-    /// The description of the entity type. Could be used to provide more information about the entity type for model calls.
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// User defined name for the type.
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-    /// Metadata for the entity type.
-    #[serde(default, rename = "entityTypeMetadata")]
-    pub entity_type_metadata:
-        ::core::option::Option<GoogleCloudDocumentaiV1beta3EntityTypeMetadata>,
-    /// If specified, lists all the possible values for this entity. This should not be more than a handful of values. If the number of values is &gt;10 or could change frequently, use the EntityType.value_ontology field and specify a list of all possible values in a value ontology file.
-    #[serde(default, rename = "enumValues")]
-    pub enum_values:
-        ::core::option::Option<GoogleCloudDocumentaiV1beta3DocumentSchemaEntityTypeEnumValues>,
-    /// Name of the type. It must be unique within the schema file and cannot be a "Common Type". The following naming conventions are used: - Use snake_casing. - Name matching is case-sensitive. - Maximum 64 characters. - Must start with a letter. - Allowed characters: ASCII letters [a-z0-9_-]. (For backward compatibility, internal infrastructure and tooling can handle any ASCII character.) - The / is sometimes used to denote a property of a type. For example line_item/amount. This convention is deprecated, but will still be honored for backward compatibility.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Description the nested structure, or composition of an entity.
-    #[serde(default)]
-    pub properties: ::core::option::Option<
-        ::std::vec::Vec<GoogleCloudDocumentaiV1beta3DocumentSchemaEntityTypeProperty>,
-    >,
-}
-
-/// Defines the a list of enum values.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiV1beta3DocumentSchemaEntityTypeEnumValues {
-    /// The individual values that this enum values type can include.
-    #[serde(default)]
-    pub values: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// Defines properties that can be part of the entity type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiV1beta3DocumentSchemaEntityTypeProperty {
-    /// The description of the property. Could be used to provide more information about the property for model calls.
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// User defined name for the property.
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-    /// Specifies how the entity''s value is obtained. // TODO: enum values: ["METHOD_UNSPECIFIED", "EXTRACT", "DERIVE", "RELAXED_EXTRACT"]
-    #[serde(default)]
-    pub method: ::core::option::Option<String>,
-    /// The name of the property. Follows the same guidelines as the EntityType name.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Occurrence type limits the number of instances an entity type appears in the document. // TODO: enum values: ["OCCURRENCE_TYPE_UNSPECIFIED", "OPTIONAL_ONCE", "OPTIONAL_MULTIPLE", "REQUIRED_ONCE", "REQUIRED_MULTIPLE"]
-    #[serde(default, rename = "occurrenceType")]
-    pub occurrence_type: ::core::option::Option<String>,
-    /// Any additional metadata about the property can be added here.
-    #[serde(default, rename = "propertyMetadata")]
-    pub property_metadata: ::core::option::Option<GoogleCloudDocumentaiV1beta3PropertyMetadata>,
-    /// A reference to the value type of the property. This type is subject to the same conventions as the Entity.base_types field.
-    #[serde(default, rename = "valueType")]
-    pub value_type: ::core::option::Option<String>,
-}
-
-/// Metadata for global schema behavior.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiV1beta3DocumentSchemaMetadata {
-    /// If true, on a given page, there can be multiple document annotations covering it.
-    #[serde(default, rename = "documentAllowMultipleLabels")]
-    pub document_allow_multiple_labels: ::core::option::Option<bool>,
-    /// If true, a document entity type can be applied to subdocument (splitting). Otherwise, it can only be applied to the entire document (classification).
-    #[serde(default, rename = "documentSplitter")]
-    pub document_splitter: ::core::option::Option<bool>,
-    /// If set, all the nested entities must be prefixed with the parents.
-    #[serde(default, rename = "prefixedNamingOnProperties")]
-    pub prefixed_naming_on_properties: ::core::option::Option<bool>,
-    /// If set, this will skip the naming format validation in the schema. So the string values in DocumentSchema.EntityType.name and DocumentSchema.EntityType.Property.name will not be checked.
-    #[serde(default, rename = "skipNamingValidation")]
-    pub skip_naming_validation: ::core::option::Option<bool>,
-}
-
-/// The long-running operation metadata for the EnableProcessor method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiV1beta3EnableProcessorMetadata {
-    /// The basic metadata of the long-running operation.
-    #[serde(default, rename = "commonMetadata")]
-    pub common_metadata:
-        ::core::option::Option<GoogleCloudDocumentaiV1beta3CommonOperationMetadata>,
-}
-
-/// Metadata about an entity type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiV1beta3EntityTypeMetadata {
-    /// Whether the entity type should be considered inactive.
-    #[serde(default)]
-    pub inactive: ::core::option::Option<bool>,
-}
-
-/// Metadata of the EvaluateProcessorVersion method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiV1beta3EvaluateProcessorVersionMetadata {
-    /// The basic metadata of the long-running operation.
-    #[serde(default, rename = "commonMetadata")]
-    pub common_metadata:
-        ::core::option::Option<GoogleCloudDocumentaiV1beta3CommonOperationMetadata>,
-}
-
-/// Response of the EvaluateProcessorVersion method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiV1beta3EvaluateProcessorVersionResponse {
-    /// The resource name of the created evaluation.
-    #[serde(default)]
-    pub evaluation: ::core::option::Option<String>,
-}
-
-/// Evaluation metrics, either in aggregate or about a specific entity.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiV1beta3EvaluationMetrics {
-    /// The calculated F1 score.
-    #[serde(default, rename = "f1Score")]
-    pub f1_score: ::core::option::Option<f32>,
-    /// The amount of false negatives.
-    #[serde(default, rename = "falseNegativesCount")]
-    pub false_negatives_count: ::core::option::Option<i32>,
-    /// The amount of false positives.
-    #[serde(default, rename = "falsePositivesCount")]
-    pub false_positives_count: ::core::option::Option<i32>,
-    /// The amount of documents with a ground truth occurrence.
-    #[serde(default, rename = "groundTruthDocumentCount")]
-    pub ground_truth_document_count: ::core::option::Option<i32>,
-    /// The amount of occurrences in ground truth documents.
-    #[serde(default, rename = "groundTruthOccurrencesCount")]
-    pub ground_truth_occurrences_count: ::core::option::Option<i32>,
-    /// The calculated precision.
-    #[serde(default)]
-    pub precision: ::core::option::Option<f32>,
-    /// The amount of documents with a predicted occurrence.
-    #[serde(default, rename = "predictedDocumentCount")]
-    pub predicted_document_count: ::core::option::Option<i32>,
-    /// The amount of occurrences in predicted documents.
-    #[serde(default, rename = "predictedOccurrencesCount")]
-    pub predicted_occurrences_count: ::core::option::Option<i32>,
-    /// The calculated recall.
-    #[serde(default)]
-    pub recall: ::core::option::Option<f32>,
-    /// The amount of documents that had an occurrence of this label.
-    #[serde(default, rename = "totalDocumentsCount")]
-    pub total_documents_count: ::core::option::Option<i32>,
-    /// The amount of true positives.
-    #[serde(default, rename = "truePositivesCount")]
-    pub true_positives_count: ::core::option::Option<i32>,
-}
-
-/// Gives a short summary of an evaluation, and links to the evaluation itself.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiV1beta3EvaluationReference {
-    /// An aggregate of the statistics for the evaluation with fuzzy matching on.
-    #[serde(default, rename = "aggregateMetrics")]
-    pub aggregate_metrics: ::core::option::Option<GoogleCloudDocumentaiV1beta3EvaluationMetrics>,
-    /// An aggregate of the statistics for the evaluation with fuzzy matching off.
-    #[serde(default, rename = "aggregateMetricsExact")]
-    pub aggregate_metrics_exact:
-        ::core::option::Option<GoogleCloudDocumentaiV1beta3EvaluationMetrics>,
-    /// The resource name of the evaluation.
-    #[serde(default)]
-    pub evaluation: ::core::option::Option<String>,
-    /// The resource name of the Long Running Operation for the evaluation.
-    #[serde(default)]
-    pub operation: ::core::option::Option<String>,
-}
-
-/// Metadata for how this field value is extracted.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiV1beta3FieldExtractionMetadata {
-    /// Summary options config.
-    #[serde(default, rename = "summaryOptions")]
-    pub summary_options: ::core::option::Option<GoogleCloudDocumentaiV1beta3SummaryOptions>,
-}
-
-/// Specifies all documents on Cloud Storage with a common prefix.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiV1beta3GcsPrefix {
-    /// The URI prefix.
-    #[serde(default, rename = "gcsUriPrefix")]
-    pub gcs_uri_prefix: ::core::option::Option<String>,
-}
-
-/// The status of human review on a processed document.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiV1beta3HumanReviewStatus {
-    /// The name of the operation triggered by the processed document. This field is populated only when the state is HUMAN_REVIEW_IN_PROGRESS. It has the same response type and metadata as the long-running operation returned by ReviewDocument.
-    #[serde(default, rename = "humanReviewOperation")]
-    pub human_review_operation: ::core::option::Option<String>,
-    /// The state of human review on the processing request. // TODO: enum values: ["STATE_UNSPECIFIED", "SKIPPED", "VALIDATION_PASSED", "IN_PROGRESS", "ERROR"]
-    #[serde(default)]
-    pub state: ::core::option::Option<String>,
-    /// A message providing more details about the human review state.
-    #[serde(default, rename = "stateMessage")]
-    pub state_message: ::core::option::Option<String>,
-}
-
-/// Metadata of the import document operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiV1beta3ImportDocumentsMetadata {
-    /// The basic metadata of the long-running operation.
-    #[serde(default, rename = "commonMetadata")]
-    pub common_metadata:
-        ::core::option::Option<GoogleCloudDocumentaiV1beta3CommonOperationMetadata>,
-    /// Validation statuses of the batch documents import config.
-    #[serde(default, rename = "importConfigValidationResults")]
-    pub import_config_validation_results: ::core::option::Option<
-        ::std::vec::Vec<
-            GoogleCloudDocumentaiV1beta3ImportDocumentsMetadataImportConfigValidationResult,
-        >,
-    >,
-    /// The list of response details of each document.
-    #[serde(default, rename = "individualImportStatuses")]
-    pub individual_import_statuses: ::core::option::Option<
-        ::std::vec::Vec<GoogleCloudDocumentaiV1beta3ImportDocumentsMetadataIndividualImportStatus>,
-    >,
-    /// Total number of the documents that are qualified for importing.
-    #[serde(default, rename = "totalDocumentCount")]
-    pub total_document_count: ::core::option::Option<i32>,
-}
-
-/// The validation status of each import config. Status is set to an error if there are no documents to import in the import_config, or OK if the operation will try to proceed with at least one document.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiV1beta3ImportDocumentsMetadataImportConfigValidationResult {
-    /// The source Cloud Storage URI specified in the import config.
-    #[serde(default, rename = "inputGcsSource")]
-    pub input_gcs_source: ::core::option::Option<String>,
-    /// The validation status of import config.
-    #[serde(default)]
-    pub status: ::core::option::Option<GoogleRpcStatus>,
-}
-
-/// The status of each individual document in the import process.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiV1beta3ImportDocumentsMetadataIndividualImportStatus {
-    /// The source Cloud Storage URI of the document.
-    #[serde(default, rename = "inputGcsSource")]
-    pub input_gcs_source: ::core::option::Option<String>,
-    /// The document id of imported document if it was successful, otherwise empty.
-    #[serde(default, rename = "outputDocumentId")]
-    pub output_document_id: ::core::option::Option<GoogleCloudDocumentaiV1beta3DocumentId>,
-    /// The status of the importing of the document.
-    #[serde(default)]
-    pub status: ::core::option::Option<GoogleRpcStatus>,
-}
-
-/// The long-running operation metadata for the ImportProcessorVersion method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiV1beta3ImportProcessorVersionMetadata {
-    /// The basic metadata for the long-running operation.
-    #[serde(default, rename = "commonMetadata")]
-    pub common_metadata:
-        ::core::option::Option<GoogleCloudDocumentaiV1beta3CommonOperationMetadata>,
-}
-
-/// The response message for the ImportProcessorVersion method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiV1beta3ImportProcessorVersionResponse {
-    /// The destination processor version name.
-    #[serde(default, rename = "processorVersion")]
-    pub processor_version: ::core::option::Option<String>,
-}
-
-/// The first-class citizen for Document AI. Each processor defines how to extract structural information from a document.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiV1beta3Processor {
-    /// Optional. SchemaVersion used by the Processor. It is the same as Processor''s DatasetSchema.schema_version Format is projects/{project}/locations/{location}/schemas/{schema}/schemaVersions/{schema_version}
-    #[serde(default, rename = "activeSchemaVersion")]
-    pub active_schema_version: ::core::option::Option<String>,
-    /// Output only. The time the processor was created.
-    #[serde(default, rename = "createTime")]
-    pub create_time: ::core::option::Option<String>,
-    /// The default processor version.
-    #[serde(default, rename = "defaultProcessorVersion")]
-    pub default_processor_version: ::core::option::Option<String>,
-    /// The display name of the processor.
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-    /// The [KMS key](https://cloud.google.com/security-key-management) used for encryption and decryption in CMEK scenarios.
-    #[serde(default, rename = "kmsKeyName")]
-    pub kms_key_name: ::core::option::Option<String>,
-    /// Output only. Immutable. The resource name of the processor. Format: projects/{project}/locations/{location}/processors/{processor}
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Output only. Immutable. The http endpoint that can be called to invoke processing.
-    #[serde(default, rename = "processEndpoint")]
-    pub process_endpoint: ::core::option::Option<String>,
-    /// Output only. The processor version aliases.
-    #[serde(default, rename = "processorVersionAliases")]
-    pub processor_version_aliases:
-        ::core::option::Option<::std::vec::Vec<GoogleCloudDocumentaiV1beta3ProcessorVersionAlias>>,
-    /// Output only. Reserved for future use.
-    #[serde(default, rename = "satisfiesPzi")]
-    pub satisfies_pzi: ::core::option::Option<bool>,
-    /// Output only. Reserved for future use.
-    #[serde(default, rename = "satisfiesPzs")]
-    pub satisfies_pzs: ::core::option::Option<bool>,
-    /// Output only. The state of the processor. // TODO: enum values: ["STATE_UNSPECIFIED", "ENABLED", "DISABLED", "ENABLING", "DISABLING", "CREATING", "FAILED", "DELETING"]
-    #[serde(default)]
-    pub state: ::core::option::Option<String>,
-    /// The processor type, such as: OCR_PROCESSOR, INVOICE_PROCESSOR. To get a list of processor types, see FetchProcessorTypes.
-    #[serde(default, rename = "type")]
-    pub type_: ::core::option::Option<String>,
-}
-
-/// A processor version is an implementation of a processor. Each processor can have multiple versions, pretrained by Google internally or uptrained by the customer. A processor can only have one default version at a time. Its document-processing behavior is defined by that version.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiV1beta3ProcessorVersion {
-    /// Output only. The time the processor version was created.
-    #[serde(default, rename = "createTime")]
-    pub create_time: ::core::option::Option<String>,
-    /// Output only. If set, information about the eventual deprecation of this version.
-    #[serde(default, rename = "deprecationInfo")]
-    pub deprecation_info:
-        ::core::option::Option<GoogleCloudDocumentaiV1beta3ProcessorVersionDeprecationInfo>,
-    /// The display name of the processor version.
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-    /// Output only. The schema of the processor version. Describes the output.
-    #[serde(default, rename = "documentSchema")]
-    pub document_schema: ::core::option::Option<GoogleCloudDocumentaiV1beta3DocumentSchema>,
-    /// Output only. Information about Generative AI model-based processor versions.
-    #[serde(default, rename = "genAiModelInfo")]
-    pub gen_ai_model_info:
-        ::core::option::Option<GoogleCloudDocumentaiV1beta3ProcessorVersionGenAiModelInfo>,
-    /// Output only. Denotes that this ProcessorVersion is managed by Google.
-    #[serde(default, rename = "googleManaged")]
-    pub google_managed: ::core::option::Option<bool>,
-    /// Output only. The KMS key name used for encryption.
-    #[serde(default, rename = "kmsKeyName")]
-    pub kms_key_name: ::core::option::Option<String>,
-    /// Output only. The KMS key version with which data is encrypted.
-    #[serde(default, rename = "kmsKeyVersionName")]
-    pub kms_key_version_name: ::core::option::Option<String>,
-    /// Output only. The most recently invoked evaluation for the processor version.
-    #[serde(default, rename = "latestEvaluation")]
-    pub latest_evaluation: ::core::option::Option<GoogleCloudDocumentaiV1beta3EvaluationReference>,
-    /// Output only. The model type of this processor version. // TODO: enum values: ["MODEL_TYPE_UNSPECIFIED", "MODEL_TYPE_GENERATIVE", "MODEL_TYPE_CUSTOM"]
-    #[serde(default, rename = "modelType")]
-    pub model_type: ::core::option::Option<String>,
-    /// Identifier. The resource name of the processor version. Format: projects/{project}/locations/{location}/processors/{processor}/processorVersions/{processor_version}
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Output only. Reserved for future use.
-    #[serde(default, rename = "satisfiesPzi")]
-    pub satisfies_pzi: ::core::option::Option<bool>,
-    /// Output only. Reserved for future use.
-    #[serde(default, rename = "satisfiesPzs")]
-    pub satisfies_pzs: ::core::option::Option<bool>,
-    /// Output only. The state of the processor version. // TODO: enum values: ["STATE_UNSPECIFIED", "DEPLOYED", "DEPLOYING", "UNDEPLOYED", "UNDEPLOYING", "CREATING", "DELETING", "FAILED", "IMPORTING"]
-    #[serde(default)]
-    pub state: ::core::option::Option<String>,
-}
-
-/// Contains the alias and the aliased resource name of processor version.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiV1beta3ProcessorVersionAlias {
-    /// The alias in the form of processor_version resource name.
-    #[serde(default)]
-    pub alias: ::core::option::Option<String>,
-    /// The resource name of aliased processor version.
-    #[serde(default, rename = "processorVersion")]
-    pub processor_version: ::core::option::Option<String>,
-}
-
-/// Information about the upcoming deprecation of this processor version.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiV1beta3ProcessorVersionDeprecationInfo {
-    /// The time at which this processor version will be deprecated.
-    #[serde(default, rename = "deprecationTime")]
-    pub deprecation_time: ::core::option::Option<String>,
-    /// If set, the processor version that will be used as a replacement.
-    #[serde(default, rename = "replacementProcessorVersion")]
-    pub replacement_processor_version: ::core::option::Option<String>,
-}
-
-/// Information about Generative AI model-based processor versions.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiV1beta3ProcessorVersionGenAiModelInfo {
-    /// Information for a custom Generative AI model created by the user.
-    #[serde(default, rename = "customGenAiModelInfo")]
-    pub custom_gen_ai_model_info: ::core::option::Option<
-        GoogleCloudDocumentaiV1beta3ProcessorVersionGenAiModelInfoCustomGenAiModelInfo,
-    >,
-    /// Information for a pretrained Google-managed foundation model.
-    #[serde(default, rename = "foundationGenAiModelInfo")]
-    pub foundation_gen_ai_model_info: ::core::option::Option<
-        GoogleCloudDocumentaiV1beta3ProcessorVersionGenAiModelInfoFoundationGenAiModelInfo,
-    >,
-}
-
-/// Information for a custom Generative AI model created by the user. These are created with Create New Version in either the Call foundation model or Fine tuning tabs.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiV1beta3ProcessorVersionGenAiModelInfoCustomGenAiModelInfo {
-    /// The base processor version ID for the custom model.
-    #[serde(default, rename = "baseProcessorVersionId")]
-    pub base_processor_version_id: ::core::option::Option<String>,
-    /// The type of custom model created by the user. // TODO: enum values: ["CUSTOM_MODEL_TYPE_UNSPECIFIED", "VERSIONED_FOUNDATION", "FINE_TUNED"]
-    #[serde(default, rename = "customModelType")]
-    pub custom_model_type: ::core::option::Option<String>,
-}
-
-/// Information for a pretrained Google-managed foundation model.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiV1beta3ProcessorVersionGenAiModelInfoFoundationGenAiModelInfo {
-    /// Whether fine tuning is allowed for this base processor version.
-    #[serde(default, rename = "finetuningAllowed")]
-    pub finetuning_allowed: ::core::option::Option<bool>,
-    /// The minimum number of labeled documents in the training dataset required for fine tuning.
-    #[serde(default, rename = "minTrainLabeledDocuments")]
-    pub min_train_labeled_documents: ::core::option::Option<i32>,
-}
-
-/// Metadata about a property.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiV1beta3PropertyMetadata {
-    /// Field extraction metadata on the property.
-    #[serde(default, rename = "fieldExtractionMetadata")]
-    pub field_extraction_metadata:
-        ::core::option::Option<GoogleCloudDocumentaiV1beta3FieldExtractionMetadata>,
-    /// Whether the property should be considered as "inactive".
-    #[serde(default)]
-    pub inactive: ::core::option::Option<bool>,
-}
-
-/// The long-running operation metadata for the ReviewDocument method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiV1beta3ReviewDocumentOperationMetadata {
-    /// The basic metadata of the long-running operation.
-    #[serde(default, rename = "commonMetadata")]
-    pub common_metadata:
-        ::core::option::Option<GoogleCloudDocumentaiV1beta3CommonOperationMetadata>,
-    /// The creation time of the operation.
-    #[serde(default, rename = "createTime")]
-    pub create_time: ::core::option::Option<String>,
-    /// The Crowd Compute question ID.
-    #[serde(default, rename = "questionId")]
-    pub question_id: ::core::option::Option<String>,
-    /// Used only when Operation.done is false. // TODO: enum values: ["STATE_UNSPECIFIED", "RUNNING", "CANCELLING", "SUCCEEDED", "FAILED", "CANCELLED"]
-    #[serde(default)]
-    pub state: ::core::option::Option<String>,
-    /// A message providing more details about the current state of processing. For example, the error message if the operation is failed.
-    #[serde(default, rename = "stateMessage")]
-    pub state_message: ::core::option::Option<String>,
-    /// The last update time of the operation.
-    #[serde(default, rename = "updateTime")]
-    pub update_time: ::core::option::Option<String>,
-}
-
-/// Response message for the ReviewDocument method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiV1beta3ReviewDocumentResponse {
-    /// The Cloud Storage uri for the human reviewed document if the review is succeeded.
-    #[serde(default, rename = "gcsDestination")]
-    pub gcs_destination: ::core::option::Option<String>,
-    /// The reason why the review is rejected by reviewer.
-    #[serde(default, rename = "rejectionReason")]
-    pub rejection_reason: ::core::option::Option<String>,
-    /// The state of the review operation. // TODO: enum values: ["STATE_UNSPECIFIED", "REJECTED", "SUCCEEDED"]
-    #[serde(default)]
-    pub state: ::core::option::Option<String>,
-}
-
-/// The revision reference specifies which revision on the document to read.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiV1beta3RevisionRef {
-    /// Reads the revision generated by the processor version. The format takes the full resource name of processor version. projects/{project}/locations/{location}/processors/{processor}/processorVersions/{processorVersion}
-    #[serde(default, rename = "latestProcessorVersion")]
-    pub latest_processor_version: ::core::option::Option<String>,
-    /// Reads the revision by the predefined case. // TODO: enum values: ["REVISION_CASE_UNSPECIFIED", "LATEST_HUMAN_REVIEW", "LATEST_TIMESTAMP", "BASE_OCR_REVISION"]
-    #[serde(default, rename = "revisionCase")]
-    pub revision_case: ::core::option::Option<String>,
-    /// Reads the revision given by the id.
-    #[serde(default, rename = "revisionId")]
-    pub revision_id: ::core::option::Option<String>,
-}
-
-/// The long-running operation metadata for the SetDefaultProcessorVersion method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiV1beta3SetDefaultProcessorVersionMetadata {
-    /// The basic metadata of the long-running operation.
-    #[serde(default, rename = "commonMetadata")]
-    pub common_metadata:
-        ::core::option::Option<GoogleCloudDocumentaiV1beta3CommonOperationMetadata>,
-}
-
-/// Metadata for document summarization.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiV1beta3SummaryOptions {
-    /// The format the summary should be in. // TODO: enum values: ["FORMAT_UNSPECIFIED", "PARAGRAPH", "BULLETS"]
-    #[serde(default)]
-    pub format: ::core::option::Option<String>,
-    /// How long the summary should be. // TODO: enum values: ["LENGTH_UNSPECIFIED", "BRIEF", "MODERATE", "COMPREHENSIVE"]
-    #[serde(default)]
-    pub length: ::core::option::Option<String>,
-}
-
-/// The metadata that represents a processor version being created.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiV1beta3TrainProcessorVersionMetadata {
-    /// The basic metadata of the long-running operation.
-    #[serde(default, rename = "commonMetadata")]
-    pub common_metadata:
-        ::core::option::Option<GoogleCloudDocumentaiV1beta3CommonOperationMetadata>,
-    /// The test dataset validation information.
-    #[serde(default, rename = "testDatasetValidation")]
-    pub test_dataset_validation: ::core::option::Option<
-        GoogleCloudDocumentaiV1beta3TrainProcessorVersionMetadataDatasetValidation,
-    >,
-    /// The training dataset validation information.
-    #[serde(default, rename = "trainingDatasetValidation")]
-    pub training_dataset_validation: ::core::option::Option<
-        GoogleCloudDocumentaiV1beta3TrainProcessorVersionMetadataDatasetValidation,
-    >,
-}
-
-/// The dataset validation information. This includes any and all errors with documents and the dataset.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiV1beta3TrainProcessorVersionMetadataDatasetValidation {
-    /// The total number of dataset errors.
-    #[serde(default, rename = "datasetErrorCount")]
-    pub dataset_error_count: ::core::option::Option<i32>,
-    /// Error information for the dataset as a whole. A maximum of 10 dataset errors will be returned. A single dataset error is terminal for training.
-    #[serde(default, rename = "datasetErrors")]
-    pub dataset_errors: ::core::option::Option<::std::vec::Vec<GoogleRpcStatus>>,
-    /// The total number of document errors.
-    #[serde(default, rename = "documentErrorCount")]
-    pub document_error_count: ::core::option::Option<i32>,
-    /// Error information pertaining to specific documents. A maximum of 10 document errors will be returned. Any document with errors will not be used throughout training.
-    #[serde(default, rename = "documentErrors")]
-    pub document_errors: ::core::option::Option<::std::vec::Vec<GoogleRpcStatus>>,
-}
-
-/// The response for TrainProcessorVersion.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiV1beta3TrainProcessorVersionResponse {
-    /// The resource name of the processor version produced by training.
-    #[serde(default, rename = "processorVersion")]
-    pub processor_version: ::core::option::Option<String>,
-}
-
-/// The long-running operation metadata for the UndeployProcessorVersion method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiV1beta3UndeployProcessorVersionMetadata {
-    /// The basic metadata of the long-running operation.
-    #[serde(default, rename = "commonMetadata")]
-    pub common_metadata:
-        ::core::option::Option<GoogleCloudDocumentaiV1beta3CommonOperationMetadata>,
-}
-
-/// GoogleCloudDocumentaiV1beta3UpdateDatasetOperationMetadata resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiV1beta3UpdateDatasetOperationMetadata {
-    /// The basic metadata of the long-running operation.
-    #[serde(default, rename = "commonMetadata")]
-    pub common_metadata:
-        ::core::option::Option<GoogleCloudDocumentaiV1beta3CommonOperationMetadata>,
-}
-
-/// The long-running operation metadata for the UpdateProcessorVersion method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiV1beta3UpdateProcessorVersionMetadata {
-    /// The basic metadata for the long-running operation.
-    #[serde(default, rename = "commonMetadata")]
-    pub common_metadata:
-        ::core::option::Option<GoogleCloudDocumentaiV1beta3CommonOperationMetadata>,
-}
-
-/// The response message for Locations.ListLocations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudLocationListLocationsResponse {
-    /// A list of locations that matches the specified filter in the request.
-    #[serde(default)]
-    pub locations: ::core::option::Option<::std::vec::Vec<GoogleCloudLocationLocation>>,
-    /// The standard List next-page token.
-    #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: ::core::option::Option<String>,
-}
-
-/// A resource that represents a Google Cloud location.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudLocationLocation {
-    /// The friendly name for this location, typically a nearby city name. For example, "Tokyo".
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-    /// Cross-service attributes for the location. For example {"cloud.googleapis.com/region": "us-east1"}
-    #[serde(default)]
-    pub labels: ::core::option::Option<serde_json::Value>,
-    /// The canonical id for this location. For example: "us-east1".
-    #[serde(default, rename = "locationId")]
-    pub location_id: ::core::option::Option<String>,
-    /// Service-specific metadata. For example the available capacity at the given location.
-    #[serde(default)]
-    pub metadata: ::core::option::Option<serde_json::Value>,
-    /// Resource name for the location, which may vary between implementations. For example: "projects/example-project/locations/us-east1"
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-}
-
-/// The response message for Operations.ListOperations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleLongrunningListOperationsResponse {
-    /// The standard List next-page token.
-    #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: ::core::option::Option<String>,
-    /// A list of operations that matches the specified filter in the request.
-    #[serde(default)]
-    pub operations: ::core::option::Option<::std::vec::Vec<GoogleLongrunningOperation>>,
-    /// Unordered list. Unreachable resources. Populated when the request sets ListOperationsRequest.return_partial_success and reads across collections. For example, when attempting to list all resources across all supported locations.
-    #[serde(default)]
-    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// This resource represents a long-running operation that is the result of a network API call.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleLongrunningOperation {
-    /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
-    #[serde(default)]
-    pub done: ::core::option::Option<bool>,
-    /// The error result of the operation in case of failure or cancellation.
-    #[serde(default)]
-    pub error: ::core::option::Option<GoogleRpcStatus>,
-    /// Service-specific metadata associated with the operation. It typically contains progress information and common metadata such as create time. Some services might not provide such metadata. Any method that returns a long-running operation should document the metadata type, if any.
-    #[serde(default)]
-    pub metadata: ::core::option::Option<serde_json::Value>,
-    /// The server-assigned name, which is only unique within the same service that originally returns it. If you use the default HTTP mapping, the name should be a resource name ending with operations/{unique_id}.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// The normal, successful response of the operation. If the original method returns no data on success, such as Delete, the response is google.protobuf.Empty. If the original method is standard Get/Create/Update, the response should be the resource. For other methods, the response should have the type XxxResponse, where Xxx is the original method name. For example, if the original method name is TakeSnapshot(), the inferred response type is TakeSnapshotResponse.
-    #[serde(default)]
-    pub response: ::core::option::Option<serde_json::Value>,
-}
-
-/// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleRpcStatus {
-    /// The status code, which should be an enum value of google.rpc.Code.
-    #[serde(default)]
-    pub code: ::core::option::Option<i32>,
-    /// A list of messages that carry the error details. There is a common set of message types for APIs to use.
-    #[serde(default)]
-    pub details: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
-    /// A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.
-    #[serde(default)]
-    pub message: ::core::option::Option<String>,
-}
-
-/// Represents a color in the RGBA color space. This representation is designed for simplicity of conversion to and from color representations in various languages over compactness. For example, the fields of this representation can be trivially provided to the constructor of java.awt.Color in Java; it can also be trivially provided to UIColor''s +colorWithRed:green:blue:alpha method in iOS; and, with just a little work, it can be easily formatted into a CSS rgba() string in JavaScript. This reference page doesn''t have information about the absolute color space that should be used to interpret the RGB value—for example, sRGB, Adobe RGB, DCI-P3, and BT.2020. By default, applications should assume the sRGB color space. When color equality needs to be decided, implementations, unless documented otherwise, treat two colors as equal if all their red, green, blue, and alpha values each differ by at most 1e-5. Example (Java): import com.google.type.Color; // ... public static java.awt.Color fromProto(Color protocolor) { float alpha = protocolor.hasAlpha() ? protocolor.getAlpha().getValue() : 1.0; return new java.awt.Color( protocolor.getRed(), protocolor.getGreen(), protocolor.getBlue(), alpha); } public static Color toProto(java.awt.Color color) { float red = (float) color.getRed(); float green = (float) color.getGreen(); float blue = (float) color.getBlue(); float denominator = 255.0; Color.Builder resultBuilder = Color .newBuilder() .setRed(red / denominator) .setGreen(green / denominator) .setBlue(blue / denominator); int alpha = color.getAlpha(); if (alpha != 255) { result.setAlpha( FloatValue .newBuilder() .setValue(((float) alpha) / denominator) .build()); } return resultBuilder.build(); } // ... Example (iOS / Obj-C): // ... static UIColor* fromProto(Color* protocolor) { float red = [protocolor red]; float green = [protocolor green]; float blue = [protocolor blue]; FloatValue* alpha_wrapper = [protocolor alpha]; float alpha = 1.0; if (alpha_wrapper != nil) { alpha = [alpha_wrapper value]; } return [UIColor colorWithRed:red green:green blue:blue alpha:alpha]; } static Color* toProto(UIColor* color) { CGFloat red, green, blue, alpha; if (![color getRed:&red green:&green blue:&blue alpha:&alpha]) { return nil; } Color* result = [[Color alloc] init]; [result setRed:red]; [result setGreen:green]; [result setBlue:blue]; if (alpha &lt;= 0.9999) { [result setAlpha:floatWrapperWithValue(alpha)]; } [result autorelease]; return result; } // ... Example (JavaScript): // ... var protoToCssColor = function(rgb_color) { var redFrac = rgb_color.red || 0.0; var greenFrac = rgb_color.green || 0.0; var blueFrac = rgb_color.blue || 0.0; var red = Math.floor(redFrac * 255); var green = Math.floor(greenFrac * 255); var blue = Math.floor(blueFrac * 255); if (!(''alpha'' in rgb_color)) { return rgbToCssColor(red, green, blue); } var alphaFrac = rgb_color.alpha.value || 0.0; var rgbParams = [red, green, blue].join('',''); return [''rgba('', rgbParams, '','', alphaFrac, '')''].join(''''); }; var rgbToCssColor = function(red, green, blue) { var rgbNumber = new Number((red &lt;&lt; 16) | (green &lt;&lt; 8) | blue); var hexString = rgbNumber.toString(16); var missingZeros = 6 - hexString.length; var resultBuilder = [''#'']; for (var i = 0; i &lt; missingZeros; i++) { resultBuilder.push(''0''); } resultBuilder.push(hexString); return resultBuilder.join(''''); }; // ...
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleTypeColor {
-    /// The fraction of this color that should be applied to the pixel. That is, the final pixel color is defined by the equation: pixel color = alpha * (this color) + (1.0 - alpha) * (background color) This means that a value of 1.0 corresponds to a solid color, whereas a value of 0.0 corresponds to a completely transparent color. This uses a wrapper message rather than a simple float scalar so that it is possible to distinguish between a default value and the value being unset. If omitted, this color object is rendered as a solid color (as if the alpha value had been explicitly given a value of 1.0).
-    #[serde(default)]
-    pub alpha: ::core::option::Option<f32>,
-    /// The amount of blue in the color as a value in the interval [0, 1].
-    #[serde(default)]
-    pub blue: ::core::option::Option<f32>,
-    /// The amount of green in the color as a value in the interval [0, 1].
-    #[serde(default)]
-    pub green: ::core::option::Option<f32>,
-    /// The amount of red in the color as a value in the interval [0, 1].
-    #[serde(default)]
-    pub red: ::core::option::Option<f32>,
-}
-
-/// Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleTypeDate {
-    /// Day of a month. Must be from 1 to 31 and valid for the year and month, or 0 to specify a year by itself or a year and month where the day isn''t significant.
-    #[serde(default)]
-    pub day: ::core::option::Option<i32>,
-    /// Month of a year. Must be from 1 to 12, or 0 to specify a year without a month and day.
-    #[serde(default)]
-    pub month: ::core::option::Option<i32>,
-    /// Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.
-    #[serde(default)]
-    pub year: ::core::option::Option<i32>,
-}
-
-/// Represents civil time (or occasionally physical time). This type can represent a civil time in one of a few possible ways: * When utc_offset is set and time_zone is unset: a civil time on a calendar day with a particular offset from UTC. * When time_zone is set and utc_offset is unset: a civil time on a calendar day in a particular time zone. * When neither time_zone nor utc_offset is set: a civil time on a calendar day in local time. The date is relative to the Proleptic Gregorian Calendar. If year, month, or day are 0, the DateTime is considered not to have a specific year, month, or day respectively. This type may also be used to represent a physical time if all the date and time fields are set and either case of the time_offset oneof is set. Consider using Timestamp message for physical time instead. If your use case also would like to store the user''s timezone, that can be done in another field. This type is more flexible than some applications may want. Make sure to document and validate your application''s limitations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleTypeDateTime {
-    /// Optional. Day of month. Must be from 1 to 31 and valid for the year and month, or 0 if specifying a datetime without a day.
-    #[serde(default)]
-    pub day: ::core::option::Option<i32>,
-    /// Optional. Hours of day in 24 hour format. Should be from 0 to 23, defaults to 0 (midnight). An API may choose to allow the value "24:00:00" for scenarios like business closing time.
-    #[serde(default)]
-    pub hours: ::core::option::Option<i32>,
-    /// Optional. Minutes of hour of day. Must be from 0 to 59, defaults to 0.
-    #[serde(default)]
-    pub minutes: ::core::option::Option<i32>,
-    /// Optional. Month of year. Must be from 1 to 12, or 0 if specifying a datetime without a month.
-    #[serde(default)]
-    pub month: ::core::option::Option<i32>,
-    /// Optional. Fractions of seconds in nanoseconds. Must be from 0 to 999,999,999, defaults to 0.
-    #[serde(default)]
-    pub nanos: ::core::option::Option<i32>,
-    /// Optional. Seconds of minutes of the time. Must normally be from 0 to 59, defaults to 0. An API may allow the value 60 if it allows leap-seconds.
-    #[serde(default)]
-    pub seconds: ::core::option::Option<i32>,
-    /// Time zone.
-    #[serde(default, rename = "timeZone")]
-    pub time_zone: ::core::option::Option<GoogleTypeTimeZone>,
-    /// UTC offset. Must be whole seconds, between -18 hours and +18 hours. For example, a UTC offset of -4:00 would be represented as { seconds: -14400 }.
-    #[serde(default, rename = "utcOffset")]
-    pub utc_offset: ::core::option::Option<String>,
-    /// Optional. Year of date. Must be from 1 to 9999, or 0 if specifying a datetime without a year.
-    #[serde(default)]
-    pub year: ::core::option::Option<i32>,
-}
-
-/// Represents an amount of money with its currency type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleTypeMoney {
-    /// The three-letter currency code defined in ISO 4217.
-    #[serde(default, rename = "currencyCode")]
-    pub currency_code: ::core::option::Option<String>,
-    /// Number of nano (10^-9) units of the amount. The value must be between -999,999,999 and +999,999,999 inclusive. If units is positive, nanos must be positive or zero. If units is zero, nanos can be positive, zero, or negative. If units is negative, nanos must be negative or zero. For example $-1.75 is represented as units=-1 and nanos=-750,000,000.
-    #[serde(default)]
-    pub nanos: ::core::option::Option<i32>,
-    /// The whole units of the amount. For example if currencyCode is "USD", then 1 unit is one US dollar.
-    #[serde(default)]
-    pub units: ::core::option::Option<String>,
-}
-
-/// Represents a postal address, such as for postal delivery or payments addresses. With a postal address, a postal service can deliver items to a premise, P.O. box, or similar. A postal address is not intended to model geographical locations like roads, towns, or mountains. In typical usage, an address would be created by user input or from importing existing data, depending on the type of process. Advice on address input or editing: - Use an internationalization-ready address widget such as https://github.com/google/libaddressinput. - Users should not be presented with UI elements for input or editing of fields outside countries where that field is used. For more guidance on how to use this schema, see: https://support.google.com/business/answer/6397478.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleTypePostalAddress {
-    /// Unstructured address lines describing the lower levels of an address. Because values in address_lines do not have type information and may sometimes contain multiple values in a single field (for example, "Austin, TX"), it is important that the line order is clear. The order of address lines should be "envelope order" for the country or region of the address. In places where this can vary (for example, Japan), address_language is used to make it explicit (for example, "ja" for large-to-small ordering and "ja-Latn" or "en" for small-to-large). In this way, the most specific line of an address can be selected based on the language. The minimum permitted structural representation of an address consists of a region_code with all remaining information placed in the address_lines. It would be possible to format such an address very approximately without geocoding, but no semantic reasoning could be made about any of the address components until it was at least partially resolved. Creating an address only containing a region_code and address_lines and then geocoding is the recommended way to handle completely unstructured addresses (as opposed to guessing which parts of the address should be localities or administrative areas).
-    #[serde(default, rename = "addressLines")]
-    pub address_lines: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Optional. Highest administrative subdivision which is used for postal addresses of a country or region. For example, this can be a state, a province, an oblast, or a prefecture. For Spain, this is the province and not the autonomous community (for example, "Barcelona" and not "Catalonia"). Many countries don''t use an administrative area in postal addresses. For example, in Switzerland, this should be left unpopulated.
-    #[serde(default, rename = "administrativeArea")]
-    pub administrative_area: ::core::option::Option<String>,
-    /// Optional. BCP-47 language code of the contents of this address (if known). This is often the UI language of the input form or is expected to match one of the languages used in the address'' country/region, or their transliterated equivalents. This can affect formatting in certain countries, but is not critical to the correctness of the data and will never affect any validation or other non-formatting related operations. If this value is not known, it should be omitted (rather than specifying a possibly incorrect default). Examples: "zh-Hant", "ja", "ja-Latn", "en".
-    #[serde(default, rename = "languageCode")]
-    pub language_code: ::core::option::Option<String>,
-    /// Optional. Generally refers to the city or town portion of the address. Examples: US city, IT comune, UK post town. In regions of the world where localities are not well defined or do not fit into this structure well, leave locality empty and use address_lines.
-    #[serde(default)]
-    pub locality: ::core::option::Option<String>,
-    /// Optional. The name of the organization at the address.
-    #[serde(default)]
-    pub organization: ::core::option::Option<String>,
-    /// Optional. Postal code of the address. Not all countries use or require postal codes to be present, but where they are used, they may trigger additional validation with other parts of the address (for example, state or zip code validation in the United States).
-    #[serde(default, rename = "postalCode")]
-    pub postal_code: ::core::option::Option<String>,
-    /// Optional. The recipient at the address. This field may, under certain circumstances, contain multiline information. For example, it might contain "care of" information.
-    #[serde(default)]
-    pub recipients: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Required. CLDR region code of the country/region of the address. This is never inferred and it is up to the user to ensure the value is correct. See https://cldr.unicode.org/ and https://www.unicode.org/cldr/charts/30/supplemental/territory_information.html for details. Example: "CH" for Switzerland.
-    #[serde(default, rename = "regionCode")]
-    pub region_code: ::core::option::Option<String>,
-    /// The schema revision of the PostalAddress. This must be set to 0, which is the latest revision. All new revisions **must** be backward compatible with old revisions.
-    #[serde(default)]
-    pub revision: ::core::option::Option<i32>,
-    /// Optional. Additional, country-specific, sorting code. This is not used in most regions. Where it is used, the value is either a string like "CEDEX", optionally followed by a number (for example, "CEDEX 7"), or just a number alone, representing the "sector code" (Jamaica), "delivery area indicator" (Malawi) or "post office indicator" (Côte d''Ivoire).
-    #[serde(default, rename = "sortingCode")]
-    pub sorting_code: ::core::option::Option<String>,
-    /// Optional. Sublocality of the address. For example, this can be a neighborhood, borough, or district.
-    #[serde(default)]
-    pub sublocality: ::core::option::Option<String>,
-}
-
-/// Represents a time zone from the [IANA Time Zone Database](https://www.iana.org/time-zones).
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleTypeTimeZone {
-    /// IANA Time Zone Database time zone. For example "America/New_York".
-    #[serde(default)]
-    pub id: ::core::option::Option<String>,
-    /// Optional. IANA Time Zone Database version number. For example "2019a".
-    #[serde(default)]
-    pub version: ::core::option::Option<String>,
 }

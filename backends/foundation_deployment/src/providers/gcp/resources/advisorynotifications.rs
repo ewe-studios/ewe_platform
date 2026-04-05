@@ -10,37 +10,6 @@
 use super::*;
 use serde::{Deserialize, Serialize};
 
-/// Attachment with specific information about the issue.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudAdvisorynotificationsV1Attachment {
-    /// A CSV file attachment. Max size is 10 MB.
-    #[serde(default)]
-    pub csv: ::core::option::Option<GoogleCloudAdvisorynotificationsV1Csv>,
-    /// The title of the attachment.
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-}
-
-/// A representation of a CSV file attachment, as a list of column headers and a list of data rows.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudAdvisorynotificationsV1Csv {
-    /// The list of data rows in a CSV file, as string arrays rather than as a single comma-separated string.
-    #[serde(default, rename = "dataRows")]
-    pub data_rows:
-        ::core::option::Option<::std::vec::Vec<GoogleCloudAdvisorynotificationsV1CsvCsvRow>>,
-    /// The list of headers for data columns in a CSV file.
-    #[serde(default)]
-    pub headers: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// A representation of a single data row in a CSV file.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudAdvisorynotificationsV1CsvCsvRow {
-    /// The data entries in a CSV file row, as a string array rather than a single comma-separated string.
-    #[serde(default)]
-    pub entries: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
 /// Response of ListNotifications endpoint.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudAdvisorynotificationsV1ListNotificationsResponse {
@@ -54,53 +23,6 @@ pub struct GoogleCloudAdvisorynotificationsV1ListNotificationsResponse {
     /// Estimation of a total number of notifications.
     #[serde(default, rename = "totalSize")]
     pub total_size: ::core::option::Option<i32>,
-}
-
-/// A message which contains notification details.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudAdvisorynotificationsV1Message {
-    /// The attachments to download.
-    #[serde(default)]
-    pub attachments:
-        ::core::option::Option<::std::vec::Vec<GoogleCloudAdvisorynotificationsV1Attachment>>,
-    /// The message content.
-    #[serde(default)]
-    pub body: ::core::option::Option<GoogleCloudAdvisorynotificationsV1MessageBody>,
-    /// The Message creation timestamp.
-    #[serde(default, rename = "createTime")]
-    pub create_time: ::core::option::Option<String>,
-    /// Time when Message was localized
-    #[serde(default, rename = "localizationTime")]
-    pub localization_time: ::core::option::Option<String>,
-}
-
-/// A message body containing text.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudAdvisorynotificationsV1MessageBody {
-    /// The text content of the message body.
-    #[serde(default)]
-    pub text: ::core::option::Option<GoogleCloudAdvisorynotificationsV1Text>,
-}
-
-/// A notification object for notifying customers about security and privacy issues.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudAdvisorynotificationsV1Notification {
-    /// Output only. Time the notification was created.
-    #[serde(default, rename = "createTime")]
-    pub create_time: ::core::option::Option<String>,
-    /// A list of messages in the notification.
-    #[serde(default)]
-    pub messages:
-        ::core::option::Option<::std::vec::Vec<GoogleCloudAdvisorynotificationsV1Message>>,
-    /// The resource name of the notification. Format: organizations/{organization}/locations/{location}/notifications/{notification} or projects/{project}/locations/{location}/notifications/{notification}.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Type of notification // TODO: enum values: ["NOTIFICATION_TYPE_UNSPECIFIED", "NOTIFICATION_TYPE_SECURITY_PRIVACY_ADVISORY", "NOTIFICATION_TYPE_SENSITIVE_ACTIONS", "NOTIFICATION_TYPE_SECURITY_MSA", "NOTIFICATION_TYPE_THREAT_HORIZONS"]
-    #[serde(default, rename = "notificationType")]
-    pub notification_type: ::core::option::Option<String>,
-    /// The subject line of the notification.
-    #[serde(default)]
-    pub subject: ::core::option::Option<GoogleCloudAdvisorynotificationsV1Subject>,
 }
 
 /// Settings for each NotificationType.
@@ -125,12 +47,82 @@ pub struct GoogleCloudAdvisorynotificationsV1Settings {
     pub notification_settings: ::core::option::Option<serde_json::Value>,
 }
 
+/// A notification object for notifying customers about security and privacy issues.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudAdvisorynotificationsV1Notification {
+    /// Output only. Time the notification was created.
+    #[serde(default, rename = "createTime")]
+    pub create_time: ::core::option::Option<String>,
+    /// A list of messages in the notification.
+    #[serde(default)]
+    pub messages:
+        ::core::option::Option<::std::vec::Vec<GoogleCloudAdvisorynotificationsV1Message>>,
+    /// The resource name of the notification. Format: organizations/{organization}/locations/{location}/notifications/{notification} or projects/{project}/locations/{location}/notifications/{notification}.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Type of notification // TODO: enum values: ["NOTIFICATION_TYPE_UNSPECIFIED", "NOTIFICATION_TYPE_SECURITY_PRIVACY_ADVISORY", "NOTIFICATION_TYPE_SENSITIVE_ACTIONS", "NOTIFICATION_TYPE_SECURITY_MSA", "NOTIFICATION_TYPE_THREAT_HORIZONS"]
+    #[serde(default, rename = "notificationType")]
+    pub notification_type: ::core::option::Option<String>,
+    /// The subject line of the notification.
+    #[serde(default)]
+    pub subject: ::core::option::Option<GoogleCloudAdvisorynotificationsV1Subject>,
+}
+
+/// A message which contains notification details.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudAdvisorynotificationsV1Message {
+    /// The attachments to download.
+    #[serde(default)]
+    pub attachments:
+        ::core::option::Option<::std::vec::Vec<GoogleCloudAdvisorynotificationsV1Attachment>>,
+    /// The message content.
+    #[serde(default)]
+    pub body: ::core::option::Option<GoogleCloudAdvisorynotificationsV1MessageBody>,
+    /// The Message creation timestamp.
+    #[serde(default, rename = "createTime")]
+    pub create_time: ::core::option::Option<String>,
+    /// Time when Message was localized
+    #[serde(default, rename = "localizationTime")]
+    pub localization_time: ::core::option::Option<String>,
+}
+
 /// A subject line of a notification.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudAdvisorynotificationsV1Subject {
     /// The text content.
     #[serde(default)]
     pub text: ::core::option::Option<GoogleCloudAdvisorynotificationsV1Text>,
+}
+
+/// Attachment with specific information about the issue.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudAdvisorynotificationsV1Attachment {
+    /// A CSV file attachment. Max size is 10 MB.
+    #[serde(default)]
+    pub csv: ::core::option::Option<GoogleCloudAdvisorynotificationsV1Csv>,
+    /// The title of the attachment.
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+}
+
+/// A message body containing text.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudAdvisorynotificationsV1MessageBody {
+    /// The text content of the message body.
+    #[serde(default)]
+    pub text: ::core::option::Option<GoogleCloudAdvisorynotificationsV1Text>,
+}
+
+/// A representation of a CSV file attachment, as a list of column headers and a list of data rows.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudAdvisorynotificationsV1Csv {
+    /// The list of data rows in a CSV file, as string arrays rather than as a single comma-separated string.
+    #[serde(default, rename = "dataRows")]
+    pub data_rows:
+        ::core::option::Option<::std::vec::Vec<GoogleCloudAdvisorynotificationsV1CsvCsvRow>>,
+    /// The list of headers for data columns in a CSV file.
+    #[serde(default)]
+    pub headers: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// A text object containing the English text and its localized copies.
@@ -145,4 +137,12 @@ pub struct GoogleCloudAdvisorynotificationsV1Text {
     /// The requested localized copy (if applicable).
     #[serde(default, rename = "localizedText")]
     pub localized_text: ::core::option::Option<String>,
+}
+
+/// A representation of a single data row in a CSV file.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudAdvisorynotificationsV1CsvCsvRow {
+    /// The data entries in a CSV file row, as a string array rather than a single comma-separated string.
+    #[serde(default)]
+    pub entries: ::core::option::Option<::std::vec::Vec<String>>,
 }

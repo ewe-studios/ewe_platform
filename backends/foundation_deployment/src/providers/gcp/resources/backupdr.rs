@@ -18,1371 +18,12 @@ pub struct AbandonBackupRequest {
     pub request_id: ::core::option::Option<String>,
 }
 
-/// A specification of the type and number of accelerator cards attached to the instance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AcceleratorConfig {
-    /// Optional. The number of the guest accelerator cards exposed to this instance.
-    #[serde(default, rename = "acceleratorCount")]
-    pub accelerator_count: ::core::option::Option<i32>,
-    /// Optional. Full or partial URL of the accelerator type resource to attach to this instance.
-    #[serde(default, rename = "acceleratorType")]
-    pub accelerator_type: ::core::option::Option<String>,
-}
-
-/// An access configuration attached to an instance''s network interface. Only one access config per instance is supported.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AccessConfig {
-    /// Optional. The external IPv6 address of this access configuration.
-    #[serde(default, rename = "externalIpv6")]
-    pub external_ipv6: ::core::option::Option<String>,
-    /// Optional. The prefix length of the external IPv6 range.
-    #[serde(default, rename = "externalIpv6PrefixLength")]
-    pub external_ipv6_prefix_length: ::core::option::Option<i32>,
-    /// Optional. The name of this access configuration.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Optional. The external IP address of this access configuration.
-    #[serde(default, rename = "natIP")]
-    pub nat_i_p: ::core::option::Option<String>,
-    /// Optional. This signifies the networking tier used for configuring this access // TODO: enum values: ["NETWORK_TIER_UNSPECIFIED", "PREMIUM", "STANDARD"]
-    #[serde(default, rename = "networkTier")]
-    pub network_tier: ::core::option::Option<String>,
-    /// Optional. The DNS domain name for the public PTR record.
-    #[serde(default, rename = "publicPtrDomainName")]
-    pub public_ptr_domain_name: ::core::option::Option<String>,
-    /// Optional. Specifies whether a public DNS ''PTR'' record should be created to map the external IP address of the instance to a DNS domain name.
-    #[serde(default, rename = "setPublicPtr")]
-    pub set_public_ptr: ::core::option::Option<bool>,
-    /// Optional. In accessConfigs (IPv4), the default and only option is ONE_TO_ONE_NAT. In ipv6AccessConfigs, the default and only option is DIRECT_IPV6. // TODO: enum values: ["ACCESS_TYPE_UNSPECIFIED", "ONE_TO_ONE_NAT", "DIRECT_IPV6"]
-    #[serde(default, rename = "type")]
-    pub type_: ::core::option::Option<String>,
-}
-
-/// Specifies options for controlling advanced machine features.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AdvancedMachineFeatures {
-    /// Optional. Whether to enable nested virtualization or not (default is false).
-    #[serde(default, rename = "enableNestedVirtualization")]
-    pub enable_nested_virtualization: ::core::option::Option<bool>,
-    /// Optional. Whether to enable UEFI networking for instance creation.
-    #[serde(default, rename = "enableUefiNetworking")]
-    pub enable_uefi_networking: ::core::option::Option<bool>,
-    /// Optional. The number of threads per physical core. To disable simultaneous multithreading (SMT) set this to 1. If unset, the maximum number of threads supported per core by the underlying processor is assumed.
-    #[serde(default, rename = "threadsPerCore")]
-    pub threads_per_core: ::core::option::Option<i32>,
-    /// Optional. The number of physical cores to expose to an instance. Multiply by the number of threads per core to compute the total number of virtual CPUs to expose to the instance. If unset, the number of cores is inferred from the instance''s nominal CPU count and the underlying platform''s SMT width.
-    #[serde(default, rename = "visibleCoreCount")]
-    pub visible_core_count: ::core::option::Option<i32>,
-}
-
-/// An alias IP range attached to an instance''s network interface.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AliasIpRange {
-    /// Optional. The IP alias ranges to allocate for this interface.
-    #[serde(default, rename = "ipCidrRange")]
-    pub ip_cidr_range: ::core::option::Option<String>,
-    /// Optional. The name of a subnetwork secondary IP range from which to allocate an IP alias range. If not specified, the primary range of the subnetwork is used.
-    #[serde(default, rename = "subnetworkRangeName")]
-    pub subnetwork_range_name: ::core::option::Option<String>,
-}
-
-/// Specifies the reservations that this instance can consume from.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AllocationAffinity {
-    /// Optional. Specifies the type of reservation from which this instance can consume // TODO: enum values: ["TYPE_UNSPECIFIED", "NO_RESERVATION", "ANY_RESERVATION", "SPECIFIC_RESERVATION"]
-    #[serde(default, rename = "consumeReservationType")]
-    pub consume_reservation_type: ::core::option::Option<String>,
-    /// Optional. Corresponds to the label key of a reservation resource.
-    #[serde(default)]
-    pub key: ::core::option::Option<String>,
-    /// Optional. Corresponds to the label values of a reservation resource.
-    #[serde(default)]
-    pub values: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// Properties for an AlloyDB cluster backup plan association.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AlloyDBClusterBackupPlanAssociationProperties {
-    /// Output only. The cluster UID of the AlloyDB cluster.
-    #[serde(default, rename = "clusterUid")]
-    pub cluster_uid: ::core::option::Option<String>,
-}
-
-/// AlloyDBClusterDataSourceProperties represents the properties of a AlloyDB cluster resource that are stored in the DataSource. .
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AlloyDBClusterDataSourceProperties {
-    /// Output only. The cluster UID of the AlloyDB cluster backed up by the datasource.
-    #[serde(default, rename = "clusterUid")]
-    pub cluster_uid: ::core::option::Option<String>,
-    /// Output only. Name of the AlloyDB cluster backed up by the datasource.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Output only. Point in time recovery windows. The order is guaranteed to be ascending by start time.
-    #[serde(default, rename = "pitrWindows")]
-    pub pitr_windows: ::core::option::Option<::std::vec::Vec<AlloyDbPitrWindow>>,
-}
-
-/// AlloyDBClusterDataSourceReferenceProperties represents the properties of an AlloyDB cluster that are stored in the DataSourceReference.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AlloyDBClusterDataSourceReferenceProperties {
-    /// Output only. Name of the AlloyDB cluster backed up by the datasource. Format: projects/{project}/locations/{location}/clusters/{cluster}
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-}
-
-/// AlloyDbClusterBackupProperties represents AlloyDB cluster backup properties. .
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AlloyDbClusterBackupProperties {
-    /// Output only. The chain id of this backup. Backups belonging to the same chain are sharing the same chain id. This property is calculated and maintained by BackupDR.
-    #[serde(default, rename = "chainId")]
-    pub chain_id: ::core::option::Option<String>,
-    /// Output only. The PostgreSQL major version of the AlloyDB cluster when the backup was taken.
-    #[serde(default, rename = "databaseVersion")]
-    pub database_version: ::core::option::Option<String>,
-    /// An optional text description for the backup.
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// Output only. Storage usage of this particular backup
-    #[serde(default, rename = "storedBytes")]
-    pub stored_bytes: ::core::option::Option<String>,
-}
-
-/// Point in time recovery window for an AlloyDB cluster.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AlloyDbPitrWindow {
-    /// Output only. The end time of the PITR window. It is not set if the corresponding Backup Plan Association is active.
-    #[serde(default, rename = "endTime")]
-    pub end_time: ::core::option::Option<String>,
-    /// Output only. Log retention days for the PITR window.
-    #[serde(default, rename = "logRetentionDays")]
-    pub log_retention_days: ::core::option::Option<String>,
-    /// Output only. The start time of the PITR window.
-    #[serde(default, rename = "startTime")]
-    pub start_time: ::core::option::Option<String>,
-}
-
-/// An instance-attached disk resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AttachedDisk {
-    /// Optional. Specifies whether the disk will be auto-deleted when the instance is deleted (but not when the disk is detached from the instance).
-    #[serde(default, rename = "autoDelete")]
-    pub auto_delete: ::core::option::Option<bool>,
-    /// Optional. Indicates that this is a boot disk. The virtual machine will use the first partition of the disk for its root filesystem.
-    #[serde(default)]
-    pub boot: ::core::option::Option<bool>,
-    /// Optional. This is used as an identifier for the disks. This is the unique name has to provided to modify disk parameters like disk_name and replica_zones (in case of RePDs)
-    #[serde(default, rename = "deviceName")]
-    pub device_name: ::core::option::Option<String>,
-    /// Optional. Encrypts or decrypts a disk using a customer-supplied encryption key.
-    #[serde(default, rename = "diskEncryptionKey")]
-    pub disk_encryption_key: ::core::option::Option<CustomerEncryptionKey>,
-    /// Optional. Specifies the disk interface to use for attaching this disk. // TODO: enum values: ["DISK_INTERFACE_UNSPECIFIED", "SCSI", "NVME", "NVDIMM", "ISCSI"]
-    #[serde(default, rename = "diskInterface")]
-    pub disk_interface: ::core::option::Option<String>,
-    /// Optional. The size of the disk in GB.
-    #[serde(default, rename = "diskSizeGb")]
-    pub disk_size_gb: ::core::option::Option<String>,
-    /// Optional. Output only. The URI of the disk type resource. For example: projects/project/zones/zone/diskTypes/pd-standard or pd-ssd
-    #[serde(default, rename = "diskType")]
-    pub disk_type: ::core::option::Option<String>,
-    /// Specifies the type of the disk. // TODO: enum values: ["DISK_TYPE_UNSPECIFIED", "SCRATCH", "PERSISTENT"]
-    #[serde(default, rename = "diskTypeDeprecated")]
-    pub disk_type_deprecated: ::core::option::Option<String>,
-    /// Optional. A list of features to enable on the guest operating system. Applicable only for bootable images.
-    #[serde(default, rename = "guestOsFeature")]
-    pub guest_os_feature: ::core::option::Option<::std::vec::Vec<GuestOsFeature>>,
-    /// Optional. A zero-based index to this disk, where 0 is reserved for the boot disk.
-    #[serde(default)]
-    pub index: ::core::option::Option<String>,
-    /// Optional. Specifies the parameters to initialize this disk.
-    #[serde(default, rename = "initializeParams")]
-    pub initialize_params: ::core::option::Option<InitializeParams>,
-    /// Optional. Type of the resource.
-    #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-    /// Optional. Any valid publicly visible licenses.
-    #[serde(default)]
-    pub license: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Optional. The mode in which to attach this disk. // TODO: enum values: ["DISK_MODE_UNSPECIFIED", "READ_WRITE", "READ_ONLY", "LOCKED"]
-    #[serde(default)]
-    pub mode: ::core::option::Option<String>,
-    /// Optional. Output only. The state of the disk. // TODO: enum values: ["DISK_SAVED_STATE_UNSPECIFIED", "PRESERVED"]
-    #[serde(default, rename = "savedState")]
-    pub saved_state: ::core::option::Option<String>,
-    /// Optional. Specifies a valid partial or full URL to an existing Persistent Disk resource.
-    #[serde(default)]
-    pub source: ::core::option::Option<String>,
-    /// Optional. Specifies the type of the disk. // TODO: enum values: ["DISK_TYPE_UNSPECIFIED", "SCRATCH", "PERSISTENT"]
-    #[serde(default, rename = "type")]
-    pub type_: ::core::option::Option<String>,
-}
-
-/// Specifies the audit configuration for a service. The configuration determines which permission types are logged, and what identities, if any, are exempted from logging. An AuditConfig must have one or more AuditLogConfigs. If there are AuditConfigs for both allServices and a specific service, the union of the two AuditConfigs is used for that service: the log_types specified in each AuditConfig are enabled, and the exempted_members in each AuditLogConfig are exempted. Example Policy with multiple AuditConfigs: { "audit_configs": [ { "service": "allServices", "audit_log_configs": [ { "log_type": "DATA_READ", "exempted_members": [ "user:jose@example.com" ] }, { "log_type": "DATA_WRITE" }, { "log_type": "ADMIN_READ" } ] }, { "service": "sampleservice.googleapis.com", "audit_log_configs": [ { "log_type": "DATA_READ" }, { "log_type": "DATA_WRITE", "exempted_members": [ "user:aliya@example.com" ] } ] } ] } For sampleservice, this policy enables DATA_READ, DATA_WRITE and ADMIN_READ logging. It also exempts jose@example.com from DATA_READ logging, and aliya@example.com from DATA_WRITE logging.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AuditConfig {
-    /// The configuration for logging of each type of permission.
-    #[serde(default, rename = "auditLogConfigs")]
-    pub audit_log_configs: ::core::option::Option<::std::vec::Vec<AuditLogConfig>>,
-    /// Specifies a service that will be enabled for audit logging. For example, storage.googleapis.com, cloudsql.googleapis.com. allServices is a special value that covers all services.
-    #[serde(default)]
-    pub service: ::core::option::Option<String>,
-}
-
-/// Provides the configuration for logging a type of permissions. Example: { "audit_log_configs": [ { "log_type": "DATA_READ", "exempted_members": [ "user:jose@example.com" ] }, { "log_type": "DATA_WRITE" } ] } This enables ''DATA_READ'' and ''DATA_WRITE'' logging, while exempting jose@example.com from DATA_READ logging.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AuditLogConfig {
-    /// Specifies the identities that do not cause logging for this type of permission. Follows the same format of Binding.members.
-    #[serde(default, rename = "exemptedMembers")]
-    pub exempted_members: ::core::option::Option<::std::vec::Vec<String>>,
-    /// The log type that this config enables. // TODO: enum values: ["LOG_TYPE_UNSPECIFIED", "ADMIN_READ", "DATA_WRITE", "DATA_READ"]
-    #[serde(default, rename = "logType")]
-    pub log_type: ::core::option::Option<String>,
-}
-
-/// Message describing a Backup object.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Backup {
-    /// Output only. AlloyDB specific backup properties.
-    #[serde(default, rename = "alloyDbBackupProperties")]
-    pub alloy_db_backup_properties: ::core::option::Option<AlloyDbClusterBackupProperties>,
-    /// Output only. Backup Appliance specific backup properties.
-    #[serde(default, rename = "backupApplianceBackupProperties")]
-    pub backup_appliance_backup_properties: ::core::option::Option<BackupApplianceBackupProperties>,
-    /// Optional. The list of BackupLocks taken by the accessor Backup Appliance.
-    #[serde(default, rename = "backupApplianceLocks")]
-    pub backup_appliance_locks: ::core::option::Option<::std::vec::Vec<BackupLock>>,
-    /// Output only. Setting for how the enforced retention end time is inherited. This value is copied from this backup''s BackupVault. // TODO: enum values: ["BACKUP_RETENTION_INHERITANCE_UNSPECIFIED", "INHERIT_VAULT_RETENTION", "MATCH_BACKUP_EXPIRE_TIME"]
-    #[serde(default, rename = "backupRetentionInheritance")]
-    pub backup_retention_inheritance: ::core::option::Option<String>,
-    /// Output only. Type of the backup, unspecified, scheduled or ondemand. // TODO: enum values: ["BACKUP_TYPE_UNSPECIFIED", "SCHEDULED", "ON_DEMAND", "ON_DEMAND_OPERATIONAL"]
-    #[serde(default, rename = "backupType")]
-    pub backup_type: ::core::option::Option<String>,
-    /// Output only. Cloud SQL specific backup properties.
-    #[serde(default, rename = "cloudSqlInstanceBackupProperties")]
-    pub cloud_sql_instance_backup_properties:
-        ::core::option::Option<CloudSqlInstanceBackupProperties>,
-    /// Output only. Compute Engine specific backup properties.
-    #[serde(default, rename = "computeInstanceBackupProperties")]
-    pub compute_instance_backup_properties: ::core::option::Option<ComputeInstanceBackupProperties>,
-    /// Output only. The point in time when this backup was captured from the source.
-    #[serde(default, rename = "consistencyTime")]
-    pub consistency_time: ::core::option::Option<String>,
-    /// Output only. The time when the instance was created.
-    #[serde(default, rename = "createTime")]
-    pub create_time: ::core::option::Option<String>,
-    /// Output only. The description of the Backup instance (2048 characters or less).
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// Output only. Disk specific backup properties.
-    #[serde(default, rename = "diskBackupProperties")]
-    pub disk_backup_properties: ::core::option::Option<DiskBackupProperties>,
-    /// Optional. The backup can not be deleted before this time.
-    #[serde(default, rename = "enforcedRetentionEndTime")]
-    pub enforced_retention_end_time: ::core::option::Option<String>,
-    /// Optional. Server specified ETag to prevent updates from overwriting each other.
-    #[serde(default)]
-    pub etag: ::core::option::Option<String>,
-    /// Optional. When this backup is automatically expired.
-    #[serde(default, rename = "expireTime")]
-    pub expire_time: ::core::option::Option<String>,
-    /// Output only. Filestore specific backup properties.
-    #[serde(default, rename = "filestoreInstanceBackupProperties")]
-    pub filestore_instance_backup_properties:
-        ::core::option::Option<FilestoreInstanceBackupProperties>,
-    /// Output only. Configuration for a Google Cloud resource.
-    #[serde(default, rename = "gcpBackupPlanInfo")]
-    pub gcp_backup_plan_info: ::core::option::Option<GCPBackupPlanInfo>,
-    /// Output only. Unique identifier of the GCP resource that is being backed up.
-    #[serde(default, rename = "gcpResource")]
-    pub gcp_resource: ::core::option::Option<BackupGcpResource>,
-    /// Optional. Output only. The list of KMS key versions used to encrypt the backup.
-    #[serde(default, rename = "kmsKeyVersions")]
-    pub kms_key_versions: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Optional. Resource labels to represent user provided metadata. No labels currently defined.
-    #[serde(default)]
-    pub labels: ::core::option::Option<serde_json::Value>,
-    /// Output only. Identifier. Name of the backup to create. It must have the format"projects//locations//backupVaults//dataSources/{datasource}/backups/{backup}". {backup} cannot be changed after creation. It must be between 3-63 characters long and must be unique within the datasource.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Output only. source resource size in bytes at the time of the backup.
-    #[serde(default, rename = "resourceSizeBytes")]
-    pub resource_size_bytes: ::core::option::Option<String>,
-    /// Optional. Output only. Reserved for future use.
-    #[serde(default, rename = "satisfiesPzi")]
-    pub satisfies_pzi: ::core::option::Option<bool>,
-    /// Optional. Output only. Reserved for future use.
-    #[serde(default, rename = "satisfiesPzs")]
-    pub satisfies_pzs: ::core::option::Option<bool>,
-    /// Output only. The list of BackupLocks taken by the service to prevent the deletion of the backup.
-    #[serde(default, rename = "serviceLocks")]
-    pub service_locks: ::core::option::Option<::std::vec::Vec<BackupLock>>,
-    /// Output only. The Backup resource instance state. // TODO: enum values: ["STATE_UNSPECIFIED", "CREATING", "ACTIVE", "DELETING", "ERROR", "UPLOADING"]
-    #[serde(default)]
-    pub state: ::core::option::Option<String>,
-    /// Output only. The time when the instance was updated.
-    #[serde(default, rename = "updateTime")]
-    pub update_time: ::core::option::Option<String>,
-}
-
-/// BackupApplianceBackupConfig captures the backup configuration for applications that are protected by Backup Appliances.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct BackupApplianceBackupConfig {
-    /// The name of the application.
-    #[serde(default, rename = "applicationName")]
-    pub application_name: ::core::option::Option<String>,
-    /// The ID of the backup appliance.
-    #[serde(default, rename = "backupApplianceId")]
-    pub backup_appliance_id: ::core::option::Option<String>,
-    /// The name of the backup appliance.
-    #[serde(default, rename = "backupApplianceName")]
-    pub backup_appliance_name: ::core::option::Option<String>,
-    /// The name of the host where the application is running.
-    #[serde(default, rename = "hostName")]
-    pub host_name: ::core::option::Option<String>,
-    /// The ID of the SLA of this application.
-    #[serde(default, rename = "slaId")]
-    pub sla_id: ::core::option::Option<String>,
-    /// The name of the SLP associated with the application.
-    #[serde(default, rename = "slpName")]
-    pub slp_name: ::core::option::Option<String>,
-    /// The name of the SLT associated with the application.
-    #[serde(default, rename = "sltName")]
-    pub slt_name: ::core::option::Option<String>,
-}
-
-/// BackupApplianceBackupProperties represents BackupDR backup appliance''s properties.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct BackupApplianceBackupProperties {
-    /// Output only. The time when this backup object was finalized (if none, backup is not finalized).
-    #[serde(default, rename = "finalizeTime")]
-    pub finalize_time: ::core::option::Option<String>,
-    /// Output only. The numeric generation ID of the backup (monotonically increasing).
-    #[serde(default, rename = "generationId")]
-    pub generation_id: ::core::option::Option<i32>,
-    /// Optional. The latest timestamp of data available in this Backup.
-    #[serde(default, rename = "recoveryRangeEndTime")]
-    pub recovery_range_end_time: ::core::option::Option<String>,
-    /// Optional. The earliest timestamp of data available in this Backup.
-    #[serde(default, rename = "recoveryRangeStartTime")]
-    pub recovery_range_start_time: ::core::option::Option<String>,
-}
-
-/// BackupApplianceLockInfo contains metadata about the backupappliance that created the lock.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct BackupApplianceLockInfo {
-    /// Required. The ID of the backup/recovery appliance that created this lock.
-    #[serde(default, rename = "backupApplianceId")]
-    pub backup_appliance_id: ::core::option::Option<String>,
-    /// Required. The name of the backup/recovery appliance that created this lock.
-    #[serde(default, rename = "backupApplianceName")]
-    pub backup_appliance_name: ::core::option::Option<String>,
-    /// The image name that depends on this Backup.
-    #[serde(default, rename = "backupImage")]
-    pub backup_image: ::core::option::Option<String>,
-    /// The job name on the backup/recovery appliance that created this lock.
-    #[serde(default, rename = "jobName")]
-    pub job_name: ::core::option::Option<String>,
-    /// Required. The reason for the lock: e.g. MOUNT/RESTORE/BACKUP/etc. The value of this string is only meaningful to the client and it is not interpreted by the BackupVault service.
-    #[serde(default, rename = "lockReason")]
-    pub lock_reason: ::core::option::Option<String>,
-    /// The SLA on the backup/recovery appliance that owns the lock.
-    #[serde(default, rename = "slaId")]
-    pub sla_id: ::core::option::Option<String>,
-}
-
-/// BackupConfigDetails has information about how the resource is configured for backups and about the most recent backup taken for this configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct BackupConfigDetails {
-    /// Output only. The [full resource name](https://cloud.google.com/asset-inventory/docs/resource-name-format) of the resource that is applicable for the backup configuration. Example: "//compute.googleapis.com/projects/{project}/zones/{zone}/instances/{instance}"
-    #[serde(default, rename = "applicableResource")]
-    pub applicable_resource: ::core::option::Option<String>,
-    /// Output only. The full resource name of the backup config source resource. For example, "//backupdr.googleapis.com/v1/projects/{project}/locations/{region}/backupPlans/{backupplanId}" or "//compute.googleapis.com/projects/{project}/locations/{region}/resourcePolicies/{resourcePolicyId}".
-    #[serde(default, rename = "backupConfigSource")]
-    pub backup_config_source: ::core::option::Option<String>,
-    /// Output only. The display name of the backup config source resource.
-    #[serde(default, rename = "backupConfigSourceDisplayName")]
-    pub backup_config_source_display_name: ::core::option::Option<String>,
-    /// Google Cloud Backup and DR''s Backup Plan specific data.
-    #[serde(default, rename = "backupDrPlanConfig")]
-    pub backup_dr_plan_config: ::core::option::Option<BackupDrPlanConfig>,
-    /// Google Cloud Backup and DR''s Template specific data.
-    #[serde(default, rename = "backupDrTemplateConfig")]
-    pub backup_dr_template_config: ::core::option::Option<BackupDrTemplateConfig>,
-    /// The locations where the backups are to be stored.
-    #[serde(default, rename = "backupLocations")]
-    pub backup_locations: ::core::option::Option<::std::vec::Vec<BackupLocation>>,
-    /// Output only. The [full resource name](https://cloud.google.com/asset-inventory/docs/resource-name-format) of the backup vault that will store the backups generated through this backup configuration. Example: "//backupdr.googleapis.com/v1/projects/{project}/locations/{region}/backupVaults/{backupvaultId}"
-    #[serde(default, rename = "backupVault")]
-    pub backup_vault: ::core::option::Option<String>,
-    /// Output only. Timestamp of the latest successful backup created via this backup configuration.
-    #[serde(default, rename = "latestSuccessfulBackupTime")]
-    pub latest_successful_backup_time: ::core::option::Option<String>,
-    /// Output only. Point in time recovery settings of the backup configuration resource.
-    #[serde(default, rename = "pitrSettings")]
-    pub pitr_settings: ::core::option::Option<PitrSettings>,
-    /// Output only. The state of the backup config resource. // TODO: enum values: ["STATE_UNSPECIFIED", "ACTIVE", "INACTIVE", "ERROR"]
-    #[serde(default)]
-    pub state: ::core::option::Option<String>,
-    /// Output only. The type of the backup config resource. // TODO: enum values: ["TYPE_UNSPECIFIED", "CLOUD_SQL_INSTANCE_BACKUP_CONFIG", "COMPUTE_ENGINE_RESOURCE_POLICY", "BACKUPDR_BACKUP_PLAN", "BACKUPDR_TEMPLATE"]
-    #[serde(default, rename = "type")]
-    pub type_: ::core::option::Option<String>,
-}
-
-/// BackupConfigInfo has information about how the resource is configured for Backup and about the most recent backup to this vault.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct BackupConfigInfo {
-    /// Configuration for an application backed up by a Backup Appliance.
-    #[serde(default, rename = "backupApplianceBackupConfig")]
-    pub backup_appliance_backup_config: ::core::option::Option<BackupApplianceBackupConfig>,
-    /// Configuration for a Google Cloud resource.
-    #[serde(default, rename = "gcpBackupConfig")]
-    pub gcp_backup_config: ::core::option::Option<GcpBackupConfig>,
-    /// Output only. If the last backup failed, this field has the error message.
-    #[serde(default, rename = "lastBackupError")]
-    pub last_backup_error: ::core::option::Option<Status>,
-    /// Output only. The status of the last backup to this BackupVault // TODO: enum values: ["LAST_BACKUP_STATE_UNSPECIFIED", "FIRST_BACKUP_PENDING", "SUCCEEDED", "FAILED", "PERMISSION_DENIED"]
-    #[serde(default, rename = "lastBackupState")]
-    pub last_backup_state: ::core::option::Option<String>,
-    /// Output only. If the last backup were successful, this field has the consistency date.
-    #[serde(default, rename = "lastSuccessfulBackupConsistencyTime")]
-    pub last_successful_backup_consistency_time: ::core::option::Option<String>,
-}
-
-/// BackupDrPlanConfig has additional information about Google Cloud Backup and DR''s Plan backup configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct BackupDrPlanConfig {
-    /// Backup rules of the backup plan resource.
-    #[serde(default, rename = "backupDrPlanRules")]
-    pub backup_dr_plan_rules: ::core::option::Option<::std::vec::Vec<BackupDrPlanRule>>,
-}
-
-/// BackupDrPlanRule has rule specific information of the backup plan resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct BackupDrPlanRule {
-    /// Output only. Timestamp of the latest successful backup created via this backup rule.
-    #[serde(default, rename = "lastSuccessfulBackupTime")]
-    pub last_successful_backup_time: ::core::option::Option<String>,
-    /// Output only. Unique Id of the backup rule.
-    #[serde(default, rename = "ruleId")]
-    pub rule_id: ::core::option::Option<String>,
-}
-
-/// Provides additional information about Google Cloud Backup and DR''s Template backup configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct BackupDrTemplateConfig {
-    /// Output only. The URI of the BackupDr template resource for the first party identity users.
-    #[serde(default, rename = "firstPartyManagementUri")]
-    pub first_party_management_uri: ::core::option::Option<String>,
-    /// Output only. The URI of the BackupDr template resource for the third party identity users.
-    #[serde(default, rename = "thirdPartyManagementUri")]
-    pub third_party_management_uri: ::core::option::Option<String>,
-}
-
-/// Minimum details to identify a Google Cloud resource for a backup.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct BackupGcpResource {
-    /// Name of the Google Cloud resource.
-    #[serde(default, rename = "gcpResourcename")]
-    pub gcp_resourcename: ::core::option::Option<String>,
-    /// Location of the resource: //"global"/"unspecified".
-    #[serde(default)]
-    pub location: ::core::option::Option<String>,
-    /// Type of the resource. Use the Unified Resource Type, eg. compute.googleapis.com/Instance.
-    #[serde(default, rename = "type")]
-    pub type_: ::core::option::Option<String>,
-}
-
-/// BackupLocation represents a cloud location where a backup can be stored.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct BackupLocation {
-    /// Output only. The id of the cloud location. Example: "us-central1"
-    #[serde(default, rename = "locationId")]
-    pub location_id: ::core::option::Option<String>,
-    /// Output only. The type of the location. // TODO: enum values: ["TYPE_UNSPECIFIED", "ZONAL", "REGIONAL", "MULTI_REGIONAL"]
-    #[serde(default, rename = "type")]
-    pub type_: ::core::option::Option<String>,
-}
-
-/// BackupLock represents a single lock on a Backup resource. An unexpired lock on a Backup prevents the Backup from being deleted.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct BackupLock {
-    /// If the client is a backup and recovery appliance, this contains metadata about why the lock exists.
-    #[serde(default, rename = "backupApplianceLockInfo")]
-    pub backup_appliance_lock_info: ::core::option::Option<BackupApplianceLockInfo>,
-    /// Required. The time after which this lock is not considered valid and will no longer protect the Backup from deletion.
-    #[serde(default, rename = "lockUntilTime")]
-    pub lock_until_time: ::core::option::Option<String>,
-    /// Output only. Contains metadata about the lock exist for Google Cloud native backups.
-    #[serde(default, rename = "serviceLockInfo")]
-    pub service_lock_info: ::core::option::Option<ServiceLockInfo>,
-}
-
-/// A BackupPlan specifies some common fields, such as description as well as one or more BackupRule messages. Each BackupRule has a retention policy and defines a schedule by which the system is to perform backup workloads.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct BackupPlan {
-    /// Optional. The backup rules for this BackupPlan.
-    #[serde(default, rename = "backupRules")]
-    pub backup_rules: ::core::option::Option<::std::vec::Vec<BackupRule>>,
-    /// Required. Resource name of backup vault which will be used as storage location for backups. Format: projects/{project}/locations/{location}/backupVaults/{backupvault}
-    #[serde(default, rename = "backupVault")]
-    pub backup_vault: ::core::option::Option<String>,
-    /// Output only. The Google Cloud service account to be used by the BackupVault for taking backups. Specify the email address of the Backup Vault Service Account.
-    #[serde(default, rename = "backupVaultServiceAccount")]
-    pub backup_vault_service_account: ::core::option::Option<String>,
-    /// Optional. Defines optional properties specific to backups of disk-based resources, such as Compute Engine. This includes settings like whether to perform a guest flush.
-    #[serde(default, rename = "computeInstanceBackupPlanProperties")]
-    pub compute_instance_backup_plan_properties:
-        ::core::option::Option<ComputeInstanceBackupPlanProperties>,
-    /// Output only. When the BackupPlan was created.
-    #[serde(default, rename = "createTime")]
-    pub create_time: ::core::option::Option<String>,
-    /// Optional. The description of the BackupPlan resource. The description allows for additional details about BackupPlan and its use cases to be provided. An example description is the following: "This is a backup plan that performs a daily backup at 6pm and retains data for 3 months". The description must be at most 2048 characters.
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// Optional. Defines optional properties specific to backups of disk-based resources, such as Compute Engine Persistent Disks. This includes settings like whether to perform a guest flush.
-    #[serde(default, rename = "diskBackupPlanProperties")]
-    pub disk_backup_plan_properties: ::core::option::Option<DiskBackupPlanProperties>,
-    /// Optional. etag is returned from the service in the response. As a user of the service, you may provide an etag value in this field to prevent stale resources.
-    #[serde(default)]
-    pub etag: ::core::option::Option<String>,
-    /// Optional. This collection of key/value pairs allows for custom labels to be supplied by the user. Example, {"tag": "Weekly"}.
-    #[serde(default)]
-    pub labels: ::core::option::Option<serde_json::Value>,
-    /// Optional. Applicable only for Cloud SQL resource_type. Configures how long logs will be stored. It is defined in “days”. This value should be greater than or equal to minimum enforced log retention duration of the backup vault.
-    #[serde(default, rename = "logRetentionDays")]
-    pub log_retention_days: ::core::option::Option<String>,
-    /// Optional. Optional field to configure the maximum number of days for which a backup can be retained. This field is only applicable for on-demand backups taken with custom retention value.
-    #[serde(default, rename = "maxCustomOnDemandRetentionDays")]
-    pub max_custom_on_demand_retention_days: ::core::option::Option<i32>,
-    /// Output only. Identifier. The resource name of the BackupPlan. Format: projects/{project}/locations/{location}/backupPlans/{backup_plan}
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Required. The resource type to which the BackupPlan will be applied. Examples include, "compute.googleapis.com/Instance", "sqladmin.googleapis.com/Instance", "alloydb.googleapis.com/Cluster", "compute.googleapis.com/Disk".
-    #[serde(default, rename = "resourceType")]
-    pub resource_type: ::core::option::Option<String>,
-    /// Output only. The user friendly revision ID of the BackupPlanRevision. Example: v0, v1, v2, etc.
-    #[serde(default, rename = "revisionId")]
-    pub revision_id: ::core::option::Option<String>,
-    /// Output only. The resource id of the BackupPlanRevision. Format: projects/{project}/locations/{location}/backupPlans/{backup_plan}/revisions/{revision_id}
-    #[serde(default, rename = "revisionName")]
-    pub revision_name: ::core::option::Option<String>,
-    /// Output only. The State for the BackupPlan. // TODO: enum values: ["STATE_UNSPECIFIED", "CREATING", "ACTIVE", "DELETING", "INACTIVE", "UPDATING"]
-    #[serde(default)]
-    pub state: ::core::option::Option<String>,
-    /// Output only. All resource types to which backupPlan can be applied.
-    #[serde(default, rename = "supportedResourceTypes")]
-    pub supported_resource_types: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Output only. When the BackupPlan was last updated.
-    #[serde(default, rename = "updateTime")]
-    pub update_time: ::core::option::Option<String>,
-}
-
-/// A BackupPlanAssociation represents a single BackupPlanAssociation which contains details like workload, backup plan etc
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct BackupPlanAssociation {
-    /// Output only. AlloyDB cluster''s backup plan association properties.
-    #[serde(default, rename = "alloydbClusterBackupPlanAssociationProperties")]
-    pub alloydb_cluster_backup_plan_association_properties:
-        ::core::option::Option<AlloyDBClusterBackupPlanAssociationProperties>,
-    /// Required. Resource name of backup plan which needs to be applied on workload. Format: projects/{project}/locations/{location}/backupPlans/{backupPlanId}
-    #[serde(default, rename = "backupPlan")]
-    pub backup_plan: ::core::option::Option<String>,
-    /// Output only. The user friendly revision ID of the BackupPlanRevision. Example: v0, v1, v2, etc.
-    #[serde(default, rename = "backupPlanRevisionId")]
-    pub backup_plan_revision_id: ::core::option::Option<String>,
-    /// Output only. The resource id of the BackupPlanRevision. Format: projects/{project}/locations/{location}/backupPlans/{backup_plan}/revisions/{revision_id}
-    #[serde(default, rename = "backupPlanRevisionName")]
-    pub backup_plan_revision_name: ::core::option::Option<String>,
-    /// Output only. Cloud SQL instance''s backup plan association properties.
-    #[serde(default, rename = "cloudSqlInstanceBackupPlanAssociationProperties")]
-    pub cloud_sql_instance_backup_plan_association_properties:
-        ::core::option::Option<CloudSqlInstanceBackupPlanAssociationProperties>,
-    /// Output only. The time when the instance was created.
-    #[serde(default, rename = "createTime")]
-    pub create_time: ::core::option::Option<String>,
-    /// Output only. Resource name of data source which will be used as storage location for backups taken. Format : projects/{project}/locations/{location}/backupVaults/{backupvault}/dataSources/{datasource}
-    #[serde(default, rename = "dataSource")]
-    pub data_source: ::core::option::Option<String>,
-    /// Output only. Filestore instance''s backup plan association properties.
-    #[serde(default, rename = "filestoreInstanceBackupPlanAssociationProperties")]
-    pub filestore_instance_backup_plan_association_properties:
-        ::core::option::Option<FilestoreInstanceBackupPlanAssociationProperties>,
-    /// Output only. Identifier. The resource name of BackupPlanAssociation in below format Format : projects/{project}/locations/{location}/backupPlanAssociations/{backupPlanAssociationId}
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Required. Immutable. Resource name of workload on which the backup plan is applied. The format can either be the resource name (e.g., "projects/my-project/zones/us-central1-a/instances/my-instance") or the full resource URI (e.g., "https://www.googleapis.com/compute/v1/projects/my-project/zones/us-central1-a/instances/my-instance").
-    #[serde(default)]
-    pub resource: ::core::option::Option<String>,
-    /// Required. Immutable. Resource type of workload on which backupplan is applied
-    #[serde(default, rename = "resourceType")]
-    pub resource_type: ::core::option::Option<String>,
-    /// Output only. The config info related to backup rules.
-    #[serde(default, rename = "rulesConfigInfo")]
-    pub rules_config_info: ::core::option::Option<::std::vec::Vec<RuleConfigInfo>>,
-    /// Output only. The BackupPlanAssociation resource state. // TODO: enum values: ["STATE_UNSPECIFIED", "CREATING", "ACTIVE", "DELETING", "INACTIVE", "UPDATING"]
-    #[serde(default)]
-    pub state: ::core::option::Option<String>,
-    /// Output only. The time when the instance was updated.
-    #[serde(default, rename = "updateTime")]
-    pub update_time: ::core::option::Option<String>,
-}
-
-/// BackupPlanRevision represents a snapshot of a BackupPlan at a point in time.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct BackupPlanRevision {
-    /// The Backup Plan being encompassed by this revision.
-    #[serde(default, rename = "backupPlanSnapshot")]
-    pub backup_plan_snapshot: ::core::option::Option<BackupPlan>,
-    /// Output only. The timestamp that the revision was created.
-    #[serde(default, rename = "createTime")]
-    pub create_time: ::core::option::Option<String>,
-    /// Output only. Identifier. The resource name of the BackupPlanRevision. Format: projects/{project}/locations/{location}/backupPlans/{backup_plan}/revisions/{revision}
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Output only. The user friendly revision ID of the BackupPlanRevision. Example: v0, v1, v2, etc.
-    #[serde(default, rename = "revisionId")]
-    pub revision_id: ::core::option::Option<String>,
-    /// Output only. Resource State // TODO: enum values: ["STATE_UNSPECIFIED", "CREATING", "ACTIVE", "DELETING", "INACTIVE"]
-    #[serde(default)]
-    pub state: ::core::option::Option<String>,
-}
-
-/// BackupRule binds the backup schedule to a retention policy.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct BackupRule {
-    /// Required. Configures the duration for which backup data will be kept. It is defined in “days”. The value should be greater than or equal to minimum enforced retention of the backup vault. Minimum value is 1 and maximum value is 36159 for custom retention on-demand backup. Minimum and maximum values are workload specific for all other rules. Note: Longer retention can lead to higher storage costs post introductory trial. We recommend starting with a short duration of 3 days or less.
-    #[serde(default, rename = "backupRetentionDays")]
-    pub backup_retention_days: ::core::option::Option<i32>,
-    /// Required. Immutable. The unique id of this BackupRule. The rule_id is unique per BackupPlan.The rule_id must start with a lowercase letter followed by up to 62 lowercase letters, numbers, or hyphens. Pattern, /a-z{,62}/.
-    #[serde(default, rename = "ruleId")]
-    pub rule_id: ::core::option::Option<String>,
-    /// Optional. Defines a schedule that runs within the confines of a defined window of time.
-    #[serde(default, rename = "standardSchedule")]
-    pub standard_schedule: ::core::option::Option<StandardSchedule>,
-}
-
-/// Message describing a BackupVault object.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct BackupVault {
-    /// Optional. Note: This field is added for future use case and will not be supported in the current release. Access restriction for the backup vault. Default value is WITHIN_ORGANIZATION if not provided during creation. // TODO: enum values: ["ACCESS_RESTRICTION_UNSPECIFIED", "WITHIN_PROJECT", "WITHIN_ORGANIZATION", "UNRESTRICTED", "WITHIN_ORG_BUT_UNRESTRICTED_FOR_BA"]
-    #[serde(default, rename = "accessRestriction")]
-    pub access_restriction: ::core::option::Option<String>,
-    /// Optional. User annotations. See https://google.aip.dev/128#annotations Stores small amounts of arbitrary data.
-    #[serde(default)]
-    pub annotations: ::core::option::Option<serde_json::Value>,
-    /// Output only. The number of backups in this backup vault.
-    #[serde(default, rename = "backupCount")]
-    pub backup_count: ::core::option::Option<String>,
-    /// Required. The default and minimum enforced retention for each backup within the backup vault. The enforced retention for each backup can be extended. Note: Longer minimum enforced retention period impacts potential storage costs post introductory trial. We recommend starting with a short duration of 3 days or less.
-    #[serde(default, rename = "backupMinimumEnforcedRetentionDuration")]
-    pub backup_minimum_enforced_retention_duration: ::core::option::Option<String>,
-    /// Optional. Setting for how a backup''s enforced retention end time is inherited. // TODO: enum values: ["BACKUP_RETENTION_INHERITANCE_UNSPECIFIED", "INHERIT_VAULT_RETENTION", "MATCH_BACKUP_EXPIRE_TIME"]
-    #[serde(default, rename = "backupRetentionInheritance")]
-    pub backup_retention_inheritance: ::core::option::Option<String>,
-    /// Output only. The time when the instance was created.
-    #[serde(default, rename = "createTime")]
-    pub create_time: ::core::option::Option<String>,
-    /// Output only. Set to true when there are no backups nested under this resource.
-    #[serde(default)]
-    pub deletable: ::core::option::Option<bool>,
-    /// Optional. The description of the BackupVault instance (2048 characters or less).
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// Optional. Time after which the BackupVault resource is locked.
-    #[serde(default, rename = "effectiveTime")]
-    pub effective_time: ::core::option::Option<String>,
-    /// Optional. The encryption config of the backup vault.
-    #[serde(default, rename = "encryptionConfig")]
-    pub encryption_config: ::core::option::Option<EncryptionConfig>,
-    /// Optional. Server specified ETag for the backup vault resource to prevent simultaneous updates from overwiting each other.
-    #[serde(default)]
-    pub etag: ::core::option::Option<String>,
-    /// Optional. Resource labels to represent user provided metadata. No labels currently defined:
-    #[serde(default)]
-    pub labels: ::core::option::Option<serde_json::Value>,
-    /// Output only. Identifier. Name of the backup vault to create. It must have the format"projects/{project}/locations/{location}/backupVaults/{backupvault}". {backupvault} cannot be changed after creation. It must be between 3-63 characters long and must be unique within the project and location.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Output only. Service account used by the BackupVault Service for this BackupVault. The user should grant this account permissions in their workload project to enable the service to run backups and restores there.
-    #[serde(default, rename = "serviceAccount")]
-    pub service_account: ::core::option::Option<String>,
-    /// Output only. The BackupVault resource instance state. // TODO: enum values: ["STATE_UNSPECIFIED", "CREATING", "ACTIVE", "DELETING", "ERROR", "UPDATING"]
-    #[serde(default)]
-    pub state: ::core::option::Option<String>,
-    /// Output only. Total size of the storage used by all backup resources.
-    #[serde(default, rename = "totalStoredBytes")]
-    pub total_stored_bytes: ::core::option::Option<String>,
-    /// Output only. Immutable after resource creation until resource deletion.
-    #[serde(default)]
-    pub uid: ::core::option::Option<String>,
-    /// Output only. The time when the instance was updated.
-    #[serde(default, rename = "updateTime")]
-    pub update_time: ::core::option::Option<String>,
-}
-
-/// BackupWindow defines a window of the day during which backup jobs will run.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct BackupWindow {
-    /// Required. The hour of day (1-24) when the window end for example if value of end hour of day is 10 that mean backup window end time is 10:00. End hour of day should be greater than start hour of day. 0 &lt;= start_hour_of_day &lt; end_hour_of_day &lt;= 24 End hour of day is not include in backup window that mean if end_hour_of_day= 10 jobs should start before 10:00.
-    #[serde(default, rename = "endHourOfDay")]
-    pub end_hour_of_day: ::core::option::Option<i32>,
-    /// Required. The hour of day (0-23) when the window starts for example if value of start hour of day is 6 that mean backup window start at 6:00.
-    #[serde(default, rename = "startHourOfDay")]
-    pub start_hour_of_day: ::core::option::Option<i32>,
-}
-
-/// Associates members, or principals, with a role.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Binding {
-    /// The condition that is associated with this binding. If the condition evaluates to true, then this binding applies to the current request. If the condition evaluates to false, then this binding does not apply to the current request. However, a different role binding might grant the same role to one or more of the principals in this binding. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies).
-    #[serde(default)]
-    pub condition: ::core::option::Option<Expr>,
-    /// Specifies the principals requesting access for a Google Cloud resource. members can have the following values: * allUsers: A special identifier that represents anyone who is on the internet; with or without a Google account. * allAuthenticatedUsers: A special identifier that represents anyone who is authenticated with a Google account or a service account. Does not include identities that come from external identity providers (IdPs) through identity federation. * user:{emailid}: An email address that represents a specific Google account. For example, alice@example.com . * serviceAccount:{emailid}: An email address that represents a Google service account. For example, my-other-app@appspot.gserviceaccount.com. * serviceAccount:{projectid}.svc.id.goog[{namespace}/{kubernetes-sa}]: An identifier for a [Kubernetes service account](https://cloud.google.com/kubernetes-engine/docs/how-to/kubernetes-service-accounts). For example, my-project.svc.id.goog[my-namespace/my-kubernetes-sa]. * group:{emailid}: An email address that represents a Google group. For example, admins@example.com. * domain:{domain}: The G Suite domain (primary) that represents all the users of that domain. For example, google.com or example.com. * principal://iam.googleapis.com/locations/global/workforcePools/{pool_id}/subject/{subject_attribute_value}: A single identity in a workforce identity pool. * principalSet://iam.googleapis.com/locations/global/workforcePools/{pool_id}/group/{group_id}: All workforce identities in a group. * principalSet://iam.googleapis.com/locations/global/workforcePools/{pool_id}/attribute.{attribute_name}/{attribute_value}: All workforce identities with a specific attribute value. * principalSet://iam.googleapis.com/locations/global/workforcePools/{pool_id}/*: All identities in a workforce identity pool. * principal://iam.googleapis.com/projects/{project_number}/locations/global/workloadIdentityPools/{pool_id}/subject/{subject_attribute_value}: A single identity in a workload identity pool. * principalSet://iam.googleapis.com/projects/{project_number}/locations/global/workloadIdentityPools/{pool_id}/group/{group_id}: A workload identity pool group. * principalSet://iam.googleapis.com/projects/{project_number}/locations/global/workloadIdentityPools/{pool_id}/attribute.{attribute_name}/{attribute_value}: All identities in a workload identity pool with a certain attribute. * principalSet://iam.googleapis.com/projects/{project_number}/locations/global/workloadIdentityPools/{pool_id}/*: All identities in a workload identity pool. * deleted:user:{emailid}?uid={uniqueid}: An email address (plus unique identifier) representing a user that has been recently deleted. For example, alice@example.com?uid=123456789012345678901. If the user is recovered, this value reverts to user:{emailid} and the recovered user retains the role in the binding. * deleted:serviceAccount:{emailid}?uid={uniqueid}: An email address (plus unique identifier) representing a service account that has been recently deleted. For example, my-other-app@appspot.gserviceaccount.com?uid=123456789012345678901. If the service account is undeleted, this value reverts to serviceAccount:{emailid} and the undeleted service account retains the role in the binding. * deleted:group:{emailid}?uid={uniqueid}: An email address (plus unique identifier) representing a Google group that has been recently deleted. For example, admins@example.com?uid=123456789012345678901. If the group is recovered, this value reverts to group:{emailid} and the recovered group retains the role in the binding. * deleted:principal://iam.googleapis.com/locations/global/workforcePools/{pool_id}/subject/{subject_attribute_value}: Deleted single identity in a workforce identity pool. For example, deleted:principal://iam.googleapis.com/locations/global/workforcePools/my-pool-id/subject/my-subject-attribute-value.
-    #[serde(default)]
-    pub members: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Role that is assigned to the list of members, or principals. For example, roles/viewer, roles/editor, or roles/owner. For an overview of the IAM roles and permissions, see the [IAM documentation](https://cloud.google.com/iam/docs/roles-overview). For a list of the available pre-defined roles, see [here](https://cloud.google.com/iam/docs/understanding-roles).
-    #[serde(default)]
-    pub role: ::core::option::Option<String>,
-}
-
-/// Cloud SQL instance''s BPA properties.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CloudSqlInstanceBackupPlanAssociationProperties {
-    /// Output only. The time when the instance was created.
-    #[serde(default, rename = "instanceCreateTime")]
-    pub instance_create_time: ::core::option::Option<String>,
-}
-
-/// CloudSqlInstanceBackupProperties represents Cloud SQL Instance Backup properties.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CloudSqlInstanceBackupProperties {
-    /// Output only. The installed database version of the Cloud SQL instance when the backup was taken.
-    #[serde(default, rename = "databaseInstalledVersion")]
-    pub database_installed_version: ::core::option::Option<String>,
-    /// Output only. Whether the backup is a final backup.
-    #[serde(default, rename = "finalBackup")]
-    pub final_backup: ::core::option::Option<bool>,
-    /// Output only. The instance creation timestamp.
-    #[serde(default, rename = "instanceCreateTime")]
-    pub instance_create_time: ::core::option::Option<String>,
-    /// Output only. The instance delete timestamp.
-    #[serde(default, rename = "instanceDeleteTime")]
-    pub instance_delete_time: ::core::option::Option<String>,
-    /// Output only. The tier (or machine type) for this instance. Example: db-custom-1-3840
-    #[serde(default, rename = "instanceTier")]
-    pub instance_tier: ::core::option::Option<String>,
-    /// Output only. The source instance of the backup. Format: projects/{project}/instances/{instance}
-    #[serde(default, rename = "sourceInstance")]
-    pub source_instance: ::core::option::Option<String>,
-}
-
-/// CloudSqlInstanceDataSourceProperties represents the properties of a Cloud SQL resource that are stored in the DataSource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CloudSqlInstanceDataSourceProperties {
-    /// Output only. The installed database version of the Cloud SQL instance.
-    #[serde(default, rename = "databaseInstalledVersion")]
-    pub database_installed_version: ::core::option::Option<String>,
-    /// Output only. The instance creation timestamp.
-    #[serde(default, rename = "instanceCreateTime")]
-    pub instance_create_time: ::core::option::Option<String>,
-    /// Output only. The tier (or machine type) for this instance. Example: db-custom-1-3840
-    #[serde(default, rename = "instanceTier")]
-    pub instance_tier: ::core::option::Option<String>,
-    /// Output only. Name of the Cloud SQL instance backed up by the datasource. Format: projects/{project}/instances/{instance}
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-}
-
-/// CloudSqlInstanceDataSourceReferenceProperties represents the properties of a Cloud SQL resource that are stored in the DataSourceReference.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CloudSqlInstanceDataSourceReferenceProperties {
-    /// Output only. The installed database version of the Cloud SQL instance.
-    #[serde(default, rename = "databaseInstalledVersion")]
-    pub database_installed_version: ::core::option::Option<String>,
-    /// Output only. The instance creation timestamp.
-    #[serde(default, rename = "instanceCreateTime")]
-    pub instance_create_time: ::core::option::Option<String>,
-    /// Output only. The tier (or machine type) for this instance. Example: db-custom-1-3840
-    #[serde(default, rename = "instanceTier")]
-    pub instance_tier: ::core::option::Option<String>,
-    /// Output only. Name of the Cloud SQL instance backed up by the datasource. Format: projects/{project}/instances/{instance}
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-}
-
-/// CloudSqlInstanceInitializationConfig contains the configuration for initializing a Cloud SQL instance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CloudSqlInstanceInitializationConfig {
-    /// Required. The edition of the Cloud SQL instance. // TODO: enum values: ["EDITION_UNSPECIFIED", "ENTERPRISE", "ENTERPRISE_PLUS"]
-    #[serde(default)]
-    pub edition: ::core::option::Option<String>,
-}
-
-/// --- ComputeInstanceBackupPlanProperties Message ---
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ComputeInstanceBackupPlanProperties {
-    /// Optional. Indicates whether to perform a guest flush operation before taking a compute backup. When set to false, the system will create crash-consistent backups. Default value is false.
-    #[serde(default, rename = "guestFlush")]
-    pub guest_flush: ::core::option::Option<bool>,
-}
-
-/// ComputeInstanceBackupProperties represents Compute Engine instance backup properties.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ComputeInstanceBackupProperties {
-    /// Enables instances created based on these properties to send packets with source IP addresses other than their own and receive packets with destination IP addresses other than their own. If these instances will be used as an IP gateway or it will be set as the next-hop in a Route resource, specify true. If unsure, leave this set to false. See the https://cloud.google.com/vpc/docs/using-routes#canipforward documentation for more information.
-    #[serde(default, rename = "canIpForward")]
-    pub can_ip_forward: ::core::option::Option<bool>,
-    /// An optional text description for the instances that are created from these properties.
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// An array of disks that are associated with the instances that are created from these properties.
-    #[serde(default)]
-    pub disk: ::core::option::Option<::std::vec::Vec<AttachedDisk>>,
-    /// A list of guest accelerator cards'' type and count to use for instances created from these properties.
-    #[serde(default, rename = "guestAccelerator")]
-    pub guest_accelerator: ::core::option::Option<::std::vec::Vec<AcceleratorConfig>>,
-    /// Optional. Indicates whether to perform a guest flush operation before taking a compute backup. When set to false, the system will create crash-consistent backups. Default value is false.
-    #[serde(default, rename = "guestFlush")]
-    pub guest_flush: ::core::option::Option<bool>,
-    /// KeyRevocationActionType of the instance. Supported options are "STOP" and "NONE". The default value is "NONE" if it is not specified. // TODO: enum values: ["KEY_REVOCATION_ACTION_TYPE_UNSPECIFIED", "NONE", "STOP"]
-    #[serde(default, rename = "keyRevocationActionType")]
-    pub key_revocation_action_type: ::core::option::Option<String>,
-    /// Labels to apply to instances that are created from these properties.
-    #[serde(default)]
-    pub labels: ::core::option::Option<serde_json::Value>,
-    /// The machine type to use for instances that are created from these properties.
-    #[serde(default, rename = "machineType")]
-    pub machine_type: ::core::option::Option<String>,
-    /// The metadata key/value pairs to assign to instances that are created from these properties. These pairs can consist of custom metadata or predefined keys. See https://cloud.google.com/compute/docs/metadata/overview for more information.
-    #[serde(default)]
-    pub metadata: ::core::option::Option<Metadata>,
-    /// Minimum cpu/platform to be used by instances. The instance may be scheduled on the specified or newer cpu/platform. Applicable values are the friendly names of CPU platforms, such as minCpuPlatform: Intel Haswell or minCpuPlatform: Intel Sandy Bridge. For more information, read https://cloud.google.com/compute/docs/instances/specify-min-cpu-platform.
-    #[serde(default, rename = "minCpuPlatform")]
-    pub min_cpu_platform: ::core::option::Option<String>,
-    /// An array of network access configurations for this interface.
-    #[serde(default, rename = "networkInterface")]
-    pub network_interface: ::core::option::Option<::std::vec::Vec<NetworkInterface>>,
-    /// Specifies the scheduling options for the instances that are created from these properties.
-    #[serde(default)]
-    pub scheduling: ::core::option::Option<Scheduling>,
-    /// A list of service accounts with specified scopes. Access tokens for these service accounts are available to the instances that are created from these properties. Use metadata queries to obtain the access tokens for these instances.
-    #[serde(default, rename = "serviceAccount")]
-    pub service_account: ::core::option::Option<::std::vec::Vec<ServiceAccount>>,
-    /// The source instance used to create this backup. This can be a partial or full URL to the resource. For example, the following are valid values: -https://www.googleapis.com/compute/v1/projects/project/zones/zone/instances/instance -projects/project/zones/zone/instances/instance
-    #[serde(default, rename = "sourceInstance")]
-    pub source_instance: ::core::option::Option<String>,
-    /// A list of tags to apply to the instances that are created from these properties. The tags identify valid sources or targets for network firewalls. The setTags method can modify this list of tags. Each tag within the list must comply with RFC1035 (https://www.ietf.org/rfc/rfc1035.txt).
-    #[serde(default)]
-    pub tags: ::core::option::Option<Tags>,
-}
-
-/// ComputeInstanceDataSourceProperties represents the properties of a ComputeEngine resource that are stored in the DataSource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ComputeInstanceDataSourceProperties {
-    /// The description of the Compute Engine instance.
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// The machine type of the instance.
-    #[serde(default, rename = "machineType")]
-    pub machine_type: ::core::option::Option<String>,
-    /// Name of the compute instance backed up by the datasource.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// The total number of disks attached to the Instance.
-    #[serde(default, rename = "totalDiskCount")]
-    pub total_disk_count: ::core::option::Option<String>,
-    /// The sum of all the disk sizes.
-    #[serde(default, rename = "totalDiskSizeGb")]
-    pub total_disk_size_gb: ::core::option::Option<String>,
-}
-
-/// ComputeInstanceRestoreProperties represents Compute Engine instance properties to be overridden during restore.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ComputeInstanceRestoreProperties {
-    /// Optional. Controls for advanced machine-related behavior features.
-    #[serde(default, rename = "advancedMachineFeatures")]
-    pub advanced_machine_features: ::core::option::Option<AdvancedMachineFeatures>,
-    /// Optional. Allows this instance to send and receive packets with non-matching destination or source IPs.
-    #[serde(default, rename = "canIpForward")]
-    pub can_ip_forward: ::core::option::Option<bool>,
-    /// Optional. Controls Confidential compute options on the instance
-    #[serde(default, rename = "confidentialInstanceConfig")]
-    pub confidential_instance_config: ::core::option::Option<ConfidentialInstanceConfig>,
-    /// Optional. Whether the resource should be protected against deletion.
-    #[serde(default, rename = "deletionProtection")]
-    pub deletion_protection: ::core::option::Option<bool>,
-    /// Optional. An optional description of this resource. Provide this property when you create the resource.
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// Optional. Array of disks associated with this instance. Persistent disks must be created before you can assign them. Source regional persistent disks will be restored with default replica zones if not specified.
-    #[serde(default)]
-    pub disks: ::core::option::Option<::std::vec::Vec<AttachedDisk>>,
-    /// Optional. Enables display device for the instance.
-    #[serde(default, rename = "displayDevice")]
-    pub display_device: ::core::option::Option<DisplayDevice>,
-    /// Optional. A list of the type and count of accelerator cards attached to the instance.
-    #[serde(default, rename = "guestAccelerators")]
-    pub guest_accelerators: ::core::option::Option<::std::vec::Vec<AcceleratorConfig>>,
-    /// Optional. Specifies the hostname of the instance. The specified hostname must be RFC1035 compliant. If hostname is not specified, the default hostname is [INSTANCE_NAME].c.[PROJECT_ID].internal when using the global DNS, and [INSTANCE_NAME].[ZONE].c.[PROJECT_ID].internal when using zonal DNS.
-    #[serde(default)]
-    pub hostname: ::core::option::Option<String>,
-    /// Optional. Encrypts suspended data for an instance with a customer-managed encryption key.
-    #[serde(default, rename = "instanceEncryptionKey")]
-    pub instance_encryption_key: ::core::option::Option<CustomerEncryptionKey>,
-    /// Optional. KeyRevocationActionType of the instance. // TODO: enum values: ["KEY_REVOCATION_ACTION_TYPE_UNSPECIFIED", "NONE", "STOP"]
-    #[serde(default, rename = "keyRevocationActionType")]
-    pub key_revocation_action_type: ::core::option::Option<String>,
-    /// Optional. Labels to apply to this instance.
-    #[serde(default)]
-    pub labels: ::core::option::Option<serde_json::Value>,
-    /// Optional. Full or partial URL of the machine type resource to use for this instance.
-    #[serde(default, rename = "machineType")]
-    pub machine_type: ::core::option::Option<String>,
-    /// Optional. This includes custom metadata and predefined keys.
-    #[serde(default)]
-    pub metadata: ::core::option::Option<Metadata>,
-    /// Optional. Minimum CPU platform to use for this instance.
-    #[serde(default, rename = "minCpuPlatform")]
-    pub min_cpu_platform: ::core::option::Option<String>,
-    /// Required. Name of the compute instance.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Optional. An array of network configurations for this instance. These specify how interfaces are configured to interact with other network services, such as connecting to the internet. Multiple interfaces are supported per instance. Required to restore in different project or region.
-    #[serde(default, rename = "networkInterfaces")]
-    pub network_interfaces: ::core::option::Option<::std::vec::Vec<NetworkInterface>>,
-    /// Optional. Configure network performance such as egress bandwidth tier.
-    #[serde(default, rename = "networkPerformanceConfig")]
-    pub network_performance_config: ::core::option::Option<NetworkPerformanceConfig>,
-    /// Input only. Additional params passed with the request, but not persisted as part of resource payload.
-    #[serde(default)]
-    pub params: ::core::option::Option<InstanceParams>,
-    /// Optional. The private IPv6 google access type for the VM. If not specified, use INHERIT_FROM_SUBNETWORK as default. // TODO: enum values: ["INSTANCE_PRIVATE_IPV6_GOOGLE_ACCESS_UNSPECIFIED", "INHERIT_FROM_SUBNETWORK", "ENABLE_OUTBOUND_VM_ACCESS_TO_GOOGLE", "ENABLE_BIDIRECTIONAL_ACCESS_TO_GOOGLE"]
-    #[serde(default, rename = "privateIpv6GoogleAccess")]
-    pub private_ipv6_google_access: ::core::option::Option<String>,
-    /// Optional. Specifies the reservations that this instance can consume from.
-    #[serde(default, rename = "reservationAffinity")]
-    pub reservation_affinity: ::core::option::Option<AllocationAffinity>,
-    /// Optional. Resource policies applied to this instance. By default, no resource policies will be applied.
-    #[serde(default, rename = "resourcePolicies")]
-    pub resource_policies: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Optional. Sets the scheduling options for this instance.
-    #[serde(default)]
-    pub scheduling: ::core::option::Option<Scheduling>,
-    /// Optional. A list of service accounts, with their specified scopes, authorized for this instance. Only one service account per VM instance is supported.
-    #[serde(default, rename = "serviceAccounts")]
-    pub service_accounts: ::core::option::Option<::std::vec::Vec<ServiceAccount>>,
-    /// Optional. Tags to apply to this instance. Tags are used to identify valid sources or targets for network firewalls and are specified by the client during instance creation.
-    #[serde(default)]
-    pub tags: ::core::option::Option<Tags>,
-}
-
-/// ComputeInstanceTargetEnvironment represents Compute Engine target environment to be used during restore.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ComputeInstanceTargetEnvironment {
-    /// Required. Target project for the Compute Engine instance.
-    #[serde(default)]
-    pub project: ::core::option::Option<String>,
-    /// Required. The zone of the Compute Engine instance.
-    #[serde(default)]
-    pub zone: ::core::option::Option<String>,
-}
-
-/// A set of Confidential Instance options.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ConfidentialInstanceConfig {
-    /// Optional. Defines whether the instance should have confidential compute enabled.
-    #[serde(default, rename = "enableConfidentialCompute")]
-    pub enable_confidential_compute: ::core::option::Option<bool>,
-}
-
-/// A customer-supplied encryption key.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CustomerEncryptionKey {
-    /// Optional. The name of the encryption key that is stored in Google Cloud KMS.
-    #[serde(default, rename = "kmsKeyName")]
-    pub kms_key_name: ::core::option::Option<String>,
-    /// Optional. The service account being used for the encryption request for the given KMS key. If absent, the Compute Engine default service account is used.
-    #[serde(default, rename = "kmsKeyServiceAccount")]
-    pub kms_key_service_account: ::core::option::Option<String>,
-    /// Optional. Specifies a 256-bit customer-supplied encryption key.
-    #[serde(default, rename = "rawKey")]
-    pub raw_key: ::core::option::Option<String>,
-    /// Optional. RSA-wrapped 2048-bit customer-supplied encryption key to either encrypt or decrypt this resource.
-    #[serde(default, rename = "rsaEncryptedKey")]
-    pub rsa_encrypted_key: ::core::option::Option<String>,
-}
-
-/// Message describing a DataSource object. Datasource object used to represent Datasource details for both admin and basic view.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DataSource {
-    /// Output only. This field is set to true if the backup is blocked by vault access restriction.
-    #[serde(default, rename = "backupBlockedByVaultAccessRestriction")]
-    pub backup_blocked_by_vault_access_restriction: ::core::option::Option<bool>,
-    /// Output only. Details of how the resource is configured for backup.
-    #[serde(default, rename = "backupConfigInfo")]
-    pub backup_config_info: ::core::option::Option<BackupConfigInfo>,
-    /// Number of backups in the data source.
-    #[serde(default, rename = "backupCount")]
-    pub backup_count: ::core::option::Option<String>,
-    /// Output only. The backup configuration state. // TODO: enum values: ["BACKUP_CONFIG_STATE_UNSPECIFIED", "ACTIVE", "PASSIVE"]
-    #[serde(default, rename = "configState")]
-    pub config_state: ::core::option::Option<String>,
-    /// Output only. The time when the instance was created.
-    #[serde(default, rename = "createTime")]
-    pub create_time: ::core::option::Option<String>,
-    /// The backed up resource is a backup appliance application.
-    #[serde(default, rename = "dataSourceBackupApplianceApplication")]
-    pub data_source_backup_appliance_application:
-        ::core::option::Option<DataSourceBackupApplianceApplication>,
-    /// The backed up resource is a Google Cloud resource. The word ''DataSource'' was included in the names to indicate that this is the representation of the Google Cloud resource used within the DataSource object.
-    #[serde(default, rename = "dataSourceGcpResource")]
-    pub data_source_gcp_resource: ::core::option::Option<DataSourceGcpResource>,
-    /// Server specified ETag for the ManagementServer resource to prevent simultaneous updates from overwiting each other.
-    #[serde(default)]
-    pub etag: ::core::option::Option<String>,
-    /// Optional. Resource labels to represent user provided metadata. No labels currently defined:
-    #[serde(default)]
-    pub labels: ::core::option::Option<serde_json::Value>,
-    /// Output only. Identifier. Name of the datasource to create. It must have the format"projects/{project}/locations/{location}/backupVaults/{backupvault}/dataSources/{datasource}". {datasource} cannot be changed after creation. It must be between 3-63 characters long and must be unique within the backup vault.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Output only. The DataSource resource instance state. // TODO: enum values: ["STATE_UNSPECIFIED", "CREATING", "ACTIVE", "DELETING", "ERROR"]
-    #[serde(default)]
-    pub state: ::core::option::Option<String>,
-    /// The number of bytes (metadata and data) stored in this datasource.
-    #[serde(default, rename = "totalStoredBytes")]
-    pub total_stored_bytes: ::core::option::Option<String>,
-    /// Output only. The time when the instance was updated.
-    #[serde(default, rename = "updateTime")]
-    pub update_time: ::core::option::Option<String>,
-}
-
-/// BackupApplianceApplication describes a Source Resource when it is an application backed up by a BackupAppliance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DataSourceBackupApplianceApplication {
-    /// Appliance Id of the Backup Appliance.
-    #[serde(default, rename = "applianceId")]
-    pub appliance_id: ::core::option::Option<String>,
-    /// The appid field of the application within the Backup Appliance.
-    #[serde(default, rename = "applicationId")]
-    pub application_id: ::core::option::Option<String>,
-    /// The name of the Application as known to the Backup Appliance.
-    #[serde(default, rename = "applicationName")]
-    pub application_name: ::core::option::Option<String>,
-    /// Appliance name.
-    #[serde(default, rename = "backupAppliance")]
-    pub backup_appliance: ::core::option::Option<String>,
-    /// Hostid of the application host.
-    #[serde(default, rename = "hostId")]
-    pub host_id: ::core::option::Option<String>,
-    /// Hostname of the host where the application is running.
-    #[serde(default)]
-    pub hostname: ::core::option::Option<String>,
-    /// The type of the application. e.g. VMBackup
-    #[serde(default, rename = "type")]
-    pub type_: ::core::option::Option<String>,
-}
-
-/// Information of backup configuration on the DataSource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DataSourceBackupConfigInfo {
-    /// Output only. The status of the last backup in this DataSource // TODO: enum values: ["LAST_BACKUP_STATE_UNSPECIFIED", "FIRST_BACKUP_PENDING", "SUCCEEDED", "FAILED", "PERMISSION_DENIED"]
-    #[serde(default, rename = "lastBackupState")]
-    pub last_backup_state: ::core::option::Option<String>,
-    /// Output only. Timestamp of the last successful backup to this DataSource.
-    #[serde(default, rename = "lastSuccessfulBackupConsistencyTime")]
-    pub last_successful_backup_consistency_time: ::core::option::Option<String>,
-}
-
-/// DataSourceGcpResource is used for protected resources that are Google Cloud Resources. This name is easeier to understand than GcpResourceDataSource or GcpDataSourceResource
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DataSourceGcpResource {
-    /// Output only. AlloyDBClusterDataSourceProperties has a subset of AlloyDB cluster properties that are useful at the Datasource level. Currently none of its child properties are auditable. If new auditable properties are added, the AUDIT annotation should be added.
-    #[serde(default, rename = "alloyDbClusterDatasourceProperties")]
-    pub alloy_db_cluster_datasource_properties:
-        ::core::option::Option<AlloyDBClusterDataSourceProperties>,
-    /// Output only. CloudSqlInstanceDataSourceProperties has a subset of Cloud SQL Instance properties that are useful at the Datasource level.
-    #[serde(default, rename = "cloudSqlInstanceDatasourceProperties")]
-    pub cloud_sql_instance_datasource_properties:
-        ::core::option::Option<CloudSqlInstanceDataSourceProperties>,
-    /// ComputeInstanceDataSourceProperties has a subset of Compute Instance properties that are useful at the Datasource level.
-    #[serde(default, rename = "computeInstanceDatasourceProperties")]
-    pub compute_instance_datasource_properties:
-        ::core::option::Option<ComputeInstanceDataSourceProperties>,
-    /// DiskDataSourceProperties has a subset of Disk properties that are useful at the Datasource level.
-    #[serde(default, rename = "diskDatasourceProperties")]
-    pub disk_datasource_properties: ::core::option::Option<DiskDataSourceProperties>,
-    /// Output only. FilestoreInstanceDataSourceProperties has a subset of FileStore instance properties that are useful at the Datasource level.
-    #[serde(default, rename = "filestoreInstanceDatasourceProperties")]
-    pub filestore_instance_datasource_properties:
-        ::core::option::Option<FilestoreInstanceDataSourceProperties>,
-    /// Output only. Full resource pathname URL of the source Google Cloud resource.
-    #[serde(default, rename = "gcpResourcename")]
-    pub gcp_resourcename: ::core::option::Option<String>,
-    /// Location of the resource: //"global"/"unspecified".
-    #[serde(default)]
-    pub location: ::core::option::Option<String>,
-    /// The type of the Google Cloud resource. Use the Unified Resource Type, eg. compute.googleapis.com/Instance.
-    #[serde(default, rename = "type")]
-    pub type_: ::core::option::Option<String>,
-}
-
-/// The Google Cloud resource that the DataSource is associated with.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DataSourceGcpResourceInfo {
-    /// Output only. The properties of the AlloyDB cluster.
-    #[serde(default, rename = "alloyDbClusterProperties")]
-    pub alloy_db_cluster_properties:
-        ::core::option::Option<AlloyDBClusterDataSourceReferenceProperties>,
-    /// Output only. The properties of the Cloud SQL instance.
-    #[serde(default, rename = "cloudSqlInstanceProperties")]
-    pub cloud_sql_instance_properties:
-        ::core::option::Option<CloudSqlInstanceDataSourceReferenceProperties>,
-    /// Output only. The properties of the Filestore instance.
-    #[serde(default, rename = "filestoreInstanceProperties")]
-    pub filestore_instance_properties:
-        ::core::option::Option<FilestoreInstanceDataSourceReferenceProperties>,
-    /// Output only. The resource name of the Google Cloud resource. Ex: projects/{project}/zones/{zone}/instances/{instance}
-    #[serde(default, rename = "gcpResourcename")]
-    pub gcp_resourcename: ::core::option::Option<String>,
-    /// Output only. The location of the Google Cloud resource. Ex: //"global"/"unspecified"
-    #[serde(default)]
-    pub location: ::core::option::Option<String>,
-    /// Output only. The type of the Google Cloud resource. Ex: compute.googleapis.com/Instance
-    #[serde(default, rename = "type")]
-    pub type_: ::core::option::Option<String>,
-}
-
-/// DataSourceReference is a reference to a DataSource resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DataSourceReference {
-    /// Output only. The time when the DataSourceReference was created.
-    #[serde(default, rename = "createTime")]
-    pub create_time: ::core::option::Option<String>,
-    /// Output only. The resource name of the DataSource. Format: projects/{project}/locations/{location}/backupVaults/{backupVault}/dataSources/{dataSource}
-    #[serde(default, rename = "dataSource")]
-    pub data_source: ::core::option::Option<String>,
-    /// Output only. Information of backup configuration on the DataSource.
-    #[serde(default, rename = "dataSourceBackupConfigInfo")]
-    pub data_source_backup_config_info: ::core::option::Option<DataSourceBackupConfigInfo>,
-    /// Output only. The backup configuration state of the DataSource. // TODO: enum values: ["BACKUP_CONFIG_STATE_UNSPECIFIED", "ACTIVE", "PASSIVE"]
-    #[serde(default, rename = "dataSourceBackupConfigState")]
-    pub data_source_backup_config_state: ::core::option::Option<String>,
-    /// Output only. Number of backups in the DataSource.
-    #[serde(default, rename = "dataSourceBackupCount")]
-    pub data_source_backup_count: ::core::option::Option<String>,
-    /// Output only. The Google Cloud resource that the DataSource is associated with.
-    #[serde(default, rename = "dataSourceGcpResourceInfo")]
-    pub data_source_gcp_resource_info: ::core::option::Option<DataSourceGcpResourceInfo>,
-    /// Identifier. The resource name of the DataSourceReference. Format: projects/{project}/locations/{location}/dataSourceReferences/{data_source_reference}
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Output only. Total size of the storage used by all backup resources for the referenced datasource.
-    #[serde(default, rename = "totalStoredBytes")]
-    pub total_stored_bytes: ::core::option::Option<String>,
-}
-
-/// --- DiskBackupPlanProperties Message ---
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DiskBackupPlanProperties {
-    /// Optional. Indicates whether to perform a guest flush operation before taking a disk backup. When set to false, the system will create crash-consistent backups. Default value is false.
-    #[serde(default, rename = "guestFlush")]
-    pub guest_flush: ::core::option::Option<bool>,
-}
-
-/// DiskBackupProperties represents the properties of a Disk backup.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DiskBackupProperties {
-    /// The access mode of the source disk.
-    #[serde(default, rename = "accessMode")]
-    pub access_mode: ::core::option::Option<String>,
-    /// The architecture of the source disk. Valid values are ARM64 or X86_64. // TODO: enum values: ["ARCHITECTURE_UNSPECIFIED", "X86_64", "ARM64"]
-    #[serde(default)]
-    pub architecture: ::core::option::Option<String>,
-    /// A description of the source disk.
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// Indicates whether the source disk is using confidential compute mode.
-    #[serde(default, rename = "enableConfidentialCompute")]
-    pub enable_confidential_compute: ::core::option::Option<bool>,
-    /// Optional. Defines if the guest flush is enabled for the source disk. Default value is false.
-    #[serde(default, rename = "guestFlush")]
-    pub guest_flush: ::core::option::Option<bool>,
-    /// A list of guest OS features that are applicable to this backup.
-    #[serde(default, rename = "guestOsFeature")]
-    pub guest_os_feature: ::core::option::Option<::std::vec::Vec<GuestOsFeature>>,
-    /// The labels of the source disk.
-    #[serde(default)]
-    pub labels: ::core::option::Option<serde_json::Value>,
-    /// A list of publicly available licenses that are applicable to this backup. This is applicable if the original image had licenses attached, e.g. Windows image.
-    #[serde(default)]
-    pub licenses: ::core::option::Option<::std::vec::Vec<String>>,
-    /// The physical block size of the source disk.
-    #[serde(default, rename = "physicalBlockSizeBytes")]
-    pub physical_block_size_bytes: ::core::option::Option<String>,
-    /// The number of IOPS provisioned for the source disk.
-    #[serde(default, rename = "provisionedIops")]
-    pub provisioned_iops: ::core::option::Option<String>,
-    /// The number of throughput provisioned for the source disk.
-    #[serde(default, rename = "provisionedThroughput")]
-    pub provisioned_throughput: ::core::option::Option<String>,
-    /// Region and zone are mutually exclusive fields. The URL of the region of the source disk.
-    #[serde(default)]
-    pub region: ::core::option::Option<String>,
-    /// The URL of the Zones where the source disk should be replicated.
-    #[serde(default, rename = "replicaZones")]
-    pub replica_zones: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Size(in GB) of the source disk.
-    #[serde(default, rename = "sizeGb")]
-    pub size_gb: ::core::option::Option<String>,
-    /// The source disk used to create this backup.
-    #[serde(default, rename = "sourceDisk")]
-    pub source_disk: ::core::option::Option<String>,
-    /// The storage pool of the source disk.
-    #[serde(default, rename = "storagePool")]
-    pub storage_pool: ::core::option::Option<String>,
-    /// The URL of the type of the disk.
-    #[serde(default, rename = "type")]
-    pub type_: ::core::option::Option<String>,
-    /// The URL of the Zone where the source disk.
-    #[serde(default)]
-    pub zone: ::core::option::Option<String>,
-}
-
-/// DiskDataSourceProperties represents the properties of a Disk resource that are stored in the DataSource. .
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DiskDataSourceProperties {
-    /// The description of the disk.
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// Name of the disk backed up by the datasource.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// The size of the disk in GB.
-    #[serde(default, rename = "sizeGb")]
-    pub size_gb: ::core::option::Option<String>,
-    /// The type of the disk.
-    #[serde(default, rename = "type")]
-    pub type_: ::core::option::Option<String>,
-}
-
-/// DiskRestoreProperties represents the properties of a Disk restore.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DiskRestoreProperties {
-    /// Optional. The access mode of the disk. // TODO: enum values: ["READ_WRITE_SINGLE", "READ_WRITE_MANY", "READ_ONLY_MANY"]
-    #[serde(default, rename = "accessMode")]
-    pub access_mode: ::core::option::Option<String>,
-    /// Optional. The architecture of the source disk. Valid values are ARM64 or X86_64. // TODO: enum values: ["ARCHITECTURE_UNSPECIFIED", "X86_64", "ARM64"]
-    #[serde(default)]
-    pub architecture: ::core::option::Option<String>,
-    /// Optional. An optional description of this resource. Provide this property when you create the resource.
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// Optional. Encrypts the disk using a customer-supplied encryption key or a customer-managed encryption key.
-    #[serde(default, rename = "diskEncryptionKey")]
-    pub disk_encryption_key: ::core::option::Option<CustomerEncryptionKey>,
-    /// Optional. Indicates whether this disk is using confidential compute mode. Encryption with a Cloud KMS key is required to enable this option.
-    #[serde(default, rename = "enableConfidentialCompute")]
-    pub enable_confidential_compute: ::core::option::Option<bool>,
-    /// Optional. A list of features to enable in the guest operating system. This is applicable only for bootable images.
-    #[serde(default, rename = "guestOsFeature")]
-    pub guest_os_feature: ::core::option::Option<::std::vec::Vec<GuestOsFeature>>,
-    /// Optional. Labels to apply to this disk. These can be modified later using setLabels method. Label values can be empty.
-    #[serde(default)]
-    pub labels: ::core::option::Option<serde_json::Value>,
-    /// Optional. A list of publicly available licenses that are applicable to this backup. This is applicable if the original image had licenses attached, e.g. Windows image
-    #[serde(default)]
-    pub licenses: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Required. Name of the disk.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Optional. Physical block size of the persistent disk, in bytes. If not present in a request, a default value is used. Currently, the supported size is 4096.
-    #[serde(default, rename = "physicalBlockSizeBytes")]
-    pub physical_block_size_bytes: ::core::option::Option<String>,
-    /// Optional. Indicates how many IOPS to provision for the disk. This sets the number of I/O operations per second that the disk can handle.
-    #[serde(default, rename = "provisionedIops")]
-    pub provisioned_iops: ::core::option::Option<String>,
-    /// Optional. Indicates how much throughput to provision for the disk. This sets the number of throughput MB per second that the disk can handle.
-    #[serde(default, rename = "provisionedThroughput")]
-    pub provisioned_throughput: ::core::option::Option<String>,
-    /// Optional. Resource manager tags to be bound to the disk.
-    #[serde(default, rename = "resourceManagerTags")]
-    pub resource_manager_tags: ::core::option::Option<serde_json::Value>,
-    /// Optional. Resource policies applied to this disk.
-    #[serde(default, rename = "resourcePolicy")]
-    pub resource_policy: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Required. The size of the disk in GB.
-    #[serde(default, rename = "sizeGb")]
-    pub size_gb: ::core::option::Option<String>,
-    /// Optional. The storage pool in which the new disk is created. You can provide this as a partial or full URL to the resource.
-    #[serde(default, rename = "storagePool")]
-    pub storage_pool: ::core::option::Option<String>,
-    /// Required. URL of the disk type resource describing which disk type to use to create the disk.
-    #[serde(default, rename = "type")]
-    pub type_: ::core::option::Option<String>,
-}
-
-/// DiskTargetEnvironment represents the target environment for the disk.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DiskTargetEnvironment {
-    /// Required. Target project for the disk.
-    #[serde(default)]
-    pub project: ::core::option::Option<String>,
-    /// Required. Target zone for the disk.
-    #[serde(default)]
-    pub zone: ::core::option::Option<String>,
-}
-
-/// A set of Display Device options
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DisplayDevice {
-    /// Optional. Enables display for the Compute Engine VM
-    #[serde(default, rename = "enableDisplay")]
-    pub enable_display: ::core::option::Option<bool>,
-}
-
-/// Message describing the EncryptionConfig of backup vault. This determines how data within the vault is encrypted at rest.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct EncryptionConfig {
-    /// Optional. The Cloud KMS key name to encrypt backups in this backup vault. Must be in the same region as the vault. Some workload backups like compute disk backups may use their inherited source key instead. Format: projects/{project}/locations/{location}/keyRings/{ring}/cryptoKeys/{key}
-    #[serde(default, rename = "kmsKeyName")]
-    pub kms_key_name: ::core::option::Option<String>,
-}
-
 /// Request message for ending a trial.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct EndTrialRequest {
     /// Required. The reason for ending the trial. // TODO: enum values: ["END_REASON_UNSPECIFIED", "MOVE_TO_PAID", "DISCONTINUED"]
     #[serde(default, rename = "endReason")]
     pub end_reason: ::core::option::Option<String>,
-}
-
-/// A key/value pair to be used for storing metadata.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Entry {
-    /// Optional. Key for the metadata entry.
-    #[serde(default)]
-    pub key: ::core::option::Option<String>,
-    /// Optional. Value for the metadata entry. These are free-form strings, and only have meaning as interpreted by the image running in the instance. The only restriction placed on values is that their size must be less than or equal to 262144 bytes (256 KiB).
-    #[serde(default)]
-    pub value: ::core::option::Option<String>,
-}
-
-/// Represents a textual expression in the Common Expression Language (CEL) syntax. CEL is a C-like expression language. The syntax and semantics of CEL are documented at https://github.com/google/cel-spec. Example (Comparison): title: "Summary size limit" description: "Determines if a summary is less than 100 chars" expression: "document.summary.size() &lt; 100" Example (Equality): title: "Requestor is owner" description: "Determines if requestor is the document owner" expression: "document.owner == request.auth.claims.email" Example (Logic): title: "Public documents" description: "Determine whether the document should be publicly visible" expression: "document.type != ''private'' && document.type != ''internal''" Example (Data Manipulation): title: "Notification string" description: "Create a notification string with a timestamp." expression: "''New message received at '' + string(document.create_time)" The exact variables and functions that may be referenced within an expression are determined by the service that evaluates it. See the service documentation for additional information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Expr {
-    /// Optional. Description of the expression. This is a longer text which describes the expression, e.g. when hovered over it in a UI.
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// Textual representation of an expression in Common Expression Language syntax.
-    #[serde(default)]
-    pub expression: ::core::option::Option<String>,
-    /// Optional. String indicating the location of the expression for error reporting, e.g. a file name and a position in the file.
-    #[serde(default)]
-    pub location: ::core::option::Option<String>,
-    /// Optional. Title for the expression, i.e. a short string describing its purpose. This can be used e.g. in UIs which allow to enter the expression.
-    #[serde(default)]
-    pub title: ::core::option::Option<String>,
 }
 
 /// Request message for FetchAccessToken.
@@ -1473,44 +114,6 @@ pub struct FetchUsableBackupVaultsResponse {
     pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
-/// Filestore instance''s BPA properties.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct FilestoreInstanceBackupPlanAssociationProperties {
-    /// Output only. The time when the instance was created.
-    #[serde(default, rename = "instanceCreateTime")]
-    pub instance_create_time: ::core::option::Option<String>,
-}
-
-/// FilestoreInstanceBackupProperties represents the properties of a Filestore instance that are backed up by the datasource. .
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct FilestoreInstanceBackupProperties {
-    /// Output only. The source instance of the backup.
-    #[serde(default, rename = "sourceInstance")]
-    pub source_instance: ::core::option::Option<String>,
-}
-
-/// FilestoreInstanceDataSourceProperties represents the properties of a Filestore resource that are stored in the DataSource. .
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct FilestoreInstanceDataSourceProperties {
-    /// Output only. The instance creation timestamp.
-    #[serde(default, rename = "instanceCreateTime")]
-    pub instance_create_time: ::core::option::Option<String>,
-    /// Output only. Name of the Filestore instance backed up by the datasource.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-}
-
-/// FilestoreInstanceDataSourceReferenceProperties represents the properties of a Filestore resource that are stored in the DataSourceReference. .
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct FilestoreInstanceDataSourceReferenceProperties {
-    /// Output only. The instance creation timestamp.
-    #[serde(default, rename = "instanceCreateTime")]
-    pub instance_create_time: ::core::option::Option<String>,
-    /// Output only. Name of the Filestore instance backed up by the datasource. Format: projects/{project}/instances/{instance}
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-}
-
 /// Message for finalizing a Backup.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct FinalizeBackupRequest {
@@ -1535,60 +138,6 @@ pub struct FinalizeBackupRequest {
     /// The ExpireTime on the backup will be set to FinalizeTime plus this duration. If the resulting ExpireTime is less than EnforcedRetentionEndTime, then ExpireTime is set to EnforcedRetentionEndTime.
     #[serde(default, rename = "retentionDuration")]
     pub retention_duration: ::core::option::Option<String>,
-}
-
-/// GCPBackupPlanInfo captures the plan configuration details of Google Cloud resources at the time of backup.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GCPBackupPlanInfo {
-    /// Resource name of backup plan by which workload is protected at the time of the backup. Format: projects/{project}/locations/{location}/backupPlans/{backupPlanId}
-    #[serde(default, rename = "backupPlan")]
-    pub backup_plan: ::core::option::Option<String>,
-    /// The user friendly id of the backup plan revision which triggered this backup in case of scheduled backup or used for on demand backup.
-    #[serde(default, rename = "backupPlanRevisionId")]
-    pub backup_plan_revision_id: ::core::option::Option<String>,
-    /// Resource name of the backup plan revision which triggered this backup in case of scheduled backup or used for on demand backup. Format: projects/{project}/locations/{location}/backupPlans/{backupPlanId}/revisions/{revisionId}
-    #[serde(default, rename = "backupPlanRevisionName")]
-    pub backup_plan_revision_name: ::core::option::Option<String>,
-    /// The rule id of the backup plan which triggered this backup in case of scheduled backup or used for
-    #[serde(default, rename = "backupPlanRuleId")]
-    pub backup_plan_rule_id: ::core::option::Option<String>,
-}
-
-/// GcpBackupConfig captures the Backup configuration details for Google Cloud resources. All Google Cloud resources regardless of type are protected with backup plan associations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GcpBackupConfig {
-    /// The name of the backup plan.
-    #[serde(default, rename = "backupPlan")]
-    pub backup_plan: ::core::option::Option<String>,
-    /// The name of the backup plan association.
-    #[serde(default, rename = "backupPlanAssociation")]
-    pub backup_plan_association: ::core::option::Option<String>,
-    /// The description of the backup plan.
-    #[serde(default, rename = "backupPlanDescription")]
-    pub backup_plan_description: ::core::option::Option<String>,
-    /// The user friendly id of the backup plan revision. E.g. v0, v1 etc.
-    #[serde(default, rename = "backupPlanRevisionId")]
-    pub backup_plan_revision_id: ::core::option::Option<String>,
-    /// The name of the backup plan revision.
-    #[serde(default, rename = "backupPlanRevisionName")]
-    pub backup_plan_revision_name: ::core::option::Option<String>,
-    /// The names of the backup plan rules which point to this backupvault
-    #[serde(default, rename = "backupPlanRules")]
-    pub backup_plan_rules: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// Minimum details to identify a Google Cloud resource
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GcpResource {
-    /// Name of the Google Cloud resource.
-    #[serde(default, rename = "gcpResourcename")]
-    pub gcp_resourcename: ::core::option::Option<String>,
-    /// Location of the resource: //"global"/"unspecified".
-    #[serde(default)]
-    pub location: ::core::option::Option<String>,
-    /// Type of the resource. Use the Unified Resource Type, eg. compute.googleapis.com/Instance.
-    #[serde(default, rename = "type")]
-    pub type_: ::core::option::Option<String>,
 }
 
 /// Represents the metadata of the long-running operation.
@@ -1618,25 +167,6 @@ pub struct GoogleCloudBackupdrV1OperationMetadata {
     /// Output only. Name of the verb executed by the operation.
     #[serde(default)]
     pub verb: ::core::option::Option<String>,
-}
-
-/// Feature type of the Guest OS.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GuestOsFeature {
-    /// The ID of a supported feature. // TODO: enum values: ["FEATURE_TYPE_UNSPECIFIED", "VIRTIO_SCSI_MULTIQUEUE", "WINDOWS", "MULTI_IP_SUBNET", "UEFI_COMPATIBLE", "SECURE_BOOT", "GVNIC", "SEV_CAPABLE", "BARE_METAL_LINUX_COMPATIBLE", "SUSPEND_RESUME_COMPATIBLE", "SEV_LIVE_MIGRATABLE", "SEV_SNP_CAPABLE", "TDX_CAPABLE", "IDPF", "SEV_LIVE_MIGRATABLE_V2"]
-    #[serde(default, rename = "type")]
-    pub type_: ::core::option::Option<String>,
-}
-
-/// Specifies the parameters to initialize this disk.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct InitializeParams {
-    /// Optional. Specifies the disk name. If not specified, the default is to use the name of the instance.
-    #[serde(default, rename = "diskName")]
-    pub disk_name: ::core::option::Option<String>,
-    /// Optional. URL of the zone where the disk should be created. Required for each regional disk associated with the instance.
-    #[serde(default, rename = "replicaZones")]
-    pub replica_zones: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Request message for initializing the service.
@@ -1830,6 +360,432 @@ pub struct ListResourceBackupConfigsResponse {
     pub resource_backup_configs: ::core::option::Option<::std::vec::Vec<ResourceBackupConfig>>,
 }
 
+/// LocationMetadata resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LocationMetadata {
+    /// List of features that are not supported in the location.
+    #[serde(default, rename = "unsupportedFeatures")]
+    pub unsupported_features: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// Message for deleting a DataSource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RemoveDataSourceRequest {
+    /// Optional. An optional request ID to identify requests. Specify a unique request ID so that if you must retry your request, the server will know to ignore the request if it has already been completed. The server will guarantee that for at least 60 minutes after the first request. For example, consider a situation where you make an initial request and the request times out. If you make the request again with the same request ID, the server can check if original operation with the same request ID was received, and if so, will ignore the second request. This prevents clients from accidentally creating duplicate commitments. The request ID must be a valid UUID with the exception that zero UUID is not supported (00000000-0000-0000-0000-000000000000).
+    #[serde(default, rename = "requestId")]
+    pub request_id: ::core::option::Option<String>,
+}
+
+/// Request message for restoring from a Backup.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RestoreBackupRequest {
+    /// Optional. A field mask used to clear server-side default values for fields within the instance_properties oneof. When a field in this mask is cleared, the server will not apply its default logic (like inheriting a value from the source) for that field. The most common current use case is clearing default encryption keys. Examples of field mask paths: - Compute Instance Disks: compute_instance_restore_properties.disks.*.disk_encryption_key - Single Disk: disk_restore_properties.disk_encryption_key
+    #[serde(default, rename = "clearOverridesFieldMask")]
+    pub clear_overrides_field_mask: ::core::option::Option<String>,
+    /// Compute Engine instance properties to be overridden during restore.
+    #[serde(default, rename = "computeInstanceRestoreProperties")]
+    pub compute_instance_restore_properties:
+        ::core::option::Option<ComputeInstanceRestoreProperties>,
+    /// Compute Engine target environment to be used during restore.
+    #[serde(default, rename = "computeInstanceTargetEnvironment")]
+    pub compute_instance_target_environment:
+        ::core::option::Option<ComputeInstanceTargetEnvironment>,
+    /// Disk properties to be overridden during restore.
+    #[serde(default, rename = "diskRestoreProperties")]
+    pub disk_restore_properties: ::core::option::Option<DiskRestoreProperties>,
+    /// Disk target environment to be used during restore.
+    #[serde(default, rename = "diskTargetEnvironment")]
+    pub disk_target_environment: ::core::option::Option<DiskTargetEnvironment>,
+    /// Region disk target environment to be used during restore.
+    #[serde(default, rename = "regionDiskTargetEnvironment")]
+    pub region_disk_target_environment: ::core::option::Option<RegionDiskTargetEnvironment>,
+    /// Optional. An optional request ID to identify requests. Specify a unique request ID so that if you must retry your request, the server will know to ignore the request if it has already been completed. The server will guarantee that for at least 60 minutes after the first request. For example, consider a situation where you make an initial request and the request times out. If you make the request again with the same request ID, the server can check if original operation with the same request ID was received, and if so, will ignore the second request. This prevents clients from accidentally creating duplicate commitments. The request ID must be a valid UUID with the exception that zero UUID is not supported (00000000-0000-0000-0000-000000000000).
+    #[serde(default, rename = "requestId")]
+    pub request_id: ::core::option::Option<String>,
+}
+
+/// Response message for restoring from a Backup.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RestoreBackupResponse {
+    /// Details of the target resource created/modified as part of restore.
+    #[serde(default, rename = "targetResource")]
+    pub target_resource: ::core::option::Option<TargetResource>,
+}
+
+/// Request message for SetIamPolicy method.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SetIamPolicyRequest {
+    /// REQUIRED: The complete policy to be applied to the resource. The size of the policy is limited to a few 10s of KB. An empty policy is a valid policy but certain Google Cloud services (such as Projects) might reject them.
+    #[serde(default)]
+    pub policy: ::core::option::Option<Policy>,
+    /// OPTIONAL: A FieldMask specifying which fields of the policy to modify. Only the fields in the mask will be modified. If no mask is provided, the following default mask is used: paths: "bindings, etag"
+    #[serde(default, rename = "updateMask")]
+    pub update_mask: ::core::option::Option<String>,
+}
+
+/// Request message for SetStatusInternal method.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SetInternalStatusRequest {
+    /// Required. Output only. The new BackupConfigState to set for the DataSource. // TODO: enum values: ["BACKUP_CONFIG_STATE_UNSPECIFIED", "ACTIVE", "PASSIVE"]
+    #[serde(default, rename = "backupConfigState")]
+    pub backup_config_state: ::core::option::Option<String>,
+    /// Optional. An optional request ID to identify requests. Specify a unique request ID so that if you must retry your request, the server will know to ignore the request if it has already been completed. The server will guarantee that for at least 60 minutes after the first request. The request ID must be a valid UUID with the exception that zero UUID is not supported (00000000-0000-0000-0000-000000000000).
+    #[serde(default, rename = "requestId")]
+    pub request_id: ::core::option::Option<String>,
+    /// Required. The value required for this method to work. This field must be the 32-byte SHA256 hash of the DataSourceID. The DataSourceID used here is only the final piece of the fully qualified resource path for this DataSource (i.e. the part after ''.../dataSources/''). This field exists to make this method difficult to call since it is intended for use only by Backup Appliances.
+    #[serde(default)]
+    pub value: ::core::option::Option<String>,
+}
+
+/// Request message for TestIamPermissions method.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TestIamPermissionsRequest {
+    /// The set of permissions to check for the resource. Permissions with wildcards (such as * or storage.*) are not allowed. For more information see [IAM Overview](https://cloud.google.com/iam/docs/overview#permissions).
+    #[serde(default)]
+    pub permissions: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// Response message for TestIamPermissions method.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TestIamPermissionsResponse {
+    /// A subset of TestPermissionsRequest.permissions that the caller is allowed.
+    #[serde(default)]
+    pub permissions: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// Represents a Trial for a project.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Trial {
+    /// Output only. The reason for ending the trial. // TODO: enum values: ["END_REASON_UNSPECIFIED", "MOVE_TO_PAID", "DISCONTINUED"]
+    #[serde(default, rename = "endReason")]
+    pub end_reason: ::core::option::Option<String>,
+    /// Output only. The time when the trial will expire.
+    #[serde(default, rename = "endTime")]
+    pub end_time: ::core::option::Option<String>,
+    /// Identifier. The resource name of the trial. Format: projects/{project}/locations/{location}/trial
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Output only. The time when the trial was subscribed.
+    #[serde(default, rename = "startTime")]
+    pub start_time: ::core::option::Option<String>,
+    /// Output only. The state of the trial. // TODO: enum values: ["STATE_UNSPECIFIED", "SUBSCRIBED", "UNSUBSCRIBED", "EXPIRED", "ELIGIBLE", "NOT_ELIGIBLE"]
+    #[serde(default)]
+    pub state: ::core::option::Option<String>,
+}
+
+/// Request message for triggering a backup.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TriggerBackupRequest {
+    /// Optional. The duration for which backup data will be kept, while taking an on-demand backup with custom retention. It is defined in "days". It is mutually exclusive with rule_id. This field is required if rule_id is not provided.
+    #[serde(default, rename = "customRetentionDays")]
+    pub custom_retention_days: ::core::option::Option<i32>,
+    /// Optional. Labels to be applied on the backup.
+    #[serde(default)]
+    pub labels: ::core::option::Option<serde_json::Value>,
+    /// Optional. An optional request ID to identify requests. Specify a unique request ID so that if you must retry your request, the server will know to ignore the request if it has already been completed. The server will guarantee that for at least 60 minutes after the first request. For example, consider a situation where you make an initial request and the request times out. If you make the request again with the same request ID, the server can check if original operation with the same request ID was received, and if so, will ignore the second request. This prevents clients from accidentally creating duplicate commitments. The request ID must be a valid UUID with the exception that zero UUID is not supported (00000000-0000-0000-0000-000000000000).
+    #[serde(default, rename = "requestId")]
+    pub request_id: ::core::option::Option<String>,
+    /// Optional. backup rule_id for which a backup needs to be triggered. If not specified, on-demand backup with custom retention will be triggered.
+    #[serde(default, rename = "ruleId")]
+    pub rule_id: ::core::option::Option<String>,
+}
+
+/// CloudSqlInstanceInitializationConfig contains the configuration for initializing a Cloud SQL instance.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CloudSqlInstanceInitializationConfig {
+    /// Required. The edition of the Cloud SQL instance. // TODO: enum values: ["EDITION_UNSPECIFIED", "ENTERPRISE", "ENTERPRISE_PLUS"]
+    #[serde(default)]
+    pub edition: ::core::option::Option<String>,
+}
+
+/// A BackupPlanAssociation represents a single BackupPlanAssociation which contains details like workload, backup plan etc
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BackupPlanAssociation {
+    /// Output only. AlloyDB cluster''s backup plan association properties.
+    #[serde(default, rename = "alloydbClusterBackupPlanAssociationProperties")]
+    pub alloydb_cluster_backup_plan_association_properties:
+        ::core::option::Option<AlloyDBClusterBackupPlanAssociationProperties>,
+    /// Required. Resource name of backup plan which needs to be applied on workload. Format: projects/{project}/locations/{location}/backupPlans/{backupPlanId}
+    #[serde(default, rename = "backupPlan")]
+    pub backup_plan: ::core::option::Option<String>,
+    /// Output only. The user friendly revision ID of the BackupPlanRevision. Example: v0, v1, v2, etc.
+    #[serde(default, rename = "backupPlanRevisionId")]
+    pub backup_plan_revision_id: ::core::option::Option<String>,
+    /// Output only. The resource id of the BackupPlanRevision. Format: projects/{project}/locations/{location}/backupPlans/{backup_plan}/revisions/{revision_id}
+    #[serde(default, rename = "backupPlanRevisionName")]
+    pub backup_plan_revision_name: ::core::option::Option<String>,
+    /// Output only. Cloud SQL instance''s backup plan association properties.
+    #[serde(default, rename = "cloudSqlInstanceBackupPlanAssociationProperties")]
+    pub cloud_sql_instance_backup_plan_association_properties:
+        ::core::option::Option<CloudSqlInstanceBackupPlanAssociationProperties>,
+    /// Output only. The time when the instance was created.
+    #[serde(default, rename = "createTime")]
+    pub create_time: ::core::option::Option<String>,
+    /// Output only. Resource name of data source which will be used as storage location for backups taken. Format : projects/{project}/locations/{location}/backupVaults/{backupvault}/dataSources/{datasource}
+    #[serde(default, rename = "dataSource")]
+    pub data_source: ::core::option::Option<String>,
+    /// Output only. Filestore instance''s backup plan association properties.
+    #[serde(default, rename = "filestoreInstanceBackupPlanAssociationProperties")]
+    pub filestore_instance_backup_plan_association_properties:
+        ::core::option::Option<FilestoreInstanceBackupPlanAssociationProperties>,
+    /// Output only. Identifier. The resource name of BackupPlanAssociation in below format Format : projects/{project}/locations/{location}/backupPlanAssociations/{backupPlanAssociationId}
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Required. Immutable. Resource name of workload on which the backup plan is applied. The format can either be the resource name (e.g., "projects/my-project/zones/us-central1-a/instances/my-instance") or the full resource URI (e.g., "https://www.googleapis.com/compute/v1/projects/my-project/zones/us-central1-a/instances/my-instance").
+    #[serde(default)]
+    pub resource: ::core::option::Option<String>,
+    /// Required. Immutable. Resource type of workload on which backupplan is applied
+    #[serde(default, rename = "resourceType")]
+    pub resource_type: ::core::option::Option<String>,
+    /// Output only. The config info related to backup rules.
+    #[serde(default, rename = "rulesConfigInfo")]
+    pub rules_config_info: ::core::option::Option<::std::vec::Vec<RuleConfigInfo>>,
+    /// Output only. The BackupPlanAssociation resource state. // TODO: enum values: ["STATE_UNSPECIFIED", "CREATING", "ACTIVE", "DELETING", "INACTIVE", "UPDATING"]
+    #[serde(default)]
+    pub state: ::core::option::Option<String>,
+    /// Output only. The time when the instance was updated.
+    #[serde(default, rename = "updateTime")]
+    pub update_time: ::core::option::Option<String>,
+}
+
+/// BackupPlanRevision represents a snapshot of a BackupPlan at a point in time.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BackupPlanRevision {
+    /// The Backup Plan being encompassed by this revision.
+    #[serde(default, rename = "backupPlanSnapshot")]
+    pub backup_plan_snapshot: ::core::option::Option<BackupPlan>,
+    /// Output only. The timestamp that the revision was created.
+    #[serde(default, rename = "createTime")]
+    pub create_time: ::core::option::Option<String>,
+    /// Output only. Identifier. The resource name of the BackupPlanRevision. Format: projects/{project}/locations/{location}/backupPlans/{backup_plan}/revisions/{revision}
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Output only. The user friendly revision ID of the BackupPlanRevision. Example: v0, v1, v2, etc.
+    #[serde(default, rename = "revisionId")]
+    pub revision_id: ::core::option::Option<String>,
+    /// Output only. Resource State // TODO: enum values: ["STATE_UNSPECIFIED", "CREATING", "ACTIVE", "DELETING", "INACTIVE"]
+    #[serde(default)]
+    pub state: ::core::option::Option<String>,
+}
+
+/// Message describing a BackupVault object.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BackupVault {
+    /// Optional. Note: This field is added for future use case and will not be supported in the current release. Access restriction for the backup vault. Default value is WITHIN_ORGANIZATION if not provided during creation. // TODO: enum values: ["ACCESS_RESTRICTION_UNSPECIFIED", "WITHIN_PROJECT", "WITHIN_ORGANIZATION", "UNRESTRICTED", "WITHIN_ORG_BUT_UNRESTRICTED_FOR_BA"]
+    #[serde(default, rename = "accessRestriction")]
+    pub access_restriction: ::core::option::Option<String>,
+    /// Optional. User annotations. See https://google.aip.dev/128#annotations Stores small amounts of arbitrary data.
+    #[serde(default)]
+    pub annotations: ::core::option::Option<serde_json::Value>,
+    /// Output only. The number of backups in this backup vault.
+    #[serde(default, rename = "backupCount")]
+    pub backup_count: ::core::option::Option<String>,
+    /// Required. The default and minimum enforced retention for each backup within the backup vault. The enforced retention for each backup can be extended. Note: Longer minimum enforced retention period impacts potential storage costs post introductory trial. We recommend starting with a short duration of 3 days or less.
+    #[serde(default, rename = "backupMinimumEnforcedRetentionDuration")]
+    pub backup_minimum_enforced_retention_duration: ::core::option::Option<String>,
+    /// Optional. Setting for how a backup''s enforced retention end time is inherited. // TODO: enum values: ["BACKUP_RETENTION_INHERITANCE_UNSPECIFIED", "INHERIT_VAULT_RETENTION", "MATCH_BACKUP_EXPIRE_TIME"]
+    #[serde(default, rename = "backupRetentionInheritance")]
+    pub backup_retention_inheritance: ::core::option::Option<String>,
+    /// Output only. The time when the instance was created.
+    #[serde(default, rename = "createTime")]
+    pub create_time: ::core::option::Option<String>,
+    /// Output only. Set to true when there are no backups nested under this resource.
+    #[serde(default)]
+    pub deletable: ::core::option::Option<bool>,
+    /// Optional. The description of the BackupVault instance (2048 characters or less).
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+    /// Optional. Time after which the BackupVault resource is locked.
+    #[serde(default, rename = "effectiveTime")]
+    pub effective_time: ::core::option::Option<String>,
+    /// Optional. The encryption config of the backup vault.
+    #[serde(default, rename = "encryptionConfig")]
+    pub encryption_config: ::core::option::Option<EncryptionConfig>,
+    /// Optional. Server specified ETag for the backup vault resource to prevent simultaneous updates from overwiting each other.
+    #[serde(default)]
+    pub etag: ::core::option::Option<String>,
+    /// Optional. Resource labels to represent user provided metadata. No labels currently defined:
+    #[serde(default)]
+    pub labels: ::core::option::Option<serde_json::Value>,
+    /// Output only. Identifier. Name of the backup vault to create. It must have the format"projects/{project}/locations/{location}/backupVaults/{backupvault}". {backupvault} cannot be changed after creation. It must be between 3-63 characters long and must be unique within the project and location.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Output only. Service account used by the BackupVault Service for this BackupVault. The user should grant this account permissions in their workload project to enable the service to run backups and restores there.
+    #[serde(default, rename = "serviceAccount")]
+    pub service_account: ::core::option::Option<String>,
+    /// Output only. The BackupVault resource instance state. // TODO: enum values: ["STATE_UNSPECIFIED", "CREATING", "ACTIVE", "DELETING", "ERROR", "UPDATING"]
+    #[serde(default)]
+    pub state: ::core::option::Option<String>,
+    /// Output only. Total size of the storage used by all backup resources.
+    #[serde(default, rename = "totalStoredBytes")]
+    pub total_stored_bytes: ::core::option::Option<String>,
+    /// Output only. Immutable after resource creation until resource deletion.
+    #[serde(default)]
+    pub uid: ::core::option::Option<String>,
+    /// Output only. The time when the instance was updated.
+    #[serde(default, rename = "updateTime")]
+    pub update_time: ::core::option::Option<String>,
+}
+
+/// Message describing a Backup object.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Backup {
+    /// Output only. AlloyDB specific backup properties.
+    #[serde(default, rename = "alloyDbBackupProperties")]
+    pub alloy_db_backup_properties: ::core::option::Option<AlloyDbClusterBackupProperties>,
+    /// Output only. Backup Appliance specific backup properties.
+    #[serde(default, rename = "backupApplianceBackupProperties")]
+    pub backup_appliance_backup_properties: ::core::option::Option<BackupApplianceBackupProperties>,
+    /// Optional. The list of BackupLocks taken by the accessor Backup Appliance.
+    #[serde(default, rename = "backupApplianceLocks")]
+    pub backup_appliance_locks: ::core::option::Option<::std::vec::Vec<BackupLock>>,
+    /// Output only. Setting for how the enforced retention end time is inherited. This value is copied from this backup''s BackupVault. // TODO: enum values: ["BACKUP_RETENTION_INHERITANCE_UNSPECIFIED", "INHERIT_VAULT_RETENTION", "MATCH_BACKUP_EXPIRE_TIME"]
+    #[serde(default, rename = "backupRetentionInheritance")]
+    pub backup_retention_inheritance: ::core::option::Option<String>,
+    /// Output only. Type of the backup, unspecified, scheduled or ondemand. // TODO: enum values: ["BACKUP_TYPE_UNSPECIFIED", "SCHEDULED", "ON_DEMAND", "ON_DEMAND_OPERATIONAL"]
+    #[serde(default, rename = "backupType")]
+    pub backup_type: ::core::option::Option<String>,
+    /// Output only. Cloud SQL specific backup properties.
+    #[serde(default, rename = "cloudSqlInstanceBackupProperties")]
+    pub cloud_sql_instance_backup_properties:
+        ::core::option::Option<CloudSqlInstanceBackupProperties>,
+    /// Output only. Compute Engine specific backup properties.
+    #[serde(default, rename = "computeInstanceBackupProperties")]
+    pub compute_instance_backup_properties: ::core::option::Option<ComputeInstanceBackupProperties>,
+    /// Output only. The point in time when this backup was captured from the source.
+    #[serde(default, rename = "consistencyTime")]
+    pub consistency_time: ::core::option::Option<String>,
+    /// Output only. The time when the instance was created.
+    #[serde(default, rename = "createTime")]
+    pub create_time: ::core::option::Option<String>,
+    /// Output only. The description of the Backup instance (2048 characters or less).
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+    /// Output only. Disk specific backup properties.
+    #[serde(default, rename = "diskBackupProperties")]
+    pub disk_backup_properties: ::core::option::Option<DiskBackupProperties>,
+    /// Optional. The backup can not be deleted before this time.
+    #[serde(default, rename = "enforcedRetentionEndTime")]
+    pub enforced_retention_end_time: ::core::option::Option<String>,
+    /// Optional. Server specified ETag to prevent updates from overwriting each other.
+    #[serde(default)]
+    pub etag: ::core::option::Option<String>,
+    /// Optional. When this backup is automatically expired.
+    #[serde(default, rename = "expireTime")]
+    pub expire_time: ::core::option::Option<String>,
+    /// Output only. Filestore specific backup properties.
+    #[serde(default, rename = "filestoreInstanceBackupProperties")]
+    pub filestore_instance_backup_properties:
+        ::core::option::Option<FilestoreInstanceBackupProperties>,
+    /// Output only. Configuration for a Google Cloud resource.
+    #[serde(default, rename = "gcpBackupPlanInfo")]
+    pub gcp_backup_plan_info: ::core::option::Option<GCPBackupPlanInfo>,
+    /// Output only. Unique identifier of the GCP resource that is being backed up.
+    #[serde(default, rename = "gcpResource")]
+    pub gcp_resource: ::core::option::Option<BackupGcpResource>,
+    /// Optional. Output only. The list of KMS key versions used to encrypt the backup.
+    #[serde(default, rename = "kmsKeyVersions")]
+    pub kms_key_versions: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Optional. Resource labels to represent user provided metadata. No labels currently defined.
+    #[serde(default)]
+    pub labels: ::core::option::Option<serde_json::Value>,
+    /// Output only. Identifier. Name of the backup to create. It must have the format"projects//locations//backupVaults//dataSources/{datasource}/backups/{backup}". {backup} cannot be changed after creation. It must be between 3-63 characters long and must be unique within the datasource.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Output only. source resource size in bytes at the time of the backup.
+    #[serde(default, rename = "resourceSizeBytes")]
+    pub resource_size_bytes: ::core::option::Option<String>,
+    /// Optional. Output only. Reserved for future use.
+    #[serde(default, rename = "satisfiesPzi")]
+    pub satisfies_pzi: ::core::option::Option<bool>,
+    /// Optional. Output only. Reserved for future use.
+    #[serde(default, rename = "satisfiesPzs")]
+    pub satisfies_pzs: ::core::option::Option<bool>,
+    /// Output only. The list of BackupLocks taken by the service to prevent the deletion of the backup.
+    #[serde(default, rename = "serviceLocks")]
+    pub service_locks: ::core::option::Option<::std::vec::Vec<BackupLock>>,
+    /// Output only. The Backup resource instance state. // TODO: enum values: ["STATE_UNSPECIFIED", "CREATING", "ACTIVE", "DELETING", "ERROR", "UPLOADING"]
+    #[serde(default)]
+    pub state: ::core::option::Option<String>,
+    /// Output only. The time when the instance was updated.
+    #[serde(default, rename = "updateTime")]
+    pub update_time: ::core::option::Option<String>,
+}
+
+/// DataSourceReference is a reference to a DataSource resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DataSourceReference {
+    /// Output only. The time when the DataSourceReference was created.
+    #[serde(default, rename = "createTime")]
+    pub create_time: ::core::option::Option<String>,
+    /// Output only. The resource name of the DataSource. Format: projects/{project}/locations/{location}/backupVaults/{backupVault}/dataSources/{dataSource}
+    #[serde(default, rename = "dataSource")]
+    pub data_source: ::core::option::Option<String>,
+    /// Output only. Information of backup configuration on the DataSource.
+    #[serde(default, rename = "dataSourceBackupConfigInfo")]
+    pub data_source_backup_config_info: ::core::option::Option<DataSourceBackupConfigInfo>,
+    /// Output only. The backup configuration state of the DataSource. // TODO: enum values: ["BACKUP_CONFIG_STATE_UNSPECIFIED", "ACTIVE", "PASSIVE"]
+    #[serde(default, rename = "dataSourceBackupConfigState")]
+    pub data_source_backup_config_state: ::core::option::Option<String>,
+    /// Output only. Number of backups in the DataSource.
+    #[serde(default, rename = "dataSourceBackupCount")]
+    pub data_source_backup_count: ::core::option::Option<String>,
+    /// Output only. The Google Cloud resource that the DataSource is associated with.
+    #[serde(default, rename = "dataSourceGcpResourceInfo")]
+    pub data_source_gcp_resource_info: ::core::option::Option<DataSourceGcpResourceInfo>,
+    /// Identifier. The resource name of the DataSourceReference. Format: projects/{project}/locations/{location}/dataSourceReferences/{data_source_reference}
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Output only. Total size of the storage used by all backup resources for the referenced datasource.
+    #[serde(default, rename = "totalStoredBytes")]
+    pub total_stored_bytes: ::core::option::Option<String>,
+}
+
+/// Message describing a DataSource object. Datasource object used to represent Datasource details for both admin and basic view.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DataSource {
+    /// Output only. This field is set to true if the backup is blocked by vault access restriction.
+    #[serde(default, rename = "backupBlockedByVaultAccessRestriction")]
+    pub backup_blocked_by_vault_access_restriction: ::core::option::Option<bool>,
+    /// Output only. Details of how the resource is configured for backup.
+    #[serde(default, rename = "backupConfigInfo")]
+    pub backup_config_info: ::core::option::Option<BackupConfigInfo>,
+    /// Number of backups in the data source.
+    #[serde(default, rename = "backupCount")]
+    pub backup_count: ::core::option::Option<String>,
+    /// Output only. The backup configuration state. // TODO: enum values: ["BACKUP_CONFIG_STATE_UNSPECIFIED", "ACTIVE", "PASSIVE"]
+    #[serde(default, rename = "configState")]
+    pub config_state: ::core::option::Option<String>,
+    /// Output only. The time when the instance was created.
+    #[serde(default, rename = "createTime")]
+    pub create_time: ::core::option::Option<String>,
+    /// The backed up resource is a backup appliance application.
+    #[serde(default, rename = "dataSourceBackupApplianceApplication")]
+    pub data_source_backup_appliance_application:
+        ::core::option::Option<DataSourceBackupApplianceApplication>,
+    /// The backed up resource is a Google Cloud resource. The word ''DataSource'' was included in the names to indicate that this is the representation of the Google Cloud resource used within the DataSource object.
+    #[serde(default, rename = "dataSourceGcpResource")]
+    pub data_source_gcp_resource: ::core::option::Option<DataSourceGcpResource>,
+    /// Server specified ETag for the ManagementServer resource to prevent simultaneous updates from overwiting each other.
+    #[serde(default)]
+    pub etag: ::core::option::Option<String>,
+    /// Optional. Resource labels to represent user provided metadata. No labels currently defined:
+    #[serde(default)]
+    pub labels: ::core::option::Option<serde_json::Value>,
+    /// Output only. Identifier. Name of the datasource to create. It must have the format"projects/{project}/locations/{location}/backupVaults/{backupvault}/dataSources/{datasource}". {datasource} cannot be changed after creation. It must be between 3-63 characters long and must be unique within the backup vault.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Output only. The DataSource resource instance state. // TODO: enum values: ["STATE_UNSPECIFIED", "CREATING", "ACTIVE", "DELETING", "ERROR"]
+    #[serde(default)]
+    pub state: ::core::option::Option<String>,
+    /// The number of bytes (metadata and data) stored in this datasource.
+    #[serde(default, rename = "totalStoredBytes")]
+    pub total_stored_bytes: ::core::option::Option<String>,
+    /// Output only. The time when the instance was updated.
+    #[serde(default, rename = "updateTime")]
+    pub update_time: ::core::option::Option<String>,
+}
+
 /// A resource that represents a Google Cloud location.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Location {
@@ -1848,14 +804,6 @@ pub struct Location {
     /// Resource name for the location, which may vary between implementations. For example: "projects/example-project/locations/us-east1"
     #[serde(default)]
     pub name: ::core::option::Option<String>,
-}
-
-/// LocationMetadata resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct LocationMetadata {
-    /// List of features that are not supported in the location.
-    #[serde(default, rename = "unsupportedFeatures")]
-    pub unsupported_features: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// ManagementServer describes a single BackupDR ManagementServer instance.
@@ -1913,6 +861,699 @@ pub struct ManagementServer {
         ::core::option::Option<WorkforceIdentityBasedOAuth2ClientID>,
 }
 
+/// This resource represents a long-running operation that is the result of a network API call.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Operation {
+    /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
+    #[serde(default)]
+    pub done: ::core::option::Option<bool>,
+    /// The error result of the operation in case of failure or cancellation.
+    #[serde(default)]
+    pub error: ::core::option::Option<Status>,
+    /// Service-specific metadata associated with the operation. It typically contains progress information and common metadata such as create time. Some services might not provide such metadata. Any method that returns a long-running operation should document the metadata type, if any.
+    #[serde(default)]
+    pub metadata: ::core::option::Option<serde_json::Value>,
+    /// The server-assigned name, which is only unique within the same service that originally returns it. If you use the default HTTP mapping, the name should be a resource name ending with operations/{unique_id}.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// The normal, successful response of the operation. If the original method returns no data on success, such as Delete, the response is google.protobuf.Empty. If the original method is standard Get/Create/Update, the response should be the resource. For other methods, the response should have the type XxxResponse, where Xxx is the original method name. For example, if the original method name is TakeSnapshot(), the inferred response type is TakeSnapshotResponse.
+    #[serde(default)]
+    pub response: ::core::option::Option<serde_json::Value>,
+}
+
+/// ResourceBackupConfig represents a resource along with its backup configurations.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ResourceBackupConfig {
+    /// Backup configurations applying to the target resource, including those targeting its related/child resources. For example, backup configuration applicable to Compute Engine disks will be populated in this field for a Compute Engine VM which has the disk associated.
+    #[serde(default, rename = "backupConfigsDetails")]
+    pub backup_configs_details: ::core::option::Option<::std::vec::Vec<BackupConfigDetails>>,
+    /// Output only. Whether the target resource is configured for backup. This is true if the backup_configs_details is not empty.
+    #[serde(default, rename = "backupConfigured")]
+    pub backup_configured: ::core::option::Option<bool>,
+    /// Identifier. The resource name of the ResourceBackupConfig. Format: projects/{project}/locations/{location}/resourceBackupConfigs/{uid}
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Output only. The [full resource name](https://cloud.google.com/asset-inventory/docs/resource-name-format) of the cloud resource that this configuration applies to. Supported resource types are ResourceBackupConfig.ResourceType.
+    #[serde(default, rename = "targetResource")]
+    pub target_resource: ::core::option::Option<String>,
+    /// Output only. The human friendly name of the target resource.
+    #[serde(default, rename = "targetResourceDisplayName")]
+    pub target_resource_display_name: ::core::option::Option<String>,
+    /// Labels associated with the target resource.
+    #[serde(default, rename = "targetResourceLabels")]
+    pub target_resource_labels: ::core::option::Option<serde_json::Value>,
+    /// Output only. The type of the target resource. // TODO: enum values: ["RESOURCE_TYPE_UNSPECIFIED", "CLOUD_SQL_INSTANCE", "COMPUTE_ENGINE_VM", "COMPUTE_ENGINE_DISK", "COMPUTE_ENGINE_REGIONAL_DISK", "FILESTORE_INSTANCE"]
+    #[serde(default, rename = "targetResourceType")]
+    pub target_resource_type: ::core::option::Option<String>,
+    /// Output only. The unique identifier of the resource backup config.
+    #[serde(default)]
+    pub uid: ::core::option::Option<String>,
+    /// Output only. Whether the target resource is protected by a backup vault. This is true if the backup_configs_details is not empty and any of the ResourceBackupConfig.backup_configs_details has a backup configuration with BackupConfigDetails.backup_vault set.
+    #[serde(default)]
+    pub vaulted: ::core::option::Option<bool>,
+}
+
+/// ComputeInstanceRestoreProperties represents Compute Engine instance properties to be overridden during restore.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ComputeInstanceRestoreProperties {
+    /// Optional. Controls for advanced machine-related behavior features.
+    #[serde(default, rename = "advancedMachineFeatures")]
+    pub advanced_machine_features: ::core::option::Option<AdvancedMachineFeatures>,
+    /// Optional. Allows this instance to send and receive packets with non-matching destination or source IPs.
+    #[serde(default, rename = "canIpForward")]
+    pub can_ip_forward: ::core::option::Option<bool>,
+    /// Optional. Controls Confidential compute options on the instance
+    #[serde(default, rename = "confidentialInstanceConfig")]
+    pub confidential_instance_config: ::core::option::Option<ConfidentialInstanceConfig>,
+    /// Optional. Whether the resource should be protected against deletion.
+    #[serde(default, rename = "deletionProtection")]
+    pub deletion_protection: ::core::option::Option<bool>,
+    /// Optional. An optional description of this resource. Provide this property when you create the resource.
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+    /// Optional. Array of disks associated with this instance. Persistent disks must be created before you can assign them. Source regional persistent disks will be restored with default replica zones if not specified.
+    #[serde(default)]
+    pub disks: ::core::option::Option<::std::vec::Vec<AttachedDisk>>,
+    /// Optional. Enables display device for the instance.
+    #[serde(default, rename = "displayDevice")]
+    pub display_device: ::core::option::Option<DisplayDevice>,
+    /// Optional. A list of the type and count of accelerator cards attached to the instance.
+    #[serde(default, rename = "guestAccelerators")]
+    pub guest_accelerators: ::core::option::Option<::std::vec::Vec<AcceleratorConfig>>,
+    /// Optional. Specifies the hostname of the instance. The specified hostname must be RFC1035 compliant. If hostname is not specified, the default hostname is [INSTANCE_NAME].c.[PROJECT_ID].internal when using the global DNS, and [INSTANCE_NAME].[ZONE].c.[PROJECT_ID].internal when using zonal DNS.
+    #[serde(default)]
+    pub hostname: ::core::option::Option<String>,
+    /// Optional. Encrypts suspended data for an instance with a customer-managed encryption key.
+    #[serde(default, rename = "instanceEncryptionKey")]
+    pub instance_encryption_key: ::core::option::Option<CustomerEncryptionKey>,
+    /// Optional. KeyRevocationActionType of the instance. // TODO: enum values: ["KEY_REVOCATION_ACTION_TYPE_UNSPECIFIED", "NONE", "STOP"]
+    #[serde(default, rename = "keyRevocationActionType")]
+    pub key_revocation_action_type: ::core::option::Option<String>,
+    /// Optional. Labels to apply to this instance.
+    #[serde(default)]
+    pub labels: ::core::option::Option<serde_json::Value>,
+    /// Optional. Full or partial URL of the machine type resource to use for this instance.
+    #[serde(default, rename = "machineType")]
+    pub machine_type: ::core::option::Option<String>,
+    /// Optional. This includes custom metadata and predefined keys.
+    #[serde(default)]
+    pub metadata: ::core::option::Option<Metadata>,
+    /// Optional. Minimum CPU platform to use for this instance.
+    #[serde(default, rename = "minCpuPlatform")]
+    pub min_cpu_platform: ::core::option::Option<String>,
+    /// Required. Name of the compute instance.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Optional. An array of network configurations for this instance. These specify how interfaces are configured to interact with other network services, such as connecting to the internet. Multiple interfaces are supported per instance. Required to restore in different project or region.
+    #[serde(default, rename = "networkInterfaces")]
+    pub network_interfaces: ::core::option::Option<::std::vec::Vec<NetworkInterface>>,
+    /// Optional. Configure network performance such as egress bandwidth tier.
+    #[serde(default, rename = "networkPerformanceConfig")]
+    pub network_performance_config: ::core::option::Option<NetworkPerformanceConfig>,
+    /// Input only. Additional params passed with the request, but not persisted as part of resource payload.
+    #[serde(default)]
+    pub params: ::core::option::Option<InstanceParams>,
+    /// Optional. The private IPv6 google access type for the VM. If not specified, use INHERIT_FROM_SUBNETWORK as default. // TODO: enum values: ["INSTANCE_PRIVATE_IPV6_GOOGLE_ACCESS_UNSPECIFIED", "INHERIT_FROM_SUBNETWORK", "ENABLE_OUTBOUND_VM_ACCESS_TO_GOOGLE", "ENABLE_BIDIRECTIONAL_ACCESS_TO_GOOGLE"]
+    #[serde(default, rename = "privateIpv6GoogleAccess")]
+    pub private_ipv6_google_access: ::core::option::Option<String>,
+    /// Optional. Specifies the reservations that this instance can consume from.
+    #[serde(default, rename = "reservationAffinity")]
+    pub reservation_affinity: ::core::option::Option<AllocationAffinity>,
+    /// Optional. Resource policies applied to this instance. By default, no resource policies will be applied.
+    #[serde(default, rename = "resourcePolicies")]
+    pub resource_policies: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Optional. Sets the scheduling options for this instance.
+    #[serde(default)]
+    pub scheduling: ::core::option::Option<Scheduling>,
+    /// Optional. A list of service accounts, with their specified scopes, authorized for this instance. Only one service account per VM instance is supported.
+    #[serde(default, rename = "serviceAccounts")]
+    pub service_accounts: ::core::option::Option<::std::vec::Vec<ServiceAccount>>,
+    /// Optional. Tags to apply to this instance. Tags are used to identify valid sources or targets for network firewalls and are specified by the client during instance creation.
+    #[serde(default)]
+    pub tags: ::core::option::Option<Tags>,
+}
+
+/// ComputeInstanceTargetEnvironment represents Compute Engine target environment to be used during restore.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ComputeInstanceTargetEnvironment {
+    /// Required. Target project for the Compute Engine instance.
+    #[serde(default)]
+    pub project: ::core::option::Option<String>,
+    /// Required. The zone of the Compute Engine instance.
+    #[serde(default)]
+    pub zone: ::core::option::Option<String>,
+}
+
+/// DiskRestoreProperties represents the properties of a Disk restore.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DiskRestoreProperties {
+    /// Optional. The access mode of the disk. // TODO: enum values: ["READ_WRITE_SINGLE", "READ_WRITE_MANY", "READ_ONLY_MANY"]
+    #[serde(default, rename = "accessMode")]
+    pub access_mode: ::core::option::Option<String>,
+    /// Optional. The architecture of the source disk. Valid values are ARM64 or X86_64. // TODO: enum values: ["ARCHITECTURE_UNSPECIFIED", "X86_64", "ARM64"]
+    #[serde(default)]
+    pub architecture: ::core::option::Option<String>,
+    /// Optional. An optional description of this resource. Provide this property when you create the resource.
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+    /// Optional. Encrypts the disk using a customer-supplied encryption key or a customer-managed encryption key.
+    #[serde(default, rename = "diskEncryptionKey")]
+    pub disk_encryption_key: ::core::option::Option<CustomerEncryptionKey>,
+    /// Optional. Indicates whether this disk is using confidential compute mode. Encryption with a Cloud KMS key is required to enable this option.
+    #[serde(default, rename = "enableConfidentialCompute")]
+    pub enable_confidential_compute: ::core::option::Option<bool>,
+    /// Optional. A list of features to enable in the guest operating system. This is applicable only for bootable images.
+    #[serde(default, rename = "guestOsFeature")]
+    pub guest_os_feature: ::core::option::Option<::std::vec::Vec<GuestOsFeature>>,
+    /// Optional. Labels to apply to this disk. These can be modified later using setLabels method. Label values can be empty.
+    #[serde(default)]
+    pub labels: ::core::option::Option<serde_json::Value>,
+    /// Optional. A list of publicly available licenses that are applicable to this backup. This is applicable if the original image had licenses attached, e.g. Windows image
+    #[serde(default)]
+    pub licenses: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Required. Name of the disk.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Optional. Physical block size of the persistent disk, in bytes. If not present in a request, a default value is used. Currently, the supported size is 4096.
+    #[serde(default, rename = "physicalBlockSizeBytes")]
+    pub physical_block_size_bytes: ::core::option::Option<String>,
+    /// Optional. Indicates how many IOPS to provision for the disk. This sets the number of I/O operations per second that the disk can handle.
+    #[serde(default, rename = "provisionedIops")]
+    pub provisioned_iops: ::core::option::Option<String>,
+    /// Optional. Indicates how much throughput to provision for the disk. This sets the number of throughput MB per second that the disk can handle.
+    #[serde(default, rename = "provisionedThroughput")]
+    pub provisioned_throughput: ::core::option::Option<String>,
+    /// Optional. Resource manager tags to be bound to the disk.
+    #[serde(default, rename = "resourceManagerTags")]
+    pub resource_manager_tags: ::core::option::Option<serde_json::Value>,
+    /// Optional. Resource policies applied to this disk.
+    #[serde(default, rename = "resourcePolicy")]
+    pub resource_policy: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Required. The size of the disk in GB.
+    #[serde(default, rename = "sizeGb")]
+    pub size_gb: ::core::option::Option<String>,
+    /// Optional. The storage pool in which the new disk is created. You can provide this as a partial or full URL to the resource.
+    #[serde(default, rename = "storagePool")]
+    pub storage_pool: ::core::option::Option<String>,
+    /// Required. URL of the disk type resource describing which disk type to use to create the disk.
+    #[serde(default, rename = "type")]
+    pub type_: ::core::option::Option<String>,
+}
+
+/// DiskTargetEnvironment represents the target environment for the disk.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DiskTargetEnvironment {
+    /// Required. Target project for the disk.
+    #[serde(default)]
+    pub project: ::core::option::Option<String>,
+    /// Required. Target zone for the disk.
+    #[serde(default)]
+    pub zone: ::core::option::Option<String>,
+}
+
+/// RegionDiskTargetEnvironment represents the target environment for the disk.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RegionDiskTargetEnvironment {
+    /// Required. Target project for the disk.
+    #[serde(default)]
+    pub project: ::core::option::Option<String>,
+    /// Required. Target region for the disk.
+    #[serde(default)]
+    pub region: ::core::option::Option<String>,
+    /// Required. Target URLs of the replica zones for the disk.
+    #[serde(default, rename = "replicaZones")]
+    pub replica_zones: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// Details of the target resource created/modified as part of restore.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TargetResource {
+    /// Details of the native Google Cloud resource created as part of restore.
+    #[serde(default, rename = "gcpResource")]
+    pub gcp_resource: ::core::option::Option<GcpResource>,
+}
+
+/// An Identity and Access Management (IAM) policy, which specifies access controls for Google Cloud resources. A Policy is a collection of bindings. A binding binds one or more members, or principals, to a single role. Principals can be user accounts, service accounts, Google groups, and domains (such as G Suite). A role is a named list of permissions; each role can be an IAM predefined role or a user-created custom role. For some types of Google Cloud resources, a binding can also specify a condition, which is a logical expression that allows access to a resource only if the expression evaluates to true. A condition can add constraints based on attributes of the request, the resource, or both. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies). **JSON example:**  { "bindings": [ { "role": "roles/resourcemanager.organizationAdmin", "members": [ "user:mike@example.com", "group:admins@example.com", "domain:google.com", "serviceAccount:my-project-id@appspot.gserviceaccount.com" ] }, { "role": "roles/resourcemanager.organizationViewer", "members": [ "user:eve@example.com" ], "condition": { "title": "expirable access", "description": "Does not grant access after Sep 2020", "expression": "request.time &lt; timestamp(''2020-10-01T00:00:00.000Z'')", } } ], "etag": "BwWWja0YfJA=", "version": 3 }  **YAML example:**  bindings: - members: - user:mike@example.com - group:admins@example.com - domain:google.com - serviceAccount:my-project-id@appspot.gserviceaccount.com role: roles/resourcemanager.organizationAdmin - members: - user:eve@example.com role: roles/resourcemanager.organizationViewer condition: title: expirable access description: Does not grant access after Sep 2020 expression: request.time &lt; timestamp(''2020-10-01T00:00:00.000Z'') etag: BwWWja0YfJA= version: 3  For a description of IAM and its features, see the [IAM documentation](https://cloud.google.com/iam/docs/).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Policy {
+    /// Specifies cloud audit logging configuration for this policy.
+    #[serde(default, rename = "auditConfigs")]
+    pub audit_configs: ::core::option::Option<::std::vec::Vec<AuditConfig>>,
+    /// Associates a list of members, or principals, with a role. Optionally, may specify a condition that determines how and when the bindings are applied. Each of the bindings must contain at least one principal. The bindings in a Policy can refer to up to 1,500 principals; up to 250 of these principals can be Google groups. Each occurrence of a principal counts towards these limits. For example, if the bindings grant 50 different roles to user:alice@example.com, and not to any other principal, then you can add another 1,450 principals to the bindings in the Policy.
+    #[serde(default)]
+    pub bindings: ::core::option::Option<::std::vec::Vec<Binding>>,
+    /// etag is used for optimistic concurrency control as a way to help prevent simultaneous updates of a policy from overwriting each other. It is strongly suggested that systems make use of the etag in the read-modify-write cycle to perform policy updates in order to avoid race conditions: An etag is returned in the response to getIamPolicy, and systems are expected to put that etag in the request to setIamPolicy to ensure that their change will be applied to the same version of the policy. **Important:** If you use IAM Conditions, you must include the etag field whenever you call setIamPolicy. If you omit this field, then IAM allows you to overwrite a version 3 policy with a version 1 policy, and all of the conditions in the version 3 policy are lost.
+    #[serde(default)]
+    pub etag: ::core::option::Option<String>,
+    /// Specifies the format of the policy. Valid values are 0, 1, and 3. Requests that specify an invalid value are rejected. Any operation that affects conditional role bindings must specify version 3. This requirement applies to the following operations: * Getting a policy that includes a conditional role binding * Adding a conditional role binding to a policy * Changing a conditional role binding in a policy * Removing any role binding, with or without a condition, from a policy that includes conditions **Important:** If you use IAM Conditions, you must include the etag field whenever you call setIamPolicy. If you omit this field, then IAM allows you to overwrite a version 3 policy with a version 1 policy, and all of the conditions in the version 3 policy are lost. If a policy does not include any conditions, operations on that policy may specify any valid version or leave the field unset. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies).
+    #[serde(default)]
+    pub version: ::core::option::Option<i32>,
+}
+
+/// Properties for an AlloyDB cluster backup plan association.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AlloyDBClusterBackupPlanAssociationProperties {
+    /// Output only. The cluster UID of the AlloyDB cluster.
+    #[serde(default, rename = "clusterUid")]
+    pub cluster_uid: ::core::option::Option<String>,
+}
+
+/// Cloud SQL instance''s BPA properties.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CloudSqlInstanceBackupPlanAssociationProperties {
+    /// Output only. The time when the instance was created.
+    #[serde(default, rename = "instanceCreateTime")]
+    pub instance_create_time: ::core::option::Option<String>,
+}
+
+/// Filestore instance''s BPA properties.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct FilestoreInstanceBackupPlanAssociationProperties {
+    /// Output only. The time when the instance was created.
+    #[serde(default, rename = "instanceCreateTime")]
+    pub instance_create_time: ::core::option::Option<String>,
+}
+
+/// Message for rules config info.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RuleConfigInfo {
+    /// Output only. google.rpc.Status object to store the last backup error.
+    #[serde(default, rename = "lastBackupError")]
+    pub last_backup_error: ::core::option::Option<Status>,
+    /// Output only. The last backup state for rule. // TODO: enum values: ["LAST_BACKUP_STATE_UNSPECIFIED", "FIRST_BACKUP_PENDING", "PERMISSION_DENIED", "SUCCEEDED", "FAILED"]
+    #[serde(default, rename = "lastBackupState")]
+    pub last_backup_state: ::core::option::Option<String>,
+    /// Output only. The point in time when the last successful backup was captured from the source.
+    #[serde(default, rename = "lastSuccessfulBackupConsistencyTime")]
+    pub last_successful_backup_consistency_time: ::core::option::Option<String>,
+    /// Output only. Backup Rule id fetched from backup plan.
+    #[serde(default, rename = "ruleId")]
+    pub rule_id: ::core::option::Option<String>,
+}
+
+/// A BackupPlan specifies some common fields, such as description as well as one or more BackupRule messages. Each BackupRule has a retention policy and defines a schedule by which the system is to perform backup workloads.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BackupPlan {
+    /// Optional. The backup rules for this BackupPlan.
+    #[serde(default, rename = "backupRules")]
+    pub backup_rules: ::core::option::Option<::std::vec::Vec<BackupRule>>,
+    /// Required. Resource name of backup vault which will be used as storage location for backups. Format: projects/{project}/locations/{location}/backupVaults/{backupvault}
+    #[serde(default, rename = "backupVault")]
+    pub backup_vault: ::core::option::Option<String>,
+    /// Output only. The Google Cloud service account to be used by the BackupVault for taking backups. Specify the email address of the Backup Vault Service Account.
+    #[serde(default, rename = "backupVaultServiceAccount")]
+    pub backup_vault_service_account: ::core::option::Option<String>,
+    /// Optional. Defines optional properties specific to backups of disk-based resources, such as Compute Engine. This includes settings like whether to perform a guest flush.
+    #[serde(default, rename = "computeInstanceBackupPlanProperties")]
+    pub compute_instance_backup_plan_properties:
+        ::core::option::Option<ComputeInstanceBackupPlanProperties>,
+    /// Output only. When the BackupPlan was created.
+    #[serde(default, rename = "createTime")]
+    pub create_time: ::core::option::Option<String>,
+    /// Optional. The description of the BackupPlan resource. The description allows for additional details about BackupPlan and its use cases to be provided. An example description is the following: "This is a backup plan that performs a daily backup at 6pm and retains data for 3 months". The description must be at most 2048 characters.
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+    /// Optional. Defines optional properties specific to backups of disk-based resources, such as Compute Engine Persistent Disks. This includes settings like whether to perform a guest flush.
+    #[serde(default, rename = "diskBackupPlanProperties")]
+    pub disk_backup_plan_properties: ::core::option::Option<DiskBackupPlanProperties>,
+    /// Optional. etag is returned from the service in the response. As a user of the service, you may provide an etag value in this field to prevent stale resources.
+    #[serde(default)]
+    pub etag: ::core::option::Option<String>,
+    /// Optional. This collection of key/value pairs allows for custom labels to be supplied by the user. Example, {"tag": "Weekly"}.
+    #[serde(default)]
+    pub labels: ::core::option::Option<serde_json::Value>,
+    /// Optional. Applicable only for Cloud SQL resource_type. Configures how long logs will be stored. It is defined in “days”. This value should be greater than or equal to minimum enforced log retention duration of the backup vault.
+    #[serde(default, rename = "logRetentionDays")]
+    pub log_retention_days: ::core::option::Option<String>,
+    /// Optional. Optional field to configure the maximum number of days for which a backup can be retained. This field is only applicable for on-demand backups taken with custom retention value.
+    #[serde(default, rename = "maxCustomOnDemandRetentionDays")]
+    pub max_custom_on_demand_retention_days: ::core::option::Option<i32>,
+    /// Output only. Identifier. The resource name of the BackupPlan. Format: projects/{project}/locations/{location}/backupPlans/{backup_plan}
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Required. The resource type to which the BackupPlan will be applied. Examples include, "compute.googleapis.com/Instance", "sqladmin.googleapis.com/Instance", "alloydb.googleapis.com/Cluster", "compute.googleapis.com/Disk".
+    #[serde(default, rename = "resourceType")]
+    pub resource_type: ::core::option::Option<String>,
+    /// Output only. The user friendly revision ID of the BackupPlanRevision. Example: v0, v1, v2, etc.
+    #[serde(default, rename = "revisionId")]
+    pub revision_id: ::core::option::Option<String>,
+    /// Output only. The resource id of the BackupPlanRevision. Format: projects/{project}/locations/{location}/backupPlans/{backup_plan}/revisions/{revision_id}
+    #[serde(default, rename = "revisionName")]
+    pub revision_name: ::core::option::Option<String>,
+    /// Output only. The State for the BackupPlan. // TODO: enum values: ["STATE_UNSPECIFIED", "CREATING", "ACTIVE", "DELETING", "INACTIVE", "UPDATING"]
+    #[serde(default)]
+    pub state: ::core::option::Option<String>,
+    /// Output only. All resource types to which backupPlan can be applied.
+    #[serde(default, rename = "supportedResourceTypes")]
+    pub supported_resource_types: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Output only. When the BackupPlan was last updated.
+    #[serde(default, rename = "updateTime")]
+    pub update_time: ::core::option::Option<String>,
+}
+
+/// Message describing the EncryptionConfig of backup vault. This determines how data within the vault is encrypted at rest.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct EncryptionConfig {
+    /// Optional. The Cloud KMS key name to encrypt backups in this backup vault. Must be in the same region as the vault. Some workload backups like compute disk backups may use their inherited source key instead. Format: projects/{project}/locations/{location}/keyRings/{ring}/cryptoKeys/{key}
+    #[serde(default, rename = "kmsKeyName")]
+    pub kms_key_name: ::core::option::Option<String>,
+}
+
+/// AlloyDbClusterBackupProperties represents AlloyDB cluster backup properties. .
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AlloyDbClusterBackupProperties {
+    /// Output only. The chain id of this backup. Backups belonging to the same chain are sharing the same chain id. This property is calculated and maintained by BackupDR.
+    #[serde(default, rename = "chainId")]
+    pub chain_id: ::core::option::Option<String>,
+    /// Output only. The PostgreSQL major version of the AlloyDB cluster when the backup was taken.
+    #[serde(default, rename = "databaseVersion")]
+    pub database_version: ::core::option::Option<String>,
+    /// An optional text description for the backup.
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+    /// Output only. Storage usage of this particular backup
+    #[serde(default, rename = "storedBytes")]
+    pub stored_bytes: ::core::option::Option<String>,
+}
+
+/// BackupApplianceBackupProperties represents BackupDR backup appliance''s properties.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BackupApplianceBackupProperties {
+    /// Output only. The time when this backup object was finalized (if none, backup is not finalized).
+    #[serde(default, rename = "finalizeTime")]
+    pub finalize_time: ::core::option::Option<String>,
+    /// Output only. The numeric generation ID of the backup (monotonically increasing).
+    #[serde(default, rename = "generationId")]
+    pub generation_id: ::core::option::Option<i32>,
+    /// Optional. The latest timestamp of data available in this Backup.
+    #[serde(default, rename = "recoveryRangeEndTime")]
+    pub recovery_range_end_time: ::core::option::Option<String>,
+    /// Optional. The earliest timestamp of data available in this Backup.
+    #[serde(default, rename = "recoveryRangeStartTime")]
+    pub recovery_range_start_time: ::core::option::Option<String>,
+}
+
+/// BackupLock represents a single lock on a Backup resource. An unexpired lock on a Backup prevents the Backup from being deleted.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BackupLock {
+    /// If the client is a backup and recovery appliance, this contains metadata about why the lock exists.
+    #[serde(default, rename = "backupApplianceLockInfo")]
+    pub backup_appliance_lock_info: ::core::option::Option<BackupApplianceLockInfo>,
+    /// Required. The time after which this lock is not considered valid and will no longer protect the Backup from deletion.
+    #[serde(default, rename = "lockUntilTime")]
+    pub lock_until_time: ::core::option::Option<String>,
+    /// Output only. Contains metadata about the lock exist for Google Cloud native backups.
+    #[serde(default, rename = "serviceLockInfo")]
+    pub service_lock_info: ::core::option::Option<ServiceLockInfo>,
+}
+
+/// CloudSqlInstanceBackupProperties represents Cloud SQL Instance Backup properties.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CloudSqlInstanceBackupProperties {
+    /// Output only. The installed database version of the Cloud SQL instance when the backup was taken.
+    #[serde(default, rename = "databaseInstalledVersion")]
+    pub database_installed_version: ::core::option::Option<String>,
+    /// Output only. Whether the backup is a final backup.
+    #[serde(default, rename = "finalBackup")]
+    pub final_backup: ::core::option::Option<bool>,
+    /// Output only. The instance creation timestamp.
+    #[serde(default, rename = "instanceCreateTime")]
+    pub instance_create_time: ::core::option::Option<String>,
+    /// Output only. The instance delete timestamp.
+    #[serde(default, rename = "instanceDeleteTime")]
+    pub instance_delete_time: ::core::option::Option<String>,
+    /// Output only. The tier (or machine type) for this instance. Example: db-custom-1-3840
+    #[serde(default, rename = "instanceTier")]
+    pub instance_tier: ::core::option::Option<String>,
+    /// Output only. The source instance of the backup. Format: projects/{project}/instances/{instance}
+    #[serde(default, rename = "sourceInstance")]
+    pub source_instance: ::core::option::Option<String>,
+}
+
+/// ComputeInstanceBackupProperties represents Compute Engine instance backup properties.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ComputeInstanceBackupProperties {
+    /// Enables instances created based on these properties to send packets with source IP addresses other than their own and receive packets with destination IP addresses other than their own. If these instances will be used as an IP gateway or it will be set as the next-hop in a Route resource, specify true. If unsure, leave this set to false. See the https://cloud.google.com/vpc/docs/using-routes#canipforward documentation for more information.
+    #[serde(default, rename = "canIpForward")]
+    pub can_ip_forward: ::core::option::Option<bool>,
+    /// An optional text description for the instances that are created from these properties.
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+    /// An array of disks that are associated with the instances that are created from these properties.
+    #[serde(default)]
+    pub disk: ::core::option::Option<::std::vec::Vec<AttachedDisk>>,
+    /// A list of guest accelerator cards'' type and count to use for instances created from these properties.
+    #[serde(default, rename = "guestAccelerator")]
+    pub guest_accelerator: ::core::option::Option<::std::vec::Vec<AcceleratorConfig>>,
+    /// Optional. Indicates whether to perform a guest flush operation before taking a compute backup. When set to false, the system will create crash-consistent backups. Default value is false.
+    #[serde(default, rename = "guestFlush")]
+    pub guest_flush: ::core::option::Option<bool>,
+    /// KeyRevocationActionType of the instance. Supported options are "STOP" and "NONE". The default value is "NONE" if it is not specified. // TODO: enum values: ["KEY_REVOCATION_ACTION_TYPE_UNSPECIFIED", "NONE", "STOP"]
+    #[serde(default, rename = "keyRevocationActionType")]
+    pub key_revocation_action_type: ::core::option::Option<String>,
+    /// Labels to apply to instances that are created from these properties.
+    #[serde(default)]
+    pub labels: ::core::option::Option<serde_json::Value>,
+    /// The machine type to use for instances that are created from these properties.
+    #[serde(default, rename = "machineType")]
+    pub machine_type: ::core::option::Option<String>,
+    /// The metadata key/value pairs to assign to instances that are created from these properties. These pairs can consist of custom metadata or predefined keys. See https://cloud.google.com/compute/docs/metadata/overview for more information.
+    #[serde(default)]
+    pub metadata: ::core::option::Option<Metadata>,
+    /// Minimum cpu/platform to be used by instances. The instance may be scheduled on the specified or newer cpu/platform. Applicable values are the friendly names of CPU platforms, such as minCpuPlatform: Intel Haswell or minCpuPlatform: Intel Sandy Bridge. For more information, read https://cloud.google.com/compute/docs/instances/specify-min-cpu-platform.
+    #[serde(default, rename = "minCpuPlatform")]
+    pub min_cpu_platform: ::core::option::Option<String>,
+    /// An array of network access configurations for this interface.
+    #[serde(default, rename = "networkInterface")]
+    pub network_interface: ::core::option::Option<::std::vec::Vec<NetworkInterface>>,
+    /// Specifies the scheduling options for the instances that are created from these properties.
+    #[serde(default)]
+    pub scheduling: ::core::option::Option<Scheduling>,
+    /// A list of service accounts with specified scopes. Access tokens for these service accounts are available to the instances that are created from these properties. Use metadata queries to obtain the access tokens for these instances.
+    #[serde(default, rename = "serviceAccount")]
+    pub service_account: ::core::option::Option<::std::vec::Vec<ServiceAccount>>,
+    /// The source instance used to create this backup. This can be a partial or full URL to the resource. For example, the following are valid values: -https://www.googleapis.com/compute/v1/projects/project/zones/zone/instances/instance -projects/project/zones/zone/instances/instance
+    #[serde(default, rename = "sourceInstance")]
+    pub source_instance: ::core::option::Option<String>,
+    /// A list of tags to apply to the instances that are created from these properties. The tags identify valid sources or targets for network firewalls. The setTags method can modify this list of tags. Each tag within the list must comply with RFC1035 (https://www.ietf.org/rfc/rfc1035.txt).
+    #[serde(default)]
+    pub tags: ::core::option::Option<Tags>,
+}
+
+/// DiskBackupProperties represents the properties of a Disk backup.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DiskBackupProperties {
+    /// The access mode of the source disk.
+    #[serde(default, rename = "accessMode")]
+    pub access_mode: ::core::option::Option<String>,
+    /// The architecture of the source disk. Valid values are ARM64 or X86_64. // TODO: enum values: ["ARCHITECTURE_UNSPECIFIED", "X86_64", "ARM64"]
+    #[serde(default)]
+    pub architecture: ::core::option::Option<String>,
+    /// A description of the source disk.
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+    /// Indicates whether the source disk is using confidential compute mode.
+    #[serde(default, rename = "enableConfidentialCompute")]
+    pub enable_confidential_compute: ::core::option::Option<bool>,
+    /// Optional. Defines if the guest flush is enabled for the source disk. Default value is false.
+    #[serde(default, rename = "guestFlush")]
+    pub guest_flush: ::core::option::Option<bool>,
+    /// A list of guest OS features that are applicable to this backup.
+    #[serde(default, rename = "guestOsFeature")]
+    pub guest_os_feature: ::core::option::Option<::std::vec::Vec<GuestOsFeature>>,
+    /// The labels of the source disk.
+    #[serde(default)]
+    pub labels: ::core::option::Option<serde_json::Value>,
+    /// A list of publicly available licenses that are applicable to this backup. This is applicable if the original image had licenses attached, e.g. Windows image.
+    #[serde(default)]
+    pub licenses: ::core::option::Option<::std::vec::Vec<String>>,
+    /// The physical block size of the source disk.
+    #[serde(default, rename = "physicalBlockSizeBytes")]
+    pub physical_block_size_bytes: ::core::option::Option<String>,
+    /// The number of IOPS provisioned for the source disk.
+    #[serde(default, rename = "provisionedIops")]
+    pub provisioned_iops: ::core::option::Option<String>,
+    /// The number of throughput provisioned for the source disk.
+    #[serde(default, rename = "provisionedThroughput")]
+    pub provisioned_throughput: ::core::option::Option<String>,
+    /// Region and zone are mutually exclusive fields. The URL of the region of the source disk.
+    #[serde(default)]
+    pub region: ::core::option::Option<String>,
+    /// The URL of the Zones where the source disk should be replicated.
+    #[serde(default, rename = "replicaZones")]
+    pub replica_zones: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Size(in GB) of the source disk.
+    #[serde(default, rename = "sizeGb")]
+    pub size_gb: ::core::option::Option<String>,
+    /// The source disk used to create this backup.
+    #[serde(default, rename = "sourceDisk")]
+    pub source_disk: ::core::option::Option<String>,
+    /// The storage pool of the source disk.
+    #[serde(default, rename = "storagePool")]
+    pub storage_pool: ::core::option::Option<String>,
+    /// The URL of the type of the disk.
+    #[serde(default, rename = "type")]
+    pub type_: ::core::option::Option<String>,
+    /// The URL of the Zone where the source disk.
+    #[serde(default)]
+    pub zone: ::core::option::Option<String>,
+}
+
+/// FilestoreInstanceBackupProperties represents the properties of a Filestore instance that are backed up by the datasource. .
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct FilestoreInstanceBackupProperties {
+    /// Output only. The source instance of the backup.
+    #[serde(default, rename = "sourceInstance")]
+    pub source_instance: ::core::option::Option<String>,
+}
+
+/// GCPBackupPlanInfo captures the plan configuration details of Google Cloud resources at the time of backup.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GCPBackupPlanInfo {
+    /// Resource name of backup plan by which workload is protected at the time of the backup. Format: projects/{project}/locations/{location}/backupPlans/{backupPlanId}
+    #[serde(default, rename = "backupPlan")]
+    pub backup_plan: ::core::option::Option<String>,
+    /// The user friendly id of the backup plan revision which triggered this backup in case of scheduled backup or used for on demand backup.
+    #[serde(default, rename = "backupPlanRevisionId")]
+    pub backup_plan_revision_id: ::core::option::Option<String>,
+    /// Resource name of the backup plan revision which triggered this backup in case of scheduled backup or used for on demand backup. Format: projects/{project}/locations/{location}/backupPlans/{backupPlanId}/revisions/{revisionId}
+    #[serde(default, rename = "backupPlanRevisionName")]
+    pub backup_plan_revision_name: ::core::option::Option<String>,
+    /// The rule id of the backup plan which triggered this backup in case of scheduled backup or used for
+    #[serde(default, rename = "backupPlanRuleId")]
+    pub backup_plan_rule_id: ::core::option::Option<String>,
+}
+
+/// Minimum details to identify a Google Cloud resource for a backup.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BackupGcpResource {
+    /// Name of the Google Cloud resource.
+    #[serde(default, rename = "gcpResourcename")]
+    pub gcp_resourcename: ::core::option::Option<String>,
+    /// Location of the resource: //"global"/"unspecified".
+    #[serde(default)]
+    pub location: ::core::option::Option<String>,
+    /// Type of the resource. Use the Unified Resource Type, eg. compute.googleapis.com/Instance.
+    #[serde(default, rename = "type")]
+    pub type_: ::core::option::Option<String>,
+}
+
+/// Information of backup configuration on the DataSource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DataSourceBackupConfigInfo {
+    /// Output only. The status of the last backup in this DataSource // TODO: enum values: ["LAST_BACKUP_STATE_UNSPECIFIED", "FIRST_BACKUP_PENDING", "SUCCEEDED", "FAILED", "PERMISSION_DENIED"]
+    #[serde(default, rename = "lastBackupState")]
+    pub last_backup_state: ::core::option::Option<String>,
+    /// Output only. Timestamp of the last successful backup to this DataSource.
+    #[serde(default, rename = "lastSuccessfulBackupConsistencyTime")]
+    pub last_successful_backup_consistency_time: ::core::option::Option<String>,
+}
+
+/// The Google Cloud resource that the DataSource is associated with.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DataSourceGcpResourceInfo {
+    /// Output only. The properties of the AlloyDB cluster.
+    #[serde(default, rename = "alloyDbClusterProperties")]
+    pub alloy_db_cluster_properties:
+        ::core::option::Option<AlloyDBClusterDataSourceReferenceProperties>,
+    /// Output only. The properties of the Cloud SQL instance.
+    #[serde(default, rename = "cloudSqlInstanceProperties")]
+    pub cloud_sql_instance_properties:
+        ::core::option::Option<CloudSqlInstanceDataSourceReferenceProperties>,
+    /// Output only. The properties of the Filestore instance.
+    #[serde(default, rename = "filestoreInstanceProperties")]
+    pub filestore_instance_properties:
+        ::core::option::Option<FilestoreInstanceDataSourceReferenceProperties>,
+    /// Output only. The resource name of the Google Cloud resource. Ex: projects/{project}/zones/{zone}/instances/{instance}
+    #[serde(default, rename = "gcpResourcename")]
+    pub gcp_resourcename: ::core::option::Option<String>,
+    /// Output only. The location of the Google Cloud resource. Ex: //"global"/"unspecified"
+    #[serde(default)]
+    pub location: ::core::option::Option<String>,
+    /// Output only. The type of the Google Cloud resource. Ex: compute.googleapis.com/Instance
+    #[serde(default, rename = "type")]
+    pub type_: ::core::option::Option<String>,
+}
+
+/// BackupConfigInfo has information about how the resource is configured for Backup and about the most recent backup to this vault.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BackupConfigInfo {
+    /// Configuration for an application backed up by a Backup Appliance.
+    #[serde(default, rename = "backupApplianceBackupConfig")]
+    pub backup_appliance_backup_config: ::core::option::Option<BackupApplianceBackupConfig>,
+    /// Configuration for a Google Cloud resource.
+    #[serde(default, rename = "gcpBackupConfig")]
+    pub gcp_backup_config: ::core::option::Option<GcpBackupConfig>,
+    /// Output only. If the last backup failed, this field has the error message.
+    #[serde(default, rename = "lastBackupError")]
+    pub last_backup_error: ::core::option::Option<Status>,
+    /// Output only. The status of the last backup to this BackupVault // TODO: enum values: ["LAST_BACKUP_STATE_UNSPECIFIED", "FIRST_BACKUP_PENDING", "SUCCEEDED", "FAILED", "PERMISSION_DENIED"]
+    #[serde(default, rename = "lastBackupState")]
+    pub last_backup_state: ::core::option::Option<String>,
+    /// Output only. If the last backup were successful, this field has the consistency date.
+    #[serde(default, rename = "lastSuccessfulBackupConsistencyTime")]
+    pub last_successful_backup_consistency_time: ::core::option::Option<String>,
+}
+
+/// BackupApplianceApplication describes a Source Resource when it is an application backed up by a BackupAppliance.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DataSourceBackupApplianceApplication {
+    /// Appliance Id of the Backup Appliance.
+    #[serde(default, rename = "applianceId")]
+    pub appliance_id: ::core::option::Option<String>,
+    /// The appid field of the application within the Backup Appliance.
+    #[serde(default, rename = "applicationId")]
+    pub application_id: ::core::option::Option<String>,
+    /// The name of the Application as known to the Backup Appliance.
+    #[serde(default, rename = "applicationName")]
+    pub application_name: ::core::option::Option<String>,
+    /// Appliance name.
+    #[serde(default, rename = "backupAppliance")]
+    pub backup_appliance: ::core::option::Option<String>,
+    /// Hostid of the application host.
+    #[serde(default, rename = "hostId")]
+    pub host_id: ::core::option::Option<String>,
+    /// Hostname of the host where the application is running.
+    #[serde(default)]
+    pub hostname: ::core::option::Option<String>,
+    /// The type of the application. e.g. VMBackup
+    #[serde(default, rename = "type")]
+    pub type_: ::core::option::Option<String>,
+}
+
+/// DataSourceGcpResource is used for protected resources that are Google Cloud Resources. This name is easeier to understand than GcpResourceDataSource or GcpDataSourceResource
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DataSourceGcpResource {
+    /// Output only. AlloyDBClusterDataSourceProperties has a subset of AlloyDB cluster properties that are useful at the Datasource level. Currently none of its child properties are auditable. If new auditable properties are added, the AUDIT annotation should be added.
+    #[serde(default, rename = "alloyDbClusterDatasourceProperties")]
+    pub alloy_db_cluster_datasource_properties:
+        ::core::option::Option<AlloyDBClusterDataSourceProperties>,
+    /// Output only. CloudSqlInstanceDataSourceProperties has a subset of Cloud SQL Instance properties that are useful at the Datasource level.
+    #[serde(default, rename = "cloudSqlInstanceDatasourceProperties")]
+    pub cloud_sql_instance_datasource_properties:
+        ::core::option::Option<CloudSqlInstanceDataSourceProperties>,
+    /// ComputeInstanceDataSourceProperties has a subset of Compute Instance properties that are useful at the Datasource level.
+    #[serde(default, rename = "computeInstanceDatasourceProperties")]
+    pub compute_instance_datasource_properties:
+        ::core::option::Option<ComputeInstanceDataSourceProperties>,
+    /// DiskDataSourceProperties has a subset of Disk properties that are useful at the Datasource level.
+    #[serde(default, rename = "diskDatasourceProperties")]
+    pub disk_datasource_properties: ::core::option::Option<DiskDataSourceProperties>,
+    /// Output only. FilestoreInstanceDataSourceProperties has a subset of FileStore instance properties that are useful at the Datasource level.
+    #[serde(default, rename = "filestoreInstanceDatasourceProperties")]
+    pub filestore_instance_datasource_properties:
+        ::core::option::Option<FilestoreInstanceDataSourceProperties>,
+    /// Output only. Full resource pathname URL of the source Google Cloud resource.
+    #[serde(default, rename = "gcpResourcename")]
+    pub gcp_resourcename: ::core::option::Option<String>,
+    /// Location of the resource: //"global"/"unspecified".
+    #[serde(default)]
+    pub location: ::core::option::Option<String>,
+    /// The type of the Google Cloud resource. Use the Unified Resource Type, eg. compute.googleapis.com/Instance.
+    #[serde(default, rename = "type")]
+    pub type_: ::core::option::Option<String>,
+}
+
 /// ManagementURI for the Management Server resource.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ManagementURI {
@@ -1924,14 +1565,6 @@ pub struct ManagementURI {
     pub web_ui: ::core::option::Option<String>,
 }
 
-/// A metadata key/value entry.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Metadata {
-    /// Optional. Array of key/value pairs. The total size of all keys and values must be less than 512 KB.
-    #[serde(default)]
-    pub items: ::core::option::Option<::std::vec::Vec<Entry>>,
-}
-
 /// Network configuration for ManagementServer instance.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct NetworkConfig {
@@ -1941,6 +1574,296 @@ pub struct NetworkConfig {
     /// Optional. The network connect mode of the ManagementServer instance. For this version, only PRIVATE_SERVICE_ACCESS is supported. // TODO: enum values: ["PEERING_MODE_UNSPECIFIED", "PRIVATE_SERVICE_ACCESS"]
     #[serde(default, rename = "peeringMode")]
     pub peering_mode: ::core::option::Option<String>,
+}
+
+/// ManagementURI depending on the Workforce Identity i.e. either 1p or 3p.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct WorkforceIdentityBasedManagementURI {
+    /// Output only. First party Management URI for Google Identities.
+    #[serde(default, rename = "firstPartyManagementUri")]
+    pub first_party_management_uri: ::core::option::Option<String>,
+    /// Output only. Third party Management URI for External Identity Providers.
+    #[serde(default, rename = "thirdPartyManagementUri")]
+    pub third_party_management_uri: ::core::option::Option<String>,
+}
+
+/// OAuth Client ID depending on the Workforce Identity i.e. either 1p or 3p,
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct WorkforceIdentityBasedOAuth2ClientID {
+    /// Output only. First party OAuth Client ID for Google Identities.
+    #[serde(default, rename = "firstPartyOauth2ClientId")]
+    pub first_party_oauth2_client_id: ::core::option::Option<String>,
+    /// Output only. Third party OAuth Client ID for External Identity Providers.
+    #[serde(default, rename = "thirdPartyOauth2ClientId")]
+    pub third_party_oauth2_client_id: ::core::option::Option<String>,
+}
+
+/// BackupConfigDetails has information about how the resource is configured for backups and about the most recent backup taken for this configuration.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BackupConfigDetails {
+    /// Output only. The [full resource name](https://cloud.google.com/asset-inventory/docs/resource-name-format) of the resource that is applicable for the backup configuration. Example: "//compute.googleapis.com/projects/{project}/zones/{zone}/instances/{instance}"
+    #[serde(default, rename = "applicableResource")]
+    pub applicable_resource: ::core::option::Option<String>,
+    /// Output only. The full resource name of the backup config source resource. For example, "//backupdr.googleapis.com/v1/projects/{project}/locations/{region}/backupPlans/{backupplanId}" or "//compute.googleapis.com/projects/{project}/locations/{region}/resourcePolicies/{resourcePolicyId}".
+    #[serde(default, rename = "backupConfigSource")]
+    pub backup_config_source: ::core::option::Option<String>,
+    /// Output only. The display name of the backup config source resource.
+    #[serde(default, rename = "backupConfigSourceDisplayName")]
+    pub backup_config_source_display_name: ::core::option::Option<String>,
+    /// Google Cloud Backup and DR''s Backup Plan specific data.
+    #[serde(default, rename = "backupDrPlanConfig")]
+    pub backup_dr_plan_config: ::core::option::Option<BackupDrPlanConfig>,
+    /// Google Cloud Backup and DR''s Template specific data.
+    #[serde(default, rename = "backupDrTemplateConfig")]
+    pub backup_dr_template_config: ::core::option::Option<BackupDrTemplateConfig>,
+    /// The locations where the backups are to be stored.
+    #[serde(default, rename = "backupLocations")]
+    pub backup_locations: ::core::option::Option<::std::vec::Vec<BackupLocation>>,
+    /// Output only. The [full resource name](https://cloud.google.com/asset-inventory/docs/resource-name-format) of the backup vault that will store the backups generated through this backup configuration. Example: "//backupdr.googleapis.com/v1/projects/{project}/locations/{region}/backupVaults/{backupvaultId}"
+    #[serde(default, rename = "backupVault")]
+    pub backup_vault: ::core::option::Option<String>,
+    /// Output only. Timestamp of the latest successful backup created via this backup configuration.
+    #[serde(default, rename = "latestSuccessfulBackupTime")]
+    pub latest_successful_backup_time: ::core::option::Option<String>,
+    /// Output only. Point in time recovery settings of the backup configuration resource.
+    #[serde(default, rename = "pitrSettings")]
+    pub pitr_settings: ::core::option::Option<PitrSettings>,
+    /// Output only. The state of the backup config resource. // TODO: enum values: ["STATE_UNSPECIFIED", "ACTIVE", "INACTIVE", "ERROR"]
+    #[serde(default)]
+    pub state: ::core::option::Option<String>,
+    /// Output only. The type of the backup config resource. // TODO: enum values: ["TYPE_UNSPECIFIED", "CLOUD_SQL_INSTANCE_BACKUP_CONFIG", "COMPUTE_ENGINE_RESOURCE_POLICY", "BACKUPDR_BACKUP_PLAN", "BACKUPDR_TEMPLATE"]
+    #[serde(default, rename = "type")]
+    pub type_: ::core::option::Option<String>,
+}
+
+/// Specifies options for controlling advanced machine features.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AdvancedMachineFeatures {
+    /// Optional. Whether to enable nested virtualization or not (default is false).
+    #[serde(default, rename = "enableNestedVirtualization")]
+    pub enable_nested_virtualization: ::core::option::Option<bool>,
+    /// Optional. Whether to enable UEFI networking for instance creation.
+    #[serde(default, rename = "enableUefiNetworking")]
+    pub enable_uefi_networking: ::core::option::Option<bool>,
+    /// Optional. The number of threads per physical core. To disable simultaneous multithreading (SMT) set this to 1. If unset, the maximum number of threads supported per core by the underlying processor is assumed.
+    #[serde(default, rename = "threadsPerCore")]
+    pub threads_per_core: ::core::option::Option<i32>,
+    /// Optional. The number of physical cores to expose to an instance. Multiply by the number of threads per core to compute the total number of virtual CPUs to expose to the instance. If unset, the number of cores is inferred from the instance''s nominal CPU count and the underlying platform''s SMT width.
+    #[serde(default, rename = "visibleCoreCount")]
+    pub visible_core_count: ::core::option::Option<i32>,
+}
+
+/// A set of Confidential Instance options.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ConfidentialInstanceConfig {
+    /// Optional. Defines whether the instance should have confidential compute enabled.
+    #[serde(default, rename = "enableConfidentialCompute")]
+    pub enable_confidential_compute: ::core::option::Option<bool>,
+}
+
+/// A set of Display Device options
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DisplayDevice {
+    /// Optional. Enables display for the Compute Engine VM
+    #[serde(default, rename = "enableDisplay")]
+    pub enable_display: ::core::option::Option<bool>,
+}
+
+/// Network performance configuration.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct NetworkPerformanceConfig {
+    /// Optional. The tier of the total egress bandwidth. // TODO: enum values: ["TIER_UNSPECIFIED", "DEFAULT", "TIER_1"]
+    #[serde(default, rename = "totalEgressBandwidthTier")]
+    pub total_egress_bandwidth_tier: ::core::option::Option<String>,
+}
+
+/// Specifies the reservations that this instance can consume from.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AllocationAffinity {
+    /// Optional. Specifies the type of reservation from which this instance can consume // TODO: enum values: ["TYPE_UNSPECIFIED", "NO_RESERVATION", "ANY_RESERVATION", "SPECIFIC_RESERVATION"]
+    #[serde(default, rename = "consumeReservationType")]
+    pub consume_reservation_type: ::core::option::Option<String>,
+    /// Optional. Corresponds to the label key of a reservation resource.
+    #[serde(default)]
+    pub key: ::core::option::Option<String>,
+    /// Optional. Corresponds to the label values of a reservation resource.
+    #[serde(default)]
+    pub values: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// Minimum details to identify a Google Cloud resource
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GcpResource {
+    /// Name of the Google Cloud resource.
+    #[serde(default, rename = "gcpResourcename")]
+    pub gcp_resourcename: ::core::option::Option<String>,
+    /// Location of the resource: //"global"/"unspecified".
+    #[serde(default)]
+    pub location: ::core::option::Option<String>,
+    /// Type of the resource. Use the Unified Resource Type, eg. compute.googleapis.com/Instance.
+    #[serde(default, rename = "type")]
+    pub type_: ::core::option::Option<String>,
+}
+
+/// Specifies the audit configuration for a service. The configuration determines which permission types are logged, and what identities, if any, are exempted from logging. An AuditConfig must have one or more AuditLogConfigs. If there are AuditConfigs for both allServices and a specific service, the union of the two AuditConfigs is used for that service: the log_types specified in each AuditConfig are enabled, and the exempted_members in each AuditLogConfig are exempted. Example Policy with multiple AuditConfigs: { "audit_configs": [ { "service": "allServices", "audit_log_configs": [ { "log_type": "DATA_READ", "exempted_members": [ "user:jose@example.com" ] }, { "log_type": "DATA_WRITE" }, { "log_type": "ADMIN_READ" } ] }, { "service": "sampleservice.googleapis.com", "audit_log_configs": [ { "log_type": "DATA_READ" }, { "log_type": "DATA_WRITE", "exempted_members": [ "user:aliya@example.com" ] } ] } ] } For sampleservice, this policy enables DATA_READ, DATA_WRITE and ADMIN_READ logging. It also exempts jose@example.com from DATA_READ logging, and aliya@example.com from DATA_WRITE logging.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AuditConfig {
+    /// The configuration for logging of each type of permission.
+    #[serde(default, rename = "auditLogConfigs")]
+    pub audit_log_configs: ::core::option::Option<::std::vec::Vec<AuditLogConfig>>,
+    /// Specifies a service that will be enabled for audit logging. For example, storage.googleapis.com, cloudsql.googleapis.com. allServices is a special value that covers all services.
+    #[serde(default)]
+    pub service: ::core::option::Option<String>,
+}
+
+/// Associates members, or principals, with a role.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Binding {
+    /// The condition that is associated with this binding. If the condition evaluates to true, then this binding applies to the current request. If the condition evaluates to false, then this binding does not apply to the current request. However, a different role binding might grant the same role to one or more of the principals in this binding. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies).
+    #[serde(default)]
+    pub condition: ::core::option::Option<Expr>,
+    /// Specifies the principals requesting access for a Google Cloud resource. members can have the following values: * allUsers: A special identifier that represents anyone who is on the internet; with or without a Google account. * allAuthenticatedUsers: A special identifier that represents anyone who is authenticated with a Google account or a service account. Does not include identities that come from external identity providers (IdPs) through identity federation. * user:{emailid}: An email address that represents a specific Google account. For example, alice@example.com . * serviceAccount:{emailid}: An email address that represents a Google service account. For example, my-other-app@appspot.gserviceaccount.com. * serviceAccount:{projectid}.svc.id.goog[{namespace}/{kubernetes-sa}]: An identifier for a [Kubernetes service account](https://cloud.google.com/kubernetes-engine/docs/how-to/kubernetes-service-accounts). For example, my-project.svc.id.goog[my-namespace/my-kubernetes-sa]. * group:{emailid}: An email address that represents a Google group. For example, admins@example.com. * domain:{domain}: The G Suite domain (primary) that represents all the users of that domain. For example, google.com or example.com. * principal://iam.googleapis.com/locations/global/workforcePools/{pool_id}/subject/{subject_attribute_value}: A single identity in a workforce identity pool. * principalSet://iam.googleapis.com/locations/global/workforcePools/{pool_id}/group/{group_id}: All workforce identities in a group. * principalSet://iam.googleapis.com/locations/global/workforcePools/{pool_id}/attribute.{attribute_name}/{attribute_value}: All workforce identities with a specific attribute value. * principalSet://iam.googleapis.com/locations/global/workforcePools/{pool_id}/*: All identities in a workforce identity pool. * principal://iam.googleapis.com/projects/{project_number}/locations/global/workloadIdentityPools/{pool_id}/subject/{subject_attribute_value}: A single identity in a workload identity pool. * principalSet://iam.googleapis.com/projects/{project_number}/locations/global/workloadIdentityPools/{pool_id}/group/{group_id}: A workload identity pool group. * principalSet://iam.googleapis.com/projects/{project_number}/locations/global/workloadIdentityPools/{pool_id}/attribute.{attribute_name}/{attribute_value}: All identities in a workload identity pool with a certain attribute. * principalSet://iam.googleapis.com/projects/{project_number}/locations/global/workloadIdentityPools/{pool_id}/*: All identities in a workload identity pool. * deleted:user:{emailid}?uid={uniqueid}: An email address (plus unique identifier) representing a user that has been recently deleted. For example, alice@example.com?uid=123456789012345678901. If the user is recovered, this value reverts to user:{emailid} and the recovered user retains the role in the binding. * deleted:serviceAccount:{emailid}?uid={uniqueid}: An email address (plus unique identifier) representing a service account that has been recently deleted. For example, my-other-app@appspot.gserviceaccount.com?uid=123456789012345678901. If the service account is undeleted, this value reverts to serviceAccount:{emailid} and the undeleted service account retains the role in the binding. * deleted:group:{emailid}?uid={uniqueid}: An email address (plus unique identifier) representing a Google group that has been recently deleted. For example, admins@example.com?uid=123456789012345678901. If the group is recovered, this value reverts to group:{emailid} and the recovered group retains the role in the binding. * deleted:principal://iam.googleapis.com/locations/global/workforcePools/{pool_id}/subject/{subject_attribute_value}: Deleted single identity in a workforce identity pool. For example, deleted:principal://iam.googleapis.com/locations/global/workforcePools/my-pool-id/subject/my-subject-attribute-value.
+    #[serde(default)]
+    pub members: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Role that is assigned to the list of members, or principals. For example, roles/viewer, roles/editor, or roles/owner. For an overview of the IAM roles and permissions, see the [IAM documentation](https://cloud.google.com/iam/docs/roles-overview). For a list of the available pre-defined roles, see [here](https://cloud.google.com/iam/docs/understanding-roles).
+    #[serde(default)]
+    pub role: ::core::option::Option<String>,
+}
+
+/// BackupRule binds the backup schedule to a retention policy.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BackupRule {
+    /// Required. Configures the duration for which backup data will be kept. It is defined in “days”. The value should be greater than or equal to minimum enforced retention of the backup vault. Minimum value is 1 and maximum value is 36159 for custom retention on-demand backup. Minimum and maximum values are workload specific for all other rules. Note: Longer retention can lead to higher storage costs post introductory trial. We recommend starting with a short duration of 3 days or less.
+    #[serde(default, rename = "backupRetentionDays")]
+    pub backup_retention_days: ::core::option::Option<i32>,
+    /// Required. Immutable. The unique id of this BackupRule. The rule_id is unique per BackupPlan.The rule_id must start with a lowercase letter followed by up to 62 lowercase letters, numbers, or hyphens. Pattern, /a-z{,62}/.
+    #[serde(default, rename = "ruleId")]
+    pub rule_id: ::core::option::Option<String>,
+    /// Optional. Defines a schedule that runs within the confines of a defined window of time.
+    #[serde(default, rename = "standardSchedule")]
+    pub standard_schedule: ::core::option::Option<StandardSchedule>,
+}
+
+/// --- ComputeInstanceBackupPlanProperties Message ---
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ComputeInstanceBackupPlanProperties {
+    /// Optional. Indicates whether to perform a guest flush operation before taking a compute backup. When set to false, the system will create crash-consistent backups. Default value is false.
+    #[serde(default, rename = "guestFlush")]
+    pub guest_flush: ::core::option::Option<bool>,
+}
+
+/// --- DiskBackupPlanProperties Message ---
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DiskBackupPlanProperties {
+    /// Optional. Indicates whether to perform a guest flush operation before taking a disk backup. When set to false, the system will create crash-consistent backups. Default value is false.
+    #[serde(default, rename = "guestFlush")]
+    pub guest_flush: ::core::option::Option<bool>,
+}
+
+/// BackupApplianceLockInfo contains metadata about the backupappliance that created the lock.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BackupApplianceLockInfo {
+    /// Required. The ID of the backup/recovery appliance that created this lock.
+    #[serde(default, rename = "backupApplianceId")]
+    pub backup_appliance_id: ::core::option::Option<String>,
+    /// Required. The name of the backup/recovery appliance that created this lock.
+    #[serde(default, rename = "backupApplianceName")]
+    pub backup_appliance_name: ::core::option::Option<String>,
+    /// The image name that depends on this Backup.
+    #[serde(default, rename = "backupImage")]
+    pub backup_image: ::core::option::Option<String>,
+    /// The job name on the backup/recovery appliance that created this lock.
+    #[serde(default, rename = "jobName")]
+    pub job_name: ::core::option::Option<String>,
+    /// Required. The reason for the lock: e.g. MOUNT/RESTORE/BACKUP/etc. The value of this string is only meaningful to the client and it is not interpreted by the BackupVault service.
+    #[serde(default, rename = "lockReason")]
+    pub lock_reason: ::core::option::Option<String>,
+    /// The SLA on the backup/recovery appliance that owns the lock.
+    #[serde(default, rename = "slaId")]
+    pub sla_id: ::core::option::Option<String>,
+}
+
+/// ServiceLockInfo represents the details of a lock taken by the service on a Backup resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ServiceLockInfo {
+    /// Output only. The name of the operation that created this lock. The lock will automatically be released when the operation completes.
+    #[serde(default)]
+    pub operation: ::core::option::Option<String>,
+}
+
+/// An instance-attached disk resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AttachedDisk {
+    /// Optional. Specifies whether the disk will be auto-deleted when the instance is deleted (but not when the disk is detached from the instance).
+    #[serde(default, rename = "autoDelete")]
+    pub auto_delete: ::core::option::Option<bool>,
+    /// Optional. Indicates that this is a boot disk. The virtual machine will use the first partition of the disk for its root filesystem.
+    #[serde(default)]
+    pub boot: ::core::option::Option<bool>,
+    /// Optional. This is used as an identifier for the disks. This is the unique name has to provided to modify disk parameters like disk_name and replica_zones (in case of RePDs)
+    #[serde(default, rename = "deviceName")]
+    pub device_name: ::core::option::Option<String>,
+    /// Optional. Encrypts or decrypts a disk using a customer-supplied encryption key.
+    #[serde(default, rename = "diskEncryptionKey")]
+    pub disk_encryption_key: ::core::option::Option<CustomerEncryptionKey>,
+    /// Optional. Specifies the disk interface to use for attaching this disk. // TODO: enum values: ["DISK_INTERFACE_UNSPECIFIED", "SCSI", "NVME", "NVDIMM", "ISCSI"]
+    #[serde(default, rename = "diskInterface")]
+    pub disk_interface: ::core::option::Option<String>,
+    /// Optional. The size of the disk in GB.
+    #[serde(default, rename = "diskSizeGb")]
+    pub disk_size_gb: ::core::option::Option<String>,
+    /// Optional. Output only. The URI of the disk type resource. For example: projects/project/zones/zone/diskTypes/pd-standard or pd-ssd
+    #[serde(default, rename = "diskType")]
+    pub disk_type: ::core::option::Option<String>,
+    /// Specifies the type of the disk. // TODO: enum values: ["DISK_TYPE_UNSPECIFIED", "SCRATCH", "PERSISTENT"]
+    #[serde(default, rename = "diskTypeDeprecated")]
+    pub disk_type_deprecated: ::core::option::Option<String>,
+    /// Optional. A list of features to enable on the guest operating system. Applicable only for bootable images.
+    #[serde(default, rename = "guestOsFeature")]
+    pub guest_os_feature: ::core::option::Option<::std::vec::Vec<GuestOsFeature>>,
+    /// Optional. A zero-based index to this disk, where 0 is reserved for the boot disk.
+    #[serde(default)]
+    pub index: ::core::option::Option<String>,
+    /// Optional. Specifies the parameters to initialize this disk.
+    #[serde(default, rename = "initializeParams")]
+    pub initialize_params: ::core::option::Option<InitializeParams>,
+    /// Optional. Type of the resource.
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+    /// Optional. Any valid publicly visible licenses.
+    #[serde(default)]
+    pub license: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Optional. The mode in which to attach this disk. // TODO: enum values: ["DISK_MODE_UNSPECIFIED", "READ_WRITE", "READ_ONLY", "LOCKED"]
+    #[serde(default)]
+    pub mode: ::core::option::Option<String>,
+    /// Optional. Output only. The state of the disk. // TODO: enum values: ["DISK_SAVED_STATE_UNSPECIFIED", "PRESERVED"]
+    #[serde(default, rename = "savedState")]
+    pub saved_state: ::core::option::Option<String>,
+    /// Optional. Specifies a valid partial or full URL to an existing Persistent Disk resource.
+    #[serde(default)]
+    pub source: ::core::option::Option<String>,
+    /// Optional. Specifies the type of the disk. // TODO: enum values: ["DISK_TYPE_UNSPECIFIED", "SCRATCH", "PERSISTENT"]
+    #[serde(default, rename = "type")]
+    pub type_: ::core::option::Option<String>,
+}
+
+/// A specification of the type and number of accelerator cards attached to the instance.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AcceleratorConfig {
+    /// Optional. The number of the guest accelerator cards exposed to this instance.
+    #[serde(default, rename = "acceleratorCount")]
+    pub accelerator_count: ::core::option::Option<i32>,
+    /// Optional. Full or partial URL of the accelerator type resource to attach to this instance.
+    #[serde(default, rename = "acceleratorType")]
+    pub accelerator_type: ::core::option::Option<String>,
+}
+
+/// A metadata key/value entry.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Metadata {
+    /// Optional. Array of key/value pairs. The total size of all keys and values must be less than 512 KB.
+    #[serde(default)]
+    pub items: ::core::option::Option<::std::vec::Vec<Entry>>,
 }
 
 /// A network interface resource attached to an instance. s
@@ -1990,180 +1913,6 @@ pub struct NetworkInterface {
     pub subnetwork: ::core::option::Option<String>,
 }
 
-/// Network performance configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct NetworkPerformanceConfig {
-    /// Optional. The tier of the total egress bandwidth. // TODO: enum values: ["TIER_UNSPECIFIED", "DEFAULT", "TIER_1"]
-    #[serde(default, rename = "totalEgressBandwidthTier")]
-    pub total_egress_bandwidth_tier: ::core::option::Option<String>,
-}
-
-/// Node Affinity: the configuration of desired nodes onto which this Instance could be scheduled.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct NodeAffinity {
-    /// Optional. Corresponds to the label key of Node resource.
-    #[serde(default)]
-    pub key: ::core::option::Option<String>,
-    /// Optional. Defines the operation of node selection. // TODO: enum values: ["OPERATOR_UNSPECIFIED", "IN", "NOT_IN"]
-    #[serde(default)]
-    pub operator: ::core::option::Option<String>,
-    /// Optional. Corresponds to the label values of Node resource.
-    #[serde(default)]
-    pub values: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// This resource represents a long-running operation that is the result of a network API call.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Operation {
-    /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
-    #[serde(default)]
-    pub done: ::core::option::Option<bool>,
-    /// The error result of the operation in case of failure or cancellation.
-    #[serde(default)]
-    pub error: ::core::option::Option<Status>,
-    /// Service-specific metadata associated with the operation. It typically contains progress information and common metadata such as create time. Some services might not provide such metadata. Any method that returns a long-running operation should document the metadata type, if any.
-    #[serde(default)]
-    pub metadata: ::core::option::Option<serde_json::Value>,
-    /// The server-assigned name, which is only unique within the same service that originally returns it. If you use the default HTTP mapping, the name should be a resource name ending with operations/{unique_id}.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// The normal, successful response of the operation. If the original method returns no data on success, such as Delete, the response is google.protobuf.Empty. If the original method is standard Get/Create/Update, the response should be the resource. For other methods, the response should have the type XxxResponse, where Xxx is the original method name. For example, if the original method name is TakeSnapshot(), the inferred response type is TakeSnapshotResponse.
-    #[serde(default)]
-    pub response: ::core::option::Option<serde_json::Value>,
-}
-
-/// Point in time recovery settings of the backup configuration resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PitrSettings {
-    /// Output only. Number of days to retain the backup.
-    #[serde(default, rename = "retentionDays")]
-    pub retention_days: ::core::option::Option<i32>,
-}
-
-/// An Identity and Access Management (IAM) policy, which specifies access controls for Google Cloud resources. A Policy is a collection of bindings. A binding binds one or more members, or principals, to a single role. Principals can be user accounts, service accounts, Google groups, and domains (such as G Suite). A role is a named list of permissions; each role can be an IAM predefined role or a user-created custom role. For some types of Google Cloud resources, a binding can also specify a condition, which is a logical expression that allows access to a resource only if the expression evaluates to true. A condition can add constraints based on attributes of the request, the resource, or both. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies). **JSON example:**  { "bindings": [ { "role": "roles/resourcemanager.organizationAdmin", "members": [ "user:mike@example.com", "group:admins@example.com", "domain:google.com", "serviceAccount:my-project-id@appspot.gserviceaccount.com" ] }, { "role": "roles/resourcemanager.organizationViewer", "members": [ "user:eve@example.com" ], "condition": { "title": "expirable access", "description": "Does not grant access after Sep 2020", "expression": "request.time &lt; timestamp(''2020-10-01T00:00:00.000Z'')", } } ], "etag": "BwWWja0YfJA=", "version": 3 }  **YAML example:**  bindings: - members: - user:mike@example.com - group:admins@example.com - domain:google.com - serviceAccount:my-project-id@appspot.gserviceaccount.com role: roles/resourcemanager.organizationAdmin - members: - user:eve@example.com role: roles/resourcemanager.organizationViewer condition: title: expirable access description: Does not grant access after Sep 2020 expression: request.time &lt; timestamp(''2020-10-01T00:00:00.000Z'') etag: BwWWja0YfJA= version: 3  For a description of IAM and its features, see the [IAM documentation](https://cloud.google.com/iam/docs/).
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Policy {
-    /// Specifies cloud audit logging configuration for this policy.
-    #[serde(default, rename = "auditConfigs")]
-    pub audit_configs: ::core::option::Option<::std::vec::Vec<AuditConfig>>,
-    /// Associates a list of members, or principals, with a role. Optionally, may specify a condition that determines how and when the bindings are applied. Each of the bindings must contain at least one principal. The bindings in a Policy can refer to up to 1,500 principals; up to 250 of these principals can be Google groups. Each occurrence of a principal counts towards these limits. For example, if the bindings grant 50 different roles to user:alice@example.com, and not to any other principal, then you can add another 1,450 principals to the bindings in the Policy.
-    #[serde(default)]
-    pub bindings: ::core::option::Option<::std::vec::Vec<Binding>>,
-    /// etag is used for optimistic concurrency control as a way to help prevent simultaneous updates of a policy from overwriting each other. It is strongly suggested that systems make use of the etag in the read-modify-write cycle to perform policy updates in order to avoid race conditions: An etag is returned in the response to getIamPolicy, and systems are expected to put that etag in the request to setIamPolicy to ensure that their change will be applied to the same version of the policy. **Important:** If you use IAM Conditions, you must include the etag field whenever you call setIamPolicy. If you omit this field, then IAM allows you to overwrite a version 3 policy with a version 1 policy, and all of the conditions in the version 3 policy are lost.
-    #[serde(default)]
-    pub etag: ::core::option::Option<String>,
-    /// Specifies the format of the policy. Valid values are 0, 1, and 3. Requests that specify an invalid value are rejected. Any operation that affects conditional role bindings must specify version 3. This requirement applies to the following operations: * Getting a policy that includes a conditional role binding * Adding a conditional role binding to a policy * Changing a conditional role binding in a policy * Removing any role binding, with or without a condition, from a policy that includes conditions **Important:** If you use IAM Conditions, you must include the etag field whenever you call setIamPolicy. If you omit this field, then IAM allows you to overwrite a version 3 policy with a version 1 policy, and all of the conditions in the version 3 policy are lost. If a policy does not include any conditions, operations on that policy may specify any valid version or leave the field unset. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies).
-    #[serde(default)]
-    pub version: ::core::option::Option<i32>,
-}
-
-/// RegionDiskTargetEnvironment represents the target environment for the disk.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct RegionDiskTargetEnvironment {
-    /// Required. Target project for the disk.
-    #[serde(default)]
-    pub project: ::core::option::Option<String>,
-    /// Required. Target region for the disk.
-    #[serde(default)]
-    pub region: ::core::option::Option<String>,
-    /// Required. Target URLs of the replica zones for the disk.
-    #[serde(default, rename = "replicaZones")]
-    pub replica_zones: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// Message for deleting a DataSource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct RemoveDataSourceRequest {
-    /// Optional. An optional request ID to identify requests. Specify a unique request ID so that if you must retry your request, the server will know to ignore the request if it has already been completed. The server will guarantee that for at least 60 minutes after the first request. For example, consider a situation where you make an initial request and the request times out. If you make the request again with the same request ID, the server can check if original operation with the same request ID was received, and if so, will ignore the second request. This prevents clients from accidentally creating duplicate commitments. The request ID must be a valid UUID with the exception that zero UUID is not supported (00000000-0000-0000-0000-000000000000).
-    #[serde(default, rename = "requestId")]
-    pub request_id: ::core::option::Option<String>,
-}
-
-/// ResourceBackupConfig represents a resource along with its backup configurations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ResourceBackupConfig {
-    /// Backup configurations applying to the target resource, including those targeting its related/child resources. For example, backup configuration applicable to Compute Engine disks will be populated in this field for a Compute Engine VM which has the disk associated.
-    #[serde(default, rename = "backupConfigsDetails")]
-    pub backup_configs_details: ::core::option::Option<::std::vec::Vec<BackupConfigDetails>>,
-    /// Output only. Whether the target resource is configured for backup. This is true if the backup_configs_details is not empty.
-    #[serde(default, rename = "backupConfigured")]
-    pub backup_configured: ::core::option::Option<bool>,
-    /// Identifier. The resource name of the ResourceBackupConfig. Format: projects/{project}/locations/{location}/resourceBackupConfigs/{uid}
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Output only. The [full resource name](https://cloud.google.com/asset-inventory/docs/resource-name-format) of the cloud resource that this configuration applies to. Supported resource types are ResourceBackupConfig.ResourceType.
-    #[serde(default, rename = "targetResource")]
-    pub target_resource: ::core::option::Option<String>,
-    /// Output only. The human friendly name of the target resource.
-    #[serde(default, rename = "targetResourceDisplayName")]
-    pub target_resource_display_name: ::core::option::Option<String>,
-    /// Labels associated with the target resource.
-    #[serde(default, rename = "targetResourceLabels")]
-    pub target_resource_labels: ::core::option::Option<serde_json::Value>,
-    /// Output only. The type of the target resource. // TODO: enum values: ["RESOURCE_TYPE_UNSPECIFIED", "CLOUD_SQL_INSTANCE", "COMPUTE_ENGINE_VM", "COMPUTE_ENGINE_DISK", "COMPUTE_ENGINE_REGIONAL_DISK", "FILESTORE_INSTANCE"]
-    #[serde(default, rename = "targetResourceType")]
-    pub target_resource_type: ::core::option::Option<String>,
-    /// Output only. The unique identifier of the resource backup config.
-    #[serde(default)]
-    pub uid: ::core::option::Option<String>,
-    /// Output only. Whether the target resource is protected by a backup vault. This is true if the backup_configs_details is not empty and any of the ResourceBackupConfig.backup_configs_details has a backup configuration with BackupConfigDetails.backup_vault set.
-    #[serde(default)]
-    pub vaulted: ::core::option::Option<bool>,
-}
-
-/// Request message for restoring from a Backup.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct RestoreBackupRequest {
-    /// Optional. A field mask used to clear server-side default values for fields within the instance_properties oneof. When a field in this mask is cleared, the server will not apply its default logic (like inheriting a value from the source) for that field. The most common current use case is clearing default encryption keys. Examples of field mask paths: - Compute Instance Disks: compute_instance_restore_properties.disks.*.disk_encryption_key - Single Disk: disk_restore_properties.disk_encryption_key
-    #[serde(default, rename = "clearOverridesFieldMask")]
-    pub clear_overrides_field_mask: ::core::option::Option<String>,
-    /// Compute Engine instance properties to be overridden during restore.
-    #[serde(default, rename = "computeInstanceRestoreProperties")]
-    pub compute_instance_restore_properties:
-        ::core::option::Option<ComputeInstanceRestoreProperties>,
-    /// Compute Engine target environment to be used during restore.
-    #[serde(default, rename = "computeInstanceTargetEnvironment")]
-    pub compute_instance_target_environment:
-        ::core::option::Option<ComputeInstanceTargetEnvironment>,
-    /// Disk properties to be overridden during restore.
-    #[serde(default, rename = "diskRestoreProperties")]
-    pub disk_restore_properties: ::core::option::Option<DiskRestoreProperties>,
-    /// Disk target environment to be used during restore.
-    #[serde(default, rename = "diskTargetEnvironment")]
-    pub disk_target_environment: ::core::option::Option<DiskTargetEnvironment>,
-    /// Region disk target environment to be used during restore.
-    #[serde(default, rename = "regionDiskTargetEnvironment")]
-    pub region_disk_target_environment: ::core::option::Option<RegionDiskTargetEnvironment>,
-    /// Optional. An optional request ID to identify requests. Specify a unique request ID so that if you must retry your request, the server will know to ignore the request if it has already been completed. The server will guarantee that for at least 60 minutes after the first request. For example, consider a situation where you make an initial request and the request times out. If you make the request again with the same request ID, the server can check if original operation with the same request ID was received, and if so, will ignore the second request. This prevents clients from accidentally creating duplicate commitments. The request ID must be a valid UUID with the exception that zero UUID is not supported (00000000-0000-0000-0000-000000000000).
-    #[serde(default, rename = "requestId")]
-    pub request_id: ::core::option::Option<String>,
-}
-
-/// Response message for restoring from a Backup.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct RestoreBackupResponse {
-    /// Details of the target resource created/modified as part of restore.
-    #[serde(default, rename = "targetResource")]
-    pub target_resource: ::core::option::Option<TargetResource>,
-}
-
-/// Message for rules config info.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct RuleConfigInfo {
-    /// Output only. google.rpc.Status object to store the last backup error.
-    #[serde(default, rename = "lastBackupError")]
-    pub last_backup_error: ::core::option::Option<Status>,
-    /// Output only. The last backup state for rule. // TODO: enum values: ["LAST_BACKUP_STATE_UNSPECIFIED", "FIRST_BACKUP_PENDING", "PERMISSION_DENIED", "SUCCEEDED", "FAILED"]
-    #[serde(default, rename = "lastBackupState")]
-    pub last_backup_state: ::core::option::Option<String>,
-    /// Output only. The point in time when the last successful backup was captured from the source.
-    #[serde(default, rename = "lastSuccessfulBackupConsistencyTime")]
-    pub last_successful_backup_consistency_time: ::core::option::Option<String>,
-    /// Output only. Backup Rule id fetched from backup plan.
-    #[serde(default, rename = "ruleId")]
-    pub rule_id: ::core::option::Option<String>,
-}
-
 /// Sets the scheduling options for an Instance.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Scheduling {
@@ -2193,17 +1942,6 @@ pub struct Scheduling {
     pub provisioning_model: ::core::option::Option<String>,
 }
 
-/// A SchedulingDuration represents a fixed-length span of time represented as a count of seconds and fractions of seconds at nanosecond resolution. It is independent of any calendar and concepts like "day" or "month". Range is approximately 10,000 years.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SchedulingDuration {
-    /// Optional. Span of time that''s a fraction of a second at nanosecond resolution.
-    #[serde(default)]
-    pub nanos: ::core::option::Option<i32>,
-    /// Optional. Span of time at a resolution of a second.
-    #[serde(default)]
-    pub seconds: ::core::option::Option<String>,
-}
-
 /// A service account.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ServiceAccount {
@@ -2215,37 +1953,256 @@ pub struct ServiceAccount {
     pub scopes: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
-/// ServiceLockInfo represents the details of a lock taken by the service on a Backup resource.
+/// A set of instance tags.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ServiceLockInfo {
-    /// Output only. The name of the operation that created this lock. The lock will automatically be released when the operation completes.
+pub struct Tags {
+    /// Optional. An array of tags. Each tag must be 1-63 characters long, and comply with RFC1035.
     #[serde(default)]
-    pub operation: ::core::option::Option<String>,
+    pub items: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
-/// Request message for SetIamPolicy method.
+/// AlloyDBClusterDataSourceReferenceProperties represents the properties of an AlloyDB cluster that are stored in the DataSourceReference.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SetIamPolicyRequest {
-    /// REQUIRED: The complete policy to be applied to the resource. The size of the policy is limited to a few 10s of KB. An empty policy is a valid policy but certain Google Cloud services (such as Projects) might reject them.
+pub struct AlloyDBClusterDataSourceReferenceProperties {
+    /// Output only. Name of the AlloyDB cluster backed up by the datasource. Format: projects/{project}/locations/{location}/clusters/{cluster}
     #[serde(default)]
-    pub policy: ::core::option::Option<Policy>,
-    /// OPTIONAL: A FieldMask specifying which fields of the policy to modify. Only the fields in the mask will be modified. If no mask is provided, the following default mask is used: paths: "bindings, etag"
-    #[serde(default, rename = "updateMask")]
-    pub update_mask: ::core::option::Option<String>,
+    pub name: ::core::option::Option<String>,
 }
 
-/// Request message for SetStatusInternal method.
+/// CloudSqlInstanceDataSourceReferenceProperties represents the properties of a Cloud SQL resource that are stored in the DataSourceReference.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SetInternalStatusRequest {
-    /// Required. Output only. The new BackupConfigState to set for the DataSource. // TODO: enum values: ["BACKUP_CONFIG_STATE_UNSPECIFIED", "ACTIVE", "PASSIVE"]
-    #[serde(default, rename = "backupConfigState")]
-    pub backup_config_state: ::core::option::Option<String>,
-    /// Optional. An optional request ID to identify requests. Specify a unique request ID so that if you must retry your request, the server will know to ignore the request if it has already been completed. The server will guarantee that for at least 60 minutes after the first request. The request ID must be a valid UUID with the exception that zero UUID is not supported (00000000-0000-0000-0000-000000000000).
-    #[serde(default, rename = "requestId")]
-    pub request_id: ::core::option::Option<String>,
-    /// Required. The value required for this method to work. This field must be the 32-byte SHA256 hash of the DataSourceID. The DataSourceID used here is only the final piece of the fully qualified resource path for this DataSource (i.e. the part after ''.../dataSources/''). This field exists to make this method difficult to call since it is intended for use only by Backup Appliances.
+pub struct CloudSqlInstanceDataSourceReferenceProperties {
+    /// Output only. The installed database version of the Cloud SQL instance.
+    #[serde(default, rename = "databaseInstalledVersion")]
+    pub database_installed_version: ::core::option::Option<String>,
+    /// Output only. The instance creation timestamp.
+    #[serde(default, rename = "instanceCreateTime")]
+    pub instance_create_time: ::core::option::Option<String>,
+    /// Output only. The tier (or machine type) for this instance. Example: db-custom-1-3840
+    #[serde(default, rename = "instanceTier")]
+    pub instance_tier: ::core::option::Option<String>,
+    /// Output only. Name of the Cloud SQL instance backed up by the datasource. Format: projects/{project}/instances/{instance}
     #[serde(default)]
-    pub value: ::core::option::Option<String>,
+    pub name: ::core::option::Option<String>,
+}
+
+/// FilestoreInstanceDataSourceReferenceProperties represents the properties of a Filestore resource that are stored in the DataSourceReference. .
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct FilestoreInstanceDataSourceReferenceProperties {
+    /// Output only. The instance creation timestamp.
+    #[serde(default, rename = "instanceCreateTime")]
+    pub instance_create_time: ::core::option::Option<String>,
+    /// Output only. Name of the Filestore instance backed up by the datasource. Format: projects/{project}/instances/{instance}
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+}
+
+/// BackupApplianceBackupConfig captures the backup configuration for applications that are protected by Backup Appliances.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BackupApplianceBackupConfig {
+    /// The name of the application.
+    #[serde(default, rename = "applicationName")]
+    pub application_name: ::core::option::Option<String>,
+    /// The ID of the backup appliance.
+    #[serde(default, rename = "backupApplianceId")]
+    pub backup_appliance_id: ::core::option::Option<String>,
+    /// The name of the backup appliance.
+    #[serde(default, rename = "backupApplianceName")]
+    pub backup_appliance_name: ::core::option::Option<String>,
+    /// The name of the host where the application is running.
+    #[serde(default, rename = "hostName")]
+    pub host_name: ::core::option::Option<String>,
+    /// The ID of the SLA of this application.
+    #[serde(default, rename = "slaId")]
+    pub sla_id: ::core::option::Option<String>,
+    /// The name of the SLP associated with the application.
+    #[serde(default, rename = "slpName")]
+    pub slp_name: ::core::option::Option<String>,
+    /// The name of the SLT associated with the application.
+    #[serde(default, rename = "sltName")]
+    pub slt_name: ::core::option::Option<String>,
+}
+
+/// GcpBackupConfig captures the Backup configuration details for Google Cloud resources. All Google Cloud resources regardless of type are protected with backup plan associations.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GcpBackupConfig {
+    /// The name of the backup plan.
+    #[serde(default, rename = "backupPlan")]
+    pub backup_plan: ::core::option::Option<String>,
+    /// The name of the backup plan association.
+    #[serde(default, rename = "backupPlanAssociation")]
+    pub backup_plan_association: ::core::option::Option<String>,
+    /// The description of the backup plan.
+    #[serde(default, rename = "backupPlanDescription")]
+    pub backup_plan_description: ::core::option::Option<String>,
+    /// The user friendly id of the backup plan revision. E.g. v0, v1 etc.
+    #[serde(default, rename = "backupPlanRevisionId")]
+    pub backup_plan_revision_id: ::core::option::Option<String>,
+    /// The name of the backup plan revision.
+    #[serde(default, rename = "backupPlanRevisionName")]
+    pub backup_plan_revision_name: ::core::option::Option<String>,
+    /// The names of the backup plan rules which point to this backupvault
+    #[serde(default, rename = "backupPlanRules")]
+    pub backup_plan_rules: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Status {
+    /// The status code, which should be an enum value of google.rpc.Code.
+    #[serde(default)]
+    pub code: ::core::option::Option<i32>,
+    /// A list of messages that carry the error details. There is a common set of message types for APIs to use.
+    #[serde(default)]
+    pub details: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
+    /// A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.
+    #[serde(default)]
+    pub message: ::core::option::Option<String>,
+}
+
+/// AlloyDBClusterDataSourceProperties represents the properties of a AlloyDB cluster resource that are stored in the DataSource. .
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AlloyDBClusterDataSourceProperties {
+    /// Output only. The cluster UID of the AlloyDB cluster backed up by the datasource.
+    #[serde(default, rename = "clusterUid")]
+    pub cluster_uid: ::core::option::Option<String>,
+    /// Output only. Name of the AlloyDB cluster backed up by the datasource.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Output only. Point in time recovery windows. The order is guaranteed to be ascending by start time.
+    #[serde(default, rename = "pitrWindows")]
+    pub pitr_windows: ::core::option::Option<::std::vec::Vec<AlloyDbPitrWindow>>,
+}
+
+/// CloudSqlInstanceDataSourceProperties represents the properties of a Cloud SQL resource that are stored in the DataSource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CloudSqlInstanceDataSourceProperties {
+    /// Output only. The installed database version of the Cloud SQL instance.
+    #[serde(default, rename = "databaseInstalledVersion")]
+    pub database_installed_version: ::core::option::Option<String>,
+    /// Output only. The instance creation timestamp.
+    #[serde(default, rename = "instanceCreateTime")]
+    pub instance_create_time: ::core::option::Option<String>,
+    /// Output only. The tier (or machine type) for this instance. Example: db-custom-1-3840
+    #[serde(default, rename = "instanceTier")]
+    pub instance_tier: ::core::option::Option<String>,
+    /// Output only. Name of the Cloud SQL instance backed up by the datasource. Format: projects/{project}/instances/{instance}
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+}
+
+/// ComputeInstanceDataSourceProperties represents the properties of a ComputeEngine resource that are stored in the DataSource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ComputeInstanceDataSourceProperties {
+    /// The description of the Compute Engine instance.
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+    /// The machine type of the instance.
+    #[serde(default, rename = "machineType")]
+    pub machine_type: ::core::option::Option<String>,
+    /// Name of the compute instance backed up by the datasource.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// The total number of disks attached to the Instance.
+    #[serde(default, rename = "totalDiskCount")]
+    pub total_disk_count: ::core::option::Option<String>,
+    /// The sum of all the disk sizes.
+    #[serde(default, rename = "totalDiskSizeGb")]
+    pub total_disk_size_gb: ::core::option::Option<String>,
+}
+
+/// DiskDataSourceProperties represents the properties of a Disk resource that are stored in the DataSource. .
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DiskDataSourceProperties {
+    /// The description of the disk.
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+    /// Name of the disk backed up by the datasource.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// The size of the disk in GB.
+    #[serde(default, rename = "sizeGb")]
+    pub size_gb: ::core::option::Option<String>,
+    /// The type of the disk.
+    #[serde(default, rename = "type")]
+    pub type_: ::core::option::Option<String>,
+}
+
+/// FilestoreInstanceDataSourceProperties represents the properties of a Filestore resource that are stored in the DataSource. .
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct FilestoreInstanceDataSourceProperties {
+    /// Output only. The instance creation timestamp.
+    #[serde(default, rename = "instanceCreateTime")]
+    pub instance_create_time: ::core::option::Option<String>,
+    /// Output only. Name of the Filestore instance backed up by the datasource.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+}
+
+/// BackupDrPlanConfig has additional information about Google Cloud Backup and DR''s Plan backup configuration.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BackupDrPlanConfig {
+    /// Backup rules of the backup plan resource.
+    #[serde(default, rename = "backupDrPlanRules")]
+    pub backup_dr_plan_rules: ::core::option::Option<::std::vec::Vec<BackupDrPlanRule>>,
+}
+
+/// Provides additional information about Google Cloud Backup and DR''s Template backup configuration.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BackupDrTemplateConfig {
+    /// Output only. The URI of the BackupDr template resource for the first party identity users.
+    #[serde(default, rename = "firstPartyManagementUri")]
+    pub first_party_management_uri: ::core::option::Option<String>,
+    /// Output only. The URI of the BackupDr template resource for the third party identity users.
+    #[serde(default, rename = "thirdPartyManagementUri")]
+    pub third_party_management_uri: ::core::option::Option<String>,
+}
+
+/// BackupLocation represents a cloud location where a backup can be stored.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BackupLocation {
+    /// Output only. The id of the cloud location. Example: "us-central1"
+    #[serde(default, rename = "locationId")]
+    pub location_id: ::core::option::Option<String>,
+    /// Output only. The type of the location. // TODO: enum values: ["TYPE_UNSPECIFIED", "ZONAL", "REGIONAL", "MULTI_REGIONAL"]
+    #[serde(default, rename = "type")]
+    pub type_: ::core::option::Option<String>,
+}
+
+/// Point in time recovery settings of the backup configuration resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PitrSettings {
+    /// Output only. Number of days to retain the backup.
+    #[serde(default, rename = "retentionDays")]
+    pub retention_days: ::core::option::Option<i32>,
+}
+
+/// Provides the configuration for logging a type of permissions. Example: { "audit_log_configs": [ { "log_type": "DATA_READ", "exempted_members": [ "user:jose@example.com" ] }, { "log_type": "DATA_WRITE" } ] } This enables ''DATA_READ'' and ''DATA_WRITE'' logging, while exempting jose@example.com from DATA_READ logging.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AuditLogConfig {
+    /// Specifies the identities that do not cause logging for this type of permission. Follows the same format of Binding.members.
+    #[serde(default, rename = "exemptedMembers")]
+    pub exempted_members: ::core::option::Option<::std::vec::Vec<String>>,
+    /// The log type that this config enables. // TODO: enum values: ["LOG_TYPE_UNSPECIFIED", "ADMIN_READ", "DATA_WRITE", "DATA_READ"]
+    #[serde(default, rename = "logType")]
+    pub log_type: ::core::option::Option<String>,
+}
+
+/// Represents a textual expression in the Common Expression Language (CEL) syntax. CEL is a C-like expression language. The syntax and semantics of CEL are documented at https://github.com/google/cel-spec. Example (Comparison): title: "Summary size limit" description: "Determines if a summary is less than 100 chars" expression: "document.summary.size() &lt; 100" Example (Equality): title: "Requestor is owner" description: "Determines if requestor is the document owner" expression: "document.owner == request.auth.claims.email" Example (Logic): title: "Public documents" description: "Determine whether the document should be publicly visible" expression: "document.type != ''private'' && document.type != ''internal''" Example (Data Manipulation): title: "Notification string" description: "Create a notification string with a timestamp." expression: "''New message received at '' + string(document.create_time)" The exact variables and functions that may be referenced within an expression are determined by the service that evaluates it. See the service documentation for additional information.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Expr {
+    /// Optional. Description of the expression. This is a longer text which describes the expression, e.g. when hovered over it in a UI.
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+    /// Textual representation of an expression in Common Expression Language syntax.
+    #[serde(default)]
+    pub expression: ::core::option::Option<String>,
+    /// Optional. String indicating the location of the expression for error reporting, e.g. a file name and a position in the file.
+    #[serde(default)]
+    pub location: ::core::option::Option<String>,
+    /// Optional. Title for the expression, i.e. a short string describing its purpose. This can be used e.g. in UIs which allow to enter the expression.
+    #[serde(default)]
+    pub title: ::core::option::Option<String>,
 }
 
 /// StandardSchedule defines a schedule that run within the confines of a defined window of days. We can define recurrence type for schedule as HOURLY, DAILY, WEEKLY, MONTHLY or YEARLY.
@@ -2277,87 +2234,152 @@ pub struct StandardSchedule {
     pub week_day_of_month: ::core::option::Option<WeekDayOfMonth>,
 }
 
-/// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
+/// A customer-supplied encryption key.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Status {
-    /// The status code, which should be an enum value of google.rpc.Code.
-    #[serde(default)]
-    pub code: ::core::option::Option<i32>,
-    /// A list of messages that carry the error details. There is a common set of message types for APIs to use.
-    #[serde(default)]
-    pub details: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
-    /// A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.
-    #[serde(default)]
-    pub message: ::core::option::Option<String>,
+pub struct CustomerEncryptionKey {
+    /// Optional. The name of the encryption key that is stored in Google Cloud KMS.
+    #[serde(default, rename = "kmsKeyName")]
+    pub kms_key_name: ::core::option::Option<String>,
+    /// Optional. The service account being used for the encryption request for the given KMS key. If absent, the Compute Engine default service account is used.
+    #[serde(default, rename = "kmsKeyServiceAccount")]
+    pub kms_key_service_account: ::core::option::Option<String>,
+    /// Optional. Specifies a 256-bit customer-supplied encryption key.
+    #[serde(default, rename = "rawKey")]
+    pub raw_key: ::core::option::Option<String>,
+    /// Optional. RSA-wrapped 2048-bit customer-supplied encryption key to either encrypt or decrypt this resource.
+    #[serde(default, rename = "rsaEncryptedKey")]
+    pub rsa_encrypted_key: ::core::option::Option<String>,
 }
 
-/// A set of instance tags.
+/// Feature type of the Guest OS.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Tags {
-    /// Optional. An array of tags. Each tag must be 1-63 characters long, and comply with RFC1035.
+pub struct GuestOsFeature {
+    /// The ID of a supported feature. // TODO: enum values: ["FEATURE_TYPE_UNSPECIFIED", "VIRTIO_SCSI_MULTIQUEUE", "WINDOWS", "MULTI_IP_SUBNET", "UEFI_COMPATIBLE", "SECURE_BOOT", "GVNIC", "SEV_CAPABLE", "BARE_METAL_LINUX_COMPATIBLE", "SUSPEND_RESUME_COMPATIBLE", "SEV_LIVE_MIGRATABLE", "SEV_SNP_CAPABLE", "TDX_CAPABLE", "IDPF", "SEV_LIVE_MIGRATABLE_V2"]
+    #[serde(default, rename = "type")]
+    pub type_: ::core::option::Option<String>,
+}
+
+/// Specifies the parameters to initialize this disk.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct InitializeParams {
+    /// Optional. Specifies the disk name. If not specified, the default is to use the name of the instance.
+    #[serde(default, rename = "diskName")]
+    pub disk_name: ::core::option::Option<String>,
+    /// Optional. URL of the zone where the disk should be created. Required for each regional disk associated with the instance.
+    #[serde(default, rename = "replicaZones")]
+    pub replica_zones: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// A key/value pair to be used for storing metadata.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Entry {
+    /// Optional. Key for the metadata entry.
     #[serde(default)]
-    pub items: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// Details of the target resource created/modified as part of restore.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct TargetResource {
-    /// Details of the native Google Cloud resource created as part of restore.
-    #[serde(default, rename = "gcpResource")]
-    pub gcp_resource: ::core::option::Option<GcpResource>,
-}
-
-/// Request message for TestIamPermissions method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct TestIamPermissionsRequest {
-    /// The set of permissions to check for the resource. Permissions with wildcards (such as * or storage.*) are not allowed. For more information see [IAM Overview](https://cloud.google.com/iam/docs/overview#permissions).
+    pub key: ::core::option::Option<String>,
+    /// Optional. Value for the metadata entry. These are free-form strings, and only have meaning as interpreted by the image running in the instance. The only restriction placed on values is that their size must be less than or equal to 262144 bytes (256 KiB).
     #[serde(default)]
-    pub permissions: ::core::option::Option<::std::vec::Vec<String>>,
+    pub value: ::core::option::Option<String>,
 }
 
-/// Response message for TestIamPermissions method.
+/// An access configuration attached to an instance''s network interface. Only one access config per instance is supported.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct TestIamPermissionsResponse {
-    /// A subset of TestPermissionsRequest.permissions that the caller is allowed.
-    #[serde(default)]
-    pub permissions: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// Represents a Trial for a project.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Trial {
-    /// Output only. The reason for ending the trial. // TODO: enum values: ["END_REASON_UNSPECIFIED", "MOVE_TO_PAID", "DISCONTINUED"]
-    #[serde(default, rename = "endReason")]
-    pub end_reason: ::core::option::Option<String>,
-    /// Output only. The time when the trial will expire.
-    #[serde(default, rename = "endTime")]
-    pub end_time: ::core::option::Option<String>,
-    /// Identifier. The resource name of the trial. Format: projects/{project}/locations/{location}/trial
+pub struct AccessConfig {
+    /// Optional. The external IPv6 address of this access configuration.
+    #[serde(default, rename = "externalIpv6")]
+    pub external_ipv6: ::core::option::Option<String>,
+    /// Optional. The prefix length of the external IPv6 range.
+    #[serde(default, rename = "externalIpv6PrefixLength")]
+    pub external_ipv6_prefix_length: ::core::option::Option<i32>,
+    /// Optional. The name of this access configuration.
     #[serde(default)]
     pub name: ::core::option::Option<String>,
-    /// Output only. The time when the trial was subscribed.
-    #[serde(default, rename = "startTime")]
-    pub start_time: ::core::option::Option<String>,
-    /// Output only. The state of the trial. // TODO: enum values: ["STATE_UNSPECIFIED", "SUBSCRIBED", "UNSUBSCRIBED", "EXPIRED", "ELIGIBLE", "NOT_ELIGIBLE"]
-    #[serde(default)]
-    pub state: ::core::option::Option<String>,
+    /// Optional. The external IP address of this access configuration.
+    #[serde(default, rename = "natIP")]
+    pub nat_i_p: ::core::option::Option<String>,
+    /// Optional. This signifies the networking tier used for configuring this access // TODO: enum values: ["NETWORK_TIER_UNSPECIFIED", "PREMIUM", "STANDARD"]
+    #[serde(default, rename = "networkTier")]
+    pub network_tier: ::core::option::Option<String>,
+    /// Optional. The DNS domain name for the public PTR record.
+    #[serde(default, rename = "publicPtrDomainName")]
+    pub public_ptr_domain_name: ::core::option::Option<String>,
+    /// Optional. Specifies whether a public DNS ''PTR'' record should be created to map the external IP address of the instance to a DNS domain name.
+    #[serde(default, rename = "setPublicPtr")]
+    pub set_public_ptr: ::core::option::Option<bool>,
+    /// Optional. In accessConfigs (IPv4), the default and only option is ONE_TO_ONE_NAT. In ipv6AccessConfigs, the default and only option is DIRECT_IPV6. // TODO: enum values: ["ACCESS_TYPE_UNSPECIFIED", "ONE_TO_ONE_NAT", "DIRECT_IPV6"]
+    #[serde(default, rename = "type")]
+    pub type_: ::core::option::Option<String>,
 }
 
-/// Request message for triggering a backup.
+/// An alias IP range attached to an instance''s network interface.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct TriggerBackupRequest {
-    /// Optional. The duration for which backup data will be kept, while taking an on-demand backup with custom retention. It is defined in "days". It is mutually exclusive with rule_id. This field is required if rule_id is not provided.
-    #[serde(default, rename = "customRetentionDays")]
-    pub custom_retention_days: ::core::option::Option<i32>,
-    /// Optional. Labels to be applied on the backup.
+pub struct AliasIpRange {
+    /// Optional. The IP alias ranges to allocate for this interface.
+    #[serde(default, rename = "ipCidrRange")]
+    pub ip_cidr_range: ::core::option::Option<String>,
+    /// Optional. The name of a subnetwork secondary IP range from which to allocate an IP alias range. If not specified, the primary range of the subnetwork is used.
+    #[serde(default, rename = "subnetworkRangeName")]
+    pub subnetwork_range_name: ::core::option::Option<String>,
+}
+
+/// A SchedulingDuration represents a fixed-length span of time represented as a count of seconds and fractions of seconds at nanosecond resolution. It is independent of any calendar and concepts like "day" or "month". Range is approximately 10,000 years.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SchedulingDuration {
+    /// Optional. Span of time that''s a fraction of a second at nanosecond resolution.
     #[serde(default)]
-    pub labels: ::core::option::Option<serde_json::Value>,
-    /// Optional. An optional request ID to identify requests. Specify a unique request ID so that if you must retry your request, the server will know to ignore the request if it has already been completed. The server will guarantee that for at least 60 minutes after the first request. For example, consider a situation where you make an initial request and the request times out. If you make the request again with the same request ID, the server can check if original operation with the same request ID was received, and if so, will ignore the second request. This prevents clients from accidentally creating duplicate commitments. The request ID must be a valid UUID with the exception that zero UUID is not supported (00000000-0000-0000-0000-000000000000).
-    #[serde(default, rename = "requestId")]
-    pub request_id: ::core::option::Option<String>,
-    /// Optional. backup rule_id for which a backup needs to be triggered. If not specified, on-demand backup with custom retention will be triggered.
+    pub nanos: ::core::option::Option<i32>,
+    /// Optional. Span of time at a resolution of a second.
+    #[serde(default)]
+    pub seconds: ::core::option::Option<String>,
+}
+
+/// Node Affinity: the configuration of desired nodes onto which this Instance could be scheduled.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct NodeAffinity {
+    /// Optional. Corresponds to the label key of Node resource.
+    #[serde(default)]
+    pub key: ::core::option::Option<String>,
+    /// Optional. Defines the operation of node selection. // TODO: enum values: ["OPERATOR_UNSPECIFIED", "IN", "NOT_IN"]
+    #[serde(default)]
+    pub operator: ::core::option::Option<String>,
+    /// Optional. Corresponds to the label values of Node resource.
+    #[serde(default)]
+    pub values: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// Point in time recovery window for an AlloyDB cluster.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AlloyDbPitrWindow {
+    /// Output only. The end time of the PITR window. It is not set if the corresponding Backup Plan Association is active.
+    #[serde(default, rename = "endTime")]
+    pub end_time: ::core::option::Option<String>,
+    /// Output only. Log retention days for the PITR window.
+    #[serde(default, rename = "logRetentionDays")]
+    pub log_retention_days: ::core::option::Option<String>,
+    /// Output only. The start time of the PITR window.
+    #[serde(default, rename = "startTime")]
+    pub start_time: ::core::option::Option<String>,
+}
+
+/// BackupDrPlanRule has rule specific information of the backup plan resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BackupDrPlanRule {
+    /// Output only. Timestamp of the latest successful backup created via this backup rule.
+    #[serde(default, rename = "lastSuccessfulBackupTime")]
+    pub last_successful_backup_time: ::core::option::Option<String>,
+    /// Output only. Unique Id of the backup rule.
     #[serde(default, rename = "ruleId")]
     pub rule_id: ::core::option::Option<String>,
+}
+
+/// BackupWindow defines a window of the day during which backup jobs will run.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BackupWindow {
+    /// Required. The hour of day (1-24) when the window end for example if value of end hour of day is 10 that mean backup window end time is 10:00. End hour of day should be greater than start hour of day. 0 &lt;= start_hour_of_day &lt; end_hour_of_day &lt;= 24 End hour of day is not include in backup window that mean if end_hour_of_day= 10 jobs should start before 10:00.
+    #[serde(default, rename = "endHourOfDay")]
+    pub end_hour_of_day: ::core::option::Option<i32>,
+    /// Required. The hour of day (0-23) when the window starts for example if value of start hour of day is 6 that mean backup window start at 6:00.
+    #[serde(default, rename = "startHourOfDay")]
+    pub start_hour_of_day: ::core::option::Option<i32>,
 }
 
 /// WeekDayOfMonth defines the week day of the month on which the backups will run. The message combines a WeekOfMonth and DayOfWeek to produce values like FIRST/MONDAY or LAST/FRIDAY.
@@ -2369,26 +2391,4 @@ pub struct WeekDayOfMonth {
     /// Required. Specifies the week of the month. // TODO: enum values: ["WEEK_OF_MONTH_UNSPECIFIED", "FIRST", "SECOND", "THIRD", "FOURTH", "LAST"]
     #[serde(default, rename = "weekOfMonth")]
     pub week_of_month: ::core::option::Option<String>,
-}
-
-/// ManagementURI depending on the Workforce Identity i.e. either 1p or 3p.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct WorkforceIdentityBasedManagementURI {
-    /// Output only. First party Management URI for Google Identities.
-    #[serde(default, rename = "firstPartyManagementUri")]
-    pub first_party_management_uri: ::core::option::Option<String>,
-    /// Output only. Third party Management URI for External Identity Providers.
-    #[serde(default, rename = "thirdPartyManagementUri")]
-    pub third_party_management_uri: ::core::option::Option<String>,
-}
-
-/// OAuth Client ID depending on the Workforce Identity i.e. either 1p or 3p,
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct WorkforceIdentityBasedOAuth2ClientID {
-    /// Output only. First party OAuth Client ID for Google Identities.
-    #[serde(default, rename = "firstPartyOauth2ClientId")]
-    pub first_party_oauth2_client_id: ::core::option::Option<String>,
-    /// Output only. Third party OAuth Client ID for External Identity Providers.
-    #[serde(default, rename = "thirdPartyOauth2ClientId")]
-    pub third_party_oauth2_client_id: ::core::option::Option<String>,
 }

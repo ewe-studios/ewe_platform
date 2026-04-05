@@ -10,6 +10,14 @@
 use super::*;
 use serde::{Deserialize, Serialize};
 
+/// Response message for ListViolatingSites.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ViolatingSitesResponse {
+    /// The list of violating sites.
+    #[serde(default, rename = "violatingSites")]
+    pub violating_sites: ::core::option::Option<::std::vec::Vec<SiteSummaryResponse>>,
+}
+
 /// Response message for GetSiteSummary.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SiteSummaryResponse {
@@ -34,12 +42,4 @@ pub struct SiteSummaryResponse {
     /// Whether the site is currently under review.
     #[serde(default, rename = "underReview")]
     pub under_review: ::core::option::Option<bool>,
-}
-
-/// Response message for ListViolatingSites.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ViolatingSitesResponse {
-    /// The list of violating sites.
-    #[serde(default, rename = "violatingSites")]
-    pub violating_sites: ::core::option::Option<::std::vec::Vec<SiteSummaryResponse>>,
 }

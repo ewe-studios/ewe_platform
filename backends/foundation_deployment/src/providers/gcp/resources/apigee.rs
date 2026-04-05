@@ -19,17 +19,6 @@ pub struct EdgeConfigstoreBundleBadBundle {
         ::core::option::Option<::std::vec::Vec<EdgeConfigstoreBundleBadBundleViolation>>,
 }
 
-/// A message type used to describe a single bundle validation error.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct EdgeConfigstoreBundleBadBundleViolation {
-    /// A description of why the bundle is invalid and how to fix it.
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// The filename (including relative path from the bundle root) in which the error occurred.
-    #[serde(default)]
-    pub filename: ::core::option::Option<String>,
-}
-
 /// Message that represents an arbitrary HTTP body. It should only be used for payload formats that can''t be represented as JSON, such as raw binary or an HTML page. This message can be used both in streaming and non-streaming API methods in the request as well as the response. It can be used as a top-level request field, which is convenient if one wants to extract parameters from either the URL or HTTP template into the request fields and also want access to the raw HTTP body. Example: message GetResourceRequest { // A unique request id. string request_id = 1; // The raw HTTP body is bound to this field. google.api.HttpBody http_body = 2; } service ResourceService { rpc GetResource(GetResourceRequest) returns (google.api.HttpBody); rpc UpdateResource(google.api.HttpBody) returns (google.protobuf.Empty); } Example with streaming methods: service CaldavService { rpc GetCalendar(stream google.api.HttpBody) returns (stream google.api.HttpBody); rpc UpdateCalendar(stream google.api.HttpBody) returns (stream google.api.HttpBody); } Use of this type only changes how the request and response bodies are handled, all other features will continue to work unchanged.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleApiHttpBody {
@@ -42,92 +31,6 @@ pub struct GoogleApiHttpBody {
     /// Application specific response metadata. Must be set in the first response for streaming APIs.
     #[serde(default)]
     pub extensions: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
-}
-
-/// APIProductAssociation has the API product and its administrative state association.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudApigeeV1aPIProductAssociation {
-    /// API product to be associated with the credential.
-    #[serde(default)]
-    pub apiproduct: ::core::option::Option<String>,
-    /// The API product credential associated status. Valid values are approved or revoked.
-    #[serde(default)]
-    pub status: ::core::option::Option<String>,
-}
-
-/// GoogleCloudApigeeV1Access resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudApigeeV1Access {
-    #[serde(default, rename = "Get")]
-    pub get: ::core::option::Option<GoogleCloudApigeeV1AccessGet>,
-    #[serde(default, rename = "Remove")]
-    pub remove: ::core::option::Option<GoogleCloudApigeeV1AccessRemove>,
-    #[serde(default, rename = "Set")]
-    pub set: ::core::option::Option<GoogleCloudApigeeV1AccessSet>,
-}
-
-/// Get action. For example, "Get" : { "name" : "target.name", "value" : "default" }
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudApigeeV1AccessGet {
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    #[serde(default)]
-    pub value: ::core::option::Option<String>,
-}
-
-/// Access logging configuration enables customers to ship the access logs from the tenant projects to their own project''s cloud logging. The feature is at the instance level ad disabled by default. It can be enabled during CreateInstance or UpdateInstance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudApigeeV1AccessLoggingConfig {
-    /// Optional. Boolean flag that specifies whether the customer access log feature is enabled.
-    #[serde(default)]
-    pub enabled: ::core::option::Option<bool>,
-    /// Optional. Ship the access log entries that match the status_code defined in the filter. The status_code is the only expected/supported filter field. (Ex: status_code) The filter will parse it to the Common Expression Language semantics for expression evaluation to build the filter condition. (Ex: "filter": status_code &gt;= 200 && status_code &lt; 300 )
-    #[serde(default)]
-    pub filter: ::core::option::Option<String>,
-}
-
-/// Remove action. For example, "Remove" : { "name" : "target.name", "success" : true }
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudApigeeV1AccessRemove {
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    #[serde(default)]
-    pub success: ::core::option::Option<bool>,
-}
-
-/// Set action. For example, "Set" : { "name" : "target.name", "success" : true, "value" : "default" }
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudApigeeV1AccessSet {
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    #[serde(default)]
-    pub success: ::core::option::Option<bool>,
-    #[serde(default)]
-    pub value: ::core::option::Option<String>,
-}
-
-/// Add-on configurations for the Apigee organization.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudApigeeV1AddonsConfig {
-    /// Configuration for the Advanced API Ops add-on.
-    #[serde(default, rename = "advancedApiOpsConfig")]
-    pub advanced_api_ops_config: ::core::option::Option<GoogleCloudApigeeV1AdvancedApiOpsConfig>,
-    /// Configuration for the Analytics add-on. Only used in organizations.environments.addonsConfig.
-    #[serde(default, rename = "analyticsConfig")]
-    pub analytics_config: ::core::option::Option<GoogleCloudApigeeV1AnalyticsConfig>,
-    /// Configuration for the API Security add-on.
-    #[serde(default, rename = "apiSecurityConfig")]
-    pub api_security_config: ::core::option::Option<GoogleCloudApigeeV1ApiSecurityConfig>,
-    /// Configuration for the Connectors Platform add-on.
-    #[serde(default, rename = "connectorsPlatformConfig")]
-    pub connectors_platform_config:
-        ::core::option::Option<GoogleCloudApigeeV1ConnectorsPlatformConfig>,
-    /// Configuration for the Integration add-on.
-    #[serde(default, rename = "integrationConfig")]
-    pub integration_config: ::core::option::Option<GoogleCloudApigeeV1IntegrationConfig>,
-    /// Configuration for the Monetization add-on.
-    #[serde(default, rename = "monetizationConfig")]
-    pub monetization_config: ::core::option::Option<GoogleCloudApigeeV1MonetizationConfig>,
 }
 
 /// Request for AdjustAppGroupBalance.
@@ -146,14 +49,6 @@ pub struct GoogleCloudApigeeV1AdjustDeveloperBalanceRequest {
     pub adjustment: ::core::option::Option<GoogleTypeMoney>,
 }
 
-/// Configuration for the Advanced API Ops add-on.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudApigeeV1AdvancedApiOpsConfig {
-    /// Flag that specifies whether the Advanced API Ops add-on is enabled.
-    #[serde(default)]
-    pub enabled: ::core::option::Option<bool>,
-}
-
 /// Reference to a certificate or key/certificate pair.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudApigeeV1Alias {
@@ -166,54 +61,6 @@ pub struct GoogleCloudApigeeV1Alias {
     /// Type of alias. // TODO: enum values: ["ALIAS_TYPE_UNSPECIFIED", "CERT", "KEY_CERT"]
     #[serde(default, rename = "type")]
     pub type_: ::core::option::Option<String>,
-}
-
-/// GoogleCloudApigeeV1AliasRevisionConfig resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudApigeeV1AliasRevisionConfig {
-    /// Location of the alias file. For example, a Google Cloud Storage URI.
-    #[serde(default)]
-    pub location: ::core::option::Option<String>,
-    /// Name of the alias revision included in the keystore in the following format: organizations/{org}/environments/{env}/keystores/{keystore}/aliases/{alias}/revisions/{rev}
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// TODO: enum values: ["ALIAS_TYPE_UNSPECIFIED", "CERT", "KEY_CERT"]
-    #[serde(default, rename = "type")]
-    pub type_: ::core::option::Option<String>,
-}
-
-/// Configuration for the Analytics add-on.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudApigeeV1AnalyticsConfig {
-    /// Whether the Analytics add-on is enabled.
-    #[serde(default)]
-    pub enabled: ::core::option::Option<bool>,
-    /// Output only. Time at which the Analytics add-on expires in milliseconds since epoch. If unspecified, the add-on will never expire.
-    #[serde(default, rename = "expireTimeMillis")]
-    pub expire_time_millis: ::core::option::Option<String>,
-    /// Output only. The state of the Analytics add-on. // TODO: enum values: ["ADDON_STATE_UNSPECIFIED", "ENABLING", "ENABLED", "DISABLING", "DISABLED"]
-    #[serde(default)]
-    pub state: ::core::option::Option<String>,
-    /// Output only. The latest update time.
-    #[serde(default, rename = "updateTime")]
-    pub update_time: ::core::option::Option<String>,
-}
-
-/// ApiCategory represents an API category. [Catalog items](/apigee/docs/reference/apis/apigee/rest/v1/organizations.sites.apidocs) can be tagged with API categories; users viewing the API catalog in the portal will have the option to browse the catalog by category.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudApigeeV1ApiCategory {
-    /// ID of the category (a UUID).
-    #[serde(default)]
-    pub id: ::core::option::Option<String>,
-    /// Name of the category.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Name of the portal.
-    #[serde(default, rename = "siteId")]
-    pub site_id: ::core::option::Option<String>,
-    /// Time the category was last modified in milliseconds since epoch.
-    #[serde(default, rename = "updateTime")]
-    pub update_time: ::core::option::Option<String>,
 }
 
 /// The API category resource wrapped with response status, error_code, etc.
@@ -234,93 +81,6 @@ pub struct GoogleCloudApigeeV1ApiCategoryResponse {
     /// Status of the operation.
     #[serde(default)]
     pub status: ::core::option::Option<String>,
-}
-
-/// Session carries the debug session id and its creation time.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudApigeeV1ApiDebugSession {
-    /// The revision ID of the deployed API proxy.
-    #[serde(default, rename = "apiProxyRevisionId")]
-    pub api_proxy_revision_id: ::core::option::Option<String>,
-    /// The first transaction creation timestamp in millisecond, recorded by UAP.
-    #[serde(default, rename = "createTime")]
-    pub create_time: ::core::option::Option<String>,
-    /// The environment ID of the deployed API proxy.
-    #[serde(default, rename = "environmentId")]
-    pub environment_id: ::core::option::Option<String>,
-    /// The debug session ID.
-    #[serde(default)]
-    pub id: ::core::option::Option<String>,
-}
-
-/// ApiDoc represents an API catalog item. Catalog items are used in two ways in a portal: - Users can browse and interact with a visual representation of the API documentation - The api_product_name field provides a link to a backing [API product] (/apigee/docs/reference/apis/apigee/rest/v1/organizations.apiproducts). Through this link, portal users can create and manage developer apps linked to one or more API products.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudApigeeV1ApiDoc {
-    /// Optional. Boolean flag that manages user access to the catalog item. When true, the catalog item has public visibility and can be viewed anonymously; otherwise, only registered users may view it. Note: when the parent portal is enrolled in the [audience management feature](https://cloud.google.com/apigee/docs/api-platform/publish/portal/portal-audience#enrolling_in_the_beta_release_of_the_audience_management_feature), and this flag is set to false, visibility is set to an indeterminate state and must be explicitly specified in the management UI (see [Manage the visibility of an API in your portal](https://cloud.google.com/apigee/docs/api-platform/publish/portal/publish-apis#visibility)). Additionally, when enrolled in the audience management feature, updates to this flag will be ignored as visibility permissions must be updated in the management UI.
-    #[serde(default, rename = "anonAllowed")]
-    pub anon_allowed: ::core::option::Option<bool>,
-    /// Required. Immutable. The name field of the associated [API product](/apigee/docs/reference/apis/apigee/rest/v1/organizations.apiproducts). A portal may have only one catalog item associated with a given API product.
-    #[serde(default, rename = "apiProductName")]
-    pub api_product_name: ::core::option::Option<String>,
-    /// Optional. The IDs of the API categories to which this catalog item belongs.
-    #[serde(default, rename = "categoryIds")]
-    pub category_ids: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Optional. Description of the catalog item. Max length is 10,000 characters.
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// Optional. Immutable. DEPRECATED: use the apiProductName field instead
-    #[serde(default, rename = "edgeAPIProductName")]
-    pub edge_a_p_i_product_name: ::core::option::Option<String>,
-    /// Optional. DEPRECATED: manage documentation through the getDocumentation and updateDocumentation methods
-    #[serde(default, rename = "graphqlEndpointUrl")]
-    pub graphql_endpoint_url: ::core::option::Option<String>,
-    /// Optional. DEPRECATED: manage documentation through the getDocumentation and updateDocumentation methods
-    #[serde(default, rename = "graphqlSchema")]
-    pub graphql_schema: ::core::option::Option<String>,
-    /// Optional. DEPRECATED: manage documentation through the getDocumentation and updateDocumentation methods
-    #[serde(default, rename = "graphqlSchemaDisplayName")]
-    pub graphql_schema_display_name: ::core::option::Option<String>,
-    /// Output only. The ID of the catalog item.
-    #[serde(default)]
-    pub id: ::core::option::Option<String>,
-    /// Optional. Location of the image used for the catalog item in the catalog. This can be either an image with an external URL or a file path for [image files stored in the portal](/apigee/docs/api-platform/publish/portal/portal-files"), for example, /files/book-tree.jpg. When specifying the URL of an external image, the image won''t be uploaded to your assets; additionally, loading the image in the integrated portal will be subject to its availability, which may be blocked or restricted by [content security policies](/apigee/docs/api-platform/publish/portal/csp). Max length of file path is 2,083 characters.
-    #[serde(default, rename = "imageUrl")]
-    pub image_url: ::core::option::Option<String>,
-    /// Output only. Time the catalog item was last modified in milliseconds since epoch.
-    #[serde(default)]
-    pub modified: ::core::option::Option<String>,
-    /// Optional. Denotes whether the catalog item is published to the portal or is in a draft state. When the parent portal is enrolled in the [audience management feature](https://cloud.google.com/apigee/docs/api-platform/publish/portal/portal-audience#enrolling_in_the_beta_release_of_the_audience_management_feature), the visibility can be set to public on creation by setting the anonAllowed flag to true or further managed in the management UI (see [Manage the visibility of an API in your portal](https://cloud.google.com/apigee/docs/api-platform/publish/portal/publish-apis#visibility)) before it can be visible to any users. If not enrolled in the audience management feature, the visibility is managed by the anonAllowed flag.
-    #[serde(default)]
-    pub published: ::core::option::Option<bool>,
-    /// Optional. Whether a callback URL is required when this catalog item''s API product is enabled in a developer app. When true, a portal user will be required to input a URL when managing the app (this is typically used for the app''s OAuth flow).
-    #[serde(default, rename = "requireCallbackUrl")]
-    pub require_callback_url: ::core::option::Option<bool>,
-    /// Output only. The ID of the parent portal.
-    #[serde(default, rename = "siteId")]
-    pub site_id: ::core::option::Option<String>,
-    /// Optional. DEPRECATED: DO NOT USE
-    #[serde(default, rename = "specId")]
-    pub spec_id: ::core::option::Option<String>,
-    /// Required. The user-facing name of the catalog item. title must be a non-empty string with a max length of 255 characters.
-    #[serde(default)]
-    pub title: ::core::option::Option<String>,
-    /// Optional. DEPRECATED: use the published field instead
-    #[serde(default)]
-    pub visibility: ::core::option::Option<bool>,
-}
-
-/// The documentation for a catalog item.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudApigeeV1ApiDocDocumentation {
-    /// Optional. AsyncAPI Specification documentation.
-    #[serde(default, rename = "asyncApiDocumentation")]
-    pub async_api_documentation: ::core::option::Option<GoogleCloudApigeeV1AsyncApiDocumentation>,
-    /// Optional. GraphQL documentation.
-    #[serde(default, rename = "graphqlDocumentation")]
-    pub graphql_documentation: ::core::option::Option<GoogleCloudApigeeV1GraphqlDocumentation>,
-    /// Optional. OpenAPI Specification documentation.
-    #[serde(default, rename = "oasDocumentation")]
-    pub oas_documentation: ::core::option::Option<GoogleCloudApigeeV1oASDocumentation>,
 }
 
 /// The catalog item documentation wrapped with response status, error_code, etc.
@@ -361,120 +121,6 @@ pub struct GoogleCloudApigeeV1ApiDocResponse {
     /// Status of the operation.
     #[serde(default)]
     pub status: ::core::option::Option<String>,
-}
-
-/// GoogleCloudApigeeV1ApiProduct resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudApigeeV1ApiProduct {
-    /// Comma-separated list of API resources to be bundled in the API product. By default, the resource paths are mapped from the proxy.pathsuffix variable. The proxy path suffix is defined as the URI fragment following the ProxyEndpoint base path. For example, if the apiResources element is defined to be /forecastrss and the base path defined for the API proxy is /weather, then only requests to /weather/forecastrss are permitted by the API product. You can select a specific path, or you can select all subpaths with the following wildcard: - /**: Indicates that all sub-URIs are included. - /* : Indicates that only URIs one level down are included. By default, / supports the same resources as /** as well as the base path defined by the API proxy. For example, if the base path of the API proxy is /v1/weatherapikey, then the API product supports requests to /v1/weatherapikey and to any sub-URIs, such as /v1/weatherapikey/forecastrss, /v1/weatherapikey/region/CA, and so on. For more information, see Managing API products.
-    #[serde(default, rename = "apiResources")]
-    pub api_resources: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Flag that specifies how API keys are approved to access the APIs defined by the API product. If set to manual, the consumer key is generated and returned in "pending" state. In this case, the API keys won''t work until they have been explicitly approved. If set to auto, the consumer key is generated and returned in "approved" state and can be used immediately. **Note:** Typically, auto is used to provide access to free or trial API products that provide limited quota or capabilities.
-    #[serde(default, rename = "approvalType")]
-    pub approval_type: ::core::option::Option<String>,
-    /// Array of attributes that may be used to extend the default API product profile with customer-specific metadata. You can specify a maximum of 18 attributes. Use this property to specify the access level of the API product as either public, private, or internal. Only products marked public are available to developers in the Apigee developer portal. For example, you can set a product to internal while it is in development and then change access to public when it is ready to release on the portal. API products marked as private do not appear on the portal, but can be accessed by external developers.
-    #[serde(default)]
-    pub attributes: ::core::option::Option<::std::vec::Vec<GoogleCloudApigeeV1Attribute>>,
-    /// Response only. Creation time of this environment as milliseconds since epoch.
-    #[serde(default, rename = "createdAt")]
-    pub created_at: ::core::option::Option<String>,
-    /// Description of the API product. Include key information about the API product that is not captured by other fields.
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// Name displayed in the UI or developer portal to developers registering for API access.
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-    /// Comma-separated list of environment names to which the API product is bound. Requests to environments that are not listed are rejected. By specifying one or more environments, you can bind the resources listed in the API product to a specific environment, preventing developers from accessing those resources through API proxies deployed in another environment. This setting is used, for example, to prevent resources associated with API proxies in prod from being accessed by API proxies deployed in test.
-    #[serde(default)]
-    pub environments: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Configuration used to group Apigee proxies or remote services with graphQL operation name, graphQL operation type and quotas. This grouping allows us to precisely set quota for a particular combination of graphQL name and operation type for a particular proxy request. If graphQL name is not set, this would imply quota will be applied on all graphQL requests matching the operation type.
-    #[serde(default, rename = "graphqlOperationGroup")]
-    pub graphql_operation_group: ::core::option::Option<GoogleCloudApigeeV1GraphQLOperationGroup>,
-    /// Optional. Configuration used to group Apigee proxies with gRPC services and method names. This grouping allows us to set quota for a particular proxy with the gRPC service name and method. If a method name is not set, this implies quota and authorization are applied to all gRPC methods implemented by that proxy for that particular gRPC service.
-    #[serde(default, rename = "grpcOperationGroup")]
-    pub grpc_operation_group: ::core::option::Option<GoogleCloudApigeeV1GrpcOperationGroup>,
-    /// Response only. Modified time of this environment as milliseconds since epoch.
-    #[serde(default, rename = "lastModifiedAt")]
-    pub last_modified_at: ::core::option::Option<String>,
-    /// Optional. Configuration used to group Apigee proxies with resources, method types, LLM model and quotas. The resource refers to the resource URI (excluding the base path). With this grouping, the API product creator is able to fine-tune and give precise control over which REST methods have access to specific resources, specific LLM model and how many calls can be made (using the quota setting). **Note:** The api_resources setting cannot be specified for both the API product and llm operation group; otherwise the call will fail.
-    #[serde(default, rename = "llmOperationGroup")]
-    pub llm_operation_group: ::core::option::Option<GoogleCloudApigeeV1LlmOperationGroup>,
-    /// Optional. Number of LLM tokens permitted per app by this API product for the specified llm_quota_interval and llm_quota_time_unit. For example, an llm_quota of 50,000, for an llm_quota_interval of 12 and an llm_quota_time_unit of hours means 50,000 llm tokens are allowed to be used every 12 hours.
-    #[serde(default, rename = "llmQuota")]
-    pub llm_quota: ::core::option::Option<String>,
-    /// Optional. Time interval over which the number of tokens from LLM responses is calculated.
-    #[serde(default, rename = "llmQuotaInterval")]
-    pub llm_quota_interval: ::core::option::Option<String>,
-    /// Optional. Time unit defined for the llm_quota_interval. Valid values include minute, hour, day, or month.
-    #[serde(default, rename = "llmQuotaTimeUnit")]
-    pub llm_quota_time_unit: ::core::option::Option<String>,
-    /// Internal name of the API product. Characters you can use in the name are restricted to: A-Z0-9._\-$ %. **Note:** The internal name cannot be edited when updating the API product.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Configuration used to group Apigee proxies or remote services with resources, method types, and quotas. The resource refers to the resource URI (excluding the base path). With this grouping, the API product creator is able to fine-tune and give precise control over which REST methods have access to specific resources and how many calls can be made (using the quota setting). **Note:** The api_resources setting cannot be specified for both the API product and operation group; otherwise the call will fail.
-    #[serde(default, rename = "operationGroup")]
-    pub operation_group: ::core::option::Option<GoogleCloudApigeeV1OperationGroup>,
-    /// Comma-separated list of API proxy names to which this API product is bound. By specifying API proxies, you can associate resources in the API product with specific API proxies, preventing developers from accessing those resources through other API proxies. Apigee rejects requests to API proxies that are not listed. **Note:** The API proxy names must already exist in the specified environment as they will be validated upon creation.
-    #[serde(default)]
-    pub proxies: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Number of request messages permitted per app by this API product for the specified quotaInterval and quotaTimeUnit. For example, a quota of 50, for a quotaInterval of 12 and a quotaTimeUnit of hours means 50 requests are allowed every 12 hours.
-    #[serde(default)]
-    pub quota: ::core::option::Option<String>,
-    /// Scope of the quota decides how the quota counter gets applied and evaluate for quota violation. If the Scope is set as PROXY, then all the operations defined for the APIproduct that are associated with the same proxy will share the same quota counter set at the APIproduct level, making it a global counter at a proxy level. If the Scope is set as OPERATION, then each operations get the counter set at the API product dedicated, making it a local counter. Note that, the QuotaCounterScope applies only when an operation does not have dedicated quota set for itself. // TODO: enum values: ["QUOTA_COUNTER_SCOPE_UNSPECIFIED", "PROXY", "OPERATION", "PRODUCT"]
-    #[serde(default, rename = "quotaCounterScope")]
-    pub quota_counter_scope: ::core::option::Option<String>,
-    /// Time interval over which the number of request messages is calculated.
-    #[serde(default, rename = "quotaInterval")]
-    pub quota_interval: ::core::option::Option<String>,
-    /// Time unit defined for the quotaInterval. Valid values include minute, hour, day, or month.
-    #[serde(default, rename = "quotaTimeUnit")]
-    pub quota_time_unit: ::core::option::Option<String>,
-    /// Comma-separated list of OAuth scopes that are validated at runtime. Apigee validates that the scopes in any access token presented match the scopes defined in the OAuth policy associated with the API product.
-    #[serde(default)]
-    pub scopes: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Optional. The resource ID of the parent Space. If not set, the parent resource will be the Organization. To learn how Spaces can be used to manage resources, read the [Apigee Spaces Overview](https://cloud.google.com/apigee/docs/api-platform/system-administration/spaces/apigee-spaces-overview).
-    #[serde(default)]
-    pub space: ::core::option::Option<String>,
-}
-
-/// GoogleCloudApigeeV1ApiProductRef resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudApigeeV1ApiProductRef {
-    /// Name of the API product.
-    #[serde(default)]
-    pub apiproduct: ::core::option::Option<String>,
-    /// Status of the API product. Valid values are approved or revoked.
-    #[serde(default)]
-    pub status: ::core::option::Option<String>,
-}
-
-/// Metadata describing the API proxy
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudApigeeV1ApiProxy {
-    /// Output only. The type of the API proxy. // TODO: enum values: ["API_PROXY_TYPE_UNSPECIFIED", "PROGRAMMABLE", "CONFIGURABLE"]
-    #[serde(default, rename = "apiProxyType")]
-    pub api_proxy_type: ::core::option::Option<String>,
-    /// User labels applied to this API Proxy.
-    #[serde(default)]
-    pub labels: ::core::option::Option<serde_json::Value>,
-    /// Output only. The id of the most recently created revision for this api proxy.
-    #[serde(default, rename = "latestRevisionId")]
-    pub latest_revision_id: ::core::option::Option<String>,
-    /// Output only. Metadata describing the API proxy.
-    #[serde(default, rename = "metaData")]
-    pub meta_data: ::core::option::Option<GoogleCloudApigeeV1EntityMetadata>,
-    /// Output only. Name of the API proxy.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Output only. Whether this proxy is read-only. A read-only proxy cannot have new revisions created through calls to CreateApiProxyRevision. A proxy is read-only if it was generated by an archive.
-    #[serde(default, rename = "readOnly")]
-    pub read_only: ::core::option::Option<bool>,
-    /// Output only. List of revisions defined for the API proxy.
-    #[serde(default)]
-    pub revision: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Optional. The id of the space this proxy is associated with. Any IAM policies applied to the space will control access to this proxy. To learn how Spaces can be used to manage resources, read the [Apigee Spaces Overview](https://cloud.google.com/apigee/docs/api-platform/system-administration/spaces/apigee-spaces-overview).
-    #[serde(default)]
-    pub space: ::core::option::Option<String>,
 }
 
 /// API proxy revision.
@@ -557,17 +203,6 @@ pub struct GoogleCloudApigeeV1ApiProxyRevision {
     pub type_: ::core::option::Option<String>,
 }
 
-/// Configurations of the API Security add-on.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudApigeeV1ApiSecurityConfig {
-    /// Flag that specifies whether the API security add-on is enabled.
-    #[serde(default)]
-    pub enabled: ::core::option::Option<bool>,
-    /// Output only. Time at which the API Security add-on expires in milliseconds since epoch. If unspecified, the add-on will never expire.
-    #[serde(default, rename = "expiresAt")]
-    pub expires_at: ::core::option::Option<String>,
-}
-
 /// Response for GetApiSecurityRuntimeConfig[EnvironmentService.GetApiSecurityRuntimeConfig].
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudApigeeV1ApiSecurityRuntimeConfig {
@@ -588,234 +223,6 @@ pub struct GoogleCloudApigeeV1ApiSecurityRuntimeConfig {
     pub update_time: ::core::option::Option<String>,
 }
 
-/// APIM Service Extension is a resource under an Apigee Organization that is used to create APIM Service Extension to route traffic to existing X instances.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudApigeeV1ApimServiceExtension {
-    /// Output only. The time that this resource was created on the server.
-    #[serde(default, rename = "createTime")]
-    pub create_time: ::core::option::Option<String>,
-    /// Required. Name of the proxy deployed in the Apigee X instance.
-    #[serde(default, rename = "extensionProcessor")]
-    pub extension_processor: ::core::option::Option<String>,
-    /// Optional. List of extensions that are part of the service extension. Refer to https://cloud.google.com/service-extensions/docs/quotas#limits for any limits.
-    #[serde(default)]
-    pub extensions:
-        ::core::option::Option<::std::vec::Vec<GoogleCloudApigeeV1ApimServiceExtensionExtension>>,
-    /// Required. Name of the Google Cloud LB forwarding rule. Format: projects/{project}/regions/{region}/forwardingRules/{forwarding_rule} projects/{project}/global/forwardingRules/{forwarding_rule}
-    #[serde(default, rename = "lbForwardingRule")]
-    pub lb_forwarding_rule: ::core::option::Option<String>,
-    /// Identifier. unique name of the APIM service extension. The name must conform with RFC-1034, is restricted to lower-cased letters, numbers and hyphens, and can have a maximum length of 63 characters. Additionally, the first character must be a letter and the last a letter or a number.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Required. The network where the forwarding rule is created. Format: projects/{project}/global/networks/{network}
-    #[serde(default)]
-    pub network: ::core::option::Option<String>,
-    /// Required. List of network configurations for the APIM service extension.
-    #[serde(default, rename = "networkConfigs")]
-    pub network_configs: ::core::option::Option<
-        ::std::vec::Vec<GoogleCloudApigeeV1ApimServiceExtensionNetworkConfig>,
-    >,
-    /// Output only. State of the APIM service extension. Values other than ACTIVE mean the resource is not ready to use. // TODO: enum values: ["STATE_UNSPECIFIED", "CREATING", "ACTIVE", "DELETING", "UPDATING"]
-    #[serde(default)]
-    pub state: ::core::option::Option<String>,
-    /// Output only. The time that this resource was updated on the server.
-    #[serde(default, rename = "updateTime")]
-    pub update_time: ::core::option::Option<String>,
-}
-
-/// Extension configuration for Apigee extension processor service extension.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudApigeeV1ApimServiceExtensionExtension {
-    /// Optional. Whether this request should fail open.
-    #[serde(default, rename = "failOpen")]
-    pub fail_open: ::core::option::Option<bool>,
-    /// Required. One of the hostnames of Apigee EnvGroup where the proxy is deployed. This hostname (i.e FDQN) will be used to route traffic from the specified forwarding rule to the environment in Apigee X instance where the proxy is deployed for handling extension traffic. Format: ^([a-zA-Z0-9. _-])+$
-    #[serde(default)]
-    pub hostname: ::core::option::Option<String>,
-    /// Optional. Match Condition for CEL expression. Refer to https://cloud.google.com/service-extensions/docs/cel-matcher-language-reference for more details.
-    #[serde(default, rename = "matchCondition")]
-    pub match_condition: ::core::option::Option<String>,
-    /// Required. Name of the LbTrafficExtension resource. The name must conform with RFC-1034, is restricted to lower-cased letters, numbers and hyphens, and can have a maximum length of 63 characters. Additionally, the first character must be a letter and the last a letter or a number.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Optional. Supported events for the Service Extension. If not specified, all events are supported.
-    #[serde(default, rename = "supportedEvents")]
-    pub supported_events: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// Network configuration for the APIM service extension.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudApigeeV1ApimServiceExtensionNetworkConfig {
-    /// Required. The region for the PSC NEG.
-    #[serde(default)]
-    pub region: ::core::option::Option<String>,
-    /// Required. The subnet for the PSC NEG. Format: projects/{project}/regions/{region}/subnetworks/{subnet}
-    #[serde(default)]
-    pub subnet: ::core::option::Option<String>,
-}
-
-/// GoogleCloudApigeeV1App resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudApigeeV1App {
-    /// List of API products associated with the app.
-    #[serde(default, rename = "apiProducts")]
-    pub api_products: ::core::option::Option<::std::vec::Vec<GoogleCloudApigeeV1ApiProductRef>>,
-    /// Name of the AppGroup
-    #[serde(default, rename = "appGroup")]
-    pub app_group: ::core::option::Option<String>,
-    /// ID of the app.
-    #[serde(default, rename = "appId")]
-    pub app_id: ::core::option::Option<String>,
-    /// List of attributes.
-    #[serde(default)]
-    pub attributes: ::core::option::Option<::std::vec::Vec<GoogleCloudApigeeV1Attribute>>,
-    /// Callback URL used by OAuth 2.0 authorization servers to communicate authorization codes back to apps.
-    #[serde(default, rename = "callbackUrl")]
-    pub callback_url: ::core::option::Option<String>,
-    /// Name of the company that owns the app.
-    #[serde(default, rename = "companyName")]
-    pub company_name: ::core::option::Option<String>,
-    /// Output only. Unix time when the app was created.
-    #[serde(default, rename = "createdAt")]
-    pub created_at: ::core::option::Option<String>,
-    /// Output only. Set of credentials for the app. Credentials are API key/secret pairs associated with API products.
-    #[serde(default)]
-    pub credentials: ::core::option::Option<::std::vec::Vec<GoogleCloudApigeeV1Credential>>,
-    /// Email of the developer.
-    #[serde(default, rename = "developerEmail")]
-    pub developer_email: ::core::option::Option<String>,
-    /// ID of the developer.
-    #[serde(default, rename = "developerId")]
-    pub developer_id: ::core::option::Option<String>,
-    /// Duration, in milliseconds, of the consumer key that will be generated for the app. The default value, -1, indicates an infinite validity period. Once set, the expiration can''t be updated. json key: keyExpiresIn
-    #[serde(default, rename = "keyExpiresIn")]
-    pub key_expires_in: ::core::option::Option<String>,
-    /// Output only. Last modified time as milliseconds since epoch.
-    #[serde(default, rename = "lastModifiedAt")]
-    pub last_modified_at: ::core::option::Option<String>,
-    /// Name of the app.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Scopes to apply to the app. The specified scope names must already exist on the API product that you associate with the app.
-    #[serde(default)]
-    pub scopes: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Status of the credential.
-    #[serde(default)]
-    pub status: ::core::option::Option<String>,
-}
-
-/// AppGroup contains the request/response fields representing the logical grouping of apps. Note that appgroup_id, create_time and update_time cannot be changed by the user, and gets updated by the system. The name and the organization once provided cannot be edited subsequently.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudApigeeV1AppGroup {
-    /// Output only. Internal identifier that cannot be edited
-    #[serde(default, rename = "appGroupId")]
-    pub app_group_id: ::core::option::Option<String>,
-    /// A list of attributes
-    #[serde(default)]
-    pub attributes: ::core::option::Option<::std::vec::Vec<GoogleCloudApigeeV1Attribute>>,
-    /// channel identifier identifies the owner maintaing this grouping.
-    #[serde(default, rename = "channelId")]
-    pub channel_id: ::core::option::Option<String>,
-    /// A reference to the associated storefront/marketplace.
-    #[serde(default, rename = "channelUri")]
-    pub channel_uri: ::core::option::Option<String>,
-    /// Output only. Created time as milliseconds since epoch.
-    #[serde(default, rename = "createdAt")]
-    pub created_at: ::core::option::Option<String>,
-    /// app group name displayed in the UI
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-    /// Optional. Email of the AppGroup.
-    #[serde(default)]
-    pub email: ::core::option::Option<String>,
-    /// Output only. Modified time as milliseconds since epoch.
-    #[serde(default, rename = "lastModifiedAt")]
-    pub last_modified_at: ::core::option::Option<String>,
-    /// Immutable. Name of the AppGroup. Characters you can use in the name are restricted to: A-Z0-9._\-$ %.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Immutable. the org the app group is created
-    #[serde(default)]
-    pub organization: ::core::option::Option<String>,
-    /// Valid values are active or inactive. Note that the status of the AppGroup should be updated via UpdateAppGroupRequest by setting the action as active or inactive.
-    #[serde(default)]
-    pub status: ::core::option::Option<String>,
-}
-
-/// Response for [GetAppGroupApp].[AppGroupApps.GetAppGroupApp], [CreateAppGroupAppRequest].[AppGroupApp.CreateAppGroupAppRequest] and [DeleteAppGroupApp].[AppGroupApp.DeleteAppGroupApp]
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudApigeeV1AppGroupApp {
-    /// List of API products associated with the AppGroup app.
-    #[serde(default, rename = "apiProducts")]
-    pub api_products: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Immutable. Name of the parent AppGroup whose resource name format is of syntax (organizations/*/appgroups/*).
-    #[serde(default, rename = "appGroup")]
-    pub app_group: ::core::option::Option<String>,
-    /// Immutable. ID of the AppGroup app.
-    #[serde(default, rename = "appId")]
-    pub app_id: ::core::option::Option<String>,
-    /// List of attributes for the AppGroup app.
-    #[serde(default)]
-    pub attributes: ::core::option::Option<::std::vec::Vec<GoogleCloudApigeeV1Attribute>>,
-    /// Callback URL used by OAuth 2.0 authorization servers to communicate authorization codes back to AppGroup apps.
-    #[serde(default, rename = "callbackUrl")]
-    pub callback_url: ::core::option::Option<String>,
-    /// Output only. Time the AppGroup app was created in milliseconds since epoch.
-    #[serde(default, rename = "createdAt")]
-    pub created_at: ::core::option::Option<String>,
-    /// Output only. Set of credentials for the AppGroup app consisting of the consumer key/secret pairs associated with the API products.
-    #[serde(default)]
-    pub credentials: ::core::option::Option<::std::vec::Vec<GoogleCloudApigeeV1Credential>>,
-    /// Immutable. Expiration time, in seconds, for the consumer key that is generated for the AppGroup app. If not set or left to the default value of -1, the API key never expires. The expiration time can''t be updated after it is set.
-    #[serde(default, rename = "keyExpiresIn")]
-    pub key_expires_in: ::core::option::Option<String>,
-    /// Output only. Time the AppGroup app was modified in milliseconds since epoch.
-    #[serde(default, rename = "lastModifiedAt")]
-    pub last_modified_at: ::core::option::Option<String>,
-    /// Immutable. Name of the AppGroup app whose resource name format is of syntax (organizations/*/appgroups/*/apps/*).
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Scopes to apply to the AppGroup app. The specified scopes must already exist for the API product that you associate with the AppGroup app.
-    #[serde(default)]
-    pub scopes: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Status of the App. Valid values include approved or revoked.
-    #[serde(default)]
-    pub status: ::core::option::Option<String>,
-}
-
-/// AppGroupAppKey contains all the information associated with the credentials.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudApigeeV1AppGroupAppKey {
-    /// Output only. List of API products and its status for which the credential can be used. **Note**: Use UpdateAppGroupAppKeyApiProductRequest API to make the association after the consumer key and secret are created.
-    #[serde(default, rename = "apiProducts")]
-    pub api_products:
-        ::core::option::Option<::std::vec::Vec<GoogleCloudApigeeV1aPIProductAssociation>>,
-    /// List of attributes associated with the credential.
-    #[serde(default)]
-    pub attributes: ::core::option::Option<::std::vec::Vec<GoogleCloudApigeeV1Attribute>>,
-    /// Immutable. Consumer key.
-    #[serde(default, rename = "consumerKey")]
-    pub consumer_key: ::core::option::Option<String>,
-    /// Secret key.
-    #[serde(default, rename = "consumerSecret")]
-    pub consumer_secret: ::core::option::Option<String>,
-    /// Output only. Time the AppGroup app expires in milliseconds since epoch.
-    #[serde(default, rename = "expiresAt")]
-    pub expires_at: ::core::option::Option<String>,
-    /// Immutable. Expiration time, in seconds, for the consumer key. If not set or left to the default value of -1, the API key never expires. The expiration time can''t be updated after it is set.
-    #[serde(default, rename = "expiresInSeconds")]
-    pub expires_in_seconds: ::core::option::Option<String>,
-    /// Output only. Time the AppGroup app was created in milliseconds since epoch.
-    #[serde(default, rename = "issuedAt")]
-    pub issued_at: ::core::option::Option<String>,
-    /// Scopes to apply to the app. The specified scope names must already be defined for the API product that you associate with the app.
-    #[serde(default)]
-    pub scopes: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Status of the credential. Valid values include approved or revoked.
-    #[serde(default)]
-    pub status: ::core::option::Option<String>,
-}
-
 /// AppGroupBalance for the AppGroup.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudApigeeV1AppGroupBalance {
@@ -824,132 +231,12 @@ pub struct GoogleCloudApigeeV1AppGroupBalance {
     pub wallets: ::core::option::Option<::std::vec::Vec<GoogleCloudApigeeV1AppGroupBalanceWallet>>,
 }
 
-/// Wallet used to manage an account balance for a particular currency.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudApigeeV1AppGroupBalanceWallet {
-    /// Current remaining balance of the AppGroup for a particular currency.
-    #[serde(default)]
-    pub balance: ::core::option::Option<GoogleTypeMoney>,
-    /// Output only. Time at which the AppGroup last added credit to the account in milliseconds since epoch.
-    #[serde(default, rename = "lastCreditTime")]
-    pub last_credit_time: ::core::option::Option<String>,
-}
-
 /// Monetization configuration for the AppGroup.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudApigeeV1AppGroupMonetizationConfig {
     /// Required. Billing type. // TODO: enum values: ["BILLING_TYPE_UNSPECIFIED", "PREPAID", "POSTPAID"]
     #[serde(default, rename = "billingType")]
     pub billing_type: ::core::option::Option<String>,
-}
-
-/// AppGroup Subscription details.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudApigeeV1AppGroupSubscription {
-    /// Required. Name of the API product for which the appgroup is purchasing a subscription.
-    #[serde(default)]
-    pub apiproduct: ::core::option::Option<String>,
-    /// Output only. Time when the API product subscription was created in milliseconds since epoch.
-    #[serde(default, rename = "createdAt")]
-    pub created_at: ::core::option::Option<String>,
-    /// Output only. Time when the API product subscription ends in milliseconds since epoch.
-    #[serde(default, rename = "endTime")]
-    pub end_time: ::core::option::Option<String>,
-    /// Output only. Time when the API product subscription was last modified in milliseconds since epoch.
-    #[serde(default, rename = "lastModifiedAt")]
-    pub last_modified_at: ::core::option::Option<String>,
-    /// Output only. Name of the API product subscription.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Output only. Time when the API product subscription starts in milliseconds since epoch.
-    #[serde(default, rename = "startTime")]
-    pub start_time: ::core::option::Option<String>,
-}
-
-/// Archive Deployment information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudApigeeV1ArchiveDeployment {
-    /// Output only. The time at which the Archive Deployment was created in milliseconds since the epoch.
-    #[serde(default, rename = "createdAt")]
-    pub created_at: ::core::option::Option<String>,
-    /// Input only. The Google Cloud Storage signed URL returned from GenerateUploadUrl and used to upload the Archive zip file.
-    #[serde(default, rename = "gcsUri")]
-    pub gcs_uri: ::core::option::Option<String>,
-    /// User-supplied key-value pairs used to organize ArchiveDeployments. Label keys must be between 1 and 63 characters long, have a UTF-8 encoding of maximum 128 bytes, and must conform to the following PCRE regular expression: \p{Ll}\p{Lo}{0,62} Label values must be between 1 and 63 characters long, have a UTF-8 encoding of maximum 128 bytes, and must conform to the following PCRE regular expression: [\p{Ll}\p{Lo}\p{N}_-]{0,63} No more than 64 labels can be associated with a given store.
-    #[serde(default)]
-    pub labels: ::core::option::Option<serde_json::Value>,
-    /// Name of the Archive Deployment in the following format: organizations/{org}/environments/{env}/archiveDeployments/{id}.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Output only. A reference to the LRO that created this Archive Deployment in the following format: organizations/{org}/operations/{id}
-    #[serde(default)]
-    pub operation: ::core::option::Option<String>,
-    /// Output only. The time at which the Archive Deployment was updated in milliseconds since the epoch.
-    #[serde(default, rename = "updatedAt")]
-    pub updated_at: ::core::option::Option<String>,
-}
-
-/// AsyncAPI Specification documentation for a catalog item.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudApigeeV1AsyncApiDocumentation {
-    /// Required. The documentation file contents for the AsyncAPI Specification. JSON and YAML file formats are supported.
-    #[serde(default)]
-    pub spec: ::core::option::Option<GoogleCloudApigeeV1DocumentationFile>,
-}
-
-/// GoogleCloudApigeeV1AsyncQuery resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudApigeeV1AsyncQuery {
-    /// Creation time of the query.
-    #[serde(default)]
-    pub created: ::core::option::Option<String>,
-    /// Hostname is available only when query is executed at host level.
-    #[serde(default, rename = "envgroupHostname")]
-    pub envgroup_hostname: ::core::option::Option<String>,
-    /// Error is set when query fails.
-    #[serde(default)]
-    pub error: ::core::option::Option<String>,
-    /// ExecutionTime is available only after the query is completed.
-    #[serde(default, rename = "executionTime")]
-    pub execution_time: ::core::option::Option<String>,
-    /// Asynchronous Query Name.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Contains information like metrics, dimenstions etc of the AsyncQuery.
-    #[serde(default, rename = "queryParams")]
-    pub query_params: ::core::option::Option<GoogleCloudApigeeV1QueryMetadata>,
-    /// Asynchronous Report ID.
-    #[serde(default, rename = "reportDefinitionId")]
-    pub report_definition_id: ::core::option::Option<String>,
-    /// Result is available only after the query is completed.
-    #[serde(default)]
-    pub result: ::core::option::Option<GoogleCloudApigeeV1AsyncQueryResult>,
-    /// ResultFileSize is available only after the query is completed.
-    #[serde(default, rename = "resultFileSize")]
-    pub result_file_size: ::core::option::Option<String>,
-    /// ResultRows is available only after the query is completed.
-    #[serde(default, rename = "resultRows")]
-    pub result_rows: ::core::option::Option<String>,
-    /// Self link of the query. Example: /organizations/myorg/environments/myenv/queries/9cfc0d85-0f30-46d6-ae6f-318d0cb961bd or following format if query is running at host level: /organizations/myorg/hostQueries/9cfc0d85-0f30-46d6-ae6f-318d0cb961bd
-    #[serde(default, rename = "self")]
-    pub self_: ::core::option::Option<String>,
-    /// Query state could be "enqueued", "running", "completed", "failed".
-    #[serde(default)]
-    pub state: ::core::option::Option<String>,
-    /// Last updated timestamp for the query.
-    #[serde(default)]
-    pub updated: ::core::option::Option<String>,
-}
-
-/// GoogleCloudApigeeV1AsyncQueryResult resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudApigeeV1AsyncQueryResult {
-    /// Query result will be unaccessable after this time.
-    #[serde(default)]
-    pub expires: ::core::option::Option<String>,
-    /// Self link of the query results. Example: /organizations/myorg/environments/myenv/queries/9cfc0d85-0f30-46d6-ae6f-318d0cb961bd/result or following format if query is running at host level: /organizations/myorg/hostQueries/9cfc0d85-0f30-46d6-ae6f-318d0cb961bd/result
-    #[serde(default, rename = "self")]
-    pub self_: ::core::option::Option<String>,
 }
 
 /// GoogleCloudApigeeV1AsyncQueryResultView resource type.
@@ -970,17 +257,6 @@ pub struct GoogleCloudApigeeV1AsyncQueryResultView {
     /// State of retrieving ResultView.
     #[serde(default)]
     pub state: ::core::option::Option<String>,
-}
-
-/// Key-value pair to store extra metadata.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudApigeeV1Attribute {
-    /// API key of the attribute.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Value of the attribute.
-    #[serde(default)]
-    pub value: ::core::option::Option<String>,
 }
 
 /// GoogleCloudApigeeV1Attributes resource type.
@@ -1024,45 +300,6 @@ pub struct GoogleCloudApigeeV1BatchComputeSecurityAssessmentResultsRequest {
     /// Optional. Scope of the resources for the computation. When computing scores for Apigee proxies, the scope should be set to the environment of the resources. When computing scores for API Hub deployments, api_hub_scope should be set instead.
     #[serde(default)]
     pub scope: ::core::option::Option<String>,
-}
-
-/// Message for the array of API Hub APIs.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudApigeeV1BatchComputeSecurityAssessmentResultsRequestApiHubApiArray {
-    /// Required. The array of API Hub API IDs. Format: projects/{project}/locations/{location}/apis/{api}
-    #[serde(default)]
-    pub apis: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// Message for the array of API Hub Gateways.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudApigeeV1BatchComputeSecurityAssessmentResultsRequestApiHubGatewayArray {
-    /// Required. The array of API Hub Gateway IDs. Format: projects/{project}/locations/{location}/plugins/{plugin}/instances/{instance}
-    #[serde(default)]
-    pub gateways: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// Message for the array of resources. For Apigee, the proxies are resources.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudApigeeV1BatchComputeSecurityAssessmentResultsRequestResourceArray {
-    /// Required. The array of resources. For Apigee, the proxies are resources.
-    #[serde(default)]
-    pub resources: ::core::option::Option<
-        ::std::vec::Vec<
-            GoogleCloudApigeeV1BatchComputeSecurityAssessmentResultsRequestResourceArrayResource,
-        >,
-    >,
-}
-
-/// Resource for which we are computing security assessment.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudApigeeV1BatchComputeSecurityAssessmentResultsRequestResourceArrayResource {
-    /// Required. Name of this resource. For an Apigee API Proxy, this should be the id of the API proxy. For an API Hub Deployment, this should be the id of the deployment.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Required. Type of this resource. // TODO: enum values: ["RESOURCE_TYPE_UNSPECIFIED", "API_PROXY", "API_HUB_DEPLOYMENT"]
-    #[serde(default, rename = "type")]
-    pub type_: ::core::option::Option<String>,
 }
 
 /// Response for BatchComputeSecurityAssessmentResults.
@@ -1130,75 +367,6 @@ pub struct GoogleCloudApigeeV1CanaryEvaluation {
     pub verdict: ::core::option::Option<String>,
 }
 
-/// Labels that can be used to filter Apigee metrics.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudApigeeV1CanaryEvaluationMetricLabels {
-    /// The environment ID associated with the metrics.
-    #[serde(default)]
-    pub env: ::core::option::Option<String>,
-    /// Required. The instance ID associated with the metrics. In Apigee Hybrid, the value is configured during installation.
-    #[serde(default)]
-    pub instance_id: ::core::option::Option<String>,
-    /// Required. The location associated with the metrics.
-    #[serde(default)]
-    pub location: ::core::option::Option<String>,
-}
-
-/// X.509 certificate as defined in RFC 5280.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudApigeeV1CertInfo {
-    /// X.509 basic constraints extension.
-    #[serde(default, rename = "basicConstraints")]
-    pub basic_constraints: ::core::option::Option<String>,
-    /// X.509 notAfter validity period in milliseconds since epoch.
-    #[serde(default, rename = "expiryDate")]
-    pub expiry_date: ::core::option::Option<String>,
-    /// Flag that specifies whether the certificate is valid. Flag is set to Yes if the certificate is valid, No if expired, or Not yet if not yet valid.
-    #[serde(default, rename = "isValid")]
-    pub is_valid: ::core::option::Option<String>,
-    /// X.509 issuer.
-    #[serde(default)]
-    pub issuer: ::core::option::Option<String>,
-    /// Public key component of the X.509 subject public key info.
-    #[serde(default, rename = "publicKey")]
-    pub public_key: ::core::option::Option<String>,
-    /// X.509 serial number.
-    #[serde(default, rename = "serialNumber")]
-    pub serial_number: ::core::option::Option<String>,
-    /// X.509 signatureAlgorithm.
-    #[serde(default, rename = "sigAlgName")]
-    pub sig_alg_name: ::core::option::Option<String>,
-    /// X.509 subject.
-    #[serde(default)]
-    pub subject: ::core::option::Option<String>,
-    /// X.509 subject alternative names (SANs) extension.
-    #[serde(default, rename = "subjectAlternativeNames")]
-    pub subject_alternative_names: ::core::option::Option<::std::vec::Vec<String>>,
-    /// X.509 notBefore validity period in milliseconds since epoch.
-    #[serde(default, rename = "validFrom")]
-    pub valid_from: ::core::option::Option<String>,
-    /// X.509 version.
-    #[serde(default)]
-    pub version: ::core::option::Option<i32>,
-}
-
-/// GoogleCloudApigeeV1Certificate resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudApigeeV1Certificate {
-    /// Chain of certificates under this name.
-    #[serde(default, rename = "certInfo")]
-    pub cert_info: ::core::option::Option<::std::vec::Vec<GoogleCloudApigeeV1CertInfo>>,
-}
-
-/// GoogleCloudApigeeV1CommonNameConfig resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudApigeeV1CommonNameConfig {
-    #[serde(default, rename = "matchWildCards")]
-    pub match_wild_cards: ::core::option::Option<bool>,
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-}
-
 /// Request for ComputeEnvironmentScores.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudApigeeV1ComputeEnvironmentScoresRequest {
@@ -1218,14 +386,6 @@ pub struct GoogleCloudApigeeV1ComputeEnvironmentScoresRequest {
     pub time_range: ::core::option::Option<GoogleTypeInterval>,
 }
 
-/// Filter scores by component path. Used custom filter instead of AIP-160 as the use cases are highly constrained and predictable.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudApigeeV1ComputeEnvironmentScoresRequestFilter {
-    /// Optional. Return scores for this component. Example: "/org@myorg/envgroup@myenvgroup/env@myenv/proxies/proxy@myproxy/source"
-    #[serde(default, rename = "scorePath")]
-    pub score_path: ::core::option::Option<String>,
-}
-
 /// Response for ComputeEnvironmentScores.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudApigeeV1ComputeEnvironmentScoresResponse {
@@ -1235,28 +395,6 @@ pub struct GoogleCloudApigeeV1ComputeEnvironmentScoresResponse {
     /// List of scores. One score per day.
     #[serde(default)]
     pub scores: ::core::option::Option<::std::vec::Vec<GoogleCloudApigeeV1Score>>,
-}
-
-/// Version of the API proxy configuration schema. Currently, only 4.0 is supported.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudApigeeV1ConfigVersion {
-    /// Major version of the API proxy configuration schema.
-    #[serde(default, rename = "majorVersion")]
-    pub major_version: ::core::option::Option<i32>,
-    /// Minor version of the API proxy configuration schema.
-    #[serde(default, rename = "minorVersion")]
-    pub minor_version: ::core::option::Option<i32>,
-}
-
-/// Configuration for the Connectors Platform add-on.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudApigeeV1ConnectorsPlatformConfig {
-    /// Flag that specifies whether the Connectors Platform add-on is enabled.
-    #[serde(default)]
-    pub enabled: ::core::option::Option<bool>,
-    /// Output only. Time at which the Connectors Platform add-on expires in milliseconds since epoch. If unspecified, the add-on will never expire.
-    #[serde(default, rename = "expiresAt")]
-    pub expires_at: ::core::option::Option<String>,
 }
 
 /// ControlPlaneAccess is the request body and response body of UpdateControlPlaneAccess. and the response body of GetControlPlaneAccess. The input identities contains an array of service accounts to grant access to the respective control plane resource, with each service account specified using the following format: serviceAccount:***service-account-name***. The ***service-account-name*** is formatted like an email address. For example: my-control-plane-service_account@my_project_id.iam.gserviceaccount.com You might specify multiple service accounts, for example, if you have multiple environments and wish to assign a unique service account to each one.
@@ -1271,35 +409,6 @@ pub struct GoogleCloudApigeeV1ControlPlaneAccess {
     /// Optional. Array of service accounts to grant access to control plane resources (for the Synchronizer component). The service accounts must have **Apigee Synchronizer Manager** role. See also [Create service accounts](https://cloud.google.com/apigee/docs/hybrid/latest/sa-about#create-the-service-accounts).
     #[serde(default, rename = "synchronizerIdentities")]
     pub synchronizer_identities: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// GoogleCloudApigeeV1Credential resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudApigeeV1Credential {
-    /// List of API products this credential can be used for.
-    #[serde(default, rename = "apiProducts")]
-    pub api_products: ::core::option::Option<::std::vec::Vec<GoogleCloudApigeeV1ApiProductRef>>,
-    /// List of attributes associated with this credential.
-    #[serde(default)]
-    pub attributes: ::core::option::Option<::std::vec::Vec<GoogleCloudApigeeV1Attribute>>,
-    /// Consumer key.
-    #[serde(default, rename = "consumerKey")]
-    pub consumer_key: ::core::option::Option<String>,
-    /// Secret key.
-    #[serde(default, rename = "consumerSecret")]
-    pub consumer_secret: ::core::option::Option<String>,
-    /// Time the credential will expire in milliseconds since epoch.
-    #[serde(default, rename = "expiresAt")]
-    pub expires_at: ::core::option::Option<String>,
-    /// Time the credential was issued in milliseconds since epoch.
-    #[serde(default, rename = "issuedAt")]
-    pub issued_at: ::core::option::Option<String>,
-    /// List of scopes to apply to the app. Specified scopes must already exist on the API product that you associate with the app.
-    #[serde(default)]
-    pub scopes: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Status of the credential. Valid values include approved or revoked.
-    #[serde(default)]
-    pub status: ::core::option::Option<String>,
 }
 
 /// Request for CreditAppGroupBalance.
@@ -1322,208 +431,6 @@ pub struct GoogleCloudApigeeV1CreditDeveloperBalanceRequest {
     /// Each transaction_id uniquely identifies a credit balance request. If multiple requests are received with the same transaction_id, only one of them will be considered.
     #[serde(default, rename = "transactionId")]
     pub transaction_id: ::core::option::Option<String>,
-}
-
-/// GoogleCloudApigeeV1CustomReport resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudApigeeV1CustomReport {
-    /// This field contains the chart type for the report
-    #[serde(default, rename = "chartType")]
-    pub chart_type: ::core::option::Option<String>,
-    /// Legacy field: not used. This field contains a list of comments associated with custom report
-    #[serde(default)]
-    pub comments: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Output only. Unix time when the app was created json key: createdAt
-    #[serde(default, rename = "createdAt")]
-    pub created_at: ::core::option::Option<String>,
-    /// This contains the list of dimensions for the report
-    #[serde(default)]
-    pub dimensions: ::core::option::Option<::std::vec::Vec<String>>,
-    /// This is the display name for the report
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-    /// Output only. Environment name
-    #[serde(default)]
-    pub environment: ::core::option::Option<String>,
-    /// This field contains the filter expression
-    #[serde(default)]
-    pub filter: ::core::option::Option<String>,
-    /// Legacy field: not used. Contains the from time for the report
-    #[serde(default, rename = "fromTime")]
-    pub from_time: ::core::option::Option<String>,
-    /// Output only. Modified time of this entity as milliseconds since epoch. json key: lastModifiedAt
-    #[serde(default, rename = "lastModifiedAt")]
-    pub last_modified_at: ::core::option::Option<String>,
-    /// Output only. Last viewed time of this entity as milliseconds since epoch
-    #[serde(default, rename = "lastViewedAt")]
-    pub last_viewed_at: ::core::option::Option<String>,
-    /// Legacy field: not used This field contains the limit for the result retrieved
-    #[serde(default)]
-    pub limit: ::core::option::Option<String>,
-    /// Required. This contains the list of metrics
-    #[serde(default)]
-    pub metrics: ::core::option::Option<::std::vec::Vec<GoogleCloudApigeeV1CustomReportMetric>>,
-    /// Required. Unique identifier for the report T his is a legacy field used to encode custom report unique id
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Legacy field: not used. This field contains the offset for the data
-    #[serde(default)]
-    pub offset: ::core::option::Option<String>,
-    /// Output only. Organization name
-    #[serde(default)]
-    pub organization: ::core::option::Option<String>,
-    /// This field contains report properties such as ui metadata etc.
-    #[serde(default)]
-    pub properties: ::core::option::Option<::std::vec::Vec<GoogleCloudApigeeV1ReportProperty>>,
-    /// Legacy field: not used much. Contains the list of sort by columns
-    #[serde(default, rename = "sortByCols")]
-    pub sort_by_cols: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Legacy field: not used much. Contains the sort order for the sort columns
-    #[serde(default, rename = "sortOrder")]
-    pub sort_order: ::core::option::Option<String>,
-    /// Legacy field: not used. This field contains a list of tags associated with custom report
-    #[serde(default)]
-    pub tags: ::core::option::Option<::std::vec::Vec<String>>,
-    /// This field contains the time unit of aggregation for the report
-    #[serde(default, rename = "timeUnit")]
-    pub time_unit: ::core::option::Option<String>,
-    /// Legacy field: not used. Contains the end time for the report
-    #[serde(default, rename = "toTime")]
-    pub to_time: ::core::option::Option<String>,
-    /// Legacy field: not used. This field contains the top k parameter value for restricting the result
-    #[serde(default)]
-    pub topk: ::core::option::Option<String>,
-}
-
-/// This encapsulates a metric property of the form sum(message_count) where name is message_count and function is sum
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudApigeeV1CustomReportMetric {
-    /// aggregate function
-    #[serde(default)]
-    pub function: ::core::option::Option<String>,
-    /// name of the metric
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-}
-
-/// Data collector configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudApigeeV1DataCollector {
-    /// Output only. The time at which the data collector was created in milliseconds since the epoch.
-    #[serde(default, rename = "createdAt")]
-    pub created_at: ::core::option::Option<String>,
-    /// A description of the data collector.
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// Output only. The time at which the Data Collector was last updated in milliseconds since the epoch.
-    #[serde(default, rename = "lastModifiedAt")]
-    pub last_modified_at: ::core::option::Option<String>,
-    /// ID of the data collector. Must begin with dc_.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Immutable. The type of data this data collector will collect. // TODO: enum values: ["TYPE_UNSPECIFIED", "INTEGER", "FLOAT", "STRING", "BOOLEAN", "DATETIME"]
-    #[serde(default, rename = "type")]
-    pub type_: ::core::option::Option<String>,
-}
-
-/// Data collector and its configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudApigeeV1DataCollectorConfig {
-    /// Name of the data collector in the following format: organizations/{org}/datacollectors/{datacollector}
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Data type accepted by the data collector. // TODO: enum values: ["TYPE_UNSPECIFIED", "INTEGER", "FLOAT", "STRING", "BOOLEAN", "DATETIME"]
-    #[serde(default, rename = "type")]
-    pub type_: ::core::option::Option<String>,
-}
-
-/// The data store defines the connection to export data repository (Cloud Storage, BigQuery), including the credentials used to access the data repository.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudApigeeV1Datastore {
-    /// Output only. Datastore create time, in milliseconds since the epoch of 1970-01-01T00:00:00Z
-    #[serde(default, rename = "createTime")]
-    pub create_time: ::core::option::Option<String>,
-    /// Datastore Configurations.
-    #[serde(default, rename = "datastoreConfig")]
-    pub datastore_config: ::core::option::Option<GoogleCloudApigeeV1DatastoreConfig>,
-    /// Required. Display name in UI
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-    /// Output only. Datastore last update time, in milliseconds since the epoch of 1970-01-01T00:00:00Z
-    #[serde(default, rename = "lastUpdateTime")]
-    pub last_update_time: ::core::option::Option<String>,
-    /// Output only. Organization that the datastore belongs to
-    #[serde(default)]
-    pub org: ::core::option::Option<String>,
-    /// Output only. Resource link of Datastore. Example: /organizations/{org}/analytics/datastores/{uuid}
-    #[serde(default, rename = "self")]
-    pub self_: ::core::option::Option<String>,
-    /// Destination storage type. Supported types gcs or bigquery.
-    #[serde(default, rename = "targetType")]
-    pub target_type: ::core::option::Option<String>,
-}
-
-/// Configuration detail for datastore
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudApigeeV1DatastoreConfig {
-    /// Name of the Cloud Storage bucket. Required for gcs target_type.
-    #[serde(default, rename = "bucketName")]
-    pub bucket_name: ::core::option::Option<String>,
-    /// BigQuery dataset name Required for bigquery target_type.
-    #[serde(default, rename = "datasetName")]
-    pub dataset_name: ::core::option::Option<String>,
-    /// Path of Cloud Storage bucket Required for gcs target_type.
-    #[serde(default)]
-    pub path: ::core::option::Option<String>,
-    /// Required. Google Cloud project in which the datastore exists
-    #[serde(default, rename = "projectId")]
-    pub project_id: ::core::option::Option<String>,
-    /// Prefix of BigQuery table Required for bigquery target_type.
-    #[serde(default, rename = "tablePrefix")]
-    pub table_prefix: ::core::option::Option<String>,
-}
-
-/// Date range of the data to export.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudApigeeV1DateRange {
-    /// Required. End date (exclusive) of the data to export in the format yyyy-mm-dd. The date range ends at 00:00:00 UTC on the end date- which will not be in the output.
-    #[serde(default)]
-    pub end: ::core::option::Option<String>,
-    /// Required. Start date of the data to export in the format yyyy-mm-dd. The date range begins at 00:00:00 UTC on the start date.
-    #[serde(default)]
-    pub start: ::core::option::Option<String>,
-}
-
-/// GoogleCloudApigeeV1DebugMask resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudApigeeV1DebugMask {
-    /// List of JSON paths that specify the JSON elements to be filtered from JSON payloads in error flows.
-    #[serde(default, rename = "faultJSONPaths")]
-    pub fault_j_s_o_n_paths: ::core::option::Option<::std::vec::Vec<String>>,
-    /// List of XPaths that specify the XML elements to be filtered from XML payloads in error flows.
-    #[serde(default, rename = "faultXPaths")]
-    pub fault_x_paths: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Name of the debug mask.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Map of namespaces to URIs.
-    #[serde(default)]
-    pub namespaces: ::core::option::Option<serde_json::Value>,
-    /// List of JSON paths that specify the JSON elements to be filtered from JSON request message payloads.
-    #[serde(default, rename = "requestJSONPaths")]
-    pub request_j_s_o_n_paths: ::core::option::Option<::std::vec::Vec<String>>,
-    /// List of XPaths that specify the XML elements to be filtered from XML request message payloads.
-    #[serde(default, rename = "requestXPaths")]
-    pub request_x_paths: ::core::option::Option<::std::vec::Vec<String>>,
-    /// List of JSON paths that specify the JSON elements to be filtered from JSON response message payloads.
-    #[serde(default, rename = "responseJSONPaths")]
-    pub response_j_s_o_n_paths: ::core::option::Option<::std::vec::Vec<String>>,
-    /// List of XPaths that specify the XML elements to be filtered from XML response message payloads.
-    #[serde(default, rename = "responseXPaths")]
-    pub response_x_paths: ::core::option::Option<::std::vec::Vec<String>>,
-    /// List of variables that should be masked from the debug output.
-    #[serde(default)]
-    pub variables: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// GoogleCloudApigeeV1DebugSession resource type.
@@ -1591,47 +498,6 @@ pub struct GoogleCloudApigeeV1DeleteResponse {
     pub status: ::core::option::Option<String>,
 }
 
-/// Deployment represents a deployment of an API proxy or shared flow.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudApigeeV1Deployment {
-    /// API proxy.
-    #[serde(default, rename = "apiProxy")]
-    pub api_proxy: ::core::option::Option<String>,
-    /// Time the API proxy was marked deployed in the control plane in millisconds since epoch.
-    #[serde(default, rename = "deployStartTime")]
-    pub deploy_start_time: ::core::option::Option<String>,
-    /// Environment.
-    #[serde(default)]
-    pub environment: ::core::option::Option<String>,
-    /// Errors reported for this deployment. Populated only when state == ERROR. **Note**: This field is displayed only when viewing deployment status.
-    #[serde(default)]
-    pub errors: ::core::option::Option<::std::vec::Vec<GoogleRpcStatus>>,
-    /// Status reported by each runtime instance. **Note**: This field is displayed only when viewing deployment status.
-    #[serde(default)]
-    pub instances:
-        ::core::option::Option<::std::vec::Vec<GoogleCloudApigeeV1InstanceDeploymentStatus>>,
-    /// Status reported by runtime pods. **Note**: **This field is deprecated**. Runtime versions 1.3 and above report instance level status rather than pod status.
-    #[serde(default)]
-    pub pods: ::core::option::Option<::std::vec::Vec<GoogleCloudApigeeV1PodStatus>>,
-    /// Output only. The type of the deployment (standard or extensible) Deployed proxy revision will be marked as extensible in following 2 cases. 1. The deployed proxy revision uses extensible policies. 2. If a environment supports flowhooks and flow hook is configured. // TODO: enum values: ["PROXY_DEPLOYMENT_TYPE_UNSPECIFIED", "STANDARD", "EXTENSIBLE"]
-    #[serde(default, rename = "proxyDeploymentType")]
-    pub proxy_deployment_type: ::core::option::Option<String>,
-    /// API proxy revision.
-    #[serde(default)]
-    pub revision: ::core::option::Option<String>,
-    /// Conflicts in the desired state routing configuration. The presence of conflicts does not cause the state to be ERROR, but it will mean that some of the deployment''s base paths are not routed to its environment. If the conflicts change, the state will transition to PROGRESSING until the latest configuration is rolled out to all instances. **Note**: This field is displayed only when viewing deployment status.
-    #[serde(default, rename = "routeConflicts")]
-    pub route_conflicts: ::core::option::Option<
-        ::std::vec::Vec<GoogleCloudApigeeV1DeploymentChangeReportRoutingConflict>,
-    >,
-    /// The full resource name of Cloud IAM Service Account that this deployment is using, eg, projects/-/serviceAccounts/{email}.
-    #[serde(default, rename = "serviceAccount")]
-    pub service_account: ::core::option::Option<String>,
-    /// Current state of the deployment. **Note**: This field is displayed only when viewing deployment status. // TODO: enum values: ["RUNTIME_STATE_UNSPECIFIED", "READY", "PROGRESSING", "ERROR"]
-    #[serde(default)]
-    pub state: ::core::option::Option<String>,
-}
-
 /// Response for GenerateDeployChangeReport and GenerateUndeployChangeReport. This report contains any validation failures that would cause the deployment to be rejected, as well changes and conflicts in routing that may occur due to the new deployment. The existence of a routing warning does not necessarily imply that the deployment request is bad, if the desired state of the deployment request is to effect a routing change. The primary purposes of the routing messages are: 1) To inform users of routing changes that may have an effect on traffic currently being routed to other existing deployments. 2) To warn users if some base path in the proxy will not receive traffic due to an existing deployment having already claimed that base path. The presence of routing conflicts/changes will not cause non-dry-run DeployApiProxy/UndeployApiProxy requests to be rejected.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudApigeeV1DeploymentChangeReport {
@@ -1648,200 +514,6 @@ pub struct GoogleCloudApigeeV1DeploymentChangeReport {
     /// Validation errors that would cause the deployment change request to be rejected.
     #[serde(default, rename = "validationErrors")]
     pub validation_errors: ::core::option::Option<GoogleRpcPreconditionFailure>,
-}
-
-/// Describes a potential routing change that may occur as a result of some deployment operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudApigeeV1DeploymentChangeReportRoutingChange {
-    /// Human-readable description of this routing change.
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// Name of the environment group affected by this routing change.
-    #[serde(default, rename = "environmentGroup")]
-    pub environment_group: ::core::option::Option<String>,
-    /// Base path/deployment that may stop receiving some traffic.
-    #[serde(default, rename = "fromDeployment")]
-    pub from_deployment:
-        ::core::option::Option<GoogleCloudApigeeV1DeploymentChangeReportRoutingDeployment>,
-    /// Set to true if using sequenced rollout would make this routing change safer. **Note**: This does not necessarily imply that automated sequenced rollout mode is supported for the operation.
-    #[serde(default, rename = "shouldSequenceRollout")]
-    pub should_sequence_rollout: ::core::option::Option<bool>,
-    /// Base path/deployment that may start receiving that traffic. May be null if no deployment is able to receive the traffic.
-    #[serde(default, rename = "toDeployment")]
-    pub to_deployment:
-        ::core::option::Option<GoogleCloudApigeeV1DeploymentChangeReportRoutingDeployment>,
-}
-
-/// Describes a routing conflict that may cause a deployment not to receive traffic at some base path.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudApigeeV1DeploymentChangeReportRoutingConflict {
-    /// Existing base path/deployment causing the conflict.
-    #[serde(default, rename = "conflictingDeployment")]
-    pub conflicting_deployment:
-        ::core::option::Option<GoogleCloudApigeeV1DeploymentChangeReportRoutingDeployment>,
-    /// Human-readable description of this conflict.
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// Name of the environment group in which this conflict exists.
-    #[serde(default, rename = "environmentGroup")]
-    pub environment_group: ::core::option::Option<String>,
-}
-
-/// Tuple representing a base path and the deployment containing it.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudApigeeV1DeploymentChangeReportRoutingDeployment {
-    /// Name of the deployed API proxy revision containing the base path.
-    #[serde(default, rename = "apiProxy")]
-    pub api_proxy: ::core::option::Option<String>,
-    /// Base path receiving traffic.
-    #[serde(default)]
-    pub basepath: ::core::option::Option<String>,
-    /// Name of the environment in which the proxy is deployed.
-    #[serde(default)]
-    pub environment: ::core::option::Option<String>,
-    /// Name of the deployed API proxy revision containing the base path.
-    #[serde(default)]
-    pub revision: ::core::option::Option<String>,
-}
-
-/// NEXT ID: 11
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudApigeeV1DeploymentConfig {
-    /// Additional key-value metadata for the deployment.
-    #[serde(default)]
-    pub attributes: ::core::option::Option<serde_json::Value>,
-    /// Base path where the application will be hosted. Defaults to "/".
-    #[serde(default, rename = "basePath")]
-    pub base_path: ::core::option::Option<String>,
-    /// The list of deployment groups in which this proxy should be deployed. Not currently populated for shared flows.
-    #[serde(default, rename = "deploymentGroups")]
-    pub deployment_groups: ::core::option::Option<::std::vec::Vec<String>>,
-    /// A mapping from basepaths to proxy endpoint names in this proxy. Not populated for shared flows.
-    #[serde(default)]
-    pub endpoints: ::core::option::Option<serde_json::Value>,
-    /// Location of the API proxy bundle as a URI.
-    #[serde(default)]
-    pub location: ::core::option::Option<String>,
-    /// Name of the API or shared flow revision to be deployed in the following format: organizations/{org}/apis/{api}/revisions/{rev} or organizations/{org}/sharedflows/{sharedflow}/revisions/{rev}
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Unique ID of the API proxy revision.
-    #[serde(default, rename = "proxyUid")]
-    pub proxy_uid: ::core::option::Option<String>,
-    /// The service account identity associated with this deployment. If non-empty, will be in the following format: projects/-/serviceAccounts/{account_email}
-    #[serde(default, rename = "serviceAccount")]
-    pub service_account: ::core::option::Option<String>,
-    /// Unique ID. The ID will only change if the deployment is deleted and recreated.
-    #[serde(default)]
-    pub uid: ::core::option::Option<String>,
-}
-
-/// DeploymentGroupConfig represents a deployment group that should be present in a particular environment.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudApigeeV1DeploymentGroupConfig {
-    /// Type of the deployment group, which will be either Standard or Extensible. // TODO: enum values: ["DEPLOYMENT_GROUP_TYPE_UNSPECIFIED", "STANDARD", "EXTENSIBLE"]
-    #[serde(default, rename = "deploymentGroupType")]
-    pub deployment_group_type: ::core::option::Option<String>,
-    /// Name of the deployment group in the following format: organizations/{org}/environments/{env}/deploymentGroups/{group}.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Revision number which can be used by the runtime to detect if the deployment group has changed between two versions.
-    #[serde(default, rename = "revisionId")]
-    pub revision_id: ::core::option::Option<String>,
-    /// Unique ID. The ID will only change if the deployment group is deleted and recreated.
-    #[serde(default)]
-    pub uid: ::core::option::Option<String>,
-}
-
-/// GoogleCloudApigeeV1Developer resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudApigeeV1Developer {
-    /// Access type.
-    #[serde(default, rename = "accessType")]
-    pub access_type: ::core::option::Option<String>,
-    /// Developer app family.
-    #[serde(default, rename = "appFamily")]
-    pub app_family: ::core::option::Option<String>,
-    /// List of apps associated with the developer.
-    #[serde(default)]
-    pub apps: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Optional. Developer attributes (name/value pairs). The custom attribute limit is 18.
-    #[serde(default)]
-    pub attributes: ::core::option::Option<::std::vec::Vec<GoogleCloudApigeeV1Attribute>>,
-    /// List of companies associated with the developer.
-    #[serde(default)]
-    pub companies: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Output only. Time at which the developer was created in milliseconds since epoch.
-    #[serde(default, rename = "createdAt")]
-    pub created_at: ::core::option::Option<String>,
-    /// ID of the developer. **Note**: IDs are generated internally by Apigee and are not guaranteed to stay the same over time.
-    #[serde(default, rename = "developerId")]
-    pub developer_id: ::core::option::Option<String>,
-    /// Required. Email address of the developer. This value is used to uniquely identify the developer in Apigee hybrid. Note that the email address has to be in lowercase only.
-    #[serde(default)]
-    pub email: ::core::option::Option<String>,
-    /// Required. First name of the developer.
-    #[serde(default, rename = "firstName")]
-    pub first_name: ::core::option::Option<String>,
-    /// Output only. Time at which the developer was last modified in milliseconds since epoch.
-    #[serde(default, rename = "lastModifiedAt")]
-    pub last_modified_at: ::core::option::Option<String>,
-    /// Required. Last name of the developer.
-    #[serde(default, rename = "lastName")]
-    pub last_name: ::core::option::Option<String>,
-    /// Output only. Name of the Apigee organization in which the developer resides.
-    #[serde(default, rename = "organizationName")]
-    pub organization_name: ::core::option::Option<String>,
-    /// Output only. Status of the developer. Valid values are active and inactive.
-    #[serde(default)]
-    pub status: ::core::option::Option<String>,
-    /// Required. User name of the developer. Not used by Apigee hybrid.
-    #[serde(default, rename = "userName")]
-    pub user_name: ::core::option::Option<String>,
-}
-
-/// GoogleCloudApigeeV1DeveloperApp resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudApigeeV1DeveloperApp {
-    /// List of API products associated with the developer app.
-    #[serde(default, rename = "apiProducts")]
-    pub api_products: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Developer app family.
-    #[serde(default, rename = "appFamily")]
-    pub app_family: ::core::option::Option<String>,
-    /// ID of the developer app. This ID is not user specified but is automatically generated on app creation. appId is a UUID.
-    #[serde(default, rename = "appId")]
-    pub app_id: ::core::option::Option<String>,
-    /// List of attributes for the developer app.
-    #[serde(default)]
-    pub attributes: ::core::option::Option<::std::vec::Vec<GoogleCloudApigeeV1Attribute>>,
-    /// Callback URL used by OAuth 2.0 authorization servers to communicate authorization codes back to developer apps.
-    #[serde(default, rename = "callbackUrl")]
-    pub callback_url: ::core::option::Option<String>,
-    /// Output only. Time the developer app was created in milliseconds since epoch.
-    #[serde(default, rename = "createdAt")]
-    pub created_at: ::core::option::Option<String>,
-    /// Output only. Set of credentials for the developer app consisting of the consumer key/secret pairs associated with the API products.
-    #[serde(default)]
-    pub credentials: ::core::option::Option<::std::vec::Vec<GoogleCloudApigeeV1Credential>>,
-    /// ID of the developer.
-    #[serde(default, rename = "developerId")]
-    pub developer_id: ::core::option::Option<String>,
-    /// Expiration time, in milliseconds, for the consumer key that is generated for the developer app. If not set or left to the default value of -1, the API key never expires. The expiration time can''t be updated after it is set.
-    #[serde(default, rename = "keyExpiresIn")]
-    pub key_expires_in: ::core::option::Option<String>,
-    /// Output only. Time the developer app was modified in milliseconds since epoch.
-    #[serde(default, rename = "lastModifiedAt")]
-    pub last_modified_at: ::core::option::Option<String>,
-    /// Name of the developer app.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Scopes to apply to the developer app. The specified scopes must already exist for the API product that you associate with the developer app.
-    #[serde(default)]
-    pub scopes: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Status of the credential. Valid values include approved or revoked.
-    #[serde(default)]
-    pub status: ::core::option::Option<String>,
 }
 
 /// GoogleCloudApigeeV1DeveloperAppKey resource type.
@@ -1884,156 +556,12 @@ pub struct GoogleCloudApigeeV1DeveloperBalance {
     pub wallets: ::core::option::Option<::std::vec::Vec<GoogleCloudApigeeV1DeveloperBalanceWallet>>,
 }
 
-/// Wallet used to manage an account balance for a particular currency.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudApigeeV1DeveloperBalanceWallet {
-    /// Current remaining balance of the developer for a particular currency.
-    #[serde(default)]
-    pub balance: ::core::option::Option<GoogleTypeMoney>,
-    /// Output only. Time at which the developer last added credit to the account in milliseconds since epoch.
-    #[serde(default, rename = "lastCreditTime")]
-    pub last_credit_time: ::core::option::Option<String>,
-}
-
 /// Monetization configuration for the developer.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudApigeeV1DeveloperMonetizationConfig {
     /// Billing type. // TODO: enum values: ["BILLING_TYPE_UNSPECIFIED", "PREPAID", "POSTPAID"]
     #[serde(default, rename = "billingType")]
     pub billing_type: ::core::option::Option<String>,
-}
-
-/// Structure of a DeveloperSubscription.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudApigeeV1DeveloperSubscription {
-    /// Name of the API product for which the developer is purchasing a subscription.
-    #[serde(default)]
-    pub apiproduct: ::core::option::Option<String>,
-    /// Output only. Time when the API product subscription was created in milliseconds since epoch.
-    #[serde(default, rename = "createdAt")]
-    pub created_at: ::core::option::Option<String>,
-    /// Time when the API product subscription ends in milliseconds since epoch.
-    #[serde(default, rename = "endTime")]
-    pub end_time: ::core::option::Option<String>,
-    /// Output only. Time when the API product subscription was last modified in milliseconds since epoch.
-    #[serde(default, rename = "lastModifiedAt")]
-    pub last_modified_at: ::core::option::Option<String>,
-    /// Output only. Name of the API product subscription.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Time when the API product subscription starts in milliseconds since epoch.
-    #[serde(default, rename = "startTime")]
-    pub start_time: ::core::option::Option<String>,
-}
-
-/// Encapsulates a metric grouped by dimension.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudApigeeV1DimensionMetric {
-    /// Individual dimension names. E.g. ["dim1_name", "dim2_name"].
-    #[serde(default, rename = "individualNames")]
-    pub individual_names: ::core::option::Option<::std::vec::Vec<String>>,
-    /// List of metrics.
-    #[serde(default)]
-    pub metrics: ::core::option::Option<::std::vec::Vec<GoogleCloudApigeeV1Metric>>,
-    /// Comma joined dimension names. E.g. "dim1_name,dim2_name". Deprecated. If name already has comma before join, we may get wrong splits. Please use individual_names.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-}
-
-/// A DNS zone is a resource under an Apigee organization that is used to create a DNS peering with Apigee''s network. DNS peering will let Apigee instances resolve the hostnames created in a peered network.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudApigeeV1DnsZone {
-    /// Output only. The time that this resource was created on the server.
-    #[serde(default, rename = "createTime")]
-    pub create_time: ::core::option::Option<String>,
-    /// Required. Description of the resource. String of at most 1024 characters associated with this resource for the user''s convenience.
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// Required. The domain name for hosts in this private zone, for instance "example.com.".
-    #[serde(default)]
-    pub domain: ::core::option::Option<String>,
-    /// Identifier. Unique name for the resource. Defined by the server Format: "organizations/{organization}/dnsZones/{dns_zone}".
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// DNS PEERING zone configuration.
-    #[serde(default, rename = "peeringConfig")]
-    pub peering_config: ::core::option::Option<GoogleCloudApigeeV1DnsZonePeeringConfig>,
-    /// Output only. State of the DNS Peering. Values other than ACTIVE mean the resource is not ready to use. // TODO: enum values: ["STATE_UNSPECIFIED", "CREATING", "ACTIVE", "DELETING", "UPDATING"]
-    #[serde(default)]
-    pub state: ::core::option::Option<String>,
-    /// Output only. The time that this resource was updated on the server.
-    #[serde(default, rename = "updateTime")]
-    pub update_time: ::core::option::Option<String>,
-}
-
-/// Fields for DNS PEERING zone.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudApigeeV1DnsZonePeeringConfig {
-    /// Required. The VPC network where the records for that private DNS zone''s namespace are available. Apigee will be performing DNS peering with this VPC network.
-    #[serde(default, rename = "targetNetworkId")]
-    pub target_network_id: ::core::option::Option<String>,
-    /// Required. The ID of the project that contains the producer VPC network.
-    #[serde(default, rename = "targetProjectId")]
-    pub target_project_id: ::core::option::Option<String>,
-}
-
-/// Documentation file contents for a catalog item.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudApigeeV1DocumentationFile {
-    /// Required. The file contents. The max size is 4 MB.
-    #[serde(default)]
-    pub contents: ::core::option::Option<String>,
-    /// Required. A display name for the file, shown in the management UI. Max length is 255 characters.
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-}
-
-/// Apigee endpoint attachment. For more information, see [Southbound networking patterns] (https://cloud.google.com/apigee/docs/api-platform/architecture/southbound-networking-patterns-endpoints).
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudApigeeV1EndpointAttachment {
-    /// Output only. State of the endpoint attachment connection to the service attachment. // TODO: enum values: ["CONNECTION_STATE_UNSPECIFIED", "UNAVAILABLE", "PENDING", "ACCEPTED", "REJECTED", "CLOSED", "FROZEN", "NEEDS_ATTENTION", "ACCEPTED_LIMITED_CAPACITY"]
-    #[serde(default, rename = "connectionState")]
-    pub connection_state: ::core::option::Option<String>,
-    /// Output only. Host that can be used in either the HTTP target endpoint directly or as the host in target server.
-    #[serde(default)]
-    pub host: ::core::option::Option<String>,
-    /// Required. Location of the endpoint attachment.
-    #[serde(default)]
-    pub location: ::core::option::Option<String>,
-    /// Name of the endpoint attachment. Use the following structure in your request: organizations/{org}/endpointAttachments/{endpoint_attachment}
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Format: projects/*/regions/*/serviceAttachments/*
-    #[serde(default, rename = "serviceAttachment")]
-    pub service_attachment: ::core::option::Option<String>,
-    /// Output only. State of the endpoint attachment. Values other than ACTIVE mean the resource is not ready to use. // TODO: enum values: ["STATE_UNSPECIFIED", "CREATING", "ACTIVE", "DELETING", "UPDATING"]
-    #[serde(default)]
-    pub state: ::core::option::Option<String>,
-}
-
-/// EndpointChainingRule specifies the proxies contained in a particular deployment group, so that other deployment groups can find them in chaining calls.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudApigeeV1EndpointChainingRule {
-    /// The deployment group to target for cross-shard chaining calls to these proxies.
-    #[serde(default, rename = "deploymentGroup")]
-    pub deployment_group: ::core::option::Option<String>,
-    /// List of proxy ids which may be found in the given deployment group.
-    #[serde(default, rename = "proxyIds")]
-    pub proxy_ids: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// Metadata common to many entities in this API.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudApigeeV1EntityMetadata {
-    /// Time at which the API proxy was created, in milliseconds since epoch.
-    #[serde(default, rename = "createdAt")]
-    pub created_at: ::core::option::Option<String>,
-    /// Time at which the API proxy was most recently modified, in milliseconds since epoch.
-    #[serde(default, rename = "lastModifiedAt")]
-    pub last_modified_at: ::core::option::Option<String>,
-    /// The type of entity described
-    #[serde(default, rename = "subType")]
-    pub sub_type: ::core::option::Option<String>,
 }
 
 /// GoogleCloudApigeeV1Environment resource type.
@@ -2081,27 +609,6 @@ pub struct GoogleCloudApigeeV1Environment {
     /// Optional. EnvironmentType selected for the environment. // TODO: enum values: ["ENVIRONMENT_TYPE_UNSPECIFIED", "BASE", "INTERMEDIATE", "COMPREHENSIVE"]
     #[serde(default, rename = "type")]
     pub type_: ::core::option::Option<String>,
-}
-
-/// Configuration for resolving the client ip.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudApigeeV1EnvironmentClientIPResolutionConfig {
-    /// Resolves the client ip based on a custom header.
-    #[serde(default, rename = "headerIndexAlgorithm")]
-    pub header_index_algorithm: ::core::option::Option<
-        GoogleCloudApigeeV1EnvironmentClientIPResolutionConfigHeaderIndexAlgorithm,
-    >,
-}
-
-/// Resolves the client ip based on a custom header.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudApigeeV1EnvironmentClientIPResolutionConfigHeaderIndexAlgorithm {
-    /// Required. The index of the ip in the header. Positive indices 0, 1, 2, 3 chooses indices from the left (first ips) Negative indices -1, -2, -3 chooses indices from the right (last ips)
-    #[serde(default, rename = "ipHeaderIndex")]
-    pub ip_header_index: ::core::option::Option<i32>,
-    /// Required. The name of the header to extract the client ip from.
-    #[serde(default, rename = "ipHeaderName")]
-    pub ip_header_name: ::core::option::Option<String>,
 }
 
 /// GoogleCloudApigeeV1EnvironmentConfig resource type.
@@ -2185,123 +692,6 @@ pub struct GoogleCloudApigeeV1EnvironmentConfig {
     pub uid: ::core::option::Option<String>,
 }
 
-/// Configuration for resolving the client ip.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudApigeeV1EnvironmentConfigClientIPResolutionConfig {
-    /// Resolves the client ip based on a custom header.
-    #[serde(default, rename = "headerIndexAlgorithm")]
-    pub header_index_algorithm: ::core::option::Option<
-        GoogleCloudApigeeV1EnvironmentConfigClientIPResolutionConfigHeaderIndexAlgorithm,
-    >,
-}
-
-/// Resolves the client ip based on a custom header.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudApigeeV1EnvironmentConfigClientIPResolutionConfigHeaderIndexAlgorithm {
-    /// The index of the ip in the header. (By default, value is 0 if missing)
-    #[serde(default, rename = "ipHeaderIndex")]
-    pub ip_header_index: ::core::option::Option<i32>,
-    /// The name of the header to extract the client ip from.
-    #[serde(default, rename = "ipHeaderName")]
-    pub ip_header_name: ::core::option::Option<String>,
-}
-
-/// EnvironmentGroup configuration. An environment group is used to group one or more Apigee environments under a single host name.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudApigeeV1EnvironmentGroup {
-    /// Output only. The time at which the environment group was created as milliseconds since epoch.
-    #[serde(default, rename = "createdAt")]
-    pub created_at: ::core::option::Option<String>,
-    /// Required. Host names for this environment group.
-    #[serde(default)]
-    pub hostnames: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Output only. The time at which the environment group was last updated as milliseconds since epoch.
-    #[serde(default, rename = "lastModifiedAt")]
-    pub last_modified_at: ::core::option::Option<String>,
-    /// ID of the environment group.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Output only. State of the environment group. Values other than ACTIVE means the resource is not ready to use. // TODO: enum values: ["STATE_UNSPECIFIED", "CREATING", "ACTIVE", "DELETING", "UPDATING"]
-    #[serde(default)]
-    pub state: ::core::option::Option<String>,
-}
-
-/// EnvironmentGroupAttachment is a resource which defines an attachment of an environment to an environment group.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudApigeeV1EnvironmentGroupAttachment {
-    /// Output only. The time at which the environment group attachment was created as milliseconds since epoch.
-    #[serde(default, rename = "createdAt")]
-    pub created_at: ::core::option::Option<String>,
-    /// Required. ID of the attached environment.
-    #[serde(default)]
-    pub environment: ::core::option::Option<String>,
-    /// Output only. ID of the environment group.
-    #[serde(default, rename = "environmentGroupId")]
-    pub environment_group_id: ::core::option::Option<String>,
-    /// ID of the environment group attachment.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-}
-
-/// EnvironmentGroupConfig is a revisioned snapshot of an EnvironmentGroup and its associated routing rules.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudApigeeV1EnvironmentGroupConfig {
-    /// A list of proxies in each deployment group for proxy chaining calls.
-    #[serde(default, rename = "endpointChainingRules")]
-    pub endpoint_chaining_rules:
-        ::core::option::Option<::std::vec::Vec<GoogleCloudApigeeV1EndpointChainingRule>>,
-    /// Host names for the environment group.
-    #[serde(default)]
-    pub hostnames: ::core::option::Option<::std::vec::Vec<String>>,
-    /// When this message appears in the top-level IngressConfig, this field will be populated in lieu of the inlined routing_rules and hostnames fields. Some URL for downloading the full EnvironmentGroupConfig for this group.
-    #[serde(default)]
-    pub location: ::core::option::Option<String>,
-    /// Name of the environment group in the following format: organizations/{org}/envgroups/{envgroup}.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Revision id that defines the ordering of the EnvironmentGroupConfig resource. The higher the revision, the more recently the configuration was deployed.
-    #[serde(default, rename = "revisionId")]
-    pub revision_id: ::core::option::Option<String>,
-    /// Ordered list of routing rules defining how traffic to this environment group''s hostnames should be routed to different environments.
-    #[serde(default, rename = "routingRules")]
-    pub routing_rules: ::core::option::Option<::std::vec::Vec<GoogleCloudApigeeV1RoutingRule>>,
-    /// A unique id for the environment group config that will only change if the environment group is deleted and recreated.
-    #[serde(default)]
-    pub uid: ::core::option::Option<String>,
-}
-
-/// Details of an export job.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudApigeeV1Export {
-    /// Output only. Time the export job was created.
-    #[serde(default)]
-    pub created: ::core::option::Option<String>,
-    /// Name of the datastore that is the destination of the export job [datastore]
-    #[serde(default, rename = "datastoreName")]
-    pub datastore_name: ::core::option::Option<String>,
-    /// Description of the export job.
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// Output only. Error is set when export fails
-    #[serde(default)]
-    pub error: ::core::option::Option<String>,
-    /// Output only. Execution time for this export job. If the job is still in progress, it will be set to the amount of time that has elapsed sincecreated, in seconds. Else, it will set to (updated - created), in seconds.
-    #[serde(default, rename = "executionTime")]
-    pub execution_time: ::core::option::Option<String>,
-    /// Display name of the export job.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Output only. Self link of the export job. A URI that can be used to retrieve the status of an export job. Example: /organizations/myorg/environments/myenv/analytics/exports/9cfc0d85-0f30-46d6-ae6f-318d0cb961bd
-    #[serde(default, rename = "self")]
-    pub self_: ::core::option::Option<String>,
-    /// Output only. Status of the export job. Valid values include enqueued, running, completed, and failed.
-    #[serde(default)]
-    pub state: ::core::option::Option<String>,
-    /// Output only. Time the export job was last updated.
-    #[serde(default)]
-    pub updated: ::core::option::Option<String>,
-}
-
 /// Request body for [CreateExportRequest]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudApigeeV1ExportRequest {
@@ -2342,20 +732,6 @@ pub struct GoogleCloudApigeeV1FlowHook {
     pub shared_flow: ::core::option::Option<String>,
 }
 
-/// GoogleCloudApigeeV1FlowHookConfig resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudApigeeV1FlowHookConfig {
-    /// Flag that specifies whether the flow should abort after an error in the flow hook. Defaults to true (continue on error).
-    #[serde(default, rename = "continueOnError")]
-    pub continue_on_error: ::core::option::Option<bool>,
-    /// Name of the flow hook in the following format: organizations/{org}/environments/{env}/flowhooks/{point}. Valid point values include: PreProxyFlowHook, PostProxyFlowHook, PreTargetFlowHook, and PostTargetFlowHook
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Name of the shared flow to invoke in the following format: organizations/{org}/sharedflows/{sharedflow}
-    #[serde(default, rename = "sharedFlowName")]
-    pub shared_flow_name: ::core::option::Option<String>,
-}
-
 /// Response for GenerateDownloadUrl method.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudApigeeV1GenerateDownloadUrlResponse {
@@ -2382,100 +758,6 @@ pub struct GoogleCloudApigeeV1GetAsyncQueryResultUrlResponse {
     >,
 }
 
-/// A Signed URL and the relevant metadata associated with it.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudApigeeV1GetAsyncQueryResultUrlResponseURLInfo {
-    /// The MD5 Hash of the JSON data
-    #[serde(default)]
-    pub md5: ::core::option::Option<String>,
-    /// The size of the returned file in bytes
-    #[serde(default, rename = "sizeBytes")]
-    pub size_bytes: ::core::option::Option<String>,
-    /// The signed URL of the JSON data. Will be of the form https://storage.googleapis.com/example-bucket/cat.jpeg?X-Goog-Algorithm= GOOG4-RSA-SHA256&X-Goog-Credential=example%40example-project.iam.gserviceaccount .com%2F20181026%2Fus-central1%2Fstorage%2Fgoog4_request&X-Goog-Date=20181026T18 1309Z&X-Goog-Expires=900&X-Goog-SignedHeaders=host&X-Goog-Signature=247a2aa45f16 9edf4d187d54e7cc46e4731b1e6273242c4f4c39a1d2507a0e58706e25e3a85a7dbb891d62afa849 6def8e260c1db863d9ace85ff0a184b894b117fe46d1225c82f2aa19efd52cf21d3e2022b3b868dc c1aca2741951ed5bf3bb25a34f5e9316a2841e8ff4c530b22ceaa1c5ce09c7cbb5732631510c2058 0e61723f5594de3aea497f195456a2ff2bdd0d13bad47289d8611b6f9cfeef0c46c91a455b94e90a 66924f722292d21e24d31dcfb38ce0c0f353ffa5a9756fc2a9f2b40bc2113206a81e324fc4fd6823 a29163fa845c8ae7eca1fcf6e5bb48b3200983c56c5ca81fffb151cca7402beddfc4a76b13344703 2ea7abedc098d2eb14a7
-    #[serde(default)]
-    pub uri: ::core::option::Option<String>,
-}
-
-/// Represents the pairing of GraphQL operation types and the GraphQL operation name.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudApigeeV1GraphQLOperation {
-    /// GraphQL operation name. The name and operation type will be used to apply quotas. If no name is specified, the quota will be applied to all GraphQL operations irrespective of their operation names in the payload.
-    #[serde(default)]
-    pub operation: ::core::option::Option<String>,
-    /// Required. GraphQL operation types. Valid values include query or mutation. **Note**: Apigee does not currently support subscription types.
-    #[serde(default, rename = "operationTypes")]
-    pub operation_types: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// Binds the resources in a proxy or remote service with the GraphQL operation and its associated quota enforcement.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudApigeeV1GraphQLOperationConfig {
-    /// Required. Name of the API proxy endpoint or remote service with which the GraphQL operation and quota are associated.
-    #[serde(default, rename = "apiSource")]
-    pub api_source: ::core::option::Option<String>,
-    /// Custom attributes associated with the operation.
-    #[serde(default)]
-    pub attributes: ::core::option::Option<::std::vec::Vec<GoogleCloudApigeeV1Attribute>>,
-    /// Required. List of GraphQL name/operation type pairs for the proxy or remote service to which quota will be applied. If only operation types are specified, the quota will be applied to all GraphQL requests irrespective of the GraphQL name. **Note**: Currently, you can specify only a single GraphQLOperation. Specifying more than one will cause the operation to fail.
-    #[serde(default)]
-    pub operations: ::core::option::Option<::std::vec::Vec<GoogleCloudApigeeV1GraphQLOperation>>,
-    /// Quota parameters to be enforced for the resources, methods, and API source combination. If none are specified, quota enforcement will not be done.
-    #[serde(default)]
-    pub quota: ::core::option::Option<GoogleCloudApigeeV1Quota>,
-}
-
-/// List of graphQL operation configuration details associated with Apigee API proxies or remote services. Remote services are non-Apigee proxies, such as Istio-Envoy.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudApigeeV1GraphQLOperationGroup {
-    /// Flag that specifies whether the configuration is for Apigee API proxy or a remote service. Valid values include proxy or remoteservice. Defaults to proxy. Set to proxy when Apigee API proxies are associated with the API product. Set to remoteservice when non-Apigee proxies like Istio-Envoy are associated with the API product.
-    #[serde(default, rename = "operationConfigType")]
-    pub operation_config_type: ::core::option::Option<String>,
-    /// Required. List of operation configurations for either Apigee API proxies or other remote services that are associated with this API product.
-    #[serde(default, rename = "operationConfigs")]
-    pub operation_configs:
-        ::core::option::Option<::std::vec::Vec<GoogleCloudApigeeV1GraphQLOperationConfig>>,
-}
-
-/// GraphQL documentation for a catalog item.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudApigeeV1GraphqlDocumentation {
-    /// Required. The GraphQL endpoint URI to be queried by API consumers. Max length is 2,083 characters.
-    #[serde(default, rename = "endpointUri")]
-    pub endpoint_uri: ::core::option::Option<String>,
-    /// Required. The documentation file contents for the GraphQL schema.
-    #[serde(default)]
-    pub schema: ::core::option::Option<GoogleCloudApigeeV1DocumentationFile>,
-}
-
-/// Binds the resources in a proxy or remote service with the gRPC operation and its associated quota enforcement.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudApigeeV1GrpcOperationConfig {
-    /// Required. Name of the API proxy with which the gRPC operation and quota are associated.
-    #[serde(default, rename = "apiSource")]
-    pub api_source: ::core::option::Option<String>,
-    /// Custom attributes associated with the operation.
-    #[serde(default)]
-    pub attributes: ::core::option::Option<::std::vec::Vec<GoogleCloudApigeeV1Attribute>>,
-    /// List of unqualified gRPC method names for the proxy to which quota will be applied. If this field is empty, the Quota will apply to all operations on the gRPC service defined on the proxy. Example: Given a proxy that is configured to serve com.petstore.PetService, the methods com.petstore.PetService.ListPets and com.petstore.PetService.GetPet would be specified here as simply ["ListPets", "GetPet"].
-    #[serde(default)]
-    pub methods: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Quota parameters to be enforced for the methods and API source combination. If none are specified, quota enforcement will not be done.
-    #[serde(default)]
-    pub quota: ::core::option::Option<GoogleCloudApigeeV1Quota>,
-    /// Required. gRPC Service name associated to be associated with the API proxy, on which quota rules can be applied upon.
-    #[serde(default)]
-    pub service: ::core::option::Option<String>,
-}
-
-/// List of gRPC operation configuration details associated with Apigee API proxies.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudApigeeV1GrpcOperationGroup {
-    /// Required. List of operation configurations for either Apigee API proxies that are associated with this API product.
-    #[serde(default, rename = "operationConfigs")]
-    pub operation_configs:
-        ::core::option::Option<::std::vec::Vec<GoogleCloudApigeeV1GrpcOperationConfig>>,
-}
-
 /// GoogleCloudApigeeV1IngressConfig resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudApigeeV1IngressConfig {
@@ -2495,159 +777,6 @@ pub struct GoogleCloudApigeeV1IngressConfig {
     /// A unique id for the ingress config that will only change if the organization is deleted and recreated.
     #[serde(default)]
     pub uid: ::core::option::Option<String>,
-}
-
-/// Apigee runtime instance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudApigeeV1Instance {
-    /// Optional. Access logging configuration enables the access logging feature at the instance. Apigee customers can enable access logging to ship the access logs to their own project''s cloud logging.
-    #[serde(default, rename = "accessLoggingConfig")]
-    pub access_logging_config: ::core::option::Option<GoogleCloudApigeeV1AccessLoggingConfig>,
-    /// Optional. Customer accept list represents the list of projects (id/number) on customer side that can privately connect to the service attachment. It is an optional field which the customers can provide during the instance creation. By default, the customer project associated with the Apigee organization will be included to the list.
-    #[serde(default, rename = "consumerAcceptList")]
-    pub consumer_accept_list: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Output only. Time the instance was created in milliseconds since epoch.
-    #[serde(default, rename = "createdAt")]
-    pub created_at: ::core::option::Option<String>,
-    /// Optional. Description of the instance.
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// Optional. Customer Managed Encryption Key (CMEK) used for disk and volume encryption. If not specified, a Google-Managed encryption key will be used. Use the following format: projects/([^/]+)/locations/([^/]+)/keyRings/([^/]+)/cryptoKeys/([^/]+)
-    #[serde(default, rename = "diskEncryptionKeyName")]
-    pub disk_encryption_key_name: ::core::option::Option<String>,
-    /// Optional. Display name for the instance.
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-    /// Output only. Internal hostname or IP address of the Apigee endpoint used by clients to connect to the service.
-    #[serde(default)]
-    pub host: ::core::option::Option<String>,
-    /// Optional. Comma-separated list of CIDR blocks of length 22 and/or 28 used to create the Apigee instance. Providing CIDR ranges is optional. You can provide just /22 or /28 or both (or neither). Ranges you provide should be freely available as part of a larger named range you have allocated to the Service Networking peering. If this parameter is not provided, Apigee automatically requests an available /22 and /28 CIDR block from Service Networking. Use the /22 CIDR block for configuring your firewall needs to allow traffic from Apigee. Input formats: a.b.c.d/22 or e.f.g.h/28 or a.b.c.d/22,e.f.g.h/28
-    #[serde(default, rename = "ipRange")]
-    pub ip_range: ::core::option::Option<String>,
-    /// Output only. Indicates whether the instance is version locked. If true, the instance will not be updated by automated runtime rollouts. This is only supported for Apigee X instances.
-    #[serde(default, rename = "isVersionLocked")]
-    pub is_version_locked: ::core::option::Option<bool>,
-    /// Output only. Time the instance was last modified in milliseconds since epoch.
-    #[serde(default, rename = "lastModifiedAt")]
-    pub last_modified_at: ::core::option::Option<String>,
-    /// Required. Compute Engine location where the instance resides.
-    #[serde(default)]
-    pub location: ::core::option::Option<String>,
-    /// Optional. Apigee customers can set the preferred window to perform maintenance on the instance (day of the week and time of day).
-    #[serde(default, rename = "maintenanceUpdatePolicy")]
-    pub maintenance_update_policy:
-        ::core::option::Option<GoogleCloudApigeeV1MaintenanceUpdatePolicy>,
-    /// Required. Resource ID of the instance. Values must match the regular expression ^a-z{0,30}[a-z\d]$.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Optional. Size of the CIDR block range that will be reserved by the instance. PAID organizations support SLASH_16 to SLASH_20 and defaults to SLASH_16. Evaluation organizations support only SLASH_23. // TODO: enum values: ["CIDR_RANGE_UNSPECIFIED", "SLASH_16", "SLASH_17", "SLASH_18", "SLASH_19", "SLASH_20", "SLASH_22", "SLASH_23"]
-    #[serde(default, rename = "peeringCidrRange")]
-    pub peering_cidr_range: ::core::option::Option<String>,
-    /// Output only. Port number of the exposed Apigee endpoint.
-    #[serde(default)]
-    pub port: ::core::option::Option<String>,
-    /// Output only. Version of the runtime system running in the instance. The runtime system is the set of components that serve the API Proxy traffic in your Environments.
-    #[serde(default, rename = "runtimeVersion")]
-    pub runtime_version: ::core::option::Option<String>,
-    /// Output only. Time and date of the scheduled maintenance for this instance. This field is only populated for instances that have opted into Maintenance Window and if there is an upcoming maintenance. Cleared once the maintenance is complete.
-    #[serde(default, rename = "scheduledMaintenance")]
-    pub scheduled_maintenance: ::core::option::Option<GoogleCloudApigeeV1ScheduledMaintenance>,
-    /// Output only. Resource name of the service attachment created for the instance in the format: projects/*/regions/*/serviceAttachments/* Apigee customers can privately forward traffic to this service attachment using the PSC endpoints.
-    #[serde(default, rename = "serviceAttachment")]
-    pub service_attachment: ::core::option::Option<String>,
-    /// Output only. State of the instance. Values other than ACTIVE means the resource is not ready to use. // TODO: enum values: ["STATE_UNSPECIFIED", "CREATING", "ACTIVE", "DELETING", "UPDATING"]
-    #[serde(default)]
-    pub state: ::core::option::Option<String>,
-}
-
-/// InstanceAttachment represents the installation of an environment onto an instance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudApigeeV1InstanceAttachment {
-    /// Output only. Time the attachment was created in milliseconds since epoch.
-    #[serde(default, rename = "createdAt")]
-    pub created_at: ::core::option::Option<String>,
-    /// ID of the attached environment.
-    #[serde(default)]
-    pub environment: ::core::option::Option<String>,
-    /// Output only. ID of the attachment.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-}
-
-/// The status of a deployment as reported by a single instance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudApigeeV1InstanceDeploymentStatus {
-    /// Revisions currently deployed in MPs.
-    #[serde(default, rename = "deployedRevisions")]
-    pub deployed_revisions: ::core::option::Option<
-        ::std::vec::Vec<GoogleCloudApigeeV1InstanceDeploymentStatusDeployedRevision>,
-    >,
-    /// Current routes deployed in the ingress routing table. A route which is missing will appear in missing_routes.
-    #[serde(default, rename = "deployedRoutes")]
-    pub deployed_routes: ::core::option::Option<
-        ::std::vec::Vec<GoogleCloudApigeeV1InstanceDeploymentStatusDeployedRoute>,
-    >,
-    /// ID of the instance reporting the status.
-    #[serde(default)]
-    pub instance: ::core::option::Option<String>,
-}
-
-/// Revisions deployed in the MPs.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudApigeeV1InstanceDeploymentStatusDeployedRevision {
-    /// Percentage of MP replicas reporting this revision.
-    #[serde(default)]
-    pub percentage: ::core::option::Option<i32>,
-    /// API proxy revision reported as deployed.
-    #[serde(default)]
-    pub revision: ::core::option::Option<String>,
-}
-
-/// Route deployed in the ingress routing table.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudApigeeV1InstanceDeploymentStatusDeployedRoute {
-    /// Base path in the routing table.
-    #[serde(default)]
-    pub basepath: ::core::option::Option<String>,
-    /// Environment group where this route is installed.
-    #[serde(default)]
-    pub envgroup: ::core::option::Option<String>,
-    /// Destination environment. This will be empty if the route is not yet reported.
-    #[serde(default)]
-    pub environment: ::core::option::Option<String>,
-    /// Percentage of ingress replicas reporting this route.
-    #[serde(default)]
-    pub percentage: ::core::option::Option<i32>,
-}
-
-/// Configuration for the Integration add-on.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudApigeeV1IntegrationConfig {
-    /// Flag that specifies whether the Integration add-on is enabled.
-    #[serde(default)]
-    pub enabled: ::core::option::Option<bool>,
-}
-
-/// GoogleCloudApigeeV1KeyAliasReference resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudApigeeV1KeyAliasReference {
-    /// Alias ID. Must exist in the keystore referred to by the reference.
-    #[serde(default, rename = "aliasId")]
-    pub alias_id: ::core::option::Option<String>,
-    /// Reference name in the following format: organizations/{org}/environments/{env}/references/{reference}
-    #[serde(default)]
-    pub reference: ::core::option::Option<String>,
-}
-
-/// Key value map pair where the value represents the data associated with the corresponding key. **Note**: Supported for Apigee hybrid 1.8.x and higher.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudApigeeV1KeyValueEntry {
-    /// Resource URI that can be used to identify the scope of the key value map entries.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Required. Data or payload that is being retrieved and associated with the unique key.
-    #[serde(default)]
-    pub value: ::core::option::Option<String>,
 }
 
 /// Collection of key/value string pairs.
@@ -2671,17 +800,6 @@ pub struct GoogleCloudApigeeV1Keystore {
     #[serde(default)]
     pub aliases: ::core::option::Option<::std::vec::Vec<String>>,
     /// Required. Resource ID for this keystore. Values must match the regular expression [\w[:space:].-]{1,255}.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-}
-
-/// GoogleCloudApigeeV1KeystoreConfig resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudApigeeV1KeystoreConfig {
-    /// Aliases in the keystore.
-    #[serde(default)]
-    pub aliases: ::core::option::Option<::std::vec::Vec<GoogleCloudApigeeV1AliasRevisionConfig>>,
-    /// Resource name in the following format: organizations/{org}/environments/{env}/keystores/{keystore}
     #[serde(default)]
     pub name: ::core::option::Option<String>,
 }
@@ -3172,128 +1290,6 @@ pub struct GoogleCloudApigeeV1ListTraceConfigOverridesResponse {
         ::core::option::Option<::std::vec::Vec<GoogleCloudApigeeV1TraceConfigOverride>>,
 }
 
-/// Represents the pairing of REST resource path, model and the actions (verbs) allowed on the resource path.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudApigeeV1LlmOperation {
-    /// Optional. methods refers to the REST verbs as in https://httpwg.org/specs/rfc9110.html For example: GET, POST, PUT, DELETE, etc. They need to be in uppercase. When none specified, all verb types are allowed.
-    #[serde(default)]
-    pub methods: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Required. LLM model name associated with the API proxy
-    #[serde(default)]
-    pub model: ::core::option::Option<String>,
-    /// Required. REST resource path associated with the API proxy or remote service.
-    #[serde(default)]
-    pub resource: ::core::option::Option<String>,
-}
-
-/// Binds the resources in an API proxy or remote service with the allowed REST methods and associated quota enforcement.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudApigeeV1LlmOperationConfig {
-    /// Required. Name of the API proxy or remote service with which the resources, methods, and quota are associated.
-    #[serde(default, rename = "apiSource")]
-    pub api_source: ::core::option::Option<String>,
-    /// Optional. Custom attributes associated with the operation.
-    #[serde(default)]
-    pub attributes: ::core::option::Option<::std::vec::Vec<GoogleCloudApigeeV1Attribute>>,
-    /// Required. List of resource/method/model for the API proxy to which quota will applied. **Note**: Currently, you can specify only a single resource/method/model mapping. The call will fail if more than one resource/method/model mappings are provided.
-    #[serde(default, rename = "llmOperations")]
-    pub llm_operations: ::core::option::Option<::std::vec::Vec<GoogleCloudApigeeV1LlmOperation>>,
-    /// Required. LLM token Quota parameters to be enforced for the resources, methods, and API source & LLM model combination. If none are specified, quota enforcement will not be done.
-    #[serde(default, rename = "llmTokenQuota")]
-    pub llm_token_quota: ::core::option::Option<GoogleCloudApigeeV1LlmTokenQuota>,
-}
-
-/// List of LLM operation configuration details associated with Apigee API proxies.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudApigeeV1LlmOperationGroup {
-    /// Required. List of LLM operation configurations for either Apigee API proxies that are associated with this API product.
-    #[serde(default, rename = "operationConfigs")]
-    pub operation_configs:
-        ::core::option::Option<::std::vec::Vec<GoogleCloudApigeeV1LlmOperationConfig>>,
-}
-
-/// LLM Token Quota contains the essential parameters needed that can be applied on the resources, methods, models, API source combination associated with this API product. While LLM Token Quota is optional, setting it prevents requests from exceeding the provisioned parameters.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudApigeeV1LlmTokenQuota {
-    /// Required. Time interval over which the number of request messages is calculated.
-    #[serde(default)]
-    pub interval: ::core::option::Option<String>,
-    /// Required. Upper limit of LLM tokens allowed for the time interval and time unit specified. Requests exceeding this limit will be rejected.
-    #[serde(default)]
-    pub limit: ::core::option::Option<String>,
-    /// Optional. Time unit defined for the interval. Valid values include minute, hour, day, or month. If limit and interval are valid, the default value is hour; otherwise, the default is null.
-    #[serde(default, rename = "timeUnit")]
-    pub time_unit: ::core::option::Option<String>,
-}
-
-/// MaintenanceUpdatePolicy specifies the preferred window to perform maintenance on the instance (day of the week and time of day).
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudApigeeV1MaintenanceUpdatePolicy {
-    /// Optional. Maintenance channel to specify relative scheduling for maintenance. // TODO: enum values: ["MAINTENANCE_CHANNEL_UNSPECIFIED", "WEEK1", "WEEK2"]
-    #[serde(default, rename = "maintenanceChannel")]
-    pub maintenance_channel: ::core::option::Option<String>,
-    /// Optional. Preferred windows to perform maintenance. Currently limited to 1.
-    #[serde(default, rename = "maintenanceWindows")]
-    pub maintenance_windows: ::core::option::Option<
-        ::std::vec::Vec<GoogleCloudApigeeV1MaintenanceUpdatePolicyMaintenanceWindow>,
-    >,
-}
-
-/// MaintenanceWindow specifies the preferred day of the week and time of day to perform maintenance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudApigeeV1MaintenanceUpdatePolicyMaintenanceWindow {
-    /// Required. Preferred day of the week for maintenance, e.g. MONDAY, TUESDAY, etc. // TODO: enum values: ["DAY_OF_WEEK_UNSPECIFIED", "MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY"]
-    #[serde(default)]
-    pub day: ::core::option::Option<String>,
-    /// Required. The start time (UTC) of the maintenance window.
-    #[serde(default, rename = "startTime")]
-    pub start_time: ::core::option::Option<GoogleTypeTimeOfDay>,
-}
-
-/// Encapsulates additional information about query execution.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudApigeeV1Metadata {
-    /// List of error messages as strings.
-    #[serde(default)]
-    pub errors: ::core::option::Option<::std::vec::Vec<String>>,
-    /// List of additional information such as data source, if result was truncated. For example:  "notices": [ "Source:Postgres", "PG Host:uappg0rw.e2e.apigeeks.net", "query served by:4b64601e-40de-4eb1-bfb9-eeee7ac929ed", "Table used: edge.api.uapgroup2.agg_api" ]
-    #[serde(default)]
-    pub notices: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// Encapsulates the metric data point. For example: { "name": "sum(message_count)", "values" : [ { "timestamp": 1549004400000, "value": "39.0" }, { "timestamp" : 1548997200000, "value" : "0.0" } ] } or { "name": "sum(message_count)", "values" : ["39.0"] }
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudApigeeV1Metric {
-    /// Metric name.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// List of metric values. Possible value formats include: "values":["39.0"] or "values":[ { "value": "39.0", "timestamp": 1232434354} ]
-    #[serde(default)]
-    pub values: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
-}
-
-/// The optionally aggregated metric to query with its ordering.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudApigeeV1MetricAggregation {
-    /// Aggregation function associated with the metric. // TODO: enum values: ["AGGREGATION_FUNCTION_UNSPECIFIED", "AVG", "SUM", "MIN", "MAX", "COUNT_DISTINCT"]
-    #[serde(default)]
-    pub aggregation: ::core::option::Option<String>,
-    /// Name of the metric
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Ordering for this aggregation in the result. For time series this is ignored since the ordering of points depends only on the timestamp, not the values. // TODO: enum values: ["ORDER_UNSPECIFIED", "ASCENDING", "DESCENDING"]
-    #[serde(default)]
-    pub order: ::core::option::Option<String>,
-}
-
-/// Configuration for the Monetization add-on.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudApigeeV1MonetizationConfig {
-    /// Flag that specifies whether the Monetization add-on is enabled.
-    #[serde(default)]
-    pub enabled: ::core::option::Option<bool>,
-}
-
 /// Moves API product to a different space.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudApigeeV1MoveApiProductRequest {
@@ -3318,85 +1314,6 @@ pub struct GoogleCloudApigeeV1MoveSharedFlowRequest {
     pub space: ::core::option::Option<String>,
 }
 
-/// Apigee NAT(network address translation) address. A NAT address is a static external IP address used for Internet egress traffic.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudApigeeV1NatAddress {
-    /// Output only. The static IPV4 address.
-    #[serde(default, rename = "ipAddress")]
-    pub ip_address: ::core::option::Option<String>,
-    /// Required. Resource ID of the NAT address.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Output only. State of the nat address. // TODO: enum values: ["STATE_UNSPECIFIED", "CREATING", "RESERVED", "ACTIVE", "DELETING"]
-    #[serde(default)]
-    pub state: ::core::option::Option<String>,
-}
-
-/// NodeConfig for setting the min/max number of nodes associated with the environment.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudApigeeV1NodeConfig {
-    /// Output only. The current total number of gateway nodes that each environment currently has across all instances.
-    #[serde(default, rename = "currentAggregateNodeCount")]
-    pub current_aggregate_node_count: ::core::option::Option<String>,
-    /// Optional. The maximum total number of gateway nodes that the is reserved for all instances that has the specified environment. If not specified, the default is determined by the recommended maximum number of nodes for that gateway.
-    #[serde(default, rename = "maxNodeCount")]
-    pub max_node_count: ::core::option::Option<String>,
-    /// Optional. The minimum total number of gateway nodes that the is reserved for all instances that has the specified environment. If not specified, the default is determined by the recommended minimum number of nodes for that gateway.
-    #[serde(default, rename = "minNodeCount")]
-    pub min_node_count: ::core::option::Option<String>,
-}
-
-/// OpenAPI Specification documentation for a catalog item.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudApigeeV1oASDocumentation {
-    /// Output only. The format of the input specification file contents. // TODO: enum values: ["FORMAT_UNSPECIFIED", "YAML", "JSON"]
-    #[serde(default)]
-    pub format: ::core::option::Option<String>,
-    /// Required. The documentation file contents for the OpenAPI Specification. JSON and YAML file formats are supported.
-    #[serde(default)]
-    pub spec: ::core::option::Option<GoogleCloudApigeeV1DocumentationFile>,
-}
-
-/// Represents the pairing of REST resource path and the actions (verbs) allowed on the resource path.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudApigeeV1Operation {
-    /// methods refers to the REST verbs as in https://www.w3.org/Protocols/rfc2616/rfc2616-sec9.html. When none specified, all verb types are allowed.
-    #[serde(default)]
-    pub methods: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Required. REST resource path associated with the API proxy or remote service.
-    #[serde(default)]
-    pub resource: ::core::option::Option<String>,
-}
-
-/// Binds the resources in an API proxy or remote service with the allowed REST methods and associated quota enforcement.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudApigeeV1OperationConfig {
-    /// Required. Name of the API proxy or remote service with which the resources, methods, and quota are associated.
-    #[serde(default, rename = "apiSource")]
-    pub api_source: ::core::option::Option<String>,
-    /// Custom attributes associated with the operation.
-    #[serde(default)]
-    pub attributes: ::core::option::Option<::std::vec::Vec<GoogleCloudApigeeV1Attribute>>,
-    /// List of resource/method pairs for the API proxy or remote service to which quota will applied. **Note**: Currently, you can specify only a single resource/method pair. The call will fail if more than one resource/method pair is provided.
-    #[serde(default)]
-    pub operations: ::core::option::Option<::std::vec::Vec<GoogleCloudApigeeV1Operation>>,
-    /// Quota parameters to be enforced for the resources, methods, and API source combination. If none are specified, quota enforcement will not be done.
-    #[serde(default)]
-    pub quota: ::core::option::Option<GoogleCloudApigeeV1Quota>,
-}
-
-/// List of operation configuration details associated with Apigee API proxies or remote services. Remote services are non-Apigee proxies, such as Istio-Envoy.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudApigeeV1OperationGroup {
-    /// Flag that specifes whether the configuration is for Apigee API proxy or a remote service. Valid values include proxy or remoteservice. Defaults to proxy. Set to proxy when Apigee API proxies are associated with the API product. Set to remoteservice when non-Apigee proxies like Istio-Envoy are associated with the API product.
-    #[serde(default, rename = "operationConfigType")]
-    pub operation_config_type: ::core::option::Option<String>,
-    /// Required. List of operation configurations for either Apigee API proxies or other remote services that are associated with this API product.
-    #[serde(default, rename = "operationConfigs")]
-    pub operation_configs:
-        ::core::option::Option<::std::vec::Vec<GoogleCloudApigeeV1OperationConfig>>,
-}
-
 /// Metadata describing an Operation.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudApigeeV1OperationMetadata {
@@ -3417,54 +1334,12 @@ pub struct GoogleCloudApigeeV1OperationMetadata {
     pub warnings: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
-/// Information about operation progress.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudApigeeV1OperationMetadataProgress {
-    /// Description of the operation''s progress.
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// The additional details of the progress.
-    #[serde(default)]
-    pub details: ::core::option::Option<serde_json::Value>,
-    /// The percentage of the operation progress.
-    #[serde(default, rename = "percentDone")]
-    pub percent_done: ::core::option::Option<i32>,
-    /// State of the operation. // TODO: enum values: ["STATE_UNSPECIFIED", "NOT_STARTED", "IN_PROGRESS", "FINISHED"]
-    #[serde(default)]
-    pub state: ::core::option::Option<String>,
-}
-
 /// Encapsulates a response format for JavaScript Optimized Scenario.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudApigeeV1OptimizedStats {
     /// Wraps the stats response for JavaScript Optimized Scenario with a response key. For example: { "Response": { "TimeUnit": [], "metaData": { "errors": [], "notices": [ "Source:Postgres", "Table used: edge.api.aaxgroup001.agg_api", "PG Host:ruappg08-ro.production.apigeeks.net", "query served by:80c4ebca-6a10-4a2e-8faf-c60c1ee306ca" ] }, "resultTruncated": false, "stats": { "data": [ { "identifier": { "names": [ "apiproxy" ], "values": [ "sirjee" ] }, "metric": [ { "env": "prod", "name": "sum(message_count)", "values": [ 36.0 ] }, { "env": "prod", "name": "sum(is_error)", "values": [ 36.0 ] } ] } ] } } }
     #[serde(default, rename = "Response")]
     pub response: ::core::option::Option<GoogleCloudApigeeV1OptimizedStatsResponse>,
-}
-
-/// Encapsulates a data node as represented below:  { "identifier": { "names": [ "apiproxy" ], "values": [ "sirjee" ] }, "metric": [ { "env": "prod", "name": "sum(message_count)", "values": [ 36.0 ] } ] } or  { "env": "prod", "name": "sum(message_count)", "values": [ 36.0 ] } Depending on whether a dimension is present in the query or not the data node type can be a simple metric value or dimension identifier with list of metrics.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudApigeeV1OptimizedStatsNode {
-    /// List of data values.
-    #[serde(default)]
-    pub data: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
-}
-
-/// Encapsulates a response format for JavaScript Optimized Scenario.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudApigeeV1OptimizedStatsResponse {
-    /// List of time unit values. Time unit refers to an epoch timestamp value.
-    #[serde(default, rename = "TimeUnit")]
-    pub time_unit: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Metadata information about the query executed.
-    #[serde(default, rename = "metaData")]
-    pub meta_data: ::core::option::Option<GoogleCloudApigeeV1Metadata>,
-    /// Boolean flag that indicates whether the results were truncated based on the limit parameter.
-    #[serde(default, rename = "resultTruncated")]
-    pub result_truncated: ::core::option::Option<bool>,
-    /// stats results.
-    #[serde(default)]
-    pub stats: ::core::option::Option<GoogleCloudApigeeV1OptimizedStatsNode>,
 }
 
 /// GoogleCloudApigeeV1Organization resource type.
@@ -3562,117 +1437,6 @@ pub struct GoogleCloudApigeeV1Organization {
     pub type_: ::core::option::Option<String>,
 }
 
-/// GoogleCloudApigeeV1OrganizationProjectMapping resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudApigeeV1OrganizationProjectMapping {
-    /// Output only. The Google Cloud region where control plane data is located. For more information, see https://cloud.google.com/about/locations/.
-    #[serde(default)]
-    pub location: ::core::option::Option<String>,
-    /// Name of the Apigee organization.
-    #[serde(default)]
-    pub organization: ::core::option::Option<String>,
-    /// Google Cloud project associated with the Apigee organization
-    #[serde(default, rename = "projectId")]
-    pub project_id: ::core::option::Option<String>,
-    /// DEPRECATED: Use project_id. An Apigee Organization is mapped to a single project.
-    #[serde(default, rename = "projectIds")]
-    pub project_ids: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// GoogleCloudApigeeV1PodStatus resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudApigeeV1PodStatus {
-    /// Version of the application running in the pod.
-    #[serde(default, rename = "appVersion")]
-    pub app_version: ::core::option::Option<String>,
-    /// Status of the deployment. Valid values include: - deployed: Successful. - error : Failed. - pending : Pod has not yet reported on the deployment.
-    #[serde(default, rename = "deploymentStatus")]
-    pub deployment_status: ::core::option::Option<String>,
-    /// Time the deployment status was reported in milliseconds since epoch.
-    #[serde(default, rename = "deploymentStatusTime")]
-    pub deployment_status_time: ::core::option::Option<String>,
-    /// Time the proxy was deployed in milliseconds since epoch.
-    #[serde(default, rename = "deploymentTime")]
-    pub deployment_time: ::core::option::Option<String>,
-    /// Name of the pod which is reporting the status.
-    #[serde(default, rename = "podName")]
-    pub pod_name: ::core::option::Option<String>,
-    /// Overall status of the pod (not this specific deployment). Valid values include: - active: Up to date. - stale : Recently out of date. Pods that have not reported status in a long time are excluded from the output.
-    #[serde(default, rename = "podStatus")]
-    pub pod_status: ::core::option::Option<String>,
-    /// Time the pod status was reported in milliseconds since epoch.
-    #[serde(default, rename = "podStatusTime")]
-    pub pod_status_time: ::core::option::Option<String>,
-    /// Code associated with the deployment status.
-    #[serde(default, rename = "statusCode")]
-    pub status_code: ::core::option::Option<String>,
-    /// Human-readable message associated with the status code.
-    #[serde(default, rename = "statusCodeDetails")]
-    pub status_code_details: ::core::option::Option<String>,
-}
-
-/// Point is a group of information collected by runtime plane at critical points of the message flow of the processed API request. This is a list of supported point IDs, categorized to three major buckets. For each category, debug points that we are currently supporting are listed below: - Flow status debug points: StateChange FlowInfo Condition Execution DebugMask Error - Flow control debug points: FlowCallout Paused Resumed FlowReturn BreakFlow Error - Runtime debug points: ScriptExecutor FlowCalloutStepDefinition CustomTarget StepDefinition Oauth2ServicePoint RaiseFault NodeJS The detail information of the given debug point is stored in a list of results.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudApigeeV1Point {
-    /// Name of a step in the transaction.
-    #[serde(default)]
-    pub id: ::core::option::Option<String>,
-    /// List of results extracted from a given debug point.
-    #[serde(default)]
-    pub results: ::core::option::Option<::std::vec::Vec<GoogleCloudApigeeV1Result>>,
-}
-
-/// ProfileConfig defines a set of categories and policies which will be used to compute security score.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudApigeeV1ProfileConfig {
-    /// List of categories of profile config.
-    #[serde(default)]
-    pub categories:
-        ::core::option::Option<::std::vec::Vec<GoogleCloudApigeeV1ProfileConfigCategory>>,
-}
-
-/// Advanced API Security provides security profile that scores the following categories.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudApigeeV1ProfileConfigCategory {
-    /// Checks for abuse, which includes any requests sent to the API for purposes other than what it is intended for, such as high volumes of requests, data scraping, and abuse related to authorization.
-    #[serde(default)]
-    pub abuse: ::core::option::Option<serde_json::Value>,
-    /// Checks to see if you have an authorization policy in place.
-    #[serde(default)]
-    pub authorization: ::core::option::Option<serde_json::Value>,
-    /// Checks to see if you have CORS policy in place.
-    #[serde(default)]
-    pub cors: ::core::option::Option<serde_json::Value>,
-    /// Checks to see if you have a mediation policy in place.
-    #[serde(default)]
-    pub mediation: ::core::option::Option<serde_json::Value>,
-    /// Checks to see if you have configured mTLS for the target server.
-    #[serde(default)]
-    pub mtls: ::core::option::Option<serde_json::Value>,
-    /// Checks to see if you have a threat protection policy in place.
-    #[serde(default)]
-    pub threat: ::core::option::Option<serde_json::Value>,
-}
-
-/// Message for compatibility with legacy Edge specification for Java Properties object in JSON.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudApigeeV1Properties {
-    /// List of all properties in the object
-    #[serde(default)]
-    pub property: ::core::option::Option<::std::vec::Vec<GoogleCloudApigeeV1Property>>,
-}
-
-/// A single property entry in the Properties message.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudApigeeV1Property {
-    /// The property key
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// The property value
-    #[serde(default)]
-    pub value: ::core::option::Option<String>,
-}
-
 /// Request for ProvisionOrganization.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudApigeeV1ProvisionOrganizationRequest {
@@ -3726,49 +1490,6 @@ pub struct GoogleCloudApigeeV1Query {
     /// Required. Time range for the query. Can use the following predefined strings to specify the time range: last60minutes last24hours last7days Or, specify the timeRange as a structure describing start and end timestamps in the ISO format: yyyy-mm-ddThh:mm:ssZ. Example: "timeRange": { "start": "2018-07-29T00:13:00Z", "end": "2018-08-01T00:18:00Z" }
     #[serde(default, rename = "timeRange")]
     pub time_range: ::core::option::Option<serde_json::Value>,
-}
-
-/// GoogleCloudApigeeV1QueryMetadata resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudApigeeV1QueryMetadata {
-    /// Dimensions of the AsyncQuery.
-    #[serde(default)]
-    pub dimensions: ::core::option::Option<::std::vec::Vec<String>>,
-    /// End timestamp of the query range.
-    #[serde(default, rename = "endTimestamp")]
-    pub end_timestamp: ::core::option::Option<String>,
-    /// Metrics of the AsyncQuery. Example: ["name:message_count,func:sum,alias:sum_message_count"]
-    #[serde(default)]
-    pub metrics: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Output format.
-    #[serde(default, rename = "outputFormat")]
-    pub output_format: ::core::option::Option<String>,
-    /// Start timestamp of the query range.
-    #[serde(default, rename = "startTimestamp")]
-    pub start_timestamp: ::core::option::Option<String>,
-    /// Query GroupBy time unit.
-    #[serde(default, rename = "timeUnit")]
-    pub time_unit: ::core::option::Option<String>,
-}
-
-/// More info about Metric: https://docs.apigee.com/api-platform/analytics/analytics-reference#metrics
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudApigeeV1QueryMetric {
-    /// Alias for the metric. Alias will be used to replace metric name in query results.
-    #[serde(default)]
-    pub alias: ::core::option::Option<String>,
-    /// Aggregation function: avg, min, max, or sum.
-    #[serde(default)]
-    pub function: ::core::option::Option<String>,
-    /// Required. Metric name.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// One of +, -, /, %, *.
-    #[serde(default)]
-    pub operator: ::core::option::Option<String>,
-    /// Operand value should be provided when operator is set.
-    #[serde(default)]
-    pub value: ::core::option::Option<String>,
 }
 
 /// Request payload representing the query to be run for fetching security statistics as rows.
@@ -3853,29 +1574,1859 @@ pub struct GoogleCloudApigeeV1QueryTimeSeriesStatsResponse {
     >,
 }
 
-/// A sequence of time series.
+/// A Reference configuration. References must refer to a keystore that also exists in the parent environment.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudApigeeV1QueryTimeSeriesStatsResponseSequence {
-    /// Map of dimensions and their values that uniquely identifies a time series sequence.
+pub struct GoogleCloudApigeeV1Reference {
+    /// Optional. A human-readable description of this reference.
     #[serde(default)]
-    pub dimensions: ::core::option::Option<serde_json::Value>,
-    /// List of points. First value of each inner list is a timestamp.
+    pub description: ::core::option::Option<String>,
+    /// Required. The resource id of this reference. Values must match the regular expression [\w\s\-.]+.
     #[serde(default)]
-    pub points: ::core::option::Option<::std::vec::Vec<::std::vec::Vec<serde_json::Value>>>,
+    pub name: ::core::option::Option<String>,
+    /// Required. The id of the resource to which this reference refers. Must be the id of a resource that exists in the parent environment and is of the given resource_type.
+    #[serde(default)]
+    pub refers: ::core::option::Option<String>,
+    /// The type of resource referred to by this reference. Valid values are ''KeyStore'' or ''TrustStore''.
+    #[serde(default, rename = "resourceType")]
+    pub resource_type: ::core::option::Option<String>,
 }
 
-/// Quota contains the essential parameters needed that can be applied on the resources, methods, API source combination associated with this API product. While Quota is optional, setting it prevents requests from exceeding the provisioned parameters.
+/// Request for ReportInstanceStatus.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudApigeeV1Quota {
-    /// Required. Time interval over which the number of request messages is calculated.
+pub struct GoogleCloudApigeeV1ReportInstanceStatusRequest {
+    /// A unique ID for the instance which is guaranteed to be unique in case the user installs multiple hybrid runtimes with the same instance ID.
+    #[serde(default, rename = "instanceUid")]
+    pub instance_uid: ::core::option::Option<String>,
+    /// The time the report was generated in the runtime. Used to prevent an old status from overwriting a newer one. An instance should space out it''s status reports so that clock skew does not play a factor.
+    #[serde(default, rename = "reportTime")]
+    pub report_time: ::core::option::Option<String>,
+    /// Status for config resources
     #[serde(default)]
-    pub interval: ::core::option::Option<String>,
-    /// Required. Upper limit allowed for the time interval and time unit specified. Requests exceeding this limit will be rejected.
+    pub resources: ::core::option::Option<::std::vec::Vec<GoogleCloudApigeeV1ResourceStatus>>,
+}
+
+/// Runtime configuration for the organization. Response for GetRuntimeConfig.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudApigeeV1RuntimeConfig {
+    /// Cloud Storage bucket used for uploading Analytics records.
+    #[serde(default, rename = "analyticsBucket")]
+    pub analytics_bucket: ::core::option::Option<String>,
+    /// Name of the resource in the following format: organizations/{org}/runtimeConfig.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Output only. Tenant project ID associated with the Apigee organization. The tenant project is used to host Google-managed resources that are dedicated to this Apigee organization. Clients have limited access to resources within the tenant project used to support Apigee runtime instances. Access to the tenant project is managed using SetSyncAuthorization. It can be empty if the tenant project hasn''t been created yet.
+    #[serde(default, rename = "tenantProjectId")]
+    pub tenant_project_id: ::core::option::Option<String>,
+    /// Cloud Storage bucket used for uploading Trace records.
+    #[serde(default, rename = "traceBucket")]
+    pub trace_bucket: ::core::option::Option<String>,
+}
+
+/// Response for Schema call
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudApigeeV1Schema {
+    /// List of schema fields grouped as dimensions.
+    #[serde(default)]
+    pub dimensions: ::core::option::Option<::std::vec::Vec<GoogleCloudApigeeV1SchemaSchemaElement>>,
+    /// Additional metadata associated with schema. This is a legacy field and usually consists of an empty array of strings.
+    #[serde(default)]
+    pub meta: ::core::option::Option<::std::vec::Vec<String>>,
+    /// List of schema fields grouped as dimensions that can be used with an aggregate function such as sum, avg, min, and max.
+    #[serde(default)]
+    pub metrics: ::core::option::Option<::std::vec::Vec<GoogleCloudApigeeV1SchemaSchemaElement>>,
+}
+
+/// SecurityActionsConfig reflects the current state of the SecurityActions feature. This is a singleton resource: https://google.aip.dev/156
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudApigeeV1SecurityActionsConfig {
+    /// The flag that controls whether this feature is enabled. This is unset by default. When this flag is false, even if individual rules are enabled, no SecurityActions will be enforced.
+    #[serde(default)]
+    pub enabled: ::core::option::Option<bool>,
+    /// This is a singleton resource, the name will always be set by SecurityActions and any user input will be ignored. The name is always: organizations/{org}/environments/{env}/security_actions_config
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Output only. The update time for configuration.
+    #[serde(default, rename = "updateTime")]
+    pub update_time: ::core::option::Option<String>,
+}
+
+/// The message format of a recommendation from the assessment.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudApigeeV1SecurityAssessmentResultScoringResultAssessmentRecommendation {
+    /// The display name of the assessment.
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+    /// The recommended steps of the assessment.
+    #[serde(default)]
+    pub recommendations: ::core::option::Option<::std::vec::Vec<GoogleCloudApigeeV1SecurityAssessmentResultScoringResultAssessmentRecommendationRecommendation>>,
+    /// Score impact indicates the impact on the overall score if the assessment were to pass.
+    #[serde(default, rename = "scoreImpact")]
+    pub score_impact: ::core::option::Option<i32>,
+    /// Verdict indicates the assessment result. // TODO: enum values: ["VERDICT_UNSPECIFIED", "PASS", "FAIL", "NOT_APPLICABLE"]
+    #[serde(default)]
+    pub verdict: ::core::option::Option<String>,
+    /// The weight of the assessment which was set in the profile. // TODO: enum values: ["WEIGHT_UNSPECIFIED", "MINOR", "MODERATE", "MAJOR"]
+    #[serde(default)]
+    pub weight: ::core::option::Option<String>,
+}
+
+/// Represents a SecurityProfileEnvironmentAssociation resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudApigeeV1SecurityProfileEnvironmentAssociation {
+    /// Output only. The time when environment was attached to the security profile.
+    #[serde(default, rename = "attachTime")]
+    pub attach_time: ::core::option::Option<String>,
+    /// Immutable. Name of the environment that the profile is attached to.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// DEPRECATED: DO NOT USE Revision ID of the security profile.
+    #[serde(default, rename = "securityProfileRevisionId")]
+    pub security_profile_revision_id: ::core::option::Option<String>,
+}
+
+/// The configuration definition for a specific assessment.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudApigeeV1SecurityProfileV2ProfileAssessmentConfig {
+    /// Include only these Gateway Types.
+    #[serde(default)]
+    pub include: ::core::option::Option<
+        GoogleCloudApigeeV1SecurityProfileV2ProfileAssessmentConfigApiHubGatewayTypeArray,
+    >,
+    /// The weight of the assessment. // TODO: enum values: ["WEIGHT_UNSPECIFIED", "MINOR", "MODERATE", "MAJOR"]
+    #[serde(default)]
+    pub weight: ::core::option::Option<String>,
+}
+
+/// Body structure when user makes a request to create a security report.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudApigeeV1SecurityReportQuery {
+    /// Delimiter used in the CSV file, if outputFormat is set to csv. Defaults to the , (comma) character. Supported delimiter characters include comma (,), pipe (|), and tab (\t).
+    #[serde(default, rename = "csvDelimiter")]
+    pub csv_delimiter: ::core::option::Option<String>,
+    /// A list of dimensions. https://docs.apigee.com/api-platform/analytics/analytics-reference#dimensions
+    #[serde(default)]
+    pub dimensions: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Security Report display name which users can specify.
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+    /// Hostname needs to be specified if query intends to run at host level. This field is only allowed when query is submitted by CreateHostSecurityReport where analytics data will be grouped by organization and hostname.
+    #[serde(default, rename = "envgroupHostname")]
+    pub envgroup_hostname: ::core::option::Option<String>,
+    /// Boolean expression that can be used to filter data. Filter expressions can be combined using AND/OR terms and should be fully parenthesized to avoid ambiguity. See Analytics metrics, dimensions, and filters reference https://docs.apigee.com/api-platform/analytics/analytics-reference for more information on the fields available to filter on. For more information on the tokens that you use to build filter expressions, see Filter expression syntax. https://docs.apigee.com/api-platform/analytics/asynch-reports-api#filter-expression-syntax
+    #[serde(default)]
+    pub filter: ::core::option::Option<String>,
+    /// Time unit used to group the result set. Valid values include: second, minute, hour, day, week, or month. If a query includes groupByTimeUnit, then the result is an aggregation based on the specified time unit and the resultant timestamp does not include milliseconds precision. If a query omits groupByTimeUnit, then the resultant timestamp includes milliseconds precision.
+    #[serde(default, rename = "groupByTimeUnit")]
+    pub group_by_time_unit: ::core::option::Option<String>,
+    /// Maximum number of rows that can be returned in the result.
+    #[serde(default)]
+    pub limit: ::core::option::Option<i32>,
+    /// A list of Metrics.
+    #[serde(default)]
+    pub metrics:
+        ::core::option::Option<::std::vec::Vec<GoogleCloudApigeeV1SecurityReportQueryMetric>>,
+    /// Valid values include: csv or json. Defaults to json. Note: Configure the delimiter for CSV output using the csvDelimiter property.
+    #[serde(default, rename = "mimeType")]
+    pub mime_type: ::core::option::Option<String>,
+    /// Report Definition ID.
+    #[serde(default, rename = "reportDefinitionId")]
+    pub report_definition_id: ::core::option::Option<String>,
+    /// Required. Time range for the query. Can use the following predefined strings to specify the time range: last60minutes last24hours last7days Or, specify the timeRange as a structure describing start and end timestamps in the ISO format: yyyy-mm-ddThh:mm:ssZ. Example: "timeRange": { "start": "2018-07-29T00:13:00Z", "end": "2018-08-01T00:18:00Z" }
+    #[serde(default, rename = "timeRange")]
+    pub time_range: ::core::option::Option<serde_json::Value>,
+}
+
+/// The response for security report result view APIs.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudApigeeV1SecurityReportResultView {
+    /// Error code when there is a failure.
+    #[serde(default)]
+    pub code: ::core::option::Option<i32>,
+    /// Error message when there is a failure.
+    #[serde(default)]
+    pub error: ::core::option::Option<String>,
+    /// Metadata contains information like metrics, dimenstions etc of the security report.
+    #[serde(default)]
+    pub metadata: ::core::option::Option<GoogleCloudApigeeV1SecurityReportMetadata>,
+    /// Rows of security report result. Each row is a JSON object. Example: {sum(message_count): 1, developer_app: "(not set)",…}
+    #[serde(default)]
+    pub rows: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
+    /// State of retrieving ResultView.
+    #[serde(default)]
+    pub state: ::core::option::Option<String>,
+}
+
+/// SecuritySettings reflects the current state of the SecuritySettings feature.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudApigeeV1SecuritySettings {
+    /// Optional. If true the user consents to the use of ML models for Abuse detection.
+    #[serde(default, rename = "mlRetrainingFeedbackEnabled")]
+    pub ml_retraining_feedback_enabled: ::core::option::Option<bool>,
+    /// Identifier. Full resource name is always organizations/{org}/securitySettings.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+}
+
+/// Request for SetAddonEnablement.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudApigeeV1SetAddonEnablementRequest {
+    /// If the Analytics should be enabled in the environment.
+    #[serde(default, rename = "analyticsEnabled")]
+    pub analytics_enabled: ::core::option::Option<bool>,
+    /// If the API Security should be enabled in the environment.
+    #[serde(default, rename = "apiSecurityEnabled")]
+    pub api_security_enabled: ::core::option::Option<bool>,
+}
+
+/// Request for SetAddons.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudApigeeV1SetAddonsRequest {
+    /// Required. Add-on configurations.
+    #[serde(default, rename = "addonsConfig")]
+    pub addons_config: ::core::option::Option<GoogleCloudApigeeV1AddonsConfig>,
+}
+
+/// The metadata describing a shared flow revision.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudApigeeV1SharedFlowRevision {
+    /// The version of the configuration schema to which this shared flow conforms. The only supported value currently is majorVersion 4 and minorVersion 0. This setting may be used in the future to enable evolution of the shared flow format.
+    #[serde(default, rename = "configurationVersion")]
+    pub configuration_version: ::core::option::Option<GoogleCloudApigeeV1ConfigVersion>,
+    /// A textual description of the shared flow revision.
+    #[serde(default, rename = "contextInfo")]
+    pub context_info: ::core::option::Option<String>,
+    /// Time at which this shared flow revision was created, in milliseconds since epoch.
+    #[serde(default, rename = "createdAt")]
+    pub created_at: ::core::option::Option<String>,
+    /// Description of the shared flow revision.
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+    /// The human readable name of this shared flow.
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+    /// A Key-Value map of metadata about this shared flow revision.
+    #[serde(default, rename = "entityMetaDataAsProperties")]
+    pub entity_meta_data_as_properties: ::core::option::Option<serde_json::Value>,
+    /// Time at which this shared flow revision was most recently modified, in milliseconds since epoch.
+    #[serde(default, rename = "lastModifiedAt")]
+    pub last_modified_at: ::core::option::Option<String>,
+    /// The resource ID of the parent shared flow.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// A list of policy names included in this shared flow revision.
+    #[serde(default)]
+    pub policies: ::core::option::Option<::std::vec::Vec<String>>,
+    /// The resource files included in this shared flow revision.
+    #[serde(default, rename = "resourceFiles")]
+    pub resource_files: ::core::option::Option<GoogleCloudApigeeV1ResourceFiles>,
+    /// A list of the resources included in this shared flow revision formatted as "{type}://{name}".
+    #[serde(default)]
+    pub resources: ::core::option::Option<::std::vec::Vec<String>>,
+    /// The resource ID of this revision.
+    #[serde(default)]
+    pub revision: ::core::option::Option<String>,
+    /// A list of the shared flow names included in this shared flow revision.
+    #[serde(default, rename = "sharedFlows")]
+    pub shared_flows: ::core::option::Option<::std::vec::Vec<String>>,
+    /// The string "Application"
+    #[serde(default, rename = "type")]
+    pub type_: ::core::option::Option<String>,
+}
+
+/// Encapsulates a stats response.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudApigeeV1Stats {
+    /// List of query results on the environment level.
+    #[serde(default)]
+    pub environments:
+        ::core::option::Option<::std::vec::Vec<GoogleCloudApigeeV1StatsEnvironmentStats>>,
+    /// List of query results grouped by host.
+    #[serde(default)]
+    pub hosts: ::core::option::Option<::std::vec::Vec<GoogleCloudApigeeV1StatsHostStats>>,
+    /// Metadata information.
+    #[serde(default, rename = "metaData")]
+    pub meta_data: ::core::option::Option<GoogleCloudApigeeV1Metadata>,
+}
+
+/// Pub/Sub subscription of an environment.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudApigeeV1Subscription {
+    /// Full name of the Pub/Sub subcription. Use the following structure in your request: subscription "projects/foo/subscription/bar"
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+}
+
+/// GoogleCloudApigeeV1SyncAuthorization resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudApigeeV1SyncAuthorization {
+    /// Entity tag (ETag) used for optimistic concurrency control as a way to help prevent simultaneous updates from overwriting each other. For example, when you call [getSyncAuthorization](organizations/getSyncAuthorization) an ETag is returned in the response. Pass that ETag when calling the [setSyncAuthorization](organizations/setSyncAuthorization) to ensure that you are updating the correct version. If you don''t pass the ETag in the call to setSyncAuthorization, then the existing authorization is overwritten indiscriminately. **Note**: We strongly recommend that you use the ETag in the read-modify-write cycle to avoid race conditions.
+    #[serde(default)]
+    pub etag: ::core::option::Option<String>,
+    /// Required. Array of service accounts to grant access to control plane resources, each specified using the following format: serviceAccount: service-account-name. The service-account-name is formatted like an email address. For example: my-synchronizer-manager-service_account@my_project_id.iam.gserviceaccount.com You might specify multiple service accounts, for example, if you have multiple environments and wish to assign a unique service account to each one. The service accounts must have **Apigee Synchronizer Manager** role. See also [Create service accounts](https://cloud.google.com/apigee/docs/hybrid/latest/sa-about#create-the-service-accounts).
+    #[serde(default)]
+    pub identities: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// TargetServer configuration. TargetServers are used to decouple a proxy TargetEndpoint HTTPTargetConnections from concrete URLs for backend services.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudApigeeV1TargetServer {
+    /// Optional. A human-readable description of this TargetServer.
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+    /// Required. The host name this target connects to. Value must be a valid hostname as described by RFC-1123.
+    #[serde(default)]
+    pub host: ::core::option::Option<String>,
+    /// Optional. Enabling/disabling a TargetServer is useful when TargetServers are used in load balancing configurations, and one or more TargetServers need to taken out of rotation periodically. Defaults to true.
+    #[serde(default, rename = "isEnabled")]
+    pub is_enabled: ::core::option::Option<bool>,
+    /// Required. The resource id of this target server. Values must match the regular expression
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Required. The port number this target connects to on the given host. Value must be between 1 and 65535, inclusive.
+    #[serde(default)]
+    pub port: ::core::option::Option<i32>,
+    /// Immutable. The protocol used by this TargetServer. // TODO: enum values: ["PROTOCOL_UNSPECIFIED", "HTTP", "HTTP2", "GRPC_TARGET", "GRPC", "EXTERNAL_CALLOUT"]
+    #[serde(default)]
+    pub protocol: ::core::option::Option<String>,
+    /// Optional. Specifies TLS configuration info for this TargetServer. The JSON name is sSLInfo for legacy/backwards compatibility reasons -- Edge originally supported SSL, and the name is still used for TLS configuration.
+    #[serde(default, rename = "sSLInfo")]
+    pub s_s_l_info: ::core::option::Option<GoogleCloudApigeeV1TlsInfo>,
+}
+
+/// The response for TestDatastore
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudApigeeV1TestDatastoreResponse {
+    /// Output only. Error message of test connection failure
+    #[serde(default)]
+    pub error: ::core::option::Option<String>,
+    /// Output only. It could be completed or failed
+    #[serde(default)]
+    pub state: ::core::option::Option<String>,
+}
+
+/// TraceConfig defines the configurations in an environment of distributed trace.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudApigeeV1TraceConfig {
+    /// Required. Endpoint of the exporter.
+    #[serde(default)]
+    pub endpoint: ::core::option::Option<String>,
+    /// Required. Exporter that is used to view the distributed trace captured using the chosen trace protocol. An exporter sends traces to any backend that is capable of consuming them. Recorded spans can be exported by registered exporters. // TODO: enum values: ["EXPORTER_UNSPECIFIED", "JAEGER", "CLOUD_TRACE", "OPEN_TELEMETRY_COLLECTOR", "OPEN_TELEMETRY_CLOUD_TRACE"]
+    #[serde(default)]
+    pub exporter: ::core::option::Option<String>,
+    /// Distributed trace configuration for all API proxies in an environment. You can also override the configuration for a specific API proxy using the distributed trace configuration overrides API.
+    #[serde(default, rename = "samplingConfig")]
+    pub sampling_config: ::core::option::Option<GoogleCloudApigeeV1TraceSamplingConfig>,
+}
+
+/// Request for UpdateAppGroupAppKey
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudApigeeV1UpdateAppGroupAppKeyRequest {
+    /// Approve or revoke the consumer key by setting this value to approve or revoke respectively. The Content-Type header, if set, must be set to application/octet-stream, with empty body.
+    #[serde(default)]
+    pub action: ::core::option::Option<String>,
+    /// The list of API products that will be associated with the credential. This list will be appended to the existing list of associated API Products for this App Key. Duplicates will be ignored.
+    #[serde(default, rename = "apiProducts")]
+    pub api_products: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Note that only Scopes and Attributes of the AppGroupAppKey can be amended. Scopes and Attributes mentioned in the request will be inserted and the existing scopes and attributes will be removed.
+    #[serde(default, rename = "appGroupAppKey")]
+    pub app_group_app_key: ::core::option::Option<GoogleCloudApigeeV1AppGroupAppKey>,
+}
+
+/// Request message for SetIamPolicy method.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleIamV1SetIamPolicyRequest {
+    /// REQUIRED: The complete policy to be applied to the resource. The size of the policy is limited to a few 10s of KB. An empty policy is a valid policy but certain Google Cloud services (such as Projects) might reject them.
+    #[serde(default)]
+    pub policy: ::core::option::Option<GoogleIamV1Policy>,
+    /// OPTIONAL: A FieldMask specifying which fields of the policy to modify. Only the fields in the mask will be modified. If no mask is provided, the following default mask is used: paths: "bindings, etag"
+    #[serde(default, rename = "updateMask")]
+    pub update_mask: ::core::option::Option<String>,
+}
+
+/// Request message for TestIamPermissions method.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleIamV1TestIamPermissionsRequest {
+    /// The set of permissions to check for the resource. Permissions with wildcards (such as * or storage.*) are not allowed. For more information see [IAM Overview](https://cloud.google.com/iam/docs/overview#permissions).
+    #[serde(default)]
+    pub permissions: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// Response message for TestIamPermissions method.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleIamV1TestIamPermissionsResponse {
+    /// A subset of TestPermissionsRequest.permissions that the caller is allowed.
+    #[serde(default)]
+    pub permissions: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// The response message for Operations.ListOperations.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleLongrunningListOperationsResponse {
+    /// The standard List next-page token.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+    /// A list of operations that matches the specified filter in the request.
+    #[serde(default)]
+    pub operations: ::core::option::Option<::std::vec::Vec<GoogleLongrunningOperation>>,
+    /// Unordered list. Unreachable resources. Populated when the request sets ListOperationsRequest.return_partial_success and reads across collections. For example, when attempting to list all resources across all supported locations.
+    #[serde(default)]
+    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// A message type used to describe a single bundle validation error.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct EdgeConfigstoreBundleBadBundleViolation {
+    /// A description of why the bundle is invalid and how to fix it.
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+    /// The filename (including relative path from the bundle root) in which the error occurred.
+    #[serde(default)]
+    pub filename: ::core::option::Option<String>,
+}
+
+/// GoogleCloudApigeeV1Certificate resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudApigeeV1Certificate {
+    /// Chain of certificates under this name.
+    #[serde(default, rename = "certInfo")]
+    pub cert_info: ::core::option::Option<::std::vec::Vec<GoogleCloudApigeeV1CertInfo>>,
+}
+
+/// The documentation for a catalog item.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudApigeeV1ApiDocDocumentation {
+    /// Optional. AsyncAPI Specification documentation.
+    #[serde(default, rename = "asyncApiDocumentation")]
+    pub async_api_documentation: ::core::option::Option<GoogleCloudApigeeV1AsyncApiDocumentation>,
+    /// Optional. GraphQL documentation.
+    #[serde(default, rename = "graphqlDocumentation")]
+    pub graphql_documentation: ::core::option::Option<GoogleCloudApigeeV1GraphqlDocumentation>,
+    /// Optional. OpenAPI Specification documentation.
+    #[serde(default, rename = "oasDocumentation")]
+    pub oas_documentation: ::core::option::Option<GoogleCloudApigeeV1oASDocumentation>,
+}
+
+/// Wallet used to manage an account balance for a particular currency.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudApigeeV1AppGroupBalanceWallet {
+    /// Current remaining balance of the AppGroup for a particular currency.
+    #[serde(default)]
+    pub balance: ::core::option::Option<GoogleTypeMoney>,
+    /// Output only. Time at which the AppGroup last added credit to the account in milliseconds since epoch.
+    #[serde(default, rename = "lastCreditTime")]
+    pub last_credit_time: ::core::option::Option<String>,
+}
+
+/// Message for the array of API Hub APIs.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudApigeeV1BatchComputeSecurityAssessmentResultsRequestApiHubApiArray {
+    /// Required. The array of API Hub API IDs. Format: projects/{project}/locations/{location}/apis/{api}
+    #[serde(default)]
+    pub apis: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// Message for the array of API Hub Gateways.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudApigeeV1BatchComputeSecurityAssessmentResultsRequestApiHubGatewayArray {
+    /// Required. The array of API Hub Gateway IDs. Format: projects/{project}/locations/{location}/plugins/{plugin}/instances/{instance}
+    #[serde(default)]
+    pub gateways: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// The security assessment result for one resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudApigeeV1SecurityAssessmentResult {
+    /// The time of the assessment of this resource. This could lag behind assessment_time due to caching within the backend.
+    #[serde(default, rename = "createTime")]
+    pub create_time: ::core::option::Option<String>,
+    /// The error status if scoring fails.
+    #[serde(default)]
+    pub error: ::core::option::Option<GoogleRpcStatus>,
+    /// The assessed resource.
+    #[serde(default)]
+    pub resource: ::core::option::Option<GoogleCloudApigeeV1SecurityAssessmentResultResource>,
+    /// The result of the assessment.
+    #[serde(default, rename = "scoringResult")]
+    pub scoring_result:
+        ::core::option::Option<GoogleCloudApigeeV1SecurityAssessmentResultScoringResult>,
+}
+
+/// Request for UpdateSecurityIncident.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudApigeeV1UpdateSecurityIncidentRequest {
+    /// Required. The security incident to update. Must contain all existing populated fields of the current incident.
+    #[serde(default, rename = "securityIncident")]
+    pub security_incident: ::core::option::Option<GoogleCloudApigeeV1SecurityIncident>,
+    /// Required. The list of fields to update. Allowed fields are: LINT.IfChange(allowed_update_fields_comment) - observability LINT.ThenChange()
+    #[serde(default, rename = "updateMask")]
+    pub update_mask: ::core::option::Option<String>,
+}
+
+/// Labels that can be used to filter Apigee metrics.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudApigeeV1CanaryEvaluationMetricLabels {
+    /// The environment ID associated with the metrics.
+    #[serde(default)]
+    pub env: ::core::option::Option<String>,
+    /// Required. The instance ID associated with the metrics. In Apigee Hybrid, the value is configured during installation.
+    #[serde(default)]
+    pub instance_id: ::core::option::Option<String>,
+    /// Required. The location associated with the metrics.
+    #[serde(default)]
+    pub location: ::core::option::Option<String>,
+}
+
+/// Filter scores by component path. Used custom filter instead of AIP-160 as the use cases are highly constrained and predictable.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudApigeeV1ComputeEnvironmentScoresRequestFilter {
+    /// Optional. Return scores for this component. Example: "/org@myorg/envgroup@myenvgroup/env@myenv/proxies/proxy@myproxy/source"
+    #[serde(default, rename = "scorePath")]
+    pub score_path: ::core::option::Option<String>,
+}
+
+/// Represents Security Score.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudApigeeV1Score {
+    /// Component containing score, recommendations and actions.
+    #[serde(default)]
+    pub component: ::core::option::Option<GoogleCloudApigeeV1ScoreComponent>,
+    /// List of all the drilldown score components.
+    #[serde(default)]
+    pub subcomponents: ::core::option::Option<::std::vec::Vec<GoogleCloudApigeeV1ScoreComponent>>,
+    /// Start and end time for the score.
+    #[serde(default, rename = "timeRange")]
+    pub time_range: ::core::option::Option<GoogleTypeInterval>,
+}
+
+/// Point is a group of information collected by runtime plane at critical points of the message flow of the processed API request. This is a list of supported point IDs, categorized to three major buckets. For each category, debug points that we are currently supporting are listed below: - Flow status debug points: StateChange FlowInfo Condition Execution DebugMask Error - Flow control debug points: FlowCallout Paused Resumed FlowReturn BreakFlow Error - Runtime debug points: ScriptExecutor FlowCalloutStepDefinition CustomTarget StepDefinition Oauth2ServicePoint RaiseFault NodeJS The detail information of the given debug point is stored in a list of results.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudApigeeV1Point {
+    /// Name of a step in the transaction.
+    #[serde(default)]
+    pub id: ::core::option::Option<String>,
+    /// List of results extracted from a given debug point.
+    #[serde(default)]
+    pub results: ::core::option::Option<::std::vec::Vec<GoogleCloudApigeeV1Result>>,
+}
+
+/// Describes a potential routing change that may occur as a result of some deployment operation.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudApigeeV1DeploymentChangeReportRoutingChange {
+    /// Human-readable description of this routing change.
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+    /// Name of the environment group affected by this routing change.
+    #[serde(default, rename = "environmentGroup")]
+    pub environment_group: ::core::option::Option<String>,
+    /// Base path/deployment that may stop receiving some traffic.
+    #[serde(default, rename = "fromDeployment")]
+    pub from_deployment:
+        ::core::option::Option<GoogleCloudApigeeV1DeploymentChangeReportRoutingDeployment>,
+    /// Set to true if using sequenced rollout would make this routing change safer. **Note**: This does not necessarily imply that automated sequenced rollout mode is supported for the operation.
+    #[serde(default, rename = "shouldSequenceRollout")]
+    pub should_sequence_rollout: ::core::option::Option<bool>,
+    /// Base path/deployment that may start receiving that traffic. May be null if no deployment is able to receive the traffic.
+    #[serde(default, rename = "toDeployment")]
+    pub to_deployment:
+        ::core::option::Option<GoogleCloudApigeeV1DeploymentChangeReportRoutingDeployment>,
+}
+
+/// Describes what preconditions have failed. For example, if an RPC failed because it required the Terms of Service to be acknowledged, it could list the terms of service violation in the PreconditionFailure message.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleRpcPreconditionFailure {
+    /// Describes all precondition violations.
+    #[serde(default)]
+    pub violations: ::core::option::Option<::std::vec::Vec<GoogleRpcPreconditionFailureViolation>>,
+}
+
+/// Wallet used to manage an account balance for a particular currency.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudApigeeV1DeveloperBalanceWallet {
+    /// Current remaining balance of the developer for a particular currency.
+    #[serde(default)]
+    pub balance: ::core::option::Option<GoogleTypeMoney>,
+    /// Output only. Time at which the developer last added credit to the account in milliseconds since epoch.
+    #[serde(default, rename = "lastCreditTime")]
+    pub last_credit_time: ::core::option::Option<String>,
+}
+
+/// Configuration for resolving the client ip.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudApigeeV1EnvironmentClientIPResolutionConfig {
+    /// Resolves the client ip based on a custom header.
+    #[serde(default, rename = "headerIndexAlgorithm")]
+    pub header_index_algorithm: ::core::option::Option<
+        GoogleCloudApigeeV1EnvironmentClientIPResolutionConfigHeaderIndexAlgorithm,
+    >,
+}
+
+/// NodeConfig for setting the min/max number of nodes associated with the environment.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudApigeeV1NodeConfig {
+    /// Output only. The current total number of gateway nodes that each environment currently has across all instances.
+    #[serde(default, rename = "currentAggregateNodeCount")]
+    pub current_aggregate_node_count: ::core::option::Option<String>,
+    /// Optional. The maximum total number of gateway nodes that the is reserved for all instances that has the specified environment. If not specified, the default is determined by the recommended maximum number of nodes for that gateway.
+    #[serde(default, rename = "maxNodeCount")]
+    pub max_node_count: ::core::option::Option<String>,
+    /// Optional. The minimum total number of gateway nodes that the is reserved for all instances that has the specified environment. If not specified, the default is determined by the recommended minimum number of nodes for that gateway.
+    #[serde(default, rename = "minNodeCount")]
+    pub min_node_count: ::core::option::Option<String>,
+}
+
+/// RuntimeAddonsConfig defines the runtime configurations for add-ons in an environment.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudApigeeV1RuntimeAddonsConfig {
+    /// Runtime configuration for Analytics add-on.
+    #[serde(default, rename = "analyticsConfig")]
+    pub analytics_config: ::core::option::Option<GoogleCloudApigeeV1RuntimeAnalyticsConfig>,
+    /// Runtime configuration for API Security add-on.
+    #[serde(default, rename = "apiSecurityConfig")]
+    pub api_security_config: ::core::option::Option<GoogleCloudApigeeV1RuntimeApiSecurityConfig>,
+    /// Name of the addons config in the format: organizations/{org}/environments/{env}/addonsConfig
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Revision number used by the runtime to detect config changes.
+    #[serde(default, rename = "revisionId")]
+    pub revision_id: ::core::option::Option<String>,
+    /// UID is to detect if config is recreated after deletion. The add-on config will only be deleted when the environment itself gets deleted, thus it will always be the same as the UID of EnvironmentConfig.
+    #[serde(default)]
+    pub uid: ::core::option::Option<String>,
+}
+
+/// Configuration for resolving the client ip.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudApigeeV1EnvironmentConfigClientIPResolutionConfig {
+    /// Resolves the client ip based on a custom header.
+    #[serde(default, rename = "headerIndexAlgorithm")]
+    pub header_index_algorithm: ::core::option::Option<
+        GoogleCloudApigeeV1EnvironmentConfigClientIPResolutionConfigHeaderIndexAlgorithm,
+    >,
+}
+
+/// Data collector and its configuration.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudApigeeV1DataCollectorConfig {
+    /// Name of the data collector in the following format: organizations/{org}/datacollectors/{datacollector}
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Data type accepted by the data collector. // TODO: enum values: ["TYPE_UNSPECIFIED", "INTEGER", "FLOAT", "STRING", "BOOLEAN", "DATETIME"]
+    #[serde(default, rename = "type")]
+    pub type_: ::core::option::Option<String>,
+}
+
+/// GoogleCloudApigeeV1DebugMask resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudApigeeV1DebugMask {
+    /// List of JSON paths that specify the JSON elements to be filtered from JSON payloads in error flows.
+    #[serde(default, rename = "faultJSONPaths")]
+    pub fault_j_s_o_n_paths: ::core::option::Option<::std::vec::Vec<String>>,
+    /// List of XPaths that specify the XML elements to be filtered from XML payloads in error flows.
+    #[serde(default, rename = "faultXPaths")]
+    pub fault_x_paths: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Name of the debug mask.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Map of namespaces to URIs.
+    #[serde(default)]
+    pub namespaces: ::core::option::Option<serde_json::Value>,
+    /// List of JSON paths that specify the JSON elements to be filtered from JSON request message payloads.
+    #[serde(default, rename = "requestJSONPaths")]
+    pub request_j_s_o_n_paths: ::core::option::Option<::std::vec::Vec<String>>,
+    /// List of XPaths that specify the XML elements to be filtered from XML request message payloads.
+    #[serde(default, rename = "requestXPaths")]
+    pub request_x_paths: ::core::option::Option<::std::vec::Vec<String>>,
+    /// List of JSON paths that specify the JSON elements to be filtered from JSON response message payloads.
+    #[serde(default, rename = "responseJSONPaths")]
+    pub response_j_s_o_n_paths: ::core::option::Option<::std::vec::Vec<String>>,
+    /// List of XPaths that specify the XML elements to be filtered from XML response message payloads.
+    #[serde(default, rename = "responseXPaths")]
+    pub response_x_paths: ::core::option::Option<::std::vec::Vec<String>>,
+    /// List of variables that should be masked from the debug output.
+    #[serde(default)]
+    pub variables: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// DeploymentGroupConfig represents a deployment group that should be present in a particular environment.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudApigeeV1DeploymentGroupConfig {
+    /// Type of the deployment group, which will be either Standard or Extensible. // TODO: enum values: ["DEPLOYMENT_GROUP_TYPE_UNSPECIFIED", "STANDARD", "EXTENSIBLE"]
+    #[serde(default, rename = "deploymentGroupType")]
+    pub deployment_group_type: ::core::option::Option<String>,
+    /// Name of the deployment group in the following format: organizations/{org}/environments/{env}/deploymentGroups/{group}.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Revision number which can be used by the runtime to detect if the deployment group has changed between two versions.
+    #[serde(default, rename = "revisionId")]
+    pub revision_id: ::core::option::Option<String>,
+    /// Unique ID. The ID will only change if the deployment group is deleted and recreated.
+    #[serde(default)]
+    pub uid: ::core::option::Option<String>,
+}
+
+/// NEXT ID: 11
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudApigeeV1DeploymentConfig {
+    /// Additional key-value metadata for the deployment.
+    #[serde(default)]
+    pub attributes: ::core::option::Option<serde_json::Value>,
+    /// Base path where the application will be hosted. Defaults to "/".
+    #[serde(default, rename = "basePath")]
+    pub base_path: ::core::option::Option<String>,
+    /// The list of deployment groups in which this proxy should be deployed. Not currently populated for shared flows.
+    #[serde(default, rename = "deploymentGroups")]
+    pub deployment_groups: ::core::option::Option<::std::vec::Vec<String>>,
+    /// A mapping from basepaths to proxy endpoint names in this proxy. Not populated for shared flows.
+    #[serde(default)]
+    pub endpoints: ::core::option::Option<serde_json::Value>,
+    /// Location of the API proxy bundle as a URI.
+    #[serde(default)]
+    pub location: ::core::option::Option<String>,
+    /// Name of the API or shared flow revision to be deployed in the following format: organizations/{org}/apis/{api}/revisions/{rev} or organizations/{org}/sharedflows/{sharedflow}/revisions/{rev}
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Unique ID of the API proxy revision.
+    #[serde(default, rename = "proxyUid")]
+    pub proxy_uid: ::core::option::Option<String>,
+    /// The service account identity associated with this deployment. If non-empty, will be in the following format: projects/-/serviceAccounts/{account_email}
+    #[serde(default, rename = "serviceAccount")]
+    pub service_account: ::core::option::Option<String>,
+    /// Unique ID. The ID will only change if the deployment is deleted and recreated.
+    #[serde(default)]
+    pub uid: ::core::option::Option<String>,
+}
+
+/// GoogleCloudApigeeV1FlowHookConfig resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudApigeeV1FlowHookConfig {
+    /// Flag that specifies whether the flow should abort after an error in the flow hook. Defaults to true (continue on error).
+    #[serde(default, rename = "continueOnError")]
+    pub continue_on_error: ::core::option::Option<bool>,
+    /// Name of the flow hook in the following format: organizations/{org}/environments/{env}/flowhooks/{point}. Valid point values include: PreProxyFlowHook, PostProxyFlowHook, PreTargetFlowHook, and PostTargetFlowHook
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Name of the shared flow to invoke in the following format: organizations/{org}/sharedflows/{sharedflow}
+    #[serde(default, rename = "sharedFlowName")]
+    pub shared_flow_name: ::core::option::Option<String>,
+}
+
+/// GoogleCloudApigeeV1KeystoreConfig resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudApigeeV1KeystoreConfig {
+    /// Aliases in the keystore.
+    #[serde(default)]
+    pub aliases: ::core::option::Option<::std::vec::Vec<GoogleCloudApigeeV1AliasRevisionConfig>>,
+    /// Resource name in the following format: organizations/{org}/environments/{env}/keystores/{keystore}
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+}
+
+/// GoogleCloudApigeeV1ReferenceConfig resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudApigeeV1ReferenceConfig {
+    /// Name of the reference in the following format: organizations/{org}/environments/{env}/references/{reference}
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Name of the referenced resource in the following format: organizations/{org}/environments/{env}/keystores/{keystore} Only references to keystore resources are supported.
+    #[serde(default, rename = "resourceName")]
+    pub resource_name: ::core::option::Option<String>,
+}
+
+/// GoogleCloudApigeeV1ResourceConfig resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudApigeeV1ResourceConfig {
+    /// Location of the resource as a URI.
+    #[serde(default)]
+    pub location: ::core::option::Option<String>,
+    /// Resource name in the following format: organizations/{org}/environments/{env}/resourcefiles/{type}/{file}/revisions/{rev} Only environment-scoped resource files are supported.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+}
+
+/// GoogleCloudApigeeV1TargetServerConfig resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudApigeeV1TargetServerConfig {
+    /// Whether the target server is enabled. An empty/omitted value for this field should be interpreted as true.
+    #[serde(default)]
+    pub enabled: ::core::option::Option<bool>,
+    /// Host name of the target server.
+    #[serde(default)]
+    pub host: ::core::option::Option<String>,
+    /// Target server revision name in the following format: organizations/{org}/environments/{env}/targetservers/{targetserver}/revisions/{rev}
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Port number for the target server.
+    #[serde(default)]
+    pub port: ::core::option::Option<i32>,
+    /// The protocol used by this target server. // TODO: enum values: ["PROTOCOL_UNSPECIFIED", "HTTP", "HTTP2", "GRPC_TARGET", "GRPC", "EXTERNAL_CALLOUT"]
+    #[serde(default)]
+    pub protocol: ::core::option::Option<String>,
+    /// TLS settings for the target server.
+    #[serde(default, rename = "tlsInfo")]
+    pub tls_info: ::core::option::Option<GoogleCloudApigeeV1TlsInfoConfig>,
+}
+
+/// NEXT ID: 10 RuntimeTraceConfig defines the configurations for distributed trace in an environment.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudApigeeV1RuntimeTraceConfig {
+    /// Endpoint of the exporter.
+    #[serde(default)]
+    pub endpoint: ::core::option::Option<String>,
+    /// Exporter that is used to view the distributed trace captured using OpenCensus. An exporter sends traces to any backend that is capable of consuming them. Recorded spans can be exported by registered exporters. // TODO: enum values: ["EXPORTER_UNSPECIFIED", "JAEGER", "CLOUD_TRACE", "OPEN_TELEMETRY_COLLECTOR", "OPEN_TELEMETRY_CLOUD_TRACE"]
+    #[serde(default)]
+    pub exporter: ::core::option::Option<String>,
+    /// Name of the trace config in the following format: organizations/{org}/environment/{env}/traceConfig
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Optional. If true, the runtime uses OpenTelemetry Protocol (OTLP) to send trace data. Configuration Requirements (if open_telemetry_protocol_enabled is true): - Allowed Exporters: CLOUD_TRACE or OPEN_TELEMETRY_COLLECTOR. - If Exporter is OPEN_TELEMETRY_COLLECTOR: - endpoint refers to a valid OTLP collector URL. - If Exporter is CLOUD_TRACE: - endpoint refers to a valid project ID Deprecated: Use trace_protocol instead.
+    #[serde(default, rename = "openTelemetryProtocolEnabled")]
+    pub open_telemetry_protocol_enabled: ::core::option::Option<bool>,
+    /// List of trace configuration overrides for spicific API proxies.
+    #[serde(default)]
+    pub overrides:
+        ::core::option::Option<::std::vec::Vec<GoogleCloudApigeeV1RuntimeTraceConfigOverride>>,
+    /// The timestamp that the revision was created or updated.
+    #[serde(default, rename = "revisionCreateTime")]
+    pub revision_create_time: ::core::option::Option<String>,
+    /// Revision number which can be used by the runtime to detect if the trace config has changed between two versions.
+    #[serde(default, rename = "revisionId")]
+    pub revision_id: ::core::option::Option<String>,
+    /// Trace configuration for all API proxies in an environment.
+    #[serde(default, rename = "samplingConfig")]
+    pub sampling_config: ::core::option::Option<GoogleCloudApigeeV1RuntimeTraceSamplingConfig>,
+    /// Optional. The trace protocol to use. // TODO: enum values: ["TRACE_PROTOCOL_UNSPECIFIED", "OPEN_CENSUS", "OTLP"]
+    #[serde(default, rename = "traceProtocol")]
+    pub trace_protocol: ::core::option::Option<String>,
+}
+
+/// Date range of the data to export.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudApigeeV1DateRange {
+    /// Required. End date (exclusive) of the data to export in the format yyyy-mm-dd. The date range ends at 00:00:00 UTC on the end date- which will not be in the output.
+    #[serde(default)]
+    pub end: ::core::option::Option<String>,
+    /// Required. Start date of the data to export in the format yyyy-mm-dd. The date range begins at 00:00:00 UTC on the start date.
+    #[serde(default)]
+    pub start: ::core::option::Option<String>,
+}
+
+/// A Signed URL and the relevant metadata associated with it.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudApigeeV1GetAsyncQueryResultUrlResponseURLInfo {
+    /// The MD5 Hash of the JSON data
+    #[serde(default)]
+    pub md5: ::core::option::Option<String>,
+    /// The size of the returned file in bytes
+    #[serde(default, rename = "sizeBytes")]
+    pub size_bytes: ::core::option::Option<String>,
+    /// The signed URL of the JSON data. Will be of the form https://storage.googleapis.com/example-bucket/cat.jpeg?X-Goog-Algorithm= GOOG4-RSA-SHA256&X-Goog-Credential=example%40example-project.iam.gserviceaccount .com%2F20181026%2Fus-central1%2Fstorage%2Fgoog4_request&X-Goog-Date=20181026T18 1309Z&X-Goog-Expires=900&X-Goog-SignedHeaders=host&X-Goog-Signature=247a2aa45f16 9edf4d187d54e7cc46e4731b1e6273242c4f4c39a1d2507a0e58706e25e3a85a7dbb891d62afa849 6def8e260c1db863d9ace85ff0a184b894b117fe46d1225c82f2aa19efd52cf21d3e2022b3b868dc c1aca2741951ed5bf3bb25a34f5e9316a2841e8ff4c530b22ceaa1c5ce09c7cbb5732631510c2058 0e61723f5594de3aea497f195456a2ff2bdd0d13bad47289d8611b6f9cfeef0c46c91a455b94e90a 66924f722292d21e24d31dcfb38ce0c0f353ffa5a9756fc2a9f2b40bc2113206a81e324fc4fd6823 a29163fa845c8ae7eca1fcf6e5bb48b3200983c56c5ca81fffb151cca7402beddfc4a76b13344703 2ea7abedc098d2eb14a7
+    #[serde(default)]
+    pub uri: ::core::option::Option<String>,
+}
+
+/// EnvironmentGroupConfig is a revisioned snapshot of an EnvironmentGroup and its associated routing rules.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudApigeeV1EnvironmentGroupConfig {
+    /// A list of proxies in each deployment group for proxy chaining calls.
+    #[serde(default, rename = "endpointChainingRules")]
+    pub endpoint_chaining_rules:
+        ::core::option::Option<::std::vec::Vec<GoogleCloudApigeeV1EndpointChainingRule>>,
+    /// Host names for the environment group.
+    #[serde(default)]
+    pub hostnames: ::core::option::Option<::std::vec::Vec<String>>,
+    /// When this message appears in the top-level IngressConfig, this field will be populated in lieu of the inlined routing_rules and hostnames fields. Some URL for downloading the full EnvironmentGroupConfig for this group.
+    #[serde(default)]
+    pub location: ::core::option::Option<String>,
+    /// Name of the environment group in the following format: organizations/{org}/envgroups/{envgroup}.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Revision id that defines the ordering of the EnvironmentGroupConfig resource. The higher the revision, the more recently the configuration was deployed.
+    #[serde(default, rename = "revisionId")]
+    pub revision_id: ::core::option::Option<String>,
+    /// Ordered list of routing rules defining how traffic to this environment group''s hostnames should be routed to different environments.
+    #[serde(default, rename = "routingRules")]
+    pub routing_rules: ::core::option::Option<::std::vec::Vec<GoogleCloudApigeeV1RoutingRule>>,
+    /// A unique id for the environment group config that will only change if the environment group is deleted and recreated.
+    #[serde(default)]
+    pub uid: ::core::option::Option<String>,
+}
+
+/// ApiCategory represents an API category. [Catalog items](/apigee/docs/reference/apis/apigee/rest/v1/organizations.sites.apidocs) can be tagged with API categories; users viewing the API catalog in the portal will have the option to browse the catalog by category.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudApigeeV1ApiCategory {
+    /// ID of the category (a UUID).
+    #[serde(default)]
+    pub id: ::core::option::Option<String>,
+    /// Name of the category.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Name of the portal.
+    #[serde(default, rename = "siteId")]
+    pub site_id: ::core::option::Option<String>,
+    /// Time the category was last modified in milliseconds since epoch.
+    #[serde(default, rename = "updateTime")]
+    pub update_time: ::core::option::Option<String>,
+}
+
+/// Session carries the debug session id and its creation time.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudApigeeV1ApiDebugSession {
+    /// The revision ID of the deployed API proxy.
+    #[serde(default, rename = "apiProxyRevisionId")]
+    pub api_proxy_revision_id: ::core::option::Option<String>,
+    /// The first transaction creation timestamp in millisecond, recorded by UAP.
+    #[serde(default, rename = "createTime")]
+    pub create_time: ::core::option::Option<String>,
+    /// The environment ID of the deployed API proxy.
+    #[serde(default, rename = "environmentId")]
+    pub environment_id: ::core::option::Option<String>,
+    /// The debug session ID.
+    #[serde(default)]
+    pub id: ::core::option::Option<String>,
+}
+
+/// ApiDoc represents an API catalog item. Catalog items are used in two ways in a portal: - Users can browse and interact with a visual representation of the API documentation - The api_product_name field provides a link to a backing [API product] (/apigee/docs/reference/apis/apigee/rest/v1/organizations.apiproducts). Through this link, portal users can create and manage developer apps linked to one or more API products.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudApigeeV1ApiDoc {
+    /// Optional. Boolean flag that manages user access to the catalog item. When true, the catalog item has public visibility and can be viewed anonymously; otherwise, only registered users may view it. Note: when the parent portal is enrolled in the [audience management feature](https://cloud.google.com/apigee/docs/api-platform/publish/portal/portal-audience#enrolling_in_the_beta_release_of_the_audience_management_feature), and this flag is set to false, visibility is set to an indeterminate state and must be explicitly specified in the management UI (see [Manage the visibility of an API in your portal](https://cloud.google.com/apigee/docs/api-platform/publish/portal/publish-apis#visibility)). Additionally, when enrolled in the audience management feature, updates to this flag will be ignored as visibility permissions must be updated in the management UI.
+    #[serde(default, rename = "anonAllowed")]
+    pub anon_allowed: ::core::option::Option<bool>,
+    /// Required. Immutable. The name field of the associated [API product](/apigee/docs/reference/apis/apigee/rest/v1/organizations.apiproducts). A portal may have only one catalog item associated with a given API product.
+    #[serde(default, rename = "apiProductName")]
+    pub api_product_name: ::core::option::Option<String>,
+    /// Optional. The IDs of the API categories to which this catalog item belongs.
+    #[serde(default, rename = "categoryIds")]
+    pub category_ids: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Optional. Description of the catalog item. Max length is 10,000 characters.
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+    /// Optional. Immutable. DEPRECATED: use the apiProductName field instead
+    #[serde(default, rename = "edgeAPIProductName")]
+    pub edge_a_p_i_product_name: ::core::option::Option<String>,
+    /// Optional. DEPRECATED: manage documentation through the getDocumentation and updateDocumentation methods
+    #[serde(default, rename = "graphqlEndpointUrl")]
+    pub graphql_endpoint_url: ::core::option::Option<String>,
+    /// Optional. DEPRECATED: manage documentation through the getDocumentation and updateDocumentation methods
+    #[serde(default, rename = "graphqlSchema")]
+    pub graphql_schema: ::core::option::Option<String>,
+    /// Optional. DEPRECATED: manage documentation through the getDocumentation and updateDocumentation methods
+    #[serde(default, rename = "graphqlSchemaDisplayName")]
+    pub graphql_schema_display_name: ::core::option::Option<String>,
+    /// Output only. The ID of the catalog item.
+    #[serde(default)]
+    pub id: ::core::option::Option<String>,
+    /// Optional. Location of the image used for the catalog item in the catalog. This can be either an image with an external URL or a file path for [image files stored in the portal](/apigee/docs/api-platform/publish/portal/portal-files"), for example, /files/book-tree.jpg. When specifying the URL of an external image, the image won''t be uploaded to your assets; additionally, loading the image in the integrated portal will be subject to its availability, which may be blocked or restricted by [content security policies](/apigee/docs/api-platform/publish/portal/csp). Max length of file path is 2,083 characters.
+    #[serde(default, rename = "imageUrl")]
+    pub image_url: ::core::option::Option<String>,
+    /// Output only. Time the catalog item was last modified in milliseconds since epoch.
+    #[serde(default)]
+    pub modified: ::core::option::Option<String>,
+    /// Optional. Denotes whether the catalog item is published to the portal or is in a draft state. When the parent portal is enrolled in the [audience management feature](https://cloud.google.com/apigee/docs/api-platform/publish/portal/portal-audience#enrolling_in_the_beta_release_of_the_audience_management_feature), the visibility can be set to public on creation by setting the anonAllowed flag to true or further managed in the management UI (see [Manage the visibility of an API in your portal](https://cloud.google.com/apigee/docs/api-platform/publish/portal/publish-apis#visibility)) before it can be visible to any users. If not enrolled in the audience management feature, the visibility is managed by the anonAllowed flag.
+    #[serde(default)]
+    pub published: ::core::option::Option<bool>,
+    /// Optional. Whether a callback URL is required when this catalog item''s API product is enabled in a developer app. When true, a portal user will be required to input a URL when managing the app (this is typically used for the app''s OAuth flow).
+    #[serde(default, rename = "requireCallbackUrl")]
+    pub require_callback_url: ::core::option::Option<bool>,
+    /// Output only. The ID of the parent portal.
+    #[serde(default, rename = "siteId")]
+    pub site_id: ::core::option::Option<String>,
+    /// Optional. DEPRECATED: DO NOT USE
+    #[serde(default, rename = "specId")]
+    pub spec_id: ::core::option::Option<String>,
+    /// Required. The user-facing name of the catalog item. title must be a non-empty string with a max length of 255 characters.
+    #[serde(default)]
+    pub title: ::core::option::Option<String>,
+    /// Optional. DEPRECATED: use the published field instead
+    #[serde(default)]
+    pub visibility: ::core::option::Option<bool>,
+}
+
+/// GoogleCloudApigeeV1ApiProduct resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudApigeeV1ApiProduct {
+    /// Comma-separated list of API resources to be bundled in the API product. By default, the resource paths are mapped from the proxy.pathsuffix variable. The proxy path suffix is defined as the URI fragment following the ProxyEndpoint base path. For example, if the apiResources element is defined to be /forecastrss and the base path defined for the API proxy is /weather, then only requests to /weather/forecastrss are permitted by the API product. You can select a specific path, or you can select all subpaths with the following wildcard: - /**: Indicates that all sub-URIs are included. - /* : Indicates that only URIs one level down are included. By default, / supports the same resources as /** as well as the base path defined by the API proxy. For example, if the base path of the API proxy is /v1/weatherapikey, then the API product supports requests to /v1/weatherapikey and to any sub-URIs, such as /v1/weatherapikey/forecastrss, /v1/weatherapikey/region/CA, and so on. For more information, see Managing API products.
+    #[serde(default, rename = "apiResources")]
+    pub api_resources: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Flag that specifies how API keys are approved to access the APIs defined by the API product. If set to manual, the consumer key is generated and returned in "pending" state. In this case, the API keys won''t work until they have been explicitly approved. If set to auto, the consumer key is generated and returned in "approved" state and can be used immediately. **Note:** Typically, auto is used to provide access to free or trial API products that provide limited quota or capabilities.
+    #[serde(default, rename = "approvalType")]
+    pub approval_type: ::core::option::Option<String>,
+    /// Array of attributes that may be used to extend the default API product profile with customer-specific metadata. You can specify a maximum of 18 attributes. Use this property to specify the access level of the API product as either public, private, or internal. Only products marked public are available to developers in the Apigee developer portal. For example, you can set a product to internal while it is in development and then change access to public when it is ready to release on the portal. API products marked as private do not appear on the portal, but can be accessed by external developers.
+    #[serde(default)]
+    pub attributes: ::core::option::Option<::std::vec::Vec<GoogleCloudApigeeV1Attribute>>,
+    /// Response only. Creation time of this environment as milliseconds since epoch.
+    #[serde(default, rename = "createdAt")]
+    pub created_at: ::core::option::Option<String>,
+    /// Description of the API product. Include key information about the API product that is not captured by other fields.
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+    /// Name displayed in the UI or developer portal to developers registering for API access.
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+    /// Comma-separated list of environment names to which the API product is bound. Requests to environments that are not listed are rejected. By specifying one or more environments, you can bind the resources listed in the API product to a specific environment, preventing developers from accessing those resources through API proxies deployed in another environment. This setting is used, for example, to prevent resources associated with API proxies in prod from being accessed by API proxies deployed in test.
+    #[serde(default)]
+    pub environments: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Configuration used to group Apigee proxies or remote services with graphQL operation name, graphQL operation type and quotas. This grouping allows us to precisely set quota for a particular combination of graphQL name and operation type for a particular proxy request. If graphQL name is not set, this would imply quota will be applied on all graphQL requests matching the operation type.
+    #[serde(default, rename = "graphqlOperationGroup")]
+    pub graphql_operation_group: ::core::option::Option<GoogleCloudApigeeV1GraphQLOperationGroup>,
+    /// Optional. Configuration used to group Apigee proxies with gRPC services and method names. This grouping allows us to set quota for a particular proxy with the gRPC service name and method. If a method name is not set, this implies quota and authorization are applied to all gRPC methods implemented by that proxy for that particular gRPC service.
+    #[serde(default, rename = "grpcOperationGroup")]
+    pub grpc_operation_group: ::core::option::Option<GoogleCloudApigeeV1GrpcOperationGroup>,
+    /// Response only. Modified time of this environment as milliseconds since epoch.
+    #[serde(default, rename = "lastModifiedAt")]
+    pub last_modified_at: ::core::option::Option<String>,
+    /// Optional. Configuration used to group Apigee proxies with resources, method types, LLM model and quotas. The resource refers to the resource URI (excluding the base path). With this grouping, the API product creator is able to fine-tune and give precise control over which REST methods have access to specific resources, specific LLM model and how many calls can be made (using the quota setting). **Note:** The api_resources setting cannot be specified for both the API product and llm operation group; otherwise the call will fail.
+    #[serde(default, rename = "llmOperationGroup")]
+    pub llm_operation_group: ::core::option::Option<GoogleCloudApigeeV1LlmOperationGroup>,
+    /// Optional. Number of LLM tokens permitted per app by this API product for the specified llm_quota_interval and llm_quota_time_unit. For example, an llm_quota of 50,000, for an llm_quota_interval of 12 and an llm_quota_time_unit of hours means 50,000 llm tokens are allowed to be used every 12 hours.
+    #[serde(default, rename = "llmQuota")]
+    pub llm_quota: ::core::option::Option<String>,
+    /// Optional. Time interval over which the number of tokens from LLM responses is calculated.
+    #[serde(default, rename = "llmQuotaInterval")]
+    pub llm_quota_interval: ::core::option::Option<String>,
+    /// Optional. Time unit defined for the llm_quota_interval. Valid values include minute, hour, day, or month.
+    #[serde(default, rename = "llmQuotaTimeUnit")]
+    pub llm_quota_time_unit: ::core::option::Option<String>,
+    /// Internal name of the API product. Characters you can use in the name are restricted to: A-Z0-9._\-$ %. **Note:** The internal name cannot be edited when updating the API product.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Configuration used to group Apigee proxies or remote services with resources, method types, and quotas. The resource refers to the resource URI (excluding the base path). With this grouping, the API product creator is able to fine-tune and give precise control over which REST methods have access to specific resources and how many calls can be made (using the quota setting). **Note:** The api_resources setting cannot be specified for both the API product and operation group; otherwise the call will fail.
+    #[serde(default, rename = "operationGroup")]
+    pub operation_group: ::core::option::Option<GoogleCloudApigeeV1OperationGroup>,
+    /// Comma-separated list of API proxy names to which this API product is bound. By specifying API proxies, you can associate resources in the API product with specific API proxies, preventing developers from accessing those resources through other API proxies. Apigee rejects requests to API proxies that are not listed. **Note:** The API proxy names must already exist in the specified environment as they will be validated upon creation.
+    #[serde(default)]
+    pub proxies: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Number of request messages permitted per app by this API product for the specified quotaInterval and quotaTimeUnit. For example, a quota of 50, for a quotaInterval of 12 and a quotaTimeUnit of hours means 50 requests are allowed every 12 hours.
+    #[serde(default)]
+    pub quota: ::core::option::Option<String>,
+    /// Scope of the quota decides how the quota counter gets applied and evaluate for quota violation. If the Scope is set as PROXY, then all the operations defined for the APIproduct that are associated with the same proxy will share the same quota counter set at the APIproduct level, making it a global counter at a proxy level. If the Scope is set as OPERATION, then each operations get the counter set at the API product dedicated, making it a local counter. Note that, the QuotaCounterScope applies only when an operation does not have dedicated quota set for itself. // TODO: enum values: ["QUOTA_COUNTER_SCOPE_UNSPECIFIED", "PROXY", "OPERATION", "PRODUCT"]
+    #[serde(default, rename = "quotaCounterScope")]
+    pub quota_counter_scope: ::core::option::Option<String>,
+    /// Time interval over which the number of request messages is calculated.
+    #[serde(default, rename = "quotaInterval")]
+    pub quota_interval: ::core::option::Option<String>,
+    /// Time unit defined for the quotaInterval. Valid values include minute, hour, day, or month.
+    #[serde(default, rename = "quotaTimeUnit")]
+    pub quota_time_unit: ::core::option::Option<String>,
+    /// Comma-separated list of OAuth scopes that are validated at runtime. Apigee validates that the scopes in any access token presented match the scopes defined in the OAuth policy associated with the API product.
+    #[serde(default)]
+    pub scopes: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Optional. The resource ID of the parent Space. If not set, the parent resource will be the Organization. To learn how Spaces can be used to manage resources, read the [Apigee Spaces Overview](https://cloud.google.com/apigee/docs/api-platform/system-administration/spaces/apigee-spaces-overview).
+    #[serde(default)]
+    pub space: ::core::option::Option<String>,
+}
+
+/// Metadata describing the API proxy
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudApigeeV1ApiProxy {
+    /// Output only. The type of the API proxy. // TODO: enum values: ["API_PROXY_TYPE_UNSPECIFIED", "PROGRAMMABLE", "CONFIGURABLE"]
+    #[serde(default, rename = "apiProxyType")]
+    pub api_proxy_type: ::core::option::Option<String>,
+    /// User labels applied to this API Proxy.
+    #[serde(default)]
+    pub labels: ::core::option::Option<serde_json::Value>,
+    /// Output only. The id of the most recently created revision for this api proxy.
+    #[serde(default, rename = "latestRevisionId")]
+    pub latest_revision_id: ::core::option::Option<String>,
+    /// Output only. Metadata describing the API proxy.
+    #[serde(default, rename = "metaData")]
+    pub meta_data: ::core::option::Option<GoogleCloudApigeeV1EntityMetadata>,
+    /// Output only. Name of the API proxy.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Output only. Whether this proxy is read-only. A read-only proxy cannot have new revisions created through calls to CreateApiProxyRevision. A proxy is read-only if it was generated by an archive.
+    #[serde(default, rename = "readOnly")]
+    pub read_only: ::core::option::Option<bool>,
+    /// Output only. List of revisions defined for the API proxy.
+    #[serde(default)]
+    pub revision: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Optional. The id of the space this proxy is associated with. Any IAM policies applied to the space will control access to this proxy. To learn how Spaces can be used to manage resources, read the [Apigee Spaces Overview](https://cloud.google.com/apigee/docs/api-platform/system-administration/spaces/apigee-spaces-overview).
+    #[serde(default)]
+    pub space: ::core::option::Option<String>,
+}
+
+/// APIM Service Extension is a resource under an Apigee Organization that is used to create APIM Service Extension to route traffic to existing X instances.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudApigeeV1ApimServiceExtension {
+    /// Output only. The time that this resource was created on the server.
+    #[serde(default, rename = "createTime")]
+    pub create_time: ::core::option::Option<String>,
+    /// Required. Name of the proxy deployed in the Apigee X instance.
+    #[serde(default, rename = "extensionProcessor")]
+    pub extension_processor: ::core::option::Option<String>,
+    /// Optional. List of extensions that are part of the service extension. Refer to https://cloud.google.com/service-extensions/docs/quotas#limits for any limits.
+    #[serde(default)]
+    pub extensions:
+        ::core::option::Option<::std::vec::Vec<GoogleCloudApigeeV1ApimServiceExtensionExtension>>,
+    /// Required. Name of the Google Cloud LB forwarding rule. Format: projects/{project}/regions/{region}/forwardingRules/{forwarding_rule} projects/{project}/global/forwardingRules/{forwarding_rule}
+    #[serde(default, rename = "lbForwardingRule")]
+    pub lb_forwarding_rule: ::core::option::Option<String>,
+    /// Identifier. unique name of the APIM service extension. The name must conform with RFC-1034, is restricted to lower-cased letters, numbers and hyphens, and can have a maximum length of 63 characters. Additionally, the first character must be a letter and the last a letter or a number.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Required. The network where the forwarding rule is created. Format: projects/{project}/global/networks/{network}
+    #[serde(default)]
+    pub network: ::core::option::Option<String>,
+    /// Required. List of network configurations for the APIM service extension.
+    #[serde(default, rename = "networkConfigs")]
+    pub network_configs: ::core::option::Option<
+        ::std::vec::Vec<GoogleCloudApigeeV1ApimServiceExtensionNetworkConfig>,
+    >,
+    /// Output only. State of the APIM service extension. Values other than ACTIVE mean the resource is not ready to use. // TODO: enum values: ["STATE_UNSPECIFIED", "CREATING", "ACTIVE", "DELETING", "UPDATING"]
+    #[serde(default)]
+    pub state: ::core::option::Option<String>,
+    /// Output only. The time that this resource was updated on the server.
+    #[serde(default, rename = "updateTime")]
+    pub update_time: ::core::option::Option<String>,
+}
+
+/// Response for [GetAppGroupApp].[AppGroupApps.GetAppGroupApp], [CreateAppGroupAppRequest].[AppGroupApp.CreateAppGroupAppRequest] and [DeleteAppGroupApp].[AppGroupApp.DeleteAppGroupApp]
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudApigeeV1AppGroupApp {
+    /// List of API products associated with the AppGroup app.
+    #[serde(default, rename = "apiProducts")]
+    pub api_products: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Immutable. Name of the parent AppGroup whose resource name format is of syntax (organizations/*/appgroups/*).
+    #[serde(default, rename = "appGroup")]
+    pub app_group: ::core::option::Option<String>,
+    /// Immutable. ID of the AppGroup app.
+    #[serde(default, rename = "appId")]
+    pub app_id: ::core::option::Option<String>,
+    /// List of attributes for the AppGroup app.
+    #[serde(default)]
+    pub attributes: ::core::option::Option<::std::vec::Vec<GoogleCloudApigeeV1Attribute>>,
+    /// Callback URL used by OAuth 2.0 authorization servers to communicate authorization codes back to AppGroup apps.
+    #[serde(default, rename = "callbackUrl")]
+    pub callback_url: ::core::option::Option<String>,
+    /// Output only. Time the AppGroup app was created in milliseconds since epoch.
+    #[serde(default, rename = "createdAt")]
+    pub created_at: ::core::option::Option<String>,
+    /// Output only. Set of credentials for the AppGroup app consisting of the consumer key/secret pairs associated with the API products.
+    #[serde(default)]
+    pub credentials: ::core::option::Option<::std::vec::Vec<GoogleCloudApigeeV1Credential>>,
+    /// Immutable. Expiration time, in seconds, for the consumer key that is generated for the AppGroup app. If not set or left to the default value of -1, the API key never expires. The expiration time can''t be updated after it is set.
+    #[serde(default, rename = "keyExpiresIn")]
+    pub key_expires_in: ::core::option::Option<String>,
+    /// Output only. Time the AppGroup app was modified in milliseconds since epoch.
+    #[serde(default, rename = "lastModifiedAt")]
+    pub last_modified_at: ::core::option::Option<String>,
+    /// Immutable. Name of the AppGroup app whose resource name format is of syntax (organizations/*/appgroups/*/apps/*).
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Scopes to apply to the AppGroup app. The specified scopes must already exist for the API product that you associate with the AppGroup app.
+    #[serde(default)]
+    pub scopes: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Status of the App. Valid values include approved or revoked.
+    #[serde(default)]
+    pub status: ::core::option::Option<String>,
+}
+
+/// AppGroup Subscription details.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudApigeeV1AppGroupSubscription {
+    /// Required. Name of the API product for which the appgroup is purchasing a subscription.
+    #[serde(default)]
+    pub apiproduct: ::core::option::Option<String>,
+    /// Output only. Time when the API product subscription was created in milliseconds since epoch.
+    #[serde(default, rename = "createdAt")]
+    pub created_at: ::core::option::Option<String>,
+    /// Output only. Time when the API product subscription ends in milliseconds since epoch.
+    #[serde(default, rename = "endTime")]
+    pub end_time: ::core::option::Option<String>,
+    /// Output only. Time when the API product subscription was last modified in milliseconds since epoch.
+    #[serde(default, rename = "lastModifiedAt")]
+    pub last_modified_at: ::core::option::Option<String>,
+    /// Output only. Name of the API product subscription.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Output only. Time when the API product subscription starts in milliseconds since epoch.
+    #[serde(default, rename = "startTime")]
+    pub start_time: ::core::option::Option<String>,
+}
+
+/// AppGroup contains the request/response fields representing the logical grouping of apps. Note that appgroup_id, create_time and update_time cannot be changed by the user, and gets updated by the system. The name and the organization once provided cannot be edited subsequently.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudApigeeV1AppGroup {
+    /// Output only. Internal identifier that cannot be edited
+    #[serde(default, rename = "appGroupId")]
+    pub app_group_id: ::core::option::Option<String>,
+    /// A list of attributes
+    #[serde(default)]
+    pub attributes: ::core::option::Option<::std::vec::Vec<GoogleCloudApigeeV1Attribute>>,
+    /// channel identifier identifies the owner maintaing this grouping.
+    #[serde(default, rename = "channelId")]
+    pub channel_id: ::core::option::Option<String>,
+    /// A reference to the associated storefront/marketplace.
+    #[serde(default, rename = "channelUri")]
+    pub channel_uri: ::core::option::Option<String>,
+    /// Output only. Created time as milliseconds since epoch.
+    #[serde(default, rename = "createdAt")]
+    pub created_at: ::core::option::Option<String>,
+    /// app group name displayed in the UI
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+    /// Optional. Email of the AppGroup.
+    #[serde(default)]
+    pub email: ::core::option::Option<String>,
+    /// Output only. Modified time as milliseconds since epoch.
+    #[serde(default, rename = "lastModifiedAt")]
+    pub last_modified_at: ::core::option::Option<String>,
+    /// Immutable. Name of the AppGroup. Characters you can use in the name are restricted to: A-Z0-9._\-$ %.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Immutable. the org the app group is created
+    #[serde(default)]
+    pub organization: ::core::option::Option<String>,
+    /// Valid values are active or inactive. Note that the status of the AppGroup should be updated via UpdateAppGroupRequest by setting the action as active or inactive.
+    #[serde(default)]
+    pub status: ::core::option::Option<String>,
+}
+
+/// GoogleCloudApigeeV1App resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudApigeeV1App {
+    /// List of API products associated with the app.
+    #[serde(default, rename = "apiProducts")]
+    pub api_products: ::core::option::Option<::std::vec::Vec<GoogleCloudApigeeV1ApiProductRef>>,
+    /// Name of the AppGroup
+    #[serde(default, rename = "appGroup")]
+    pub app_group: ::core::option::Option<String>,
+    /// ID of the app.
+    #[serde(default, rename = "appId")]
+    pub app_id: ::core::option::Option<String>,
+    /// List of attributes.
+    #[serde(default)]
+    pub attributes: ::core::option::Option<::std::vec::Vec<GoogleCloudApigeeV1Attribute>>,
+    /// Callback URL used by OAuth 2.0 authorization servers to communicate authorization codes back to apps.
+    #[serde(default, rename = "callbackUrl")]
+    pub callback_url: ::core::option::Option<String>,
+    /// Name of the company that owns the app.
+    #[serde(default, rename = "companyName")]
+    pub company_name: ::core::option::Option<String>,
+    /// Output only. Unix time when the app was created.
+    #[serde(default, rename = "createdAt")]
+    pub created_at: ::core::option::Option<String>,
+    /// Output only. Set of credentials for the app. Credentials are API key/secret pairs associated with API products.
+    #[serde(default)]
+    pub credentials: ::core::option::Option<::std::vec::Vec<GoogleCloudApigeeV1Credential>>,
+    /// Email of the developer.
+    #[serde(default, rename = "developerEmail")]
+    pub developer_email: ::core::option::Option<String>,
+    /// ID of the developer.
+    #[serde(default, rename = "developerId")]
+    pub developer_id: ::core::option::Option<String>,
+    /// Duration, in milliseconds, of the consumer key that will be generated for the app. The default value, -1, indicates an infinite validity period. Once set, the expiration can''t be updated. json key: keyExpiresIn
+    #[serde(default, rename = "keyExpiresIn")]
+    pub key_expires_in: ::core::option::Option<String>,
+    /// Output only. Last modified time as milliseconds since epoch.
+    #[serde(default, rename = "lastModifiedAt")]
+    pub last_modified_at: ::core::option::Option<String>,
+    /// Name of the app.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Scopes to apply to the app. The specified scope names must already exist on the API product that you associate with the app.
+    #[serde(default)]
+    pub scopes: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Status of the credential.
+    #[serde(default)]
+    pub status: ::core::option::Option<String>,
+}
+
+/// Archive Deployment information.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudApigeeV1ArchiveDeployment {
+    /// Output only. The time at which the Archive Deployment was created in milliseconds since the epoch.
+    #[serde(default, rename = "createdAt")]
+    pub created_at: ::core::option::Option<String>,
+    /// Input only. The Google Cloud Storage signed URL returned from GenerateUploadUrl and used to upload the Archive zip file.
+    #[serde(default, rename = "gcsUri")]
+    pub gcs_uri: ::core::option::Option<String>,
+    /// User-supplied key-value pairs used to organize ArchiveDeployments. Label keys must be between 1 and 63 characters long, have a UTF-8 encoding of maximum 128 bytes, and must conform to the following PCRE regular expression: \p{Ll}\p{Lo}{0,62} Label values must be between 1 and 63 characters long, have a UTF-8 encoding of maximum 128 bytes, and must conform to the following PCRE regular expression: [\p{Ll}\p{Lo}\p{N}_-]{0,63} No more than 64 labels can be associated with a given store.
+    #[serde(default)]
+    pub labels: ::core::option::Option<serde_json::Value>,
+    /// Name of the Archive Deployment in the following format: organizations/{org}/environments/{env}/archiveDeployments/{id}.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Output only. A reference to the LRO that created this Archive Deployment in the following format: organizations/{org}/operations/{id}
+    #[serde(default)]
+    pub operation: ::core::option::Option<String>,
+    /// Output only. The time at which the Archive Deployment was updated in milliseconds since the epoch.
+    #[serde(default, rename = "updatedAt")]
+    pub updated_at: ::core::option::Option<String>,
+}
+
+/// GoogleCloudApigeeV1AsyncQuery resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudApigeeV1AsyncQuery {
+    /// Creation time of the query.
+    #[serde(default)]
+    pub created: ::core::option::Option<String>,
+    /// Hostname is available only when query is executed at host level.
+    #[serde(default, rename = "envgroupHostname")]
+    pub envgroup_hostname: ::core::option::Option<String>,
+    /// Error is set when query fails.
+    #[serde(default)]
+    pub error: ::core::option::Option<String>,
+    /// ExecutionTime is available only after the query is completed.
+    #[serde(default, rename = "executionTime")]
+    pub execution_time: ::core::option::Option<String>,
+    /// Asynchronous Query Name.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Contains information like metrics, dimenstions etc of the AsyncQuery.
+    #[serde(default, rename = "queryParams")]
+    pub query_params: ::core::option::Option<GoogleCloudApigeeV1QueryMetadata>,
+    /// Asynchronous Report ID.
+    #[serde(default, rename = "reportDefinitionId")]
+    pub report_definition_id: ::core::option::Option<String>,
+    /// Result is available only after the query is completed.
+    #[serde(default)]
+    pub result: ::core::option::Option<GoogleCloudApigeeV1AsyncQueryResult>,
+    /// ResultFileSize is available only after the query is completed.
+    #[serde(default, rename = "resultFileSize")]
+    pub result_file_size: ::core::option::Option<String>,
+    /// ResultRows is available only after the query is completed.
+    #[serde(default, rename = "resultRows")]
+    pub result_rows: ::core::option::Option<String>,
+    /// Self link of the query. Example: /organizations/myorg/environments/myenv/queries/9cfc0d85-0f30-46d6-ae6f-318d0cb961bd or following format if query is running at host level: /organizations/myorg/hostQueries/9cfc0d85-0f30-46d6-ae6f-318d0cb961bd
+    #[serde(default, rename = "self")]
+    pub self_: ::core::option::Option<String>,
+    /// Query state could be "enqueued", "running", "completed", "failed".
+    #[serde(default)]
+    pub state: ::core::option::Option<String>,
+    /// Last updated timestamp for the query.
+    #[serde(default)]
+    pub updated: ::core::option::Option<String>,
+}
+
+/// GoogleCloudApigeeV1CustomReport resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudApigeeV1CustomReport {
+    /// This field contains the chart type for the report
+    #[serde(default, rename = "chartType")]
+    pub chart_type: ::core::option::Option<String>,
+    /// Legacy field: not used. This field contains a list of comments associated with custom report
+    #[serde(default)]
+    pub comments: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Output only. Unix time when the app was created json key: createdAt
+    #[serde(default, rename = "createdAt")]
+    pub created_at: ::core::option::Option<String>,
+    /// This contains the list of dimensions for the report
+    #[serde(default)]
+    pub dimensions: ::core::option::Option<::std::vec::Vec<String>>,
+    /// This is the display name for the report
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+    /// Output only. Environment name
+    #[serde(default)]
+    pub environment: ::core::option::Option<String>,
+    /// This field contains the filter expression
+    #[serde(default)]
+    pub filter: ::core::option::Option<String>,
+    /// Legacy field: not used. Contains the from time for the report
+    #[serde(default, rename = "fromTime")]
+    pub from_time: ::core::option::Option<String>,
+    /// Output only. Modified time of this entity as milliseconds since epoch. json key: lastModifiedAt
+    #[serde(default, rename = "lastModifiedAt")]
+    pub last_modified_at: ::core::option::Option<String>,
+    /// Output only. Last viewed time of this entity as milliseconds since epoch
+    #[serde(default, rename = "lastViewedAt")]
+    pub last_viewed_at: ::core::option::Option<String>,
+    /// Legacy field: not used This field contains the limit for the result retrieved
     #[serde(default)]
     pub limit: ::core::option::Option<String>,
-    /// Time unit defined for the interval. Valid values include minute, hour, day, or month. If limit and interval are valid, the default value is hour; otherwise, the default is null.
+    /// Required. This contains the list of metrics
+    #[serde(default)]
+    pub metrics: ::core::option::Option<::std::vec::Vec<GoogleCloudApigeeV1CustomReportMetric>>,
+    /// Required. Unique identifier for the report T his is a legacy field used to encode custom report unique id
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Legacy field: not used. This field contains the offset for the data
+    #[serde(default)]
+    pub offset: ::core::option::Option<String>,
+    /// Output only. Organization name
+    #[serde(default)]
+    pub organization: ::core::option::Option<String>,
+    /// This field contains report properties such as ui metadata etc.
+    #[serde(default)]
+    pub properties: ::core::option::Option<::std::vec::Vec<GoogleCloudApigeeV1ReportProperty>>,
+    /// Legacy field: not used much. Contains the list of sort by columns
+    #[serde(default, rename = "sortByCols")]
+    pub sort_by_cols: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Legacy field: not used much. Contains the sort order for the sort columns
+    #[serde(default, rename = "sortOrder")]
+    pub sort_order: ::core::option::Option<String>,
+    /// Legacy field: not used. This field contains a list of tags associated with custom report
+    #[serde(default)]
+    pub tags: ::core::option::Option<::std::vec::Vec<String>>,
+    /// This field contains the time unit of aggregation for the report
     #[serde(default, rename = "timeUnit")]
     pub time_unit: ::core::option::Option<String>,
+    /// Legacy field: not used. Contains the end time for the report
+    #[serde(default, rename = "toTime")]
+    pub to_time: ::core::option::Option<String>,
+    /// Legacy field: not used. This field contains the top k parameter value for restricting the result
+    #[serde(default)]
+    pub topk: ::core::option::Option<String>,
+}
+
+/// Data collector configuration.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudApigeeV1DataCollector {
+    /// Output only. The time at which the data collector was created in milliseconds since the epoch.
+    #[serde(default, rename = "createdAt")]
+    pub created_at: ::core::option::Option<String>,
+    /// A description of the data collector.
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+    /// Output only. The time at which the Data Collector was last updated in milliseconds since the epoch.
+    #[serde(default, rename = "lastModifiedAt")]
+    pub last_modified_at: ::core::option::Option<String>,
+    /// ID of the data collector. Must begin with dc_.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Immutable. The type of data this data collector will collect. // TODO: enum values: ["TYPE_UNSPECIFIED", "INTEGER", "FLOAT", "STRING", "BOOLEAN", "DATETIME"]
+    #[serde(default, rename = "type")]
+    pub type_: ::core::option::Option<String>,
+}
+
+/// The data store defines the connection to export data repository (Cloud Storage, BigQuery), including the credentials used to access the data repository.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudApigeeV1Datastore {
+    /// Output only. Datastore create time, in milliseconds since the epoch of 1970-01-01T00:00:00Z
+    #[serde(default, rename = "createTime")]
+    pub create_time: ::core::option::Option<String>,
+    /// Datastore Configurations.
+    #[serde(default, rename = "datastoreConfig")]
+    pub datastore_config: ::core::option::Option<GoogleCloudApigeeV1DatastoreConfig>,
+    /// Required. Display name in UI
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+    /// Output only. Datastore last update time, in milliseconds since the epoch of 1970-01-01T00:00:00Z
+    #[serde(default, rename = "lastUpdateTime")]
+    pub last_update_time: ::core::option::Option<String>,
+    /// Output only. Organization that the datastore belongs to
+    #[serde(default)]
+    pub org: ::core::option::Option<String>,
+    /// Output only. Resource link of Datastore. Example: /organizations/{org}/analytics/datastores/{uuid}
+    #[serde(default, rename = "self")]
+    pub self_: ::core::option::Option<String>,
+    /// Destination storage type. Supported types gcs or bigquery.
+    #[serde(default, rename = "targetType")]
+    pub target_type: ::core::option::Option<String>,
+}
+
+/// Session carries the debug session id and its creation time.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudApigeeV1Session {
+    /// The debug session ID.
+    #[serde(default)]
+    pub id: ::core::option::Option<String>,
+    /// The first transaction creation timestamp in millisecond, recorded by UAP.
+    #[serde(default, rename = "timestampMs")]
+    pub timestamp_ms: ::core::option::Option<String>,
+}
+
+/// Deployment represents a deployment of an API proxy or shared flow.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudApigeeV1Deployment {
+    /// API proxy.
+    #[serde(default, rename = "apiProxy")]
+    pub api_proxy: ::core::option::Option<String>,
+    /// Time the API proxy was marked deployed in the control plane in millisconds since epoch.
+    #[serde(default, rename = "deployStartTime")]
+    pub deploy_start_time: ::core::option::Option<String>,
+    /// Environment.
+    #[serde(default)]
+    pub environment: ::core::option::Option<String>,
+    /// Errors reported for this deployment. Populated only when state == ERROR. **Note**: This field is displayed only when viewing deployment status.
+    #[serde(default)]
+    pub errors: ::core::option::Option<::std::vec::Vec<GoogleRpcStatus>>,
+    /// Status reported by each runtime instance. **Note**: This field is displayed only when viewing deployment status.
+    #[serde(default)]
+    pub instances:
+        ::core::option::Option<::std::vec::Vec<GoogleCloudApigeeV1InstanceDeploymentStatus>>,
+    /// Status reported by runtime pods. **Note**: **This field is deprecated**. Runtime versions 1.3 and above report instance level status rather than pod status.
+    #[serde(default)]
+    pub pods: ::core::option::Option<::std::vec::Vec<GoogleCloudApigeeV1PodStatus>>,
+    /// Output only. The type of the deployment (standard or extensible) Deployed proxy revision will be marked as extensible in following 2 cases. 1. The deployed proxy revision uses extensible policies. 2. If a environment supports flowhooks and flow hook is configured. // TODO: enum values: ["PROXY_DEPLOYMENT_TYPE_UNSPECIFIED", "STANDARD", "EXTENSIBLE"]
+    #[serde(default, rename = "proxyDeploymentType")]
+    pub proxy_deployment_type: ::core::option::Option<String>,
+    /// API proxy revision.
+    #[serde(default)]
+    pub revision: ::core::option::Option<String>,
+    /// Conflicts in the desired state routing configuration. The presence of conflicts does not cause the state to be ERROR, but it will mean that some of the deployment''s base paths are not routed to its environment. If the conflicts change, the state will transition to PROGRESSING until the latest configuration is rolled out to all instances. **Note**: This field is displayed only when viewing deployment status.
+    #[serde(default, rename = "routeConflicts")]
+    pub route_conflicts: ::core::option::Option<
+        ::std::vec::Vec<GoogleCloudApigeeV1DeploymentChangeReportRoutingConflict>,
+    >,
+    /// The full resource name of Cloud IAM Service Account that this deployment is using, eg, projects/-/serviceAccounts/{email}.
+    #[serde(default, rename = "serviceAccount")]
+    pub service_account: ::core::option::Option<String>,
+    /// Current state of the deployment. **Note**: This field is displayed only when viewing deployment status. // TODO: enum values: ["RUNTIME_STATE_UNSPECIFIED", "READY", "PROGRESSING", "ERROR"]
+    #[serde(default)]
+    pub state: ::core::option::Option<String>,
+}
+
+/// GoogleCloudApigeeV1DeveloperApp resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudApigeeV1DeveloperApp {
+    /// List of API products associated with the developer app.
+    #[serde(default, rename = "apiProducts")]
+    pub api_products: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Developer app family.
+    #[serde(default, rename = "appFamily")]
+    pub app_family: ::core::option::Option<String>,
+    /// ID of the developer app. This ID is not user specified but is automatically generated on app creation. appId is a UUID.
+    #[serde(default, rename = "appId")]
+    pub app_id: ::core::option::Option<String>,
+    /// List of attributes for the developer app.
+    #[serde(default)]
+    pub attributes: ::core::option::Option<::std::vec::Vec<GoogleCloudApigeeV1Attribute>>,
+    /// Callback URL used by OAuth 2.0 authorization servers to communicate authorization codes back to developer apps.
+    #[serde(default, rename = "callbackUrl")]
+    pub callback_url: ::core::option::Option<String>,
+    /// Output only. Time the developer app was created in milliseconds since epoch.
+    #[serde(default, rename = "createdAt")]
+    pub created_at: ::core::option::Option<String>,
+    /// Output only. Set of credentials for the developer app consisting of the consumer key/secret pairs associated with the API products.
+    #[serde(default)]
+    pub credentials: ::core::option::Option<::std::vec::Vec<GoogleCloudApigeeV1Credential>>,
+    /// ID of the developer.
+    #[serde(default, rename = "developerId")]
+    pub developer_id: ::core::option::Option<String>,
+    /// Expiration time, in milliseconds, for the consumer key that is generated for the developer app. If not set or left to the default value of -1, the API key never expires. The expiration time can''t be updated after it is set.
+    #[serde(default, rename = "keyExpiresIn")]
+    pub key_expires_in: ::core::option::Option<String>,
+    /// Output only. Time the developer app was modified in milliseconds since epoch.
+    #[serde(default, rename = "lastModifiedAt")]
+    pub last_modified_at: ::core::option::Option<String>,
+    /// Name of the developer app.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Scopes to apply to the developer app. The specified scopes must already exist for the API product that you associate with the developer app.
+    #[serde(default)]
+    pub scopes: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Status of the credential. Valid values include approved or revoked.
+    #[serde(default)]
+    pub status: ::core::option::Option<String>,
+}
+
+/// Structure of a DeveloperSubscription.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudApigeeV1DeveloperSubscription {
+    /// Name of the API product for which the developer is purchasing a subscription.
+    #[serde(default)]
+    pub apiproduct: ::core::option::Option<String>,
+    /// Output only. Time when the API product subscription was created in milliseconds since epoch.
+    #[serde(default, rename = "createdAt")]
+    pub created_at: ::core::option::Option<String>,
+    /// Time when the API product subscription ends in milliseconds since epoch.
+    #[serde(default, rename = "endTime")]
+    pub end_time: ::core::option::Option<String>,
+    /// Output only. Time when the API product subscription was last modified in milliseconds since epoch.
+    #[serde(default, rename = "lastModifiedAt")]
+    pub last_modified_at: ::core::option::Option<String>,
+    /// Output only. Name of the API product subscription.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Time when the API product subscription starts in milliseconds since epoch.
+    #[serde(default, rename = "startTime")]
+    pub start_time: ::core::option::Option<String>,
+}
+
+/// A DNS zone is a resource under an Apigee organization that is used to create a DNS peering with Apigee''s network. DNS peering will let Apigee instances resolve the hostnames created in a peered network.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudApigeeV1DnsZone {
+    /// Output only. The time that this resource was created on the server.
+    #[serde(default, rename = "createTime")]
+    pub create_time: ::core::option::Option<String>,
+    /// Required. Description of the resource. String of at most 1024 characters associated with this resource for the user''s convenience.
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+    /// Required. The domain name for hosts in this private zone, for instance "example.com.".
+    #[serde(default)]
+    pub domain: ::core::option::Option<String>,
+    /// Identifier. Unique name for the resource. Defined by the server Format: "organizations/{organization}/dnsZones/{dns_zone}".
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// DNS PEERING zone configuration.
+    #[serde(default, rename = "peeringConfig")]
+    pub peering_config: ::core::option::Option<GoogleCloudApigeeV1DnsZonePeeringConfig>,
+    /// Output only. State of the DNS Peering. Values other than ACTIVE mean the resource is not ready to use. // TODO: enum values: ["STATE_UNSPECIFIED", "CREATING", "ACTIVE", "DELETING", "UPDATING"]
+    #[serde(default)]
+    pub state: ::core::option::Option<String>,
+    /// Output only. The time that this resource was updated on the server.
+    #[serde(default, rename = "updateTime")]
+    pub update_time: ::core::option::Option<String>,
+}
+
+/// Apigee endpoint attachment. For more information, see [Southbound networking patterns] (https://cloud.google.com/apigee/docs/api-platform/architecture/southbound-networking-patterns-endpoints).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudApigeeV1EndpointAttachment {
+    /// Output only. State of the endpoint attachment connection to the service attachment. // TODO: enum values: ["CONNECTION_STATE_UNSPECIFIED", "UNAVAILABLE", "PENDING", "ACCEPTED", "REJECTED", "CLOSED", "FROZEN", "NEEDS_ATTENTION", "ACCEPTED_LIMITED_CAPACITY"]
+    #[serde(default, rename = "connectionState")]
+    pub connection_state: ::core::option::Option<String>,
+    /// Output only. Host that can be used in either the HTTP target endpoint directly or as the host in target server.
+    #[serde(default)]
+    pub host: ::core::option::Option<String>,
+    /// Required. Location of the endpoint attachment.
+    #[serde(default)]
+    pub location: ::core::option::Option<String>,
+    /// Name of the endpoint attachment. Use the following structure in your request: organizations/{org}/endpointAttachments/{endpoint_attachment}
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Format: projects/*/regions/*/serviceAttachments/*
+    #[serde(default, rename = "serviceAttachment")]
+    pub service_attachment: ::core::option::Option<String>,
+    /// Output only. State of the endpoint attachment. Values other than ACTIVE mean the resource is not ready to use. // TODO: enum values: ["STATE_UNSPECIFIED", "CREATING", "ACTIVE", "DELETING", "UPDATING"]
+    #[serde(default)]
+    pub state: ::core::option::Option<String>,
+}
+
+/// EnvironmentGroupAttachment is a resource which defines an attachment of an environment to an environment group.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudApigeeV1EnvironmentGroupAttachment {
+    /// Output only. The time at which the environment group attachment was created as milliseconds since epoch.
+    #[serde(default, rename = "createdAt")]
+    pub created_at: ::core::option::Option<String>,
+    /// Required. ID of the attached environment.
+    #[serde(default)]
+    pub environment: ::core::option::Option<String>,
+    /// Output only. ID of the environment group.
+    #[serde(default, rename = "environmentGroupId")]
+    pub environment_group_id: ::core::option::Option<String>,
+    /// ID of the environment group attachment.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+}
+
+/// EnvironmentGroup configuration. An environment group is used to group one or more Apigee environments under a single host name.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudApigeeV1EnvironmentGroup {
+    /// Output only. The time at which the environment group was created as milliseconds since epoch.
+    #[serde(default, rename = "createdAt")]
+    pub created_at: ::core::option::Option<String>,
+    /// Required. Host names for this environment group.
+    #[serde(default)]
+    pub hostnames: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Output only. The time at which the environment group was last updated as milliseconds since epoch.
+    #[serde(default, rename = "lastModifiedAt")]
+    pub last_modified_at: ::core::option::Option<String>,
+    /// ID of the environment group.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Output only. State of the environment group. Values other than ACTIVE means the resource is not ready to use. // TODO: enum values: ["STATE_UNSPECIFIED", "CREATING", "ACTIVE", "DELETING", "UPDATING"]
+    #[serde(default)]
+    pub state: ::core::option::Option<String>,
+}
+
+/// Details of an export job.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudApigeeV1Export {
+    /// Output only. Time the export job was created.
+    #[serde(default)]
+    pub created: ::core::option::Option<String>,
+    /// Name of the datastore that is the destination of the export job [datastore]
+    #[serde(default, rename = "datastoreName")]
+    pub datastore_name: ::core::option::Option<String>,
+    /// Description of the export job.
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+    /// Output only. Error is set when export fails
+    #[serde(default)]
+    pub error: ::core::option::Option<String>,
+    /// Output only. Execution time for this export job. If the job is still in progress, it will be set to the amount of time that has elapsed sincecreated, in seconds. Else, it will set to (updated - created), in seconds.
+    #[serde(default, rename = "executionTime")]
+    pub execution_time: ::core::option::Option<String>,
+    /// Display name of the export job.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Output only. Self link of the export job. A URI that can be used to retrieve the status of an export job. Example: /organizations/myorg/environments/myenv/analytics/exports/9cfc0d85-0f30-46d6-ae6f-318d0cb961bd
+    #[serde(default, rename = "self")]
+    pub self_: ::core::option::Option<String>,
+    /// Output only. Status of the export job. Valid values include enqueued, running, completed, and failed.
+    #[serde(default)]
+    pub state: ::core::option::Option<String>,
+    /// Output only. Time the export job was last updated.
+    #[serde(default)]
+    pub updated: ::core::option::Option<String>,
+}
+
+/// GoogleCloudApigeeV1ServiceIssuersMapping resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudApigeeV1ServiceIssuersMapping {
+    /// List of trusted issuer email ids.
+    #[serde(default, rename = "emailIds")]
+    pub email_ids: ::core::option::Option<::std::vec::Vec<String>>,
+    /// String indicating the Apigee service name.
+    #[serde(default)]
+    pub service: ::core::option::Option<String>,
+}
+
+/// InstanceAttachment represents the installation of an environment onto an instance.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudApigeeV1InstanceAttachment {
+    /// Output only. Time the attachment was created in milliseconds since epoch.
+    #[serde(default, rename = "createdAt")]
+    pub created_at: ::core::option::Option<String>,
+    /// ID of the attached environment.
+    #[serde(default)]
+    pub environment: ::core::option::Option<String>,
+    /// Output only. ID of the attachment.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+}
+
+/// Apigee runtime instance.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudApigeeV1Instance {
+    /// Optional. Access logging configuration enables the access logging feature at the instance. Apigee customers can enable access logging to ship the access logs to their own project''s cloud logging.
+    #[serde(default, rename = "accessLoggingConfig")]
+    pub access_logging_config: ::core::option::Option<GoogleCloudApigeeV1AccessLoggingConfig>,
+    /// Optional. Customer accept list represents the list of projects (id/number) on customer side that can privately connect to the service attachment. It is an optional field which the customers can provide during the instance creation. By default, the customer project associated with the Apigee organization will be included to the list.
+    #[serde(default, rename = "consumerAcceptList")]
+    pub consumer_accept_list: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Output only. Time the instance was created in milliseconds since epoch.
+    #[serde(default, rename = "createdAt")]
+    pub created_at: ::core::option::Option<String>,
+    /// Optional. Description of the instance.
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+    /// Optional. Customer Managed Encryption Key (CMEK) used for disk and volume encryption. If not specified, a Google-Managed encryption key will be used. Use the following format: projects/([^/]+)/locations/([^/]+)/keyRings/([^/]+)/cryptoKeys/([^/]+)
+    #[serde(default, rename = "diskEncryptionKeyName")]
+    pub disk_encryption_key_name: ::core::option::Option<String>,
+    /// Optional. Display name for the instance.
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+    /// Output only. Internal hostname or IP address of the Apigee endpoint used by clients to connect to the service.
+    #[serde(default)]
+    pub host: ::core::option::Option<String>,
+    /// Optional. Comma-separated list of CIDR blocks of length 22 and/or 28 used to create the Apigee instance. Providing CIDR ranges is optional. You can provide just /22 or /28 or both (or neither). Ranges you provide should be freely available as part of a larger named range you have allocated to the Service Networking peering. If this parameter is not provided, Apigee automatically requests an available /22 and /28 CIDR block from Service Networking. Use the /22 CIDR block for configuring your firewall needs to allow traffic from Apigee. Input formats: a.b.c.d/22 or e.f.g.h/28 or a.b.c.d/22,e.f.g.h/28
+    #[serde(default, rename = "ipRange")]
+    pub ip_range: ::core::option::Option<String>,
+    /// Output only. Indicates whether the instance is version locked. If true, the instance will not be updated by automated runtime rollouts. This is only supported for Apigee X instances.
+    #[serde(default, rename = "isVersionLocked")]
+    pub is_version_locked: ::core::option::Option<bool>,
+    /// Output only. Time the instance was last modified in milliseconds since epoch.
+    #[serde(default, rename = "lastModifiedAt")]
+    pub last_modified_at: ::core::option::Option<String>,
+    /// Required. Compute Engine location where the instance resides.
+    #[serde(default)]
+    pub location: ::core::option::Option<String>,
+    /// Optional. Apigee customers can set the preferred window to perform maintenance on the instance (day of the week and time of day).
+    #[serde(default, rename = "maintenanceUpdatePolicy")]
+    pub maintenance_update_policy:
+        ::core::option::Option<GoogleCloudApigeeV1MaintenanceUpdatePolicy>,
+    /// Required. Resource ID of the instance. Values must match the regular expression ^a-z{0,30}[a-z\d]$.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Optional. Size of the CIDR block range that will be reserved by the instance. PAID organizations support SLASH_16 to SLASH_20 and defaults to SLASH_16. Evaluation organizations support only SLASH_23. // TODO: enum values: ["CIDR_RANGE_UNSPECIFIED", "SLASH_16", "SLASH_17", "SLASH_18", "SLASH_19", "SLASH_20", "SLASH_22", "SLASH_23"]
+    #[serde(default, rename = "peeringCidrRange")]
+    pub peering_cidr_range: ::core::option::Option<String>,
+    /// Output only. Port number of the exposed Apigee endpoint.
+    #[serde(default)]
+    pub port: ::core::option::Option<String>,
+    /// Output only. Version of the runtime system running in the instance. The runtime system is the set of components that serve the API Proxy traffic in your Environments.
+    #[serde(default, rename = "runtimeVersion")]
+    pub runtime_version: ::core::option::Option<String>,
+    /// Output only. Time and date of the scheduled maintenance for this instance. This field is only populated for instances that have opted into Maintenance Window and if there is an upcoming maintenance. Cleared once the maintenance is complete.
+    #[serde(default, rename = "scheduledMaintenance")]
+    pub scheduled_maintenance: ::core::option::Option<GoogleCloudApigeeV1ScheduledMaintenance>,
+    /// Output only. Resource name of the service attachment created for the instance in the format: projects/*/regions/*/serviceAttachments/* Apigee customers can privately forward traffic to this service attachment using the PSC endpoints.
+    #[serde(default, rename = "serviceAttachment")]
+    pub service_attachment: ::core::option::Option<String>,
+    /// Output only. State of the instance. Values other than ACTIVE means the resource is not ready to use. // TODO: enum values: ["STATE_UNSPECIFIED", "CREATING", "ACTIVE", "DELETING", "UPDATING"]
+    #[serde(default)]
+    pub state: ::core::option::Option<String>,
+}
+
+/// Key value map pair where the value represents the data associated with the corresponding key. **Note**: Supported for Apigee hybrid 1.8.x and higher.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudApigeeV1KeyValueEntry {
+    /// Resource URI that can be used to identify the scope of the key value map entries.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Required. Data or payload that is being retrieved and associated with the unique key.
+    #[serde(default)]
+    pub value: ::core::option::Option<String>,
+}
+
+/// Apigee NAT(network address translation) address. A NAT address is a static external IP address used for Internet egress traffic.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudApigeeV1NatAddress {
+    /// Output only. The static IPV4 address.
+    #[serde(default, rename = "ipAddress")]
+    pub ip_address: ::core::option::Option<String>,
+    /// Required. Resource ID of the NAT address.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Output only. State of the nat address. // TODO: enum values: ["STATE_UNSPECIFIED", "CREATING", "RESERVED", "ACTIVE", "DELETING"]
+    #[serde(default)]
+    pub state: ::core::option::Option<String>,
+}
+
+/// GoogleCloudApigeeV1Developer resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudApigeeV1Developer {
+    /// Access type.
+    #[serde(default, rename = "accessType")]
+    pub access_type: ::core::option::Option<String>,
+    /// Developer app family.
+    #[serde(default, rename = "appFamily")]
+    pub app_family: ::core::option::Option<String>,
+    /// List of apps associated with the developer.
+    #[serde(default)]
+    pub apps: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Optional. Developer attributes (name/value pairs). The custom attribute limit is 18.
+    #[serde(default)]
+    pub attributes: ::core::option::Option<::std::vec::Vec<GoogleCloudApigeeV1Attribute>>,
+    /// List of companies associated with the developer.
+    #[serde(default)]
+    pub companies: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Output only. Time at which the developer was created in milliseconds since epoch.
+    #[serde(default, rename = "createdAt")]
+    pub created_at: ::core::option::Option<String>,
+    /// ID of the developer. **Note**: IDs are generated internally by Apigee and are not guaranteed to stay the same over time.
+    #[serde(default, rename = "developerId")]
+    pub developer_id: ::core::option::Option<String>,
+    /// Required. Email address of the developer. This value is used to uniquely identify the developer in Apigee hybrid. Note that the email address has to be in lowercase only.
+    #[serde(default)]
+    pub email: ::core::option::Option<String>,
+    /// Required. First name of the developer.
+    #[serde(default, rename = "firstName")]
+    pub first_name: ::core::option::Option<String>,
+    /// Output only. Time at which the developer was last modified in milliseconds since epoch.
+    #[serde(default, rename = "lastModifiedAt")]
+    pub last_modified_at: ::core::option::Option<String>,
+    /// Required. Last name of the developer.
+    #[serde(default, rename = "lastName")]
+    pub last_name: ::core::option::Option<String>,
+    /// Output only. Name of the Apigee organization in which the developer resides.
+    #[serde(default, rename = "organizationName")]
+    pub organization_name: ::core::option::Option<String>,
+    /// Output only. Status of the developer. Valid values are active and inactive.
+    #[serde(default)]
+    pub status: ::core::option::Option<String>,
+    /// Required. User name of the developer. Not used by Apigee hybrid.
+    #[serde(default, rename = "userName")]
+    pub user_name: ::core::option::Option<String>,
+}
+
+/// GoogleCloudApigeeV1OrganizationProjectMapping resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudApigeeV1OrganizationProjectMapping {
+    /// Output only. The Google Cloud region where control plane data is located. For more information, see https://cloud.google.com/about/locations/.
+    #[serde(default)]
+    pub location: ::core::option::Option<String>,
+    /// Name of the Apigee organization.
+    #[serde(default)]
+    pub organization: ::core::option::Option<String>,
+    /// Google Cloud project associated with the Apigee organization
+    #[serde(default, rename = "projectId")]
+    pub project_id: ::core::option::Option<String>,
+    /// DEPRECATED: Use project_id. An Apigee Organization is mapped to a single project.
+    #[serde(default, rename = "projectIds")]
+    pub project_ids: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Rate plan details.
@@ -3942,465 +3493,6 @@ pub struct GoogleCloudApigeeV1RatePlan {
     pub state: ::core::option::Option<String>,
 }
 
-/// API call volume range and the fees charged when the total number of API calls is within the range.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudApigeeV1RateRange {
-    /// Ending value of the range. Set to 0 or null for the last range of values.
-    #[serde(default)]
-    pub end: ::core::option::Option<String>,
-    /// Fee to charge when total number of API calls falls within this range.
-    #[serde(default)]
-    pub fee: ::core::option::Option<GoogleTypeMoney>,
-    /// Starting value of the range. Set to 0 or null for the initial range of values.
-    #[serde(default)]
-    pub start: ::core::option::Option<String>,
-}
-
-/// A Reference configuration. References must refer to a keystore that also exists in the parent environment.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudApigeeV1Reference {
-    /// Optional. A human-readable description of this reference.
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// Required. The resource id of this reference. Values must match the regular expression [\w\s\-.]+.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Required. The id of the resource to which this reference refers. Must be the id of a resource that exists in the parent environment and is of the given resource_type.
-    #[serde(default)]
-    pub refers: ::core::option::Option<String>,
-    /// The type of resource referred to by this reference. Valid values are ''KeyStore'' or ''TrustStore''.
-    #[serde(default, rename = "resourceType")]
-    pub resource_type: ::core::option::Option<String>,
-}
-
-/// GoogleCloudApigeeV1ReferenceConfig resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudApigeeV1ReferenceConfig {
-    /// Name of the reference in the following format: organizations/{org}/environments/{env}/references/{reference}
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Name of the referenced resource in the following format: organizations/{org}/environments/{env}/keystores/{keystore} Only references to keystore resources are supported.
-    #[serde(default, rename = "resourceName")]
-    pub resource_name: ::core::option::Option<String>,
-}
-
-/// Request for ReportInstanceStatus.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudApigeeV1ReportInstanceStatusRequest {
-    /// A unique ID for the instance which is guaranteed to be unique in case the user installs multiple hybrid runtimes with the same instance ID.
-    #[serde(default, rename = "instanceUid")]
-    pub instance_uid: ::core::option::Option<String>,
-    /// The time the report was generated in the runtime. Used to prevent an old status from overwriting a newer one. An instance should space out it''s status reports so that clock skew does not play a factor.
-    #[serde(default, rename = "reportTime")]
-    pub report_time: ::core::option::Option<String>,
-    /// Status for config resources
-    #[serde(default)]
-    pub resources: ::core::option::Option<::std::vec::Vec<GoogleCloudApigeeV1ResourceStatus>>,
-}
-
-/// GoogleCloudApigeeV1ReportProperty resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudApigeeV1ReportProperty {
-    /// name of the property
-    #[serde(default)]
-    pub property: ::core::option::Option<String>,
-    /// property values
-    #[serde(default)]
-    pub value: ::core::option::Option<::std::vec::Vec<GoogleCloudApigeeV1Attribute>>,
-}
-
-/// GoogleCloudApigeeV1ResourceConfig resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudApigeeV1ResourceConfig {
-    /// Location of the resource as a URI.
-    #[serde(default)]
-    pub location: ::core::option::Option<String>,
-    /// Resource name in the following format: organizations/{org}/environments/{env}/resourcefiles/{type}/{file}/revisions/{rev} Only environment-scoped resource files are supported.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-}
-
-/// Metadata about a resource file.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudApigeeV1ResourceFile {
-    /// ID of the resource file.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Resource file type. {{ resource_file_type }}
-    #[serde(default, rename = "type")]
-    pub type_: ::core::option::Option<String>,
-}
-
-/// List of resource files.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudApigeeV1ResourceFiles {
-    /// List of resource files.
-    #[serde(default, rename = "resourceFile")]
-    pub resource_file: ::core::option::Option<::std::vec::Vec<GoogleCloudApigeeV1ResourceFile>>,
-}
-
-/// The status of a resource loaded in the runtime.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudApigeeV1ResourceStatus {
-    /// The resource name. Currently only two resources are supported: EnvironmentGroup - organizations/{org}/envgroups/{envgroup} EnvironmentConfig - organizations/{org}/environments/{environment}/deployedConfig
-    #[serde(default)]
-    pub resource: ::core::option::Option<String>,
-    /// Revisions of the resource currently deployed in the instance.
-    #[serde(default)]
-    pub revisions: ::core::option::Option<::std::vec::Vec<GoogleCloudApigeeV1RevisionStatus>>,
-    /// The total number of replicas that should have this resource.
-    #[serde(default, rename = "totalReplicas")]
-    pub total_replicas: ::core::option::Option<i32>,
-    /// The uid of the resource. In the unexpected case that the instance has multiple uids for the same name, they should be reported under separate ResourceStatuses.
-    #[serde(default)]
-    pub uid: ::core::option::Option<String>,
-}
-
-/// Result is short for "action result", could be different types identified by "action_result" field. Supported types: 1. DebugInfo : generic debug info collected by runtime recorded as a list of properties. For example, the contents could be virtual host info, state change result, or execution metadata. Required fields : properties, timestamp 2. RequestMessage: information of a http request. Contains headers, request URI and http methods type.Required fields : headers, uri, verb 3. ResponseMessage: information of a http response. Contains headers, reason phrase and http status code. Required fields : headers, reasonPhrase, statusCode 4. ErrorMessage: information of a http error message. Contains detail error message, reason phrase and status code. Required fields : content, headers, reasonPhrase, statusCode 5. VariableAccess: a list of variable access actions, can be Get, Set and Remove. Required fields : accessList
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudApigeeV1Result {
-    /// Type of the action result. Can be one of the five: DebugInfo, RequestMessage, ResponseMessage, ErrorMessage, VariableAccess
-    #[serde(default, rename = "ActionResult")]
-    pub action_result: ::core::option::Option<String>,
-    /// A list of variable access actions agaist the api proxy. Supported values: Get, Set, Remove.
-    #[serde(default, rename = "accessList")]
-    pub access_list: ::core::option::Option<::std::vec::Vec<GoogleCloudApigeeV1Access>>,
-    /// Error message content. for example, "content" : "{\"fault\":{\"faultstring\":\"API timed out\",\"detail\":{\"errorcode\":\"flow.APITimedOut\"}}}"
-    #[serde(default)]
-    pub content: ::core::option::Option<String>,
-    /// A list of HTTP headers. for example, ''"headers" : [ { "name" : "Content-Length", "value" : "83" }, { "name" : "Content-Type", "value" : "application/json" } ]''
-    #[serde(default)]
-    pub headers: ::core::option::Option<::std::vec::Vec<GoogleCloudApigeeV1Property>>,
-    /// Name value pairs used for DebugInfo ActionResult.
-    #[serde(default)]
-    pub properties: ::core::option::Option<GoogleCloudApigeeV1Properties>,
-    /// HTTP response phrase
-    #[serde(default, rename = "reasonPhrase")]
-    pub reason_phrase: ::core::option::Option<String>,
-    /// HTTP response code
-    #[serde(default, rename = "statusCode")]
-    pub status_code: ::core::option::Option<String>,
-    /// Timestamp of when the result is recorded. Its format is dd-mm-yy hh:mm:ss:xxx. For example, "timestamp" : "12-08-19 00:31:59:960"
-    #[serde(default)]
-    pub timestamp: ::core::option::Option<String>,
-    /// The relative path of the api proxy. for example, "uRI" : "/iloveapis"
-    #[serde(default, rename = "uRI")]
-    pub u_r_i: ::core::option::Option<String>,
-    /// HTTP method verb
-    #[serde(default)]
-    pub verb: ::core::option::Option<String>,
-}
-
-/// API call volume range and the percentage of revenue to share with the developer when the total number of API calls is within the range.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudApigeeV1RevenueShareRange {
-    /// Ending value of the range. Set to 0 or null for the last range of values.
-    #[serde(default)]
-    pub end: ::core::option::Option<String>,
-    /// Percentage of the revenue to be shared with the developer. For example, to share 21 percent of the total revenue with the developer, set this value to 21. Specify a decimal number with a maximum of two digits following the decimal point.
-    #[serde(default, rename = "sharePercentage")]
-    pub share_percentage: ::core::option::Option<f64>,
-    /// Starting value of the range. Set to 0 or null for the initial range of values.
-    #[serde(default)]
-    pub start: ::core::option::Option<String>,
-}
-
-/// The status of a specific resource revision.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudApigeeV1RevisionStatus {
-    /// Errors reported when attempting to load this revision.
-    #[serde(default)]
-    pub errors: ::core::option::Option<::std::vec::Vec<GoogleCloudApigeeV1UpdateError>>,
-    /// The json content of the resource revision. Large specs should be sent individually via the spec field to avoid hitting request size limits.
-    #[serde(default, rename = "jsonSpec")]
-    pub json_spec: ::core::option::Option<String>,
-    /// The number of replicas that have successfully loaded this revision.
-    #[serde(default)]
-    pub replicas: ::core::option::Option<i32>,
-    /// The revision of the resource.
-    #[serde(default, rename = "revisionId")]
-    pub revision_id: ::core::option::Option<String>,
-}
-
-/// GoogleCloudApigeeV1RoutingRule resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudApigeeV1RoutingRule {
-    /// URI path prefix used to route to the specified environment. May contain one or more wildcards. For example, path segments consisting of a single * character will match any string.
-    #[serde(default)]
-    pub basepath: ::core::option::Option<String>,
-    /// Name of a deployment group in an environment bound to the environment group in the following format: organizations/{org}/environment/{env}/deploymentGroups/{group} Only one of environment or deployment_group will be set.
-    #[serde(default, rename = "deploymentGroup")]
-    pub deployment_group: ::core::option::Option<String>,
-    /// The env group config revision_id when this rule was added or last updated. This value is set when the rule is created and will only update if the the environment_id changes. It is used to determine if the runtime is up to date with respect to this rule. This field is omitted from the IngressConfig unless the GetDeployedIngressConfig API is called with view=FULL.
-    #[serde(default, rename = "envGroupRevision")]
-    pub env_group_revision: ::core::option::Option<String>,
-    /// Name of an environment bound to the environment group in the following format: organizations/{org}/environments/{env}. Only one of environment or deployment_group will be set.
-    #[serde(default)]
-    pub environment: ::core::option::Option<String>,
-    /// Conflicting targets, which will be resource names specifying either deployment groups or environments.
-    #[serde(default, rename = "otherTargets")]
-    pub other_targets: ::core::option::Option<::std::vec::Vec<String>>,
-    /// The resource name of the proxy revision that is receiving this basepath in the following format: organizations/{org}/apis/{api}/revisions/{rev}. This field is omitted from the IngressConfig unless the GetDeployedIngressConfig API is called with view=FULL.
-    #[serde(default)]
-    pub receiver: ::core::option::Option<String>,
-    /// The unix timestamp when this rule was updated. This is updated whenever env_group_revision is updated. This field is omitted from the IngressConfig unless the GetDeployedIngressConfig API is called with view=FULL.
-    #[serde(default, rename = "updateTime")]
-    pub update_time: ::core::option::Option<String>,
-}
-
-/// RuntimeAddonsConfig defines the runtime configurations for add-ons in an environment.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudApigeeV1RuntimeAddonsConfig {
-    /// Runtime configuration for Analytics add-on.
-    #[serde(default, rename = "analyticsConfig")]
-    pub analytics_config: ::core::option::Option<GoogleCloudApigeeV1RuntimeAnalyticsConfig>,
-    /// Runtime configuration for API Security add-on.
-    #[serde(default, rename = "apiSecurityConfig")]
-    pub api_security_config: ::core::option::Option<GoogleCloudApigeeV1RuntimeApiSecurityConfig>,
-    /// Name of the addons config in the format: organizations/{org}/environments/{env}/addonsConfig
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Revision number used by the runtime to detect config changes.
-    #[serde(default, rename = "revisionId")]
-    pub revision_id: ::core::option::Option<String>,
-    /// UID is to detect if config is recreated after deletion. The add-on config will only be deleted when the environment itself gets deleted, thus it will always be the same as the UID of EnvironmentConfig.
-    #[serde(default)]
-    pub uid: ::core::option::Option<String>,
-}
-
-/// Runtime configuration for the Analytics add-on.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudApigeeV1RuntimeAnalyticsConfig {
-    /// If Runtime should send billing data to AX or not.
-    #[serde(default, rename = "billingPipelineEnabled")]
-    pub billing_pipeline_enabled: ::core::option::Option<bool>,
-    /// If the Analytics is enabled or not.
-    #[serde(default)]
-    pub enabled: ::core::option::Option<bool>,
-}
-
-/// Runtime configuration for the API Security add-on.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudApigeeV1RuntimeApiSecurityConfig {
-    /// If the API Security is enabled or not.
-    #[serde(default)]
-    pub enabled: ::core::option::Option<bool>,
-}
-
-/// Runtime configuration for the organization. Response for GetRuntimeConfig.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudApigeeV1RuntimeConfig {
-    /// Cloud Storage bucket used for uploading Analytics records.
-    #[serde(default, rename = "analyticsBucket")]
-    pub analytics_bucket: ::core::option::Option<String>,
-    /// Name of the resource in the following format: organizations/{org}/runtimeConfig.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Output only. Tenant project ID associated with the Apigee organization. The tenant project is used to host Google-managed resources that are dedicated to this Apigee organization. Clients have limited access to resources within the tenant project used to support Apigee runtime instances. Access to the tenant project is managed using SetSyncAuthorization. It can be empty if the tenant project hasn''t been created yet.
-    #[serde(default, rename = "tenantProjectId")]
-    pub tenant_project_id: ::core::option::Option<String>,
-    /// Cloud Storage bucket used for uploading Trace records.
-    #[serde(default, rename = "traceBucket")]
-    pub trace_bucket: ::core::option::Option<String>,
-}
-
-/// NEXT ID: 10 RuntimeTraceConfig defines the configurations for distributed trace in an environment.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudApigeeV1RuntimeTraceConfig {
-    /// Endpoint of the exporter.
-    #[serde(default)]
-    pub endpoint: ::core::option::Option<String>,
-    /// Exporter that is used to view the distributed trace captured using OpenCensus. An exporter sends traces to any backend that is capable of consuming them. Recorded spans can be exported by registered exporters. // TODO: enum values: ["EXPORTER_UNSPECIFIED", "JAEGER", "CLOUD_TRACE", "OPEN_TELEMETRY_COLLECTOR", "OPEN_TELEMETRY_CLOUD_TRACE"]
-    #[serde(default)]
-    pub exporter: ::core::option::Option<String>,
-    /// Name of the trace config in the following format: organizations/{org}/environment/{env}/traceConfig
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Optional. If true, the runtime uses OpenTelemetry Protocol (OTLP) to send trace data. Configuration Requirements (if open_telemetry_protocol_enabled is true): - Allowed Exporters: CLOUD_TRACE or OPEN_TELEMETRY_COLLECTOR. - If Exporter is OPEN_TELEMETRY_COLLECTOR: - endpoint refers to a valid OTLP collector URL. - If Exporter is CLOUD_TRACE: - endpoint refers to a valid project ID Deprecated: Use trace_protocol instead.
-    #[serde(default, rename = "openTelemetryProtocolEnabled")]
-    pub open_telemetry_protocol_enabled: ::core::option::Option<bool>,
-    /// List of trace configuration overrides for spicific API proxies.
-    #[serde(default)]
-    pub overrides:
-        ::core::option::Option<::std::vec::Vec<GoogleCloudApigeeV1RuntimeTraceConfigOverride>>,
-    /// The timestamp that the revision was created or updated.
-    #[serde(default, rename = "revisionCreateTime")]
-    pub revision_create_time: ::core::option::Option<String>,
-    /// Revision number which can be used by the runtime to detect if the trace config has changed between two versions.
-    #[serde(default, rename = "revisionId")]
-    pub revision_id: ::core::option::Option<String>,
-    /// Trace configuration for all API proxies in an environment.
-    #[serde(default, rename = "samplingConfig")]
-    pub sampling_config: ::core::option::Option<GoogleCloudApigeeV1RuntimeTraceSamplingConfig>,
-    /// Optional. The trace protocol to use. // TODO: enum values: ["TRACE_PROTOCOL_UNSPECIFIED", "OPEN_CENSUS", "OTLP"]
-    #[serde(default, rename = "traceProtocol")]
-    pub trace_protocol: ::core::option::Option<String>,
-}
-
-/// NEXT ID: 9 Trace configuration override for a specific API proxy in an environment.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudApigeeV1RuntimeTraceConfigOverride {
-    /// Name of the API proxy that will have its trace configuration overridden following format: organizations/{org}/apis/{api}
-    #[serde(default, rename = "apiProxy")]
-    pub api_proxy: ::core::option::Option<String>,
-    /// Name of the trace config override in the following format: organizations/{org}/environment/{env}/traceConfig/overrides/{override}
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Optional. If true, the runtime uses OpenTelemetry Protocol (OTLP) to send trace data. Configuration Requirements (if open_telemetry_protocol_enabled is true): - Allowed Exporters: CLOUD_TRACE or OPEN_TELEMETRY_COLLECTOR. - If Exporter is OPEN_TELEMETRY_COLLECTOR: - endpoint refers to a valid OTLP collector URL. - If Exporter is CLOUD_TRACE: - endpoint refers to a valid project ID Deprecated: Use trace_protocol instead.
-    #[serde(default, rename = "openTelemetryProtocolEnabled")]
-    pub open_telemetry_protocol_enabled: ::core::option::Option<bool>,
-    /// The timestamp that the revision was created or updated.
-    #[serde(default, rename = "revisionCreateTime")]
-    pub revision_create_time: ::core::option::Option<String>,
-    /// Revision number which can be used by the runtime to detect if the trace config override has changed between two versions.
-    #[serde(default, rename = "revisionId")]
-    pub revision_id: ::core::option::Option<String>,
-    /// Trace configuration override for a specific API proxy in an environment.
-    #[serde(default, rename = "samplingConfig")]
-    pub sampling_config: ::core::option::Option<GoogleCloudApigeeV1RuntimeTraceSamplingConfig>,
-    /// Optional. The trace protocol to use. // TODO: enum values: ["TRACE_PROTOCOL_UNSPECIFIED", "OPEN_CENSUS", "OTLP"]
-    #[serde(default, rename = "traceProtocol")]
-    pub trace_protocol: ::core::option::Option<String>,
-    /// Unique ID for the configuration override. The ID will only change if the override is deleted and recreated. Corresponds to name''s "override" field.
-    #[serde(default)]
-    pub uid: ::core::option::Option<String>,
-}
-
-/// NEXT ID: 3 RuntimeTraceSamplingConfig represents the detail settings of distributed tracing. Only the fields that are defined in the distributed trace configuration can be overridden using the distribute trace configuration override APIs.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudApigeeV1RuntimeTraceSamplingConfig {
-    /// Sampler of distributed tracing. OFF is the default value. // TODO: enum values: ["SAMPLER_UNSPECIFIED", "OFF", "PROBABILITY"]
-    #[serde(default)]
-    pub sampler: ::core::option::Option<String>,
-    /// Field sampling rate. This value is only applicable when using the PROBABILITY sampler. The supported values are &gt; 0 and &lt;= 0.5.
-    #[serde(default, rename = "samplingRate")]
-    pub sampling_rate: ::core::option::Option<f32>,
-}
-
-/// Scheduled maintenance information for an instance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudApigeeV1ScheduledMaintenance {
-    /// Output only. The start time (UTC) of the scheduled maintenance.
-    #[serde(default, rename = "startTime")]
-    pub start_time: ::core::option::Option<String>,
-}
-
-/// Response for Schema call
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudApigeeV1Schema {
-    /// List of schema fields grouped as dimensions.
-    #[serde(default)]
-    pub dimensions: ::core::option::Option<::std::vec::Vec<GoogleCloudApigeeV1SchemaSchemaElement>>,
-    /// Additional metadata associated with schema. This is a legacy field and usually consists of an empty array of strings.
-    #[serde(default)]
-    pub meta: ::core::option::Option<::std::vec::Vec<String>>,
-    /// List of schema fields grouped as dimensions that can be used with an aggregate function such as sum, avg, min, and max.
-    #[serde(default)]
-    pub metrics: ::core::option::Option<::std::vec::Vec<GoogleCloudApigeeV1SchemaSchemaElement>>,
-}
-
-/// Message type for the schema element
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudApigeeV1SchemaSchemaElement {
-    /// Name of the field.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Properties for the schema field. For example: { "createTime": "2016-02-26T10:23:09.592Z", "custom": "false", "type": "string" }
-    #[serde(default)]
-    pub properties: ::core::option::Option<GoogleCloudApigeeV1SchemaSchemaProperty>,
-}
-
-/// Properties for the schema field.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudApigeeV1SchemaSchemaProperty {
-    /// Time the field was created in RFC3339 string form. For example: 2016-02-26T10:23:09.592Z.
-    #[serde(default, rename = "createTime")]
-    pub create_time: ::core::option::Option<String>,
-    /// Flag that specifies whether the field is standard in the dataset or a custom field created by the customer. true indicates that it is a custom field.
-    #[serde(default)]
-    pub custom: ::core::option::Option<String>,
-    /// Data type of the field.
-    #[serde(default, rename = "type")]
-    pub type_: ::core::option::Option<String>,
-}
-
-/// Represents Security Score.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudApigeeV1Score {
-    /// Component containing score, recommendations and actions.
-    #[serde(default)]
-    pub component: ::core::option::Option<GoogleCloudApigeeV1ScoreComponent>,
-    /// List of all the drilldown score components.
-    #[serde(default)]
-    pub subcomponents: ::core::option::Option<::std::vec::Vec<GoogleCloudApigeeV1ScoreComponent>>,
-    /// Start and end time for the score.
-    #[serde(default, rename = "timeRange")]
-    pub time_range: ::core::option::Option<GoogleTypeInterval>,
-}
-
-/// Component is an individual security element that is scored.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudApigeeV1ScoreComponent {
-    /// Time when score was calculated.
-    #[serde(default, rename = "calculateTime")]
-    pub calculate_time: ::core::option::Option<String>,
-    /// Time in the requested time period when data was last captured to compute the score.
-    #[serde(default, rename = "dataCaptureTime")]
-    pub data_capture_time: ::core::option::Option<String>,
-    /// List of paths for next components.
-    #[serde(default, rename = "drilldownPaths")]
-    pub drilldown_paths: ::core::option::Option<::std::vec::Vec<String>>,
-    /// List of recommendations to improve API security.
-    #[serde(default)]
-    pub recommendations:
-        ::core::option::Option<::std::vec::Vec<GoogleCloudApigeeV1ScoreComponentRecommendation>>,
-    /// Score for the component.
-    #[serde(default)]
-    pub score: ::core::option::Option<i32>,
-    /// Path of the component. Example: /org@myorg/envgroup@myenvgroup/proxies/proxy@myproxy
-    #[serde(default, rename = "scorePath")]
-    pub score_path: ::core::option::Option<String>,
-}
-
-/// Recommendation based on security concerns and score.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudApigeeV1ScoreComponentRecommendation {
-    /// Actions for the recommendation to improve the security score.
-    #[serde(default)]
-    pub actions: ::core::option::Option<
-        ::std::vec::Vec<GoogleCloudApigeeV1ScoreComponentRecommendationAction>,
-    >,
-    /// Description of the recommendation.
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// Potential impact of this recommendation on the overall score. This denotes how important this recommendation is to improve the score.
-    #[serde(default)]
-    pub impact: ::core::option::Option<i32>,
-    /// Title represents recommendation title.
-    #[serde(default)]
-    pub title: ::core::option::Option<String>,
-}
-
-/// Action to improve security score.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudApigeeV1ScoreComponentRecommendationAction {
-    /// Action context for the action.
-    #[serde(default, rename = "actionContext")]
-    pub action_context:
-        ::core::option::Option<GoogleCloudApigeeV1ScoreComponentRecommendationActionActionContext>,
-    /// Description of the action.
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-}
-
-/// Action context are all the relevant details for the action.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudApigeeV1ScoreComponentRecommendationActionActionContext {
-    /// Documentation link for the action.
-    #[serde(default, rename = "documentationLink")]
-    pub documentation_link: ::core::option::Option<String>,
-}
-
 /// A SecurityAction is rule that can be enforced at an environment level. The result is one of: - A denied API call - An explicitly allowed API call - A flagged API call (HTTP headers added before the target receives it) At least one condition is required to create a SecurityAction.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudApigeeV1SecurityAction {
@@ -4442,209 +3534,6 @@ pub struct GoogleCloudApigeeV1SecurityAction {
     pub update_time: ::core::option::Option<String>,
 }
 
-/// The following are a list of conditions. A valid SecurityAction must contain at least one condition. Within a condition, each element is ORed. Across conditions elements are ANDed. For example if a SecurityAction has the following: ip_address_ranges: ["ip1", "ip2"] and bot_reasons: ["Flooder", "Robot Abuser"] then this is interpreted as: enforce the action if the incoming request has ((ip_address_ranges = "ip1" OR ip_address_ranges = "ip2") AND (bot_reasons="Flooder" OR bot_reasons="Robot Abuser")). Conditions other than ip_address_ranges and bot_reasons cannot be ANDed.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudApigeeV1SecurityActionConditionConfig {
-    /// Optional. A list of access_tokens. Limit 1000 per action.
-    #[serde(default, rename = "accessTokens")]
-    pub access_tokens: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Optional. A list of API keys. Limit 1000 per action.
-    #[serde(default, rename = "apiKeys")]
-    pub api_keys: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Optional. A list of API Products. Limit 1000 per action.
-    #[serde(default, rename = "apiProducts")]
-    pub api_products: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Optional. A list of ASN numbers to act on, e.g. 23. https://en.wikipedia.org/wiki/Autonomous_system_(Internet) This uses int64 instead of uint32 because of https://linter.aip.dev/141/forbidden-types.
-    #[serde(default)]
-    pub asns: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Optional. A list of Bot Reasons. Current options: Flooder, Brute Guessor, Static Content Scraper, OAuth Abuser, Robot Abuser, TorListRule, Advanced Anomaly Detection, Advanced API Scraper, Search Engine Crawlers, Public Clouds, Public Cloud AWS, Public Cloud Azure, and Public Cloud Google.
-    #[serde(default, rename = "botReasons")]
-    pub bot_reasons: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Optional. A list of developer apps. Limit 1000 per action.
-    #[serde(default, rename = "developerApps")]
-    pub developer_apps: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Optional. A list of developers. Limit 1000 per action.
-    #[serde(default)]
-    pub developers: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Optional. Act only on particular HTTP methods. E.g. A read-only API can block POST/PUT/DELETE methods. Accepted values are: GET, HEAD, POST, PUT, DELETE, CONNECT, OPTIONS, TRACE and PATCH.
-    #[serde(default, rename = "httpMethods")]
-    pub http_methods: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Optional. A list of IP addresses. This could be either IPv4 or IPv6. Limited to 100 per action.
-    #[serde(default, rename = "ipAddressRanges")]
-    pub ip_address_ranges: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Optional. A list of countries/region codes to act on, e.g. US. This follows https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2.
-    #[serde(default, rename = "regionCodes")]
-    pub region_codes: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Optional. A list of user agents to deny. We look for exact matches. Limit 50 per action.
-    #[serde(default, rename = "userAgents")]
-    pub user_agents: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// Message that should be set in case of a Deny Action.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudApigeeV1SecurityActionDeny {
-    /// Optional. The HTTP response code if the Action = DENY.
-    #[serde(default, rename = "responseCode")]
-    pub response_code: ::core::option::Option<i32>,
-}
-
-/// The message that should be set in the case of a Flag action.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudApigeeV1SecurityActionFlag {
-    /// Optional. A list of HTTP headers to be sent to the target in case of a FLAG SecurityAction. Limit 5 headers per SecurityAction. At least one is mandatory.
-    #[serde(default)]
-    pub headers:
-        ::core::option::Option<::std::vec::Vec<GoogleCloudApigeeV1SecurityActionHttpHeader>>,
-}
-
-/// An HTTP header.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudApigeeV1SecurityActionHttpHeader {
-    /// The header name to be sent to the target.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// The header value to be sent to the target.
-    #[serde(default)]
-    pub value: ::core::option::Option<String>,
-}
-
-/// SecurityActionsConfig reflects the current state of the SecurityActions feature. This is a singleton resource: https://google.aip.dev/156
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudApigeeV1SecurityActionsConfig {
-    /// The flag that controls whether this feature is enabled. This is unset by default. When this flag is false, even if individual rules are enabled, no SecurityActions will be enforced.
-    #[serde(default)]
-    pub enabled: ::core::option::Option<bool>,
-    /// This is a singleton resource, the name will always be set by SecurityActions and any user input will be ignored. The name is always: organizations/{org}/environments/{env}/security_actions_config
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Output only. The update time for configuration.
-    #[serde(default, rename = "updateTime")]
-    pub update_time: ::core::option::Option<String>,
-}
-
-/// The security assessment result for one resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudApigeeV1SecurityAssessmentResult {
-    /// The time of the assessment of this resource. This could lag behind assessment_time due to caching within the backend.
-    #[serde(default, rename = "createTime")]
-    pub create_time: ::core::option::Option<String>,
-    /// The error status if scoring fails.
-    #[serde(default)]
-    pub error: ::core::option::Option<GoogleRpcStatus>,
-    /// The assessed resource.
-    #[serde(default)]
-    pub resource: ::core::option::Option<GoogleCloudApigeeV1SecurityAssessmentResultResource>,
-    /// The result of the assessment.
-    #[serde(default, rename = "scoringResult")]
-    pub scoring_result:
-        ::core::option::Option<GoogleCloudApigeeV1SecurityAssessmentResultScoringResult>,
-}
-
-/// Resource for which we are computing security assessment.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudApigeeV1SecurityAssessmentResultResource {
-    /// Output only. Additional details for the API Hub deployment.
-    #[serde(default, rename = "apiHubDeploymentDetails")]
-    pub api_hub_deployment_details: ::core::option::Option<
-        GoogleCloudApigeeV1SecurityAssessmentResultResourceApiHubDeploymentDetails,
-    >,
-    /// Optional.  // TODO: enum values: ["API_HUB_GATEWAY_TYPE_UNSPECIFIED", "APIGEE_X", "APIGEE_HYBRID", "APIGEE_EDGE", "APIGEE_OPDK"]
-    #[serde(default, rename = "apiHubGatewayType")]
-    pub api_hub_gateway_type: ::core::option::Option<String>,
-    /// Required. Name of this resource. For an Apigee API Proxy, this should be the id of the API proxy. For an API Hub Deployment, this should be the id of the deployment.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// The revision id for the resource. In case of Apigee, this is proxy revision id.
-    #[serde(default, rename = "resourceRevisionId")]
-    pub resource_revision_id: ::core::option::Option<String>,
-    /// Required. Type of this resource. // TODO: enum values: ["RESOURCE_TYPE_UNSPECIFIED", "API_PROXY", "API_HUB_DEPLOYMENT"]
-    #[serde(default, rename = "type")]
-    pub type_: ::core::option::Option<String>,
-}
-
-/// Additional details if the resource is an API Hub deployment.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudApigeeV1SecurityAssessmentResultResourceApiHubDeploymentDetails {
-    /// The display name of the API Hub deployment.
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-    /// The gateway for the API Hub deployment. Format: projects/{project}/locations/{location}/plugins/{plugin}/instances/{instance}
-    #[serde(default)]
-    pub gateway: ::core::option::Option<String>,
-    /// The gateway type for the API Hub deployment. // TODO: enum values: ["API_HUB_GATEWAY_TYPE_UNSPECIFIED", "APIGEE_X", "APIGEE_HYBRID", "APIGEE_EDGE", "APIGEE_OPDK"]
-    #[serde(default, rename = "gatewayType")]
-    pub gateway_type: ::core::option::Option<String>,
-    /// The resource uri for the API Hub deployment.
-    #[serde(default, rename = "resourceUri")]
-    pub resource_uri: ::core::option::Option<String>,
-    /// The source project for the API Hub deployment.
-    #[serde(default, rename = "sourceProject")]
-    pub source_project: ::core::option::Option<String>,
-}
-
-/// The result of the assessment.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudApigeeV1SecurityAssessmentResultScoringResult {
-    /// The recommendations of the assessment. The key is the "name" of the assessment (not display_name), and the value are the recommendations.
-    #[serde(default, rename = "assessmentRecommendations")]
-    pub assessment_recommendations: ::core::option::Option<serde_json::Value>,
-    /// The time when resource data was last fetched for this resource. This time may be different than when the resource was actually updated due to lag in data collection.
-    #[serde(default, rename = "dataUpdateTime")]
-    pub data_update_time: ::core::option::Option<String>,
-    /// The number of failed assessments grouped by its weight. Keys are one of the following: "MAJOR", "MODERATE", "MINOR".
-    #[serde(default, rename = "failedAssessmentPerWeight")]
-    pub failed_assessment_per_weight: ::core::option::Option<serde_json::Value>,
-    /// The security score of the assessment.
-    #[serde(default)]
-    pub score: ::core::option::Option<i32>,
-    /// TODO: enum values: ["SEVERITY_UNSPECIFIED", "LOW", "MEDIUM", "HIGH", "MINIMAL"]
-    #[serde(default)]
-    pub severity: ::core::option::Option<String>,
-}
-
-/// The message format of a recommendation from the assessment.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudApigeeV1SecurityAssessmentResultScoringResultAssessmentRecommendation {
-    /// The display name of the assessment.
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-    /// The recommended steps of the assessment.
-    #[serde(default)]
-    pub recommendations: ::core::option::Option<::std::vec::Vec<GoogleCloudApigeeV1SecurityAssessmentResultScoringResultAssessmentRecommendationRecommendation>>,
-    /// Score impact indicates the impact on the overall score if the assessment were to pass.
-    #[serde(default, rename = "scoreImpact")]
-    pub score_impact: ::core::option::Option<i32>,
-    /// Verdict indicates the assessment result. // TODO: enum values: ["VERDICT_UNSPECIFIED", "PASS", "FAIL", "NOT_APPLICABLE"]
-    #[serde(default)]
-    pub verdict: ::core::option::Option<String>,
-    /// The weight of the assessment which was set in the profile. // TODO: enum values: ["WEIGHT_UNSPECIFIED", "MINOR", "MODERATE", "MAJOR"]
-    #[serde(default)]
-    pub weight: ::core::option::Option<String>,
-}
-
-/// The format of the assessment recommendation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudApigeeV1SecurityAssessmentResultScoringResultAssessmentRecommendationRecommendation {
-    /// The description of the recommendation.
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// The link for the recommendation.
-    #[serde(default)]
-    pub link: ::core::option::Option<GoogleCloudApigeeV1SecurityAssessmentResultScoringResultAssessmentRecommendationRecommendationLink>,
-}
-
-/// The format for a link in the recommendation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudApigeeV1SecurityAssessmentResultScoringResultAssessmentRecommendationRecommendationLink
-{
-    /// The text of the url. (ie: "Learn more")
-    #[serde(default)]
-    pub text: ::core::option::Option<String>,
-    /// The link itself.
-    #[serde(default)]
-    pub uri: ::core::option::Option<String>,
-}
-
 /// Represents a feedback report from an Advanced API Security customer.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudApigeeV1SecurityFeedback {
@@ -4673,49 +3562,6 @@ pub struct GoogleCloudApigeeV1SecurityFeedback {
     /// Output only. The time when this specific feedback id was updated.
     #[serde(default, rename = "updateTime")]
     pub update_time: ::core::option::Option<String>,
-}
-
-/// FeedbackContext captures the intent of the submitted feedback.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudApigeeV1SecurityFeedbackFeedbackContext {
-    /// Required. The attribute the user is providing feedback about. // TODO: enum values: ["ATTRIBUTE_UNSPECIFIED", "ATTRIBUTE_ENVIRONMENTS", "ATTRIBUTE_IP_ADDRESS_RANGES"]
-    #[serde(default)]
-    pub attribute: ::core::option::Option<String>,
-    /// Required. The values of the attribute the user is providing feedback about.
-    #[serde(default)]
-    pub values: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// Represents an SecurityIncident resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudApigeeV1SecurityIncident {
-    /// Output only. Detection types which are part of the incident. Examples: Flooder, OAuth Abuser, Static Content Scraper, Anomaly Detection.
-    #[serde(default, rename = "detectionTypes")]
-    pub detection_types: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Optional. Display name of the security incident.
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-    /// Output only. The time when events associated with the incident were first detected.
-    #[serde(default, rename = "firstDetectedTime")]
-    pub first_detected_time: ::core::option::Option<String>,
-    /// Output only. The time when events associated with the incident were last detected.
-    #[serde(default, rename = "lastDetectedTime")]
-    pub last_detected_time: ::core::option::Option<String>,
-    /// Output only. The time when the incident observability was last changed.
-    #[serde(default, rename = "lastObservabilityChangeTime")]
-    pub last_observability_change_time: ::core::option::Option<String>,
-    /// Immutable. Name of the security incident resource. Format: organizations/{org}/environments/{environment}/securityIncidents/{incident} Example: organizations/apigee-org/environments/dev/securityIncidents/1234-5678-9101-1111
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Optional. Indicates if the user archived this incident. // TODO: enum values: ["OBSERVABILITY_UNSPECIFIED", "ACTIVE", "ARCHIVED"]
-    #[serde(default)]
-    pub observability: ::core::option::Option<String>,
-    /// Output only. Risk level of the incident. // TODO: enum values: ["RISK_LEVEL_UNSPECIFIED", "LOW", "MODERATE", "SEVERE"]
-    #[serde(default, rename = "riskLevel")]
-    pub risk_level: ::core::option::Option<String>,
-    /// Total traffic detected as part of the incident.
-    #[serde(default, rename = "trafficCount")]
-    pub traffic_count: ::core::option::Option<String>,
 }
 
 /// Security monitoring condition for risk assessment version 2.
@@ -4801,45 +3647,6 @@ pub struct GoogleCloudApigeeV1SecurityProfile {
         ::core::option::Option<::std::vec::Vec<GoogleCloudApigeeV1SecurityProfileScoringConfig>>,
 }
 
-/// Environment information of attached environments. Scoring an environment is enabled only if it is attached to a security profile.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudApigeeV1SecurityProfileEnvironment {
-    /// Output only. Time at which environment was attached to the security profile.
-    #[serde(default, rename = "attachTime")]
-    pub attach_time: ::core::option::Option<String>,
-    /// Output only. Name of the environment.
-    #[serde(default)]
-    pub environment: ::core::option::Option<String>,
-}
-
-/// Represents a SecurityProfileEnvironmentAssociation resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudApigeeV1SecurityProfileEnvironmentAssociation {
-    /// Output only. The time when environment was attached to the security profile.
-    #[serde(default, rename = "attachTime")]
-    pub attach_time: ::core::option::Option<String>,
-    /// Immutable. Name of the environment that the profile is attached to.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// DEPRECATED: DO NOT USE Revision ID of the security profile.
-    #[serde(default, rename = "securityProfileRevisionId")]
-    pub security_profile_revision_id: ::core::option::Option<String>,
-}
-
-/// Security configurations to manage scoring.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudApigeeV1SecurityProfileScoringConfig {
-    /// Description of the config.
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// Path of the component config used for scoring.
-    #[serde(default, rename = "scorePath")]
-    pub score_path: ::core::option::Option<String>,
-    /// Title of the config.
-    #[serde(default)]
-    pub title: ::core::option::Option<String>,
-}
-
 /// Security profile for risk assessment version 2.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudApigeeV1SecurityProfileV2 {
@@ -4864,27 +3671,6 @@ pub struct GoogleCloudApigeeV1SecurityProfileV2 {
     /// Output only. The time of the security profile update.
     #[serde(default, rename = "updateTime")]
     pub update_time: ::core::option::Option<String>,
-}
-
-/// The configuration definition for a specific assessment.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudApigeeV1SecurityProfileV2ProfileAssessmentConfig {
-    /// Include only these Gateway Types.
-    #[serde(default)]
-    pub include: ::core::option::Option<
-        GoogleCloudApigeeV1SecurityProfileV2ProfileAssessmentConfigApiHubGatewayTypeArray,
-    >,
-    /// The weight of the assessment. // TODO: enum values: ["WEIGHT_UNSPECIFIED", "MINOR", "MODERATE", "MAJOR"]
-    #[serde(default)]
-    pub weight: ::core::option::Option<String>,
-}
-
-/// Message for the array of API Hub Gateway Types.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudApigeeV1SecurityProfileV2ProfileAssessmentConfigApiHubGatewayTypeArray {
-    /// Required. The array of API Hub Gateway Types.
-    #[serde(default, rename = "gatewayTypes")]
-    pub gateway_types: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// SecurityReport saves all the information about the created security report.
@@ -4931,66 +3717,181 @@ pub struct GoogleCloudApigeeV1SecurityReport {
     pub updated: ::core::option::Option<String>,
 }
 
-/// Metadata for the security report.
+/// The metadata describing a shared flow
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudApigeeV1SecurityReportMetadata {
-    /// Dimensions of the SecurityReport.
+pub struct GoogleCloudApigeeV1SharedFlow {
+    /// The id of the most recently created revision for this shared flow.
+    #[serde(default, rename = "latestRevisionId")]
+    pub latest_revision_id: ::core::option::Option<String>,
+    /// Metadata describing the shared flow.
+    #[serde(default, rename = "metaData")]
+    pub meta_data: ::core::option::Option<GoogleCloudApigeeV1EntityMetadata>,
+    /// The ID of the shared flow.
     #[serde(default)]
-    pub dimensions: ::core::option::Option<::std::vec::Vec<String>>,
-    /// End timestamp of the query range.
-    #[serde(default, rename = "endTimestamp")]
-    pub end_timestamp: ::core::option::Option<String>,
-    /// Metrics of the SecurityReport. Example: ["name:bot_count,func:sum,alias:sum_bot_count"]
+    pub name: ::core::option::Option<String>,
+    /// A list of revisions of this shared flow.
     #[serde(default)]
-    pub metrics: ::core::option::Option<::std::vec::Vec<String>>,
-    /// MIME type / Output format.
-    #[serde(default, rename = "mimeType")]
-    pub mime_type: ::core::option::Option<String>,
-    /// Start timestamp of the query range.
-    #[serde(default, rename = "startTimestamp")]
-    pub start_timestamp: ::core::option::Option<String>,
-    /// Query GroupBy time unit. Example: "seconds", "minute", "hour"
-    #[serde(default, rename = "timeUnit")]
-    pub time_unit: ::core::option::Option<String>,
+    pub revision: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Optional. The ID of the space associated with this shared flow. Any IAM policies applied to the space will control access to this shared flow. To learn how Spaces can be used to manage resources, read the [Apigee Spaces Overview](https://cloud.google.com/apigee/docs/api-platform/system-administration/spaces/apigee-spaces-overview).
+    #[serde(default)]
+    pub space: ::core::option::Option<String>,
 }
 
-/// Body structure when user makes a request to create a security report.
+/// Organization space resource.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudApigeeV1SecurityReportQuery {
-    /// Delimiter used in the CSV file, if outputFormat is set to csv. Defaults to the , (comma) character. Supported delimiter characters include comma (,), pipe (|), and tab (\t).
-    #[serde(default, rename = "csvDelimiter")]
-    pub csv_delimiter: ::core::option::Option<String>,
-    /// A list of dimensions. https://docs.apigee.com/api-platform/analytics/analytics-reference#dimensions
-    #[serde(default)]
-    pub dimensions: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Security Report display name which users can specify.
+pub struct GoogleCloudApigeeV1Space {
+    /// Output only. Create timestamp of the space.
+    #[serde(default, rename = "createTime")]
+    pub create_time: ::core::option::Option<String>,
+    /// Optional. Display name of the space.
     #[serde(default, rename = "displayName")]
     pub display_name: ::core::option::Option<String>,
-    /// Hostname needs to be specified if query intends to run at host level. This field is only allowed when query is submitted by CreateHostSecurityReport where analytics data will be grouped by organization and hostname.
-    #[serde(default, rename = "envgroupHostname")]
-    pub envgroup_hostname: ::core::option::Option<String>,
-    /// Boolean expression that can be used to filter data. Filter expressions can be combined using AND/OR terms and should be fully parenthesized to avoid ambiguity. See Analytics metrics, dimensions, and filters reference https://docs.apigee.com/api-platform/analytics/analytics-reference for more information on the fields available to filter on. For more information on the tokens that you use to build filter expressions, see Filter expression syntax. https://docs.apigee.com/api-platform/analytics/asynch-reports-api#filter-expression-syntax
+    /// Output only. Identifier. Id of the space. This field is used as the resource name, and must follow [AIP-122](https://google.aip.dev/122) guidelines.
     #[serde(default)]
-    pub filter: ::core::option::Option<String>,
-    /// Time unit used to group the result set. Valid values include: second, minute, hour, day, week, or month. If a query includes groupByTimeUnit, then the result is an aggregation based on the specified time unit and the resultant timestamp does not include milliseconds precision. If a query omits groupByTimeUnit, then the resultant timestamp includes milliseconds precision.
-    #[serde(default, rename = "groupByTimeUnit")]
-    pub group_by_time_unit: ::core::option::Option<String>,
-    /// Maximum number of rows that can be returned in the result.
+    pub name: ::core::option::Option<String>,
+    /// Output only. Last modified timestamp of the space.
+    #[serde(default, rename = "updateTime")]
+    pub update_time: ::core::option::Option<String>,
+}
+
+/// A representation of a configuration override.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudApigeeV1TraceConfigOverride {
+    /// ID of the API proxy that will have its trace configuration overridden.
+    #[serde(default, rename = "apiProxy")]
+    pub api_proxy: ::core::option::Option<String>,
+    /// ID of the trace configuration override specified as a system-generated UUID.
     #[serde(default)]
-    pub limit: ::core::option::Option<i32>,
-    /// A list of Metrics.
+    pub name: ::core::option::Option<String>,
+    /// Trace configuration to override.
+    #[serde(default, rename = "samplingConfig")]
+    pub sampling_config: ::core::option::Option<GoogleCloudApigeeV1TraceSamplingConfig>,
+}
+
+/// Information about operation progress.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudApigeeV1OperationMetadataProgress {
+    /// Description of the operation''s progress.
     #[serde(default)]
-    pub metrics:
-        ::core::option::Option<::std::vec::Vec<GoogleCloudApigeeV1SecurityReportQueryMetric>>,
-    /// Valid values include: csv or json. Defaults to json. Note: Configure the delimiter for CSV output using the csvDelimiter property.
-    #[serde(default, rename = "mimeType")]
-    pub mime_type: ::core::option::Option<String>,
-    /// Report Definition ID.
-    #[serde(default, rename = "reportDefinitionId")]
-    pub report_definition_id: ::core::option::Option<String>,
-    /// Required. Time range for the query. Can use the following predefined strings to specify the time range: last60minutes last24hours last7days Or, specify the timeRange as a structure describing start and end timestamps in the ISO format: yyyy-mm-ddThh:mm:ssZ. Example: "timeRange": { "start": "2018-07-29T00:13:00Z", "end": "2018-08-01T00:18:00Z" }
-    #[serde(default, rename = "timeRange")]
-    pub time_range: ::core::option::Option<serde_json::Value>,
+    pub description: ::core::option::Option<String>,
+    /// The additional details of the progress.
+    #[serde(default)]
+    pub details: ::core::option::Option<serde_json::Value>,
+    /// The percentage of the operation progress.
+    #[serde(default, rename = "percentDone")]
+    pub percent_done: ::core::option::Option<i32>,
+    /// State of the operation. // TODO: enum values: ["STATE_UNSPECIFIED", "NOT_STARTED", "IN_PROGRESS", "FINISHED"]
+    #[serde(default)]
+    pub state: ::core::option::Option<String>,
+}
+
+/// Encapsulates a response format for JavaScript Optimized Scenario.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudApigeeV1OptimizedStatsResponse {
+    /// List of time unit values. Time unit refers to an epoch timestamp value.
+    #[serde(default, rename = "TimeUnit")]
+    pub time_unit: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Metadata information about the query executed.
+    #[serde(default, rename = "metaData")]
+    pub meta_data: ::core::option::Option<GoogleCloudApigeeV1Metadata>,
+    /// Boolean flag that indicates whether the results were truncated based on the limit parameter.
+    #[serde(default, rename = "resultTruncated")]
+    pub result_truncated: ::core::option::Option<bool>,
+    /// stats results.
+    #[serde(default)]
+    pub stats: ::core::option::Option<GoogleCloudApigeeV1OptimizedStatsNode>,
+}
+
+/// More info about Metric: https://docs.apigee.com/api-platform/analytics/analytics-reference#metrics
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudApigeeV1QueryMetric {
+    /// Alias for the metric. Alias will be used to replace metric name in query results.
+    #[serde(default)]
+    pub alias: ::core::option::Option<String>,
+    /// Aggregation function: avg, min, max, or sum.
+    #[serde(default)]
+    pub function: ::core::option::Option<String>,
+    /// Required. Metric name.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// One of +, -, /, %, *.
+    #[serde(default)]
+    pub operator: ::core::option::Option<String>,
+    /// Operand value should be provided when operator is set.
+    #[serde(default)]
+    pub value: ::core::option::Option<String>,
+}
+
+/// The optionally aggregated metric to query with its ordering.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudApigeeV1MetricAggregation {
+    /// Aggregation function associated with the metric. // TODO: enum values: ["AGGREGATION_FUNCTION_UNSPECIFIED", "AVG", "SUM", "MIN", "MAX", "COUNT_DISTINCT"]
+    #[serde(default)]
+    pub aggregation: ::core::option::Option<String>,
+    /// Name of the metric
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Ordering for this aggregation in the result. For time series this is ignored since the ordering of points depends only on the timestamp, not the values. // TODO: enum values: ["ORDER_UNSPECIFIED", "ASCENDING", "DESCENDING"]
+    #[serde(default)]
+    pub order: ::core::option::Option<String>,
+}
+
+/// A sequence of time series.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudApigeeV1QueryTimeSeriesStatsResponseSequence {
+    /// Map of dimensions and their values that uniquely identifies a time series sequence.
+    #[serde(default)]
+    pub dimensions: ::core::option::Option<serde_json::Value>,
+    /// List of points. First value of each inner list is a timestamp.
+    #[serde(default)]
+    pub points: ::core::option::Option<::std::vec::Vec<::std::vec::Vec<serde_json::Value>>>,
+}
+
+/// The status of a resource loaded in the runtime.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudApigeeV1ResourceStatus {
+    /// The resource name. Currently only two resources are supported: EnvironmentGroup - organizations/{org}/envgroups/{envgroup} EnvironmentConfig - organizations/{org}/environments/{environment}/deployedConfig
+    #[serde(default)]
+    pub resource: ::core::option::Option<String>,
+    /// Revisions of the resource currently deployed in the instance.
+    #[serde(default)]
+    pub revisions: ::core::option::Option<::std::vec::Vec<GoogleCloudApigeeV1RevisionStatus>>,
+    /// The total number of replicas that should have this resource.
+    #[serde(default, rename = "totalReplicas")]
+    pub total_replicas: ::core::option::Option<i32>,
+    /// The uid of the resource. In the unexpected case that the instance has multiple uids for the same name, they should be reported under separate ResourceStatuses.
+    #[serde(default)]
+    pub uid: ::core::option::Option<String>,
+}
+
+/// Message type for the schema element
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudApigeeV1SchemaSchemaElement {
+    /// Name of the field.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Properties for the schema field. For example: { "createTime": "2016-02-26T10:23:09.592Z", "custom": "false", "type": "string" }
+    #[serde(default)]
+    pub properties: ::core::option::Option<GoogleCloudApigeeV1SchemaSchemaProperty>,
+}
+
+/// The format of the assessment recommendation.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudApigeeV1SecurityAssessmentResultScoringResultAssessmentRecommendationRecommendation {
+    /// The description of the recommendation.
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+    /// The link for the recommendation.
+    #[serde(default)]
+    pub link: ::core::option::Option<GoogleCloudApigeeV1SecurityAssessmentResultScoringResultAssessmentRecommendationRecommendationLink>,
+}
+
+/// Message for the array of API Hub Gateway Types.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudApigeeV1SecurityProfileV2ProfileAssessmentConfigApiHubGatewayTypeArray {
+    /// Required. The array of API Hub Gateway Types.
+    #[serde(default, rename = "gatewayTypes")]
+    pub gateway_types: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Metric of the Query
@@ -5013,186 +3914,47 @@ pub struct GoogleCloudApigeeV1SecurityReportQueryMetric {
     pub value: ::core::option::Option<String>,
 }
 
-/// Contains informations about the security report results.
+/// Add-on configurations for the Apigee organization.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudApigeeV1SecurityReportResultMetadata {
-    /// Output only. Expire_time is set to 7 days after report creation. Query result will be unaccessable after this time. Example: "2021-05-04T13:38:52-07:00"
-    #[serde(default)]
-    pub expires: ::core::option::Option<String>,
-    /// Self link of the query results. Example: /organizations/myorg/environments/myenv/securityReports/9cfc0d85-0f30-46d6-ae6f-318d0cb961bd/result or following format if query is running at host level: /organizations/myorg/hostSecurityReports/9cfc0d85-0f30-46d6-ae6f-318d0cb961bd/result
-    #[serde(default, rename = "self")]
-    pub self_: ::core::option::Option<String>,
+pub struct GoogleCloudApigeeV1AddonsConfig {
+    /// Configuration for the Advanced API Ops add-on.
+    #[serde(default, rename = "advancedApiOpsConfig")]
+    pub advanced_api_ops_config: ::core::option::Option<GoogleCloudApigeeV1AdvancedApiOpsConfig>,
+    /// Configuration for the Analytics add-on. Only used in organizations.environments.addonsConfig.
+    #[serde(default, rename = "analyticsConfig")]
+    pub analytics_config: ::core::option::Option<GoogleCloudApigeeV1AnalyticsConfig>,
+    /// Configuration for the API Security add-on.
+    #[serde(default, rename = "apiSecurityConfig")]
+    pub api_security_config: ::core::option::Option<GoogleCloudApigeeV1ApiSecurityConfig>,
+    /// Configuration for the Connectors Platform add-on.
+    #[serde(default, rename = "connectorsPlatformConfig")]
+    pub connectors_platform_config:
+        ::core::option::Option<GoogleCloudApigeeV1ConnectorsPlatformConfig>,
+    /// Configuration for the Integration add-on.
+    #[serde(default, rename = "integrationConfig")]
+    pub integration_config: ::core::option::Option<GoogleCloudApigeeV1IntegrationConfig>,
+    /// Configuration for the Monetization add-on.
+    #[serde(default, rename = "monetizationConfig")]
+    pub monetization_config: ::core::option::Option<GoogleCloudApigeeV1MonetizationConfig>,
 }
 
-/// The response for security report result view APIs.
+/// Version of the API proxy configuration schema. Currently, only 4.0 is supported.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudApigeeV1SecurityReportResultView {
-    /// Error code when there is a failure.
-    #[serde(default)]
-    pub code: ::core::option::Option<i32>,
-    /// Error message when there is a failure.
-    #[serde(default)]
-    pub error: ::core::option::Option<String>,
-    /// Metadata contains information like metrics, dimenstions etc of the security report.
-    #[serde(default)]
-    pub metadata: ::core::option::Option<GoogleCloudApigeeV1SecurityReportMetadata>,
-    /// Rows of security report result. Each row is a JSON object. Example: {sum(message_count): 1, developer_app: "(not set)",…}
-    #[serde(default)]
-    pub rows: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
-    /// State of retrieving ResultView.
-    #[serde(default)]
-    pub state: ::core::option::Option<String>,
+pub struct GoogleCloudApigeeV1ConfigVersion {
+    /// Major version of the API proxy configuration schema.
+    #[serde(default, rename = "majorVersion")]
+    pub major_version: ::core::option::Option<i32>,
+    /// Minor version of the API proxy configuration schema.
+    #[serde(default, rename = "minorVersion")]
+    pub minor_version: ::core::option::Option<i32>,
 }
 
-/// SecuritySettings reflects the current state of the SecuritySettings feature.
+/// List of resource files.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudApigeeV1SecuritySettings {
-    /// Optional. If true the user consents to the use of ML models for Abuse detection.
-    #[serde(default, rename = "mlRetrainingFeedbackEnabled")]
-    pub ml_retraining_feedback_enabled: ::core::option::Option<bool>,
-    /// Identifier. Full resource name is always organizations/{org}/securitySettings.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-}
-
-/// GoogleCloudApigeeV1ServiceIssuersMapping resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudApigeeV1ServiceIssuersMapping {
-    /// List of trusted issuer email ids.
-    #[serde(default, rename = "emailIds")]
-    pub email_ids: ::core::option::Option<::std::vec::Vec<String>>,
-    /// String indicating the Apigee service name.
-    #[serde(default)]
-    pub service: ::core::option::Option<String>,
-}
-
-/// Session carries the debug session id and its creation time.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudApigeeV1Session {
-    /// The debug session ID.
-    #[serde(default)]
-    pub id: ::core::option::Option<String>,
-    /// The first transaction creation timestamp in millisecond, recorded by UAP.
-    #[serde(default, rename = "timestampMs")]
-    pub timestamp_ms: ::core::option::Option<String>,
-}
-
-/// Request for SetAddonEnablement.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudApigeeV1SetAddonEnablementRequest {
-    /// If the Analytics should be enabled in the environment.
-    #[serde(default, rename = "analyticsEnabled")]
-    pub analytics_enabled: ::core::option::Option<bool>,
-    /// If the API Security should be enabled in the environment.
-    #[serde(default, rename = "apiSecurityEnabled")]
-    pub api_security_enabled: ::core::option::Option<bool>,
-}
-
-/// Request for SetAddons.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudApigeeV1SetAddonsRequest {
-    /// Required. Add-on configurations.
-    #[serde(default, rename = "addonsConfig")]
-    pub addons_config: ::core::option::Option<GoogleCloudApigeeV1AddonsConfig>,
-}
-
-/// The metadata describing a shared flow
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudApigeeV1SharedFlow {
-    /// The id of the most recently created revision for this shared flow.
-    #[serde(default, rename = "latestRevisionId")]
-    pub latest_revision_id: ::core::option::Option<String>,
-    /// Metadata describing the shared flow.
-    #[serde(default, rename = "metaData")]
-    pub meta_data: ::core::option::Option<GoogleCloudApigeeV1EntityMetadata>,
-    /// The ID of the shared flow.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// A list of revisions of this shared flow.
-    #[serde(default)]
-    pub revision: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Optional. The ID of the space associated with this shared flow. Any IAM policies applied to the space will control access to this shared flow. To learn how Spaces can be used to manage resources, read the [Apigee Spaces Overview](https://cloud.google.com/apigee/docs/api-platform/system-administration/spaces/apigee-spaces-overview).
-    #[serde(default)]
-    pub space: ::core::option::Option<String>,
-}
-
-/// The metadata describing a shared flow revision.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudApigeeV1SharedFlowRevision {
-    /// The version of the configuration schema to which this shared flow conforms. The only supported value currently is majorVersion 4 and minorVersion 0. This setting may be used in the future to enable evolution of the shared flow format.
-    #[serde(default, rename = "configurationVersion")]
-    pub configuration_version: ::core::option::Option<GoogleCloudApigeeV1ConfigVersion>,
-    /// A textual description of the shared flow revision.
-    #[serde(default, rename = "contextInfo")]
-    pub context_info: ::core::option::Option<String>,
-    /// Time at which this shared flow revision was created, in milliseconds since epoch.
-    #[serde(default, rename = "createdAt")]
-    pub created_at: ::core::option::Option<String>,
-    /// Description of the shared flow revision.
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// The human readable name of this shared flow.
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-    /// A Key-Value map of metadata about this shared flow revision.
-    #[serde(default, rename = "entityMetaDataAsProperties")]
-    pub entity_meta_data_as_properties: ::core::option::Option<serde_json::Value>,
-    /// Time at which this shared flow revision was most recently modified, in milliseconds since epoch.
-    #[serde(default, rename = "lastModifiedAt")]
-    pub last_modified_at: ::core::option::Option<String>,
-    /// The resource ID of the parent shared flow.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// A list of policy names included in this shared flow revision.
-    #[serde(default)]
-    pub policies: ::core::option::Option<::std::vec::Vec<String>>,
-    /// The resource files included in this shared flow revision.
-    #[serde(default, rename = "resourceFiles")]
-    pub resource_files: ::core::option::Option<GoogleCloudApigeeV1ResourceFiles>,
-    /// A list of the resources included in this shared flow revision formatted as "{type}://{name}".
-    #[serde(default)]
-    pub resources: ::core::option::Option<::std::vec::Vec<String>>,
-    /// The resource ID of this revision.
-    #[serde(default)]
-    pub revision: ::core::option::Option<String>,
-    /// A list of the shared flow names included in this shared flow revision.
-    #[serde(default, rename = "sharedFlows")]
-    pub shared_flows: ::core::option::Option<::std::vec::Vec<String>>,
-    /// The string "Application"
-    #[serde(default, rename = "type")]
-    pub type_: ::core::option::Option<String>,
-}
-
-/// Organization space resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudApigeeV1Space {
-    /// Output only. Create timestamp of the space.
-    #[serde(default, rename = "createTime")]
-    pub create_time: ::core::option::Option<String>,
-    /// Optional. Display name of the space.
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-    /// Output only. Identifier. Id of the space. This field is used as the resource name, and must follow [AIP-122](https://google.aip.dev/122) guidelines.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Output only. Last modified timestamp of the space.
-    #[serde(default, rename = "updateTime")]
-    pub update_time: ::core::option::Option<String>,
-}
-
-/// Encapsulates a stats response.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudApigeeV1Stats {
-    /// List of query results on the environment level.
-    #[serde(default)]
-    pub environments:
-        ::core::option::Option<::std::vec::Vec<GoogleCloudApigeeV1StatsEnvironmentStats>>,
-    /// List of query results grouped by host.
-    #[serde(default)]
-    pub hosts: ::core::option::Option<::std::vec::Vec<GoogleCloudApigeeV1StatsHostStats>>,
-    /// Metadata information.
-    #[serde(default, rename = "metaData")]
-    pub meta_data: ::core::option::Option<GoogleCloudApigeeV1Metadata>,
+pub struct GoogleCloudApigeeV1ResourceFiles {
+    /// List of resource files.
+    #[serde(default, rename = "resourceFile")]
+    pub resource_file: ::core::option::Option<::std::vec::Vec<GoogleCloudApigeeV1ResourceFile>>,
 }
 
 /// Encapsulates the environment wrapper:  "environments": [ { "metrics": [ { "name": "sum(message_count)", "values": [ "2.52056245E8" ] } ], "name": "prod" } ]
@@ -5221,85 +3983,6 @@ pub struct GoogleCloudApigeeV1StatsHostStats {
     /// Hostname used in query.
     #[serde(default)]
     pub name: ::core::option::Option<String>,
-}
-
-/// Pub/Sub subscription of an environment.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudApigeeV1Subscription {
-    /// Full name of the Pub/Sub subcription. Use the following structure in your request: subscription "projects/foo/subscription/bar"
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-}
-
-/// GoogleCloudApigeeV1SyncAuthorization resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudApigeeV1SyncAuthorization {
-    /// Entity tag (ETag) used for optimistic concurrency control as a way to help prevent simultaneous updates from overwriting each other. For example, when you call [getSyncAuthorization](organizations/getSyncAuthorization) an ETag is returned in the response. Pass that ETag when calling the [setSyncAuthorization](organizations/setSyncAuthorization) to ensure that you are updating the correct version. If you don''t pass the ETag in the call to setSyncAuthorization, then the existing authorization is overwritten indiscriminately. **Note**: We strongly recommend that you use the ETag in the read-modify-write cycle to avoid race conditions.
-    #[serde(default)]
-    pub etag: ::core::option::Option<String>,
-    /// Required. Array of service accounts to grant access to control plane resources, each specified using the following format: serviceAccount: service-account-name. The service-account-name is formatted like an email address. For example: my-synchronizer-manager-service_account@my_project_id.iam.gserviceaccount.com You might specify multiple service accounts, for example, if you have multiple environments and wish to assign a unique service account to each one. The service accounts must have **Apigee Synchronizer Manager** role. See also [Create service accounts](https://cloud.google.com/apigee/docs/hybrid/latest/sa-about#create-the-service-accounts).
-    #[serde(default)]
-    pub identities: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// TargetServer configuration. TargetServers are used to decouple a proxy TargetEndpoint HTTPTargetConnections from concrete URLs for backend services.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudApigeeV1TargetServer {
-    /// Optional. A human-readable description of this TargetServer.
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// Required. The host name this target connects to. Value must be a valid hostname as described by RFC-1123.
-    #[serde(default)]
-    pub host: ::core::option::Option<String>,
-    /// Optional. Enabling/disabling a TargetServer is useful when TargetServers are used in load balancing configurations, and one or more TargetServers need to taken out of rotation periodically. Defaults to true.
-    #[serde(default, rename = "isEnabled")]
-    pub is_enabled: ::core::option::Option<bool>,
-    /// Required. The resource id of this target server. Values must match the regular expression
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Required. The port number this target connects to on the given host. Value must be between 1 and 65535, inclusive.
-    #[serde(default)]
-    pub port: ::core::option::Option<i32>,
-    /// Immutable. The protocol used by this TargetServer. // TODO: enum values: ["PROTOCOL_UNSPECIFIED", "HTTP", "HTTP2", "GRPC_TARGET", "GRPC", "EXTERNAL_CALLOUT"]
-    #[serde(default)]
-    pub protocol: ::core::option::Option<String>,
-    /// Optional. Specifies TLS configuration info for this TargetServer. The JSON name is sSLInfo for legacy/backwards compatibility reasons -- Edge originally supported SSL, and the name is still used for TLS configuration.
-    #[serde(default, rename = "sSLInfo")]
-    pub s_s_l_info: ::core::option::Option<GoogleCloudApigeeV1TlsInfo>,
-}
-
-/// GoogleCloudApigeeV1TargetServerConfig resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudApigeeV1TargetServerConfig {
-    /// Whether the target server is enabled. An empty/omitted value for this field should be interpreted as true.
-    #[serde(default)]
-    pub enabled: ::core::option::Option<bool>,
-    /// Host name of the target server.
-    #[serde(default)]
-    pub host: ::core::option::Option<String>,
-    /// Target server revision name in the following format: organizations/{org}/environments/{env}/targetservers/{targetserver}/revisions/{rev}
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Port number for the target server.
-    #[serde(default)]
-    pub port: ::core::option::Option<i32>,
-    /// The protocol used by this target server. // TODO: enum values: ["PROTOCOL_UNSPECIFIED", "HTTP", "HTTP2", "GRPC_TARGET", "GRPC", "EXTERNAL_CALLOUT"]
-    #[serde(default)]
-    pub protocol: ::core::option::Option<String>,
-    /// TLS settings for the target server.
-    #[serde(default, rename = "tlsInfo")]
-    pub tls_info: ::core::option::Option<GoogleCloudApigeeV1TlsInfoConfig>,
-}
-
-/// The response for TestDatastore
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudApigeeV1TestDatastoreResponse {
-    /// Output only. Error message of test connection failure
-    #[serde(default)]
-    pub error: ::core::option::Option<String>,
-    /// Output only. It could be completed or failed
-    #[serde(default)]
-    pub state: ::core::option::Option<String>,
 }
 
 /// TLS configuration information for virtual hosts and TargetServers.
@@ -5337,15 +4020,355 @@ pub struct GoogleCloudApigeeV1TlsInfo {
     pub trust_store: ::core::option::Option<String>,
 }
 
-/// GoogleCloudApigeeV1TlsInfoCommonName resource type.
+/// AppGroupAppKey contains all the information associated with the credentials.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudApigeeV1TlsInfoCommonName {
-    /// The TLS Common Name string of the certificate.
+pub struct GoogleCloudApigeeV1AppGroupAppKey {
+    /// Output only. List of API products and its status for which the credential can be used. **Note**: Use UpdateAppGroupAppKeyApiProductRequest API to make the association after the consumer key and secret are created.
+    #[serde(default, rename = "apiProducts")]
+    pub api_products:
+        ::core::option::Option<::std::vec::Vec<GoogleCloudApigeeV1aPIProductAssociation>>,
+    /// List of attributes associated with the credential.
     #[serde(default)]
-    pub value: ::core::option::Option<String>,
-    /// Indicates whether the cert should be matched against as a wildcard cert.
-    #[serde(default, rename = "wildcardMatch")]
-    pub wildcard_match: ::core::option::Option<bool>,
+    pub attributes: ::core::option::Option<::std::vec::Vec<GoogleCloudApigeeV1Attribute>>,
+    /// Immutable. Consumer key.
+    #[serde(default, rename = "consumerKey")]
+    pub consumer_key: ::core::option::Option<String>,
+    /// Secret key.
+    #[serde(default, rename = "consumerSecret")]
+    pub consumer_secret: ::core::option::Option<String>,
+    /// Output only. Time the AppGroup app expires in milliseconds since epoch.
+    #[serde(default, rename = "expiresAt")]
+    pub expires_at: ::core::option::Option<String>,
+    /// Immutable. Expiration time, in seconds, for the consumer key. If not set or left to the default value of -1, the API key never expires. The expiration time can''t be updated after it is set.
+    #[serde(default, rename = "expiresInSeconds")]
+    pub expires_in_seconds: ::core::option::Option<String>,
+    /// Output only. Time the AppGroup app was created in milliseconds since epoch.
+    #[serde(default, rename = "issuedAt")]
+    pub issued_at: ::core::option::Option<String>,
+    /// Scopes to apply to the app. The specified scope names must already be defined for the API product that you associate with the app.
+    #[serde(default)]
+    pub scopes: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Status of the credential. Valid values include approved or revoked.
+    #[serde(default)]
+    pub status: ::core::option::Option<String>,
+}
+
+/// An Identity and Access Management (IAM) policy, which specifies access controls for Google Cloud resources. A Policy is a collection of bindings. A binding binds one or more members, or principals, to a single role. Principals can be user accounts, service accounts, Google groups, and domains (such as G Suite). A role is a named list of permissions; each role can be an IAM predefined role or a user-created custom role. For some types of Google Cloud resources, a binding can also specify a condition, which is a logical expression that allows access to a resource only if the expression evaluates to true. A condition can add constraints based on attributes of the request, the resource, or both. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies). **JSON example:**  { "bindings": [ { "role": "roles/resourcemanager.organizationAdmin", "members": [ "user:mike@example.com", "group:admins@example.com", "domain:google.com", "serviceAccount:my-project-id@appspot.gserviceaccount.com" ] }, { "role": "roles/resourcemanager.organizationViewer", "members": [ "user:eve@example.com" ], "condition": { "title": "expirable access", "description": "Does not grant access after Sep 2020", "expression": "request.time &lt; timestamp(''2020-10-01T00:00:00.000Z'')", } } ], "etag": "BwWWja0YfJA=", "version": 3 }  **YAML example:**  bindings: - members: - user:mike@example.com - group:admins@example.com - domain:google.com - serviceAccount:my-project-id@appspot.gserviceaccount.com role: roles/resourcemanager.organizationAdmin - members: - user:eve@example.com role: roles/resourcemanager.organizationViewer condition: title: expirable access description: Does not grant access after Sep 2020 expression: request.time &lt; timestamp(''2020-10-01T00:00:00.000Z'') etag: BwWWja0YfJA= version: 3  For a description of IAM and its features, see the [IAM documentation](https://cloud.google.com/iam/docs/).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleIamV1Policy {
+    /// Specifies cloud audit logging configuration for this policy.
+    #[serde(default, rename = "auditConfigs")]
+    pub audit_configs: ::core::option::Option<::std::vec::Vec<GoogleIamV1AuditConfig>>,
+    /// Associates a list of members, or principals, with a role. Optionally, may specify a condition that determines how and when the bindings are applied. Each of the bindings must contain at least one principal. The bindings in a Policy can refer to up to 1,500 principals; up to 250 of these principals can be Google groups. Each occurrence of a principal counts towards these limits. For example, if the bindings grant 50 different roles to user:alice@example.com, and not to any other principal, then you can add another 1,450 principals to the bindings in the Policy.
+    #[serde(default)]
+    pub bindings: ::core::option::Option<::std::vec::Vec<GoogleIamV1Binding>>,
+    /// etag is used for optimistic concurrency control as a way to help prevent simultaneous updates of a policy from overwriting each other. It is strongly suggested that systems make use of the etag in the read-modify-write cycle to perform policy updates in order to avoid race conditions: An etag is returned in the response to getIamPolicy, and systems are expected to put that etag in the request to setIamPolicy to ensure that their change will be applied to the same version of the policy. **Important:** If you use IAM Conditions, you must include the etag field whenever you call setIamPolicy. If you omit this field, then IAM allows you to overwrite a version 3 policy with a version 1 policy, and all of the conditions in the version 3 policy are lost.
+    #[serde(default)]
+    pub etag: ::core::option::Option<String>,
+    /// Specifies the format of the policy. Valid values are 0, 1, and 3. Requests that specify an invalid value are rejected. Any operation that affects conditional role bindings must specify version 3. This requirement applies to the following operations: * Getting a policy that includes a conditional role binding * Adding a conditional role binding to a policy * Changing a conditional role binding in a policy * Removing any role binding, with or without a condition, from a policy that includes conditions **Important:** If you use IAM Conditions, you must include the etag field whenever you call setIamPolicy. If you omit this field, then IAM allows you to overwrite a version 3 policy with a version 1 policy, and all of the conditions in the version 3 policy are lost. If a policy does not include any conditions, operations on that policy may specify any valid version or leave the field unset. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies).
+    #[serde(default)]
+    pub version: ::core::option::Option<i32>,
+}
+
+/// This resource represents a long-running operation that is the result of a network API call.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleLongrunningOperation {
+    /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
+    #[serde(default)]
+    pub done: ::core::option::Option<bool>,
+    /// The error result of the operation in case of failure or cancellation.
+    #[serde(default)]
+    pub error: ::core::option::Option<GoogleRpcStatus>,
+    /// Service-specific metadata associated with the operation. It typically contains progress information and common metadata such as create time. Some services might not provide such metadata. Any method that returns a long-running operation should document the metadata type, if any.
+    #[serde(default)]
+    pub metadata: ::core::option::Option<serde_json::Value>,
+    /// The server-assigned name, which is only unique within the same service that originally returns it. If you use the default HTTP mapping, the name should be a resource name ending with operations/{unique_id}.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// The normal, successful response of the operation. If the original method returns no data on success, such as Delete, the response is google.protobuf.Empty. If the original method is standard Get/Create/Update, the response should be the resource. For other methods, the response should have the type XxxResponse, where Xxx is the original method name. For example, if the original method name is TakeSnapshot(), the inferred response type is TakeSnapshotResponse.
+    #[serde(default)]
+    pub response: ::core::option::Option<serde_json::Value>,
+}
+
+/// X.509 certificate as defined in RFC 5280.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudApigeeV1CertInfo {
+    /// X.509 basic constraints extension.
+    #[serde(default, rename = "basicConstraints")]
+    pub basic_constraints: ::core::option::Option<String>,
+    /// X.509 notAfter validity period in milliseconds since epoch.
+    #[serde(default, rename = "expiryDate")]
+    pub expiry_date: ::core::option::Option<String>,
+    /// Flag that specifies whether the certificate is valid. Flag is set to Yes if the certificate is valid, No if expired, or Not yet if not yet valid.
+    #[serde(default, rename = "isValid")]
+    pub is_valid: ::core::option::Option<String>,
+    /// X.509 issuer.
+    #[serde(default)]
+    pub issuer: ::core::option::Option<String>,
+    /// Public key component of the X.509 subject public key info.
+    #[serde(default, rename = "publicKey")]
+    pub public_key: ::core::option::Option<String>,
+    /// X.509 serial number.
+    #[serde(default, rename = "serialNumber")]
+    pub serial_number: ::core::option::Option<String>,
+    /// X.509 signatureAlgorithm.
+    #[serde(default, rename = "sigAlgName")]
+    pub sig_alg_name: ::core::option::Option<String>,
+    /// X.509 subject.
+    #[serde(default)]
+    pub subject: ::core::option::Option<String>,
+    /// X.509 subject alternative names (SANs) extension.
+    #[serde(default, rename = "subjectAlternativeNames")]
+    pub subject_alternative_names: ::core::option::Option<::std::vec::Vec<String>>,
+    /// X.509 notBefore validity period in milliseconds since epoch.
+    #[serde(default, rename = "validFrom")]
+    pub valid_from: ::core::option::Option<String>,
+    /// X.509 version.
+    #[serde(default)]
+    pub version: ::core::option::Option<i32>,
+}
+
+/// AsyncAPI Specification documentation for a catalog item.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudApigeeV1AsyncApiDocumentation {
+    /// Required. The documentation file contents for the AsyncAPI Specification. JSON and YAML file formats are supported.
+    #[serde(default)]
+    pub spec: ::core::option::Option<GoogleCloudApigeeV1DocumentationFile>,
+}
+
+/// GraphQL documentation for a catalog item.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudApigeeV1GraphqlDocumentation {
+    /// Required. The GraphQL endpoint URI to be queried by API consumers. Max length is 2,083 characters.
+    #[serde(default, rename = "endpointUri")]
+    pub endpoint_uri: ::core::option::Option<String>,
+    /// Required. The documentation file contents for the GraphQL schema.
+    #[serde(default)]
+    pub schema: ::core::option::Option<GoogleCloudApigeeV1DocumentationFile>,
+}
+
+/// OpenAPI Specification documentation for a catalog item.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudApigeeV1oASDocumentation {
+    /// Output only. The format of the input specification file contents. // TODO: enum values: ["FORMAT_UNSPECIFIED", "YAML", "JSON"]
+    #[serde(default)]
+    pub format: ::core::option::Option<String>,
+    /// Required. The documentation file contents for the OpenAPI Specification. JSON and YAML file formats are supported.
+    #[serde(default)]
+    pub spec: ::core::option::Option<GoogleCloudApigeeV1DocumentationFile>,
+}
+
+/// Resource for which we are computing security assessment.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudApigeeV1SecurityAssessmentResultResource {
+    /// Output only. Additional details for the API Hub deployment.
+    #[serde(default, rename = "apiHubDeploymentDetails")]
+    pub api_hub_deployment_details: ::core::option::Option<
+        GoogleCloudApigeeV1SecurityAssessmentResultResourceApiHubDeploymentDetails,
+    >,
+    /// Optional.  // TODO: enum values: ["API_HUB_GATEWAY_TYPE_UNSPECIFIED", "APIGEE_X", "APIGEE_HYBRID", "APIGEE_EDGE", "APIGEE_OPDK"]
+    #[serde(default, rename = "apiHubGatewayType")]
+    pub api_hub_gateway_type: ::core::option::Option<String>,
+    /// Required. Name of this resource. For an Apigee API Proxy, this should be the id of the API proxy. For an API Hub Deployment, this should be the id of the deployment.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// The revision id for the resource. In case of Apigee, this is proxy revision id.
+    #[serde(default, rename = "resourceRevisionId")]
+    pub resource_revision_id: ::core::option::Option<String>,
+    /// Required. Type of this resource. // TODO: enum values: ["RESOURCE_TYPE_UNSPECIFIED", "API_PROXY", "API_HUB_DEPLOYMENT"]
+    #[serde(default, rename = "type")]
+    pub type_: ::core::option::Option<String>,
+}
+
+/// The result of the assessment.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudApigeeV1SecurityAssessmentResultScoringResult {
+    /// The recommendations of the assessment. The key is the "name" of the assessment (not display_name), and the value are the recommendations.
+    #[serde(default, rename = "assessmentRecommendations")]
+    pub assessment_recommendations: ::core::option::Option<serde_json::Value>,
+    /// The time when resource data was last fetched for this resource. This time may be different than when the resource was actually updated due to lag in data collection.
+    #[serde(default, rename = "dataUpdateTime")]
+    pub data_update_time: ::core::option::Option<String>,
+    /// The number of failed assessments grouped by its weight. Keys are one of the following: "MAJOR", "MODERATE", "MINOR".
+    #[serde(default, rename = "failedAssessmentPerWeight")]
+    pub failed_assessment_per_weight: ::core::option::Option<serde_json::Value>,
+    /// The security score of the assessment.
+    #[serde(default)]
+    pub score: ::core::option::Option<i32>,
+    /// TODO: enum values: ["SEVERITY_UNSPECIFIED", "LOW", "MEDIUM", "HIGH", "MINIMAL"]
+    #[serde(default)]
+    pub severity: ::core::option::Option<String>,
+}
+
+/// Represents an SecurityIncident resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudApigeeV1SecurityIncident {
+    /// Output only. Detection types which are part of the incident. Examples: Flooder, OAuth Abuser, Static Content Scraper, Anomaly Detection.
+    #[serde(default, rename = "detectionTypes")]
+    pub detection_types: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Optional. Display name of the security incident.
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+    /// Output only. The time when events associated with the incident were first detected.
+    #[serde(default, rename = "firstDetectedTime")]
+    pub first_detected_time: ::core::option::Option<String>,
+    /// Output only. The time when events associated with the incident were last detected.
+    #[serde(default, rename = "lastDetectedTime")]
+    pub last_detected_time: ::core::option::Option<String>,
+    /// Output only. The time when the incident observability was last changed.
+    #[serde(default, rename = "lastObservabilityChangeTime")]
+    pub last_observability_change_time: ::core::option::Option<String>,
+    /// Immutable. Name of the security incident resource. Format: organizations/{org}/environments/{environment}/securityIncidents/{incident} Example: organizations/apigee-org/environments/dev/securityIncidents/1234-5678-9101-1111
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Optional. Indicates if the user archived this incident. // TODO: enum values: ["OBSERVABILITY_UNSPECIFIED", "ACTIVE", "ARCHIVED"]
+    #[serde(default)]
+    pub observability: ::core::option::Option<String>,
+    /// Output only. Risk level of the incident. // TODO: enum values: ["RISK_LEVEL_UNSPECIFIED", "LOW", "MODERATE", "SEVERE"]
+    #[serde(default, rename = "riskLevel")]
+    pub risk_level: ::core::option::Option<String>,
+    /// Total traffic detected as part of the incident.
+    #[serde(default, rename = "trafficCount")]
+    pub traffic_count: ::core::option::Option<String>,
+}
+
+/// Component is an individual security element that is scored.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudApigeeV1ScoreComponent {
+    /// Time when score was calculated.
+    #[serde(default, rename = "calculateTime")]
+    pub calculate_time: ::core::option::Option<String>,
+    /// Time in the requested time period when data was last captured to compute the score.
+    #[serde(default, rename = "dataCaptureTime")]
+    pub data_capture_time: ::core::option::Option<String>,
+    /// List of paths for next components.
+    #[serde(default, rename = "drilldownPaths")]
+    pub drilldown_paths: ::core::option::Option<::std::vec::Vec<String>>,
+    /// List of recommendations to improve API security.
+    #[serde(default)]
+    pub recommendations:
+        ::core::option::Option<::std::vec::Vec<GoogleCloudApigeeV1ScoreComponentRecommendation>>,
+    /// Score for the component.
+    #[serde(default)]
+    pub score: ::core::option::Option<i32>,
+    /// Path of the component. Example: /org@myorg/envgroup@myenvgroup/proxies/proxy@myproxy
+    #[serde(default, rename = "scorePath")]
+    pub score_path: ::core::option::Option<String>,
+}
+
+/// Represents a time interval, encoded as a Timestamp start (inclusive) and a Timestamp end (exclusive). The start must be less than or equal to the end. When the start equals the end, the interval is empty (matches no time). When both start and end are unspecified, the interval matches any time.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleTypeInterval {
+    /// Optional. Exclusive end of the interval. If specified, a Timestamp matching this interval will have to be before the end.
+    #[serde(default, rename = "endTime")]
+    pub end_time: ::core::option::Option<String>,
+    /// Optional. Inclusive start of the interval. If specified, a Timestamp matching this interval will have to be the same or after the start.
+    #[serde(default, rename = "startTime")]
+    pub start_time: ::core::option::Option<String>,
+}
+
+/// Result is short for "action result", could be different types identified by "action_result" field. Supported types: 1. DebugInfo : generic debug info collected by runtime recorded as a list of properties. For example, the contents could be virtual host info, state change result, or execution metadata. Required fields : properties, timestamp 2. RequestMessage: information of a http request. Contains headers, request URI and http methods type.Required fields : headers, uri, verb 3. ResponseMessage: information of a http response. Contains headers, reason phrase and http status code. Required fields : headers, reasonPhrase, statusCode 4. ErrorMessage: information of a http error message. Contains detail error message, reason phrase and status code. Required fields : content, headers, reasonPhrase, statusCode 5. VariableAccess: a list of variable access actions, can be Get, Set and Remove. Required fields : accessList
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudApigeeV1Result {
+    /// Type of the action result. Can be one of the five: DebugInfo, RequestMessage, ResponseMessage, ErrorMessage, VariableAccess
+    #[serde(default, rename = "ActionResult")]
+    pub action_result: ::core::option::Option<String>,
+    /// A list of variable access actions agaist the api proxy. Supported values: Get, Set, Remove.
+    #[serde(default, rename = "accessList")]
+    pub access_list: ::core::option::Option<::std::vec::Vec<GoogleCloudApigeeV1Access>>,
+    /// Error message content. for example, "content" : "{\"fault\":{\"faultstring\":\"API timed out\",\"detail\":{\"errorcode\":\"flow.APITimedOut\"}}}"
+    #[serde(default)]
+    pub content: ::core::option::Option<String>,
+    /// A list of HTTP headers. for example, ''"headers" : [ { "name" : "Content-Length", "value" : "83" }, { "name" : "Content-Type", "value" : "application/json" } ]''
+    #[serde(default)]
+    pub headers: ::core::option::Option<::std::vec::Vec<GoogleCloudApigeeV1Property>>,
+    /// Name value pairs used for DebugInfo ActionResult.
+    #[serde(default)]
+    pub properties: ::core::option::Option<GoogleCloudApigeeV1Properties>,
+    /// HTTP response phrase
+    #[serde(default, rename = "reasonPhrase")]
+    pub reason_phrase: ::core::option::Option<String>,
+    /// HTTP response code
+    #[serde(default, rename = "statusCode")]
+    pub status_code: ::core::option::Option<String>,
+    /// Timestamp of when the result is recorded. Its format is dd-mm-yy hh:mm:ss:xxx. For example, "timestamp" : "12-08-19 00:31:59:960"
+    #[serde(default)]
+    pub timestamp: ::core::option::Option<String>,
+    /// The relative path of the api proxy. for example, "uRI" : "/iloveapis"
+    #[serde(default, rename = "uRI")]
+    pub u_r_i: ::core::option::Option<String>,
+    /// HTTP method verb
+    #[serde(default)]
+    pub verb: ::core::option::Option<String>,
+}
+
+/// A message type used to describe a single precondition failure.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleRpcPreconditionFailureViolation {
+    /// A description of how the precondition failed. Developers can use this description to understand how to fix the failure. For example: "Terms of service not accepted".
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+    /// The subject, relative to the type, that failed. For example, "google.com/cloud" relative to the "TOS" type would indicate which terms of service is being referenced.
+    #[serde(default)]
+    pub subject: ::core::option::Option<String>,
+    /// The type of PreconditionFailure. We recommend using a service-specific enum type to define the supported precondition violation subjects. For example, "TOS" for "Terms of Service violation".
+    #[serde(default, rename = "type")]
+    pub type_: ::core::option::Option<String>,
+}
+
+/// Resolves the client ip based on a custom header.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudApigeeV1EnvironmentClientIPResolutionConfigHeaderIndexAlgorithm {
+    /// Required. The index of the ip in the header. Positive indices 0, 1, 2, 3 chooses indices from the left (first ips) Negative indices -1, -2, -3 chooses indices from the right (last ips)
+    #[serde(default, rename = "ipHeaderIndex")]
+    pub ip_header_index: ::core::option::Option<i32>,
+    /// Required. The name of the header to extract the client ip from.
+    #[serde(default, rename = "ipHeaderName")]
+    pub ip_header_name: ::core::option::Option<String>,
+}
+
+/// Runtime configuration for the Analytics add-on.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudApigeeV1RuntimeAnalyticsConfig {
+    /// If Runtime should send billing data to AX or not.
+    #[serde(default, rename = "billingPipelineEnabled")]
+    pub billing_pipeline_enabled: ::core::option::Option<bool>,
+    /// If the Analytics is enabled or not.
+    #[serde(default)]
+    pub enabled: ::core::option::Option<bool>,
+}
+
+/// Runtime configuration for the API Security add-on.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudApigeeV1RuntimeApiSecurityConfig {
+    /// If the API Security is enabled or not.
+    #[serde(default)]
+    pub enabled: ::core::option::Option<bool>,
+}
+
+/// Resolves the client ip based on a custom header.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudApigeeV1EnvironmentConfigClientIPResolutionConfigHeaderIndexAlgorithm {
+    /// The index of the ip in the header. (By default, value is 0 if missing)
+    #[serde(default, rename = "ipHeaderIndex")]
+    pub ip_header_index: ::core::option::Option<i32>,
+    /// The name of the header to extract the client ip from.
+    #[serde(default, rename = "ipHeaderName")]
+    pub ip_header_name: ::core::option::Option<String>,
+}
+
+/// GoogleCloudApigeeV1AliasRevisionConfig resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudApigeeV1AliasRevisionConfig {
+    /// Location of the alias file. For example, a Google Cloud Storage URI.
+    #[serde(default)]
+    pub location: ::core::option::Option<String>,
+    /// Name of the alias revision included in the keystore in the following format: organizations/{org}/environments/{env}/keystores/{keystore}/aliases/{alias}/revisions/{rev}
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// TODO: enum values: ["ALIAS_TYPE_UNSPECIFIED", "CERT", "KEY_CERT"]
+    #[serde(default, rename = "type")]
+    pub type_: ::core::option::Option<String>,
 }
 
 /// GoogleCloudApigeeV1TlsInfoConfig resource type.
@@ -5383,32 +4406,544 @@ pub struct GoogleCloudApigeeV1TlsInfoConfig {
     pub trust_store: ::core::option::Option<String>,
 }
 
-/// TraceConfig defines the configurations in an environment of distributed trace.
+/// NEXT ID: 9 Trace configuration override for a specific API proxy in an environment.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudApigeeV1TraceConfig {
-    /// Required. Endpoint of the exporter.
-    #[serde(default)]
-    pub endpoint: ::core::option::Option<String>,
-    /// Required. Exporter that is used to view the distributed trace captured using the chosen trace protocol. An exporter sends traces to any backend that is capable of consuming them. Recorded spans can be exported by registered exporters. // TODO: enum values: ["EXPORTER_UNSPECIFIED", "JAEGER", "CLOUD_TRACE", "OPEN_TELEMETRY_COLLECTOR", "OPEN_TELEMETRY_CLOUD_TRACE"]
-    #[serde(default)]
-    pub exporter: ::core::option::Option<String>,
-    /// Distributed trace configuration for all API proxies in an environment. You can also override the configuration for a specific API proxy using the distributed trace configuration overrides API.
-    #[serde(default, rename = "samplingConfig")]
-    pub sampling_config: ::core::option::Option<GoogleCloudApigeeV1TraceSamplingConfig>,
-}
-
-/// A representation of a configuration override.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudApigeeV1TraceConfigOverride {
-    /// ID of the API proxy that will have its trace configuration overridden.
+pub struct GoogleCloudApigeeV1RuntimeTraceConfigOverride {
+    /// Name of the API proxy that will have its trace configuration overridden following format: organizations/{org}/apis/{api}
     #[serde(default, rename = "apiProxy")]
     pub api_proxy: ::core::option::Option<String>,
-    /// ID of the trace configuration override specified as a system-generated UUID.
+    /// Name of the trace config override in the following format: organizations/{org}/environment/{env}/traceConfig/overrides/{override}
     #[serde(default)]
     pub name: ::core::option::Option<String>,
-    /// Trace configuration to override.
+    /// Optional. If true, the runtime uses OpenTelemetry Protocol (OTLP) to send trace data. Configuration Requirements (if open_telemetry_protocol_enabled is true): - Allowed Exporters: CLOUD_TRACE or OPEN_TELEMETRY_COLLECTOR. - If Exporter is OPEN_TELEMETRY_COLLECTOR: - endpoint refers to a valid OTLP collector URL. - If Exporter is CLOUD_TRACE: - endpoint refers to a valid project ID Deprecated: Use trace_protocol instead.
+    #[serde(default, rename = "openTelemetryProtocolEnabled")]
+    pub open_telemetry_protocol_enabled: ::core::option::Option<bool>,
+    /// The timestamp that the revision was created or updated.
+    #[serde(default, rename = "revisionCreateTime")]
+    pub revision_create_time: ::core::option::Option<String>,
+    /// Revision number which can be used by the runtime to detect if the trace config override has changed between two versions.
+    #[serde(default, rename = "revisionId")]
+    pub revision_id: ::core::option::Option<String>,
+    /// Trace configuration override for a specific API proxy in an environment.
     #[serde(default, rename = "samplingConfig")]
-    pub sampling_config: ::core::option::Option<GoogleCloudApigeeV1TraceSamplingConfig>,
+    pub sampling_config: ::core::option::Option<GoogleCloudApigeeV1RuntimeTraceSamplingConfig>,
+    /// Optional. The trace protocol to use. // TODO: enum values: ["TRACE_PROTOCOL_UNSPECIFIED", "OPEN_CENSUS", "OTLP"]
+    #[serde(default, rename = "traceProtocol")]
+    pub trace_protocol: ::core::option::Option<String>,
+    /// Unique ID for the configuration override. The ID will only change if the override is deleted and recreated. Corresponds to name''s "override" field.
+    #[serde(default)]
+    pub uid: ::core::option::Option<String>,
+}
+
+/// EndpointChainingRule specifies the proxies contained in a particular deployment group, so that other deployment groups can find them in chaining calls.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudApigeeV1EndpointChainingRule {
+    /// The deployment group to target for cross-shard chaining calls to these proxies.
+    #[serde(default, rename = "deploymentGroup")]
+    pub deployment_group: ::core::option::Option<String>,
+    /// List of proxy ids which may be found in the given deployment group.
+    #[serde(default, rename = "proxyIds")]
+    pub proxy_ids: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// GoogleCloudApigeeV1RoutingRule resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudApigeeV1RoutingRule {
+    /// URI path prefix used to route to the specified environment. May contain one or more wildcards. For example, path segments consisting of a single * character will match any string.
+    #[serde(default)]
+    pub basepath: ::core::option::Option<String>,
+    /// Name of a deployment group in an environment bound to the environment group in the following format: organizations/{org}/environment/{env}/deploymentGroups/{group} Only one of environment or deployment_group will be set.
+    #[serde(default, rename = "deploymentGroup")]
+    pub deployment_group: ::core::option::Option<String>,
+    /// The env group config revision_id when this rule was added or last updated. This value is set when the rule is created and will only update if the the environment_id changes. It is used to determine if the runtime is up to date with respect to this rule. This field is omitted from the IngressConfig unless the GetDeployedIngressConfig API is called with view=FULL.
+    #[serde(default, rename = "envGroupRevision")]
+    pub env_group_revision: ::core::option::Option<String>,
+    /// Name of an environment bound to the environment group in the following format: organizations/{org}/environments/{env}. Only one of environment or deployment_group will be set.
+    #[serde(default)]
+    pub environment: ::core::option::Option<String>,
+    /// Conflicting targets, which will be resource names specifying either deployment groups or environments.
+    #[serde(default, rename = "otherTargets")]
+    pub other_targets: ::core::option::Option<::std::vec::Vec<String>>,
+    /// The resource name of the proxy revision that is receiving this basepath in the following format: organizations/{org}/apis/{api}/revisions/{rev}. This field is omitted from the IngressConfig unless the GetDeployedIngressConfig API is called with view=FULL.
+    #[serde(default)]
+    pub receiver: ::core::option::Option<String>,
+    /// The unix timestamp when this rule was updated. This is updated whenever env_group_revision is updated. This field is omitted from the IngressConfig unless the GetDeployedIngressConfig API is called with view=FULL.
+    #[serde(default, rename = "updateTime")]
+    pub update_time: ::core::option::Option<String>,
+}
+
+/// List of graphQL operation configuration details associated with Apigee API proxies or remote services. Remote services are non-Apigee proxies, such as Istio-Envoy.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudApigeeV1GraphQLOperationGroup {
+    /// Flag that specifies whether the configuration is for Apigee API proxy or a remote service. Valid values include proxy or remoteservice. Defaults to proxy. Set to proxy when Apigee API proxies are associated with the API product. Set to remoteservice when non-Apigee proxies like Istio-Envoy are associated with the API product.
+    #[serde(default, rename = "operationConfigType")]
+    pub operation_config_type: ::core::option::Option<String>,
+    /// Required. List of operation configurations for either Apigee API proxies or other remote services that are associated with this API product.
+    #[serde(default, rename = "operationConfigs")]
+    pub operation_configs:
+        ::core::option::Option<::std::vec::Vec<GoogleCloudApigeeV1GraphQLOperationConfig>>,
+}
+
+/// List of gRPC operation configuration details associated with Apigee API proxies.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudApigeeV1GrpcOperationGroup {
+    /// Required. List of operation configurations for either Apigee API proxies that are associated with this API product.
+    #[serde(default, rename = "operationConfigs")]
+    pub operation_configs:
+        ::core::option::Option<::std::vec::Vec<GoogleCloudApigeeV1GrpcOperationConfig>>,
+}
+
+/// List of LLM operation configuration details associated with Apigee API proxies.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudApigeeV1LlmOperationGroup {
+    /// Required. List of LLM operation configurations for either Apigee API proxies that are associated with this API product.
+    #[serde(default, rename = "operationConfigs")]
+    pub operation_configs:
+        ::core::option::Option<::std::vec::Vec<GoogleCloudApigeeV1LlmOperationConfig>>,
+}
+
+/// List of operation configuration details associated with Apigee API proxies or remote services. Remote services are non-Apigee proxies, such as Istio-Envoy.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudApigeeV1OperationGroup {
+    /// Flag that specifes whether the configuration is for Apigee API proxy or a remote service. Valid values include proxy or remoteservice. Defaults to proxy. Set to proxy when Apigee API proxies are associated with the API product. Set to remoteservice when non-Apigee proxies like Istio-Envoy are associated with the API product.
+    #[serde(default, rename = "operationConfigType")]
+    pub operation_config_type: ::core::option::Option<String>,
+    /// Required. List of operation configurations for either Apigee API proxies or other remote services that are associated with this API product.
+    #[serde(default, rename = "operationConfigs")]
+    pub operation_configs:
+        ::core::option::Option<::std::vec::Vec<GoogleCloudApigeeV1OperationConfig>>,
+}
+
+/// Extension configuration for Apigee extension processor service extension.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudApigeeV1ApimServiceExtensionExtension {
+    /// Optional. Whether this request should fail open.
+    #[serde(default, rename = "failOpen")]
+    pub fail_open: ::core::option::Option<bool>,
+    /// Required. One of the hostnames of Apigee EnvGroup where the proxy is deployed. This hostname (i.e FDQN) will be used to route traffic from the specified forwarding rule to the environment in Apigee X instance where the proxy is deployed for handling extension traffic. Format: ^([a-zA-Z0-9. _-])+$
+    #[serde(default)]
+    pub hostname: ::core::option::Option<String>,
+    /// Optional. Match Condition for CEL expression. Refer to https://cloud.google.com/service-extensions/docs/cel-matcher-language-reference for more details.
+    #[serde(default, rename = "matchCondition")]
+    pub match_condition: ::core::option::Option<String>,
+    /// Required. Name of the LbTrafficExtension resource. The name must conform with RFC-1034, is restricted to lower-cased letters, numbers and hyphens, and can have a maximum length of 63 characters. Additionally, the first character must be a letter and the last a letter or a number.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Optional. Supported events for the Service Extension. If not specified, all events are supported.
+    #[serde(default, rename = "supportedEvents")]
+    pub supported_events: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// Network configuration for the APIM service extension.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudApigeeV1ApimServiceExtensionNetworkConfig {
+    /// Required. The region for the PSC NEG.
+    #[serde(default)]
+    pub region: ::core::option::Option<String>,
+    /// Required. The subnet for the PSC NEG. Format: projects/{project}/regions/{region}/subnetworks/{subnet}
+    #[serde(default)]
+    pub subnet: ::core::option::Option<String>,
+}
+
+/// GoogleCloudApigeeV1QueryMetadata resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudApigeeV1QueryMetadata {
+    /// Dimensions of the AsyncQuery.
+    #[serde(default)]
+    pub dimensions: ::core::option::Option<::std::vec::Vec<String>>,
+    /// End timestamp of the query range.
+    #[serde(default, rename = "endTimestamp")]
+    pub end_timestamp: ::core::option::Option<String>,
+    /// Metrics of the AsyncQuery. Example: ["name:message_count,func:sum,alias:sum_message_count"]
+    #[serde(default)]
+    pub metrics: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Output format.
+    #[serde(default, rename = "outputFormat")]
+    pub output_format: ::core::option::Option<String>,
+    /// Start timestamp of the query range.
+    #[serde(default, rename = "startTimestamp")]
+    pub start_timestamp: ::core::option::Option<String>,
+    /// Query GroupBy time unit.
+    #[serde(default, rename = "timeUnit")]
+    pub time_unit: ::core::option::Option<String>,
+}
+
+/// GoogleCloudApigeeV1AsyncQueryResult resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudApigeeV1AsyncQueryResult {
+    /// Query result will be unaccessable after this time.
+    #[serde(default)]
+    pub expires: ::core::option::Option<String>,
+    /// Self link of the query results. Example: /organizations/myorg/environments/myenv/queries/9cfc0d85-0f30-46d6-ae6f-318d0cb961bd/result or following format if query is running at host level: /organizations/myorg/hostQueries/9cfc0d85-0f30-46d6-ae6f-318d0cb961bd/result
+    #[serde(default, rename = "self")]
+    pub self_: ::core::option::Option<String>,
+}
+
+/// This encapsulates a metric property of the form sum(message_count) where name is message_count and function is sum
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudApigeeV1CustomReportMetric {
+    /// aggregate function
+    #[serde(default)]
+    pub function: ::core::option::Option<String>,
+    /// name of the metric
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+}
+
+/// GoogleCloudApigeeV1ReportProperty resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudApigeeV1ReportProperty {
+    /// name of the property
+    #[serde(default)]
+    pub property: ::core::option::Option<String>,
+    /// property values
+    #[serde(default)]
+    pub value: ::core::option::Option<::std::vec::Vec<GoogleCloudApigeeV1Attribute>>,
+}
+
+/// Configuration detail for datastore
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudApigeeV1DatastoreConfig {
+    /// Name of the Cloud Storage bucket. Required for gcs target_type.
+    #[serde(default, rename = "bucketName")]
+    pub bucket_name: ::core::option::Option<String>,
+    /// BigQuery dataset name Required for bigquery target_type.
+    #[serde(default, rename = "datasetName")]
+    pub dataset_name: ::core::option::Option<String>,
+    /// Path of Cloud Storage bucket Required for gcs target_type.
+    #[serde(default)]
+    pub path: ::core::option::Option<String>,
+    /// Required. Google Cloud project in which the datastore exists
+    #[serde(default, rename = "projectId")]
+    pub project_id: ::core::option::Option<String>,
+    /// Prefix of BigQuery table Required for bigquery target_type.
+    #[serde(default, rename = "tablePrefix")]
+    pub table_prefix: ::core::option::Option<String>,
+}
+
+/// The status of a deployment as reported by a single instance.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudApigeeV1InstanceDeploymentStatus {
+    /// Revisions currently deployed in MPs.
+    #[serde(default, rename = "deployedRevisions")]
+    pub deployed_revisions: ::core::option::Option<
+        ::std::vec::Vec<GoogleCloudApigeeV1InstanceDeploymentStatusDeployedRevision>,
+    >,
+    /// Current routes deployed in the ingress routing table. A route which is missing will appear in missing_routes.
+    #[serde(default, rename = "deployedRoutes")]
+    pub deployed_routes: ::core::option::Option<
+        ::std::vec::Vec<GoogleCloudApigeeV1InstanceDeploymentStatusDeployedRoute>,
+    >,
+    /// ID of the instance reporting the status.
+    #[serde(default)]
+    pub instance: ::core::option::Option<String>,
+}
+
+/// GoogleCloudApigeeV1PodStatus resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudApigeeV1PodStatus {
+    /// Version of the application running in the pod.
+    #[serde(default, rename = "appVersion")]
+    pub app_version: ::core::option::Option<String>,
+    /// Status of the deployment. Valid values include: - deployed: Successful. - error : Failed. - pending : Pod has not yet reported on the deployment.
+    #[serde(default, rename = "deploymentStatus")]
+    pub deployment_status: ::core::option::Option<String>,
+    /// Time the deployment status was reported in milliseconds since epoch.
+    #[serde(default, rename = "deploymentStatusTime")]
+    pub deployment_status_time: ::core::option::Option<String>,
+    /// Time the proxy was deployed in milliseconds since epoch.
+    #[serde(default, rename = "deploymentTime")]
+    pub deployment_time: ::core::option::Option<String>,
+    /// Name of the pod which is reporting the status.
+    #[serde(default, rename = "podName")]
+    pub pod_name: ::core::option::Option<String>,
+    /// Overall status of the pod (not this specific deployment). Valid values include: - active: Up to date. - stale : Recently out of date. Pods that have not reported status in a long time are excluded from the output.
+    #[serde(default, rename = "podStatus")]
+    pub pod_status: ::core::option::Option<String>,
+    /// Time the pod status was reported in milliseconds since epoch.
+    #[serde(default, rename = "podStatusTime")]
+    pub pod_status_time: ::core::option::Option<String>,
+    /// Code associated with the deployment status.
+    #[serde(default, rename = "statusCode")]
+    pub status_code: ::core::option::Option<String>,
+    /// Human-readable message associated with the status code.
+    #[serde(default, rename = "statusCodeDetails")]
+    pub status_code_details: ::core::option::Option<String>,
+}
+
+/// Describes a routing conflict that may cause a deployment not to receive traffic at some base path.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudApigeeV1DeploymentChangeReportRoutingConflict {
+    /// Existing base path/deployment causing the conflict.
+    #[serde(default, rename = "conflictingDeployment")]
+    pub conflicting_deployment:
+        ::core::option::Option<GoogleCloudApigeeV1DeploymentChangeReportRoutingDeployment>,
+    /// Human-readable description of this conflict.
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+    /// Name of the environment group in which this conflict exists.
+    #[serde(default, rename = "environmentGroup")]
+    pub environment_group: ::core::option::Option<String>,
+}
+
+/// GoogleCloudApigeeV1Credential resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudApigeeV1Credential {
+    /// List of API products this credential can be used for.
+    #[serde(default, rename = "apiProducts")]
+    pub api_products: ::core::option::Option<::std::vec::Vec<GoogleCloudApigeeV1ApiProductRef>>,
+    /// List of attributes associated with this credential.
+    #[serde(default)]
+    pub attributes: ::core::option::Option<::std::vec::Vec<GoogleCloudApigeeV1Attribute>>,
+    /// Consumer key.
+    #[serde(default, rename = "consumerKey")]
+    pub consumer_key: ::core::option::Option<String>,
+    /// Secret key.
+    #[serde(default, rename = "consumerSecret")]
+    pub consumer_secret: ::core::option::Option<String>,
+    /// Time the credential will expire in milliseconds since epoch.
+    #[serde(default, rename = "expiresAt")]
+    pub expires_at: ::core::option::Option<String>,
+    /// Time the credential was issued in milliseconds since epoch.
+    #[serde(default, rename = "issuedAt")]
+    pub issued_at: ::core::option::Option<String>,
+    /// List of scopes to apply to the app. Specified scopes must already exist on the API product that you associate with the app.
+    #[serde(default)]
+    pub scopes: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Status of the credential. Valid values include approved or revoked.
+    #[serde(default)]
+    pub status: ::core::option::Option<String>,
+}
+
+/// Fields for DNS PEERING zone.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudApigeeV1DnsZonePeeringConfig {
+    /// Required. The VPC network where the records for that private DNS zone''s namespace are available. Apigee will be performing DNS peering with this VPC network.
+    #[serde(default, rename = "targetNetworkId")]
+    pub target_network_id: ::core::option::Option<String>,
+    /// Required. The ID of the project that contains the producer VPC network.
+    #[serde(default, rename = "targetProjectId")]
+    pub target_project_id: ::core::option::Option<String>,
+}
+
+/// Access logging configuration enables customers to ship the access logs from the tenant projects to their own project''s cloud logging. The feature is at the instance level ad disabled by default. It can be enabled during CreateInstance or UpdateInstance.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudApigeeV1AccessLoggingConfig {
+    /// Optional. Boolean flag that specifies whether the customer access log feature is enabled.
+    #[serde(default)]
+    pub enabled: ::core::option::Option<bool>,
+    /// Optional. Ship the access log entries that match the status_code defined in the filter. The status_code is the only expected/supported filter field. (Ex: status_code) The filter will parse it to the Common Expression Language semantics for expression evaluation to build the filter condition. (Ex: "filter": status_code &gt;= 200 && status_code &lt; 300 )
+    #[serde(default)]
+    pub filter: ::core::option::Option<String>,
+}
+
+/// MaintenanceUpdatePolicy specifies the preferred window to perform maintenance on the instance (day of the week and time of day).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudApigeeV1MaintenanceUpdatePolicy {
+    /// Optional. Maintenance channel to specify relative scheduling for maintenance. // TODO: enum values: ["MAINTENANCE_CHANNEL_UNSPECIFIED", "WEEK1", "WEEK2"]
+    #[serde(default, rename = "maintenanceChannel")]
+    pub maintenance_channel: ::core::option::Option<String>,
+    /// Optional. Preferred windows to perform maintenance. Currently limited to 1.
+    #[serde(default, rename = "maintenanceWindows")]
+    pub maintenance_windows: ::core::option::Option<
+        ::std::vec::Vec<GoogleCloudApigeeV1MaintenanceUpdatePolicyMaintenanceWindow>,
+    >,
+}
+
+/// Scheduled maintenance information for an instance.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudApigeeV1ScheduledMaintenance {
+    /// Output only. The start time (UTC) of the scheduled maintenance.
+    #[serde(default, rename = "startTime")]
+    pub start_time: ::core::option::Option<String>,
+}
+
+/// API call volume range and the fees charged when the total number of API calls is within the range.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudApigeeV1RateRange {
+    /// Ending value of the range. Set to 0 or null for the last range of values.
+    #[serde(default)]
+    pub end: ::core::option::Option<String>,
+    /// Fee to charge when total number of API calls falls within this range.
+    #[serde(default)]
+    pub fee: ::core::option::Option<GoogleTypeMoney>,
+    /// Starting value of the range. Set to 0 or null for the initial range of values.
+    #[serde(default)]
+    pub start: ::core::option::Option<String>,
+}
+
+/// API call volume range and the percentage of revenue to share with the developer when the total number of API calls is within the range.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudApigeeV1RevenueShareRange {
+    /// Ending value of the range. Set to 0 or null for the last range of values.
+    #[serde(default)]
+    pub end: ::core::option::Option<String>,
+    /// Percentage of the revenue to be shared with the developer. For example, to share 21 percent of the total revenue with the developer, set this value to 21. Specify a decimal number with a maximum of two digits following the decimal point.
+    #[serde(default, rename = "sharePercentage")]
+    pub share_percentage: ::core::option::Option<f64>,
+    /// Starting value of the range. Set to 0 or null for the initial range of values.
+    #[serde(default)]
+    pub start: ::core::option::Option<String>,
+}
+
+/// The following are a list of conditions. A valid SecurityAction must contain at least one condition. Within a condition, each element is ORed. Across conditions elements are ANDed. For example if a SecurityAction has the following: ip_address_ranges: ["ip1", "ip2"] and bot_reasons: ["Flooder", "Robot Abuser"] then this is interpreted as: enforce the action if the incoming request has ((ip_address_ranges = "ip1" OR ip_address_ranges = "ip2") AND (bot_reasons="Flooder" OR bot_reasons="Robot Abuser")). Conditions other than ip_address_ranges and bot_reasons cannot be ANDed.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudApigeeV1SecurityActionConditionConfig {
+    /// Optional. A list of access_tokens. Limit 1000 per action.
+    #[serde(default, rename = "accessTokens")]
+    pub access_tokens: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Optional. A list of API keys. Limit 1000 per action.
+    #[serde(default, rename = "apiKeys")]
+    pub api_keys: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Optional. A list of API Products. Limit 1000 per action.
+    #[serde(default, rename = "apiProducts")]
+    pub api_products: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Optional. A list of ASN numbers to act on, e.g. 23. https://en.wikipedia.org/wiki/Autonomous_system_(Internet) This uses int64 instead of uint32 because of https://linter.aip.dev/141/forbidden-types.
+    #[serde(default)]
+    pub asns: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Optional. A list of Bot Reasons. Current options: Flooder, Brute Guessor, Static Content Scraper, OAuth Abuser, Robot Abuser, TorListRule, Advanced Anomaly Detection, Advanced API Scraper, Search Engine Crawlers, Public Clouds, Public Cloud AWS, Public Cloud Azure, and Public Cloud Google.
+    #[serde(default, rename = "botReasons")]
+    pub bot_reasons: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Optional. A list of developer apps. Limit 1000 per action.
+    #[serde(default, rename = "developerApps")]
+    pub developer_apps: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Optional. A list of developers. Limit 1000 per action.
+    #[serde(default)]
+    pub developers: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Optional. Act only on particular HTTP methods. E.g. A read-only API can block POST/PUT/DELETE methods. Accepted values are: GET, HEAD, POST, PUT, DELETE, CONNECT, OPTIONS, TRACE and PATCH.
+    #[serde(default, rename = "httpMethods")]
+    pub http_methods: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Optional. A list of IP addresses. This could be either IPv4 or IPv6. Limited to 100 per action.
+    #[serde(default, rename = "ipAddressRanges")]
+    pub ip_address_ranges: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Optional. A list of countries/region codes to act on, e.g. US. This follows https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2.
+    #[serde(default, rename = "regionCodes")]
+    pub region_codes: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Optional. A list of user agents to deny. We look for exact matches. Limit 50 per action.
+    #[serde(default, rename = "userAgents")]
+    pub user_agents: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// Message that should be set in case of a Deny Action.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudApigeeV1SecurityActionDeny {
+    /// Optional. The HTTP response code if the Action = DENY.
+    #[serde(default, rename = "responseCode")]
+    pub response_code: ::core::option::Option<i32>,
+}
+
+/// The message that should be set in the case of a Flag action.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudApigeeV1SecurityActionFlag {
+    /// Optional. A list of HTTP headers to be sent to the target in case of a FLAG SecurityAction. Limit 5 headers per SecurityAction. At least one is mandatory.
+    #[serde(default)]
+    pub headers:
+        ::core::option::Option<::std::vec::Vec<GoogleCloudApigeeV1SecurityActionHttpHeader>>,
+}
+
+/// FeedbackContext captures the intent of the submitted feedback.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudApigeeV1SecurityFeedbackFeedbackContext {
+    /// Required. The attribute the user is providing feedback about. // TODO: enum values: ["ATTRIBUTE_UNSPECIFIED", "ATTRIBUTE_ENVIRONMENTS", "ATTRIBUTE_IP_ADDRESS_RANGES"]
+    #[serde(default)]
+    pub attribute: ::core::option::Option<String>,
+    /// Required. The values of the attribute the user is providing feedback about.
+    #[serde(default)]
+    pub values: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// Message for the array of resources. For Apigee, the proxies are resources.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudApigeeV1BatchComputeSecurityAssessmentResultsRequestResourceArray {
+    /// Required. The array of resources. For Apigee, the proxies are resources.
+    #[serde(default)]
+    pub resources: ::core::option::Option<
+        ::std::vec::Vec<
+            GoogleCloudApigeeV1BatchComputeSecurityAssessmentResultsRequestResourceArrayResource,
+        >,
+    >,
+}
+
+/// Environment information of attached environments. Scoring an environment is enabled only if it is attached to a security profile.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudApigeeV1SecurityProfileEnvironment {
+    /// Output only. Time at which environment was attached to the security profile.
+    #[serde(default, rename = "attachTime")]
+    pub attach_time: ::core::option::Option<String>,
+    /// Output only. Name of the environment.
+    #[serde(default)]
+    pub environment: ::core::option::Option<String>,
+}
+
+/// ProfileConfig defines a set of categories and policies which will be used to compute security score.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudApigeeV1ProfileConfig {
+    /// List of categories of profile config.
+    #[serde(default)]
+    pub categories:
+        ::core::option::Option<::std::vec::Vec<GoogleCloudApigeeV1ProfileConfigCategory>>,
+}
+
+/// Security configurations to manage scoring.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudApigeeV1SecurityProfileScoringConfig {
+    /// Description of the config.
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+    /// Path of the component config used for scoring.
+    #[serde(default, rename = "scorePath")]
+    pub score_path: ::core::option::Option<String>,
+    /// Title of the config.
+    #[serde(default)]
+    pub title: ::core::option::Option<String>,
+}
+
+/// Metadata for the security report.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudApigeeV1SecurityReportMetadata {
+    /// Dimensions of the SecurityReport.
+    #[serde(default)]
+    pub dimensions: ::core::option::Option<::std::vec::Vec<String>>,
+    /// End timestamp of the query range.
+    #[serde(default, rename = "endTimestamp")]
+    pub end_timestamp: ::core::option::Option<String>,
+    /// Metrics of the SecurityReport. Example: ["name:bot_count,func:sum,alias:sum_bot_count"]
+    #[serde(default)]
+    pub metrics: ::core::option::Option<::std::vec::Vec<String>>,
+    /// MIME type / Output format.
+    #[serde(default, rename = "mimeType")]
+    pub mime_type: ::core::option::Option<String>,
+    /// Start timestamp of the query range.
+    #[serde(default, rename = "startTimestamp")]
+    pub start_timestamp: ::core::option::Option<String>,
+    /// Query GroupBy time unit. Example: "seconds", "minute", "hour"
+    #[serde(default, rename = "timeUnit")]
+    pub time_unit: ::core::option::Option<String>,
+}
+
+/// Contains informations about the security report results.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudApigeeV1SecurityReportResultMetadata {
+    /// Output only. Expire_time is set to 7 days after report creation. Query result will be unaccessable after this time. Example: "2021-05-04T13:38:52-07:00"
+    #[serde(default)]
+    pub expires: ::core::option::Option<String>,
+    /// Self link of the query results. Example: /organizations/myorg/environments/myenv/securityReports/9cfc0d85-0f30-46d6-ae6f-318d0cb961bd/result or following format if query is running at host level: /organizations/myorg/hostSecurityReports/9cfc0d85-0f30-46d6-ae6f-318d0cb961bd/result
+    #[serde(default, rename = "self")]
+    pub self_: ::core::option::Option<String>,
+}
+
+/// Metadata common to many entities in this API.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudApigeeV1EntityMetadata {
+    /// Time at which the API proxy was created, in milliseconds since epoch.
+    #[serde(default, rename = "createdAt")]
+    pub created_at: ::core::option::Option<String>,
+    /// Time at which the API proxy was most recently modified, in milliseconds since epoch.
+    #[serde(default, rename = "lastModifiedAt")]
+    pub last_modified_at: ::core::option::Option<String>,
+    /// The type of entity described
+    #[serde(default, rename = "subType")]
+    pub sub_type: ::core::option::Option<String>,
 }
 
 /// TraceSamplingConfig represents the detail settings of distributed tracing. Only the fields that are defined in the distributed trace configuration can be overridden using the distribute trace configuration override APIs.
@@ -5422,18 +4957,512 @@ pub struct GoogleCloudApigeeV1TraceSamplingConfig {
     pub sampling_rate: ::core::option::Option<f32>,
 }
 
-/// Request for UpdateAppGroupAppKey
+/// Encapsulates additional information about query execution.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudApigeeV1UpdateAppGroupAppKeyRequest {
-    /// Approve or revoke the consumer key by setting this value to approve or revoke respectively. The Content-Type header, if set, must be set to application/octet-stream, with empty body.
+pub struct GoogleCloudApigeeV1Metadata {
+    /// List of error messages as strings.
     #[serde(default)]
-    pub action: ::core::option::Option<String>,
-    /// The list of API products that will be associated with the credential. This list will be appended to the existing list of associated API Products for this App Key. Duplicates will be ignored.
-    #[serde(default, rename = "apiProducts")]
-    pub api_products: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Note that only Scopes and Attributes of the AppGroupAppKey can be amended. Scopes and Attributes mentioned in the request will be inserted and the existing scopes and attributes will be removed.
-    #[serde(default, rename = "appGroupAppKey")]
-    pub app_group_app_key: ::core::option::Option<GoogleCloudApigeeV1AppGroupAppKey>,
+    pub errors: ::core::option::Option<::std::vec::Vec<String>>,
+    /// List of additional information such as data source, if result was truncated. For example:  "notices": [ "Source:Postgres", "PG Host:uappg0rw.e2e.apigeeks.net", "query served by:4b64601e-40de-4eb1-bfb9-eeee7ac929ed", "Table used: edge.api.uapgroup2.agg_api" ]
+    #[serde(default)]
+    pub notices: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// Encapsulates a data node as represented below:  { "identifier": { "names": [ "apiproxy" ], "values": [ "sirjee" ] }, "metric": [ { "env": "prod", "name": "sum(message_count)", "values": [ 36.0 ] } ] } or  { "env": "prod", "name": "sum(message_count)", "values": [ 36.0 ] } Depending on whether a dimension is present in the query or not the data node type can be a simple metric value or dimension identifier with list of metrics.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudApigeeV1OptimizedStatsNode {
+    /// List of data values.
+    #[serde(default)]
+    pub data: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
+}
+
+/// The status of a specific resource revision.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudApigeeV1RevisionStatus {
+    /// Errors reported when attempting to load this revision.
+    #[serde(default)]
+    pub errors: ::core::option::Option<::std::vec::Vec<GoogleCloudApigeeV1UpdateError>>,
+    /// The json content of the resource revision. Large specs should be sent individually via the spec field to avoid hitting request size limits.
+    #[serde(default, rename = "jsonSpec")]
+    pub json_spec: ::core::option::Option<String>,
+    /// The number of replicas that have successfully loaded this revision.
+    #[serde(default)]
+    pub replicas: ::core::option::Option<i32>,
+    /// The revision of the resource.
+    #[serde(default, rename = "revisionId")]
+    pub revision_id: ::core::option::Option<String>,
+}
+
+/// Properties for the schema field.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudApigeeV1SchemaSchemaProperty {
+    /// Time the field was created in RFC3339 string form. For example: 2016-02-26T10:23:09.592Z.
+    #[serde(default, rename = "createTime")]
+    pub create_time: ::core::option::Option<String>,
+    /// Flag that specifies whether the field is standard in the dataset or a custom field created by the customer. true indicates that it is a custom field.
+    #[serde(default)]
+    pub custom: ::core::option::Option<String>,
+    /// Data type of the field.
+    #[serde(default, rename = "type")]
+    pub type_: ::core::option::Option<String>,
+}
+
+/// The format for a link in the recommendation.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudApigeeV1SecurityAssessmentResultScoringResultAssessmentRecommendationRecommendationLink
+{
+    /// The text of the url. (ie: "Learn more")
+    #[serde(default)]
+    pub text: ::core::option::Option<String>,
+    /// The link itself.
+    #[serde(default)]
+    pub uri: ::core::option::Option<String>,
+}
+
+/// Configuration for the Advanced API Ops add-on.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudApigeeV1AdvancedApiOpsConfig {
+    /// Flag that specifies whether the Advanced API Ops add-on is enabled.
+    #[serde(default)]
+    pub enabled: ::core::option::Option<bool>,
+}
+
+/// Configuration for the Analytics add-on.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudApigeeV1AnalyticsConfig {
+    /// Whether the Analytics add-on is enabled.
+    #[serde(default)]
+    pub enabled: ::core::option::Option<bool>,
+    /// Output only. Time at which the Analytics add-on expires in milliseconds since epoch. If unspecified, the add-on will never expire.
+    #[serde(default, rename = "expireTimeMillis")]
+    pub expire_time_millis: ::core::option::Option<String>,
+    /// Output only. The state of the Analytics add-on. // TODO: enum values: ["ADDON_STATE_UNSPECIFIED", "ENABLING", "ENABLED", "DISABLING", "DISABLED"]
+    #[serde(default)]
+    pub state: ::core::option::Option<String>,
+    /// Output only. The latest update time.
+    #[serde(default, rename = "updateTime")]
+    pub update_time: ::core::option::Option<String>,
+}
+
+/// Configurations of the API Security add-on.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudApigeeV1ApiSecurityConfig {
+    /// Flag that specifies whether the API security add-on is enabled.
+    #[serde(default)]
+    pub enabled: ::core::option::Option<bool>,
+    /// Output only. Time at which the API Security add-on expires in milliseconds since epoch. If unspecified, the add-on will never expire.
+    #[serde(default, rename = "expiresAt")]
+    pub expires_at: ::core::option::Option<String>,
+}
+
+/// Configuration for the Connectors Platform add-on.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudApigeeV1ConnectorsPlatformConfig {
+    /// Flag that specifies whether the Connectors Platform add-on is enabled.
+    #[serde(default)]
+    pub enabled: ::core::option::Option<bool>,
+    /// Output only. Time at which the Connectors Platform add-on expires in milliseconds since epoch. If unspecified, the add-on will never expire.
+    #[serde(default, rename = "expiresAt")]
+    pub expires_at: ::core::option::Option<String>,
+}
+
+/// Configuration for the Integration add-on.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudApigeeV1IntegrationConfig {
+    /// Flag that specifies whether the Integration add-on is enabled.
+    #[serde(default)]
+    pub enabled: ::core::option::Option<bool>,
+}
+
+/// Configuration for the Monetization add-on.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudApigeeV1MonetizationConfig {
+    /// Flag that specifies whether the Monetization add-on is enabled.
+    #[serde(default)]
+    pub enabled: ::core::option::Option<bool>,
+}
+
+/// Metadata about a resource file.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudApigeeV1ResourceFile {
+    /// ID of the resource file.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Resource file type. {{ resource_file_type }}
+    #[serde(default, rename = "type")]
+    pub type_: ::core::option::Option<String>,
+}
+
+/// Encapsulates a metric grouped by dimension.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudApigeeV1DimensionMetric {
+    /// Individual dimension names. E.g. ["dim1_name", "dim2_name"].
+    #[serde(default, rename = "individualNames")]
+    pub individual_names: ::core::option::Option<::std::vec::Vec<String>>,
+    /// List of metrics.
+    #[serde(default)]
+    pub metrics: ::core::option::Option<::std::vec::Vec<GoogleCloudApigeeV1Metric>>,
+    /// Comma joined dimension names. E.g. "dim1_name,dim2_name". Deprecated. If name already has comma before join, we may get wrong splits. Please use individual_names.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+}
+
+/// GoogleCloudApigeeV1TlsInfoCommonName resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudApigeeV1TlsInfoCommonName {
+    /// The TLS Common Name string of the certificate.
+    #[serde(default)]
+    pub value: ::core::option::Option<String>,
+    /// Indicates whether the cert should be matched against as a wildcard cert.
+    #[serde(default, rename = "wildcardMatch")]
+    pub wildcard_match: ::core::option::Option<bool>,
+}
+
+/// APIProductAssociation has the API product and its administrative state association.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudApigeeV1aPIProductAssociation {
+    /// API product to be associated with the credential.
+    #[serde(default)]
+    pub apiproduct: ::core::option::Option<String>,
+    /// The API product credential associated status. Valid values are approved or revoked.
+    #[serde(default)]
+    pub status: ::core::option::Option<String>,
+}
+
+/// Specifies the audit configuration for a service. The configuration determines which permission types are logged, and what identities, if any, are exempted from logging. An AuditConfig must have one or more AuditLogConfigs. If there are AuditConfigs for both allServices and a specific service, the union of the two AuditConfigs is used for that service: the log_types specified in each AuditConfig are enabled, and the exempted_members in each AuditLogConfig are exempted. Example Policy with multiple AuditConfigs: { "audit_configs": [ { "service": "allServices", "audit_log_configs": [ { "log_type": "DATA_READ", "exempted_members": [ "user:jose@example.com" ] }, { "log_type": "DATA_WRITE" }, { "log_type": "ADMIN_READ" } ] }, { "service": "sampleservice.googleapis.com", "audit_log_configs": [ { "log_type": "DATA_READ" }, { "log_type": "DATA_WRITE", "exempted_members": [ "user:aliya@example.com" ] } ] } ] } For sampleservice, this policy enables DATA_READ, DATA_WRITE and ADMIN_READ logging. It also exempts jose@example.com from DATA_READ logging, and aliya@example.com from DATA_WRITE logging.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleIamV1AuditConfig {
+    /// The configuration for logging of each type of permission.
+    #[serde(default, rename = "auditLogConfigs")]
+    pub audit_log_configs: ::core::option::Option<::std::vec::Vec<GoogleIamV1AuditLogConfig>>,
+    /// Specifies a service that will be enabled for audit logging. For example, storage.googleapis.com, cloudsql.googleapis.com. allServices is a special value that covers all services.
+    #[serde(default)]
+    pub service: ::core::option::Option<String>,
+}
+
+/// Associates members, or principals, with a role.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleIamV1Binding {
+    /// The condition that is associated with this binding. If the condition evaluates to true, then this binding applies to the current request. If the condition evaluates to false, then this binding does not apply to the current request. However, a different role binding might grant the same role to one or more of the principals in this binding. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies).
+    #[serde(default)]
+    pub condition: ::core::option::Option<GoogleTypeExpr>,
+    /// Specifies the principals requesting access for a Google Cloud resource. members can have the following values: * allUsers: A special identifier that represents anyone who is on the internet; with or without a Google account. * allAuthenticatedUsers: A special identifier that represents anyone who is authenticated with a Google account or a service account. Does not include identities that come from external identity providers (IdPs) through identity federation. * user:{emailid}: An email address that represents a specific Google account. For example, alice@example.com . * serviceAccount:{emailid}: An email address that represents a Google service account. For example, my-other-app@appspot.gserviceaccount.com. * serviceAccount:{projectid}.svc.id.goog[{namespace}/{kubernetes-sa}]: An identifier for a [Kubernetes service account](https://cloud.google.com/kubernetes-engine/docs/how-to/kubernetes-service-accounts). For example, my-project.svc.id.goog[my-namespace/my-kubernetes-sa]. * group:{emailid}: An email address that represents a Google group. For example, admins@example.com. * domain:{domain}: The G Suite domain (primary) that represents all the users of that domain. For example, google.com or example.com. * principal://iam.googleapis.com/locations/global/workforcePools/{pool_id}/subject/{subject_attribute_value}: A single identity in a workforce identity pool. * principalSet://iam.googleapis.com/locations/global/workforcePools/{pool_id}/group/{group_id}: All workforce identities in a group. * principalSet://iam.googleapis.com/locations/global/workforcePools/{pool_id}/attribute.{attribute_name}/{attribute_value}: All workforce identities with a specific attribute value. * principalSet://iam.googleapis.com/locations/global/workforcePools/{pool_id}/*: All identities in a workforce identity pool. * principal://iam.googleapis.com/projects/{project_number}/locations/global/workloadIdentityPools/{pool_id}/subject/{subject_attribute_value}: A single identity in a workload identity pool. * principalSet://iam.googleapis.com/projects/{project_number}/locations/global/workloadIdentityPools/{pool_id}/group/{group_id}: A workload identity pool group. * principalSet://iam.googleapis.com/projects/{project_number}/locations/global/workloadIdentityPools/{pool_id}/attribute.{attribute_name}/{attribute_value}: All identities in a workload identity pool with a certain attribute. * principalSet://iam.googleapis.com/projects/{project_number}/locations/global/workloadIdentityPools/{pool_id}/*: All identities in a workload identity pool. * deleted:user:{emailid}?uid={uniqueid}: An email address (plus unique identifier) representing a user that has been recently deleted. For example, alice@example.com?uid=123456789012345678901. If the user is recovered, this value reverts to user:{emailid} and the recovered user retains the role in the binding. * deleted:serviceAccount:{emailid}?uid={uniqueid}: An email address (plus unique identifier) representing a service account that has been recently deleted. For example, my-other-app@appspot.gserviceaccount.com?uid=123456789012345678901. If the service account is undeleted, this value reverts to serviceAccount:{emailid} and the undeleted service account retains the role in the binding. * deleted:group:{emailid}?uid={uniqueid}: An email address (plus unique identifier) representing a Google group that has been recently deleted. For example, admins@example.com?uid=123456789012345678901. If the group is recovered, this value reverts to group:{emailid} and the recovered group retains the role in the binding. * deleted:principal://iam.googleapis.com/locations/global/workforcePools/{pool_id}/subject/{subject_attribute_value}: Deleted single identity in a workforce identity pool. For example, deleted:principal://iam.googleapis.com/locations/global/workforcePools/my-pool-id/subject/my-subject-attribute-value.
+    #[serde(default)]
+    pub members: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Role that is assigned to the list of members, or principals. For example, roles/viewer, roles/editor, or roles/owner. For an overview of the IAM roles and permissions, see the [IAM documentation](https://cloud.google.com/iam/docs/roles-overview). For a list of the available pre-defined roles, see [here](https://cloud.google.com/iam/docs/understanding-roles).
+    #[serde(default)]
+    pub role: ::core::option::Option<String>,
+}
+
+/// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleRpcStatus {
+    /// The status code, which should be an enum value of google.rpc.Code.
+    #[serde(default)]
+    pub code: ::core::option::Option<i32>,
+    /// A list of messages that carry the error details. There is a common set of message types for APIs to use.
+    #[serde(default)]
+    pub details: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
+    /// A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.
+    #[serde(default)]
+    pub message: ::core::option::Option<String>,
+}
+
+/// Documentation file contents for a catalog item.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudApigeeV1DocumentationFile {
+    /// Required. The file contents. The max size is 4 MB.
+    #[serde(default)]
+    pub contents: ::core::option::Option<String>,
+    /// Required. A display name for the file, shown in the management UI. Max length is 255 characters.
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+}
+
+/// Additional details if the resource is an API Hub deployment.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudApigeeV1SecurityAssessmentResultResourceApiHubDeploymentDetails {
+    /// The display name of the API Hub deployment.
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+    /// The gateway for the API Hub deployment. Format: projects/{project}/locations/{location}/plugins/{plugin}/instances/{instance}
+    #[serde(default)]
+    pub gateway: ::core::option::Option<String>,
+    /// The gateway type for the API Hub deployment. // TODO: enum values: ["API_HUB_GATEWAY_TYPE_UNSPECIFIED", "APIGEE_X", "APIGEE_HYBRID", "APIGEE_EDGE", "APIGEE_OPDK"]
+    #[serde(default, rename = "gatewayType")]
+    pub gateway_type: ::core::option::Option<String>,
+    /// The resource uri for the API Hub deployment.
+    #[serde(default, rename = "resourceUri")]
+    pub resource_uri: ::core::option::Option<String>,
+    /// The source project for the API Hub deployment.
+    #[serde(default, rename = "sourceProject")]
+    pub source_project: ::core::option::Option<String>,
+}
+
+/// Recommendation based on security concerns and score.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudApigeeV1ScoreComponentRecommendation {
+    /// Actions for the recommendation to improve the security score.
+    #[serde(default)]
+    pub actions: ::core::option::Option<
+        ::std::vec::Vec<GoogleCloudApigeeV1ScoreComponentRecommendationAction>,
+    >,
+    /// Description of the recommendation.
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+    /// Potential impact of this recommendation on the overall score. This denotes how important this recommendation is to improve the score.
+    #[serde(default)]
+    pub impact: ::core::option::Option<i32>,
+    /// Title represents recommendation title.
+    #[serde(default)]
+    pub title: ::core::option::Option<String>,
+}
+
+/// GoogleCloudApigeeV1Access resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudApigeeV1Access {
+    #[serde(default, rename = "Get")]
+    pub get: ::core::option::Option<GoogleCloudApigeeV1AccessGet>,
+    #[serde(default, rename = "Remove")]
+    pub remove: ::core::option::Option<GoogleCloudApigeeV1AccessRemove>,
+    #[serde(default, rename = "Set")]
+    pub set: ::core::option::Option<GoogleCloudApigeeV1AccessSet>,
+}
+
+/// Message for compatibility with legacy Edge specification for Java Properties object in JSON.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudApigeeV1Properties {
+    /// List of all properties in the object
+    #[serde(default)]
+    pub property: ::core::option::Option<::std::vec::Vec<GoogleCloudApigeeV1Property>>,
+}
+
+/// GoogleCloudApigeeV1CommonNameConfig resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudApigeeV1CommonNameConfig {
+    #[serde(default, rename = "matchWildCards")]
+    pub match_wild_cards: ::core::option::Option<bool>,
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+}
+
+/// GoogleCloudApigeeV1KeyAliasReference resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudApigeeV1KeyAliasReference {
+    /// Alias ID. Must exist in the keystore referred to by the reference.
+    #[serde(default, rename = "aliasId")]
+    pub alias_id: ::core::option::Option<String>,
+    /// Reference name in the following format: organizations/{org}/environments/{env}/references/{reference}
+    #[serde(default)]
+    pub reference: ::core::option::Option<String>,
+}
+
+/// NEXT ID: 3 RuntimeTraceSamplingConfig represents the detail settings of distributed tracing. Only the fields that are defined in the distributed trace configuration can be overridden using the distribute trace configuration override APIs.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudApigeeV1RuntimeTraceSamplingConfig {
+    /// Sampler of distributed tracing. OFF is the default value. // TODO: enum values: ["SAMPLER_UNSPECIFIED", "OFF", "PROBABILITY"]
+    #[serde(default)]
+    pub sampler: ::core::option::Option<String>,
+    /// Field sampling rate. This value is only applicable when using the PROBABILITY sampler. The supported values are &gt; 0 and &lt;= 0.5.
+    #[serde(default, rename = "samplingRate")]
+    pub sampling_rate: ::core::option::Option<f32>,
+}
+
+/// Binds the resources in a proxy or remote service with the GraphQL operation and its associated quota enforcement.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudApigeeV1GraphQLOperationConfig {
+    /// Required. Name of the API proxy endpoint or remote service with which the GraphQL operation and quota are associated.
+    #[serde(default, rename = "apiSource")]
+    pub api_source: ::core::option::Option<String>,
+    /// Custom attributes associated with the operation.
+    #[serde(default)]
+    pub attributes: ::core::option::Option<::std::vec::Vec<GoogleCloudApigeeV1Attribute>>,
+    /// Required. List of GraphQL name/operation type pairs for the proxy or remote service to which quota will be applied. If only operation types are specified, the quota will be applied to all GraphQL requests irrespective of the GraphQL name. **Note**: Currently, you can specify only a single GraphQLOperation. Specifying more than one will cause the operation to fail.
+    #[serde(default)]
+    pub operations: ::core::option::Option<::std::vec::Vec<GoogleCloudApigeeV1GraphQLOperation>>,
+    /// Quota parameters to be enforced for the resources, methods, and API source combination. If none are specified, quota enforcement will not be done.
+    #[serde(default)]
+    pub quota: ::core::option::Option<GoogleCloudApigeeV1Quota>,
+}
+
+/// Binds the resources in a proxy or remote service with the gRPC operation and its associated quota enforcement.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudApigeeV1GrpcOperationConfig {
+    /// Required. Name of the API proxy with which the gRPC operation and quota are associated.
+    #[serde(default, rename = "apiSource")]
+    pub api_source: ::core::option::Option<String>,
+    /// Custom attributes associated with the operation.
+    #[serde(default)]
+    pub attributes: ::core::option::Option<::std::vec::Vec<GoogleCloudApigeeV1Attribute>>,
+    /// List of unqualified gRPC method names for the proxy to which quota will be applied. If this field is empty, the Quota will apply to all operations on the gRPC service defined on the proxy. Example: Given a proxy that is configured to serve com.petstore.PetService, the methods com.petstore.PetService.ListPets and com.petstore.PetService.GetPet would be specified here as simply ["ListPets", "GetPet"].
+    #[serde(default)]
+    pub methods: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Quota parameters to be enforced for the methods and API source combination. If none are specified, quota enforcement will not be done.
+    #[serde(default)]
+    pub quota: ::core::option::Option<GoogleCloudApigeeV1Quota>,
+    /// Required. gRPC Service name associated to be associated with the API proxy, on which quota rules can be applied upon.
+    #[serde(default)]
+    pub service: ::core::option::Option<String>,
+}
+
+/// Binds the resources in an API proxy or remote service with the allowed REST methods and associated quota enforcement.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudApigeeV1LlmOperationConfig {
+    /// Required. Name of the API proxy or remote service with which the resources, methods, and quota are associated.
+    #[serde(default, rename = "apiSource")]
+    pub api_source: ::core::option::Option<String>,
+    /// Optional. Custom attributes associated with the operation.
+    #[serde(default)]
+    pub attributes: ::core::option::Option<::std::vec::Vec<GoogleCloudApigeeV1Attribute>>,
+    /// Required. List of resource/method/model for the API proxy to which quota will applied. **Note**: Currently, you can specify only a single resource/method/model mapping. The call will fail if more than one resource/method/model mappings are provided.
+    #[serde(default, rename = "llmOperations")]
+    pub llm_operations: ::core::option::Option<::std::vec::Vec<GoogleCloudApigeeV1LlmOperation>>,
+    /// Required. LLM token Quota parameters to be enforced for the resources, methods, and API source & LLM model combination. If none are specified, quota enforcement will not be done.
+    #[serde(default, rename = "llmTokenQuota")]
+    pub llm_token_quota: ::core::option::Option<GoogleCloudApigeeV1LlmTokenQuota>,
+}
+
+/// Binds the resources in an API proxy or remote service with the allowed REST methods and associated quota enforcement.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudApigeeV1OperationConfig {
+    /// Required. Name of the API proxy or remote service with which the resources, methods, and quota are associated.
+    #[serde(default, rename = "apiSource")]
+    pub api_source: ::core::option::Option<String>,
+    /// Custom attributes associated with the operation.
+    #[serde(default)]
+    pub attributes: ::core::option::Option<::std::vec::Vec<GoogleCloudApigeeV1Attribute>>,
+    /// List of resource/method pairs for the API proxy or remote service to which quota will applied. **Note**: Currently, you can specify only a single resource/method pair. The call will fail if more than one resource/method pair is provided.
+    #[serde(default)]
+    pub operations: ::core::option::Option<::std::vec::Vec<GoogleCloudApigeeV1Operation>>,
+    /// Quota parameters to be enforced for the resources, methods, and API source combination. If none are specified, quota enforcement will not be done.
+    #[serde(default)]
+    pub quota: ::core::option::Option<GoogleCloudApigeeV1Quota>,
+}
+
+/// Revisions deployed in the MPs.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudApigeeV1InstanceDeploymentStatusDeployedRevision {
+    /// Percentage of MP replicas reporting this revision.
+    #[serde(default)]
+    pub percentage: ::core::option::Option<i32>,
+    /// API proxy revision reported as deployed.
+    #[serde(default)]
+    pub revision: ::core::option::Option<String>,
+}
+
+/// Route deployed in the ingress routing table.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudApigeeV1InstanceDeploymentStatusDeployedRoute {
+    /// Base path in the routing table.
+    #[serde(default)]
+    pub basepath: ::core::option::Option<String>,
+    /// Environment group where this route is installed.
+    #[serde(default)]
+    pub envgroup: ::core::option::Option<String>,
+    /// Destination environment. This will be empty if the route is not yet reported.
+    #[serde(default)]
+    pub environment: ::core::option::Option<String>,
+    /// Percentage of ingress replicas reporting this route.
+    #[serde(default)]
+    pub percentage: ::core::option::Option<i32>,
+}
+
+/// Tuple representing a base path and the deployment containing it.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudApigeeV1DeploymentChangeReportRoutingDeployment {
+    /// Name of the deployed API proxy revision containing the base path.
+    #[serde(default, rename = "apiProxy")]
+    pub api_proxy: ::core::option::Option<String>,
+    /// Base path receiving traffic.
+    #[serde(default)]
+    pub basepath: ::core::option::Option<String>,
+    /// Name of the environment in which the proxy is deployed.
+    #[serde(default)]
+    pub environment: ::core::option::Option<String>,
+    /// Name of the deployed API proxy revision containing the base path.
+    #[serde(default)]
+    pub revision: ::core::option::Option<String>,
+}
+
+/// GoogleCloudApigeeV1ApiProductRef resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudApigeeV1ApiProductRef {
+    /// Name of the API product.
+    #[serde(default)]
+    pub apiproduct: ::core::option::Option<String>,
+    /// Status of the API product. Valid values are approved or revoked.
+    #[serde(default)]
+    pub status: ::core::option::Option<String>,
+}
+
+/// MaintenanceWindow specifies the preferred day of the week and time of day to perform maintenance.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudApigeeV1MaintenanceUpdatePolicyMaintenanceWindow {
+    /// Required. Preferred day of the week for maintenance, e.g. MONDAY, TUESDAY, etc. // TODO: enum values: ["DAY_OF_WEEK_UNSPECIFIED", "MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY"]
+    #[serde(default)]
+    pub day: ::core::option::Option<String>,
+    /// Required. The start time (UTC) of the maintenance window.
+    #[serde(default, rename = "startTime")]
+    pub start_time: ::core::option::Option<GoogleTypeTimeOfDay>,
+}
+
+/// Represents an amount of money with its currency type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleTypeMoney {
+    /// The three-letter currency code defined in ISO 4217.
+    #[serde(default, rename = "currencyCode")]
+    pub currency_code: ::core::option::Option<String>,
+    /// Number of nano (10^-9) units of the amount. The value must be between -999,999,999 and +999,999,999 inclusive. If units is positive, nanos must be positive or zero. If units is zero, nanos can be positive, zero, or negative. If units is negative, nanos must be negative or zero. For example $-1.75 is represented as units=-1 and nanos=-750,000,000.
+    #[serde(default)]
+    pub nanos: ::core::option::Option<i32>,
+    /// The whole units of the amount. For example if currencyCode is "USD", then 1 unit is one US dollar.
+    #[serde(default)]
+    pub units: ::core::option::Option<String>,
+}
+
+/// An HTTP header.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudApigeeV1SecurityActionHttpHeader {
+    /// The header name to be sent to the target.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// The header value to be sent to the target.
+    #[serde(default)]
+    pub value: ::core::option::Option<String>,
+}
+
+/// Resource for which we are computing security assessment.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudApigeeV1BatchComputeSecurityAssessmentResultsRequestResourceArrayResource {
+    /// Required. Name of this resource. For an Apigee API Proxy, this should be the id of the API proxy. For an API Hub Deployment, this should be the id of the deployment.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Required. Type of this resource. // TODO: enum values: ["RESOURCE_TYPE_UNSPECIFIED", "API_PROXY", "API_HUB_DEPLOYMENT"]
+    #[serde(default, rename = "type")]
+    pub type_: ::core::option::Option<String>,
+}
+
+/// Advanced API Security provides security profile that scores the following categories.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudApigeeV1ProfileConfigCategory {
+    /// Checks for abuse, which includes any requests sent to the API for purposes other than what it is intended for, such as high volumes of requests, data scraping, and abuse related to authorization.
+    #[serde(default)]
+    pub abuse: ::core::option::Option<serde_json::Value>,
+    /// Checks to see if you have an authorization policy in place.
+    #[serde(default)]
+    pub authorization: ::core::option::Option<serde_json::Value>,
+    /// Checks to see if you have CORS policy in place.
+    #[serde(default)]
+    pub cors: ::core::option::Option<serde_json::Value>,
+    /// Checks to see if you have a mediation policy in place.
+    #[serde(default)]
+    pub mediation: ::core::option::Option<serde_json::Value>,
+    /// Checks to see if you have configured mTLS for the target server.
+    #[serde(default)]
+    pub mtls: ::core::option::Option<serde_json::Value>,
+    /// Checks to see if you have a threat protection policy in place.
+    #[serde(default)]
+    pub threat: ::core::option::Option<serde_json::Value>,
 }
 
 /// Details on why a resource update failed in the runtime.
@@ -5453,26 +5482,15 @@ pub struct GoogleCloudApigeeV1UpdateError {
     pub type_: ::core::option::Option<String>,
 }
 
-/// Request for UpdateSecurityIncident.
+/// Encapsulates the metric data point. For example: { "name": "sum(message_count)", "values" : [ { "timestamp": 1549004400000, "value": "39.0" }, { "timestamp" : 1548997200000, "value" : "0.0" } ] } or { "name": "sum(message_count)", "values" : ["39.0"] }
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudApigeeV1UpdateSecurityIncidentRequest {
-    /// Required. The security incident to update. Must contain all existing populated fields of the current incident.
-    #[serde(default, rename = "securityIncident")]
-    pub security_incident: ::core::option::Option<GoogleCloudApigeeV1SecurityIncident>,
-    /// Required. The list of fields to update. Allowed fields are: LINT.IfChange(allowed_update_fields_comment) - observability LINT.ThenChange()
-    #[serde(default, rename = "updateMask")]
-    pub update_mask: ::core::option::Option<String>,
-}
-
-/// Specifies the audit configuration for a service. The configuration determines which permission types are logged, and what identities, if any, are exempted from logging. An AuditConfig must have one or more AuditLogConfigs. If there are AuditConfigs for both allServices and a specific service, the union of the two AuditConfigs is used for that service: the log_types specified in each AuditConfig are enabled, and the exempted_members in each AuditLogConfig are exempted. Example Policy with multiple AuditConfigs: { "audit_configs": [ { "service": "allServices", "audit_log_configs": [ { "log_type": "DATA_READ", "exempted_members": [ "user:jose@example.com" ] }, { "log_type": "DATA_WRITE" }, { "log_type": "ADMIN_READ" } ] }, { "service": "sampleservice.googleapis.com", "audit_log_configs": [ { "log_type": "DATA_READ" }, { "log_type": "DATA_WRITE", "exempted_members": [ "user:aliya@example.com" ] } ] } ] } For sampleservice, this policy enables DATA_READ, DATA_WRITE and ADMIN_READ logging. It also exempts jose@example.com from DATA_READ logging, and aliya@example.com from DATA_WRITE logging.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleIamV1AuditConfig {
-    /// The configuration for logging of each type of permission.
-    #[serde(default, rename = "auditLogConfigs")]
-    pub audit_log_configs: ::core::option::Option<::std::vec::Vec<GoogleIamV1AuditLogConfig>>,
-    /// Specifies a service that will be enabled for audit logging. For example, storage.googleapis.com, cloudsql.googleapis.com. allServices is a special value that covers all services.
+pub struct GoogleCloudApigeeV1Metric {
+    /// Metric name.
     #[serde(default)]
-    pub service: ::core::option::Option<String>,
+    pub name: ::core::option::Option<String>,
+    /// List of metric values. Possible value formats include: "values":["39.0"] or "values":[ { "value": "39.0", "timestamp": 1232434354} ]
+    #[serde(default)]
+    pub values: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
 }
 
 /// Provides the configuration for logging a type of permissions. Example: { "audit_log_configs": [ { "log_type": "DATA_READ", "exempted_members": [ "user:jose@example.com" ] }, { "log_type": "DATA_WRITE" } ] } This enables ''DATA_READ'' and ''DATA_WRITE'' logging, while exempting jose@example.com from DATA_READ logging.
@@ -5484,134 +5502,6 @@ pub struct GoogleIamV1AuditLogConfig {
     /// The log type that this config enables. // TODO: enum values: ["LOG_TYPE_UNSPECIFIED", "ADMIN_READ", "DATA_WRITE", "DATA_READ"]
     #[serde(default, rename = "logType")]
     pub log_type: ::core::option::Option<String>,
-}
-
-/// Associates members, or principals, with a role.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleIamV1Binding {
-    /// The condition that is associated with this binding. If the condition evaluates to true, then this binding applies to the current request. If the condition evaluates to false, then this binding does not apply to the current request. However, a different role binding might grant the same role to one or more of the principals in this binding. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies).
-    #[serde(default)]
-    pub condition: ::core::option::Option<GoogleTypeExpr>,
-    /// Specifies the principals requesting access for a Google Cloud resource. members can have the following values: * allUsers: A special identifier that represents anyone who is on the internet; with or without a Google account. * allAuthenticatedUsers: A special identifier that represents anyone who is authenticated with a Google account or a service account. Does not include identities that come from external identity providers (IdPs) through identity federation. * user:{emailid}: An email address that represents a specific Google account. For example, alice@example.com . * serviceAccount:{emailid}: An email address that represents a Google service account. For example, my-other-app@appspot.gserviceaccount.com. * serviceAccount:{projectid}.svc.id.goog[{namespace}/{kubernetes-sa}]: An identifier for a [Kubernetes service account](https://cloud.google.com/kubernetes-engine/docs/how-to/kubernetes-service-accounts). For example, my-project.svc.id.goog[my-namespace/my-kubernetes-sa]. * group:{emailid}: An email address that represents a Google group. For example, admins@example.com. * domain:{domain}: The G Suite domain (primary) that represents all the users of that domain. For example, google.com or example.com. * principal://iam.googleapis.com/locations/global/workforcePools/{pool_id}/subject/{subject_attribute_value}: A single identity in a workforce identity pool. * principalSet://iam.googleapis.com/locations/global/workforcePools/{pool_id}/group/{group_id}: All workforce identities in a group. * principalSet://iam.googleapis.com/locations/global/workforcePools/{pool_id}/attribute.{attribute_name}/{attribute_value}: All workforce identities with a specific attribute value. * principalSet://iam.googleapis.com/locations/global/workforcePools/{pool_id}/*: All identities in a workforce identity pool. * principal://iam.googleapis.com/projects/{project_number}/locations/global/workloadIdentityPools/{pool_id}/subject/{subject_attribute_value}: A single identity in a workload identity pool. * principalSet://iam.googleapis.com/projects/{project_number}/locations/global/workloadIdentityPools/{pool_id}/group/{group_id}: A workload identity pool group. * principalSet://iam.googleapis.com/projects/{project_number}/locations/global/workloadIdentityPools/{pool_id}/attribute.{attribute_name}/{attribute_value}: All identities in a workload identity pool with a certain attribute. * principalSet://iam.googleapis.com/projects/{project_number}/locations/global/workloadIdentityPools/{pool_id}/*: All identities in a workload identity pool. * deleted:user:{emailid}?uid={uniqueid}: An email address (plus unique identifier) representing a user that has been recently deleted. For example, alice@example.com?uid=123456789012345678901. If the user is recovered, this value reverts to user:{emailid} and the recovered user retains the role in the binding. * deleted:serviceAccount:{emailid}?uid={uniqueid}: An email address (plus unique identifier) representing a service account that has been recently deleted. For example, my-other-app@appspot.gserviceaccount.com?uid=123456789012345678901. If the service account is undeleted, this value reverts to serviceAccount:{emailid} and the undeleted service account retains the role in the binding. * deleted:group:{emailid}?uid={uniqueid}: An email address (plus unique identifier) representing a Google group that has been recently deleted. For example, admins@example.com?uid=123456789012345678901. If the group is recovered, this value reverts to group:{emailid} and the recovered group retains the role in the binding. * deleted:principal://iam.googleapis.com/locations/global/workforcePools/{pool_id}/subject/{subject_attribute_value}: Deleted single identity in a workforce identity pool. For example, deleted:principal://iam.googleapis.com/locations/global/workforcePools/my-pool-id/subject/my-subject-attribute-value.
-    #[serde(default)]
-    pub members: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Role that is assigned to the list of members, or principals. For example, roles/viewer, roles/editor, or roles/owner. For an overview of the IAM roles and permissions, see the [IAM documentation](https://cloud.google.com/iam/docs/roles-overview). For a list of the available pre-defined roles, see [here](https://cloud.google.com/iam/docs/understanding-roles).
-    #[serde(default)]
-    pub role: ::core::option::Option<String>,
-}
-
-/// An Identity and Access Management (IAM) policy, which specifies access controls for Google Cloud resources. A Policy is a collection of bindings. A binding binds one or more members, or principals, to a single role. Principals can be user accounts, service accounts, Google groups, and domains (such as G Suite). A role is a named list of permissions; each role can be an IAM predefined role or a user-created custom role. For some types of Google Cloud resources, a binding can also specify a condition, which is a logical expression that allows access to a resource only if the expression evaluates to true. A condition can add constraints based on attributes of the request, the resource, or both. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies). **JSON example:**  { "bindings": [ { "role": "roles/resourcemanager.organizationAdmin", "members": [ "user:mike@example.com", "group:admins@example.com", "domain:google.com", "serviceAccount:my-project-id@appspot.gserviceaccount.com" ] }, { "role": "roles/resourcemanager.organizationViewer", "members": [ "user:eve@example.com" ], "condition": { "title": "expirable access", "description": "Does not grant access after Sep 2020", "expression": "request.time &lt; timestamp(''2020-10-01T00:00:00.000Z'')", } } ], "etag": "BwWWja0YfJA=", "version": 3 }  **YAML example:**  bindings: - members: - user:mike@example.com - group:admins@example.com - domain:google.com - serviceAccount:my-project-id@appspot.gserviceaccount.com role: roles/resourcemanager.organizationAdmin - members: - user:eve@example.com role: roles/resourcemanager.organizationViewer condition: title: expirable access description: Does not grant access after Sep 2020 expression: request.time &lt; timestamp(''2020-10-01T00:00:00.000Z'') etag: BwWWja0YfJA= version: 3  For a description of IAM and its features, see the [IAM documentation](https://cloud.google.com/iam/docs/).
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleIamV1Policy {
-    /// Specifies cloud audit logging configuration for this policy.
-    #[serde(default, rename = "auditConfigs")]
-    pub audit_configs: ::core::option::Option<::std::vec::Vec<GoogleIamV1AuditConfig>>,
-    /// Associates a list of members, or principals, with a role. Optionally, may specify a condition that determines how and when the bindings are applied. Each of the bindings must contain at least one principal. The bindings in a Policy can refer to up to 1,500 principals; up to 250 of these principals can be Google groups. Each occurrence of a principal counts towards these limits. For example, if the bindings grant 50 different roles to user:alice@example.com, and not to any other principal, then you can add another 1,450 principals to the bindings in the Policy.
-    #[serde(default)]
-    pub bindings: ::core::option::Option<::std::vec::Vec<GoogleIamV1Binding>>,
-    /// etag is used for optimistic concurrency control as a way to help prevent simultaneous updates of a policy from overwriting each other. It is strongly suggested that systems make use of the etag in the read-modify-write cycle to perform policy updates in order to avoid race conditions: An etag is returned in the response to getIamPolicy, and systems are expected to put that etag in the request to setIamPolicy to ensure that their change will be applied to the same version of the policy. **Important:** If you use IAM Conditions, you must include the etag field whenever you call setIamPolicy. If you omit this field, then IAM allows you to overwrite a version 3 policy with a version 1 policy, and all of the conditions in the version 3 policy are lost.
-    #[serde(default)]
-    pub etag: ::core::option::Option<String>,
-    /// Specifies the format of the policy. Valid values are 0, 1, and 3. Requests that specify an invalid value are rejected. Any operation that affects conditional role bindings must specify version 3. This requirement applies to the following operations: * Getting a policy that includes a conditional role binding * Adding a conditional role binding to a policy * Changing a conditional role binding in a policy * Removing any role binding, with or without a condition, from a policy that includes conditions **Important:** If you use IAM Conditions, you must include the etag field whenever you call setIamPolicy. If you omit this field, then IAM allows you to overwrite a version 3 policy with a version 1 policy, and all of the conditions in the version 3 policy are lost. If a policy does not include any conditions, operations on that policy may specify any valid version or leave the field unset. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies).
-    #[serde(default)]
-    pub version: ::core::option::Option<i32>,
-}
-
-/// Request message for SetIamPolicy method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleIamV1SetIamPolicyRequest {
-    /// REQUIRED: The complete policy to be applied to the resource. The size of the policy is limited to a few 10s of KB. An empty policy is a valid policy but certain Google Cloud services (such as Projects) might reject them.
-    #[serde(default)]
-    pub policy: ::core::option::Option<GoogleIamV1Policy>,
-    /// OPTIONAL: A FieldMask specifying which fields of the policy to modify. Only the fields in the mask will be modified. If no mask is provided, the following default mask is used: paths: "bindings, etag"
-    #[serde(default, rename = "updateMask")]
-    pub update_mask: ::core::option::Option<String>,
-}
-
-/// Request message for TestIamPermissions method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleIamV1TestIamPermissionsRequest {
-    /// The set of permissions to check for the resource. Permissions with wildcards (such as * or storage.*) are not allowed. For more information see [IAM Overview](https://cloud.google.com/iam/docs/overview#permissions).
-    #[serde(default)]
-    pub permissions: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// Response message for TestIamPermissions method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleIamV1TestIamPermissionsResponse {
-    /// A subset of TestPermissionsRequest.permissions that the caller is allowed.
-    #[serde(default)]
-    pub permissions: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// The response message for Operations.ListOperations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleLongrunningListOperationsResponse {
-    /// The standard List next-page token.
-    #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: ::core::option::Option<String>,
-    /// A list of operations that matches the specified filter in the request.
-    #[serde(default)]
-    pub operations: ::core::option::Option<::std::vec::Vec<GoogleLongrunningOperation>>,
-    /// Unordered list. Unreachable resources. Populated when the request sets ListOperationsRequest.return_partial_success and reads across collections. For example, when attempting to list all resources across all supported locations.
-    #[serde(default)]
-    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// This resource represents a long-running operation that is the result of a network API call.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleLongrunningOperation {
-    /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
-    #[serde(default)]
-    pub done: ::core::option::Option<bool>,
-    /// The error result of the operation in case of failure or cancellation.
-    #[serde(default)]
-    pub error: ::core::option::Option<GoogleRpcStatus>,
-    /// Service-specific metadata associated with the operation. It typically contains progress information and common metadata such as create time. Some services might not provide such metadata. Any method that returns a long-running operation should document the metadata type, if any.
-    #[serde(default)]
-    pub metadata: ::core::option::Option<serde_json::Value>,
-    /// The server-assigned name, which is only unique within the same service that originally returns it. If you use the default HTTP mapping, the name should be a resource name ending with operations/{unique_id}.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// The normal, successful response of the operation. If the original method returns no data on success, such as Delete, the response is google.protobuf.Empty. If the original method is standard Get/Create/Update, the response should be the resource. For other methods, the response should have the type XxxResponse, where Xxx is the original method name. For example, if the original method name is TakeSnapshot(), the inferred response type is TakeSnapshotResponse.
-    #[serde(default)]
-    pub response: ::core::option::Option<serde_json::Value>,
-}
-
-/// Describes what preconditions have failed. For example, if an RPC failed because it required the Terms of Service to be acknowledged, it could list the terms of service violation in the PreconditionFailure message.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleRpcPreconditionFailure {
-    /// Describes all precondition violations.
-    #[serde(default)]
-    pub violations: ::core::option::Option<::std::vec::Vec<GoogleRpcPreconditionFailureViolation>>,
-}
-
-/// A message type used to describe a single precondition failure.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleRpcPreconditionFailureViolation {
-    /// A description of how the precondition failed. Developers can use this description to understand how to fix the failure. For example: "Terms of service not accepted".
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// The subject, relative to the type, that failed. For example, "google.com/cloud" relative to the "TOS" type would indicate which terms of service is being referenced.
-    #[serde(default)]
-    pub subject: ::core::option::Option<String>,
-    /// The type of PreconditionFailure. We recommend using a service-specific enum type to define the supported precondition violation subjects. For example, "TOS" for "Terms of Service violation".
-    #[serde(default, rename = "type")]
-    pub type_: ::core::option::Option<String>,
-}
-
-/// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleRpcStatus {
-    /// The status code, which should be an enum value of google.rpc.Code.
-    #[serde(default)]
-    pub code: ::core::option::Option<i32>,
-    /// A list of messages that carry the error details. There is a common set of message types for APIs to use.
-    #[serde(default)]
-    pub details: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
-    /// A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.
-    #[serde(default)]
-    pub message: ::core::option::Option<String>,
 }
 
 /// Represents a textual expression in the Common Expression Language (CEL) syntax. CEL is a C-like expression language. The syntax and semantics of CEL are documented at https://github.com/google/cel-spec. Example (Comparison): title: "Summary size limit" description: "Determines if a summary is less than 100 chars" expression: "document.summary.size() &lt; 100" Example (Equality): title: "Requestor is owner" description: "Determines if requestor is the document owner" expression: "document.owner == request.auth.claims.email" Example (Logic): title: "Public documents" description: "Determine whether the document should be publicly visible" expression: "document.type != ''private'' && document.type != ''internal''" Example (Data Manipulation): title: "Notification string" description: "Create a notification string with a timestamp." expression: "''New message received at '' + string(document.create_time)" The exact variables and functions that may be referenced within an expression are determined by the service that evaluates it. See the service documentation for additional information.
@@ -5631,29 +5521,131 @@ pub struct GoogleTypeExpr {
     pub title: ::core::option::Option<String>,
 }
 
-/// Represents a time interval, encoded as a Timestamp start (inclusive) and a Timestamp end (exclusive). The start must be less than or equal to the end. When the start equals the end, the interval is empty (matches no time). When both start and end are unspecified, the interval matches any time.
+/// Action to improve security score.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleTypeInterval {
-    /// Optional. Exclusive end of the interval. If specified, a Timestamp matching this interval will have to be before the end.
-    #[serde(default, rename = "endTime")]
-    pub end_time: ::core::option::Option<String>,
-    /// Optional. Inclusive start of the interval. If specified, a Timestamp matching this interval will have to be the same or after the start.
-    #[serde(default, rename = "startTime")]
-    pub start_time: ::core::option::Option<String>,
+pub struct GoogleCloudApigeeV1ScoreComponentRecommendationAction {
+    /// Action context for the action.
+    #[serde(default, rename = "actionContext")]
+    pub action_context:
+        ::core::option::Option<GoogleCloudApigeeV1ScoreComponentRecommendationActionActionContext>,
+    /// Description of the action.
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
 }
 
-/// Represents an amount of money with its currency type.
+/// Get action. For example, "Get" : { "name" : "target.name", "value" : "default" }
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleTypeMoney {
-    /// The three-letter currency code defined in ISO 4217.
-    #[serde(default, rename = "currencyCode")]
-    pub currency_code: ::core::option::Option<String>,
-    /// Number of nano (10^-9) units of the amount. The value must be between -999,999,999 and +999,999,999 inclusive. If units is positive, nanos must be positive or zero. If units is zero, nanos can be positive, zero, or negative. If units is negative, nanos must be negative or zero. For example $-1.75 is represented as units=-1 and nanos=-750,000,000.
+pub struct GoogleCloudApigeeV1AccessGet {
     #[serde(default)]
-    pub nanos: ::core::option::Option<i32>,
-    /// The whole units of the amount. For example if currencyCode is "USD", then 1 unit is one US dollar.
+    pub name: ::core::option::Option<String>,
     #[serde(default)]
-    pub units: ::core::option::Option<String>,
+    pub value: ::core::option::Option<String>,
+}
+
+/// Remove action. For example, "Remove" : { "name" : "target.name", "success" : true }
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudApigeeV1AccessRemove {
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    #[serde(default)]
+    pub success: ::core::option::Option<bool>,
+}
+
+/// Set action. For example, "Set" : { "name" : "target.name", "success" : true, "value" : "default" }
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudApigeeV1AccessSet {
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    #[serde(default)]
+    pub success: ::core::option::Option<bool>,
+    #[serde(default)]
+    pub value: ::core::option::Option<String>,
+}
+
+/// A single property entry in the Properties message.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudApigeeV1Property {
+    /// The property key
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// The property value
+    #[serde(default)]
+    pub value: ::core::option::Option<String>,
+}
+
+/// Represents the pairing of GraphQL operation types and the GraphQL operation name.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudApigeeV1GraphQLOperation {
+    /// GraphQL operation name. The name and operation type will be used to apply quotas. If no name is specified, the quota will be applied to all GraphQL operations irrespective of their operation names in the payload.
+    #[serde(default)]
+    pub operation: ::core::option::Option<String>,
+    /// Required. GraphQL operation types. Valid values include query or mutation. **Note**: Apigee does not currently support subscription types.
+    #[serde(default, rename = "operationTypes")]
+    pub operation_types: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// Represents the pairing of REST resource path, model and the actions (verbs) allowed on the resource path.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudApigeeV1LlmOperation {
+    /// Optional. methods refers to the REST verbs as in https://httpwg.org/specs/rfc9110.html For example: GET, POST, PUT, DELETE, etc. They need to be in uppercase. When none specified, all verb types are allowed.
+    #[serde(default)]
+    pub methods: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Required. LLM model name associated with the API proxy
+    #[serde(default)]
+    pub model: ::core::option::Option<String>,
+    /// Required. REST resource path associated with the API proxy or remote service.
+    #[serde(default)]
+    pub resource: ::core::option::Option<String>,
+}
+
+/// LLM Token Quota contains the essential parameters needed that can be applied on the resources, methods, models, API source combination associated with this API product. While LLM Token Quota is optional, setting it prevents requests from exceeding the provisioned parameters.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudApigeeV1LlmTokenQuota {
+    /// Required. Time interval over which the number of request messages is calculated.
+    #[serde(default)]
+    pub interval: ::core::option::Option<String>,
+    /// Required. Upper limit of LLM tokens allowed for the time interval and time unit specified. Requests exceeding this limit will be rejected.
+    #[serde(default)]
+    pub limit: ::core::option::Option<String>,
+    /// Optional. Time unit defined for the interval. Valid values include minute, hour, day, or month. If limit and interval are valid, the default value is hour; otherwise, the default is null.
+    #[serde(default, rename = "timeUnit")]
+    pub time_unit: ::core::option::Option<String>,
+}
+
+/// Key-value pair to store extra metadata.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudApigeeV1Attribute {
+    /// API key of the attribute.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Value of the attribute.
+    #[serde(default)]
+    pub value: ::core::option::Option<String>,
+}
+
+/// Represents the pairing of REST resource path and the actions (verbs) allowed on the resource path.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudApigeeV1Operation {
+    /// methods refers to the REST verbs as in https://www.w3.org/Protocols/rfc2616/rfc2616-sec9.html. When none specified, all verb types are allowed.
+    #[serde(default)]
+    pub methods: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Required. REST resource path associated with the API proxy or remote service.
+    #[serde(default)]
+    pub resource: ::core::option::Option<String>,
+}
+
+/// Quota contains the essential parameters needed that can be applied on the resources, methods, API source combination associated with this API product. While Quota is optional, setting it prevents requests from exceeding the provisioned parameters.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudApigeeV1Quota {
+    /// Required. Time interval over which the number of request messages is calculated.
+    #[serde(default)]
+    pub interval: ::core::option::Option<String>,
+    /// Required. Upper limit allowed for the time interval and time unit specified. Requests exceeding this limit will be rejected.
+    #[serde(default)]
+    pub limit: ::core::option::Option<String>,
+    /// Time unit defined for the interval. Valid values include minute, hour, day, or month. If limit and interval are valid, the default value is hour; otherwise, the default is null.
+    #[serde(default, rename = "timeUnit")]
+    pub time_unit: ::core::option::Option<String>,
 }
 
 /// Represents a time of day. The date and time zone are either not significant or are specified elsewhere. An API may choose to allow leap seconds. Related types are google.type.Date and google.protobuf.Timestamp.
@@ -5671,4 +5663,12 @@ pub struct GoogleTypeTimeOfDay {
     /// Seconds of a minute. Must be greater than or equal to 0 and typically must be less than or equal to 59. An API may allow the value 60 if it allows leap-seconds.
     #[serde(default)]
     pub seconds: ::core::option::Option<i32>,
+}
+
+/// Action context are all the relevant details for the action.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudApigeeV1ScoreComponentRecommendationActionActionContext {
+    /// Documentation link for the action.
+    #[serde(default, rename = "documentationLink")]
+    pub documentation_link: ::core::option::Option<String>,
 }

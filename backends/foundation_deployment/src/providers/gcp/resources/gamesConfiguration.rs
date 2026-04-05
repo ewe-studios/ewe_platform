@@ -10,58 +10,6 @@
 use super::*;
 use serde::{Deserialize, Serialize};
 
-/// An achievement configuration resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AchievementConfiguration {
-    /// The type of the achievement. // TODO: enum values: ["ACHIEVEMENT_TYPE_UNSPECIFIED", "STANDARD", "INCREMENTAL"]
-    #[serde(default, rename = "achievementType")]
-    pub achievement_type: ::core::option::Option<String>,
-    /// The draft data of the achievement.
-    #[serde(default)]
-    pub draft: ::core::option::Option<AchievementConfigurationDetail>,
-    /// The ID of the achievement.
-    #[serde(default)]
-    pub id: ::core::option::Option<String>,
-    /// The initial state of the achievement. // TODO: enum values: ["INITIAL_STATE_UNSPECIFIED", "HIDDEN", "REVEALED"]
-    #[serde(default, rename = "initialState")]
-    pub initial_state: ::core::option::Option<String>,
-    /// Uniquely identifies the type of this resource. Value is always the fixed string gamesConfiguration#achievementConfiguration.
-    #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-    /// The read-only published data of the achievement.
-    #[serde(default)]
-    pub published: ::core::option::Option<AchievementConfigurationDetail>,
-    /// Steps to unlock. Only applicable to incremental achievements.
-    #[serde(default, rename = "stepsToUnlock")]
-    pub steps_to_unlock: ::core::option::Option<i32>,
-    /// The token for this resource.
-    #[serde(default)]
-    pub token: ::core::option::Option<String>,
-}
-
-/// An achievement configuration detail.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AchievementConfigurationDetail {
-    /// Localized strings for the achievement description.
-    #[serde(default)]
-    pub description: ::core::option::Option<LocalizedStringBundle>,
-    /// The icon url of this achievement. Writes to this field are ignored.
-    #[serde(default, rename = "iconUrl")]
-    pub icon_url: ::core::option::Option<String>,
-    /// Uniquely identifies the type of this resource. Value is always the fixed string gamesConfiguration#achievementConfigurationDetail.
-    #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-    /// Localized strings for the achievement name.
-    #[serde(default)]
-    pub name: ::core::option::Option<LocalizedStringBundle>,
-    /// Point value for the achievement.
-    #[serde(default, rename = "pointValue")]
-    pub point_value: ::core::option::Option<i32>,
-    /// The sort rank of this achievement. Writes to this field are ignored.
-    #[serde(default, rename = "sortRank")]
-    pub sort_rank: ::core::option::Option<i32>,
-}
-
 /// A ListConfigurations response.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AchievementConfigurationListResponse {
@@ -74,95 +22,6 @@ pub struct AchievementConfigurationListResponse {
     /// The pagination token for the next page of results.
     #[serde(default, rename = "nextPageToken")]
     pub next_page_token: ::core::option::Option<String>,
-}
-
-/// A number affix resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GamesNumberAffixConfiguration {
-    /// When the language requires special treatment of "small" numbers (as with 2, 3, and 4 in Czech; or numbers ending 2, 3, or 4 but not 12, 13, or 14 in Polish).
-    #[serde(default)]
-    pub few: ::core::option::Option<LocalizedStringBundle>,
-    /// When the language requires special treatment of "large" numbers (as with numbers ending 11-99 in Maltese).
-    #[serde(default)]
-    pub many: ::core::option::Option<LocalizedStringBundle>,
-    /// When the language requires special treatment of numbers like one (as with the number 1 in English and most other languages; in Russian, any number ending in 1 but not ending in 11 is in this class).
-    #[serde(default)]
-    pub one: ::core::option::Option<LocalizedStringBundle>,
-    /// When the language does not require special treatment of the given quantity (as with all numbers in Chinese, or 42 in English).
-    #[serde(default)]
-    pub other: ::core::option::Option<LocalizedStringBundle>,
-    /// When the language requires special treatment of numbers like two (as with 2 in Welsh, or 102 in Slovenian).
-    #[serde(default)]
-    pub two: ::core::option::Option<LocalizedStringBundle>,
-    /// When the language requires special treatment of the number 0 (as in Arabic).
-    #[serde(default)]
-    pub zero: ::core::option::Option<LocalizedStringBundle>,
-}
-
-/// A number format resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GamesNumberFormatConfiguration {
-    /// The curreny code string. Only used for CURRENCY format type.
-    #[serde(default, rename = "currencyCode")]
-    pub currency_code: ::core::option::Option<String>,
-    /// The number of decimal places for number. Only used for NUMERIC format type.
-    #[serde(default, rename = "numDecimalPlaces")]
-    pub num_decimal_places: ::core::option::Option<i32>,
-    /// The formatting for the number. // TODO: enum values: ["NUMBER_FORMAT_TYPE_UNSPECIFIED", "NUMERIC", "TIME_DURATION", "CURRENCY"]
-    #[serde(default, rename = "numberFormatType")]
-    pub number_format_type: ::core::option::Option<String>,
-    /// An optional suffix for the NUMERIC format type. These strings follow the same plural rules as all Android string resources.
-    #[serde(default)]
-    pub suffix: ::core::option::Option<GamesNumberAffixConfiguration>,
-}
-
-/// An leaderboard configuration resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct LeaderboardConfiguration {
-    /// The draft data of the leaderboard.
-    #[serde(default)]
-    pub draft: ::core::option::Option<LeaderboardConfigurationDetail>,
-    /// The ID of the leaderboard.
-    #[serde(default)]
-    pub id: ::core::option::Option<String>,
-    /// Uniquely identifies the type of this resource. Value is always the fixed string gamesConfiguration#leaderboardConfiguration.
-    #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-    /// The read-only published data of the leaderboard.
-    #[serde(default)]
-    pub published: ::core::option::Option<LeaderboardConfigurationDetail>,
-    /// Maximum score that can be posted to this leaderboard.
-    #[serde(default, rename = "scoreMax")]
-    pub score_max: ::core::option::Option<String>,
-    /// Minimum score that can be posted to this leaderboard.
-    #[serde(default, rename = "scoreMin")]
-    pub score_min: ::core::option::Option<String>,
-    /// TODO: enum values: ["SCORE_ORDER_UNSPECIFIED", "LARGER_IS_BETTER", "SMALLER_IS_BETTER"]
-    #[serde(default, rename = "scoreOrder")]
-    pub score_order: ::core::option::Option<String>,
-    /// The token for this resource.
-    #[serde(default)]
-    pub token: ::core::option::Option<String>,
-}
-
-/// A leaderboard configuration detail.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct LeaderboardConfigurationDetail {
-    /// The icon url of this leaderboard. Writes to this field are ignored.
-    #[serde(default, rename = "iconUrl")]
-    pub icon_url: ::core::option::Option<String>,
-    /// Uniquely identifies the type of this resource. Value is always the fixed string gamesConfiguration#leaderboardConfigurationDetail.
-    #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-    /// Localized strings for the leaderboard name.
-    #[serde(default)]
-    pub name: ::core::option::Option<LocalizedStringBundle>,
-    /// The score formatting for the leaderboard.
-    #[serde(default, rename = "scoreFormat")]
-    pub score_format: ::core::option::Option<GamesNumberFormatConfiguration>,
-    /// The sort rank of this leaderboard. Writes to this field are ignored.
-    #[serde(default, rename = "sortRank")]
-    pub sort_rank: ::core::option::Option<i32>,
 }
 
 /// A ListConfigurations response.
@@ -202,4 +61,145 @@ pub struct LocalizedStringBundle {
     /// The locale strings.
     #[serde(default)]
     pub translations: ::core::option::Option<::std::vec::Vec<LocalizedString>>,
+}
+
+/// An achievement configuration resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AchievementConfiguration {
+    /// The type of the achievement. // TODO: enum values: ["ACHIEVEMENT_TYPE_UNSPECIFIED", "STANDARD", "INCREMENTAL"]
+    #[serde(default, rename = "achievementType")]
+    pub achievement_type: ::core::option::Option<String>,
+    /// The draft data of the achievement.
+    #[serde(default)]
+    pub draft: ::core::option::Option<AchievementConfigurationDetail>,
+    /// The ID of the achievement.
+    #[serde(default)]
+    pub id: ::core::option::Option<String>,
+    /// The initial state of the achievement. // TODO: enum values: ["INITIAL_STATE_UNSPECIFIED", "HIDDEN", "REVEALED"]
+    #[serde(default, rename = "initialState")]
+    pub initial_state: ::core::option::Option<String>,
+    /// Uniquely identifies the type of this resource. Value is always the fixed string gamesConfiguration#achievementConfiguration.
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+    /// The read-only published data of the achievement.
+    #[serde(default)]
+    pub published: ::core::option::Option<AchievementConfigurationDetail>,
+    /// Steps to unlock. Only applicable to incremental achievements.
+    #[serde(default, rename = "stepsToUnlock")]
+    pub steps_to_unlock: ::core::option::Option<i32>,
+    /// The token for this resource.
+    #[serde(default)]
+    pub token: ::core::option::Option<String>,
+}
+
+/// An leaderboard configuration resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LeaderboardConfiguration {
+    /// The draft data of the leaderboard.
+    #[serde(default)]
+    pub draft: ::core::option::Option<LeaderboardConfigurationDetail>,
+    /// The ID of the leaderboard.
+    #[serde(default)]
+    pub id: ::core::option::Option<String>,
+    /// Uniquely identifies the type of this resource. Value is always the fixed string gamesConfiguration#leaderboardConfiguration.
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+    /// The read-only published data of the leaderboard.
+    #[serde(default)]
+    pub published: ::core::option::Option<LeaderboardConfigurationDetail>,
+    /// Maximum score that can be posted to this leaderboard.
+    #[serde(default, rename = "scoreMax")]
+    pub score_max: ::core::option::Option<String>,
+    /// Minimum score that can be posted to this leaderboard.
+    #[serde(default, rename = "scoreMin")]
+    pub score_min: ::core::option::Option<String>,
+    /// TODO: enum values: ["SCORE_ORDER_UNSPECIFIED", "LARGER_IS_BETTER", "SMALLER_IS_BETTER"]
+    #[serde(default, rename = "scoreOrder")]
+    pub score_order: ::core::option::Option<String>,
+    /// The token for this resource.
+    #[serde(default)]
+    pub token: ::core::option::Option<String>,
+}
+
+/// An achievement configuration detail.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AchievementConfigurationDetail {
+    /// Localized strings for the achievement description.
+    #[serde(default)]
+    pub description: ::core::option::Option<LocalizedStringBundle>,
+    /// The icon url of this achievement. Writes to this field are ignored.
+    #[serde(default, rename = "iconUrl")]
+    pub icon_url: ::core::option::Option<String>,
+    /// Uniquely identifies the type of this resource. Value is always the fixed string gamesConfiguration#achievementConfigurationDetail.
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+    /// Localized strings for the achievement name.
+    #[serde(default)]
+    pub name: ::core::option::Option<LocalizedStringBundle>,
+    /// Point value for the achievement.
+    #[serde(default, rename = "pointValue")]
+    pub point_value: ::core::option::Option<i32>,
+    /// The sort rank of this achievement. Writes to this field are ignored.
+    #[serde(default, rename = "sortRank")]
+    pub sort_rank: ::core::option::Option<i32>,
+}
+
+/// A leaderboard configuration detail.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LeaderboardConfigurationDetail {
+    /// The icon url of this leaderboard. Writes to this field are ignored.
+    #[serde(default, rename = "iconUrl")]
+    pub icon_url: ::core::option::Option<String>,
+    /// Uniquely identifies the type of this resource. Value is always the fixed string gamesConfiguration#leaderboardConfigurationDetail.
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+    /// Localized strings for the leaderboard name.
+    #[serde(default)]
+    pub name: ::core::option::Option<LocalizedStringBundle>,
+    /// The score formatting for the leaderboard.
+    #[serde(default, rename = "scoreFormat")]
+    pub score_format: ::core::option::Option<GamesNumberFormatConfiguration>,
+    /// The sort rank of this leaderboard. Writes to this field are ignored.
+    #[serde(default, rename = "sortRank")]
+    pub sort_rank: ::core::option::Option<i32>,
+}
+
+/// A number format resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GamesNumberFormatConfiguration {
+    /// The curreny code string. Only used for CURRENCY format type.
+    #[serde(default, rename = "currencyCode")]
+    pub currency_code: ::core::option::Option<String>,
+    /// The number of decimal places for number. Only used for NUMERIC format type.
+    #[serde(default, rename = "numDecimalPlaces")]
+    pub num_decimal_places: ::core::option::Option<i32>,
+    /// The formatting for the number. // TODO: enum values: ["NUMBER_FORMAT_TYPE_UNSPECIFIED", "NUMERIC", "TIME_DURATION", "CURRENCY"]
+    #[serde(default, rename = "numberFormatType")]
+    pub number_format_type: ::core::option::Option<String>,
+    /// An optional suffix for the NUMERIC format type. These strings follow the same plural rules as all Android string resources.
+    #[serde(default)]
+    pub suffix: ::core::option::Option<GamesNumberAffixConfiguration>,
+}
+
+/// A number affix resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GamesNumberAffixConfiguration {
+    /// When the language requires special treatment of "small" numbers (as with 2, 3, and 4 in Czech; or numbers ending 2, 3, or 4 but not 12, 13, or 14 in Polish).
+    #[serde(default)]
+    pub few: ::core::option::Option<LocalizedStringBundle>,
+    /// When the language requires special treatment of "large" numbers (as with numbers ending 11-99 in Maltese).
+    #[serde(default)]
+    pub many: ::core::option::Option<LocalizedStringBundle>,
+    /// When the language requires special treatment of numbers like one (as with the number 1 in English and most other languages; in Russian, any number ending in 1 but not ending in 11 is in this class).
+    #[serde(default)]
+    pub one: ::core::option::Option<LocalizedStringBundle>,
+    /// When the language does not require special treatment of the given quantity (as with all numbers in Chinese, or 42 in English).
+    #[serde(default)]
+    pub other: ::core::option::Option<LocalizedStringBundle>,
+    /// When the language requires special treatment of numbers like two (as with 2 in Welsh, or 102 in Slovenian).
+    #[serde(default)]
+    pub two: ::core::option::Option<LocalizedStringBundle>,
+    /// When the language requires special treatment of the number 0 (as in Arabic).
+    #[serde(default)]
+    pub zero: ::core::option::Option<LocalizedStringBundle>,
 }

@@ -10,6 +10,52 @@
 use super::*;
 use serde::{Deserialize, Serialize};
 
+/// Request to send a message to specified target.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SendMessageRequest {
+    /// Required. Message to send.
+    #[serde(default)]
+    pub message: ::core::option::Option<Message>,
+    /// Flag for testing the request without actually delivering the message.
+    #[serde(default, rename = "validateOnly")]
+    pub validate_only: ::core::option::Option<bool>,
+}
+
+/// Message to send by Firebase Cloud Messaging Service.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Message {
+    /// Input only. Android specific options for messages sent through [FCM connection server](https://goo.gl/4GLdUl).
+    #[serde(default)]
+    pub android: ::core::option::Option<AndroidConfig>,
+    /// Input only. [Apple Push Notification Service](https://goo.gl/MXRTPa) specific options.
+    #[serde(default)]
+    pub apns: ::core::option::Option<ApnsConfig>,
+    /// Condition to send a message to, e.g. "''foo'' in topics && ''bar'' in topics".
+    #[serde(default)]
+    pub condition: ::core::option::Option<String>,
+    /// Input only. Arbitrary key/value payload, which must be UTF-8 encoded. The key should not be a reserved word ("from", "message_type", or any word starting with "google." or "gcm.notification."). When sending payloads containing only data fields to iOS devices, only normal priority ("apns-priority": "5") is allowed in [ApnsConfig](/docs/reference/fcm/rest/v1/projects.messages#apnsconfig).
+    #[serde(default)]
+    pub data: ::core::option::Option<serde_json::Value>,
+    /// Input only. Template for FCM SDK feature options to use across all platforms.
+    #[serde(default, rename = "fcmOptions")]
+    pub fcm_options: ::core::option::Option<FcmOptions>,
+    /// Output Only. The identifier of the message sent, in the format of projects/*/messages/{message_id}.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Input only. Basic notification template to use across all platforms.
+    #[serde(default)]
+    pub notification: ::core::option::Option<Notification>,
+    /// Registration token to send a message to.
+    #[serde(default)]
+    pub token: ::core::option::Option<String>,
+    /// Topic name to send a message to, e.g. "weather". Note: "/topics/" prefix should not be provided.
+    #[serde(default)]
+    pub topic: ::core::option::Option<String>,
+    /// Input only. [Webpush protocol](https://tools.ietf.org/html/rfc8030) options.
+    #[serde(default)]
+    pub webpush: ::core::option::Option<WebpushConfig>,
+}
+
 /// Android specific options for messages sent through [FCM connection server](https://goo.gl/4GLdUl).
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AndroidConfig {
@@ -43,6 +89,62 @@ pub struct AndroidConfig {
     /// How long (in seconds) the message should be kept in FCM storage if the device is offline. The maximum time to live supported is 4 weeks, and the default value is 4 weeks if not set. Set it to 0 if want to send the message immediately. In JSON format, the Duration type is encoded as a string rather than an object, where the string ends in the suffix "s" (indicating seconds) and is preceded by the number of seconds, with nanoseconds expressed as fractional seconds. For example, 3 seconds with 0 nanoseconds should be encoded in JSON format as "3s", while 3 seconds and 1 nanosecond should be expressed in JSON format as "3.000000001s". The ttl will be rounded down to the nearest second.
     #[serde(default)]
     pub ttl: ::core::option::Option<String>,
+}
+
+/// [Apple Push Notification Service](https://goo.gl/MXRTPa) specific options.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ApnsConfig {
+    /// Options for features provided by the FCM SDK for iOS.
+    #[serde(default, rename = "fcmOptions")]
+    pub fcm_options: ::core::option::Option<ApnsFcmOptions>,
+    /// HTTP request headers defined in Apple Push Notification Service. Refer to [APNs request headers](https://developer.apple.com/documentation/usernotifications/setting_up_a_remote_notification_server/sending_notification_requests_to_apns) for supported headers such as apns-expiration and apns-priority. The backend sets a default value for apns-expiration of 30 days and a default value for apns-priority of 10 if not explicitly set.
+    #[serde(default)]
+    pub headers: ::core::option::Option<serde_json::Value>,
+    /// Optional. [Apple Live Activity](https://developer.apple.com/design/human-interface-guidelines/live-activities) token to send updates to. This token can either be a push token or [push-to-start](https://developer.apple.com/documentation/activitykit/activity/pushtostarttoken) token from Apple. To start, update, or end a live activity remotely using FCM, construct an [aps payload](https://developer.apple.com/documentation/activitykit/starting-and-updating-live-activities-with-activitykit-push-notifications#Construct-the-payload-that-starts-a-Live-Activity) and put it in the [apns.payload](https://firebase.google.com/docs/reference/fcm/rest/v1/projects.messages#ApnsConfig) field.
+    #[serde(default, rename = "liveActivityToken")]
+    pub live_activity_token: ::core::option::Option<String>,
+    /// APNs payload as a JSON object, including both aps dictionary and custom payload. See [Payload Key Reference](https://developer.apple.com/documentation/usernotifications/setting_up_a_remote_notification_server/generating_a_remote_notification). If present, it overrides google.firebase.fcm.v1.Notification.title and google.firebase.fcm.v1.Notification.body.
+    #[serde(default)]
+    pub payload: ::core::option::Option<serde_json::Value>,
+}
+
+/// Platform independent options for features provided by the FCM SDKs.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct FcmOptions {
+    /// Label associated with the message''s analytics data.
+    #[serde(default, rename = "analyticsLabel")]
+    pub analytics_label: ::core::option::Option<String>,
+}
+
+/// Basic notification template to use across all platforms.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Notification {
+    /// The notification''s body text.
+    #[serde(default)]
+    pub body: ::core::option::Option<String>,
+    /// Contains the URL of an image that is going to be downloaded on the device and displayed in a notification. JPEG, PNG, BMP have full support across platforms. Animated GIF and video only work on iOS. WebP and HEIF have varying levels of support across platforms and platform versions. Android has 1MB image size limit. Quota usage and implications/costs for hosting image on Firebase Storage: https://firebase.google.com/pricing
+    #[serde(default)]
+    pub image: ::core::option::Option<String>,
+    /// The notification''s title.
+    #[serde(default)]
+    pub title: ::core::option::Option<String>,
+}
+
+/// [Webpush protocol](https://tools.ietf.org/html/rfc8030) options.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct WebpushConfig {
+    /// Arbitrary key/value payload. If present, it will override google.firebase.fcm.v1.Message.data.
+    #[serde(default)]
+    pub data: ::core::option::Option<serde_json::Value>,
+    /// Options for features provided by the FCM SDK for Web.
+    #[serde(default, rename = "fcmOptions")]
+    pub fcm_options: ::core::option::Option<WebpushFcmOptions>,
+    /// HTTP headers defined in webpush protocol. Refer to [Webpush protocol](https://tools.ietf.org/html/rfc8030#section-5) for supported headers, e.g. "TTL": "15".
+    #[serde(default)]
+    pub headers: ::core::option::Option<serde_json::Value>,
+    /// Web Notification options as a JSON object. Supports Notification instance properties as defined in [Web Notification API](https://developer.mozilla.org/en-US/docs/Web/API/Notification). If present, "title" and "body" fields override [google.firebase.fcm.v1.Notification.title] and [google.firebase.fcm.v1.Notification.body].
+    #[serde(default)]
+    pub notification: ::core::option::Option<serde_json::Value>,
 }
 
 /// Options for features provided by the FCM SDK for Android.
@@ -136,23 +238,6 @@ pub struct AndroidNotification {
     pub visibility: ::core::option::Option<String>,
 }
 
-/// [Apple Push Notification Service](https://goo.gl/MXRTPa) specific options.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ApnsConfig {
-    /// Options for features provided by the FCM SDK for iOS.
-    #[serde(default, rename = "fcmOptions")]
-    pub fcm_options: ::core::option::Option<ApnsFcmOptions>,
-    /// HTTP request headers defined in Apple Push Notification Service. Refer to [APNs request headers](https://developer.apple.com/documentation/usernotifications/setting_up_a_remote_notification_server/sending_notification_requests_to_apns) for supported headers such as apns-expiration and apns-priority. The backend sets a default value for apns-expiration of 30 days and a default value for apns-priority of 10 if not explicitly set.
-    #[serde(default)]
-    pub headers: ::core::option::Option<serde_json::Value>,
-    /// Optional. [Apple Live Activity](https://developer.apple.com/design/human-interface-guidelines/live-activities) token to send updates to. This token can either be a push token or [push-to-start](https://developer.apple.com/documentation/activitykit/activity/pushtostarttoken) token from Apple. To start, update, or end a live activity remotely using FCM, construct an [aps payload](https://developer.apple.com/documentation/activitykit/starting-and-updating-live-activities-with-activitykit-push-notifications#Construct-the-payload-that-starts-a-Live-Activity) and put it in the [apns.payload](https://firebase.google.com/docs/reference/fcm/rest/v1/projects.messages#ApnsConfig) field.
-    #[serde(default, rename = "liveActivityToken")]
-    pub live_activity_token: ::core::option::Option<String>,
-    /// APNs payload as a JSON object, including both aps dictionary and custom payload. See [Payload Key Reference](https://developer.apple.com/documentation/usernotifications/setting_up_a_remote_notification_server/generating_a_remote_notification). If present, it overrides google.firebase.fcm.v1.Notification.title and google.firebase.fcm.v1.Notification.body.
-    #[serde(default)]
-    pub payload: ::core::option::Option<serde_json::Value>,
-}
-
 /// Options for features provided by the FCM SDK for iOS.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ApnsFcmOptions {
@@ -162,6 +247,31 @@ pub struct ApnsFcmOptions {
     /// Contains the URL of an image that is going to be displayed in a notification. If present, it will override google.firebase.fcm.v1.Notification.image.
     #[serde(default)]
     pub image: ::core::option::Option<String>,
+}
+
+/// Options for features provided by the FCM SDK for Web.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct WebpushFcmOptions {
+    /// Label associated with the message''s analytics data.
+    #[serde(default, rename = "analyticsLabel")]
+    pub analytics_label: ::core::option::Option<String>,
+    /// The link to open when the user clicks on the notification. For all URL values, HTTPS is required.
+    #[serde(default)]
+    pub link: ::core::option::Option<String>,
+}
+
+/// Settings to control notification LED.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LightSettings {
+    /// Required. Set color of the LED with [google.type.Color](https://github.com/googleapis/googleapis/blob/master/google/type/color.proto).
+    #[serde(default)]
+    pub color: ::core::option::Option<Color>,
+    /// Required. Along with light_on_duration , define the blink rate of LED flashes. Resolution defined by [proto.Duration](https://developers.google.com/protocol-buffers/docs/reference/google.protobuf#google.protobuf.Duration)
+    #[serde(default, rename = "lightOffDuration")]
+    pub light_off_duration: ::core::option::Option<String>,
+    /// Required. Along with light_off_duration, define the blink rate of LED flashes. Resolution defined by [proto.Duration](https://developers.google.com/protocol-buffers/docs/reference/google.protobuf#google.protobuf.Duration)
+    #[serde(default, rename = "lightOnDuration")]
+    pub light_on_duration: ::core::option::Option<String>,
 }
 
 /// Represents a color in the RGBA color space. This representation is designed for simplicity of conversion to and from color representations in various languages over compactness. For example, the fields of this representation can be trivially provided to the constructor of java.awt.Color in Java; it can also be trivially provided to UIColor''s +colorWithRed:green:blue:alpha method in iOS; and, with just a little work, it can be easily formatted into a CSS rgba() string in JavaScript. This reference page doesn''t have information about the absolute color space that should be used to interpret the RGB value—for example, sRGB, Adobe RGB, DCI-P3, and BT.2020. By default, applications should assume the sRGB color space. When color equality needs to be decided, implementations, unless documented otherwise, treat two colors as equal if all their red, green, blue, and alpha values each differ by at most 1e-5. Example (Java): import com.google.type.Color; // ... public static java.awt.Color fromProto(Color protocolor) { float alpha = protocolor.hasAlpha() ? protocolor.getAlpha().getValue() : 1.0; return new java.awt.Color( protocolor.getRed(), protocolor.getGreen(), protocolor.getBlue(), alpha); } public static Color toProto(java.awt.Color color) { float red = (float) color.getRed(); float green = (float) color.getGreen(); float blue = (float) color.getBlue(); float denominator = 255.0; Color.Builder resultBuilder = Color .newBuilder() .setRed(red / denominator) .setGreen(green / denominator) .setBlue(blue / denominator); int alpha = color.getAlpha(); if (alpha != 255) { result.setAlpha( FloatValue .newBuilder() .setValue(((float) alpha) / denominator) .build()); } return resultBuilder.build(); } // ... Example (iOS / Obj-C): // ... static UIColor* fromProto(Color* protocolor) { float red = [protocolor red]; float green = [protocolor green]; float blue = [protocolor blue]; FloatValue* alpha_wrapper = [protocolor alpha]; float alpha = 1.0; if (alpha_wrapper != nil) { alpha = [alpha_wrapper value]; } return [UIColor colorWithRed:red green:green blue:blue alpha:alpha]; } static Color* toProto(UIColor* color) { CGFloat red, green, blue, alpha; if (![color getRed:&red green:&green blue:&blue alpha:&alpha]) { return nil; } Color* result = [[Color alloc] init]; [result setRed:red]; [result setGreen:green]; [result setBlue:blue]; if (alpha &lt;= 0.9999) { [result setAlpha:floatWrapperWithValue(alpha)]; } [result autorelease]; return result; } // ... Example (JavaScript): // ... var protoToCssColor = function(rgb_color) { var redFrac = rgb_color.red || 0.0; var greenFrac = rgb_color.green || 0.0; var blueFrac = rgb_color.blue || 0.0; var red = Math.floor(redFrac * 255); var green = Math.floor(greenFrac * 255); var blue = Math.floor(blueFrac * 255); if (!(''alpha'' in rgb_color)) { return rgbToCssColor(red, green, blue); } var alphaFrac = rgb_color.alpha.value || 0.0; var rgbParams = [red, green, blue].join('',''); return [''rgba('', rgbParams, '','', alphaFrac, '')''].join(''''); }; var rgbToCssColor = function(red, green, blue) { var rgbNumber = new Number((red &lt;&lt; 16) | (green &lt;&lt; 8) | blue); var hexString = rgbNumber.toString(16); var missingZeros = 6 - hexString.length; var resultBuilder = [''#'']; for (var i = 0; i &lt; missingZeros; i++) { resultBuilder.push(''0''); } resultBuilder.push(hexString); return resultBuilder.join(''''); }; // ...
@@ -179,114 +289,4 @@ pub struct Color {
     /// The amount of red in the color as a value in the interval [0, 1].
     #[serde(default)]
     pub red: ::core::option::Option<f32>,
-}
-
-/// Platform independent options for features provided by the FCM SDKs.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct FcmOptions {
-    /// Label associated with the message''s analytics data.
-    #[serde(default, rename = "analyticsLabel")]
-    pub analytics_label: ::core::option::Option<String>,
-}
-
-/// Settings to control notification LED.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct LightSettings {
-    /// Required. Set color of the LED with [google.type.Color](https://github.com/googleapis/googleapis/blob/master/google/type/color.proto).
-    #[serde(default)]
-    pub color: ::core::option::Option<Color>,
-    /// Required. Along with light_on_duration , define the blink rate of LED flashes. Resolution defined by [proto.Duration](https://developers.google.com/protocol-buffers/docs/reference/google.protobuf#google.protobuf.Duration)
-    #[serde(default, rename = "lightOffDuration")]
-    pub light_off_duration: ::core::option::Option<String>,
-    /// Required. Along with light_off_duration, define the blink rate of LED flashes. Resolution defined by [proto.Duration](https://developers.google.com/protocol-buffers/docs/reference/google.protobuf#google.protobuf.Duration)
-    #[serde(default, rename = "lightOnDuration")]
-    pub light_on_duration: ::core::option::Option<String>,
-}
-
-/// Message to send by Firebase Cloud Messaging Service.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Message {
-    /// Input only. Android specific options for messages sent through [FCM connection server](https://goo.gl/4GLdUl).
-    #[serde(default)]
-    pub android: ::core::option::Option<AndroidConfig>,
-    /// Input only. [Apple Push Notification Service](https://goo.gl/MXRTPa) specific options.
-    #[serde(default)]
-    pub apns: ::core::option::Option<ApnsConfig>,
-    /// Condition to send a message to, e.g. "''foo'' in topics && ''bar'' in topics".
-    #[serde(default)]
-    pub condition: ::core::option::Option<String>,
-    /// Input only. Arbitrary key/value payload, which must be UTF-8 encoded. The key should not be a reserved word ("from", "message_type", or any word starting with "google." or "gcm.notification."). When sending payloads containing only data fields to iOS devices, only normal priority ("apns-priority": "5") is allowed in [ApnsConfig](/docs/reference/fcm/rest/v1/projects.messages#apnsconfig).
-    #[serde(default)]
-    pub data: ::core::option::Option<serde_json::Value>,
-    /// Input only. Template for FCM SDK feature options to use across all platforms.
-    #[serde(default, rename = "fcmOptions")]
-    pub fcm_options: ::core::option::Option<FcmOptions>,
-    /// Output Only. The identifier of the message sent, in the format of projects/*/messages/{message_id}.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Input only. Basic notification template to use across all platforms.
-    #[serde(default)]
-    pub notification: ::core::option::Option<Notification>,
-    /// Registration token to send a message to.
-    #[serde(default)]
-    pub token: ::core::option::Option<String>,
-    /// Topic name to send a message to, e.g. "weather". Note: "/topics/" prefix should not be provided.
-    #[serde(default)]
-    pub topic: ::core::option::Option<String>,
-    /// Input only. [Webpush protocol](https://tools.ietf.org/html/rfc8030) options.
-    #[serde(default)]
-    pub webpush: ::core::option::Option<WebpushConfig>,
-}
-
-/// Basic notification template to use across all platforms.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Notification {
-    /// The notification''s body text.
-    #[serde(default)]
-    pub body: ::core::option::Option<String>,
-    /// Contains the URL of an image that is going to be downloaded on the device and displayed in a notification. JPEG, PNG, BMP have full support across platforms. Animated GIF and video only work on iOS. WebP and HEIF have varying levels of support across platforms and platform versions. Android has 1MB image size limit. Quota usage and implications/costs for hosting image on Firebase Storage: https://firebase.google.com/pricing
-    #[serde(default)]
-    pub image: ::core::option::Option<String>,
-    /// The notification''s title.
-    #[serde(default)]
-    pub title: ::core::option::Option<String>,
-}
-
-/// Request to send a message to specified target.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SendMessageRequest {
-    /// Required. Message to send.
-    #[serde(default)]
-    pub message: ::core::option::Option<Message>,
-    /// Flag for testing the request without actually delivering the message.
-    #[serde(default, rename = "validateOnly")]
-    pub validate_only: ::core::option::Option<bool>,
-}
-
-/// [Webpush protocol](https://tools.ietf.org/html/rfc8030) options.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct WebpushConfig {
-    /// Arbitrary key/value payload. If present, it will override google.firebase.fcm.v1.Message.data.
-    #[serde(default)]
-    pub data: ::core::option::Option<serde_json::Value>,
-    /// Options for features provided by the FCM SDK for Web.
-    #[serde(default, rename = "fcmOptions")]
-    pub fcm_options: ::core::option::Option<WebpushFcmOptions>,
-    /// HTTP headers defined in webpush protocol. Refer to [Webpush protocol](https://tools.ietf.org/html/rfc8030#section-5) for supported headers, e.g. "TTL": "15".
-    #[serde(default)]
-    pub headers: ::core::option::Option<serde_json::Value>,
-    /// Web Notification options as a JSON object. Supports Notification instance properties as defined in [Web Notification API](https://developer.mozilla.org/en-US/docs/Web/API/Notification). If present, "title" and "body" fields override [google.firebase.fcm.v1.Notification.title] and [google.firebase.fcm.v1.Notification.body].
-    #[serde(default)]
-    pub notification: ::core::option::Option<serde_json::Value>,
-}
-
-/// Options for features provided by the FCM SDK for Web.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct WebpushFcmOptions {
-    /// Label associated with the message''s analytics data.
-    #[serde(default, rename = "analyticsLabel")]
-    pub analytics_label: ::core::option::Option<String>,
-    /// The link to open when the user clicks on the notification. For all URL values, HTTPS is required.
-    #[serde(default)]
-    pub link: ::core::option::Option<String>,
 }

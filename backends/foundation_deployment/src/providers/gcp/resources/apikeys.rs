@@ -30,6 +30,36 @@ pub struct Operation {
     pub response: ::core::option::Option<serde_json::Value>,
 }
 
+/// Response message for GetKeyString method.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct V2GetKeyStringResponse {
+    /// An encrypted and signed value of the key.
+    #[serde(default, rename = "keyString")]
+    pub key_string: ::core::option::Option<String>,
+}
+
+/// Response message for ListKeys method.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct V2ListKeysResponse {
+    /// A list of API keys.
+    #[serde(default)]
+    pub keys: ::core::option::Option<::std::vec::Vec<V2Key>>,
+    /// The pagination token for the next page of results.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+}
+
+/// Response message for LookupKey method.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct V2LookupKeyResponse {
+    /// The resource name of the API key. If the API key has been purged, resource name is empty.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// The project that owns the key with the value specified in the request.
+    #[serde(default)]
+    pub parent: ::core::option::Option<String>,
+}
+
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Status {
@@ -42,60 +72,6 @@ pub struct Status {
     /// A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.
     #[serde(default)]
     pub message: ::core::option::Option<String>,
-}
-
-/// Identifier of an Android application for key use.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct V2AndroidApplication {
-    /// The package name of the application.
-    #[serde(default, rename = "packageName")]
-    pub package_name: ::core::option::Option<String>,
-    /// The SHA1 fingerprint of the application. For example, both sha1 formats are acceptable : DA:39:A3:EE:5E:6B:4B:0D:32:55:BF:EF:95:60:18:90:AF:D8:07:09 or DA39A3EE5E6B4B0D3255BFEF95601890AFD80709. Output format is the latter.
-    #[serde(default, rename = "sha1Fingerprint")]
-    pub sha1_fingerprint: ::core::option::Option<String>,
-}
-
-/// The Android apps that are allowed to use the key.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct V2AndroidKeyRestrictions {
-    /// A list of Android applications that are allowed to make API calls with this key.
-    #[serde(default, rename = "allowedApplications")]
-    pub allowed_applications: ::core::option::Option<::std::vec::Vec<V2AndroidApplication>>,
-}
-
-/// A restriction for a specific service and optionally one or multiple specific methods. Both fields are case insensitive.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct V2ApiTarget {
-    /// Optional. List of one or more methods that can be called. If empty, all methods for the service are allowed. A wildcard (*) can be used as the last symbol. Valid examples: google.cloud.translate.v2.TranslateService.GetSupportedLanguage TranslateText Get* translate.googleapis.com.Get*
-    #[serde(default)]
-    pub methods: ::core::option::Option<::std::vec::Vec<String>>,
-    /// The service for this restriction. It should be the canonical service name, for example: translate.googleapis.com. You can use [gcloud services list](https://cloud.google.com/sdk/gcloud/reference/services/list) to get a list of services that are enabled in the project.
-    #[serde(default)]
-    pub service: ::core::option::Option<String>,
-}
-
-/// The HTTP referrers (websites) that are allowed to use the key.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct V2BrowserKeyRestrictions {
-    /// A list of regular expressions for the referrer URLs that are allowed to make API calls with this key.
-    #[serde(default, rename = "allowedReferrers")]
-    pub allowed_referrers: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// Response message for GetKeyString method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct V2GetKeyStringResponse {
-    /// An encrypted and signed value of the key.
-    #[serde(default, rename = "keyString")]
-    pub key_string: ::core::option::Option<String>,
-}
-
-/// The iOS apps that are allowed to use the key.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct V2IosKeyRestrictions {
-    /// A list of bundle IDs that are allowed when making API calls with this key.
-    #[serde(default, rename = "allowedBundleIds")]
-    pub allowed_bundle_ids: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// The representation of a key managed by the API Keys API.
@@ -136,28 +112,6 @@ pub struct V2Key {
     pub update_time: ::core::option::Option<String>,
 }
 
-/// Response message for ListKeys method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct V2ListKeysResponse {
-    /// A list of API keys.
-    #[serde(default)]
-    pub keys: ::core::option::Option<::std::vec::Vec<V2Key>>,
-    /// The pagination token for the next page of results.
-    #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: ::core::option::Option<String>,
-}
-
-/// Response message for LookupKey method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct V2LookupKeyResponse {
-    /// The resource name of the API key. If the API key has been purged, resource name is empty.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// The project that owns the key with the value specified in the request.
-    #[serde(default)]
-    pub parent: ::core::option::Option<String>,
-}
-
 /// Describes the restrictions on the key.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct V2Restrictions {
@@ -178,10 +132,56 @@ pub struct V2Restrictions {
     pub server_key_restrictions: ::core::option::Option<V2ServerKeyRestrictions>,
 }
 
+/// The Android apps that are allowed to use the key.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct V2AndroidKeyRestrictions {
+    /// A list of Android applications that are allowed to make API calls with this key.
+    #[serde(default, rename = "allowedApplications")]
+    pub allowed_applications: ::core::option::Option<::std::vec::Vec<V2AndroidApplication>>,
+}
+
+/// A restriction for a specific service and optionally one or multiple specific methods. Both fields are case insensitive.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct V2ApiTarget {
+    /// Optional. List of one or more methods that can be called. If empty, all methods for the service are allowed. A wildcard (*) can be used as the last symbol. Valid examples: google.cloud.translate.v2.TranslateService.GetSupportedLanguage TranslateText Get* translate.googleapis.com.Get*
+    #[serde(default)]
+    pub methods: ::core::option::Option<::std::vec::Vec<String>>,
+    /// The service for this restriction. It should be the canonical service name, for example: translate.googleapis.com. You can use [gcloud services list](https://cloud.google.com/sdk/gcloud/reference/services/list) to get a list of services that are enabled in the project.
+    #[serde(default)]
+    pub service: ::core::option::Option<String>,
+}
+
+/// The HTTP referrers (websites) that are allowed to use the key.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct V2BrowserKeyRestrictions {
+    /// A list of regular expressions for the referrer URLs that are allowed to make API calls with this key.
+    #[serde(default, rename = "allowedReferrers")]
+    pub allowed_referrers: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// The iOS apps that are allowed to use the key.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct V2IosKeyRestrictions {
+    /// A list of bundle IDs that are allowed when making API calls with this key.
+    #[serde(default, rename = "allowedBundleIds")]
+    pub allowed_bundle_ids: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
 /// The IP addresses of callers that are allowed to use the key.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct V2ServerKeyRestrictions {
     /// A list of the caller IP addresses that are allowed to make API calls with this key.
     #[serde(default, rename = "allowedIps")]
     pub allowed_ips: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// Identifier of an Android application for key use.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct V2AndroidApplication {
+    /// The package name of the application.
+    #[serde(default, rename = "packageName")]
+    pub package_name: ::core::option::Option<String>,
+    /// The SHA1 fingerprint of the application. For example, both sha1 formats are acceptable : DA:39:A3:EE:5E:6B:4B:0D:32:55:BF:EF:95:60:18:90:AF:D8:07:09 or DA39A3EE5E6B4B0D3255BFEF95601890AFD80709. Output format is the latter.
+    #[serde(default, rename = "sha1Fingerprint")]
+    pub sha1_fingerprint: ::core::option::Option<String>,
 }

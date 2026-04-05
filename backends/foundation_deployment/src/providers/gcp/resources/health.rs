@@ -10,296 +10,12 @@
 use super::*;
 use serde::{Deserialize, Serialize};
 
-/// Record of active minutes in a given time interval.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ActiveMinutes {
-    /// Required. Active minutes by activity level. At most one record per activity level is allowed.
-    #[serde(default, rename = "activeMinutesByActivityLevel")]
-    pub active_minutes_by_activity_level:
-        ::core::option::Option<::std::vec::Vec<ActiveMinutesByActivityLevel>>,
-    /// Required. Observed interval.
-    #[serde(default)]
-    pub interval: ::core::option::Option<ObservationTimeInterval>,
-}
-
-/// Active minutes at a given activity level.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ActiveMinutesByActivityLevel {
-    /// Required. Number of whole minutes spent in activity.
-    #[serde(default, rename = "activeMinutes")]
-    pub active_minutes: ::core::option::Option<String>,
-    /// Required. The level of activity. // TODO: enum values: ["ACTIVITY_LEVEL_UNSPECIFIED", "LIGHT", "MODERATE", "VIGOROUS"]
-    #[serde(default, rename = "activityLevel")]
-    pub activity_level: ::core::option::Option<String>,
-}
-
-/// Active minutes by activity level.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ActiveMinutesRollupByActivityLevel {
-    /// Number of whole minutes spent in activity.
-    #[serde(default, rename = "activeMinutesSum")]
-    pub active_minutes_sum: ::core::option::Option<String>,
-    /// The level of activity. // TODO: enum values: ["ACTIVITY_LEVEL_UNSPECIFIED", "LIGHT", "MODERATE", "VIGOROUS"]
-    #[serde(default, rename = "activityLevel")]
-    pub activity_level: ::core::option::Option<String>,
-}
-
-/// Represents the result of the rollup of the active minutes data type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ActiveMinutesRollupValue {
-    /// Active minutes by activity level. At most one record per activity level is allowed.
-    #[serde(default, rename = "activeMinutesRollupByActivityLevel")]
-    pub active_minutes_rollup_by_activity_level:
-        ::core::option::Option<::std::vec::Vec<ActiveMinutesRollupByActivityLevel>>,
-}
-
-/// Record of active zone minutes in a given time interval.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ActiveZoneMinutes {
-    /// Required. Number of Active Zone Minutes earned in the given time interval. Note: active_zone_minutes equals to 1 for low intensity (fat burn) zones or 2 for high intensity zones (cardio, peak).
-    #[serde(default, rename = "activeZoneMinutes")]
-    pub active_zone_minutes: ::core::option::Option<String>,
-    /// Required. Heart rate zone in which the active zone minutes have been earned, in the given time interval. // TODO: enum values: ["HEART_RATE_ZONE_UNSPECIFIED", "FAT_BURN", "CARDIO", "PEAK"]
-    #[serde(default, rename = "heartRateZone")]
-    pub heart_rate_zone: ::core::option::Option<String>,
-    /// Required. Observed interval.
-    #[serde(default)]
-    pub interval: ::core::option::Option<ObservationTimeInterval>,
-}
-
-/// Represents the result of the rollup of the active zone minutes data type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ActiveZoneMinutesRollupValue {
-    /// Active zone minutes in HeartRateZone.CARDIO.
-    #[serde(default, rename = "sumInCardioHeartZone")]
-    pub sum_in_cardio_heart_zone: ::core::option::Option<String>,
-    /// Active zone minutes in HeartRateZone.FAT_BURN.
-    #[serde(default, rename = "sumInFatBurnHeartZone")]
-    pub sum_in_fat_burn_heart_zone: ::core::option::Option<String>,
-    /// Active zone minutes in HeartRateZone.PEAK.
-    #[serde(default, rename = "sumInPeakHeartZone")]
-    pub sum_in_peak_heart_zone: ::core::option::Option<String>,
-}
-
-/// Internal type to capture activity level during a certain time interval.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ActivityLevel {
-    /// Required. Activity level type in the given time interval. // TODO: enum values: ["ACTIVITY_LEVEL_TYPE_UNSPECIFIED", "SEDENTARY", "LIGHTLY_ACTIVE", "MODERATELY_ACTIVE", "VERY_ACTIVE"]
-    #[serde(default, rename = "activityLevelType")]
-    pub activity_level_type: ::core::option::Option<String>,
-    /// Required. Observed interval.
-    #[serde(default)]
-    pub interval: ::core::option::Option<ObservationTimeInterval>,
-}
-
-/// Represents the total duration in a specific activity level type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ActivityLevelRollupByActivityLevelType {
-    /// Activity level type. // TODO: enum values: ["ACTIVITY_LEVEL_TYPE_UNSPECIFIED", "SEDENTARY", "LIGHTLY_ACTIVE", "MODERATELY_ACTIVE", "VERY_ACTIVE"]
-    #[serde(default, rename = "activityLevelType")]
-    pub activity_level_type: ::core::option::Option<String>,
-    /// Total duration in the activity level type.
-    #[serde(default, rename = "totalDuration")]
-    pub total_duration: ::core::option::Option<String>,
-}
-
-/// Represents the result of the rollup of the activity level data type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ActivityLevelRollupValue {
-    /// List of total durations in each activity level type.
-    #[serde(default, rename = "activityLevelRollupsByActivityLevelType")]
-    pub activity_level_rollups_by_activity_level_type:
-        ::core::option::Option<::std::vec::Vec<ActivityLevelRollupByActivityLevelType>>,
-}
-
-/// Captures the altitude gain (i.e. deltas), and not level above sea, for a user in millimeters.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Altitude {
-    /// Required. Altitude gain in millimeters over the observed interval.
-    #[serde(default, rename = "gainMillimeters")]
-    pub gain_millimeters: ::core::option::Option<String>,
-    /// Required. Observed interval.
-    #[serde(default)]
-    pub interval: ::core::option::Option<ObservationTimeInterval>,
-}
-
-/// Represents the result of the rollup of the user''s altitude.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AltitudeRollupValue {
-    /// Sum of the altitude gain in millimeters.
-    #[serde(default, rename = "gainMillimetersSum")]
-    pub gain_millimeters_sum: ::core::option::Option<String>,
-}
-
-/// Optional metadata for the application that provided this data.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Application {
-    /// Output only. Captures the client ID of the entity that recorded the data.
-    #[serde(default, rename = "googleWebClientId")]
-    pub google_web_client_id: ::core::option::Option<String>,
-    /// Output only. A unique ID from an external data source. A unique identifier of the mobile application, e.g. com.google.fitbit
-    #[serde(default, rename = "packageName")]
-    pub package_name: ::core::option::Option<String>,
-    /// Output only. Captures the client ID of the web application that recorded the data.
-    #[serde(default, rename = "webClientId")]
-    pub web_client_id: ::core::option::Option<String>,
-}
-
 /// Request to delete a batch of identifiable data points.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct BatchDeleteDataPointsRequest {
     /// Required. The names of the DataPoints to delete. A maximum of 10000 data points can be deleted in a single request.
     #[serde(default)]
     pub names: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// Body fat measurement.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct BodyFat {
-    /// Required. Body fat percentage, in range [0, 100].
-    #[serde(default)]
-    pub percentage: ::core::option::Option<f64>,
-    /// Required. The time at which body fat was measured.
-    #[serde(default, rename = "sampleTime")]
-    pub sample_time: ::core::option::Option<ObservationSampleTime>,
-}
-
-/// Represents the result of the rollup of the body fat data type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct BodyFatRollupValue {
-    /// Average body fat percentage.
-    #[serde(default, rename = "bodyFatPercentageAvg")]
-    pub body_fat_percentage_avg: ::core::option::Option<f64>,
-}
-
-/// Represents the result of the rollup of the calories in heart rate zone data type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CaloriesInHeartRateZoneRollupValue {
-    /// List of calories burned in each heart rate zone.
-    #[serde(default, rename = "caloriesInHeartRateZones")]
-    pub calories_in_heart_rate_zones:
-        ::core::option::Option<::std::vec::Vec<CaloriesInHeartRateZoneValue>>,
-}
-
-/// Represents the amount of kilocalories burned in a specific heart rate zone.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CaloriesInHeartRateZoneValue {
-    /// The heart rate zone. // TODO: enum values: ["HEART_RATE_ZONE_TYPE_UNSPECIFIED", "LIGHT", "MODERATE", "VIGOROUS", "PEAK"]
-    #[serde(default, rename = "heartRateZone")]
-    pub heart_rate_zone: ::core::option::Option<String>,
-    /// The amount of kilocalories burned in the specified heart rate zone.
-    #[serde(default)]
-    pub kcal: ::core::option::Option<f64>,
-}
-
-/// Civil time representation similar to google.type.DateTime, but ensures that neither the timezone nor the UTC offset can be set to avoid confusion between civil and physical time queries.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CivilDateTime {
-    /// Required. Calendar date.
-    #[serde(default)]
-    pub date: ::core::option::Option<Date>,
-    /// Optional. Time of day. Defaults to the start of the day, at midnight if omitted.
-    #[serde(default)]
-    pub time: ::core::option::Option<TimeOfDay>,
-}
-
-/// Counterpart of google.type.Interval, but using CivilDateTime.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CivilTimeInterval {
-    /// Required. The exclusive end of the range.
-    #[serde(default)]
-    pub end: ::core::option::Option<CivilDateTime>,
-    /// Required. The inclusive start of the range.
-    #[serde(default)]
-    pub start: ::core::option::Option<CivilDateTime>,
-}
-
-/// Represents the daily heart rate variability data type. At least one of the following fields must be set: - average_heart_rate_variability_milliseconds - non_rem_heart_rate_beats_per_minute - entropy - deep_sleep_root_mean_square_of_successive_differences_milliseconds
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DailyHeartRateVariability {
-    /// Optional. A user''s average heart rate variability calculated using the root mean square of successive differences (RMSSD) in times between heartbeats.
-    #[serde(default, rename = "averageHeartRateVariabilityMilliseconds")]
-    pub average_heart_rate_variability_milliseconds: ::core::option::Option<f64>,
-    /// Required. Date (in the user''s timezone) of heart rate variability measurement.
-    #[serde(default)]
-    pub date: ::core::option::Option<Date>,
-    /// Optional. The root mean square of successive differences (RMSSD) value during deep sleep.
-    #[serde(
-        default,
-        rename = "deepSleepRootMeanSquareOfSuccessiveDifferencesMilliseconds"
-    )]
-    pub deep_sleep_root_mean_square_of_successive_differences_milliseconds:
-        ::core::option::Option<f64>,
-    /// Optional. The Shanon entropy of heartbeat intervals. Entropy quantifies randomness or disorder in a system. High entropy indicates high HRV. Entropy is measured from the histogram of time interval between successive heart beats values measured during sleep.
-    #[serde(default)]
-    pub entropy: ::core::option::Option<f64>,
-    /// Optional. Non-REM heart rate
-    #[serde(default, rename = "nonRemHeartRateBeatsPerMinute")]
-    pub non_rem_heart_rate_beats_per_minute: ::core::option::Option<String>,
-}
-
-/// User''s heart rate zone thresholds based on the Karvonen algorithm for a specific day.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DailyHeartRateZones {
-    /// Required. Date (in user''s timezone) of the heart rate zones record.
-    #[serde(default)]
-    pub date: ::core::option::Option<Date>,
-    /// Required. The heart rate zones.
-    #[serde(default, rename = "heartRateZones")]
-    pub heart_rate_zones: ::core::option::Option<::std::vec::Vec<HeartRateZone>>,
-}
-
-/// A daily oxygen saturation (SpO2) record. Represents the user''s daily oxygen saturation summary, typically calculated during sleep.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DailyOxygenSaturation {
-    /// Required. The average value of the oxygen saturation samples during the sleep.
-    #[serde(default, rename = "averagePercentage")]
-    pub average_percentage: ::core::option::Option<f64>,
-    /// Required. Date (in user''s timezone) of the daily oxygen saturation record.
-    #[serde(default)]
-    pub date: ::core::option::Option<Date>,
-    /// Required. The lower bound of the confidence interval of oxygen saturation samples during sleep.
-    #[serde(default, rename = "lowerBoundPercentage")]
-    pub lower_bound_percentage: ::core::option::Option<f64>,
-    /// Optional. Standard deviation of the daily oxygen saturation averages from the past 7-30 days.
-    #[serde(default, rename = "standardDeviationPercentage")]
-    pub standard_deviation_percentage: ::core::option::Option<f64>,
-    /// Required. The upper bound of the confidence interval of oxygen saturation samples during sleep.
-    #[serde(default, rename = "upperBoundPercentage")]
-    pub upper_bound_percentage: ::core::option::Option<f64>,
-}
-
-/// A daily average respiratory rate (breaths per minute) for a day of the year. One data point per day calculated for the main sleep.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DailyRespiratoryRate {
-    /// Required. The average number of breaths taken per minute.
-    #[serde(default, rename = "breathsPerMinute")]
-    pub breaths_per_minute: ::core::option::Option<f64>,
-    /// Required. The date on which the respiratory rate was measured.
-    #[serde(default)]
-    pub date: ::core::option::Option<Date>,
-}
-
-/// Measures the daily resting heart rate for a user, calculated using the all day heart rate measurements.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DailyRestingHeartRate {
-    /// Required. The resting heart rate value in beats per minute.
-    #[serde(default, rename = "beatsPerMinute")]
-    pub beats_per_minute: ::core::option::Option<String>,
-    /// Optional. Metadata for the daily resting heart rate.
-    #[serde(default, rename = "dailyRestingHeartRateMetadata")]
-    pub daily_resting_heart_rate_metadata: ::core::option::Option<DailyRestingHeartRateMetadata>,
-    /// Required. Date (in the user''s timezone) of the resting heart rate measurement.
-    #[serde(default)]
-    pub date: ::core::option::Option<Date>,
-}
-
-/// Metadata for the daily resting heart rate.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DailyRestingHeartRateMetadata {
-    /// Required. The method used to calculate the resting heart rate. // TODO: enum values: ["CALCULATION_METHOD_UNSPECIFIED", "WITH_SLEEP", "ONLY_WITH_AWAKE_DATA"]
-    #[serde(default, rename = "calculationMethod")]
-    pub calculation_method: ::core::option::Option<String>,
 }
 
 /// Request to roll up data points by civil time intervals.
@@ -328,6 +44,225 @@ pub struct DailyRollUpDataPointsResponse {
     /// Values for each aggregation time window.
     #[serde(default, rename = "rollupDataPoints")]
     pub rollup_data_points: ::core::option::Option<::std::vec::Vec<DailyRollupDataPoint>>,
+}
+
+/// Represents civil time (or occasionally physical time). This type can represent a civil time in one of a few possible ways: * When utc_offset is set and time_zone is unset: a civil time on a calendar day with a particular offset from UTC. * When time_zone is set and utc_offset is unset: a civil time on a calendar day in a particular time zone. * When neither time_zone nor utc_offset is set: a civil time on a calendar day in local time. The date is relative to the Proleptic Gregorian Calendar. If year, month, or day are 0, the DateTime is considered not to have a specific year, month, or day respectively. This type may also be used to represent a physical time if all the date and time fields are set and either case of the time_offset oneof is set. Consider using Timestamp message for physical time instead. If your use case also would like to store the user''s timezone, that can be done in another field. This type is more flexible than some applications may want. Make sure to document and validate your application''s limitations.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DateTime {
+    /// Optional. Day of month. Must be from 1 to 31 and valid for the year and month, or 0 if specifying a datetime without a day.
+    #[serde(default)]
+    pub day: ::core::option::Option<i32>,
+    /// Optional. Hours of day in 24 hour format. Should be from 0 to 23, defaults to 0 (midnight). An API may choose to allow the value "24:00:00" for scenarios like business closing time.
+    #[serde(default)]
+    pub hours: ::core::option::Option<i32>,
+    /// Optional. Minutes of hour of day. Must be from 0 to 59, defaults to 0.
+    #[serde(default)]
+    pub minutes: ::core::option::Option<i32>,
+    /// Optional. Month of year. Must be from 1 to 12, or 0 if specifying a datetime without a month.
+    #[serde(default)]
+    pub month: ::core::option::Option<i32>,
+    /// Optional. Fractions of seconds in nanoseconds. Must be from 0 to 999,999,999, defaults to 0.
+    #[serde(default)]
+    pub nanos: ::core::option::Option<i32>,
+    /// Optional. Seconds of minutes of the time. Must normally be from 0 to 59, defaults to 0. An API may allow the value 60 if it allows leap-seconds.
+    #[serde(default)]
+    pub seconds: ::core::option::Option<i32>,
+    /// Time zone.
+    #[serde(default, rename = "timeZone")]
+    pub time_zone: ::core::option::Option<TimeZone>,
+    /// UTC offset. Must be whole seconds, between -18 hours and +18 hours. For example, a UTC offset of -4:00 would be represented as { seconds: -14400 }.
+    #[serde(default, rename = "utcOffset")]
+    pub utc_offset: ::core::option::Option<String>,
+    /// Optional. Year of date. Must be from 1 to 9999, or 0 if specifying a datetime without a year.
+    #[serde(default)]
+    pub year: ::core::option::Option<i32>,
+}
+
+/// Represents a Response for exporting exercise data in TCX format.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ExportExerciseTcxResponse {
+    /// Contains the exported TCX data.
+    #[serde(default, rename = "tcxData")]
+    pub tcx_data: ::core::option::Option<String>,
+}
+
+/// Represents a type of health data a user can have data points recorded for. It matches the parent resource of collection containing data points of the given type. Clients currently do not need to interact with this resource directly.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleDevicesandservicesHealthV4DataType {
+    /// Identifier. The resource name of the data type. Format: users/{user}/dataTypes/{data_type} See DataPoint.name for examples and possible values.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+}
+
+/// Represents details about the Google user''s identity.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Identity {
+    /// Output only. The Google User Identifier in the Google Health APIs. It matches the {user} resource ID segment in the resource name paths, e.g. users/{user}/dataTypes/steps. Valid values are strings of 1-63 characters, and valid characters are lowercase and uppercase letters, numbers, and hyphens.
+    #[serde(default, rename = "healthUserId")]
+    pub health_user_id: ::core::option::Option<String>,
+    /// Output only. The legacy Fitbit User identifier. This is the Fitbit ID used in the legacy Fitbit APIs (v1-v3). It can be referenced by clients migrating from the legacy Fitbit APIs to map their existing identifiers to the new Google user ID. It **must not** be used for any other purpose. It is not of any use for new clients using only the Google Health APIs. Valid values are strings of 1-63 characters, and valid characters are lowercase and uppercase letters, numbers, and hyphens.
+    #[serde(default, rename = "legacyUserId")]
+    pub legacy_user_id: ::core::option::Option<String>,
+    /// Identifier. The resource name of this Identity resource. Format: users/me/identity
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+}
+
+/// Response containing raw data points matching the query
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ListDataPointsResponse {
+    /// Data points matching the query
+    #[serde(default, rename = "dataPoints")]
+    pub data_points: ::core::option::Option<::std::vec::Vec<DataPoint>>,
+    /// Next page token, empty if the response is complete
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+}
+
+/// This resource represents a long-running operation that is the result of a network API call.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Operation {
+    /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
+    #[serde(default)]
+    pub done: ::core::option::Option<bool>,
+    /// The error result of the operation in case of failure or cancellation.
+    #[serde(default)]
+    pub error: ::core::option::Option<Status>,
+    /// Service-specific metadata associated with the operation. It typically contains progress information and common metadata such as create time. Some services might not provide such metadata. Any method that returns a long-running operation should document the metadata type, if any.
+    #[serde(default)]
+    pub metadata: ::core::option::Option<serde_json::Value>,
+    /// The server-assigned name, which is only unique within the same service that originally returns it. If you use the default HTTP mapping, the name should be a resource name ending with operations/{unique_id}.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// The normal, successful response of the operation. If the original method returns no data on success, such as Delete, the response is google.protobuf.Empty. If the original method is standard Get/Create/Update, the response should be the resource. For other methods, the response should have the type XxxResponse, where Xxx is the original method name. For example, if the original method name is TakeSnapshot(), the inferred response type is TakeSnapshotResponse.
+    #[serde(default)]
+    pub response: ::core::option::Option<serde_json::Value>,
+}
+
+/// Profile details.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Profile {
+    /// Optional. The age in years based on the user''s birth date. Updates to this field are currently not supported.
+    #[serde(default)]
+    pub age: ::core::option::Option<i32>,
+    /// Output only. The automatically calculated running stride length, in millimeters. The user must consent to one of the following access scopes to access this field: - https://www.googleapis.com/auth/googlehealth.activity_and_fitness.readonly - https://www.googleapis.com/auth/googlehealth.activity_and_fitness
+    #[serde(default, rename = "autoRunningStrideLengthMm")]
+    pub auto_running_stride_length_mm: ::core::option::Option<i32>,
+    /// Output only. The automatically calculated walking stride length, in millimeters. The user must consent to one of the following access scopes to access this field: - https://www.googleapis.com/auth/googlehealth.activity_and_fitness.readonly - https://www.googleapis.com/auth/googlehealth.activity_and_fitness
+    #[serde(default, rename = "autoWalkingStrideLengthMm")]
+    pub auto_walking_stride_length_mm: ::core::option::Option<i32>,
+    /// Output only. The date the user created their account. Updates to this field are currently not supported.
+    #[serde(default, rename = "membershipStartDate")]
+    pub membership_start_date: ::core::option::Option<Date>,
+    /// Identifier. The resource name of this Profile resource. Format: users/{user}/profile Example: users/1234567890/profile or users/me/profile The {user} ID is a system-generated Google Health API user ID, a string of 1-63 characters consisting of lowercase and uppercase letters, numbers, and hyphens. The literal me can also be used to refer to the authenticated user.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Optional. The user''s user configured running stride length, in millimeters. The user must consent to one of the following access scopes to access this field: - https://www.googleapis.com/auth/googlehealth.activity_and_fitness.readonly - https://www.googleapis.com/auth/googlehealth.activity_and_fitness
+    #[serde(default, rename = "userConfiguredRunningStrideLengthMm")]
+    pub user_configured_running_stride_length_mm: ::core::option::Option<i32>,
+    /// Optional. The user''s user configured walking stride length, in millimeters. The user must consent to one of the following access scopes to access this field: - https://www.googleapis.com/auth/googlehealth.activity_and_fitness.readonly - https://www.googleapis.com/auth/googlehealth.activity_and_fitness
+    #[serde(default, rename = "userConfiguredWalkingStrideLengthMm")]
+    pub user_configured_walking_stride_length_mm: ::core::option::Option<i32>,
+}
+
+/// Response containing the list of reconciled DataPoints.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ReconcileDataPointsResponse {
+    /// Data points matching the query
+    #[serde(default, rename = "dataPoints")]
+    pub data_points: ::core::option::Option<::std::vec::Vec<ReconciledDataPoint>>,
+    /// Next page token, empty if the response is complete
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+}
+
+/// Request to roll up data points by physical time intervals.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RollUpDataPointsRequest {
+    /// Optional. The data source family name to roll up. If empty, data points from all available data sources will be rolled up. Format: users/me/dataSourceFamilies/{data_source_family} The supported values are: - users/me/dataSourceFamilies/all-sources - default value - users/me/dataSourceFamilies/google-wearables - tracker devices - users/me/dataSourceFamilies/google-sources - Google first party sources
+    #[serde(default, rename = "dataSourceFamily")]
+    pub data_source_family: ::core::option::Option<String>,
+    /// Optional. The maximum number of data points to return. If unspecified, at most 1440 data points will be returned. The maximum page size is 10000; values above that will be truncated accordingly.
+    #[serde(default, rename = "pageSize")]
+    pub page_size: ::core::option::Option<i32>,
+    /// Optional. The next_page_token from a previous request, if any. All other request fields need to be the same as in the initial request when the page token is specified.
+    #[serde(default, rename = "pageToken")]
+    pub page_token: ::core::option::Option<String>,
+    /// Required. Closed-open range of data points that will be rolled up. The maximum range for calories-in-heart-rate-zone, heart-rate, active-minutes and total-calories is 14 days. The maximum range for all other data types is 90 days.
+    #[serde(default)]
+    pub range: ::core::option::Option<Interval>,
+    /// Required. The size of the time window to group data points into before applying the aggregation functions.
+    #[serde(default, rename = "windowSize")]
+    pub window_size: ::core::option::Option<String>,
+}
+
+/// Response containing the list of rolled up data points.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RollUpDataPointsResponse {
+    /// A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+    /// Values for each aggregation time window.
+    #[serde(default, rename = "rollupDataPoints")]
+    pub rollup_data_points: ::core::option::Option<::std::vec::Vec<RollupDataPoint>>,
+}
+
+/// Settings details.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Settings {
+    /// Optional. True if the user''s stride length is determined automatically. Updates to this field are currently not supported.
+    #[serde(default, rename = "autoStrideEnabled")]
+    pub auto_stride_enabled: ::core::option::Option<bool>,
+    /// Optional. The measurement unit defined in the user''s account settings. Updates to this field are currently not supported. // TODO: enum values: ["DISTANCE_UNIT_UNSPECIFIED", "DISTANCE_UNIT_MILES", "DISTANCE_UNIT_KILOMETERS"]
+    #[serde(default, rename = "distanceUnit")]
+    pub distance_unit: ::core::option::Option<String>,
+    /// Optional. The measurement unit defined in the user''s account settings. // TODO: enum values: ["GLUCOSE_UNIT_UNSPECIFIED", "GLUCOSE_UNIT_MG_DL", "GLUCOSE_UNIT_MMOL_L"]
+    #[serde(default, rename = "glucoseUnit")]
+    pub glucose_unit: ::core::option::Option<String>,
+    /// Optional. The measurement unit defined in the user''s account settings. // TODO: enum values: ["HEIGHT_UNIT_UNSPECIFIED", "HEIGHT_UNIT_INCHES", "HEIGHT_UNIT_CENTIMETERS"]
+    #[serde(default, rename = "heightUnit")]
+    pub height_unit: ::core::option::Option<String>,
+    /// Optional. The locale defined in the user''s account settings. Updates to this field are currently not supported.
+    #[serde(default, rename = "languageLocale")]
+    pub language_locale: ::core::option::Option<String>,
+    /// Identifier. The resource name of this Settings resource. Format: users/{user}/settings Example: users/1234567890/settings or users/me/settings The {user} ID is a system-generated Google Health API user ID, a string of 1-63 characters consisting of lowercase and uppercase letters, numbers, and hyphens. The literal me can also be used to refer to the authenticated user.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Optional. The stride length type defined in the user''s account settings for running. Updates to this field are currently not supported. // TODO: enum values: ["STRIDE_LENGTH_TYPE_UNSPECIFIED", "STRIDE_LENGTH_TYPE_DEFAULT", "STRIDE_LENGTH_TYPE_MANUAL", "STRIDE_LENGTH_TYPE_AUTO"]
+    #[serde(default, rename = "strideLengthRunningType")]
+    pub stride_length_running_type: ::core::option::Option<String>,
+    /// Optional. The stride length type defined in the user''s account settings for walking. Updates to this field are currently not supported. // TODO: enum values: ["STRIDE_LENGTH_TYPE_UNSPECIFIED", "STRIDE_LENGTH_TYPE_DEFAULT", "STRIDE_LENGTH_TYPE_MANUAL", "STRIDE_LENGTH_TYPE_AUTO"]
+    #[serde(default, rename = "strideLengthWalkingType")]
+    pub stride_length_walking_type: ::core::option::Option<String>,
+    /// Optional. The measurement unit defined in the user''s account settings. // TODO: enum values: ["SWIM_UNIT_UNSPECIFIED", "SWIM_UNIT_METERS", "SWIM_UNIT_YARDS"]
+    #[serde(default, rename = "swimUnit")]
+    pub swim_unit: ::core::option::Option<String>,
+    /// Optional. The measurement unit defined in the user''s account settings. // TODO: enum values: ["TEMPERATURE_UNIT_UNSPECIFIED", "TEMPERATURE_UNIT_CELSIUS", "TEMPERATURE_UNIT_FAHRENHEIT"]
+    #[serde(default, rename = "temperatureUnit")]
+    pub temperature_unit: ::core::option::Option<String>,
+    /// Optional. The timezone defined in the user''s account settings. This follows the IANA [Time Zone Database](https://www.iana.org/time-zones). Updates to this field are currently not supported.
+    #[serde(default, rename = "timeZone")]
+    pub time_zone: ::core::option::Option<String>,
+    /// Optional. The duration of the offset from UTC in milliseconds. This offset is the difference between the user''s current local time and UTC. Updates to this field are currently not supported.
+    #[serde(default, rename = "utcOffset")]
+    pub utc_offset: ::core::option::Option<String>,
+    /// Optional. The measurement unit defined in the user''s account settings. // TODO: enum values: ["WATER_UNIT_UNSPECIFIED", "WATER_UNIT_ML", "WATER_UNIT_FL_OZ", "WATER_UNIT_CUP"]
+    #[serde(default, rename = "waterUnit")]
+    pub water_unit: ::core::option::Option<String>,
+    /// Optional. The measurement unit defined in the user''s account settings. // TODO: enum values: ["WEIGHT_UNIT_UNSPECIFIED", "WEIGHT_UNIT_POUNDS", "WEIGHT_UNIT_STONE", "WEIGHT_UNIT_KILOGRAMS"]
+    #[serde(default, rename = "weightUnit")]
+    pub weight_unit: ::core::option::Option<String>,
+}
+
+/// Counterpart of google.type.Interval, but using CivilDateTime.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CivilTimeInterval {
+    /// Required. The exclusive end of the range.
+    #[serde(default)]
+    pub end: ::core::option::Option<CivilDateTime>,
+    /// Required. The inclusive start of the range.
+    #[serde(default)]
+    pub start: ::core::option::Option<CivilDateTime>,
 }
 
 /// Value of a daily rollup for a single civil time interval (aggregation window)
@@ -397,41 +332,15 @@ pub struct DailyRollupDataPoint {
     pub weight: ::core::option::Option<WeightRollupValue>,
 }
 
-/// Provides derived sleep temperature values, calculated from skin or internal device temperature readings during sleep.
+/// Represents a time zone from the [IANA Time Zone Database](https://www.iana.org/time-zones).
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DailySleepTemperatureDerivations {
-    /// Optional. The user''s baseline skin temperature. It is the median of the user''s nightly skin temperature over the past 30 days.
-    #[serde(default, rename = "baselineTemperatureCelsius")]
-    pub baseline_temperature_celsius: ::core::option::Option<f64>,
-    /// Required. Date for which the sleep temperature derivations are calculated.
+pub struct TimeZone {
+    /// IANA Time Zone Database time zone. For example "America/New_York".
     #[serde(default)]
-    pub date: ::core::option::Option<Date>,
-    /// Required. The user''s nightly skin temperature. It is the mean of skin temperature samples taken from the user’s sleep.
-    #[serde(default, rename = "nightlyTemperatureCelsius")]
-    pub nightly_temperature_celsius: ::core::option::Option<f64>,
-    /// Optional. The standard deviation of the user’s relative nightly skin temperature (temperature - baseline) over the past 30 days.
-    #[serde(default, rename = "relativeNightlyStddev30dCelsius")]
-    pub relative_nightly_stddev30d_celsius: ::core::option::Option<f64>,
-}
-
-/// Contains a daily summary of the user''s VO2 max (cardio fitness score), which is the maximum rate of oxygen the body can use during exercise.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DailyVO2Max {
-    /// Optional. Represents the user''s cardio fitness level based on their VO2 max. // TODO: enum values: ["CARDIO_FITNESS_LEVEL_UNSPECIFIED", "POOR", "FAIR", "AVERAGE", "GOOD", "VERY_GOOD", "EXCELLENT"]
-    #[serde(default, rename = "cardioFitnessLevel")]
-    pub cardio_fitness_level: ::core::option::Option<String>,
-    /// Required. The date for which the Daily VO2 max was measured.
+    pub id: ::core::option::Option<String>,
+    /// Optional. IANA Time Zone Database version number. For example "2019a".
     #[serde(default)]
-    pub date: ::core::option::Option<Date>,
-    /// Optional. An estimated field is added to indicate when the confidence has decreased sufficiently to consider the value an estimation.
-    #[serde(default)]
-    pub estimated: ::core::option::Option<bool>,
-    /// Required. Daily VO2 max value measured as in ml consumed oxygen / kg of body weight / min.
-    #[serde(default, rename = "vo2Max")]
-    pub vo2_max: ::core::option::Option<f64>,
-    /// Optional. The covariance of the VO2 max value.
-    #[serde(default, rename = "vo2MaxCovariance")]
-    pub vo2_max_covariance: ::core::option::Option<f64>,
+    pub version: ::core::option::Option<String>,
 }
 
 /// A computed or recorded metric.
@@ -527,517 +436,18 @@ pub struct DataPoint {
     pub weight: ::core::option::Option<Weight>,
 }
 
-/// Data Source definition to track the origin of data. Each health data point, regardless of the complexity or data model (whether a simple step count or a detailed sleep session) must retain information about its source of origin (e.g. the device or app that collected it).
+/// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DataSource {
-    /// Output only. Captures metadata for the application that provided this data.
+pub struct Status {
+    /// The status code, which should be an enum value of google.rpc.Code.
     #[serde(default)]
-    pub application: ::core::option::Option<Application>,
-    /// Optional. Captures metadata for raw data points originating from devices. We expect this data source to be used for data points written on device sync.
+    pub code: ::core::option::Option<i32>,
+    /// A list of messages that carry the error details. There is a common set of message types for APIs to use.
     #[serde(default)]
-    pub device: ::core::option::Option<Device>,
-    /// Output only. Captures the platform that uploaded the data. // TODO: enum values: ["PLATFORM_UNSPECIFIED", "FITBIT", "HEALTH_CONNECT", "HEALTH_KIT", "FIT", "FITBIT_WEB_API", "NEST", "GOOGLE_WEB_API", "GOOGLE_PARTNER_INTEGRATION"]
+    pub details: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
+    /// A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.
     #[serde(default)]
-    pub platform: ::core::option::Option<String>,
-    /// Optional. Captures how the data was recorded. // TODO: enum values: ["RECORDING_METHOD_UNSPECIFIED", "MANUAL", "PASSIVELY_MEASURED", "DERIVED", "ACTIVELY_MEASURED", "UNKNOWN"]
-    #[serde(default, rename = "recordingMethod")]
-    pub recording_method: ::core::option::Option<String>,
-}
-
-/// Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Date {
-    /// Day of a month. Must be from 1 to 31 and valid for the year and month, or 0 to specify a year by itself or a year and month where the day isn''t significant.
-    #[serde(default)]
-    pub day: ::core::option::Option<i32>,
-    /// Month of a year. Must be from 1 to 12, or 0 to specify a year without a month and day.
-    #[serde(default)]
-    pub month: ::core::option::Option<i32>,
-    /// Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.
-    #[serde(default)]
-    pub year: ::core::option::Option<i32>,
-}
-
-/// Represents civil time (or occasionally physical time). This type can represent a civil time in one of a few possible ways: * When utc_offset is set and time_zone is unset: a civil time on a calendar day with a particular offset from UTC. * When time_zone is set and utc_offset is unset: a civil time on a calendar day in a particular time zone. * When neither time_zone nor utc_offset is set: a civil time on a calendar day in local time. The date is relative to the Proleptic Gregorian Calendar. If year, month, or day are 0, the DateTime is considered not to have a specific year, month, or day respectively. This type may also be used to represent a physical time if all the date and time fields are set and either case of the time_offset oneof is set. Consider using Timestamp message for physical time instead. If your use case also would like to store the user''s timezone, that can be done in another field. This type is more flexible than some applications may want. Make sure to document and validate your application''s limitations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DateTime {
-    /// Optional. Day of month. Must be from 1 to 31 and valid for the year and month, or 0 if specifying a datetime without a day.
-    #[serde(default)]
-    pub day: ::core::option::Option<i32>,
-    /// Optional. Hours of day in 24 hour format. Should be from 0 to 23, defaults to 0 (midnight). An API may choose to allow the value "24:00:00" for scenarios like business closing time.
-    #[serde(default)]
-    pub hours: ::core::option::Option<i32>,
-    /// Optional. Minutes of hour of day. Must be from 0 to 59, defaults to 0.
-    #[serde(default)]
-    pub minutes: ::core::option::Option<i32>,
-    /// Optional. Month of year. Must be from 1 to 12, or 0 if specifying a datetime without a month.
-    #[serde(default)]
-    pub month: ::core::option::Option<i32>,
-    /// Optional. Fractions of seconds in nanoseconds. Must be from 0 to 999,999,999, defaults to 0.
-    #[serde(default)]
-    pub nanos: ::core::option::Option<i32>,
-    /// Optional. Seconds of minutes of the time. Must normally be from 0 to 59, defaults to 0. An API may allow the value 60 if it allows leap-seconds.
-    #[serde(default)]
-    pub seconds: ::core::option::Option<i32>,
-    /// Time zone.
-    #[serde(default, rename = "timeZone")]
-    pub time_zone: ::core::option::Option<TimeZone>,
-    /// UTC offset. Must be whole seconds, between -18 hours and +18 hours. For example, a UTC offset of -4:00 would be represented as { seconds: -14400 }.
-    #[serde(default, rename = "utcOffset")]
-    pub utc_offset: ::core::option::Option<String>,
-    /// Optional. Year of date. Must be from 1 to 9999, or 0 if specifying a datetime without a year.
-    #[serde(default)]
-    pub year: ::core::option::Option<i32>,
-}
-
-/// Captures metadata about the device that recorded the measurement.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Device {
-    /// Optional. An optional name for the device.
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-    /// Optional. Captures the form factor of the device. // TODO: enum values: ["FORM_FACTOR_UNSPECIFIED", "FITNESS_BAND", "WATCH", "PHONE", "RING", "CHEST_STRAP", "SCALE", "TABLET", "HEAD_MOUNTED", "SMART_DISPLAY"]
-    #[serde(default, rename = "formFactor")]
-    pub form_factor: ::core::option::Option<String>,
-    /// Optional. An optional manufacturer of the device.
-    #[serde(default)]
-    pub manufacturer: ::core::option::Option<String>,
-}
-
-/// Distance traveled over an interval of time.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Distance {
-    /// Required. Observed interval.
-    #[serde(default)]
-    pub interval: ::core::option::Option<ObservationTimeInterval>,
-    /// Required. Distance in millimeters over the observed interval.
-    #[serde(default)]
-    pub millimeters: ::core::option::Option<String>,
-}
-
-/// Result of the rollup of the user''s distance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DistanceRollupValue {
-    /// Sum of the distance in millimeters.
-    #[serde(default, rename = "millimetersSum")]
-    pub millimeters_sum: ::core::option::Option<String>,
-}
-
-/// An exercise that stores information about a physical activity.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Exercise {
-    /// Optional. Duration excluding pauses.
-    #[serde(default, rename = "activeDuration")]
-    pub active_duration: ::core::option::Option<String>,
-    /// Output only. Represents the timestamp of the creation of the exercise.
-    #[serde(default, rename = "createTime")]
-    pub create_time: ::core::option::Option<String>,
-    /// Required. Exercise display name.
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-    /// Optional. Exercise events that happen during an exercise, such as pause & restarts.
-    #[serde(default, rename = "exerciseEvents")]
-    pub exercise_events: ::core::option::Option<::std::vec::Vec<ExerciseEvent>>,
-    /// Optional. Additional exercise metadata.
-    #[serde(default, rename = "exerciseMetadata")]
-    pub exercise_metadata: ::core::option::Option<ExerciseMetadata>,
-    /// Required. The type of activity performed during an exercise. // TODO: enum values: ["EXERCISE_TYPE_UNSPECIFIED", "RUNNING", "WALKING", "BIKING", "SWIMMING", "HIKING", "YOGA", "PILATES", "WORKOUT", "HIIT", "WEIGHTLIFTING", "STRENGTH_TRAINING", "OTHER"]
-    #[serde(default, rename = "exerciseType")]
-    pub exercise_type: ::core::option::Option<String>,
-    /// Required. Observed exercise interval
-    #[serde(default)]
-    pub interval: ::core::option::Option<SessionTimeInterval>,
-    /// Required. Summary metrics for this exercise ( )
-    #[serde(default, rename = "metricsSummary")]
-    pub metrics_summary: ::core::option::Option<MetricsSummary>,
-    /// Optional. Standard free-form notes captured at manual logging.
-    #[serde(default)]
-    pub notes: ::core::option::Option<String>,
-    /// Optional. Laps or splits recorded within an exercise. Laps could be split based on distance or other criteria (duration, etc.) Laps should not be overlapping with each other.
-    #[serde(default, rename = "splitSummaries")]
-    pub split_summaries: ::core::option::Option<::std::vec::Vec<SplitSummary>>,
-    /// Optional. The default split is 1 km or 1 mile. - if the movement distance is less than the default, then there are no splits - if the movement distance is greater than or equal to the default, then we have splits
-    #[serde(default)]
-    pub splits: ::core::option::Option<::std::vec::Vec<SplitSummary>>,
-    /// Output only. This is the timestamp of the last update to the exercise.
-    #[serde(default, rename = "updateTime")]
-    pub update_time: ::core::option::Option<String>,
-}
-
-/// Represents instantaneous events that happen during an exercise, such as start, stop, pause, split.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ExerciseEvent {
-    /// Required. Exercise event time
-    #[serde(default, rename = "eventTime")]
-    pub event_time: ::core::option::Option<String>,
-    /// Required. Exercise event time offset from UTC
-    #[serde(default, rename = "eventUtcOffset")]
-    pub event_utc_offset: ::core::option::Option<String>,
-    /// Required. The type of the event, such as start, stop, pause, resume. // TODO: enum values: ["EXERCISE_EVENT_TYPE_UNSPECIFIED", "START", "STOP", "PAUSE", "RESUME", "AUTO_PAUSE", "AUTO_RESUME"]
-    #[serde(default, rename = "exerciseEventType")]
-    pub exercise_event_type: ::core::option::Option<String>,
-}
-
-/// Additional exercise metadata.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ExerciseMetadata {
-    /// Optional. Whether the exercise had GPS tracking.
-    #[serde(default, rename = "hasGps")]
-    pub has_gps: ::core::option::Option<bool>,
-    /// Optional. Pool length in millimeters. Only present in the swimming exercises.
-    #[serde(default, rename = "poolLengthMillimeters")]
-    pub pool_length_millimeters: ::core::option::Option<String>,
-}
-
-/// Represents a Response for exporting exercise data in TCX format.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ExportExerciseTcxResponse {
-    /// Contains the exported TCX data.
-    #[serde(default, rename = "tcxData")]
-    pub tcx_data: ::core::option::Option<String>,
-}
-
-/// Gained elevation measured in floors over the time interval
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Floors {
-    /// Required. Number of floors in the recorded interval
-    #[serde(default)]
-    pub count: ::core::option::Option<String>,
-    /// Required. Observed interval
-    #[serde(default)]
-    pub interval: ::core::option::Option<ObservationTimeInterval>,
-}
-
-/// Represents the result of the rollup of the user''s floors.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct FloorsRollupValue {
-    /// Sum of the floors count.
-    #[serde(default, rename = "countSum")]
-    pub count_sum: ::core::option::Option<String>,
-}
-
-/// Represents a type of health data a user can have data points recorded for. It matches the parent resource of collection containing data points of the given type. Clients currently do not need to interact with this resource directly.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleDevicesandservicesHealthV4DataType {
-    /// Identifier. The resource name of the data type. Format: users/{user}/dataTypes/{data_type} See DataPoint.name for examples and possible values.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-}
-
-/// A heart rate measurement.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct HeartRate {
-    /// Required. The heart rate value in beats per minute.
-    #[serde(default, rename = "beatsPerMinute")]
-    pub beats_per_minute: ::core::option::Option<String>,
-    /// Optional. Metadata about the heart rate sample.
-    #[serde(default)]
-    pub metadata: ::core::option::Option<HeartRateMetadata>,
-    /// Required. Observation time
-    #[serde(default, rename = "sampleTime")]
-    pub sample_time: ::core::option::Option<ObservationSampleTime>,
-}
-
-/// Heart rate metadata.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct HeartRateMetadata {
-    /// Optional. Indicates the user’s level of activity when the heart rate sample was measured // TODO: enum values: ["MOTION_CONTEXT_UNSPECIFIED", "ACTIVE", "SEDENTARY"]
-    #[serde(default, rename = "motionContext")]
-    pub motion_context: ::core::option::Option<String>,
-    /// Optional. Indicates the location of the sensor that measured the heart rate. // TODO: enum values: ["SENSOR_LOCATION_UNSPECIFIED", "CHEST", "WRIST", "FINGER", "HAND", "EAR_LOBE", "FOOT"]
-    #[serde(default, rename = "sensorLocation")]
-    pub sensor_location: ::core::option::Option<String>,
-}
-
-/// Represents the result of the rollup of the heart rate data type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct HeartRateRollupValue {
-    /// The average heart rate value in the interval.
-    #[serde(default, rename = "beatsPerMinuteAvg")]
-    pub beats_per_minute_avg: ::core::option::Option<f64>,
-    /// The maximum heart rate value in the interval.
-    #[serde(default, rename = "beatsPerMinuteMax")]
-    pub beats_per_minute_max: ::core::option::Option<f64>,
-    /// The minimum heart rate value in the interval.
-    #[serde(default, rename = "beatsPerMinuteMin")]
-    pub beats_per_minute_min: ::core::option::Option<f64>,
-}
-
-/// Captures user''s heart rate variability (HRV) as measured by the root mean square of successive differences (RMSSD) between normal heartbeats or by standard deviation of the inter-beat intervals (SDNN).
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct HeartRateVariability {
-    /// Optional. The root mean square of successive differences between normal heartbeats. This is a measure of heart rate variability used by Fitbit.
-    #[serde(default, rename = "rootMeanSquareOfSuccessiveDifferencesMilliseconds")]
-    pub root_mean_square_of_successive_differences_milliseconds: ::core::option::Option<f64>,
-    /// Required. The time of the heart rate variability measurement.
-    #[serde(default, rename = "sampleTime")]
-    pub sample_time: ::core::option::Option<ObservationSampleTime>,
-    /// Optional. The standard deviation of the heart rate variability measurement.
-    #[serde(default, rename = "standardDeviationMilliseconds")]
-    pub standard_deviation_milliseconds: ::core::option::Option<f64>,
-}
-
-/// Represents the result of the rollup of the user''s daily heart rate variability personal range.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct HeartRateVariabilityPersonalRangeRollupValue {
-    /// The upper bound of the user''s average heart rate variability personal range.
-    #[serde(default, rename = "averageHeartRateVariabilityMillisecondsMax")]
-    pub average_heart_rate_variability_milliseconds_max: ::core::option::Option<f64>,
-    /// The lower bound of the user''s average heart rate variability personal range.
-    #[serde(default, rename = "averageHeartRateVariabilityMillisecondsMin")]
-    pub average_heart_rate_variability_milliseconds_min: ::core::option::Option<f64>,
-}
-
-/// The heart rate zone.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct HeartRateZone {
-    /// Required. The heart rate zone type. // TODO: enum values: ["HEART_RATE_ZONE_TYPE_UNSPECIFIED", "LIGHT", "MODERATE", "VIGOROUS", "PEAK"]
-    #[serde(default, rename = "heartRateZoneType")]
-    pub heart_rate_zone_type: ::core::option::Option<String>,
-    /// Required. Maximum heart rate for this zone in beats per minute.
-    #[serde(default, rename = "maxBeatsPerMinute")]
-    pub max_beats_per_minute: ::core::option::Option<String>,
-    /// Required. Minimum heart rate for this zone in beats per minute.
-    #[serde(default, rename = "minBeatsPerMinute")]
-    pub min_beats_per_minute: ::core::option::Option<String>,
-}
-
-/// Holds information about a user logged hydration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct HydrationLog {
-    /// Required. Amount of liquid (ex. water) consumed.
-    #[serde(default, rename = "amountConsumed")]
-    pub amount_consumed: ::core::option::Option<VolumeQuantity>,
-    /// Required. Observed interval.
-    #[serde(default)]
-    pub interval: ::core::option::Option<SessionTimeInterval>,
-}
-
-/// Represents the result of the rollup of the hydration log data type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct HydrationLogRollupValue {
-    /// Rollup for amount consumed.
-    #[serde(default, rename = "amountConsumed")]
-    pub amount_consumed: ::core::option::Option<VolumeQuantityRollup>,
-}
-
-/// Represents details about the Google user''s identity.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Identity {
-    /// Output only. The Google User Identifier in the Google Health APIs. It matches the {user} resource ID segment in the resource name paths, e.g. users/{user}/dataTypes/steps. Valid values are strings of 1-63 characters, and valid characters are lowercase and uppercase letters, numbers, and hyphens.
-    #[serde(default, rename = "healthUserId")]
-    pub health_user_id: ::core::option::Option<String>,
-    /// Output only. The legacy Fitbit User identifier. This is the Fitbit ID used in the legacy Fitbit APIs (v1-v3). It can be referenced by clients migrating from the legacy Fitbit APIs to map their existing identifiers to the new Google user ID. It **must not** be used for any other purpose. It is not of any use for new clients using only the Google Health APIs. Valid values are strings of 1-63 characters, and valid characters are lowercase and uppercase letters, numbers, and hyphens.
-    #[serde(default, rename = "legacyUserId")]
-    pub legacy_user_id: ::core::option::Option<String>,
-    /// Identifier. The resource name of this Identity resource. Format: users/me/identity
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-}
-
-/// Represents a time interval, encoded as a Timestamp start (inclusive) and a Timestamp end (exclusive). The start must be less than or equal to the end. When the start equals the end, the interval is empty (matches no time). When both start and end are unspecified, the interval matches any time.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Interval {
-    /// Optional. Exclusive end of the interval. If specified, a Timestamp matching this interval will have to be before the end.
-    #[serde(default, rename = "endTime")]
-    pub end_time: ::core::option::Option<String>,
-    /// Optional. Inclusive start of the interval. If specified, a Timestamp matching this interval will have to be the same or after the start.
-    #[serde(default, rename = "startTime")]
-    pub start_time: ::core::option::Option<String>,
-}
-
-/// Response containing raw data points matching the query
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ListDataPointsResponse {
-    /// Data points matching the query
-    #[serde(default, rename = "dataPoints")]
-    pub data_points: ::core::option::Option<::std::vec::Vec<DataPoint>>,
-    /// Next page token, empty if the response is complete
-    #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: ::core::option::Option<String>,
-}
-
-/// Summary metrics for an exercise.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct MetricsSummary {
-    /// Optional. Total active zone minutes for the exercise.
-    #[serde(default, rename = "activeZoneMinutes")]
-    pub active_zone_minutes: ::core::option::Option<String>,
-    /// Optional. Average heart rate during the exercise.
-    #[serde(default, rename = "averageHeartRateBeatsPerMinute")]
-    pub average_heart_rate_beats_per_minute: ::core::option::Option<String>,
-    /// Optional. Average pace in seconds per meter.
-    #[serde(default, rename = "averagePaceSecondsPerMeter")]
-    pub average_pace_seconds_per_meter: ::core::option::Option<f64>,
-    /// Optional. Average speed in millimeters per second.
-    #[serde(default, rename = "averageSpeedMillimetersPerSecond")]
-    pub average_speed_millimeters_per_second: ::core::option::Option<f64>,
-    /// Optional. Total calories burned by the user during the exercise.
-    #[serde(default, rename = "caloriesKcal")]
-    pub calories_kcal: ::core::option::Option<f64>,
-    /// Optional. Total distance covered by the user during the exercise.
-    #[serde(default, rename = "distanceMillimeters")]
-    pub distance_millimeters: ::core::option::Option<f64>,
-    /// Optional. Total elevation gain during the exercise.
-    #[serde(default, rename = "elevationGainMillimeters")]
-    pub elevation_gain_millimeters: ::core::option::Option<f64>,
-    /// Optional. Time spent in each heart rate zone.
-    #[serde(default, rename = "heartRateZoneDurations")]
-    pub heart_rate_zone_durations: ::core::option::Option<TimeInHeartRateZones>,
-    /// Optional. Mobility workouts specific metrics. Only present in the advanced running exercises.
-    #[serde(default, rename = "mobilityMetrics")]
-    pub mobility_metrics: ::core::option::Option<MobilityMetrics>,
-    /// Optional. Run VO2 max value for the exercise. Only present in the running exercises at the top level as in the summary of the whole exercise.
-    #[serde(default, rename = "runVo2Max")]
-    pub run_vo2_max: ::core::option::Option<f64>,
-    /// Optional. Total steps taken during the exercise.
-    #[serde(default)]
-    pub steps: ::core::option::Option<String>,
-    /// Optional. Number of full pool lengths completed during the exercise. Only present in the swimming exercises at the top level as in the summary of the whole exercise.
-    #[serde(default, rename = "totalSwimLengths")]
-    pub total_swim_lengths: ::core::option::Option<f64>,
-}
-
-/// Mobility workouts specific metrics
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct MobilityMetrics {
-    /// Optional. Cadence is a measure of the frequency of your foot strikes. Steps / min in real time during workout.
-    #[serde(default, rename = "avgCadenceStepsPerMinute")]
-    pub avg_cadence_steps_per_minute: ::core::option::Option<f64>,
-    /// Optional. The ground contact time for a particular stride is the amount of time for which the foot was in contact with the ground on that stride
-    #[serde(default, rename = "avgGroundContactTimeDuration")]
-    pub avg_ground_contact_time_duration: ::core::option::Option<String>,
-    /// Optional. Stride length is a measure of the distance covered by a single stride
-    #[serde(default, rename = "avgStrideLengthMillimeters")]
-    pub avg_stride_length_millimeters: ::core::option::Option<String>,
-    /// Optional. Distance off the ground your center of mass moves with each stride while running
-    #[serde(default, rename = "avgVerticalOscillationMillimeters")]
-    pub avg_vertical_oscillation_millimeters: ::core::option::Option<String>,
-    /// Optional. Vertical oscillation/stride length between [5.0, 11.0].
-    #[serde(default, rename = "avgVerticalRatio")]
-    pub avg_vertical_ratio: ::core::option::Option<f64>,
-}
-
-/// Represents a sample time of an observed data point.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ObservationSampleTime {
-    /// Output only. The civil time in the timezone the subject is in at the time of the observation.
-    #[serde(default, rename = "civilTime")]
-    pub civil_time: ::core::option::Option<CivilDateTime>,
-    /// Required. The time of the observation.
-    #[serde(default, rename = "physicalTime")]
-    pub physical_time: ::core::option::Option<String>,
-    /// Required. The offset of the user''s local time during the observation relative to the Coordinated Universal Time (UTC).
-    #[serde(default, rename = "utcOffset")]
-    pub utc_offset: ::core::option::Option<String>,
-}
-
-/// Represents a time interval of an observed data point.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ObservationTimeInterval {
-    /// Output only. Observed interval end time in civil time in the timezone the subject is in at the end of the observed interval
-    #[serde(default, rename = "civilEndTime")]
-    pub civil_end_time: ::core::option::Option<CivilDateTime>,
-    /// Output only. Observed interval start time in civil time in the timezone the subject is in at the start of the observed interval
-    #[serde(default, rename = "civilStartTime")]
-    pub civil_start_time: ::core::option::Option<CivilDateTime>,
-    /// Required. Observed interval end time.
-    #[serde(default, rename = "endTime")]
-    pub end_time: ::core::option::Option<String>,
-    /// Required. The offset of the user''s local time at the end of the observation relative to the Coordinated Universal Time (UTC).
-    #[serde(default, rename = "endUtcOffset")]
-    pub end_utc_offset: ::core::option::Option<String>,
-    /// Required. Observed interval start time.
-    #[serde(default, rename = "startTime")]
-    pub start_time: ::core::option::Option<String>,
-    /// Required. The offset of the user''s local time at the start of the observation relative to the Coordinated Universal Time (UTC).
-    #[serde(default, rename = "startUtcOffset")]
-    pub start_utc_offset: ::core::option::Option<String>,
-}
-
-/// This resource represents a long-running operation that is the result of a network API call.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Operation {
-    /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
-    #[serde(default)]
-    pub done: ::core::option::Option<bool>,
-    /// The error result of the operation in case of failure or cancellation.
-    #[serde(default)]
-    pub error: ::core::option::Option<Status>,
-    /// Service-specific metadata associated with the operation. It typically contains progress information and common metadata such as create time. Some services might not provide such metadata. Any method that returns a long-running operation should document the metadata type, if any.
-    #[serde(default)]
-    pub metadata: ::core::option::Option<serde_json::Value>,
-    /// The server-assigned name, which is only unique within the same service that originally returns it. If you use the default HTTP mapping, the name should be a resource name ending with operations/{unique_id}.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// The normal, successful response of the operation. If the original method returns no data on success, such as Delete, the response is google.protobuf.Empty. If the original method is standard Get/Create/Update, the response should be the resource. For other methods, the response should have the type XxxResponse, where Xxx is the original method name. For example, if the original method name is TakeSnapshot(), the inferred response type is TakeSnapshotResponse.
-    #[serde(default)]
-    pub response: ::core::option::Option<serde_json::Value>,
-}
-
-/// A time interval to represent an out-of-bed segment.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct OutOfBedSegment {
-    /// Required. Segment end time.
-    #[serde(default, rename = "endTime")]
-    pub end_time: ::core::option::Option<String>,
-    /// Required. The offset of the user''s local time at the end of the segment relative to the Coordinated Universal Time (UTC).
-    #[serde(default, rename = "endUtcOffset")]
-    pub end_utc_offset: ::core::option::Option<String>,
-    /// Required. Segment tart time.
-    #[serde(default, rename = "startTime")]
-    pub start_time: ::core::option::Option<String>,
-    /// Required. The offset of the user''s local time at the start of the segment relative to the Coordinated Universal Time (UTC).
-    #[serde(default, rename = "startUtcOffset")]
-    pub start_utc_offset: ::core::option::Option<String>,
-}
-
-/// Captures the user''s instantaneous oxygen saturation percentage (SpO2).
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct OxygenSaturation {
-    /// Required. The oxygen saturation percentage. Valid values are from 0 to 100.
-    #[serde(default)]
-    pub percentage: ::core::option::Option<f64>,
-    /// Required. The time at which oxygen saturation was measured.
-    #[serde(default, rename = "sampleTime")]
-    pub sample_time: ::core::option::Option<ObservationSampleTime>,
-}
-
-/// Profile details.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Profile {
-    /// Optional. The age in years based on the user''s birth date. Updates to this field are currently not supported.
-    #[serde(default)]
-    pub age: ::core::option::Option<i32>,
-    /// Output only. The automatically calculated running stride length, in millimeters. The user must consent to one of the following access scopes to access this field: - https://www.googleapis.com/auth/googlehealth.activity_and_fitness.readonly - https://www.googleapis.com/auth/googlehealth.activity_and_fitness
-    #[serde(default, rename = "autoRunningStrideLengthMm")]
-    pub auto_running_stride_length_mm: ::core::option::Option<i32>,
-    /// Output only. The automatically calculated walking stride length, in millimeters. The user must consent to one of the following access scopes to access this field: - https://www.googleapis.com/auth/googlehealth.activity_and_fitness.readonly - https://www.googleapis.com/auth/googlehealth.activity_and_fitness
-    #[serde(default, rename = "autoWalkingStrideLengthMm")]
-    pub auto_walking_stride_length_mm: ::core::option::Option<i32>,
-    /// Output only. The date the user created their account. Updates to this field are currently not supported.
-    #[serde(default, rename = "membershipStartDate")]
-    pub membership_start_date: ::core::option::Option<Date>,
-    /// Identifier. The resource name of this Profile resource. Format: users/{user}/profile Example: users/1234567890/profile or users/me/profile The {user} ID is a system-generated Google Health API user ID, a string of 1-63 characters consisting of lowercase and uppercase letters, numbers, and hyphens. The literal me can also be used to refer to the authenticated user.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Optional. The user''s user configured running stride length, in millimeters. The user must consent to one of the following access scopes to access this field: - https://www.googleapis.com/auth/googlehealth.activity_and_fitness.readonly - https://www.googleapis.com/auth/googlehealth.activity_and_fitness
-    #[serde(default, rename = "userConfiguredRunningStrideLengthMm")]
-    pub user_configured_running_stride_length_mm: ::core::option::Option<i32>,
-    /// Optional. The user''s user configured walking stride length, in millimeters. The user must consent to one of the following access scopes to access this field: - https://www.googleapis.com/auth/googlehealth.activity_and_fitness.readonly - https://www.googleapis.com/auth/googlehealth.activity_and_fitness
-    #[serde(default, rename = "userConfiguredWalkingStrideLengthMm")]
-    pub user_configured_walking_stride_length_mm: ::core::option::Option<i32>,
-}
-
-/// Response containing the list of reconciled DataPoints.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ReconcileDataPointsResponse {
-    /// Data points matching the query
-    #[serde(default, rename = "dataPoints")]
-    pub data_points: ::core::option::Option<::std::vec::Vec<ReconciledDataPoint>>,
-    /// Next page token, empty if the response is complete
-    #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: ::core::option::Option<String>,
+    pub message: ::core::option::Option<String>,
 }
 
 /// A reconciled computed or recorded metric.
@@ -1130,80 +540,15 @@ pub struct ReconciledDataPoint {
     pub weight: ::core::option::Option<Weight>,
 }
 
-/// Records respiratory rate details during sleep. Can have multiple per day if the user sleeps multiple times.
+/// Represents a time interval, encoded as a Timestamp start (inclusive) and a Timestamp end (exclusive). The start must be less than or equal to the end. When the start equals the end, the interval is empty (matches no time). When both start and end are unspecified, the interval matches any time.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct RespiratoryRateSleepSummary {
-    /// Optional. Respiratory rate statistics for deep sleep.
-    #[serde(default, rename = "deepSleepStats")]
-    pub deep_sleep_stats: ::core::option::Option<RespiratoryRateSleepSummaryStatistics>,
-    /// Required. Full respiratory rate statistics.
-    #[serde(default, rename = "fullSleepStats")]
-    pub full_sleep_stats: ::core::option::Option<RespiratoryRateSleepSummaryStatistics>,
-    /// Optional. Respiratory rate statistics for light sleep.
-    #[serde(default, rename = "lightSleepStats")]
-    pub light_sleep_stats: ::core::option::Option<RespiratoryRateSleepSummaryStatistics>,
-    /// Optional. Respiratory rate statistics for REM sleep.
-    #[serde(default, rename = "remSleepStats")]
-    pub rem_sleep_stats: ::core::option::Option<RespiratoryRateSleepSummaryStatistics>,
-    /// Required. The time at which respiratory rate was measured.
-    #[serde(default, rename = "sampleTime")]
-    pub sample_time: ::core::option::Option<ObservationSampleTime>,
-}
-
-/// Respiratory rate statistics for a given sleep stage.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct RespiratoryRateSleepSummaryStatistics {
-    /// Required. Average breaths per minute.
-    #[serde(default, rename = "breathsPerMinute")]
-    pub breaths_per_minute: ::core::option::Option<f64>,
-    /// Optional. How trustworthy the data is for the computation.
-    #[serde(default, rename = "signalToNoise")]
-    pub signal_to_noise: ::core::option::Option<f64>,
-    /// Optional. Standard deviation of the respiratory rate during sleep.
-    #[serde(default, rename = "standardDeviation")]
-    pub standard_deviation: ::core::option::Option<f64>,
-}
-
-/// Represents the rollup value for the daily resting heart rate data type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct RestingHeartRatePersonalRangeRollupValue {
-    /// The upper bound of the user''s daily resting heart rate personal range.
-    #[serde(default, rename = "beatsPerMinuteMax")]
-    pub beats_per_minute_max: ::core::option::Option<f64>,
-    /// The lower bound of the user''s daily resting heart rate personal range.
-    #[serde(default, rename = "beatsPerMinuteMin")]
-    pub beats_per_minute_min: ::core::option::Option<f64>,
-}
-
-/// Request to roll up data points by physical time intervals.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct RollUpDataPointsRequest {
-    /// Optional. The data source family name to roll up. If empty, data points from all available data sources will be rolled up. Format: users/me/dataSourceFamilies/{data_source_family} The supported values are: - users/me/dataSourceFamilies/all-sources - default value - users/me/dataSourceFamilies/google-wearables - tracker devices - users/me/dataSourceFamilies/google-sources - Google first party sources
-    #[serde(default, rename = "dataSourceFamily")]
-    pub data_source_family: ::core::option::Option<String>,
-    /// Optional. The maximum number of data points to return. If unspecified, at most 1440 data points will be returned. The maximum page size is 10000; values above that will be truncated accordingly.
-    #[serde(default, rename = "pageSize")]
-    pub page_size: ::core::option::Option<i32>,
-    /// Optional. The next_page_token from a previous request, if any. All other request fields need to be the same as in the initial request when the page token is specified.
-    #[serde(default, rename = "pageToken")]
-    pub page_token: ::core::option::Option<String>,
-    /// Required. Closed-open range of data points that will be rolled up. The maximum range for calories-in-heart-rate-zone, heart-rate, active-minutes and total-calories is 14 days. The maximum range for all other data types is 90 days.
-    #[serde(default)]
-    pub range: ::core::option::Option<Interval>,
-    /// Required. The size of the time window to group data points into before applying the aggregation functions.
-    #[serde(default, rename = "windowSize")]
-    pub window_size: ::core::option::Option<String>,
-}
-
-/// Response containing the list of rolled up data points.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct RollUpDataPointsResponse {
-    /// A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
-    #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: ::core::option::Option<String>,
-    /// Values for each aggregation time window.
-    #[serde(default, rename = "rollupDataPoints")]
-    pub rollup_data_points: ::core::option::Option<::std::vec::Vec<RollupDataPoint>>,
+pub struct Interval {
+    /// Optional. Exclusive end of the interval. If specified, a Timestamp matching this interval will have to be before the end.
+    #[serde(default, rename = "endTime")]
+    pub end_time: ::core::option::Option<String>,
+    /// Optional. Inclusive start of the interval. If specified, a Timestamp matching this interval will have to be the same or after the start.
+    #[serde(default, rename = "startTime")]
+    pub start_time: ::core::option::Option<String>,
 }
 
 /// Value of a rollup for a single physical time interval (aggregation window)
@@ -1265,6 +610,354 @@ pub struct RollupDataPoint {
     pub weight: ::core::option::Option<WeightRollupValue>,
 }
 
+/// Represents the result of the rollup of the user''s daily heart rate variability personal range.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct HeartRateVariabilityPersonalRangeRollupValue {
+    /// The upper bound of the user''s average heart rate variability personal range.
+    #[serde(default, rename = "averageHeartRateVariabilityMillisecondsMax")]
+    pub average_heart_rate_variability_milliseconds_max: ::core::option::Option<f64>,
+    /// The lower bound of the user''s average heart rate variability personal range.
+    #[serde(default, rename = "averageHeartRateVariabilityMillisecondsMin")]
+    pub average_heart_rate_variability_milliseconds_min: ::core::option::Option<f64>,
+}
+
+/// Represents the rollup value for the daily resting heart rate data type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RestingHeartRatePersonalRangeRollupValue {
+    /// The upper bound of the user''s daily resting heart rate personal range.
+    #[serde(default, rename = "beatsPerMinuteMax")]
+    pub beats_per_minute_max: ::core::option::Option<f64>,
+    /// The lower bound of the user''s daily resting heart rate personal range.
+    #[serde(default, rename = "beatsPerMinuteMin")]
+    pub beats_per_minute_min: ::core::option::Option<f64>,
+}
+
+/// Data Source definition to track the origin of data. Each health data point, regardless of the complexity or data model (whether a simple step count or a detailed sleep session) must retain information about its source of origin (e.g. the device or app that collected it).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DataSource {
+    /// Output only. Captures metadata for the application that provided this data.
+    #[serde(default)]
+    pub application: ::core::option::Option<Application>,
+    /// Optional. Captures metadata for raw data points originating from devices. We expect this data source to be used for data points written on device sync.
+    #[serde(default)]
+    pub device: ::core::option::Option<Device>,
+    /// Output only. Captures the platform that uploaded the data. // TODO: enum values: ["PLATFORM_UNSPECIFIED", "FITBIT", "HEALTH_CONNECT", "HEALTH_KIT", "FIT", "FITBIT_WEB_API", "NEST", "GOOGLE_WEB_API", "GOOGLE_PARTNER_INTEGRATION"]
+    #[serde(default)]
+    pub platform: ::core::option::Option<String>,
+    /// Optional. Captures how the data was recorded. // TODO: enum values: ["RECORDING_METHOD_UNSPECIFIED", "MANUAL", "PASSIVELY_MEASURED", "DERIVED", "ACTIVELY_MEASURED", "UNKNOWN"]
+    #[serde(default, rename = "recordingMethod")]
+    pub recording_method: ::core::option::Option<String>,
+}
+
+/// Record of active minutes in a given time interval.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ActiveMinutes {
+    /// Required. Active minutes by activity level. At most one record per activity level is allowed.
+    #[serde(default, rename = "activeMinutesByActivityLevel")]
+    pub active_minutes_by_activity_level:
+        ::core::option::Option<::std::vec::Vec<ActiveMinutesByActivityLevel>>,
+    /// Required. Observed interval.
+    #[serde(default)]
+    pub interval: ::core::option::Option<ObservationTimeInterval>,
+}
+
+/// Record of active zone minutes in a given time interval.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ActiveZoneMinutes {
+    /// Required. Number of Active Zone Minutes earned in the given time interval. Note: active_zone_minutes equals to 1 for low intensity (fat burn) zones or 2 for high intensity zones (cardio, peak).
+    #[serde(default, rename = "activeZoneMinutes")]
+    pub active_zone_minutes: ::core::option::Option<String>,
+    /// Required. Heart rate zone in which the active zone minutes have been earned, in the given time interval. // TODO: enum values: ["HEART_RATE_ZONE_UNSPECIFIED", "FAT_BURN", "CARDIO", "PEAK"]
+    #[serde(default, rename = "heartRateZone")]
+    pub heart_rate_zone: ::core::option::Option<String>,
+    /// Required. Observed interval.
+    #[serde(default)]
+    pub interval: ::core::option::Option<ObservationTimeInterval>,
+}
+
+/// Internal type to capture activity level during a certain time interval.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ActivityLevel {
+    /// Required. Activity level type in the given time interval. // TODO: enum values: ["ACTIVITY_LEVEL_TYPE_UNSPECIFIED", "SEDENTARY", "LIGHTLY_ACTIVE", "MODERATELY_ACTIVE", "VERY_ACTIVE"]
+    #[serde(default, rename = "activityLevelType")]
+    pub activity_level_type: ::core::option::Option<String>,
+    /// Required. Observed interval.
+    #[serde(default)]
+    pub interval: ::core::option::Option<ObservationTimeInterval>,
+}
+
+/// Captures the altitude gain (i.e. deltas), and not level above sea, for a user in millimeters.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Altitude {
+    /// Required. Altitude gain in millimeters over the observed interval.
+    #[serde(default, rename = "gainMillimeters")]
+    pub gain_millimeters: ::core::option::Option<String>,
+    /// Required. Observed interval.
+    #[serde(default)]
+    pub interval: ::core::option::Option<ObservationTimeInterval>,
+}
+
+/// Body fat measurement.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BodyFat {
+    /// Required. Body fat percentage, in range [0, 100].
+    #[serde(default)]
+    pub percentage: ::core::option::Option<f64>,
+    /// Required. The time at which body fat was measured.
+    #[serde(default, rename = "sampleTime")]
+    pub sample_time: ::core::option::Option<ObservationSampleTime>,
+}
+
+/// Represents the daily heart rate variability data type. At least one of the following fields must be set: - average_heart_rate_variability_milliseconds - non_rem_heart_rate_beats_per_minute - entropy - deep_sleep_root_mean_square_of_successive_differences_milliseconds
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DailyHeartRateVariability {
+    /// Optional. A user''s average heart rate variability calculated using the root mean square of successive differences (RMSSD) in times between heartbeats.
+    #[serde(default, rename = "averageHeartRateVariabilityMilliseconds")]
+    pub average_heart_rate_variability_milliseconds: ::core::option::Option<f64>,
+    /// Required. Date (in the user''s timezone) of heart rate variability measurement.
+    #[serde(default)]
+    pub date: ::core::option::Option<Date>,
+    /// Optional. The root mean square of successive differences (RMSSD) value during deep sleep.
+    #[serde(
+        default,
+        rename = "deepSleepRootMeanSquareOfSuccessiveDifferencesMilliseconds"
+    )]
+    pub deep_sleep_root_mean_square_of_successive_differences_milliseconds:
+        ::core::option::Option<f64>,
+    /// Optional. The Shanon entropy of heartbeat intervals. Entropy quantifies randomness or disorder in a system. High entropy indicates high HRV. Entropy is measured from the histogram of time interval between successive heart beats values measured during sleep.
+    #[serde(default)]
+    pub entropy: ::core::option::Option<f64>,
+    /// Optional. Non-REM heart rate
+    #[serde(default, rename = "nonRemHeartRateBeatsPerMinute")]
+    pub non_rem_heart_rate_beats_per_minute: ::core::option::Option<String>,
+}
+
+/// User''s heart rate zone thresholds based on the Karvonen algorithm for a specific day.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DailyHeartRateZones {
+    /// Required. Date (in user''s timezone) of the heart rate zones record.
+    #[serde(default)]
+    pub date: ::core::option::Option<Date>,
+    /// Required. The heart rate zones.
+    #[serde(default, rename = "heartRateZones")]
+    pub heart_rate_zones: ::core::option::Option<::std::vec::Vec<HeartRateZone>>,
+}
+
+/// A daily oxygen saturation (SpO2) record. Represents the user''s daily oxygen saturation summary, typically calculated during sleep.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DailyOxygenSaturation {
+    /// Required. The average value of the oxygen saturation samples during the sleep.
+    #[serde(default, rename = "averagePercentage")]
+    pub average_percentage: ::core::option::Option<f64>,
+    /// Required. Date (in user''s timezone) of the daily oxygen saturation record.
+    #[serde(default)]
+    pub date: ::core::option::Option<Date>,
+    /// Required. The lower bound of the confidence interval of oxygen saturation samples during sleep.
+    #[serde(default, rename = "lowerBoundPercentage")]
+    pub lower_bound_percentage: ::core::option::Option<f64>,
+    /// Optional. Standard deviation of the daily oxygen saturation averages from the past 7-30 days.
+    #[serde(default, rename = "standardDeviationPercentage")]
+    pub standard_deviation_percentage: ::core::option::Option<f64>,
+    /// Required. The upper bound of the confidence interval of oxygen saturation samples during sleep.
+    #[serde(default, rename = "upperBoundPercentage")]
+    pub upper_bound_percentage: ::core::option::Option<f64>,
+}
+
+/// A daily average respiratory rate (breaths per minute) for a day of the year. One data point per day calculated for the main sleep.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DailyRespiratoryRate {
+    /// Required. The average number of breaths taken per minute.
+    #[serde(default, rename = "breathsPerMinute")]
+    pub breaths_per_minute: ::core::option::Option<f64>,
+    /// Required. The date on which the respiratory rate was measured.
+    #[serde(default)]
+    pub date: ::core::option::Option<Date>,
+}
+
+/// Measures the daily resting heart rate for a user, calculated using the all day heart rate measurements.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DailyRestingHeartRate {
+    /// Required. The resting heart rate value in beats per minute.
+    #[serde(default, rename = "beatsPerMinute")]
+    pub beats_per_minute: ::core::option::Option<String>,
+    /// Optional. Metadata for the daily resting heart rate.
+    #[serde(default, rename = "dailyRestingHeartRateMetadata")]
+    pub daily_resting_heart_rate_metadata: ::core::option::Option<DailyRestingHeartRateMetadata>,
+    /// Required. Date (in the user''s timezone) of the resting heart rate measurement.
+    #[serde(default)]
+    pub date: ::core::option::Option<Date>,
+}
+
+/// Provides derived sleep temperature values, calculated from skin or internal device temperature readings during sleep.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DailySleepTemperatureDerivations {
+    /// Optional. The user''s baseline skin temperature. It is the median of the user''s nightly skin temperature over the past 30 days.
+    #[serde(default, rename = "baselineTemperatureCelsius")]
+    pub baseline_temperature_celsius: ::core::option::Option<f64>,
+    /// Required. Date for which the sleep temperature derivations are calculated.
+    #[serde(default)]
+    pub date: ::core::option::Option<Date>,
+    /// Required. The user''s nightly skin temperature. It is the mean of skin temperature samples taken from the user’s sleep.
+    #[serde(default, rename = "nightlyTemperatureCelsius")]
+    pub nightly_temperature_celsius: ::core::option::Option<f64>,
+    /// Optional. The standard deviation of the user’s relative nightly skin temperature (temperature - baseline) over the past 30 days.
+    #[serde(default, rename = "relativeNightlyStddev30dCelsius")]
+    pub relative_nightly_stddev30d_celsius: ::core::option::Option<f64>,
+}
+
+/// Contains a daily summary of the user''s VO2 max (cardio fitness score), which is the maximum rate of oxygen the body can use during exercise.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DailyVO2Max {
+    /// Optional. Represents the user''s cardio fitness level based on their VO2 max. // TODO: enum values: ["CARDIO_FITNESS_LEVEL_UNSPECIFIED", "POOR", "FAIR", "AVERAGE", "GOOD", "VERY_GOOD", "EXCELLENT"]
+    #[serde(default, rename = "cardioFitnessLevel")]
+    pub cardio_fitness_level: ::core::option::Option<String>,
+    /// Required. The date for which the Daily VO2 max was measured.
+    #[serde(default)]
+    pub date: ::core::option::Option<Date>,
+    /// Optional. An estimated field is added to indicate when the confidence has decreased sufficiently to consider the value an estimation.
+    #[serde(default)]
+    pub estimated: ::core::option::Option<bool>,
+    /// Required. Daily VO2 max value measured as in ml consumed oxygen / kg of body weight / min.
+    #[serde(default, rename = "vo2Max")]
+    pub vo2_max: ::core::option::Option<f64>,
+    /// Optional. The covariance of the VO2 max value.
+    #[serde(default, rename = "vo2MaxCovariance")]
+    pub vo2_max_covariance: ::core::option::Option<f64>,
+}
+
+/// Distance traveled over an interval of time.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Distance {
+    /// Required. Observed interval.
+    #[serde(default)]
+    pub interval: ::core::option::Option<ObservationTimeInterval>,
+    /// Required. Distance in millimeters over the observed interval.
+    #[serde(default)]
+    pub millimeters: ::core::option::Option<String>,
+}
+
+/// An exercise that stores information about a physical activity.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Exercise {
+    /// Optional. Duration excluding pauses.
+    #[serde(default, rename = "activeDuration")]
+    pub active_duration: ::core::option::Option<String>,
+    /// Output only. Represents the timestamp of the creation of the exercise.
+    #[serde(default, rename = "createTime")]
+    pub create_time: ::core::option::Option<String>,
+    /// Required. Exercise display name.
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+    /// Optional. Exercise events that happen during an exercise, such as pause & restarts.
+    #[serde(default, rename = "exerciseEvents")]
+    pub exercise_events: ::core::option::Option<::std::vec::Vec<ExerciseEvent>>,
+    /// Optional. Additional exercise metadata.
+    #[serde(default, rename = "exerciseMetadata")]
+    pub exercise_metadata: ::core::option::Option<ExerciseMetadata>,
+    /// Required. The type of activity performed during an exercise. // TODO: enum values: ["EXERCISE_TYPE_UNSPECIFIED", "RUNNING", "WALKING", "BIKING", "SWIMMING", "HIKING", "YOGA", "PILATES", "WORKOUT", "HIIT", "WEIGHTLIFTING", "STRENGTH_TRAINING", "OTHER"]
+    #[serde(default, rename = "exerciseType")]
+    pub exercise_type: ::core::option::Option<String>,
+    /// Required. Observed exercise interval
+    #[serde(default)]
+    pub interval: ::core::option::Option<SessionTimeInterval>,
+    /// Required. Summary metrics for this exercise ( )
+    #[serde(default, rename = "metricsSummary")]
+    pub metrics_summary: ::core::option::Option<MetricsSummary>,
+    /// Optional. Standard free-form notes captured at manual logging.
+    #[serde(default)]
+    pub notes: ::core::option::Option<String>,
+    /// Optional. Laps or splits recorded within an exercise. Laps could be split based on distance or other criteria (duration, etc.) Laps should not be overlapping with each other.
+    #[serde(default, rename = "splitSummaries")]
+    pub split_summaries: ::core::option::Option<::std::vec::Vec<SplitSummary>>,
+    /// Optional. The default split is 1 km or 1 mile. - if the movement distance is less than the default, then there are no splits - if the movement distance is greater than or equal to the default, then we have splits
+    #[serde(default)]
+    pub splits: ::core::option::Option<::std::vec::Vec<SplitSummary>>,
+    /// Output only. This is the timestamp of the last update to the exercise.
+    #[serde(default, rename = "updateTime")]
+    pub update_time: ::core::option::Option<String>,
+}
+
+/// Gained elevation measured in floors over the time interval
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Floors {
+    /// Required. Number of floors in the recorded interval
+    #[serde(default)]
+    pub count: ::core::option::Option<String>,
+    /// Required. Observed interval
+    #[serde(default)]
+    pub interval: ::core::option::Option<ObservationTimeInterval>,
+}
+
+/// A heart rate measurement.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct HeartRate {
+    /// Required. The heart rate value in beats per minute.
+    #[serde(default, rename = "beatsPerMinute")]
+    pub beats_per_minute: ::core::option::Option<String>,
+    /// Optional. Metadata about the heart rate sample.
+    #[serde(default)]
+    pub metadata: ::core::option::Option<HeartRateMetadata>,
+    /// Required. Observation time
+    #[serde(default, rename = "sampleTime")]
+    pub sample_time: ::core::option::Option<ObservationSampleTime>,
+}
+
+/// Captures user''s heart rate variability (HRV) as measured by the root mean square of successive differences (RMSSD) between normal heartbeats or by standard deviation of the inter-beat intervals (SDNN).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct HeartRateVariability {
+    /// Optional. The root mean square of successive differences between normal heartbeats. This is a measure of heart rate variability used by Fitbit.
+    #[serde(default, rename = "rootMeanSquareOfSuccessiveDifferencesMilliseconds")]
+    pub root_mean_square_of_successive_differences_milliseconds: ::core::option::Option<f64>,
+    /// Required. The time of the heart rate variability measurement.
+    #[serde(default, rename = "sampleTime")]
+    pub sample_time: ::core::option::Option<ObservationSampleTime>,
+    /// Optional. The standard deviation of the heart rate variability measurement.
+    #[serde(default, rename = "standardDeviationMilliseconds")]
+    pub standard_deviation_milliseconds: ::core::option::Option<f64>,
+}
+
+/// Holds information about a user logged hydration.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct HydrationLog {
+    /// Required. Amount of liquid (ex. water) consumed.
+    #[serde(default, rename = "amountConsumed")]
+    pub amount_consumed: ::core::option::Option<VolumeQuantity>,
+    /// Required. Observed interval.
+    #[serde(default)]
+    pub interval: ::core::option::Option<SessionTimeInterval>,
+}
+
+/// Captures the user''s instantaneous oxygen saturation percentage (SpO2).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct OxygenSaturation {
+    /// Required. The oxygen saturation percentage. Valid values are from 0 to 100.
+    #[serde(default)]
+    pub percentage: ::core::option::Option<f64>,
+    /// Required. The time at which oxygen saturation was measured.
+    #[serde(default, rename = "sampleTime")]
+    pub sample_time: ::core::option::Option<ObservationSampleTime>,
+}
+
+/// Records respiratory rate details during sleep. Can have multiple per day if the user sleeps multiple times.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RespiratoryRateSleepSummary {
+    /// Optional. Respiratory rate statistics for deep sleep.
+    #[serde(default, rename = "deepSleepStats")]
+    pub deep_sleep_stats: ::core::option::Option<RespiratoryRateSleepSummaryStatistics>,
+    /// Required. Full respiratory rate statistics.
+    #[serde(default, rename = "fullSleepStats")]
+    pub full_sleep_stats: ::core::option::Option<RespiratoryRateSleepSummaryStatistics>,
+    /// Optional. Respiratory rate statistics for light sleep.
+    #[serde(default, rename = "lightSleepStats")]
+    pub light_sleep_stats: ::core::option::Option<RespiratoryRateSleepSummaryStatistics>,
+    /// Optional. Respiratory rate statistics for REM sleep.
+    #[serde(default, rename = "remSleepStats")]
+    pub rem_sleep_stats: ::core::option::Option<RespiratoryRateSleepSummaryStatistics>,
+    /// Required. The time at which respiratory rate was measured.
+    #[serde(default, rename = "sampleTime")]
+    pub sample_time: ::core::option::Option<ObservationSampleTime>,
+}
+
 /// VO2 max value calculated based on the user''s running activity. Value stored in ml/kg/min.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct RunVO2Max {
@@ -1276,104 +969,12 @@ pub struct RunVO2Max {
     pub sample_time: ::core::option::Option<ObservationSampleTime>,
 }
 
-/// Represents the result of the rollup of the user''s daily heart rate variability personal range.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct RunVO2MaxRollupValue {
-    /// Average value of run VO2 max in the interval.
-    #[serde(default, rename = "rateAvg")]
-    pub rate_avg: ::core::option::Option<f64>,
-    /// Maximum value of run VO2 max in the interval.
-    #[serde(default, rename = "rateMax")]
-    pub rate_max: ::core::option::Option<f64>,
-    /// Minimum value of run VO2 max in the interval..
-    #[serde(default, rename = "rateMin")]
-    pub rate_min: ::core::option::Option<f64>,
-}
-
 /// SedentaryPeriod SedentaryPeriod data represents the periods of time that the user was sedentary (i.e. not moving while wearing the device).
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SedentaryPeriod {
     /// Required. Observed interval.
     #[serde(default)]
     pub interval: ::core::option::Option<ObservationTimeInterval>,
-}
-
-/// Represents the result of the rollup of the user''s sedentary periods.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SedentaryPeriodRollupValue {
-    /// The total time user spent sedentary during the interval.
-    #[serde(default, rename = "durationSum")]
-    pub duration_sum: ::core::option::Option<String>,
-}
-
-/// Represents a time interval of session data point, which bundles multiple observed metrics together.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SessionTimeInterval {
-    /// Output only. Session end time in civil time in the timezone the subject is in at the end of the session.
-    #[serde(default, rename = "civilEndTime")]
-    pub civil_end_time: ::core::option::Option<CivilDateTime>,
-    /// Output only. Session start time in civil time in the timezone the subject is in at the start of the session.
-    #[serde(default, rename = "civilStartTime")]
-    pub civil_start_time: ::core::option::Option<CivilDateTime>,
-    /// Required. The end time of the observed session.
-    #[serde(default, rename = "endTime")]
-    pub end_time: ::core::option::Option<String>,
-    /// Required. The offset of the user''s local time at the end of the session relative to the Coordinated Universal Time (UTC).
-    #[serde(default, rename = "endUtcOffset")]
-    pub end_utc_offset: ::core::option::Option<String>,
-    /// Required. The start time of the observed session.
-    #[serde(default, rename = "startTime")]
-    pub start_time: ::core::option::Option<String>,
-    /// Required. The offset of the user''s local time at the start of the session relative to the Coordinated Universal Time (UTC).
-    #[serde(default, rename = "startUtcOffset")]
-    pub start_utc_offset: ::core::option::Option<String>,
-}
-
-/// Settings details.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Settings {
-    /// Optional. True if the user''s stride length is determined automatically. Updates to this field are currently not supported.
-    #[serde(default, rename = "autoStrideEnabled")]
-    pub auto_stride_enabled: ::core::option::Option<bool>,
-    /// Optional. The measurement unit defined in the user''s account settings. Updates to this field are currently not supported. // TODO: enum values: ["DISTANCE_UNIT_UNSPECIFIED", "DISTANCE_UNIT_MILES", "DISTANCE_UNIT_KILOMETERS"]
-    #[serde(default, rename = "distanceUnit")]
-    pub distance_unit: ::core::option::Option<String>,
-    /// Optional. The measurement unit defined in the user''s account settings. // TODO: enum values: ["GLUCOSE_UNIT_UNSPECIFIED", "GLUCOSE_UNIT_MG_DL", "GLUCOSE_UNIT_MMOL_L"]
-    #[serde(default, rename = "glucoseUnit")]
-    pub glucose_unit: ::core::option::Option<String>,
-    /// Optional. The measurement unit defined in the user''s account settings. // TODO: enum values: ["HEIGHT_UNIT_UNSPECIFIED", "HEIGHT_UNIT_INCHES", "HEIGHT_UNIT_CENTIMETERS"]
-    #[serde(default, rename = "heightUnit")]
-    pub height_unit: ::core::option::Option<String>,
-    /// Optional. The locale defined in the user''s account settings. Updates to this field are currently not supported.
-    #[serde(default, rename = "languageLocale")]
-    pub language_locale: ::core::option::Option<String>,
-    /// Identifier. The resource name of this Settings resource. Format: users/{user}/settings Example: users/1234567890/settings or users/me/settings The {user} ID is a system-generated Google Health API user ID, a string of 1-63 characters consisting of lowercase and uppercase letters, numbers, and hyphens. The literal me can also be used to refer to the authenticated user.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Optional. The stride length type defined in the user''s account settings for running. Updates to this field are currently not supported. // TODO: enum values: ["STRIDE_LENGTH_TYPE_UNSPECIFIED", "STRIDE_LENGTH_TYPE_DEFAULT", "STRIDE_LENGTH_TYPE_MANUAL", "STRIDE_LENGTH_TYPE_AUTO"]
-    #[serde(default, rename = "strideLengthRunningType")]
-    pub stride_length_running_type: ::core::option::Option<String>,
-    /// Optional. The stride length type defined in the user''s account settings for walking. Updates to this field are currently not supported. // TODO: enum values: ["STRIDE_LENGTH_TYPE_UNSPECIFIED", "STRIDE_LENGTH_TYPE_DEFAULT", "STRIDE_LENGTH_TYPE_MANUAL", "STRIDE_LENGTH_TYPE_AUTO"]
-    #[serde(default, rename = "strideLengthWalkingType")]
-    pub stride_length_walking_type: ::core::option::Option<String>,
-    /// Optional. The measurement unit defined in the user''s account settings. // TODO: enum values: ["SWIM_UNIT_UNSPECIFIED", "SWIM_UNIT_METERS", "SWIM_UNIT_YARDS"]
-    #[serde(default, rename = "swimUnit")]
-    pub swim_unit: ::core::option::Option<String>,
-    /// Optional. The measurement unit defined in the user''s account settings. // TODO: enum values: ["TEMPERATURE_UNIT_UNSPECIFIED", "TEMPERATURE_UNIT_CELSIUS", "TEMPERATURE_UNIT_FAHRENHEIT"]
-    #[serde(default, rename = "temperatureUnit")]
-    pub temperature_unit: ::core::option::Option<String>,
-    /// Optional. The timezone defined in the user''s account settings. This follows the IANA [Time Zone Database](https://www.iana.org/time-zones). Updates to this field are currently not supported.
-    #[serde(default, rename = "timeZone")]
-    pub time_zone: ::core::option::Option<String>,
-    /// Optional. The duration of the offset from UTC in milliseconds. This offset is the difference between the user''s current local time and UTC. Updates to this field are currently not supported.
-    #[serde(default, rename = "utcOffset")]
-    pub utc_offset: ::core::option::Option<String>,
-    /// Optional. The measurement unit defined in the user''s account settings. // TODO: enum values: ["WATER_UNIT_UNSPECIFIED", "WATER_UNIT_ML", "WATER_UNIT_FL_OZ", "WATER_UNIT_CUP"]
-    #[serde(default, rename = "waterUnit")]
-    pub water_unit: ::core::option::Option<String>,
-    /// Optional. The measurement unit defined in the user''s account settings. // TODO: enum values: ["WEIGHT_UNIT_UNSPECIFIED", "WEIGHT_UNIT_POUNDS", "WEIGHT_UNIT_STONE", "WEIGHT_UNIT_KILOGRAMS"]
-    #[serde(default, rename = "weightUnit")]
-    pub weight_unit: ::core::option::Option<String>,
 }
 
 /// A sleep session possibly including stages.
@@ -1405,6 +1006,376 @@ pub struct Sleep {
     pub update_time: ::core::option::Option<String>,
 }
 
+/// Step count over the time interval.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Steps {
+    /// Required. Number of steps in the recorded interval.
+    #[serde(default)]
+    pub count: ::core::option::Option<String>,
+    /// Required. Observed interval.
+    #[serde(default)]
+    pub interval: ::core::option::Option<ObservationTimeInterval>,
+}
+
+/// Time in heart rate zone record. It''s an interval spent in specific heart rate zone.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TimeInHeartRateZone {
+    /// Required. Heart rate zone type. // TODO: enum values: ["HEART_RATE_ZONE_TYPE_UNSPECIFIED", "LIGHT", "MODERATE", "VIGOROUS", "PEAK"]
+    #[serde(default, rename = "heartRateZoneType")]
+    pub heart_rate_zone_type: ::core::option::Option<String>,
+    /// Required. Observed interval.
+    #[serde(default)]
+    pub interval: ::core::option::Option<ObservationTimeInterval>,
+}
+
+/// VO2 max measurement.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct VO2Max {
+    /// Optional. The method used to measure the VO2 max value. // TODO: enum values: ["MEASUREMENT_METHOD_UNSPECIFIED", "FITBIT_RUN", "GOOGLE_DEMOGRAPHIC", "COOPER_TEST", "HEART_RATE_RATIO", "METABOLIC_CART", "MULTISTAGE_FITNESS_TEST", "ROCKPORT_FITNESS_TEST", "MAX_EXERCISE", "PREDICTION_SUB_MAX_EXERCISE", "PREDICTION_NON_EXERCISE", "OTHER"]
+    #[serde(default, rename = "measurementMethod")]
+    pub measurement_method: ::core::option::Option<String>,
+    /// Required. The time at which VO2 max was measured.
+    #[serde(default, rename = "sampleTime")]
+    pub sample_time: ::core::option::Option<ObservationSampleTime>,
+    /// Required. VO2 max value measured as in ml consumed oxygen / kg of body weight / min.
+    #[serde(default, rename = "vo2Max")]
+    pub vo2_max: ::core::option::Option<f64>,
+}
+
+/// Body weight measurement.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Weight {
+    /// Optional. Standard free-form notes captured at manual logging.
+    #[serde(default)]
+    pub notes: ::core::option::Option<String>,
+    /// Required. The time at which the weight was measured
+    #[serde(default, rename = "sampleTime")]
+    pub sample_time: ::core::option::Option<ObservationSampleTime>,
+    /// Required. Weight of a user in grams.
+    #[serde(default, rename = "weightGrams")]
+    pub weight_grams: ::core::option::Option<f64>,
+}
+
+/// Represents the result of the rollup of the active minutes data type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ActiveMinutesRollupValue {
+    /// Active minutes by activity level. At most one record per activity level is allowed.
+    #[serde(default, rename = "activeMinutesRollupByActivityLevel")]
+    pub active_minutes_rollup_by_activity_level:
+        ::core::option::Option<::std::vec::Vec<ActiveMinutesRollupByActivityLevel>>,
+}
+
+/// Represents the result of the rollup of the active zone minutes data type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ActiveZoneMinutesRollupValue {
+    /// Active zone minutes in HeartRateZone.CARDIO.
+    #[serde(default, rename = "sumInCardioHeartZone")]
+    pub sum_in_cardio_heart_zone: ::core::option::Option<String>,
+    /// Active zone minutes in HeartRateZone.FAT_BURN.
+    #[serde(default, rename = "sumInFatBurnHeartZone")]
+    pub sum_in_fat_burn_heart_zone: ::core::option::Option<String>,
+    /// Active zone minutes in HeartRateZone.PEAK.
+    #[serde(default, rename = "sumInPeakHeartZone")]
+    pub sum_in_peak_heart_zone: ::core::option::Option<String>,
+}
+
+/// Represents the result of the rollup of the activity level data type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ActivityLevelRollupValue {
+    /// List of total durations in each activity level type.
+    #[serde(default, rename = "activityLevelRollupsByActivityLevelType")]
+    pub activity_level_rollups_by_activity_level_type:
+        ::core::option::Option<::std::vec::Vec<ActivityLevelRollupByActivityLevelType>>,
+}
+
+/// Represents the result of the rollup of the user''s altitude.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AltitudeRollupValue {
+    /// Sum of the altitude gain in millimeters.
+    #[serde(default, rename = "gainMillimetersSum")]
+    pub gain_millimeters_sum: ::core::option::Option<String>,
+}
+
+/// Represents the result of the rollup of the body fat data type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BodyFatRollupValue {
+    /// Average body fat percentage.
+    #[serde(default, rename = "bodyFatPercentageAvg")]
+    pub body_fat_percentage_avg: ::core::option::Option<f64>,
+}
+
+/// Represents the result of the rollup of the calories in heart rate zone data type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CaloriesInHeartRateZoneRollupValue {
+    /// List of calories burned in each heart rate zone.
+    #[serde(default, rename = "caloriesInHeartRateZones")]
+    pub calories_in_heart_rate_zones:
+        ::core::option::Option<::std::vec::Vec<CaloriesInHeartRateZoneValue>>,
+}
+
+/// Result of the rollup of the user''s distance.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DistanceRollupValue {
+    /// Sum of the distance in millimeters.
+    #[serde(default, rename = "millimetersSum")]
+    pub millimeters_sum: ::core::option::Option<String>,
+}
+
+/// Represents the result of the rollup of the user''s floors.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct FloorsRollupValue {
+    /// Sum of the floors count.
+    #[serde(default, rename = "countSum")]
+    pub count_sum: ::core::option::Option<String>,
+}
+
+/// Represents the result of the rollup of the heart rate data type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct HeartRateRollupValue {
+    /// The average heart rate value in the interval.
+    #[serde(default, rename = "beatsPerMinuteAvg")]
+    pub beats_per_minute_avg: ::core::option::Option<f64>,
+    /// The maximum heart rate value in the interval.
+    #[serde(default, rename = "beatsPerMinuteMax")]
+    pub beats_per_minute_max: ::core::option::Option<f64>,
+    /// The minimum heart rate value in the interval.
+    #[serde(default, rename = "beatsPerMinuteMin")]
+    pub beats_per_minute_min: ::core::option::Option<f64>,
+}
+
+/// Represents the result of the rollup of the hydration log data type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct HydrationLogRollupValue {
+    /// Rollup for amount consumed.
+    #[serde(default, rename = "amountConsumed")]
+    pub amount_consumed: ::core::option::Option<VolumeQuantityRollup>,
+}
+
+/// Represents the result of the rollup of the user''s daily heart rate variability personal range.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RunVO2MaxRollupValue {
+    /// Average value of run VO2 max in the interval.
+    #[serde(default, rename = "rateAvg")]
+    pub rate_avg: ::core::option::Option<f64>,
+    /// Maximum value of run VO2 max in the interval.
+    #[serde(default, rename = "rateMax")]
+    pub rate_max: ::core::option::Option<f64>,
+    /// Minimum value of run VO2 max in the interval..
+    #[serde(default, rename = "rateMin")]
+    pub rate_min: ::core::option::Option<f64>,
+}
+
+/// Represents the result of the rollup of the user''s sedentary periods.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SedentaryPeriodRollupValue {
+    /// The total time user spent sedentary during the interval.
+    #[serde(default, rename = "durationSum")]
+    pub duration_sum: ::core::option::Option<String>,
+}
+
+/// Represents the result of the rollup of the steps data type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct StepsRollupValue {
+    /// Total number of steps in the interval.
+    #[serde(default, rename = "countSum")]
+    pub count_sum: ::core::option::Option<String>,
+}
+
+/// Represents the result of the rollup of the time in heart rate zone data type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TimeInHeartRateZoneRollupValue {
+    /// List of time spent in each heart rate zone.
+    #[serde(default, rename = "timeInHeartRateZones")]
+    pub time_in_heart_rate_zones: ::core::option::Option<::std::vec::Vec<TimeInHeartRateZoneValue>>,
+}
+
+/// Represents the result of the rollup of the user''s total calories.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TotalCaloriesRollupValue {
+    /// Sum of the total calories in kilocalories.
+    #[serde(default, rename = "kcalSum")]
+    pub kcal_sum: ::core::option::Option<f64>,
+}
+
+/// Represents the result of the rollup of the weight data type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct WeightRollupValue {
+    /// Average weight in grams.
+    #[serde(default, rename = "weightGramsAvg")]
+    pub weight_grams_avg: ::core::option::Option<f64>,
+}
+
+/// Optional metadata for the application that provided this data.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Application {
+    /// Output only. Captures the client ID of the entity that recorded the data.
+    #[serde(default, rename = "googleWebClientId")]
+    pub google_web_client_id: ::core::option::Option<String>,
+    /// Output only. A unique ID from an external data source. A unique identifier of the mobile application, e.g. com.google.fitbit
+    #[serde(default, rename = "packageName")]
+    pub package_name: ::core::option::Option<String>,
+    /// Output only. Captures the client ID of the web application that recorded the data.
+    #[serde(default, rename = "webClientId")]
+    pub web_client_id: ::core::option::Option<String>,
+}
+
+/// Captures metadata about the device that recorded the measurement.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Device {
+    /// Optional. An optional name for the device.
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+    /// Optional. Captures the form factor of the device. // TODO: enum values: ["FORM_FACTOR_UNSPECIFIED", "FITNESS_BAND", "WATCH", "PHONE", "RING", "CHEST_STRAP", "SCALE", "TABLET", "HEAD_MOUNTED", "SMART_DISPLAY"]
+    #[serde(default, rename = "formFactor")]
+    pub form_factor: ::core::option::Option<String>,
+    /// Optional. An optional manufacturer of the device.
+    #[serde(default)]
+    pub manufacturer: ::core::option::Option<String>,
+}
+
+/// Active minutes at a given activity level.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ActiveMinutesByActivityLevel {
+    /// Required. Number of whole minutes spent in activity.
+    #[serde(default, rename = "activeMinutes")]
+    pub active_minutes: ::core::option::Option<String>,
+    /// Required. The level of activity. // TODO: enum values: ["ACTIVITY_LEVEL_UNSPECIFIED", "LIGHT", "MODERATE", "VIGOROUS"]
+    #[serde(default, rename = "activityLevel")]
+    pub activity_level: ::core::option::Option<String>,
+}
+
+/// The heart rate zone.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct HeartRateZone {
+    /// Required. The heart rate zone type. // TODO: enum values: ["HEART_RATE_ZONE_TYPE_UNSPECIFIED", "LIGHT", "MODERATE", "VIGOROUS", "PEAK"]
+    #[serde(default, rename = "heartRateZoneType")]
+    pub heart_rate_zone_type: ::core::option::Option<String>,
+    /// Required. Maximum heart rate for this zone in beats per minute.
+    #[serde(default, rename = "maxBeatsPerMinute")]
+    pub max_beats_per_minute: ::core::option::Option<String>,
+    /// Required. Minimum heart rate for this zone in beats per minute.
+    #[serde(default, rename = "minBeatsPerMinute")]
+    pub min_beats_per_minute: ::core::option::Option<String>,
+}
+
+/// Metadata for the daily resting heart rate.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DailyRestingHeartRateMetadata {
+    /// Required. The method used to calculate the resting heart rate. // TODO: enum values: ["CALCULATION_METHOD_UNSPECIFIED", "WITH_SLEEP", "ONLY_WITH_AWAKE_DATA"]
+    #[serde(default, rename = "calculationMethod")]
+    pub calculation_method: ::core::option::Option<String>,
+}
+
+/// Represents instantaneous events that happen during an exercise, such as start, stop, pause, split.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ExerciseEvent {
+    /// Required. Exercise event time
+    #[serde(default, rename = "eventTime")]
+    pub event_time: ::core::option::Option<String>,
+    /// Required. Exercise event time offset from UTC
+    #[serde(default, rename = "eventUtcOffset")]
+    pub event_utc_offset: ::core::option::Option<String>,
+    /// Required. The type of the event, such as start, stop, pause, resume. // TODO: enum values: ["EXERCISE_EVENT_TYPE_UNSPECIFIED", "START", "STOP", "PAUSE", "RESUME", "AUTO_PAUSE", "AUTO_RESUME"]
+    #[serde(default, rename = "exerciseEventType")]
+    pub exercise_event_type: ::core::option::Option<String>,
+}
+
+/// Additional exercise metadata.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ExerciseMetadata {
+    /// Optional. Whether the exercise had GPS tracking.
+    #[serde(default, rename = "hasGps")]
+    pub has_gps: ::core::option::Option<bool>,
+    /// Optional. Pool length in millimeters. Only present in the swimming exercises.
+    #[serde(default, rename = "poolLengthMillimeters")]
+    pub pool_length_millimeters: ::core::option::Option<String>,
+}
+
+/// Represents splits or laps recorded within an exercise. Lap events partition a workout into segments based on criteria like distance, time, or calories.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SplitSummary {
+    /// Output only. Lap time excluding the pauses.
+    #[serde(default, rename = "activeDuration")]
+    pub active_duration: ::core::option::Option<String>,
+    /// Required. Lap end time
+    #[serde(default, rename = "endTime")]
+    pub end_time: ::core::option::Option<String>,
+    /// Required. Lap end time offset from UTC
+    #[serde(default, rename = "endUtcOffset")]
+    pub end_utc_offset: ::core::option::Option<String>,
+    /// Required. Summary metrics for this split.
+    #[serde(default, rename = "metricsSummary")]
+    pub metrics_summary: ::core::option::Option<MetricsSummary>,
+    /// Required. Method used to split the exercise laps. Users may manually mark the lap as complete even if the tracking is automatic. // TODO: enum values: ["SPLIT_TYPE_UNSPECIFIED", "MANUAL", "DURATION", "DISTANCE", "CALORIES"]
+    #[serde(default, rename = "splitType")]
+    pub split_type: ::core::option::Option<String>,
+    /// Required. Lap start time
+    #[serde(default, rename = "startTime")]
+    pub start_time: ::core::option::Option<String>,
+    /// Required. Lap start time offset from UTC
+    #[serde(default, rename = "startUtcOffset")]
+    pub start_utc_offset: ::core::option::Option<String>,
+}
+
+/// Heart rate metadata.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct HeartRateMetadata {
+    /// Optional. Indicates the user’s level of activity when the heart rate sample was measured // TODO: enum values: ["MOTION_CONTEXT_UNSPECIFIED", "ACTIVE", "SEDENTARY"]
+    #[serde(default, rename = "motionContext")]
+    pub motion_context: ::core::option::Option<String>,
+    /// Optional. Indicates the location of the sensor that measured the heart rate. // TODO: enum values: ["SENSOR_LOCATION_UNSPECIFIED", "CHEST", "WRIST", "FINGER", "HAND", "EAR_LOBE", "FOOT"]
+    #[serde(default, rename = "sensorLocation")]
+    pub sensor_location: ::core::option::Option<String>,
+}
+
+/// Represents the volume quantity.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct VolumeQuantity {
+    /// Required. Value representing the volume in milliliters.
+    #[serde(default)]
+    pub milliliters: ::core::option::Option<f64>,
+    /// Optional. Value representing the user provided unit. // TODO: enum values: ["VOLUME_UNIT_UNSPECIFIED", "CUP_IMPERIAL", "CUP_US", "FLUID_OUNCE_IMPERIAL", "FLUID_OUNCE_US", "LITER", "MILLILITER", "PINT_IMPERIAL", "PINT_US"]
+    #[serde(default, rename = "userProvidedUnit")]
+    pub user_provided_unit: ::core::option::Option<String>,
+}
+
+/// Respiratory rate statistics for a given sleep stage.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RespiratoryRateSleepSummaryStatistics {
+    /// Required. Average breaths per minute.
+    #[serde(default, rename = "breathsPerMinute")]
+    pub breaths_per_minute: ::core::option::Option<f64>,
+    /// Optional. How trustworthy the data is for the computation.
+    #[serde(default, rename = "signalToNoise")]
+    pub signal_to_noise: ::core::option::Option<f64>,
+    /// Optional. Standard deviation of the respiratory rate during sleep.
+    #[serde(default, rename = "standardDeviation")]
+    pub standard_deviation: ::core::option::Option<f64>,
+}
+
+/// Represents a time interval of session data point, which bundles multiple observed metrics together.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SessionTimeInterval {
+    /// Output only. Session end time in civil time in the timezone the subject is in at the end of the session.
+    #[serde(default, rename = "civilEndTime")]
+    pub civil_end_time: ::core::option::Option<CivilDateTime>,
+    /// Output only. Session start time in civil time in the timezone the subject is in at the start of the session.
+    #[serde(default, rename = "civilStartTime")]
+    pub civil_start_time: ::core::option::Option<CivilDateTime>,
+    /// Required. The end time of the observed session.
+    #[serde(default, rename = "endTime")]
+    pub end_time: ::core::option::Option<String>,
+    /// Required. The offset of the user''s local time at the end of the session relative to the Coordinated Universal Time (UTC).
+    #[serde(default, rename = "endUtcOffset")]
+    pub end_utc_offset: ::core::option::Option<String>,
+    /// Required. The start time of the observed session.
+    #[serde(default, rename = "startTime")]
+    pub start_time: ::core::option::Option<String>,
+    /// Required. The offset of the user''s local time at the start of the session relative to the Coordinated Universal Time (UTC).
+    #[serde(default, rename = "startUtcOffset")]
+    pub start_utc_offset: ::core::option::Option<String>,
+}
+
 /// Additional information about how the sleep was processed.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SleepMetadata {
@@ -1423,6 +1394,23 @@ pub struct SleepMetadata {
     /// Output only. Sleep stages algorithm processing status. // TODO: enum values: ["STAGES_STATE_UNSPECIFIED", "REJECTED_COVERAGE", "REJECTED_MAX_GAP", "REJECTED_START_GAP", "REJECTED_END_GAP", "REJECTED_NAP", "REJECTED_SERVER", "TIMEOUT", "SUCCEEDED", "PROCESSING_INTERNAL_ERROR"]
     #[serde(default, rename = "stagesStatus")]
     pub stages_status: ::core::option::Option<String>,
+}
+
+/// A time interval to represent an out-of-bed segment.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct OutOfBedSegment {
+    /// Required. Segment end time.
+    #[serde(default, rename = "endTime")]
+    pub end_time: ::core::option::Option<String>,
+    /// Required. The offset of the user''s local time at the end of the segment relative to the Coordinated Universal Time (UTC).
+    #[serde(default, rename = "endUtcOffset")]
+    pub end_utc_offset: ::core::option::Option<String>,
+    /// Required. Segment tart time.
+    #[serde(default, rename = "startTime")]
+    pub start_time: ::core::option::Option<String>,
+    /// Required. The offset of the user''s local time at the start of the segment relative to the Coordinated Universal Time (UTC).
+    #[serde(default, rename = "startUtcOffset")]
+    pub start_utc_offset: ::core::option::Option<String>,
 }
 
 /// Sleep stage segment.
@@ -1474,30 +1462,137 @@ pub struct SleepSummary {
     pub stages_summary: ::core::option::Option<::std::vec::Vec<StageSummary>>,
 }
 
-/// Represents splits or laps recorded within an exercise. Lap events partition a workout into segments based on criteria like distance, time, or calories.
+/// Represents a time interval of an observed data point.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SplitSummary {
-    /// Output only. Lap time excluding the pauses.
-    #[serde(default, rename = "activeDuration")]
-    pub active_duration: ::core::option::Option<String>,
-    /// Required. Lap end time
+pub struct ObservationTimeInterval {
+    /// Output only. Observed interval end time in civil time in the timezone the subject is in at the end of the observed interval
+    #[serde(default, rename = "civilEndTime")]
+    pub civil_end_time: ::core::option::Option<CivilDateTime>,
+    /// Output only. Observed interval start time in civil time in the timezone the subject is in at the start of the observed interval
+    #[serde(default, rename = "civilStartTime")]
+    pub civil_start_time: ::core::option::Option<CivilDateTime>,
+    /// Required. Observed interval end time.
     #[serde(default, rename = "endTime")]
     pub end_time: ::core::option::Option<String>,
-    /// Required. Lap end time offset from UTC
+    /// Required. The offset of the user''s local time at the end of the observation relative to the Coordinated Universal Time (UTC).
     #[serde(default, rename = "endUtcOffset")]
     pub end_utc_offset: ::core::option::Option<String>,
-    /// Required. Summary metrics for this split.
-    #[serde(default, rename = "metricsSummary")]
-    pub metrics_summary: ::core::option::Option<MetricsSummary>,
-    /// Required. Method used to split the exercise laps. Users may manually mark the lap as complete even if the tracking is automatic. // TODO: enum values: ["SPLIT_TYPE_UNSPECIFIED", "MANUAL", "DURATION", "DISTANCE", "CALORIES"]
-    #[serde(default, rename = "splitType")]
-    pub split_type: ::core::option::Option<String>,
-    /// Required. Lap start time
+    /// Required. Observed interval start time.
     #[serde(default, rename = "startTime")]
     pub start_time: ::core::option::Option<String>,
-    /// Required. Lap start time offset from UTC
+    /// Required. The offset of the user''s local time at the start of the observation relative to the Coordinated Universal Time (UTC).
     #[serde(default, rename = "startUtcOffset")]
     pub start_utc_offset: ::core::option::Option<String>,
+}
+
+/// Represents a sample time of an observed data point.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ObservationSampleTime {
+    /// Output only. The civil time in the timezone the subject is in at the time of the observation.
+    #[serde(default, rename = "civilTime")]
+    pub civil_time: ::core::option::Option<CivilDateTime>,
+    /// Required. The time of the observation.
+    #[serde(default, rename = "physicalTime")]
+    pub physical_time: ::core::option::Option<String>,
+    /// Required. The offset of the user''s local time during the observation relative to the Coordinated Universal Time (UTC).
+    #[serde(default, rename = "utcOffset")]
+    pub utc_offset: ::core::option::Option<String>,
+}
+
+/// Active minutes by activity level.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ActiveMinutesRollupByActivityLevel {
+    /// Number of whole minutes spent in activity.
+    #[serde(default, rename = "activeMinutesSum")]
+    pub active_minutes_sum: ::core::option::Option<String>,
+    /// The level of activity. // TODO: enum values: ["ACTIVITY_LEVEL_UNSPECIFIED", "LIGHT", "MODERATE", "VIGOROUS"]
+    #[serde(default, rename = "activityLevel")]
+    pub activity_level: ::core::option::Option<String>,
+}
+
+/// Represents the total duration in a specific activity level type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ActivityLevelRollupByActivityLevelType {
+    /// Activity level type. // TODO: enum values: ["ACTIVITY_LEVEL_TYPE_UNSPECIFIED", "SEDENTARY", "LIGHTLY_ACTIVE", "MODERATELY_ACTIVE", "VERY_ACTIVE"]
+    #[serde(default, rename = "activityLevelType")]
+    pub activity_level_type: ::core::option::Option<String>,
+    /// Total duration in the activity level type.
+    #[serde(default, rename = "totalDuration")]
+    pub total_duration: ::core::option::Option<String>,
+}
+
+/// Represents the amount of kilocalories burned in a specific heart rate zone.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CaloriesInHeartRateZoneValue {
+    /// The heart rate zone. // TODO: enum values: ["HEART_RATE_ZONE_TYPE_UNSPECIFIED", "LIGHT", "MODERATE", "VIGOROUS", "PEAK"]
+    #[serde(default, rename = "heartRateZone")]
+    pub heart_rate_zone: ::core::option::Option<String>,
+    /// The amount of kilocalories burned in the specified heart rate zone.
+    #[serde(default)]
+    pub kcal: ::core::option::Option<f64>,
+}
+
+/// Rollup for volume quantity.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct VolumeQuantityRollup {
+    /// Required. The sum of volume in milliliters.
+    #[serde(default, rename = "millilitersSum")]
+    pub milliliters_sum: ::core::option::Option<f64>,
+    /// Optional. The user provided unit on the last element. // TODO: enum values: ["VOLUME_UNIT_UNSPECIFIED", "CUP_IMPERIAL", "CUP_US", "FLUID_OUNCE_IMPERIAL", "FLUID_OUNCE_US", "LITER", "MILLILITER", "PINT_IMPERIAL", "PINT_US"]
+    #[serde(default, rename = "userProvidedUnitLast")]
+    pub user_provided_unit_last: ::core::option::Option<String>,
+}
+
+/// Represents the total time spent in a specific heart rate zone.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TimeInHeartRateZoneValue {
+    /// The total time spent in the specified heart rate zone.
+    #[serde(default)]
+    pub duration: ::core::option::Option<String>,
+    /// The heart rate zone. // TODO: enum values: ["HEART_RATE_ZONE_TYPE_UNSPECIFIED", "LIGHT", "MODERATE", "VIGOROUS", "PEAK"]
+    #[serde(default, rename = "heartRateZone")]
+    pub heart_rate_zone: ::core::option::Option<String>,
+}
+
+/// Summary metrics for an exercise.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MetricsSummary {
+    /// Optional. Total active zone minutes for the exercise.
+    #[serde(default, rename = "activeZoneMinutes")]
+    pub active_zone_minutes: ::core::option::Option<String>,
+    /// Optional. Average heart rate during the exercise.
+    #[serde(default, rename = "averageHeartRateBeatsPerMinute")]
+    pub average_heart_rate_beats_per_minute: ::core::option::Option<String>,
+    /// Optional. Average pace in seconds per meter.
+    #[serde(default, rename = "averagePaceSecondsPerMeter")]
+    pub average_pace_seconds_per_meter: ::core::option::Option<f64>,
+    /// Optional. Average speed in millimeters per second.
+    #[serde(default, rename = "averageSpeedMillimetersPerSecond")]
+    pub average_speed_millimeters_per_second: ::core::option::Option<f64>,
+    /// Optional. Total calories burned by the user during the exercise.
+    #[serde(default, rename = "caloriesKcal")]
+    pub calories_kcal: ::core::option::Option<f64>,
+    /// Optional. Total distance covered by the user during the exercise.
+    #[serde(default, rename = "distanceMillimeters")]
+    pub distance_millimeters: ::core::option::Option<f64>,
+    /// Optional. Total elevation gain during the exercise.
+    #[serde(default, rename = "elevationGainMillimeters")]
+    pub elevation_gain_millimeters: ::core::option::Option<f64>,
+    /// Optional. Time spent in each heart rate zone.
+    #[serde(default, rename = "heartRateZoneDurations")]
+    pub heart_rate_zone_durations: ::core::option::Option<TimeInHeartRateZones>,
+    /// Optional. Mobility workouts specific metrics. Only present in the advanced running exercises.
+    #[serde(default, rename = "mobilityMetrics")]
+    pub mobility_metrics: ::core::option::Option<MobilityMetrics>,
+    /// Optional. Run VO2 max value for the exercise. Only present in the running exercises at the top level as in the summary of the whole exercise.
+    #[serde(default, rename = "runVo2Max")]
+    pub run_vo2_max: ::core::option::Option<f64>,
+    /// Optional. Total steps taken during the exercise.
+    #[serde(default)]
+    pub steps: ::core::option::Option<String>,
+    /// Optional. Number of full pool lengths completed during the exercise. Only present in the swimming exercises at the top level as in the summary of the whole exercise.
+    #[serde(default, rename = "totalSwimLengths")]
+    pub total_swim_lengths: ::core::option::Option<f64>,
 }
 
 /// Total duration and segment count for a stage.
@@ -1514,67 +1609,15 @@ pub struct StageSummary {
     pub type_: ::core::option::Option<String>,
 }
 
-/// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
+/// Civil time representation similar to google.type.DateTime, but ensures that neither the timezone nor the UTC offset can be set to avoid confusion between civil and physical time queries.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Status {
-    /// The status code, which should be an enum value of google.rpc.Code.
+pub struct CivilDateTime {
+    /// Required. Calendar date.
     #[serde(default)]
-    pub code: ::core::option::Option<i32>,
-    /// A list of messages that carry the error details. There is a common set of message types for APIs to use.
+    pub date: ::core::option::Option<Date>,
+    /// Optional. Time of day. Defaults to the start of the day, at midnight if omitted.
     #[serde(default)]
-    pub details: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
-    /// A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.
-    #[serde(default)]
-    pub message: ::core::option::Option<String>,
-}
-
-/// Step count over the time interval.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Steps {
-    /// Required. Number of steps in the recorded interval.
-    #[serde(default)]
-    pub count: ::core::option::Option<String>,
-    /// Required. Observed interval.
-    #[serde(default)]
-    pub interval: ::core::option::Option<ObservationTimeInterval>,
-}
-
-/// Represents the result of the rollup of the steps data type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct StepsRollupValue {
-    /// Total number of steps in the interval.
-    #[serde(default, rename = "countSum")]
-    pub count_sum: ::core::option::Option<String>,
-}
-
-/// Time in heart rate zone record. It''s an interval spent in specific heart rate zone.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct TimeInHeartRateZone {
-    /// Required. Heart rate zone type. // TODO: enum values: ["HEART_RATE_ZONE_TYPE_UNSPECIFIED", "LIGHT", "MODERATE", "VIGOROUS", "PEAK"]
-    #[serde(default, rename = "heartRateZoneType")]
-    pub heart_rate_zone_type: ::core::option::Option<String>,
-    /// Required. Observed interval.
-    #[serde(default)]
-    pub interval: ::core::option::Option<ObservationTimeInterval>,
-}
-
-/// Represents the result of the rollup of the time in heart rate zone data type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct TimeInHeartRateZoneRollupValue {
-    /// List of time spent in each heart rate zone.
-    #[serde(default, rename = "timeInHeartRateZones")]
-    pub time_in_heart_rate_zones: ::core::option::Option<::std::vec::Vec<TimeInHeartRateZoneValue>>,
-}
-
-/// Represents the total time spent in a specific heart rate zone.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct TimeInHeartRateZoneValue {
-    /// The total time spent in the specified heart rate zone.
-    #[serde(default)]
-    pub duration: ::core::option::Option<String>,
-    /// The heart rate zone. // TODO: enum values: ["HEART_RATE_ZONE_TYPE_UNSPECIFIED", "LIGHT", "MODERATE", "VIGOROUS", "PEAK"]
-    #[serde(default, rename = "heartRateZone")]
-    pub heart_rate_zone: ::core::option::Option<String>,
+    pub time: ::core::option::Option<TimeOfDay>,
 }
 
 /// Time spent in each heart rate zone.
@@ -1594,6 +1637,40 @@ pub struct TimeInHeartRateZones {
     pub vigorous_time: ::core::option::Option<String>,
 }
 
+/// Mobility workouts specific metrics
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MobilityMetrics {
+    /// Optional. Cadence is a measure of the frequency of your foot strikes. Steps / min in real time during workout.
+    #[serde(default, rename = "avgCadenceStepsPerMinute")]
+    pub avg_cadence_steps_per_minute: ::core::option::Option<f64>,
+    /// Optional. The ground contact time for a particular stride is the amount of time for which the foot was in contact with the ground on that stride
+    #[serde(default, rename = "avgGroundContactTimeDuration")]
+    pub avg_ground_contact_time_duration: ::core::option::Option<String>,
+    /// Optional. Stride length is a measure of the distance covered by a single stride
+    #[serde(default, rename = "avgStrideLengthMillimeters")]
+    pub avg_stride_length_millimeters: ::core::option::Option<String>,
+    /// Optional. Distance off the ground your center of mass moves with each stride while running
+    #[serde(default, rename = "avgVerticalOscillationMillimeters")]
+    pub avg_vertical_oscillation_millimeters: ::core::option::Option<String>,
+    /// Optional. Vertical oscillation/stride length between [5.0, 11.0].
+    #[serde(default, rename = "avgVerticalRatio")]
+    pub avg_vertical_ratio: ::core::option::Option<f64>,
+}
+
+/// Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Date {
+    /// Day of a month. Must be from 1 to 31 and valid for the year and month, or 0 to specify a year by itself or a year and month where the day isn''t significant.
+    #[serde(default)]
+    pub day: ::core::option::Option<i32>,
+    /// Month of a year. Must be from 1 to 12, or 0 to specify a year without a month and day.
+    #[serde(default)]
+    pub month: ::core::option::Option<i32>,
+    /// Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.
+    #[serde(default)]
+    pub year: ::core::option::Option<i32>,
+}
+
 /// Represents a time of day. The date and time zone are either not significant or are specified elsewhere. An API may choose to allow leap seconds. Related types are google.type.Date and google.protobuf.Timestamp.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TimeOfDay {
@@ -1609,81 +1686,4 @@ pub struct TimeOfDay {
     /// Seconds of a minute. Must be greater than or equal to 0 and typically must be less than or equal to 59. An API may allow the value 60 if it allows leap-seconds.
     #[serde(default)]
     pub seconds: ::core::option::Option<i32>,
-}
-
-/// Represents a time zone from the [IANA Time Zone Database](https://www.iana.org/time-zones).
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct TimeZone {
-    /// IANA Time Zone Database time zone. For example "America/New_York".
-    #[serde(default)]
-    pub id: ::core::option::Option<String>,
-    /// Optional. IANA Time Zone Database version number. For example "2019a".
-    #[serde(default)]
-    pub version: ::core::option::Option<String>,
-}
-
-/// Represents the result of the rollup of the user''s total calories.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct TotalCaloriesRollupValue {
-    /// Sum of the total calories in kilocalories.
-    #[serde(default, rename = "kcalSum")]
-    pub kcal_sum: ::core::option::Option<f64>,
-}
-
-/// VO2 max measurement.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct VO2Max {
-    /// Optional. The method used to measure the VO2 max value. // TODO: enum values: ["MEASUREMENT_METHOD_UNSPECIFIED", "FITBIT_RUN", "GOOGLE_DEMOGRAPHIC", "COOPER_TEST", "HEART_RATE_RATIO", "METABOLIC_CART", "MULTISTAGE_FITNESS_TEST", "ROCKPORT_FITNESS_TEST", "MAX_EXERCISE", "PREDICTION_SUB_MAX_EXERCISE", "PREDICTION_NON_EXERCISE", "OTHER"]
-    #[serde(default, rename = "measurementMethod")]
-    pub measurement_method: ::core::option::Option<String>,
-    /// Required. The time at which VO2 max was measured.
-    #[serde(default, rename = "sampleTime")]
-    pub sample_time: ::core::option::Option<ObservationSampleTime>,
-    /// Required. VO2 max value measured as in ml consumed oxygen / kg of body weight / min.
-    #[serde(default, rename = "vo2Max")]
-    pub vo2_max: ::core::option::Option<f64>,
-}
-
-/// Represents the volume quantity.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct VolumeQuantity {
-    /// Required. Value representing the volume in milliliters.
-    #[serde(default)]
-    pub milliliters: ::core::option::Option<f64>,
-    /// Optional. Value representing the user provided unit. // TODO: enum values: ["VOLUME_UNIT_UNSPECIFIED", "CUP_IMPERIAL", "CUP_US", "FLUID_OUNCE_IMPERIAL", "FLUID_OUNCE_US", "LITER", "MILLILITER", "PINT_IMPERIAL", "PINT_US"]
-    #[serde(default, rename = "userProvidedUnit")]
-    pub user_provided_unit: ::core::option::Option<String>,
-}
-
-/// Rollup for volume quantity.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct VolumeQuantityRollup {
-    /// Required. The sum of volume in milliliters.
-    #[serde(default, rename = "millilitersSum")]
-    pub milliliters_sum: ::core::option::Option<f64>,
-    /// Optional. The user provided unit on the last element. // TODO: enum values: ["VOLUME_UNIT_UNSPECIFIED", "CUP_IMPERIAL", "CUP_US", "FLUID_OUNCE_IMPERIAL", "FLUID_OUNCE_US", "LITER", "MILLILITER", "PINT_IMPERIAL", "PINT_US"]
-    #[serde(default, rename = "userProvidedUnitLast")]
-    pub user_provided_unit_last: ::core::option::Option<String>,
-}
-
-/// Body weight measurement.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Weight {
-    /// Optional. Standard free-form notes captured at manual logging.
-    #[serde(default)]
-    pub notes: ::core::option::Option<String>,
-    /// Required. The time at which the weight was measured
-    #[serde(default, rename = "sampleTime")]
-    pub sample_time: ::core::option::Option<ObservationSampleTime>,
-    /// Required. Weight of a user in grams.
-    #[serde(default, rename = "weightGrams")]
-    pub weight_grams: ::core::option::Option<f64>,
-}
-
-/// Represents the result of the rollup of the weight data type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct WeightRollupValue {
-    /// Average weight in grams.
-    #[serde(default, rename = "weightGramsAvg")]
-    pub weight_grams_avg: ::core::option::Option<f64>,
 }

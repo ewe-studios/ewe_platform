@@ -10,17 +10,6 @@
 use super::*;
 use serde::{Deserialize, Serialize};
 
-/// Represents an app in Checks.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleChecksAccountV1alphaApp {
-    /// The resource name of the app. Example: accounts/123/apps/456
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// The app''s title.
-    #[serde(default)]
-    pub title: ::core::option::Option<String>,
-}
-
 /// The response message for AccountService.ListApps.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleChecksAccountV1alphaListAppsResponse {
@@ -52,33 +41,6 @@ pub struct GoogleChecksAisafetyV1alphaClassifyContentRequest {
     >,
 }
 
-/// Context about the input that will be used to help on the classification.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleChecksAisafetyV1alphaClassifyContentRequestContext {
-    /// Optional. Prompt that generated the model response.
-    #[serde(default)]
-    pub prompt: ::core::option::Option<String>,
-}
-
-/// Content to be classified.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleChecksAisafetyV1alphaClassifyContentRequestInputContent {
-    /// Content in text format.
-    #[serde(default, rename = "textInput")]
-    pub text_input: ::core::option::Option<GoogleChecksAisafetyV1alphaTextInput>,
-}
-
-/// List of policies to classify against.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleChecksAisafetyV1alphaClassifyContentRequestPolicyConfig {
-    /// Required. Type of the policy. // TODO: enum values: ["POLICY_TYPE_UNSPECIFIED", "DANGEROUS_CONTENT", "PII_SOLICITING_RECITING", "HARASSMENT", "SEXUALLY_EXPLICIT", "HATE_SPEECH", "MEDICAL_INFO", "VIOLENCE_AND_GORE", "OBSCENITY_AND_PROFANITY"]
-    #[serde(default, rename = "policyType")]
-    pub policy_type: ::core::option::Option<String>,
-    /// Optional. Score threshold to use when deciding if the content is violative or non-violative. If not specified, the default 0.5 threshold for the policy will be used.
-    #[serde(default)]
-    pub threshold: ::core::option::Option<f32>,
-}
-
 /// Response proto for ClassifyContent RPC.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleChecksAisafetyV1alphaClassifyContentResponse {
@@ -87,83 +49,6 @@ pub struct GoogleChecksAisafetyV1alphaClassifyContentResponse {
     pub policy_results: ::core::option::Option<
         ::std::vec::Vec<GoogleChecksAisafetyV1alphaClassifyContentResponsePolicyResult>,
     >,
-}
-
-/// Result for one policy against the corresponding input.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleChecksAisafetyV1alphaClassifyContentResponsePolicyResult {
-    /// Type of the policy. // TODO: enum values: ["POLICY_TYPE_UNSPECIFIED", "DANGEROUS_CONTENT", "PII_SOLICITING_RECITING", "HARASSMENT", "SEXUALLY_EXPLICIT", "HATE_SPEECH", "MEDICAL_INFO", "VIOLENCE_AND_GORE", "OBSCENITY_AND_PROFANITY"]
-    #[serde(default, rename = "policyType")]
-    pub policy_type: ::core::option::Option<String>,
-    /// Final score for the results of this policy.
-    #[serde(default)]
-    pub score: ::core::option::Option<f32>,
-    /// Result of the classification for the policy. // TODO: enum values: ["VIOLATION_RESULT_UNSPECIFIED", "VIOLATIVE", "NON_VIOLATIVE", "CLASSIFICATION_ERROR"]
-    #[serde(default, rename = "violationResult")]
-    pub violation_result: ::core::option::Option<String>,
-}
-
-/// Text input to be classified.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleChecksAisafetyV1alphaTextInput {
-    /// Actual piece of text to be classified.
-    #[serde(default)]
-    pub content: ::core::option::Option<String>,
-    /// Optional. Language of the text in ISO 639-1 format. If the language is invalid or not specified, the system will try to detect it.
-    #[serde(default, rename = "languageCode")]
-    pub language_code: ::core::option::Option<String>,
-}
-
-/// The results of a Code Compliance CLI analysis.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleChecksRepoScanV1alphaCliAnalysis {
-    /// Optional. Requested code scans resulting from preliminary CLI analysis.
-    #[serde(default, rename = "codeScans")]
-    pub code_scans: ::core::option::Option<::std::vec::Vec<GoogleChecksRepoScanV1alphaCodeScan>>,
-    /// Optional. Data sources detected in the scan.
-    #[serde(default)]
-    pub sources: ::core::option::Option<::std::vec::Vec<GoogleChecksRepoScanV1alphaSource>>,
-}
-
-/// Source code attribution.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleChecksRepoScanV1alphaCodeAttribution {
-    /// Optional. Code excerpt where the source was detected along with surrounding code.
-    #[serde(default, rename = "codeExcerpt")]
-    pub code_excerpt: ::core::option::Option<String>,
-    /// Required. Line number (1-based).
-    #[serde(default, rename = "lineNumber")]
-    pub line_number: ::core::option::Option<i32>,
-    /// Required. Path of the file.
-    #[serde(default)]
-    pub path: ::core::option::Option<String>,
-    /// Optional. Start line number of the code excerpt (1-based).
-    #[serde(default, rename = "startLineNumber")]
-    pub start_line_number: ::core::option::Option<i32>,
-}
-
-/// A requested analysis of source code. Contains the source code and processing state.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleChecksRepoScanV1alphaCodeScan {
-    /// Optional. Data type classification requests.
-    #[serde(default, rename = "dataTypeClassifications")]
-    pub data_type_classifications: ::core::option::Option<
-        ::std::vec::Vec<GoogleChecksRepoScanV1alphaCodeScanDataTypeClassification>,
-    >,
-    /// Required. Source code to analyze.
-    #[serde(default, rename = "sourceCode")]
-    pub source_code: ::core::option::Option<GoogleChecksRepoScanV1alphaSourceCode>,
-}
-
-/// A request to classify data types.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleChecksRepoScanV1alphaCodeScanDataTypeClassification {
-    /// Required. Candidate data type. // TODO: enum values: ["DATA_TYPE_UNSPECIFIED", "DATA_TYPE_APPROXIMATE_LOCATION", "DATA_TYPE_PRECISE_LOCATION", "DATA_TYPE_PERSONAL_NAME", "DATA_TYPE_EMAIL_ADDRESS", "DATA_TYPE_USER_IDS", "DATA_TYPE_PHYSICAL_ADDRESS", "DATA_TYPE_PHONE_NUMBER", "DATA_TYPE_RACE_AND_ETHNICITY", "DATA_TYPE_POLITICAL_OR_RELIGIOUS_BELIEFS", "DATA_TYPE_SEXUAL_ORIENTATION", "DATA_TYPE_OTHER_PERSONAL_INFO", "DATA_TYPE_PAYMENT_INFO", "DATA_TYPE_PURCHASE_HISTORY", "DATA_TYPE_CREDIT_SCORE", "DATA_TYPE_OTHER_FINANCIAL_INFO", "DATA_TYPE_HEALTH_INFO", "DATA_TYPE_FITNESS_INFO", "DATA_TYPE_EMAILS", "DATA_TYPE_TEXT_MESSAGES", "DATA_TYPE_OTHER_IN_APP_MESSAGES", "DATA_TYPE_PHOTOS", "DATA_TYPE_VIDEOS", "DATA_TYPE_VOICE_OR_SOUND_RECORDINGS", "DATA_TYPE_MUSIC_FILES", "DATA_TYPE_OTHER_AUDIO_FILES", "DATA_TYPE_FILES_AND_DOCS", "DATA_TYPE_CALENDAR_EVENTS", "DATA_TYPE_CONTACTS", "DATA_TYPE_APP_INTERACTIONS", "DATA_TYPE_IN_APP_SEARCH_HISTORY", "DATA_TYPE_INSTALLED_APPS", "DATA_TYPE_OTHER_USER_GENERATED_CONTENT", "DATA_TYPE_OTHER_ACTIONS", "DATA_TYPE_WEB_BROWSING_HISTORY", "DATA_TYPE_CRASH_LOGS", "DATA_TYPE_PERFORMANCE_DIAGNOSTICS", "DATA_TYPE_OTHER_APP_PERFORMANCE_DATA", "DATA_TYPE_DEVICE_OR_OTHER_IDS"]
-    #[serde(default, rename = "dataType")]
-    pub data_type: ::core::option::Option<String>,
-    /// Required. Line number (1-based).
-    #[serde(default, rename = "lineNumber")]
-    pub line_number: ::core::option::Option<i32>,
 }
 
 /// The request message for RepoScanService.GenerateScan.
@@ -194,15 +79,111 @@ pub struct GoogleChecksRepoScanV1alphaListRepoScansResponse {
     pub repo_scans: ::core::option::Option<::std::vec::Vec<GoogleChecksRepoScanV1alphaRepoScan>>,
 }
 
-/// Pull request info.
+/// The request message for ReportService.AnalyzeUpload.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleChecksRepoScanV1alphaPullRequest {
-    /// Required. For PR analysis, we compare against the most recent scan of the base branch to highlight new issues.
-    #[serde(default, rename = "baseBranch")]
-    pub base_branch: ::core::option::Option<String>,
-    /// Required. This can be supplied by the user or parsed automatically from predefined CI environment variables.
-    #[serde(default, rename = "prNumber")]
-    pub pr_number: ::core::option::Option<String>,
+pub struct GoogleChecksReportV1alphaAnalyzeUploadRequest {
+    /// Optional. The type of the uploaded app binary. If not provided, the server assumes APK file for Android and IPA file for iOS. // TODO: enum values: ["APP_BINARY_FILE_TYPE_UNSPECIFIED", "ANDROID_APK", "ANDROID_AAB", "IOS_IPA"]
+    #[serde(default, rename = "appBinaryFileType")]
+    pub app_binary_file_type: ::core::option::Option<String>,
+    /// Optional. Git commit hash or changelist number associated with the upload.
+    #[serde(default, rename = "codeReferenceId")]
+    pub code_reference_id: ::core::option::Option<String>,
+}
+
+/// The response message for ReportService.ListReports.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleChecksReportV1alphaListReportsResponse {
+    /// A token which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+    /// The reports for the specified app.
+    #[serde(default)]
+    pub reports: ::core::option::Option<::std::vec::Vec<GoogleChecksReportV1alphaReport>>,
+}
+
+/// The response message for Operations.ListOperations.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ListOperationsResponse {
+    /// The standard List next-page token.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+    /// A list of operations that matches the specified filter in the request.
+    #[serde(default)]
+    pub operations: ::core::option::Option<::std::vec::Vec<Operation>>,
+    /// Unordered list. Unreachable resources. Populated when the request sets ListOperationsRequest.return_partial_success and reads across collections. For example, when attempting to list all resources across all supported locations.
+    #[serde(default)]
+    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// The request message for Operations.WaitOperation.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct WaitOperationRequest {
+    /// The maximum duration to wait before timing out. If left blank, the wait will be at most the time permitted by the underlying HTTP/RPC protocol. If RPC context deadline is also specified, the shorter one will be used.
+    #[serde(default)]
+    pub timeout: ::core::option::Option<String>,
+}
+
+/// Represents an app in Checks.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleChecksAccountV1alphaApp {
+    /// The resource name of the app. Example: accounts/123/apps/456
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// The app''s title.
+    #[serde(default)]
+    pub title: ::core::option::Option<String>,
+}
+
+/// Context about the input that will be used to help on the classification.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleChecksAisafetyV1alphaClassifyContentRequestContext {
+    /// Optional. Prompt that generated the model response.
+    #[serde(default)]
+    pub prompt: ::core::option::Option<String>,
+}
+
+/// Content to be classified.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleChecksAisafetyV1alphaClassifyContentRequestInputContent {
+    /// Content in text format.
+    #[serde(default, rename = "textInput")]
+    pub text_input: ::core::option::Option<GoogleChecksAisafetyV1alphaTextInput>,
+}
+
+/// List of policies to classify against.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleChecksAisafetyV1alphaClassifyContentRequestPolicyConfig {
+    /// Required. Type of the policy. // TODO: enum values: ["POLICY_TYPE_UNSPECIFIED", "DANGEROUS_CONTENT", "PII_SOLICITING_RECITING", "HARASSMENT", "SEXUALLY_EXPLICIT", "HATE_SPEECH", "MEDICAL_INFO", "VIOLENCE_AND_GORE", "OBSCENITY_AND_PROFANITY"]
+    #[serde(default, rename = "policyType")]
+    pub policy_type: ::core::option::Option<String>,
+    /// Optional. Score threshold to use when deciding if the content is violative or non-violative. If not specified, the default 0.5 threshold for the policy will be used.
+    #[serde(default)]
+    pub threshold: ::core::option::Option<f32>,
+}
+
+/// Result for one policy against the corresponding input.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleChecksAisafetyV1alphaClassifyContentResponsePolicyResult {
+    /// Type of the policy. // TODO: enum values: ["POLICY_TYPE_UNSPECIFIED", "DANGEROUS_CONTENT", "PII_SOLICITING_RECITING", "HARASSMENT", "SEXUALLY_EXPLICIT", "HATE_SPEECH", "MEDICAL_INFO", "VIOLENCE_AND_GORE", "OBSCENITY_AND_PROFANITY"]
+    #[serde(default, rename = "policyType")]
+    pub policy_type: ::core::option::Option<String>,
+    /// Final score for the results of this policy.
+    #[serde(default)]
+    pub score: ::core::option::Option<f32>,
+    /// Result of the classification for the policy. // TODO: enum values: ["VIOLATION_RESULT_UNSPECIFIED", "VIOLATIVE", "NON_VIOLATIVE", "CLASSIFICATION_ERROR"]
+    #[serde(default, rename = "violationResult")]
+    pub violation_result: ::core::option::Option<String>,
+}
+
+/// The results of a Code Compliance CLI analysis.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleChecksRepoScanV1alphaCliAnalysis {
+    /// Optional. Requested code scans resulting from preliminary CLI analysis.
+    #[serde(default, rename = "codeScans")]
+    pub code_scans: ::core::option::Option<::std::vec::Vec<GoogleChecksRepoScanV1alphaCodeScan>>,
+    /// Optional. Data sources detected in the scan.
+    #[serde(default)]
+    pub sources: ::core::option::Option<::std::vec::Vec<GoogleChecksRepoScanV1alphaSource>>,
 }
 
 /// Repo scan.
@@ -226,6 +207,70 @@ pub struct GoogleChecksRepoScanV1alphaRepoScan {
     /// Data sources detected.
     #[serde(default)]
     pub sources: ::core::option::Option<::std::vec::Vec<GoogleChecksRepoScanV1alphaSource>>,
+}
+
+/// Privacy report.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleChecksReportV1alphaReport {
+    /// Information about the analyzed app bundle.
+    #[serde(default, rename = "appBundle")]
+    pub app_bundle: ::core::option::Option<GoogleChecksReportV1alphaAppBundle>,
+    /// List of checks that were run on the app bundle.
+    #[serde(default)]
+    pub checks: ::core::option::Option<::std::vec::Vec<GoogleChecksReportV1alphaCheck>>,
+    /// Information related to data monitoring.
+    #[serde(default, rename = "dataMonitoring")]
+    pub data_monitoring: ::core::option::Option<GoogleChecksReportV1alphaDataMonitoring>,
+    /// Resource name of the report.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// A URL to view results.
+    #[serde(default, rename = "resultsUri")]
+    pub results_uri: ::core::option::Option<String>,
+}
+
+/// This resource represents a long-running operation that is the result of a network API call.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Operation {
+    /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
+    #[serde(default)]
+    pub done: ::core::option::Option<bool>,
+    /// The error result of the operation in case of failure or cancellation.
+    #[serde(default)]
+    pub error: ::core::option::Option<Status>,
+    /// Service-specific metadata associated with the operation. It typically contains progress information and common metadata such as create time. Some services might not provide such metadata. Any method that returns a long-running operation should document the metadata type, if any.
+    #[serde(default)]
+    pub metadata: ::core::option::Option<serde_json::Value>,
+    /// The server-assigned name, which is only unique within the same service that originally returns it. If you use the default HTTP mapping, the name should be a resource name ending with operations/{unique_id}.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// The normal, successful response of the operation. If the original method returns no data on success, such as Delete, the response is google.protobuf.Empty. If the original method is standard Get/Create/Update, the response should be the resource. For other methods, the response should have the type XxxResponse, where Xxx is the original method name. For example, if the original method name is TakeSnapshot(), the inferred response type is TakeSnapshotResponse.
+    #[serde(default)]
+    pub response: ::core::option::Option<serde_json::Value>,
+}
+
+/// Text input to be classified.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleChecksAisafetyV1alphaTextInput {
+    /// Actual piece of text to be classified.
+    #[serde(default)]
+    pub content: ::core::option::Option<String>,
+    /// Optional. Language of the text in ISO 639-1 format. If the language is invalid or not specified, the system will try to detect it.
+    #[serde(default, rename = "languageCode")]
+    pub language_code: ::core::option::Option<String>,
+}
+
+/// A requested analysis of source code. Contains the source code and processing state.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleChecksRepoScanV1alphaCodeScan {
+    /// Optional. Data type classification requests.
+    #[serde(default, rename = "dataTypeClassifications")]
+    pub data_type_classifications: ::core::option::Option<
+        ::std::vec::Vec<GoogleChecksRepoScanV1alphaCodeScanDataTypeClassification>,
+    >,
+    /// Required. Source code to analyze.
+    #[serde(default, rename = "sourceCode")]
+    pub source_code: ::core::option::Option<GoogleChecksRepoScanV1alphaSourceCode>,
 }
 
 /// SCM metadata.
@@ -257,34 +302,6 @@ pub struct GoogleChecksRepoScanV1alphaSource {
     /// Optional. Whether the finding was marked as a false positive.
     #[serde(default, rename = "falsePositive")]
     pub false_positive: ::core::option::Option<bool>,
-}
-
-/// Contains source code from a repo.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleChecksRepoScanV1alphaSourceCode {
-    /// Required. Source code.
-    #[serde(default)]
-    pub code: ::core::option::Option<String>,
-    /// Required. End line number (1-based).
-    #[serde(default, rename = "endLine")]
-    pub end_line: ::core::option::Option<i32>,
-    /// Required. Path of the file.
-    #[serde(default)]
-    pub path: ::core::option::Option<String>,
-    /// Required. Start line number (1-based).
-    #[serde(default, rename = "startLine")]
-    pub start_line: ::core::option::Option<i32>,
-}
-
-/// The request message for ReportService.AnalyzeUpload.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleChecksReportV1alphaAnalyzeUploadRequest {
-    /// Optional. The type of the uploaded app binary. If not provided, the server assumes APK file for Android and IPA file for iOS. // TODO: enum values: ["APP_BINARY_FILE_TYPE_UNSPECIFIED", "ANDROID_APK", "ANDROID_AAB", "IOS_IPA"]
-    #[serde(default, rename = "appBinaryFileType")]
-    pub app_binary_file_type: ::core::option::Option<String>,
-    /// Optional. Git commit hash or changelist number associated with the upload.
-    #[serde(default, rename = "codeReferenceId")]
-    pub code_reference_id: ::core::option::Option<String>,
 }
 
 /// Information about the analyzed app bundle.
@@ -333,69 +350,106 @@ pub struct GoogleChecksReportV1alphaCheck {
     pub type_: ::core::option::Option<String>,
 }
 
+/// Represents the data monitoring section of the report.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleChecksReportV1alphaDataMonitoring {
+    /// Data types that your app shares or collects.
+    #[serde(default, rename = "dataTypes")]
+    pub data_types: ::core::option::Option<
+        ::std::vec::Vec<GoogleChecksReportV1alphaDataMonitoringDataTypeResult>,
+    >,
+    /// Endpoints that were found by dynamic analysis of your app.
+    #[serde(default)]
+    pub endpoints: ::core::option::Option<
+        ::std::vec::Vec<GoogleChecksReportV1alphaDataMonitoringEndpointResult>,
+    >,
+    /// Permissions that your app uses.
+    #[serde(default)]
+    pub permissions: ::core::option::Option<
+        ::std::vec::Vec<GoogleChecksReportV1alphaDataMonitoringPermissionResult>,
+    >,
+    /// SDKs that your app uses.
+    #[serde(default)]
+    pub sdks:
+        ::core::option::Option<::std::vec::Vec<GoogleChecksReportV1alphaDataMonitoringSdkResult>>,
+}
+
+/// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Status {
+    /// The status code, which should be an enum value of google.rpc.Code.
+    #[serde(default)]
+    pub code: ::core::option::Option<i32>,
+    /// A list of messages that carry the error details. There is a common set of message types for APIs to use.
+    #[serde(default)]
+    pub details: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
+    /// A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.
+    #[serde(default)]
+    pub message: ::core::option::Option<String>,
+}
+
+/// A request to classify data types.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleChecksRepoScanV1alphaCodeScanDataTypeClassification {
+    /// Required. Candidate data type. // TODO: enum values: ["DATA_TYPE_UNSPECIFIED", "DATA_TYPE_APPROXIMATE_LOCATION", "DATA_TYPE_PRECISE_LOCATION", "DATA_TYPE_PERSONAL_NAME", "DATA_TYPE_EMAIL_ADDRESS", "DATA_TYPE_USER_IDS", "DATA_TYPE_PHYSICAL_ADDRESS", "DATA_TYPE_PHONE_NUMBER", "DATA_TYPE_RACE_AND_ETHNICITY", "DATA_TYPE_POLITICAL_OR_RELIGIOUS_BELIEFS", "DATA_TYPE_SEXUAL_ORIENTATION", "DATA_TYPE_OTHER_PERSONAL_INFO", "DATA_TYPE_PAYMENT_INFO", "DATA_TYPE_PURCHASE_HISTORY", "DATA_TYPE_CREDIT_SCORE", "DATA_TYPE_OTHER_FINANCIAL_INFO", "DATA_TYPE_HEALTH_INFO", "DATA_TYPE_FITNESS_INFO", "DATA_TYPE_EMAILS", "DATA_TYPE_TEXT_MESSAGES", "DATA_TYPE_OTHER_IN_APP_MESSAGES", "DATA_TYPE_PHOTOS", "DATA_TYPE_VIDEOS", "DATA_TYPE_VOICE_OR_SOUND_RECORDINGS", "DATA_TYPE_MUSIC_FILES", "DATA_TYPE_OTHER_AUDIO_FILES", "DATA_TYPE_FILES_AND_DOCS", "DATA_TYPE_CALENDAR_EVENTS", "DATA_TYPE_CONTACTS", "DATA_TYPE_APP_INTERACTIONS", "DATA_TYPE_IN_APP_SEARCH_HISTORY", "DATA_TYPE_INSTALLED_APPS", "DATA_TYPE_OTHER_USER_GENERATED_CONTENT", "DATA_TYPE_OTHER_ACTIONS", "DATA_TYPE_WEB_BROWSING_HISTORY", "DATA_TYPE_CRASH_LOGS", "DATA_TYPE_PERFORMANCE_DIAGNOSTICS", "DATA_TYPE_OTHER_APP_PERFORMANCE_DATA", "DATA_TYPE_DEVICE_OR_OTHER_IDS"]
+    #[serde(default, rename = "dataType")]
+    pub data_type: ::core::option::Option<String>,
+    /// Required. Line number (1-based).
+    #[serde(default, rename = "lineNumber")]
+    pub line_number: ::core::option::Option<i32>,
+}
+
+/// Contains source code from a repo.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleChecksRepoScanV1alphaSourceCode {
+    /// Required. Source code.
+    #[serde(default)]
+    pub code: ::core::option::Option<String>,
+    /// Required. End line number (1-based).
+    #[serde(default, rename = "endLine")]
+    pub end_line: ::core::option::Option<i32>,
+    /// Required. Path of the file.
+    #[serde(default)]
+    pub path: ::core::option::Option<String>,
+    /// Required. Start line number (1-based).
+    #[serde(default, rename = "startLine")]
+    pub start_line: ::core::option::Option<i32>,
+}
+
+/// Pull request info.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleChecksRepoScanV1alphaPullRequest {
+    /// Required. For PR analysis, we compare against the most recent scan of the base branch to highlight new issues.
+    #[serde(default, rename = "baseBranch")]
+    pub base_branch: ::core::option::Option<String>,
+    /// Required. This can be supplied by the user or parsed automatically from predefined CI environment variables.
+    #[serde(default, rename = "prNumber")]
+    pub pr_number: ::core::option::Option<String>,
+}
+
+/// Source code attribution.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleChecksRepoScanV1alphaCodeAttribution {
+    /// Optional. Code excerpt where the source was detected along with surrounding code.
+    #[serde(default, rename = "codeExcerpt")]
+    pub code_excerpt: ::core::option::Option<String>,
+    /// Required. Line number (1-based).
+    #[serde(default, rename = "lineNumber")]
+    pub line_number: ::core::option::Option<i32>,
+    /// Required. Path of the file.
+    #[serde(default)]
+    pub path: ::core::option::Option<String>,
+    /// Optional. Start line number of the code excerpt (1-based).
+    #[serde(default, rename = "startLineNumber")]
+    pub start_line_number: ::core::option::Option<i32>,
+}
+
 /// Regulation or policy that serves as the legal basis for the check.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleChecksReportV1alphaCheckCitation {
     /// Citation type. // TODO: enum values: ["CITATION_TYPE_UNSPECIFIED", "COPPA", "GDPR", "FERPA", "CAL_OPPA", "CCPA", "SOPIPA", "LGPD", "CPRA", "VCDPA", "GOOGLE_PLAY_POLICY", "APP_STORE_POLICY", "CPA", "CTDPA", "UCPA", "PIPEDA", "ALBERTA_PIPA", "QUEBEC_ACT", "QUEBEC_BILL_64", "CHINA_PIPL", "SOUTH_KOREA_PIPA", "SOUTH_AFRICA_POPIA", "JAPAN_APPI", "INDIA_DPDPA", "OCPA", "TDPSA", "MCDPA"]
     #[serde(default, rename = "type")]
     pub type_: ::core::option::Option<String>,
-}
-
-/// Evidence concerning data security.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleChecksReportV1alphaCheckDataSecurityEvidence {
-    /// Evidence related to data in transit.
-    #[serde(default, rename = "dataInTransitInfo")]
-    pub data_in_transit_info: ::core::option::Option<
-        ::std::vec::Vec<GoogleChecksReportV1alphaCheckDataSecurityEvidenceDataInTransitInfo>,
-    >,
-}
-
-/// Evidence related to data in transit detected in your app.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleChecksReportV1alphaCheckDataSecurityEvidenceDataInTransitInfo {
-    /// The URL contacted by your app. This includes the protocol, domain, and URL parameters.
-    #[serde(default)]
-    pub uri: ::core::option::Option<String>,
-}
-
-/// Evidence concerning a data type that was found in your app.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleChecksReportV1alphaCheckDataTypeEvidence {
-    /// The data type that was found in your app. // TODO: enum values: ["DATA_TYPE_UNSPECIFIED", "DATA_TYPE_APPROXIMATE_LOCATION", "DATA_TYPE_PRECISE_LOCATION", "DATA_TYPE_PERSONAL_NAME", "DATA_TYPE_EMAIL_ADDRESS", "DATA_TYPE_USER_IDS", "DATA_TYPE_PHYSICAL_ADDRESS", "DATA_TYPE_PHONE_NUMBER", "DATA_TYPE_RACE_AND_ETHNICITY", "DATA_TYPE_POLITICAL_OR_RELIGIOUS_BELIEFS", "DATA_TYPE_SEXUAL_ORIENTATION", "DATA_TYPE_OTHER_PERSONAL_INFO", "DATA_TYPE_PAYMENT_INFO", "DATA_TYPE_PURCHASE_HISTORY", "DATA_TYPE_CREDIT_SCORE", "DATA_TYPE_OTHER_FINANCIAL_INFO", "DATA_TYPE_HEALTH_INFO", "DATA_TYPE_FITNESS_INFO", "DATA_TYPE_EMAILS", "DATA_TYPE_TEXT_MESSAGES", "DATA_TYPE_OTHER_IN_APP_MESSAGES", "DATA_TYPE_PHOTOS", "DATA_TYPE_VIDEOS", "DATA_TYPE_VOICE_OR_SOUND_RECORDINGS", "DATA_TYPE_MUSIC_FILES", "DATA_TYPE_OTHER_AUDIO_FILES", "DATA_TYPE_FILES_AND_DOCS", "DATA_TYPE_CALENDAR_EVENTS", "DATA_TYPE_CONTACTS", "DATA_TYPE_APP_INTERACTIONS", "DATA_TYPE_IN_APP_SEARCH_HISTORY", "DATA_TYPE_INSTALLED_APPS", "DATA_TYPE_OTHER_USER_GENERATED_CONTENT", "DATA_TYPE_OTHER_ACTIONS", "DATA_TYPE_WEB_BROWSING_HISTORY", "DATA_TYPE_CRASH_LOGS", "DATA_TYPE_PERFORMANCE_DIAGNOSTICS", "DATA_TYPE_OTHER_APP_PERFORMANCE_DATA", "DATA_TYPE_DEVICE_OR_OTHER_IDS"]
-    #[serde(default, rename = "dataType")]
-    pub data_type: ::core::option::Option<String>,
-    /// Evidence collected about the data type.
-    #[serde(default, rename = "dataTypeEvidence")]
-    pub data_type_evidence: ::core::option::Option<GoogleChecksReportV1alphaDataTypeEvidence>,
-}
-
-/// Evidence concerning an endpoint that was contacted by your app.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleChecksReportV1alphaCheckEndpointEvidence {
-    /// The endpoint that was contacted by your app.
-    #[serde(default)]
-    pub endpoint: ::core::option::Option<GoogleChecksReportV1alphaEndpoint>,
-}
-
-/// Evidence collected from endpoint restriction violation analysis.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleChecksReportV1alphaCheckEndpointRestrictionViolationEvidence {
-    /// Endpoints in violation.
-    #[serde(default, rename = "endpointDetails")]
-    pub endpoint_details: ::core::option::Option<
-        ::std::vec::Vec<
-            GoogleChecksReportV1alphaCheckEndpointRestrictionViolationEvidenceEndpointDetails,
-        >,
-    >,
-}
-
-/// Details of the endpoint in violation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleChecksReportV1alphaCheckEndpointRestrictionViolationEvidenceEndpointDetails {
-    /// The endpoint in violation.
-    #[serde(default)]
-    pub endpoint: ::core::option::Option<GoogleChecksReportV1alphaEndpoint>,
 }
 
 /// Evidence for a check.
@@ -445,79 +499,6 @@ pub struct GoogleChecksReportV1alphaCheckEvidence {
     pub sdks: ::core::option::Option<::std::vec::Vec<GoogleChecksReportV1alphaCheckSdkEvidence>>,
 }
 
-/// Evidence concerning a permission that was found in your app.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleChecksReportV1alphaCheckPermissionEvidence {
-    /// The permission that was found in your app.
-    #[serde(default)]
-    pub permission: ::core::option::Option<GoogleChecksReportV1alphaPermission>,
-}
-
-/// Evidence collected from permission restriction violation analysis.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleChecksReportV1alphaCheckPermissionRestrictionViolationEvidence {
-    /// Permissions in violation.
-    #[serde(default, rename = "permissionDetails")]
-    pub permission_details: ::core::option::Option<
-        ::std::vec::Vec<
-            GoogleChecksReportV1alphaCheckPermissionRestrictionViolationEvidencePermissionDetails,
-        >,
-    >,
-}
-
-/// Details of the permission in violation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleChecksReportV1alphaCheckPermissionRestrictionViolationEvidencePermissionDetails {
-    /// The permission in violation.
-    #[serde(default)]
-    pub permission: ::core::option::Option<GoogleChecksReportV1alphaPermission>,
-}
-
-/// Evidence collected from your privacy policy(s).
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleChecksReportV1alphaCheckPrivacyPolicyTextEvidence {
-    /// The privacy policy fragment that was used during the check.
-    #[serde(default, rename = "policyFragment")]
-    pub policy_fragment: ::core::option::Option<GoogleChecksReportV1alphaPolicyFragment>,
-}
-
-/// Evidence conerning an SDK that was found in your app.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleChecksReportV1alphaCheckSdkEvidence {
-    /// The SDK that was found in your app.
-    #[serde(default)]
-    pub sdk: ::core::option::Option<GoogleChecksReportV1alphaSdk>,
-}
-
-/// Evidence concerning an SDK issue.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleChecksReportV1alphaCheckSdkIssueEvidence {
-    /// The SDK with an issue.
-    #[serde(default)]
-    pub sdk: ::core::option::Option<GoogleChecksReportV1alphaSdk>,
-    /// The SDK version.
-    #[serde(default, rename = "sdkVersion")]
-    pub sdk_version: ::core::option::Option<String>,
-}
-
-/// Evidence collected from SDK restriction violation analysis.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleChecksReportV1alphaCheckSdkRestrictionViolationEvidence {
-    /// SDKs in violation.
-    #[serde(default, rename = "sdkDetails")]
-    pub sdk_details: ::core::option::Option<
-        ::std::vec::Vec<GoogleChecksReportV1alphaCheckSdkRestrictionViolationEvidenceSdkDetails>,
-    >,
-}
-
-/// Details of the SDK in violation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleChecksReportV1alphaCheckSdkRestrictionViolationEvidenceSdkDetails {
-    /// The SDK in violation.
-    #[serde(default)]
-    pub sdk: ::core::option::Option<GoogleChecksReportV1alphaSdk>,
-}
-
 /// Additional information about the check state in relation to past reports.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleChecksReportV1alphaCheckStateMetadata {
@@ -530,30 +511,6 @@ pub struct GoogleChecksReportV1alphaCheckStateMetadata {
     /// The last time the check failed.
     #[serde(default, rename = "lastFailingTime")]
     pub last_failing_time: ::core::option::Option<String>,
-}
-
-/// Represents the data monitoring section of the report.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleChecksReportV1alphaDataMonitoring {
-    /// Data types that your app shares or collects.
-    #[serde(default, rename = "dataTypes")]
-    pub data_types: ::core::option::Option<
-        ::std::vec::Vec<GoogleChecksReportV1alphaDataMonitoringDataTypeResult>,
-    >,
-    /// Endpoints that were found by dynamic analysis of your app.
-    #[serde(default)]
-    pub endpoints: ::core::option::Option<
-        ::std::vec::Vec<GoogleChecksReportV1alphaDataMonitoringEndpointResult>,
-    >,
-    /// Permissions that your app uses.
-    #[serde(default)]
-    pub permissions: ::core::option::Option<
-        ::std::vec::Vec<GoogleChecksReportV1alphaDataMonitoringPermissionResult>,
-    >,
-    /// SDKs that your app uses.
-    #[serde(default)]
-    pub sdks:
-        ::core::option::Option<::std::vec::Vec<GoogleChecksReportV1alphaDataMonitoringSdkResult>>,
 }
 
 /// Information about a data type that was found in your app.
@@ -595,6 +552,115 @@ pub struct GoogleChecksReportV1alphaDataMonitoringPermissionResult {
     pub permission: ::core::option::Option<GoogleChecksReportV1alphaPermission>,
 }
 
+/// Information about an SDK that was found in your app.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleChecksReportV1alphaDataMonitoringSdkResult {
+    /// Metadata about the result.
+    #[serde(default)]
+    pub metadata: ::core::option::Option<GoogleChecksReportV1alphaDataMonitoringResultMetadata>,
+    /// The SDK that was found in your app.
+    #[serde(default)]
+    pub sdk: ::core::option::Option<GoogleChecksReportV1alphaSdk>,
+}
+
+/// Evidence concerning data security.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleChecksReportV1alphaCheckDataSecurityEvidence {
+    /// Evidence related to data in transit.
+    #[serde(default, rename = "dataInTransitInfo")]
+    pub data_in_transit_info: ::core::option::Option<
+        ::std::vec::Vec<GoogleChecksReportV1alphaCheckDataSecurityEvidenceDataInTransitInfo>,
+    >,
+}
+
+/// Evidence concerning a data type that was found in your app.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleChecksReportV1alphaCheckDataTypeEvidence {
+    /// The data type that was found in your app. // TODO: enum values: ["DATA_TYPE_UNSPECIFIED", "DATA_TYPE_APPROXIMATE_LOCATION", "DATA_TYPE_PRECISE_LOCATION", "DATA_TYPE_PERSONAL_NAME", "DATA_TYPE_EMAIL_ADDRESS", "DATA_TYPE_USER_IDS", "DATA_TYPE_PHYSICAL_ADDRESS", "DATA_TYPE_PHONE_NUMBER", "DATA_TYPE_RACE_AND_ETHNICITY", "DATA_TYPE_POLITICAL_OR_RELIGIOUS_BELIEFS", "DATA_TYPE_SEXUAL_ORIENTATION", "DATA_TYPE_OTHER_PERSONAL_INFO", "DATA_TYPE_PAYMENT_INFO", "DATA_TYPE_PURCHASE_HISTORY", "DATA_TYPE_CREDIT_SCORE", "DATA_TYPE_OTHER_FINANCIAL_INFO", "DATA_TYPE_HEALTH_INFO", "DATA_TYPE_FITNESS_INFO", "DATA_TYPE_EMAILS", "DATA_TYPE_TEXT_MESSAGES", "DATA_TYPE_OTHER_IN_APP_MESSAGES", "DATA_TYPE_PHOTOS", "DATA_TYPE_VIDEOS", "DATA_TYPE_VOICE_OR_SOUND_RECORDINGS", "DATA_TYPE_MUSIC_FILES", "DATA_TYPE_OTHER_AUDIO_FILES", "DATA_TYPE_FILES_AND_DOCS", "DATA_TYPE_CALENDAR_EVENTS", "DATA_TYPE_CONTACTS", "DATA_TYPE_APP_INTERACTIONS", "DATA_TYPE_IN_APP_SEARCH_HISTORY", "DATA_TYPE_INSTALLED_APPS", "DATA_TYPE_OTHER_USER_GENERATED_CONTENT", "DATA_TYPE_OTHER_ACTIONS", "DATA_TYPE_WEB_BROWSING_HISTORY", "DATA_TYPE_CRASH_LOGS", "DATA_TYPE_PERFORMANCE_DIAGNOSTICS", "DATA_TYPE_OTHER_APP_PERFORMANCE_DATA", "DATA_TYPE_DEVICE_OR_OTHER_IDS"]
+    #[serde(default, rename = "dataType")]
+    pub data_type: ::core::option::Option<String>,
+    /// Evidence collected about the data type.
+    #[serde(default, rename = "dataTypeEvidence")]
+    pub data_type_evidence: ::core::option::Option<GoogleChecksReportV1alphaDataTypeEvidence>,
+}
+
+/// Evidence collected from endpoint restriction violation analysis.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleChecksReportV1alphaCheckEndpointRestrictionViolationEvidence {
+    /// Endpoints in violation.
+    #[serde(default, rename = "endpointDetails")]
+    pub endpoint_details: ::core::option::Option<
+        ::std::vec::Vec<
+            GoogleChecksReportV1alphaCheckEndpointRestrictionViolationEvidenceEndpointDetails,
+        >,
+    >,
+}
+
+/// Evidence concerning an endpoint that was contacted by your app.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleChecksReportV1alphaCheckEndpointEvidence {
+    /// The endpoint that was contacted by your app.
+    #[serde(default)]
+    pub endpoint: ::core::option::Option<GoogleChecksReportV1alphaEndpoint>,
+}
+
+/// Evidence collected from permission restriction violation analysis.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleChecksReportV1alphaCheckPermissionRestrictionViolationEvidence {
+    /// Permissions in violation.
+    #[serde(default, rename = "permissionDetails")]
+    pub permission_details: ::core::option::Option<
+        ::std::vec::Vec<
+            GoogleChecksReportV1alphaCheckPermissionRestrictionViolationEvidencePermissionDetails,
+        >,
+    >,
+}
+
+/// Evidence concerning a permission that was found in your app.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleChecksReportV1alphaCheckPermissionEvidence {
+    /// The permission that was found in your app.
+    #[serde(default)]
+    pub permission: ::core::option::Option<GoogleChecksReportV1alphaPermission>,
+}
+
+/// Evidence collected from your privacy policy(s).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleChecksReportV1alphaCheckPrivacyPolicyTextEvidence {
+    /// The privacy policy fragment that was used during the check.
+    #[serde(default, rename = "policyFragment")]
+    pub policy_fragment: ::core::option::Option<GoogleChecksReportV1alphaPolicyFragment>,
+}
+
+/// Evidence concerning an SDK issue.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleChecksReportV1alphaCheckSdkIssueEvidence {
+    /// The SDK with an issue.
+    #[serde(default)]
+    pub sdk: ::core::option::Option<GoogleChecksReportV1alphaSdk>,
+    /// The SDK version.
+    #[serde(default, rename = "sdkVersion")]
+    pub sdk_version: ::core::option::Option<String>,
+}
+
+/// Evidence collected from SDK restriction violation analysis.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleChecksReportV1alphaCheckSdkRestrictionViolationEvidence {
+    /// SDKs in violation.
+    #[serde(default, rename = "sdkDetails")]
+    pub sdk_details: ::core::option::Option<
+        ::std::vec::Vec<GoogleChecksReportV1alphaCheckSdkRestrictionViolationEvidenceSdkDetails>,
+    >,
+}
+
+/// Evidence conerning an SDK that was found in your app.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleChecksReportV1alphaCheckSdkEvidence {
+    /// The SDK that was found in your app.
+    #[serde(default)]
+    pub sdk: ::core::option::Option<GoogleChecksReportV1alphaSdk>,
+}
+
 /// Information about a data monitoring result.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleChecksReportV1alphaDataMonitoringResultMetadata {
@@ -612,13 +678,53 @@ pub struct GoogleChecksReportV1alphaDataMonitoringResultMetadata {
     pub last_detected_time: ::core::option::Option<String>,
 }
 
-/// Information about an SDK that was found in your app.
+/// Evidence related to data in transit detected in your app.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleChecksReportV1alphaDataMonitoringSdkResult {
-    /// Metadata about the result.
+pub struct GoogleChecksReportV1alphaCheckDataSecurityEvidenceDataInTransitInfo {
+    /// The URL contacted by your app. This includes the protocol, domain, and URL parameters.
     #[serde(default)]
-    pub metadata: ::core::option::Option<GoogleChecksReportV1alphaDataMonitoringResultMetadata>,
-    /// The SDK that was found in your app.
+    pub uri: ::core::option::Option<String>,
+}
+
+/// Evidence collected about a data type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleChecksReportV1alphaDataTypeEvidence {
+    /// List of endpoints the data type was sent to.
+    #[serde(default)]
+    pub endpoints:
+        ::core::option::Option<::std::vec::Vec<GoogleChecksReportV1alphaDataTypeEndpointEvidence>>,
+    /// List of included permissions that imply collection of the data type.
+    #[serde(default)]
+    pub permissions: ::core::option::Option<
+        ::std::vec::Vec<GoogleChecksReportV1alphaDataTypePermissionEvidence>,
+    >,
+    /// List of privacy policy texts that imply collection of the data type.
+    #[serde(default, rename = "privacyPolicyTexts")]
+    pub privacy_policy_texts: ::core::option::Option<
+        ::std::vec::Vec<GoogleChecksReportV1alphaDataTypePrivacyPolicyTextEvidence>,
+    >,
+}
+
+/// Details of the endpoint in violation.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleChecksReportV1alphaCheckEndpointRestrictionViolationEvidenceEndpointDetails {
+    /// The endpoint in violation.
+    #[serde(default)]
+    pub endpoint: ::core::option::Option<GoogleChecksReportV1alphaEndpoint>,
+}
+
+/// Details of the permission in violation.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleChecksReportV1alphaCheckPermissionRestrictionViolationEvidencePermissionDetails {
+    /// The permission in violation.
+    #[serde(default)]
+    pub permission: ::core::option::Option<GoogleChecksReportV1alphaPermission>,
+}
+
+/// Details of the SDK in violation.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleChecksReportV1alphaCheckSdkRestrictionViolationEvidenceSdkDetails {
+    /// The SDK in violation.
     #[serde(default)]
     pub sdk: ::core::option::Option<GoogleChecksReportV1alphaSdk>,
 }
@@ -641,41 +747,6 @@ pub struct GoogleChecksReportV1alphaDataTypeEndpointEvidence {
     pub exfiltrated_data_type: ::core::option::Option<String>,
 }
 
-/// Details of SDK that is attributed to the exfiltration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleChecksReportV1alphaDataTypeEndpointEvidenceAttributedSdk {
-    /// SDK that is attributed to the exfiltration.
-    #[serde(default)]
-    pub sdk: ::core::option::Option<GoogleChecksReportV1alphaSdk>,
-}
-
-/// Details of the endpoint the data type was sent to.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleChecksReportV1alphaDataTypeEndpointEvidenceEndpointDetails {
-    /// Endpoint the data type was sent to.
-    #[serde(default)]
-    pub endpoint: ::core::option::Option<GoogleChecksReportV1alphaEndpoint>,
-}
-
-/// Evidence collected about a data type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleChecksReportV1alphaDataTypeEvidence {
-    /// List of endpoints the data type was sent to.
-    #[serde(default)]
-    pub endpoints:
-        ::core::option::Option<::std::vec::Vec<GoogleChecksReportV1alphaDataTypeEndpointEvidence>>,
-    /// List of included permissions that imply collection of the data type.
-    #[serde(default)]
-    pub permissions: ::core::option::Option<
-        ::std::vec::Vec<GoogleChecksReportV1alphaDataTypePermissionEvidence>,
-    >,
-    /// List of privacy policy texts that imply collection of the data type.
-    #[serde(default, rename = "privacyPolicyTexts")]
-    pub privacy_policy_texts: ::core::option::Option<
-        ::std::vec::Vec<GoogleChecksReportV1alphaDataTypePrivacyPolicyTextEvidence>,
-    >,
-}
-
 /// Evidence based on the inclusion of a permission.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleChecksReportV1alphaDataTypePermissionEvidence {
@@ -692,23 +763,20 @@ pub struct GoogleChecksReportV1alphaDataTypePrivacyPolicyTextEvidence {
     pub policy_fragment: ::core::option::Option<GoogleChecksReportV1alphaPolicyFragment>,
 }
 
-/// Information about an endpoint.
+/// Details of SDK that is attributed to the exfiltration.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleChecksReportV1alphaEndpoint {
-    /// Domain name (e.g. ads.google.com).
+pub struct GoogleChecksReportV1alphaDataTypeEndpointEvidenceAttributedSdk {
+    /// SDK that is attributed to the exfiltration.
     #[serde(default)]
-    pub domain: ::core::option::Option<String>,
+    pub sdk: ::core::option::Option<GoogleChecksReportV1alphaSdk>,
 }
 
-/// The response message for ReportService.ListReports.
+/// Details of the endpoint the data type was sent to.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleChecksReportV1alphaListReportsResponse {
-    /// A token which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
-    #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: ::core::option::Option<String>,
-    /// The reports for the specified app.
+pub struct GoogleChecksReportV1alphaDataTypeEndpointEvidenceEndpointDetails {
+    /// Endpoint the data type was sent to.
     #[serde(default)]
-    pub reports: ::core::option::Option<::std::vec::Vec<GoogleChecksReportV1alphaReport>>,
+    pub endpoint: ::core::option::Option<GoogleChecksReportV1alphaEndpoint>,
 }
 
 /// Information about a permission.
@@ -730,26 +798,6 @@ pub struct GoogleChecksReportV1alphaPolicyFragment {
     pub source_uri: ::core::option::Option<String>,
 }
 
-/// Privacy report.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleChecksReportV1alphaReport {
-    /// Information about the analyzed app bundle.
-    #[serde(default, rename = "appBundle")]
-    pub app_bundle: ::core::option::Option<GoogleChecksReportV1alphaAppBundle>,
-    /// List of checks that were run on the app bundle.
-    #[serde(default)]
-    pub checks: ::core::option::Option<::std::vec::Vec<GoogleChecksReportV1alphaCheck>>,
-    /// Information related to data monitoring.
-    #[serde(default, rename = "dataMonitoring")]
-    pub data_monitoring: ::core::option::Option<GoogleChecksReportV1alphaDataMonitoring>,
-    /// Resource name of the report.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// A URL to view results.
-    #[serde(default, rename = "resultsUri")]
-    pub results_uri: ::core::option::Option<String>,
-}
-
 /// Information about an SDK.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleChecksReportV1alphaSdk {
@@ -758,58 +806,10 @@ pub struct GoogleChecksReportV1alphaSdk {
     pub id: ::core::option::Option<String>,
 }
 
-/// The response message for Operations.ListOperations.
+/// Information about an endpoint.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ListOperationsResponse {
-    /// The standard List next-page token.
-    #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: ::core::option::Option<String>,
-    /// A list of operations that matches the specified filter in the request.
+pub struct GoogleChecksReportV1alphaEndpoint {
+    /// Domain name (e.g. ads.google.com).
     #[serde(default)]
-    pub operations: ::core::option::Option<::std::vec::Vec<Operation>>,
-    /// Unordered list. Unreachable resources. Populated when the request sets ListOperationsRequest.return_partial_success and reads across collections. For example, when attempting to list all resources across all supported locations.
-    #[serde(default)]
-    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// This resource represents a long-running operation that is the result of a network API call.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Operation {
-    /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
-    #[serde(default)]
-    pub done: ::core::option::Option<bool>,
-    /// The error result of the operation in case of failure or cancellation.
-    #[serde(default)]
-    pub error: ::core::option::Option<Status>,
-    /// Service-specific metadata associated with the operation. It typically contains progress information and common metadata such as create time. Some services might not provide such metadata. Any method that returns a long-running operation should document the metadata type, if any.
-    #[serde(default)]
-    pub metadata: ::core::option::Option<serde_json::Value>,
-    /// The server-assigned name, which is only unique within the same service that originally returns it. If you use the default HTTP mapping, the name should be a resource name ending with operations/{unique_id}.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// The normal, successful response of the operation. If the original method returns no data on success, such as Delete, the response is google.protobuf.Empty. If the original method is standard Get/Create/Update, the response should be the resource. For other methods, the response should have the type XxxResponse, where Xxx is the original method name. For example, if the original method name is TakeSnapshot(), the inferred response type is TakeSnapshotResponse.
-    #[serde(default)]
-    pub response: ::core::option::Option<serde_json::Value>,
-}
-
-/// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Status {
-    /// The status code, which should be an enum value of google.rpc.Code.
-    #[serde(default)]
-    pub code: ::core::option::Option<i32>,
-    /// A list of messages that carry the error details. There is a common set of message types for APIs to use.
-    #[serde(default)]
-    pub details: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
-    /// A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.
-    #[serde(default)]
-    pub message: ::core::option::Option<String>,
-}
-
-/// The request message for Operations.WaitOperation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct WaitOperationRequest {
-    /// The maximum duration to wait before timing out. If left blank, the wait will be at most the time permitted by the underlying HTTP/RPC protocol. If RPC context deadline is also specified, the shorter one will be used.
-    #[serde(default)]
-    pub timeout: ::core::option::Option<String>,
+    pub domain: ::core::option::Option<String>,
 }

@@ -10,48 +10,6 @@
 use super::*;
 use serde::{Deserialize, Serialize};
 
-/// Defines an aggregation that produces a single result.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Aggregation {
-    /// Optional. Optional name of the property to store the result of the aggregation. If not provided, Datastore will pick a default name following the format property_. For example:  AGGREGATE COUNT_UP_TO(1) AS count_up_to_1, COUNT_UP_TO(2), COUNT_UP_TO(3) AS count_up_to_3, COUNT(*) OVER ( ... );  becomes:  AGGREGATE COUNT_UP_TO(1) AS count_up_to_1, COUNT_UP_TO(2) AS property_1, COUNT_UP_TO(3) AS count_up_to_3, COUNT(*) AS property_2 OVER ( ... );  Requires: * Must be unique across all aggregation aliases. * Conform to entity property name limitations.
-    #[serde(default)]
-    pub alias: ::core::option::Option<String>,
-    /// Average aggregator.
-    #[serde(default)]
-    pub avg: ::core::option::Option<Avg>,
-    /// Count aggregator.
-    #[serde(default)]
-    pub count: ::core::option::Option<Count>,
-    /// Sum aggregator.
-    #[serde(default)]
-    pub sum: ::core::option::Option<Sum>,
-}
-
-/// Datastore query for running an aggregation over a Query.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AggregationQuery {
-    /// Optional. Series of aggregations to apply over the results of the nested_query. Requires: * A minimum of one and maximum of five aggregations per query.
-    #[serde(default)]
-    pub aggregations: ::core::option::Option<::std::vec::Vec<Aggregation>>,
-    /// Nested query for aggregation
-    #[serde(default, rename = "nestedQuery")]
-    pub nested_query: ::core::option::Option<Query>,
-}
-
-/// A batch of aggregation results produced by an aggregation query.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AggregationResultBatch {
-    /// The aggregation results for this batch.
-    #[serde(default, rename = "aggregationResults")]
-    pub aggregation_results: ::core::option::Option<::std::vec::Vec<AggregationResult>>,
-    /// The state of the query after the current batch. Only COUNT(*) aggregations are supported in the initial launch. Therefore, expected result type is limited to NO_MORE_RESULTS. // TODO: enum values: ["MORE_RESULTS_TYPE_UNSPECIFIED", "NOT_FINISHED", "MORE_RESULTS_AFTER_LIMIT", "MORE_RESULTS_AFTER_CURSOR", "NO_MORE_RESULTS"]
-    #[serde(default, rename = "moreResults")]
-    pub more_results: ::core::option::Option<String>,
-    /// Read timestamp this batch was returned from. In a single transaction, subsequent query result batches for the same query can have a greater timestamp. Each batch''s read timestamp is valid for all preceding batches.
-    #[serde(default, rename = "readTime")]
-    pub read_time: ::core::option::Option<String>,
-}
-
 /// The request for Datastore.AllocateIds.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AllocateIdsRequest {
@@ -69,22 +27,6 @@ pub struct AllocateIdsResponse {
     /// The keys specified in the request (in the same order), each with its key path completed with a newly allocated ID.
     #[serde(default)]
     pub keys: ::core::option::Option<::std::vec::Vec<Key>>,
-}
-
-/// An array value.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ArrayValue {
-    /// Values in the array. The order of values in an array is preserved as long as all values have identical settings for ''exclude_from_indexes''.
-    #[serde(default)]
-    pub values: ::core::option::Option<::std::vec::Vec<ApiValue>>,
-}
-
-/// Average of the values of the requested property. * Only numeric values will be aggregated. All non-numeric values including NULL are skipped. * If the aggregated values contain NaN, returns NaN. Infinity math follows IEEE-754 standards. * If the aggregated value set is empty, returns NULL. * Always returns the result as a double.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Avg {
-    /// The property to aggregate on.
-    #[serde(default)]
-    pub property: ::core::option::Option<PropertyReference>,
 }
 
 /// The request for Datastore.BeginTransaction.
@@ -140,146 +82,6 @@ pub struct CommitResponse {
     pub mutation_results: ::core::option::Option<::std::vec::Vec<MutationResult>>,
 }
 
-/// A filter that merges multiple other filters using the given operator.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CompositeFilter {
-    /// The list of filters to combine. Requires: * At least one filter is present.
-    #[serde(default)]
-    pub filters: ::core::option::Option<::std::vec::Vec<Filter>>,
-    /// The operator for combining multiple filters. // TODO: enum values: ["OPERATOR_UNSPECIFIED", "AND", "OR"]
-    #[serde(default)]
-    pub op: ::core::option::Option<String>,
-}
-
-/// Count of entities that match the query. The COUNT(*) aggregation function operates on the entire entity so it does not require a field reference.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Count {
-    /// Optional. Optional constraint on the maximum number of entities to count. This provides a way to set an upper bound on the number of entities to scan, limiting latency, and cost. Unspecified is interpreted as no bound. If a zero value is provided, a count result of zero should always be expected. High-Level Example:  AGGREGATE COUNT_UP_TO(1000) OVER ( SELECT * FROM k );  Requires: * Must be non-negative when present.
-    #[serde(default, rename = "upTo")]
-    pub up_to: ::core::option::Option<String>,
-}
-
-/// A Datastore data object. Must not exceed 1 MiB - 4 bytes.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Entity {
-    /// The entity''s key. An entity must have a key, unless otherwise documented (for example, an entity in Value.entity_value may have no key). An entity''s kind is its key path''s last element''s kind, or null if it has no key.
-    #[serde(default)]
-    pub key: ::core::option::Option<Key>,
-    /// The entity''s properties. The map''s keys are property names. A property name matching regex __.*__ is reserved. A reserved property name is forbidden in certain documented contexts. The map keys, represented as UTF-8, must not exceed 1,500 bytes and cannot be empty.
-    #[serde(default)]
-    pub properties: ::core::option::Option<serde_json::Value>,
-}
-
-/// The result of fetching an entity from Datastore.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct EntityResult {
-    /// The time at which the entity was created. This field is set for FULL entity results. If this entity is missing, this field will not be set.
-    #[serde(default, rename = "createTime")]
-    pub create_time: ::core::option::Option<String>,
-    /// A cursor that points to the position after the result entity. Set only when the EntityResult is part of a QueryResultBatch message.
-    #[serde(default)]
-    pub cursor: ::core::option::Option<String>,
-    /// The resulting entity.
-    #[serde(default)]
-    pub entity: ::core::option::Option<Entity>,
-    /// The time at which the entity was last changed. This field is set for FULL entity results. If this entity is missing, this field will not be set.
-    #[serde(default, rename = "updateTime")]
-    pub update_time: ::core::option::Option<String>,
-    /// The version of the entity, a strictly positive number that monotonically increases with changes to the entity. This field is set for FULL entity results. For missing entities in LookupResponse, this is the version of the snapshot that was used to look up the entity, and it is always set except for eventually consistent reads.
-    #[serde(default)]
-    pub version: ::core::option::Option<String>,
-}
-
-/// Execution statistics for the query.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ExecutionStats {
-    /// Debugging statistics from the execution of the query. Note that the debugging stats are subject to change as Firestore evolves. It could include: { "indexes_entries_scanned": "1000", "documents_scanned": "20", "billing_details" : { "documents_billable": "20", "index_entries_billable": "1000", "min_query_cost": "0" } }
-    #[serde(default, rename = "debugStats")]
-    pub debug_stats: ::core::option::Option<serde_json::Value>,
-    /// Total time to execute the query in the backend.
-    #[serde(default, rename = "executionDuration")]
-    pub execution_duration: ::core::option::Option<String>,
-    /// Total billable read operations.
-    #[serde(default, rename = "readOperations")]
-    pub read_operations: ::core::option::Option<String>,
-    /// Total number of results returned, including documents, projections, aggregation results, keys.
-    #[serde(default, rename = "resultsReturned")]
-    pub results_returned: ::core::option::Option<String>,
-}
-
-/// Explain metrics for the query.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ExplainMetrics {
-    /// Aggregated stats from the execution of the query. Only present when ExplainOptions.analyze is set to true.
-    #[serde(default, rename = "executionStats")]
-    pub execution_stats: ::core::option::Option<ExecutionStats>,
-    /// Planning phase information for the query.
-    #[serde(default, rename = "planSummary")]
-    pub plan_summary: ::core::option::Option<PlanSummary>,
-}
-
-/// Explain options for the query.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ExplainOptions {
-    /// Optional. Whether to execute this query. When false (the default), the query will be planned, returning only metrics from the planning stages. When true, the query will be planned and executed, returning the full query results along with both planning and execution stage metrics.
-    #[serde(default)]
-    pub analyze: ::core::option::Option<bool>,
-}
-
-/// A holder for any type of filter.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Filter {
-    /// A composite filter.
-    #[serde(default, rename = "compositeFilter")]
-    pub composite_filter: ::core::option::Option<CompositeFilter>,
-    /// A filter on a property.
-    #[serde(default, rename = "propertyFilter")]
-    pub property_filter: ::core::option::Option<PropertyFilter>,
-}
-
-/// Nearest Neighbors search config. The ordering provided by FindNearest supersedes the order_by stage. If multiple documents have the same vector distance, the returned document order is not guaranteed to be stable between queries.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct FindNearest {
-    /// Required. The Distance Measure to use, required. // TODO: enum values: ["DISTANCE_MEASURE_UNSPECIFIED", "EUCLIDEAN", "COSINE", "DOT_PRODUCT"]
-    #[serde(default, rename = "distanceMeasure")]
-    pub distance_measure: ::core::option::Option<String>,
-    /// Optional. Optional name of the field to output the result of the vector distance calculation. Must conform to entity property limitations.
-    #[serde(default, rename = "distanceResultProperty")]
-    pub distance_result_property: ::core::option::Option<String>,
-    /// Optional. Option to specify a threshold for which no less similar documents will be returned. The behavior of the specified distance_measure will affect the meaning of the distance threshold. Since DOT_PRODUCT distances increase when the vectors are more similar, the comparison is inverted. * For EUCLIDEAN, COSINE: WHERE distance &lt;= distance_threshold * For DOT_PRODUCT: WHERE distance &gt;= distance_threshold
-    #[serde(default, rename = "distanceThreshold")]
-    pub distance_threshold: ::core::option::Option<f64>,
-    /// Required. The number of nearest neighbors to return. Must be a positive integer of no more than 100.
-    #[serde(default)]
-    pub limit: ::core::option::Option<i32>,
-    /// Required. The query vector that we are searching on. Must be a vector of no more than 2048 dimensions.
-    #[serde(default, rename = "queryVector")]
-    pub query_vector: ::core::option::Option<ApiValue>,
-    /// Required. An indexed vector property to search upon. Only documents which contain vectors whose dimensionality match the query_vector can be returned.
-    #[serde(default, rename = "vectorProperty")]
-    pub vector_property: ::core::option::Option<PropertyReference>,
-}
-
-/// Metadata common to all Datastore Admin operations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleDatastoreAdminV1CommonMetadata {
-    /// The time the operation ended, either successfully or otherwise.
-    #[serde(default, rename = "endTime")]
-    pub end_time: ::core::option::Option<String>,
-    /// The client-assigned labels which were provided when the operation was created. May also include additional labels.
-    #[serde(default)]
-    pub labels: ::core::option::Option<serde_json::Value>,
-    /// The type of the operation. Can be used as a filter in ListOperationsRequest. // TODO: enum values: ["OPERATION_TYPE_UNSPECIFIED", "EXPORT_ENTITIES", "IMPORT_ENTITIES", "CREATE_INDEX", "DELETE_INDEX"]
-    #[serde(default, rename = "operationType")]
-    pub operation_type: ::core::option::Option<String>,
-    /// The time that work began on the operation.
-    #[serde(default, rename = "startTime")]
-    pub start_time: ::core::option::Option<String>,
-    /// The current state of the Operation. // TODO: enum values: ["STATE_UNSPECIFIED", "INITIALIZING", "PROCESSING", "CANCELLING", "FINALIZING", "SUCCESSFUL", "FAILED", "CANCELLED"]
-    #[serde(default)]
-    pub state: ::core::option::Option<String>,
-}
-
 /// Metadata for Datastore to Firestore migration operations. The DatastoreFirestoreMigration operation is not started by the end-user via an explicit "creation" method. This is an intentional deviation from the LRO design pattern. This singleton resource can be accessed at: "projects/{project_id}/operations/datastore-firestore-migration"
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleDatastoreAdminV1DatastoreFirestoreMigrationMetadata {
@@ -289,17 +91,6 @@ pub struct GoogleDatastoreAdminV1DatastoreFirestoreMigrationMetadata {
     /// The current step of migration from Cloud Datastore to Cloud Firestore in Datastore mode. // TODO: enum values: ["MIGRATION_STEP_UNSPECIFIED", "PREPARE", "START", "APPLY_WRITES_SYNCHRONOUSLY", "COPY_AND_VERIFY", "REDIRECT_EVENTUALLY_CONSISTENT_READS", "REDIRECT_STRONGLY_CONSISTENT_READS", "REDIRECT_WRITES"]
     #[serde(default, rename = "migrationStep")]
     pub migration_step: ::core::option::Option<String>,
-}
-
-/// Identifies a subset of entities in a project. This is specified as combinations of kinds and namespaces (either or both of which may be all, as described in the following examples). Example usage: Entire project: kinds=[], namespace_ids=[] Kinds Foo and Bar in all namespaces: kinds=[''Foo'', ''Bar''], namespace_ids=[] Kinds Foo and Bar only in the default namespace: kinds=[''Foo'', ''Bar''], namespace_ids=[''''] Kinds Foo and Bar in both the default and Baz namespaces: kinds=[''Foo'', ''Bar''], namespace_ids=['''', ''Baz''] The entire Baz namespace: kinds=[], namespace_ids=[''Baz'']
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleDatastoreAdminV1EntityFilter {
-    /// If empty, then this represents all kinds.
-    #[serde(default)]
-    pub kinds: ::core::option::Option<::std::vec::Vec<String>>,
-    /// An empty list represents all namespaces. This is the preferred usage for projects that don''t use namespaces. An empty string element represents the default namespace. This should be used if the project has data in non-default namespaces, but doesn''t want to include them. Each namespace in this list must be unique.
-    #[serde(default, rename = "namespaceIds")]
-    pub namespace_ids: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Metadata for ExportEntities operations.
@@ -378,29 +169,6 @@ pub struct GoogleDatastoreAdminV1ImportEntitiesRequest {
     pub labels: ::core::option::Option<serde_json::Value>,
 }
 
-/// Datastore composite index definition.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleDatastoreAdminV1Index {
-    /// Required. The index''s ancestor mode. Must not be ANCESTOR_MODE_UNSPECIFIED. // TODO: enum values: ["ANCESTOR_MODE_UNSPECIFIED", "NONE", "ALL_ANCESTORS"]
-    #[serde(default)]
-    pub ancestor: ::core::option::Option<String>,
-    /// Output only. The resource ID of the index.
-    #[serde(default, rename = "indexId")]
-    pub index_id: ::core::option::Option<String>,
-    /// Required. The entity kind to which this index applies.
-    #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-    /// Output only. Project ID.
-    #[serde(default, rename = "projectId")]
-    pub project_id: ::core::option::Option<String>,
-    /// Required. An ordered sequence of property names and their index attributes. Requires: * A maximum of 100 properties.
-    #[serde(default)]
-    pub properties: ::core::option::Option<::std::vec::Vec<GoogleDatastoreAdminV1IndexedProperty>>,
-    /// Output only. The state of the index. // TODO: enum values: ["STATE_UNSPECIFIED", "CREATING", "READY", "DELETING", "ERROR"]
-    #[serde(default)]
-    pub state: ::core::option::Option<String>,
-}
-
 /// Metadata for Index operations.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleDatastoreAdminV1IndexOperationMetadata {
@@ -413,17 +181,6 @@ pub struct GoogleDatastoreAdminV1IndexOperationMetadata {
     /// An estimate of the number of entities processed.
     #[serde(default, rename = "progressEntities")]
     pub progress_entities: ::core::option::Option<GoogleDatastoreAdminV1Progress>,
-}
-
-/// A property of an index.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleDatastoreAdminV1IndexedProperty {
-    /// Required. The indexed property''s direction. Must not be DIRECTION_UNSPECIFIED. // TODO: enum values: ["DIRECTION_UNSPECIFIED", "ASCENDING", "DESCENDING"]
-    #[serde(default)]
-    pub direction: ::core::option::Option<String>,
-    /// Required. The property name to index.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
 }
 
 /// The response for google.datastore.admin.v1.DatastoreAdmin.ListIndexes.
@@ -458,64 +215,6 @@ pub struct GoogleDatastoreAdminV1MigrationStateEvent {
     /// The new state of the migration. // TODO: enum values: ["MIGRATION_STATE_UNSPECIFIED", "RUNNING", "PAUSED", "COMPLETE"]
     #[serde(default)]
     pub state: ::core::option::Option<String>,
-}
-
-/// Details for the PREPARE step.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleDatastoreAdminV1PrepareStepDetails {
-    /// The concurrency mode this database will use when it reaches the REDIRECT_WRITES step. // TODO: enum values: ["CONCURRENCY_MODE_UNSPECIFIED", "PESSIMISTIC", "OPTIMISTIC", "OPTIMISTIC_WITH_ENTITY_GROUPS"]
-    #[serde(default, rename = "concurrencyMode")]
-    pub concurrency_mode: ::core::option::Option<String>,
-}
-
-/// Measures the progress of a particular metric.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleDatastoreAdminV1Progress {
-    /// The amount of work that has been completed. Note that this may be greater than work_estimated.
-    #[serde(default, rename = "workCompleted")]
-    pub work_completed: ::core::option::Option<String>,
-    /// An estimate of how much work needs to be performed. May be zero if the work estimate is unavailable.
-    #[serde(default, rename = "workEstimated")]
-    pub work_estimated: ::core::option::Option<String>,
-}
-
-/// Details for the REDIRECT_WRITES step.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleDatastoreAdminV1RedirectWritesStepDetails {
-    /// The concurrency mode for this database. // TODO: enum values: ["CONCURRENCY_MODE_UNSPECIFIED", "PESSIMISTIC", "OPTIMISTIC", "OPTIMISTIC_WITH_ENTITY_GROUPS"]
-    #[serde(default, rename = "concurrencyMode")]
-    pub concurrency_mode: ::core::option::Option<String>,
-}
-
-/// Metadata common to all Datastore Admin operations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleDatastoreAdminV1beta1CommonMetadata {
-    /// The time the operation ended, either successfully or otherwise.
-    #[serde(default, rename = "endTime")]
-    pub end_time: ::core::option::Option<String>,
-    /// The client-assigned labels which were provided when the operation was created. May also include additional labels.
-    #[serde(default)]
-    pub labels: ::core::option::Option<serde_json::Value>,
-    /// The type of the operation. Can be used as a filter in ListOperationsRequest. // TODO: enum values: ["OPERATION_TYPE_UNSPECIFIED", "EXPORT_ENTITIES", "IMPORT_ENTITIES"]
-    #[serde(default, rename = "operationType")]
-    pub operation_type: ::core::option::Option<String>,
-    /// The time that work began on the operation.
-    #[serde(default, rename = "startTime")]
-    pub start_time: ::core::option::Option<String>,
-    /// The current state of the Operation. // TODO: enum values: ["STATE_UNSPECIFIED", "INITIALIZING", "PROCESSING", "CANCELLING", "FINALIZING", "SUCCESSFUL", "FAILED", "CANCELLED"]
-    #[serde(default)]
-    pub state: ::core::option::Option<String>,
-}
-
-/// Identifies a subset of entities in a project. This is specified as combinations of kinds and namespaces (either or both of which may be all, as described in the following examples). Example usage: Entire project: kinds=[], namespace_ids=[] Kinds Foo and Bar in all namespaces: kinds=[''Foo'', ''Bar''], namespace_ids=[] Kinds Foo and Bar only in the default namespace: kinds=[''Foo'', ''Bar''], namespace_ids=[''''] Kinds Foo and Bar in both the default and Baz namespaces: kinds=[''Foo'', ''Bar''], namespace_ids=['''', ''Baz''] The entire Baz namespace: kinds=[], namespace_ids=[''Baz'']
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleDatastoreAdminV1beta1EntityFilter {
-    /// If empty, then this represents all kinds.
-    #[serde(default)]
-    pub kinds: ::core::option::Option<::std::vec::Vec<String>>,
-    /// An empty list represents all namespaces. This is the preferred usage for projects that don''t use namespaces. An empty string element represents the default namespace. This should be used if the project has data in non-default namespaces, but doesn''t want to include them. Each namespace in this list must be unique.
-    #[serde(default, rename = "namespaceIds")]
-    pub namespace_ids: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Metadata for ExportEntities operations.
@@ -566,17 +265,6 @@ pub struct GoogleDatastoreAdminV1beta1ImportEntitiesMetadata {
     pub progress_entities: ::core::option::Option<GoogleDatastoreAdminV1beta1Progress>,
 }
 
-/// Measures the progress of a particular metric.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleDatastoreAdminV1beta1Progress {
-    /// The amount of work that has been completed. Note that this may be greater than work_estimated.
-    #[serde(default, rename = "workCompleted")]
-    pub work_completed: ::core::option::Option<String>,
-    /// An estimate of how much work needs to be performed. May be zero if the work estimate is unavailable.
-    #[serde(default, rename = "workEstimated")]
-    pub work_estimated: ::core::option::Option<String>,
-}
-
 /// The response message for Operations.ListOperations.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleLongrunningListOperationsResponse {
@@ -589,84 +277,6 @@ pub struct GoogleLongrunningListOperationsResponse {
     /// Unordered list. Unreachable resources. Populated when the request sets ListOperationsRequest.return_partial_success and reads across collections. For example, when attempting to list all resources across all supported locations.
     #[serde(default)]
     pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// This resource represents a long-running operation that is the result of a network API call.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleLongrunningOperation {
-    /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
-    #[serde(default)]
-    pub done: ::core::option::Option<bool>,
-    /// The error result of the operation in case of failure or cancellation.
-    #[serde(default)]
-    pub error: ::core::option::Option<Status>,
-    /// Service-specific metadata associated with the operation. It typically contains progress information and common metadata such as create time. Some services might not provide such metadata. Any method that returns a long-running operation should document the metadata type, if any.
-    #[serde(default)]
-    pub metadata: ::core::option::Option<serde_json::Value>,
-    /// The server-assigned name, which is only unique within the same service that originally returns it. If you use the default HTTP mapping, the name should be a resource name ending with operations/{unique_id}.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// The normal, successful response of the operation. If the original method returns no data on success, such as Delete, the response is google.protobuf.Empty. If the original method is standard Get/Create/Update, the response should be the resource. For other methods, the response should have the type XxxResponse, where Xxx is the original method name. For example, if the original method name is TakeSnapshot(), the inferred response type is TakeSnapshotResponse.
-    #[serde(default)]
-    pub response: ::core::option::Option<serde_json::Value>,
-}
-
-/// A [GQL query](https://cloud.google.com/datastore/docs/apis/gql/gql_reference).
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GqlQuery {
-    /// When false, the query string must not contain any literals and instead must bind all values. For example, SELECT * FROM Kind WHERE a = ''string literal'' is not allowed, while SELECT * FROM Kind WHERE a = @value is.
-    #[serde(default, rename = "allowLiterals")]
-    pub allow_literals: ::core::option::Option<bool>,
-    /// For each non-reserved named binding site in the query string, there must be a named parameter with that name, but not necessarily the inverse. Key must match regex A-Za-z_$*, must not match regex __.*__, and must not be "".
-    #[serde(default, rename = "namedBindings")]
-    pub named_bindings: ::core::option::Option<serde_json::Value>,
-    /// Numbered binding site @1 references the first numbered parameter, effectively using 1-based indexing, rather than the usual 0. For each binding site numbered i in query_string, there must be an i-th numbered parameter. The inverse must also be true.
-    #[serde(default, rename = "positionalBindings")]
-    pub positional_bindings: ::core::option::Option<::std::vec::Vec<GqlQueryParameter>>,
-    /// A string of the format described [here](https://cloud.google.com/datastore/docs/apis/gql/gql_reference).
-    #[serde(default, rename = "queryString")]
-    pub query_string: ::core::option::Option<String>,
-}
-
-/// A binding parameter for a GQL query.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GqlQueryParameter {
-    /// A query cursor. Query cursors are returned in query result batches.
-    #[serde(default)]
-    pub cursor: ::core::option::Option<String>,
-    /// A value parameter.
-    #[serde(default)]
-    pub value: ::core::option::Option<ApiValue>,
-}
-
-/// A unique identifier for an entity. If a key''s partition ID or any of its path kinds or names are reserved/read-only, the key is reserved/read-only. A reserved/read-only key is forbidden in certain documented contexts.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Key {
-    /// Entities are partitioned into subsets, currently identified by a project ID and namespace ID. Queries are scoped to a single partition.
-    #[serde(default, rename = "partitionId")]
-    pub partition_id: ::core::option::Option<PartitionId>,
-    /// The entity path. An entity path consists of one or more elements composed of a kind and a string or numerical identifier, which identify entities. The first element identifies a _root entity_, the second element identifies a _child_ of the root entity, the third element identifies a child of the second entity, and so forth. The entities identified by all prefixes of the path are called the element''s _ancestors_. An entity path is always fully complete: *all* of the entity''s ancestors are required to be in the path along with the entity identifier itself. The only exception is that in some documented cases, the identifier in the last path element (for the entity) itself may be omitted. For example, the last path element of the key of Mutation.insert may have no identifier. A path can never be empty, and a path can have at most 100 elements.
-    #[serde(default)]
-    pub path: ::core::option::Option<::std::vec::Vec<PathElement>>,
-}
-
-/// A representation of a kind.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct KindExpression {
-    /// The name of the kind.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-}
-
-/// An object that represents a latitude/longitude pair. This is expressed as a pair of doubles to represent degrees latitude and degrees longitude. Unless specified otherwise, this object must conform to the WGS84 standard. Values must be within normalized ranges.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct LatLng {
-    /// The latitude in degrees. It must be in the range [-90.0, +90.0].
-    #[serde(default)]
-    pub latitude: ::core::option::Option<f64>,
-    /// The longitude in degrees. It must be in the range [-180.0, +180.0].
-    #[serde(default)]
-    pub longitude: ::core::option::Option<f64>,
 }
 
 /// The request for Datastore.Lookup.
@@ -704,269 +314,6 @@ pub struct LookupResponse {
     /// The identifier of the transaction that was started as part of this Lookup request. Set only when ReadOptions.new_transaction was set in LookupRequest.read_options.
     #[serde(default)]
     pub transaction: ::core::option::Option<String>,
-}
-
-/// A mutation to apply to an entity.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Mutation {
-    /// The version of the entity that this mutation is being applied to. If this does not match the current version on the server, the mutation conflicts.
-    #[serde(default, rename = "baseVersion")]
-    pub base_version: ::core::option::Option<String>,
-    /// The strategy to use when a conflict is detected. Defaults to SERVER_VALUE. If this is set, then conflict_detection_strategy must also be set. // TODO: enum values: ["STRATEGY_UNSPECIFIED", "SERVER_VALUE", "FAIL"]
-    #[serde(default, rename = "conflictResolutionStrategy")]
-    pub conflict_resolution_strategy: ::core::option::Option<String>,
-    /// The key of the entity to delete. The entity may or may not already exist. Must have a complete key path and must not be reserved/read-only.
-    #[serde(default)]
-    pub delete: ::core::option::Option<Key>,
-    /// The entity to insert. The entity must not already exist. The entity key''s final path element may be incomplete.
-    #[serde(default)]
-    pub insert: ::core::option::Option<Entity>,
-    /// The properties to write in this mutation. None of the properties in the mask may have a reserved name, except for __key__. This field is ignored for delete. If the entity already exists, only properties referenced in the mask are updated, others are left untouched. Properties referenced in the mask but not in the entity are deleted.
-    #[serde(default, rename = "propertyMask")]
-    pub property_mask: ::core::option::Option<PropertyMask>,
-    /// Optional. The transforms to perform on the entity. This field can be set only when the operation is insert, update, or upsert. If present, the transforms are be applied to the entity regardless of the property mask, in order, after the operation.
-    #[serde(default, rename = "propertyTransforms")]
-    pub property_transforms: ::core::option::Option<::std::vec::Vec<PropertyTransform>>,
-    /// The entity to update. The entity must already exist. Must have a complete key path.
-    #[serde(default)]
-    pub update: ::core::option::Option<Entity>,
-    /// The update time of the entity that this mutation is being applied to. If this does not match the current update time on the server, the mutation conflicts.
-    #[serde(default, rename = "updateTime")]
-    pub update_time: ::core::option::Option<String>,
-    /// The entity to upsert. The entity may or may not already exist. The entity key''s final path element may be incomplete.
-    #[serde(default)]
-    pub upsert: ::core::option::Option<Entity>,
-}
-
-/// The result of applying a mutation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct MutationResult {
-    /// Whether a conflict was detected for this mutation. Always false when a conflict detection strategy field is not set in the mutation.
-    #[serde(default, rename = "conflictDetected")]
-    pub conflict_detected: ::core::option::Option<bool>,
-    /// The create time of the entity. This field will not be set after a ''delete''.
-    #[serde(default, rename = "createTime")]
-    pub create_time: ::core::option::Option<String>,
-    /// The automatically allocated key. Set only when the mutation allocated a key.
-    #[serde(default)]
-    pub key: ::core::option::Option<Key>,
-    /// The results of applying each PropertyTransform, in the same order of the request.
-    #[serde(default, rename = "transformResults")]
-    pub transform_results: ::core::option::Option<::std::vec::Vec<ApiValue>>,
-    /// The update time of the entity on the server after processing the mutation. If the mutation doesn''t change anything on the server, then the timestamp will be the update timestamp of the current entity. This field will not be set after a ''delete''.
-    #[serde(default, rename = "updateTime")]
-    pub update_time: ::core::option::Option<String>,
-    /// The version of the entity on the server after processing the mutation. If the mutation doesn''t change anything on the server, then the version will be the version of the current entity or, if no entity is present, a version that is strictly greater than the version of any previous entity and less than the version of any possible future entity.
-    #[serde(default)]
-    pub version: ::core::option::Option<String>,
-}
-
-/// A partition ID identifies a grouping of entities. The grouping is always by project and namespace, however the namespace ID may be empty. A partition ID contains several dimensions: project ID and namespace ID. Partition dimensions: - May be "". - Must be valid UTF-8 bytes. - Must have values that match regex [A-Za-z\d\.\-_]{1,100} If the value of any dimension matches regex __.*__, the partition is reserved/read-only. A reserved/read-only partition ID is forbidden in certain documented contexts. Foreign partition IDs (in which the project ID does not match the context project ID ) are discouraged. Reads and writes of foreign partition IDs may fail if the project is not in an active state.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PartitionId {
-    /// If not empty, the ID of the database to which the entities belong.
-    #[serde(default, rename = "databaseId")]
-    pub database_id: ::core::option::Option<String>,
-    /// If not empty, the ID of the namespace to which the entities belong.
-    #[serde(default, rename = "namespaceId")]
-    pub namespace_id: ::core::option::Option<String>,
-    /// The ID of the project to which the entities belong.
-    #[serde(default, rename = "projectId")]
-    pub project_id: ::core::option::Option<String>,
-}
-
-/// A (kind, ID/name) pair used to construct a key path. If either name or ID is set, the element is complete. If neither is set, the element is incomplete.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PathElement {
-    /// The auto-allocated ID of the entity. Never equal to zero. Values less than zero are discouraged and may not be supported in the future.
-    #[serde(default)]
-    pub id: ::core::option::Option<String>,
-    /// The kind of the entity. A kind matching regex __.*__ is reserved/read-only. A kind must not contain more than 1500 bytes when UTF-8 encoded. Cannot be "". Must be valid UTF-8 bytes. Legacy values that are not valid UTF-8 are encoded as __bytes__ where  is the base-64 encoding of the bytes.
-    #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-    /// The name of the entity. A name matching regex __.*__ is reserved/read-only. A name must not be more than 1500 bytes when UTF-8 encoded. Cannot be "". Must be valid UTF-8 bytes. Legacy values that are not valid UTF-8 are encoded as __bytes__ where  is the base-64 encoding of the bytes.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-}
-
-/// Planning phase information for the query.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PlanSummary {
-    /// The indexes selected for the query. For example: [ {"query_scope": "Collection", "properties": "(foo ASC, __name__ ASC)"}, {"query_scope": "Collection", "properties": "(bar ASC, __name__ ASC)"} ]
-    #[serde(default, rename = "indexesUsed")]
-    pub indexes_used: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
-}
-
-/// A representation of a property in a projection.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Projection {
-    /// The property to project.
-    #[serde(default)]
-    pub property: ::core::option::Option<PropertyReference>,
-}
-
-/// A filter on a specific property.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PropertyFilter {
-    /// The operator to filter by. // TODO: enum values: ["OPERATOR_UNSPECIFIED", "LESS_THAN", "LESS_THAN_OR_EQUAL", "GREATER_THAN", "GREATER_THAN_OR_EQUAL", "EQUAL", "IN", "NOT_EQUAL", "HAS_ANCESTOR", "NOT_IN"]
-    #[serde(default)]
-    pub op: ::core::option::Option<String>,
-    /// The property to filter by.
-    #[serde(default)]
-    pub property: ::core::option::Option<PropertyReference>,
-    /// The value to compare the property to.
-    #[serde(default)]
-    pub value: ::core::option::Option<ApiValue>,
-}
-
-/// The set of arbitrarily nested property paths used to restrict an operation to only a subset of properties in an entity.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PropertyMask {
-    /// The paths to the properties covered by this mask. A path is a list of property names separated by dots (.), for example foo.bar means the property bar inside the entity property foo inside the entity associated with this path. If a property name contains a dot . or a backslash \, then that name must be escaped. A path must not be empty, and may not reference a value inside an array value.
-    #[serde(default)]
-    pub paths: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// The desired order for a specific property.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PropertyOrder {
-    /// The direction to order by. Defaults to ASCENDING. // TODO: enum values: ["DIRECTION_UNSPECIFIED", "ASCENDING", "DESCENDING"]
-    #[serde(default)]
-    pub direction: ::core::option::Option<String>,
-    /// The property to order by.
-    #[serde(default)]
-    pub property: ::core::option::Option<PropertyReference>,
-}
-
-/// A reference to a property relative to the kind expressions.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PropertyReference {
-    /// A reference to a property. Requires: * MUST be a dot-delimited (.) string of segments, where each segment conforms to entity property name limitations.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-}
-
-/// A transformation of an entity property.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PropertyTransform {
-    /// Appends the given elements in order if they are not already present in the current property value. If the property is not an array, or if the property does not yet exist, it is first set to the empty array. Equivalent numbers of different types (e.g. 3L and 3.0) are considered equal when checking if a value is missing. NaN is equal to NaN, and the null value is equal to the null value. If the input contains multiple equivalent values, only the first will be considered. The corresponding transform result will be the null value.
-    #[serde(default, rename = "appendMissingElements")]
-    pub append_missing_elements: ::core::option::Option<ArrayValue>,
-    /// Adds the given value to the property''s current value. This must be an integer or a double value. If the property is not an integer or double, or if the property does not yet exist, the transformation will set the property to the given value. If either of the given value or the current property value are doubles, both values will be interpreted as doubles. Double arithmetic and representation of double values follows IEEE 754 semantics. If there is positive/negative integer overflow, the property is resolved to the largest magnitude positive/negative integer.
-    #[serde(default)]
-    pub increment: ::core::option::Option<ApiValue>,
-    /// Sets the property to the maximum of its current value and the given value. This must be an integer or a double value. If the property is not an integer or double, or if the property does not yet exist, the transformation will set the property to the given value. If a maximum operation is applied where the property and the input value are of mixed types (that is - one is an integer and one is a double) the property takes on the type of the larger operand. If the operands are equivalent (e.g. 3 and 3.0), the property does not change. 0, 0.0, and -0.0 are all zero. The maximum of a zero stored value and zero input value is always the stored value. The maximum of any numeric value x and NaN is NaN.
-    #[serde(default)]
-    pub maximum: ::core::option::Option<ApiValue>,
-    /// Sets the property to the minimum of its current value and the given value. This must be an integer or a double value. If the property is not an integer or double, or if the property does not yet exist, the transformation will set the property to the input value. If a minimum operation is applied where the property and the input value are of mixed types (that is - one is an integer and one is a double) the property takes on the type of the smaller operand. If the operands are equivalent (e.g. 3 and 3.0), the property does not change. 0, 0.0, and -0.0 are all zero. The minimum of a zero stored value and zero input value is always the stored value. The minimum of any numeric value x and NaN is NaN.
-    #[serde(default)]
-    pub minimum: ::core::option::Option<ApiValue>,
-    /// Optional. The name of the property. Property paths (a list of property names separated by dots (.)) may be used to refer to properties inside entity values. For example foo.bar means the property bar inside the entity property foo. If a property name contains a dot . or a backlslash \, then that name must be escaped.
-    #[serde(default)]
-    pub property: ::core::option::Option<String>,
-    /// Removes all of the given elements from the array in the property. If the property is not an array, or if the property does not yet exist, it is set to the empty array. Equivalent numbers of different types (e.g. 3L and 3.0) are considered equal when deciding whether an element should be removed. NaN is equal to NaN, and the null value is equal to the null value. This will remove all equivalent values if there are duplicates. The corresponding transform result will be the null value.
-    #[serde(default, rename = "removeAllFromArray")]
-    pub remove_all_from_array: ::core::option::Option<ArrayValue>,
-    /// Sets the property to the given server value. // TODO: enum values: ["SERVER_VALUE_UNSPECIFIED", "REQUEST_TIME"]
-    #[serde(default, rename = "setToServerValue")]
-    pub set_to_server_value: ::core::option::Option<String>,
-}
-
-/// A query for entities. The query stages are executed in the following order: 1. kind 2. filter 3. projection 4. order + start_cursor + end_cursor 5. offset 6. limit 7. find_nearest
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Query {
-    /// The properties to make distinct. The query results will contain the first result for each distinct combination of values for the given properties (if empty, all results are returned). Requires: * If order is specified, the set of distinct on properties must appear before the non-distinct on properties in order.
-    #[serde(default, rename = "distinctOn")]
-    pub distinct_on: ::core::option::Option<::std::vec::Vec<PropertyReference>>,
-    /// An ending point for the query results. Query cursors are returned in query result batches and [can only be used to limit the same query](https://cloud.google.com/datastore/docs/concepts/queries#cursors_limits_and_offsets).
-    #[serde(default, rename = "endCursor")]
-    pub end_cursor: ::core::option::Option<String>,
-    /// The filter to apply.
-    #[serde(default)]
-    pub filter: ::core::option::Option<Filter>,
-    /// Optional. A potential Nearest Neighbors Search. Applies after all other filters and ordering. Finds the closest vector embeddings to the given query vector.
-    #[serde(default, rename = "findNearest")]
-    pub find_nearest: ::core::option::Option<FindNearest>,
-    /// The kinds to query (if empty, returns entities of all kinds). Currently at most 1 kind may be specified.
-    #[serde(default)]
-    pub kind: ::core::option::Option<::std::vec::Vec<KindExpression>>,
-    /// The maximum number of results to return. Applies after all other constraints. Optional. Unspecified is interpreted as no limit. Must be &gt;= 0 if specified.
-    #[serde(default)]
-    pub limit: ::core::option::Option<i32>,
-    /// The number of results to skip. Applies before limit, but after all other constraints. Optional. Must be &gt;= 0 if specified.
-    #[serde(default)]
-    pub offset: ::core::option::Option<i32>,
-    /// The order to apply to the query results (if empty, order is unspecified).
-    #[serde(default)]
-    pub order: ::core::option::Option<::std::vec::Vec<PropertyOrder>>,
-    /// The projection to return. Defaults to returning all properties.
-    #[serde(default)]
-    pub projection: ::core::option::Option<::std::vec::Vec<Projection>>,
-    /// A starting point for the query results. Query cursors are returned in query result batches and [can only be used to continue the same query](https://cloud.google.com/datastore/docs/concepts/queries#cursors_limits_and_offsets).
-    #[serde(default, rename = "startCursor")]
-    pub start_cursor: ::core::option::Option<String>,
-}
-
-/// A batch of results produced by a query.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct QueryResultBatch {
-    /// A cursor that points to the position after the last result in the batch.
-    #[serde(default, rename = "endCursor")]
-    pub end_cursor: ::core::option::Option<String>,
-    /// The result type for every entity in entity_results. // TODO: enum values: ["RESULT_TYPE_UNSPECIFIED", "FULL", "PROJECTION", "KEY_ONLY"]
-    #[serde(default, rename = "entityResultType")]
-    pub entity_result_type: ::core::option::Option<String>,
-    /// The results for this batch.
-    #[serde(default, rename = "entityResults")]
-    pub entity_results: ::core::option::Option<::std::vec::Vec<EntityResult>>,
-    /// The state of the query after the current batch. // TODO: enum values: ["MORE_RESULTS_TYPE_UNSPECIFIED", "NOT_FINISHED", "MORE_RESULTS_AFTER_LIMIT", "MORE_RESULTS_AFTER_CURSOR", "NO_MORE_RESULTS"]
-    #[serde(default, rename = "moreResults")]
-    pub more_results: ::core::option::Option<String>,
-    /// Read timestamp this batch was returned from. This applies to the range of results from the query''s start_cursor (or the beginning of the query if no cursor was given) to this batch''s end_cursor (not the query''s end_cursor). In a single transaction, subsequent query result batches for the same query can have a greater timestamp. Each batch''s read timestamp is valid for all preceding batches. This value will not be set for eventually consistent queries in Cloud Datastore.
-    #[serde(default, rename = "readTime")]
-    pub read_time: ::core::option::Option<String>,
-    /// A cursor that points to the position after the last skipped result. Will be set when skipped_results != 0.
-    #[serde(default, rename = "skippedCursor")]
-    pub skipped_cursor: ::core::option::Option<String>,
-    /// The number of results skipped, typically because of an offset.
-    #[serde(default, rename = "skippedResults")]
-    pub skipped_results: ::core::option::Option<i32>,
-    /// The version number of the snapshot this batch was returned from. This applies to the range of results from the query''s start_cursor (or the beginning of the query if no cursor was given) to this batch''s end_cursor (not the query''s end_cursor). In a single transaction, subsequent query result batches for the same query can have a greater snapshot version number. Each batch''s snapshot version is valid for all preceding batches. The value will be zero for eventually consistent queries.
-    #[serde(default, rename = "snapshotVersion")]
-    pub snapshot_version: ::core::option::Option<String>,
-}
-
-/// Options specific to read-only transactions.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ReadOnly {
-    /// Reads entities at the given time. This must be a microsecond precision timestamp within the past one hour, or if Point-in-Time Recovery is enabled, can additionally be a whole minute timestamp within the past 7 days.
-    #[serde(default, rename = "readTime")]
-    pub read_time: ::core::option::Option<String>,
-}
-
-/// The options shared by read requests.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ReadOptions {
-    /// Options for beginning a new transaction for this request. The new transaction identifier will be returned in the corresponding response as either LookupResponse.transaction or RunQueryResponse.transaction.
-    #[serde(default, rename = "newTransaction")]
-    pub new_transaction: ::core::option::Option<TransactionOptions>,
-    /// The non-transactional read consistency to use. // TODO: enum values: ["READ_CONSISTENCY_UNSPECIFIED", "STRONG", "EVENTUAL"]
-    #[serde(default, rename = "readConsistency")]
-    pub read_consistency: ::core::option::Option<String>,
-    /// Reads entities as they were at the given time. This value is only supported for Cloud Firestore in Datastore mode. This must be a microsecond precision timestamp within the past one hour, or if Point-in-Time Recovery is enabled, can additionally be a whole minute timestamp within the past 7 days.
-    #[serde(default, rename = "readTime")]
-    pub read_time: ::core::option::Option<String>,
-    /// The identifier of the transaction in which to read. A transaction identifier is returned by a call to Datastore.BeginTransaction.
-    #[serde(default)]
-    pub transaction: ::core::option::Option<String>,
-}
-
-/// Options specific to read / write transactions.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ReadWrite {
-    /// The transaction identifier of the transaction being retried.
-    #[serde(default, rename = "previousTransaction")]
-    pub previous_transaction: ::core::option::Option<String>,
 }
 
 /// The request for Datastore.ReserveIds.
@@ -1074,6 +421,356 @@ pub struct RunQueryResponse {
     pub transaction: ::core::option::Option<String>,
 }
 
+/// A mutation to apply to an entity.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Mutation {
+    /// The version of the entity that this mutation is being applied to. If this does not match the current version on the server, the mutation conflicts.
+    #[serde(default, rename = "baseVersion")]
+    pub base_version: ::core::option::Option<String>,
+    /// The strategy to use when a conflict is detected. Defaults to SERVER_VALUE. If this is set, then conflict_detection_strategy must also be set. // TODO: enum values: ["STRATEGY_UNSPECIFIED", "SERVER_VALUE", "FAIL"]
+    #[serde(default, rename = "conflictResolutionStrategy")]
+    pub conflict_resolution_strategy: ::core::option::Option<String>,
+    /// The key of the entity to delete. The entity may or may not already exist. Must have a complete key path and must not be reserved/read-only.
+    #[serde(default)]
+    pub delete: ::core::option::Option<Key>,
+    /// The entity to insert. The entity must not already exist. The entity key''s final path element may be incomplete.
+    #[serde(default)]
+    pub insert: ::core::option::Option<Entity>,
+    /// The properties to write in this mutation. None of the properties in the mask may have a reserved name, except for __key__. This field is ignored for delete. If the entity already exists, only properties referenced in the mask are updated, others are left untouched. Properties referenced in the mask but not in the entity are deleted.
+    #[serde(default, rename = "propertyMask")]
+    pub property_mask: ::core::option::Option<PropertyMask>,
+    /// Optional. The transforms to perform on the entity. This field can be set only when the operation is insert, update, or upsert. If present, the transforms are be applied to the entity regardless of the property mask, in order, after the operation.
+    #[serde(default, rename = "propertyTransforms")]
+    pub property_transforms: ::core::option::Option<::std::vec::Vec<PropertyTransform>>,
+    /// The entity to update. The entity must already exist. Must have a complete key path.
+    #[serde(default)]
+    pub update: ::core::option::Option<Entity>,
+    /// The update time of the entity that this mutation is being applied to. If this does not match the current update time on the server, the mutation conflicts.
+    #[serde(default, rename = "updateTime")]
+    pub update_time: ::core::option::Option<String>,
+    /// The entity to upsert. The entity may or may not already exist. The entity key''s final path element may be incomplete.
+    #[serde(default)]
+    pub upsert: ::core::option::Option<Entity>,
+}
+
+/// The result of applying a mutation.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MutationResult {
+    /// Whether a conflict was detected for this mutation. Always false when a conflict detection strategy field is not set in the mutation.
+    #[serde(default, rename = "conflictDetected")]
+    pub conflict_detected: ::core::option::Option<bool>,
+    /// The create time of the entity. This field will not be set after a ''delete''.
+    #[serde(default, rename = "createTime")]
+    pub create_time: ::core::option::Option<String>,
+    /// The automatically allocated key. Set only when the mutation allocated a key.
+    #[serde(default)]
+    pub key: ::core::option::Option<Key>,
+    /// The results of applying each PropertyTransform, in the same order of the request.
+    #[serde(default, rename = "transformResults")]
+    pub transform_results: ::core::option::Option<::std::vec::Vec<ApiValue>>,
+    /// The update time of the entity on the server after processing the mutation. If the mutation doesn''t change anything on the server, then the timestamp will be the update timestamp of the current entity. This field will not be set after a ''delete''.
+    #[serde(default, rename = "updateTime")]
+    pub update_time: ::core::option::Option<String>,
+    /// The version of the entity on the server after processing the mutation. If the mutation doesn''t change anything on the server, then the version will be the version of the current entity or, if no entity is present, a version that is strictly greater than the version of any previous entity and less than the version of any possible future entity.
+    #[serde(default)]
+    pub version: ::core::option::Option<String>,
+}
+
+/// Identifies a subset of entities in a project. This is specified as combinations of kinds and namespaces (either or both of which may be all, as described in the following examples). Example usage: Entire project: kinds=[], namespace_ids=[] Kinds Foo and Bar in all namespaces: kinds=[''Foo'', ''Bar''], namespace_ids=[] Kinds Foo and Bar only in the default namespace: kinds=[''Foo'', ''Bar''], namespace_ids=[''''] Kinds Foo and Bar in both the default and Baz namespaces: kinds=[''Foo'', ''Bar''], namespace_ids=['''', ''Baz''] The entire Baz namespace: kinds=[], namespace_ids=[''Baz'']
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleDatastoreAdminV1EntityFilter {
+    /// If empty, then this represents all kinds.
+    #[serde(default)]
+    pub kinds: ::core::option::Option<::std::vec::Vec<String>>,
+    /// An empty list represents all namespaces. This is the preferred usage for projects that don''t use namespaces. An empty string element represents the default namespace. This should be used if the project has data in non-default namespaces, but doesn''t want to include them. Each namespace in this list must be unique.
+    #[serde(default, rename = "namespaceIds")]
+    pub namespace_ids: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// Metadata common to all Datastore Admin operations.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleDatastoreAdminV1CommonMetadata {
+    /// The time the operation ended, either successfully or otherwise.
+    #[serde(default, rename = "endTime")]
+    pub end_time: ::core::option::Option<String>,
+    /// The client-assigned labels which were provided when the operation was created. May also include additional labels.
+    #[serde(default)]
+    pub labels: ::core::option::Option<serde_json::Value>,
+    /// The type of the operation. Can be used as a filter in ListOperationsRequest. // TODO: enum values: ["OPERATION_TYPE_UNSPECIFIED", "EXPORT_ENTITIES", "IMPORT_ENTITIES", "CREATE_INDEX", "DELETE_INDEX"]
+    #[serde(default, rename = "operationType")]
+    pub operation_type: ::core::option::Option<String>,
+    /// The time that work began on the operation.
+    #[serde(default, rename = "startTime")]
+    pub start_time: ::core::option::Option<String>,
+    /// The current state of the Operation. // TODO: enum values: ["STATE_UNSPECIFIED", "INITIALIZING", "PROCESSING", "CANCELLING", "FINALIZING", "SUCCESSFUL", "FAILED", "CANCELLED"]
+    #[serde(default)]
+    pub state: ::core::option::Option<String>,
+}
+
+/// Measures the progress of a particular metric.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleDatastoreAdminV1Progress {
+    /// The amount of work that has been completed. Note that this may be greater than work_estimated.
+    #[serde(default, rename = "workCompleted")]
+    pub work_completed: ::core::option::Option<String>,
+    /// An estimate of how much work needs to be performed. May be zero if the work estimate is unavailable.
+    #[serde(default, rename = "workEstimated")]
+    pub work_estimated: ::core::option::Option<String>,
+}
+
+/// Datastore composite index definition.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleDatastoreAdminV1Index {
+    /// Required. The index''s ancestor mode. Must not be ANCESTOR_MODE_UNSPECIFIED. // TODO: enum values: ["ANCESTOR_MODE_UNSPECIFIED", "NONE", "ALL_ANCESTORS"]
+    #[serde(default)]
+    pub ancestor: ::core::option::Option<String>,
+    /// Output only. The resource ID of the index.
+    #[serde(default, rename = "indexId")]
+    pub index_id: ::core::option::Option<String>,
+    /// Required. The entity kind to which this index applies.
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+    /// Output only. Project ID.
+    #[serde(default, rename = "projectId")]
+    pub project_id: ::core::option::Option<String>,
+    /// Required. An ordered sequence of property names and their index attributes. Requires: * A maximum of 100 properties.
+    #[serde(default)]
+    pub properties: ::core::option::Option<::std::vec::Vec<GoogleDatastoreAdminV1IndexedProperty>>,
+    /// Output only. The state of the index. // TODO: enum values: ["STATE_UNSPECIFIED", "CREATING", "READY", "DELETING", "ERROR"]
+    #[serde(default)]
+    pub state: ::core::option::Option<String>,
+}
+
+/// Details for the PREPARE step.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleDatastoreAdminV1PrepareStepDetails {
+    /// The concurrency mode this database will use when it reaches the REDIRECT_WRITES step. // TODO: enum values: ["CONCURRENCY_MODE_UNSPECIFIED", "PESSIMISTIC", "OPTIMISTIC", "OPTIMISTIC_WITH_ENTITY_GROUPS"]
+    #[serde(default, rename = "concurrencyMode")]
+    pub concurrency_mode: ::core::option::Option<String>,
+}
+
+/// Details for the REDIRECT_WRITES step.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleDatastoreAdminV1RedirectWritesStepDetails {
+    /// The concurrency mode for this database. // TODO: enum values: ["CONCURRENCY_MODE_UNSPECIFIED", "PESSIMISTIC", "OPTIMISTIC", "OPTIMISTIC_WITH_ENTITY_GROUPS"]
+    #[serde(default, rename = "concurrencyMode")]
+    pub concurrency_mode: ::core::option::Option<String>,
+}
+
+/// Metadata common to all Datastore Admin operations.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleDatastoreAdminV1beta1CommonMetadata {
+    /// The time the operation ended, either successfully or otherwise.
+    #[serde(default, rename = "endTime")]
+    pub end_time: ::core::option::Option<String>,
+    /// The client-assigned labels which were provided when the operation was created. May also include additional labels.
+    #[serde(default)]
+    pub labels: ::core::option::Option<serde_json::Value>,
+    /// The type of the operation. Can be used as a filter in ListOperationsRequest. // TODO: enum values: ["OPERATION_TYPE_UNSPECIFIED", "EXPORT_ENTITIES", "IMPORT_ENTITIES"]
+    #[serde(default, rename = "operationType")]
+    pub operation_type: ::core::option::Option<String>,
+    /// The time that work began on the operation.
+    #[serde(default, rename = "startTime")]
+    pub start_time: ::core::option::Option<String>,
+    /// The current state of the Operation. // TODO: enum values: ["STATE_UNSPECIFIED", "INITIALIZING", "PROCESSING", "CANCELLING", "FINALIZING", "SUCCESSFUL", "FAILED", "CANCELLED"]
+    #[serde(default)]
+    pub state: ::core::option::Option<String>,
+}
+
+/// Identifies a subset of entities in a project. This is specified as combinations of kinds and namespaces (either or both of which may be all, as described in the following examples). Example usage: Entire project: kinds=[], namespace_ids=[] Kinds Foo and Bar in all namespaces: kinds=[''Foo'', ''Bar''], namespace_ids=[] Kinds Foo and Bar only in the default namespace: kinds=[''Foo'', ''Bar''], namespace_ids=[''''] Kinds Foo and Bar in both the default and Baz namespaces: kinds=[''Foo'', ''Bar''], namespace_ids=['''', ''Baz''] The entire Baz namespace: kinds=[], namespace_ids=[''Baz'']
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleDatastoreAdminV1beta1EntityFilter {
+    /// If empty, then this represents all kinds.
+    #[serde(default)]
+    pub kinds: ::core::option::Option<::std::vec::Vec<String>>,
+    /// An empty list represents all namespaces. This is the preferred usage for projects that don''t use namespaces. An empty string element represents the default namespace. This should be used if the project has data in non-default namespaces, but doesn''t want to include them. Each namespace in this list must be unique.
+    #[serde(default, rename = "namespaceIds")]
+    pub namespace_ids: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// Measures the progress of a particular metric.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleDatastoreAdminV1beta1Progress {
+    /// The amount of work that has been completed. Note that this may be greater than work_estimated.
+    #[serde(default, rename = "workCompleted")]
+    pub work_completed: ::core::option::Option<String>,
+    /// An estimate of how much work needs to be performed. May be zero if the work estimate is unavailable.
+    #[serde(default, rename = "workEstimated")]
+    pub work_estimated: ::core::option::Option<String>,
+}
+
+/// This resource represents a long-running operation that is the result of a network API call.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleLongrunningOperation {
+    /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
+    #[serde(default)]
+    pub done: ::core::option::Option<bool>,
+    /// The error result of the operation in case of failure or cancellation.
+    #[serde(default)]
+    pub error: ::core::option::Option<Status>,
+    /// Service-specific metadata associated with the operation. It typically contains progress information and common metadata such as create time. Some services might not provide such metadata. Any method that returns a long-running operation should document the metadata type, if any.
+    #[serde(default)]
+    pub metadata: ::core::option::Option<serde_json::Value>,
+    /// The server-assigned name, which is only unique within the same service that originally returns it. If you use the default HTTP mapping, the name should be a resource name ending with operations/{unique_id}.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// The normal, successful response of the operation. If the original method returns no data on success, such as Delete, the response is google.protobuf.Empty. If the original method is standard Get/Create/Update, the response should be the resource. For other methods, the response should have the type XxxResponse, where Xxx is the original method name. For example, if the original method name is TakeSnapshot(), the inferred response type is TakeSnapshotResponse.
+    #[serde(default)]
+    pub response: ::core::option::Option<serde_json::Value>,
+}
+
+/// A batch of aggregation results produced by an aggregation query.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AggregationResultBatch {
+    /// The aggregation results for this batch.
+    #[serde(default, rename = "aggregationResults")]
+    pub aggregation_results: ::core::option::Option<::std::vec::Vec<AggregationResult>>,
+    /// The state of the query after the current batch. Only COUNT(*) aggregations are supported in the initial launch. Therefore, expected result type is limited to NO_MORE_RESULTS. // TODO: enum values: ["MORE_RESULTS_TYPE_UNSPECIFIED", "NOT_FINISHED", "MORE_RESULTS_AFTER_LIMIT", "MORE_RESULTS_AFTER_CURSOR", "NO_MORE_RESULTS"]
+    #[serde(default, rename = "moreResults")]
+    pub more_results: ::core::option::Option<String>,
+    /// Read timestamp this batch was returned from. In a single transaction, subsequent query result batches for the same query can have a greater timestamp. Each batch''s read timestamp is valid for all preceding batches.
+    #[serde(default, rename = "readTime")]
+    pub read_time: ::core::option::Option<String>,
+}
+
+/// Datastore query for running an aggregation over a Query.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AggregationQuery {
+    /// Optional. Series of aggregations to apply over the results of the nested_query. Requires: * A minimum of one and maximum of five aggregations per query.
+    #[serde(default)]
+    pub aggregations: ::core::option::Option<::std::vec::Vec<Aggregation>>,
+    /// Nested query for aggregation
+    #[serde(default, rename = "nestedQuery")]
+    pub nested_query: ::core::option::Option<Query>,
+}
+
+/// Explain options for the query.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ExplainOptions {
+    /// Optional. Whether to execute this query. When false (the default), the query will be planned, returning only metrics from the planning stages. When true, the query will be planned and executed, returning the full query results along with both planning and execution stage metrics.
+    #[serde(default)]
+    pub analyze: ::core::option::Option<bool>,
+}
+
+/// A [GQL query](https://cloud.google.com/datastore/docs/apis/gql/gql_reference).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GqlQuery {
+    /// When false, the query string must not contain any literals and instead must bind all values. For example, SELECT * FROM Kind WHERE a = ''string literal'' is not allowed, while SELECT * FROM Kind WHERE a = @value is.
+    #[serde(default, rename = "allowLiterals")]
+    pub allow_literals: ::core::option::Option<bool>,
+    /// For each non-reserved named binding site in the query string, there must be a named parameter with that name, but not necessarily the inverse. Key must match regex A-Za-z_$*, must not match regex __.*__, and must not be "".
+    #[serde(default, rename = "namedBindings")]
+    pub named_bindings: ::core::option::Option<serde_json::Value>,
+    /// Numbered binding site @1 references the first numbered parameter, effectively using 1-based indexing, rather than the usual 0. For each binding site numbered i in query_string, there must be an i-th numbered parameter. The inverse must also be true.
+    #[serde(default, rename = "positionalBindings")]
+    pub positional_bindings: ::core::option::Option<::std::vec::Vec<GqlQueryParameter>>,
+    /// A string of the format described [here](https://cloud.google.com/datastore/docs/apis/gql/gql_reference).
+    #[serde(default, rename = "queryString")]
+    pub query_string: ::core::option::Option<String>,
+}
+
+/// The options shared by read requests.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ReadOptions {
+    /// Options for beginning a new transaction for this request. The new transaction identifier will be returned in the corresponding response as either LookupResponse.transaction or RunQueryResponse.transaction.
+    #[serde(default, rename = "newTransaction")]
+    pub new_transaction: ::core::option::Option<TransactionOptions>,
+    /// The non-transactional read consistency to use. // TODO: enum values: ["READ_CONSISTENCY_UNSPECIFIED", "STRONG", "EVENTUAL"]
+    #[serde(default, rename = "readConsistency")]
+    pub read_consistency: ::core::option::Option<String>,
+    /// Reads entities as they were at the given time. This value is only supported for Cloud Firestore in Datastore mode. This must be a microsecond precision timestamp within the past one hour, or if Point-in-Time Recovery is enabled, can additionally be a whole minute timestamp within the past 7 days.
+    #[serde(default, rename = "readTime")]
+    pub read_time: ::core::option::Option<String>,
+    /// The identifier of the transaction in which to read. A transaction identifier is returned by a call to Datastore.BeginTransaction.
+    #[serde(default)]
+    pub transaction: ::core::option::Option<String>,
+}
+
+/// A batch of results produced by a query.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct QueryResultBatch {
+    /// A cursor that points to the position after the last result in the batch.
+    #[serde(default, rename = "endCursor")]
+    pub end_cursor: ::core::option::Option<String>,
+    /// The result type for every entity in entity_results. // TODO: enum values: ["RESULT_TYPE_UNSPECIFIED", "FULL", "PROJECTION", "KEY_ONLY"]
+    #[serde(default, rename = "entityResultType")]
+    pub entity_result_type: ::core::option::Option<String>,
+    /// The results for this batch.
+    #[serde(default, rename = "entityResults")]
+    pub entity_results: ::core::option::Option<::std::vec::Vec<EntityResult>>,
+    /// The state of the query after the current batch. // TODO: enum values: ["MORE_RESULTS_TYPE_UNSPECIFIED", "NOT_FINISHED", "MORE_RESULTS_AFTER_LIMIT", "MORE_RESULTS_AFTER_CURSOR", "NO_MORE_RESULTS"]
+    #[serde(default, rename = "moreResults")]
+    pub more_results: ::core::option::Option<String>,
+    /// Read timestamp this batch was returned from. This applies to the range of results from the query''s start_cursor (or the beginning of the query if no cursor was given) to this batch''s end_cursor (not the query''s end_cursor). In a single transaction, subsequent query result batches for the same query can have a greater timestamp. Each batch''s read timestamp is valid for all preceding batches. This value will not be set for eventually consistent queries in Cloud Datastore.
+    #[serde(default, rename = "readTime")]
+    pub read_time: ::core::option::Option<String>,
+    /// A cursor that points to the position after the last skipped result. Will be set when skipped_results != 0.
+    #[serde(default, rename = "skippedCursor")]
+    pub skipped_cursor: ::core::option::Option<String>,
+    /// The number of results skipped, typically because of an offset.
+    #[serde(default, rename = "skippedResults")]
+    pub skipped_results: ::core::option::Option<i32>,
+    /// The version number of the snapshot this batch was returned from. This applies to the range of results from the query''s start_cursor (or the beginning of the query if no cursor was given) to this batch''s end_cursor (not the query''s end_cursor). In a single transaction, subsequent query result batches for the same query can have a greater snapshot version number. Each batch''s snapshot version is valid for all preceding batches. The value will be zero for eventually consistent queries.
+    #[serde(default, rename = "snapshotVersion")]
+    pub snapshot_version: ::core::option::Option<String>,
+}
+
+/// Explain metrics for the query.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ExplainMetrics {
+    /// Aggregated stats from the execution of the query. Only present when ExplainOptions.analyze is set to true.
+    #[serde(default, rename = "executionStats")]
+    pub execution_stats: ::core::option::Option<ExecutionStats>,
+    /// Planning phase information for the query.
+    #[serde(default, rename = "planSummary")]
+    pub plan_summary: ::core::option::Option<PlanSummary>,
+}
+
+/// The set of arbitrarily nested property paths used to restrict an operation to only a subset of properties in an entity.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PropertyMask {
+    /// The paths to the properties covered by this mask. A path is a list of property names separated by dots (.), for example foo.bar means the property bar inside the entity property foo inside the entity associated with this path. If a property name contains a dot . or a backslash \, then that name must be escaped. A path must not be empty, and may not reference a value inside an array value.
+    #[serde(default)]
+    pub paths: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// A transformation of an entity property.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PropertyTransform {
+    /// Appends the given elements in order if they are not already present in the current property value. If the property is not an array, or if the property does not yet exist, it is first set to the empty array. Equivalent numbers of different types (e.g. 3L and 3.0) are considered equal when checking if a value is missing. NaN is equal to NaN, and the null value is equal to the null value. If the input contains multiple equivalent values, only the first will be considered. The corresponding transform result will be the null value.
+    #[serde(default, rename = "appendMissingElements")]
+    pub append_missing_elements: ::core::option::Option<ArrayValue>,
+    /// Adds the given value to the property''s current value. This must be an integer or a double value. If the property is not an integer or double, or if the property does not yet exist, the transformation will set the property to the given value. If either of the given value or the current property value are doubles, both values will be interpreted as doubles. Double arithmetic and representation of double values follows IEEE 754 semantics. If there is positive/negative integer overflow, the property is resolved to the largest magnitude positive/negative integer.
+    #[serde(default)]
+    pub increment: ::core::option::Option<ApiValue>,
+    /// Sets the property to the maximum of its current value and the given value. This must be an integer or a double value. If the property is not an integer or double, or if the property does not yet exist, the transformation will set the property to the given value. If a maximum operation is applied where the property and the input value are of mixed types (that is - one is an integer and one is a double) the property takes on the type of the larger operand. If the operands are equivalent (e.g. 3 and 3.0), the property does not change. 0, 0.0, and -0.0 are all zero. The maximum of a zero stored value and zero input value is always the stored value. The maximum of any numeric value x and NaN is NaN.
+    #[serde(default)]
+    pub maximum: ::core::option::Option<ApiValue>,
+    /// Sets the property to the minimum of its current value and the given value. This must be an integer or a double value. If the property is not an integer or double, or if the property does not yet exist, the transformation will set the property to the input value. If a minimum operation is applied where the property and the input value are of mixed types (that is - one is an integer and one is a double) the property takes on the type of the smaller operand. If the operands are equivalent (e.g. 3 and 3.0), the property does not change. 0, 0.0, and -0.0 are all zero. The minimum of a zero stored value and zero input value is always the stored value. The minimum of any numeric value x and NaN is NaN.
+    #[serde(default)]
+    pub minimum: ::core::option::Option<ApiValue>,
+    /// Optional. The name of the property. Property paths (a list of property names separated by dots (.)) may be used to refer to properties inside entity values. For example foo.bar means the property bar inside the entity property foo. If a property name contains a dot . or a backlslash \, then that name must be escaped.
+    #[serde(default)]
+    pub property: ::core::option::Option<String>,
+    /// Removes all of the given elements from the array in the property. If the property is not an array, or if the property does not yet exist, it is set to the empty array. Equivalent numbers of different types (e.g. 3L and 3.0) are considered equal when deciding whether an element should be removed. NaN is equal to NaN, and the null value is equal to the null value. This will remove all equivalent values if there are duplicates. The corresponding transform result will be the null value.
+    #[serde(default, rename = "removeAllFromArray")]
+    pub remove_all_from_array: ::core::option::Option<ArrayValue>,
+    /// Sets the property to the given server value. // TODO: enum values: ["SERVER_VALUE_UNSPECIFIED", "REQUEST_TIME"]
+    #[serde(default, rename = "setToServerValue")]
+    pub set_to_server_value: ::core::option::Option<String>,
+}
+
+/// A property of an index.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleDatastoreAdminV1IndexedProperty {
+    /// Required. The indexed property''s direction. Must not be DIRECTION_UNSPECIFIED. // TODO: enum values: ["DIRECTION_UNSPECIFIED", "ASCENDING", "DESCENDING"]
+    #[serde(default)]
+    pub direction: ::core::option::Option<String>,
+    /// Required. The property name to index.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+}
+
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Status {
@@ -1088,12 +785,67 @@ pub struct Status {
     pub message: ::core::option::Option<String>,
 }
 
-/// Sum of the values of the requested property. * Only numeric values will be aggregated. All non-numeric values including NULL are skipped. * If the aggregated values contain NaN, returns NaN. Infinity math follows IEEE-754 standards. * If the aggregated value set is empty, returns 0. * Returns a 64-bit integer if all aggregated numbers are integers and the sum result does not overflow. Otherwise, the result is returned as a double. Note that even if all the aggregated values are integers, the result is returned as a double if it cannot fit within a 64-bit signed integer. When this occurs, the returned value will lose precision. * When underflow occurs, floating-point aggregation is non-deterministic. This means that running the same query repeatedly without any changes to the underlying values could produce slightly different results each time. In those cases, values should be stored as integers over floating-point numbers.
+/// Defines an aggregation that produces a single result.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Sum {
-    /// The property to aggregate on.
+pub struct Aggregation {
+    /// Optional. Optional name of the property to store the result of the aggregation. If not provided, Datastore will pick a default name following the format property_. For example:  AGGREGATE COUNT_UP_TO(1) AS count_up_to_1, COUNT_UP_TO(2), COUNT_UP_TO(3) AS count_up_to_3, COUNT(*) OVER ( ... );  becomes:  AGGREGATE COUNT_UP_TO(1) AS count_up_to_1, COUNT_UP_TO(2) AS property_1, COUNT_UP_TO(3) AS count_up_to_3, COUNT(*) AS property_2 OVER ( ... );  Requires: * Must be unique across all aggregation aliases. * Conform to entity property name limitations.
     #[serde(default)]
-    pub property: ::core::option::Option<PropertyReference>,
+    pub alias: ::core::option::Option<String>,
+    /// Average aggregator.
+    #[serde(default)]
+    pub avg: ::core::option::Option<Avg>,
+    /// Count aggregator.
+    #[serde(default)]
+    pub count: ::core::option::Option<Count>,
+    /// Sum aggregator.
+    #[serde(default)]
+    pub sum: ::core::option::Option<Sum>,
+}
+
+/// A query for entities. The query stages are executed in the following order: 1. kind 2. filter 3. projection 4. order + start_cursor + end_cursor 5. offset 6. limit 7. find_nearest
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Query {
+    /// The properties to make distinct. The query results will contain the first result for each distinct combination of values for the given properties (if empty, all results are returned). Requires: * If order is specified, the set of distinct on properties must appear before the non-distinct on properties in order.
+    #[serde(default, rename = "distinctOn")]
+    pub distinct_on: ::core::option::Option<::std::vec::Vec<PropertyReference>>,
+    /// An ending point for the query results. Query cursors are returned in query result batches and [can only be used to limit the same query](https://cloud.google.com/datastore/docs/concepts/queries#cursors_limits_and_offsets).
+    #[serde(default, rename = "endCursor")]
+    pub end_cursor: ::core::option::Option<String>,
+    /// The filter to apply.
+    #[serde(default)]
+    pub filter: ::core::option::Option<Filter>,
+    /// Optional. A potential Nearest Neighbors Search. Applies after all other filters and ordering. Finds the closest vector embeddings to the given query vector.
+    #[serde(default, rename = "findNearest")]
+    pub find_nearest: ::core::option::Option<FindNearest>,
+    /// The kinds to query (if empty, returns entities of all kinds). Currently at most 1 kind may be specified.
+    #[serde(default)]
+    pub kind: ::core::option::Option<::std::vec::Vec<KindExpression>>,
+    /// The maximum number of results to return. Applies after all other constraints. Optional. Unspecified is interpreted as no limit. Must be &gt;= 0 if specified.
+    #[serde(default)]
+    pub limit: ::core::option::Option<i32>,
+    /// The number of results to skip. Applies before limit, but after all other constraints. Optional. Must be &gt;= 0 if specified.
+    #[serde(default)]
+    pub offset: ::core::option::Option<i32>,
+    /// The order to apply to the query results (if empty, order is unspecified).
+    #[serde(default)]
+    pub order: ::core::option::Option<::std::vec::Vec<PropertyOrder>>,
+    /// The projection to return. Defaults to returning all properties.
+    #[serde(default)]
+    pub projection: ::core::option::Option<::std::vec::Vec<Projection>>,
+    /// A starting point for the query results. Query cursors are returned in query result batches and [can only be used to continue the same query](https://cloud.google.com/datastore/docs/concepts/queries#cursors_limits_and_offsets).
+    #[serde(default, rename = "startCursor")]
+    pub start_cursor: ::core::option::Option<String>,
+}
+
+/// A binding parameter for a GQL query.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GqlQueryParameter {
+    /// A query cursor. Query cursors are returned in query result batches.
+    #[serde(default)]
+    pub cursor: ::core::option::Option<String>,
+    /// A value parameter.
+    #[serde(default)]
+    pub value: ::core::option::Option<ApiValue>,
 }
 
 /// Options for beginning a new transaction. Transactions can be created explicitly with calls to Datastore.BeginTransaction or implicitly by setting ReadOptions.new_transaction in read requests.
@@ -1105,6 +857,254 @@ pub struct TransactionOptions {
     /// The transaction should allow both reads and writes.
     #[serde(default, rename = "readWrite")]
     pub read_write: ::core::option::Option<ReadWrite>,
+}
+
+/// The result of fetching an entity from Datastore.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct EntityResult {
+    /// The time at which the entity was created. This field is set for FULL entity results. If this entity is missing, this field will not be set.
+    #[serde(default, rename = "createTime")]
+    pub create_time: ::core::option::Option<String>,
+    /// A cursor that points to the position after the result entity. Set only when the EntityResult is part of a QueryResultBatch message.
+    #[serde(default)]
+    pub cursor: ::core::option::Option<String>,
+    /// The resulting entity.
+    #[serde(default)]
+    pub entity: ::core::option::Option<Entity>,
+    /// The time at which the entity was last changed. This field is set for FULL entity results. If this entity is missing, this field will not be set.
+    #[serde(default, rename = "updateTime")]
+    pub update_time: ::core::option::Option<String>,
+    /// The version of the entity, a strictly positive number that monotonically increases with changes to the entity. This field is set for FULL entity results. For missing entities in LookupResponse, this is the version of the snapshot that was used to look up the entity, and it is always set except for eventually consistent reads.
+    #[serde(default)]
+    pub version: ::core::option::Option<String>,
+}
+
+/// Execution statistics for the query.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ExecutionStats {
+    /// Debugging statistics from the execution of the query. Note that the debugging stats are subject to change as Firestore evolves. It could include: { "indexes_entries_scanned": "1000", "documents_scanned": "20", "billing_details" : { "documents_billable": "20", "index_entries_billable": "1000", "min_query_cost": "0" } }
+    #[serde(default, rename = "debugStats")]
+    pub debug_stats: ::core::option::Option<serde_json::Value>,
+    /// Total time to execute the query in the backend.
+    #[serde(default, rename = "executionDuration")]
+    pub execution_duration: ::core::option::Option<String>,
+    /// Total billable read operations.
+    #[serde(default, rename = "readOperations")]
+    pub read_operations: ::core::option::Option<String>,
+    /// Total number of results returned, including documents, projections, aggregation results, keys.
+    #[serde(default, rename = "resultsReturned")]
+    pub results_returned: ::core::option::Option<String>,
+}
+
+/// Planning phase information for the query.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PlanSummary {
+    /// The indexes selected for the query. For example: [ {"query_scope": "Collection", "properties": "(foo ASC, __name__ ASC)"}, {"query_scope": "Collection", "properties": "(bar ASC, __name__ ASC)"} ]
+    #[serde(default, rename = "indexesUsed")]
+    pub indexes_used: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
+}
+
+/// Average of the values of the requested property. * Only numeric values will be aggregated. All non-numeric values including NULL are skipped. * If the aggregated values contain NaN, returns NaN. Infinity math follows IEEE-754 standards. * If the aggregated value set is empty, returns NULL. * Always returns the result as a double.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Avg {
+    /// The property to aggregate on.
+    #[serde(default)]
+    pub property: ::core::option::Option<PropertyReference>,
+}
+
+/// Count of entities that match the query. The COUNT(*) aggregation function operates on the entire entity so it does not require a field reference.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Count {
+    /// Optional. Optional constraint on the maximum number of entities to count. This provides a way to set an upper bound on the number of entities to scan, limiting latency, and cost. Unspecified is interpreted as no bound. If a zero value is provided, a count result of zero should always be expected. High-Level Example:  AGGREGATE COUNT_UP_TO(1000) OVER ( SELECT * FROM k );  Requires: * Must be non-negative when present.
+    #[serde(default, rename = "upTo")]
+    pub up_to: ::core::option::Option<String>,
+}
+
+/// Sum of the values of the requested property. * Only numeric values will be aggregated. All non-numeric values including NULL are skipped. * If the aggregated values contain NaN, returns NaN. Infinity math follows IEEE-754 standards. * If the aggregated value set is empty, returns 0. * Returns a 64-bit integer if all aggregated numbers are integers and the sum result does not overflow. Otherwise, the result is returned as a double. Note that even if all the aggregated values are integers, the result is returned as a double if it cannot fit within a 64-bit signed integer. When this occurs, the returned value will lose precision. * When underflow occurs, floating-point aggregation is non-deterministic. This means that running the same query repeatedly without any changes to the underlying values could produce slightly different results each time. In those cases, values should be stored as integers over floating-point numbers.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Sum {
+    /// The property to aggregate on.
+    #[serde(default)]
+    pub property: ::core::option::Option<PropertyReference>,
+}
+
+/// Nearest Neighbors search config. The ordering provided by FindNearest supersedes the order_by stage. If multiple documents have the same vector distance, the returned document order is not guaranteed to be stable between queries.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct FindNearest {
+    /// Required. The Distance Measure to use, required. // TODO: enum values: ["DISTANCE_MEASURE_UNSPECIFIED", "EUCLIDEAN", "COSINE", "DOT_PRODUCT"]
+    #[serde(default, rename = "distanceMeasure")]
+    pub distance_measure: ::core::option::Option<String>,
+    /// Optional. Optional name of the field to output the result of the vector distance calculation. Must conform to entity property limitations.
+    #[serde(default, rename = "distanceResultProperty")]
+    pub distance_result_property: ::core::option::Option<String>,
+    /// Optional. Option to specify a threshold for which no less similar documents will be returned. The behavior of the specified distance_measure will affect the meaning of the distance threshold. Since DOT_PRODUCT distances increase when the vectors are more similar, the comparison is inverted. * For EUCLIDEAN, COSINE: WHERE distance &lt;= distance_threshold * For DOT_PRODUCT: WHERE distance &gt;= distance_threshold
+    #[serde(default, rename = "distanceThreshold")]
+    pub distance_threshold: ::core::option::Option<f64>,
+    /// Required. The number of nearest neighbors to return. Must be a positive integer of no more than 100.
+    #[serde(default)]
+    pub limit: ::core::option::Option<i32>,
+    /// Required. The query vector that we are searching on. Must be a vector of no more than 2048 dimensions.
+    #[serde(default, rename = "queryVector")]
+    pub query_vector: ::core::option::Option<ApiValue>,
+    /// Required. An indexed vector property to search upon. Only documents which contain vectors whose dimensionality match the query_vector can be returned.
+    #[serde(default, rename = "vectorProperty")]
+    pub vector_property: ::core::option::Option<PropertyReference>,
+}
+
+/// A representation of a kind.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct KindExpression {
+    /// The name of the kind.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+}
+
+/// The desired order for a specific property.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PropertyOrder {
+    /// The direction to order by. Defaults to ASCENDING. // TODO: enum values: ["DIRECTION_UNSPECIFIED", "ASCENDING", "DESCENDING"]
+    #[serde(default)]
+    pub direction: ::core::option::Option<String>,
+    /// The property to order by.
+    #[serde(default)]
+    pub property: ::core::option::Option<PropertyReference>,
+}
+
+/// A representation of a property in a projection.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Projection {
+    /// The property to project.
+    #[serde(default)]
+    pub property: ::core::option::Option<PropertyReference>,
+}
+
+/// Options specific to read-only transactions.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ReadOnly {
+    /// Reads entities at the given time. This must be a microsecond precision timestamp within the past one hour, or if Point-in-Time Recovery is enabled, can additionally be a whole minute timestamp within the past 7 days.
+    #[serde(default, rename = "readTime")]
+    pub read_time: ::core::option::Option<String>,
+}
+
+/// Options specific to read / write transactions.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ReadWrite {
+    /// The transaction identifier of the transaction being retried.
+    #[serde(default, rename = "previousTransaction")]
+    pub previous_transaction: ::core::option::Option<String>,
+}
+
+/// An array value.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ArrayValue {
+    /// Values in the array. The order of values in an array is preserved as long as all values have identical settings for ''exclude_from_indexes''.
+    #[serde(default)]
+    pub values: ::core::option::Option<::std::vec::Vec<ApiValue>>,
+}
+
+/// A filter that merges multiple other filters using the given operator.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CompositeFilter {
+    /// The list of filters to combine. Requires: * At least one filter is present.
+    #[serde(default)]
+    pub filters: ::core::option::Option<::std::vec::Vec<Filter>>,
+    /// The operator for combining multiple filters. // TODO: enum values: ["OPERATOR_UNSPECIFIED", "AND", "OR"]
+    #[serde(default)]
+    pub op: ::core::option::Option<String>,
+}
+
+/// A Datastore data object. Must not exceed 1 MiB - 4 bytes.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Entity {
+    /// The entity''s key. An entity must have a key, unless otherwise documented (for example, an entity in Value.entity_value may have no key). An entity''s kind is its key path''s last element''s kind, or null if it has no key.
+    #[serde(default)]
+    pub key: ::core::option::Option<Key>,
+    /// The entity''s properties. The map''s keys are property names. A property name matching regex __.*__ is reserved. A reserved property name is forbidden in certain documented contexts. The map keys, represented as UTF-8, must not exceed 1,500 bytes and cannot be empty.
+    #[serde(default)]
+    pub properties: ::core::option::Option<serde_json::Value>,
+}
+
+/// A holder for any type of filter.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Filter {
+    /// A composite filter.
+    #[serde(default, rename = "compositeFilter")]
+    pub composite_filter: ::core::option::Option<CompositeFilter>,
+    /// A filter on a property.
+    #[serde(default, rename = "propertyFilter")]
+    pub property_filter: ::core::option::Option<PropertyFilter>,
+}
+
+/// A unique identifier for an entity. If a key''s partition ID or any of its path kinds or names are reserved/read-only, the key is reserved/read-only. A reserved/read-only key is forbidden in certain documented contexts.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Key {
+    /// Entities are partitioned into subsets, currently identified by a project ID and namespace ID. Queries are scoped to a single partition.
+    #[serde(default, rename = "partitionId")]
+    pub partition_id: ::core::option::Option<PartitionId>,
+    /// The entity path. An entity path consists of one or more elements composed of a kind and a string or numerical identifier, which identify entities. The first element identifies a _root entity_, the second element identifies a _child_ of the root entity, the third element identifies a child of the second entity, and so forth. The entities identified by all prefixes of the path are called the element''s _ancestors_. An entity path is always fully complete: *all* of the entity''s ancestors are required to be in the path along with the entity identifier itself. The only exception is that in some documented cases, the identifier in the last path element (for the entity) itself may be omitted. For example, the last path element of the key of Mutation.insert may have no identifier. A path can never be empty, and a path can have at most 100 elements.
+    #[serde(default)]
+    pub path: ::core::option::Option<::std::vec::Vec<PathElement>>,
+}
+
+/// An object that represents a latitude/longitude pair. This is expressed as a pair of doubles to represent degrees latitude and degrees longitude. Unless specified otherwise, this object must conform to the WGS84 standard. Values must be within normalized ranges.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LatLng {
+    /// The latitude in degrees. It must be in the range [-90.0, +90.0].
+    #[serde(default)]
+    pub latitude: ::core::option::Option<f64>,
+    /// The longitude in degrees. It must be in the range [-180.0, +180.0].
+    #[serde(default)]
+    pub longitude: ::core::option::Option<f64>,
+}
+
+/// A partition ID identifies a grouping of entities. The grouping is always by project and namespace, however the namespace ID may be empty. A partition ID contains several dimensions: project ID and namespace ID. Partition dimensions: - May be "". - Must be valid UTF-8 bytes. - Must have values that match regex [A-Za-z\d\.\-_]{1,100} If the value of any dimension matches regex __.*__, the partition is reserved/read-only. A reserved/read-only partition ID is forbidden in certain documented contexts. Foreign partition IDs (in which the project ID does not match the context project ID ) are discouraged. Reads and writes of foreign partition IDs may fail if the project is not in an active state.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PartitionId {
+    /// If not empty, the ID of the database to which the entities belong.
+    #[serde(default, rename = "databaseId")]
+    pub database_id: ::core::option::Option<String>,
+    /// If not empty, the ID of the namespace to which the entities belong.
+    #[serde(default, rename = "namespaceId")]
+    pub namespace_id: ::core::option::Option<String>,
+    /// The ID of the project to which the entities belong.
+    #[serde(default, rename = "projectId")]
+    pub project_id: ::core::option::Option<String>,
+}
+
+/// A (kind, ID/name) pair used to construct a key path. If either name or ID is set, the element is complete. If neither is set, the element is incomplete.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PathElement {
+    /// The auto-allocated ID of the entity. Never equal to zero. Values less than zero are discouraged and may not be supported in the future.
+    #[serde(default)]
+    pub id: ::core::option::Option<String>,
+    /// The kind of the entity. A kind matching regex __.*__ is reserved/read-only. A kind must not contain more than 1500 bytes when UTF-8 encoded. Cannot be "". Must be valid UTF-8 bytes. Legacy values that are not valid UTF-8 are encoded as __bytes__ where  is the base-64 encoding of the bytes.
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+    /// The name of the entity. A name matching regex __.*__ is reserved/read-only. A name must not be more than 1500 bytes when UTF-8 encoded. Cannot be "". Must be valid UTF-8 bytes. Legacy values that are not valid UTF-8 are encoded as __bytes__ where  is the base-64 encoding of the bytes.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+}
+
+/// A filter on a specific property.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PropertyFilter {
+    /// The operator to filter by. // TODO: enum values: ["OPERATOR_UNSPECIFIED", "LESS_THAN", "LESS_THAN_OR_EQUAL", "GREATER_THAN", "GREATER_THAN_OR_EQUAL", "EQUAL", "IN", "NOT_EQUAL", "HAS_ANCESTOR", "NOT_IN"]
+    #[serde(default)]
+    pub op: ::core::option::Option<String>,
+    /// The property to filter by.
+    #[serde(default)]
+    pub property: ::core::option::Option<PropertyReference>,
+    /// The value to compare the property to.
+    #[serde(default)]
+    pub value: ::core::option::Option<ApiValue>,
+}
+
+/// A reference to a property relative to the kind expressions.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PropertyReference {
+    /// A reference to a property. Requires: * MUST be a dot-delimited (.) string of segments, where each segment conforms to entity property name limitations.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
 }
 
 /// A message that can hold any of the supported value types and associated metadata.

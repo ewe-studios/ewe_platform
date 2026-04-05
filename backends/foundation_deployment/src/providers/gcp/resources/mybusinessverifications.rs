@@ -10,20 +10,6 @@
 use super::*;
 use serde::{Deserialize, Serialize};
 
-/// Display data for verifications through postcard.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AddressVerificationData {
-    /// Address that a postcard can be sent to.
-    #[serde(default)]
-    pub address: ::core::option::Option<PostalAddress>,
-    /// Merchant''s business name.
-    #[serde(default)]
-    pub business: ::core::option::Option<String>,
-    /// Expected number of days it takes to deliver a postcard to the address''s region.
-    #[serde(default, rename = "expectedDeliveryDaysRegion")]
-    pub expected_delivery_days_region: ::core::option::Option<i32>,
-}
-
 /// Request message for Verifications.CompleteVerificationAction.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CompleteVerificationRequest {
@@ -38,28 +24,6 @@ pub struct CompleteVerificationResponse {
     /// The completed verification.
     #[serde(default)]
     pub verification: ::core::option::Option<Verification>,
-}
-
-/// Indicates that the location fails to comply with our [guidelines](https://support.google.com/business/answer/3038177).
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ComplyWithGuidelines {
-    /// The reason why the location is being recommended to comply with guidelines. // TODO: enum values: ["RECOMMENDATION_REASON_UNSPECIFIED", "BUSINESS_LOCATION_SUSPENDED", "BUSINESS_LOCATION_DISABLED"]
-    #[serde(default, rename = "recommendationReason")]
-    pub recommendation_reason: ::core::option::Option<String>,
-}
-
-/// Display data for verifications through email.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct EmailVerificationData {
-    /// Domain name in the email address. e.g. "gmail.com" in foo@gmail.com
-    #[serde(default)]
-    pub domain: ::core::option::Option<String>,
-    /// Whether client is allowed to provide a different user name.
-    #[serde(default, rename = "isUserNameEditable")]
-    pub is_user_name_editable: ::core::option::Option<bool>,
-    /// User name in the email address. e.g. "foo" in foo@gmail.com
-    #[serde(default)]
-    pub user: ::core::option::Option<String>,
 }
 
 /// Request message for Verifications.FetchVerificationOptions.
@@ -112,119 +76,6 @@ pub struct ListVerificationsResponse {
     /// List of the verifications.
     #[serde(default)]
     pub verifications: ::core::option::Option<::std::vec::Vec<Verification>>,
-}
-
-/// The address and other details of the location to generate an instant verification token for.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct LocationData {
-    /// Immutable. A precise, accurate address to describe your business location. PO boxes or mailboxes located at remote locations are not acceptable. At this time, you can specify a maximum of five address_lines values in the address.
-    #[serde(default)]
-    pub address: ::core::option::Option<PostalAddress>,
-    /// Immutable. Name should reflect your business''s real-world name, as used consistently on your storefront, website, and stationery, and as known to customers. Any additional information, when relevant, can be included in other fields of the resource (for example, Address, Categories). Don''t add unnecessary information to your name (for example, prefer "Google" over "Google Inc. - Mountain View Corporate Headquarters"). Don''t include marketing taglines, store codes, special characters, hours or closed/open status, phone numbers, website URLs, service/product information, location/address or directions, or containment information (for example, "Chase ATM in Duane Reade").
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-}
-
-/// Represents a postal address, such as for postal delivery or payments addresses. With a postal address, a postal service can deliver items to a premise, P.O. box, or similar. A postal address is not intended to model geographical locations like roads, towns, or mountains. In typical usage, an address would be created by user input or from importing existing data, depending on the type of process. Advice on address input or editing: - Use an internationalization-ready address widget such as https://github.com/google/libaddressinput. - Users should not be presented with UI elements for input or editing of fields outside countries where that field is used. For more guidance on how to use this schema, see: https://support.google.com/business/answer/6397478.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PostalAddress {
-    /// Unstructured address lines describing the lower levels of an address. Because values in address_lines do not have type information and may sometimes contain multiple values in a single field (for example, "Austin, TX"), it is important that the line order is clear. The order of address lines should be "envelope order" for the country or region of the address. In places where this can vary (for example, Japan), address_language is used to make it explicit (for example, "ja" for large-to-small ordering and "ja-Latn" or "en" for small-to-large). In this way, the most specific line of an address can be selected based on the language. The minimum permitted structural representation of an address consists of a region_code with all remaining information placed in the address_lines. It would be possible to format such an address very approximately without geocoding, but no semantic reasoning could be made about any of the address components until it was at least partially resolved. Creating an address only containing a region_code and address_lines and then geocoding is the recommended way to handle completely unstructured addresses (as opposed to guessing which parts of the address should be localities or administrative areas).
-    #[serde(default, rename = "addressLines")]
-    pub address_lines: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Optional. Highest administrative subdivision which is used for postal addresses of a country or region. For example, this can be a state, a province, an oblast, or a prefecture. For Spain, this is the province and not the autonomous community (for example, "Barcelona" and not "Catalonia"). Many countries don''t use an administrative area in postal addresses. For example, in Switzerland, this should be left unpopulated.
-    #[serde(default, rename = "administrativeArea")]
-    pub administrative_area: ::core::option::Option<String>,
-    /// Optional. BCP-47 language code of the contents of this address (if known). This is often the UI language of the input form or is expected to match one of the languages used in the address'' country/region, or their transliterated equivalents. This can affect formatting in certain countries, but is not critical to the correctness of the data and will never affect any validation or other non-formatting related operations. If this value is not known, it should be omitted (rather than specifying a possibly incorrect default). Examples: "zh-Hant", "ja", "ja-Latn", "en".
-    #[serde(default, rename = "languageCode")]
-    pub language_code: ::core::option::Option<String>,
-    /// Optional. Generally refers to the city or town portion of the address. Examples: US city, IT comune, UK post town. In regions of the world where localities are not well defined or do not fit into this structure well, leave locality empty and use address_lines.
-    #[serde(default)]
-    pub locality: ::core::option::Option<String>,
-    /// Optional. The name of the organization at the address.
-    #[serde(default)]
-    pub organization: ::core::option::Option<String>,
-    /// Optional. Postal code of the address. Not all countries use or require postal codes to be present, but where they are used, they may trigger additional validation with other parts of the address (for example, state or zip code validation in the United States).
-    #[serde(default, rename = "postalCode")]
-    pub postal_code: ::core::option::Option<String>,
-    /// Optional. The recipient at the address. This field may, under certain circumstances, contain multiline information. For example, it might contain "care of" information.
-    #[serde(default)]
-    pub recipients: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Required. CLDR region code of the country/region of the address. This is never inferred and it is up to the user to ensure the value is correct. See https://cldr.unicode.org/ and https://www.unicode.org/cldr/charts/30/supplemental/territory_information.html for details. Example: "CH" for Switzerland.
-    #[serde(default, rename = "regionCode")]
-    pub region_code: ::core::option::Option<String>,
-    /// The schema revision of the PostalAddress. This must be set to 0, which is the latest revision. All new revisions **must** be backward compatible with old revisions.
-    #[serde(default)]
-    pub revision: ::core::option::Option<i32>,
-    /// Optional. Additional, country-specific, sorting code. This is not used in most regions. Where it is used, the value is either a string like "CEDEX", optionally followed by a number (for example, "CEDEX 7"), or just a number alone, representing the "sector code" (Jamaica), "delivery area indicator" (Malawi) or "post office indicator" (Côte d''Ivoire).
-    #[serde(default, rename = "sortingCode")]
-    pub sorting_code: ::core::option::Option<String>,
-    /// Optional. Sublocality of the address. For example, this can be a neighborhood, borough, or district.
-    #[serde(default)]
-    pub sublocality: ::core::option::Option<String>,
-}
-
-/// Additional data for service business verification.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ServiceBusinessContext {
-    /// The verification address of the location. It is used to either enable more verification options or send a postcard.
-    #[serde(default)]
-    pub address: ::core::option::Option<PostalAddress>,
-}
-
-/// A verification represents a verification attempt on a location.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Verification {
-    /// Optional. Response announcement set only if the method is VETTED_PARTNER.
-    #[serde(default)]
-    pub announcement: ::core::option::Option<String>,
-    /// The timestamp when the verification is requested.
-    #[serde(default, rename = "createTime")]
-    pub create_time: ::core::option::Option<String>,
-    /// The method of the verification. // TODO: enum values: ["VERIFICATION_METHOD_UNSPECIFIED", "ADDRESS", "EMAIL", "PHONE_CALL", "SMS", "AUTO", "VETTED_PARTNER", "TRUSTED_PARTNER"]
-    #[serde(default)]
-    pub method: ::core::option::Option<String>,
-    /// Resource name of the verification.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// The state of the verification. // TODO: enum values: ["STATE_UNSPECIFIED", "PENDING", "COMPLETED", "FAILED"]
-    #[serde(default)]
-    pub state: ::core::option::Option<String>,
-}
-
-/// The verification option represents how to verify the location (indicated by verification method) and where the verification will be sent to (indicated by display data).
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct VerificationOption {
-    /// Set only if the method is MAIL.
-    #[serde(default, rename = "addressData")]
-    pub address_data: ::core::option::Option<AddressVerificationData>,
-    /// Set only if the method is VETTED_PARTNER.
-    #[serde(default)]
-    pub announcement: ::core::option::Option<String>,
-    /// Set only if the method is EMAIL.
-    #[serde(default, rename = "emailData")]
-    pub email_data: ::core::option::Option<EmailVerificationData>,
-    /// Set only if the method is PHONE_CALL or SMS. Phone number that the PIN will be sent to.
-    #[serde(default, rename = "phoneNumber")]
-    pub phone_number: ::core::option::Option<String>,
-    /// Method to verify the location. // TODO: enum values: ["VERIFICATION_METHOD_UNSPECIFIED", "ADDRESS", "EMAIL", "PHONE_CALL", "SMS", "AUTO", "VETTED_PARTNER", "TRUSTED_PARTNER"]
-    #[serde(default, rename = "verificationMethod")]
-    pub verification_method: ::core::option::Option<String>,
-}
-
-/// Token generated by a vetted [partner](https://support.google.com/business/answer/7674102).
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct VerificationToken {
-    /// The token string.
-    #[serde(default, rename = "tokenString")]
-    pub token_string: ::core::option::Option<String>,
-}
-
-/// Indicates that the location requires verification. Contains information about the current verification actions performed on the location.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Verify {
-    /// Indicates whether a verification process has already started, and can be completed by the location.
-    #[serde(default, rename = "hasPendingVerification")]
-    pub has_pending_verification: ::core::option::Option<bool>,
 }
 
 /// Request message for Verifications.VerifyLocation.
@@ -285,4 +136,153 @@ pub struct VoiceOfMerchantState {
     /// Wait to gain Voice of Merchant. The location is under review for quality purposes.
     #[serde(default, rename = "waitForVoiceOfMerchant")]
     pub wait_for_voice_of_merchant: ::core::option::Option<serde_json::Value>,
+}
+
+/// The verification option represents how to verify the location (indicated by verification method) and where the verification will be sent to (indicated by display data).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct VerificationOption {
+    /// Set only if the method is MAIL.
+    #[serde(default, rename = "addressData")]
+    pub address_data: ::core::option::Option<AddressVerificationData>,
+    /// Set only if the method is VETTED_PARTNER.
+    #[serde(default)]
+    pub announcement: ::core::option::Option<String>,
+    /// Set only if the method is EMAIL.
+    #[serde(default, rename = "emailData")]
+    pub email_data: ::core::option::Option<EmailVerificationData>,
+    /// Set only if the method is PHONE_CALL or SMS. Phone number that the PIN will be sent to.
+    #[serde(default, rename = "phoneNumber")]
+    pub phone_number: ::core::option::Option<String>,
+    /// Method to verify the location. // TODO: enum values: ["VERIFICATION_METHOD_UNSPECIFIED", "ADDRESS", "EMAIL", "PHONE_CALL", "SMS", "AUTO", "VETTED_PARTNER", "TRUSTED_PARTNER"]
+    #[serde(default, rename = "verificationMethod")]
+    pub verification_method: ::core::option::Option<String>,
+}
+
+/// The address and other details of the location to generate an instant verification token for.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LocationData {
+    /// Immutable. A precise, accurate address to describe your business location. PO boxes or mailboxes located at remote locations are not acceptable. At this time, you can specify a maximum of five address_lines values in the address.
+    #[serde(default)]
+    pub address: ::core::option::Option<PostalAddress>,
+    /// Immutable. Name should reflect your business''s real-world name, as used consistently on your storefront, website, and stationery, and as known to customers. Any additional information, when relevant, can be included in other fields of the resource (for example, Address, Categories). Don''t add unnecessary information to your name (for example, prefer "Google" over "Google Inc. - Mountain View Corporate Headquarters"). Don''t include marketing taglines, store codes, special characters, hours or closed/open status, phone numbers, website URLs, service/product information, location/address or directions, or containment information (for example, "Chase ATM in Duane Reade").
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+}
+
+/// Additional data for service business verification.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ServiceBusinessContext {
+    /// The verification address of the location. It is used to either enable more verification options or send a postcard.
+    #[serde(default)]
+    pub address: ::core::option::Option<PostalAddress>,
+}
+
+/// Token generated by a vetted [partner](https://support.google.com/business/answer/7674102).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct VerificationToken {
+    /// The token string.
+    #[serde(default, rename = "tokenString")]
+    pub token_string: ::core::option::Option<String>,
+}
+
+/// A verification represents a verification attempt on a location.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Verification {
+    /// Optional. Response announcement set only if the method is VETTED_PARTNER.
+    #[serde(default)]
+    pub announcement: ::core::option::Option<String>,
+    /// The timestamp when the verification is requested.
+    #[serde(default, rename = "createTime")]
+    pub create_time: ::core::option::Option<String>,
+    /// The method of the verification. // TODO: enum values: ["VERIFICATION_METHOD_UNSPECIFIED", "ADDRESS", "EMAIL", "PHONE_CALL", "SMS", "AUTO", "VETTED_PARTNER", "TRUSTED_PARTNER"]
+    #[serde(default)]
+    pub method: ::core::option::Option<String>,
+    /// Resource name of the verification.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// The state of the verification. // TODO: enum values: ["STATE_UNSPECIFIED", "PENDING", "COMPLETED", "FAILED"]
+    #[serde(default)]
+    pub state: ::core::option::Option<String>,
+}
+
+/// Indicates that the location fails to comply with our [guidelines](https://support.google.com/business/answer/3038177).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ComplyWithGuidelines {
+    /// The reason why the location is being recommended to comply with guidelines. // TODO: enum values: ["RECOMMENDATION_REASON_UNSPECIFIED", "BUSINESS_LOCATION_SUSPENDED", "BUSINESS_LOCATION_DISABLED"]
+    #[serde(default, rename = "recommendationReason")]
+    pub recommendation_reason: ::core::option::Option<String>,
+}
+
+/// Indicates that the location requires verification. Contains information about the current verification actions performed on the location.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Verify {
+    /// Indicates whether a verification process has already started, and can be completed by the location.
+    #[serde(default, rename = "hasPendingVerification")]
+    pub has_pending_verification: ::core::option::Option<bool>,
+}
+
+/// Display data for verifications through postcard.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AddressVerificationData {
+    /// Address that a postcard can be sent to.
+    #[serde(default)]
+    pub address: ::core::option::Option<PostalAddress>,
+    /// Merchant''s business name.
+    #[serde(default)]
+    pub business: ::core::option::Option<String>,
+    /// Expected number of days it takes to deliver a postcard to the address''s region.
+    #[serde(default, rename = "expectedDeliveryDaysRegion")]
+    pub expected_delivery_days_region: ::core::option::Option<i32>,
+}
+
+/// Display data for verifications through email.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct EmailVerificationData {
+    /// Domain name in the email address. e.g. "gmail.com" in foo@gmail.com
+    #[serde(default)]
+    pub domain: ::core::option::Option<String>,
+    /// Whether client is allowed to provide a different user name.
+    #[serde(default, rename = "isUserNameEditable")]
+    pub is_user_name_editable: ::core::option::Option<bool>,
+    /// User name in the email address. e.g. "foo" in foo@gmail.com
+    #[serde(default)]
+    pub user: ::core::option::Option<String>,
+}
+
+/// Represents a postal address, such as for postal delivery or payments addresses. With a postal address, a postal service can deliver items to a premise, P.O. box, or similar. A postal address is not intended to model geographical locations like roads, towns, or mountains. In typical usage, an address would be created by user input or from importing existing data, depending on the type of process. Advice on address input or editing: - Use an internationalization-ready address widget such as https://github.com/google/libaddressinput. - Users should not be presented with UI elements for input or editing of fields outside countries where that field is used. For more guidance on how to use this schema, see: https://support.google.com/business/answer/6397478.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PostalAddress {
+    /// Unstructured address lines describing the lower levels of an address. Because values in address_lines do not have type information and may sometimes contain multiple values in a single field (for example, "Austin, TX"), it is important that the line order is clear. The order of address lines should be "envelope order" for the country or region of the address. In places where this can vary (for example, Japan), address_language is used to make it explicit (for example, "ja" for large-to-small ordering and "ja-Latn" or "en" for small-to-large). In this way, the most specific line of an address can be selected based on the language. The minimum permitted structural representation of an address consists of a region_code with all remaining information placed in the address_lines. It would be possible to format such an address very approximately without geocoding, but no semantic reasoning could be made about any of the address components until it was at least partially resolved. Creating an address only containing a region_code and address_lines and then geocoding is the recommended way to handle completely unstructured addresses (as opposed to guessing which parts of the address should be localities or administrative areas).
+    #[serde(default, rename = "addressLines")]
+    pub address_lines: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Optional. Highest administrative subdivision which is used for postal addresses of a country or region. For example, this can be a state, a province, an oblast, or a prefecture. For Spain, this is the province and not the autonomous community (for example, "Barcelona" and not "Catalonia"). Many countries don''t use an administrative area in postal addresses. For example, in Switzerland, this should be left unpopulated.
+    #[serde(default, rename = "administrativeArea")]
+    pub administrative_area: ::core::option::Option<String>,
+    /// Optional. BCP-47 language code of the contents of this address (if known). This is often the UI language of the input form or is expected to match one of the languages used in the address'' country/region, or their transliterated equivalents. This can affect formatting in certain countries, but is not critical to the correctness of the data and will never affect any validation or other non-formatting related operations. If this value is not known, it should be omitted (rather than specifying a possibly incorrect default). Examples: "zh-Hant", "ja", "ja-Latn", "en".
+    #[serde(default, rename = "languageCode")]
+    pub language_code: ::core::option::Option<String>,
+    /// Optional. Generally refers to the city or town portion of the address. Examples: US city, IT comune, UK post town. In regions of the world where localities are not well defined or do not fit into this structure well, leave locality empty and use address_lines.
+    #[serde(default)]
+    pub locality: ::core::option::Option<String>,
+    /// Optional. The name of the organization at the address.
+    #[serde(default)]
+    pub organization: ::core::option::Option<String>,
+    /// Optional. Postal code of the address. Not all countries use or require postal codes to be present, but where they are used, they may trigger additional validation with other parts of the address (for example, state or zip code validation in the United States).
+    #[serde(default, rename = "postalCode")]
+    pub postal_code: ::core::option::Option<String>,
+    /// Optional. The recipient at the address. This field may, under certain circumstances, contain multiline information. For example, it might contain "care of" information.
+    #[serde(default)]
+    pub recipients: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Required. CLDR region code of the country/region of the address. This is never inferred and it is up to the user to ensure the value is correct. See https://cldr.unicode.org/ and https://www.unicode.org/cldr/charts/30/supplemental/territory_information.html for details. Example: "CH" for Switzerland.
+    #[serde(default, rename = "regionCode")]
+    pub region_code: ::core::option::Option<String>,
+    /// The schema revision of the PostalAddress. This must be set to 0, which is the latest revision. All new revisions **must** be backward compatible with old revisions.
+    #[serde(default)]
+    pub revision: ::core::option::Option<i32>,
+    /// Optional. Additional, country-specific, sorting code. This is not used in most regions. Where it is used, the value is either a string like "CEDEX", optionally followed by a number (for example, "CEDEX 7"), or just a number alone, representing the "sector code" (Jamaica), "delivery area indicator" (Malawi) or "post office indicator" (Côte d''Ivoire).
+    #[serde(default, rename = "sortingCode")]
+    pub sorting_code: ::core::option::Option<String>,
+    /// Optional. Sublocality of the address. For example, this can be a neighborhood, borough, or district.
+    #[serde(default)]
+    pub sublocality: ::core::option::Option<String>,
 }

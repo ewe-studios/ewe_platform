@@ -10,58 +10,6 @@
 use super::*;
 use serde::{Deserialize, Serialize};
 
-/// Adds a document tab. When a tab is added at a given index, all subsequent tabs'' indexes are incremented.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AddDocumentTabRequest {
-    /// The properties of the tab to add. All properties are optional.
-    #[serde(default, rename = "tabProperties")]
-    pub tab_properties: ::core::option::Option<TabProperties>,
-}
-
-/// The result of adding a document tab.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AddDocumentTabResponse {
-    /// The properties of the newly added tab.
-    #[serde(default, rename = "tabProperties")]
-    pub tab_properties: ::core::option::Option<TabProperties>,
-}
-
-/// A ParagraphElement representing a spot in the text that''s dynamically replaced with content that can change over time, like a page number.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AutoText {
-    /// The suggested deletion IDs. If empty, then there are no suggested deletions of this content.
-    #[serde(default, rename = "suggestedDeletionIds")]
-    pub suggested_deletion_ids: ::core::option::Option<::std::vec::Vec<String>>,
-    /// The suggested insertion IDs. An AutoText may have multiple insertion IDs if it''s a nested suggested change. If empty, then this is not a suggested insertion.
-    #[serde(default, rename = "suggestedInsertionIds")]
-    pub suggested_insertion_ids: ::core::option::Option<::std::vec::Vec<String>>,
-    /// The suggested text style changes to this AutoText, keyed by suggestion ID.
-    #[serde(default, rename = "suggestedTextStyleChanges")]
-    pub suggested_text_style_changes: ::core::option::Option<serde_json::Value>,
-    /// The text style of this AutoText.
-    #[serde(default, rename = "textStyle")]
-    pub text_style: ::core::option::Option<TextStyle>,
-    /// The type of this auto text. // TODO: enum values: ["TYPE_UNSPECIFIED", "PAGE_NUMBER", "PAGE_COUNT"]
-    #[serde(default, rename = "type")]
-    pub type_: ::core::option::Option<String>,
-}
-
-/// Represents the background of a document.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Background {
-    /// The background color.
-    #[serde(default)]
-    pub color: ::core::option::Option<OptionalColor>,
-}
-
-/// A mask that indicates which of the fields on the base Background have been changed in this suggestion. For any field set to true, the Backgound has a new suggested value.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct BackgroundSuggestionState {
-    /// Indicates whether the current background color has been modified in this suggestion.
-    #[serde(default, rename = "backgroundColorSuggested")]
-    pub background_color_suggested: ::core::option::Option<bool>,
-}
-
 /// Request message for BatchUpdateDocument.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct BatchUpdateDocumentRequest {
@@ -87,37 +35,480 @@ pub struct BatchUpdateDocumentResponse {
     pub write_control: ::core::option::Option<WriteControl>,
 }
 
-/// The document body. The body typically contains the full document contents except for headers, footers, and footnotes.
+/// A Google Docs document.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Body {
-    /// The contents of the body. The indexes for the body''s content begin at zero.
+pub struct Document {
+    /// Output only. The main body of the document. Legacy field: Instead, use Document.tabs.documentTab.body, which exposes the actual document content from all tabs when the includeTabsContent parameter is set to true. If false or unset, this field contains information about the first tab in the document.
+    #[serde(default)]
+    pub body: ::core::option::Option<Body>,
+    /// Output only. The ID of the document.
+    #[serde(default, rename = "documentId")]
+    pub document_id: ::core::option::Option<String>,
+    /// Output only. The style of the document. Legacy field: Instead, use Document.tabs.documentTab.documentStyle, which exposes the actual document content from all tabs when the includeTabsContent parameter is set to true. If false or unset, this field contains information about the first tab in the document.
+    #[serde(default, rename = "documentStyle")]
+    pub document_style: ::core::option::Option<DocumentStyle>,
+    /// Output only. The footers in the document, keyed by footer ID. Legacy field: Instead, use Document.tabs.documentTab.footers, which exposes the actual document content from all tabs when the includeTabsContent parameter is set to true. If false or unset, this field contains information about the first tab in the document.
+    #[serde(default)]
+    pub footers: ::core::option::Option<serde_json::Value>,
+    /// Output only. The footnotes in the document, keyed by footnote ID. Legacy field: Instead, use Document.tabs.documentTab.footnotes, which exposes the actual document content from all tabs when the includeTabsContent parameter is set to true. If false or unset, this field contains information about the first tab in the document.
+    #[serde(default)]
+    pub footnotes: ::core::option::Option<serde_json::Value>,
+    /// Output only. The headers in the document, keyed by header ID. Legacy field: Instead, use Document.tabs.documentTab.headers, which exposes the actual document content from all tabs when the includeTabsContent parameter is set to true. If false or unset, this field contains information about the first tab in the document.
+    #[serde(default)]
+    pub headers: ::core::option::Option<serde_json::Value>,
+    /// Output only. The inline objects in the document, keyed by object ID. Legacy field: Instead, use Document.tabs.documentTab.inlineObjects, which exposes the actual document content from all tabs when the includeTabsContent parameter is set to true. If false or unset, this field contains information about the first tab in the document.
+    #[serde(default, rename = "inlineObjects")]
+    pub inline_objects: ::core::option::Option<serde_json::Value>,
+    /// Output only. The lists in the document, keyed by list ID. Legacy field: Instead, use Document.tabs.documentTab.lists, which exposes the actual document content from all tabs when the includeTabsContent parameter is set to true. If false or unset, this field contains information about the first tab in the document.
+    #[serde(default)]
+    pub lists: ::core::option::Option<serde_json::Value>,
+    /// Output only. The named ranges in the document, keyed by name. Legacy field: Instead, use Document.tabs.documentTab.namedRanges, which exposes the actual document content from all tabs when the includeTabsContent parameter is set to true. If false or unset, this field contains information about the first tab in the document.
+    #[serde(default, rename = "namedRanges")]
+    pub named_ranges: ::core::option::Option<serde_json::Value>,
+    /// Output only. The named styles of the document. Legacy field: Instead, use Document.tabs.documentTab.namedStyles, which exposes the actual document content from all tabs when the includeTabsContent parameter is set to true. If false or unset, this field contains information about the first tab in the document.
+    #[serde(default, rename = "namedStyles")]
+    pub named_styles: ::core::option::Option<NamedStyles>,
+    /// Output only. The positioned objects in the document, keyed by object ID. Legacy field: Instead, use Document.tabs.documentTab.positionedObjects, which exposes the actual document content from all tabs when the includeTabsContent parameter is set to true. If false or unset, this field contains information about the first tab in the document.
+    #[serde(default, rename = "positionedObjects")]
+    pub positioned_objects: ::core::option::Option<serde_json::Value>,
+    /// Output only. The revision ID of the document. Can be used in update requests to specify which revision of a document to apply updates to and how the request should behave if the document has been edited since that revision. Only populated if the user has edit access to the document. The revision ID is not a sequential number but an opaque string. The format of the revision ID might change over time. A returned revision ID is only guaranteed to be valid for 24 hours after it has been returned and cannot be shared across users. If the revision ID is unchanged between calls, then the document has not changed. Conversely, a changed ID (for the same document and user) usually means the document has been updated. However, a changed ID can also be due to internal factors such as ID format changes.
+    #[serde(default, rename = "revisionId")]
+    pub revision_id: ::core::option::Option<String>,
+    /// Output only. The suggested changes to the style of the document, keyed by suggestion ID. Legacy field: Instead, use Document.tabs.documentTab.suggestedDocumentStyleChanges, which exposes the actual document content from all tabs when the includeTabsContent parameter is set to true. If false or unset, this field contains information about the first tab in the document.
+    #[serde(default, rename = "suggestedDocumentStyleChanges")]
+    pub suggested_document_style_changes: ::core::option::Option<serde_json::Value>,
+    /// Output only. The suggested changes to the named styles of the document, keyed by suggestion ID. Legacy field: Instead, use Document.tabs.documentTab.suggestedNamedStylesChanges, which exposes the actual document content from all tabs when the includeTabsContent parameter is set to true. If false or unset, this field contains information about the first tab in the document.
+    #[serde(default, rename = "suggestedNamedStylesChanges")]
+    pub suggested_named_styles_changes: ::core::option::Option<serde_json::Value>,
+    /// Output only. The suggestions view mode applied to the document. Note: When editing a document, changes must be based on a document with SUGGESTIONS_INLINE. // TODO: enum values: ["DEFAULT_FOR_CURRENT_ACCESS", "SUGGESTIONS_INLINE", "PREVIEW_SUGGESTIONS_ACCEPTED", "PREVIEW_WITHOUT_SUGGESTIONS"]
+    #[serde(default, rename = "suggestionsViewMode")]
+    pub suggestions_view_mode: ::core::option::Option<String>,
+    /// Tabs that are part of a document. Tabs can contain child tabs, a tab nested within another tab. Child tabs are represented by the Tab.childTabs field.
+    #[serde(default)]
+    pub tabs: ::core::option::Option<::std::vec::Vec<Tab>>,
+    /// The title of the document.
+    #[serde(default)]
+    pub title: ::core::option::Option<String>,
+}
+
+/// A document footer.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Footer {
+    /// The contents of the footer. The indexes for a footer''s content begin at zero.
     #[serde(default)]
     pub content: ::core::option::Option<::std::vec::Vec<StructuralElement>>,
+    /// The ID of the footer.
+    #[serde(default, rename = "footerId")]
+    pub footer_id: ::core::option::Option<String>,
 }
 
-/// A reference to a bookmark in this document.
+/// A document footnote.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct BookmarkLink {
-    /// The ID of a bookmark in this document.
+pub struct Footnote {
+    /// The contents of the footnote. The indexes for a footnote''s content begin at zero.
     #[serde(default)]
-    pub id: ::core::option::Option<String>,
-    /// The ID of the tab containing this bookmark.
-    #[serde(default, rename = "tabId")]
-    pub tab_id: ::core::option::Option<String>,
+    pub content: ::core::option::Option<::std::vec::Vec<StructuralElement>>,
+    /// The ID of the footnote.
+    #[serde(default, rename = "footnoteId")]
+    pub footnote_id: ::core::option::Option<String>,
 }
 
-/// Describes the bullet of a paragraph.
+/// A document header.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Bullet {
-    /// The ID of the list this paragraph belongs to.
-    #[serde(default, rename = "listId")]
-    pub list_id: ::core::option::Option<String>,
-    /// The nesting level of this paragraph in the list.
-    #[serde(default, rename = "nestingLevel")]
-    pub nesting_level: ::core::option::Option<i32>,
-    /// The paragraph-specific text style applied to this bullet.
+pub struct Header {
+    /// The contents of the header. The indexes for a header''s content begin at zero.
+    #[serde(default)]
+    pub content: ::core::option::Option<::std::vec::Vec<StructuralElement>>,
+    /// The ID of the header.
+    #[serde(default, rename = "headerId")]
+    pub header_id: ::core::option::Option<String>,
+}
+
+/// An object that appears inline with text. An InlineObject contains an EmbeddedObject such as an image.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct InlineObject {
+    /// The properties of this inline object.
+    #[serde(default, rename = "inlineObjectProperties")]
+    pub inline_object_properties: ::core::option::Option<InlineObjectProperties>,
+    /// The ID of this inline object. Can be used to update an object’s properties.
+    #[serde(default, rename = "objectId")]
+    pub object_id: ::core::option::Option<String>,
+    /// The suggested deletion IDs. If empty, then there are no suggested deletions of this content.
+    #[serde(default, rename = "suggestedDeletionIds")]
+    pub suggested_deletion_ids: ::core::option::Option<::std::vec::Vec<String>>,
+    /// The suggested changes to the inline object properties, keyed by suggestion ID.
+    #[serde(default, rename = "suggestedInlineObjectPropertiesChanges")]
+    pub suggested_inline_object_properties_changes: ::core::option::Option<serde_json::Value>,
+    /// The suggested insertion ID. If empty, then this is not a suggested insertion.
+    #[serde(default, rename = "suggestedInsertionId")]
+    pub suggested_insertion_id: ::core::option::Option<String>,
+}
+
+/// A List represents the list attributes for a group of paragraphs that all belong to the same list. A paragraph that''s part of a list has a reference to the list''s ID in its bullet.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct List {
+    /// The properties of the list.
+    #[serde(default, rename = "listProperties")]
+    pub list_properties: ::core::option::Option<ListProperties>,
+    /// The suggested deletion IDs. If empty, then there are no suggested deletions of this list.
+    #[serde(default, rename = "suggestedDeletionIds")]
+    pub suggested_deletion_ids: ::core::option::Option<::std::vec::Vec<String>>,
+    /// The suggested insertion ID. If empty, then this is not a suggested insertion.
+    #[serde(default, rename = "suggestedInsertionId")]
+    pub suggested_insertion_id: ::core::option::Option<String>,
+    /// The suggested changes to the list properties, keyed by suggestion ID.
+    #[serde(default, rename = "suggestedListPropertiesChanges")]
+    pub suggested_list_properties_changes: ::core::option::Option<serde_json::Value>,
+}
+
+/// A collection of all the NamedRanges in the document that share a given name.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct NamedRanges {
+    /// The name that all the named ranges share.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// The NamedRanges that share the same name.
+    #[serde(default, rename = "namedRanges")]
+    pub named_ranges: ::core::option::Option<::std::vec::Vec<NamedRange>>,
+}
+
+/// A collection of object IDs.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ObjectReferences {
+    /// The object IDs.
+    #[serde(default, rename = "objectIds")]
+    pub object_ids: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// An object that''s tethered to a Paragraph and positioned relative to the beginning of the paragraph. A PositionedObject contains an EmbeddedObject such as an image.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PositionedObject {
+    /// The ID of this positioned object.
+    #[serde(default, rename = "objectId")]
+    pub object_id: ::core::option::Option<String>,
+    /// The properties of this positioned object.
+    #[serde(default, rename = "positionedObjectProperties")]
+    pub positioned_object_properties: ::core::option::Option<PositionedObjectProperties>,
+    /// The suggested deletion IDs. If empty, then there are no suggested deletions of this content.
+    #[serde(default, rename = "suggestedDeletionIds")]
+    pub suggested_deletion_ids: ::core::option::Option<::std::vec::Vec<String>>,
+    /// The suggested insertion ID. If empty, then this is not a suggested insertion.
+    #[serde(default, rename = "suggestedInsertionId")]
+    pub suggested_insertion_id: ::core::option::Option<String>,
+    /// The suggested changes to the positioned object properties, keyed by suggestion ID.
+    #[serde(default, rename = "suggestedPositionedObjectPropertiesChanges")]
+    pub suggested_positioned_object_properties_changes: ::core::option::Option<serde_json::Value>,
+}
+
+/// A suggested change to a Bullet.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SuggestedBullet {
+    /// A Bullet that only includes the changes made in this suggestion. This can be used along with the bullet_suggestion_state to see which fields have changed and their new values.
+    #[serde(default)]
+    pub bullet: ::core::option::Option<Bullet>,
+    /// A mask that indicates which of the fields on the base Bullet have been changed in this suggestion.
+    #[serde(default, rename = "bulletSuggestionState")]
+    pub bullet_suggestion_state: ::core::option::Option<BulletSuggestionState>,
+}
+
+/// A suggested change to a DateElementProperties.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SuggestedDateElementProperties {
+    /// DateElementProperties that only includes the changes made in this suggestion. This can be used along with the date_element_properties_suggestion_state to see which fields have changed and their new values.
+    #[serde(default, rename = "dateElementProperties")]
+    pub date_element_properties: ::core::option::Option<DateElementProperties>,
+    /// A mask that indicates which of the fields on the base DateElementProperties have been changed in this suggestion.
+    #[serde(default, rename = "dateElementPropertiesSuggestionState")]
+    pub date_element_properties_suggestion_state:
+        ::core::option::Option<DateElementPropertiesSuggestionState>,
+}
+
+/// A suggested change to the DocumentStyle.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SuggestedDocumentStyle {
+    /// A DocumentStyle that only includes the changes made in this suggestion. This can be used along with the document_style_suggestion_state to see which fields have changed and their new values.
+    #[serde(default, rename = "documentStyle")]
+    pub document_style: ::core::option::Option<DocumentStyle>,
+    /// A mask that indicates which of the fields on the base DocumentStyle have been changed in this suggestion.
+    #[serde(default, rename = "documentStyleSuggestionState")]
+    pub document_style_suggestion_state: ::core::option::Option<DocumentStyleSuggestionState>,
+}
+
+/// A suggested change to InlineObjectProperties.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SuggestedInlineObjectProperties {
+    /// An InlineObjectProperties that only includes the changes made in this suggestion. This can be used along with the inline_object_properties_suggestion_state to see which fields have changed and their new values.
+    #[serde(default, rename = "inlineObjectProperties")]
+    pub inline_object_properties: ::core::option::Option<InlineObjectProperties>,
+    /// A mask that indicates which of the fields on the base InlineObjectProperties have been changed in this suggestion.
+    #[serde(default, rename = "inlineObjectPropertiesSuggestionState")]
+    pub inline_object_properties_suggestion_state:
+        ::core::option::Option<InlineObjectPropertiesSuggestionState>,
+}
+
+/// A suggested change to ListProperties.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SuggestedListProperties {
+    /// A ListProperties that only includes the changes made in this suggestion. This can be used along with the list_properties_suggestion_state to see which fields have changed and their new values.
+    #[serde(default, rename = "listProperties")]
+    pub list_properties: ::core::option::Option<ListProperties>,
+    /// A mask that indicates which of the fields on the base ListProperties have been changed in this suggestion.
+    #[serde(default, rename = "listPropertiesSuggestionState")]
+    pub list_properties_suggestion_state: ::core::option::Option<ListPropertiesSuggestionState>,
+}
+
+/// A suggested change to the NamedStyles.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SuggestedNamedStyles {
+    /// A NamedStyles that only includes the changes made in this suggestion. This can be used along with the named_styles_suggestion_state to see which fields have changed and their new values.
+    #[serde(default, rename = "namedStyles")]
+    pub named_styles: ::core::option::Option<NamedStyles>,
+    /// A mask that indicates which of the fields on the base NamedStyles have been changed in this suggestion.
+    #[serde(default, rename = "namedStylesSuggestionState")]
+    pub named_styles_suggestion_state: ::core::option::Option<NamedStylesSuggestionState>,
+}
+
+/// A suggested change to a ParagraphStyle.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SuggestedParagraphStyle {
+    /// A ParagraphStyle that only includes the changes made in this suggestion. This can be used along with the paragraph_style_suggestion_state to see which fields have changed and their new values.
+    #[serde(default, rename = "paragraphStyle")]
+    pub paragraph_style: ::core::option::Option<ParagraphStyle>,
+    /// A mask that indicates which of the fields on the base ParagraphStyle have been changed in this suggestion.
+    #[serde(default, rename = "paragraphStyleSuggestionState")]
+    pub paragraph_style_suggestion_state: ::core::option::Option<ParagraphStyleSuggestionState>,
+}
+
+/// A suggested change to PositionedObjectProperties.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SuggestedPositionedObjectProperties {
+    /// A PositionedObjectProperties that only includes the changes made in this suggestion. This can be used along with the positioned_object_properties_suggestion_state to see which fields have changed and their new values.
+    #[serde(default, rename = "positionedObjectProperties")]
+    pub positioned_object_properties: ::core::option::Option<PositionedObjectProperties>,
+    /// A mask that indicates which of the fields on the base PositionedObjectProperties have been changed in this suggestion.
+    #[serde(default, rename = "positionedObjectPropertiesSuggestionState")]
+    pub positioned_object_properties_suggestion_state:
+        ::core::option::Option<PositionedObjectPropertiesSuggestionState>,
+}
+
+/// A suggested change to a TableCellStyle.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SuggestedTableCellStyle {
+    /// A TableCellStyle that only includes the changes made in this suggestion. This can be used along with the table_cell_style_suggestion_state to see which fields have changed and their new values.
+    #[serde(default, rename = "tableCellStyle")]
+    pub table_cell_style: ::core::option::Option<TableCellStyle>,
+    /// A mask that indicates which of the fields on the base TableCellStyle have been changed in this suggestion.
+    #[serde(default, rename = "tableCellStyleSuggestionState")]
+    pub table_cell_style_suggestion_state: ::core::option::Option<TableCellStyleSuggestionState>,
+}
+
+/// A suggested change to a TableRowStyle.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SuggestedTableRowStyle {
+    /// A TableRowStyle that only includes the changes made in this suggestion. This can be used along with the table_row_style_suggestion_state to see which fields have changed and their new values.
+    #[serde(default, rename = "tableRowStyle")]
+    pub table_row_style: ::core::option::Option<TableRowStyle>,
+    /// A mask that indicates which of the fields on the base TableRowStyle have been changed in this suggestion.
+    #[serde(default, rename = "tableRowStyleSuggestionState")]
+    pub table_row_style_suggestion_state: ::core::option::Option<TableRowStyleSuggestionState>,
+}
+
+/// A suggested change to a TextStyle.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SuggestedTextStyle {
+    /// A TextStyle that only includes the changes made in this suggestion. This can be used along with the text_style_suggestion_state to see which fields have changed and their new values.
     #[serde(default, rename = "textStyle")]
     pub text_style: ::core::option::Option<TextStyle>,
+    /// A mask that indicates which of the fields on the base TextStyle have been changed in this suggestion.
+    #[serde(default, rename = "textStyleSuggestionState")]
+    pub text_style_suggestion_state: ::core::option::Option<TextStyleSuggestionState>,
+}
+
+/// A single update to apply to a document.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Request {
+    /// Adds a document tab.
+    #[serde(default, rename = "addDocumentTab")]
+    pub add_document_tab: ::core::option::Option<AddDocumentTabRequest>,
+    /// Creates a footer.
+    #[serde(default, rename = "createFooter")]
+    pub create_footer: ::core::option::Option<CreateFooterRequest>,
+    /// Creates a footnote.
+    #[serde(default, rename = "createFootnote")]
+    pub create_footnote: ::core::option::Option<CreateFootnoteRequest>,
+    /// Creates a header.
+    #[serde(default, rename = "createHeader")]
+    pub create_header: ::core::option::Option<CreateHeaderRequest>,
+    /// Creates a named range.
+    #[serde(default, rename = "createNamedRange")]
+    pub create_named_range: ::core::option::Option<CreateNamedRangeRequest>,
+    /// Creates bullets for paragraphs.
+    #[serde(default, rename = "createParagraphBullets")]
+    pub create_paragraph_bullets: ::core::option::Option<CreateParagraphBulletsRequest>,
+    /// Deletes content from the document.
+    #[serde(default, rename = "deleteContentRange")]
+    pub delete_content_range: ::core::option::Option<DeleteContentRangeRequest>,
+    /// Deletes a footer from the document.
+    #[serde(default, rename = "deleteFooter")]
+    pub delete_footer: ::core::option::Option<DeleteFooterRequest>,
+    /// Deletes a header from the document.
+    #[serde(default, rename = "deleteHeader")]
+    pub delete_header: ::core::option::Option<DeleteHeaderRequest>,
+    /// Deletes a named range.
+    #[serde(default, rename = "deleteNamedRange")]
+    pub delete_named_range: ::core::option::Option<DeleteNamedRangeRequest>,
+    /// Deletes bullets from paragraphs.
+    #[serde(default, rename = "deleteParagraphBullets")]
+    pub delete_paragraph_bullets: ::core::option::Option<DeleteParagraphBulletsRequest>,
+    /// Deletes a positioned object from the document.
+    #[serde(default, rename = "deletePositionedObject")]
+    pub delete_positioned_object: ::core::option::Option<DeletePositionedObjectRequest>,
+    /// Deletes a document tab.
+    #[serde(default, rename = "deleteTab")]
+    pub delete_tab: ::core::option::Option<DeleteTabRequest>,
+    /// Deletes a column from a table.
+    #[serde(default, rename = "deleteTableColumn")]
+    pub delete_table_column: ::core::option::Option<DeleteTableColumnRequest>,
+    /// Deletes a row from a table.
+    #[serde(default, rename = "deleteTableRow")]
+    pub delete_table_row: ::core::option::Option<DeleteTableRowRequest>,
+    /// Inserts a date.
+    #[serde(default, rename = "insertDate")]
+    pub insert_date: ::core::option::Option<InsertDateRequest>,
+    /// Inserts an inline image at the specified location.
+    #[serde(default, rename = "insertInlineImage")]
+    pub insert_inline_image: ::core::option::Option<InsertInlineImageRequest>,
+    /// Inserts a page break at the specified location.
+    #[serde(default, rename = "insertPageBreak")]
+    pub insert_page_break: ::core::option::Option<InsertPageBreakRequest>,
+    /// Inserts a person mention.
+    #[serde(default, rename = "insertPerson")]
+    pub insert_person: ::core::option::Option<InsertPersonRequest>,
+    /// Inserts a section break at the specified location.
+    #[serde(default, rename = "insertSectionBreak")]
+    pub insert_section_break: ::core::option::Option<InsertSectionBreakRequest>,
+    /// Inserts a table at the specified location.
+    #[serde(default, rename = "insertTable")]
+    pub insert_table: ::core::option::Option<InsertTableRequest>,
+    /// Inserts an empty column into a table.
+    #[serde(default, rename = "insertTableColumn")]
+    pub insert_table_column: ::core::option::Option<InsertTableColumnRequest>,
+    /// Inserts an empty row into a table.
+    #[serde(default, rename = "insertTableRow")]
+    pub insert_table_row: ::core::option::Option<InsertTableRowRequest>,
+    /// Inserts text at the specified location.
+    #[serde(default, rename = "insertText")]
+    pub insert_text: ::core::option::Option<InsertTextRequest>,
+    /// Merges cells in a table.
+    #[serde(default, rename = "mergeTableCells")]
+    pub merge_table_cells: ::core::option::Option<MergeTableCellsRequest>,
+    /// Updates the number of pinned header rows in a table.
+    #[serde(default, rename = "pinTableHeaderRows")]
+    pub pin_table_header_rows: ::core::option::Option<PinTableHeaderRowsRequest>,
+    /// Replaces all instances of the specified text.
+    #[serde(default, rename = "replaceAllText")]
+    pub replace_all_text: ::core::option::Option<ReplaceAllTextRequest>,
+    /// Replaces an image in the document.
+    #[serde(default, rename = "replaceImage")]
+    pub replace_image: ::core::option::Option<ReplaceImageRequest>,
+    /// Replaces the content in a named range.
+    #[serde(default, rename = "replaceNamedRangeContent")]
+    pub replace_named_range_content: ::core::option::Option<ReplaceNamedRangeContentRequest>,
+    /// Unmerges cells in a table.
+    #[serde(default, rename = "unmergeTableCells")]
+    pub unmerge_table_cells: ::core::option::Option<UnmergeTableCellsRequest>,
+    /// Updates the style of the document.
+    #[serde(default, rename = "updateDocumentStyle")]
+    pub update_document_style: ::core::option::Option<UpdateDocumentStyleRequest>,
+    /// Updates the properties of a document tab.
+    #[serde(default, rename = "updateDocumentTabProperties")]
+    pub update_document_tab_properties: ::core::option::Option<UpdateDocumentTabPropertiesRequest>,
+    /// Updates the paragraph style at the specified range.
+    #[serde(default, rename = "updateParagraphStyle")]
+    pub update_paragraph_style: ::core::option::Option<UpdateParagraphStyleRequest>,
+    /// Updates the section style of the specified range.
+    #[serde(default, rename = "updateSectionStyle")]
+    pub update_section_style: ::core::option::Option<UpdateSectionStyleRequest>,
+    /// Updates the style of table cells.
+    #[serde(default, rename = "updateTableCellStyle")]
+    pub update_table_cell_style: ::core::option::Option<UpdateTableCellStyleRequest>,
+    /// Updates the properties of columns in a table.
+    #[serde(default, rename = "updateTableColumnProperties")]
+    pub update_table_column_properties: ::core::option::Option<UpdateTableColumnPropertiesRequest>,
+    /// Updates the row style in a table.
+    #[serde(default, rename = "updateTableRowStyle")]
+    pub update_table_row_style: ::core::option::Option<UpdateTableRowStyleRequest>,
+    /// Updates the text style at the specified range.
+    #[serde(default, rename = "updateTextStyle")]
+    pub update_text_style: ::core::option::Option<UpdateTextStyleRequest>,
+}
+
+/// A single response from an update.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Response {
+    /// The result of adding a document tab.
+    #[serde(default, rename = "addDocumentTab")]
+    pub add_document_tab: ::core::option::Option<AddDocumentTabResponse>,
+    /// The result of creating a footer.
+    #[serde(default, rename = "createFooter")]
+    pub create_footer: ::core::option::Option<CreateFooterResponse>,
+    /// The result of creating a footnote.
+    #[serde(default, rename = "createFootnote")]
+    pub create_footnote: ::core::option::Option<CreateFootnoteResponse>,
+    /// The result of creating a header.
+    #[serde(default, rename = "createHeader")]
+    pub create_header: ::core::option::Option<CreateHeaderResponse>,
+    /// The result of creating a named range.
+    #[serde(default, rename = "createNamedRange")]
+    pub create_named_range: ::core::option::Option<CreateNamedRangeResponse>,
+    /// The result of inserting an inline image.
+    #[serde(default, rename = "insertInlineImage")]
+    pub insert_inline_image: ::core::option::Option<InsertInlineImageResponse>,
+    /// The result of inserting an inline Google Sheets chart.
+    #[serde(default, rename = "insertInlineSheetsChart")]
+    pub insert_inline_sheets_chart: ::core::option::Option<InsertInlineSheetsChartResponse>,
+    /// The result of replacing text.
+    #[serde(default, rename = "replaceAllText")]
+    pub replace_all_text: ::core::option::Option<ReplaceAllTextResponse>,
+}
+
+/// Provides control over how write requests are executed.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct WriteControl {
+    /// The optional revision ID of the document the write request is applied to. If this is not the latest revision of the document, the request is not processed and returns a 400 bad request error. When a required revision ID is returned in a response, it indicates the revision ID of the document after the request was applied.
+    #[serde(default, rename = "requiredRevisionId")]
+    pub required_revision_id: ::core::option::Option<String>,
+    /// The optional target revision ID of the document the write request is applied to. If collaborator changes have occurred after the document was read using the API, the changes produced by this write request are applied against the collaborator changes. This results in a new revision of the document that incorporates both the collaborator changes and the changes in the request, with the Docs server resolving conflicting changes. When using target revision ID, the API client can be thought of as another collaborator of the document. The target revision ID can only be used to write to recent versions of a document. If the target revision is too far behind the latest revision, the request is not processed and returns a 400 bad request error. The request should be tried again after retrieving the latest version of the document. Usually a revision ID remains valid for use as a target revision for several minutes after it''s read, but for frequently edited documents this window might be shorter.
+    #[serde(default, rename = "targetRevisionId")]
+    pub target_revision_id: ::core::option::Option<String>,
+}
+
+/// A tab in a document.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Tab {
+    /// The child tabs nested within this tab.
+    #[serde(default, rename = "childTabs")]
+    pub child_tabs: ::core::option::Option<::std::vec::Vec<Tab>>,
+    /// A tab with document contents, like text and images.
+    #[serde(default, rename = "documentTab")]
+    pub document_tab: ::core::option::Option<DocumentTab>,
+    /// The properties of the tab, like ID and title.
+    #[serde(default, rename = "tabProperties")]
+    pub tab_properties: ::core::option::Option<TabProperties>,
+}
+
+/// A collection of Ranges with the same named range ID. Named ranges allow developers to associate parts of a document with an arbitrary user-defined label so their contents can be programmatically read or edited later. A document can contain multiple named ranges with the same name, but every named range has a unique ID. A named range is created with a single Range, and content inserted inside a named range generally expands that range. However, certain document changes can cause the range to be split into multiple ranges. Named ranges are not private. All applications and collaborators that have access to the document can see its named ranges.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct NamedRange {
+    /// The name of the named range.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// The ID of the named range.
+    #[serde(default, rename = "namedRangeId")]
+    pub named_range_id: ::core::option::Option<String>,
+    /// The ranges that belong to this named range.
+    #[serde(default)]
+    pub ranges: ::core::option::Option<::std::vec::Vec<Range>>,
 }
 
 /// A mask that indicates which of the fields on the base Bullet have been changed in this suggestion. For any field set to true, there''s a new suggested value.
@@ -132,207 +523,6 @@ pub struct BulletSuggestionState {
     /// A mask that indicates which of the fields in text style have been changed in this suggestion.
     #[serde(default, rename = "textStyleSuggestionState")]
     pub text_style_suggestion_state: ::core::option::Option<TextStyleSuggestionState>,
-}
-
-/// A solid color.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Color {
-    /// The RGB color value.
-    #[serde(default, rename = "rgbColor")]
-    pub rgb_color: ::core::option::Option<RgbColor>,
-}
-
-/// A ParagraphElement representing a column break. A column break makes the subsequent text start at the top of the next column.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ColumnBreak {
-    /// The suggested deletion IDs. If empty, then there are no suggested deletions of this content.
-    #[serde(default, rename = "suggestedDeletionIds")]
-    pub suggested_deletion_ids: ::core::option::Option<::std::vec::Vec<String>>,
-    /// The suggested insertion IDs. A ColumnBreak may have multiple insertion IDs if it''s a nested suggested change. If empty, then this is not a suggested insertion.
-    #[serde(default, rename = "suggestedInsertionIds")]
-    pub suggested_insertion_ids: ::core::option::Option<::std::vec::Vec<String>>,
-    /// The suggested text style changes to this ColumnBreak, keyed by suggestion ID.
-    #[serde(default, rename = "suggestedTextStyleChanges")]
-    pub suggested_text_style_changes: ::core::option::Option<serde_json::Value>,
-    /// The text style of this ColumnBreak. Similar to text content, like text runs and footnote references, the text style of a column break can affect content layout as well as the styling of text inserted next to it.
-    #[serde(default, rename = "textStyle")]
-    pub text_style: ::core::option::Option<TextStyle>,
-}
-
-/// Creates a Footer. The new footer is applied to the SectionStyle at the location of the SectionBreak if specified, otherwise it is applied to the DocumentStyle. If a footer of the specified type already exists, a 400 bad request error is returned.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CreateFooterRequest {
-    /// The location of the SectionBreak immediately preceding the section whose SectionStyle this footer should belong to. If this is unset or refers to the first section break in the document, the footer applies to the document style.
-    #[serde(default, rename = "sectionBreakLocation")]
-    pub section_break_location: ::core::option::Option<Location>,
-    /// The type of footer to create. // TODO: enum values: ["HEADER_FOOTER_TYPE_UNSPECIFIED", "DEFAULT"]
-    #[serde(default, rename = "type")]
-    pub type_: ::core::option::Option<String>,
-}
-
-/// The result of creating a footer.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CreateFooterResponse {
-    /// The ID of the created footer.
-    #[serde(default, rename = "footerId")]
-    pub footer_id: ::core::option::Option<String>,
-}
-
-/// Creates a Footnote segment and inserts a new FootnoteReference to it at the given location. The new Footnote segment will contain a space followed by a newline character.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CreateFootnoteRequest {
-    /// Inserts the footnote reference at the end of the document body. Footnote references cannot be inserted inside a header, footer or footnote. Since footnote references can only be inserted in the body, the segment ID field must be empty.
-    #[serde(default, rename = "endOfSegmentLocation")]
-    pub end_of_segment_location: ::core::option::Option<EndOfSegmentLocation>,
-    /// Inserts the footnote reference at a specific index in the document. The footnote reference must be inserted inside the bounds of an existing Paragraph. For instance, it cannot be inserted at a table''s start index (i.e. between the table and its preceding paragraph). Footnote references cannot be inserted inside an equation, header, footer or footnote. Since footnote references can only be inserted in the body, the segment ID field must be empty.
-    #[serde(default)]
-    pub location: ::core::option::Option<Location>,
-}
-
-/// The result of creating a footnote.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CreateFootnoteResponse {
-    /// The ID of the created footnote.
-    #[serde(default, rename = "footnoteId")]
-    pub footnote_id: ::core::option::Option<String>,
-}
-
-/// Creates a Header. The new header is applied to the SectionStyle at the location of the SectionBreak if specified, otherwise it is applied to the DocumentStyle. If a header of the specified type already exists, a 400 bad request error is returned.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CreateHeaderRequest {
-    /// The location of the SectionBreak which begins the section this header should belong to. If section_break_location'' is unset or if it refers to the first section break in the document body, the header applies to the DocumentStyle
-    #[serde(default, rename = "sectionBreakLocation")]
-    pub section_break_location: ::core::option::Option<Location>,
-    /// The type of header to create. // TODO: enum values: ["HEADER_FOOTER_TYPE_UNSPECIFIED", "DEFAULT"]
-    #[serde(default, rename = "type")]
-    pub type_: ::core::option::Option<String>,
-}
-
-/// The result of creating a header.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CreateHeaderResponse {
-    /// The ID of the created header.
-    #[serde(default, rename = "headerId")]
-    pub header_id: ::core::option::Option<String>,
-}
-
-/// Creates a NamedRange referencing the given range.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CreateNamedRangeRequest {
-    /// The name of the NamedRange. Names do not need to be unique. Names must be at least 1 character and no more than 256 characters, measured in UTF-16 code units.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// The range to apply the name to.
-    #[serde(default)]
-    pub range: ::core::option::Option<Range>,
-}
-
-/// The result of creating a named range.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CreateNamedRangeResponse {
-    /// The ID of the created named range.
-    #[serde(default, rename = "namedRangeId")]
-    pub named_range_id: ::core::option::Option<String>,
-}
-
-/// Creates bullets for all of the paragraphs that overlap with the given range. The nesting level of each paragraph will be determined by counting leading tabs in front of each paragraph. To avoid excess space between the bullet and the corresponding paragraph, these leading tabs are removed by this request. This may change the indices of parts of the text. If the paragraph immediately before paragraphs being updated is in a list with a matching preset, the paragraphs being updated are added to that preceding list.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CreateParagraphBulletsRequest {
-    /// The kinds of bullet glyphs to be used. // TODO: enum values: ["BULLET_GLYPH_PRESET_UNSPECIFIED", "BULLET_DISC_CIRCLE_SQUARE", "BULLET_DIAMONDX_ARROW3D_SQUARE", "BULLET_CHECKBOX", "BULLET_ARROW_DIAMOND_DISC", "BULLET_STAR_CIRCLE_SQUARE", "BULLET_ARROW3D_CIRCLE_SQUARE", "BULLET_LEFTTRIANGLE_DIAMOND_DISC", "BULLET_DIAMONDX_HOLLOWDIAMOND_SQUARE", "BULLET_DIAMOND_CIRCLE_SQUARE", "NUMBERED_DECIMAL_ALPHA_ROMAN", "NUMBERED_DECIMAL_ALPHA_ROMAN_PARENS", "NUMBERED_DECIMAL_NESTED", "NUMBERED_UPPERALPHA_ALPHA_ROMAN", "NUMBERED_UPPERROMAN_UPPERALPHA_DECIMAL", "NUMBERED_ZERODECIMAL_ALPHA_ROMAN"]
-    #[serde(default, rename = "bulletPreset")]
-    pub bullet_preset: ::core::option::Option<String>,
-    /// The range to apply the bullet preset to.
-    #[serde(default)]
-    pub range: ::core::option::Option<Range>,
-}
-
-/// The crop properties of an image. The crop rectangle is represented using fractional offsets from the original content''s 4 edges. - If the offset is in the interval (0, 1), the corresponding edge of crop rectangle is positioned inside of the image''s original bounding rectangle. - If the offset is negative or greater than 1, the corresponding edge of crop rectangle is positioned outside of the image''s original bounding rectangle. - If all offsets and rotation angles are 0, the image is not cropped.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CropProperties {
-    /// The clockwise rotation angle of the crop rectangle around its center, in radians. Rotation is applied after the offsets.
-    #[serde(default)]
-    pub angle: ::core::option::Option<f32>,
-    /// The offset specifies how far inwards the bottom edge of the crop rectangle is from the bottom edge of the original content as a fraction of the original content''s height.
-    #[serde(default, rename = "offsetBottom")]
-    pub offset_bottom: ::core::option::Option<f32>,
-    /// The offset specifies how far inwards the left edge of the crop rectangle is from the left edge of the original content as a fraction of the original content''s width.
-    #[serde(default, rename = "offsetLeft")]
-    pub offset_left: ::core::option::Option<f32>,
-    /// The offset specifies how far inwards the right edge of the crop rectangle is from the right edge of the original content as a fraction of the original content''s width.
-    #[serde(default, rename = "offsetRight")]
-    pub offset_right: ::core::option::Option<f32>,
-    /// The offset specifies how far inwards the top edge of the crop rectangle is from the top edge of the original content as a fraction of the original content''s height.
-    #[serde(default, rename = "offsetTop")]
-    pub offset_top: ::core::option::Option<f32>,
-}
-
-/// A mask that indicates which of the fields on the base CropProperties have been changed in this suggestion. For any field set to true, there''s a new suggested value.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CropPropertiesSuggestionState {
-    /// Indicates if there was a suggested change to angle.
-    #[serde(default, rename = "angleSuggested")]
-    pub angle_suggested: ::core::option::Option<bool>,
-    /// Indicates if there was a suggested change to offset_bottom.
-    #[serde(default, rename = "offsetBottomSuggested")]
-    pub offset_bottom_suggested: ::core::option::Option<bool>,
-    /// Indicates if there was a suggested change to offset_left.
-    #[serde(default, rename = "offsetLeftSuggested")]
-    pub offset_left_suggested: ::core::option::Option<bool>,
-    /// Indicates if there was a suggested change to offset_right.
-    #[serde(default, rename = "offsetRightSuggested")]
-    pub offset_right_suggested: ::core::option::Option<bool>,
-    /// Indicates if there was a suggested change to offset_top.
-    #[serde(default, rename = "offsetTopSuggested")]
-    pub offset_top_suggested: ::core::option::Option<bool>,
-}
-
-/// A date instance mentioned in a document.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DateElement {
-    /// The properties of this DateElement.
-    #[serde(default, rename = "dateElementProperties")]
-    pub date_element_properties: ::core::option::Option<DateElementProperties>,
-    /// Output only. The unique ID of this date.
-    #[serde(default, rename = "dateId")]
-    pub date_id: ::core::option::Option<String>,
-    /// The suggested changes to the date element properties, keyed by suggestion ID.
-    #[serde(default, rename = "suggestedDateElementPropertiesChanges")]
-    pub suggested_date_element_properties_changes: ::core::option::Option<serde_json::Value>,
-    /// IDs for suggestions that remove this date from the document. A DateElement might have multiple deletion IDs if, for example, multiple users suggest deleting it. If empty, then this date isn''t suggested for deletion.
-    #[serde(default, rename = "suggestedDeletionIds")]
-    pub suggested_deletion_ids: ::core::option::Option<::std::vec::Vec<String>>,
-    /// IDs for suggestions that insert this date into the document. A DateElement might have multiple insertion IDs if it''s a nested suggested change (a suggestion within a suggestion made by a different user, for example). If empty, then this date isn''t a suggested insertion.
-    #[serde(default, rename = "suggestedInsertionIds")]
-    pub suggested_insertion_ids: ::core::option::Option<::std::vec::Vec<String>>,
-    /// The suggested text style changes to this DateElement, keyed by suggestion ID.
-    #[serde(default, rename = "suggestedTextStyleChanges")]
-    pub suggested_text_style_changes: ::core::option::Option<serde_json::Value>,
-    /// The text style of this DateElement.
-    #[serde(default, rename = "textStyle")]
-    pub text_style: ::core::option::Option<TextStyle>,
-}
-
-/// Properties of a DateElement.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DateElementProperties {
-    /// Determines how the date part of the DateElement will be displayed in the document. If unset, the default value is DATE_FORMAT_MONTH_DAY_YEAR_ABBREVIATED, indicating the DateElement will be formatted as MMM d, y in en, or locale specific equivalent. // TODO: enum values: ["DATE_FORMAT_UNSPECIFIED", "DATE_FORMAT_CUSTOM", "DATE_FORMAT_MONTH_DAY_ABBREVIATED", "DATE_FORMAT_MONTH_DAY_FULL", "DATE_FORMAT_MONTH_DAY_YEAR_ABBREVIATED", "DATE_FORMAT_ISO8601"]
-    #[serde(default, rename = "dateFormat")]
-    pub date_format: ::core::option::Option<String>,
-    /// Output only. Indicates how the DateElement is displayed in the document.
-    #[serde(default, rename = "displayText")]
-    pub display_text: ::core::option::Option<String>,
-    /// The language code of the DateElement. For example, en. If unset, the default locale is en. Limited to the following locales: af, am, ar, as, az, be, bg, bn, ca, cs, da, de, el, en, en-CA, en-GB, es, es-419, et, eu, fa, fi, fil, fr, fr-CA, gl, gu, hi, hr, hu, hy, id, is, it, iw, ja, ka, kk, km, kn, ko, lo, lt, lv, mk, ml, mn, mr, ms, ne, nl, no, or, pa, pl, pt-BR, pt-PT, ro, ru, si, sk, sl, sq, sr, sv, sw, ta, te, th, tr, uk, ur, uz, vi, zh-CN, zh-HK, zh-TW, zu, cy, my.
-    #[serde(default)]
-    pub locale: ::core::option::Option<String>,
-    /// Determines how the time part of the DateElement will be displayed in the document. If unset, the default value is TIME_FORMAT_DISABLED, indicating no time should be shown. // TODO: enum values: ["TIME_FORMAT_UNSPECIFIED", "TIME_FORMAT_DISABLED", "TIME_FORMAT_HOUR_MINUTE", "TIME_FORMAT_HOUR_MINUTE_TIMEZONE"]
-    #[serde(default, rename = "timeFormat")]
-    pub time_format: ::core::option::Option<String>,
-    /// The time zone of the DateElement, as defined by the Unicode Common Locale Data Repository (CLDR) project. For example, America/New York. If unset, the default time zone is etc/UTC.
-    #[serde(default, rename = "timeZoneId")]
-    pub time_zone_id: ::core::option::Option<String>,
-    /// The point in time to represent, in seconds and nanoseconds since Unix epoch: January 1, 1970 at midnight UTC. Timestamp is expected to be in UTC. If time_zone_id is set, the timestamp is adjusted according to the time zone. For example, a timestamp of 18000 with a date format of DATE_FORMAT_ISO8601 and time format of TIME_FORMAT_HOUR_MINUTE would be displayed as 1970-01-01 5:00 AM. A timestamp of 18000 with date format of DATE_FORMAT_8SO8601, time format of TIME_FORMAT_HOUR_MINUTE, and time zone set to America/New_York will instead be 1970-01-01 12:00 AM.
-    #[serde(default)]
-    pub timestamp: ::core::option::Option<String>,
 }
 
 /// A mask that indicates which of the fields on the base DateElementProperties have been changed in this suggestion. For any field set to true, there''s a new suggested value.
@@ -353,6 +543,245 @@ pub struct DateElementPropertiesSuggestionState {
     /// Indicates if there was a suggested change to timestamp.
     #[serde(default, rename = "timestampSuggested")]
     pub timestamp_suggested: ::core::option::Option<bool>,
+}
+
+/// A mask that indicates which of the fields on the base DocumentStyle have been changed in this suggestion. For any field set to true, there''s a new suggested value.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DocumentStyleSuggestionState {
+    /// A mask that indicates which of the fields in background have been changed in this suggestion.
+    #[serde(default, rename = "backgroundSuggestionState")]
+    pub background_suggestion_state: ::core::option::Option<BackgroundSuggestionState>,
+    /// Indicates if there was a suggested change to default_footer_id.
+    #[serde(default, rename = "defaultFooterIdSuggested")]
+    pub default_footer_id_suggested: ::core::option::Option<bool>,
+    /// Indicates if there was a suggested change to default_header_id.
+    #[serde(default, rename = "defaultHeaderIdSuggested")]
+    pub default_header_id_suggested: ::core::option::Option<bool>,
+    /// Indicates if there was a suggested change to even_page_footer_id.
+    #[serde(default, rename = "evenPageFooterIdSuggested")]
+    pub even_page_footer_id_suggested: ::core::option::Option<bool>,
+    /// Indicates if there was a suggested change to even_page_header_id.
+    #[serde(default, rename = "evenPageHeaderIdSuggested")]
+    pub even_page_header_id_suggested: ::core::option::Option<bool>,
+    /// Indicates if there was a suggested change to first_page_footer_id.
+    #[serde(default, rename = "firstPageFooterIdSuggested")]
+    pub first_page_footer_id_suggested: ::core::option::Option<bool>,
+    /// Indicates if there was a suggested change to first_page_header_id.
+    #[serde(default, rename = "firstPageHeaderIdSuggested")]
+    pub first_page_header_id_suggested: ::core::option::Option<bool>,
+    /// Optional. Indicates if there was a suggested change to flip_page_orientation.
+    #[serde(default, rename = "flipPageOrientationSuggested")]
+    pub flip_page_orientation_suggested: ::core::option::Option<bool>,
+    /// Indicates if there was a suggested change to margin_bottom.
+    #[serde(default, rename = "marginBottomSuggested")]
+    pub margin_bottom_suggested: ::core::option::Option<bool>,
+    /// Indicates if there was a suggested change to margin_footer.
+    #[serde(default, rename = "marginFooterSuggested")]
+    pub margin_footer_suggested: ::core::option::Option<bool>,
+    /// Indicates if there was a suggested change to margin_header.
+    #[serde(default, rename = "marginHeaderSuggested")]
+    pub margin_header_suggested: ::core::option::Option<bool>,
+    /// Indicates if there was a suggested change to margin_left.
+    #[serde(default, rename = "marginLeftSuggested")]
+    pub margin_left_suggested: ::core::option::Option<bool>,
+    /// Indicates if there was a suggested change to margin_right.
+    #[serde(default, rename = "marginRightSuggested")]
+    pub margin_right_suggested: ::core::option::Option<bool>,
+    /// Indicates if there was a suggested change to margin_top.
+    #[serde(default, rename = "marginTopSuggested")]
+    pub margin_top_suggested: ::core::option::Option<bool>,
+    /// Indicates if there was a suggested change to page_number_start.
+    #[serde(default, rename = "pageNumberStartSuggested")]
+    pub page_number_start_suggested: ::core::option::Option<bool>,
+    /// A mask that indicates which of the fields in size have been changed in this suggestion.
+    #[serde(default, rename = "pageSizeSuggestionState")]
+    pub page_size_suggestion_state: ::core::option::Option<SizeSuggestionState>,
+    /// Indicates if there was a suggested change to use_custom_header_footer_margins.
+    #[serde(default, rename = "useCustomHeaderFooterMarginsSuggested")]
+    pub use_custom_header_footer_margins_suggested: ::core::option::Option<bool>,
+    /// Indicates if there was a suggested change to use_even_page_header_footer.
+    #[serde(default, rename = "useEvenPageHeaderFooterSuggested")]
+    pub use_even_page_header_footer_suggested: ::core::option::Option<bool>,
+    /// Indicates if there was a suggested change to use_first_page_header_footer.
+    #[serde(default, rename = "useFirstPageHeaderFooterSuggested")]
+    pub use_first_page_header_footer_suggested: ::core::option::Option<bool>,
+}
+
+/// Properties of an InlineObject.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct InlineObjectProperties {
+    /// The embedded object of this inline object.
+    #[serde(default, rename = "embeddedObject")]
+    pub embedded_object: ::core::option::Option<EmbeddedObject>,
+}
+
+/// A mask that indicates which of the fields on the base InlineObjectProperties have been changed in this suggestion. For any field set to true, there''s a new suggested value.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct InlineObjectPropertiesSuggestionState {
+    /// A mask that indicates which of the fields in embedded_object have been changed in this suggestion.
+    #[serde(default, rename = "embeddedObjectSuggestionState")]
+    pub embedded_object_suggestion_state: ::core::option::Option<EmbeddedObjectSuggestionState>,
+}
+
+/// The properties of a list that describe the look and feel of bullets belonging to paragraphs associated with a list.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ListProperties {
+    /// Describes the properties of the bullets at the associated level. A list has at most 9 levels of nesting with nesting level 0 corresponding to the top-most level and nesting level 8 corresponding to the most nested level. The nesting levels are returned in ascending order with the least nested returned first.
+    #[serde(default, rename = "nestingLevels")]
+    pub nesting_levels: ::core::option::Option<::std::vec::Vec<NestingLevel>>,
+}
+
+/// A mask that indicates which of the fields on the base ListProperties have been changed in this suggestion. For any field set to true, there''s a new suggested value.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ListPropertiesSuggestionState {
+    /// A mask that indicates which of the fields on the corresponding NestingLevel in nesting_levels have been changed in this suggestion. The nesting level suggestion states are returned in ascending order of the nesting level with the least nested returned first.
+    #[serde(default, rename = "nestingLevelsSuggestionStates")]
+    pub nesting_levels_suggestion_states:
+        ::core::option::Option<::std::vec::Vec<NestingLevelSuggestionState>>,
+}
+
+/// The suggestion state of a NamedStyles message.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct NamedStylesSuggestionState {
+    /// A mask that indicates which of the fields on the corresponding NamedStyle in styles have been changed in this suggestion. The order of these named style suggestion states matches the order of the corresponding named style within the named styles suggestion.
+    #[serde(default, rename = "stylesSuggestionStates")]
+    pub styles_suggestion_states:
+        ::core::option::Option<::std::vec::Vec<NamedStyleSuggestionState>>,
+}
+
+/// Properties of a PositionedObject.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PositionedObjectProperties {
+    /// The embedded object of this positioned object.
+    #[serde(default, rename = "embeddedObject")]
+    pub embedded_object: ::core::option::Option<EmbeddedObject>,
+    /// The positioning of this positioned object relative to the newline of the Paragraph that references this positioned object.
+    #[serde(default)]
+    pub positioning: ::core::option::Option<PositionedObjectPositioning>,
+}
+
+/// A mask that indicates which of the fields on the base PositionedObjectProperties have been changed in this suggestion. For any field set to true, there''s a new suggested value.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PositionedObjectPropertiesSuggestionState {
+    /// A mask that indicates which of the fields in embedded_object have been changed in this suggestion.
+    #[serde(default, rename = "embeddedObjectSuggestionState")]
+    pub embedded_object_suggestion_state: ::core::option::Option<EmbeddedObjectSuggestionState>,
+    /// A mask that indicates which of the fields in positioning have been changed in this suggestion.
+    #[serde(default, rename = "positioningSuggestionState")]
+    pub positioning_suggestion_state:
+        ::core::option::Option<PositionedObjectPositioningSuggestionState>,
+}
+
+/// A mask that indicates which of the fields on the base TableCellStyle have been changed in this suggestion. For any field set to true, there''s a new suggested value.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TableCellStyleSuggestionState {
+    /// Indicates if there was a suggested change to background_color.
+    #[serde(default, rename = "backgroundColorSuggested")]
+    pub background_color_suggested: ::core::option::Option<bool>,
+    /// Indicates if there was a suggested change to border_bottom.
+    #[serde(default, rename = "borderBottomSuggested")]
+    pub border_bottom_suggested: ::core::option::Option<bool>,
+    /// Indicates if there was a suggested change to border_left.
+    #[serde(default, rename = "borderLeftSuggested")]
+    pub border_left_suggested: ::core::option::Option<bool>,
+    /// Indicates if there was a suggested change to border_right.
+    #[serde(default, rename = "borderRightSuggested")]
+    pub border_right_suggested: ::core::option::Option<bool>,
+    /// Indicates if there was a suggested change to border_top.
+    #[serde(default, rename = "borderTopSuggested")]
+    pub border_top_suggested: ::core::option::Option<bool>,
+    /// Indicates if there was a suggested change to column_span.
+    #[serde(default, rename = "columnSpanSuggested")]
+    pub column_span_suggested: ::core::option::Option<bool>,
+    /// Indicates if there was a suggested change to content_alignment.
+    #[serde(default, rename = "contentAlignmentSuggested")]
+    pub content_alignment_suggested: ::core::option::Option<bool>,
+    /// Indicates if there was a suggested change to padding_bottom.
+    #[serde(default, rename = "paddingBottomSuggested")]
+    pub padding_bottom_suggested: ::core::option::Option<bool>,
+    /// Indicates if there was a suggested change to padding_left.
+    #[serde(default, rename = "paddingLeftSuggested")]
+    pub padding_left_suggested: ::core::option::Option<bool>,
+    /// Indicates if there was a suggested change to padding_right.
+    #[serde(default, rename = "paddingRightSuggested")]
+    pub padding_right_suggested: ::core::option::Option<bool>,
+    /// Indicates if there was a suggested change to padding_top.
+    #[serde(default, rename = "paddingTopSuggested")]
+    pub padding_top_suggested: ::core::option::Option<bool>,
+    /// Indicates if there was a suggested change to row_span.
+    #[serde(default, rename = "rowSpanSuggested")]
+    pub row_span_suggested: ::core::option::Option<bool>,
+}
+
+/// A mask that indicates which of the fields on the base TableRowStyle have been changed in this suggestion. For any field set to true, there''s a new suggested value.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TableRowStyleSuggestionState {
+    /// Indicates if there was a suggested change to min_row_height.
+    #[serde(default, rename = "minRowHeightSuggested")]
+    pub min_row_height_suggested: ::core::option::Option<bool>,
+}
+
+/// Adds a document tab. When a tab is added at a given index, all subsequent tabs'' indexes are incremented.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AddDocumentTabRequest {
+    /// The properties of the tab to add. All properties are optional.
+    #[serde(default, rename = "tabProperties")]
+    pub tab_properties: ::core::option::Option<TabProperties>,
+}
+
+/// Creates a Footer. The new footer is applied to the SectionStyle at the location of the SectionBreak if specified, otherwise it is applied to the DocumentStyle. If a footer of the specified type already exists, a 400 bad request error is returned.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CreateFooterRequest {
+    /// The location of the SectionBreak immediately preceding the section whose SectionStyle this footer should belong to. If this is unset or refers to the first section break in the document, the footer applies to the document style.
+    #[serde(default, rename = "sectionBreakLocation")]
+    pub section_break_location: ::core::option::Option<Location>,
+    /// The type of footer to create. // TODO: enum values: ["HEADER_FOOTER_TYPE_UNSPECIFIED", "DEFAULT"]
+    #[serde(default, rename = "type")]
+    pub type_: ::core::option::Option<String>,
+}
+
+/// Creates a Footnote segment and inserts a new FootnoteReference to it at the given location. The new Footnote segment will contain a space followed by a newline character.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CreateFootnoteRequest {
+    /// Inserts the footnote reference at the end of the document body. Footnote references cannot be inserted inside a header, footer or footnote. Since footnote references can only be inserted in the body, the segment ID field must be empty.
+    #[serde(default, rename = "endOfSegmentLocation")]
+    pub end_of_segment_location: ::core::option::Option<EndOfSegmentLocation>,
+    /// Inserts the footnote reference at a specific index in the document. The footnote reference must be inserted inside the bounds of an existing Paragraph. For instance, it cannot be inserted at a table''s start index (i.e. between the table and its preceding paragraph). Footnote references cannot be inserted inside an equation, header, footer or footnote. Since footnote references can only be inserted in the body, the segment ID field must be empty.
+    #[serde(default)]
+    pub location: ::core::option::Option<Location>,
+}
+
+/// Creates a Header. The new header is applied to the SectionStyle at the location of the SectionBreak if specified, otherwise it is applied to the DocumentStyle. If a header of the specified type already exists, a 400 bad request error is returned.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CreateHeaderRequest {
+    /// The location of the SectionBreak which begins the section this header should belong to. If section_break_location'' is unset or if it refers to the first section break in the document body, the header applies to the DocumentStyle
+    #[serde(default, rename = "sectionBreakLocation")]
+    pub section_break_location: ::core::option::Option<Location>,
+    /// The type of header to create. // TODO: enum values: ["HEADER_FOOTER_TYPE_UNSPECIFIED", "DEFAULT"]
+    #[serde(default, rename = "type")]
+    pub type_: ::core::option::Option<String>,
+}
+
+/// Creates a NamedRange referencing the given range.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CreateNamedRangeRequest {
+    /// The name of the NamedRange. Names do not need to be unique. Names must be at least 1 character and no more than 256 characters, measured in UTF-16 code units.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// The range to apply the name to.
+    #[serde(default)]
+    pub range: ::core::option::Option<Range>,
+}
+
+/// Creates bullets for all of the paragraphs that overlap with the given range. The nesting level of each paragraph will be determined by counting leading tabs in front of each paragraph. To avoid excess space between the bullet and the corresponding paragraph, these leading tabs are removed by this request. This may change the indices of parts of the text. If the paragraph immediately before paragraphs being updated is in a list with a matching preset, the paragraphs being updated are added to that preceding list.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CreateParagraphBulletsRequest {
+    /// The kinds of bullet glyphs to be used. // TODO: enum values: ["BULLET_GLYPH_PRESET_UNSPECIFIED", "BULLET_DISC_CIRCLE_SQUARE", "BULLET_DIAMONDX_ARROW3D_SQUARE", "BULLET_CHECKBOX", "BULLET_ARROW_DIAMOND_DISC", "BULLET_STAR_CIRCLE_SQUARE", "BULLET_ARROW3D_CIRCLE_SQUARE", "BULLET_LEFTTRIANGLE_DIAMOND_DISC", "BULLET_DIAMONDX_HOLLOWDIAMOND_SQUARE", "BULLET_DIAMOND_CIRCLE_SQUARE", "NUMBERED_DECIMAL_ALPHA_ROMAN", "NUMBERED_DECIMAL_ALPHA_ROMAN_PARENS", "NUMBERED_DECIMAL_NESTED", "NUMBERED_UPPERALPHA_ALPHA_ROMAN", "NUMBERED_UPPERROMAN_UPPERALPHA_DECIMAL", "NUMBERED_ZERODECIMAL_ALPHA_ROMAN"]
+    #[serde(default, rename = "bulletPreset")]
+    pub bullet_preset: ::core::option::Option<String>,
+    /// The range to apply the bullet preset to.
+    #[serde(default)]
+    pub range: ::core::option::Option<Range>,
 }
 
 /// Deletes content from the document.
@@ -442,79 +871,706 @@ pub struct DeleteTableRowRequest {
     pub table_cell_location: ::core::option::Option<TableCellLocation>,
 }
 
-/// A magnitude in a single direction in the specified units.
+/// Inserts a date at the specified location.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Dimension {
-    /// The magnitude.
+pub struct InsertDateRequest {
+    /// The properties of the date to insert.
+    #[serde(default, rename = "dateElementProperties")]
+    pub date_element_properties: ::core::option::Option<DateElementProperties>,
+    /// Inserts the date at the end of the given header, footer or document body.
+    #[serde(default, rename = "endOfSegmentLocation")]
+    pub end_of_segment_location: ::core::option::Option<EndOfSegmentLocation>,
+    /// Inserts the date at a specific index in the document. The date must be inserted inside the bounds of an existing Paragraph. For instance, it cannot be inserted at a table''s start index (i.e. between an existing table and its preceding paragraph).
     #[serde(default)]
-    pub magnitude: ::core::option::Option<f64>,
-    /// The units for magnitude. // TODO: enum values: ["UNIT_UNSPECIFIED", "PT"]
-    #[serde(default)]
-    pub unit: ::core::option::Option<String>,
+    pub location: ::core::option::Option<Location>,
 }
 
-/// A Google Docs document.
+/// Inserts an InlineObject containing an image at the given location.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Document {
-    /// Output only. The main body of the document. Legacy field: Instead, use Document.tabs.documentTab.body, which exposes the actual document content from all tabs when the includeTabsContent parameter is set to true. If false or unset, this field contains information about the first tab in the document.
+pub struct InsertInlineImageRequest {
+    /// Inserts the text at the end of a header, footer or the document body. Inline images cannot be inserted inside a footnote.
+    #[serde(default, rename = "endOfSegmentLocation")]
+    pub end_of_segment_location: ::core::option::Option<EndOfSegmentLocation>,
+    /// Inserts the image at a specific index in the document. The image must be inserted inside the bounds of an existing Paragraph. For instance, it cannot be inserted at a table''s start index (i.e. between the table and its preceding paragraph). Inline images cannot be inserted inside a footnote or equation.
     #[serde(default)]
-    pub body: ::core::option::Option<Body>,
-    /// Output only. The ID of the document.
-    #[serde(default, rename = "documentId")]
-    pub document_id: ::core::option::Option<String>,
-    /// Output only. The style of the document. Legacy field: Instead, use Document.tabs.documentTab.documentStyle, which exposes the actual document content from all tabs when the includeTabsContent parameter is set to true. If false or unset, this field contains information about the first tab in the document.
+    pub location: ::core::option::Option<Location>,
+    /// The size that the image should appear as in the document. This property is optional and the final size of the image in the document is determined by the following rules: * If neither width nor height is specified, then a default size of the image is calculated based on its resolution. * If one dimension is specified then the other dimension is calculated to preserve the aspect ratio of the image. * If both width and height are specified, the image is scaled to fit within the provided dimensions while maintaining its aspect ratio.
+    #[serde(default, rename = "objectSize")]
+    pub object_size: ::core::option::Option<Size>,
+    /// The image URI. The image is fetched once at insertion time and a copy is stored for display inside the document. Images must be less than 50MB in size, cannot exceed 25 megapixels, and must be in one of PNG, JPEG, or GIF format. The provided URI must be publicly accessible and at most 2 kB in length. The URI itself is saved with the image, and exposed via the ImageProperties.content_uri field.
+    #[serde(default)]
+    pub uri: ::core::option::Option<String>,
+}
+
+/// Inserts a page break followed by a newline at the specified location.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct InsertPageBreakRequest {
+    /// Inserts the page break at the end of the document body. Page breaks cannot be inserted inside a footnote, header or footer. Since page breaks can only be inserted inside the body, the segment ID field must be empty.
+    #[serde(default, rename = "endOfSegmentLocation")]
+    pub end_of_segment_location: ::core::option::Option<EndOfSegmentLocation>,
+    /// Inserts the page break at a specific index in the document. The page break must be inserted inside the bounds of an existing Paragraph. For instance, it cannot be inserted at a table''s start index (i.e. between the table and its preceding paragraph). Page breaks cannot be inserted inside a table, equation, footnote, header or footer. Since page breaks can only be inserted inside the body, the segment ID field must be empty.
+    #[serde(default)]
+    pub location: ::core::option::Option<Location>,
+}
+
+/// Inserts a person mention.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct InsertPersonRequest {
+    /// Inserts the person mention at the end of a header, footer, footnote or the document body.
+    #[serde(default, rename = "endOfSegmentLocation")]
+    pub end_of_segment_location: ::core::option::Option<EndOfSegmentLocation>,
+    /// Inserts the person mention at a specific index in the document. The person mention must be inserted inside the bounds of an existing Paragraph. For instance, it cannot be inserted at a table''s start index (i.e. between the table and its preceding paragraph). Person mentions cannot be inserted inside an equation.
+    #[serde(default)]
+    pub location: ::core::option::Option<Location>,
+    /// The properties of the person mention to insert.
+    #[serde(default, rename = "personProperties")]
+    pub person_properties: ::core::option::Option<PersonProperties>,
+}
+
+/// Inserts a section break at the given location. A newline character will be inserted before the section break.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct InsertSectionBreakRequest {
+    /// Inserts a newline and a section break at the end of the document body. Section breaks cannot be inserted inside a footnote, header or footer. Because section breaks can only be inserted inside the body, the segment ID field must be empty.
+    #[serde(default, rename = "endOfSegmentLocation")]
+    pub end_of_segment_location: ::core::option::Option<EndOfSegmentLocation>,
+    /// Inserts a newline and a section break at a specific index in the document. The section break must be inserted inside the bounds of an existing Paragraph. For instance, it cannot be inserted at a table''s start index (i.e. between the table and its preceding paragraph). Section breaks cannot be inserted inside a table, equation, footnote, header, or footer. Since section breaks can only be inserted inside the body, the segment ID field must be empty.
+    #[serde(default)]
+    pub location: ::core::option::Option<Location>,
+    /// The type of section to insert. // TODO: enum values: ["SECTION_TYPE_UNSPECIFIED", "CONTINUOUS", "NEXT_PAGE"]
+    #[serde(default, rename = "sectionType")]
+    pub section_type: ::core::option::Option<String>,
+}
+
+/// Inserts a table at the specified location. A newline character will be inserted before the inserted table.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct InsertTableRequest {
+    /// The number of columns in the table.
+    #[serde(default)]
+    pub columns: ::core::option::Option<i32>,
+    /// Inserts the table at the end of the given header, footer or document body. A newline character will be inserted before the inserted table. Tables cannot be inserted inside a footnote.
+    #[serde(default, rename = "endOfSegmentLocation")]
+    pub end_of_segment_location: ::core::option::Option<EndOfSegmentLocation>,
+    /// Inserts the table at a specific model index. A newline character will be inserted before the inserted table, therefore the table start index will be at the specified location index + 1. The table must be inserted inside the bounds of an existing Paragraph. For instance, it cannot be inserted at a table''s start index (i.e. between an existing table and its preceding paragraph). Tables cannot be inserted inside a footnote or equation.
+    #[serde(default)]
+    pub location: ::core::option::Option<Location>,
+    /// The number of rows in the table.
+    #[serde(default)]
+    pub rows: ::core::option::Option<i32>,
+}
+
+/// Inserts an empty column into a table.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct InsertTableColumnRequest {
+    /// Whether to insert new column to the right of the reference cell location. - True: insert to the right. - False: insert to the left.
+    #[serde(default, rename = "insertRight")]
+    pub insert_right: ::core::option::Option<bool>,
+    /// The reference table cell location from which columns will be inserted. A new column will be inserted to the left (or right) of the column where the reference cell is. If the reference cell is a merged cell, a new column will be inserted to the left (or right) of the merged cell.
+    #[serde(default, rename = "tableCellLocation")]
+    pub table_cell_location: ::core::option::Option<TableCellLocation>,
+}
+
+/// Inserts an empty row into a table.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct InsertTableRowRequest {
+    /// Whether to insert new row below the reference cell location. - True: insert below the cell. - False: insert above the cell.
+    #[serde(default, rename = "insertBelow")]
+    pub insert_below: ::core::option::Option<bool>,
+    /// The reference table cell location from which rows will be inserted. A new row will be inserted above (or below) the row where the reference cell is. If the reference cell is a merged cell, a new row will be inserted above (or below) the merged cell.
+    #[serde(default, rename = "tableCellLocation")]
+    pub table_cell_location: ::core::option::Option<TableCellLocation>,
+}
+
+/// Inserts text at the specified location.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct InsertTextRequest {
+    /// Inserts the text at the end of a header, footer, footnote or the document body.
+    #[serde(default, rename = "endOfSegmentLocation")]
+    pub end_of_segment_location: ::core::option::Option<EndOfSegmentLocation>,
+    /// Inserts the text at a specific index in the document. Text must be inserted inside the bounds of an existing Paragraph. For instance, text cannot be inserted at a table''s start index (i.e. between the table and its preceding paragraph). The text must be inserted in the preceding paragraph.
+    #[serde(default)]
+    pub location: ::core::option::Option<Location>,
+    /// The text to be inserted. Inserting a newline character will implicitly create a new Paragraph at that index. The paragraph style of the new paragraph will be copied from the paragraph at the current insertion index, including lists and bullets. Text styles for inserted text will be determined automatically, generally preserving the styling of neighboring text. In most cases, the text style for the inserted text will match the text immediately before the insertion index. Some control characters (U+0000-U+0008, U+000C-U+001F) and characters from the Unicode Basic Multilingual Plane Private Use Area (U+E000-U+F8FF) will be stripped out of the inserted text.
+    #[serde(default)]
+    pub text: ::core::option::Option<String>,
+}
+
+/// Merges cells in a Table.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MergeTableCellsRequest {
+    /// The table range specifying which cells of the table to merge. Any text in the cells being merged will be concatenated and stored in the "head" cell of the range. This is the upper-left cell of the range when the content direction is left to right, and the upper-right cell of the range otherwise. If the range is non-rectangular (which can occur in some cases where the range covers cells that are already merged or where the table is non-rectangular), a 400 bad request error is returned.
+    #[serde(default, rename = "tableRange")]
+    pub table_range: ::core::option::Option<TableRange>,
+}
+
+/// Updates the number of pinned table header rows in a table.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PinTableHeaderRowsRequest {
+    /// The number of table rows to pin, where 0 implies that all rows are unpinned.
+    #[serde(default, rename = "pinnedHeaderRowsCount")]
+    pub pinned_header_rows_count: ::core::option::Option<i32>,
+    /// The location where the table starts in the document.
+    #[serde(default, rename = "tableStartLocation")]
+    pub table_start_location: ::core::option::Option<Location>,
+}
+
+/// Replaces all instances of text matching a criteria with replace text.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ReplaceAllTextRequest {
+    /// Finds text in the document matching this substring.
+    #[serde(default, rename = "containsText")]
+    pub contains_text: ::core::option::Option<SubstringMatchCriteria>,
+    /// The text that will replace the matched text.
+    #[serde(default, rename = "replaceText")]
+    pub replace_text: ::core::option::Option<String>,
+    /// Optional. The criteria used to specify in which tabs the replacement occurs. When omitted, the replacement applies to all tabs. In a document containing a single tab: - If provided, must match the singular tab''s ID. - If omitted, the replacement applies to the singular tab. In a document containing multiple tabs: - If provided, the replacement applies to the specified tabs. - If omitted, the replacement applies to all tabs.
+    #[serde(default, rename = "tabsCriteria")]
+    pub tabs_criteria: ::core::option::Option<TabsCriteria>,
+}
+
+/// Replaces an existing image with a new image. Replacing an image removes some image effects from the existing image in order to mirror the behavior of the Docs editor.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ReplaceImageRequest {
+    /// The ID of the existing image that will be replaced. The ID can be retrieved from the response of a get request.
+    #[serde(default, rename = "imageObjectId")]
+    pub image_object_id: ::core::option::Option<String>,
+    /// The replacement method. // TODO: enum values: ["IMAGE_REPLACE_METHOD_UNSPECIFIED", "CENTER_CROP"]
+    #[serde(default, rename = "imageReplaceMethod")]
+    pub image_replace_method: ::core::option::Option<String>,
+    /// The tab that the image to be replaced is in. When omitted, the request is applied to the first tab. In a document containing a single tab: - If provided, must match the singular tab''s ID. - If omitted, the request applies to the singular tab. In a document containing multiple tabs: - If provided, the request applies to the specified tab. - If omitted, the request applies to the first tab in the document.
+    #[serde(default, rename = "tabId")]
+    pub tab_id: ::core::option::Option<String>,
+    /// The URI of the new image. The image is fetched once at insertion time and a copy is stored for display inside the document. Images must be less than 50MB, cannot exceed 25 megapixels, and must be in PNG, JPEG, or GIF format. The provided URI can''t surpass 2 KB in length. The URI is saved with the image, and exposed through the ImageProperties.source_uri field.
+    #[serde(default)]
+    pub uri: ::core::option::Option<String>,
+}
+
+/// Replaces the contents of the specified NamedRange or NamedRanges with the given replacement content. Note that an individual NamedRange may consist of multiple discontinuous ranges. In this case, only the content in the first range will be replaced. The other ranges and their content will be deleted. In cases where replacing or deleting any ranges would result in an invalid document structure, a 400 bad request error is returned.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ReplaceNamedRangeContentRequest {
+    /// The ID of the named range whose content will be replaced. If there is no named range with the given ID a 400 bad request error is returned.
+    #[serde(default, rename = "namedRangeId")]
+    pub named_range_id: ::core::option::Option<String>,
+    /// The name of the NamedRanges whose content will be replaced. If there are multiple named ranges with the given name, then the content of each one will be replaced. If there are no named ranges with the given name, then the request will be a no-op.
+    #[serde(default, rename = "namedRangeName")]
+    pub named_range_name: ::core::option::Option<String>,
+    /// Optional. The criteria used to specify in which tabs the replacement occurs. When omitted, the replacement applies to all tabs. In a document containing a single tab: - If provided, must match the singular tab''s ID. - If omitted, the replacement applies to the singular tab. In a document containing multiple tabs: - If provided, the replacement applies to the specified tabs. - If omitted, the replacement applies to all tabs.
+    #[serde(default, rename = "tabsCriteria")]
+    pub tabs_criteria: ::core::option::Option<TabsCriteria>,
+    /// Replaces the content of the specified named range(s) with the given text.
+    #[serde(default)]
+    pub text: ::core::option::Option<String>,
+}
+
+/// Unmerges cells in a Table.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct UnmergeTableCellsRequest {
+    /// The table range specifying which cells of the table to unmerge. All merged cells in this range will be unmerged, and cells that are already unmerged will not be affected. If the range has no merged cells, the request will do nothing. If there is text in any of the merged cells, the text will remain in the "head" cell of the resulting block of unmerged cells. The "head" cell is the upper-left cell when the content direction is from left to right, and the upper-right otherwise.
+    #[serde(default, rename = "tableRange")]
+    pub table_range: ::core::option::Option<TableRange>,
+}
+
+/// Updates the DocumentStyle.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct UpdateDocumentStyleRequest {
+    /// The styles to set on the document. Certain document style changes may cause other changes in order to mirror the behavior of the Docs editor. See the documentation of DocumentStyle for more information.
     #[serde(default, rename = "documentStyle")]
     pub document_style: ::core::option::Option<DocumentStyle>,
-    /// Output only. The footers in the document, keyed by footer ID. Legacy field: Instead, use Document.tabs.documentTab.footers, which exposes the actual document content from all tabs when the includeTabsContent parameter is set to true. If false or unset, this field contains information about the first tab in the document.
+    /// The fields that should be updated. At least one field must be specified. The root document_style is implied and should not be specified. A single "*" can be used as short-hand for listing every field. For example to update the background, set fields to "background".
+    #[serde(default)]
+    pub fields: ::core::option::Option<String>,
+    /// The tab that contains the style to update. When omitted, the request applies to the first tab. In a document containing a single tab: - If provided, must match the singular tab''s ID. - If omitted, the request applies to the singular tab. In a document containing multiple tabs: - If provided, the request applies to the specified tab. - If not provided, the request applies to the first tab in the document.
+    #[serde(default, rename = "tabId")]
+    pub tab_id: ::core::option::Option<String>,
+}
+
+/// Update the properties of a document tab.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct UpdateDocumentTabPropertiesRequest {
+    /// The fields that should be updated. At least one field must be specified. The root tab_properties is implied and should not be specified. A single "*" can be used as short-hand for listing every field.
+    #[serde(default)]
+    pub fields: ::core::option::Option<String>,
+    /// The tab properties to update.
+    #[serde(default, rename = "tabProperties")]
+    pub tab_properties: ::core::option::Option<TabProperties>,
+}
+
+/// Update the styling of all paragraphs that overlap with the given range.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct UpdateParagraphStyleRequest {
+    /// The fields that should be updated. At least one field must be specified. The root paragraph_style is implied and should not be specified. A single "*" can be used as short-hand for listing every field. For example, to update the paragraph style''s alignment property, set fields to "alignment". To reset a property to its default value, include its field name in the field mask but leave the field itself unset.
+    #[serde(default)]
+    pub fields: ::core::option::Option<String>,
+    /// The styles to set on the paragraphs. Certain paragraph style changes may cause other changes in order to mirror the behavior of the Docs editor. See the documentation of ParagraphStyle for more information.
+    #[serde(default, rename = "paragraphStyle")]
+    pub paragraph_style: ::core::option::Option<ParagraphStyle>,
+    /// The range overlapping the paragraphs to style.
+    #[serde(default)]
+    pub range: ::core::option::Option<Range>,
+}
+
+/// Updates the SectionStyle.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct UpdateSectionStyleRequest {
+    /// The fields that should be updated. At least one field must be specified. The root section_style is implied and must not be specified. A single "*" can be used as short-hand for listing every field. For example to update the left margin, set fields to "margin_left".
+    #[serde(default)]
+    pub fields: ::core::option::Option<String>,
+    /// The range overlapping the sections to style. Because section breaks can only be inserted inside the body, the segment ID field must be empty.
+    #[serde(default)]
+    pub range: ::core::option::Option<Range>,
+    /// The styles to be set on the section. Certain section style changes may cause other changes in order to mirror the behavior of the Docs editor. See the documentation of SectionStyle for more information.
+    #[serde(default, rename = "sectionStyle")]
+    pub section_style: ::core::option::Option<SectionStyle>,
+}
+
+/// Updates the style of a range of table cells.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct UpdateTableCellStyleRequest {
+    /// The fields that should be updated. At least one field must be specified. The root tableCellStyle is implied and should not be specified. A single "*" can be used as short-hand for listing every field. For example to update the table cell background color, set fields to "backgroundColor". To reset a property to its default value, include its field name in the field mask but leave the field itself unset.
+    #[serde(default)]
+    pub fields: ::core::option::Option<String>,
+    /// The style to set on the table cells. When updating borders, if a cell shares a border with an adjacent cell, the corresponding border property of the adjacent cell is updated as well. Borders that are merged and invisible are not updated. Since updating a border shared by adjacent cells in the same request can cause conflicting border updates, border updates are applied in the following order: - border_right - border_left - border_bottom - border_top
+    #[serde(default, rename = "tableCellStyle")]
+    pub table_cell_style: ::core::option::Option<TableCellStyle>,
+    /// The table range representing the subset of the table to which the updates are applied.
+    #[serde(default, rename = "tableRange")]
+    pub table_range: ::core::option::Option<TableRange>,
+    /// The location where the table starts in the document. When specified, the updates are applied to all the cells in the table.
+    #[serde(default, rename = "tableStartLocation")]
+    pub table_start_location: ::core::option::Option<Location>,
+}
+
+/// Updates the TableColumnProperties of columns in a table.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct UpdateTableColumnPropertiesRequest {
+    /// The list of zero-based column indices whose property should be updated. If no indices are specified, all columns will be updated.
+    #[serde(default, rename = "columnIndices")]
+    pub column_indices: ::core::option::Option<::std::vec::Vec<i32>>,
+    /// The fields that should be updated. At least one field must be specified. The root tableColumnProperties is implied and should not be specified. A single "*" can be used as short-hand for listing every field. For example to update the column width, set fields to "width".
+    #[serde(default)]
+    pub fields: ::core::option::Option<String>,
+    /// The table column properties to update. If the value of table_column_properties#width is less than 5 points (5/72 inch), a 400 bad request error is returned.
+    #[serde(default, rename = "tableColumnProperties")]
+    pub table_column_properties: ::core::option::Option<TableColumnProperties>,
+    /// The location where the table starts in the document.
+    #[serde(default, rename = "tableStartLocation")]
+    pub table_start_location: ::core::option::Option<Location>,
+}
+
+/// Updates the TableRowStyle of rows in a table.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct UpdateTableRowStyleRequest {
+    /// The fields that should be updated. At least one field must be specified. The root tableRowStyle is implied and should not be specified. A single "*" can be used as short-hand for listing every field. For example to update the minimum row height, set fields to "min_row_height".
+    #[serde(default)]
+    pub fields: ::core::option::Option<String>,
+    /// The list of zero-based row indices whose style should be updated. If no indices are specified, all rows will be updated.
+    #[serde(default, rename = "rowIndices")]
+    pub row_indices: ::core::option::Option<::std::vec::Vec<i32>>,
+    /// The styles to be set on the rows.
+    #[serde(default, rename = "tableRowStyle")]
+    pub table_row_style: ::core::option::Option<TableRowStyle>,
+    /// The location where the table starts in the document.
+    #[serde(default, rename = "tableStartLocation")]
+    pub table_start_location: ::core::option::Option<Location>,
+}
+
+/// Update the styling of text.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct UpdateTextStyleRequest {
+    /// The fields that should be updated. At least one field must be specified. The root text_style is implied and should not be specified. A single "*" can be used as short-hand for listing every field. For example, to update the text style to bold, set fields to "bold". To reset a property to its default value, include its field name in the field mask but leave the field itself unset.
+    #[serde(default)]
+    pub fields: ::core::option::Option<String>,
+    /// The range of text to style. The range may be extended to include adjacent newlines. If the range fully contains a paragraph belonging to a list, the paragraph''s bullet is also updated with the matching text style. Ranges cannot be inserted inside a relative UpdateTextStyleRequest.
+    #[serde(default)]
+    pub range: ::core::option::Option<Range>,
+    /// The styles to set on the text. If the value for a particular style matches that of the parent, that style will be set to inherit. Certain text style changes may cause other changes in order to to mirror the behavior of the Docs editor. See the documentation of TextStyle for more information.
+    #[serde(default, rename = "textStyle")]
+    pub text_style: ::core::option::Option<TextStyle>,
+}
+
+/// The result of adding a document tab.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AddDocumentTabResponse {
+    /// The properties of the newly added tab.
+    #[serde(default, rename = "tabProperties")]
+    pub tab_properties: ::core::option::Option<TabProperties>,
+}
+
+/// The result of creating a footer.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CreateFooterResponse {
+    /// The ID of the created footer.
+    #[serde(default, rename = "footerId")]
+    pub footer_id: ::core::option::Option<String>,
+}
+
+/// The result of creating a footnote.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CreateFootnoteResponse {
+    /// The ID of the created footnote.
+    #[serde(default, rename = "footnoteId")]
+    pub footnote_id: ::core::option::Option<String>,
+}
+
+/// The result of creating a header.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CreateHeaderResponse {
+    /// The ID of the created header.
+    #[serde(default, rename = "headerId")]
+    pub header_id: ::core::option::Option<String>,
+}
+
+/// The result of creating a named range.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CreateNamedRangeResponse {
+    /// The ID of the created named range.
+    #[serde(default, rename = "namedRangeId")]
+    pub named_range_id: ::core::option::Option<String>,
+}
+
+/// The result of inserting an inline image.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct InsertInlineImageResponse {
+    /// The ID of the created InlineObject.
+    #[serde(default, rename = "objectId")]
+    pub object_id: ::core::option::Option<String>,
+}
+
+/// The result of inserting an embedded Google Sheets chart.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct InsertInlineSheetsChartResponse {
+    /// The object ID of the inserted chart.
+    #[serde(default, rename = "objectId")]
+    pub object_id: ::core::option::Option<String>,
+}
+
+/// The result of replacing text.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ReplaceAllTextResponse {
+    /// The number of occurrences changed by replacing all text.
+    #[serde(default, rename = "occurrencesChanged")]
+    pub occurrences_changed: ::core::option::Option<i32>,
+}
+
+/// A tab with document contents.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DocumentTab {
+    /// The main body of the document tab.
+    #[serde(default)]
+    pub body: ::core::option::Option<Body>,
+    /// The style of the document tab.
+    #[serde(default, rename = "documentStyle")]
+    pub document_style: ::core::option::Option<DocumentStyle>,
+    /// The footers in the document tab, keyed by footer ID.
     #[serde(default)]
     pub footers: ::core::option::Option<serde_json::Value>,
-    /// Output only. The footnotes in the document, keyed by footnote ID. Legacy field: Instead, use Document.tabs.documentTab.footnotes, which exposes the actual document content from all tabs when the includeTabsContent parameter is set to true. If false or unset, this field contains information about the first tab in the document.
+    /// The footnotes in the document tab, keyed by footnote ID.
     #[serde(default)]
     pub footnotes: ::core::option::Option<serde_json::Value>,
-    /// Output only. The headers in the document, keyed by header ID. Legacy field: Instead, use Document.tabs.documentTab.headers, which exposes the actual document content from all tabs when the includeTabsContent parameter is set to true. If false or unset, this field contains information about the first tab in the document.
+    /// The headers in the document tab, keyed by header ID.
     #[serde(default)]
     pub headers: ::core::option::Option<serde_json::Value>,
-    /// Output only. The inline objects in the document, keyed by object ID. Legacy field: Instead, use Document.tabs.documentTab.inlineObjects, which exposes the actual document content from all tabs when the includeTabsContent parameter is set to true. If false or unset, this field contains information about the first tab in the document.
+    /// The inline objects in the document tab, keyed by object ID.
     #[serde(default, rename = "inlineObjects")]
     pub inline_objects: ::core::option::Option<serde_json::Value>,
-    /// Output only. The lists in the document, keyed by list ID. Legacy field: Instead, use Document.tabs.documentTab.lists, which exposes the actual document content from all tabs when the includeTabsContent parameter is set to true. If false or unset, this field contains information about the first tab in the document.
+    /// The lists in the document tab, keyed by list ID.
     #[serde(default)]
     pub lists: ::core::option::Option<serde_json::Value>,
-    /// Output only. The named ranges in the document, keyed by name. Legacy field: Instead, use Document.tabs.documentTab.namedRanges, which exposes the actual document content from all tabs when the includeTabsContent parameter is set to true. If false or unset, this field contains information about the first tab in the document.
+    /// The named ranges in the document tab, keyed by name.
     #[serde(default, rename = "namedRanges")]
     pub named_ranges: ::core::option::Option<serde_json::Value>,
-    /// Output only. The named styles of the document. Legacy field: Instead, use Document.tabs.documentTab.namedStyles, which exposes the actual document content from all tabs when the includeTabsContent parameter is set to true. If false or unset, this field contains information about the first tab in the document.
+    /// The named styles of the document tab.
     #[serde(default, rename = "namedStyles")]
     pub named_styles: ::core::option::Option<NamedStyles>,
-    /// Output only. The positioned objects in the document, keyed by object ID. Legacy field: Instead, use Document.tabs.documentTab.positionedObjects, which exposes the actual document content from all tabs when the includeTabsContent parameter is set to true. If false or unset, this field contains information about the first tab in the document.
+    /// The positioned objects in the document tab, keyed by object ID.
     #[serde(default, rename = "positionedObjects")]
     pub positioned_objects: ::core::option::Option<serde_json::Value>,
-    /// Output only. The revision ID of the document. Can be used in update requests to specify which revision of a document to apply updates to and how the request should behave if the document has been edited since that revision. Only populated if the user has edit access to the document. The revision ID is not a sequential number but an opaque string. The format of the revision ID might change over time. A returned revision ID is only guaranteed to be valid for 24 hours after it has been returned and cannot be shared across users. If the revision ID is unchanged between calls, then the document has not changed. Conversely, a changed ID (for the same document and user) usually means the document has been updated. However, a changed ID can also be due to internal factors such as ID format changes.
-    #[serde(default, rename = "revisionId")]
-    pub revision_id: ::core::option::Option<String>,
-    /// Output only. The suggested changes to the style of the document, keyed by suggestion ID. Legacy field: Instead, use Document.tabs.documentTab.suggestedDocumentStyleChanges, which exposes the actual document content from all tabs when the includeTabsContent parameter is set to true. If false or unset, this field contains information about the first tab in the document.
+    /// The suggested changes to the style of the document tab, keyed by suggestion ID.
     #[serde(default, rename = "suggestedDocumentStyleChanges")]
     pub suggested_document_style_changes: ::core::option::Option<serde_json::Value>,
-    /// Output only. The suggested changes to the named styles of the document, keyed by suggestion ID. Legacy field: Instead, use Document.tabs.documentTab.suggestedNamedStylesChanges, which exposes the actual document content from all tabs when the includeTabsContent parameter is set to true. If false or unset, this field contains information about the first tab in the document.
+    /// The suggested changes to the named styles of the document tab, keyed by suggestion ID.
     #[serde(default, rename = "suggestedNamedStylesChanges")]
     pub suggested_named_styles_changes: ::core::option::Option<serde_json::Value>,
-    /// Output only. The suggestions view mode applied to the document. Note: When editing a document, changes must be based on a document with SUGGESTIONS_INLINE. // TODO: enum values: ["DEFAULT_FOR_CURRENT_ACCESS", "SUGGESTIONS_INLINE", "PREVIEW_SUGGESTIONS_ACCEPTED", "PREVIEW_WITHOUT_SUGGESTIONS"]
-    #[serde(default, rename = "suggestionsViewMode")]
-    pub suggestions_view_mode: ::core::option::Option<String>,
-    /// Tabs that are part of a document. Tabs can contain child tabs, a tab nested within another tab. Child tabs are represented by the Tab.childTabs field.
+}
+
+/// A mask that indicates which of the fields on the base Background have been changed in this suggestion. For any field set to true, the Backgound has a new suggested value.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BackgroundSuggestionState {
+    /// Indicates whether the current background color has been modified in this suggestion.
+    #[serde(default, rename = "backgroundColorSuggested")]
+    pub background_color_suggested: ::core::option::Option<bool>,
+}
+
+/// Contains properties describing the look and feel of a list bullet at a given level of nesting.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct NestingLevel {
+    /// The alignment of the bullet within the space allotted for rendering the bullet. // TODO: enum values: ["BULLET_ALIGNMENT_UNSPECIFIED", "START", "CENTER", "END"]
+    #[serde(default, rename = "bulletAlignment")]
+    pub bullet_alignment: ::core::option::Option<String>,
+    /// The format string used by bullets at this level of nesting. The glyph format contains one or more placeholders, and these placeholders are replaced with the appropriate values depending on the glyph_type or glyph_symbol. The placeholders follow the pattern %[nesting_level]. Furthermore, placeholders can have prefixes and suffixes. Thus, the glyph format follows the pattern %[nesting_level]. Note that the prefix and suffix are optional and can be arbitrary strings. For example, the glyph format %0. indicates that the rendered glyph will replace the placeholder with the corresponding glyph for nesting level 0 followed by a period as the suffix. So a list with a glyph type of UPPER_ALPHA and glyph format %0. at nesting level 0 will result in a list with rendered glyphs A. B. C. The glyph format can contain placeholders for the current nesting level as well as placeholders for parent nesting levels. For example, a list can have a glyph format of %0. at nesting level 0 and a glyph format of %0.%1. at nesting level 1. Assuming both nesting levels have DECIMAL glyph types, this would result in a list with rendered glyphs 1. 2.  2.1.  2.2. 3. For nesting levels that are ordered, the string that replaces a placeholder in the glyph format for a particular paragraph depends on the paragraph''s order within the list.
+    #[serde(default, rename = "glyphFormat")]
+    pub glyph_format: ::core::option::Option<String>,
+    /// A custom glyph symbol used by bullets when paragraphs at this level of nesting is unordered. The glyph symbol replaces placeholders within the glyph_format. For example, if the glyph_symbol is the solid circle corresponding to Unicode U+25cf code point and the glyph_format is %0, the rendered glyph would be the solid circle.
+    #[serde(default, rename = "glyphSymbol")]
+    pub glyph_symbol: ::core::option::Option<String>,
+    /// The type of glyph used by bullets when paragraphs at this level of nesting is ordered. The glyph type determines the type of glyph used to replace placeholders within the glyph_format when paragraphs at this level of nesting are ordered. For example, if the nesting level is 0, the glyph_format is %0. and the glyph type is DECIMAL, then the rendered glyph would replace the placeholder %0 in the glyph format with a number corresponding to the list item''s order within the list. // TODO: enum values: ["GLYPH_TYPE_UNSPECIFIED", "NONE", "DECIMAL", "ZERO_DECIMAL", "UPPER_ALPHA", "ALPHA", "UPPER_ROMAN", "ROMAN"]
+    #[serde(default, rename = "glyphType")]
+    pub glyph_type: ::core::option::Option<String>,
+    /// The amount of indentation for the first line of paragraphs at this level of nesting.
+    #[serde(default, rename = "indentFirstLine")]
+    pub indent_first_line: ::core::option::Option<Dimension>,
+    /// The amount of indentation for paragraphs at this level of nesting. Applied to the side that corresponds to the start of the text, based on the paragraph''s content direction.
+    #[serde(default, rename = "indentStart")]
+    pub indent_start: ::core::option::Option<Dimension>,
+    /// The number of the first list item at this nesting level. A value of 0 is treated as a value of 1 for lettered lists and Roman numeral lists. For values of both 0 and 1, lettered and Roman numeral lists will begin at a and i respectively. This value is ignored for nesting levels with unordered glyphs.
+    #[serde(default, rename = "startNumber")]
+    pub start_number: ::core::option::Option<i32>,
+    /// The text style of bullets at this level of nesting.
+    #[serde(default, rename = "textStyle")]
+    pub text_style: ::core::option::Option<TextStyle>,
+}
+
+/// A mask that indicates which of the fields on the base NestingLevel have been changed in this suggestion. For any field set to true, there''s a new suggested value.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct NestingLevelSuggestionState {
+    /// Indicates if there was a suggested change to bullet_alignment.
+    #[serde(default, rename = "bulletAlignmentSuggested")]
+    pub bullet_alignment_suggested: ::core::option::Option<bool>,
+    /// Indicates if there was a suggested change to glyph_format.
+    #[serde(default, rename = "glyphFormatSuggested")]
+    pub glyph_format_suggested: ::core::option::Option<bool>,
+    /// Indicates if there was a suggested change to glyph_symbol.
+    #[serde(default, rename = "glyphSymbolSuggested")]
+    pub glyph_symbol_suggested: ::core::option::Option<bool>,
+    /// Indicates if there was a suggested change to glyph_type.
+    #[serde(default, rename = "glyphTypeSuggested")]
+    pub glyph_type_suggested: ::core::option::Option<bool>,
+    /// Indicates if there was a suggested change to indent_first_line.
+    #[serde(default, rename = "indentFirstLineSuggested")]
+    pub indent_first_line_suggested: ::core::option::Option<bool>,
+    /// Indicates if there was a suggested change to indent_start.
+    #[serde(default, rename = "indentStartSuggested")]
+    pub indent_start_suggested: ::core::option::Option<bool>,
+    /// Indicates if there was a suggested change to start_number.
+    #[serde(default, rename = "startNumberSuggested")]
+    pub start_number_suggested: ::core::option::Option<bool>,
+    /// A mask that indicates which of the fields in text style have been changed in this suggestion.
+    #[serde(default, rename = "textStyleSuggestionState")]
+    pub text_style_suggestion_state: ::core::option::Option<TextStyleSuggestionState>,
+}
+
+/// A suggestion state of a NamedStyle message.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct NamedStyleSuggestionState {
+    /// The named style type that this suggestion state corresponds to. This field is provided as a convenience for matching the NamedStyleSuggestionState with its corresponding NamedStyle. // TODO: enum values: ["NAMED_STYLE_TYPE_UNSPECIFIED", "NORMAL_TEXT", "TITLE", "SUBTITLE", "HEADING_1", "HEADING_2", "HEADING_3", "HEADING_4", "HEADING_5", "HEADING_6"]
+    #[serde(default, rename = "namedStyleType")]
+    pub named_style_type: ::core::option::Option<String>,
+    /// A mask that indicates which of the fields in paragraph style have been changed in this suggestion.
+    #[serde(default, rename = "paragraphStyleSuggestionState")]
+    pub paragraph_style_suggestion_state: ::core::option::Option<ParagraphStyleSuggestionState>,
+    /// A mask that indicates which of the fields in text style have been changed in this suggestion.
+    #[serde(default, rename = "textStyleSuggestionState")]
+    pub text_style_suggestion_state: ::core::option::Option<TextStyleSuggestionState>,
+}
+
+/// An embedded object in the document.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct EmbeddedObject {
+    /// The description of the embedded object. The title and description are both combined to display alt text.
     #[serde(default)]
-    pub tabs: ::core::option::Option<::std::vec::Vec<Tab>>,
-    /// The title of the document.
+    pub description: ::core::option::Option<String>,
+    /// The properties of an embedded drawing.
+    #[serde(default, rename = "embeddedDrawingProperties")]
+    pub embedded_drawing_properties: ::core::option::Option<serde_json::Value>,
+    /// The border of the embedded object.
+    #[serde(default, rename = "embeddedObjectBorder")]
+    pub embedded_object_border: ::core::option::Option<EmbeddedObjectBorder>,
+    /// The properties of an image.
+    #[serde(default, rename = "imageProperties")]
+    pub image_properties: ::core::option::Option<ImageProperties>,
+    /// A reference to the external linked source content. For example, it contains a reference to the source Google Sheets chart when the embedded object is a linked chart. If unset, then the embedded object is not linked.
+    #[serde(default, rename = "linkedContentReference")]
+    pub linked_content_reference: ::core::option::Option<LinkedContentReference>,
+    /// The bottom margin of the embedded object.
+    #[serde(default, rename = "marginBottom")]
+    pub margin_bottom: ::core::option::Option<Dimension>,
+    /// The left margin of the embedded object.
+    #[serde(default, rename = "marginLeft")]
+    pub margin_left: ::core::option::Option<Dimension>,
+    /// The right margin of the embedded object.
+    #[serde(default, rename = "marginRight")]
+    pub margin_right: ::core::option::Option<Dimension>,
+    /// The top margin of the embedded object.
+    #[serde(default, rename = "marginTop")]
+    pub margin_top: ::core::option::Option<Dimension>,
+    /// The visible size of the image after cropping.
+    #[serde(default)]
+    pub size: ::core::option::Option<Size>,
+    /// The title of the embedded object. The title and description are both combined to display alt text.
     #[serde(default)]
     pub title: ::core::option::Option<String>,
 }
 
-/// Represents document-level format settings.
+/// The positioning of a PositionedObject. The positioned object is positioned relative to the beginning of the Paragraph it''s tethered to.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DocumentFormat {
-    /// Whether the document has pages or is pageless. // TODO: enum values: ["DOCUMENT_MODE_UNSPECIFIED", "PAGES", "PAGELESS"]
-    #[serde(default, rename = "documentMode")]
-    pub document_mode: ::core::option::Option<String>,
+pub struct PositionedObjectPositioning {
+    /// The layout of this positioned object. // TODO: enum values: ["POSITIONED_OBJECT_LAYOUT_UNSPECIFIED", "WRAP_TEXT", "BREAK_LEFT", "BREAK_RIGHT", "BREAK_LEFT_RIGHT", "IN_FRONT_OF_TEXT", "BEHIND_TEXT"]
+    #[serde(default)]
+    pub layout: ::core::option::Option<String>,
+    /// The offset of the left edge of the positioned object relative to the beginning of the Paragraph it''s tethered to. The exact positioning of the object can depend on other content in the document and the document''s styling.
+    #[serde(default, rename = "leftOffset")]
+    pub left_offset: ::core::option::Option<Dimension>,
+    /// The offset of the top edge of the positioned object relative to the beginning of the Paragraph it''s tethered to. The exact positioning of the object can depend on other content in the document and the document''s styling.
+    #[serde(default, rename = "topOffset")]
+    pub top_offset: ::core::option::Option<Dimension>,
+}
+
+/// A mask that indicates which of the fields on the base EmbeddedObject have been changed in this suggestion. For any field set to true, there''s a new suggested value.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct EmbeddedObjectSuggestionState {
+    /// Indicates if there was a suggested change to description.
+    #[serde(default, rename = "descriptionSuggested")]
+    pub description_suggested: ::core::option::Option<bool>,
+    /// A mask that indicates which of the fields in embedded_drawing_properties have been changed in this suggestion.
+    #[serde(default, rename = "embeddedDrawingPropertiesSuggestionState")]
+    pub embedded_drawing_properties_suggestion_state: ::core::option::Option<serde_json::Value>,
+    /// A mask that indicates which of the fields in embedded_object_border have been changed in this suggestion.
+    #[serde(default, rename = "embeddedObjectBorderSuggestionState")]
+    pub embedded_object_border_suggestion_state:
+        ::core::option::Option<EmbeddedObjectBorderSuggestionState>,
+    /// A mask that indicates which of the fields in image_properties have been changed in this suggestion.
+    #[serde(default, rename = "imagePropertiesSuggestionState")]
+    pub image_properties_suggestion_state: ::core::option::Option<ImagePropertiesSuggestionState>,
+    /// A mask that indicates which of the fields in linked_content_reference have been changed in this suggestion.
+    #[serde(default, rename = "linkedContentReferenceSuggestionState")]
+    pub linked_content_reference_suggestion_state:
+        ::core::option::Option<LinkedContentReferenceSuggestionState>,
+    /// Indicates if there was a suggested change to margin_bottom.
+    #[serde(default, rename = "marginBottomSuggested")]
+    pub margin_bottom_suggested: ::core::option::Option<bool>,
+    /// Indicates if there was a suggested change to margin_left.
+    #[serde(default, rename = "marginLeftSuggested")]
+    pub margin_left_suggested: ::core::option::Option<bool>,
+    /// Indicates if there was a suggested change to margin_right.
+    #[serde(default, rename = "marginRightSuggested")]
+    pub margin_right_suggested: ::core::option::Option<bool>,
+    /// Indicates if there was a suggested change to margin_top.
+    #[serde(default, rename = "marginTopSuggested")]
+    pub margin_top_suggested: ::core::option::Option<bool>,
+    /// A mask that indicates which of the fields in size have been changed in this suggestion.
+    #[serde(default, rename = "sizeSuggestionState")]
+    pub size_suggestion_state: ::core::option::Option<SizeSuggestionState>,
+    /// Indicates if there was a suggested change to title.
+    #[serde(default, rename = "titleSuggested")]
+    pub title_suggested: ::core::option::Option<bool>,
+}
+
+/// A mask that indicates which of the fields on the base PositionedObjectPositioning have been changed in this suggestion. For any field set to true, there''s a new suggested value.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PositionedObjectPositioningSuggestionState {
+    /// Indicates if there was a suggested change to layout.
+    #[serde(default, rename = "layoutSuggested")]
+    pub layout_suggested: ::core::option::Option<bool>,
+    /// Indicates if there was a suggested change to left_offset.
+    #[serde(default, rename = "leftOffsetSuggested")]
+    pub left_offset_suggested: ::core::option::Option<bool>,
+    /// Indicates if there was a suggested change to top_offset.
+    #[serde(default, rename = "topOffsetSuggested")]
+    pub top_offset_suggested: ::core::option::Option<bool>,
+}
+
+/// Location at the end of a body, header, footer or footnote. The location is immediately before the last newline in the document segment.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct EndOfSegmentLocation {
+    /// The ID of the header, footer or footnote the location is in. An empty segment ID signifies the document''s body.
+    #[serde(default, rename = "segmentId")]
+    pub segment_id: ::core::option::Option<String>,
+    /// The tab that the location is in. When omitted, the request is applied to the first tab. In a document containing a single tab: - If provided, must match the singular tab''s ID. - If omitted, the request applies to the singular tab. In a document containing multiple tabs: - If provided, the request applies to the specified tab. - If omitted, the request applies to the first tab in the document.
+    #[serde(default, rename = "tabId")]
+    pub tab_id: ::core::option::Option<String>,
+}
+
+/// A criteria that matches a specific string of text in the document.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SubstringMatchCriteria {
+    /// Indicates whether the search should respect case: - True: the search is case sensitive. - False: the search is case insensitive.
+    #[serde(default, rename = "matchCase")]
+    pub match_case: ::core::option::Option<bool>,
+    /// Optional. True if the find value should be treated as a regular expression. Any backslashes in the pattern should be escaped. - True: the search text is treated as a regular expressions. - False: the search text is treated as a substring for matching.
+    #[serde(default, rename = "searchByRegex")]
+    pub search_by_regex: ::core::option::Option<bool>,
+    /// The text to search for in the document.
+    #[serde(default)]
+    pub text: ::core::option::Option<String>,
+}
+
+/// A criteria that specifies in which tabs a request executes.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TabsCriteria {
+    /// The list of tab IDs in which the request executes.
+    #[serde(default, rename = "tabIds")]
+    pub tab_ids: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// A table range represents a reference to a subset of a table. It''s important to note that the cells specified by a table range do not necessarily form a rectangle. For example, let''s say we have a 3 x 3 table where all the cells of the last row are merged together. The table looks like this: [ ] A table range with table cell location = (table_start_location, row = 0, column = 0), row span = 3 and column span = 2 specifies the following cells: x x [ x x x ]
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TableRange {
+    /// The column span of the table range.
+    #[serde(default, rename = "columnSpan")]
+    pub column_span: ::core::option::Option<i32>,
+    /// The row span of the table range.
+    #[serde(default, rename = "rowSpan")]
+    pub row_span: ::core::option::Option<i32>,
+    /// The cell location where the table range starts.
+    #[serde(default, rename = "tableCellLocation")]
+    pub table_cell_location: ::core::option::Option<TableCellLocation>,
+}
+
+/// Specifies a contiguous range of text.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Range {
+    /// The zero-based end index of this range, exclusive, in UTF-16 code units. In all current uses, an end index must be provided. This field is an Int32Value in order to accommodate future use cases with open-ended ranges.
+    #[serde(default, rename = "endIndex")]
+    pub end_index: ::core::option::Option<i32>,
+    /// The ID of the header, footer, or footnote that this range is contained in. An empty segment ID signifies the document''s body.
+    #[serde(default, rename = "segmentId")]
+    pub segment_id: ::core::option::Option<String>,
+    /// The zero-based start index of this range, in UTF-16 code units. In all current uses, a start index must be provided. This field is an Int32Value in order to accommodate future use cases with open-ended ranges.
+    #[serde(default, rename = "startIndex")]
+    pub start_index: ::core::option::Option<i32>,
+    /// The tab that contains this range. When omitted, the request applies to the first tab. In a document containing a single tab: - If provided, must match the singular tab''s ID. - If omitted, the request applies to the singular tab. In a document containing multiple tabs: - If provided, the request applies to the specified tab. - If omitted, the request applies to the first tab in the document.
+    #[serde(default, rename = "tabId")]
+    pub tab_id: ::core::option::Option<String>,
+}
+
+/// Properties of a tab.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TabProperties {
+    /// Optional. The emoji icon displayed with the tab. A valid emoji icon is represented by a non-empty Unicode string. Any set of characters that don''t represent a single emoji is invalid. If an emoji is invalid, a 400 bad request error is returned. If this value is unset or empty, the tab will display the default tab icon.
+    #[serde(default, rename = "iconEmoji")]
+    pub icon_emoji: ::core::option::Option<String>,
+    /// The zero-based index of the tab within the parent.
+    #[serde(default)]
+    pub index: ::core::option::Option<i32>,
+    /// Output only. The depth of the tab within the document. Root-level tabs start at 0.
+    #[serde(default, rename = "nestingLevel")]
+    pub nesting_level: ::core::option::Option<i32>,
+    /// Optional. The ID of the parent tab. Empty when the current tab is a root-level tab, which means it doesn''t have any parents.
+    #[serde(default, rename = "parentTabId")]
+    pub parent_tab_id: ::core::option::Option<String>,
+    /// The immutable ID of the tab.
+    #[serde(default, rename = "tabId")]
+    pub tab_id: ::core::option::Option<String>,
+    /// The user-visible name of the tab.
+    #[serde(default)]
+    pub title: ::core::option::Option<String>,
+}
+
+/// The document body. The body typically contains the full document contents except for headers, footers, and footnotes.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Body {
+    /// The contents of the body. The indexes for the body''s content begin at zero.
+    #[serde(default)]
+    pub content: ::core::option::Option<::std::vec::Vec<StructuralElement>>,
 }
 
 /// The style of the document.
@@ -582,145 +1638,118 @@ pub struct DocumentStyle {
     pub use_first_page_header_footer: ::core::option::Option<bool>,
 }
 
-/// A mask that indicates which of the fields on the base DocumentStyle have been changed in this suggestion. For any field set to true, there''s a new suggested value.
+/// The named styles. Paragraphs in the document can inherit their TextStyle and ParagraphStyle from these named styles.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DocumentStyleSuggestionState {
-    /// A mask that indicates which of the fields in background have been changed in this suggestion.
-    #[serde(default, rename = "backgroundSuggestionState")]
-    pub background_suggestion_state: ::core::option::Option<BackgroundSuggestionState>,
-    /// Indicates if there was a suggested change to default_footer_id.
-    #[serde(default, rename = "defaultFooterIdSuggested")]
-    pub default_footer_id_suggested: ::core::option::Option<bool>,
-    /// Indicates if there was a suggested change to default_header_id.
-    #[serde(default, rename = "defaultHeaderIdSuggested")]
-    pub default_header_id_suggested: ::core::option::Option<bool>,
-    /// Indicates if there was a suggested change to even_page_footer_id.
-    #[serde(default, rename = "evenPageFooterIdSuggested")]
-    pub even_page_footer_id_suggested: ::core::option::Option<bool>,
-    /// Indicates if there was a suggested change to even_page_header_id.
-    #[serde(default, rename = "evenPageHeaderIdSuggested")]
-    pub even_page_header_id_suggested: ::core::option::Option<bool>,
-    /// Indicates if there was a suggested change to first_page_footer_id.
-    #[serde(default, rename = "firstPageFooterIdSuggested")]
-    pub first_page_footer_id_suggested: ::core::option::Option<bool>,
-    /// Indicates if there was a suggested change to first_page_header_id.
-    #[serde(default, rename = "firstPageHeaderIdSuggested")]
-    pub first_page_header_id_suggested: ::core::option::Option<bool>,
-    /// Optional. Indicates if there was a suggested change to flip_page_orientation.
-    #[serde(default, rename = "flipPageOrientationSuggested")]
-    pub flip_page_orientation_suggested: ::core::option::Option<bool>,
-    /// Indicates if there was a suggested change to margin_bottom.
-    #[serde(default, rename = "marginBottomSuggested")]
-    pub margin_bottom_suggested: ::core::option::Option<bool>,
-    /// Indicates if there was a suggested change to margin_footer.
-    #[serde(default, rename = "marginFooterSuggested")]
-    pub margin_footer_suggested: ::core::option::Option<bool>,
-    /// Indicates if there was a suggested change to margin_header.
-    #[serde(default, rename = "marginHeaderSuggested")]
-    pub margin_header_suggested: ::core::option::Option<bool>,
-    /// Indicates if there was a suggested change to margin_left.
-    #[serde(default, rename = "marginLeftSuggested")]
-    pub margin_left_suggested: ::core::option::Option<bool>,
-    /// Indicates if there was a suggested change to margin_right.
-    #[serde(default, rename = "marginRightSuggested")]
-    pub margin_right_suggested: ::core::option::Option<bool>,
-    /// Indicates if there was a suggested change to margin_top.
-    #[serde(default, rename = "marginTopSuggested")]
-    pub margin_top_suggested: ::core::option::Option<bool>,
-    /// Indicates if there was a suggested change to page_number_start.
-    #[serde(default, rename = "pageNumberStartSuggested")]
-    pub page_number_start_suggested: ::core::option::Option<bool>,
-    /// A mask that indicates which of the fields in size have been changed in this suggestion.
-    #[serde(default, rename = "pageSizeSuggestionState")]
-    pub page_size_suggestion_state: ::core::option::Option<SizeSuggestionState>,
-    /// Indicates if there was a suggested change to use_custom_header_footer_margins.
-    #[serde(default, rename = "useCustomHeaderFooterMarginsSuggested")]
-    pub use_custom_header_footer_margins_suggested: ::core::option::Option<bool>,
-    /// Indicates if there was a suggested change to use_even_page_header_footer.
-    #[serde(default, rename = "useEvenPageHeaderFooterSuggested")]
-    pub use_even_page_header_footer_suggested: ::core::option::Option<bool>,
-    /// Indicates if there was a suggested change to use_first_page_header_footer.
-    #[serde(default, rename = "useFirstPageHeaderFooterSuggested")]
-    pub use_first_page_header_footer_suggested: ::core::option::Option<bool>,
+pub struct NamedStyles {
+    /// The named styles. There''s an entry for each of the possible named style types.
+    #[serde(default)]
+    pub styles: ::core::option::Option<::std::vec::Vec<NamedStyle>>,
 }
 
-/// A tab with document contents.
+/// A mask that indicates which of the fields on the base ParagraphStyle have been changed in this suggestion. For any field set to true, there''s a new suggested value.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DocumentTab {
-    /// The main body of the document tab.
-    #[serde(default)]
-    pub body: ::core::option::Option<Body>,
-    /// The style of the document tab.
-    #[serde(default, rename = "documentStyle")]
-    pub document_style: ::core::option::Option<DocumentStyle>,
-    /// The footers in the document tab, keyed by footer ID.
-    #[serde(default)]
-    pub footers: ::core::option::Option<serde_json::Value>,
-    /// The footnotes in the document tab, keyed by footnote ID.
-    #[serde(default)]
-    pub footnotes: ::core::option::Option<serde_json::Value>,
-    /// The headers in the document tab, keyed by header ID.
-    #[serde(default)]
-    pub headers: ::core::option::Option<serde_json::Value>,
-    /// The inline objects in the document tab, keyed by object ID.
-    #[serde(default, rename = "inlineObjects")]
-    pub inline_objects: ::core::option::Option<serde_json::Value>,
-    /// The lists in the document tab, keyed by list ID.
-    #[serde(default)]
-    pub lists: ::core::option::Option<serde_json::Value>,
-    /// The named ranges in the document tab, keyed by name.
-    #[serde(default, rename = "namedRanges")]
-    pub named_ranges: ::core::option::Option<serde_json::Value>,
-    /// The named styles of the document tab.
-    #[serde(default, rename = "namedStyles")]
-    pub named_styles: ::core::option::Option<NamedStyles>,
-    /// The positioned objects in the document tab, keyed by object ID.
-    #[serde(default, rename = "positionedObjects")]
-    pub positioned_objects: ::core::option::Option<serde_json::Value>,
-    /// The suggested changes to the style of the document tab, keyed by suggestion ID.
-    #[serde(default, rename = "suggestedDocumentStyleChanges")]
-    pub suggested_document_style_changes: ::core::option::Option<serde_json::Value>,
-    /// The suggested changes to the named styles of the document tab, keyed by suggestion ID.
-    #[serde(default, rename = "suggestedNamedStylesChanges")]
-    pub suggested_named_styles_changes: ::core::option::Option<serde_json::Value>,
+pub struct ParagraphStyleSuggestionState {
+    /// Indicates if there was a suggested change to alignment.
+    #[serde(default, rename = "alignmentSuggested")]
+    pub alignment_suggested: ::core::option::Option<bool>,
+    /// Indicates if there was a suggested change to avoid_widow_and_orphan.
+    #[serde(default, rename = "avoidWidowAndOrphanSuggested")]
+    pub avoid_widow_and_orphan_suggested: ::core::option::Option<bool>,
+    /// Indicates if there was a suggested change to border_between.
+    #[serde(default, rename = "borderBetweenSuggested")]
+    pub border_between_suggested: ::core::option::Option<bool>,
+    /// Indicates if there was a suggested change to border_bottom.
+    #[serde(default, rename = "borderBottomSuggested")]
+    pub border_bottom_suggested: ::core::option::Option<bool>,
+    /// Indicates if there was a suggested change to border_left.
+    #[serde(default, rename = "borderLeftSuggested")]
+    pub border_left_suggested: ::core::option::Option<bool>,
+    /// Indicates if there was a suggested change to border_right.
+    #[serde(default, rename = "borderRightSuggested")]
+    pub border_right_suggested: ::core::option::Option<bool>,
+    /// Indicates if there was a suggested change to border_top.
+    #[serde(default, rename = "borderTopSuggested")]
+    pub border_top_suggested: ::core::option::Option<bool>,
+    /// Indicates if there was a suggested change to direction.
+    #[serde(default, rename = "directionSuggested")]
+    pub direction_suggested: ::core::option::Option<bool>,
+    /// Indicates if there was a suggested change to heading_id.
+    #[serde(default, rename = "headingIdSuggested")]
+    pub heading_id_suggested: ::core::option::Option<bool>,
+    /// Indicates if there was a suggested change to indent_end.
+    #[serde(default, rename = "indentEndSuggested")]
+    pub indent_end_suggested: ::core::option::Option<bool>,
+    /// Indicates if there was a suggested change to indent_first_line.
+    #[serde(default, rename = "indentFirstLineSuggested")]
+    pub indent_first_line_suggested: ::core::option::Option<bool>,
+    /// Indicates if there was a suggested change to indent_start.
+    #[serde(default, rename = "indentStartSuggested")]
+    pub indent_start_suggested: ::core::option::Option<bool>,
+    /// Indicates if there was a suggested change to keep_lines_together.
+    #[serde(default, rename = "keepLinesTogetherSuggested")]
+    pub keep_lines_together_suggested: ::core::option::Option<bool>,
+    /// Indicates if there was a suggested change to keep_with_next.
+    #[serde(default, rename = "keepWithNextSuggested")]
+    pub keep_with_next_suggested: ::core::option::Option<bool>,
+    /// Indicates if there was a suggested change to line_spacing.
+    #[serde(default, rename = "lineSpacingSuggested")]
+    pub line_spacing_suggested: ::core::option::Option<bool>,
+    /// Indicates if there was a suggested change to named_style_type.
+    #[serde(default, rename = "namedStyleTypeSuggested")]
+    pub named_style_type_suggested: ::core::option::Option<bool>,
+    /// Indicates if there was a suggested change to page_break_before.
+    #[serde(default, rename = "pageBreakBeforeSuggested")]
+    pub page_break_before_suggested: ::core::option::Option<bool>,
+    /// A mask that indicates which of the fields in shading have been changed in this suggestion.
+    #[serde(default, rename = "shadingSuggestionState")]
+    pub shading_suggestion_state: ::core::option::Option<ShadingSuggestionState>,
+    /// Indicates if there was a suggested change to space_above.
+    #[serde(default, rename = "spaceAboveSuggested")]
+    pub space_above_suggested: ::core::option::Option<bool>,
+    /// Indicates if there was a suggested change to space_below.
+    #[serde(default, rename = "spaceBelowSuggested")]
+    pub space_below_suggested: ::core::option::Option<bool>,
+    /// Indicates if there was a suggested change to spacing_mode.
+    #[serde(default, rename = "spacingModeSuggested")]
+    pub spacing_mode_suggested: ::core::option::Option<bool>,
 }
 
-/// An embedded object in the document.
+/// A mask that indicates which of the fields on the base TextStyle have been changed in this suggestion. For any field set to true, there''s a new suggested value.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct EmbeddedObject {
-    /// The description of the embedded object. The title and description are both combined to display alt text.
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// The properties of an embedded drawing.
-    #[serde(default, rename = "embeddedDrawingProperties")]
-    pub embedded_drawing_properties: ::core::option::Option<serde_json::Value>,
-    /// The border of the embedded object.
-    #[serde(default, rename = "embeddedObjectBorder")]
-    pub embedded_object_border: ::core::option::Option<EmbeddedObjectBorder>,
-    /// The properties of an image.
-    #[serde(default, rename = "imageProperties")]
-    pub image_properties: ::core::option::Option<ImageProperties>,
-    /// A reference to the external linked source content. For example, it contains a reference to the source Google Sheets chart when the embedded object is a linked chart. If unset, then the embedded object is not linked.
-    #[serde(default, rename = "linkedContentReference")]
-    pub linked_content_reference: ::core::option::Option<LinkedContentReference>,
-    /// The bottom margin of the embedded object.
-    #[serde(default, rename = "marginBottom")]
-    pub margin_bottom: ::core::option::Option<Dimension>,
-    /// The left margin of the embedded object.
-    #[serde(default, rename = "marginLeft")]
-    pub margin_left: ::core::option::Option<Dimension>,
-    /// The right margin of the embedded object.
-    #[serde(default, rename = "marginRight")]
-    pub margin_right: ::core::option::Option<Dimension>,
-    /// The top margin of the embedded object.
-    #[serde(default, rename = "marginTop")]
-    pub margin_top: ::core::option::Option<Dimension>,
-    /// The visible size of the image after cropping.
-    #[serde(default)]
-    pub size: ::core::option::Option<Size>,
-    /// The title of the embedded object. The title and description are both combined to display alt text.
-    #[serde(default)]
-    pub title: ::core::option::Option<String>,
+pub struct TextStyleSuggestionState {
+    /// Indicates if there was a suggested change to background_color.
+    #[serde(default, rename = "backgroundColorSuggested")]
+    pub background_color_suggested: ::core::option::Option<bool>,
+    /// Indicates if there was a suggested change to baseline_offset.
+    #[serde(default, rename = "baselineOffsetSuggested")]
+    pub baseline_offset_suggested: ::core::option::Option<bool>,
+    /// Indicates if there was a suggested change to bold.
+    #[serde(default, rename = "boldSuggested")]
+    pub bold_suggested: ::core::option::Option<bool>,
+    /// Indicates if there was a suggested change to font_size.
+    #[serde(default, rename = "fontSizeSuggested")]
+    pub font_size_suggested: ::core::option::Option<bool>,
+    /// Indicates if there was a suggested change to foreground_color.
+    #[serde(default, rename = "foregroundColorSuggested")]
+    pub foreground_color_suggested: ::core::option::Option<bool>,
+    /// Indicates if there was a suggested change to italic.
+    #[serde(default, rename = "italicSuggested")]
+    pub italic_suggested: ::core::option::Option<bool>,
+    /// Indicates if there was a suggested change to link.
+    #[serde(default, rename = "linkSuggested")]
+    pub link_suggested: ::core::option::Option<bool>,
+    /// Indicates if there was a suggested change to small_caps.
+    #[serde(default, rename = "smallCapsSuggested")]
+    pub small_caps_suggested: ::core::option::Option<bool>,
+    /// Indicates if there was a suggested change to strikethrough.
+    #[serde(default, rename = "strikethroughSuggested")]
+    pub strikethrough_suggested: ::core::option::Option<bool>,
+    /// Indicates if there was a suggested change to underline.
+    #[serde(default, rename = "underlineSuggested")]
+    pub underline_suggested: ::core::option::Option<bool>,
+    /// Indicates if there was a suggested change to weighted_font_family.
+    #[serde(default, rename = "weightedFontFamilySuggested")]
+    pub weighted_font_family_suggested: ::core::option::Option<bool>,
 }
 
 /// A border around an EmbeddedObject.
@@ -740,6 +1769,40 @@ pub struct EmbeddedObjectBorder {
     pub width: ::core::option::Option<Dimension>,
 }
 
+/// The properties of an image.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ImageProperties {
+    /// The clockwise rotation angle of the image, in radians.
+    #[serde(default)]
+    pub angle: ::core::option::Option<f32>,
+    /// The brightness effect of the image. The value should be in the interval [-1.0, 1.0], where 0 means no effect.
+    #[serde(default)]
+    pub brightness: ::core::option::Option<f32>,
+    /// A URI to the image with a default lifetime of 30 minutes. This URI is tagged with the account of the requester. Anyone with the URI effectively accesses the image as the original requester. Access to the image may be lost if the document''s sharing settings change.
+    #[serde(default, rename = "contentUri")]
+    pub content_uri: ::core::option::Option<String>,
+    /// The contrast effect of the image. The value should be in the interval [-1.0, 1.0], where 0 means no effect.
+    #[serde(default)]
+    pub contrast: ::core::option::Option<f32>,
+    /// The crop properties of the image.
+    #[serde(default, rename = "cropProperties")]
+    pub crop_properties: ::core::option::Option<CropProperties>,
+    /// The source URI is the URI used to insert the image. The source URI can be empty.
+    #[serde(default, rename = "sourceUri")]
+    pub source_uri: ::core::option::Option<String>,
+    /// The transparency effect of the image. The value should be in the interval [0.0, 1.0], where 0 means no effect and 1 means transparent.
+    #[serde(default)]
+    pub transparency: ::core::option::Option<f32>,
+}
+
+/// A reference to the external linked source content.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LinkedContentReference {
+    /// A reference to the linked chart.
+    #[serde(default, rename = "sheetsChartReference")]
+    pub sheets_chart_reference: ::core::option::Option<SheetsChartReference>,
+}
+
 /// A mask that indicates which of the fields on the base EmbeddedObjectBorder have been changed in this suggestion. For any field set to true, there''s a new suggested value.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct EmbeddedObjectBorderSuggestionState {
@@ -757,55 +1820,319 @@ pub struct EmbeddedObjectBorderSuggestionState {
     pub width_suggested: ::core::option::Option<bool>,
 }
 
-/// A mask that indicates which of the fields on the base EmbeddedObject have been changed in this suggestion. For any field set to true, there''s a new suggested value.
+/// A mask that indicates which of the fields on the base ImageProperties have been changed in this suggestion. For any field set to true, there''s a new suggested value.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct EmbeddedObjectSuggestionState {
-    /// Indicates if there was a suggested change to description.
-    #[serde(default, rename = "descriptionSuggested")]
-    pub description_suggested: ::core::option::Option<bool>,
-    /// A mask that indicates which of the fields in embedded_drawing_properties have been changed in this suggestion.
-    #[serde(default, rename = "embeddedDrawingPropertiesSuggestionState")]
-    pub embedded_drawing_properties_suggestion_state: ::core::option::Option<serde_json::Value>,
-    /// A mask that indicates which of the fields in embedded_object_border have been changed in this suggestion.
-    #[serde(default, rename = "embeddedObjectBorderSuggestionState")]
-    pub embedded_object_border_suggestion_state:
-        ::core::option::Option<EmbeddedObjectBorderSuggestionState>,
-    /// A mask that indicates which of the fields in image_properties have been changed in this suggestion.
-    #[serde(default, rename = "imagePropertiesSuggestionState")]
-    pub image_properties_suggestion_state: ::core::option::Option<ImagePropertiesSuggestionState>,
-    /// A mask that indicates which of the fields in linked_content_reference have been changed in this suggestion.
-    #[serde(default, rename = "linkedContentReferenceSuggestionState")]
-    pub linked_content_reference_suggestion_state:
-        ::core::option::Option<LinkedContentReferenceSuggestionState>,
-    /// Indicates if there was a suggested change to margin_bottom.
-    #[serde(default, rename = "marginBottomSuggested")]
-    pub margin_bottom_suggested: ::core::option::Option<bool>,
-    /// Indicates if there was a suggested change to margin_left.
-    #[serde(default, rename = "marginLeftSuggested")]
-    pub margin_left_suggested: ::core::option::Option<bool>,
-    /// Indicates if there was a suggested change to margin_right.
-    #[serde(default, rename = "marginRightSuggested")]
-    pub margin_right_suggested: ::core::option::Option<bool>,
-    /// Indicates if there was a suggested change to margin_top.
-    #[serde(default, rename = "marginTopSuggested")]
-    pub margin_top_suggested: ::core::option::Option<bool>,
-    /// A mask that indicates which of the fields in size have been changed in this suggestion.
-    #[serde(default, rename = "sizeSuggestionState")]
-    pub size_suggestion_state: ::core::option::Option<SizeSuggestionState>,
-    /// Indicates if there was a suggested change to title.
-    #[serde(default, rename = "titleSuggested")]
-    pub title_suggested: ::core::option::Option<bool>,
+pub struct ImagePropertiesSuggestionState {
+    /// Indicates if there was a suggested change to angle.
+    #[serde(default, rename = "angleSuggested")]
+    pub angle_suggested: ::core::option::Option<bool>,
+    /// Indicates if there was a suggested change to brightness.
+    #[serde(default, rename = "brightnessSuggested")]
+    pub brightness_suggested: ::core::option::Option<bool>,
+    /// Indicates if there was a suggested change to content_uri.
+    #[serde(default, rename = "contentUriSuggested")]
+    pub content_uri_suggested: ::core::option::Option<bool>,
+    /// Indicates if there was a suggested change to contrast.
+    #[serde(default, rename = "contrastSuggested")]
+    pub contrast_suggested: ::core::option::Option<bool>,
+    /// A mask that indicates which of the fields in crop_properties have been changed in this suggestion.
+    #[serde(default, rename = "cropPropertiesSuggestionState")]
+    pub crop_properties_suggestion_state: ::core::option::Option<CropPropertiesSuggestionState>,
+    /// Indicates if there was a suggested change to source_uri.
+    #[serde(default, rename = "sourceUriSuggested")]
+    pub source_uri_suggested: ::core::option::Option<bool>,
+    /// Indicates if there was a suggested change to transparency.
+    #[serde(default, rename = "transparencySuggested")]
+    pub transparency_suggested: ::core::option::Option<bool>,
 }
 
-/// Location at the end of a body, header, footer or footnote. The location is immediately before the last newline in the document segment.
+/// A mask that indicates which of the fields on the base LinkedContentReference have been changed in this suggestion. For any field set to true, there''s a new suggested value.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct EndOfSegmentLocation {
+pub struct LinkedContentReferenceSuggestionState {
+    /// A mask that indicates which of the fields in sheets_chart_reference have been changed in this suggestion.
+    #[serde(default, rename = "sheetsChartReferenceSuggestionState")]
+    pub sheets_chart_reference_suggestion_state:
+        ::core::option::Option<SheetsChartReferenceSuggestionState>,
+}
+
+/// A mask that indicates which of the fields on the base Size have been changed in this suggestion. For any field set to true, the Size has a new suggested value.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SizeSuggestionState {
+    /// Indicates if there was a suggested change to height.
+    #[serde(default, rename = "heightSuggested")]
+    pub height_suggested: ::core::option::Option<bool>,
+    /// Indicates if there was a suggested change to width.
+    #[serde(default, rename = "widthSuggested")]
+    pub width_suggested: ::core::option::Option<bool>,
+}
+
+/// Location of a single cell within a table.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TableCellLocation {
+    /// The zero-based column index. For example, the second column in the table has a column index of 1.
+    #[serde(default, rename = "columnIndex")]
+    pub column_index: ::core::option::Option<i32>,
+    /// The zero-based row index. For example, the second row in the table has a row index of 1.
+    #[serde(default, rename = "rowIndex")]
+    pub row_index: ::core::option::Option<i32>,
+    /// The location where the table starts in the document.
+    #[serde(default, rename = "tableStartLocation")]
+    pub table_start_location: ::core::option::Option<Location>,
+}
+
+/// Represents the background of a document.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Background {
+    /// The background color.
+    #[serde(default)]
+    pub color: ::core::option::Option<OptionalColor>,
+}
+
+/// Represents document-level format settings.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DocumentFormat {
+    /// Whether the document has pages or is pageless. // TODO: enum values: ["DOCUMENT_MODE_UNSPECIFIED", "PAGES", "PAGELESS"]
+    #[serde(default, rename = "documentMode")]
+    pub document_mode: ::core::option::Option<String>,
+}
+
+/// A width and height.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Size {
+    /// The height of the object.
+    #[serde(default)]
+    pub height: ::core::option::Option<Dimension>,
+    /// The width of the object.
+    #[serde(default)]
+    pub width: ::core::option::Option<Dimension>,
+}
+
+/// A named style. Paragraphs in the document can inherit their TextStyle and ParagraphStyle from this named style when they have the same named style type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct NamedStyle {
+    /// The type of this named style. // TODO: enum values: ["NAMED_STYLE_TYPE_UNSPECIFIED", "NORMAL_TEXT", "TITLE", "SUBTITLE", "HEADING_1", "HEADING_2", "HEADING_3", "HEADING_4", "HEADING_5", "HEADING_6"]
+    #[serde(default, rename = "namedStyleType")]
+    pub named_style_type: ::core::option::Option<String>,
+    /// The paragraph style of this named style.
+    #[serde(default, rename = "paragraphStyle")]
+    pub paragraph_style: ::core::option::Option<ParagraphStyle>,
+    /// The text style of this named style.
+    #[serde(default, rename = "textStyle")]
+    pub text_style: ::core::option::Option<TextStyle>,
+}
+
+/// A mask that indicates which of the fields on the base Shading have been changed in this suggested change. For any field set to true, there''s a new suggested value.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ShadingSuggestionState {
+    /// Indicates if there was a suggested change to the Shading.
+    #[serde(default, rename = "backgroundColorSuggested")]
+    pub background_color_suggested: ::core::option::Option<bool>,
+}
+
+/// The crop properties of an image. The crop rectangle is represented using fractional offsets from the original content''s 4 edges. - If the offset is in the interval (0, 1), the corresponding edge of crop rectangle is positioned inside of the image''s original bounding rectangle. - If the offset is negative or greater than 1, the corresponding edge of crop rectangle is positioned outside of the image''s original bounding rectangle. - If all offsets and rotation angles are 0, the image is not cropped.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CropProperties {
+    /// The clockwise rotation angle of the crop rectangle around its center, in radians. Rotation is applied after the offsets.
+    #[serde(default)]
+    pub angle: ::core::option::Option<f32>,
+    /// The offset specifies how far inwards the bottom edge of the crop rectangle is from the bottom edge of the original content as a fraction of the original content''s height.
+    #[serde(default, rename = "offsetBottom")]
+    pub offset_bottom: ::core::option::Option<f32>,
+    /// The offset specifies how far inwards the left edge of the crop rectangle is from the left edge of the original content as a fraction of the original content''s width.
+    #[serde(default, rename = "offsetLeft")]
+    pub offset_left: ::core::option::Option<f32>,
+    /// The offset specifies how far inwards the right edge of the crop rectangle is from the right edge of the original content as a fraction of the original content''s width.
+    #[serde(default, rename = "offsetRight")]
+    pub offset_right: ::core::option::Option<f32>,
+    /// The offset specifies how far inwards the top edge of the crop rectangle is from the top edge of the original content as a fraction of the original content''s height.
+    #[serde(default, rename = "offsetTop")]
+    pub offset_top: ::core::option::Option<f32>,
+}
+
+/// A reference to a linked chart embedded from Google Sheets.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SheetsChartReference {
+    /// The ID of the specific chart in the Google Sheets spreadsheet that''s embedded.
+    #[serde(default, rename = "chartId")]
+    pub chart_id: ::core::option::Option<i32>,
+    /// The ID of the Google Sheets spreadsheet that contains the source chart.
+    #[serde(default, rename = "spreadsheetId")]
+    pub spreadsheet_id: ::core::option::Option<String>,
+}
+
+/// A mask that indicates which of the fields on the base CropProperties have been changed in this suggestion. For any field set to true, there''s a new suggested value.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CropPropertiesSuggestionState {
+    /// Indicates if there was a suggested change to angle.
+    #[serde(default, rename = "angleSuggested")]
+    pub angle_suggested: ::core::option::Option<bool>,
+    /// Indicates if there was a suggested change to offset_bottom.
+    #[serde(default, rename = "offsetBottomSuggested")]
+    pub offset_bottom_suggested: ::core::option::Option<bool>,
+    /// Indicates if there was a suggested change to offset_left.
+    #[serde(default, rename = "offsetLeftSuggested")]
+    pub offset_left_suggested: ::core::option::Option<bool>,
+    /// Indicates if there was a suggested change to offset_right.
+    #[serde(default, rename = "offsetRightSuggested")]
+    pub offset_right_suggested: ::core::option::Option<bool>,
+    /// Indicates if there was a suggested change to offset_top.
+    #[serde(default, rename = "offsetTopSuggested")]
+    pub offset_top_suggested: ::core::option::Option<bool>,
+}
+
+/// A mask that indicates which of the fields on the base SheetsChartReference have been changed in this suggestion. For any field set to true, there''s a new suggested value.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SheetsChartReferenceSuggestionState {
+    /// Indicates if there was a suggested change to chart_id.
+    #[serde(default, rename = "chartIdSuggested")]
+    pub chart_id_suggested: ::core::option::Option<bool>,
+    /// Indicates if there was a suggested change to spreadsheet_id.
+    #[serde(default, rename = "spreadsheetIdSuggested")]
+    pub spreadsheet_id_suggested: ::core::option::Option<bool>,
+}
+
+/// A particular location in the document.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Location {
+    /// The zero-based index, in UTF-16 code units. The index is relative to the beginning of the segment specified by segment_id.
+    #[serde(default)]
+    pub index: ::core::option::Option<i32>,
     /// The ID of the header, footer or footnote the location is in. An empty segment ID signifies the document''s body.
     #[serde(default, rename = "segmentId")]
     pub segment_id: ::core::option::Option<String>,
     /// The tab that the location is in. When omitted, the request is applied to the first tab. In a document containing a single tab: - If provided, must match the singular tab''s ID. - If omitted, the request applies to the singular tab. In a document containing multiple tabs: - If provided, the request applies to the specified tab. - If omitted, the request applies to the first tab in the document.
     #[serde(default, rename = "tabId")]
     pub tab_id: ::core::option::Option<String>,
+}
+
+/// A ParagraphElement representing a spot in the text that''s dynamically replaced with content that can change over time, like a page number.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AutoText {
+    /// The suggested deletion IDs. If empty, then there are no suggested deletions of this content.
+    #[serde(default, rename = "suggestedDeletionIds")]
+    pub suggested_deletion_ids: ::core::option::Option<::std::vec::Vec<String>>,
+    /// The suggested insertion IDs. An AutoText may have multiple insertion IDs if it''s a nested suggested change. If empty, then this is not a suggested insertion.
+    #[serde(default, rename = "suggestedInsertionIds")]
+    pub suggested_insertion_ids: ::core::option::Option<::std::vec::Vec<String>>,
+    /// The suggested text style changes to this AutoText, keyed by suggestion ID.
+    #[serde(default, rename = "suggestedTextStyleChanges")]
+    pub suggested_text_style_changes: ::core::option::Option<serde_json::Value>,
+    /// The text style of this AutoText.
+    #[serde(default, rename = "textStyle")]
+    pub text_style: ::core::option::Option<TextStyle>,
+    /// The type of this auto text. // TODO: enum values: ["TYPE_UNSPECIFIED", "PAGE_NUMBER", "PAGE_COUNT"]
+    #[serde(default, rename = "type")]
+    pub type_: ::core::option::Option<String>,
+}
+
+/// A reference to a bookmark in this document.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BookmarkLink {
+    /// The ID of a bookmark in this document.
+    #[serde(default)]
+    pub id: ::core::option::Option<String>,
+    /// The ID of the tab containing this bookmark.
+    #[serde(default, rename = "tabId")]
+    pub tab_id: ::core::option::Option<String>,
+}
+
+/// Describes the bullet of a paragraph.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Bullet {
+    /// The ID of the list this paragraph belongs to.
+    #[serde(default, rename = "listId")]
+    pub list_id: ::core::option::Option<String>,
+    /// The nesting level of this paragraph in the list.
+    #[serde(default, rename = "nestingLevel")]
+    pub nesting_level: ::core::option::Option<i32>,
+    /// The paragraph-specific text style applied to this bullet.
+    #[serde(default, rename = "textStyle")]
+    pub text_style: ::core::option::Option<TextStyle>,
+}
+
+/// A solid color.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Color {
+    /// The RGB color value.
+    #[serde(default, rename = "rgbColor")]
+    pub rgb_color: ::core::option::Option<RgbColor>,
+}
+
+/// A ParagraphElement representing a column break. A column break makes the subsequent text start at the top of the next column.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ColumnBreak {
+    /// The suggested deletion IDs. If empty, then there are no suggested deletions of this content.
+    #[serde(default, rename = "suggestedDeletionIds")]
+    pub suggested_deletion_ids: ::core::option::Option<::std::vec::Vec<String>>,
+    /// The suggested insertion IDs. A ColumnBreak may have multiple insertion IDs if it''s a nested suggested change. If empty, then this is not a suggested insertion.
+    #[serde(default, rename = "suggestedInsertionIds")]
+    pub suggested_insertion_ids: ::core::option::Option<::std::vec::Vec<String>>,
+    /// The suggested text style changes to this ColumnBreak, keyed by suggestion ID.
+    #[serde(default, rename = "suggestedTextStyleChanges")]
+    pub suggested_text_style_changes: ::core::option::Option<serde_json::Value>,
+    /// The text style of this ColumnBreak. Similar to text content, like text runs and footnote references, the text style of a column break can affect content layout as well as the styling of text inserted next to it.
+    #[serde(default, rename = "textStyle")]
+    pub text_style: ::core::option::Option<TextStyle>,
+}
+
+/// A date instance mentioned in a document.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DateElement {
+    /// The properties of this DateElement.
+    #[serde(default, rename = "dateElementProperties")]
+    pub date_element_properties: ::core::option::Option<DateElementProperties>,
+    /// Output only. The unique ID of this date.
+    #[serde(default, rename = "dateId")]
+    pub date_id: ::core::option::Option<String>,
+    /// The suggested changes to the date element properties, keyed by suggestion ID.
+    #[serde(default, rename = "suggestedDateElementPropertiesChanges")]
+    pub suggested_date_element_properties_changes: ::core::option::Option<serde_json::Value>,
+    /// IDs for suggestions that remove this date from the document. A DateElement might have multiple deletion IDs if, for example, multiple users suggest deleting it. If empty, then this date isn''t suggested for deletion.
+    #[serde(default, rename = "suggestedDeletionIds")]
+    pub suggested_deletion_ids: ::core::option::Option<::std::vec::Vec<String>>,
+    /// IDs for suggestions that insert this date into the document. A DateElement might have multiple insertion IDs if it''s a nested suggested change (a suggestion within a suggestion made by a different user, for example). If empty, then this date isn''t a suggested insertion.
+    #[serde(default, rename = "suggestedInsertionIds")]
+    pub suggested_insertion_ids: ::core::option::Option<::std::vec::Vec<String>>,
+    /// The suggested text style changes to this DateElement, keyed by suggestion ID.
+    #[serde(default, rename = "suggestedTextStyleChanges")]
+    pub suggested_text_style_changes: ::core::option::Option<serde_json::Value>,
+    /// The text style of this DateElement.
+    #[serde(default, rename = "textStyle")]
+    pub text_style: ::core::option::Option<TextStyle>,
+}
+
+/// Properties of a DateElement.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DateElementProperties {
+    /// Determines how the date part of the DateElement will be displayed in the document. If unset, the default value is DATE_FORMAT_MONTH_DAY_YEAR_ABBREVIATED, indicating the DateElement will be formatted as MMM d, y in en, or locale specific equivalent. // TODO: enum values: ["DATE_FORMAT_UNSPECIFIED", "DATE_FORMAT_CUSTOM", "DATE_FORMAT_MONTH_DAY_ABBREVIATED", "DATE_FORMAT_MONTH_DAY_FULL", "DATE_FORMAT_MONTH_DAY_YEAR_ABBREVIATED", "DATE_FORMAT_ISO8601"]
+    #[serde(default, rename = "dateFormat")]
+    pub date_format: ::core::option::Option<String>,
+    /// Output only. Indicates how the DateElement is displayed in the document.
+    #[serde(default, rename = "displayText")]
+    pub display_text: ::core::option::Option<String>,
+    /// The language code of the DateElement. For example, en. If unset, the default locale is en. Limited to the following locales: af, am, ar, as, az, be, bg, bn, ca, cs, da, de, el, en, en-CA, en-GB, es, es-419, et, eu, fa, fi, fil, fr, fr-CA, gl, gu, hi, hr, hu, hy, id, is, it, iw, ja, ka, kk, km, kn, ko, lo, lt, lv, mk, ml, mn, mr, ms, ne, nl, no, or, pa, pl, pt-BR, pt-PT, ro, ru, si, sk, sl, sq, sr, sv, sw, ta, te, th, tr, uk, ur, uz, vi, zh-CN, zh-HK, zh-TW, zu, cy, my.
+    #[serde(default)]
+    pub locale: ::core::option::Option<String>,
+    /// Determines how the time part of the DateElement will be displayed in the document. If unset, the default value is TIME_FORMAT_DISABLED, indicating no time should be shown. // TODO: enum values: ["TIME_FORMAT_UNSPECIFIED", "TIME_FORMAT_DISABLED", "TIME_FORMAT_HOUR_MINUTE", "TIME_FORMAT_HOUR_MINUTE_TIMEZONE"]
+    #[serde(default, rename = "timeFormat")]
+    pub time_format: ::core::option::Option<String>,
+    /// The time zone of the DateElement, as defined by the Unicode Common Locale Data Repository (CLDR) project. For example, America/New York. If unset, the default time zone is etc/UTC.
+    #[serde(default, rename = "timeZoneId")]
+    pub time_zone_id: ::core::option::Option<String>,
+    /// The point in time to represent, in seconds and nanoseconds since Unix epoch: January 1, 1970 at midnight UTC. Timestamp is expected to be in UTC. If time_zone_id is set, the timestamp is adjusted according to the time zone. For example, a timestamp of 18000 with a date format of DATE_FORMAT_ISO8601 and time format of TIME_FORMAT_HOUR_MINUTE would be displayed as 1970-01-01 5:00 AM. A timestamp of 18000 with date format of DATE_FORMAT_8SO8601, time format of TIME_FORMAT_HOUR_MINUTE, and time zone set to America/New_York will instead be 1970-01-01 12:00 AM.
+    #[serde(default)]
+    pub timestamp: ::core::option::Option<String>,
+}
+
+/// A magnitude in a single direction in the specified units.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Dimension {
+    /// The magnitude.
+    #[serde(default)]
+    pub magnitude: ::core::option::Option<f64>,
+    /// The units for magnitude. // TODO: enum values: ["UNIT_UNSPECIFIED", "PT"]
+    #[serde(default)]
+    pub unit: ::core::option::Option<String>,
 }
 
 /// A ParagraphElement representing an equation.
@@ -817,28 +2144,6 @@ pub struct Equation {
     /// The suggested insertion IDs. An Equation may have multiple insertion IDs if it''s a nested suggested change. If empty, then this is not a suggested insertion.
     #[serde(default, rename = "suggestedInsertionIds")]
     pub suggested_insertion_ids: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// A document footer.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Footer {
-    /// The contents of the footer. The indexes for a footer''s content begin at zero.
-    #[serde(default)]
-    pub content: ::core::option::Option<::std::vec::Vec<StructuralElement>>,
-    /// The ID of the footer.
-    #[serde(default, rename = "footerId")]
-    pub footer_id: ::core::option::Option<String>,
-}
-
-/// A document footnote.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Footnote {
-    /// The contents of the footnote. The indexes for a footnote''s content begin at zero.
-    #[serde(default)]
-    pub content: ::core::option::Option<::std::vec::Vec<StructuralElement>>,
-    /// The ID of the footnote.
-    #[serde(default, rename = "footnoteId")]
-    pub footnote_id: ::core::option::Option<String>,
 }
 
 /// A ParagraphElement representing a footnote reference. A footnote reference is the inline content rendered with a number and is used to identify the footnote.
@@ -862,17 +2167,6 @@ pub struct FootnoteReference {
     /// The text style of this FootnoteReference.
     #[serde(default, rename = "textStyle")]
     pub text_style: ::core::option::Option<TextStyle>,
-}
-
-/// A document header.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Header {
-    /// The contents of the header. The indexes for a header''s content begin at zero.
-    #[serde(default)]
-    pub content: ::core::option::Option<::std::vec::Vec<StructuralElement>>,
-    /// The ID of the header.
-    #[serde(default, rename = "headerId")]
-    pub header_id: ::core::option::Option<String>,
 }
 
 /// A reference to a heading in this document.
@@ -903,78 +2197,6 @@ pub struct HorizontalRule {
     pub text_style: ::core::option::Option<TextStyle>,
 }
 
-/// The properties of an image.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ImageProperties {
-    /// The clockwise rotation angle of the image, in radians.
-    #[serde(default)]
-    pub angle: ::core::option::Option<f32>,
-    /// The brightness effect of the image. The value should be in the interval [-1.0, 1.0], where 0 means no effect.
-    #[serde(default)]
-    pub brightness: ::core::option::Option<f32>,
-    /// A URI to the image with a default lifetime of 30 minutes. This URI is tagged with the account of the requester. Anyone with the URI effectively accesses the image as the original requester. Access to the image may be lost if the document''s sharing settings change.
-    #[serde(default, rename = "contentUri")]
-    pub content_uri: ::core::option::Option<String>,
-    /// The contrast effect of the image. The value should be in the interval [-1.0, 1.0], where 0 means no effect.
-    #[serde(default)]
-    pub contrast: ::core::option::Option<f32>,
-    /// The crop properties of the image.
-    #[serde(default, rename = "cropProperties")]
-    pub crop_properties: ::core::option::Option<CropProperties>,
-    /// The source URI is the URI used to insert the image. The source URI can be empty.
-    #[serde(default, rename = "sourceUri")]
-    pub source_uri: ::core::option::Option<String>,
-    /// The transparency effect of the image. The value should be in the interval [0.0, 1.0], where 0 means no effect and 1 means transparent.
-    #[serde(default)]
-    pub transparency: ::core::option::Option<f32>,
-}
-
-/// A mask that indicates which of the fields on the base ImageProperties have been changed in this suggestion. For any field set to true, there''s a new suggested value.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ImagePropertiesSuggestionState {
-    /// Indicates if there was a suggested change to angle.
-    #[serde(default, rename = "angleSuggested")]
-    pub angle_suggested: ::core::option::Option<bool>,
-    /// Indicates if there was a suggested change to brightness.
-    #[serde(default, rename = "brightnessSuggested")]
-    pub brightness_suggested: ::core::option::Option<bool>,
-    /// Indicates if there was a suggested change to content_uri.
-    #[serde(default, rename = "contentUriSuggested")]
-    pub content_uri_suggested: ::core::option::Option<bool>,
-    /// Indicates if there was a suggested change to contrast.
-    #[serde(default, rename = "contrastSuggested")]
-    pub contrast_suggested: ::core::option::Option<bool>,
-    /// A mask that indicates which of the fields in crop_properties have been changed in this suggestion.
-    #[serde(default, rename = "cropPropertiesSuggestionState")]
-    pub crop_properties_suggestion_state: ::core::option::Option<CropPropertiesSuggestionState>,
-    /// Indicates if there was a suggested change to source_uri.
-    #[serde(default, rename = "sourceUriSuggested")]
-    pub source_uri_suggested: ::core::option::Option<bool>,
-    /// Indicates if there was a suggested change to transparency.
-    #[serde(default, rename = "transparencySuggested")]
-    pub transparency_suggested: ::core::option::Option<bool>,
-}
-
-/// An object that appears inline with text. An InlineObject contains an EmbeddedObject such as an image.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct InlineObject {
-    /// The properties of this inline object.
-    #[serde(default, rename = "inlineObjectProperties")]
-    pub inline_object_properties: ::core::option::Option<InlineObjectProperties>,
-    /// The ID of this inline object. Can be used to update an object’s properties.
-    #[serde(default, rename = "objectId")]
-    pub object_id: ::core::option::Option<String>,
-    /// The suggested deletion IDs. If empty, then there are no suggested deletions of this content.
-    #[serde(default, rename = "suggestedDeletionIds")]
-    pub suggested_deletion_ids: ::core::option::Option<::std::vec::Vec<String>>,
-    /// The suggested changes to the inline object properties, keyed by suggestion ID.
-    #[serde(default, rename = "suggestedInlineObjectPropertiesChanges")]
-    pub suggested_inline_object_properties_changes: ::core::option::Option<serde_json::Value>,
-    /// The suggested insertion ID. If empty, then this is not a suggested insertion.
-    #[serde(default, rename = "suggestedInsertionId")]
-    pub suggested_insertion_id: ::core::option::Option<String>,
-}
-
 /// A ParagraphElement that contains an InlineObject.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct InlineObjectElement {
@@ -993,161 +2215,6 @@ pub struct InlineObjectElement {
     /// The text style of this InlineObjectElement. Similar to text content, like text runs and footnote references, the text style of an inline object element can affect content layout as well as the styling of text inserted next to it.
     #[serde(default, rename = "textStyle")]
     pub text_style: ::core::option::Option<TextStyle>,
-}
-
-/// Properties of an InlineObject.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct InlineObjectProperties {
-    /// The embedded object of this inline object.
-    #[serde(default, rename = "embeddedObject")]
-    pub embedded_object: ::core::option::Option<EmbeddedObject>,
-}
-
-/// A mask that indicates which of the fields on the base InlineObjectProperties have been changed in this suggestion. For any field set to true, there''s a new suggested value.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct InlineObjectPropertiesSuggestionState {
-    /// A mask that indicates which of the fields in embedded_object have been changed in this suggestion.
-    #[serde(default, rename = "embeddedObjectSuggestionState")]
-    pub embedded_object_suggestion_state: ::core::option::Option<EmbeddedObjectSuggestionState>,
-}
-
-/// Inserts a date at the specified location.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct InsertDateRequest {
-    /// The properties of the date to insert.
-    #[serde(default, rename = "dateElementProperties")]
-    pub date_element_properties: ::core::option::Option<DateElementProperties>,
-    /// Inserts the date at the end of the given header, footer or document body.
-    #[serde(default, rename = "endOfSegmentLocation")]
-    pub end_of_segment_location: ::core::option::Option<EndOfSegmentLocation>,
-    /// Inserts the date at a specific index in the document. The date must be inserted inside the bounds of an existing Paragraph. For instance, it cannot be inserted at a table''s start index (i.e. between an existing table and its preceding paragraph).
-    #[serde(default)]
-    pub location: ::core::option::Option<Location>,
-}
-
-/// Inserts an InlineObject containing an image at the given location.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct InsertInlineImageRequest {
-    /// Inserts the text at the end of a header, footer or the document body. Inline images cannot be inserted inside a footnote.
-    #[serde(default, rename = "endOfSegmentLocation")]
-    pub end_of_segment_location: ::core::option::Option<EndOfSegmentLocation>,
-    /// Inserts the image at a specific index in the document. The image must be inserted inside the bounds of an existing Paragraph. For instance, it cannot be inserted at a table''s start index (i.e. between the table and its preceding paragraph). Inline images cannot be inserted inside a footnote or equation.
-    #[serde(default)]
-    pub location: ::core::option::Option<Location>,
-    /// The size that the image should appear as in the document. This property is optional and the final size of the image in the document is determined by the following rules: * If neither width nor height is specified, then a default size of the image is calculated based on its resolution. * If one dimension is specified then the other dimension is calculated to preserve the aspect ratio of the image. * If both width and height are specified, the image is scaled to fit within the provided dimensions while maintaining its aspect ratio.
-    #[serde(default, rename = "objectSize")]
-    pub object_size: ::core::option::Option<Size>,
-    /// The image URI. The image is fetched once at insertion time and a copy is stored for display inside the document. Images must be less than 50MB in size, cannot exceed 25 megapixels, and must be in one of PNG, JPEG, or GIF format. The provided URI must be publicly accessible and at most 2 kB in length. The URI itself is saved with the image, and exposed via the ImageProperties.content_uri field.
-    #[serde(default)]
-    pub uri: ::core::option::Option<String>,
-}
-
-/// The result of inserting an inline image.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct InsertInlineImageResponse {
-    /// The ID of the created InlineObject.
-    #[serde(default, rename = "objectId")]
-    pub object_id: ::core::option::Option<String>,
-}
-
-/// The result of inserting an embedded Google Sheets chart.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct InsertInlineSheetsChartResponse {
-    /// The object ID of the inserted chart.
-    #[serde(default, rename = "objectId")]
-    pub object_id: ::core::option::Option<String>,
-}
-
-/// Inserts a page break followed by a newline at the specified location.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct InsertPageBreakRequest {
-    /// Inserts the page break at the end of the document body. Page breaks cannot be inserted inside a footnote, header or footer. Since page breaks can only be inserted inside the body, the segment ID field must be empty.
-    #[serde(default, rename = "endOfSegmentLocation")]
-    pub end_of_segment_location: ::core::option::Option<EndOfSegmentLocation>,
-    /// Inserts the page break at a specific index in the document. The page break must be inserted inside the bounds of an existing Paragraph. For instance, it cannot be inserted at a table''s start index (i.e. between the table and its preceding paragraph). Page breaks cannot be inserted inside a table, equation, footnote, header or footer. Since page breaks can only be inserted inside the body, the segment ID field must be empty.
-    #[serde(default)]
-    pub location: ::core::option::Option<Location>,
-}
-
-/// Inserts a person mention.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct InsertPersonRequest {
-    /// Inserts the person mention at the end of a header, footer, footnote or the document body.
-    #[serde(default, rename = "endOfSegmentLocation")]
-    pub end_of_segment_location: ::core::option::Option<EndOfSegmentLocation>,
-    /// Inserts the person mention at a specific index in the document. The person mention must be inserted inside the bounds of an existing Paragraph. For instance, it cannot be inserted at a table''s start index (i.e. between the table and its preceding paragraph). Person mentions cannot be inserted inside an equation.
-    #[serde(default)]
-    pub location: ::core::option::Option<Location>,
-    /// The properties of the person mention to insert.
-    #[serde(default, rename = "personProperties")]
-    pub person_properties: ::core::option::Option<PersonProperties>,
-}
-
-/// Inserts a section break at the given location. A newline character will be inserted before the section break.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct InsertSectionBreakRequest {
-    /// Inserts a newline and a section break at the end of the document body. Section breaks cannot be inserted inside a footnote, header or footer. Because section breaks can only be inserted inside the body, the segment ID field must be empty.
-    #[serde(default, rename = "endOfSegmentLocation")]
-    pub end_of_segment_location: ::core::option::Option<EndOfSegmentLocation>,
-    /// Inserts a newline and a section break at a specific index in the document. The section break must be inserted inside the bounds of an existing Paragraph. For instance, it cannot be inserted at a table''s start index (i.e. between the table and its preceding paragraph). Section breaks cannot be inserted inside a table, equation, footnote, header, or footer. Since section breaks can only be inserted inside the body, the segment ID field must be empty.
-    #[serde(default)]
-    pub location: ::core::option::Option<Location>,
-    /// The type of section to insert. // TODO: enum values: ["SECTION_TYPE_UNSPECIFIED", "CONTINUOUS", "NEXT_PAGE"]
-    #[serde(default, rename = "sectionType")]
-    pub section_type: ::core::option::Option<String>,
-}
-
-/// Inserts an empty column into a table.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct InsertTableColumnRequest {
-    /// Whether to insert new column to the right of the reference cell location. - True: insert to the right. - False: insert to the left.
-    #[serde(default, rename = "insertRight")]
-    pub insert_right: ::core::option::Option<bool>,
-    /// The reference table cell location from which columns will be inserted. A new column will be inserted to the left (or right) of the column where the reference cell is. If the reference cell is a merged cell, a new column will be inserted to the left (or right) of the merged cell.
-    #[serde(default, rename = "tableCellLocation")]
-    pub table_cell_location: ::core::option::Option<TableCellLocation>,
-}
-
-/// Inserts a table at the specified location. A newline character will be inserted before the inserted table.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct InsertTableRequest {
-    /// The number of columns in the table.
-    #[serde(default)]
-    pub columns: ::core::option::Option<i32>,
-    /// Inserts the table at the end of the given header, footer or document body. A newline character will be inserted before the inserted table. Tables cannot be inserted inside a footnote.
-    #[serde(default, rename = "endOfSegmentLocation")]
-    pub end_of_segment_location: ::core::option::Option<EndOfSegmentLocation>,
-    /// Inserts the table at a specific model index. A newline character will be inserted before the inserted table, therefore the table start index will be at the specified location index + 1. The table must be inserted inside the bounds of an existing Paragraph. For instance, it cannot be inserted at a table''s start index (i.e. between an existing table and its preceding paragraph). Tables cannot be inserted inside a footnote or equation.
-    #[serde(default)]
-    pub location: ::core::option::Option<Location>,
-    /// The number of rows in the table.
-    #[serde(default)]
-    pub rows: ::core::option::Option<i32>,
-}
-
-/// Inserts an empty row into a table.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct InsertTableRowRequest {
-    /// Whether to insert new row below the reference cell location. - True: insert below the cell. - False: insert above the cell.
-    #[serde(default, rename = "insertBelow")]
-    pub insert_below: ::core::option::Option<bool>,
-    /// The reference table cell location from which rows will be inserted. A new row will be inserted above (or below) the row where the reference cell is. If the reference cell is a merged cell, a new row will be inserted above (or below) the merged cell.
-    #[serde(default, rename = "tableCellLocation")]
-    pub table_cell_location: ::core::option::Option<TableCellLocation>,
-}
-
-/// Inserts text at the specified location.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct InsertTextRequest {
-    /// Inserts the text at the end of a header, footer, footnote or the document body.
-    #[serde(default, rename = "endOfSegmentLocation")]
-    pub end_of_segment_location: ::core::option::Option<EndOfSegmentLocation>,
-    /// Inserts the text at a specific index in the document. Text must be inserted inside the bounds of an existing Paragraph. For instance, text cannot be inserted at a table''s start index (i.e. between the table and its preceding paragraph). The text must be inserted in the preceding paragraph.
-    #[serde(default)]
-    pub location: ::core::option::Option<Location>,
-    /// The text to be inserted. Inserting a newline character will implicitly create a new Paragraph at that index. The paragraph style of the new paragraph will be copied from the paragraph at the current insertion index, including lists and bullets. Text styles for inserted text will be determined automatically, generally preserving the styling of neighboring text. In most cases, the text style for the inserted text will match the text immediately before the insertion index. Some control characters (U+0000-U+0008, U+000C-U+001F) and characters from the Unicode Basic Multilingual Plane Private Use Area (U+E000-U+F8FF) will be stripped out of the inserted text.
-    #[serde(default)]
-    pub text: ::core::option::Option<String>,
 }
 
 /// A reference to another portion of a document or an external URL resource.
@@ -1171,215 +2238,6 @@ pub struct Link {
     /// An external URL.
     #[serde(default)]
     pub url: ::core::option::Option<String>,
-}
-
-/// A reference to the external linked source content.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct LinkedContentReference {
-    /// A reference to the linked chart.
-    #[serde(default, rename = "sheetsChartReference")]
-    pub sheets_chart_reference: ::core::option::Option<SheetsChartReference>,
-}
-
-/// A mask that indicates which of the fields on the base LinkedContentReference have been changed in this suggestion. For any field set to true, there''s a new suggested value.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct LinkedContentReferenceSuggestionState {
-    /// A mask that indicates which of the fields in sheets_chart_reference have been changed in this suggestion.
-    #[serde(default, rename = "sheetsChartReferenceSuggestionState")]
-    pub sheets_chart_reference_suggestion_state:
-        ::core::option::Option<SheetsChartReferenceSuggestionState>,
-}
-
-/// A List represents the list attributes for a group of paragraphs that all belong to the same list. A paragraph that''s part of a list has a reference to the list''s ID in its bullet.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct List {
-    /// The properties of the list.
-    #[serde(default, rename = "listProperties")]
-    pub list_properties: ::core::option::Option<ListProperties>,
-    /// The suggested deletion IDs. If empty, then there are no suggested deletions of this list.
-    #[serde(default, rename = "suggestedDeletionIds")]
-    pub suggested_deletion_ids: ::core::option::Option<::std::vec::Vec<String>>,
-    /// The suggested insertion ID. If empty, then this is not a suggested insertion.
-    #[serde(default, rename = "suggestedInsertionId")]
-    pub suggested_insertion_id: ::core::option::Option<String>,
-    /// The suggested changes to the list properties, keyed by suggestion ID.
-    #[serde(default, rename = "suggestedListPropertiesChanges")]
-    pub suggested_list_properties_changes: ::core::option::Option<serde_json::Value>,
-}
-
-/// The properties of a list that describe the look and feel of bullets belonging to paragraphs associated with a list.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ListProperties {
-    /// Describes the properties of the bullets at the associated level. A list has at most 9 levels of nesting with nesting level 0 corresponding to the top-most level and nesting level 8 corresponding to the most nested level. The nesting levels are returned in ascending order with the least nested returned first.
-    #[serde(default, rename = "nestingLevels")]
-    pub nesting_levels: ::core::option::Option<::std::vec::Vec<NestingLevel>>,
-}
-
-/// A mask that indicates which of the fields on the base ListProperties have been changed in this suggestion. For any field set to true, there''s a new suggested value.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ListPropertiesSuggestionState {
-    /// A mask that indicates which of the fields on the corresponding NestingLevel in nesting_levels have been changed in this suggestion. The nesting level suggestion states are returned in ascending order of the nesting level with the least nested returned first.
-    #[serde(default, rename = "nestingLevelsSuggestionStates")]
-    pub nesting_levels_suggestion_states:
-        ::core::option::Option<::std::vec::Vec<NestingLevelSuggestionState>>,
-}
-
-/// A particular location in the document.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Location {
-    /// The zero-based index, in UTF-16 code units. The index is relative to the beginning of the segment specified by segment_id.
-    #[serde(default)]
-    pub index: ::core::option::Option<i32>,
-    /// The ID of the header, footer or footnote the location is in. An empty segment ID signifies the document''s body.
-    #[serde(default, rename = "segmentId")]
-    pub segment_id: ::core::option::Option<String>,
-    /// The tab that the location is in. When omitted, the request is applied to the first tab. In a document containing a single tab: - If provided, must match the singular tab''s ID. - If omitted, the request applies to the singular tab. In a document containing multiple tabs: - If provided, the request applies to the specified tab. - If omitted, the request applies to the first tab in the document.
-    #[serde(default, rename = "tabId")]
-    pub tab_id: ::core::option::Option<String>,
-}
-
-/// Merges cells in a Table.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct MergeTableCellsRequest {
-    /// The table range specifying which cells of the table to merge. Any text in the cells being merged will be concatenated and stored in the "head" cell of the range. This is the upper-left cell of the range when the content direction is left to right, and the upper-right cell of the range otherwise. If the range is non-rectangular (which can occur in some cases where the range covers cells that are already merged or where the table is non-rectangular), a 400 bad request error is returned.
-    #[serde(default, rename = "tableRange")]
-    pub table_range: ::core::option::Option<TableRange>,
-}
-
-/// A collection of Ranges with the same named range ID. Named ranges allow developers to associate parts of a document with an arbitrary user-defined label so their contents can be programmatically read or edited later. A document can contain multiple named ranges with the same name, but every named range has a unique ID. A named range is created with a single Range, and content inserted inside a named range generally expands that range. However, certain document changes can cause the range to be split into multiple ranges. Named ranges are not private. All applications and collaborators that have access to the document can see its named ranges.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct NamedRange {
-    /// The name of the named range.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// The ID of the named range.
-    #[serde(default, rename = "namedRangeId")]
-    pub named_range_id: ::core::option::Option<String>,
-    /// The ranges that belong to this named range.
-    #[serde(default)]
-    pub ranges: ::core::option::Option<::std::vec::Vec<Range>>,
-}
-
-/// A collection of all the NamedRanges in the document that share a given name.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct NamedRanges {
-    /// The name that all the named ranges share.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// The NamedRanges that share the same name.
-    #[serde(default, rename = "namedRanges")]
-    pub named_ranges: ::core::option::Option<::std::vec::Vec<NamedRange>>,
-}
-
-/// A named style. Paragraphs in the document can inherit their TextStyle and ParagraphStyle from this named style when they have the same named style type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct NamedStyle {
-    /// The type of this named style. // TODO: enum values: ["NAMED_STYLE_TYPE_UNSPECIFIED", "NORMAL_TEXT", "TITLE", "SUBTITLE", "HEADING_1", "HEADING_2", "HEADING_3", "HEADING_4", "HEADING_5", "HEADING_6"]
-    #[serde(default, rename = "namedStyleType")]
-    pub named_style_type: ::core::option::Option<String>,
-    /// The paragraph style of this named style.
-    #[serde(default, rename = "paragraphStyle")]
-    pub paragraph_style: ::core::option::Option<ParagraphStyle>,
-    /// The text style of this named style.
-    #[serde(default, rename = "textStyle")]
-    pub text_style: ::core::option::Option<TextStyle>,
-}
-
-/// A suggestion state of a NamedStyle message.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct NamedStyleSuggestionState {
-    /// The named style type that this suggestion state corresponds to. This field is provided as a convenience for matching the NamedStyleSuggestionState with its corresponding NamedStyle. // TODO: enum values: ["NAMED_STYLE_TYPE_UNSPECIFIED", "NORMAL_TEXT", "TITLE", "SUBTITLE", "HEADING_1", "HEADING_2", "HEADING_3", "HEADING_4", "HEADING_5", "HEADING_6"]
-    #[serde(default, rename = "namedStyleType")]
-    pub named_style_type: ::core::option::Option<String>,
-    /// A mask that indicates which of the fields in paragraph style have been changed in this suggestion.
-    #[serde(default, rename = "paragraphStyleSuggestionState")]
-    pub paragraph_style_suggestion_state: ::core::option::Option<ParagraphStyleSuggestionState>,
-    /// A mask that indicates which of the fields in text style have been changed in this suggestion.
-    #[serde(default, rename = "textStyleSuggestionState")]
-    pub text_style_suggestion_state: ::core::option::Option<TextStyleSuggestionState>,
-}
-
-/// The named styles. Paragraphs in the document can inherit their TextStyle and ParagraphStyle from these named styles.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct NamedStyles {
-    /// The named styles. There''s an entry for each of the possible named style types.
-    #[serde(default)]
-    pub styles: ::core::option::Option<::std::vec::Vec<NamedStyle>>,
-}
-
-/// The suggestion state of a NamedStyles message.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct NamedStylesSuggestionState {
-    /// A mask that indicates which of the fields on the corresponding NamedStyle in styles have been changed in this suggestion. The order of these named style suggestion states matches the order of the corresponding named style within the named styles suggestion.
-    #[serde(default, rename = "stylesSuggestionStates")]
-    pub styles_suggestion_states:
-        ::core::option::Option<::std::vec::Vec<NamedStyleSuggestionState>>,
-}
-
-/// Contains properties describing the look and feel of a list bullet at a given level of nesting.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct NestingLevel {
-    /// The alignment of the bullet within the space allotted for rendering the bullet. // TODO: enum values: ["BULLET_ALIGNMENT_UNSPECIFIED", "START", "CENTER", "END"]
-    #[serde(default, rename = "bulletAlignment")]
-    pub bullet_alignment: ::core::option::Option<String>,
-    /// The format string used by bullets at this level of nesting. The glyph format contains one or more placeholders, and these placeholders are replaced with the appropriate values depending on the glyph_type or glyph_symbol. The placeholders follow the pattern %[nesting_level]. Furthermore, placeholders can have prefixes and suffixes. Thus, the glyph format follows the pattern %[nesting_level]. Note that the prefix and suffix are optional and can be arbitrary strings. For example, the glyph format %0. indicates that the rendered glyph will replace the placeholder with the corresponding glyph for nesting level 0 followed by a period as the suffix. So a list with a glyph type of UPPER_ALPHA and glyph format %0. at nesting level 0 will result in a list with rendered glyphs A. B. C. The glyph format can contain placeholders for the current nesting level as well as placeholders for parent nesting levels. For example, a list can have a glyph format of %0. at nesting level 0 and a glyph format of %0.%1. at nesting level 1. Assuming both nesting levels have DECIMAL glyph types, this would result in a list with rendered glyphs 1. 2.  2.1.  2.2. 3. For nesting levels that are ordered, the string that replaces a placeholder in the glyph format for a particular paragraph depends on the paragraph''s order within the list.
-    #[serde(default, rename = "glyphFormat")]
-    pub glyph_format: ::core::option::Option<String>,
-    /// A custom glyph symbol used by bullets when paragraphs at this level of nesting is unordered. The glyph symbol replaces placeholders within the glyph_format. For example, if the glyph_symbol is the solid circle corresponding to Unicode U+25cf code point and the glyph_format is %0, the rendered glyph would be the solid circle.
-    #[serde(default, rename = "glyphSymbol")]
-    pub glyph_symbol: ::core::option::Option<String>,
-    /// The type of glyph used by bullets when paragraphs at this level of nesting is ordered. The glyph type determines the type of glyph used to replace placeholders within the glyph_format when paragraphs at this level of nesting are ordered. For example, if the nesting level is 0, the glyph_format is %0. and the glyph type is DECIMAL, then the rendered glyph would replace the placeholder %0 in the glyph format with a number corresponding to the list item''s order within the list. // TODO: enum values: ["GLYPH_TYPE_UNSPECIFIED", "NONE", "DECIMAL", "ZERO_DECIMAL", "UPPER_ALPHA", "ALPHA", "UPPER_ROMAN", "ROMAN"]
-    #[serde(default, rename = "glyphType")]
-    pub glyph_type: ::core::option::Option<String>,
-    /// The amount of indentation for the first line of paragraphs at this level of nesting.
-    #[serde(default, rename = "indentFirstLine")]
-    pub indent_first_line: ::core::option::Option<Dimension>,
-    /// The amount of indentation for paragraphs at this level of nesting. Applied to the side that corresponds to the start of the text, based on the paragraph''s content direction.
-    #[serde(default, rename = "indentStart")]
-    pub indent_start: ::core::option::Option<Dimension>,
-    /// The number of the first list item at this nesting level. A value of 0 is treated as a value of 1 for lettered lists and Roman numeral lists. For values of both 0 and 1, lettered and Roman numeral lists will begin at a and i respectively. This value is ignored for nesting levels with unordered glyphs.
-    #[serde(default, rename = "startNumber")]
-    pub start_number: ::core::option::Option<i32>,
-    /// The text style of bullets at this level of nesting.
-    #[serde(default, rename = "textStyle")]
-    pub text_style: ::core::option::Option<TextStyle>,
-}
-
-/// A mask that indicates which of the fields on the base NestingLevel have been changed in this suggestion. For any field set to true, there''s a new suggested value.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct NestingLevelSuggestionState {
-    /// Indicates if there was a suggested change to bullet_alignment.
-    #[serde(default, rename = "bulletAlignmentSuggested")]
-    pub bullet_alignment_suggested: ::core::option::Option<bool>,
-    /// Indicates if there was a suggested change to glyph_format.
-    #[serde(default, rename = "glyphFormatSuggested")]
-    pub glyph_format_suggested: ::core::option::Option<bool>,
-    /// Indicates if there was a suggested change to glyph_symbol.
-    #[serde(default, rename = "glyphSymbolSuggested")]
-    pub glyph_symbol_suggested: ::core::option::Option<bool>,
-    /// Indicates if there was a suggested change to glyph_type.
-    #[serde(default, rename = "glyphTypeSuggested")]
-    pub glyph_type_suggested: ::core::option::Option<bool>,
-    /// Indicates if there was a suggested change to indent_first_line.
-    #[serde(default, rename = "indentFirstLineSuggested")]
-    pub indent_first_line_suggested: ::core::option::Option<bool>,
-    /// Indicates if there was a suggested change to indent_start.
-    #[serde(default, rename = "indentStartSuggested")]
-    pub indent_start_suggested: ::core::option::Option<bool>,
-    /// Indicates if there was a suggested change to start_number.
-    #[serde(default, rename = "startNumberSuggested")]
-    pub start_number_suggested: ::core::option::Option<bool>,
-    /// A mask that indicates which of the fields in text style have been changed in this suggestion.
-    #[serde(default, rename = "textStyleSuggestionState")]
-    pub text_style_suggestion_state: ::core::option::Option<TextStyleSuggestionState>,
-}
-
-/// A collection of object IDs.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ObjectReferences {
-    /// The object IDs.
-    #[serde(default, rename = "objectIds")]
-    pub object_ids: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// A color that can either be fully opaque or fully transparent.
@@ -1565,74 +2423,6 @@ pub struct ParagraphStyle {
     pub tab_stops: ::core::option::Option<::std::vec::Vec<TabStop>>,
 }
 
-/// A mask that indicates which of the fields on the base ParagraphStyle have been changed in this suggestion. For any field set to true, there''s a new suggested value.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ParagraphStyleSuggestionState {
-    /// Indicates if there was a suggested change to alignment.
-    #[serde(default, rename = "alignmentSuggested")]
-    pub alignment_suggested: ::core::option::Option<bool>,
-    /// Indicates if there was a suggested change to avoid_widow_and_orphan.
-    #[serde(default, rename = "avoidWidowAndOrphanSuggested")]
-    pub avoid_widow_and_orphan_suggested: ::core::option::Option<bool>,
-    /// Indicates if there was a suggested change to border_between.
-    #[serde(default, rename = "borderBetweenSuggested")]
-    pub border_between_suggested: ::core::option::Option<bool>,
-    /// Indicates if there was a suggested change to border_bottom.
-    #[serde(default, rename = "borderBottomSuggested")]
-    pub border_bottom_suggested: ::core::option::Option<bool>,
-    /// Indicates if there was a suggested change to border_left.
-    #[serde(default, rename = "borderLeftSuggested")]
-    pub border_left_suggested: ::core::option::Option<bool>,
-    /// Indicates if there was a suggested change to border_right.
-    #[serde(default, rename = "borderRightSuggested")]
-    pub border_right_suggested: ::core::option::Option<bool>,
-    /// Indicates if there was a suggested change to border_top.
-    #[serde(default, rename = "borderTopSuggested")]
-    pub border_top_suggested: ::core::option::Option<bool>,
-    /// Indicates if there was a suggested change to direction.
-    #[serde(default, rename = "directionSuggested")]
-    pub direction_suggested: ::core::option::Option<bool>,
-    /// Indicates if there was a suggested change to heading_id.
-    #[serde(default, rename = "headingIdSuggested")]
-    pub heading_id_suggested: ::core::option::Option<bool>,
-    /// Indicates if there was a suggested change to indent_end.
-    #[serde(default, rename = "indentEndSuggested")]
-    pub indent_end_suggested: ::core::option::Option<bool>,
-    /// Indicates if there was a suggested change to indent_first_line.
-    #[serde(default, rename = "indentFirstLineSuggested")]
-    pub indent_first_line_suggested: ::core::option::Option<bool>,
-    /// Indicates if there was a suggested change to indent_start.
-    #[serde(default, rename = "indentStartSuggested")]
-    pub indent_start_suggested: ::core::option::Option<bool>,
-    /// Indicates if there was a suggested change to keep_lines_together.
-    #[serde(default, rename = "keepLinesTogetherSuggested")]
-    pub keep_lines_together_suggested: ::core::option::Option<bool>,
-    /// Indicates if there was a suggested change to keep_with_next.
-    #[serde(default, rename = "keepWithNextSuggested")]
-    pub keep_with_next_suggested: ::core::option::Option<bool>,
-    /// Indicates if there was a suggested change to line_spacing.
-    #[serde(default, rename = "lineSpacingSuggested")]
-    pub line_spacing_suggested: ::core::option::Option<bool>,
-    /// Indicates if there was a suggested change to named_style_type.
-    #[serde(default, rename = "namedStyleTypeSuggested")]
-    pub named_style_type_suggested: ::core::option::Option<bool>,
-    /// Indicates if there was a suggested change to page_break_before.
-    #[serde(default, rename = "pageBreakBeforeSuggested")]
-    pub page_break_before_suggested: ::core::option::Option<bool>,
-    /// A mask that indicates which of the fields in shading have been changed in this suggestion.
-    #[serde(default, rename = "shadingSuggestionState")]
-    pub shading_suggestion_state: ::core::option::Option<ShadingSuggestionState>,
-    /// Indicates if there was a suggested change to space_above.
-    #[serde(default, rename = "spaceAboveSuggested")]
-    pub space_above_suggested: ::core::option::Option<bool>,
-    /// Indicates if there was a suggested change to space_below.
-    #[serde(default, rename = "spaceBelowSuggested")]
-    pub space_below_suggested: ::core::option::Option<bool>,
-    /// Indicates if there was a suggested change to spacing_mode.
-    #[serde(default, rename = "spacingModeSuggested")]
-    pub spacing_mode_suggested: ::core::option::Option<bool>,
-}
-
 /// A person or email address mentioned in a document. These mentions behave as a single, immutable element containing the person''s name or email address.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Person {
@@ -1665,309 +2455,6 @@ pub struct PersonProperties {
     /// The name of the person if it''s displayed in the link text instead of the person''s email address.
     #[serde(default)]
     pub name: ::core::option::Option<String>,
-}
-
-/// Updates the number of pinned table header rows in a table.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PinTableHeaderRowsRequest {
-    /// The number of table rows to pin, where 0 implies that all rows are unpinned.
-    #[serde(default, rename = "pinnedHeaderRowsCount")]
-    pub pinned_header_rows_count: ::core::option::Option<i32>,
-    /// The location where the table starts in the document.
-    #[serde(default, rename = "tableStartLocation")]
-    pub table_start_location: ::core::option::Option<Location>,
-}
-
-/// An object that''s tethered to a Paragraph and positioned relative to the beginning of the paragraph. A PositionedObject contains an EmbeddedObject such as an image.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PositionedObject {
-    /// The ID of this positioned object.
-    #[serde(default, rename = "objectId")]
-    pub object_id: ::core::option::Option<String>,
-    /// The properties of this positioned object.
-    #[serde(default, rename = "positionedObjectProperties")]
-    pub positioned_object_properties: ::core::option::Option<PositionedObjectProperties>,
-    /// The suggested deletion IDs. If empty, then there are no suggested deletions of this content.
-    #[serde(default, rename = "suggestedDeletionIds")]
-    pub suggested_deletion_ids: ::core::option::Option<::std::vec::Vec<String>>,
-    /// The suggested insertion ID. If empty, then this is not a suggested insertion.
-    #[serde(default, rename = "suggestedInsertionId")]
-    pub suggested_insertion_id: ::core::option::Option<String>,
-    /// The suggested changes to the positioned object properties, keyed by suggestion ID.
-    #[serde(default, rename = "suggestedPositionedObjectPropertiesChanges")]
-    pub suggested_positioned_object_properties_changes: ::core::option::Option<serde_json::Value>,
-}
-
-/// The positioning of a PositionedObject. The positioned object is positioned relative to the beginning of the Paragraph it''s tethered to.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PositionedObjectPositioning {
-    /// The layout of this positioned object. // TODO: enum values: ["POSITIONED_OBJECT_LAYOUT_UNSPECIFIED", "WRAP_TEXT", "BREAK_LEFT", "BREAK_RIGHT", "BREAK_LEFT_RIGHT", "IN_FRONT_OF_TEXT", "BEHIND_TEXT"]
-    #[serde(default)]
-    pub layout: ::core::option::Option<String>,
-    /// The offset of the left edge of the positioned object relative to the beginning of the Paragraph it''s tethered to. The exact positioning of the object can depend on other content in the document and the document''s styling.
-    #[serde(default, rename = "leftOffset")]
-    pub left_offset: ::core::option::Option<Dimension>,
-    /// The offset of the top edge of the positioned object relative to the beginning of the Paragraph it''s tethered to. The exact positioning of the object can depend on other content in the document and the document''s styling.
-    #[serde(default, rename = "topOffset")]
-    pub top_offset: ::core::option::Option<Dimension>,
-}
-
-/// A mask that indicates which of the fields on the base PositionedObjectPositioning have been changed in this suggestion. For any field set to true, there''s a new suggested value.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PositionedObjectPositioningSuggestionState {
-    /// Indicates if there was a suggested change to layout.
-    #[serde(default, rename = "layoutSuggested")]
-    pub layout_suggested: ::core::option::Option<bool>,
-    /// Indicates if there was a suggested change to left_offset.
-    #[serde(default, rename = "leftOffsetSuggested")]
-    pub left_offset_suggested: ::core::option::Option<bool>,
-    /// Indicates if there was a suggested change to top_offset.
-    #[serde(default, rename = "topOffsetSuggested")]
-    pub top_offset_suggested: ::core::option::Option<bool>,
-}
-
-/// Properties of a PositionedObject.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PositionedObjectProperties {
-    /// The embedded object of this positioned object.
-    #[serde(default, rename = "embeddedObject")]
-    pub embedded_object: ::core::option::Option<EmbeddedObject>,
-    /// The positioning of this positioned object relative to the newline of the Paragraph that references this positioned object.
-    #[serde(default)]
-    pub positioning: ::core::option::Option<PositionedObjectPositioning>,
-}
-
-/// A mask that indicates which of the fields on the base PositionedObjectProperties have been changed in this suggestion. For any field set to true, there''s a new suggested value.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PositionedObjectPropertiesSuggestionState {
-    /// A mask that indicates which of the fields in embedded_object have been changed in this suggestion.
-    #[serde(default, rename = "embeddedObjectSuggestionState")]
-    pub embedded_object_suggestion_state: ::core::option::Option<EmbeddedObjectSuggestionState>,
-    /// A mask that indicates which of the fields in positioning have been changed in this suggestion.
-    #[serde(default, rename = "positioningSuggestionState")]
-    pub positioning_suggestion_state:
-        ::core::option::Option<PositionedObjectPositioningSuggestionState>,
-}
-
-/// Specifies a contiguous range of text.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Range {
-    /// The zero-based end index of this range, exclusive, in UTF-16 code units. In all current uses, an end index must be provided. This field is an Int32Value in order to accommodate future use cases with open-ended ranges.
-    #[serde(default, rename = "endIndex")]
-    pub end_index: ::core::option::Option<i32>,
-    /// The ID of the header, footer, or footnote that this range is contained in. An empty segment ID signifies the document''s body.
-    #[serde(default, rename = "segmentId")]
-    pub segment_id: ::core::option::Option<String>,
-    /// The zero-based start index of this range, in UTF-16 code units. In all current uses, a start index must be provided. This field is an Int32Value in order to accommodate future use cases with open-ended ranges.
-    #[serde(default, rename = "startIndex")]
-    pub start_index: ::core::option::Option<i32>,
-    /// The tab that contains this range. When omitted, the request applies to the first tab. In a document containing a single tab: - If provided, must match the singular tab''s ID. - If omitted, the request applies to the singular tab. In a document containing multiple tabs: - If provided, the request applies to the specified tab. - If omitted, the request applies to the first tab in the document.
-    #[serde(default, rename = "tabId")]
-    pub tab_id: ::core::option::Option<String>,
-}
-
-/// Replaces all instances of text matching a criteria with replace text.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ReplaceAllTextRequest {
-    /// Finds text in the document matching this substring.
-    #[serde(default, rename = "containsText")]
-    pub contains_text: ::core::option::Option<SubstringMatchCriteria>,
-    /// The text that will replace the matched text.
-    #[serde(default, rename = "replaceText")]
-    pub replace_text: ::core::option::Option<String>,
-    /// Optional. The criteria used to specify in which tabs the replacement occurs. When omitted, the replacement applies to all tabs. In a document containing a single tab: - If provided, must match the singular tab''s ID. - If omitted, the replacement applies to the singular tab. In a document containing multiple tabs: - If provided, the replacement applies to the specified tabs. - If omitted, the replacement applies to all tabs.
-    #[serde(default, rename = "tabsCriteria")]
-    pub tabs_criteria: ::core::option::Option<TabsCriteria>,
-}
-
-/// The result of replacing text.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ReplaceAllTextResponse {
-    /// The number of occurrences changed by replacing all text.
-    #[serde(default, rename = "occurrencesChanged")]
-    pub occurrences_changed: ::core::option::Option<i32>,
-}
-
-/// Replaces an existing image with a new image. Replacing an image removes some image effects from the existing image in order to mirror the behavior of the Docs editor.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ReplaceImageRequest {
-    /// The ID of the existing image that will be replaced. The ID can be retrieved from the response of a get request.
-    #[serde(default, rename = "imageObjectId")]
-    pub image_object_id: ::core::option::Option<String>,
-    /// The replacement method. // TODO: enum values: ["IMAGE_REPLACE_METHOD_UNSPECIFIED", "CENTER_CROP"]
-    #[serde(default, rename = "imageReplaceMethod")]
-    pub image_replace_method: ::core::option::Option<String>,
-    /// The tab that the image to be replaced is in. When omitted, the request is applied to the first tab. In a document containing a single tab: - If provided, must match the singular tab''s ID. - If omitted, the request applies to the singular tab. In a document containing multiple tabs: - If provided, the request applies to the specified tab. - If omitted, the request applies to the first tab in the document.
-    #[serde(default, rename = "tabId")]
-    pub tab_id: ::core::option::Option<String>,
-    /// The URI of the new image. The image is fetched once at insertion time and a copy is stored for display inside the document. Images must be less than 50MB, cannot exceed 25 megapixels, and must be in PNG, JPEG, or GIF format. The provided URI can''t surpass 2 KB in length. The URI is saved with the image, and exposed through the ImageProperties.source_uri field.
-    #[serde(default)]
-    pub uri: ::core::option::Option<String>,
-}
-
-/// Replaces the contents of the specified NamedRange or NamedRanges with the given replacement content. Note that an individual NamedRange may consist of multiple discontinuous ranges. In this case, only the content in the first range will be replaced. The other ranges and their content will be deleted. In cases where replacing or deleting any ranges would result in an invalid document structure, a 400 bad request error is returned.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ReplaceNamedRangeContentRequest {
-    /// The ID of the named range whose content will be replaced. If there is no named range with the given ID a 400 bad request error is returned.
-    #[serde(default, rename = "namedRangeId")]
-    pub named_range_id: ::core::option::Option<String>,
-    /// The name of the NamedRanges whose content will be replaced. If there are multiple named ranges with the given name, then the content of each one will be replaced. If there are no named ranges with the given name, then the request will be a no-op.
-    #[serde(default, rename = "namedRangeName")]
-    pub named_range_name: ::core::option::Option<String>,
-    /// Optional. The criteria used to specify in which tabs the replacement occurs. When omitted, the replacement applies to all tabs. In a document containing a single tab: - If provided, must match the singular tab''s ID. - If omitted, the replacement applies to the singular tab. In a document containing multiple tabs: - If provided, the replacement applies to the specified tabs. - If omitted, the replacement applies to all tabs.
-    #[serde(default, rename = "tabsCriteria")]
-    pub tabs_criteria: ::core::option::Option<TabsCriteria>,
-    /// Replaces the content of the specified named range(s) with the given text.
-    #[serde(default)]
-    pub text: ::core::option::Option<String>,
-}
-
-/// A single update to apply to a document.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Request {
-    /// Adds a document tab.
-    #[serde(default, rename = "addDocumentTab")]
-    pub add_document_tab: ::core::option::Option<AddDocumentTabRequest>,
-    /// Creates a footer.
-    #[serde(default, rename = "createFooter")]
-    pub create_footer: ::core::option::Option<CreateFooterRequest>,
-    /// Creates a footnote.
-    #[serde(default, rename = "createFootnote")]
-    pub create_footnote: ::core::option::Option<CreateFootnoteRequest>,
-    /// Creates a header.
-    #[serde(default, rename = "createHeader")]
-    pub create_header: ::core::option::Option<CreateHeaderRequest>,
-    /// Creates a named range.
-    #[serde(default, rename = "createNamedRange")]
-    pub create_named_range: ::core::option::Option<CreateNamedRangeRequest>,
-    /// Creates bullets for paragraphs.
-    #[serde(default, rename = "createParagraphBullets")]
-    pub create_paragraph_bullets: ::core::option::Option<CreateParagraphBulletsRequest>,
-    /// Deletes content from the document.
-    #[serde(default, rename = "deleteContentRange")]
-    pub delete_content_range: ::core::option::Option<DeleteContentRangeRequest>,
-    /// Deletes a footer from the document.
-    #[serde(default, rename = "deleteFooter")]
-    pub delete_footer: ::core::option::Option<DeleteFooterRequest>,
-    /// Deletes a header from the document.
-    #[serde(default, rename = "deleteHeader")]
-    pub delete_header: ::core::option::Option<DeleteHeaderRequest>,
-    /// Deletes a named range.
-    #[serde(default, rename = "deleteNamedRange")]
-    pub delete_named_range: ::core::option::Option<DeleteNamedRangeRequest>,
-    /// Deletes bullets from paragraphs.
-    #[serde(default, rename = "deleteParagraphBullets")]
-    pub delete_paragraph_bullets: ::core::option::Option<DeleteParagraphBulletsRequest>,
-    /// Deletes a positioned object from the document.
-    #[serde(default, rename = "deletePositionedObject")]
-    pub delete_positioned_object: ::core::option::Option<DeletePositionedObjectRequest>,
-    /// Deletes a document tab.
-    #[serde(default, rename = "deleteTab")]
-    pub delete_tab: ::core::option::Option<DeleteTabRequest>,
-    /// Deletes a column from a table.
-    #[serde(default, rename = "deleteTableColumn")]
-    pub delete_table_column: ::core::option::Option<DeleteTableColumnRequest>,
-    /// Deletes a row from a table.
-    #[serde(default, rename = "deleteTableRow")]
-    pub delete_table_row: ::core::option::Option<DeleteTableRowRequest>,
-    /// Inserts a date.
-    #[serde(default, rename = "insertDate")]
-    pub insert_date: ::core::option::Option<InsertDateRequest>,
-    /// Inserts an inline image at the specified location.
-    #[serde(default, rename = "insertInlineImage")]
-    pub insert_inline_image: ::core::option::Option<InsertInlineImageRequest>,
-    /// Inserts a page break at the specified location.
-    #[serde(default, rename = "insertPageBreak")]
-    pub insert_page_break: ::core::option::Option<InsertPageBreakRequest>,
-    /// Inserts a person mention.
-    #[serde(default, rename = "insertPerson")]
-    pub insert_person: ::core::option::Option<InsertPersonRequest>,
-    /// Inserts a section break at the specified location.
-    #[serde(default, rename = "insertSectionBreak")]
-    pub insert_section_break: ::core::option::Option<InsertSectionBreakRequest>,
-    /// Inserts a table at the specified location.
-    #[serde(default, rename = "insertTable")]
-    pub insert_table: ::core::option::Option<InsertTableRequest>,
-    /// Inserts an empty column into a table.
-    #[serde(default, rename = "insertTableColumn")]
-    pub insert_table_column: ::core::option::Option<InsertTableColumnRequest>,
-    /// Inserts an empty row into a table.
-    #[serde(default, rename = "insertTableRow")]
-    pub insert_table_row: ::core::option::Option<InsertTableRowRequest>,
-    /// Inserts text at the specified location.
-    #[serde(default, rename = "insertText")]
-    pub insert_text: ::core::option::Option<InsertTextRequest>,
-    /// Merges cells in a table.
-    #[serde(default, rename = "mergeTableCells")]
-    pub merge_table_cells: ::core::option::Option<MergeTableCellsRequest>,
-    /// Updates the number of pinned header rows in a table.
-    #[serde(default, rename = "pinTableHeaderRows")]
-    pub pin_table_header_rows: ::core::option::Option<PinTableHeaderRowsRequest>,
-    /// Replaces all instances of the specified text.
-    #[serde(default, rename = "replaceAllText")]
-    pub replace_all_text: ::core::option::Option<ReplaceAllTextRequest>,
-    /// Replaces an image in the document.
-    #[serde(default, rename = "replaceImage")]
-    pub replace_image: ::core::option::Option<ReplaceImageRequest>,
-    /// Replaces the content in a named range.
-    #[serde(default, rename = "replaceNamedRangeContent")]
-    pub replace_named_range_content: ::core::option::Option<ReplaceNamedRangeContentRequest>,
-    /// Unmerges cells in a table.
-    #[serde(default, rename = "unmergeTableCells")]
-    pub unmerge_table_cells: ::core::option::Option<UnmergeTableCellsRequest>,
-    /// Updates the style of the document.
-    #[serde(default, rename = "updateDocumentStyle")]
-    pub update_document_style: ::core::option::Option<UpdateDocumentStyleRequest>,
-    /// Updates the properties of a document tab.
-    #[serde(default, rename = "updateDocumentTabProperties")]
-    pub update_document_tab_properties: ::core::option::Option<UpdateDocumentTabPropertiesRequest>,
-    /// Updates the paragraph style at the specified range.
-    #[serde(default, rename = "updateParagraphStyle")]
-    pub update_paragraph_style: ::core::option::Option<UpdateParagraphStyleRequest>,
-    /// Updates the section style of the specified range.
-    #[serde(default, rename = "updateSectionStyle")]
-    pub update_section_style: ::core::option::Option<UpdateSectionStyleRequest>,
-    /// Updates the style of table cells.
-    #[serde(default, rename = "updateTableCellStyle")]
-    pub update_table_cell_style: ::core::option::Option<UpdateTableCellStyleRequest>,
-    /// Updates the properties of columns in a table.
-    #[serde(default, rename = "updateTableColumnProperties")]
-    pub update_table_column_properties: ::core::option::Option<UpdateTableColumnPropertiesRequest>,
-    /// Updates the row style in a table.
-    #[serde(default, rename = "updateTableRowStyle")]
-    pub update_table_row_style: ::core::option::Option<UpdateTableRowStyleRequest>,
-    /// Updates the text style at the specified range.
-    #[serde(default, rename = "updateTextStyle")]
-    pub update_text_style: ::core::option::Option<UpdateTextStyleRequest>,
-}
-
-/// A single response from an update.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Response {
-    /// The result of adding a document tab.
-    #[serde(default, rename = "addDocumentTab")]
-    pub add_document_tab: ::core::option::Option<AddDocumentTabResponse>,
-    /// The result of creating a footer.
-    #[serde(default, rename = "createFooter")]
-    pub create_footer: ::core::option::Option<CreateFooterResponse>,
-    /// The result of creating a footnote.
-    #[serde(default, rename = "createFootnote")]
-    pub create_footnote: ::core::option::Option<CreateFootnoteResponse>,
-    /// The result of creating a header.
-    #[serde(default, rename = "createHeader")]
-    pub create_header: ::core::option::Option<CreateHeaderResponse>,
-    /// The result of creating a named range.
-    #[serde(default, rename = "createNamedRange")]
-    pub create_named_range: ::core::option::Option<CreateNamedRangeResponse>,
-    /// The result of inserting an inline image.
-    #[serde(default, rename = "insertInlineImage")]
-    pub insert_inline_image: ::core::option::Option<InsertInlineImageResponse>,
-    /// The result of inserting an inline Google Sheets chart.
-    #[serde(default, rename = "insertInlineSheetsChart")]
-    pub insert_inline_sheets_chart: ::core::option::Option<InsertInlineSheetsChartResponse>,
-    /// The result of replacing text.
-    #[serde(default, rename = "replaceAllText")]
-    pub replace_all_text: ::core::option::Option<ReplaceAllTextResponse>,
 }
 
 /// An RGB color.
@@ -2116,58 +2603,6 @@ pub struct Shading {
     pub background_color: ::core::option::Option<OptionalColor>,
 }
 
-/// A mask that indicates which of the fields on the base Shading have been changed in this suggested change. For any field set to true, there''s a new suggested value.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ShadingSuggestionState {
-    /// Indicates if there was a suggested change to the Shading.
-    #[serde(default, rename = "backgroundColorSuggested")]
-    pub background_color_suggested: ::core::option::Option<bool>,
-}
-
-/// A reference to a linked chart embedded from Google Sheets.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SheetsChartReference {
-    /// The ID of the specific chart in the Google Sheets spreadsheet that''s embedded.
-    #[serde(default, rename = "chartId")]
-    pub chart_id: ::core::option::Option<i32>,
-    /// The ID of the Google Sheets spreadsheet that contains the source chart.
-    #[serde(default, rename = "spreadsheetId")]
-    pub spreadsheet_id: ::core::option::Option<String>,
-}
-
-/// A mask that indicates which of the fields on the base SheetsChartReference have been changed in this suggestion. For any field set to true, there''s a new suggested value.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SheetsChartReferenceSuggestionState {
-    /// Indicates if there was a suggested change to chart_id.
-    #[serde(default, rename = "chartIdSuggested")]
-    pub chart_id_suggested: ::core::option::Option<bool>,
-    /// Indicates if there was a suggested change to spreadsheet_id.
-    #[serde(default, rename = "spreadsheetIdSuggested")]
-    pub spreadsheet_id_suggested: ::core::option::Option<bool>,
-}
-
-/// A width and height.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Size {
-    /// The height of the object.
-    #[serde(default)]
-    pub height: ::core::option::Option<Dimension>,
-    /// The width of the object.
-    #[serde(default)]
-    pub width: ::core::option::Option<Dimension>,
-}
-
-/// A mask that indicates which of the fields on the base Size have been changed in this suggestion. For any field set to true, the Size has a new suggested value.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SizeSuggestionState {
-    /// Indicates if there was a suggested change to height.
-    #[serde(default, rename = "heightSuggested")]
-    pub height_suggested: ::core::option::Option<bool>,
-    /// Indicates if there was a suggested change to width.
-    #[serde(default, rename = "widthSuggested")]
-    pub width_suggested: ::core::option::Option<bool>,
-}
-
 /// A StructuralElement describes content that provides structure to the document.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct StructuralElement {
@@ -2189,181 +2624,6 @@ pub struct StructuralElement {
     /// A table of contents type of structural element.
     #[serde(default, rename = "tableOfContents")]
     pub table_of_contents: ::core::option::Option<TableOfContents>,
-}
-
-/// A criteria that matches a specific string of text in the document.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SubstringMatchCriteria {
-    /// Indicates whether the search should respect case: - True: the search is case sensitive. - False: the search is case insensitive.
-    #[serde(default, rename = "matchCase")]
-    pub match_case: ::core::option::Option<bool>,
-    /// Optional. True if the find value should be treated as a regular expression. Any backslashes in the pattern should be escaped. - True: the search text is treated as a regular expressions. - False: the search text is treated as a substring for matching.
-    #[serde(default, rename = "searchByRegex")]
-    pub search_by_regex: ::core::option::Option<bool>,
-    /// The text to search for in the document.
-    #[serde(default)]
-    pub text: ::core::option::Option<String>,
-}
-
-/// A suggested change to a Bullet.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SuggestedBullet {
-    /// A Bullet that only includes the changes made in this suggestion. This can be used along with the bullet_suggestion_state to see which fields have changed and their new values.
-    #[serde(default)]
-    pub bullet: ::core::option::Option<Bullet>,
-    /// A mask that indicates which of the fields on the base Bullet have been changed in this suggestion.
-    #[serde(default, rename = "bulletSuggestionState")]
-    pub bullet_suggestion_state: ::core::option::Option<BulletSuggestionState>,
-}
-
-/// A suggested change to a DateElementProperties.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SuggestedDateElementProperties {
-    /// DateElementProperties that only includes the changes made in this suggestion. This can be used along with the date_element_properties_suggestion_state to see which fields have changed and their new values.
-    #[serde(default, rename = "dateElementProperties")]
-    pub date_element_properties: ::core::option::Option<DateElementProperties>,
-    /// A mask that indicates which of the fields on the base DateElementProperties have been changed in this suggestion.
-    #[serde(default, rename = "dateElementPropertiesSuggestionState")]
-    pub date_element_properties_suggestion_state:
-        ::core::option::Option<DateElementPropertiesSuggestionState>,
-}
-
-/// A suggested change to the DocumentStyle.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SuggestedDocumentStyle {
-    /// A DocumentStyle that only includes the changes made in this suggestion. This can be used along with the document_style_suggestion_state to see which fields have changed and their new values.
-    #[serde(default, rename = "documentStyle")]
-    pub document_style: ::core::option::Option<DocumentStyle>,
-    /// A mask that indicates which of the fields on the base DocumentStyle have been changed in this suggestion.
-    #[serde(default, rename = "documentStyleSuggestionState")]
-    pub document_style_suggestion_state: ::core::option::Option<DocumentStyleSuggestionState>,
-}
-
-/// A suggested change to InlineObjectProperties.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SuggestedInlineObjectProperties {
-    /// An InlineObjectProperties that only includes the changes made in this suggestion. This can be used along with the inline_object_properties_suggestion_state to see which fields have changed and their new values.
-    #[serde(default, rename = "inlineObjectProperties")]
-    pub inline_object_properties: ::core::option::Option<InlineObjectProperties>,
-    /// A mask that indicates which of the fields on the base InlineObjectProperties have been changed in this suggestion.
-    #[serde(default, rename = "inlineObjectPropertiesSuggestionState")]
-    pub inline_object_properties_suggestion_state:
-        ::core::option::Option<InlineObjectPropertiesSuggestionState>,
-}
-
-/// A suggested change to ListProperties.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SuggestedListProperties {
-    /// A ListProperties that only includes the changes made in this suggestion. This can be used along with the list_properties_suggestion_state to see which fields have changed and their new values.
-    #[serde(default, rename = "listProperties")]
-    pub list_properties: ::core::option::Option<ListProperties>,
-    /// A mask that indicates which of the fields on the base ListProperties have been changed in this suggestion.
-    #[serde(default, rename = "listPropertiesSuggestionState")]
-    pub list_properties_suggestion_state: ::core::option::Option<ListPropertiesSuggestionState>,
-}
-
-/// A suggested change to the NamedStyles.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SuggestedNamedStyles {
-    /// A NamedStyles that only includes the changes made in this suggestion. This can be used along with the named_styles_suggestion_state to see which fields have changed and their new values.
-    #[serde(default, rename = "namedStyles")]
-    pub named_styles: ::core::option::Option<NamedStyles>,
-    /// A mask that indicates which of the fields on the base NamedStyles have been changed in this suggestion.
-    #[serde(default, rename = "namedStylesSuggestionState")]
-    pub named_styles_suggestion_state: ::core::option::Option<NamedStylesSuggestionState>,
-}
-
-/// A suggested change to a ParagraphStyle.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SuggestedParagraphStyle {
-    /// A ParagraphStyle that only includes the changes made in this suggestion. This can be used along with the paragraph_style_suggestion_state to see which fields have changed and their new values.
-    #[serde(default, rename = "paragraphStyle")]
-    pub paragraph_style: ::core::option::Option<ParagraphStyle>,
-    /// A mask that indicates which of the fields on the base ParagraphStyle have been changed in this suggestion.
-    #[serde(default, rename = "paragraphStyleSuggestionState")]
-    pub paragraph_style_suggestion_state: ::core::option::Option<ParagraphStyleSuggestionState>,
-}
-
-/// A suggested change to PositionedObjectProperties.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SuggestedPositionedObjectProperties {
-    /// A PositionedObjectProperties that only includes the changes made in this suggestion. This can be used along with the positioned_object_properties_suggestion_state to see which fields have changed and their new values.
-    #[serde(default, rename = "positionedObjectProperties")]
-    pub positioned_object_properties: ::core::option::Option<PositionedObjectProperties>,
-    /// A mask that indicates which of the fields on the base PositionedObjectProperties have been changed in this suggestion.
-    #[serde(default, rename = "positionedObjectPropertiesSuggestionState")]
-    pub positioned_object_properties_suggestion_state:
-        ::core::option::Option<PositionedObjectPropertiesSuggestionState>,
-}
-
-/// A suggested change to a TableCellStyle.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SuggestedTableCellStyle {
-    /// A TableCellStyle that only includes the changes made in this suggestion. This can be used along with the table_cell_style_suggestion_state to see which fields have changed and their new values.
-    #[serde(default, rename = "tableCellStyle")]
-    pub table_cell_style: ::core::option::Option<TableCellStyle>,
-    /// A mask that indicates which of the fields on the base TableCellStyle have been changed in this suggestion.
-    #[serde(default, rename = "tableCellStyleSuggestionState")]
-    pub table_cell_style_suggestion_state: ::core::option::Option<TableCellStyleSuggestionState>,
-}
-
-/// A suggested change to a TableRowStyle.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SuggestedTableRowStyle {
-    /// A TableRowStyle that only includes the changes made in this suggestion. This can be used along with the table_row_style_suggestion_state to see which fields have changed and their new values.
-    #[serde(default, rename = "tableRowStyle")]
-    pub table_row_style: ::core::option::Option<TableRowStyle>,
-    /// A mask that indicates which of the fields on the base TableRowStyle have been changed in this suggestion.
-    #[serde(default, rename = "tableRowStyleSuggestionState")]
-    pub table_row_style_suggestion_state: ::core::option::Option<TableRowStyleSuggestionState>,
-}
-
-/// A suggested change to a TextStyle.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SuggestedTextStyle {
-    /// A TextStyle that only includes the changes made in this suggestion. This can be used along with the text_style_suggestion_state to see which fields have changed and their new values.
-    #[serde(default, rename = "textStyle")]
-    pub text_style: ::core::option::Option<TextStyle>,
-    /// A mask that indicates which of the fields on the base TextStyle have been changed in this suggestion.
-    #[serde(default, rename = "textStyleSuggestionState")]
-    pub text_style_suggestion_state: ::core::option::Option<TextStyleSuggestionState>,
-}
-
-/// A tab in a document.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Tab {
-    /// The child tabs nested within this tab.
-    #[serde(default, rename = "childTabs")]
-    pub child_tabs: ::core::option::Option<::std::vec::Vec<Tab>>,
-    /// A tab with document contents, like text and images.
-    #[serde(default, rename = "documentTab")]
-    pub document_tab: ::core::option::Option<DocumentTab>,
-    /// The properties of the tab, like ID and title.
-    #[serde(default, rename = "tabProperties")]
-    pub tab_properties: ::core::option::Option<TabProperties>,
-}
-
-/// Properties of a tab.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct TabProperties {
-    /// Optional. The emoji icon displayed with the tab. A valid emoji icon is represented by a non-empty Unicode string. Any set of characters that don''t represent a single emoji is invalid. If an emoji is invalid, a 400 bad request error is returned. If this value is unset or empty, the tab will display the default tab icon.
-    #[serde(default, rename = "iconEmoji")]
-    pub icon_emoji: ::core::option::Option<String>,
-    /// The zero-based index of the tab within the parent.
-    #[serde(default)]
-    pub index: ::core::option::Option<i32>,
-    /// Output only. The depth of the tab within the document. Root-level tabs start at 0.
-    #[serde(default, rename = "nestingLevel")]
-    pub nesting_level: ::core::option::Option<i32>,
-    /// Optional. The ID of the parent tab. Empty when the current tab is a root-level tab, which means it doesn''t have any parents.
-    #[serde(default, rename = "parentTabId")]
-    pub parent_tab_id: ::core::option::Option<String>,
-    /// The immutable ID of the tab.
-    #[serde(default, rename = "tabId")]
-    pub tab_id: ::core::option::Option<String>,
-    /// The user-visible name of the tab.
-    #[serde(default)]
-    pub title: ::core::option::Option<String>,
 }
 
 /// A tab stop within a paragraph.
@@ -2440,20 +2700,6 @@ pub struct TableCellBorder {
     pub width: ::core::option::Option<Dimension>,
 }
 
-/// Location of a single cell within a table.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct TableCellLocation {
-    /// The zero-based column index. For example, the second column in the table has a column index of 1.
-    #[serde(default, rename = "columnIndex")]
-    pub column_index: ::core::option::Option<i32>,
-    /// The zero-based row index. For example, the second row in the table has a row index of 1.
-    #[serde(default, rename = "rowIndex")]
-    pub row_index: ::core::option::Option<i32>,
-    /// The location where the table starts in the document.
-    #[serde(default, rename = "tableStartLocation")]
-    pub table_start_location: ::core::option::Option<Location>,
-}
-
 /// The style of a TableCell. Inherited table cell styles are represented as unset fields in this message. A table cell style can inherit from the table''s style.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TableCellStyle {
@@ -2495,47 +2741,6 @@ pub struct TableCellStyle {
     pub row_span: ::core::option::Option<i32>,
 }
 
-/// A mask that indicates which of the fields on the base TableCellStyle have been changed in this suggestion. For any field set to true, there''s a new suggested value.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct TableCellStyleSuggestionState {
-    /// Indicates if there was a suggested change to background_color.
-    #[serde(default, rename = "backgroundColorSuggested")]
-    pub background_color_suggested: ::core::option::Option<bool>,
-    /// Indicates if there was a suggested change to border_bottom.
-    #[serde(default, rename = "borderBottomSuggested")]
-    pub border_bottom_suggested: ::core::option::Option<bool>,
-    /// Indicates if there was a suggested change to border_left.
-    #[serde(default, rename = "borderLeftSuggested")]
-    pub border_left_suggested: ::core::option::Option<bool>,
-    /// Indicates if there was a suggested change to border_right.
-    #[serde(default, rename = "borderRightSuggested")]
-    pub border_right_suggested: ::core::option::Option<bool>,
-    /// Indicates if there was a suggested change to border_top.
-    #[serde(default, rename = "borderTopSuggested")]
-    pub border_top_suggested: ::core::option::Option<bool>,
-    /// Indicates if there was a suggested change to column_span.
-    #[serde(default, rename = "columnSpanSuggested")]
-    pub column_span_suggested: ::core::option::Option<bool>,
-    /// Indicates if there was a suggested change to content_alignment.
-    #[serde(default, rename = "contentAlignmentSuggested")]
-    pub content_alignment_suggested: ::core::option::Option<bool>,
-    /// Indicates if there was a suggested change to padding_bottom.
-    #[serde(default, rename = "paddingBottomSuggested")]
-    pub padding_bottom_suggested: ::core::option::Option<bool>,
-    /// Indicates if there was a suggested change to padding_left.
-    #[serde(default, rename = "paddingLeftSuggested")]
-    pub padding_left_suggested: ::core::option::Option<bool>,
-    /// Indicates if there was a suggested change to padding_right.
-    #[serde(default, rename = "paddingRightSuggested")]
-    pub padding_right_suggested: ::core::option::Option<bool>,
-    /// Indicates if there was a suggested change to padding_top.
-    #[serde(default, rename = "paddingTopSuggested")]
-    pub padding_top_suggested: ::core::option::Option<bool>,
-    /// Indicates if there was a suggested change to row_span.
-    #[serde(default, rename = "rowSpanSuggested")]
-    pub row_span_suggested: ::core::option::Option<bool>,
-}
-
 /// The properties of a column in a table.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TableColumnProperties {
@@ -2559,20 +2764,6 @@ pub struct TableOfContents {
     /// The suggested insertion IDs. A TableOfContents may have multiple insertion IDs if it is a nested suggested change. If empty, then this is not a suggested insertion.
     #[serde(default, rename = "suggestedInsertionIds")]
     pub suggested_insertion_ids: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// A table range represents a reference to a subset of a table. It''s important to note that the cells specified by a table range do not necessarily form a rectangle. For example, let''s say we have a 3 x 3 table where all the cells of the last row are merged together. The table looks like this: [ ] A table range with table cell location = (table_start_location, row = 0, column = 0), row span = 3 and column span = 2 specifies the following cells: x x [ x x x ]
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct TableRange {
-    /// The column span of the table range.
-    #[serde(default, rename = "columnSpan")]
-    pub column_span: ::core::option::Option<i32>,
-    /// The row span of the table range.
-    #[serde(default, rename = "rowSpan")]
-    pub row_span: ::core::option::Option<i32>,
-    /// The cell location where the table range starts.
-    #[serde(default, rename = "tableCellLocation")]
-    pub table_cell_location: ::core::option::Option<TableCellLocation>,
 }
 
 /// The contents and style of a row in a Table.
@@ -2615,28 +2806,12 @@ pub struct TableRowStyle {
     pub table_header: ::core::option::Option<bool>,
 }
 
-/// A mask that indicates which of the fields on the base TableRowStyle have been changed in this suggestion. For any field set to true, there''s a new suggested value.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct TableRowStyleSuggestionState {
-    /// Indicates if there was a suggested change to min_row_height.
-    #[serde(default, rename = "minRowHeightSuggested")]
-    pub min_row_height_suggested: ::core::option::Option<bool>,
-}
-
 /// Styles that apply to a table.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TableStyle {
     /// The properties of each column. Note that in Docs, tables contain rows and rows contain cells, similar to HTML. So the properties for a row can be found on the row''s table_row_style.
     #[serde(default, rename = "tableColumnProperties")]
     pub table_column_properties: ::core::option::Option<::std::vec::Vec<TableColumnProperties>>,
-}
-
-/// A criteria that specifies in which tabs a request executes.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct TabsCriteria {
-    /// The list of tab IDs in which the request executes.
-    #[serde(default, rename = "tabIds")]
-    pub tab_ids: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// A ParagraphElement that represents a run of text that all has the same styling.
@@ -2697,170 +2872,6 @@ pub struct TextStyle {
     pub weighted_font_family: ::core::option::Option<WeightedFontFamily>,
 }
 
-/// A mask that indicates which of the fields on the base TextStyle have been changed in this suggestion. For any field set to true, there''s a new suggested value.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct TextStyleSuggestionState {
-    /// Indicates if there was a suggested change to background_color.
-    #[serde(default, rename = "backgroundColorSuggested")]
-    pub background_color_suggested: ::core::option::Option<bool>,
-    /// Indicates if there was a suggested change to baseline_offset.
-    #[serde(default, rename = "baselineOffsetSuggested")]
-    pub baseline_offset_suggested: ::core::option::Option<bool>,
-    /// Indicates if there was a suggested change to bold.
-    #[serde(default, rename = "boldSuggested")]
-    pub bold_suggested: ::core::option::Option<bool>,
-    /// Indicates if there was a suggested change to font_size.
-    #[serde(default, rename = "fontSizeSuggested")]
-    pub font_size_suggested: ::core::option::Option<bool>,
-    /// Indicates if there was a suggested change to foreground_color.
-    #[serde(default, rename = "foregroundColorSuggested")]
-    pub foreground_color_suggested: ::core::option::Option<bool>,
-    /// Indicates if there was a suggested change to italic.
-    #[serde(default, rename = "italicSuggested")]
-    pub italic_suggested: ::core::option::Option<bool>,
-    /// Indicates if there was a suggested change to link.
-    #[serde(default, rename = "linkSuggested")]
-    pub link_suggested: ::core::option::Option<bool>,
-    /// Indicates if there was a suggested change to small_caps.
-    #[serde(default, rename = "smallCapsSuggested")]
-    pub small_caps_suggested: ::core::option::Option<bool>,
-    /// Indicates if there was a suggested change to strikethrough.
-    #[serde(default, rename = "strikethroughSuggested")]
-    pub strikethrough_suggested: ::core::option::Option<bool>,
-    /// Indicates if there was a suggested change to underline.
-    #[serde(default, rename = "underlineSuggested")]
-    pub underline_suggested: ::core::option::Option<bool>,
-    /// Indicates if there was a suggested change to weighted_font_family.
-    #[serde(default, rename = "weightedFontFamilySuggested")]
-    pub weighted_font_family_suggested: ::core::option::Option<bool>,
-}
-
-/// Unmerges cells in a Table.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct UnmergeTableCellsRequest {
-    /// The table range specifying which cells of the table to unmerge. All merged cells in this range will be unmerged, and cells that are already unmerged will not be affected. If the range has no merged cells, the request will do nothing. If there is text in any of the merged cells, the text will remain in the "head" cell of the resulting block of unmerged cells. The "head" cell is the upper-left cell when the content direction is from left to right, and the upper-right otherwise.
-    #[serde(default, rename = "tableRange")]
-    pub table_range: ::core::option::Option<TableRange>,
-}
-
-/// Updates the DocumentStyle.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct UpdateDocumentStyleRequest {
-    /// The styles to set on the document. Certain document style changes may cause other changes in order to mirror the behavior of the Docs editor. See the documentation of DocumentStyle for more information.
-    #[serde(default, rename = "documentStyle")]
-    pub document_style: ::core::option::Option<DocumentStyle>,
-    /// The fields that should be updated. At least one field must be specified. The root document_style is implied and should not be specified. A single "*" can be used as short-hand for listing every field. For example to update the background, set fields to "background".
-    #[serde(default)]
-    pub fields: ::core::option::Option<String>,
-    /// The tab that contains the style to update. When omitted, the request applies to the first tab. In a document containing a single tab: - If provided, must match the singular tab''s ID. - If omitted, the request applies to the singular tab. In a document containing multiple tabs: - If provided, the request applies to the specified tab. - If not provided, the request applies to the first tab in the document.
-    #[serde(default, rename = "tabId")]
-    pub tab_id: ::core::option::Option<String>,
-}
-
-/// Update the properties of a document tab.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct UpdateDocumentTabPropertiesRequest {
-    /// The fields that should be updated. At least one field must be specified. The root tab_properties is implied and should not be specified. A single "*" can be used as short-hand for listing every field.
-    #[serde(default)]
-    pub fields: ::core::option::Option<String>,
-    /// The tab properties to update.
-    #[serde(default, rename = "tabProperties")]
-    pub tab_properties: ::core::option::Option<TabProperties>,
-}
-
-/// Update the styling of all paragraphs that overlap with the given range.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct UpdateParagraphStyleRequest {
-    /// The fields that should be updated. At least one field must be specified. The root paragraph_style is implied and should not be specified. A single "*" can be used as short-hand for listing every field. For example, to update the paragraph style''s alignment property, set fields to "alignment". To reset a property to its default value, include its field name in the field mask but leave the field itself unset.
-    #[serde(default)]
-    pub fields: ::core::option::Option<String>,
-    /// The styles to set on the paragraphs. Certain paragraph style changes may cause other changes in order to mirror the behavior of the Docs editor. See the documentation of ParagraphStyle for more information.
-    #[serde(default, rename = "paragraphStyle")]
-    pub paragraph_style: ::core::option::Option<ParagraphStyle>,
-    /// The range overlapping the paragraphs to style.
-    #[serde(default)]
-    pub range: ::core::option::Option<Range>,
-}
-
-/// Updates the SectionStyle.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct UpdateSectionStyleRequest {
-    /// The fields that should be updated. At least one field must be specified. The root section_style is implied and must not be specified. A single "*" can be used as short-hand for listing every field. For example to update the left margin, set fields to "margin_left".
-    #[serde(default)]
-    pub fields: ::core::option::Option<String>,
-    /// The range overlapping the sections to style. Because section breaks can only be inserted inside the body, the segment ID field must be empty.
-    #[serde(default)]
-    pub range: ::core::option::Option<Range>,
-    /// The styles to be set on the section. Certain section style changes may cause other changes in order to mirror the behavior of the Docs editor. See the documentation of SectionStyle for more information.
-    #[serde(default, rename = "sectionStyle")]
-    pub section_style: ::core::option::Option<SectionStyle>,
-}
-
-/// Updates the style of a range of table cells.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct UpdateTableCellStyleRequest {
-    /// The fields that should be updated. At least one field must be specified. The root tableCellStyle is implied and should not be specified. A single "*" can be used as short-hand for listing every field. For example to update the table cell background color, set fields to "backgroundColor". To reset a property to its default value, include its field name in the field mask but leave the field itself unset.
-    #[serde(default)]
-    pub fields: ::core::option::Option<String>,
-    /// The style to set on the table cells. When updating borders, if a cell shares a border with an adjacent cell, the corresponding border property of the adjacent cell is updated as well. Borders that are merged and invisible are not updated. Since updating a border shared by adjacent cells in the same request can cause conflicting border updates, border updates are applied in the following order: - border_right - border_left - border_bottom - border_top
-    #[serde(default, rename = "tableCellStyle")]
-    pub table_cell_style: ::core::option::Option<TableCellStyle>,
-    /// The table range representing the subset of the table to which the updates are applied.
-    #[serde(default, rename = "tableRange")]
-    pub table_range: ::core::option::Option<TableRange>,
-    /// The location where the table starts in the document. When specified, the updates are applied to all the cells in the table.
-    #[serde(default, rename = "tableStartLocation")]
-    pub table_start_location: ::core::option::Option<Location>,
-}
-
-/// Updates the TableColumnProperties of columns in a table.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct UpdateTableColumnPropertiesRequest {
-    /// The list of zero-based column indices whose property should be updated. If no indices are specified, all columns will be updated.
-    #[serde(default, rename = "columnIndices")]
-    pub column_indices: ::core::option::Option<::std::vec::Vec<i32>>,
-    /// The fields that should be updated. At least one field must be specified. The root tableColumnProperties is implied and should not be specified. A single "*" can be used as short-hand for listing every field. For example to update the column width, set fields to "width".
-    #[serde(default)]
-    pub fields: ::core::option::Option<String>,
-    /// The table column properties to update. If the value of table_column_properties#width is less than 5 points (5/72 inch), a 400 bad request error is returned.
-    #[serde(default, rename = "tableColumnProperties")]
-    pub table_column_properties: ::core::option::Option<TableColumnProperties>,
-    /// The location where the table starts in the document.
-    #[serde(default, rename = "tableStartLocation")]
-    pub table_start_location: ::core::option::Option<Location>,
-}
-
-/// Updates the TableRowStyle of rows in a table.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct UpdateTableRowStyleRequest {
-    /// The fields that should be updated. At least one field must be specified. The root tableRowStyle is implied and should not be specified. A single "*" can be used as short-hand for listing every field. For example to update the minimum row height, set fields to "min_row_height".
-    #[serde(default)]
-    pub fields: ::core::option::Option<String>,
-    /// The list of zero-based row indices whose style should be updated. If no indices are specified, all rows will be updated.
-    #[serde(default, rename = "rowIndices")]
-    pub row_indices: ::core::option::Option<::std::vec::Vec<i32>>,
-    /// The styles to be set on the rows.
-    #[serde(default, rename = "tableRowStyle")]
-    pub table_row_style: ::core::option::Option<TableRowStyle>,
-    /// The location where the table starts in the document.
-    #[serde(default, rename = "tableStartLocation")]
-    pub table_start_location: ::core::option::Option<Location>,
-}
-
-/// Update the styling of text.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct UpdateTextStyleRequest {
-    /// The fields that should be updated. At least one field must be specified. The root text_style is implied and should not be specified. A single "*" can be used as short-hand for listing every field. For example, to update the text style to bold, set fields to "bold". To reset a property to its default value, include its field name in the field mask but leave the field itself unset.
-    #[serde(default)]
-    pub fields: ::core::option::Option<String>,
-    /// The range of text to style. The range may be extended to include adjacent newlines. If the range fully contains a paragraph belonging to a list, the paragraph''s bullet is also updated with the matching text style. Ranges cannot be inserted inside a relative UpdateTextStyleRequest.
-    #[serde(default)]
-    pub range: ::core::option::Option<Range>,
-    /// The styles to set on the text. If the value for a particular style matches that of the parent, that style will be set to inherit. Certain text style changes may cause other changes in order to to mirror the behavior of the Docs editor. See the documentation of TextStyle for more information.
-    #[serde(default, rename = "textStyle")]
-    pub text_style: ::core::option::Option<TextStyle>,
-}
-
 /// Represents a font family and weight of text.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct WeightedFontFamily {
@@ -2870,15 +2881,4 @@ pub struct WeightedFontFamily {
     /// The weight of the font. This field can have any value that''s a multiple of 100 between 100 and 900, inclusive. This range corresponds to the numerical values described in the CSS 2.1 Specification, [section 15.6](https://www.w3.org/TR/CSS21/fonts.html#font-boldness), with non-numerical values disallowed. The default value is 400 ("normal"). The font weight makes up just one component of the rendered font weight. A combination of the weight and the text style''s resolved bold value determine the rendered weight, after accounting for inheritance: * If the text is bold and the weight is less than 400, the rendered weight is 400. * If the text is bold and the weight is greater than or equal to 400 but is less than 700, the rendered weight is 700. * If the weight is greater than or equal to 700, the rendered weight is equal to the weight. * If the text is not bold, the rendered weight is equal to the weight.
     #[serde(default)]
     pub weight: ::core::option::Option<i32>,
-}
-
-/// Provides control over how write requests are executed.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct WriteControl {
-    /// The optional revision ID of the document the write request is applied to. If this is not the latest revision of the document, the request is not processed and returns a 400 bad request error. When a required revision ID is returned in a response, it indicates the revision ID of the document after the request was applied.
-    #[serde(default, rename = "requiredRevisionId")]
-    pub required_revision_id: ::core::option::Option<String>,
-    /// The optional target revision ID of the document the write request is applied to. If collaborator changes have occurred after the document was read using the API, the changes produced by this write request are applied against the collaborator changes. This results in a new revision of the document that incorporates both the collaborator changes and the changes in the request, with the Docs server resolving conflicting changes. When using target revision ID, the API client can be thought of as another collaborator of the document. The target revision ID can only be used to write to recent versions of a document. If the target revision is too far behind the latest revision, the request is not processed and returns a 400 bad request error. The request should be tried again after retrieving the latest version of the document. Usually a revision ID remains valid for use as a target revision for several minutes after it''s read, but for frequently edited documents this window might be shorter.
-    #[serde(default, rename = "targetRevisionId")]
-    pub target_revision_id: ::core::option::Option<String>,
 }

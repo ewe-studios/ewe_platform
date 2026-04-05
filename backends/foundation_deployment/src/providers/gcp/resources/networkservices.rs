@@ -10,934 +10,6 @@
 use super::*;
 use serde::{Deserialize, Serialize};
 
-/// Specifies the audit configuration for a service. The configuration determines which permission types are logged, and what identities, if any, are exempted from logging. An AuditConfig must have one or more AuditLogConfigs. If there are AuditConfigs for both allServices and a specific service, the union of the two AuditConfigs is used for that service: the log_types specified in each AuditConfig are enabled, and the exempted_members in each AuditLogConfig are exempted. Example Policy with multiple AuditConfigs: { "audit_configs": [ { "service": "allServices", "audit_log_configs": [ { "log_type": "DATA_READ", "exempted_members": [ "user:jose@example.com" ] }, { "log_type": "DATA_WRITE" }, { "log_type": "ADMIN_READ" } ] }, { "service": "sampleservice.googleapis.com", "audit_log_configs": [ { "log_type": "DATA_READ" }, { "log_type": "DATA_WRITE", "exempted_members": [ "user:aliya@example.com" ] } ] } ] } For sampleservice, this policy enables DATA_READ, DATA_WRITE and ADMIN_READ logging. It also exempts jose@example.com from DATA_READ logging, and aliya@example.com from DATA_WRITE logging.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AuditConfig {
-    /// The configuration for logging of each type of permission.
-    #[serde(default, rename = "auditLogConfigs")]
-    pub audit_log_configs: ::core::option::Option<::std::vec::Vec<AuditLogConfig>>,
-    /// Specifies a service that will be enabled for audit logging. For example, storage.googleapis.com, cloudsql.googleapis.com. allServices is a special value that covers all services.
-    #[serde(default)]
-    pub service: ::core::option::Option<String>,
-}
-
-/// Provides the configuration for logging a type of permissions. Example: { "audit_log_configs": [ { "log_type": "DATA_READ", "exempted_members": [ "user:jose@example.com" ] }, { "log_type": "DATA_WRITE" } ] } This enables ''DATA_READ'' and ''DATA_WRITE'' logging, while exempting jose@example.com from DATA_READ logging.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AuditLogConfig {
-    /// Specifies the identities that do not cause logging for this type of permission. Follows the same format of Binding.members.
-    #[serde(default, rename = "exemptedMembers")]
-    pub exempted_members: ::core::option::Option<::std::vec::Vec<String>>,
-    /// The log type that this config enables. // TODO: enum values: ["LOG_TYPE_UNSPECIFIED", "ADMIN_READ", "DATA_WRITE", "DATA_READ"]
-    #[serde(default, rename = "logType")]
-    pub log_type: ::core::option::Option<String>,
-}
-
-/// AuthzExtension is a resource that allows traffic forwarding to a callout backend service to make an authorization decision.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AuthzExtension {
-    /// Optional. The :authority header in the gRPC request sent from Envoy to the extension service. It is required when the service field points to a backend service or a wasm plugin.
-    #[serde(default)]
-    pub authority: ::core::option::Option<String>,
-    /// Output only. The timestamp when the resource was created.
-    #[serde(default, rename = "createTime")]
-    pub create_time: ::core::option::Option<String>,
-    /// Optional. A human-readable description of the resource.
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// Optional. Determines how the proxy behaves if the call to the extension fails or times out. When set to TRUE, request or response processing continues without error. Any subsequent extensions in the extension chain are also executed. When set to FALSE or the default setting of FALSE is used, one of the following happens: * If response headers have not been delivered to the downstream client, a generic 500 error is returned to the client. The error response can be tailored by configuring a custom error response in the load balancer. * If response headers have been delivered, then the HTTP stream to the downstream client is reset.
-    #[serde(default, rename = "failOpen")]
-    pub fail_open: ::core::option::Option<bool>,
-    /// Optional. List of the Envoy attributes to forward to the extension server. The attributes provided here are included as part of the ProcessingRequest.attributes field (of type map), where the keys are the attribute names. Refer to the [documentation](https://cloud.google.com/service-extensions/docs/cel-matcher-language-reference#attributes) for the names of attributes that can be forwarded. If omitted, no attributes are sent. Each element is a string indicating the attribute name.
-    #[serde(default, rename = "forwardAttributes")]
-    pub forward_attributes: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Optional. List of the HTTP headers to forward to the extension (from the client). If omitted, all headers are sent. Each element is a string indicating the header name.
-    #[serde(default, rename = "forwardHeaders")]
-    pub forward_headers: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Optional. Set of labels associated with the AuthzExtension resource. The format must comply with [the requirements for labels](/compute/docs/labeling-resources#requirements) for Google Cloud resources.
-    #[serde(default)]
-    pub labels: ::core::option::Option<serde_json::Value>,
-    /// Optional. All backend services and forwarding rules referenced by this extension must share the same load balancing scheme. Supported values: INTERNAL_MANAGED, EXTERNAL_MANAGED. Can be omitted for AuthzExtensions that do not reference a backend service. For more information, refer to [Backend services overview](https://cloud.google.com/load-balancing/docs/backend-service). // TODO: enum values: ["LOAD_BALANCING_SCHEME_UNSPECIFIED", "INTERNAL_MANAGED", "EXTERNAL_MANAGED"]
-    #[serde(default, rename = "loadBalancingScheme")]
-    pub load_balancing_scheme: ::core::option::Option<String>,
-    /// Optional. The metadata provided here is included as part of the metadata_context (of type google.protobuf.Struct) in the ProcessingRequest message sent to the extension server. The metadata is available under the namespace com.google.authz_extension.. The following variables are supported in the metadata Struct: {forwarding_rule_id} - substituted with the forwarding rule''s fully qualified resource name.
-    #[serde(default)]
-    pub metadata: ::core::option::Option<serde_json::Value>,
-    /// Required. Identifier. Name of the AuthzExtension resource in the following format: projects/{project}/locations/{location}/authzExtensions/{authz_extension}.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Required. The reference to the service that runs the extension. To configure a callout extension, service must be a fully-qualified reference to a [backend service](https://cloud.google.com/compute/docs/reference/rest/v1/backendServices) in the format: https://www.googleapis.com/compute/v1/projects/{project}/regions/{region}/backendServices/{backendService} or https://www.googleapis.com/compute/v1/projects/{project}/global/backendServices/{backendService}.
-    #[serde(default)]
-    pub service: ::core::option::Option<String>,
-    /// Required. Specifies the timeout for each individual message on the stream. The timeout must be between 10-10000 milliseconds.
-    #[serde(default)]
-    pub timeout: ::core::option::Option<String>,
-    /// Output only. The timestamp when the resource was updated.
-    #[serde(default, rename = "updateTime")]
-    pub update_time: ::core::option::Option<String>,
-    /// Optional. The format of communication supported by the callout extension. This field is supported only for regional AuthzExtension resources. If not specified, the default value EXT_PROC_GRPC is used. Global AuthzExtension resources use the EXT_PROC_GRPC wire format. // TODO: enum values: ["WIRE_FORMAT_UNSPECIFIED", "EXT_PROC_GRPC", "EXT_AUTHZ_GRPC"]
-    #[serde(default, rename = "wireFormat")]
-    pub wire_format: ::core::option::Option<String>,
-}
-
-/// Associates members, or principals, with a role.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Binding {
-    /// The condition that is associated with this binding. If the condition evaluates to true, then this binding applies to the current request. If the condition evaluates to false, then this binding does not apply to the current request. However, a different role binding might grant the same role to one or more of the principals in this binding. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies).
-    #[serde(default)]
-    pub condition: ::core::option::Option<Expr>,
-    /// Specifies the principals requesting access for a Google Cloud resource. members can have the following values: * allUsers: A special identifier that represents anyone who is on the internet; with or without a Google account. * allAuthenticatedUsers: A special identifier that represents anyone who is authenticated with a Google account or a service account. Does not include identities that come from external identity providers (IdPs) through identity federation. * user:{emailid}: An email address that represents a specific Google account. For example, alice@example.com . * serviceAccount:{emailid}: An email address that represents a Google service account. For example, my-other-app@appspot.gserviceaccount.com. * serviceAccount:{projectid}.svc.id.goog[{namespace}/{kubernetes-sa}]: An identifier for a [Kubernetes service account](https://cloud.google.com/kubernetes-engine/docs/how-to/kubernetes-service-accounts). For example, my-project.svc.id.goog[my-namespace/my-kubernetes-sa]. * group:{emailid}: An email address that represents a Google group. For example, admins@example.com. * domain:{domain}: The G Suite domain (primary) that represents all the users of that domain. For example, google.com or example.com. * principal://iam.googleapis.com/locations/global/workforcePools/{pool_id}/subject/{subject_attribute_value}: A single identity in a workforce identity pool. * principalSet://iam.googleapis.com/locations/global/workforcePools/{pool_id}/group/{group_id}: All workforce identities in a group. * principalSet://iam.googleapis.com/locations/global/workforcePools/{pool_id}/attribute.{attribute_name}/{attribute_value}: All workforce identities with a specific attribute value. * principalSet://iam.googleapis.com/locations/global/workforcePools/{pool_id}/*: All identities in a workforce identity pool. * principal://iam.googleapis.com/projects/{project_number}/locations/global/workloadIdentityPools/{pool_id}/subject/{subject_attribute_value}: A single identity in a workload identity pool. * principalSet://iam.googleapis.com/projects/{project_number}/locations/global/workloadIdentityPools/{pool_id}/group/{group_id}: A workload identity pool group. * principalSet://iam.googleapis.com/projects/{project_number}/locations/global/workloadIdentityPools/{pool_id}/attribute.{attribute_name}/{attribute_value}: All identities in a workload identity pool with a certain attribute. * principalSet://iam.googleapis.com/projects/{project_number}/locations/global/workloadIdentityPools/{pool_id}/*: All identities in a workload identity pool. * deleted:user:{emailid}?uid={uniqueid}: An email address (plus unique identifier) representing a user that has been recently deleted. For example, alice@example.com?uid=123456789012345678901. If the user is recovered, this value reverts to user:{emailid} and the recovered user retains the role in the binding. * deleted:serviceAccount:{emailid}?uid={uniqueid}: An email address (plus unique identifier) representing a service account that has been recently deleted. For example, my-other-app@appspot.gserviceaccount.com?uid=123456789012345678901. If the service account is undeleted, this value reverts to serviceAccount:{emailid} and the undeleted service account retains the role in the binding. * deleted:group:{emailid}?uid={uniqueid}: An email address (plus unique identifier) representing a Google group that has been recently deleted. For example, admins@example.com?uid=123456789012345678901. If the group is recovered, this value reverts to group:{emailid} and the recovered group retains the role in the binding. * deleted:principal://iam.googleapis.com/locations/global/workforcePools/{pool_id}/subject/{subject_attribute_value}: Deleted single identity in a workforce identity pool. For example, deleted:principal://iam.googleapis.com/locations/global/workforcePools/my-pool-id/subject/my-subject-attribute-value.
-    #[serde(default)]
-    pub members: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Role that is assigned to the list of members, or principals. For example, roles/viewer, roles/editor, or roles/owner. For an overview of the IAM roles and permissions, see the [IAM documentation](https://cloud.google.com/iam/docs/roles-overview). For a list of the available pre-defined roles, see [here](https://cloud.google.com/iam/docs/understanding-roles).
-    #[serde(default)]
-    pub role: ::core::option::Option<String>,
-}
-
-/// A definition of a matcher that selects endpoints to which the policies should be applied.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct EndpointMatcher {
-    /// The matcher is based on node metadata presented by xDS clients.
-    #[serde(default, rename = "metadataLabelMatcher")]
-    pub metadata_label_matcher: ::core::option::Option<EndpointMatcherMetadataLabelMatcher>,
-}
-
-/// The matcher that is based on node metadata presented by xDS clients.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct EndpointMatcherMetadataLabelMatcher {
-    /// Specifies how matching should be done. Supported values are: MATCH_ANY: At least one of the Labels specified in the matcher should match the metadata presented by xDS client. MATCH_ALL: The metadata presented by the xDS client should contain all of the labels specified here. The selection is determined based on the best match. For example, suppose there are three EndpointPolicy resources P1, P2 and P3 and if P1 has a the matcher as MATCH_ANY , P2 has MATCH_ALL , and P3 has MATCH_ALL . If a client with label connects, the config from P1 will be selected. If a client with label connects, the config from P2 will be selected. If a client with label connects, the config from P3 will be selected. If there is more than one best match, (for example, if a config P4 with selector exists and if a client with label connects), pick up the one with older creation time. // TODO: enum values: ["METADATA_LABEL_MATCH_CRITERIA_UNSPECIFIED", "MATCH_ANY", "MATCH_ALL"]
-    #[serde(default, rename = "metadataLabelMatchCriteria")]
-    pub metadata_label_match_criteria: ::core::option::Option<String>,
-    /// The list of label value pairs that must match labels in the provided metadata based on filterMatchCriteria This list can have at most 64 entries. The list can be empty if the match criteria is MATCH_ANY, to specify a wildcard match (i.e this matches any client).
-    #[serde(default, rename = "metadataLabels")]
-    pub metadata_labels:
-        ::core::option::Option<::std::vec::Vec<EndpointMatcherMetadataLabelMatcherMetadataLabels>>,
-}
-
-/// Defines a name-pair value for a single label.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct EndpointMatcherMetadataLabelMatcherMetadataLabels {
-    /// Required. Label name presented as key in xDS Node Metadata.
-    #[serde(default, rename = "labelName")]
-    pub label_name: ::core::option::Option<String>,
-    /// Required. Label value presented as value corresponding to the above key, in xDS Node Metadata.
-    #[serde(default, rename = "labelValue")]
-    pub label_value: ::core::option::Option<String>,
-}
-
-/// EndpointPolicy is a resource that helps apply desired configuration on the endpoints that match specific criteria. For example, this resource can be used to apply "authentication config" an all endpoints that serve on port 8080.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct EndpointPolicy {
-    /// Optional. This field specifies the URL of AuthorizationPolicy resource that applies authorization policies to the inbound traffic at the matched endpoints. Refer to Authorization. If this field is not specified, authorization is disabled(no authz checks) for this endpoint.
-    #[serde(default, rename = "authorizationPolicy")]
-    pub authorization_policy: ::core::option::Option<String>,
-    /// Optional. A URL referring to a ClientTlsPolicy resource. ClientTlsPolicy can be set to specify the authentication for traffic from the proxy to the actual endpoints. More specifically, it is applied to the outgoing traffic from the proxy to the endpoint. This is typically used for sidecar model where the proxy identifies itself as endpoint to the control plane, with the connection between sidecar and endpoint requiring authentication. If this field is not set, authentication is disabled(open). Applicable only when EndpointPolicyType is SIDECAR_PROXY.
-    #[serde(default, rename = "clientTlsPolicy")]
-    pub client_tls_policy: ::core::option::Option<String>,
-    /// Output only. The timestamp when the resource was created.
-    #[serde(default, rename = "createTime")]
-    pub create_time: ::core::option::Option<String>,
-    /// Optional. A free-text description of the resource. Max length 1024 characters.
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// Required. A matcher that selects endpoints to which the policies should be applied.
-    #[serde(default, rename = "endpointMatcher")]
-    pub endpoint_matcher: ::core::option::Option<EndpointMatcher>,
-    /// Optional. Set of label tags associated with the EndpointPolicy resource.
-    #[serde(default)]
-    pub labels: ::core::option::Option<serde_json::Value>,
-    /// Identifier. Name of the EndpointPolicy resource. It matches pattern projects/{project}/locations/*/endpointPolicies/{endpoint_policy}.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Optional. A URL referring to ServerTlsPolicy resource. ServerTlsPolicy is used to determine the authentication policy to be applied to terminate the inbound traffic at the identified backends. If this field is not set, authentication is disabled(open) for this endpoint.
-    #[serde(default, rename = "serverTlsPolicy")]
-    pub server_tls_policy: ::core::option::Option<String>,
-    /// Optional. Port selector for the (matched) endpoints. If no port selector is provided, the matched config is applied to all ports.
-    #[serde(default, rename = "trafficPortSelector")]
-    pub traffic_port_selector: ::core::option::Option<TrafficPortSelector>,
-    /// Required. The type of endpoint policy. This is primarily used to validate the configuration. // TODO: enum values: ["ENDPOINT_POLICY_TYPE_UNSPECIFIED", "SIDECAR_PROXY", "GRPC_SERVER"]
-    #[serde(default, rename = "type")]
-    pub type_: ::core::option::Option<String>,
-    /// Output only. The timestamp when the resource was updated.
-    #[serde(default, rename = "updateTime")]
-    pub update_time: ::core::option::Option<String>,
-}
-
-/// Represents a textual expression in the Common Expression Language (CEL) syntax. CEL is a C-like expression language. The syntax and semantics of CEL are documented at https://github.com/google/cel-spec. Example (Comparison): title: "Summary size limit" description: "Determines if a summary is less than 100 chars" expression: "document.summary.size() &lt; 100" Example (Equality): title: "Requestor is owner" description: "Determines if requestor is the document owner" expression: "document.owner == request.auth.claims.email" Example (Logic): title: "Public documents" description: "Determine whether the document should be publicly visible" expression: "document.type != ''private'' && document.type != ''internal''" Example (Data Manipulation): title: "Notification string" description: "Create a notification string with a timestamp." expression: "''New message received at '' + string(document.create_time)" The exact variables and functions that may be referenced within an expression are determined by the service that evaluates it. See the service documentation for additional information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Expr {
-    /// Optional. Description of the expression. This is a longer text which describes the expression, e.g. when hovered over it in a UI.
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// Textual representation of an expression in Common Expression Language syntax.
-    #[serde(default)]
-    pub expression: ::core::option::Option<String>,
-    /// Optional. String indicating the location of the expression for error reporting, e.g. a file name and a position in the file.
-    #[serde(default)]
-    pub location: ::core::option::Option<String>,
-    /// Optional. Title for the expression, i.e. a short string describing its purpose. This can be used e.g. in UIs which allow to enter the expression.
-    #[serde(default)]
-    pub title: ::core::option::Option<String>,
-}
-
-/// A single extension chain wrapper that contains the match conditions and extensions to execute.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ExtensionChain {
-    /// Required. A set of extensions to execute for the matching request. At least one extension is required. Up to 3 extensions can be defined for each extension chain for LbTrafficExtension resource. LbRouteExtension and LbEdgeExtension chains are limited to 1 extension per extension chain.
-    #[serde(default)]
-    pub extensions: ::core::option::Option<::std::vec::Vec<ExtensionChainExtension>>,
-    /// Required. Conditions under which this chain is invoked for a request.
-    #[serde(default, rename = "matchCondition")]
-    pub match_condition: ::core::option::Option<ExtensionChainMatchCondition>,
-    /// Required. The name for this extension chain. The name is logged as part of the HTTP request logs. The name must conform with RFC-1034, is restricted to lower-cased letters, numbers and hyphens, and can have a maximum length of 63 characters. Additionally, the first character must be a letter and the last a letter or a number.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-}
-
-/// A single extension in the chain to execute for the matching request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ExtensionChainExtension {
-    /// Optional. The :authority header in the gRPC request sent from Envoy to the extension service. Required for Callout extensions. This field is not supported for plugin extensions. Setting it results in a validation error.
-    #[serde(default)]
-    pub authority: ::core::option::Option<String>,
-    /// Optional. Determines how the proxy behaves if the call to the extension fails or times out. When set to TRUE, request or response processing continues without error. Any subsequent extensions in the extension chain are also executed. When set to FALSE or the default setting of FALSE is used, one of the following happens: * If response headers have not been delivered to the downstream client, a generic 500 error is returned to the client. The error response can be tailored by configuring a custom error response in the load balancer. * If response headers have been delivered, then the HTTP stream to the downstream client is reset.
-    #[serde(default, rename = "failOpen")]
-    pub fail_open: ::core::option::Option<bool>,
-    /// Optional. List of the Envoy attributes to forward to the extension server. The attributes provided here are included as part of the ProcessingRequest.attributes field (of type map), where the keys are the attribute names. Refer to the [documentation](https://cloud.google.com/service-extensions/docs/cel-matcher-language-reference#attributes) for the names of attributes that can be forwarded. If omitted, no attributes are sent. Each element is a string indicating the attribute name.
-    #[serde(default, rename = "forwardAttributes")]
-    pub forward_attributes: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Optional. List of the HTTP headers to forward to the extension (from the client or backend). If omitted, all headers are sent. Each element is a string indicating the header name.
-    #[serde(default, rename = "forwardHeaders")]
-    pub forward_headers: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Optional. The metadata provided here is included as part of the metadata_context (of type google.protobuf.Struct) in the ProcessingRequest message sent to the extension server. For AuthzExtension resources, the metadata is available under the namespace com.google.authz_extension.. For other types of extensions, the metadata is available under the namespace com.google..... For example: com.google.lb_traffic_extension.lbtrafficextension1.chain1.ext1. The following variables are supported in the metadata: {forwarding_rule_id} - substituted with the forwarding rule''s fully qualified resource name. This field must not be set for plugin extensions. Setting it results in a validation error. You can set metadata at either the resource level or the extension level. The extension level metadata is recommended because you can pass a different set of metadata through each extension to the backend. This field is subject to following limitations: * The total size of the metadata must be less than 1KiB. * The total number of keys in the metadata must be less than 16. * The length of each key must be less than 64 characters. * The length of each value must be less than 1024 characters. * All values must be strings.
-    #[serde(default)]
-    pub metadata: ::core::option::Option<serde_json::Value>,
-    /// Optional. The name for this extension. The name is logged as part of the HTTP request logs. The name must conform with RFC-1034, is restricted to lower-cased letters, numbers and hyphens, and can have a maximum length of 63 characters. Additionally, the first character must be a letter and the last a letter or a number. This field is required except for AuthzExtension.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Optional. When set to true, the calls to the extension backend are performed asynchronously, without pausing the processing of the ongoing request. In this mode, only STREAMED (default) body processing is supported. Responses, if any, are ignored. Supported by regional LbTrafficExtension and LbRouteExtension resources.
-    #[serde(default, rename = "observabilityMode")]
-    pub observability_mode: ::core::option::Option<bool>,
-    /// Optional. Configures the send mode for request body processing. The field can only be set if supported_events includes REQUEST_BODY. If supported_events includes REQUEST_BODY, but request_body_send_mode is unset, the default value STREAMED is used. When this field is set to FULL_DUPLEX_STREAMED, supported_events must include both REQUEST_BODY and REQUEST_TRAILERS. This field can be set only for LbTrafficExtension and LbRouteExtension resources, and only when the service field of the extension points to a BackendService. Only FULL_DUPLEX_STREAMED mode is supported for LbRouteExtension resources. // TODO: enum values: ["BODY_SEND_MODE_UNSPECIFIED", "BODY_SEND_MODE_STREAMED", "BODY_SEND_MODE_FULL_DUPLEX_STREAMED"]
-    #[serde(default, rename = "requestBodySendMode")]
-    pub request_body_send_mode: ::core::option::Option<String>,
-    /// Optional. Configures the send mode for response processing. If unspecified, the default value STREAMED is used. The field can only be set if supported_events includes RESPONSE_BODY. If supported_events includes RESPONSE_BODY, but response_body_send_mode is unset, the default value STREAMED is used. When this field is set to FULL_DUPLEX_STREAMED, supported_events must include both RESPONSE_BODY and RESPONSE_TRAILERS. This field can be set only for LbTrafficExtension resources, and only when the service field of the extension points to a BackendService. // TODO: enum values: ["BODY_SEND_MODE_UNSPECIFIED", "BODY_SEND_MODE_STREAMED", "BODY_SEND_MODE_FULL_DUPLEX_STREAMED"]
-    #[serde(default, rename = "responseBodySendMode")]
-    pub response_body_send_mode: ::core::option::Option<String>,
-    /// Required. The reference to the service that runs the extension. To configure a callout extension, service must be a fully-qualified reference to a [backend service](https://cloud.google.com/compute/docs/reference/rest/v1/backendServices) in the format: https://www.googleapis.com/compute/v1/projects/{project}/regions/{region}/backendServices/{backendService} or https://www.googleapis.com/compute/v1/projects/{project}/global/backendServices/{backendService}. To configure a plugin extension, service must be a reference to a [WasmPlugin resource](https://cloud.google.com/service-extensions/docs/reference/rest/v1beta1/projects.locations.wasmPlugins) in the format: projects/{project}/locations/{location}/wasmPlugins/{plugin} or //networkservices.googleapis.com/projects/{project}/locations/{location}/wasmPlugins/{wasmPlugin}. Plugin extensions are currently supported for the LbTrafficExtension, the LbRouteExtension, and the LbEdgeExtension resources.
-    #[serde(default)]
-    pub service: ::core::option::Option<String>,
-    /// Optional. A set of events during request or response processing for which this extension is called. For the LbTrafficExtension resource, this field is required. For the LbRouteExtension resource, this field is optional. If unspecified, REQUEST_HEADERS event is assumed as supported. For the LbEdgeExtension resource, this field is required and must only contain REQUEST_HEADERS event. For the AuthzExtension resource, this field is optional. REQUEST_HEADERS is the only supported event. If unspecified, REQUEST_HEADERS event is assumed as supported.
-    #[serde(default, rename = "supportedEvents")]
-    pub supported_events: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Optional. Specifies the timeout for each individual message on the stream. The timeout must be between 10-10000 milliseconds. Required for callout extensions. This field is not supported for plugin extensions. Setting it results in a validation error.
-    #[serde(default)]
-    pub timeout: ::core::option::Option<String>,
-}
-
-/// Conditions under which this chain is invoked for a request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ExtensionChainMatchCondition {
-    /// Required. A Common Expression Language (CEL) expression that is used to match requests for which the extension chain is executed. For more information, see [CEL matcher language reference](https://cloud.google.com/service-extensions/docs/cel-matcher-language-reference).
-    #[serde(default, rename = "celExpression")]
-    pub cel_expression: ::core::option::Option<String>,
-}
-
-/// Gateway represents the configuration for a proxy, typically a load balancer. It captures the ip:port over which the services are exposed by the proxy, along with any policy configurations. Routes have reference to to Gateways to dictate how requests should be routed by this Gateway.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Gateway {
-    /// Optional. Zero or one IPv4 or IPv6 address on which the Gateway will receive the traffic. When no address is provided, an IP from the subnetwork is allocated This field only applies to gateways of type ''SECURE_WEB_GATEWAY''. Gateways of type ''OPEN_MESH'' listen on 0.0.0.0 for IPv4 and :: for IPv6.
-    #[serde(default)]
-    pub addresses: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Optional. If true, the gateway will allow traffic from clients outside of the region where the gateway is located. This field is configurable only for gateways of type SECURE_WEB_GATEWAY.
-    #[serde(default, rename = "allowGlobalAccess")]
-    pub allow_global_access: ::core::option::Option<bool>,
-    /// Optional. A fully-qualified Certificates URL reference. The proxy presents a Certificate (selected based on SNI) when establishing a TLS connection. This feature only applies to gateways of type ''SECURE_WEB_GATEWAY''.
-    #[serde(default, rename = "certificateUrls")]
-    pub certificate_urls: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Output only. The timestamp when the resource was created.
-    #[serde(default, rename = "createTime")]
-    pub create_time: ::core::option::Option<String>,
-    /// Optional. A free-text description of the resource. Max length 1024 characters.
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// Optional. Determines if envoy will insert internal debug headers into upstream requests. Other Envoy headers may still be injected. By default, envoy will not insert any debug headers. // TODO: enum values: ["ENVOY_HEADERS_UNSPECIFIED", "NONE", "DEBUG_HEADERS"]
-    #[serde(default, rename = "envoyHeaders")]
-    pub envoy_headers: ::core::option::Option<String>,
-    /// Optional. A fully-qualified GatewaySecurityPolicy URL reference. Defines how a server should apply security policy to inbound (VM to Proxy) initiated connections. For example: projects/*/locations/*/gatewaySecurityPolicies/swg-policy. This policy is specific to gateways of type ''SECURE_WEB_GATEWAY''.
-    #[serde(default, rename = "gatewaySecurityPolicy")]
-    pub gateway_security_policy: ::core::option::Option<String>,
-    /// Optional. The IP Version that will be used by this gateway. Valid options are IPV4 or IPV6. Default is IPV4. // TODO: enum values: ["IP_VERSION_UNSPECIFIED", "IPV4", "IPV6"]
-    #[serde(default, rename = "ipVersion")]
-    pub ip_version: ::core::option::Option<String>,
-    /// Optional. Set of label tags associated with the Gateway resource.
-    #[serde(default)]
-    pub labels: ::core::option::Option<serde_json::Value>,
-    /// Identifier. Name of the Gateway resource. It matches pattern projects/*/locations/*/gateways/.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Optional. The relative resource name identifying the VPC network that is using this configuration. For example: projects/*/global/networks/network-1. Currently, this field is specific to gateways of type ''SECURE_WEB_GATEWAY''.
-    #[serde(default)]
-    pub network: ::core::option::Option<String>,
-    /// Required. One or more port numbers (1-65535), on which the Gateway will receive traffic. The proxy binds to the specified ports. Gateways of type ''SECURE_WEB_GATEWAY'' are limited to 5 ports. Gateways of type ''OPEN_MESH'' listen on 0.0.0.0 for IPv4 and :: for IPv6 and support multiple ports.
-    #[serde(default)]
-    pub ports: ::core::option::Option<::std::vec::Vec<i32>>,
-    /// Optional. The routing mode of the Gateway. This field is configurable only for gateways of type SECURE_WEB_GATEWAY. This field is required for gateways of type SECURE_WEB_GATEWAY. // TODO: enum values: ["EXPLICIT_ROUTING_MODE", "NEXT_HOP_ROUTING_MODE"]
-    #[serde(default, rename = "routingMode")]
-    pub routing_mode: ::core::option::Option<String>,
-    /// Optional. Scope determines how configuration across multiple Gateway instances are merged. The configuration for multiple Gateway instances with the same scope will be merged as presented as a single configuration to the proxy/load balancer. Max length 64 characters. Scope should start with a letter and can only have letters, numbers, hyphens.
-    #[serde(default)]
-    pub scope: ::core::option::Option<String>,
-    /// Output only. Server-defined URL of this resource
-    #[serde(default, rename = "selfLink")]
-    pub self_link: ::core::option::Option<String>,
-    /// Optional. A fully-qualified ServerTLSPolicy URL reference. Specifies how TLS traffic is terminated. If empty, TLS termination is disabled.
-    #[serde(default, rename = "serverTlsPolicy")]
-    pub server_tls_policy: ::core::option::Option<String>,
-    /// Optional. The relative resource name identifying the subnetwork in which this SWG is allocated. For example: projects/*/regions/us-central1/subnetworks/network-1 Currently, this field is specific to gateways of type ''SECURE_WEB_GATEWAY".
-    #[serde(default)]
-    pub subnetwork: ::core::option::Option<String>,
-    /// Immutable. The type of the customer managed gateway. This field is required. If unspecified, an error is returned. // TODO: enum values: ["TYPE_UNSPECIFIED", "OPEN_MESH", "SECURE_WEB_GATEWAY"]
-    #[serde(default, rename = "type")]
-    pub type_: ::core::option::Option<String>,
-    /// Output only. The timestamp when the resource was updated.
-    #[serde(default, rename = "updateTime")]
-    pub update_time: ::core::option::Option<String>,
-}
-
-/// GatewayRouteView defines view-only resource for Routes to a Gateway
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GatewayRouteView {
-    /// Output only. Identifier. Full path name of the GatewayRouteView resource. Format: projects/{project_number}/locations/{location}/gateways/{gateway}/routeViews/{route_view}
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Output only. The resource id for the route.
-    #[serde(default, rename = "routeId")]
-    pub route_id: ::core::option::Option<String>,
-    /// Output only. Location where the route exists.
-    #[serde(default, rename = "routeLocation")]
-    pub route_location: ::core::option::Option<String>,
-    /// Output only. Project number where the route exists.
-    #[serde(default, rename = "routeProjectNumber")]
-    pub route_project_number: ::core::option::Option<String>,
-    /// Output only. Type of the route: HttpRoute,GrpcRoute,TcpRoute, or TlsRoute
-    #[serde(default, rename = "routeType")]
-    pub route_type: ::core::option::Option<String>,
-}
-
-/// GrpcRoute is the resource defining how gRPC traffic routed by a Mesh or Gateway resource is routed.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GrpcRoute {
-    /// Output only. The timestamp when the resource was created.
-    #[serde(default, rename = "createTime")]
-    pub create_time: ::core::option::Option<String>,
-    /// Optional. A free-text description of the resource. Max length 1024 characters.
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// Optional. Gateways defines a list of gateways this GrpcRoute is attached to, as one of the routing rules to route the requests served by the gateway. Each gateway reference should match the pattern: projects/*/locations/*/gateways/
-    #[serde(default)]
-    pub gateways: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Required. Service hostnames with an optional port for which this route describes traffic. Format: [:] Hostname is the fully qualified domain name of a network host. This matches the RFC 1123 definition of a hostname with 2 notable exceptions: - IPs are not allowed. - A hostname may be prefixed with a wildcard label (*.). The wildcard label must appear by itself as the first label. Hostname can be "precise" which is a domain name without the terminating dot of a network host (e.g. foo.example.com) or "wildcard", which is a domain name prefixed with a single wildcard label (e.g. *.example.com). Note that as per RFC1035 and RFC1123, a label must consist of lower case alphanumeric characters or ''-'', and must start and end with an alphanumeric character. No other punctuation is allowed. The routes associated with a Mesh or Gateway must have unique hostnames. If you attempt to attach multiple routes with conflicting hostnames, the configuration will be rejected. For example, while it is acceptable for routes for the hostnames *.foo.bar.com and *.bar.com to be associated with the same route, it is not possible to associate two routes both with *.bar.com or both with bar.com. If a port is specified, then gRPC clients must use the channel URI with the port to match this rule (i.e. "xds:///service:123"), otherwise they must supply the URI without a port (i.e. "xds:///service").
-    #[serde(default)]
-    pub hostnames: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Optional. Set of label tags associated with the GrpcRoute resource.
-    #[serde(default)]
-    pub labels: ::core::option::Option<serde_json::Value>,
-    /// Optional. Meshes defines a list of meshes this GrpcRoute is attached to, as one of the routing rules to route the requests served by the mesh. Each mesh reference should match the pattern: projects/*/locations/*/meshes/
-    #[serde(default)]
-    pub meshes: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Identifier. Name of the GrpcRoute resource. It matches pattern projects/*/locations/*/grpcRoutes/
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Required. A list of detailed rules defining how to route traffic. Within a single GrpcRoute, the GrpcRoute.RouteAction associated with the first matching GrpcRoute.RouteRule will be executed. At least one rule must be supplied.
-    #[serde(default)]
-    pub rules: ::core::option::Option<::std::vec::Vec<GrpcRouteRouteRule>>,
-    /// Output only. Server-defined URL of this resource
-    #[serde(default, rename = "selfLink")]
-    pub self_link: ::core::option::Option<String>,
-    /// Output only. The timestamp when the resource was updated.
-    #[serde(default, rename = "updateTime")]
-    pub update_time: ::core::option::Option<String>,
-}
-
-/// The destination to which traffic will be routed.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GrpcRouteDestination {
-    /// Required. The URL of a destination service to which to route traffic. Must refer to either a BackendService or ServiceDirectoryService.
-    #[serde(default, rename = "serviceName")]
-    pub service_name: ::core::option::Option<String>,
-    /// Optional. Specifies the proportion of requests forwarded to the backend referenced by the serviceName field. This is computed as: - weight/Sum(weights in this destination list). For non-zero values, there may be some epsilon from the exact proportion defined here depending on the precision an implementation supports. If only one serviceName is specified and it has a weight greater than 0, 100% of the traffic is forwarded to that backend. If weights are specified for any one service name, they need to be specified for all of them. If weights are unspecified for all services, then, traffic is distributed in equal proportions to all of them.
-    #[serde(default)]
-    pub weight: ::core::option::Option<i32>,
-}
-
-/// The specification for fault injection introduced into traffic to test the resiliency of clients to destination service failure. As part of fault injection, when clients send requests to a destination, delays can be introduced on a percentage of requests before sending those requests to the destination service. Similarly requests from clients can be aborted by for a percentage of requests.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GrpcRouteFaultInjectionPolicy {
-    /// The specification for aborting to client requests.
-    #[serde(default)]
-    pub abort: ::core::option::Option<GrpcRouteFaultInjectionPolicyAbort>,
-    /// The specification for injecting delay to client requests.
-    #[serde(default)]
-    pub delay: ::core::option::Option<GrpcRouteFaultInjectionPolicyDelay>,
-}
-
-/// Specification of how client requests are aborted as part of fault injection before being sent to a destination.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GrpcRouteFaultInjectionPolicyAbort {
-    /// The HTTP status code used to abort the request. The value must be between 200 and 599 inclusive.
-    #[serde(default, rename = "httpStatus")]
-    pub http_status: ::core::option::Option<i32>,
-    /// The percentage of traffic which will be aborted. The value must be between [0, 100]
-    #[serde(default)]
-    pub percentage: ::core::option::Option<i32>,
-}
-
-/// Specification of how client requests are delayed as part of fault injection before being sent to a destination.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GrpcRouteFaultInjectionPolicyDelay {
-    /// Specify a fixed delay before forwarding the request.
-    #[serde(default, rename = "fixedDelay")]
-    pub fixed_delay: ::core::option::Option<String>,
-    /// The percentage of traffic on which delay will be injected. The value must be between [0, 100]
-    #[serde(default)]
-    pub percentage: ::core::option::Option<i32>,
-}
-
-/// A match against a collection of headers.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GrpcRouteHeaderMatch {
-    /// Required. The key of the header.
-    #[serde(default)]
-    pub key: ::core::option::Option<String>,
-    /// Optional. Specifies how to match against the value of the header. If not specified, a default value of EXACT is used. // TODO: enum values: ["TYPE_UNSPECIFIED", "EXACT", "REGULAR_EXPRESSION"]
-    #[serde(default, rename = "type")]
-    pub type_: ::core::option::Option<String>,
-    /// Required. The value of the header.
-    #[serde(default)]
-    pub value: ::core::option::Option<String>,
-}
-
-/// Specifies a match against a method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GrpcRouteMethodMatch {
-    /// Optional. Specifies that matches are case sensitive. The default value is true. case_sensitive must not be used with a type of REGULAR_EXPRESSION.
-    #[serde(default, rename = "caseSensitive")]
-    pub case_sensitive: ::core::option::Option<bool>,
-    /// Required. Name of the method to match against. If unspecified, will match all methods.
-    #[serde(default, rename = "grpcMethod")]
-    pub grpc_method: ::core::option::Option<String>,
-    /// Required. Name of the service to match against. If unspecified, will match all services.
-    #[serde(default, rename = "grpcService")]
-    pub grpc_service: ::core::option::Option<String>,
-    /// Optional. Specifies how to match against the name. If not specified, a default value of "EXACT" is used. // TODO: enum values: ["TYPE_UNSPECIFIED", "EXACT", "REGULAR_EXPRESSION"]
-    #[serde(default, rename = "type")]
-    pub type_: ::core::option::Option<String>,
-}
-
-/// The specifications for retries. Specifies one or more conditions for which this retry rule applies. Valid values are:
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GrpcRouteRetryPolicy {
-    /// Specifies the allowed number of retries. This number must be &gt; 0. If not specified, default to 1.
-    #[serde(default, rename = "numRetries")]
-    pub num_retries: ::core::option::Option<i64>,
-    /// - connect-failure: Router will retry on failures connecting to Backend Services, for example due to connection timeouts. - refused-stream: Router will retry if the backend service resets the stream with a REFUSED_STREAM error code. This reset type indicates that it is safe to retry. - cancelled: Router will retry if the gRPC status code in the response header is set to cancelled - deadline-exceeded: Router will retry if the gRPC status code in the response header is set to deadline-exceeded - resource-exhausted: Router will retry if the gRPC status code in the response header is set to resource-exhausted - unavailable: Router will retry if the gRPC status code in the response header is set to unavailable
-    #[serde(default, rename = "retryConditions")]
-    pub retry_conditions: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// Specifies how to route matched traffic.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GrpcRouteRouteAction {
-    /// Optional. The destination services to which traffic should be forwarded. If multiple destinations are specified, traffic will be split between Backend Service(s) according to the weight field of these destinations.
-    #[serde(default)]
-    pub destinations: ::core::option::Option<::std::vec::Vec<GrpcRouteDestination>>,
-    /// Optional. The specification for fault injection introduced into traffic to test the resiliency of clients to destination service failure. As part of fault injection, when clients send requests to a destination, delays can be introduced on a percentage of requests before sending those requests to the destination service. Similarly requests from clients can be aborted by for a percentage of requests. timeout and retry_policy will be ignored by clients that are configured with a fault_injection_policy
-    #[serde(default, rename = "faultInjectionPolicy")]
-    pub fault_injection_policy: ::core::option::Option<GrpcRouteFaultInjectionPolicy>,
-    /// Optional. Specifies the idle timeout for the selected route. The idle timeout is defined as the period in which there are no bytes sent or received on either the upstream or downstream connection. If not set, the default idle timeout is 1 hour. If set to 0s, the timeout will be disabled.
-    #[serde(default, rename = "idleTimeout")]
-    pub idle_timeout: ::core::option::Option<String>,
-    /// Optional. Specifies the retry policy associated with this route.
-    #[serde(default, rename = "retryPolicy")]
-    pub retry_policy: ::core::option::Option<GrpcRouteRetryPolicy>,
-    /// Optional. Specifies cookie-based stateful session affinity.
-    #[serde(default, rename = "statefulSessionAffinity")]
-    pub stateful_session_affinity: ::core::option::Option<GrpcRouteStatefulSessionAffinityPolicy>,
-    /// Optional. Specifies the timeout for selected route. Timeout is computed from the time the request has been fully processed (i.e. end of stream) up until the response has been completely processed. Timeout includes all retries.
-    #[serde(default)]
-    pub timeout: ::core::option::Option<String>,
-}
-
-/// Criteria for matching traffic. A RouteMatch will be considered to match when all supplied fields match.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GrpcRouteRouteMatch {
-    /// Optional. Specifies a collection of headers to match.
-    #[serde(default)]
-    pub headers: ::core::option::Option<::std::vec::Vec<GrpcRouteHeaderMatch>>,
-    /// Optional. A gRPC method to match against. If this field is empty or omitted, will match all methods.
-    #[serde(default)]
-    pub method: ::core::option::Option<GrpcRouteMethodMatch>,
-}
-
-/// Describes how to route traffic.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GrpcRouteRouteRule {
-    /// Required. A detailed rule defining how to route traffic. This field is required.
-    #[serde(default)]
-    pub action: ::core::option::Option<GrpcRouteRouteAction>,
-    /// Optional. Matches define conditions used for matching the rule against incoming gRPC requests. Each match is independent, i.e. this rule will be matched if ANY one of the matches is satisfied. If no matches field is specified, this rule will unconditionally match traffic.
-    #[serde(default)]
-    pub matches: ::core::option::Option<::std::vec::Vec<GrpcRouteRouteMatch>>,
-}
-
-/// The specification for cookie-based stateful session affinity where the date plane supplies a “session cookie” with the name "GSSA" which encodes a specific destination host and each request containing that cookie will be directed to that host as long as the destination host remains up and healthy. The gRPC proxyless mesh library or sidecar proxy will manage the session cookie but the client application code is responsible for copying the cookie from each RPC in the session to the next.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GrpcRouteStatefulSessionAffinityPolicy {
-    /// Required. The cookie TTL value for the Set-Cookie header generated by the data plane. The lifetime of the cookie may be set to a value from 0 to 86400 seconds (24 hours) inclusive. Set this to 0s to use a session cookie and disable cookie expiration.
-    #[serde(default, rename = "cookieTtl")]
-    pub cookie_ttl: ::core::option::Option<String>,
-}
-
-/// HttpRoute is the resource defining how HTTP traffic should be routed by a Mesh or Gateway resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct HttpRoute {
-    /// Output only. The timestamp when the resource was created.
-    #[serde(default, rename = "createTime")]
-    pub create_time: ::core::option::Option<String>,
-    /// Optional. A free-text description of the resource. Max length 1024 characters.
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// Optional. Gateways defines a list of gateways this HttpRoute is attached to, as one of the routing rules to route the requests served by the gateway. Each gateway reference should match the pattern: projects/*/locations/*/gateways/
-    #[serde(default)]
-    pub gateways: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Required. Hostnames define a set of hosts that should match against the HTTP host header to select a HttpRoute to process the request. Hostname is the fully qualified domain name of a network host, as defined by RFC 1123 with the exception that: - IPs are not allowed. - A hostname may be prefixed with a wildcard label (*.). The wildcard label must appear by itself as the first label. Hostname can be "precise" which is a domain name without the terminating dot of a network host (e.g. foo.example.com) or "wildcard", which is a domain name prefixed with a single wildcard label (e.g. *.example.com). Note that as per RFC1035 and RFC1123, a label must consist of lower case alphanumeric characters or ''-'', and must start and end with an alphanumeric character. No other punctuation is allowed. The routes associated with a Mesh or Gateways must have unique hostnames. If you attempt to attach multiple routes with conflicting hostnames, the configuration will be rejected. For example, while it is acceptable for routes for the hostnames *.foo.bar.com and *.bar.com to be associated with the same Mesh (or Gateways under the same scope), it is not possible to associate two routes both with *.bar.com or both with bar.com.
-    #[serde(default)]
-    pub hostnames: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Optional. Set of label tags associated with the HttpRoute resource.
-    #[serde(default)]
-    pub labels: ::core::option::Option<serde_json::Value>,
-    /// Optional. Meshes defines a list of meshes this HttpRoute is attached to, as one of the routing rules to route the requests served by the mesh. Each mesh reference should match the pattern: projects/*/locations/*/meshes/ The attached Mesh should be of a type SIDECAR
-    #[serde(default)]
-    pub meshes: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Identifier. Name of the HttpRoute resource. It matches pattern projects/*/locations/*/httpRoutes/http_route_name&gt;.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Required. Rules that define how traffic is routed and handled. Rules will be matched sequentially based on the RouteMatch specified for the rule.
-    #[serde(default)]
-    pub rules: ::core::option::Option<::std::vec::Vec<HttpRouteRouteRule>>,
-    /// Output only. Server-defined URL of this resource
-    #[serde(default, rename = "selfLink")]
-    pub self_link: ::core::option::Option<String>,
-    /// Output only. The timestamp when the resource was updated.
-    #[serde(default, rename = "updateTime")]
-    pub update_time: ::core::option::Option<String>,
-}
-
-/// The Specification for allowing client side cross-origin requests.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct HttpRouteCorsPolicy {
-    /// In response to a preflight request, setting this to true indicates that the actual request can include user credentials. This translates to the Access-Control-Allow-Credentials header. Default value is false.
-    #[serde(default, rename = "allowCredentials")]
-    pub allow_credentials: ::core::option::Option<bool>,
-    /// Specifies the content for Access-Control-Allow-Headers header.
-    #[serde(default, rename = "allowHeaders")]
-    pub allow_headers: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Specifies the content for Access-Control-Allow-Methods header.
-    #[serde(default, rename = "allowMethods")]
-    pub allow_methods: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Specifies the regular expression patterns that match allowed origins. For regular expression grammar, please see https://github.com/google/re2/wiki/Syntax.
-    #[serde(default, rename = "allowOriginRegexes")]
-    pub allow_origin_regexes: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Specifies the list of origins that will be allowed to do CORS requests. An origin is allowed if it matches either an item in allow_origins or an item in allow_origin_regexes.
-    #[serde(default, rename = "allowOrigins")]
-    pub allow_origins: ::core::option::Option<::std::vec::Vec<String>>,
-    /// If true, the CORS policy is disabled. The default value is false, which indicates that the CORS policy is in effect.
-    #[serde(default)]
-    pub disabled: ::core::option::Option<bool>,
-    /// Specifies the content for Access-Control-Expose-Headers header.
-    #[serde(default, rename = "exposeHeaders")]
-    pub expose_headers: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Specifies how long result of a preflight request can be cached in seconds. This translates to the Access-Control-Max-Age header.
-    #[serde(default, rename = "maxAge")]
-    pub max_age: ::core::option::Option<String>,
-}
-
-/// Specifications of a destination to which the request should be routed to.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct HttpRouteDestination {
-    /// Optional. The specification for modifying the headers of a matching request prior to delivery of the request to the destination. If HeaderModifiers are set on both the Destination and the RouteAction, they will be merged. Conflicts between the two will not be resolved on the configuration.
-    #[serde(default, rename = "requestHeaderModifier")]
-    pub request_header_modifier: ::core::option::Option<HttpRouteHeaderModifier>,
-    /// Optional. The specification for modifying the headers of a response prior to sending the response back to the client. If HeaderModifiers are set on both the Destination and the RouteAction, they will be merged. Conflicts between the two will not be resolved on the configuration.
-    #[serde(default, rename = "responseHeaderModifier")]
-    pub response_header_modifier: ::core::option::Option<HttpRouteHeaderModifier>,
-    /// The URL of a BackendService to route traffic to.
-    #[serde(default, rename = "serviceName")]
-    pub service_name: ::core::option::Option<String>,
-    /// Specifies the proportion of requests forwarded to the backend referenced by the serviceName field. This is computed as: - weight/Sum(weights in this destination list). For non-zero values, there may be some epsilon from the exact proportion defined here depending on the precision an implementation supports. If only one serviceName is specified and it has a weight greater than 0, 100% of the traffic is forwarded to that backend. If weights are specified for any one service name, they need to be specified for all of them. If weights are unspecified for all services, then, traffic is distributed in equal proportions to all of them.
-    #[serde(default)]
-    pub weight: ::core::option::Option<i32>,
-}
-
-/// The specification for fault injection introduced into traffic to test the resiliency of clients to destination service failure. As part of fault injection, when clients send requests to a destination, delays can be introduced by client proxy on a percentage of requests before sending those requests to the destination service. Similarly requests can be aborted by client proxy for a percentage of requests.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct HttpRouteFaultInjectionPolicy {
-    /// The specification for aborting to client requests.
-    #[serde(default)]
-    pub abort: ::core::option::Option<HttpRouteFaultInjectionPolicyAbort>,
-    /// The specification for injecting delay to client requests.
-    #[serde(default)]
-    pub delay: ::core::option::Option<HttpRouteFaultInjectionPolicyDelay>,
-}
-
-/// Specification of how client requests are aborted as part of fault injection before being sent to a destination.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct HttpRouteFaultInjectionPolicyAbort {
-    /// The HTTP status code used to abort the request. The value must be between 200 and 599 inclusive.
-    #[serde(default, rename = "httpStatus")]
-    pub http_status: ::core::option::Option<i32>,
-    /// The percentage of traffic which will be aborted. The value must be between [0, 100]
-    #[serde(default)]
-    pub percentage: ::core::option::Option<i32>,
-}
-
-/// Specification of how client requests are delayed as part of fault injection before being sent to a destination.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct HttpRouteFaultInjectionPolicyDelay {
-    /// Specify a fixed delay before forwarding the request.
-    #[serde(default, rename = "fixedDelay")]
-    pub fixed_delay: ::core::option::Option<String>,
-    /// The percentage of traffic on which delay will be injected. The value must be between [0, 100]
-    #[serde(default)]
-    pub percentage: ::core::option::Option<i32>,
-}
-
-/// Specifies how to select a route rule based on HTTP request headers.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct HttpRouteHeaderMatch {
-    /// The value of the header should match exactly the content of exact_match.
-    #[serde(default, rename = "exactMatch")]
-    pub exact_match: ::core::option::Option<String>,
-    /// The name of the HTTP header to match against.
-    #[serde(default)]
-    pub header: ::core::option::Option<String>,
-    /// If specified, the match result will be inverted before checking. Default value is set to false.
-    #[serde(default, rename = "invertMatch")]
-    pub invert_match: ::core::option::Option<bool>,
-    /// The value of the header must start with the contents of prefix_match.
-    #[serde(default, rename = "prefixMatch")]
-    pub prefix_match: ::core::option::Option<String>,
-    /// A header with header_name must exist. The match takes place whether or not the header has a value.
-    #[serde(default, rename = "presentMatch")]
-    pub present_match: ::core::option::Option<bool>,
-    /// If specified, the rule will match if the request header value is within the range.
-    #[serde(default, rename = "rangeMatch")]
-    pub range_match: ::core::option::Option<HttpRouteHeaderMatchIntegerRange>,
-    /// The value of the header must match the regular expression specified in regex_match. For regular expression grammar, please see: https://github.com/google/re2/wiki/Syntax
-    #[serde(default, rename = "regexMatch")]
-    pub regex_match: ::core::option::Option<String>,
-    /// The value of the header must end with the contents of suffix_match.
-    #[serde(default, rename = "suffixMatch")]
-    pub suffix_match: ::core::option::Option<String>,
-}
-
-/// Represents an integer value range.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct HttpRouteHeaderMatchIntegerRange {
-    /// End of the range (exclusive)
-    #[serde(default)]
-    pub end: ::core::option::Option<i32>,
-    /// Start of the range (inclusive)
-    #[serde(default)]
-    pub start: ::core::option::Option<i32>,
-}
-
-/// The specification for modifying HTTP header in HTTP request and HTTP response.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct HttpRouteHeaderModifier {
-    /// Add the headers with given map where key is the name of the header, value is the value of the header.
-    #[serde(default)]
-    pub add: ::core::option::Option<serde_json::Value>,
-    /// Remove headers (matching by header names) specified in the list.
-    #[serde(default)]
-    pub remove: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Completely overwrite/replace the headers with given map where key is the name of the header, value is the value of the header.
-    #[serde(default)]
-    pub set: ::core::option::Option<serde_json::Value>,
-}
-
-/// Static HTTP response object to be returned.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct HttpRouteHttpDirectResponse {
-    /// Optional. Response body as bytes. Maximum body size is 4096B.
-    #[serde(default, rename = "bytesBody")]
-    pub bytes_body: ::core::option::Option<String>,
-    /// Required. Status to return as part of HTTP Response. Must be a positive integer.
-    #[serde(default)]
-    pub status: ::core::option::Option<i32>,
-    /// Optional. Response body as a string. Maximum body length is 1024 characters.
-    #[serde(default, rename = "stringBody")]
-    pub string_body: ::core::option::Option<String>,
-}
-
-/// Specifications to match a query parameter in the request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct HttpRouteQueryParameterMatch {
-    /// The value of the query parameter must exactly match the contents of exact_match. Only one of exact_match, regex_match, or present_match must be set.
-    #[serde(default, rename = "exactMatch")]
-    pub exact_match: ::core::option::Option<String>,
-    /// Specifies that the QueryParameterMatcher matches if request contains query parameter, irrespective of whether the parameter has a value or not. Only one of exact_match, regex_match, or present_match must be set.
-    #[serde(default, rename = "presentMatch")]
-    pub present_match: ::core::option::Option<bool>,
-    /// The name of the query parameter to match.
-    #[serde(default, rename = "queryParameter")]
-    pub query_parameter: ::core::option::Option<String>,
-    /// The value of the query parameter must match the regular expression specified by regex_match. For regular expression grammar, please see https://github.com/google/re2/wiki/Syntax Only one of exact_match, regex_match, or present_match must be set.
-    #[serde(default, rename = "regexMatch")]
-    pub regex_match: ::core::option::Option<String>,
-}
-
-/// The specification for redirecting traffic.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct HttpRouteRedirect {
-    /// The host that will be used in the redirect response instead of the one that was supplied in the request.
-    #[serde(default, rename = "hostRedirect")]
-    pub host_redirect: ::core::option::Option<String>,
-    /// If set to true, the URL scheme in the redirected request is set to https. If set to false, the URL scheme of the redirected request will remain the same as that of the request. The default is set to false.
-    #[serde(default, rename = "httpsRedirect")]
-    pub https_redirect: ::core::option::Option<bool>,
-    /// The path that will be used in the redirect response instead of the one that was supplied in the request. path_redirect can not be supplied together with prefix_redirect. Supply one alone or neither. If neither is supplied, the path of the original request will be used for the redirect.
-    #[serde(default, rename = "pathRedirect")]
-    pub path_redirect: ::core::option::Option<String>,
-    /// The port that will be used in the redirected request instead of the one that was supplied in the request.
-    #[serde(default, rename = "portRedirect")]
-    pub port_redirect: ::core::option::Option<i32>,
-    /// Indicates that during redirection, the matched prefix (or path) should be swapped with this value. This option allows URLs be dynamically created based on the request.
-    #[serde(default, rename = "prefixRewrite")]
-    pub prefix_rewrite: ::core::option::Option<String>,
-    /// The HTTP Status code to use for the redirect. // TODO: enum values: ["RESPONSE_CODE_UNSPECIFIED", "MOVED_PERMANENTLY_DEFAULT", "FOUND", "SEE_OTHER", "TEMPORARY_REDIRECT", "PERMANENT_REDIRECT"]
-    #[serde(default, rename = "responseCode")]
-    pub response_code: ::core::option::Option<String>,
-    /// if set to true, any accompanying query portion of the original URL is removed prior to redirecting the request. If set to false, the query portion of the original URL is retained. The default is set to false.
-    #[serde(default, rename = "stripQuery")]
-    pub strip_query: ::core::option::Option<bool>,
-}
-
-/// Specifies the policy on how requests are shadowed to a separate mirrored destination service. The proxy does not wait for responses from the shadow service. Prior to sending traffic to the shadow service, the host/authority header is suffixed with -shadow. Mirroring is currently not supported for Cloud Run destinations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct HttpRouteRequestMirrorPolicy {
-    /// The destination the requests will be mirrored to. The weight of the destination will be ignored.
-    #[serde(default)]
-    pub destination: ::core::option::Option<HttpRouteDestination>,
-    /// Optional. The percentage of requests to get mirrored to the desired destination.
-    #[serde(default, rename = "mirrorPercent")]
-    pub mirror_percent: ::core::option::Option<f32>,
-}
-
-/// The specifications for retries.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct HttpRouteRetryPolicy {
-    /// Specifies the allowed number of retries. This number must be &gt; 0. If not specified, default to 1.
-    #[serde(default, rename = "numRetries")]
-    pub num_retries: ::core::option::Option<i32>,
-    /// Specifies a non-zero timeout per retry attempt.
-    #[serde(default, rename = "perTryTimeout")]
-    pub per_try_timeout: ::core::option::Option<String>,
-    /// Specifies one or more conditions when this retry policy applies. Valid values are: 5xx: Proxy will attempt a retry if the destination service responds with any 5xx response code, of if the destination service does not respond at all, example: disconnect, reset, read timeout, connection failure and refused streams. gateway-error: Similar to 5xx, but only applies to response codes 502, 503, 504. reset: Proxy will attempt a retry if the destination service does not respond at all (disconnect/reset/read timeout) connect-failure: Proxy will retry on failures connecting to destination for example due to connection timeouts. retriable-4xx: Proxy will retry fro retriable 4xx response codes. Currently the only retriable error supported is 409. refused-stream: Proxy will retry if the destination resets the stream with a REFUSED_STREAM error code. This reset type indicates that it is safe to retry.
-    #[serde(default, rename = "retryConditions")]
-    pub retry_conditions: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// The specifications for routing traffic and applying associated policies.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct HttpRouteRouteAction {
-    /// The specification for allowing client side cross-origin requests.
-    #[serde(default, rename = "corsPolicy")]
-    pub cors_policy: ::core::option::Option<HttpRouteCorsPolicy>,
-    /// The destination to which traffic should be forwarded.
-    #[serde(default)]
-    pub destinations: ::core::option::Option<::std::vec::Vec<HttpRouteDestination>>,
-    /// Optional. Static HTTP Response object to be returned regardless of the request.
-    #[serde(default, rename = "directResponse")]
-    pub direct_response: ::core::option::Option<HttpRouteHttpDirectResponse>,
-    /// The specification for fault injection introduced into traffic to test the resiliency of clients to backend service failure. As part of fault injection, when clients send requests to a backend service, delays can be introduced on a percentage of requests before sending those requests to the backend service. Similarly requests from clients can be aborted for a percentage of requests. timeout and retry_policy will be ignored by clients that are configured with a fault_injection_policy
-    #[serde(default, rename = "faultInjectionPolicy")]
-    pub fault_injection_policy: ::core::option::Option<HttpRouteFaultInjectionPolicy>,
-    /// Optional. Specifies the idle timeout for the selected route. The idle timeout is defined as the period in which there are no bytes sent or received on either the upstream or downstream connection. If not set, the default idle timeout is 1 hour. If set to 0s, the timeout will be disabled.
-    #[serde(default, rename = "idleTimeout")]
-    pub idle_timeout: ::core::option::Option<String>,
-    /// If set, the request is directed as configured by this field.
-    #[serde(default)]
-    pub redirect: ::core::option::Option<HttpRouteRedirect>,
-    /// The specification for modifying the headers of a matching request prior to delivery of the request to the destination. If HeaderModifiers are set on both the Destination and the RouteAction, they will be merged. Conflicts between the two will not be resolved on the configuration.
-    #[serde(default, rename = "requestHeaderModifier")]
-    pub request_header_modifier: ::core::option::Option<HttpRouteHeaderModifier>,
-    /// Specifies the policy on how requests intended for the routes destination are shadowed to a separate mirrored destination. Proxy will not wait for the shadow destination to respond before returning the response. Prior to sending traffic to the shadow service, the host/authority header is suffixed with -shadow.
-    #[serde(default, rename = "requestMirrorPolicy")]
-    pub request_mirror_policy: ::core::option::Option<HttpRouteRequestMirrorPolicy>,
-    /// The specification for modifying the headers of a response prior to sending the response back to the client. If HeaderModifiers are set on both the Destination and the RouteAction, they will be merged. Conflicts between the two will not be resolved on the configuration.
-    #[serde(default, rename = "responseHeaderModifier")]
-    pub response_header_modifier: ::core::option::Option<HttpRouteHeaderModifier>,
-    /// Specifies the retry policy associated with this route.
-    #[serde(default, rename = "retryPolicy")]
-    pub retry_policy: ::core::option::Option<HttpRouteRetryPolicy>,
-    /// Optional. Specifies cookie-based stateful session affinity.
-    #[serde(default, rename = "statefulSessionAffinity")]
-    pub stateful_session_affinity: ::core::option::Option<HttpRouteStatefulSessionAffinityPolicy>,
-    /// Specifies the timeout for selected route. Timeout is computed from the time the request has been fully processed (i.e. end of stream) up until the response has been completely processed. Timeout includes all retries.
-    #[serde(default)]
-    pub timeout: ::core::option::Option<String>,
-    /// The specification for rewrite URL before forwarding requests to the destination.
-    #[serde(default, rename = "urlRewrite")]
-    pub url_rewrite: ::core::option::Option<HttpRouteURLRewrite>,
-}
-
-/// RouteMatch defines specifications used to match requests. If multiple match types are set, this RouteMatch will match if ALL type of matches are matched.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct HttpRouteRouteMatch {
-    /// The HTTP request path value should exactly match this value. Only one of full_path_match, prefix_match, or regex_match should be used.
-    #[serde(default, rename = "fullPathMatch")]
-    pub full_path_match: ::core::option::Option<String>,
-    /// Specifies a list of HTTP request headers to match against. ALL of the supplied headers must be matched.
-    #[serde(default)]
-    pub headers: ::core::option::Option<::std::vec::Vec<HttpRouteHeaderMatch>>,
-    /// Specifies if prefix_match and full_path_match matches are case sensitive. The default value is false.
-    #[serde(default, rename = "ignoreCase")]
-    pub ignore_case: ::core::option::Option<bool>,
-    /// The HTTP request path value must begin with specified prefix_match. prefix_match must begin with a /. Only one of full_path_match, prefix_match, or regex_match should be used.
-    #[serde(default, rename = "prefixMatch")]
-    pub prefix_match: ::core::option::Option<String>,
-    /// Specifies a list of query parameters to match against. ALL of the query parameters must be matched.
-    #[serde(default, rename = "queryParameters")]
-    pub query_parameters: ::core::option::Option<::std::vec::Vec<HttpRouteQueryParameterMatch>>,
-    /// The HTTP request path value must satisfy the regular expression specified by regex_match after removing any query parameters and anchor supplied with the original URL. For regular expression grammar, please see https://github.com/google/re2/wiki/Syntax Only one of full_path_match, prefix_match, or regex_match should be used.
-    #[serde(default, rename = "regexMatch")]
-    pub regex_match: ::core::option::Option<String>,
-}
-
-/// Specifies how to match traffic and how to route traffic when traffic is matched.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct HttpRouteRouteRule {
-    /// The detailed rule defining how to route matched traffic.
-    #[serde(default)]
-    pub action: ::core::option::Option<HttpRouteRouteAction>,
-    /// A list of matches define conditions used for matching the rule against incoming HTTP requests. Each match is independent, i.e. this rule will be matched if ANY one of the matches is satisfied. If no matches field is specified, this rule will unconditionally match traffic. If a default rule is desired to be configured, add a rule with no matches specified to the end of the rules list.
-    #[serde(default)]
-    pub matches: ::core::option::Option<::std::vec::Vec<HttpRouteRouteMatch>>,
-}
-
-/// The specification for cookie-based stateful session affinity where the date plane supplies a “session cookie” with the name "GSSA" which encodes a specific destination host and each request containing that cookie will be directed to that host as long as the destination host remains up and healthy. The gRPC proxyless mesh library or sidecar proxy will manage the session cookie but the client application code is responsible for copying the cookie from each RPC in the session to the next.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct HttpRouteStatefulSessionAffinityPolicy {
-    /// Required. The cookie TTL value for the Set-Cookie header generated by the data plane. The lifetime of the cookie may be set to a value from 0 to 86400 seconds (24 hours) inclusive. Set this to 0s to use a session cookie and disable cookie expiration.
-    #[serde(default, rename = "cookieTtl")]
-    pub cookie_ttl: ::core::option::Option<String>,
-}
-
-/// The specification for modifying the URL of the request, prior to forwarding the request to the destination.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct HttpRouteURLRewrite {
-    /// Prior to forwarding the request to the selected destination, the requests host header is replaced by this value.
-    #[serde(default, rename = "hostRewrite")]
-    pub host_rewrite: ::core::option::Option<String>,
-    /// Prior to forwarding the request to the selected destination, the matching portion of the requests path is replaced by this value.
-    #[serde(default, rename = "pathPrefixRewrite")]
-    pub path_prefix_rewrite: ::core::option::Option<String>,
-}
-
-/// LbEdgeExtension is a resource that lets the extension service influence the selection of backend services and Cloud CDN cache keys by modifying request headers.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct LbEdgeExtension {
-    /// Output only. The timestamp when the resource was created.
-    #[serde(default, rename = "createTime")]
-    pub create_time: ::core::option::Option<String>,
-    /// Optional. A human-readable description of the resource.
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// Required. A set of ordered extension chains that contain the match conditions and extensions to execute. Match conditions for each extension chain are evaluated in sequence for a given request. The first extension chain that has a condition that matches the request is executed. Any subsequent extension chains do not execute. Limited to 5 extension chains per resource.
-    #[serde(default, rename = "extensionChains")]
-    pub extension_chains: ::core::option::Option<::std::vec::Vec<ExtensionChain>>,
-    /// Required. A list of references to the forwarding rules to which this service extension is attached. At least one forwarding rule is required. Only one LbEdgeExtension resource can be associated with a forwarding rule.
-    #[serde(default, rename = "forwardingRules")]
-    pub forwarding_rules: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Optional. Set of labels associated with the LbEdgeExtension resource. The format must comply with [the requirements for labels](https://cloud.google.com/compute/docs/labeling-resources#requirements) for Google Cloud resources.
-    #[serde(default)]
-    pub labels: ::core::option::Option<serde_json::Value>,
-    /// Required. All forwarding rules referenced by this extension must share the same load balancing scheme. Supported values: EXTERNAL_MANAGED. // TODO: enum values: ["LOAD_BALANCING_SCHEME_UNSPECIFIED", "INTERNAL_MANAGED", "EXTERNAL_MANAGED"]
-    #[serde(default, rename = "loadBalancingScheme")]
-    pub load_balancing_scheme: ::core::option::Option<String>,
-    /// Required. Identifier. Name of the LbEdgeExtension resource in the following format: projects/{project}/locations/{location}/lbEdgeExtensions/{lb_edge_extension}.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Output only. The timestamp when the resource was updated.
-    #[serde(default, rename = "updateTime")]
-    pub update_time: ::core::option::Option<String>,
-}
-
-/// LbRouteExtension is a resource that lets you control where traffic is routed to for a given request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct LbRouteExtension {
-    /// Output only. The timestamp when the resource was created.
-    #[serde(default, rename = "createTime")]
-    pub create_time: ::core::option::Option<String>,
-    /// Optional. A human-readable description of the resource.
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// Required. A set of ordered extension chains that contain the match conditions and extensions to execute. Match conditions for each extension chain are evaluated in sequence for a given request. The first extension chain that has a condition that matches the request is executed. Any subsequent extension chains do not execute. Limited to 5 extension chains per resource.
-    #[serde(default, rename = "extensionChains")]
-    pub extension_chains: ::core::option::Option<::std::vec::Vec<ExtensionChain>>,
-    /// Required. A list of references to the forwarding rules to which this service extension is attached. At least one forwarding rule is required. Only one LbRouteExtension resource can be associated with a forwarding rule.
-    #[serde(default, rename = "forwardingRules")]
-    pub forwarding_rules: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Optional. Set of labels associated with the LbRouteExtension resource. The format must comply with [the requirements for labels](https://cloud.google.com/compute/docs/labeling-resources#requirements) for Google Cloud resources.
-    #[serde(default)]
-    pub labels: ::core::option::Option<serde_json::Value>,
-    /// Required. All backend services and forwarding rules referenced by this extension must share the same load balancing scheme. Supported values: INTERNAL_MANAGED, EXTERNAL_MANAGED. For more information, refer to [Backend services overview](https://cloud.google.com/load-balancing/docs/backend-service). // TODO: enum values: ["LOAD_BALANCING_SCHEME_UNSPECIFIED", "INTERNAL_MANAGED", "EXTERNAL_MANAGED"]
-    #[serde(default, rename = "loadBalancingScheme")]
-    pub load_balancing_scheme: ::core::option::Option<String>,
-    /// Optional. The metadata provided here is included as part of the metadata_context (of type google.protobuf.Struct) in the ProcessingRequest message sent to the extension server. The metadata applies to all extensions in all extensions chains in this resource. The metadata is available under the key com.google.lb_route_extension.. The following variables are supported in the metadata: {forwarding_rule_id} - substituted with the forwarding rule''s fully qualified resource name. This field must not be set if at least one of the extension chains contains plugin extensions. Setting it results in a validation error. You can set metadata at either the resource level or the extension level. The extension level metadata is recommended because you can pass a different set of metadata through each extension to the backend.
-    #[serde(default)]
-    pub metadata: ::core::option::Option<serde_json::Value>,
-    /// Required. Identifier. Name of the LbRouteExtension resource in the following format: projects/{project}/locations/{location}/lbRouteExtensions/{lb_route_extension}.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Output only. The timestamp when the resource was updated.
-    #[serde(default, rename = "updateTime")]
-    pub update_time: ::core::option::Option<String>,
-}
-
-/// LbTrafficExtension is a resource that lets the extension service modify the headers and payloads of both requests and responses without impacting the choice of backend services or any other security policies associated with the backend service.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct LbTrafficExtension {
-    /// Output only. The timestamp when the resource was created.
-    #[serde(default, rename = "createTime")]
-    pub create_time: ::core::option::Option<String>,
-    /// Optional. A human-readable description of the resource.
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// Required. A set of ordered extension chains that contain the match conditions and extensions to execute. Match conditions for each extension chain are evaluated in sequence for a given request. The first extension chain that has a condition that matches the request is executed. Any subsequent extension chains do not execute. Limited to 5 extension chains per resource.
-    #[serde(default, rename = "extensionChains")]
-    pub extension_chains: ::core::option::Option<::std::vec::Vec<ExtensionChain>>,
-    /// Optional. A list of references to the forwarding rules to which this service extension is attached. At least one forwarding rule is required. Only one LbTrafficExtension resource can be associated with a forwarding rule.
-    #[serde(default, rename = "forwardingRules")]
-    pub forwarding_rules: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Optional. Set of labels associated with the LbTrafficExtension resource. The format must comply with [the requirements for labels](https://cloud.google.com/compute/docs/labeling-resources#requirements) for Google Cloud resources.
-    #[serde(default)]
-    pub labels: ::core::option::Option<serde_json::Value>,
-    /// Required. All backend services and forwarding rules referenced by this extension must share the same load balancing scheme. Supported values: INTERNAL_MANAGED and EXTERNAL_MANAGED. For more information, refer to [Backend services overview](https://cloud.google.com/load-balancing/docs/backend-service). // TODO: enum values: ["LOAD_BALANCING_SCHEME_UNSPECIFIED", "INTERNAL_MANAGED", "EXTERNAL_MANAGED"]
-    #[serde(default, rename = "loadBalancingScheme")]
-    pub load_balancing_scheme: ::core::option::Option<String>,
-    /// Optional. The metadata provided here is included as part of the metadata_context (of type google.protobuf.Struct) in the ProcessingRequest message sent to the extension server. The metadata applies to all extensions in all extensions chains in this resource. The metadata is available under the key com.google.lb_traffic_extension.. The following variables are supported in the metadata: {forwarding_rule_id} - substituted with the forwarding rule''s fully qualified resource name. This field must not be set if at least one of the extension chains contains plugin extensions. Setting it results in a validation error. You can set metadata at either the resource level or the extension level. The extension level metadata is recommended because you can pass a different set of metadata through each extension to the backend.
-    #[serde(default)]
-    pub metadata: ::core::option::Option<serde_json::Value>,
-    /// Required. Identifier. Name of the LbTrafficExtension resource in the following format: projects/{project}/locations/{location}/lbTrafficExtensions/{lb_traffic_extension}.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Output only. The timestamp when the resource was updated.
-    #[serde(default, rename = "updateTime")]
-    pub update_time: ::core::option::Option<String>,
-}
-
 /// Message for response to listing AuthzExtension resources.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ListAuthzExtensionsResponse {
@@ -1201,6 +273,437 @@ pub struct ListWasmPluginsResponse {
     pub wasm_plugins: ::core::option::Option<::std::vec::Vec<WasmPlugin>>,
 }
 
+/// The configuration for Platform Telemetry logging for Eventarc Advanced resources.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LoggingConfig {
+    /// Optional. The minimum severity of logs that will be sent to Stackdriver/Platform Telemetry. Logs at severitiy ≥ this value will be sent, unless it is NONE. // TODO: enum values: ["LOG_SEVERITY_UNSPECIFIED", "NONE", "DEBUG", "INFO", "NOTICE", "WARNING", "ERROR", "CRITICAL", "ALERT", "EMERGENCY"]
+    #[serde(default, rename = "logSeverity")]
+    pub log_severity: ::core::option::Option<String>,
+}
+
+/// Represents the metadata of the long-running operation.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct OperationMetadata {
+    /// Output only. API version used to start the operation.
+    #[serde(default, rename = "apiVersion")]
+    pub api_version: ::core::option::Option<String>,
+    /// Output only. The time the operation was created.
+    #[serde(default, rename = "createTime")]
+    pub create_time: ::core::option::Option<String>,
+    /// Output only. The time the operation finished running.
+    #[serde(default, rename = "endTime")]
+    pub end_time: ::core::option::Option<String>,
+    /// Output only. Identifies whether the user has requested cancellation of the operation. Operations that have successfully been cancelled have Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+    #[serde(default, rename = "requestedCancellation")]
+    pub requested_cancellation: ::core::option::Option<bool>,
+    /// Output only. Human-readable status of the operation, if any.
+    #[serde(default, rename = "statusMessage")]
+    pub status_message: ::core::option::Option<String>,
+    /// Output only. Server-defined resource path for the target of the operation.
+    #[serde(default)]
+    pub target: ::core::option::Option<String>,
+    /// Output only. Name of the verb executed by the operation.
+    #[serde(default)]
+    pub verb: ::core::option::Option<String>,
+}
+
+/// RetryFilterPerRouteConfig resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RetryFilterPerRouteConfig {
+    /// The name of the crypto key to use for encrypting event data.
+    #[serde(default, rename = "cryptoKeyName")]
+    pub crypto_key_name: ::core::option::Option<String>,
+}
+
+/// Request message for SetIamPolicy method.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SetIamPolicyRequest {
+    /// REQUIRED: The complete policy to be applied to the resource. The size of the policy is limited to a few 10s of KB. An empty policy is a valid policy but certain Google Cloud services (such as Projects) might reject them.
+    #[serde(default)]
+    pub policy: ::core::option::Option<Policy>,
+    /// OPTIONAL: A FieldMask specifying which fields of the policy to modify. Only the fields in the mask will be modified. If no mask is provided, the following default mask is used: paths: "bindings, etag"
+    #[serde(default, rename = "updateMask")]
+    pub update_mask: ::core::option::Option<String>,
+}
+
+/// Request message for TestIamPermissions method.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TestIamPermissionsRequest {
+    /// The set of permissions to check for the resource. Permissions with wildcards (such as * or storage.*) are not allowed. For more information see [IAM Overview](https://cloud.google.com/iam/docs/overview#permissions).
+    #[serde(default)]
+    pub permissions: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// Response message for TestIamPermissions method.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TestIamPermissionsResponse {
+    /// A subset of TestPermissionsRequest.permissions that the caller is allowed.
+    #[serde(default)]
+    pub permissions: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// Details of a WasmPluginVersion resource to be inlined in the WasmPlugin resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct WasmPluginVersionDetails {
+    /// Output only. The timestamp when the resource was created.
+    #[serde(default, rename = "createTime")]
+    pub create_time: ::core::option::Option<String>,
+    /// Optional. A human-readable description of the resource.
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+    /// Output only. This field holds the digest (usually checksum) value for the plugin image. The value is calculated based on the image_uri field. If the image_uri field refers to a container image, the digest value is obtained from the container image. If the image_uri field refers to a generic artifact, the digest value is calculated based on the contents of the file.
+    #[serde(default, rename = "imageDigest")]
+    pub image_digest: ::core::option::Option<String>,
+    /// Optional. URI of the image containing the Wasm module, stored in Artifact Registry. The URI can refer to one of the following repository formats: * Container images: the image_uri must point to a container that contains a single file with the name plugin.wasm. When a new WasmPluginVersion resource is created, the digest of the image is saved in the image_digest field. When pulling a container image from Artifact Registry, the digest value is used instead of an image tag. * Generic artifacts: the image_uri must be in this format: projects/{project}/locations/{location}/repositories/{repository}/ genericArtifacts/{package}:{version}. The specified package and version must contain a file with the name plugin.wasm. When a new WasmPluginVersion resource is created, the checksum of the contents of the file is saved in the image_digest field.
+    #[serde(default, rename = "imageUri")]
+    pub image_uri: ::core::option::Option<String>,
+    /// Optional. Set of labels associated with the WasmPluginVersion resource.
+    #[serde(default)]
+    pub labels: ::core::option::Option<serde_json::Value>,
+    /// Configuration for the plugin. The configuration is provided to the plugin at runtime through the ON_CONFIGURE callback. When a new WasmPluginVersion version is created, the digest of the contents is saved in the plugin_config_digest field.
+    #[serde(default, rename = "pluginConfigData")]
+    pub plugin_config_data: ::core::option::Option<String>,
+    /// Output only. This field holds the digest (usually checksum) value for the plugin configuration. The value is calculated based on the contents of plugin_config_data field or the image defined by the plugin_config_uri field.
+    #[serde(default, rename = "pluginConfigDigest")]
+    pub plugin_config_digest: ::core::option::Option<String>,
+    /// URI of the plugin configuration stored in the Artifact Registry. The configuration is provided to the plugin at runtime through the ON_CONFIGURE callback. The URI can refer to one of the following repository formats: * Container images: the plugin_config_uri must point to a container that contains a single file with the name plugin.config. When a new WasmPluginVersion resource is created, the digest of the image is saved in the plugin_config_digest field. When pulling a container image from Artifact Registry, the digest value is used instead of an image tag. * Generic artifacts: the plugin_config_uri must be in this format: projects/{project}/locations/{location}/repositories/{repository}/ genericArtifacts/{package}:{version}. The specified package and version must contain a file with the name plugin.config. When a new WasmPluginVersion resource is created, the checksum of the contents of the file is saved in the plugin_config_digest field.
+    #[serde(default, rename = "pluginConfigUri")]
+    pub plugin_config_uri: ::core::option::Option<String>,
+    /// Output only. The timestamp when the resource was updated.
+    #[serde(default, rename = "updateTime")]
+    pub update_time: ::core::option::Option<String>,
+}
+
+/// AuthzExtension is a resource that allows traffic forwarding to a callout backend service to make an authorization decision.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AuthzExtension {
+    /// Optional. The :authority header in the gRPC request sent from Envoy to the extension service. It is required when the service field points to a backend service or a wasm plugin.
+    #[serde(default)]
+    pub authority: ::core::option::Option<String>,
+    /// Output only. The timestamp when the resource was created.
+    #[serde(default, rename = "createTime")]
+    pub create_time: ::core::option::Option<String>,
+    /// Optional. A human-readable description of the resource.
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+    /// Optional. Determines how the proxy behaves if the call to the extension fails or times out. When set to TRUE, request or response processing continues without error. Any subsequent extensions in the extension chain are also executed. When set to FALSE or the default setting of FALSE is used, one of the following happens: * If response headers have not been delivered to the downstream client, a generic 500 error is returned to the client. The error response can be tailored by configuring a custom error response in the load balancer. * If response headers have been delivered, then the HTTP stream to the downstream client is reset.
+    #[serde(default, rename = "failOpen")]
+    pub fail_open: ::core::option::Option<bool>,
+    /// Optional. List of the Envoy attributes to forward to the extension server. The attributes provided here are included as part of the ProcessingRequest.attributes field (of type map), where the keys are the attribute names. Refer to the [documentation](https://cloud.google.com/service-extensions/docs/cel-matcher-language-reference#attributes) for the names of attributes that can be forwarded. If omitted, no attributes are sent. Each element is a string indicating the attribute name.
+    #[serde(default, rename = "forwardAttributes")]
+    pub forward_attributes: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Optional. List of the HTTP headers to forward to the extension (from the client). If omitted, all headers are sent. Each element is a string indicating the header name.
+    #[serde(default, rename = "forwardHeaders")]
+    pub forward_headers: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Optional. Set of labels associated with the AuthzExtension resource. The format must comply with [the requirements for labels](/compute/docs/labeling-resources#requirements) for Google Cloud resources.
+    #[serde(default)]
+    pub labels: ::core::option::Option<serde_json::Value>,
+    /// Optional. All backend services and forwarding rules referenced by this extension must share the same load balancing scheme. Supported values: INTERNAL_MANAGED, EXTERNAL_MANAGED. Can be omitted for AuthzExtensions that do not reference a backend service. For more information, refer to [Backend services overview](https://cloud.google.com/load-balancing/docs/backend-service). // TODO: enum values: ["LOAD_BALANCING_SCHEME_UNSPECIFIED", "INTERNAL_MANAGED", "EXTERNAL_MANAGED"]
+    #[serde(default, rename = "loadBalancingScheme")]
+    pub load_balancing_scheme: ::core::option::Option<String>,
+    /// Optional. The metadata provided here is included as part of the metadata_context (of type google.protobuf.Struct) in the ProcessingRequest message sent to the extension server. The metadata is available under the namespace com.google.authz_extension.. The following variables are supported in the metadata Struct: {forwarding_rule_id} - substituted with the forwarding rule''s fully qualified resource name.
+    #[serde(default)]
+    pub metadata: ::core::option::Option<serde_json::Value>,
+    /// Required. Identifier. Name of the AuthzExtension resource in the following format: projects/{project}/locations/{location}/authzExtensions/{authz_extension}.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Required. The reference to the service that runs the extension. To configure a callout extension, service must be a fully-qualified reference to a [backend service](https://cloud.google.com/compute/docs/reference/rest/v1/backendServices) in the format: https://www.googleapis.com/compute/v1/projects/{project}/regions/{region}/backendServices/{backendService} or https://www.googleapis.com/compute/v1/projects/{project}/global/backendServices/{backendService}.
+    #[serde(default)]
+    pub service: ::core::option::Option<String>,
+    /// Required. Specifies the timeout for each individual message on the stream. The timeout must be between 10-10000 milliseconds.
+    #[serde(default)]
+    pub timeout: ::core::option::Option<String>,
+    /// Output only. The timestamp when the resource was updated.
+    #[serde(default, rename = "updateTime")]
+    pub update_time: ::core::option::Option<String>,
+    /// Optional. The format of communication supported by the callout extension. This field is supported only for regional AuthzExtension resources. If not specified, the default value EXT_PROC_GRPC is used. Global AuthzExtension resources use the EXT_PROC_GRPC wire format. // TODO: enum values: ["WIRE_FORMAT_UNSPECIFIED", "EXT_PROC_GRPC", "EXT_AUTHZ_GRPC"]
+    #[serde(default, rename = "wireFormat")]
+    pub wire_format: ::core::option::Option<String>,
+}
+
+/// EndpointPolicy is a resource that helps apply desired configuration on the endpoints that match specific criteria. For example, this resource can be used to apply "authentication config" an all endpoints that serve on port 8080.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct EndpointPolicy {
+    /// Optional. This field specifies the URL of AuthorizationPolicy resource that applies authorization policies to the inbound traffic at the matched endpoints. Refer to Authorization. If this field is not specified, authorization is disabled(no authz checks) for this endpoint.
+    #[serde(default, rename = "authorizationPolicy")]
+    pub authorization_policy: ::core::option::Option<String>,
+    /// Optional. A URL referring to a ClientTlsPolicy resource. ClientTlsPolicy can be set to specify the authentication for traffic from the proxy to the actual endpoints. More specifically, it is applied to the outgoing traffic from the proxy to the endpoint. This is typically used for sidecar model where the proxy identifies itself as endpoint to the control plane, with the connection between sidecar and endpoint requiring authentication. If this field is not set, authentication is disabled(open). Applicable only when EndpointPolicyType is SIDECAR_PROXY.
+    #[serde(default, rename = "clientTlsPolicy")]
+    pub client_tls_policy: ::core::option::Option<String>,
+    /// Output only. The timestamp when the resource was created.
+    #[serde(default, rename = "createTime")]
+    pub create_time: ::core::option::Option<String>,
+    /// Optional. A free-text description of the resource. Max length 1024 characters.
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+    /// Required. A matcher that selects endpoints to which the policies should be applied.
+    #[serde(default, rename = "endpointMatcher")]
+    pub endpoint_matcher: ::core::option::Option<EndpointMatcher>,
+    /// Optional. Set of label tags associated with the EndpointPolicy resource.
+    #[serde(default)]
+    pub labels: ::core::option::Option<serde_json::Value>,
+    /// Identifier. Name of the EndpointPolicy resource. It matches pattern projects/{project}/locations/*/endpointPolicies/{endpoint_policy}.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Optional. A URL referring to ServerTlsPolicy resource. ServerTlsPolicy is used to determine the authentication policy to be applied to terminate the inbound traffic at the identified backends. If this field is not set, authentication is disabled(open) for this endpoint.
+    #[serde(default, rename = "serverTlsPolicy")]
+    pub server_tls_policy: ::core::option::Option<String>,
+    /// Optional. Port selector for the (matched) endpoints. If no port selector is provided, the matched config is applied to all ports.
+    #[serde(default, rename = "trafficPortSelector")]
+    pub traffic_port_selector: ::core::option::Option<TrafficPortSelector>,
+    /// Required. The type of endpoint policy. This is primarily used to validate the configuration. // TODO: enum values: ["ENDPOINT_POLICY_TYPE_UNSPECIFIED", "SIDECAR_PROXY", "GRPC_SERVER"]
+    #[serde(default, rename = "type")]
+    pub type_: ::core::option::Option<String>,
+    /// Output only. The timestamp when the resource was updated.
+    #[serde(default, rename = "updateTime")]
+    pub update_time: ::core::option::Option<String>,
+}
+
+/// GatewayRouteView defines view-only resource for Routes to a Gateway
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GatewayRouteView {
+    /// Output only. Identifier. Full path name of the GatewayRouteView resource. Format: projects/{project_number}/locations/{location}/gateways/{gateway}/routeViews/{route_view}
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Output only. The resource id for the route.
+    #[serde(default, rename = "routeId")]
+    pub route_id: ::core::option::Option<String>,
+    /// Output only. Location where the route exists.
+    #[serde(default, rename = "routeLocation")]
+    pub route_location: ::core::option::Option<String>,
+    /// Output only. Project number where the route exists.
+    #[serde(default, rename = "routeProjectNumber")]
+    pub route_project_number: ::core::option::Option<String>,
+    /// Output only. Type of the route: HttpRoute,GrpcRoute,TcpRoute, or TlsRoute
+    #[serde(default, rename = "routeType")]
+    pub route_type: ::core::option::Option<String>,
+}
+
+/// Gateway represents the configuration for a proxy, typically a load balancer. It captures the ip:port over which the services are exposed by the proxy, along with any policy configurations. Routes have reference to to Gateways to dictate how requests should be routed by this Gateway.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Gateway {
+    /// Optional. Zero or one IPv4 or IPv6 address on which the Gateway will receive the traffic. When no address is provided, an IP from the subnetwork is allocated This field only applies to gateways of type ''SECURE_WEB_GATEWAY''. Gateways of type ''OPEN_MESH'' listen on 0.0.0.0 for IPv4 and :: for IPv6.
+    #[serde(default)]
+    pub addresses: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Optional. If true, the gateway will allow traffic from clients outside of the region where the gateway is located. This field is configurable only for gateways of type SECURE_WEB_GATEWAY.
+    #[serde(default, rename = "allowGlobalAccess")]
+    pub allow_global_access: ::core::option::Option<bool>,
+    /// Optional. A fully-qualified Certificates URL reference. The proxy presents a Certificate (selected based on SNI) when establishing a TLS connection. This feature only applies to gateways of type ''SECURE_WEB_GATEWAY''.
+    #[serde(default, rename = "certificateUrls")]
+    pub certificate_urls: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Output only. The timestamp when the resource was created.
+    #[serde(default, rename = "createTime")]
+    pub create_time: ::core::option::Option<String>,
+    /// Optional. A free-text description of the resource. Max length 1024 characters.
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+    /// Optional. Determines if envoy will insert internal debug headers into upstream requests. Other Envoy headers may still be injected. By default, envoy will not insert any debug headers. // TODO: enum values: ["ENVOY_HEADERS_UNSPECIFIED", "NONE", "DEBUG_HEADERS"]
+    #[serde(default, rename = "envoyHeaders")]
+    pub envoy_headers: ::core::option::Option<String>,
+    /// Optional. A fully-qualified GatewaySecurityPolicy URL reference. Defines how a server should apply security policy to inbound (VM to Proxy) initiated connections. For example: projects/*/locations/*/gatewaySecurityPolicies/swg-policy. This policy is specific to gateways of type ''SECURE_WEB_GATEWAY''.
+    #[serde(default, rename = "gatewaySecurityPolicy")]
+    pub gateway_security_policy: ::core::option::Option<String>,
+    /// Optional. The IP Version that will be used by this gateway. Valid options are IPV4 or IPV6. Default is IPV4. // TODO: enum values: ["IP_VERSION_UNSPECIFIED", "IPV4", "IPV6"]
+    #[serde(default, rename = "ipVersion")]
+    pub ip_version: ::core::option::Option<String>,
+    /// Optional. Set of label tags associated with the Gateway resource.
+    #[serde(default)]
+    pub labels: ::core::option::Option<serde_json::Value>,
+    /// Identifier. Name of the Gateway resource. It matches pattern projects/*/locations/*/gateways/.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Optional. The relative resource name identifying the VPC network that is using this configuration. For example: projects/*/global/networks/network-1. Currently, this field is specific to gateways of type ''SECURE_WEB_GATEWAY''.
+    #[serde(default)]
+    pub network: ::core::option::Option<String>,
+    /// Required. One or more port numbers (1-65535), on which the Gateway will receive traffic. The proxy binds to the specified ports. Gateways of type ''SECURE_WEB_GATEWAY'' are limited to 5 ports. Gateways of type ''OPEN_MESH'' listen on 0.0.0.0 for IPv4 and :: for IPv6 and support multiple ports.
+    #[serde(default)]
+    pub ports: ::core::option::Option<::std::vec::Vec<i32>>,
+    /// Optional. The routing mode of the Gateway. This field is configurable only for gateways of type SECURE_WEB_GATEWAY. This field is required for gateways of type SECURE_WEB_GATEWAY. // TODO: enum values: ["EXPLICIT_ROUTING_MODE", "NEXT_HOP_ROUTING_MODE"]
+    #[serde(default, rename = "routingMode")]
+    pub routing_mode: ::core::option::Option<String>,
+    /// Optional. Scope determines how configuration across multiple Gateway instances are merged. The configuration for multiple Gateway instances with the same scope will be merged as presented as a single configuration to the proxy/load balancer. Max length 64 characters. Scope should start with a letter and can only have letters, numbers, hyphens.
+    #[serde(default)]
+    pub scope: ::core::option::Option<String>,
+    /// Output only. Server-defined URL of this resource
+    #[serde(default, rename = "selfLink")]
+    pub self_link: ::core::option::Option<String>,
+    /// Optional. A fully-qualified ServerTLSPolicy URL reference. Specifies how TLS traffic is terminated. If empty, TLS termination is disabled.
+    #[serde(default, rename = "serverTlsPolicy")]
+    pub server_tls_policy: ::core::option::Option<String>,
+    /// Optional. The relative resource name identifying the subnetwork in which this SWG is allocated. For example: projects/*/regions/us-central1/subnetworks/network-1 Currently, this field is specific to gateways of type ''SECURE_WEB_GATEWAY".
+    #[serde(default)]
+    pub subnetwork: ::core::option::Option<String>,
+    /// Immutable. The type of the customer managed gateway. This field is required. If unspecified, an error is returned. // TODO: enum values: ["TYPE_UNSPECIFIED", "OPEN_MESH", "SECURE_WEB_GATEWAY"]
+    #[serde(default, rename = "type")]
+    pub type_: ::core::option::Option<String>,
+    /// Output only. The timestamp when the resource was updated.
+    #[serde(default, rename = "updateTime")]
+    pub update_time: ::core::option::Option<String>,
+}
+
+/// GrpcRoute is the resource defining how gRPC traffic routed by a Mesh or Gateway resource is routed.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GrpcRoute {
+    /// Output only. The timestamp when the resource was created.
+    #[serde(default, rename = "createTime")]
+    pub create_time: ::core::option::Option<String>,
+    /// Optional. A free-text description of the resource. Max length 1024 characters.
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+    /// Optional. Gateways defines a list of gateways this GrpcRoute is attached to, as one of the routing rules to route the requests served by the gateway. Each gateway reference should match the pattern: projects/*/locations/*/gateways/
+    #[serde(default)]
+    pub gateways: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Required. Service hostnames with an optional port for which this route describes traffic. Format: [:] Hostname is the fully qualified domain name of a network host. This matches the RFC 1123 definition of a hostname with 2 notable exceptions: - IPs are not allowed. - A hostname may be prefixed with a wildcard label (*.). The wildcard label must appear by itself as the first label. Hostname can be "precise" which is a domain name without the terminating dot of a network host (e.g. foo.example.com) or "wildcard", which is a domain name prefixed with a single wildcard label (e.g. *.example.com). Note that as per RFC1035 and RFC1123, a label must consist of lower case alphanumeric characters or ''-'', and must start and end with an alphanumeric character. No other punctuation is allowed. The routes associated with a Mesh or Gateway must have unique hostnames. If you attempt to attach multiple routes with conflicting hostnames, the configuration will be rejected. For example, while it is acceptable for routes for the hostnames *.foo.bar.com and *.bar.com to be associated with the same route, it is not possible to associate two routes both with *.bar.com or both with bar.com. If a port is specified, then gRPC clients must use the channel URI with the port to match this rule (i.e. "xds:///service:123"), otherwise they must supply the URI without a port (i.e. "xds:///service").
+    #[serde(default)]
+    pub hostnames: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Optional. Set of label tags associated with the GrpcRoute resource.
+    #[serde(default)]
+    pub labels: ::core::option::Option<serde_json::Value>,
+    /// Optional. Meshes defines a list of meshes this GrpcRoute is attached to, as one of the routing rules to route the requests served by the mesh. Each mesh reference should match the pattern: projects/*/locations/*/meshes/
+    #[serde(default)]
+    pub meshes: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Identifier. Name of the GrpcRoute resource. It matches pattern projects/*/locations/*/grpcRoutes/
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Required. A list of detailed rules defining how to route traffic. Within a single GrpcRoute, the GrpcRoute.RouteAction associated with the first matching GrpcRoute.RouteRule will be executed. At least one rule must be supplied.
+    #[serde(default)]
+    pub rules: ::core::option::Option<::std::vec::Vec<GrpcRouteRouteRule>>,
+    /// Output only. Server-defined URL of this resource
+    #[serde(default, rename = "selfLink")]
+    pub self_link: ::core::option::Option<String>,
+    /// Output only. The timestamp when the resource was updated.
+    #[serde(default, rename = "updateTime")]
+    pub update_time: ::core::option::Option<String>,
+}
+
+/// HttpRoute is the resource defining how HTTP traffic should be routed by a Mesh or Gateway resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct HttpRoute {
+    /// Output only. The timestamp when the resource was created.
+    #[serde(default, rename = "createTime")]
+    pub create_time: ::core::option::Option<String>,
+    /// Optional. A free-text description of the resource. Max length 1024 characters.
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+    /// Optional. Gateways defines a list of gateways this HttpRoute is attached to, as one of the routing rules to route the requests served by the gateway. Each gateway reference should match the pattern: projects/*/locations/*/gateways/
+    #[serde(default)]
+    pub gateways: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Required. Hostnames define a set of hosts that should match against the HTTP host header to select a HttpRoute to process the request. Hostname is the fully qualified domain name of a network host, as defined by RFC 1123 with the exception that: - IPs are not allowed. - A hostname may be prefixed with a wildcard label (*.). The wildcard label must appear by itself as the first label. Hostname can be "precise" which is a domain name without the terminating dot of a network host (e.g. foo.example.com) or "wildcard", which is a domain name prefixed with a single wildcard label (e.g. *.example.com). Note that as per RFC1035 and RFC1123, a label must consist of lower case alphanumeric characters or ''-'', and must start and end with an alphanumeric character. No other punctuation is allowed. The routes associated with a Mesh or Gateways must have unique hostnames. If you attempt to attach multiple routes with conflicting hostnames, the configuration will be rejected. For example, while it is acceptable for routes for the hostnames *.foo.bar.com and *.bar.com to be associated with the same Mesh (or Gateways under the same scope), it is not possible to associate two routes both with *.bar.com or both with bar.com.
+    #[serde(default)]
+    pub hostnames: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Optional. Set of label tags associated with the HttpRoute resource.
+    #[serde(default)]
+    pub labels: ::core::option::Option<serde_json::Value>,
+    /// Optional. Meshes defines a list of meshes this HttpRoute is attached to, as one of the routing rules to route the requests served by the mesh. Each mesh reference should match the pattern: projects/*/locations/*/meshes/ The attached Mesh should be of a type SIDECAR
+    #[serde(default)]
+    pub meshes: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Identifier. Name of the HttpRoute resource. It matches pattern projects/*/locations/*/httpRoutes/http_route_name&gt;.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Required. Rules that define how traffic is routed and handled. Rules will be matched sequentially based on the RouteMatch specified for the rule.
+    #[serde(default)]
+    pub rules: ::core::option::Option<::std::vec::Vec<HttpRouteRouteRule>>,
+    /// Output only. Server-defined URL of this resource
+    #[serde(default, rename = "selfLink")]
+    pub self_link: ::core::option::Option<String>,
+    /// Output only. The timestamp when the resource was updated.
+    #[serde(default, rename = "updateTime")]
+    pub update_time: ::core::option::Option<String>,
+}
+
+/// LbEdgeExtension is a resource that lets the extension service influence the selection of backend services and Cloud CDN cache keys by modifying request headers.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LbEdgeExtension {
+    /// Output only. The timestamp when the resource was created.
+    #[serde(default, rename = "createTime")]
+    pub create_time: ::core::option::Option<String>,
+    /// Optional. A human-readable description of the resource.
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+    /// Required. A set of ordered extension chains that contain the match conditions and extensions to execute. Match conditions for each extension chain are evaluated in sequence for a given request. The first extension chain that has a condition that matches the request is executed. Any subsequent extension chains do not execute. Limited to 5 extension chains per resource.
+    #[serde(default, rename = "extensionChains")]
+    pub extension_chains: ::core::option::Option<::std::vec::Vec<ExtensionChain>>,
+    /// Required. A list of references to the forwarding rules to which this service extension is attached. At least one forwarding rule is required. Only one LbEdgeExtension resource can be associated with a forwarding rule.
+    #[serde(default, rename = "forwardingRules")]
+    pub forwarding_rules: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Optional. Set of labels associated with the LbEdgeExtension resource. The format must comply with [the requirements for labels](https://cloud.google.com/compute/docs/labeling-resources#requirements) for Google Cloud resources.
+    #[serde(default)]
+    pub labels: ::core::option::Option<serde_json::Value>,
+    /// Required. All forwarding rules referenced by this extension must share the same load balancing scheme. Supported values: EXTERNAL_MANAGED. // TODO: enum values: ["LOAD_BALANCING_SCHEME_UNSPECIFIED", "INTERNAL_MANAGED", "EXTERNAL_MANAGED"]
+    #[serde(default, rename = "loadBalancingScheme")]
+    pub load_balancing_scheme: ::core::option::Option<String>,
+    /// Required. Identifier. Name of the LbEdgeExtension resource in the following format: projects/{project}/locations/{location}/lbEdgeExtensions/{lb_edge_extension}.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Output only. The timestamp when the resource was updated.
+    #[serde(default, rename = "updateTime")]
+    pub update_time: ::core::option::Option<String>,
+}
+
+/// LbRouteExtension is a resource that lets you control where traffic is routed to for a given request.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LbRouteExtension {
+    /// Output only. The timestamp when the resource was created.
+    #[serde(default, rename = "createTime")]
+    pub create_time: ::core::option::Option<String>,
+    /// Optional. A human-readable description of the resource.
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+    /// Required. A set of ordered extension chains that contain the match conditions and extensions to execute. Match conditions for each extension chain are evaluated in sequence for a given request. The first extension chain that has a condition that matches the request is executed. Any subsequent extension chains do not execute. Limited to 5 extension chains per resource.
+    #[serde(default, rename = "extensionChains")]
+    pub extension_chains: ::core::option::Option<::std::vec::Vec<ExtensionChain>>,
+    /// Required. A list of references to the forwarding rules to which this service extension is attached. At least one forwarding rule is required. Only one LbRouteExtension resource can be associated with a forwarding rule.
+    #[serde(default, rename = "forwardingRules")]
+    pub forwarding_rules: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Optional. Set of labels associated with the LbRouteExtension resource. The format must comply with [the requirements for labels](https://cloud.google.com/compute/docs/labeling-resources#requirements) for Google Cloud resources.
+    #[serde(default)]
+    pub labels: ::core::option::Option<serde_json::Value>,
+    /// Required. All backend services and forwarding rules referenced by this extension must share the same load balancing scheme. Supported values: INTERNAL_MANAGED, EXTERNAL_MANAGED. For more information, refer to [Backend services overview](https://cloud.google.com/load-balancing/docs/backend-service). // TODO: enum values: ["LOAD_BALANCING_SCHEME_UNSPECIFIED", "INTERNAL_MANAGED", "EXTERNAL_MANAGED"]
+    #[serde(default, rename = "loadBalancingScheme")]
+    pub load_balancing_scheme: ::core::option::Option<String>,
+    /// Optional. The metadata provided here is included as part of the metadata_context (of type google.protobuf.Struct) in the ProcessingRequest message sent to the extension server. The metadata applies to all extensions in all extensions chains in this resource. The metadata is available under the key com.google.lb_route_extension.. The following variables are supported in the metadata: {forwarding_rule_id} - substituted with the forwarding rule''s fully qualified resource name. This field must not be set if at least one of the extension chains contains plugin extensions. Setting it results in a validation error. You can set metadata at either the resource level or the extension level. The extension level metadata is recommended because you can pass a different set of metadata through each extension to the backend.
+    #[serde(default)]
+    pub metadata: ::core::option::Option<serde_json::Value>,
+    /// Required. Identifier. Name of the LbRouteExtension resource in the following format: projects/{project}/locations/{location}/lbRouteExtensions/{lb_route_extension}.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Output only. The timestamp when the resource was updated.
+    #[serde(default, rename = "updateTime")]
+    pub update_time: ::core::option::Option<String>,
+}
+
+/// LbTrafficExtension is a resource that lets the extension service modify the headers and payloads of both requests and responses without impacting the choice of backend services or any other security policies associated with the backend service.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LbTrafficExtension {
+    /// Output only. The timestamp when the resource was created.
+    #[serde(default, rename = "createTime")]
+    pub create_time: ::core::option::Option<String>,
+    /// Optional. A human-readable description of the resource.
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+    /// Required. A set of ordered extension chains that contain the match conditions and extensions to execute. Match conditions for each extension chain are evaluated in sequence for a given request. The first extension chain that has a condition that matches the request is executed. Any subsequent extension chains do not execute. Limited to 5 extension chains per resource.
+    #[serde(default, rename = "extensionChains")]
+    pub extension_chains: ::core::option::Option<::std::vec::Vec<ExtensionChain>>,
+    /// Optional. A list of references to the forwarding rules to which this service extension is attached. At least one forwarding rule is required. Only one LbTrafficExtension resource can be associated with a forwarding rule.
+    #[serde(default, rename = "forwardingRules")]
+    pub forwarding_rules: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Optional. Set of labels associated with the LbTrafficExtension resource. The format must comply with [the requirements for labels](https://cloud.google.com/compute/docs/labeling-resources#requirements) for Google Cloud resources.
+    #[serde(default)]
+    pub labels: ::core::option::Option<serde_json::Value>,
+    /// Required. All backend services and forwarding rules referenced by this extension must share the same load balancing scheme. Supported values: INTERNAL_MANAGED and EXTERNAL_MANAGED. For more information, refer to [Backend services overview](https://cloud.google.com/load-balancing/docs/backend-service). // TODO: enum values: ["LOAD_BALANCING_SCHEME_UNSPECIFIED", "INTERNAL_MANAGED", "EXTERNAL_MANAGED"]
+    #[serde(default, rename = "loadBalancingScheme")]
+    pub load_balancing_scheme: ::core::option::Option<String>,
+    /// Optional. The metadata provided here is included as part of the metadata_context (of type google.protobuf.Struct) in the ProcessingRequest message sent to the extension server. The metadata applies to all extensions in all extensions chains in this resource. The metadata is available under the key com.google.lb_traffic_extension.. The following variables are supported in the metadata: {forwarding_rule_id} - substituted with the forwarding rule''s fully qualified resource name. This field must not be set if at least one of the extension chains contains plugin extensions. Setting it results in a validation error. You can set metadata at either the resource level or the extension level. The extension level metadata is recommended because you can pass a different set of metadata through each extension to the backend.
+    #[serde(default)]
+    pub metadata: ::core::option::Option<serde_json::Value>,
+    /// Required. Identifier. Name of the LbTrafficExtension resource in the following format: projects/{project}/locations/{location}/lbTrafficExtensions/{lb_traffic_extension}.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Output only. The timestamp when the resource was updated.
+    #[serde(default, rename = "updateTime")]
+    pub update_time: ::core::option::Option<String>,
+}
+
 /// A resource that represents a Google Cloud location.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Location {
@@ -1221,12 +724,24 @@ pub struct Location {
     pub name: ::core::option::Option<String>,
 }
 
-/// The configuration for Platform Telemetry logging for Eventarc Advanced resources.
+/// MeshRouteView defines view-only resource for Routes to a Mesh
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct LoggingConfig {
-    /// Optional. The minimum severity of logs that will be sent to Stackdriver/Platform Telemetry. Logs at severitiy ≥ this value will be sent, unless it is NONE. // TODO: enum values: ["LOG_SEVERITY_UNSPECIFIED", "NONE", "DEBUG", "INFO", "NOTICE", "WARNING", "ERROR", "CRITICAL", "ALERT", "EMERGENCY"]
-    #[serde(default, rename = "logSeverity")]
-    pub log_severity: ::core::option::Option<String>,
+pub struct MeshRouteView {
+    /// Output only. Identifier. Full path name of the MeshRouteView resource. Format: projects/{project_number}/locations/{location}/meshes/{mesh}/routeViews/{route_view}
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Output only. The resource id for the route.
+    #[serde(default, rename = "routeId")]
+    pub route_id: ::core::option::Option<String>,
+    /// Output only. Location where the route exists.
+    #[serde(default, rename = "routeLocation")]
+    pub route_location: ::core::option::Option<String>,
+    /// Output only. Project number where the route exists.
+    #[serde(default, rename = "routeProjectNumber")]
+    pub route_project_number: ::core::option::Option<String>,
+    /// Output only. Type of the route: HttpRoute,GrpcRoute,TcpRoute, or TlsRoute
+    #[serde(default, rename = "routeType")]
+    pub route_type: ::core::option::Option<String>,
 }
 
 /// Mesh represents a logical configuration grouping for workload to workload communication within a service mesh. Routes that point to mesh dictate how requests are routed within this logical mesh boundary.
@@ -1258,26 +773,6 @@ pub struct Mesh {
     pub update_time: ::core::option::Option<String>,
 }
 
-/// MeshRouteView defines view-only resource for Routes to a Mesh
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct MeshRouteView {
-    /// Output only. Identifier. Full path name of the MeshRouteView resource. Format: projects/{project_number}/locations/{location}/meshes/{mesh}/routeViews/{route_view}
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Output only. The resource id for the route.
-    #[serde(default, rename = "routeId")]
-    pub route_id: ::core::option::Option<String>,
-    /// Output only. Location where the route exists.
-    #[serde(default, rename = "routeLocation")]
-    pub route_location: ::core::option::Option<String>,
-    /// Output only. Project number where the route exists.
-    #[serde(default, rename = "routeProjectNumber")]
-    pub route_project_number: ::core::option::Option<String>,
-    /// Output only. Type of the route: HttpRoute,GrpcRoute,TcpRoute, or TlsRoute
-    #[serde(default, rename = "routeType")]
-    pub route_type: ::core::option::Option<String>,
-}
-
 /// This resource represents a long-running operation that is the result of a network API call.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Operation {
@@ -1296,57 +791,6 @@ pub struct Operation {
     /// The normal, successful response of the operation. If the original method returns no data on success, such as Delete, the response is google.protobuf.Empty. If the original method is standard Get/Create/Update, the response should be the resource. For other methods, the response should have the type XxxResponse, where Xxx is the original method name. For example, if the original method name is TakeSnapshot(), the inferred response type is TakeSnapshotResponse.
     #[serde(default)]
     pub response: ::core::option::Option<serde_json::Value>,
-}
-
-/// Represents the metadata of the long-running operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct OperationMetadata {
-    /// Output only. API version used to start the operation.
-    #[serde(default, rename = "apiVersion")]
-    pub api_version: ::core::option::Option<String>,
-    /// Output only. The time the operation was created.
-    #[serde(default, rename = "createTime")]
-    pub create_time: ::core::option::Option<String>,
-    /// Output only. The time the operation finished running.
-    #[serde(default, rename = "endTime")]
-    pub end_time: ::core::option::Option<String>,
-    /// Output only. Identifies whether the user has requested cancellation of the operation. Operations that have successfully been cancelled have Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
-    #[serde(default, rename = "requestedCancellation")]
-    pub requested_cancellation: ::core::option::Option<bool>,
-    /// Output only. Human-readable status of the operation, if any.
-    #[serde(default, rename = "statusMessage")]
-    pub status_message: ::core::option::Option<String>,
-    /// Output only. Server-defined resource path for the target of the operation.
-    #[serde(default)]
-    pub target: ::core::option::Option<String>,
-    /// Output only. Name of the verb executed by the operation.
-    #[serde(default)]
-    pub verb: ::core::option::Option<String>,
-}
-
-/// An Identity and Access Management (IAM) policy, which specifies access controls for Google Cloud resources. A Policy is a collection of bindings. A binding binds one or more members, or principals, to a single role. Principals can be user accounts, service accounts, Google groups, and domains (such as G Suite). A role is a named list of permissions; each role can be an IAM predefined role or a user-created custom role. For some types of Google Cloud resources, a binding can also specify a condition, which is a logical expression that allows access to a resource only if the expression evaluates to true. A condition can add constraints based on attributes of the request, the resource, or both. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies). **JSON example:**  { "bindings": [ { "role": "roles/resourcemanager.organizationAdmin", "members": [ "user:mike@example.com", "group:admins@example.com", "domain:google.com", "serviceAccount:my-project-id@appspot.gserviceaccount.com" ] }, { "role": "roles/resourcemanager.organizationViewer", "members": [ "user:eve@example.com" ], "condition": { "title": "expirable access", "description": "Does not grant access after Sep 2020", "expression": "request.time &lt; timestamp(''2020-10-01T00:00:00.000Z'')", } } ], "etag": "BwWWja0YfJA=", "version": 3 }  **YAML example:**  bindings: - members: - user:mike@example.com - group:admins@example.com - domain:google.com - serviceAccount:my-project-id@appspot.gserviceaccount.com role: roles/resourcemanager.organizationAdmin - members: - user:eve@example.com role: roles/resourcemanager.organizationViewer condition: title: expirable access description: Does not grant access after Sep 2020 expression: request.time &lt; timestamp(''2020-10-01T00:00:00.000Z'') etag: BwWWja0YfJA= version: 3  For a description of IAM and its features, see the [IAM documentation](https://cloud.google.com/iam/docs/).
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Policy {
-    /// Specifies cloud audit logging configuration for this policy.
-    #[serde(default, rename = "auditConfigs")]
-    pub audit_configs: ::core::option::Option<::std::vec::Vec<AuditConfig>>,
-    /// Associates a list of members, or principals, with a role. Optionally, may specify a condition that determines how and when the bindings are applied. Each of the bindings must contain at least one principal. The bindings in a Policy can refer to up to 1,500 principals; up to 250 of these principals can be Google groups. Each occurrence of a principal counts towards these limits. For example, if the bindings grant 50 different roles to user:alice@example.com, and not to any other principal, then you can add another 1,450 principals to the bindings in the Policy.
-    #[serde(default)]
-    pub bindings: ::core::option::Option<::std::vec::Vec<Binding>>,
-    /// etag is used for optimistic concurrency control as a way to help prevent simultaneous updates of a policy from overwriting each other. It is strongly suggested that systems make use of the etag in the read-modify-write cycle to perform policy updates in order to avoid race conditions: An etag is returned in the response to getIamPolicy, and systems are expected to put that etag in the request to setIamPolicy to ensure that their change will be applied to the same version of the policy. **Important:** If you use IAM Conditions, you must include the etag field whenever you call setIamPolicy. If you omit this field, then IAM allows you to overwrite a version 3 policy with a version 1 policy, and all of the conditions in the version 3 policy are lost.
-    #[serde(default)]
-    pub etag: ::core::option::Option<String>,
-    /// Specifies the format of the policy. Valid values are 0, 1, and 3. Requests that specify an invalid value are rejected. Any operation that affects conditional role bindings must specify version 3. This requirement applies to the following operations: * Getting a policy that includes a conditional role binding * Adding a conditional role binding to a policy * Changing a conditional role binding in a policy * Removing any role binding, with or without a condition, from a policy that includes conditions **Important:** If you use IAM Conditions, you must include the etag field whenever you call setIamPolicy. If you omit this field, then IAM allows you to overwrite a version 3 policy with a version 1 policy, and all of the conditions in the version 3 policy are lost. If a policy does not include any conditions, operations on that policy may specify any valid version or leave the field unset. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies).
-    #[serde(default)]
-    pub version: ::core::option::Option<i32>,
-}
-
-/// RetryFilterPerRouteConfig resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct RetryFilterPerRouteConfig {
-    /// The name of the crypto key to use for encrypting event data.
-    #[serde(default, rename = "cryptoKeyName")]
-    pub crypto_key_name: ::core::option::Option<String>,
 }
 
 /// ServiceBinding can be used to: - Bind a Service Directory Service to be used in a BackendService resource. This feature will be deprecated soon. - Bind a Private Service Connect producer service to be used in consumer Cloud Service Mesh or Application Load Balancers. - Bind a Cloud Run service to be used in consumer Cloud Service Mesh or Application Load Balancers.
@@ -1407,58 +851,6 @@ pub struct ServiceLbPolicy {
     pub update_time: ::core::option::Option<String>,
 }
 
-/// Option to specify if an unhealthy IG/NEG should be considered for global load balancing and traffic routing.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ServiceLbPolicyAutoCapacityDrain {
-    /// Optional. If set to ''True'', an unhealthy IG/NEG will be set as drained. - An IG/NEG is considered unhealthy if less than 25% of the instances/endpoints in the IG/NEG are healthy. - This option will never result in draining more than 50% of the configured IGs/NEGs for the Backend Service.
-    #[serde(default)]
-    pub enable: ::core::option::Option<bool>,
-}
-
-/// Option to specify health based failover behavior. This is not related to Network load balancer FailoverPolicy.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ServiceLbPolicyFailoverConfig {
-    /// Optional. The percentage threshold that a load balancer will begin to send traffic to failover backends. If the percentage of endpoints in a MIG/NEG is smaller than this value, traffic would be sent to failover backends if possible. This field should be set to a value between 1 and 99. The default value is 50 for Global external HTTP(S) load balancer (classic) and Proxyless service mesh, and 70 for others.
-    #[serde(default, rename = "failoverHealthThreshold")]
-    pub failover_health_threshold: ::core::option::Option<i32>,
-}
-
-/// Configuration to provide isolation support for the associated Backend Service.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ServiceLbPolicyIsolationConfig {
-    /// Optional. The isolation granularity of the load balancer. // TODO: enum values: ["ISOLATION_GRANULARITY_UNSPECIFIED", "REGION"]
-    #[serde(default, rename = "isolationGranularity")]
-    pub isolation_granularity: ::core::option::Option<String>,
-    /// Optional. The isolation mode of the load balancer. // TODO: enum values: ["ISOLATION_MODE_UNSPECIFIED", "NEAREST", "STRICT"]
-    #[serde(default, rename = "isolationMode")]
-    pub isolation_mode: ::core::option::Option<String>,
-}
-
-/// Request message for SetIamPolicy method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SetIamPolicyRequest {
-    /// REQUIRED: The complete policy to be applied to the resource. The size of the policy is limited to a few 10s of KB. An empty policy is a valid policy but certain Google Cloud services (such as Projects) might reject them.
-    #[serde(default)]
-    pub policy: ::core::option::Option<Policy>,
-    /// OPTIONAL: A FieldMask specifying which fields of the policy to modify. Only the fields in the mask will be modified. If no mask is provided, the following default mask is used: paths: "bindings, etag"
-    #[serde(default, rename = "updateMask")]
-    pub update_mask: ::core::option::Option<String>,
-}
-
-/// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Status {
-    /// The status code, which should be an enum value of google.rpc.Code.
-    #[serde(default)]
-    pub code: ::core::option::Option<i32>,
-    /// A list of messages that carry the error details. There is a common set of message types for APIs to use.
-    #[serde(default)]
-    pub details: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
-    /// A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.
-    #[serde(default)]
-    pub message: ::core::option::Option<String>,
-}
-
 /// TcpRoute is the resource defining how TCP traffic should be routed by a Mesh/Gateway resource.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TcpRoute {
@@ -1489,69 +881,6 @@ pub struct TcpRoute {
     /// Output only. The timestamp when the resource was updated.
     #[serde(default, rename = "updateTime")]
     pub update_time: ::core::option::Option<String>,
-}
-
-/// The specifications for routing traffic and applying associated policies.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct TcpRouteRouteAction {
-    /// Optional. The destination services to which traffic should be forwarded. At least one destination service is required. Only one of route destination or original destination can be set.
-    #[serde(default)]
-    pub destinations: ::core::option::Option<::std::vec::Vec<TcpRouteRouteDestination>>,
-    /// Optional. Specifies the idle timeout for the selected route. The idle timeout is defined as the period in which there are no bytes sent or received on either the upstream or downstream connection. If not set, the default idle timeout is 30 seconds. If set to 0s, the timeout will be disabled.
-    #[serde(default, rename = "idleTimeout")]
-    pub idle_timeout: ::core::option::Option<String>,
-    /// Optional. If true, Router will use the destination IP and port of the original connection as the destination of the request. Default is false. Only one of route destinations or original destination can be set.
-    #[serde(default, rename = "originalDestination")]
-    pub original_destination: ::core::option::Option<bool>,
-}
-
-/// Describe the destination for traffic to be routed to.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct TcpRouteRouteDestination {
-    /// Required. The URL of a BackendService to route traffic to.
-    #[serde(default, rename = "serviceName")]
-    pub service_name: ::core::option::Option<String>,
-    /// Optional. Specifies the proportion of requests forwarded to the backend referenced by the serviceName field. This is computed as: - weight/Sum(weights in this destination list). For non-zero values, there may be some epsilon from the exact proportion defined here depending on the precision an implementation supports. If only one serviceName is specified and it has a weight greater than 0, 100% of the traffic is forwarded to that backend. If weights are specified for any one service name, they need to be specified for all of them. If weights are unspecified for all services, then, traffic is distributed in equal proportions to all of them.
-    #[serde(default)]
-    pub weight: ::core::option::Option<i32>,
-}
-
-/// RouteMatch defines the predicate used to match requests to a given action. Multiple match types are "OR"ed for evaluation. If no routeMatch field is specified, this rule will unconditionally match traffic.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct TcpRouteRouteMatch {
-    /// Required. Must be specified in the CIDR range format. A CIDR range consists of an IP Address and a prefix length to construct the subnet mask. By default, the prefix length is 32 (i.e. matches a single IP address). Only IPV4 addresses are supported. Examples: "10.0.0.1" - matches against this exact IP address. "10.0.0.0/8" - matches against any IP address within the 10.0.0.0 subnet and 255.255.255.0 mask. "0.0.0.0/0" - matches against any IP address''.
-    #[serde(default)]
-    pub address: ::core::option::Option<String>,
-    /// Required. Specifies the destination port to match against.
-    #[serde(default)]
-    pub port: ::core::option::Option<String>,
-}
-
-/// Specifies how to match traffic and how to route traffic when traffic is matched.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct TcpRouteRouteRule {
-    /// Required. The detailed rule defining how to route matched traffic.
-    #[serde(default)]
-    pub action: ::core::option::Option<TcpRouteRouteAction>,
-    /// Optional. RouteMatch defines the predicate used to match requests to a given action. Multiple match types are "OR"ed for evaluation. If no routeMatch field is specified, this rule will unconditionally match traffic.
-    #[serde(default)]
-    pub matches: ::core::option::Option<::std::vec::Vec<TcpRouteRouteMatch>>,
-}
-
-/// Request message for TestIamPermissions method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct TestIamPermissionsRequest {
-    /// The set of permissions to check for the resource. Permissions with wildcards (such as * or storage.*) are not allowed. For more information see [IAM Overview](https://cloud.google.com/iam/docs/overview#permissions).
-    #[serde(default)]
-    pub permissions: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// Response message for TestIamPermissions method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct TestIamPermissionsResponse {
-    /// A subset of TestPermissionsRequest.permissions that the caller is allowed.
-    #[serde(default)]
-    pub permissions: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// TlsRoute defines how traffic should be routed based on SNI and other matching L3 attributes.
@@ -1589,112 +918,6 @@ pub struct TlsRoute {
     pub update_time: ::core::option::Option<String>,
 }
 
-/// The specifications for routing traffic and applying associated policies.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct TlsRouteRouteAction {
-    /// Required. The destination services to which traffic should be forwarded. At least one destination service is required.
-    #[serde(default)]
-    pub destinations: ::core::option::Option<::std::vec::Vec<TlsRouteRouteDestination>>,
-    /// Optional. Specifies the idle timeout for the selected route. The idle timeout is defined as the period in which there are no bytes sent or received on either the upstream or downstream connection. If not set, the default idle timeout is 1 hour. If set to 0s, the timeout will be disabled.
-    #[serde(default, rename = "idleTimeout")]
-    pub idle_timeout: ::core::option::Option<String>,
-}
-
-/// Describe the destination for traffic to be routed to.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct TlsRouteRouteDestination {
-    /// Required. The URL of a BackendService to route traffic to.
-    #[serde(default, rename = "serviceName")]
-    pub service_name: ::core::option::Option<String>,
-    /// Optional. Specifies the proportion of requests forwarded to the backend referenced by the service_name field. This is computed as: - weight/Sum(weights in destinations) Weights in all destinations does not need to sum up to 100.
-    #[serde(default)]
-    pub weight: ::core::option::Option<i32>,
-}
-
-/// RouteMatch defines the predicate used to match requests to a given action. Multiple match types are "AND"ed for evaluation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct TlsRouteRouteMatch {
-    /// Optional. ALPN (Application-Layer Protocol Negotiation) to match against. Examples: "http/1.1", "h2". At least one of sni_host and alpn is required. Up to 5 alpns across all matches can be set.
-    #[serde(default)]
-    pub alpn: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Optional. SNI (server name indicator) to match against. SNI will be matched against all wildcard domains, i.e. www.example.com will be first matched against www.example.com, then *.example.com, then *.com. Partial wildcards are not supported, and values like *w.example.com are invalid. At least one of sni_host and alpn is required. Up to 100 sni hosts across all matches can be set.
-    #[serde(default, rename = "sniHost")]
-    pub sni_host: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// Specifies how to match traffic and how to route traffic when traffic is matched.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct TlsRouteRouteRule {
-    /// Required. The detailed rule defining how to route matched traffic.
-    #[serde(default)]
-    pub action: ::core::option::Option<TlsRouteRouteAction>,
-    /// Required. RouteMatch defines the predicate used to match requests to a given action. Multiple match types are "OR"ed for evaluation. Atleast one RouteMatch must be supplied.
-    #[serde(default)]
-    pub matches: ::core::option::Option<::std::vec::Vec<TlsRouteRouteMatch>>,
-}
-
-/// Specification of a port-based selector.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct TrafficPortSelector {
-    /// Optional. A list of ports. Can be port numbers or port range (example, [80-90] specifies all ports from 80 to 90, including 80 and 90) or named ports or * to specify all ports. If the list is empty, all ports are selected.
-    #[serde(default)]
-    pub ports: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// WasmPlugin is a resource representing a service executing a customer-provided Wasm module.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct WasmPlugin {
-    /// Output only. The timestamp when the resource was created.
-    #[serde(default, rename = "createTime")]
-    pub create_time: ::core::option::Option<String>,
-    /// Optional. A human-readable description of the resource.
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// Optional. Set of labels associated with the WasmPlugin resource. The format must comply with [the following requirements](/compute/docs/labeling-resources#requirements).
-    #[serde(default)]
-    pub labels: ::core::option::Option<serde_json::Value>,
-    /// Optional. Specifies the logging options for the activity performed by this plugin. If logging is enabled, plugin logs are exported to Cloud Logging. Note that the settings relate to the logs generated by using logging statements in your Wasm code.
-    #[serde(default, rename = "logConfig")]
-    pub log_config: ::core::option::Option<WasmPluginLogConfig>,
-    /// Optional. The ID of the WasmPluginVersion resource that is the currently serving one. The version referred to must be a child of this WasmPlugin resource.
-    #[serde(default, rename = "mainVersionId")]
-    pub main_version_id: ::core::option::Option<String>,
-    /// Identifier. Name of the WasmPlugin resource in the following format: projects/{project}/locations/{location}/wasmPlugins/{wasm_plugin}.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Output only. The timestamp when the resource was updated.
-    #[serde(default, rename = "updateTime")]
-    pub update_time: ::core::option::Option<String>,
-    /// Output only. List of all [extensions](https://cloud.google.com/service-extensions/docs/overview) that use this WasmPlugin resource.
-    #[serde(default, rename = "usedBy")]
-    pub used_by: ::core::option::Option<::std::vec::Vec<WasmPluginUsedBy>>,
-    /// Optional. All versions of this WasmPlugin resource in the key-value format. The key is the resource ID, and the value is the VersionDetails object. Lets you create or update a WasmPlugin resource and its versions in a single request. When the main_version_id field is not empty, it must point to one of the VersionDetails objects in the map. If provided in a PATCH request, the new versions replace the previous set. Any version omitted from the versions field is removed. Because the WasmPluginVersion resource is immutable, if a WasmPluginVersion resource with the same name already exists and differs, the request fails. Note: In a GET request, this field is populated only if the field GetWasmPluginRequest.view is set to WASM_PLUGIN_VIEW_FULL.
-    #[serde(default)]
-    pub versions: ::core::option::Option<serde_json::Value>,
-}
-
-/// Specifies the logging options for the activity performed by this plugin. If logging is enabled, plugin logs are exported to Cloud Logging.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct WasmPluginLogConfig {
-    /// Optional. Specifies whether to enable logging for activity by this plugin. Defaults to false.
-    #[serde(default)]
-    pub enable: ::core::option::Option<bool>,
-    /// Non-empty default. Specifies the lowest level of the plugin logs that are exported to Cloud Logging. This setting relates to the logs generated by using logging statements in your Wasm code. This field is can be set only if logging is enabled for the plugin. If the field is not provided when logging is enabled, it is set to INFO by default. // TODO: enum values: ["LOG_LEVEL_UNSPECIFIED", "TRACE", "DEBUG", "INFO", "WARN", "ERROR", "CRITICAL"]
-    #[serde(default, rename = "minLogLevel")]
-    pub min_log_level: ::core::option::Option<String>,
-    /// Non-empty default. Configures the sampling rate of activity logs, where 1.0 means all logged activity is reported and 0.0 means no activity is reported. A floating point value between 0.0 and 1.0 indicates that a percentage of log messages is stored. The default value when logging is enabled is 1.0. The value of the field must be between 0 and 1 (inclusive). This field can be specified only if logging is enabled for this plugin.
-    #[serde(default, rename = "sampleRate")]
-    pub sample_rate: ::core::option::Option<f32>,
-}
-
-/// Defines a resource that uses the WasmPlugin resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct WasmPluginUsedBy {
-    /// Output only. Full name of the resource https://google.aip.dev/122#full-resource-names, for example //networkservices.googleapis.com/projects/{project}/locations/{location}/lbRouteExtensions/{extension}
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-}
-
 /// A single immutable version of a WasmPlugin resource. Defines the Wasm module used and optionally its runtime config.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct WasmPluginVersion {
@@ -1730,34 +953,811 @@ pub struct WasmPluginVersion {
     pub update_time: ::core::option::Option<String>,
 }
 
-/// Details of a WasmPluginVersion resource to be inlined in the WasmPlugin resource.
+/// WasmPlugin is a resource representing a service executing a customer-provided Wasm module.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct WasmPluginVersionDetails {
+pub struct WasmPlugin {
     /// Output only. The timestamp when the resource was created.
     #[serde(default, rename = "createTime")]
     pub create_time: ::core::option::Option<String>,
     /// Optional. A human-readable description of the resource.
     #[serde(default)]
     pub description: ::core::option::Option<String>,
-    /// Output only. This field holds the digest (usually checksum) value for the plugin image. The value is calculated based on the image_uri field. If the image_uri field refers to a container image, the digest value is obtained from the container image. If the image_uri field refers to a generic artifact, the digest value is calculated based on the contents of the file.
-    #[serde(default, rename = "imageDigest")]
-    pub image_digest: ::core::option::Option<String>,
-    /// Optional. URI of the image containing the Wasm module, stored in Artifact Registry. The URI can refer to one of the following repository formats: * Container images: the image_uri must point to a container that contains a single file with the name plugin.wasm. When a new WasmPluginVersion resource is created, the digest of the image is saved in the image_digest field. When pulling a container image from Artifact Registry, the digest value is used instead of an image tag. * Generic artifacts: the image_uri must be in this format: projects/{project}/locations/{location}/repositories/{repository}/ genericArtifacts/{package}:{version}. The specified package and version must contain a file with the name plugin.wasm. When a new WasmPluginVersion resource is created, the checksum of the contents of the file is saved in the image_digest field.
-    #[serde(default, rename = "imageUri")]
-    pub image_uri: ::core::option::Option<String>,
-    /// Optional. Set of labels associated with the WasmPluginVersion resource.
+    /// Optional. Set of labels associated with the WasmPlugin resource. The format must comply with [the following requirements](/compute/docs/labeling-resources#requirements).
     #[serde(default)]
     pub labels: ::core::option::Option<serde_json::Value>,
-    /// Configuration for the plugin. The configuration is provided to the plugin at runtime through the ON_CONFIGURE callback. When a new WasmPluginVersion version is created, the digest of the contents is saved in the plugin_config_digest field.
-    #[serde(default, rename = "pluginConfigData")]
-    pub plugin_config_data: ::core::option::Option<String>,
-    /// Output only. This field holds the digest (usually checksum) value for the plugin configuration. The value is calculated based on the contents of plugin_config_data field or the image defined by the plugin_config_uri field.
-    #[serde(default, rename = "pluginConfigDigest")]
-    pub plugin_config_digest: ::core::option::Option<String>,
-    /// URI of the plugin configuration stored in the Artifact Registry. The configuration is provided to the plugin at runtime through the ON_CONFIGURE callback. The URI can refer to one of the following repository formats: * Container images: the plugin_config_uri must point to a container that contains a single file with the name plugin.config. When a new WasmPluginVersion resource is created, the digest of the image is saved in the plugin_config_digest field. When pulling a container image from Artifact Registry, the digest value is used instead of an image tag. * Generic artifacts: the plugin_config_uri must be in this format: projects/{project}/locations/{location}/repositories/{repository}/ genericArtifacts/{package}:{version}. The specified package and version must contain a file with the name plugin.config. When a new WasmPluginVersion resource is created, the checksum of the contents of the file is saved in the plugin_config_digest field.
-    #[serde(default, rename = "pluginConfigUri")]
-    pub plugin_config_uri: ::core::option::Option<String>,
+    /// Optional. Specifies the logging options for the activity performed by this plugin. If logging is enabled, plugin logs are exported to Cloud Logging. Note that the settings relate to the logs generated by using logging statements in your Wasm code.
+    #[serde(default, rename = "logConfig")]
+    pub log_config: ::core::option::Option<WasmPluginLogConfig>,
+    /// Optional. The ID of the WasmPluginVersion resource that is the currently serving one. The version referred to must be a child of this WasmPlugin resource.
+    #[serde(default, rename = "mainVersionId")]
+    pub main_version_id: ::core::option::Option<String>,
+    /// Identifier. Name of the WasmPlugin resource in the following format: projects/{project}/locations/{location}/wasmPlugins/{wasm_plugin}.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
     /// Output only. The timestamp when the resource was updated.
     #[serde(default, rename = "updateTime")]
     pub update_time: ::core::option::Option<String>,
+    /// Output only. List of all [extensions](https://cloud.google.com/service-extensions/docs/overview) that use this WasmPlugin resource.
+    #[serde(default, rename = "usedBy")]
+    pub used_by: ::core::option::Option<::std::vec::Vec<WasmPluginUsedBy>>,
+    /// Optional. All versions of this WasmPlugin resource in the key-value format. The key is the resource ID, and the value is the VersionDetails object. Lets you create or update a WasmPlugin resource and its versions in a single request. When the main_version_id field is not empty, it must point to one of the VersionDetails objects in the map. If provided in a PATCH request, the new versions replace the previous set. Any version omitted from the versions field is removed. Because the WasmPluginVersion resource is immutable, if a WasmPluginVersion resource with the same name already exists and differs, the request fails. Note: In a GET request, this field is populated only if the field GetWasmPluginRequest.view is set to WASM_PLUGIN_VIEW_FULL.
+    #[serde(default)]
+    pub versions: ::core::option::Option<serde_json::Value>,
+}
+
+/// An Identity and Access Management (IAM) policy, which specifies access controls for Google Cloud resources. A Policy is a collection of bindings. A binding binds one or more members, or principals, to a single role. Principals can be user accounts, service accounts, Google groups, and domains (such as G Suite). A role is a named list of permissions; each role can be an IAM predefined role or a user-created custom role. For some types of Google Cloud resources, a binding can also specify a condition, which is a logical expression that allows access to a resource only if the expression evaluates to true. A condition can add constraints based on attributes of the request, the resource, or both. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies). **JSON example:**  { "bindings": [ { "role": "roles/resourcemanager.organizationAdmin", "members": [ "user:mike@example.com", "group:admins@example.com", "domain:google.com", "serviceAccount:my-project-id@appspot.gserviceaccount.com" ] }, { "role": "roles/resourcemanager.organizationViewer", "members": [ "user:eve@example.com" ], "condition": { "title": "expirable access", "description": "Does not grant access after Sep 2020", "expression": "request.time &lt; timestamp(''2020-10-01T00:00:00.000Z'')", } } ], "etag": "BwWWja0YfJA=", "version": 3 }  **YAML example:**  bindings: - members: - user:mike@example.com - group:admins@example.com - domain:google.com - serviceAccount:my-project-id@appspot.gserviceaccount.com role: roles/resourcemanager.organizationAdmin - members: - user:eve@example.com role: roles/resourcemanager.organizationViewer condition: title: expirable access description: Does not grant access after Sep 2020 expression: request.time &lt; timestamp(''2020-10-01T00:00:00.000Z'') etag: BwWWja0YfJA= version: 3  For a description of IAM and its features, see the [IAM documentation](https://cloud.google.com/iam/docs/).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Policy {
+    /// Specifies cloud audit logging configuration for this policy.
+    #[serde(default, rename = "auditConfigs")]
+    pub audit_configs: ::core::option::Option<::std::vec::Vec<AuditConfig>>,
+    /// Associates a list of members, or principals, with a role. Optionally, may specify a condition that determines how and when the bindings are applied. Each of the bindings must contain at least one principal. The bindings in a Policy can refer to up to 1,500 principals; up to 250 of these principals can be Google groups. Each occurrence of a principal counts towards these limits. For example, if the bindings grant 50 different roles to user:alice@example.com, and not to any other principal, then you can add another 1,450 principals to the bindings in the Policy.
+    #[serde(default)]
+    pub bindings: ::core::option::Option<::std::vec::Vec<Binding>>,
+    /// etag is used for optimistic concurrency control as a way to help prevent simultaneous updates of a policy from overwriting each other. It is strongly suggested that systems make use of the etag in the read-modify-write cycle to perform policy updates in order to avoid race conditions: An etag is returned in the response to getIamPolicy, and systems are expected to put that etag in the request to setIamPolicy to ensure that their change will be applied to the same version of the policy. **Important:** If you use IAM Conditions, you must include the etag field whenever you call setIamPolicy. If you omit this field, then IAM allows you to overwrite a version 3 policy with a version 1 policy, and all of the conditions in the version 3 policy are lost.
+    #[serde(default)]
+    pub etag: ::core::option::Option<String>,
+    /// Specifies the format of the policy. Valid values are 0, 1, and 3. Requests that specify an invalid value are rejected. Any operation that affects conditional role bindings must specify version 3. This requirement applies to the following operations: * Getting a policy that includes a conditional role binding * Adding a conditional role binding to a policy * Changing a conditional role binding in a policy * Removing any role binding, with or without a condition, from a policy that includes conditions **Important:** If you use IAM Conditions, you must include the etag field whenever you call setIamPolicy. If you omit this field, then IAM allows you to overwrite a version 3 policy with a version 1 policy, and all of the conditions in the version 3 policy are lost. If a policy does not include any conditions, operations on that policy may specify any valid version or leave the field unset. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies).
+    #[serde(default)]
+    pub version: ::core::option::Option<i32>,
+}
+
+/// A definition of a matcher that selects endpoints to which the policies should be applied.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct EndpointMatcher {
+    /// The matcher is based on node metadata presented by xDS clients.
+    #[serde(default, rename = "metadataLabelMatcher")]
+    pub metadata_label_matcher: ::core::option::Option<EndpointMatcherMetadataLabelMatcher>,
+}
+
+/// Specification of a port-based selector.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TrafficPortSelector {
+    /// Optional. A list of ports. Can be port numbers or port range (example, [80-90] specifies all ports from 80 to 90, including 80 and 90) or named ports or * to specify all ports. If the list is empty, all ports are selected.
+    #[serde(default)]
+    pub ports: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// Describes how to route traffic.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GrpcRouteRouteRule {
+    /// Required. A detailed rule defining how to route traffic. This field is required.
+    #[serde(default)]
+    pub action: ::core::option::Option<GrpcRouteRouteAction>,
+    /// Optional. Matches define conditions used for matching the rule against incoming gRPC requests. Each match is independent, i.e. this rule will be matched if ANY one of the matches is satisfied. If no matches field is specified, this rule will unconditionally match traffic.
+    #[serde(default)]
+    pub matches: ::core::option::Option<::std::vec::Vec<GrpcRouteRouteMatch>>,
+}
+
+/// Specifies how to match traffic and how to route traffic when traffic is matched.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct HttpRouteRouteRule {
+    /// The detailed rule defining how to route matched traffic.
+    #[serde(default)]
+    pub action: ::core::option::Option<HttpRouteRouteAction>,
+    /// A list of matches define conditions used for matching the rule against incoming HTTP requests. Each match is independent, i.e. this rule will be matched if ANY one of the matches is satisfied. If no matches field is specified, this rule will unconditionally match traffic. If a default rule is desired to be configured, add a rule with no matches specified to the end of the rules list.
+    #[serde(default)]
+    pub matches: ::core::option::Option<::std::vec::Vec<HttpRouteRouteMatch>>,
+}
+
+/// A single extension chain wrapper that contains the match conditions and extensions to execute.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ExtensionChain {
+    /// Required. A set of extensions to execute for the matching request. At least one extension is required. Up to 3 extensions can be defined for each extension chain for LbTrafficExtension resource. LbRouteExtension and LbEdgeExtension chains are limited to 1 extension per extension chain.
+    #[serde(default)]
+    pub extensions: ::core::option::Option<::std::vec::Vec<ExtensionChainExtension>>,
+    /// Required. Conditions under which this chain is invoked for a request.
+    #[serde(default, rename = "matchCondition")]
+    pub match_condition: ::core::option::Option<ExtensionChainMatchCondition>,
+    /// Required. The name for this extension chain. The name is logged as part of the HTTP request logs. The name must conform with RFC-1034, is restricted to lower-cased letters, numbers and hyphens, and can have a maximum length of 63 characters. Additionally, the first character must be a letter and the last a letter or a number.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+}
+
+/// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Status {
+    /// The status code, which should be an enum value of google.rpc.Code.
+    #[serde(default)]
+    pub code: ::core::option::Option<i32>,
+    /// A list of messages that carry the error details. There is a common set of message types for APIs to use.
+    #[serde(default)]
+    pub details: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
+    /// A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.
+    #[serde(default)]
+    pub message: ::core::option::Option<String>,
+}
+
+/// Option to specify if an unhealthy IG/NEG should be considered for global load balancing and traffic routing.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ServiceLbPolicyAutoCapacityDrain {
+    /// Optional. If set to ''True'', an unhealthy IG/NEG will be set as drained. - An IG/NEG is considered unhealthy if less than 25% of the instances/endpoints in the IG/NEG are healthy. - This option will never result in draining more than 50% of the configured IGs/NEGs for the Backend Service.
+    #[serde(default)]
+    pub enable: ::core::option::Option<bool>,
+}
+
+/// Option to specify health based failover behavior. This is not related to Network load balancer FailoverPolicy.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ServiceLbPolicyFailoverConfig {
+    /// Optional. The percentage threshold that a load balancer will begin to send traffic to failover backends. If the percentage of endpoints in a MIG/NEG is smaller than this value, traffic would be sent to failover backends if possible. This field should be set to a value between 1 and 99. The default value is 50 for Global external HTTP(S) load balancer (classic) and Proxyless service mesh, and 70 for others.
+    #[serde(default, rename = "failoverHealthThreshold")]
+    pub failover_health_threshold: ::core::option::Option<i32>,
+}
+
+/// Configuration to provide isolation support for the associated Backend Service.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ServiceLbPolicyIsolationConfig {
+    /// Optional. The isolation granularity of the load balancer. // TODO: enum values: ["ISOLATION_GRANULARITY_UNSPECIFIED", "REGION"]
+    #[serde(default, rename = "isolationGranularity")]
+    pub isolation_granularity: ::core::option::Option<String>,
+    /// Optional. The isolation mode of the load balancer. // TODO: enum values: ["ISOLATION_MODE_UNSPECIFIED", "NEAREST", "STRICT"]
+    #[serde(default, rename = "isolationMode")]
+    pub isolation_mode: ::core::option::Option<String>,
+}
+
+/// Specifies how to match traffic and how to route traffic when traffic is matched.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TcpRouteRouteRule {
+    /// Required. The detailed rule defining how to route matched traffic.
+    #[serde(default)]
+    pub action: ::core::option::Option<TcpRouteRouteAction>,
+    /// Optional. RouteMatch defines the predicate used to match requests to a given action. Multiple match types are "OR"ed for evaluation. If no routeMatch field is specified, this rule will unconditionally match traffic.
+    #[serde(default)]
+    pub matches: ::core::option::Option<::std::vec::Vec<TcpRouteRouteMatch>>,
+}
+
+/// Specifies how to match traffic and how to route traffic when traffic is matched.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TlsRouteRouteRule {
+    /// Required. The detailed rule defining how to route matched traffic.
+    #[serde(default)]
+    pub action: ::core::option::Option<TlsRouteRouteAction>,
+    /// Required. RouteMatch defines the predicate used to match requests to a given action. Multiple match types are "OR"ed for evaluation. Atleast one RouteMatch must be supplied.
+    #[serde(default)]
+    pub matches: ::core::option::Option<::std::vec::Vec<TlsRouteRouteMatch>>,
+}
+
+/// Specifies the logging options for the activity performed by this plugin. If logging is enabled, plugin logs are exported to Cloud Logging.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct WasmPluginLogConfig {
+    /// Optional. Specifies whether to enable logging for activity by this plugin. Defaults to false.
+    #[serde(default)]
+    pub enable: ::core::option::Option<bool>,
+    /// Non-empty default. Specifies the lowest level of the plugin logs that are exported to Cloud Logging. This setting relates to the logs generated by using logging statements in your Wasm code. This field is can be set only if logging is enabled for the plugin. If the field is not provided when logging is enabled, it is set to INFO by default. // TODO: enum values: ["LOG_LEVEL_UNSPECIFIED", "TRACE", "DEBUG", "INFO", "WARN", "ERROR", "CRITICAL"]
+    #[serde(default, rename = "minLogLevel")]
+    pub min_log_level: ::core::option::Option<String>,
+    /// Non-empty default. Configures the sampling rate of activity logs, where 1.0 means all logged activity is reported and 0.0 means no activity is reported. A floating point value between 0.0 and 1.0 indicates that a percentage of log messages is stored. The default value when logging is enabled is 1.0. The value of the field must be between 0 and 1 (inclusive). This field can be specified only if logging is enabled for this plugin.
+    #[serde(default, rename = "sampleRate")]
+    pub sample_rate: ::core::option::Option<f32>,
+}
+
+/// Defines a resource that uses the WasmPlugin resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct WasmPluginUsedBy {
+    /// Output only. Full name of the resource https://google.aip.dev/122#full-resource-names, for example //networkservices.googleapis.com/projects/{project}/locations/{location}/lbRouteExtensions/{extension}
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+}
+
+/// Specifies the audit configuration for a service. The configuration determines which permission types are logged, and what identities, if any, are exempted from logging. An AuditConfig must have one or more AuditLogConfigs. If there are AuditConfigs for both allServices and a specific service, the union of the two AuditConfigs is used for that service: the log_types specified in each AuditConfig are enabled, and the exempted_members in each AuditLogConfig are exempted. Example Policy with multiple AuditConfigs: { "audit_configs": [ { "service": "allServices", "audit_log_configs": [ { "log_type": "DATA_READ", "exempted_members": [ "user:jose@example.com" ] }, { "log_type": "DATA_WRITE" }, { "log_type": "ADMIN_READ" } ] }, { "service": "sampleservice.googleapis.com", "audit_log_configs": [ { "log_type": "DATA_READ" }, { "log_type": "DATA_WRITE", "exempted_members": [ "user:aliya@example.com" ] } ] } ] } For sampleservice, this policy enables DATA_READ, DATA_WRITE and ADMIN_READ logging. It also exempts jose@example.com from DATA_READ logging, and aliya@example.com from DATA_WRITE logging.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AuditConfig {
+    /// The configuration for logging of each type of permission.
+    #[serde(default, rename = "auditLogConfigs")]
+    pub audit_log_configs: ::core::option::Option<::std::vec::Vec<AuditLogConfig>>,
+    /// Specifies a service that will be enabled for audit logging. For example, storage.googleapis.com, cloudsql.googleapis.com. allServices is a special value that covers all services.
+    #[serde(default)]
+    pub service: ::core::option::Option<String>,
+}
+
+/// Associates members, or principals, with a role.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Binding {
+    /// The condition that is associated with this binding. If the condition evaluates to true, then this binding applies to the current request. If the condition evaluates to false, then this binding does not apply to the current request. However, a different role binding might grant the same role to one or more of the principals in this binding. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies).
+    #[serde(default)]
+    pub condition: ::core::option::Option<Expr>,
+    /// Specifies the principals requesting access for a Google Cloud resource. members can have the following values: * allUsers: A special identifier that represents anyone who is on the internet; with or without a Google account. * allAuthenticatedUsers: A special identifier that represents anyone who is authenticated with a Google account or a service account. Does not include identities that come from external identity providers (IdPs) through identity federation. * user:{emailid}: An email address that represents a specific Google account. For example, alice@example.com . * serviceAccount:{emailid}: An email address that represents a Google service account. For example, my-other-app@appspot.gserviceaccount.com. * serviceAccount:{projectid}.svc.id.goog[{namespace}/{kubernetes-sa}]: An identifier for a [Kubernetes service account](https://cloud.google.com/kubernetes-engine/docs/how-to/kubernetes-service-accounts). For example, my-project.svc.id.goog[my-namespace/my-kubernetes-sa]. * group:{emailid}: An email address that represents a Google group. For example, admins@example.com. * domain:{domain}: The G Suite domain (primary) that represents all the users of that domain. For example, google.com or example.com. * principal://iam.googleapis.com/locations/global/workforcePools/{pool_id}/subject/{subject_attribute_value}: A single identity in a workforce identity pool. * principalSet://iam.googleapis.com/locations/global/workforcePools/{pool_id}/group/{group_id}: All workforce identities in a group. * principalSet://iam.googleapis.com/locations/global/workforcePools/{pool_id}/attribute.{attribute_name}/{attribute_value}: All workforce identities with a specific attribute value. * principalSet://iam.googleapis.com/locations/global/workforcePools/{pool_id}/*: All identities in a workforce identity pool. * principal://iam.googleapis.com/projects/{project_number}/locations/global/workloadIdentityPools/{pool_id}/subject/{subject_attribute_value}: A single identity in a workload identity pool. * principalSet://iam.googleapis.com/projects/{project_number}/locations/global/workloadIdentityPools/{pool_id}/group/{group_id}: A workload identity pool group. * principalSet://iam.googleapis.com/projects/{project_number}/locations/global/workloadIdentityPools/{pool_id}/attribute.{attribute_name}/{attribute_value}: All identities in a workload identity pool with a certain attribute. * principalSet://iam.googleapis.com/projects/{project_number}/locations/global/workloadIdentityPools/{pool_id}/*: All identities in a workload identity pool. * deleted:user:{emailid}?uid={uniqueid}: An email address (plus unique identifier) representing a user that has been recently deleted. For example, alice@example.com?uid=123456789012345678901. If the user is recovered, this value reverts to user:{emailid} and the recovered user retains the role in the binding. * deleted:serviceAccount:{emailid}?uid={uniqueid}: An email address (plus unique identifier) representing a service account that has been recently deleted. For example, my-other-app@appspot.gserviceaccount.com?uid=123456789012345678901. If the service account is undeleted, this value reverts to serviceAccount:{emailid} and the undeleted service account retains the role in the binding. * deleted:group:{emailid}?uid={uniqueid}: An email address (plus unique identifier) representing a Google group that has been recently deleted. For example, admins@example.com?uid=123456789012345678901. If the group is recovered, this value reverts to group:{emailid} and the recovered group retains the role in the binding. * deleted:principal://iam.googleapis.com/locations/global/workforcePools/{pool_id}/subject/{subject_attribute_value}: Deleted single identity in a workforce identity pool. For example, deleted:principal://iam.googleapis.com/locations/global/workforcePools/my-pool-id/subject/my-subject-attribute-value.
+    #[serde(default)]
+    pub members: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Role that is assigned to the list of members, or principals. For example, roles/viewer, roles/editor, or roles/owner. For an overview of the IAM roles and permissions, see the [IAM documentation](https://cloud.google.com/iam/docs/roles-overview). For a list of the available pre-defined roles, see [here](https://cloud.google.com/iam/docs/understanding-roles).
+    #[serde(default)]
+    pub role: ::core::option::Option<String>,
+}
+
+/// The matcher that is based on node metadata presented by xDS clients.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct EndpointMatcherMetadataLabelMatcher {
+    /// Specifies how matching should be done. Supported values are: MATCH_ANY: At least one of the Labels specified in the matcher should match the metadata presented by xDS client. MATCH_ALL: The metadata presented by the xDS client should contain all of the labels specified here. The selection is determined based on the best match. For example, suppose there are three EndpointPolicy resources P1, P2 and P3 and if P1 has a the matcher as MATCH_ANY , P2 has MATCH_ALL , and P3 has MATCH_ALL . If a client with label connects, the config from P1 will be selected. If a client with label connects, the config from P2 will be selected. If a client with label connects, the config from P3 will be selected. If there is more than one best match, (for example, if a config P4 with selector exists and if a client with label connects), pick up the one with older creation time. // TODO: enum values: ["METADATA_LABEL_MATCH_CRITERIA_UNSPECIFIED", "MATCH_ANY", "MATCH_ALL"]
+    #[serde(default, rename = "metadataLabelMatchCriteria")]
+    pub metadata_label_match_criteria: ::core::option::Option<String>,
+    /// The list of label value pairs that must match labels in the provided metadata based on filterMatchCriteria This list can have at most 64 entries. The list can be empty if the match criteria is MATCH_ANY, to specify a wildcard match (i.e this matches any client).
+    #[serde(default, rename = "metadataLabels")]
+    pub metadata_labels:
+        ::core::option::Option<::std::vec::Vec<EndpointMatcherMetadataLabelMatcherMetadataLabels>>,
+}
+
+/// Specifies how to route matched traffic.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GrpcRouteRouteAction {
+    /// Optional. The destination services to which traffic should be forwarded. If multiple destinations are specified, traffic will be split between Backend Service(s) according to the weight field of these destinations.
+    #[serde(default)]
+    pub destinations: ::core::option::Option<::std::vec::Vec<GrpcRouteDestination>>,
+    /// Optional. The specification for fault injection introduced into traffic to test the resiliency of clients to destination service failure. As part of fault injection, when clients send requests to a destination, delays can be introduced on a percentage of requests before sending those requests to the destination service. Similarly requests from clients can be aborted by for a percentage of requests. timeout and retry_policy will be ignored by clients that are configured with a fault_injection_policy
+    #[serde(default, rename = "faultInjectionPolicy")]
+    pub fault_injection_policy: ::core::option::Option<GrpcRouteFaultInjectionPolicy>,
+    /// Optional. Specifies the idle timeout for the selected route. The idle timeout is defined as the period in which there are no bytes sent or received on either the upstream or downstream connection. If not set, the default idle timeout is 1 hour. If set to 0s, the timeout will be disabled.
+    #[serde(default, rename = "idleTimeout")]
+    pub idle_timeout: ::core::option::Option<String>,
+    /// Optional. Specifies the retry policy associated with this route.
+    #[serde(default, rename = "retryPolicy")]
+    pub retry_policy: ::core::option::Option<GrpcRouteRetryPolicy>,
+    /// Optional. Specifies cookie-based stateful session affinity.
+    #[serde(default, rename = "statefulSessionAffinity")]
+    pub stateful_session_affinity: ::core::option::Option<GrpcRouteStatefulSessionAffinityPolicy>,
+    /// Optional. Specifies the timeout for selected route. Timeout is computed from the time the request has been fully processed (i.e. end of stream) up until the response has been completely processed. Timeout includes all retries.
+    #[serde(default)]
+    pub timeout: ::core::option::Option<String>,
+}
+
+/// Criteria for matching traffic. A RouteMatch will be considered to match when all supplied fields match.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GrpcRouteRouteMatch {
+    /// Optional. Specifies a collection of headers to match.
+    #[serde(default)]
+    pub headers: ::core::option::Option<::std::vec::Vec<GrpcRouteHeaderMatch>>,
+    /// Optional. A gRPC method to match against. If this field is empty or omitted, will match all methods.
+    #[serde(default)]
+    pub method: ::core::option::Option<GrpcRouteMethodMatch>,
+}
+
+/// The specifications for routing traffic and applying associated policies.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct HttpRouteRouteAction {
+    /// The specification for allowing client side cross-origin requests.
+    #[serde(default, rename = "corsPolicy")]
+    pub cors_policy: ::core::option::Option<HttpRouteCorsPolicy>,
+    /// The destination to which traffic should be forwarded.
+    #[serde(default)]
+    pub destinations: ::core::option::Option<::std::vec::Vec<HttpRouteDestination>>,
+    /// Optional. Static HTTP Response object to be returned regardless of the request.
+    #[serde(default, rename = "directResponse")]
+    pub direct_response: ::core::option::Option<HttpRouteHttpDirectResponse>,
+    /// The specification for fault injection introduced into traffic to test the resiliency of clients to backend service failure. As part of fault injection, when clients send requests to a backend service, delays can be introduced on a percentage of requests before sending those requests to the backend service. Similarly requests from clients can be aborted for a percentage of requests. timeout and retry_policy will be ignored by clients that are configured with a fault_injection_policy
+    #[serde(default, rename = "faultInjectionPolicy")]
+    pub fault_injection_policy: ::core::option::Option<HttpRouteFaultInjectionPolicy>,
+    /// Optional. Specifies the idle timeout for the selected route. The idle timeout is defined as the period in which there are no bytes sent or received on either the upstream or downstream connection. If not set, the default idle timeout is 1 hour. If set to 0s, the timeout will be disabled.
+    #[serde(default, rename = "idleTimeout")]
+    pub idle_timeout: ::core::option::Option<String>,
+    /// If set, the request is directed as configured by this field.
+    #[serde(default)]
+    pub redirect: ::core::option::Option<HttpRouteRedirect>,
+    /// The specification for modifying the headers of a matching request prior to delivery of the request to the destination. If HeaderModifiers are set on both the Destination and the RouteAction, they will be merged. Conflicts between the two will not be resolved on the configuration.
+    #[serde(default, rename = "requestHeaderModifier")]
+    pub request_header_modifier: ::core::option::Option<HttpRouteHeaderModifier>,
+    /// Specifies the policy on how requests intended for the routes destination are shadowed to a separate mirrored destination. Proxy will not wait for the shadow destination to respond before returning the response. Prior to sending traffic to the shadow service, the host/authority header is suffixed with -shadow.
+    #[serde(default, rename = "requestMirrorPolicy")]
+    pub request_mirror_policy: ::core::option::Option<HttpRouteRequestMirrorPolicy>,
+    /// The specification for modifying the headers of a response prior to sending the response back to the client. If HeaderModifiers are set on both the Destination and the RouteAction, they will be merged. Conflicts between the two will not be resolved on the configuration.
+    #[serde(default, rename = "responseHeaderModifier")]
+    pub response_header_modifier: ::core::option::Option<HttpRouteHeaderModifier>,
+    /// Specifies the retry policy associated with this route.
+    #[serde(default, rename = "retryPolicy")]
+    pub retry_policy: ::core::option::Option<HttpRouteRetryPolicy>,
+    /// Optional. Specifies cookie-based stateful session affinity.
+    #[serde(default, rename = "statefulSessionAffinity")]
+    pub stateful_session_affinity: ::core::option::Option<HttpRouteStatefulSessionAffinityPolicy>,
+    /// Specifies the timeout for selected route. Timeout is computed from the time the request has been fully processed (i.e. end of stream) up until the response has been completely processed. Timeout includes all retries.
+    #[serde(default)]
+    pub timeout: ::core::option::Option<String>,
+    /// The specification for rewrite URL before forwarding requests to the destination.
+    #[serde(default, rename = "urlRewrite")]
+    pub url_rewrite: ::core::option::Option<HttpRouteURLRewrite>,
+}
+
+/// RouteMatch defines specifications used to match requests. If multiple match types are set, this RouteMatch will match if ALL type of matches are matched.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct HttpRouteRouteMatch {
+    /// The HTTP request path value should exactly match this value. Only one of full_path_match, prefix_match, or regex_match should be used.
+    #[serde(default, rename = "fullPathMatch")]
+    pub full_path_match: ::core::option::Option<String>,
+    /// Specifies a list of HTTP request headers to match against. ALL of the supplied headers must be matched.
+    #[serde(default)]
+    pub headers: ::core::option::Option<::std::vec::Vec<HttpRouteHeaderMatch>>,
+    /// Specifies if prefix_match and full_path_match matches are case sensitive. The default value is false.
+    #[serde(default, rename = "ignoreCase")]
+    pub ignore_case: ::core::option::Option<bool>,
+    /// The HTTP request path value must begin with specified prefix_match. prefix_match must begin with a /. Only one of full_path_match, prefix_match, or regex_match should be used.
+    #[serde(default, rename = "prefixMatch")]
+    pub prefix_match: ::core::option::Option<String>,
+    /// Specifies a list of query parameters to match against. ALL of the query parameters must be matched.
+    #[serde(default, rename = "queryParameters")]
+    pub query_parameters: ::core::option::Option<::std::vec::Vec<HttpRouteQueryParameterMatch>>,
+    /// The HTTP request path value must satisfy the regular expression specified by regex_match after removing any query parameters and anchor supplied with the original URL. For regular expression grammar, please see https://github.com/google/re2/wiki/Syntax Only one of full_path_match, prefix_match, or regex_match should be used.
+    #[serde(default, rename = "regexMatch")]
+    pub regex_match: ::core::option::Option<String>,
+}
+
+/// A single extension in the chain to execute for the matching request.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ExtensionChainExtension {
+    /// Optional. The :authority header in the gRPC request sent from Envoy to the extension service. Required for Callout extensions. This field is not supported for plugin extensions. Setting it results in a validation error.
+    #[serde(default)]
+    pub authority: ::core::option::Option<String>,
+    /// Optional. Determines how the proxy behaves if the call to the extension fails or times out. When set to TRUE, request or response processing continues without error. Any subsequent extensions in the extension chain are also executed. When set to FALSE or the default setting of FALSE is used, one of the following happens: * If response headers have not been delivered to the downstream client, a generic 500 error is returned to the client. The error response can be tailored by configuring a custom error response in the load balancer. * If response headers have been delivered, then the HTTP stream to the downstream client is reset.
+    #[serde(default, rename = "failOpen")]
+    pub fail_open: ::core::option::Option<bool>,
+    /// Optional. List of the Envoy attributes to forward to the extension server. The attributes provided here are included as part of the ProcessingRequest.attributes field (of type map), where the keys are the attribute names. Refer to the [documentation](https://cloud.google.com/service-extensions/docs/cel-matcher-language-reference#attributes) for the names of attributes that can be forwarded. If omitted, no attributes are sent. Each element is a string indicating the attribute name.
+    #[serde(default, rename = "forwardAttributes")]
+    pub forward_attributes: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Optional. List of the HTTP headers to forward to the extension (from the client or backend). If omitted, all headers are sent. Each element is a string indicating the header name.
+    #[serde(default, rename = "forwardHeaders")]
+    pub forward_headers: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Optional. The metadata provided here is included as part of the metadata_context (of type google.protobuf.Struct) in the ProcessingRequest message sent to the extension server. For AuthzExtension resources, the metadata is available under the namespace com.google.authz_extension.. For other types of extensions, the metadata is available under the namespace com.google..... For example: com.google.lb_traffic_extension.lbtrafficextension1.chain1.ext1. The following variables are supported in the metadata: {forwarding_rule_id} - substituted with the forwarding rule''s fully qualified resource name. This field must not be set for plugin extensions. Setting it results in a validation error. You can set metadata at either the resource level or the extension level. The extension level metadata is recommended because you can pass a different set of metadata through each extension to the backend. This field is subject to following limitations: * The total size of the metadata must be less than 1KiB. * The total number of keys in the metadata must be less than 16. * The length of each key must be less than 64 characters. * The length of each value must be less than 1024 characters. * All values must be strings.
+    #[serde(default)]
+    pub metadata: ::core::option::Option<serde_json::Value>,
+    /// Optional. The name for this extension. The name is logged as part of the HTTP request logs. The name must conform with RFC-1034, is restricted to lower-cased letters, numbers and hyphens, and can have a maximum length of 63 characters. Additionally, the first character must be a letter and the last a letter or a number. This field is required except for AuthzExtension.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Optional. When set to true, the calls to the extension backend are performed asynchronously, without pausing the processing of the ongoing request. In this mode, only STREAMED (default) body processing is supported. Responses, if any, are ignored. Supported by regional LbTrafficExtension and LbRouteExtension resources.
+    #[serde(default, rename = "observabilityMode")]
+    pub observability_mode: ::core::option::Option<bool>,
+    /// Optional. Configures the send mode for request body processing. The field can only be set if supported_events includes REQUEST_BODY. If supported_events includes REQUEST_BODY, but request_body_send_mode is unset, the default value STREAMED is used. When this field is set to FULL_DUPLEX_STREAMED, supported_events must include both REQUEST_BODY and REQUEST_TRAILERS. This field can be set only for LbTrafficExtension and LbRouteExtension resources, and only when the service field of the extension points to a BackendService. Only FULL_DUPLEX_STREAMED mode is supported for LbRouteExtension resources. // TODO: enum values: ["BODY_SEND_MODE_UNSPECIFIED", "BODY_SEND_MODE_STREAMED", "BODY_SEND_MODE_FULL_DUPLEX_STREAMED"]
+    #[serde(default, rename = "requestBodySendMode")]
+    pub request_body_send_mode: ::core::option::Option<String>,
+    /// Optional. Configures the send mode for response processing. If unspecified, the default value STREAMED is used. The field can only be set if supported_events includes RESPONSE_BODY. If supported_events includes RESPONSE_BODY, but response_body_send_mode is unset, the default value STREAMED is used. When this field is set to FULL_DUPLEX_STREAMED, supported_events must include both RESPONSE_BODY and RESPONSE_TRAILERS. This field can be set only for LbTrafficExtension resources, and only when the service field of the extension points to a BackendService. // TODO: enum values: ["BODY_SEND_MODE_UNSPECIFIED", "BODY_SEND_MODE_STREAMED", "BODY_SEND_MODE_FULL_DUPLEX_STREAMED"]
+    #[serde(default, rename = "responseBodySendMode")]
+    pub response_body_send_mode: ::core::option::Option<String>,
+    /// Required. The reference to the service that runs the extension. To configure a callout extension, service must be a fully-qualified reference to a [backend service](https://cloud.google.com/compute/docs/reference/rest/v1/backendServices) in the format: https://www.googleapis.com/compute/v1/projects/{project}/regions/{region}/backendServices/{backendService} or https://www.googleapis.com/compute/v1/projects/{project}/global/backendServices/{backendService}. To configure a plugin extension, service must be a reference to a [WasmPlugin resource](https://cloud.google.com/service-extensions/docs/reference/rest/v1beta1/projects.locations.wasmPlugins) in the format: projects/{project}/locations/{location}/wasmPlugins/{plugin} or //networkservices.googleapis.com/projects/{project}/locations/{location}/wasmPlugins/{wasmPlugin}. Plugin extensions are currently supported for the LbTrafficExtension, the LbRouteExtension, and the LbEdgeExtension resources.
+    #[serde(default)]
+    pub service: ::core::option::Option<String>,
+    /// Optional. A set of events during request or response processing for which this extension is called. For the LbTrafficExtension resource, this field is required. For the LbRouteExtension resource, this field is optional. If unspecified, REQUEST_HEADERS event is assumed as supported. For the LbEdgeExtension resource, this field is required and must only contain REQUEST_HEADERS event. For the AuthzExtension resource, this field is optional. REQUEST_HEADERS is the only supported event. If unspecified, REQUEST_HEADERS event is assumed as supported.
+    #[serde(default, rename = "supportedEvents")]
+    pub supported_events: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Optional. Specifies the timeout for each individual message on the stream. The timeout must be between 10-10000 milliseconds. Required for callout extensions. This field is not supported for plugin extensions. Setting it results in a validation error.
+    #[serde(default)]
+    pub timeout: ::core::option::Option<String>,
+}
+
+/// Conditions under which this chain is invoked for a request.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ExtensionChainMatchCondition {
+    /// Required. A Common Expression Language (CEL) expression that is used to match requests for which the extension chain is executed. For more information, see [CEL matcher language reference](https://cloud.google.com/service-extensions/docs/cel-matcher-language-reference).
+    #[serde(default, rename = "celExpression")]
+    pub cel_expression: ::core::option::Option<String>,
+}
+
+/// The specifications for routing traffic and applying associated policies.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TcpRouteRouteAction {
+    /// Optional. The destination services to which traffic should be forwarded. At least one destination service is required. Only one of route destination or original destination can be set.
+    #[serde(default)]
+    pub destinations: ::core::option::Option<::std::vec::Vec<TcpRouteRouteDestination>>,
+    /// Optional. Specifies the idle timeout for the selected route. The idle timeout is defined as the period in which there are no bytes sent or received on either the upstream or downstream connection. If not set, the default idle timeout is 30 seconds. If set to 0s, the timeout will be disabled.
+    #[serde(default, rename = "idleTimeout")]
+    pub idle_timeout: ::core::option::Option<String>,
+    /// Optional. If true, Router will use the destination IP and port of the original connection as the destination of the request. Default is false. Only one of route destinations or original destination can be set.
+    #[serde(default, rename = "originalDestination")]
+    pub original_destination: ::core::option::Option<bool>,
+}
+
+/// RouteMatch defines the predicate used to match requests to a given action. Multiple match types are "OR"ed for evaluation. If no routeMatch field is specified, this rule will unconditionally match traffic.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TcpRouteRouteMatch {
+    /// Required. Must be specified in the CIDR range format. A CIDR range consists of an IP Address and a prefix length to construct the subnet mask. By default, the prefix length is 32 (i.e. matches a single IP address). Only IPV4 addresses are supported. Examples: "10.0.0.1" - matches against this exact IP address. "10.0.0.0/8" - matches against any IP address within the 10.0.0.0 subnet and 255.255.255.0 mask. "0.0.0.0/0" - matches against any IP address''.
+    #[serde(default)]
+    pub address: ::core::option::Option<String>,
+    /// Required. Specifies the destination port to match against.
+    #[serde(default)]
+    pub port: ::core::option::Option<String>,
+}
+
+/// The specifications for routing traffic and applying associated policies.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TlsRouteRouteAction {
+    /// Required. The destination services to which traffic should be forwarded. At least one destination service is required.
+    #[serde(default)]
+    pub destinations: ::core::option::Option<::std::vec::Vec<TlsRouteRouteDestination>>,
+    /// Optional. Specifies the idle timeout for the selected route. The idle timeout is defined as the period in which there are no bytes sent or received on either the upstream or downstream connection. If not set, the default idle timeout is 1 hour. If set to 0s, the timeout will be disabled.
+    #[serde(default, rename = "idleTimeout")]
+    pub idle_timeout: ::core::option::Option<String>,
+}
+
+/// RouteMatch defines the predicate used to match requests to a given action. Multiple match types are "AND"ed for evaluation.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TlsRouteRouteMatch {
+    /// Optional. ALPN (Application-Layer Protocol Negotiation) to match against. Examples: "http/1.1", "h2". At least one of sni_host and alpn is required. Up to 5 alpns across all matches can be set.
+    #[serde(default)]
+    pub alpn: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Optional. SNI (server name indicator) to match against. SNI will be matched against all wildcard domains, i.e. www.example.com will be first matched against www.example.com, then *.example.com, then *.com. Partial wildcards are not supported, and values like *w.example.com are invalid. At least one of sni_host and alpn is required. Up to 100 sni hosts across all matches can be set.
+    #[serde(default, rename = "sniHost")]
+    pub sni_host: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// Provides the configuration for logging a type of permissions. Example: { "audit_log_configs": [ { "log_type": "DATA_READ", "exempted_members": [ "user:jose@example.com" ] }, { "log_type": "DATA_WRITE" } ] } This enables ''DATA_READ'' and ''DATA_WRITE'' logging, while exempting jose@example.com from DATA_READ logging.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AuditLogConfig {
+    /// Specifies the identities that do not cause logging for this type of permission. Follows the same format of Binding.members.
+    #[serde(default, rename = "exemptedMembers")]
+    pub exempted_members: ::core::option::Option<::std::vec::Vec<String>>,
+    /// The log type that this config enables. // TODO: enum values: ["LOG_TYPE_UNSPECIFIED", "ADMIN_READ", "DATA_WRITE", "DATA_READ"]
+    #[serde(default, rename = "logType")]
+    pub log_type: ::core::option::Option<String>,
+}
+
+/// Represents a textual expression in the Common Expression Language (CEL) syntax. CEL is a C-like expression language. The syntax and semantics of CEL are documented at https://github.com/google/cel-spec. Example (Comparison): title: "Summary size limit" description: "Determines if a summary is less than 100 chars" expression: "document.summary.size() &lt; 100" Example (Equality): title: "Requestor is owner" description: "Determines if requestor is the document owner" expression: "document.owner == request.auth.claims.email" Example (Logic): title: "Public documents" description: "Determine whether the document should be publicly visible" expression: "document.type != ''private'' && document.type != ''internal''" Example (Data Manipulation): title: "Notification string" description: "Create a notification string with a timestamp." expression: "''New message received at '' + string(document.create_time)" The exact variables and functions that may be referenced within an expression are determined by the service that evaluates it. See the service documentation for additional information.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Expr {
+    /// Optional. Description of the expression. This is a longer text which describes the expression, e.g. when hovered over it in a UI.
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+    /// Textual representation of an expression in Common Expression Language syntax.
+    #[serde(default)]
+    pub expression: ::core::option::Option<String>,
+    /// Optional. String indicating the location of the expression for error reporting, e.g. a file name and a position in the file.
+    #[serde(default)]
+    pub location: ::core::option::Option<String>,
+    /// Optional. Title for the expression, i.e. a short string describing its purpose. This can be used e.g. in UIs which allow to enter the expression.
+    #[serde(default)]
+    pub title: ::core::option::Option<String>,
+}
+
+/// Defines a name-pair value for a single label.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct EndpointMatcherMetadataLabelMatcherMetadataLabels {
+    /// Required. Label name presented as key in xDS Node Metadata.
+    #[serde(default, rename = "labelName")]
+    pub label_name: ::core::option::Option<String>,
+    /// Required. Label value presented as value corresponding to the above key, in xDS Node Metadata.
+    #[serde(default, rename = "labelValue")]
+    pub label_value: ::core::option::Option<String>,
+}
+
+/// The destination to which traffic will be routed.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GrpcRouteDestination {
+    /// Required. The URL of a destination service to which to route traffic. Must refer to either a BackendService or ServiceDirectoryService.
+    #[serde(default, rename = "serviceName")]
+    pub service_name: ::core::option::Option<String>,
+    /// Optional. Specifies the proportion of requests forwarded to the backend referenced by the serviceName field. This is computed as: - weight/Sum(weights in this destination list). For non-zero values, there may be some epsilon from the exact proportion defined here depending on the precision an implementation supports. If only one serviceName is specified and it has a weight greater than 0, 100% of the traffic is forwarded to that backend. If weights are specified for any one service name, they need to be specified for all of them. If weights are unspecified for all services, then, traffic is distributed in equal proportions to all of them.
+    #[serde(default)]
+    pub weight: ::core::option::Option<i32>,
+}
+
+/// The specification for fault injection introduced into traffic to test the resiliency of clients to destination service failure. As part of fault injection, when clients send requests to a destination, delays can be introduced on a percentage of requests before sending those requests to the destination service. Similarly requests from clients can be aborted by for a percentage of requests.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GrpcRouteFaultInjectionPolicy {
+    /// The specification for aborting to client requests.
+    #[serde(default)]
+    pub abort: ::core::option::Option<GrpcRouteFaultInjectionPolicyAbort>,
+    /// The specification for injecting delay to client requests.
+    #[serde(default)]
+    pub delay: ::core::option::Option<GrpcRouteFaultInjectionPolicyDelay>,
+}
+
+/// The specifications for retries. Specifies one or more conditions for which this retry rule applies. Valid values are:
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GrpcRouteRetryPolicy {
+    /// Specifies the allowed number of retries. This number must be &gt; 0. If not specified, default to 1.
+    #[serde(default, rename = "numRetries")]
+    pub num_retries: ::core::option::Option<i64>,
+    /// - connect-failure: Router will retry on failures connecting to Backend Services, for example due to connection timeouts. - refused-stream: Router will retry if the backend service resets the stream with a REFUSED_STREAM error code. This reset type indicates that it is safe to retry. - cancelled: Router will retry if the gRPC status code in the response header is set to cancelled - deadline-exceeded: Router will retry if the gRPC status code in the response header is set to deadline-exceeded - resource-exhausted: Router will retry if the gRPC status code in the response header is set to resource-exhausted - unavailable: Router will retry if the gRPC status code in the response header is set to unavailable
+    #[serde(default, rename = "retryConditions")]
+    pub retry_conditions: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// The specification for cookie-based stateful session affinity where the date plane supplies a “session cookie” with the name "GSSA" which encodes a specific destination host and each request containing that cookie will be directed to that host as long as the destination host remains up and healthy. The gRPC proxyless mesh library or sidecar proxy will manage the session cookie but the client application code is responsible for copying the cookie from each RPC in the session to the next.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GrpcRouteStatefulSessionAffinityPolicy {
+    /// Required. The cookie TTL value for the Set-Cookie header generated by the data plane. The lifetime of the cookie may be set to a value from 0 to 86400 seconds (24 hours) inclusive. Set this to 0s to use a session cookie and disable cookie expiration.
+    #[serde(default, rename = "cookieTtl")]
+    pub cookie_ttl: ::core::option::Option<String>,
+}
+
+/// A match against a collection of headers.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GrpcRouteHeaderMatch {
+    /// Required. The key of the header.
+    #[serde(default)]
+    pub key: ::core::option::Option<String>,
+    /// Optional. Specifies how to match against the value of the header. If not specified, a default value of EXACT is used. // TODO: enum values: ["TYPE_UNSPECIFIED", "EXACT", "REGULAR_EXPRESSION"]
+    #[serde(default, rename = "type")]
+    pub type_: ::core::option::Option<String>,
+    /// Required. The value of the header.
+    #[serde(default)]
+    pub value: ::core::option::Option<String>,
+}
+
+/// Specifies a match against a method.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GrpcRouteMethodMatch {
+    /// Optional. Specifies that matches are case sensitive. The default value is true. case_sensitive must not be used with a type of REGULAR_EXPRESSION.
+    #[serde(default, rename = "caseSensitive")]
+    pub case_sensitive: ::core::option::Option<bool>,
+    /// Required. Name of the method to match against. If unspecified, will match all methods.
+    #[serde(default, rename = "grpcMethod")]
+    pub grpc_method: ::core::option::Option<String>,
+    /// Required. Name of the service to match against. If unspecified, will match all services.
+    #[serde(default, rename = "grpcService")]
+    pub grpc_service: ::core::option::Option<String>,
+    /// Optional. Specifies how to match against the name. If not specified, a default value of "EXACT" is used. // TODO: enum values: ["TYPE_UNSPECIFIED", "EXACT", "REGULAR_EXPRESSION"]
+    #[serde(default, rename = "type")]
+    pub type_: ::core::option::Option<String>,
+}
+
+/// The Specification for allowing client side cross-origin requests.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct HttpRouteCorsPolicy {
+    /// In response to a preflight request, setting this to true indicates that the actual request can include user credentials. This translates to the Access-Control-Allow-Credentials header. Default value is false.
+    #[serde(default, rename = "allowCredentials")]
+    pub allow_credentials: ::core::option::Option<bool>,
+    /// Specifies the content for Access-Control-Allow-Headers header.
+    #[serde(default, rename = "allowHeaders")]
+    pub allow_headers: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Specifies the content for Access-Control-Allow-Methods header.
+    #[serde(default, rename = "allowMethods")]
+    pub allow_methods: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Specifies the regular expression patterns that match allowed origins. For regular expression grammar, please see https://github.com/google/re2/wiki/Syntax.
+    #[serde(default, rename = "allowOriginRegexes")]
+    pub allow_origin_regexes: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Specifies the list of origins that will be allowed to do CORS requests. An origin is allowed if it matches either an item in allow_origins or an item in allow_origin_regexes.
+    #[serde(default, rename = "allowOrigins")]
+    pub allow_origins: ::core::option::Option<::std::vec::Vec<String>>,
+    /// If true, the CORS policy is disabled. The default value is false, which indicates that the CORS policy is in effect.
+    #[serde(default)]
+    pub disabled: ::core::option::Option<bool>,
+    /// Specifies the content for Access-Control-Expose-Headers header.
+    #[serde(default, rename = "exposeHeaders")]
+    pub expose_headers: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Specifies how long result of a preflight request can be cached in seconds. This translates to the Access-Control-Max-Age header.
+    #[serde(default, rename = "maxAge")]
+    pub max_age: ::core::option::Option<String>,
+}
+
+/// Static HTTP response object to be returned.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct HttpRouteHttpDirectResponse {
+    /// Optional. Response body as bytes. Maximum body size is 4096B.
+    #[serde(default, rename = "bytesBody")]
+    pub bytes_body: ::core::option::Option<String>,
+    /// Required. Status to return as part of HTTP Response. Must be a positive integer.
+    #[serde(default)]
+    pub status: ::core::option::Option<i32>,
+    /// Optional. Response body as a string. Maximum body length is 1024 characters.
+    #[serde(default, rename = "stringBody")]
+    pub string_body: ::core::option::Option<String>,
+}
+
+/// The specification for fault injection introduced into traffic to test the resiliency of clients to destination service failure. As part of fault injection, when clients send requests to a destination, delays can be introduced by client proxy on a percentage of requests before sending those requests to the destination service. Similarly requests can be aborted by client proxy for a percentage of requests.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct HttpRouteFaultInjectionPolicy {
+    /// The specification for aborting to client requests.
+    #[serde(default)]
+    pub abort: ::core::option::Option<HttpRouteFaultInjectionPolicyAbort>,
+    /// The specification for injecting delay to client requests.
+    #[serde(default)]
+    pub delay: ::core::option::Option<HttpRouteFaultInjectionPolicyDelay>,
+}
+
+/// The specification for redirecting traffic.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct HttpRouteRedirect {
+    /// The host that will be used in the redirect response instead of the one that was supplied in the request.
+    #[serde(default, rename = "hostRedirect")]
+    pub host_redirect: ::core::option::Option<String>,
+    /// If set to true, the URL scheme in the redirected request is set to https. If set to false, the URL scheme of the redirected request will remain the same as that of the request. The default is set to false.
+    #[serde(default, rename = "httpsRedirect")]
+    pub https_redirect: ::core::option::Option<bool>,
+    /// The path that will be used in the redirect response instead of the one that was supplied in the request. path_redirect can not be supplied together with prefix_redirect. Supply one alone or neither. If neither is supplied, the path of the original request will be used for the redirect.
+    #[serde(default, rename = "pathRedirect")]
+    pub path_redirect: ::core::option::Option<String>,
+    /// The port that will be used in the redirected request instead of the one that was supplied in the request.
+    #[serde(default, rename = "portRedirect")]
+    pub port_redirect: ::core::option::Option<i32>,
+    /// Indicates that during redirection, the matched prefix (or path) should be swapped with this value. This option allows URLs be dynamically created based on the request.
+    #[serde(default, rename = "prefixRewrite")]
+    pub prefix_rewrite: ::core::option::Option<String>,
+    /// The HTTP Status code to use for the redirect. // TODO: enum values: ["RESPONSE_CODE_UNSPECIFIED", "MOVED_PERMANENTLY_DEFAULT", "FOUND", "SEE_OTHER", "TEMPORARY_REDIRECT", "PERMANENT_REDIRECT"]
+    #[serde(default, rename = "responseCode")]
+    pub response_code: ::core::option::Option<String>,
+    /// if set to true, any accompanying query portion of the original URL is removed prior to redirecting the request. If set to false, the query portion of the original URL is retained. The default is set to false.
+    #[serde(default, rename = "stripQuery")]
+    pub strip_query: ::core::option::Option<bool>,
+}
+
+/// Specifies the policy on how requests are shadowed to a separate mirrored destination service. The proxy does not wait for responses from the shadow service. Prior to sending traffic to the shadow service, the host/authority header is suffixed with -shadow. Mirroring is currently not supported for Cloud Run destinations.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct HttpRouteRequestMirrorPolicy {
+    /// The destination the requests will be mirrored to. The weight of the destination will be ignored.
+    #[serde(default)]
+    pub destination: ::core::option::Option<HttpRouteDestination>,
+    /// Optional. The percentage of requests to get mirrored to the desired destination.
+    #[serde(default, rename = "mirrorPercent")]
+    pub mirror_percent: ::core::option::Option<f32>,
+}
+
+/// The specifications for retries.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct HttpRouteRetryPolicy {
+    /// Specifies the allowed number of retries. This number must be &gt; 0. If not specified, default to 1.
+    #[serde(default, rename = "numRetries")]
+    pub num_retries: ::core::option::Option<i32>,
+    /// Specifies a non-zero timeout per retry attempt.
+    #[serde(default, rename = "perTryTimeout")]
+    pub per_try_timeout: ::core::option::Option<String>,
+    /// Specifies one or more conditions when this retry policy applies. Valid values are: 5xx: Proxy will attempt a retry if the destination service responds with any 5xx response code, of if the destination service does not respond at all, example: disconnect, reset, read timeout, connection failure and refused streams. gateway-error: Similar to 5xx, but only applies to response codes 502, 503, 504. reset: Proxy will attempt a retry if the destination service does not respond at all (disconnect/reset/read timeout) connect-failure: Proxy will retry on failures connecting to destination for example due to connection timeouts. retriable-4xx: Proxy will retry fro retriable 4xx response codes. Currently the only retriable error supported is 409. refused-stream: Proxy will retry if the destination resets the stream with a REFUSED_STREAM error code. This reset type indicates that it is safe to retry.
+    #[serde(default, rename = "retryConditions")]
+    pub retry_conditions: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// The specification for cookie-based stateful session affinity where the date plane supplies a “session cookie” with the name "GSSA" which encodes a specific destination host and each request containing that cookie will be directed to that host as long as the destination host remains up and healthy. The gRPC proxyless mesh library or sidecar proxy will manage the session cookie but the client application code is responsible for copying the cookie from each RPC in the session to the next.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct HttpRouteStatefulSessionAffinityPolicy {
+    /// Required. The cookie TTL value for the Set-Cookie header generated by the data plane. The lifetime of the cookie may be set to a value from 0 to 86400 seconds (24 hours) inclusive. Set this to 0s to use a session cookie and disable cookie expiration.
+    #[serde(default, rename = "cookieTtl")]
+    pub cookie_ttl: ::core::option::Option<String>,
+}
+
+/// The specification for modifying the URL of the request, prior to forwarding the request to the destination.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct HttpRouteURLRewrite {
+    /// Prior to forwarding the request to the selected destination, the requests host header is replaced by this value.
+    #[serde(default, rename = "hostRewrite")]
+    pub host_rewrite: ::core::option::Option<String>,
+    /// Prior to forwarding the request to the selected destination, the matching portion of the requests path is replaced by this value.
+    #[serde(default, rename = "pathPrefixRewrite")]
+    pub path_prefix_rewrite: ::core::option::Option<String>,
+}
+
+/// Specifies how to select a route rule based on HTTP request headers.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct HttpRouteHeaderMatch {
+    /// The value of the header should match exactly the content of exact_match.
+    #[serde(default, rename = "exactMatch")]
+    pub exact_match: ::core::option::Option<String>,
+    /// The name of the HTTP header to match against.
+    #[serde(default)]
+    pub header: ::core::option::Option<String>,
+    /// If specified, the match result will be inverted before checking. Default value is set to false.
+    #[serde(default, rename = "invertMatch")]
+    pub invert_match: ::core::option::Option<bool>,
+    /// The value of the header must start with the contents of prefix_match.
+    #[serde(default, rename = "prefixMatch")]
+    pub prefix_match: ::core::option::Option<String>,
+    /// A header with header_name must exist. The match takes place whether or not the header has a value.
+    #[serde(default, rename = "presentMatch")]
+    pub present_match: ::core::option::Option<bool>,
+    /// If specified, the rule will match if the request header value is within the range.
+    #[serde(default, rename = "rangeMatch")]
+    pub range_match: ::core::option::Option<HttpRouteHeaderMatchIntegerRange>,
+    /// The value of the header must match the regular expression specified in regex_match. For regular expression grammar, please see: https://github.com/google/re2/wiki/Syntax
+    #[serde(default, rename = "regexMatch")]
+    pub regex_match: ::core::option::Option<String>,
+    /// The value of the header must end with the contents of suffix_match.
+    #[serde(default, rename = "suffixMatch")]
+    pub suffix_match: ::core::option::Option<String>,
+}
+
+/// Specifications to match a query parameter in the request.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct HttpRouteQueryParameterMatch {
+    /// The value of the query parameter must exactly match the contents of exact_match. Only one of exact_match, regex_match, or present_match must be set.
+    #[serde(default, rename = "exactMatch")]
+    pub exact_match: ::core::option::Option<String>,
+    /// Specifies that the QueryParameterMatcher matches if request contains query parameter, irrespective of whether the parameter has a value or not. Only one of exact_match, regex_match, or present_match must be set.
+    #[serde(default, rename = "presentMatch")]
+    pub present_match: ::core::option::Option<bool>,
+    /// The name of the query parameter to match.
+    #[serde(default, rename = "queryParameter")]
+    pub query_parameter: ::core::option::Option<String>,
+    /// The value of the query parameter must match the regular expression specified by regex_match. For regular expression grammar, please see https://github.com/google/re2/wiki/Syntax Only one of exact_match, regex_match, or present_match must be set.
+    #[serde(default, rename = "regexMatch")]
+    pub regex_match: ::core::option::Option<String>,
+}
+
+/// Describe the destination for traffic to be routed to.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TcpRouteRouteDestination {
+    /// Required. The URL of a BackendService to route traffic to.
+    #[serde(default, rename = "serviceName")]
+    pub service_name: ::core::option::Option<String>,
+    /// Optional. Specifies the proportion of requests forwarded to the backend referenced by the serviceName field. This is computed as: - weight/Sum(weights in this destination list). For non-zero values, there may be some epsilon from the exact proportion defined here depending on the precision an implementation supports. If only one serviceName is specified and it has a weight greater than 0, 100% of the traffic is forwarded to that backend. If weights are specified for any one service name, they need to be specified for all of them. If weights are unspecified for all services, then, traffic is distributed in equal proportions to all of them.
+    #[serde(default)]
+    pub weight: ::core::option::Option<i32>,
+}
+
+/// Describe the destination for traffic to be routed to.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TlsRouteRouteDestination {
+    /// Required. The URL of a BackendService to route traffic to.
+    #[serde(default, rename = "serviceName")]
+    pub service_name: ::core::option::Option<String>,
+    /// Optional. Specifies the proportion of requests forwarded to the backend referenced by the service_name field. This is computed as: - weight/Sum(weights in destinations) Weights in all destinations does not need to sum up to 100.
+    #[serde(default)]
+    pub weight: ::core::option::Option<i32>,
+}
+
+/// Specification of how client requests are aborted as part of fault injection before being sent to a destination.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GrpcRouteFaultInjectionPolicyAbort {
+    /// The HTTP status code used to abort the request. The value must be between 200 and 599 inclusive.
+    #[serde(default, rename = "httpStatus")]
+    pub http_status: ::core::option::Option<i32>,
+    /// The percentage of traffic which will be aborted. The value must be between [0, 100]
+    #[serde(default)]
+    pub percentage: ::core::option::Option<i32>,
+}
+
+/// Specification of how client requests are delayed as part of fault injection before being sent to a destination.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GrpcRouteFaultInjectionPolicyDelay {
+    /// Specify a fixed delay before forwarding the request.
+    #[serde(default, rename = "fixedDelay")]
+    pub fixed_delay: ::core::option::Option<String>,
+    /// The percentage of traffic on which delay will be injected. The value must be between [0, 100]
+    #[serde(default)]
+    pub percentage: ::core::option::Option<i32>,
+}
+
+/// Specification of how client requests are aborted as part of fault injection before being sent to a destination.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct HttpRouteFaultInjectionPolicyAbort {
+    /// The HTTP status code used to abort the request. The value must be between 200 and 599 inclusive.
+    #[serde(default, rename = "httpStatus")]
+    pub http_status: ::core::option::Option<i32>,
+    /// The percentage of traffic which will be aborted. The value must be between [0, 100]
+    #[serde(default)]
+    pub percentage: ::core::option::Option<i32>,
+}
+
+/// Specification of how client requests are delayed as part of fault injection before being sent to a destination.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct HttpRouteFaultInjectionPolicyDelay {
+    /// Specify a fixed delay before forwarding the request.
+    #[serde(default, rename = "fixedDelay")]
+    pub fixed_delay: ::core::option::Option<String>,
+    /// The percentage of traffic on which delay will be injected. The value must be between [0, 100]
+    #[serde(default)]
+    pub percentage: ::core::option::Option<i32>,
+}
+
+/// Specifications of a destination to which the request should be routed to.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct HttpRouteDestination {
+    /// Optional. The specification for modifying the headers of a matching request prior to delivery of the request to the destination. If HeaderModifiers are set on both the Destination and the RouteAction, they will be merged. Conflicts between the two will not be resolved on the configuration.
+    #[serde(default, rename = "requestHeaderModifier")]
+    pub request_header_modifier: ::core::option::Option<HttpRouteHeaderModifier>,
+    /// Optional. The specification for modifying the headers of a response prior to sending the response back to the client. If HeaderModifiers are set on both the Destination and the RouteAction, they will be merged. Conflicts between the two will not be resolved on the configuration.
+    #[serde(default, rename = "responseHeaderModifier")]
+    pub response_header_modifier: ::core::option::Option<HttpRouteHeaderModifier>,
+    /// The URL of a BackendService to route traffic to.
+    #[serde(default, rename = "serviceName")]
+    pub service_name: ::core::option::Option<String>,
+    /// Specifies the proportion of requests forwarded to the backend referenced by the serviceName field. This is computed as: - weight/Sum(weights in this destination list). For non-zero values, there may be some epsilon from the exact proportion defined here depending on the precision an implementation supports. If only one serviceName is specified and it has a weight greater than 0, 100% of the traffic is forwarded to that backend. If weights are specified for any one service name, they need to be specified for all of them. If weights are unspecified for all services, then, traffic is distributed in equal proportions to all of them.
+    #[serde(default)]
+    pub weight: ::core::option::Option<i32>,
+}
+
+/// Represents an integer value range.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct HttpRouteHeaderMatchIntegerRange {
+    /// End of the range (exclusive)
+    #[serde(default)]
+    pub end: ::core::option::Option<i32>,
+    /// Start of the range (inclusive)
+    #[serde(default)]
+    pub start: ::core::option::Option<i32>,
+}
+
+/// The specification for modifying HTTP header in HTTP request and HTTP response.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct HttpRouteHeaderModifier {
+    /// Add the headers with given map where key is the name of the header, value is the value of the header.
+    #[serde(default)]
+    pub add: ::core::option::Option<serde_json::Value>,
+    /// Remove headers (matching by header names) specified in the list.
+    #[serde(default)]
+    pub remove: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Completely overwrite/replace the headers with given map where key is the name of the header, value is the value of the header.
+    #[serde(default)]
+    pub set: ::core::option::Option<serde_json::Value>,
 }

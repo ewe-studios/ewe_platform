@@ -10,89 +10,6 @@
 use super::*;
 use serde::{Deserialize, Serialize};
 
-/// Looker instance Admin settings fields.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AdminSettings {
-    /// Email domain allowlist for the instance.
-    #[serde(default, rename = "allowedEmailDomains")]
-    pub allowed_email_domains: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// Controlled egress configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ControlledEgressConfig {
-    /// Optional. List of fully qualified domain names to be added to the allowlist for outbound traffic.
-    #[serde(default, rename = "egressFqdns")]
-    pub egress_fqdns: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Optional. Whether marketplace is enabled.
-    #[serde(default, rename = "marketplaceEnabled")]
-    pub marketplace_enabled: ::core::option::Option<bool>,
-    /// Output only. The list of IP addresses used by Secure Web Proxy for outbound traffic.
-    #[serde(default, rename = "webProxyIps")]
-    pub web_proxy_ips: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// Custom domain information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CustomDomain {
-    /// Domain name.
-    #[serde(default)]
-    pub domain: ::core::option::Option<String>,
-    /// Domain state. // TODO: enum values: ["CUSTOM_DOMAIN_STATE_UNSPECIFIED", "UNVERIFIED", "VERIFIED", "MODIFYING", "AVAILABLE", "UNAVAILABLE", "UNKNOWN"]
-    #[serde(default)]
-    pub state: ::core::option::Option<String>,
-}
-
-/// Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Date {
-    /// Day of a month. Must be from 1 to 31 and valid for the year and month, or 0 to specify a year by itself or a year and month where the day isn''t significant.
-    #[serde(default)]
-    pub day: ::core::option::Option<i32>,
-    /// Month of a year. Must be from 1 to 12, or 0 to specify a year without a month and day.
-    #[serde(default)]
-    pub month: ::core::option::Option<i32>,
-    /// Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.
-    #[serde(default)]
-    pub year: ::core::option::Option<i32>,
-}
-
-/// Specifies the maintenance denial period.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DenyMaintenancePeriod {
-    /// Required. End date of the deny maintenance period.
-    #[serde(default, rename = "endDate")]
-    pub end_date: ::core::option::Option<Date>,
-    /// Required. Start date of the deny maintenance period.
-    #[serde(default, rename = "startDate")]
-    pub start_date: ::core::option::Option<Date>,
-    /// Required. Time in UTC when the period starts and ends.
-    #[serde(default)]
-    pub time: ::core::option::Option<TimeOfDay>,
-}
-
-/// Encryption configuration (i.e. CMEK).
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct EncryptionConfig {
-    /// Name of the CMEK key in KMS (input parameter).
-    #[serde(default, rename = "kmsKeyName")]
-    pub kms_key_name: ::core::option::Option<String>,
-    /// Output only. Full name and version of the CMEK key currently in use to encrypt Looker data. Format: projects/{project}/locations/{location}/keyRings/{ring}/cryptoKeys/{key}/cryptoKeyVersions/{version}. Empty if CMEK is not configured in this instance.
-    #[serde(default, rename = "kmsKeyNameVersion")]
-    pub kms_key_name_version: ::core::option::Option<String>,
-    /// Output only. Status of the CMEK key. // TODO: enum values: ["KMS_KEY_STATE_UNSPECIFIED", "VALID", "REVOKED"]
-    #[serde(default, rename = "kmsKeyState")]
-    pub kms_key_state: ::core::option::Option<String>,
-}
-
-/// Configuration for Encryption - e.g. CMEK.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ExportEncryptionConfig {
-    /// Required. Name of the CMEK key in KMS.
-    #[serde(default, rename = "kmsKeyName")]
-    pub kms_key_name: ::core::option::Option<String>,
-}
-
 /// Request options for exporting data of an Instance.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ExportInstanceRequest {
@@ -130,6 +47,109 @@ pub struct ExportMetadata {
     pub source: ::core::option::Option<String>,
 }
 
+/// Requestion options for importing looker data to an Instance
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ImportInstanceRequest {
+    /// Path to the import folder in Google Cloud Storage, in the form gs://bucketName/folderName.
+    #[serde(default, rename = "gcsUri")]
+    pub gcs_uri: ::core::option::Option<String>,
+}
+
+/// Response from listing Looker instance backups.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ListInstanceBackupsResponse {
+    /// The list of instances matching the request filters, up to the requested page_size.
+    #[serde(default, rename = "instanceBackups")]
+    pub instance_backups: ::core::option::Option<::std::vec::Vec<InstanceBackup>>,
+    /// If provided, a page token that can look up the next page_size results. If empty, the results list is exhausted.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+    /// Locations that could not be reached.
+    #[serde(default)]
+    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// Response from ListInstances.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ListInstancesResponse {
+    /// The list of instances matching the request filters, up to the requested ListInstancesRequest.pageSize.
+    #[serde(default)]
+    pub instances: ::core::option::Option<::std::vec::Vec<Instance>>,
+    /// If provided, a page token that can look up the next ListInstancesRequest.pageSize results. If empty, the results list is exhausted.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+    /// Locations that could not be reached.
+    #[serde(default)]
+    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// The response message for Locations.ListLocations.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ListLocationsResponse {
+    /// A list of locations that matches the specified filter in the request.
+    #[serde(default)]
+    pub locations: ::core::option::Option<::std::vec::Vec<Location>>,
+    /// The standard List next-page token.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+}
+
+/// The response message for Operations.ListOperations.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ListOperationsResponse {
+    /// The standard List next-page token.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+    /// A list of operations that matches the specified filter in the request.
+    #[serde(default)]
+    pub operations: ::core::option::Option<::std::vec::Vec<Operation>>,
+    /// Unordered list. Unreachable resources. Populated when the request sets ListOperationsRequest.return_partial_success and reads across collections. For example, when attempting to list all resources across all supported locations.
+    #[serde(default)]
+    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// Represents the metadata of the long-running operation.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct OperationMetadata {
+    /// API version used to start the operation.
+    #[serde(default, rename = "apiVersion")]
+    pub api_version: ::core::option::Option<String>,
+    /// The time the operation was created.
+    #[serde(default, rename = "createTime")]
+    pub create_time: ::core::option::Option<String>,
+    /// The time the operation finished running.
+    #[serde(default, rename = "endTime")]
+    pub end_time: ::core::option::Option<String>,
+    /// Identifies whether the user has requested cancellation of the operation. Operations that have successfully been cancelled have Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+    #[serde(default, rename = "requestedCancellation")]
+    pub requested_cancellation: ::core::option::Option<bool>,
+    /// Human-readable status of the operation, if any.
+    #[serde(default, rename = "statusMessage")]
+    pub status_message: ::core::option::Option<String>,
+    /// Server-defined resource path for the target of the operation.
+    #[serde(default)]
+    pub target: ::core::option::Option<String>,
+    /// Name of the verb executed by the operation.
+    #[serde(default)]
+    pub verb: ::core::option::Option<String>,
+}
+
+/// Request options for restoring an instance
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RestoreInstanceRequest {
+    /// Required. Backup being used to restore the instance Format: projects/{project}/locations/{location}/instances/{instance}/backups/{backup}
+    #[serde(default)]
+    pub backup: ::core::option::Option<String>,
+}
+
+/// Configuration for Encryption - e.g. CMEK.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ExportEncryptionConfig {
+    /// Required. Name of the CMEK key in KMS.
+    #[serde(default, rename = "kmsKeyName")]
+    pub kms_key_name: ::core::option::Option<String>,
+}
+
 /// Encryption key details for the exported artifact.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ExportMetadataEncryptionKey {
@@ -141,37 +161,24 @@ pub struct ExportMetadataEncryptionKey {
     pub version: ::core::option::Option<String>,
 }
 
-/// Requestion options for importing looker data to an Instance
+/// The details of a backup resource.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ImportInstanceRequest {
-    /// Path to the import folder in Google Cloud Storage, in the form gs://bucketName/folderName.
-    #[serde(default, rename = "gcsUri")]
-    pub gcs_uri: ::core::option::Option<String>,
-}
-
-/// Ingress IP allowlist configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct IngressIpAllowlistConfig {
-    /// Optional. List of IP range rules to allow ingress traffic.
-    #[serde(default, rename = "allowlistRules")]
-    pub allowlist_rules: ::core::option::Option<::std::vec::Vec<IngressIpAllowlistRule>>,
-    /// Optional. Whether ingress IP allowlist functionality is enabled on the Looker instance.
+pub struct InstanceBackup {
+    /// Output only. The time when the backup was started.
+    #[serde(default, rename = "createTime")]
+    pub create_time: ::core::option::Option<String>,
+    /// Output only. Current status of the CMEK encryption
+    #[serde(default, rename = "encryptionConfig")]
+    pub encryption_config: ::core::option::Option<EncryptionConfig>,
+    /// Output only. The time when the backup will be deleted.
+    #[serde(default, rename = "expireTime")]
+    pub expire_time: ::core::option::Option<String>,
+    /// Immutable. The relative resource name of the backup, in the following form: projects/{project_number}/locations/{location_id}/instances/{instance_id}/backups/{backup}
     #[serde(default)]
-    pub enabled: ::core::option::Option<bool>,
-    /// Optional. Whether google service connections are enabled for the instance.
-    #[serde(default, rename = "googleServicesEnabled")]
-    pub google_services_enabled: ::core::option::Option<bool>,
-}
-
-/// Ingress IP allowlist rule.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct IngressIpAllowlistRule {
-    /// Optional. Description for the IP range.
+    pub name: ::core::option::Option<String>,
+    /// Output only. The current state of the backup. // TODO: enum values: ["STATE_UNSPECIFIED", "CREATING", "DELETING", "ACTIVE", "FAILED"]
     #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// Optional. The IP range to allow ingress traffic from.
-    #[serde(default, rename = "ipRange")]
-    pub ip_range: ::core::option::Option<String>,
+    pub state: ::core::option::Option<String>,
 }
 
 /// A Looker instance.
@@ -287,79 +294,6 @@ pub struct Instance {
     pub user_metadata: ::core::option::Option<UserMetadata>,
 }
 
-/// The details of a backup resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct InstanceBackup {
-    /// Output only. The time when the backup was started.
-    #[serde(default, rename = "createTime")]
-    pub create_time: ::core::option::Option<String>,
-    /// Output only. Current status of the CMEK encryption
-    #[serde(default, rename = "encryptionConfig")]
-    pub encryption_config: ::core::option::Option<EncryptionConfig>,
-    /// Output only. The time when the backup will be deleted.
-    #[serde(default, rename = "expireTime")]
-    pub expire_time: ::core::option::Option<String>,
-    /// Immutable. The relative resource name of the backup, in the following form: projects/{project_number}/locations/{location_id}/instances/{instance_id}/backups/{backup}
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Output only. The current state of the backup. // TODO: enum values: ["STATE_UNSPECIFIED", "CREATING", "DELETING", "ACTIVE", "FAILED"]
-    #[serde(default)]
-    pub state: ::core::option::Option<String>,
-}
-
-/// Response from listing Looker instance backups.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ListInstanceBackupsResponse {
-    /// The list of instances matching the request filters, up to the requested page_size.
-    #[serde(default, rename = "instanceBackups")]
-    pub instance_backups: ::core::option::Option<::std::vec::Vec<InstanceBackup>>,
-    /// If provided, a page token that can look up the next page_size results. If empty, the results list is exhausted.
-    #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: ::core::option::Option<String>,
-    /// Locations that could not be reached.
-    #[serde(default)]
-    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// Response from ListInstances.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ListInstancesResponse {
-    /// The list of instances matching the request filters, up to the requested ListInstancesRequest.pageSize.
-    #[serde(default)]
-    pub instances: ::core::option::Option<::std::vec::Vec<Instance>>,
-    /// If provided, a page token that can look up the next ListInstancesRequest.pageSize results. If empty, the results list is exhausted.
-    #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: ::core::option::Option<String>,
-    /// Locations that could not be reached.
-    #[serde(default)]
-    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// The response message for Locations.ListLocations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ListLocationsResponse {
-    /// A list of locations that matches the specified filter in the request.
-    #[serde(default)]
-    pub locations: ::core::option::Option<::std::vec::Vec<Location>>,
-    /// The standard List next-page token.
-    #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: ::core::option::Option<String>,
-}
-
-/// The response message for Operations.ListOperations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ListOperationsResponse {
-    /// The standard List next-page token.
-    #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: ::core::option::Option<String>,
-    /// A list of operations that matches the specified filter in the request.
-    #[serde(default)]
-    pub operations: ::core::option::Option<::std::vec::Vec<Operation>>,
-    /// Unordered list. Unreachable resources. Populated when the request sets ListOperationsRequest.return_partial_success and reads across collections. For example, when attempting to list all resources across all supported locations.
-    #[serde(default)]
-    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
 /// A resource that represents a Google Cloud location.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Location {
@@ -378,6 +312,101 @@ pub struct Location {
     /// Resource name for the location, which may vary between implementations. For example: "projects/example-project/locations/us-east1"
     #[serde(default)]
     pub name: ::core::option::Option<String>,
+}
+
+/// This resource represents a long-running operation that is the result of a network API call.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Operation {
+    /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
+    #[serde(default)]
+    pub done: ::core::option::Option<bool>,
+    /// The error result of the operation in case of failure or cancellation.
+    #[serde(default)]
+    pub error: ::core::option::Option<Status>,
+    /// Service-specific metadata associated with the operation. It typically contains progress information and common metadata such as create time. Some services might not provide such metadata. Any method that returns a long-running operation should document the metadata type, if any.
+    #[serde(default)]
+    pub metadata: ::core::option::Option<serde_json::Value>,
+    /// The server-assigned name, which is only unique within the same service that originally returns it. If you use the default HTTP mapping, the name should be a resource name ending with operations/{unique_id}.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// The normal, successful response of the operation. If the original method returns no data on success, such as Delete, the response is google.protobuf.Empty. If the original method is standard Get/Create/Update, the response should be the resource. For other methods, the response should have the type XxxResponse, where Xxx is the original method name. For example, if the original method name is TakeSnapshot(), the inferred response type is TakeSnapshotResponse.
+    #[serde(default)]
+    pub response: ::core::option::Option<serde_json::Value>,
+}
+
+/// Looker instance Admin settings fields.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AdminSettings {
+    /// Email domain allowlist for the instance.
+    #[serde(default, rename = "allowedEmailDomains")]
+    pub allowed_email_domains: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// Controlled egress configuration.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ControlledEgressConfig {
+    /// Optional. List of fully qualified domain names to be added to the allowlist for outbound traffic.
+    #[serde(default, rename = "egressFqdns")]
+    pub egress_fqdns: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Optional. Whether marketplace is enabled.
+    #[serde(default, rename = "marketplaceEnabled")]
+    pub marketplace_enabled: ::core::option::Option<bool>,
+    /// Output only. The list of IP addresses used by Secure Web Proxy for outbound traffic.
+    #[serde(default, rename = "webProxyIps")]
+    pub web_proxy_ips: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// Custom domain information.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CustomDomain {
+    /// Domain name.
+    #[serde(default)]
+    pub domain: ::core::option::Option<String>,
+    /// Domain state. // TODO: enum values: ["CUSTOM_DOMAIN_STATE_UNSPECIFIED", "UNVERIFIED", "VERIFIED", "MODIFYING", "AVAILABLE", "UNAVAILABLE", "UNKNOWN"]
+    #[serde(default)]
+    pub state: ::core::option::Option<String>,
+}
+
+/// Specifies the maintenance denial period.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DenyMaintenancePeriod {
+    /// Required. End date of the deny maintenance period.
+    #[serde(default, rename = "endDate")]
+    pub end_date: ::core::option::Option<Date>,
+    /// Required. Start date of the deny maintenance period.
+    #[serde(default, rename = "startDate")]
+    pub start_date: ::core::option::Option<Date>,
+    /// Required. Time in UTC when the period starts and ends.
+    #[serde(default)]
+    pub time: ::core::option::Option<TimeOfDay>,
+}
+
+/// Encryption configuration (i.e. CMEK).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct EncryptionConfig {
+    /// Name of the CMEK key in KMS (input parameter).
+    #[serde(default, rename = "kmsKeyName")]
+    pub kms_key_name: ::core::option::Option<String>,
+    /// Output only. Full name and version of the CMEK key currently in use to encrypt Looker data. Format: projects/{project}/locations/{location}/keyRings/{ring}/cryptoKeys/{key}/cryptoKeyVersions/{version}. Empty if CMEK is not configured in this instance.
+    #[serde(default, rename = "kmsKeyNameVersion")]
+    pub kms_key_name_version: ::core::option::Option<String>,
+    /// Output only. Status of the CMEK key. // TODO: enum values: ["KMS_KEY_STATE_UNSPECIFIED", "VALID", "REVOKED"]
+    #[serde(default, rename = "kmsKeyState")]
+    pub kms_key_state: ::core::option::Option<String>,
+}
+
+/// Ingress IP allowlist configuration.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct IngressIpAllowlistConfig {
+    /// Optional. List of IP range rules to allow ingress traffic.
+    #[serde(default, rename = "allowlistRules")]
+    pub allowlist_rules: ::core::option::Option<::std::vec::Vec<IngressIpAllowlistRule>>,
+    /// Optional. Whether ingress IP allowlist functionality is enabled on the Looker instance.
+    #[serde(default)]
+    pub enabled: ::core::option::Option<bool>,
+    /// Optional. Whether google service connections are enabled for the instance.
+    #[serde(default, rename = "googleServicesEnabled")]
+    pub google_services_enabled: ::core::option::Option<bool>,
 }
 
 /// Published upcoming future maintenance schedule.
@@ -416,52 +445,6 @@ pub struct OAuthConfig {
     pub shared_oauth_client_enabled: ::core::option::Option<bool>,
 }
 
-/// This resource represents a long-running operation that is the result of a network API call.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Operation {
-    /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
-    #[serde(default)]
-    pub done: ::core::option::Option<bool>,
-    /// The error result of the operation in case of failure or cancellation.
-    #[serde(default)]
-    pub error: ::core::option::Option<Status>,
-    /// Service-specific metadata associated with the operation. It typically contains progress information and common metadata such as create time. Some services might not provide such metadata. Any method that returns a long-running operation should document the metadata type, if any.
-    #[serde(default)]
-    pub metadata: ::core::option::Option<serde_json::Value>,
-    /// The server-assigned name, which is only unique within the same service that originally returns it. If you use the default HTTP mapping, the name should be a resource name ending with operations/{unique_id}.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// The normal, successful response of the operation. If the original method returns no data on success, such as Delete, the response is google.protobuf.Empty. If the original method is standard Get/Create/Update, the response should be the resource. For other methods, the response should have the type XxxResponse, where Xxx is the original method name. For example, if the original method name is TakeSnapshot(), the inferred response type is TakeSnapshotResponse.
-    #[serde(default)]
-    pub response: ::core::option::Option<serde_json::Value>,
-}
-
-/// Represents the metadata of the long-running operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct OperationMetadata {
-    /// API version used to start the operation.
-    #[serde(default, rename = "apiVersion")]
-    pub api_version: ::core::option::Option<String>,
-    /// The time the operation was created.
-    #[serde(default, rename = "createTime")]
-    pub create_time: ::core::option::Option<String>,
-    /// The time the operation finished running.
-    #[serde(default, rename = "endTime")]
-    pub end_time: ::core::option::Option<String>,
-    /// Identifies whether the user has requested cancellation of the operation. Operations that have successfully been cancelled have Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
-    #[serde(default, rename = "requestedCancellation")]
-    pub requested_cancellation: ::core::option::Option<bool>,
-    /// Human-readable status of the operation, if any.
-    #[serde(default, rename = "statusMessage")]
-    pub status_message: ::core::option::Option<String>,
-    /// Server-defined resource path for the target of the operation.
-    #[serde(default)]
-    pub target: ::core::option::Option<String>,
-    /// Name of the verb executed by the operation.
-    #[serde(default)]
-    pub verb: ::core::option::Option<String>,
-}
-
 /// Configuration for periodic export.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PeriodicExportConfig {
@@ -490,12 +473,74 @@ pub struct PscConfig {
     pub service_attachments: ::core::option::Option<::std::vec::Vec<ServiceAttachment>>,
 }
 
-/// Request options for restoring an instance
+/// Metadata about users for a Looker instance.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct RestoreInstanceRequest {
-    /// Required. Backup being used to restore the instance Format: projects/{project}/locations/{location}/instances/{instance}/backups/{backup}
+pub struct UserMetadata {
+    /// Optional. The number of additional developer users the instance owner has purchased.
+    #[serde(default, rename = "additionalDeveloperUserCount")]
+    pub additional_developer_user_count: ::core::option::Option<i32>,
+    /// Optional. The number of additional standard users the instance owner has purchased.
+    #[serde(default, rename = "additionalStandardUserCount")]
+    pub additional_standard_user_count: ::core::option::Option<i32>,
+    /// Optional. The number of additional viewer users the instance owner has purchased.
+    #[serde(default, rename = "additionalViewerUserCount")]
+    pub additional_viewer_user_count: ::core::option::Option<i32>,
+}
+
+/// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Status {
+    /// The status code, which should be an enum value of google.rpc.Code.
     #[serde(default)]
-    pub backup: ::core::option::Option<String>,
+    pub code: ::core::option::Option<i32>,
+    /// A list of messages that carry the error details. There is a common set of message types for APIs to use.
+    #[serde(default)]
+    pub details: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
+    /// A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.
+    #[serde(default)]
+    pub message: ::core::option::Option<String>,
+}
+
+/// Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Date {
+    /// Day of a month. Must be from 1 to 31 and valid for the year and month, or 0 to specify a year by itself or a year and month where the day isn''t significant.
+    #[serde(default)]
+    pub day: ::core::option::Option<i32>,
+    /// Month of a year. Must be from 1 to 12, or 0 to specify a year without a month and day.
+    #[serde(default)]
+    pub month: ::core::option::Option<i32>,
+    /// Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.
+    #[serde(default)]
+    pub year: ::core::option::Option<i32>,
+}
+
+/// Ingress IP allowlist rule.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct IngressIpAllowlistRule {
+    /// Optional. Description for the IP range.
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+    /// Optional. The IP range to allow ingress traffic from.
+    #[serde(default, rename = "ipRange")]
+    pub ip_range: ::core::option::Option<String>,
+}
+
+/// Represents a time of day. The date and time zone are either not significant or are specified elsewhere. An API may choose to allow leap seconds. Related types are google.type.Date and google.protobuf.Timestamp.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TimeOfDay {
+    /// Hours of a day in 24 hour format. Must be greater than or equal to 0 and typically must be less than or equal to 23. An API may choose to allow the value "24:00:00" for scenarios like business closing time.
+    #[serde(default)]
+    pub hours: ::core::option::Option<i32>,
+    /// Minutes of an hour. Must be greater than or equal to 0 and less than or equal to 59.
+    #[serde(default)]
+    pub minutes: ::core::option::Option<i32>,
+    /// Fractions of seconds, in nanoseconds. Must be greater than or equal to 0 and less than or equal to 999,999,999.
+    #[serde(default)]
+    pub nanos: ::core::option::Option<i32>,
+    /// Seconds of a minute. Must be greater than or equal to 0 and typically must be less than or equal to 59. An API may allow the value 60 if it allows leap-seconds.
+    #[serde(default)]
+    pub seconds: ::core::option::Option<i32>,
 }
 
 /// Service attachment configuration.
@@ -516,49 +561,4 @@ pub struct ServiceAttachment {
     /// Required. URI of the service attachment to connect to. Format: projects/{project}/regions/{region}/serviceAttachments/{service_attachment}
     #[serde(default, rename = "targetServiceAttachmentUri")]
     pub target_service_attachment_uri: ::core::option::Option<String>,
-}
-
-/// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Status {
-    /// The status code, which should be an enum value of google.rpc.Code.
-    #[serde(default)]
-    pub code: ::core::option::Option<i32>,
-    /// A list of messages that carry the error details. There is a common set of message types for APIs to use.
-    #[serde(default)]
-    pub details: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
-    /// A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.
-    #[serde(default)]
-    pub message: ::core::option::Option<String>,
-}
-
-/// Represents a time of day. The date and time zone are either not significant or are specified elsewhere. An API may choose to allow leap seconds. Related types are google.type.Date and google.protobuf.Timestamp.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct TimeOfDay {
-    /// Hours of a day in 24 hour format. Must be greater than or equal to 0 and typically must be less than or equal to 23. An API may choose to allow the value "24:00:00" for scenarios like business closing time.
-    #[serde(default)]
-    pub hours: ::core::option::Option<i32>,
-    /// Minutes of an hour. Must be greater than or equal to 0 and less than or equal to 59.
-    #[serde(default)]
-    pub minutes: ::core::option::Option<i32>,
-    /// Fractions of seconds, in nanoseconds. Must be greater than or equal to 0 and less than or equal to 999,999,999.
-    #[serde(default)]
-    pub nanos: ::core::option::Option<i32>,
-    /// Seconds of a minute. Must be greater than or equal to 0 and typically must be less than or equal to 59. An API may allow the value 60 if it allows leap-seconds.
-    #[serde(default)]
-    pub seconds: ::core::option::Option<i32>,
-}
-
-/// Metadata about users for a Looker instance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct UserMetadata {
-    /// Optional. The number of additional developer users the instance owner has purchased.
-    #[serde(default, rename = "additionalDeveloperUserCount")]
-    pub additional_developer_user_count: ::core::option::Option<i32>,
-    /// Optional. The number of additional standard users the instance owner has purchased.
-    #[serde(default, rename = "additionalStandardUserCount")]
-    pub additional_standard_user_count: ::core::option::Option<i32>,
-    /// Optional. The number of additional viewer users the instance owner has purchased.
-    #[serde(default, rename = "additionalViewerUserCount")]
-    pub additional_viewer_user_count: ::core::option::Option<i32>,
 }

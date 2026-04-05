@@ -10,163 +10,248 @@
 use super::*;
 use serde::{Deserialize, Serialize};
 
-/// Information to read/write to blobstore2.
+/// Android App Bundle (AAB) information for a Firebase app.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GdataBlobstore2Info {
-    /// The blob generation id.
-    #[serde(default, rename = "blobGeneration")]
-    pub blob_generation: ::core::option::Option<String>,
-    /// The blob id, e.g., /blobstore/prod/playground/scotty
-    #[serde(default, rename = "blobId")]
-    pub blob_id: ::core::option::Option<String>,
-    /// A serialized External Read Token passed from Bigstore -&gt; Scotty for a GCS download. This field must never be consumed outside of Bigstore, and is not applicable to non-GCS media uploads.
-    #[serde(default, rename = "downloadExternalReadToken")]
-    pub download_external_read_token: ::core::option::Option<String>,
-    /// Read handle passed from Bigstore -&gt; Scotty for a GCS download. This is a signed, serialized blobstore2.ReadHandle proto which must never be set outside of Bigstore, and is not applicable to non-GCS media downloads.
-    #[serde(default, rename = "downloadReadHandle")]
-    pub download_read_handle: ::core::option::Option<String>,
-    /// The blob read token. Needed to read blobs that have not been replicated. Might not be available until the final call.
-    #[serde(default, rename = "readToken")]
-    pub read_token: ::core::option::Option<String>,
-    /// A serialized Object Fragment List Creation Info passed from Bigstore -&gt; Scotty for a GCS upload. This field must never be consumed outside of Bigstore, and is not applicable to non-GCS media uploads.
-    #[serde(default, rename = "uploadFragmentListCreationInfo")]
-    pub upload_fragment_list_creation_info: ::core::option::Option<String>,
-    /// Metadata passed from Blobstore -&gt; Scotty for a new GCS upload. This is a signed, serialized blobstore2.BlobMetadataContainer proto which must never be consumed outside of Bigstore, and is not applicable to non-GCS media uploads.
-    #[serde(default, rename = "uploadMetadataContainer")]
-    pub upload_metadata_container: ::core::option::Option<String>,
-}
-
-/// A sequence of media data references representing composite data. Introduced to support Bigstore composite objects. For details, visit http://go/bigstore-composites.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GdataCompositeMedia {
-    /// Blobstore v1 reference, set if reference_type is BLOBSTORE_REF This should be the byte representation of a blobstore.BlobRef. Since Blobstore is deprecating v1, use blobstore2_info instead. For now, any v2 blob will also be represented in this field as v1 BlobRef.
-    #[serde(default, rename = "blobRef")]
-    pub blob_ref: ::core::option::Option<String>,
-    /// Blobstore v2 info, set if reference_type is BLOBSTORE_REF and it refers to a v2 blob.
-    #[serde(default, rename = "blobstore2Info")]
-    pub blobstore2_info: ::core::option::Option<GdataBlobstore2Info>,
-    /// A binary data reference for a media download. Serves as a technology-agnostic binary reference in some Google infrastructure. This value is a serialized storage_cosmo.BinaryReference proto. Storing it as bytes is a hack to get around the fact that the cosmo proto (as well as others it includes) doesn''t support JavaScript. This prevents us from including the actual type of this field.
-    #[serde(default, rename = "cosmoBinaryReference")]
-    pub cosmo_binary_reference: ::core::option::Option<String>,
-    /// crc32.c hash for the payload.
-    #[serde(default, rename = "crc32cHash")]
-    pub crc32c_hash: ::core::option::Option<i64>,
-    /// Media data, set if reference_type is INLINE
+pub struct GoogleFirebaseAppdistroV1AabInfo {
+    /// App bundle integration state. Only valid for android apps. // TODO: enum values: ["AAB_INTEGRATION_STATE_UNSPECIFIED", "INTEGRATED", "PLAY_ACCOUNT_NOT_LINKED", "NO_APP_WITH_GIVEN_BUNDLE_ID_IN_PLAY_ACCOUNT", "APP_NOT_PUBLISHED", "AAB_STATE_UNAVAILABLE", "PLAY_IAS_TERMS_NOT_ACCEPTED"]
+    #[serde(default, rename = "integrationState")]
+    pub integration_state: ::core::option::Option<String>,
+    /// The name of the AabInfo resource. Format: projects/{project_number}/apps/{app}/aabInfo
     #[serde(default)]
-    pub inline: ::core::option::Option<String>,
-    /// Size of the data, in bytes
+    pub name: ::core::option::Option<String>,
+    /// App bundle test certificate generated for the app. Set after the first app bundle is uploaded for this app.
+    #[serde(default, rename = "testCertificate")]
+    pub test_certificate: ::core::option::Option<GoogleFirebaseAppdistroV1TestCertificate>,
+}
+
+/// The Request message for batch adding testers
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleFirebaseAppdistroV1BatchAddTestersRequest {
+    /// Required. The email addresses of the tester resources to create. A maximum of 999 and a minimum of 1 tester can be created in a batch.
     #[serde(default)]
-    pub length: ::core::option::Option<String>,
-    /// MD5 hash for the payload.
-    #[serde(default, rename = "md5Hash")]
-    pub md5_hash: ::core::option::Option<String>,
-    /// Reference to a TI Blob, set if reference_type is BIGSTORE_REF.
-    #[serde(default, rename = "objectId")]
-    pub object_id: ::core::option::Option<GdataObjectId>,
-    /// Path to the data, set if reference_type is PATH
+    pub emails: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// The Response message for BatchAddTesters.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleFirebaseAppdistroV1BatchAddTestersResponse {
+    /// The testers which are created and/or already exist
     #[serde(default)]
-    pub path: ::core::option::Option<String>,
-    /// Describes what the field reference contains. // TODO: enum values: ["PATH", "BLOB_REF", "INLINE", "BIGSTORE_REF", "COSMO_BINARY_REFERENCE"]
-    #[serde(default, rename = "referenceType")]
-    pub reference_type: ::core::option::Option<String>,
-    /// SHA-1 hash for the payload.
-    #[serde(default, rename = "sha1Hash")]
-    pub sha1_hash: ::core::option::Option<String>,
+    pub testers: ::core::option::Option<::std::vec::Vec<GoogleFirebaseAppdistroV1Tester>>,
 }
 
-/// Detailed Content-Type information from Scotty. The Content-Type of the media will typically be filled in by the header or Scotty''s best_guess, but this extended information provides the backend with more information so that it can make a better decision if needed. This is only used on media upload requests from Scotty.
+/// The request message for BatchDeleteReleases.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GdataContentTypeInfo {
-    /// Scotty''s best guess of what the content type of the file is.
-    #[serde(default, rename = "bestGuess")]
-    pub best_guess: ::core::option::Option<String>,
-    /// The content type of the file derived by looking at specific bytes (i.e. "magic bytes") of the actual file.
-    #[serde(default, rename = "fromBytes")]
-    pub from_bytes: ::core::option::Option<String>,
-    /// The content type of the file derived from the file extension of the original file name used by the client.
-    #[serde(default, rename = "fromFileName")]
-    pub from_file_name: ::core::option::Option<String>,
-    /// The content type of the file as specified in the request headers, multipart headers, or RUPIO start request.
-    #[serde(default, rename = "fromHeader")]
-    pub from_header: ::core::option::Option<String>,
-    /// The content type of the file derived from the file extension of the URL path. The URL path is assumed to represent a file name (which is typically only true for agents that are providing a REST API).
-    #[serde(default, rename = "fromUrlPath")]
-    pub from_url_path: ::core::option::Option<String>,
+pub struct GoogleFirebaseAppdistroV1BatchDeleteReleasesRequest {
+    /// Required. The names of the release resources to delete. Format: projects/{project_number}/apps/{app}/releases/{release} A maximum of 100 releases can be deleted per request.
+    #[serde(default)]
+    pub names: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
-/// Backend response for a Diff get checksums response. For details on the Scotty Diff protocol, visit http://go/scotty-diff-protocol.
+/// The request message for BatchJoinGroup
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GdataDiffChecksumsResponse {
-    /// Exactly one of these fields must be populated. If checksums_location is filled, the server will return the corresponding contents to the user. If object_location is filled, the server will calculate the checksums based on the content there and return that to the user. For details on the format of the checksums, see http://go/scotty-diff-protocol.
-    #[serde(default, rename = "checksumsLocation")]
-    pub checksums_location: ::core::option::Option<GdataCompositeMedia>,
-    /// The chunk size of checksums. Must be a multiple of 256KB.
-    #[serde(default, rename = "chunkSizeBytes")]
-    pub chunk_size_bytes: ::core::option::Option<String>,
-    /// If set, calculate the checksums based on the contents and return them to the caller.
-    #[serde(default, rename = "objectLocation")]
-    pub object_location: ::core::option::Option<GdataCompositeMedia>,
-    /// The total size of the server object.
-    #[serde(default, rename = "objectSizeBytes")]
-    pub object_size_bytes: ::core::option::Option<String>,
-    /// The object version of the object the checksums are being returned for.
-    #[serde(default, rename = "objectVersion")]
-    pub object_version: ::core::option::Option<String>,
+pub struct GoogleFirebaseAppdistroV1BatchJoinGroupRequest {
+    /// Indicates whether to create tester resources based on emails if they don''t exist yet.
+    #[serde(default, rename = "createMissingTesters")]
+    pub create_missing_testers: ::core::option::Option<bool>,
+    /// Required. The emails of the testers to be added to the group. A maximum of 999 and a minimum of 1 tester can be created in a batch.
+    #[serde(default)]
+    pub emails: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
-/// Backend response for a Diff download response. For details on the Scotty Diff protocol, visit http://go/scotty-diff-protocol.
+/// Request message for BatchLeaveGroup
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GdataDiffDownloadResponse {
-    /// The original object location.
-    #[serde(default, rename = "objectLocation")]
-    pub object_location: ::core::option::Option<GdataCompositeMedia>,
+pub struct GoogleFirebaseAppdistroV1BatchLeaveGroupRequest {
+    /// Required. The email addresses of the testers to be removed from the group. A maximum of 999 and a minimum of 1 testers can be removed in a batch.
+    #[serde(default)]
+    pub emails: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
-/// A Diff upload request. For details on the Scotty Diff protocol, visit http://go/scotty-diff-protocol.
+/// The request message for BatchRemoveTesters.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GdataDiffUploadRequest {
-    /// The location of the checksums for the new object. Agents must clone the object located here, as the upload server will delete the contents once a response is received. For details on the format of the checksums, see http://go/scotty-diff-protocol.
-    #[serde(default, rename = "checksumsInfo")]
-    pub checksums_info: ::core::option::Option<GdataCompositeMedia>,
-    /// The location of the new object. Agents must clone the object located here, as the upload server will delete the contents once a response is received.
-    #[serde(default, rename = "objectInfo")]
-    pub object_info: ::core::option::Option<GdataCompositeMedia>,
-    /// The object version of the object that is the base version the incoming diff script will be applied to. This field will always be filled in.
-    #[serde(default, rename = "objectVersion")]
-    pub object_version: ::core::option::Option<String>,
+pub struct GoogleFirebaseAppdistroV1BatchRemoveTestersRequest {
+    /// Required. The email addresses of the tester resources to removed. A maximum of 999 and a minimum of 1 testers can be deleted in a batch.
+    #[serde(default)]
+    pub emails: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
-/// Backend response for a Diff upload request. For details on the Scotty Diff protocol, visit http://go/scotty-diff-protocol.
+/// The response message for BatchRemoveTesters
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GdataDiffUploadResponse {
-    /// The object version of the object at the server. Must be included in the end notification response. The version in the end notification response must correspond to the new version of the object that is now stored at the server, after the upload.
-    #[serde(default, rename = "objectVersion")]
-    pub object_version: ::core::option::Option<String>,
-    /// The location of the original file for a diff upload request. Must be filled in if responding to an upload start notification.
-    #[serde(default, rename = "originalObject")]
-    pub original_object: ::core::option::Option<GdataCompositeMedia>,
+pub struct GoogleFirebaseAppdistroV1BatchRemoveTestersResponse {
+    /// List of deleted tester emails
+    #[serde(default)]
+    pub emails: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
-/// Backend response for a Diff get version response. For details on the Scotty Diff protocol, visit http://go/scotty-diff-protocol.
+/// The request message for DistributeRelease.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GdataDiffVersionResponse {
-    /// The total size of the server object.
-    #[serde(default, rename = "objectSizeBytes")]
-    pub object_size_bytes: ::core::option::Option<String>,
-    /// The version of the object stored at the server.
-    #[serde(default, rename = "objectVersion")]
-    pub object_version: ::core::option::Option<String>,
+pub struct GoogleFirebaseAppdistroV1DistributeReleaseRequest {
+    /// Optional. A list of group aliases (IDs) to be given access to this release. A combined maximum of 999 testerEmails and groupAliases can be specified in a single request.
+    #[serde(default, rename = "groupAliases")]
+    pub group_aliases: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Optional. A list of tester email addresses to be given access to this release. A combined maximum of 999 testerEmails and groupAliases can be specified in a single request.
+    #[serde(default, rename = "testerEmails")]
+    pub tester_emails: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
-/// Parameters specific to media downloads.
+/// The response message for ListFeedbackReports.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GdataDownloadParameters {
-    /// A boolean to be returned in the response to Scotty. Allows/disallows gzip encoding of the payload content when the server thinks it''s advantageous (hence, does not guarantee compression) which allows Scotty to GZip the response to the client.
-    #[serde(default, rename = "allowGzipCompression")]
-    pub allow_gzip_compression: ::core::option::Option<bool>,
-    /// Determining whether or not Apiary should skip the inclusion of any Content-Range header on its response to Scotty.
-    #[serde(default, rename = "ignoreRange")]
-    pub ignore_range: ::core::option::Option<bool>,
+pub struct GoogleFirebaseAppdistroV1ListFeedbackReportsResponse {
+    /// The feedback reports
+    #[serde(default, rename = "feedbackReports")]
+    pub feedback_reports:
+        ::core::option::Option<::std::vec::Vec<GoogleFirebaseAppdistroV1FeedbackReport>>,
+    /// A short-lived token, which can be sent as pageToken to retrieve the next page. If this field is omitted, there are no subsequent pages.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+}
+
+/// The response message for ListGroups.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleFirebaseAppdistroV1ListGroupsResponse {
+    /// The groups listed.
+    #[serde(default)]
+    pub groups: ::core::option::Option<::std::vec::Vec<GoogleFirebaseAppdistroV1Group>>,
+    /// A short-lived token, which can be sent as pageToken to retrieve the next page. If this field is omitted, there are no subsequent pages.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+}
+
+/// The response message for ListReleases.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleFirebaseAppdistroV1ListReleasesResponse {
+    /// A short-lived token, which can be sent as pageToken to retrieve the next page. If this field is omitted, there are no subsequent pages.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+    /// The releases
+    #[serde(default)]
+    pub releases: ::core::option::Option<::std::vec::Vec<GoogleFirebaseAppdistroV1Release>>,
+}
+
+/// The response message for ListTesters.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleFirebaseAppdistroV1ListTestersResponse {
+    /// A short-lived token, which can be sent as pageToken to retrieve the next page. If this field is omitted, there are no subsequent pages.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+    /// The testers listed.
+    #[serde(default)]
+    pub testers: ::core::option::Option<::std::vec::Vec<GoogleFirebaseAppdistroV1Tester>>,
+}
+
+/// Request message for UploadRelease.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleFirebaseAppdistroV1UploadReleaseRequest {
+    /// Binary to upload
+    #[serde(default)]
+    pub blob: ::core::option::Option<GdataMedia>,
+}
+
+/// Response message for UploadRelease.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleFirebaseAppdistroV1UploadReleaseResponse {
+    /// Release associated with the uploaded binary.
+    #[serde(default)]
+    pub release: ::core::option::Option<GoogleFirebaseAppdistroV1Release>,
+    /// Result of upload release. // TODO: enum values: ["UPLOAD_RELEASE_RESULT_UNSPECIFIED", "RELEASE_CREATED", "RELEASE_UPDATED", "RELEASE_UNMODIFIED"]
+    #[serde(default)]
+    pub result: ::core::option::Option<String>,
+}
+
+/// The response message for Operations.ListOperations.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleLongrunningListOperationsResponse {
+    /// The standard List next-page token.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+    /// A list of operations that matches the specified filter in the request.
+    #[serde(default)]
+    pub operations: ::core::option::Option<::std::vec::Vec<GoogleLongrunningOperation>>,
+    /// Unordered list. Unreachable resources. Populated when the request sets ListOperationsRequest.return_partial_success and reads across collections. For example, when attempting to list all resources across all supported locations.
+    #[serde(default)]
+    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// The request message for Operations.WaitOperation.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleLongrunningWaitOperationRequest {
+    /// The maximum duration to wait before timing out. If left blank, the wait will be at most the time permitted by the underlying HTTP/RPC protocol. If RPC context deadline is also specified, the shorter one will be used.
+    #[serde(default)]
+    pub timeout: ::core::option::Option<String>,
+}
+
+/// App bundle test certificate
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleFirebaseAppdistroV1TestCertificate {
+    /// Hex string of MD5 hash of the test certificate used to resign the AAB
+    #[serde(default, rename = "hashMd5")]
+    pub hash_md5: ::core::option::Option<String>,
+    /// Hex string of SHA1 hash of the test certificate used to resign the AAB
+    #[serde(default, rename = "hashSha1")]
+    pub hash_sha1: ::core::option::Option<String>,
+    /// Hex string of SHA256 hash of the test certificate used to resign the AAB
+    #[serde(default, rename = "hashSha256")]
+    pub hash_sha256: ::core::option::Option<String>,
+}
+
+/// A feedback report submitted by a tester for a release.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleFirebaseAppdistroV1FeedbackReport {
+    /// Output only. The time when the feedback report was created.
+    #[serde(default, rename = "createTime")]
+    pub create_time: ::core::option::Option<String>,
+    /// Output only. A link to the Firebase console displaying the feedback report.
+    #[serde(default, rename = "firebaseConsoleUri")]
+    pub firebase_console_uri: ::core::option::Option<String>,
+    /// The name of the feedback report resource. Format: projects/{project_number}/apps/{app}/releases/{release}/feedbackReports/{feedback_report}
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Output only. A signed link (which expires in one hour) that lets you directly download the screenshot.
+    #[serde(default, rename = "screenshotUri")]
+    pub screenshot_uri: ::core::option::Option<String>,
+    /// Output only. The resource name of the tester who submitted the feedback report.
+    #[serde(default)]
+    pub tester: ::core::option::Option<String>,
+    /// Output only. The text of the feedback report.
+    #[serde(default)]
+    pub text: ::core::option::Option<String>,
+}
+
+/// A group which can contain testers. A group can be invited to test apps in a Firebase project.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleFirebaseAppdistroV1Group {
+    /// Required. The display name of the group.
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+    /// Output only. The number of invite links for this group.
+    #[serde(default, rename = "inviteLinkCount")]
+    pub invite_link_count: ::core::option::Option<i32>,
+    /// The name of the group resource. Format: projects/{project_number}/groups/{group_alias}
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Output only. The number of releases this group is permitted to access.
+    #[serde(default, rename = "releaseCount")]
+    pub release_count: ::core::option::Option<i32>,
+    /// Output only. The number of testers who are members of this group.
+    #[serde(default, rename = "testerCount")]
+    pub tester_count: ::core::option::Option<i32>,
+}
+
+/// A person that can be invited to test apps in a Firebase project.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleFirebaseAppdistroV1Tester {
+    /// The name of the tester associated with the Google account used to accept the tester invitation.
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+    /// The resource names of the groups this tester belongs to.
+    #[serde(default)]
+    pub groups: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Output only. The time the tester was last active. This is the most recent time the tester installed one of the apps. If they''ve never installed one or if the release no longer exists, this is the time the tester was added to the project.
+    #[serde(default, rename = "lastActivityTime")]
+    pub last_activity_time: ::core::option::Option<String>,
+    /// The name of the tester resource. Format: projects/{project_number}/testers/{email_address}
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
 }
 
 /// A reference to data stored on the filesystem, on GFS or in blobstore.
@@ -264,192 +349,6 @@ pub struct GdataMedia {
     pub token: ::core::option::Option<String>,
 }
 
-/// This is a copy of the tech.blob.ObjectId proto, which could not be used directly here due to transitive closure issues with JavaScript support; see http://b/8801763.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GdataObjectId {
-    /// The name of the bucket to which this object belongs.
-    #[serde(default, rename = "bucketName")]
-    pub bucket_name: ::core::option::Option<String>,
-    /// Generation of the object. Generations are monotonically increasing across writes, allowing them to be be compared to determine which generation is newer. If this is omitted in a request, then you are requesting the live object. See http://go/bigstore-versions
-    #[serde(default)]
-    pub generation: ::core::option::Option<String>,
-    /// The name of the object.
-    #[serde(default, rename = "objectName")]
-    pub object_name: ::core::option::Option<String>,
-}
-
-/// Android App Bundle (AAB) information for a Firebase app.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleFirebaseAppdistroV1AabInfo {
-    /// App bundle integration state. Only valid for android apps. // TODO: enum values: ["AAB_INTEGRATION_STATE_UNSPECIFIED", "INTEGRATED", "PLAY_ACCOUNT_NOT_LINKED", "NO_APP_WITH_GIVEN_BUNDLE_ID_IN_PLAY_ACCOUNT", "APP_NOT_PUBLISHED", "AAB_STATE_UNAVAILABLE", "PLAY_IAS_TERMS_NOT_ACCEPTED"]
-    #[serde(default, rename = "integrationState")]
-    pub integration_state: ::core::option::Option<String>,
-    /// The name of the AabInfo resource. Format: projects/{project_number}/apps/{app}/aabInfo
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// App bundle test certificate generated for the app. Set after the first app bundle is uploaded for this app.
-    #[serde(default, rename = "testCertificate")]
-    pub test_certificate: ::core::option::Option<GoogleFirebaseAppdistroV1TestCertificate>,
-}
-
-/// The Request message for batch adding testers
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleFirebaseAppdistroV1BatchAddTestersRequest {
-    /// Required. The email addresses of the tester resources to create. A maximum of 999 and a minimum of 1 tester can be created in a batch.
-    #[serde(default)]
-    pub emails: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// The Response message for BatchAddTesters.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleFirebaseAppdistroV1BatchAddTestersResponse {
-    /// The testers which are created and/or already exist
-    #[serde(default)]
-    pub testers: ::core::option::Option<::std::vec::Vec<GoogleFirebaseAppdistroV1Tester>>,
-}
-
-/// The request message for BatchDeleteReleases.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleFirebaseAppdistroV1BatchDeleteReleasesRequest {
-    /// Required. The names of the release resources to delete. Format: projects/{project_number}/apps/{app}/releases/{release} A maximum of 100 releases can be deleted per request.
-    #[serde(default)]
-    pub names: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// The request message for BatchJoinGroup
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleFirebaseAppdistroV1BatchJoinGroupRequest {
-    /// Indicates whether to create tester resources based on emails if they don''t exist yet.
-    #[serde(default, rename = "createMissingTesters")]
-    pub create_missing_testers: ::core::option::Option<bool>,
-    /// Required. The emails of the testers to be added to the group. A maximum of 999 and a minimum of 1 tester can be created in a batch.
-    #[serde(default)]
-    pub emails: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// Request message for BatchLeaveGroup
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleFirebaseAppdistroV1BatchLeaveGroupRequest {
-    /// Required. The email addresses of the testers to be removed from the group. A maximum of 999 and a minimum of 1 testers can be removed in a batch.
-    #[serde(default)]
-    pub emails: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// The request message for BatchRemoveTesters.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleFirebaseAppdistroV1BatchRemoveTestersRequest {
-    /// Required. The email addresses of the tester resources to removed. A maximum of 999 and a minimum of 1 testers can be deleted in a batch.
-    #[serde(default)]
-    pub emails: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// The response message for BatchRemoveTesters
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleFirebaseAppdistroV1BatchRemoveTestersResponse {
-    /// List of deleted tester emails
-    #[serde(default)]
-    pub emails: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// The request message for DistributeRelease.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleFirebaseAppdistroV1DistributeReleaseRequest {
-    /// Optional. A list of group aliases (IDs) to be given access to this release. A combined maximum of 999 testerEmails and groupAliases can be specified in a single request.
-    #[serde(default, rename = "groupAliases")]
-    pub group_aliases: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Optional. A list of tester email addresses to be given access to this release. A combined maximum of 999 testerEmails and groupAliases can be specified in a single request.
-    #[serde(default, rename = "testerEmails")]
-    pub tester_emails: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// A feedback report submitted by a tester for a release.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleFirebaseAppdistroV1FeedbackReport {
-    /// Output only. The time when the feedback report was created.
-    #[serde(default, rename = "createTime")]
-    pub create_time: ::core::option::Option<String>,
-    /// Output only. A link to the Firebase console displaying the feedback report.
-    #[serde(default, rename = "firebaseConsoleUri")]
-    pub firebase_console_uri: ::core::option::Option<String>,
-    /// The name of the feedback report resource. Format: projects/{project_number}/apps/{app}/releases/{release}/feedbackReports/{feedback_report}
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Output only. A signed link (which expires in one hour) that lets you directly download the screenshot.
-    #[serde(default, rename = "screenshotUri")]
-    pub screenshot_uri: ::core::option::Option<String>,
-    /// Output only. The resource name of the tester who submitted the feedback report.
-    #[serde(default)]
-    pub tester: ::core::option::Option<String>,
-    /// Output only. The text of the feedback report.
-    #[serde(default)]
-    pub text: ::core::option::Option<String>,
-}
-
-/// A group which can contain testers. A group can be invited to test apps in a Firebase project.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleFirebaseAppdistroV1Group {
-    /// Required. The display name of the group.
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-    /// Output only. The number of invite links for this group.
-    #[serde(default, rename = "inviteLinkCount")]
-    pub invite_link_count: ::core::option::Option<i32>,
-    /// The name of the group resource. Format: projects/{project_number}/groups/{group_alias}
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Output only. The number of releases this group is permitted to access.
-    #[serde(default, rename = "releaseCount")]
-    pub release_count: ::core::option::Option<i32>,
-    /// Output only. The number of testers who are members of this group.
-    #[serde(default, rename = "testerCount")]
-    pub tester_count: ::core::option::Option<i32>,
-}
-
-/// The response message for ListFeedbackReports.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleFirebaseAppdistroV1ListFeedbackReportsResponse {
-    /// The feedback reports
-    #[serde(default, rename = "feedbackReports")]
-    pub feedback_reports:
-        ::core::option::Option<::std::vec::Vec<GoogleFirebaseAppdistroV1FeedbackReport>>,
-    /// A short-lived token, which can be sent as pageToken to retrieve the next page. If this field is omitted, there are no subsequent pages.
-    #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: ::core::option::Option<String>,
-}
-
-/// The response message for ListGroups.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleFirebaseAppdistroV1ListGroupsResponse {
-    /// The groups listed.
-    #[serde(default)]
-    pub groups: ::core::option::Option<::std::vec::Vec<GoogleFirebaseAppdistroV1Group>>,
-    /// A short-lived token, which can be sent as pageToken to retrieve the next page. If this field is omitted, there are no subsequent pages.
-    #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: ::core::option::Option<String>,
-}
-
-/// The response message for ListReleases.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleFirebaseAppdistroV1ListReleasesResponse {
-    /// A short-lived token, which can be sent as pageToken to retrieve the next page. If this field is omitted, there are no subsequent pages.
-    #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: ::core::option::Option<String>,
-    /// The releases
-    #[serde(default)]
-    pub releases: ::core::option::Option<::std::vec::Vec<GoogleFirebaseAppdistroV1Release>>,
-}
-
-/// The response message for ListTesters.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleFirebaseAppdistroV1ListTestersResponse {
-    /// A short-lived token, which can be sent as pageToken to retrieve the next page. If this field is omitted, there are no subsequent pages.
-    #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: ::core::option::Option<String>,
-    /// The testers listed.
-    #[serde(default)]
-    pub testers: ::core::option::Option<::std::vec::Vec<GoogleFirebaseAppdistroV1Tester>>,
-}
-
 /// A release of a Firebase app.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleFirebaseAppdistroV1Release {
@@ -485,78 +384,6 @@ pub struct GoogleFirebaseAppdistroV1Release {
     pub update_time: ::core::option::Option<String>,
 }
 
-/// Notes that belong to a release.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleFirebaseAppdistroV1ReleaseNotes {
-    /// The text of the release notes.
-    #[serde(default)]
-    pub text: ::core::option::Option<String>,
-}
-
-/// App bundle test certificate
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleFirebaseAppdistroV1TestCertificate {
-    /// Hex string of MD5 hash of the test certificate used to resign the AAB
-    #[serde(default, rename = "hashMd5")]
-    pub hash_md5: ::core::option::Option<String>,
-    /// Hex string of SHA1 hash of the test certificate used to resign the AAB
-    #[serde(default, rename = "hashSha1")]
-    pub hash_sha1: ::core::option::Option<String>,
-    /// Hex string of SHA256 hash of the test certificate used to resign the AAB
-    #[serde(default, rename = "hashSha256")]
-    pub hash_sha256: ::core::option::Option<String>,
-}
-
-/// A person that can be invited to test apps in a Firebase project.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleFirebaseAppdistroV1Tester {
-    /// The name of the tester associated with the Google account used to accept the tester invitation.
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-    /// The resource names of the groups this tester belongs to.
-    #[serde(default)]
-    pub groups: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Output only. The time the tester was last active. This is the most recent time the tester installed one of the apps. If they''ve never installed one or if the release no longer exists, this is the time the tester was added to the project.
-    #[serde(default, rename = "lastActivityTime")]
-    pub last_activity_time: ::core::option::Option<String>,
-    /// The name of the tester resource. Format: projects/{project_number}/testers/{email_address}
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-}
-
-/// Request message for UploadRelease.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleFirebaseAppdistroV1UploadReleaseRequest {
-    /// Binary to upload
-    #[serde(default)]
-    pub blob: ::core::option::Option<GdataMedia>,
-}
-
-/// Response message for UploadRelease.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleFirebaseAppdistroV1UploadReleaseResponse {
-    /// Release associated with the uploaded binary.
-    #[serde(default)]
-    pub release: ::core::option::Option<GoogleFirebaseAppdistroV1Release>,
-    /// Result of upload release. // TODO: enum values: ["UPLOAD_RELEASE_RESULT_UNSPECIFIED", "RELEASE_CREATED", "RELEASE_UPDATED", "RELEASE_UNMODIFIED"]
-    #[serde(default)]
-    pub result: ::core::option::Option<String>,
-}
-
-/// The response message for Operations.ListOperations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleLongrunningListOperationsResponse {
-    /// The standard List next-page token.
-    #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: ::core::option::Option<String>,
-    /// A list of operations that matches the specified filter in the request.
-    #[serde(default)]
-    pub operations: ::core::option::Option<::std::vec::Vec<GoogleLongrunningOperation>>,
-    /// Unordered list. Unreachable resources. Populated when the request sets ListOperationsRequest.return_partial_success and reads across collections. For example, when attempting to list all resources across all supported locations.
-    #[serde(default)]
-    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
 /// This resource represents a long-running operation that is the result of a network API call.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleLongrunningOperation {
@@ -577,12 +404,107 @@ pub struct GoogleLongrunningOperation {
     pub response: ::core::option::Option<serde_json::Value>,
 }
 
-/// The request message for Operations.WaitOperation.
+/// Detailed Content-Type information from Scotty. The Content-Type of the media will typically be filled in by the header or Scotty''s best_guess, but this extended information provides the backend with more information so that it can make a better decision if needed. This is only used on media upload requests from Scotty.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleLongrunningWaitOperationRequest {
-    /// The maximum duration to wait before timing out. If left blank, the wait will be at most the time permitted by the underlying HTTP/RPC protocol. If RPC context deadline is also specified, the shorter one will be used.
+pub struct GdataContentTypeInfo {
+    /// Scotty''s best guess of what the content type of the file is.
+    #[serde(default, rename = "bestGuess")]
+    pub best_guess: ::core::option::Option<String>,
+    /// The content type of the file derived by looking at specific bytes (i.e. "magic bytes") of the actual file.
+    #[serde(default, rename = "fromBytes")]
+    pub from_bytes: ::core::option::Option<String>,
+    /// The content type of the file derived from the file extension of the original file name used by the client.
+    #[serde(default, rename = "fromFileName")]
+    pub from_file_name: ::core::option::Option<String>,
+    /// The content type of the file as specified in the request headers, multipart headers, or RUPIO start request.
+    #[serde(default, rename = "fromHeader")]
+    pub from_header: ::core::option::Option<String>,
+    /// The content type of the file derived from the file extension of the URL path. The URL path is assumed to represent a file name (which is typically only true for agents that are providing a REST API).
+    #[serde(default, rename = "fromUrlPath")]
+    pub from_url_path: ::core::option::Option<String>,
+}
+
+/// Backend response for a Diff get checksums response. For details on the Scotty Diff protocol, visit http://go/scotty-diff-protocol.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GdataDiffChecksumsResponse {
+    /// Exactly one of these fields must be populated. If checksums_location is filled, the server will return the corresponding contents to the user. If object_location is filled, the server will calculate the checksums based on the content there and return that to the user. For details on the format of the checksums, see http://go/scotty-diff-protocol.
+    #[serde(default, rename = "checksumsLocation")]
+    pub checksums_location: ::core::option::Option<GdataCompositeMedia>,
+    /// The chunk size of checksums. Must be a multiple of 256KB.
+    #[serde(default, rename = "chunkSizeBytes")]
+    pub chunk_size_bytes: ::core::option::Option<String>,
+    /// If set, calculate the checksums based on the contents and return them to the caller.
+    #[serde(default, rename = "objectLocation")]
+    pub object_location: ::core::option::Option<GdataCompositeMedia>,
+    /// The total size of the server object.
+    #[serde(default, rename = "objectSizeBytes")]
+    pub object_size_bytes: ::core::option::Option<String>,
+    /// The object version of the object the checksums are being returned for.
+    #[serde(default, rename = "objectVersion")]
+    pub object_version: ::core::option::Option<String>,
+}
+
+/// Backend response for a Diff download response. For details on the Scotty Diff protocol, visit http://go/scotty-diff-protocol.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GdataDiffDownloadResponse {
+    /// The original object location.
+    #[serde(default, rename = "objectLocation")]
+    pub object_location: ::core::option::Option<GdataCompositeMedia>,
+}
+
+/// A Diff upload request. For details on the Scotty Diff protocol, visit http://go/scotty-diff-protocol.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GdataDiffUploadRequest {
+    /// The location of the checksums for the new object. Agents must clone the object located here, as the upload server will delete the contents once a response is received. For details on the format of the checksums, see http://go/scotty-diff-protocol.
+    #[serde(default, rename = "checksumsInfo")]
+    pub checksums_info: ::core::option::Option<GdataCompositeMedia>,
+    /// The location of the new object. Agents must clone the object located here, as the upload server will delete the contents once a response is received.
+    #[serde(default, rename = "objectInfo")]
+    pub object_info: ::core::option::Option<GdataCompositeMedia>,
+    /// The object version of the object that is the base version the incoming diff script will be applied to. This field will always be filled in.
+    #[serde(default, rename = "objectVersion")]
+    pub object_version: ::core::option::Option<String>,
+}
+
+/// Backend response for a Diff upload request. For details on the Scotty Diff protocol, visit http://go/scotty-diff-protocol.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GdataDiffUploadResponse {
+    /// The object version of the object at the server. Must be included in the end notification response. The version in the end notification response must correspond to the new version of the object that is now stored at the server, after the upload.
+    #[serde(default, rename = "objectVersion")]
+    pub object_version: ::core::option::Option<String>,
+    /// The location of the original file for a diff upload request. Must be filled in if responding to an upload start notification.
+    #[serde(default, rename = "originalObject")]
+    pub original_object: ::core::option::Option<GdataCompositeMedia>,
+}
+
+/// Backend response for a Diff get version response. For details on the Scotty Diff protocol, visit http://go/scotty-diff-protocol.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GdataDiffVersionResponse {
+    /// The total size of the server object.
+    #[serde(default, rename = "objectSizeBytes")]
+    pub object_size_bytes: ::core::option::Option<String>,
+    /// The version of the object stored at the server.
+    #[serde(default, rename = "objectVersion")]
+    pub object_version: ::core::option::Option<String>,
+}
+
+/// Parameters specific to media downloads.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GdataDownloadParameters {
+    /// A boolean to be returned in the response to Scotty. Allows/disallows gzip encoding of the payload content when the server thinks it''s advantageous (hence, does not guarantee compression) which allows Scotty to GZip the response to the client.
+    #[serde(default, rename = "allowGzipCompression")]
+    pub allow_gzip_compression: ::core::option::Option<bool>,
+    /// Determining whether or not Apiary should skip the inclusion of any Content-Range header on its response to Scotty.
+    #[serde(default, rename = "ignoreRange")]
+    pub ignore_range: ::core::option::Option<bool>,
+}
+
+/// Notes that belong to a release.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleFirebaseAppdistroV1ReleaseNotes {
+    /// The text of the release notes.
     #[serde(default)]
-    pub timeout: ::core::option::Option<String>,
+    pub text: ::core::option::Option<String>,
 }
 
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
@@ -597,4 +519,82 @@ pub struct GoogleRpcStatus {
     /// A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.
     #[serde(default)]
     pub message: ::core::option::Option<String>,
+}
+
+/// A sequence of media data references representing composite data. Introduced to support Bigstore composite objects. For details, visit http://go/bigstore-composites.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GdataCompositeMedia {
+    /// Blobstore v1 reference, set if reference_type is BLOBSTORE_REF This should be the byte representation of a blobstore.BlobRef. Since Blobstore is deprecating v1, use blobstore2_info instead. For now, any v2 blob will also be represented in this field as v1 BlobRef.
+    #[serde(default, rename = "blobRef")]
+    pub blob_ref: ::core::option::Option<String>,
+    /// Blobstore v2 info, set if reference_type is BLOBSTORE_REF and it refers to a v2 blob.
+    #[serde(default, rename = "blobstore2Info")]
+    pub blobstore2_info: ::core::option::Option<GdataBlobstore2Info>,
+    /// A binary data reference for a media download. Serves as a technology-agnostic binary reference in some Google infrastructure. This value is a serialized storage_cosmo.BinaryReference proto. Storing it as bytes is a hack to get around the fact that the cosmo proto (as well as others it includes) doesn''t support JavaScript. This prevents us from including the actual type of this field.
+    #[serde(default, rename = "cosmoBinaryReference")]
+    pub cosmo_binary_reference: ::core::option::Option<String>,
+    /// crc32.c hash for the payload.
+    #[serde(default, rename = "crc32cHash")]
+    pub crc32c_hash: ::core::option::Option<i64>,
+    /// Media data, set if reference_type is INLINE
+    #[serde(default)]
+    pub inline: ::core::option::Option<String>,
+    /// Size of the data, in bytes
+    #[serde(default)]
+    pub length: ::core::option::Option<String>,
+    /// MD5 hash for the payload.
+    #[serde(default, rename = "md5Hash")]
+    pub md5_hash: ::core::option::Option<String>,
+    /// Reference to a TI Blob, set if reference_type is BIGSTORE_REF.
+    #[serde(default, rename = "objectId")]
+    pub object_id: ::core::option::Option<GdataObjectId>,
+    /// Path to the data, set if reference_type is PATH
+    #[serde(default)]
+    pub path: ::core::option::Option<String>,
+    /// Describes what the field reference contains. // TODO: enum values: ["PATH", "BLOB_REF", "INLINE", "BIGSTORE_REF", "COSMO_BINARY_REFERENCE"]
+    #[serde(default, rename = "referenceType")]
+    pub reference_type: ::core::option::Option<String>,
+    /// SHA-1 hash for the payload.
+    #[serde(default, rename = "sha1Hash")]
+    pub sha1_hash: ::core::option::Option<String>,
+}
+
+/// Information to read/write to blobstore2.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GdataBlobstore2Info {
+    /// The blob generation id.
+    #[serde(default, rename = "blobGeneration")]
+    pub blob_generation: ::core::option::Option<String>,
+    /// The blob id, e.g., /blobstore/prod/playground/scotty
+    #[serde(default, rename = "blobId")]
+    pub blob_id: ::core::option::Option<String>,
+    /// A serialized External Read Token passed from Bigstore -&gt; Scotty for a GCS download. This field must never be consumed outside of Bigstore, and is not applicable to non-GCS media uploads.
+    #[serde(default, rename = "downloadExternalReadToken")]
+    pub download_external_read_token: ::core::option::Option<String>,
+    /// Read handle passed from Bigstore -&gt; Scotty for a GCS download. This is a signed, serialized blobstore2.ReadHandle proto which must never be set outside of Bigstore, and is not applicable to non-GCS media downloads.
+    #[serde(default, rename = "downloadReadHandle")]
+    pub download_read_handle: ::core::option::Option<String>,
+    /// The blob read token. Needed to read blobs that have not been replicated. Might not be available until the final call.
+    #[serde(default, rename = "readToken")]
+    pub read_token: ::core::option::Option<String>,
+    /// A serialized Object Fragment List Creation Info passed from Bigstore -&gt; Scotty for a GCS upload. This field must never be consumed outside of Bigstore, and is not applicable to non-GCS media uploads.
+    #[serde(default, rename = "uploadFragmentListCreationInfo")]
+    pub upload_fragment_list_creation_info: ::core::option::Option<String>,
+    /// Metadata passed from Blobstore -&gt; Scotty for a new GCS upload. This is a signed, serialized blobstore2.BlobMetadataContainer proto which must never be consumed outside of Bigstore, and is not applicable to non-GCS media uploads.
+    #[serde(default, rename = "uploadMetadataContainer")]
+    pub upload_metadata_container: ::core::option::Option<String>,
+}
+
+/// This is a copy of the tech.blob.ObjectId proto, which could not be used directly here due to transitive closure issues with JavaScript support; see http://b/8801763.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GdataObjectId {
+    /// The name of the bucket to which this object belongs.
+    #[serde(default, rename = "bucketName")]
+    pub bucket_name: ::core::option::Option<String>,
+    /// Generation of the object. Generations are monotonically increasing across writes, allowing them to be be compared to determine which generation is newer. If this is omitted in a request, then you are requesting the live object. See http://go/bigstore-versions
+    #[serde(default)]
+    pub generation: ::core::option::Option<String>,
+    /// The name of the object.
+    #[serde(default, rename = "objectName")]
+    pub object_name: ::core::option::Option<String>,
 }

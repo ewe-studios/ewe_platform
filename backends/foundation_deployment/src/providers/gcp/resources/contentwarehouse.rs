@@ -10,180 +10,6 @@
 use super::*;
 use serde::{Deserialize, Serialize};
 
-/// The identity to configure a CloudSQL instance provisioned via SLM Terraform.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CloudAiPlatformTenantresourceCloudSqlInstanceConfig {
-    /// Output only. The CloudSQL instance connection name.
-    #[serde(default, rename = "cloudSqlInstanceConnectionName")]
-    pub cloud_sql_instance_connection_name: ::core::option::Option<String>,
-    /// Input/Output [Optional]. The CloudSQL instance name within SLM instance. If not set, a random UUIC will be generated as instance name.
-    #[serde(default, rename = "cloudSqlInstanceName")]
-    pub cloud_sql_instance_name: ::core::option::Option<String>,
-    /// Input [Optional]. The KMS key name or the KMS grant name used for CMEK encryption. Only set this field when provisioning new CloudSQL instances. For existing CloudSQL instances, this field will be ignored because CMEK re-encryption is not supported.
-    #[serde(default, rename = "kmsKeyReference")]
-    pub kms_key_reference: ::core::option::Option<String>,
-    /// Input [Optional]. MDB roles for corp access to CloudSQL instance.
-    #[serde(default, rename = "mdbRolesForCorpAccess")]
-    pub mdb_roles_for_corp_access: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Output only. The SLM instance''s full resource name.
-    #[serde(default, rename = "slmInstanceName")]
-    pub slm_instance_name: ::core::option::Option<String>,
-    /// Input [Required]. The SLM instance template to provision CloudSQL.
-    #[serde(default, rename = "slmInstanceTemplate")]
-    pub slm_instance_template: ::core::option::Option<String>,
-    /// Input [Required]. The SLM instance type to provision CloudSQL.
-    #[serde(default, rename = "slmInstanceType")]
-    pub slm_instance_type: ::core::option::Option<String>,
-}
-
-/// The identity to configure a GCS bucket.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CloudAiPlatformTenantresourceGcsBucketConfig {
-    #[serde(default)]
-    pub admins: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Input/Output [Optional]. The name of a GCS bucket with max length of 63 chars. If not set, a random UUID will be generated as bucket name.
-    #[serde(default, rename = "bucketName")]
-    pub bucket_name: ::core::option::Option<String>,
-    /// Input/Output [Optional]. Only needed for per-entity tenant GCP resources. During Deprovision API, the on-demand deletion will only cover the tenant GCP resources with the specified entity name.
-    #[serde(default, rename = "entityName")]
-    pub entity_name: ::core::option::Option<String>,
-    /// Input/Output [Optional]. The KMS key name or the KMS grant name used for CMEK encryption. Only set this field when provisioning new GCS bucket. For existing GCS bucket, this field will be ignored because CMEK re-encryption is not supported.
-    #[serde(default, rename = "kmsKeyReference")]
-    pub kms_key_reference: ::core::option::Option<String>,
-    /// Input/Output [Optional]. Only needed when the content in bucket need to be garbage collected within some amount of days.
-    #[serde(default, rename = "ttlDays")]
-    pub ttl_days: ::core::option::Option<i32>,
-    /// Input/Output [Required]. IAM roles (viewer/admin) put on the bucket.
-    #[serde(default)]
-    pub viewers: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// The dynamic IAM bindings to be granted after tenant projects are created.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CloudAiPlatformTenantresourceIamPolicyBinding {
-    /// Input/Output [Required]. The member service accounts with the roles above. Note: placeholders are same as the resource above.
-    #[serde(default)]
-    pub members: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Input/Output [Required]. The resource name that will be accessed by members, which also depends on resource_type. Note: placeholders are supported in resource names. For example, ${tpn} will be used when the tenant project number is not ready.
-    #[serde(default)]
-    pub resource: ::core::option::Option<String>,
-    /// Input/Output [Required]. Specifies the type of resource that will be accessed by members. // TODO: enum values: ["RESOURCE_TYPE_UNSPECIFIED", "PROJECT", "SERVICE_ACCOUNT", "GCS_BUCKET", "SERVICE_CONSUMER", "AR_REPO"]
-    #[serde(default, rename = "resourceType")]
-    pub resource_type: ::core::option::Option<String>,
-    /// Input/Output [Required]. The role for members below.
-    #[serde(default)]
-    pub role: ::core::option::Option<String>,
-}
-
-/// The configuration for a spanner database provisioning. Next ID: 8
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CloudAiPlatformTenantresourceInfraSpannerConfig {
-    /// Input [Optional]. The options to create a spanner database. Note: give the right options to ensure the right KMS key access audit logging and AxT logging in expected logging category.
-    #[serde(default, rename = "createDatabaseOptions")]
-    pub create_database_options: ::core::option::Option<
-        CloudAiPlatformTenantresourceInfraSpannerConfigCreateDatabaseOptions,
-    >,
-    /// Input [Optional]. The KMS key name or the KMS grant name used for CMEK encryption. Only set this field when provisioning new Infra Spanner databases. For existing Infra Spanner databases, this field will be ignored because CMEK re-encryption is not supported. For example, projects//locations//keyRings//cryptoKeys/
-    #[serde(default, rename = "kmsKeyReference")]
-    pub kms_key_reference: ::core::option::Option<String>,
-    /// Input [Required]. The file path to the spanner SDL bundle.
-    #[serde(default, rename = "sdlBundlePath")]
-    pub sdl_bundle_path: ::core::option::Option<String>,
-    /// Input [Optional]. The spanner borg service account for delegating the kms key to. For example, spanner-infra-cmek-nonprod@system.gserviceaccount.com, for the nonprod universe.
-    #[serde(default, rename = "spannerBorgServiceAccount")]
-    pub spanner_borg_service_account: ::core::option::Option<String>,
-    #[serde(default, rename = "spannerLocalNamePrefix")]
-    pub spanner_local_name_prefix: ::core::option::Option<String>,
-    #[serde(default, rename = "spannerNamespace")]
-    pub spanner_namespace: ::core::option::Option<String>,
-    /// Input [Required]. Every database in Spanner can be identified by the following path name: /span//:
-    #[serde(default, rename = "spannerUniverse")]
-    pub spanner_universe: ::core::option::Option<String>,
-}
-
-/// The options to create a spanner database. KMS key access audit logging and AxT logging will be associated with the given resource name, resource type and service name. Please ensure to give right options to enable correct audit logging and AxT logging.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CloudAiPlatformTenantresourceInfraSpannerConfigCreateDatabaseOptions {
-    /// The cloud resource name for the CMEK encryption. For example, projects//locations/
-    #[serde(default, rename = "cmekCloudResourceName")]
-    pub cmek_cloud_resource_name: ::core::option::Option<String>,
-    /// The cloud resource type for the CMEK encryption. For example, contentwarehouse.googleapis.com/Location
-    #[serde(default, rename = "cmekCloudResourceType")]
-    pub cmek_cloud_resource_type: ::core::option::Option<String>,
-    /// The service name for the CMEK encryption. For example, contentwarehouse.googleapis.com
-    #[serde(default, rename = "cmekServiceName")]
-    pub cmek_service_name: ::core::option::Option<String>,
-}
-
-/// The identity to configure a service account.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CloudAiPlatformTenantresourceServiceAccountIdentity {
-    /// Output only. The service account email that has been created.
-    #[serde(default, rename = "serviceAccountEmail")]
-    pub service_account_email: ::core::option::Option<String>,
-    /// Input/Output [Optional]. The tag that configures the service account, as defined in google3/configs/production/cdpush/acl-zanzibar-cloud-prod/activation_grants/activation_grants.gcl. Note: The default P4 service account has the empty tag.
-    #[serde(default)]
-    pub tag: ::core::option::Option<String>,
-}
-
-/// The identity to configure a tenant project.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CloudAiPlatformTenantresourceTenantProjectConfig {
-    /// Input/Output [Required]. The billing account properties to create the tenant project.
-    #[serde(default, rename = "billingConfig")]
-    pub billing_config: ::core::option::Option<GoogleApiServiceconsumermanagementV1BillingConfig>,
-    /// Input/Output [Required]. The folder that holds tenant projects and folder-level permissions will be automatically granted to all tenant projects under the folder. Note: the valid folder format is folders/{folder_number}.
-    #[serde(default)]
-    pub folder: ::core::option::Option<String>,
-    /// Input/Output [Required]. The policy bindings that are applied to the tenant project during creation. At least one binding must have the role roles/owner with either user or group type.
-    #[serde(default, rename = "policyBindings")]
-    pub policy_bindings:
-        ::core::option::Option<::std::vec::Vec<GoogleApiServiceconsumermanagementV1PolicyBinding>>,
-    /// Input/Output [Required]. The API services that are enabled on the tenant project during creation.
-    #[serde(default)]
-    pub services: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// The tenant project and tenant resources. Next ID: 10
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CloudAiPlatformTenantresourceTenantProjectResource {
-    /// The CloudSQL instances that are provisioned under the tenant project.
-    #[serde(default, rename = "cloudSqlInstances")]
-    pub cloud_sql_instances: ::core::option::Option<
-        ::std::vec::Vec<CloudAiPlatformTenantresourceCloudSqlInstanceConfig>,
-    >,
-    /// The GCS buckets that are provisioned under the tenant project.
-    #[serde(default, rename = "gcsBuckets")]
-    pub gcs_buckets:
-        ::core::option::Option<::std::vec::Vec<CloudAiPlatformTenantresourceGcsBucketConfig>>,
-    /// The dynamic IAM bindings that are granted under the tenant project. Note: this should only add new bindings to the project if they don''t exist and the existing bindings won''t be affected.
-    #[serde(default, rename = "iamPolicyBindings")]
-    pub iam_policy_bindings:
-        ::core::option::Option<::std::vec::Vec<CloudAiPlatformTenantresourceIamPolicyBinding>>,
-    /// The Infra Spanner databases that are provisioned under the tenant project. Note: this is an experimental feature.
-    #[serde(default, rename = "infraSpannerConfigs")]
-    pub infra_spanner_configs:
-        ::core::option::Option<::std::vec::Vec<CloudAiPlatformTenantresourceInfraSpannerConfig>>,
-    /// Input/Output [Required]. The tag that uniquely identifies a tenant project within a tenancy unit. Note: for the same tenant project tag, all tenant manager operations should be idempotent.
-    #[serde(default)]
-    pub tag: ::core::option::Option<String>,
-    /// The configurations of a tenant project.
-    #[serde(default, rename = "tenantProjectConfig")]
-    pub tenant_project_config:
-        ::core::option::Option<CloudAiPlatformTenantresourceTenantProjectConfig>,
-    /// Output only. The tenant project ID that has been created.
-    #[serde(default, rename = "tenantProjectId")]
-    pub tenant_project_id: ::core::option::Option<String>,
-    /// Output only. The tenant project number that has been created.
-    #[serde(default, rename = "tenantProjectNumber")]
-    pub tenant_project_number: ::core::option::Option<String>,
-    /// The service account identities (or enabled API service''s P4SA) that are expclicitly created under the tenant project (before JIT provisioning during enabled API services).
-    #[serde(default, rename = "tenantServiceAccounts")]
-    pub tenant_service_accounts: ::core::option::Option<
-        ::std::vec::Vec<CloudAiPlatformTenantresourceTenantServiceAccountIdentity>,
-    >,
-}
-
 /// A collection of tenant resources.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CloudAiPlatformTenantresourceTenantResource {
@@ -196,120 +22,6 @@ pub struct CloudAiPlatformTenantresourceTenantResource {
     #[serde(default, rename = "tenantProjectResources")]
     pub tenant_project_resources:
         ::core::option::Option<::std::vec::Vec<CloudAiPlatformTenantresourceTenantProjectResource>>,
-}
-
-/// The identity of service accounts that have been explicitly created under tenant projects.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CloudAiPlatformTenantresourceTenantServiceAccountIdentity {
-    /// Output only. The email address of the generated service account.
-    #[serde(default, rename = "serviceAccountEmail")]
-    pub service_account_email: ::core::option::Option<String>,
-    /// Input/Output [Required]. The service that the service account belongs to. (e.g. cloudbuild.googleapis.com for GCB service accounts)
-    #[serde(default, rename = "serviceName")]
-    pub service_name: ::core::option::Option<String>,
-}
-
-/// Describes the billing configuration for a new tenant project.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleApiServiceconsumermanagementV1BillingConfig {
-    /// Name of the billing account. For example billingAccounts/012345-567890-ABCDEF.
-    #[serde(default, rename = "billingAccount")]
-    pub billing_account: ::core::option::Option<String>,
-}
-
-/// Translates to IAM Policy bindings (without auditing at this level)
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleApiServiceconsumermanagementV1PolicyBinding {
-    /// Uses the same format as in IAM policy. member must include both a prefix and ID. For example, user:{emailId}, serviceAccount:{emailId}, group:{emailId}.
-    #[serde(default)]
-    pub members: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Role. (https://cloud.google.com/iam/docs/understanding-roles) For example, roles/viewer, roles/editor, or roles/owner.
-    #[serde(default)]
-    pub role: ::core::option::Option<String>,
-}
-
-/// Represents the action responsible for access control list management operations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudContentwarehouseV1AccessControlAction {
-    /// Identifies the type of operation. // TODO: enum values: ["UNKNOWN", "ADD_POLICY_BINDING", "REMOVE_POLICY_BINDING", "REPLACE_POLICY_BINDING"]
-    #[serde(default, rename = "operationType")]
-    pub operation_type: ::core::option::Option<String>,
-    /// Represents the new policy from which bindings are added, removed or replaced based on the type of the operation. the policy is limited to a few 10s of KB.
-    #[serde(default)]
-    pub policy: ::core::option::Option<GoogleIamV1Policy>,
-}
-
-/// Represents the action triggered by Rule Engine when the rule is true.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudContentwarehouseV1Action {
-    /// Action triggering access control operations.
-    #[serde(default, rename = "accessControl")]
-    pub access_control: ::core::option::Option<GoogleCloudContentwarehouseV1AccessControlAction>,
-    /// ID of the action. Managed internally.
-    #[serde(default, rename = "actionId")]
-    pub action_id: ::core::option::Option<String>,
-    /// Action triggering create document link operation.
-    #[serde(default, rename = "addToFolder")]
-    pub add_to_folder: ::core::option::Option<GoogleCloudContentwarehouseV1AddToFolderAction>,
-    /// Action triggering data update operations.
-    #[serde(default, rename = "dataUpdate")]
-    pub data_update: ::core::option::Option<GoogleCloudContentwarehouseV1DataUpdateAction>,
-    /// Action triggering data validation operations.
-    #[serde(default, rename = "dataValidation")]
-    pub data_validation: ::core::option::Option<GoogleCloudContentwarehouseV1DataValidationAction>,
-    /// Action deleting the document.
-    #[serde(default, rename = "deleteDocumentAction")]
-    pub delete_document_action:
-        ::core::option::Option<GoogleCloudContentwarehouseV1DeleteDocumentAction>,
-    /// Action publish to Pub/Sub operation.
-    #[serde(default, rename = "publishToPubSub")]
-    pub publish_to_pub_sub: ::core::option::Option<GoogleCloudContentwarehouseV1PublishAction>,
-    /// Action removing a document from a folder.
-    #[serde(default, rename = "removeFromFolderAction")]
-    pub remove_from_folder_action:
-        ::core::option::Option<GoogleCloudContentwarehouseV1RemoveFromFolderAction>,
-}
-
-/// Represents the output of the Action Executor.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudContentwarehouseV1ActionExecutorOutput {
-    /// List of rule and corresponding actions result.
-    #[serde(default, rename = "ruleActionsPairs")]
-    pub rule_actions_pairs:
-        ::core::option::Option<::std::vec::Vec<GoogleCloudContentwarehouseV1RuleActionsPair>>,
-}
-
-/// Represents the result of executing an action.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudContentwarehouseV1ActionOutput {
-    /// ID of the action.
-    #[serde(default, rename = "actionId")]
-    pub action_id: ::core::option::Option<String>,
-    /// State of an action. // TODO: enum values: ["UNKNOWN", "ACTION_SUCCEEDED", "ACTION_FAILED", "ACTION_TIMED_OUT", "ACTION_PENDING"]
-    #[serde(default, rename = "actionState")]
-    pub action_state: ::core::option::Option<String>,
-    /// Action execution output message.
-    #[serde(default, rename = "outputMessage")]
-    pub output_message: ::core::option::Option<String>,
-}
-
-/// Represents the action responsible for adding document under a folder.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudContentwarehouseV1AddToFolderAction {
-    /// Names of the folder under which new document is to be added. Format: projects/{project_number}/locations/{location}/documents/{document_id}.
-    #[serde(default)]
-    pub folders: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// Request Option for processing Cloud AI Document in CW Document.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudContentwarehouseV1CloudAIDocumentOption {
-    /// If set, only selected entities will be converted to properties.
-    #[serde(default, rename = "customizedEntitiesPropertiesConversions")]
-    pub customized_entities_properties_conversions: ::core::option::Option<serde_json::Value>,
-    /// Whether to convert all the entities to properties.
-    #[serde(default, rename = "enableEntitiesConversions")]
-    pub enable_entities_conversions: ::core::option::Option<bool>,
 }
 
 /// Request message for DocumentLinkService.CreateDocumentLink.
@@ -362,32 +74,6 @@ pub struct GoogleCloudContentwarehouseV1CreateDocumentResponse {
     pub rule_engine_output: ::core::option::Option<GoogleCloudContentwarehouseV1RuleEngineOutput>,
 }
 
-/// To support the custom weighting across document schemas.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudContentwarehouseV1CustomWeightsMetadata {
-    /// List of schema and property name. Allows a maximum of 10 schemas to be specified for relevance boosting.
-    #[serde(default, rename = "weightedSchemaProperties")]
-    pub weighted_schema_properties: ::core::option::Option<
-        ::std::vec::Vec<GoogleCloudContentwarehouseV1WeightedSchemaProperty>,
-    >,
-}
-
-/// DateTime values.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudContentwarehouseV1DateTimeArray {
-    /// List of datetime values. Both OffsetDateTime and ZonedDateTime are supported.
-    #[serde(default)]
-    pub values: ::core::option::Option<::std::vec::Vec<GoogleTypeDateTime>>,
-}
-
-/// Represents the action responsible for deleting the document.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudContentwarehouseV1DeleteDocumentAction {
-    /// Boolean field to select between hard vs soft delete options. Set ''true'' for ''hard delete'' and ''false'' for ''soft delete''.
-    #[serde(default, rename = "enableHardDelete")]
-    pub enable_hard_delete: ::core::option::Option<bool>,
-}
-
 /// Request message for DocumentLinkService.DeleteDocumentLink.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudContentwarehouseV1DeleteDocumentLinkRequest {
@@ -402,249 +88,6 @@ pub struct GoogleCloudContentwarehouseV1DeleteDocumentRequest {
     /// The meta information collected about the end user, used to enforce access control for the service.
     #[serde(default, rename = "requestMetadata")]
     pub request_metadata: ::core::option::Option<GoogleCloudContentwarehouseV1RequestMetadata>,
-}
-
-/// Defines the structure for content warehouse document proto.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudContentwarehouseV1Document {
-    /// Document AI format to save the structured content, including OCR.
-    #[serde(default, rename = "cloudAiDocument")]
-    pub cloud_ai_document: ::core::option::Option<GoogleCloudDocumentaiV1Document>,
-    /// Indicates the category (image, audio, video etc.) of the original content. // TODO: enum values: ["CONTENT_CATEGORY_UNSPECIFIED", "CONTENT_CATEGORY_IMAGE", "CONTENT_CATEGORY_AUDIO", "CONTENT_CATEGORY_VIDEO"]
-    #[serde(default, rename = "contentCategory")]
-    pub content_category: ::core::option::Option<String>,
-    /// Output only. The time when the document is created.
-    #[serde(default, rename = "createTime")]
-    pub create_time: ::core::option::Option<String>,
-    /// The user who creates the document.
-    #[serde(default)]
-    pub creator: ::core::option::Option<String>,
-    /// Required. Display name of the document given by the user. This name will be displayed in the UI. Customer can populate this field with the name of the document. This differs from the ''title'' field as ''title'' is optional and stores the top heading in the document.
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-    /// Uri to display the document, for example, in the UI.
-    #[serde(default, rename = "displayUri")]
-    pub display_uri: ::core::option::Option<String>,
-    /// Output only. If linked to a Collection with RetentionPolicy, the date when the document becomes mutable.
-    #[serde(default, rename = "dispositionTime")]
-    pub disposition_time: ::core::option::Option<String>,
-    /// The Document schema name. Format: projects/{project_number}/locations/{location}/documentSchemas/{document_schema_id}.
-    #[serde(default, rename = "documentSchemaName")]
-    pub document_schema_name: ::core::option::Option<String>,
-    /// Raw document content.
-    #[serde(default, rename = "inlineRawDocument")]
-    pub inline_raw_document: ::core::option::Option<String>,
-    /// Output only. Indicates if the document has a legal hold on it.
-    #[serde(default, rename = "legalHold")]
-    pub legal_hold: ::core::option::Option<bool>,
-    /// The resource name of the document. Format: projects/{project_number}/locations/{location}/documents/{document_id}. The name is ignored when creating a document.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Other document format, such as PPTX, XLXS
-    #[serde(default, rename = "plainText")]
-    pub plain_text: ::core::option::Option<String>,
-    /// List of values that are user supplied metadata.
-    #[serde(default)]
-    pub properties: ::core::option::Option<::std::vec::Vec<GoogleCloudContentwarehouseV1Property>>,
-    /// This is used when DocAI was not used to load the document and parsing/ extracting is needed for the inline_raw_document. For example, if inline_raw_document is the byte representation of a PDF file, then this should be set to: RAW_DOCUMENT_FILE_TYPE_PDF. // TODO: enum values: ["RAW_DOCUMENT_FILE_TYPE_UNSPECIFIED", "RAW_DOCUMENT_FILE_TYPE_PDF", "RAW_DOCUMENT_FILE_TYPE_DOCX", "RAW_DOCUMENT_FILE_TYPE_XLSX", "RAW_DOCUMENT_FILE_TYPE_PPTX", "RAW_DOCUMENT_FILE_TYPE_TEXT", "RAW_DOCUMENT_FILE_TYPE_TIFF"]
-    #[serde(default, rename = "rawDocumentFileType")]
-    pub raw_document_file_type: ::core::option::Option<String>,
-    /// Raw document file in Cloud Storage path.
-    #[serde(default, rename = "rawDocumentPath")]
-    pub raw_document_path: ::core::option::Option<String>,
-    /// The reference ID set by customers. Must be unique per project and location.
-    #[serde(default, rename = "referenceId")]
-    pub reference_id: ::core::option::Option<String>,
-    /// If true, text extraction will not be performed.
-    #[serde(default, rename = "textExtractionDisabled")]
-    pub text_extraction_disabled: ::core::option::Option<bool>,
-    /// If true, text extraction will be performed.
-    #[serde(default, rename = "textExtractionEnabled")]
-    pub text_extraction_enabled: ::core::option::Option<bool>,
-    /// Title that describes the document. This can be the top heading or text that describes the document.
-    #[serde(default)]
-    pub title: ::core::option::Option<String>,
-    /// Output only. The time when the document is last updated.
-    #[serde(default, rename = "updateTime")]
-    pub update_time: ::core::option::Option<String>,
-    /// The user who lastly updates the document.
-    #[serde(default)]
-    pub updater: ::core::option::Option<String>,
-}
-
-/// A document-link between source and target document.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudContentwarehouseV1DocumentLink {
-    /// Output only. The time when the documentLink is created.
-    #[serde(default, rename = "createTime")]
-    pub create_time: ::core::option::Option<String>,
-    /// Description of this document-link.
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// Name of this document-link. It is required that the parent derived form the name to be consistent with the source document reference. Otherwise an exception will be thrown. Format: projects/{project_number}/locations/{location}/documents/{source_document_id}/documentLinks/{document_link_id}.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Document references of the source document.
-    #[serde(default, rename = "sourceDocumentReference")]
-    pub source_document_reference:
-        ::core::option::Option<GoogleCloudContentwarehouseV1DocumentReference>,
-    /// The state of the documentlink. If target node has been deleted, the link is marked as invalid. Removing a source node will result in removal of all associated links. // TODO: enum values: ["STATE_UNSPECIFIED", "ACTIVE", "SOFT_DELETED"]
-    #[serde(default)]
-    pub state: ::core::option::Option<String>,
-    /// Document references of the target document.
-    #[serde(default, rename = "targetDocumentReference")]
-    pub target_document_reference:
-        ::core::option::Option<GoogleCloudContentwarehouseV1DocumentReference>,
-    /// Output only. The time when the documentLink is last updated.
-    #[serde(default, rename = "updateTime")]
-    pub update_time: ::core::option::Option<String>,
-}
-
-/// GoogleCloudContentwarehouseV1DocumentQuery resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudContentwarehouseV1DocumentQuery {
-    /// This filter specifies a structured syntax to match against the [PropertyDefinition].is_filterable marked as true. The syntax for this expression is a subset of SQL syntax. Supported operators are: =, !=, &lt;, &lt;=, &gt;, and &gt;= where the left of the operator is a property name and the right of the operator is a number or a quoted string. You must escape backslash (\\) and quote (\") characters. Supported functions are LOWER([property_name]) to perform a case insensitive match and EMPTY([property_name]) to filter on the existence of a key. Boolean expressions (AND/OR/NOT) are supported up to 3 levels of nesting (for example, "((A AND B AND C) OR NOT D) AND E"), a maximum of 100 comparisons or functions are allowed in the expression. The expression must be &lt; 6000 bytes in length. Sample Query: (LOWER(driving_license)="class \"a\"" OR EMPTY(driving_license)) AND driving_years &gt; 10
-    #[serde(default, rename = "customPropertyFilter")]
-    pub custom_property_filter: ::core::option::Option<String>,
-    /// To support the custom weighting across document schemas, customers need to provide the properties to be used to boost the ranking in the search request. For a search query with CustomWeightsMetadata specified, only the RetrievalImportance for the properties in the CustomWeightsMetadata will be honored.
-    #[serde(default, rename = "customWeightsMetadata")]
-    pub custom_weights_metadata:
-        ::core::option::Option<GoogleCloudContentwarehouseV1CustomWeightsMetadata>,
-    /// The exact creator(s) of the documents to search against. If a value isn''t specified, documents within the search results are associated with any creator. If multiple values are specified, documents within the search results may be associated with any of the specified creators.
-    #[serde(default, rename = "documentCreatorFilter")]
-    pub document_creator_filter: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Search the documents in the list. Format: projects/{project_number}/locations/{location}/documents/{document_id}.
-    #[serde(default, rename = "documentNameFilter")]
-    pub document_name_filter: ::core::option::Option<::std::vec::Vec<String>>,
-    /// This filter specifies the exact document schema Document.document_schema_name of the documents to search against. If a value isn''t specified, documents within the search results are associated with any schema. If multiple values are specified, documents within the search results may be associated with any of the specified schemas. At most 20 document schema names are allowed.
-    #[serde(default, rename = "documentSchemaNames")]
-    pub document_schema_names: ::core::option::Option<::std::vec::Vec<String>>,
-    /// This filter specifies the types of files to return: ALL, FOLDER, or FILE. If FOLDER or FILE is specified, then only either folders or files will be returned, respectively. If ALL is specified, both folders and files will be returned. If no value is specified, ALL files will be returned.
-    #[serde(default, rename = "fileTypeFilter")]
-    pub file_type_filter: ::core::option::Option<GoogleCloudContentwarehouseV1FileTypeFilter>,
-    /// Search all the documents under this specified folder. Format: projects/{project_number}/locations/{location}/documents/{document_id}.
-    #[serde(default, rename = "folderNameFilter")]
-    pub folder_name_filter: ::core::option::Option<String>,
-    /// Experimental, do not use. If the query is a natural language question. False by default. If true, then the question-answering feature will be used instead of search, and result_count in SearchDocumentsRequest must be set. In addition, all other input fields related to search (pagination, histograms, etc.) will be ignored.
-    #[serde(default, rename = "isNlQuery")]
-    pub is_nl_query: ::core::option::Option<bool>,
-    /// This filter specifies a structured syntax to match against the PropertyDefinition.is_filterable marked as true. The relationship between the PropertyFilters is OR.
-    #[serde(default, rename = "propertyFilter")]
-    pub property_filter:
-        ::core::option::Option<::std::vec::Vec<GoogleCloudContentwarehouseV1PropertyFilter>>,
-    /// The query string that matches against the full text of the document and the searchable properties. The query partially supports [Google AIP style syntax](https://google.aip.dev/160). Specifically, the query supports literals, logical operators, negation operators, comparison operators, and functions. Literals: A bare literal value (examples: "42", "Hugo") is a value to be matched against. It searches over the full text of the document and the searchable properties. Logical operators: "AND", "and", "OR", and "or" are binary logical operators (example: "engineer OR developer"). Negation operators: "NOT" and "!" are negation operators (example: "NOT software"). Comparison operators: support the binary comparison operators =, !=, &lt;, &gt;, &lt;= and &gt;= for string, numeric, enum, boolean. Also support like operator ~~ for string. It provides semantic search functionality by parsing, stemming and doing synonyms expansion against the input query. To specify a property in the query, the left hand side expression in the comparison must be the property ID including the parent. The right hand side must be literals. For example: "\"projects/123/locations/us\".property_a &lt; 1" matches results whose "property_a" is less than 1 in project 123 and us location. The literals and comparison expression can be connected in a single query (example: "software engineer \"projects/123/locations/us\".salary &gt; 100"). Functions: supported functions are LOWER([property_name]) to perform a case insensitive match and EMPTY([property_name]) to filter on the existence of a key. Support nested expressions connected using parenthesis and logical operators. The default logical operators is AND if there is no operators between expressions. The query can be used with other filters e.g. time_filters and folder_name_filter. They are connected with AND operator under the hood. The maximum number of allowed characters is 255.
-    #[serde(default)]
-    pub query: ::core::option::Option<String>,
-    /// For custom synonyms. Customers provide the synonyms based on context. One customer can provide multiple set of synonyms based on different context. The search query will be expanded based on the custom synonyms of the query context set. By default, no custom synonyms wll be applied if no query context is provided. It is not supported for CMEK compliant deployment.
-    #[serde(default, rename = "queryContext")]
-    pub query_context: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Documents created/updated within a range specified by this filter are searched against.
-    #[serde(default, rename = "timeFilters")]
-    pub time_filters:
-        ::core::option::Option<::std::vec::Vec<GoogleCloudContentwarehouseV1TimeFilter>>,
-}
-
-/// References to the documents.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudContentwarehouseV1DocumentReference {
-    /// Output only. The time when the document is created.
-    #[serde(default, rename = "createTime")]
-    pub create_time: ::core::option::Option<String>,
-    /// Output only. The time when the document is deleted.
-    #[serde(default, rename = "deleteTime")]
-    pub delete_time: ::core::option::Option<String>,
-    /// display_name of the referenced document; this name does not need to be consistent to the display_name in the Document proto, depending on the ACL constraint.
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-    /// The document type of the document being referenced.
-    #[serde(default, rename = "documentIsFolder")]
-    pub document_is_folder: ::core::option::Option<bool>,
-    /// Document is a folder with legal hold.
-    #[serde(default, rename = "documentIsLegalHoldFolder")]
-    pub document_is_legal_hold_folder: ::core::option::Option<bool>,
-    /// Document is a folder with retention policy.
-    #[serde(default, rename = "documentIsRetentionFolder")]
-    pub document_is_retention_folder: ::core::option::Option<bool>,
-    /// Required. Name of the referenced document.
-    #[serde(default, rename = "documentName")]
-    pub document_name: ::core::option::Option<String>,
-    /// Stores the subset of the referenced document''s content. This is useful to allow user peek the information of the referenced document.
-    #[serde(default)]
-    pub snippet: ::core::option::Option<String>,
-    /// Output only. The time when the document is last updated.
-    #[serde(default, rename = "updateTime")]
-    pub update_time: ::core::option::Option<String>,
-}
-
-/// A document schema used to define document structure.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudContentwarehouseV1DocumentSchema {
-    /// Output only. The time when the document schema is created.
-    #[serde(default, rename = "createTime")]
-    pub create_time: ::core::option::Option<String>,
-    /// Schema description.
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// Required. Name of the schema given by the user. Must be unique per project.
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-    /// Document Type, true refers the document is a folder, otherwise it is a typical document.
-    #[serde(default, rename = "documentIsFolder")]
-    pub document_is_folder: ::core::option::Option<bool>,
-    /// The resource name of the document schema. Format: projects/{project_number}/locations/{location}/documentSchemas/{document_schema_id}. The name is ignored when creating a document schema.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Document details.
-    #[serde(default, rename = "propertyDefinitions")]
-    pub property_definitions:
-        ::core::option::Option<::std::vec::Vec<GoogleCloudContentwarehouseV1PropertyDefinition>>,
-    /// Output only. The time when the document schema is last updated.
-    #[serde(default, rename = "updateTime")]
-    pub update_time: ::core::option::Option<String>,
-}
-
-/// Enum values.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudContentwarehouseV1EnumArray {
-    /// List of enum values.
-    #[serde(default)]
-    pub values: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// Configurations for an enum/categorical property.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudContentwarehouseV1EnumTypeOptions {
-    /// Required. List of possible enum values.
-    #[serde(default, rename = "possibleValues")]
-    pub possible_values: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Make sure the Enum property value provided in the document is in the possile value list during document creation. The validation check runs by default.
-    #[serde(default, rename = "validationCheckDisabled")]
-    pub validation_check_disabled: ::core::option::Option<bool>,
-}
-
-/// Represents the string value of the enum field.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudContentwarehouseV1EnumValue {
-    /// String value of the enum field. This must match defined set of enums in document schema using EnumTypeOptions.
-    #[serde(default)]
-    pub value: ::core::option::Option<String>,
-}
-
-/// The configuration of exporting documents from the Document Warehouse to CDW pipeline.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudContentwarehouseV1ExportToCdwPipeline {
-    /// Optional. The CDW dataset resource name. This field is optional. If not set, the documents will be exported to Cloud Storage only. Format: projects/{project}/locations/{location}/processors/{processor}/dataset
-    #[serde(default, rename = "docAiDataset")]
-    pub doc_ai_dataset: ::core::option::Option<String>,
-    /// The list of all the resource names of the documents to be processed. Format: projects/{project_number}/locations/{location}/documents/{document_id}.
-    #[serde(default)]
-    pub documents: ::core::option::Option<::std::vec::Vec<String>>,
-    /// The Cloud Storage folder path used to store the exported documents before being sent to CDW. Format: gs:///.
-    #[serde(default, rename = "exportFolderPath")]
-    pub export_folder_path: ::core::option::Option<String>,
-    /// Ratio of training dataset split. When importing into Document AI Workbench, documents will be automatically split into training and test split category with the specified ratio. This field is required if doc_ai_dataset is set.
-    #[serde(default, rename = "trainingSplitRatio")]
-    pub training_split_ratio: ::core::option::Option<f32>,
 }
 
 /// Request message for DocumentService.FetchAcl
@@ -669,130 +112,12 @@ pub struct GoogleCloudContentwarehouseV1FetchAclResponse {
     pub policy: ::core::option::Option<GoogleIamV1Policy>,
 }
 
-/// Filter for the specific types of documents returned.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudContentwarehouseV1FileTypeFilter {
-    /// The type of files to return. // TODO: enum values: ["FILE_TYPE_UNSPECIFIED", "ALL", "FOLDER", "DOCUMENT", "ROOT_FOLDER"]
-    #[serde(default, rename = "fileType")]
-    pub file_type: ::core::option::Option<String>,
-}
-
-/// Float values.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudContentwarehouseV1FloatArray {
-    /// List of float values.
-    #[serde(default)]
-    pub values: ::core::option::Option<::std::vec::Vec<f32>>,
-}
-
-/// The configuration of the Cloud Storage Ingestion pipeline.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudContentwarehouseV1GcsIngestPipeline {
-    /// The input Cloud Storage folder. All files under this folder will be imported to Document Warehouse. Format: gs:///.
-    #[serde(default, rename = "inputPath")]
-    pub input_path: ::core::option::Option<String>,
-    /// Optional. The config for the Cloud Storage Ingestion pipeline. It provides additional customization options to run the pipeline and can be skipped if it is not applicable.
-    #[serde(default, rename = "pipelineConfig")]
-    pub pipeline_config: ::core::option::Option<GoogleCloudContentwarehouseV1IngestPipelineConfig>,
-    /// The Doc AI processor type name. Only used when the format of ingested files is Doc AI Document proto format.
-    #[serde(default, rename = "processorType")]
-    pub processor_type: ::core::option::Option<String>,
-    /// The Document Warehouse schema resource name. All documents processed by this pipeline will use this schema. Format: projects/{project_number}/locations/{location}/documentSchemas/{document_schema_id}.
-    #[serde(default, rename = "schemaName")]
-    pub schema_name: ::core::option::Option<String>,
-    /// The flag whether to skip ingested documents. If it is set to true, documents in Cloud Storage contains key "status" with value "status=ingested" in custom metadata will be skipped to ingest.
-    #[serde(default, rename = "skipIngestedDocuments")]
-    pub skip_ingested_documents: ::core::option::Option<bool>,
-}
-
-/// The configuration of the Cloud Storage Ingestion with DocAI Processors pipeline.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudContentwarehouseV1GcsIngestWithDocAiProcessorsPipeline {
-    /// The extract processors information. One matched extract processor will be used to process documents based on the classify processor result. If no classify processor is specified, the first extract processor will be used.
-    #[serde(default, rename = "extractProcessorInfos")]
-    pub extract_processor_infos:
-        ::core::option::Option<::std::vec::Vec<GoogleCloudContentwarehouseV1ProcessorInfo>>,
-    /// The input Cloud Storage folder. All files under this folder will be imported to Document Warehouse. Format: gs:///.
-    #[serde(default, rename = "inputPath")]
-    pub input_path: ::core::option::Option<String>,
-    /// Optional. The config for the Cloud Storage Ingestion with DocAI Processors pipeline. It provides additional customization options to run the pipeline and can be skipped if it is not applicable.
-    #[serde(default, rename = "pipelineConfig")]
-    pub pipeline_config: ::core::option::Option<GoogleCloudContentwarehouseV1IngestPipelineConfig>,
-    /// The Cloud Storage folder path used to store the raw results from processors. Format: gs:///.
-    #[serde(default, rename = "processorResultsFolderPath")]
-    pub processor_results_folder_path: ::core::option::Option<String>,
-    /// The flag whether to skip ingested documents. If it is set to true, documents in Cloud Storage contains key "status" with value "status=ingested" in custom metadata will be skipped to ingest.
-    #[serde(default, rename = "skipIngestedDocuments")]
-    pub skip_ingested_documents: ::core::option::Option<bool>,
-    /// The split and classify processor information. The split and classify result will be used to find a matched extract processor.
-    #[serde(default, rename = "splitClassifyProcessorInfo")]
-    pub split_classify_processor_info:
-        ::core::option::Option<GoogleCloudContentwarehouseV1ProcessorInfo>,
-}
-
 /// Request message for DocumentService.GetDocument.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudContentwarehouseV1GetDocumentRequest {
     /// The meta information collected about the end user, used to enforce access control for the service.
     #[serde(default, rename = "requestMetadata")]
     pub request_metadata: ::core::option::Option<GoogleCloudContentwarehouseV1RequestMetadata>,
-}
-
-/// The histogram request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudContentwarehouseV1HistogramQuery {
-    /// Optional. Filter the result of histogram query by the property names. It only works with histogram query count(''FilterableProperties''). It is an optional. It will perform histogram on all the property names for all the document schemas. Setting this field will have a better performance.
-    #[serde(default)]
-    pub filters:
-        ::core::option::Option<GoogleCloudContentwarehouseV1HistogramQueryPropertyNameFilter>,
-    /// An expression specifies a histogram request against matching documents for searches. See SearchDocumentsRequest.histogram_queries for details about syntax.
-    #[serde(default, rename = "histogramQuery")]
-    pub histogram_query: ::core::option::Option<String>,
-    /// Controls if the histogram query requires the return of a precise count. Enable this flag may adversely impact performance. Defaults to true.
-    #[serde(default, rename = "requirePreciseResultSize")]
-    pub require_precise_result_size: ::core::option::Option<bool>,
-}
-
-/// GoogleCloudContentwarehouseV1HistogramQueryPropertyNameFilter resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudContentwarehouseV1HistogramQueryPropertyNameFilter {
-    /// This filter specifies the exact document schema(s) Document.document_schema_name to run histogram query against. It is optional. It will perform histogram for property names for all the document schemas if it is not set. At most 10 document schema names are allowed. Format: projects/{project_number}/locations/{location}/documentSchemas/{document_schema_id}.
-    #[serde(default, rename = "documentSchemas")]
-    pub document_schemas: ::core::option::Option<::std::vec::Vec<String>>,
-    /// It is optional. It will perform histogram for all the property names if it is not set. The properties need to be defined with the is_filterable flag set to true and the name of the property should be in the format: "schemaId.propertyName". The property needs to be defined in the schema. Example: the schema id is abc. Then the name of property for property MORTGAGE_TYPE will be "abc.MORTGAGE_TYPE".
-    #[serde(default, rename = "propertyNames")]
-    pub property_names: ::core::option::Option<::std::vec::Vec<String>>,
-    /// By default, the y_axis is HISTOGRAM_YAXIS_DOCUMENT if this field is not set. // TODO: enum values: ["HISTOGRAM_YAXIS_DOCUMENT", "HISTOGRAM_YAXIS_PROPERTY"]
-    #[serde(default, rename = "yAxis")]
-    pub y_axis: ::core::option::Option<String>,
-}
-
-/// Histogram result that matches HistogramQuery specified in searches.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudContentwarehouseV1HistogramQueryResult {
-    /// A map from the values of the facet associated with distinct values to the number of matching entries with corresponding value. The key format is: * (for string histogram) string values stored in the field.
-    #[serde(default)]
-    pub histogram: ::core::option::Option<serde_json::Value>,
-    /// Requested histogram expression.
-    #[serde(default, rename = "histogramQuery")]
-    pub histogram_query: ::core::option::Option<String>,
-}
-
-/// The ingestion pipeline config.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudContentwarehouseV1IngestPipelineConfig {
-    /// The Cloud Function resource name. The Cloud Function needs to live inside consumer project and is accessible to Document AI Warehouse P4SA. Only Cloud Functions V2 is supported. Cloud function execution should complete within 5 minutes or this file ingestion may fail due to timeout. Format: https://{region}-{project_id}.cloudfunctions.net/{cloud_function} The following keys are available the request json payload. * display_name * properties * plain_text * reference_id * document_schema_name * raw_document_path * raw_document_file_type The following keys from the cloud function json response payload will be ingested to the Document AI Warehouse as part of Document proto content and/or related information. The original values will be overridden if any key is present in the response. * display_name * properties * plain_text * document_acl_policy * folder
-    #[serde(default, rename = "cloudFunction")]
-    pub cloud_function: ::core::option::Option<String>,
-    /// The document level acl policy config. This refers to an Identity and Access (IAM) policy, which specifies access controls for all documents ingested by the pipeline. The role and members under the policy needs to be specified. The following roles are supported for document level acl control: * roles/contentwarehouse.documentAdmin * roles/contentwarehouse.documentEditor * roles/contentwarehouse.documentViewer The following members are supported for document level acl control: * user:user-email@example.com * group:group-email@example.com Note that for documents searched with LLM, only single level user or group acl check is supported.
-    #[serde(default, rename = "documentAclPolicy")]
-    pub document_acl_policy: ::core::option::Option<GoogleIamV1Policy>,
-    /// The document text extraction enabled flag. If the flag is set to true, DWH will perform text extraction on the raw document.
-    #[serde(default, rename = "enableDocumentTextExtraction")]
-    pub enable_document_text_extraction: ::core::option::Option<bool>,
-    /// Optional. The name of the folder to which all ingested documents will be linked during ingestion process. Format is projects/{project}/locations/{location}/documents/{folder_id}
-    #[serde(default)]
-    pub folder: ::core::option::Option<String>,
 }
 
 /// Request message for projectService.InitializeProject
@@ -824,25 +149,6 @@ pub struct GoogleCloudContentwarehouseV1InitializeProjectResponse {
     /// The state of the project initialization process. // TODO: enum values: ["STATE_UNSPECIFIED", "SUCCEEDED", "FAILED", "CANCELLED", "RUNNING"]
     #[serde(default)]
     pub state: ::core::option::Option<String>,
-}
-
-/// Integer values.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudContentwarehouseV1IntegerArray {
-    /// List of integer values.
-    #[serde(default)]
-    pub values: ::core::option::Option<::std::vec::Vec<i32>>,
-}
-
-/// A triggered rule that failed the validation check(s) after parsing.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudContentwarehouseV1InvalidRule {
-    /// Validation error on a parsed expression.
-    #[serde(default)]
-    pub error: ::core::option::Option<String>,
-    /// Triggered rule.
-    #[serde(default)]
-    pub rule: ::core::option::Option<GoogleCloudContentwarehouseV1Rule>,
 }
 
 /// Response message for DocumentSchemaService.ListDocumentSchemas.
@@ -937,48 +243,6 @@ pub struct GoogleCloudContentwarehouseV1LockDocumentRequest {
     pub locking_user: ::core::option::Option<GoogleCloudContentwarehouseV1UserInfo>,
 }
 
-/// Options for merging updated fields.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudContentwarehouseV1MergeFieldsOptions {
-    /// When merging message fields, the default behavior is to merge the content of two message fields together. If you instead want to use the field from the source message to replace the corresponding field in the destination message, set this flag to true. When this flag is set, specified submessage fields that are missing in source will be cleared in destination.
-    #[serde(default, rename = "replaceMessageFields")]
-    pub replace_message_fields: ::core::option::Option<bool>,
-    /// When merging repeated fields, the default behavior is to append entries from the source repeated field to the destination repeated field. If you instead want to keep only the entries from the source repeated field, set this flag to true. If you want to replace a repeated field within a message field on the destination message, you must set both replace_repeated_fields and replace_message_fields to true, otherwise the repeated fields will be appended.
-    #[serde(default, rename = "replaceRepeatedFields")]
-    pub replace_repeated_fields: ::core::option::Option<bool>,
-}
-
-/// The configuration of processing documents in Document Warehouse with DocAi processors pipeline.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudContentwarehouseV1ProcessWithDocAiPipeline {
-    /// The list of all the resource names of the documents to be processed. Format: projects/{project_number}/locations/{location}/documents/{document_id}.
-    #[serde(default)]
-    pub documents: ::core::option::Option<::std::vec::Vec<String>>,
-    /// The Cloud Storage folder path used to store the exported documents before being sent to CDW. Format: gs:///.
-    #[serde(default, rename = "exportFolderPath")]
-    pub export_folder_path: ::core::option::Option<String>,
-    /// The CDW processor information.
-    #[serde(default, rename = "processorInfo")]
-    pub processor_info: ::core::option::Option<GoogleCloudContentwarehouseV1ProcessorInfo>,
-    /// The Cloud Storage folder path used to store the raw results from processors. Format: gs:///.
-    #[serde(default, rename = "processorResultsFolderPath")]
-    pub processor_results_folder_path: ::core::option::Option<String>,
-}
-
-/// The DocAI processor information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudContentwarehouseV1ProcessorInfo {
-    /// The processor will process the documents with this document type.
-    #[serde(default, rename = "documentType")]
-    pub document_type: ::core::option::Option<String>,
-    /// The processor resource name. Format is projects/{project}/locations/{location}/processors/{processor}, or projects/{project}/locations/{location}/processors/{processor}/processorVersions/{processorVersion}
-    #[serde(default, rename = "processorName")]
-    pub processor_name: ::core::option::Option<String>,
-    /// The Document schema resource name. All documents processed by this processor will use this schema. Format: projects/{project_number}/locations/{location}/documentSchemas/{document_schema_id}.
-    #[serde(default, rename = "schemaName")]
-    pub schema_name: ::core::option::Option<String>,
-}
-
 /// Status of a project, including the project state, dbType, aclMode and etc.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudContentwarehouseV1ProjectStatus {
@@ -1000,6 +264,2323 @@ pub struct GoogleCloudContentwarehouseV1ProjectStatus {
     /// State of the project. // TODO: enum values: ["PROJECT_STATE_UNSPECIFIED", "PROJECT_STATE_PENDING", "PROJECT_STATE_COMPLETED", "PROJECT_STATE_FAILED", "PROJECT_STATE_DELETING", "PROJECT_STATE_DELETING_FAILED", "PROJECT_STATE_DELETED", "PROJECT_STATE_NOT_FOUND"]
     #[serde(default)]
     pub state: ::core::option::Option<String>,
+}
+
+/// Metadata message of RunPipeline method.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudContentwarehouseV1RunPipelineMetadata {
+    /// The pipeline metadata for Export-to-CDW pipeline.
+    #[serde(default, rename = "exportToCdwPipelineMetadata")]
+    pub export_to_cdw_pipeline_metadata: ::core::option::Option<
+        GoogleCloudContentwarehouseV1RunPipelineMetadataExportToCdwPipelineMetadata,
+    >,
+    /// Number of files that have failed at some point in the pipeline.
+    #[serde(default, rename = "failedFileCount")]
+    pub failed_file_count: ::core::option::Option<i32>,
+    /// The pipeline metadata for GcsIngest pipeline.
+    #[serde(default, rename = "gcsIngestPipelineMetadata")]
+    pub gcs_ingest_pipeline_metadata: ::core::option::Option<
+        GoogleCloudContentwarehouseV1RunPipelineMetadataGcsIngestPipelineMetadata,
+    >,
+    /// The list of response details of each document.
+    #[serde(default, rename = "individualDocumentStatuses")]
+    pub individual_document_statuses: ::core::option::Option<
+        ::std::vec::Vec<GoogleCloudContentwarehouseV1RunPipelineMetadataIndividualDocumentStatus>,
+    >,
+    /// The pipeline metadata for Process-with-DocAi pipeline.
+    #[serde(default, rename = "processWithDocAiPipelineMetadata")]
+    pub process_with_doc_ai_pipeline_metadata: ::core::option::Option<
+        GoogleCloudContentwarehouseV1RunPipelineMetadataProcessWithDocAiPipelineMetadata,
+    >,
+    /// Number of files that were processed by the pipeline.
+    #[serde(default, rename = "totalFileCount")]
+    pub total_file_count: ::core::option::Option<i32>,
+    /// User unique identification and groups information.
+    #[serde(default, rename = "userInfo")]
+    pub user_info: ::core::option::Option<GoogleCloudContentwarehouseV1UserInfo>,
+}
+
+/// Request message for DocumentService.RunPipeline.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudContentwarehouseV1RunPipelineRequest {
+    /// Export docuemnts from Document Warehouse to CDW for training purpose.
+    #[serde(default, rename = "exportCdwPipeline")]
+    pub export_cdw_pipeline:
+        ::core::option::Option<GoogleCloudContentwarehouseV1ExportToCdwPipeline>,
+    /// Cloud Storage ingestion pipeline.
+    #[serde(default, rename = "gcsIngestPipeline")]
+    pub gcs_ingest_pipeline: ::core::option::Option<GoogleCloudContentwarehouseV1GcsIngestPipeline>,
+    /// Use DocAI processors to process documents in Cloud Storage and ingest them to Document Warehouse.
+    #[serde(default, rename = "gcsIngestWithDocAiProcessorsPipeline")]
+    pub gcs_ingest_with_doc_ai_processors_pipeline:
+        ::core::option::Option<GoogleCloudContentwarehouseV1GcsIngestWithDocAiProcessorsPipeline>,
+    /// Use a DocAI processor to process documents in Document Warehouse, and re-ingest the updated results into Document Warehouse.
+    #[serde(default, rename = "processWithDocAiPipeline")]
+    pub process_with_doc_ai_pipeline:
+        ::core::option::Option<GoogleCloudContentwarehouseV1ProcessWithDocAiPipeline>,
+    /// The meta information collected about the end user, used to enforce access control for the service.
+    #[serde(default, rename = "requestMetadata")]
+    pub request_metadata: ::core::option::Option<GoogleCloudContentwarehouseV1RequestMetadata>,
+}
+
+/// Request message for DocumentService.SearchDocuments.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudContentwarehouseV1SearchDocumentsRequest {
+    /// Query used to search against documents (keyword, filters, etc.).
+    #[serde(default, rename = "documentQuery")]
+    pub document_query: ::core::option::Option<GoogleCloudContentwarehouseV1DocumentQuery>,
+    /// An expression specifying a histogram request against matching documents. Expression syntax is an aggregation function call with histogram facets and other options. The following aggregation functions are supported: * count(string_histogram_facet): Count the number of matching entities for each distinct attribute value. Data types: * Histogram facet (aka filterable properties): Facet names with format &lt;schema id&gt;.&lt;facet&gt;. Facets will have the format of: a-zA-Z. If the facet is a child facet, then the parent hierarchy needs to be specified separated by dots in the prefix after the schema id. Thus, the format for a multi- level facet is: &lt;schema id&gt;.&lt;parent facet name&gt;. &lt;child facet name&gt;. Example: schema123.root_parent_facet.middle_facet.child_facet * DocumentSchemaId: (with no schema id prefix) to get histograms for each document type (returns the schema id path, e.g. projects/12345/locations/us-west/documentSchemas/abc123). Example expression: * Document type counts: count(''DocumentSchemaId'') * For schema id, abc123, get the counts for MORTGAGE_TYPE: count(''abc123.MORTGAGE_TYPE'')
+    #[serde(default, rename = "histogramQueries")]
+    pub histogram_queries:
+        ::core::option::Option<::std::vec::Vec<GoogleCloudContentwarehouseV1HistogramQuery>>,
+    /// An integer that specifies the current offset (that is, starting result location, amongst the documents deemed by the API as relevant) in search results. This field is only considered if page_token is unset. The maximum allowed value is 5000. Otherwise an error is thrown. For example, 0 means to return results starting from the first matching document, and 10 means to return from the 11th document. This can be used for pagination, (for example, pageSize = 10 and offset = 10 means to return from the second page).
+    #[serde(default)]
+    pub offset: ::core::option::Option<i32>,
+    /// The criteria determining how search results are sorted. For non-empty query, default is "relevance desc". For empty query, default is "upload_date desc". Supported options are: * "relevance desc": By relevance descending, as determined by the API algorithms. * "upload_date desc": By upload date descending. * "upload_date": By upload date ascending. * "update_date desc": By last updated date descending. * "update_date": By last updated date ascending. * "retrieval_importance desc": By retrieval importance of properties descending. This feature is still under development, please do not use unless otherwise instructed to do so.
+    #[serde(default, rename = "orderBy")]
+    pub order_by: ::core::option::Option<String>,
+    /// A limit on the number of documents returned in the search results. Increasing this value above the default value of 10 can increase search response time. The value can be between 1 and 100.
+    #[serde(default, rename = "pageSize")]
+    pub page_size: ::core::option::Option<i32>,
+    /// The token specifying the current offset within search results. See SearchDocumentsResponse.next_page_token for an explanation of how to obtain the next set of query results.
+    #[serde(default, rename = "pageToken")]
+    pub page_token: ::core::option::Option<String>,
+    /// Experimental, do not use. The limit on the number of documents returned for the question-answering feature. To enable the question-answering feature, set [DocumentQuery].is_nl_query to true.
+    #[serde(default, rename = "qaSizeLimit")]
+    pub qa_size_limit: ::core::option::Option<i32>,
+    /// The meta information collected about the end user, used to enforce access control and improve the search quality of the service.
+    #[serde(default, rename = "requestMetadata")]
+    pub request_metadata: ::core::option::Option<GoogleCloudContentwarehouseV1RequestMetadata>,
+    /// Controls if the search document request requires the return of a total size of matched documents. See SearchDocumentsResponse.total_size. Enabling this flag may adversely impact performance. Hint: If this is used with pagination, set this flag on the initial query but set this to false on subsequent page calls (keep the total count locally). Defaults to false.
+    #[serde(default, rename = "requireTotalSize")]
+    pub require_total_size: ::core::option::Option<bool>,
+    /// Controls if the search document request requires the return of a total size of matched documents. See SearchDocumentsResponse.total_size. // TODO: enum values: ["TOTAL_RESULT_SIZE_UNSPECIFIED", "ESTIMATED_SIZE", "ACTUAL_SIZE"]
+    #[serde(default, rename = "totalResultSize")]
+    pub total_result_size: ::core::option::Option<String>,
+}
+
+/// Response message for DocumentService.SearchDocuments.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudContentwarehouseV1SearchDocumentsResponse {
+    /// The histogram results that match with the specified SearchDocumentsRequest.histogram_queries.
+    #[serde(default, rename = "histogramQueryResults")]
+    pub histogram_query_results:
+        ::core::option::Option<::std::vec::Vec<GoogleCloudContentwarehouseV1HistogramQueryResult>>,
+    /// The document entities that match the specified SearchDocumentsRequest.
+    #[serde(default, rename = "matchingDocuments")]
+    pub matching_documents: ::core::option::Option<
+        ::std::vec::Vec<GoogleCloudContentwarehouseV1SearchDocumentsResponseMatchingDocument>,
+    >,
+    /// Additional information for the API invocation, such as the request tracking id.
+    #[serde(default)]
+    pub metadata: ::core::option::Option<GoogleCloudContentwarehouseV1ResponseMetadata>,
+    /// The token that specifies the starting position of the next page of results. This field is empty if there are no more results.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+    /// Experimental. Question answer from the query against the document.
+    #[serde(default, rename = "questionAnswer")]
+    pub question_answer: ::core::option::Option<String>,
+    /// The total number of matched documents which is available only if the client set SearchDocumentsRequest.require_total_size to true or set SearchDocumentsRequest.total_result_size to ESTIMATED_SIZE or ACTUAL_SIZE. Otherwise, the value will be -1. Typically a UI would handle this condition by displaying "of many", for example: "Displaying 10 of many".
+    #[serde(default, rename = "totalSize")]
+    pub total_size: ::core::option::Option<i32>,
+}
+
+/// Request message for DocumentService.SetAcl.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudContentwarehouseV1SetAclRequest {
+    /// Required. REQUIRED: The complete policy to be applied to the resource. The size of the policy is limited to a few 10s of KB. This refers to an Identity and Access (IAM) policy, which specifies access controls for the Document. You can set ACL with condition for projects only. Supported operators are: =, !=, &lt;, &lt;=, &gt;, and &gt;= where the left of the operator is DocumentSchemaId or property name and the right of the operator is a number or a quoted string. You must escape backslash (\\) and quote (\") characters. Boolean expressions (AND/OR) are supported up to 3 levels of nesting (for example, "((A AND B AND C) OR D) AND E"), a maximum of 10 comparisons are allowed in the expression. The expression must be &lt; 6000 bytes in length. Sample condition: "DocumentSchemaId = \"some schema id\" OR SchemaId.floatPropertyName &gt;= 10"
+    #[serde(default)]
+    pub policy: ::core::option::Option<GoogleIamV1Policy>,
+    /// For Set Project ACL only. Authorization check for end user will be ignored when project_owner=true.
+    #[serde(default, rename = "projectOwner")]
+    pub project_owner: ::core::option::Option<bool>,
+    /// The meta information collected about the end user, used to enforce access control for the service.
+    #[serde(default, rename = "requestMetadata")]
+    pub request_metadata: ::core::option::Option<GoogleCloudContentwarehouseV1RequestMetadata>,
+}
+
+/// Response message for DocumentService.SetAcl.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudContentwarehouseV1SetAclResponse {
+    /// Additional information for the API invocation, such as the request tracking id.
+    #[serde(default)]
+    pub metadata: ::core::option::Option<GoogleCloudContentwarehouseV1ResponseMetadata>,
+    /// The policy will be attached to a resource (e.g. projecct, document).
+    #[serde(default)]
+    pub policy: ::core::option::Option<GoogleIamV1Policy>,
+}
+
+/// Request message for DocumentService.UpdateDocument.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudContentwarehouseV1UpdateDocumentRequest {
+    /// Request Option for processing Cloud AI Document in Document Warehouse. This field offers limited support for mapping entities from Cloud AI Document to Warehouse Document. Please consult with product team before using this field and other available options.
+    #[serde(default, rename = "cloudAiDocumentOption")]
+    pub cloud_ai_document_option:
+        ::core::option::Option<GoogleCloudContentwarehouseV1CloudAIDocumentOption>,
+    /// Required. The document to update.
+    #[serde(default)]
+    pub document: ::core::option::Option<GoogleCloudContentwarehouseV1Document>,
+    /// The meta information collected about the end user, used to enforce access control for the service.
+    #[serde(default, rename = "requestMetadata")]
+    pub request_metadata: ::core::option::Option<GoogleCloudContentwarehouseV1RequestMetadata>,
+    /// Options for the update operation.
+    #[serde(default, rename = "updateOptions")]
+    pub update_options: ::core::option::Option<GoogleCloudContentwarehouseV1UpdateOptions>,
+}
+
+/// Response message for DocumentService.UpdateDocument.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudContentwarehouseV1UpdateDocumentResponse {
+    /// Updated document after executing update request.
+    #[serde(default)]
+    pub document: ::core::option::Option<GoogleCloudContentwarehouseV1Document>,
+    /// Additional information for the API invocation, such as the request tracking id.
+    #[serde(default)]
+    pub metadata: ::core::option::Option<GoogleCloudContentwarehouseV1ResponseMetadata>,
+    /// Output from Rule Engine recording the rule evaluator and action executor''s output. Refer format in: google/cloud/contentwarehouse/v1/rule_engine.proto
+    #[serde(default, rename = "ruleEngineOutput")]
+    pub rule_engine_output: ::core::option::Option<GoogleCloudContentwarehouseV1RuleEngineOutput>,
+}
+
+/// Request message for DocumentSchemaService.UpdateDocumentSchema.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudContentwarehouseV1UpdateDocumentSchemaRequest {
+    /// Required. The document schema to update with.
+    #[serde(default, rename = "documentSchema")]
+    pub document_schema: ::core::option::Option<GoogleCloudContentwarehouseV1DocumentSchema>,
+}
+
+/// Request message for RuleSetService.UpdateRuleSet.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudContentwarehouseV1UpdateRuleSetRequest {
+    /// Required. The rule set to update.
+    #[serde(default, rename = "ruleSet")]
+    pub rule_set: ::core::option::Option<GoogleCloudContentwarehouseV1RuleSet>,
+}
+
+/// Value represents a dynamically typed value which can be either be a float, a integer, a string, or a datetime value. A producer of value is expected to set one of these variants. Absence of any variant indicates an error.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudContentwarehouseV1Value {
+    /// Represents a boolean value.
+    #[serde(default, rename = "booleanValue")]
+    pub boolean_value: ::core::option::Option<bool>,
+    /// Represents a datetime value.
+    #[serde(default, rename = "datetimeValue")]
+    pub datetime_value: ::core::option::Option<GoogleTypeDateTime>,
+    /// Represents an enum value.
+    #[serde(default, rename = "enumValue")]
+    pub enum_value: ::core::option::Option<GoogleCloudContentwarehouseV1EnumValue>,
+    /// Represents a float value.
+    #[serde(default, rename = "floatValue")]
+    pub float_value: ::core::option::Option<f32>,
+    /// Represents a integer value.
+    #[serde(default, rename = "intValue")]
+    pub int_value: ::core::option::Option<i32>,
+    /// Represents a string value.
+    #[serde(default, rename = "stringValue")]
+    pub string_value: ::core::option::Option<String>,
+    /// Represents a timestamp value.
+    #[serde(default, rename = "timestampValue")]
+    pub timestamp_value: ::core::option::Option<GoogleCloudContentwarehouseV1TimestampValue>,
+}
+
+/// Response message for projectService.InitializeProject
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudContentwarehouseV1beta1InitializeProjectResponse {
+    /// The message of the project initialization process.
+    #[serde(default)]
+    pub message: ::core::option::Option<String>,
+    /// The state of the project initialization process. // TODO: enum values: ["STATE_UNSPECIFIED", "SUCCEEDED", "FAILED", "CANCELLED", "RUNNING"]
+    #[serde(default)]
+    pub state: ::core::option::Option<String>,
+}
+
+/// The identity to configure a service account.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CloudAiPlatformTenantresourceServiceAccountIdentity {
+    /// Output only. The service account email that has been created.
+    #[serde(default, rename = "serviceAccountEmail")]
+    pub service_account_email: ::core::option::Option<String>,
+    /// Input/Output [Optional]. The tag that configures the service account, as defined in google3/configs/production/cdpush/acl-zanzibar-cloud-prod/activation_grants/activation_grants.gcl. Note: The default P4 service account has the empty tag.
+    #[serde(default)]
+    pub tag: ::core::option::Option<String>,
+}
+
+/// The tenant project and tenant resources. Next ID: 10
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CloudAiPlatformTenantresourceTenantProjectResource {
+    /// The CloudSQL instances that are provisioned under the tenant project.
+    #[serde(default, rename = "cloudSqlInstances")]
+    pub cloud_sql_instances: ::core::option::Option<
+        ::std::vec::Vec<CloudAiPlatformTenantresourceCloudSqlInstanceConfig>,
+    >,
+    /// The GCS buckets that are provisioned under the tenant project.
+    #[serde(default, rename = "gcsBuckets")]
+    pub gcs_buckets:
+        ::core::option::Option<::std::vec::Vec<CloudAiPlatformTenantresourceGcsBucketConfig>>,
+    /// The dynamic IAM bindings that are granted under the tenant project. Note: this should only add new bindings to the project if they don''t exist and the existing bindings won''t be affected.
+    #[serde(default, rename = "iamPolicyBindings")]
+    pub iam_policy_bindings:
+        ::core::option::Option<::std::vec::Vec<CloudAiPlatformTenantresourceIamPolicyBinding>>,
+    /// The Infra Spanner databases that are provisioned under the tenant project. Note: this is an experimental feature.
+    #[serde(default, rename = "infraSpannerConfigs")]
+    pub infra_spanner_configs:
+        ::core::option::Option<::std::vec::Vec<CloudAiPlatformTenantresourceInfraSpannerConfig>>,
+    /// Input/Output [Required]. The tag that uniquely identifies a tenant project within a tenancy unit. Note: for the same tenant project tag, all tenant manager operations should be idempotent.
+    #[serde(default)]
+    pub tag: ::core::option::Option<String>,
+    /// The configurations of a tenant project.
+    #[serde(default, rename = "tenantProjectConfig")]
+    pub tenant_project_config:
+        ::core::option::Option<CloudAiPlatformTenantresourceTenantProjectConfig>,
+    /// Output only. The tenant project ID that has been created.
+    #[serde(default, rename = "tenantProjectId")]
+    pub tenant_project_id: ::core::option::Option<String>,
+    /// Output only. The tenant project number that has been created.
+    #[serde(default, rename = "tenantProjectNumber")]
+    pub tenant_project_number: ::core::option::Option<String>,
+    /// The service account identities (or enabled API service''s P4SA) that are expclicitly created under the tenant project (before JIT provisioning during enabled API services).
+    #[serde(default, rename = "tenantServiceAccounts")]
+    pub tenant_service_accounts: ::core::option::Option<
+        ::std::vec::Vec<CloudAiPlatformTenantresourceTenantServiceAccountIdentity>,
+    >,
+}
+
+/// This resource represents a long-running operation that is the result of a network API call.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleLongrunningOperation {
+    /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
+    #[serde(default)]
+    pub done: ::core::option::Option<bool>,
+    /// The error result of the operation in case of failure or cancellation.
+    #[serde(default)]
+    pub error: ::core::option::Option<GoogleRpcStatus>,
+    /// Service-specific metadata associated with the operation. It typically contains progress information and common metadata such as create time. Some services might not provide such metadata. Any method that returns a long-running operation should document the metadata type, if any.
+    #[serde(default)]
+    pub metadata: ::core::option::Option<serde_json::Value>,
+    /// The server-assigned name, which is only unique within the same service that originally returns it. If you use the default HTTP mapping, the name should be a resource name ending with operations/{unique_id}.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// The normal, successful response of the operation. If the original method returns no data on success, such as Delete, the response is google.protobuf.Empty. If the original method is standard Get/Create/Update, the response should be the resource. For other methods, the response should have the type XxxResponse, where Xxx is the original method name. For example, if the original method name is TakeSnapshot(), the inferred response type is TakeSnapshotResponse.
+    #[serde(default)]
+    pub response: ::core::option::Option<serde_json::Value>,
+}
+
+/// A document-link between source and target document.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudContentwarehouseV1DocumentLink {
+    /// Output only. The time when the documentLink is created.
+    #[serde(default, rename = "createTime")]
+    pub create_time: ::core::option::Option<String>,
+    /// Description of this document-link.
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+    /// Name of this document-link. It is required that the parent derived form the name to be consistent with the source document reference. Otherwise an exception will be thrown. Format: projects/{project_number}/locations/{location}/documents/{source_document_id}/documentLinks/{document_link_id}.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Document references of the source document.
+    #[serde(default, rename = "sourceDocumentReference")]
+    pub source_document_reference:
+        ::core::option::Option<GoogleCloudContentwarehouseV1DocumentReference>,
+    /// The state of the documentlink. If target node has been deleted, the link is marked as invalid. Removing a source node will result in removal of all associated links. // TODO: enum values: ["STATE_UNSPECIFIED", "ACTIVE", "SOFT_DELETED"]
+    #[serde(default)]
+    pub state: ::core::option::Option<String>,
+    /// Document references of the target document.
+    #[serde(default, rename = "targetDocumentReference")]
+    pub target_document_reference:
+        ::core::option::Option<GoogleCloudContentwarehouseV1DocumentReference>,
+    /// Output only. The time when the documentLink is last updated.
+    #[serde(default, rename = "updateTime")]
+    pub update_time: ::core::option::Option<String>,
+}
+
+/// Represents a list of synonyms for a given context. For example a context "sales" could contain: Synonym 1: sale, invoice, bill, order Synonym 2: money, credit, finance, payment Synonym 3: shipping, freight, transport Each SynonymSets should be disjoint
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudContentwarehouseV1SynonymSet {
+    /// This is a freeform field. Example contexts can be "sales," "engineering," "real estate," "accounting," etc. The context can be supplied during search requests.
+    #[serde(default)]
+    pub context: ::core::option::Option<String>,
+    /// The resource name of the SynonymSet This is mandatory for google.api.resource. Format: projects/{project_number}/locations/{location}/synonymSets/{context}.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// List of Synonyms for the context.
+    #[serde(default)]
+    pub synonyms:
+        ::core::option::Option<::std::vec::Vec<GoogleCloudContentwarehouseV1SynonymSetSynonym>>,
+}
+
+/// The metadata message for Export-to-CDW pipeline.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudContentwarehouseV1RunPipelineMetadataExportToCdwPipelineMetadata {
+    /// The output CDW dataset resource name.
+    #[serde(default, rename = "docAiDataset")]
+    pub doc_ai_dataset: ::core::option::Option<String>,
+    /// The input list of all the resource names of the documents to be exported.
+    #[serde(default)]
+    pub documents: ::core::option::Option<::std::vec::Vec<String>>,
+    /// The output Cloud Storage folder in this pipeline.
+    #[serde(default, rename = "outputPath")]
+    pub output_path: ::core::option::Option<String>,
+}
+
+/// The metadata message for GcsIngest pipeline.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudContentwarehouseV1RunPipelineMetadataGcsIngestPipelineMetadata {
+    /// The input Cloud Storage folder in this pipeline. Format: gs:///.
+    #[serde(default, rename = "inputPath")]
+    pub input_path: ::core::option::Option<String>,
+}
+
+/// The status of processing a document.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudContentwarehouseV1RunPipelineMetadataIndividualDocumentStatus {
+    /// Document identifier of an existing document.
+    #[serde(default, rename = "documentId")]
+    pub document_id: ::core::option::Option<String>,
+    /// The status processing the document.
+    #[serde(default)]
+    pub status: ::core::option::Option<GoogleRpcStatus>,
+}
+
+/// The metadata message for Process-with-DocAi pipeline.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudContentwarehouseV1RunPipelineMetadataProcessWithDocAiPipelineMetadata {
+    /// The input list of all the resource names of the documents to be processed.
+    #[serde(default)]
+    pub documents: ::core::option::Option<::std::vec::Vec<String>>,
+    /// The DocAI processor to process the documents with.
+    #[serde(default, rename = "processorInfo")]
+    pub processor_info: ::core::option::Option<GoogleCloudContentwarehouseV1ProcessorInfo>,
+}
+
+/// The configuration of exporting documents from the Document Warehouse to CDW pipeline.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudContentwarehouseV1ExportToCdwPipeline {
+    /// Optional. The CDW dataset resource name. This field is optional. If not set, the documents will be exported to Cloud Storage only. Format: projects/{project}/locations/{location}/processors/{processor}/dataset
+    #[serde(default, rename = "docAiDataset")]
+    pub doc_ai_dataset: ::core::option::Option<String>,
+    /// The list of all the resource names of the documents to be processed. Format: projects/{project_number}/locations/{location}/documents/{document_id}.
+    #[serde(default)]
+    pub documents: ::core::option::Option<::std::vec::Vec<String>>,
+    /// The Cloud Storage folder path used to store the exported documents before being sent to CDW. Format: gs:///.
+    #[serde(default, rename = "exportFolderPath")]
+    pub export_folder_path: ::core::option::Option<String>,
+    /// Ratio of training dataset split. When importing into Document AI Workbench, documents will be automatically split into training and test split category with the specified ratio. This field is required if doc_ai_dataset is set.
+    #[serde(default, rename = "trainingSplitRatio")]
+    pub training_split_ratio: ::core::option::Option<f32>,
+}
+
+/// The configuration of the Cloud Storage Ingestion pipeline.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudContentwarehouseV1GcsIngestPipeline {
+    /// The input Cloud Storage folder. All files under this folder will be imported to Document Warehouse. Format: gs:///.
+    #[serde(default, rename = "inputPath")]
+    pub input_path: ::core::option::Option<String>,
+    /// Optional. The config for the Cloud Storage Ingestion pipeline. It provides additional customization options to run the pipeline and can be skipped if it is not applicable.
+    #[serde(default, rename = "pipelineConfig")]
+    pub pipeline_config: ::core::option::Option<GoogleCloudContentwarehouseV1IngestPipelineConfig>,
+    /// The Doc AI processor type name. Only used when the format of ingested files is Doc AI Document proto format.
+    #[serde(default, rename = "processorType")]
+    pub processor_type: ::core::option::Option<String>,
+    /// The Document Warehouse schema resource name. All documents processed by this pipeline will use this schema. Format: projects/{project_number}/locations/{location}/documentSchemas/{document_schema_id}.
+    #[serde(default, rename = "schemaName")]
+    pub schema_name: ::core::option::Option<String>,
+    /// The flag whether to skip ingested documents. If it is set to true, documents in Cloud Storage contains key "status" with value "status=ingested" in custom metadata will be skipped to ingest.
+    #[serde(default, rename = "skipIngestedDocuments")]
+    pub skip_ingested_documents: ::core::option::Option<bool>,
+}
+
+/// The configuration of the Cloud Storage Ingestion with DocAI Processors pipeline.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudContentwarehouseV1GcsIngestWithDocAiProcessorsPipeline {
+    /// The extract processors information. One matched extract processor will be used to process documents based on the classify processor result. If no classify processor is specified, the first extract processor will be used.
+    #[serde(default, rename = "extractProcessorInfos")]
+    pub extract_processor_infos:
+        ::core::option::Option<::std::vec::Vec<GoogleCloudContentwarehouseV1ProcessorInfo>>,
+    /// The input Cloud Storage folder. All files under this folder will be imported to Document Warehouse. Format: gs:///.
+    #[serde(default, rename = "inputPath")]
+    pub input_path: ::core::option::Option<String>,
+    /// Optional. The config for the Cloud Storage Ingestion with DocAI Processors pipeline. It provides additional customization options to run the pipeline and can be skipped if it is not applicable.
+    #[serde(default, rename = "pipelineConfig")]
+    pub pipeline_config: ::core::option::Option<GoogleCloudContentwarehouseV1IngestPipelineConfig>,
+    /// The Cloud Storage folder path used to store the raw results from processors. Format: gs:///.
+    #[serde(default, rename = "processorResultsFolderPath")]
+    pub processor_results_folder_path: ::core::option::Option<String>,
+    /// The flag whether to skip ingested documents. If it is set to true, documents in Cloud Storage contains key "status" with value "status=ingested" in custom metadata will be skipped to ingest.
+    #[serde(default, rename = "skipIngestedDocuments")]
+    pub skip_ingested_documents: ::core::option::Option<bool>,
+    /// The split and classify processor information. The split and classify result will be used to find a matched extract processor.
+    #[serde(default, rename = "splitClassifyProcessorInfo")]
+    pub split_classify_processor_info:
+        ::core::option::Option<GoogleCloudContentwarehouseV1ProcessorInfo>,
+}
+
+/// The configuration of processing documents in Document Warehouse with DocAi processors pipeline.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudContentwarehouseV1ProcessWithDocAiPipeline {
+    /// The list of all the resource names of the documents to be processed. Format: projects/{project_number}/locations/{location}/documents/{document_id}.
+    #[serde(default)]
+    pub documents: ::core::option::Option<::std::vec::Vec<String>>,
+    /// The Cloud Storage folder path used to store the exported documents before being sent to CDW. Format: gs:///.
+    #[serde(default, rename = "exportFolderPath")]
+    pub export_folder_path: ::core::option::Option<String>,
+    /// The CDW processor information.
+    #[serde(default, rename = "processorInfo")]
+    pub processor_info: ::core::option::Option<GoogleCloudContentwarehouseV1ProcessorInfo>,
+    /// The Cloud Storage folder path used to store the raw results from processors. Format: gs:///.
+    #[serde(default, rename = "processorResultsFolderPath")]
+    pub processor_results_folder_path: ::core::option::Option<String>,
+}
+
+/// GoogleCloudContentwarehouseV1DocumentQuery resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudContentwarehouseV1DocumentQuery {
+    /// This filter specifies a structured syntax to match against the [PropertyDefinition].is_filterable marked as true. The syntax for this expression is a subset of SQL syntax. Supported operators are: =, !=, &lt;, &lt;=, &gt;, and &gt;= where the left of the operator is a property name and the right of the operator is a number or a quoted string. You must escape backslash (\\) and quote (\") characters. Supported functions are LOWER([property_name]) to perform a case insensitive match and EMPTY([property_name]) to filter on the existence of a key. Boolean expressions (AND/OR/NOT) are supported up to 3 levels of nesting (for example, "((A AND B AND C) OR NOT D) AND E"), a maximum of 100 comparisons or functions are allowed in the expression. The expression must be &lt; 6000 bytes in length. Sample Query: (LOWER(driving_license)="class \"a\"" OR EMPTY(driving_license)) AND driving_years &gt; 10
+    #[serde(default, rename = "customPropertyFilter")]
+    pub custom_property_filter: ::core::option::Option<String>,
+    /// To support the custom weighting across document schemas, customers need to provide the properties to be used to boost the ranking in the search request. For a search query with CustomWeightsMetadata specified, only the RetrievalImportance for the properties in the CustomWeightsMetadata will be honored.
+    #[serde(default, rename = "customWeightsMetadata")]
+    pub custom_weights_metadata:
+        ::core::option::Option<GoogleCloudContentwarehouseV1CustomWeightsMetadata>,
+    /// The exact creator(s) of the documents to search against. If a value isn''t specified, documents within the search results are associated with any creator. If multiple values are specified, documents within the search results may be associated with any of the specified creators.
+    #[serde(default, rename = "documentCreatorFilter")]
+    pub document_creator_filter: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Search the documents in the list. Format: projects/{project_number}/locations/{location}/documents/{document_id}.
+    #[serde(default, rename = "documentNameFilter")]
+    pub document_name_filter: ::core::option::Option<::std::vec::Vec<String>>,
+    /// This filter specifies the exact document schema Document.document_schema_name of the documents to search against. If a value isn''t specified, documents within the search results are associated with any schema. If multiple values are specified, documents within the search results may be associated with any of the specified schemas. At most 20 document schema names are allowed.
+    #[serde(default, rename = "documentSchemaNames")]
+    pub document_schema_names: ::core::option::Option<::std::vec::Vec<String>>,
+    /// This filter specifies the types of files to return: ALL, FOLDER, or FILE. If FOLDER or FILE is specified, then only either folders or files will be returned, respectively. If ALL is specified, both folders and files will be returned. If no value is specified, ALL files will be returned.
+    #[serde(default, rename = "fileTypeFilter")]
+    pub file_type_filter: ::core::option::Option<GoogleCloudContentwarehouseV1FileTypeFilter>,
+    /// Search all the documents under this specified folder. Format: projects/{project_number}/locations/{location}/documents/{document_id}.
+    #[serde(default, rename = "folderNameFilter")]
+    pub folder_name_filter: ::core::option::Option<String>,
+    /// Experimental, do not use. If the query is a natural language question. False by default. If true, then the question-answering feature will be used instead of search, and result_count in SearchDocumentsRequest must be set. In addition, all other input fields related to search (pagination, histograms, etc.) will be ignored.
+    #[serde(default, rename = "isNlQuery")]
+    pub is_nl_query: ::core::option::Option<bool>,
+    /// This filter specifies a structured syntax to match against the PropertyDefinition.is_filterable marked as true. The relationship between the PropertyFilters is OR.
+    #[serde(default, rename = "propertyFilter")]
+    pub property_filter:
+        ::core::option::Option<::std::vec::Vec<GoogleCloudContentwarehouseV1PropertyFilter>>,
+    /// The query string that matches against the full text of the document and the searchable properties. The query partially supports [Google AIP style syntax](https://google.aip.dev/160). Specifically, the query supports literals, logical operators, negation operators, comparison operators, and functions. Literals: A bare literal value (examples: "42", "Hugo") is a value to be matched against. It searches over the full text of the document and the searchable properties. Logical operators: "AND", "and", "OR", and "or" are binary logical operators (example: "engineer OR developer"). Negation operators: "NOT" and "!" are negation operators (example: "NOT software"). Comparison operators: support the binary comparison operators =, !=, &lt;, &gt;, &lt;= and &gt;= for string, numeric, enum, boolean. Also support like operator ~~ for string. It provides semantic search functionality by parsing, stemming and doing synonyms expansion against the input query. To specify a property in the query, the left hand side expression in the comparison must be the property ID including the parent. The right hand side must be literals. For example: "\"projects/123/locations/us\".property_a &lt; 1" matches results whose "property_a" is less than 1 in project 123 and us location. The literals and comparison expression can be connected in a single query (example: "software engineer \"projects/123/locations/us\".salary &gt; 100"). Functions: supported functions are LOWER([property_name]) to perform a case insensitive match and EMPTY([property_name]) to filter on the existence of a key. Support nested expressions connected using parenthesis and logical operators. The default logical operators is AND if there is no operators between expressions. The query can be used with other filters e.g. time_filters and folder_name_filter. They are connected with AND operator under the hood. The maximum number of allowed characters is 255.
+    #[serde(default)]
+    pub query: ::core::option::Option<String>,
+    /// For custom synonyms. Customers provide the synonyms based on context. One customer can provide multiple set of synonyms based on different context. The search query will be expanded based on the custom synonyms of the query context set. By default, no custom synonyms wll be applied if no query context is provided. It is not supported for CMEK compliant deployment.
+    #[serde(default, rename = "queryContext")]
+    pub query_context: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Documents created/updated within a range specified by this filter are searched against.
+    #[serde(default, rename = "timeFilters")]
+    pub time_filters:
+        ::core::option::Option<::std::vec::Vec<GoogleCloudContentwarehouseV1TimeFilter>>,
+}
+
+/// The histogram request.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudContentwarehouseV1HistogramQuery {
+    /// Optional. Filter the result of histogram query by the property names. It only works with histogram query count(''FilterableProperties''). It is an optional. It will perform histogram on all the property names for all the document schemas. Setting this field will have a better performance.
+    #[serde(default)]
+    pub filters:
+        ::core::option::Option<GoogleCloudContentwarehouseV1HistogramQueryPropertyNameFilter>,
+    /// An expression specifies a histogram request against matching documents for searches. See SearchDocumentsRequest.histogram_queries for details about syntax.
+    #[serde(default, rename = "histogramQuery")]
+    pub histogram_query: ::core::option::Option<String>,
+    /// Controls if the histogram query requires the return of a precise count. Enable this flag may adversely impact performance. Defaults to true.
+    #[serde(default, rename = "requirePreciseResultSize")]
+    pub require_precise_result_size: ::core::option::Option<bool>,
+}
+
+/// Histogram result that matches HistogramQuery specified in searches.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudContentwarehouseV1HistogramQueryResult {
+    /// A map from the values of the facet associated with distinct values to the number of matching entries with corresponding value. The key format is: * (for string histogram) string values stored in the field.
+    #[serde(default)]
+    pub histogram: ::core::option::Option<serde_json::Value>,
+    /// Requested histogram expression.
+    #[serde(default, rename = "histogramQuery")]
+    pub histogram_query: ::core::option::Option<String>,
+}
+
+/// Document entry with metadata inside SearchDocumentsResponse
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudContentwarehouseV1SearchDocumentsResponseMatchingDocument {
+    /// Document that matches the specified SearchDocumentsRequest. This document only contains indexed metadata information.
+    #[serde(default)]
+    pub document: ::core::option::Option<GoogleCloudContentwarehouseV1Document>,
+    /// Return the 1-based page indices where those pages have one or more matched tokens.
+    #[serde(default, rename = "matchedTokenPageIndices")]
+    pub matched_token_page_indices: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Experimental. Additional result info if the question-answering feature is enabled.
+    #[serde(default, rename = "qaResult")]
+    pub qa_result: ::core::option::Option<GoogleCloudContentwarehouseV1qAResult>,
+    /// Contains snippets of text from the document full raw text that most closely match a search query''s keywords, if available. All HTML tags in the original fields are stripped when returned in this field, and matching query keywords are enclosed in HTML bold tags. If the question-answering feature is enabled, this field will instead contain a snippet that answers the user''s natural-language query. No HTML bold tags will be present, and highlights in the answer snippet can be found in QAResult.highlights.
+    #[serde(default, rename = "searchTextSnippet")]
+    pub search_text_snippet: ::core::option::Option<String>,
+}
+
+/// Request Option for processing Cloud AI Document in CW Document.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudContentwarehouseV1CloudAIDocumentOption {
+    /// If set, only selected entities will be converted to properties.
+    #[serde(default, rename = "customizedEntitiesPropertiesConversions")]
+    pub customized_entities_properties_conversions: ::core::option::Option<serde_json::Value>,
+    /// Whether to convert all the entities to properties.
+    #[serde(default, rename = "enableEntitiesConversions")]
+    pub enable_entities_conversions: ::core::option::Option<bool>,
+}
+
+/// Meta information is used to improve the performance of the service.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudContentwarehouseV1RequestMetadata {
+    /// Provides user unique identification and groups information.
+    #[serde(default, rename = "userInfo")]
+    pub user_info: ::core::option::Option<GoogleCloudContentwarehouseV1UserInfo>,
+}
+
+/// Options for Update operations.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudContentwarehouseV1UpdateOptions {
+    /// Options for merging.
+    #[serde(default, rename = "mergeFieldsOptions")]
+    pub merge_fields_options:
+        ::core::option::Option<GoogleCloudContentwarehouseV1MergeFieldsOptions>,
+    /// Field mask for merging Document fields. For the FieldMask definition, see https://developers.google.com/protocol-buffers/docs/reference/google.protobuf#fieldmask
+    #[serde(default, rename = "updateMask")]
+    pub update_mask: ::core::option::Option<String>,
+    /// Type for update. // TODO: enum values: ["UPDATE_TYPE_UNSPECIFIED", "UPDATE_TYPE_REPLACE", "UPDATE_TYPE_MERGE", "UPDATE_TYPE_INSERT_PROPERTIES_BY_NAMES", "UPDATE_TYPE_REPLACE_PROPERTIES_BY_NAMES", "UPDATE_TYPE_DELETE_PROPERTIES_BY_NAMES", "UPDATE_TYPE_MERGE_AND_REPLACE_OR_INSERT_PROPERTIES_BY_NAMES"]
+    #[serde(default, rename = "updateType")]
+    pub update_type: ::core::option::Option<String>,
+}
+
+/// Additional information returned to client, such as debugging information.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudContentwarehouseV1ResponseMetadata {
+    /// A unique id associated with this call. This id is logged for tracking purpose.
+    #[serde(default, rename = "requestId")]
+    pub request_id: ::core::option::Option<String>,
+}
+
+/// Records the output of Rule Engine including rule evaluation and actions result.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudContentwarehouseV1RuleEngineOutput {
+    /// Output from Action Executor containing rule and corresponding actions execution result.
+    #[serde(default, rename = "actionExecutorOutput")]
+    pub action_executor_output:
+        ::core::option::Option<GoogleCloudContentwarehouseV1ActionExecutorOutput>,
+    /// Name of the document against which the rules and actions were evaluated.
+    #[serde(default, rename = "documentName")]
+    pub document_name: ::core::option::Option<String>,
+    /// Output from Rule Evaluator containing matched, unmatched and invalid rules.
+    #[serde(default, rename = "ruleEvaluatorOutput")]
+    pub rule_evaluator_output:
+        ::core::option::Option<GoogleCloudContentwarehouseV1RuleEvaluatorOutput>,
+}
+
+/// A document schema used to define document structure.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudContentwarehouseV1DocumentSchema {
+    /// Output only. The time when the document schema is created.
+    #[serde(default, rename = "createTime")]
+    pub create_time: ::core::option::Option<String>,
+    /// Schema description.
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+    /// Required. Name of the schema given by the user. Must be unique per project.
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+    /// Document Type, true refers the document is a folder, otherwise it is a typical document.
+    #[serde(default, rename = "documentIsFolder")]
+    pub document_is_folder: ::core::option::Option<bool>,
+    /// The resource name of the document schema. Format: projects/{project_number}/locations/{location}/documentSchemas/{document_schema_id}. The name is ignored when creating a document schema.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Document details.
+    #[serde(default, rename = "propertyDefinitions")]
+    pub property_definitions:
+        ::core::option::Option<::std::vec::Vec<GoogleCloudContentwarehouseV1PropertyDefinition>>,
+    /// Output only. The time when the document schema is last updated.
+    #[serde(default, rename = "updateTime")]
+    pub update_time: ::core::option::Option<String>,
+}
+
+/// Represents a set of rules from a single customer.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudContentwarehouseV1RuleSet {
+    /// Short description of the rule-set.
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+    /// The resource name of the rule set. Managed internally. Format: projects/{project_number}/locations/{location}/ruleSet/{rule_set_id}. The name is ignored when creating a rule set.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// List of rules given by the customer.
+    #[serde(default)]
+    pub rules: ::core::option::Option<::std::vec::Vec<GoogleCloudContentwarehouseV1Rule>>,
+    /// Source of the rules i.e., customer name.
+    #[serde(default)]
+    pub source: ::core::option::Option<String>,
+}
+
+/// Represents the string value of the enum field.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudContentwarehouseV1EnumValue {
+    /// String value of the enum field. This must match defined set of enums in document schema using EnumTypeOptions.
+    #[serde(default)]
+    pub value: ::core::option::Option<String>,
+}
+
+/// The identity to configure a CloudSQL instance provisioned via SLM Terraform.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CloudAiPlatformTenantresourceCloudSqlInstanceConfig {
+    /// Output only. The CloudSQL instance connection name.
+    #[serde(default, rename = "cloudSqlInstanceConnectionName")]
+    pub cloud_sql_instance_connection_name: ::core::option::Option<String>,
+    /// Input/Output [Optional]. The CloudSQL instance name within SLM instance. If not set, a random UUIC will be generated as instance name.
+    #[serde(default, rename = "cloudSqlInstanceName")]
+    pub cloud_sql_instance_name: ::core::option::Option<String>,
+    /// Input [Optional]. The KMS key name or the KMS grant name used for CMEK encryption. Only set this field when provisioning new CloudSQL instances. For existing CloudSQL instances, this field will be ignored because CMEK re-encryption is not supported.
+    #[serde(default, rename = "kmsKeyReference")]
+    pub kms_key_reference: ::core::option::Option<String>,
+    /// Input [Optional]. MDB roles for corp access to CloudSQL instance.
+    #[serde(default, rename = "mdbRolesForCorpAccess")]
+    pub mdb_roles_for_corp_access: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Output only. The SLM instance''s full resource name.
+    #[serde(default, rename = "slmInstanceName")]
+    pub slm_instance_name: ::core::option::Option<String>,
+    /// Input [Required]. The SLM instance template to provision CloudSQL.
+    #[serde(default, rename = "slmInstanceTemplate")]
+    pub slm_instance_template: ::core::option::Option<String>,
+    /// Input [Required]. The SLM instance type to provision CloudSQL.
+    #[serde(default, rename = "slmInstanceType")]
+    pub slm_instance_type: ::core::option::Option<String>,
+}
+
+/// The identity to configure a GCS bucket.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CloudAiPlatformTenantresourceGcsBucketConfig {
+    #[serde(default)]
+    pub admins: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Input/Output [Optional]. The name of a GCS bucket with max length of 63 chars. If not set, a random UUID will be generated as bucket name.
+    #[serde(default, rename = "bucketName")]
+    pub bucket_name: ::core::option::Option<String>,
+    /// Input/Output [Optional]. Only needed for per-entity tenant GCP resources. During Deprovision API, the on-demand deletion will only cover the tenant GCP resources with the specified entity name.
+    #[serde(default, rename = "entityName")]
+    pub entity_name: ::core::option::Option<String>,
+    /// Input/Output [Optional]. The KMS key name or the KMS grant name used for CMEK encryption. Only set this field when provisioning new GCS bucket. For existing GCS bucket, this field will be ignored because CMEK re-encryption is not supported.
+    #[serde(default, rename = "kmsKeyReference")]
+    pub kms_key_reference: ::core::option::Option<String>,
+    /// Input/Output [Optional]. Only needed when the content in bucket need to be garbage collected within some amount of days.
+    #[serde(default, rename = "ttlDays")]
+    pub ttl_days: ::core::option::Option<i32>,
+    /// Input/Output [Required]. IAM roles (viewer/admin) put on the bucket.
+    #[serde(default)]
+    pub viewers: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// The dynamic IAM bindings to be granted after tenant projects are created.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CloudAiPlatformTenantresourceIamPolicyBinding {
+    /// Input/Output [Required]. The member service accounts with the roles above. Note: placeholders are same as the resource above.
+    #[serde(default)]
+    pub members: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Input/Output [Required]. The resource name that will be accessed by members, which also depends on resource_type. Note: placeholders are supported in resource names. For example, ${tpn} will be used when the tenant project number is not ready.
+    #[serde(default)]
+    pub resource: ::core::option::Option<String>,
+    /// Input/Output [Required]. Specifies the type of resource that will be accessed by members. // TODO: enum values: ["RESOURCE_TYPE_UNSPECIFIED", "PROJECT", "SERVICE_ACCOUNT", "GCS_BUCKET", "SERVICE_CONSUMER", "AR_REPO"]
+    #[serde(default, rename = "resourceType")]
+    pub resource_type: ::core::option::Option<String>,
+    /// Input/Output [Required]. The role for members below.
+    #[serde(default)]
+    pub role: ::core::option::Option<String>,
+}
+
+/// The configuration for a spanner database provisioning. Next ID: 8
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CloudAiPlatformTenantresourceInfraSpannerConfig {
+    /// Input [Optional]. The options to create a spanner database. Note: give the right options to ensure the right KMS key access audit logging and AxT logging in expected logging category.
+    #[serde(default, rename = "createDatabaseOptions")]
+    pub create_database_options: ::core::option::Option<
+        CloudAiPlatformTenantresourceInfraSpannerConfigCreateDatabaseOptions,
+    >,
+    /// Input [Optional]. The KMS key name or the KMS grant name used for CMEK encryption. Only set this field when provisioning new Infra Spanner databases. For existing Infra Spanner databases, this field will be ignored because CMEK re-encryption is not supported. For example, projects//locations//keyRings//cryptoKeys/
+    #[serde(default, rename = "kmsKeyReference")]
+    pub kms_key_reference: ::core::option::Option<String>,
+    /// Input [Required]. The file path to the spanner SDL bundle.
+    #[serde(default, rename = "sdlBundlePath")]
+    pub sdl_bundle_path: ::core::option::Option<String>,
+    /// Input [Optional]. The spanner borg service account for delegating the kms key to. For example, spanner-infra-cmek-nonprod@system.gserviceaccount.com, for the nonprod universe.
+    #[serde(default, rename = "spannerBorgServiceAccount")]
+    pub spanner_borg_service_account: ::core::option::Option<String>,
+    #[serde(default, rename = "spannerLocalNamePrefix")]
+    pub spanner_local_name_prefix: ::core::option::Option<String>,
+    #[serde(default, rename = "spannerNamespace")]
+    pub spanner_namespace: ::core::option::Option<String>,
+    /// Input [Required]. Every database in Spanner can be identified by the following path name: /span//:
+    #[serde(default, rename = "spannerUniverse")]
+    pub spanner_universe: ::core::option::Option<String>,
+}
+
+/// The identity to configure a tenant project.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CloudAiPlatformTenantresourceTenantProjectConfig {
+    /// Input/Output [Required]. The billing account properties to create the tenant project.
+    #[serde(default, rename = "billingConfig")]
+    pub billing_config: ::core::option::Option<GoogleApiServiceconsumermanagementV1BillingConfig>,
+    /// Input/Output [Required]. The folder that holds tenant projects and folder-level permissions will be automatically granted to all tenant projects under the folder. Note: the valid folder format is folders/{folder_number}.
+    #[serde(default)]
+    pub folder: ::core::option::Option<String>,
+    /// Input/Output [Required]. The policy bindings that are applied to the tenant project during creation. At least one binding must have the role roles/owner with either user or group type.
+    #[serde(default, rename = "policyBindings")]
+    pub policy_bindings:
+        ::core::option::Option<::std::vec::Vec<GoogleApiServiceconsumermanagementV1PolicyBinding>>,
+    /// Input/Output [Required]. The API services that are enabled on the tenant project during creation.
+    #[serde(default)]
+    pub services: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// The identity of service accounts that have been explicitly created under tenant projects.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CloudAiPlatformTenantresourceTenantServiceAccountIdentity {
+    /// Output only. The email address of the generated service account.
+    #[serde(default, rename = "serviceAccountEmail")]
+    pub service_account_email: ::core::option::Option<String>,
+    /// Input/Output [Required]. The service that the service account belongs to. (e.g. cloudbuild.googleapis.com for GCB service accounts)
+    #[serde(default, rename = "serviceName")]
+    pub service_name: ::core::option::Option<String>,
+}
+
+/// References to the documents.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudContentwarehouseV1DocumentReference {
+    /// Output only. The time when the document is created.
+    #[serde(default, rename = "createTime")]
+    pub create_time: ::core::option::Option<String>,
+    /// Output only. The time when the document is deleted.
+    #[serde(default, rename = "deleteTime")]
+    pub delete_time: ::core::option::Option<String>,
+    /// display_name of the referenced document; this name does not need to be consistent to the display_name in the Document proto, depending on the ACL constraint.
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+    /// The document type of the document being referenced.
+    #[serde(default, rename = "documentIsFolder")]
+    pub document_is_folder: ::core::option::Option<bool>,
+    /// Document is a folder with legal hold.
+    #[serde(default, rename = "documentIsLegalHoldFolder")]
+    pub document_is_legal_hold_folder: ::core::option::Option<bool>,
+    /// Document is a folder with retention policy.
+    #[serde(default, rename = "documentIsRetentionFolder")]
+    pub document_is_retention_folder: ::core::option::Option<bool>,
+    /// Required. Name of the referenced document.
+    #[serde(default, rename = "documentName")]
+    pub document_name: ::core::option::Option<String>,
+    /// Stores the subset of the referenced document''s content. This is useful to allow user peek the information of the referenced document.
+    #[serde(default)]
+    pub snippet: ::core::option::Option<String>,
+    /// Output only. The time when the document is last updated.
+    #[serde(default, rename = "updateTime")]
+    pub update_time: ::core::option::Option<String>,
+}
+
+/// Represents a list of words given by the customer All these words are synonyms of each other.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudContentwarehouseV1SynonymSetSynonym {
+    /// For example: sale, invoice, bill, order
+    #[serde(default)]
+    pub words: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// The ingestion pipeline config.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudContentwarehouseV1IngestPipelineConfig {
+    /// The Cloud Function resource name. The Cloud Function needs to live inside consumer project and is accessible to Document AI Warehouse P4SA. Only Cloud Functions V2 is supported. Cloud function execution should complete within 5 minutes or this file ingestion may fail due to timeout. Format: https://{region}-{project_id}.cloudfunctions.net/{cloud_function} The following keys are available the request json payload. * display_name * properties * plain_text * reference_id * document_schema_name * raw_document_path * raw_document_file_type The following keys from the cloud function json response payload will be ingested to the Document AI Warehouse as part of Document proto content and/or related information. The original values will be overridden if any key is present in the response. * display_name * properties * plain_text * document_acl_policy * folder
+    #[serde(default, rename = "cloudFunction")]
+    pub cloud_function: ::core::option::Option<String>,
+    /// The document level acl policy config. This refers to an Identity and Access (IAM) policy, which specifies access controls for all documents ingested by the pipeline. The role and members under the policy needs to be specified. The following roles are supported for document level acl control: * roles/contentwarehouse.documentAdmin * roles/contentwarehouse.documentEditor * roles/contentwarehouse.documentViewer The following members are supported for document level acl control: * user:user-email@example.com * group:group-email@example.com Note that for documents searched with LLM, only single level user or group acl check is supported.
+    #[serde(default, rename = "documentAclPolicy")]
+    pub document_acl_policy: ::core::option::Option<GoogleIamV1Policy>,
+    /// The document text extraction enabled flag. If the flag is set to true, DWH will perform text extraction on the raw document.
+    #[serde(default, rename = "enableDocumentTextExtraction")]
+    pub enable_document_text_extraction: ::core::option::Option<bool>,
+    /// Optional. The name of the folder to which all ingested documents will be linked during ingestion process. Format is projects/{project}/locations/{location}/documents/{folder_id}
+    #[serde(default)]
+    pub folder: ::core::option::Option<String>,
+}
+
+/// The DocAI processor information.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudContentwarehouseV1ProcessorInfo {
+    /// The processor will process the documents with this document type.
+    #[serde(default, rename = "documentType")]
+    pub document_type: ::core::option::Option<String>,
+    /// The processor resource name. Format is projects/{project}/locations/{location}/processors/{processor}, or projects/{project}/locations/{location}/processors/{processor}/processorVersions/{processorVersion}
+    #[serde(default, rename = "processorName")]
+    pub processor_name: ::core::option::Option<String>,
+    /// The Document schema resource name. All documents processed by this processor will use this schema. Format: projects/{project_number}/locations/{location}/documentSchemas/{document_schema_id}.
+    #[serde(default, rename = "schemaName")]
+    pub schema_name: ::core::option::Option<String>,
+}
+
+/// To support the custom weighting across document schemas.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudContentwarehouseV1CustomWeightsMetadata {
+    /// List of schema and property name. Allows a maximum of 10 schemas to be specified for relevance boosting.
+    #[serde(default, rename = "weightedSchemaProperties")]
+    pub weighted_schema_properties: ::core::option::Option<
+        ::std::vec::Vec<GoogleCloudContentwarehouseV1WeightedSchemaProperty>,
+    >,
+}
+
+/// Filter for the specific types of documents returned.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudContentwarehouseV1FileTypeFilter {
+    /// The type of files to return. // TODO: enum values: ["FILE_TYPE_UNSPECIFIED", "ALL", "FOLDER", "DOCUMENT", "ROOT_FOLDER"]
+    #[serde(default, rename = "fileType")]
+    pub file_type: ::core::option::Option<String>,
+}
+
+/// GoogleCloudContentwarehouseV1PropertyFilter resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudContentwarehouseV1PropertyFilter {
+    /// The filter condition. The syntax for this expression is a subset of SQL syntax. Supported operators are: =, !=, &lt;, &lt;=, &gt;, &gt;=, and ~~ where the left of the operator is a property name and the right of the operator is a number or a quoted string. You must escape backslash (\\) and quote (\") characters. ~~ is the LIKE operator. The right of the operator must be a string. The only supported property data type for LIKE is text_values. It provides semantic search functionality by parsing, stemming and doing synonyms expansion against the input query. It matches if the property contains semantic similar content to the query. It is not regex matching or wildcard matching. For example, "property.company ~~ \"google\"" will match records whose property property.compnay have values like "Google Inc.", "Google LLC" or "Google Company". Supported functions are LOWER([property_name]) to perform a case insensitive match and EMPTY([property_name]) to filter on the existence of a key. Boolean expressions (AND/OR/NOT) are supported up to 3 levels of nesting (for example, "((A AND B AND C) OR NOT D) AND E"), a maximum of 100 comparisons or functions are allowed in the expression. The expression must be &lt; 6000 bytes in length. Only properties that are marked filterable are allowed (PropertyDefinition.is_filterable). Property names do not need to be prefixed by the document schema id (as is the case with histograms), however property names will need to be prefixed by its parent hierarchy, if any. For example: top_property_name.sub_property_name. Sample Query: (LOWER(driving_license)="class \"a\"" OR EMPTY(driving_license)) AND driving_years &gt; 10 CMEK compliant deployment only supports: * Operators: =, &lt;, &lt;=, &gt;, and &gt;=. * Boolean expressions: AND and OR.
+    #[serde(default)]
+    pub condition: ::core::option::Option<String>,
+    /// The Document schema name Document.document_schema_name. Format: projects/{project_number}/locations/{location}/documentSchemas/{document_schema_id}.
+    #[serde(default, rename = "documentSchemaName")]
+    pub document_schema_name: ::core::option::Option<String>,
+}
+
+/// Filter on create timestamp or update timestamp of documents.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudContentwarehouseV1TimeFilter {
+    /// Specifies which time field to filter documents on. Defaults to TimeField.UPLOAD_TIME. // TODO: enum values: ["TIME_FIELD_UNSPECIFIED", "CREATE_TIME", "UPDATE_TIME", "DISPOSITION_TIME"]
+    #[serde(default, rename = "timeField")]
+    pub time_field: ::core::option::Option<String>,
+    #[serde(default, rename = "timeRange")]
+    pub time_range: ::core::option::Option<GoogleTypeInterval>,
+}
+
+/// GoogleCloudContentwarehouseV1HistogramQueryPropertyNameFilter resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudContentwarehouseV1HistogramQueryPropertyNameFilter {
+    /// This filter specifies the exact document schema(s) Document.document_schema_name to run histogram query against. It is optional. It will perform histogram for property names for all the document schemas if it is not set. At most 10 document schema names are allowed. Format: projects/{project_number}/locations/{location}/documentSchemas/{document_schema_id}.
+    #[serde(default, rename = "documentSchemas")]
+    pub document_schemas: ::core::option::Option<::std::vec::Vec<String>>,
+    /// It is optional. It will perform histogram for all the property names if it is not set. The properties need to be defined with the is_filterable flag set to true and the name of the property should be in the format: "schemaId.propertyName". The property needs to be defined in the schema. Example: the schema id is abc. Then the name of property for property MORTGAGE_TYPE will be "abc.MORTGAGE_TYPE".
+    #[serde(default, rename = "propertyNames")]
+    pub property_names: ::core::option::Option<::std::vec::Vec<String>>,
+    /// By default, the y_axis is HISTOGRAM_YAXIS_DOCUMENT if this field is not set. // TODO: enum values: ["HISTOGRAM_YAXIS_DOCUMENT", "HISTOGRAM_YAXIS_PROPERTY"]
+    #[serde(default, rename = "yAxis")]
+    pub y_axis: ::core::option::Option<String>,
+}
+
+/// Defines the structure for content warehouse document proto.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudContentwarehouseV1Document {
+    /// Document AI format to save the structured content, including OCR.
+    #[serde(default, rename = "cloudAiDocument")]
+    pub cloud_ai_document: ::core::option::Option<GoogleCloudDocumentaiV1Document>,
+    /// Indicates the category (image, audio, video etc.) of the original content. // TODO: enum values: ["CONTENT_CATEGORY_UNSPECIFIED", "CONTENT_CATEGORY_IMAGE", "CONTENT_CATEGORY_AUDIO", "CONTENT_CATEGORY_VIDEO"]
+    #[serde(default, rename = "contentCategory")]
+    pub content_category: ::core::option::Option<String>,
+    /// Output only. The time when the document is created.
+    #[serde(default, rename = "createTime")]
+    pub create_time: ::core::option::Option<String>,
+    /// The user who creates the document.
+    #[serde(default)]
+    pub creator: ::core::option::Option<String>,
+    /// Required. Display name of the document given by the user. This name will be displayed in the UI. Customer can populate this field with the name of the document. This differs from the ''title'' field as ''title'' is optional and stores the top heading in the document.
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+    /// Uri to display the document, for example, in the UI.
+    #[serde(default, rename = "displayUri")]
+    pub display_uri: ::core::option::Option<String>,
+    /// Output only. If linked to a Collection with RetentionPolicy, the date when the document becomes mutable.
+    #[serde(default, rename = "dispositionTime")]
+    pub disposition_time: ::core::option::Option<String>,
+    /// The Document schema name. Format: projects/{project_number}/locations/{location}/documentSchemas/{document_schema_id}.
+    #[serde(default, rename = "documentSchemaName")]
+    pub document_schema_name: ::core::option::Option<String>,
+    /// Raw document content.
+    #[serde(default, rename = "inlineRawDocument")]
+    pub inline_raw_document: ::core::option::Option<String>,
+    /// Output only. Indicates if the document has a legal hold on it.
+    #[serde(default, rename = "legalHold")]
+    pub legal_hold: ::core::option::Option<bool>,
+    /// The resource name of the document. Format: projects/{project_number}/locations/{location}/documents/{document_id}. The name is ignored when creating a document.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Other document format, such as PPTX, XLXS
+    #[serde(default, rename = "plainText")]
+    pub plain_text: ::core::option::Option<String>,
+    /// List of values that are user supplied metadata.
+    #[serde(default)]
+    pub properties: ::core::option::Option<::std::vec::Vec<GoogleCloudContentwarehouseV1Property>>,
+    /// This is used when DocAI was not used to load the document and parsing/ extracting is needed for the inline_raw_document. For example, if inline_raw_document is the byte representation of a PDF file, then this should be set to: RAW_DOCUMENT_FILE_TYPE_PDF. // TODO: enum values: ["RAW_DOCUMENT_FILE_TYPE_UNSPECIFIED", "RAW_DOCUMENT_FILE_TYPE_PDF", "RAW_DOCUMENT_FILE_TYPE_DOCX", "RAW_DOCUMENT_FILE_TYPE_XLSX", "RAW_DOCUMENT_FILE_TYPE_PPTX", "RAW_DOCUMENT_FILE_TYPE_TEXT", "RAW_DOCUMENT_FILE_TYPE_TIFF"]
+    #[serde(default, rename = "rawDocumentFileType")]
+    pub raw_document_file_type: ::core::option::Option<String>,
+    /// Raw document file in Cloud Storage path.
+    #[serde(default, rename = "rawDocumentPath")]
+    pub raw_document_path: ::core::option::Option<String>,
+    /// The reference ID set by customers. Must be unique per project and location.
+    #[serde(default, rename = "referenceId")]
+    pub reference_id: ::core::option::Option<String>,
+    /// If true, text extraction will not be performed.
+    #[serde(default, rename = "textExtractionDisabled")]
+    pub text_extraction_disabled: ::core::option::Option<bool>,
+    /// If true, text extraction will be performed.
+    #[serde(default, rename = "textExtractionEnabled")]
+    pub text_extraction_enabled: ::core::option::Option<bool>,
+    /// Title that describes the document. This can be the top heading or text that describes the document.
+    #[serde(default)]
+    pub title: ::core::option::Option<String>,
+    /// Output only. The time when the document is last updated.
+    #[serde(default, rename = "updateTime")]
+    pub update_time: ::core::option::Option<String>,
+    /// The user who lastly updates the document.
+    #[serde(default)]
+    pub updater: ::core::option::Option<String>,
+}
+
+/// Additional result info for the question-answering feature.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudContentwarehouseV1qAResult {
+    /// The calibrated confidence score for this document, in the range [0., 1.]. This represents the confidence level for whether the returned document and snippet answers the user''s query.
+    #[serde(default, rename = "confidenceScore")]
+    pub confidence_score: ::core::option::Option<f32>,
+    /// Highlighted sections in the snippet.
+    #[serde(default)]
+    pub highlights:
+        ::core::option::Option<::std::vec::Vec<GoogleCloudContentwarehouseV1qAResultHighlight>>,
+}
+
+/// The user information.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudContentwarehouseV1UserInfo {
+    /// The unique group identifications which the user is belong to. The format is "group:yyyy@example.com";
+    #[serde(default, rename = "groupIds")]
+    pub group_ids: ::core::option::Option<::std::vec::Vec<String>>,
+    /// A unique user identification string, as determined by the client. The maximum number of allowed characters is 255. Allowed characters include numbers 0 to 9, uppercase and lowercase letters, and restricted special symbols (:, @, +, -, _, ~) The format is "user:xxxx@example.com";
+    #[serde(default)]
+    pub id: ::core::option::Option<String>,
+}
+
+/// Options for merging updated fields.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudContentwarehouseV1MergeFieldsOptions {
+    /// When merging message fields, the default behavior is to merge the content of two message fields together. If you instead want to use the field from the source message to replace the corresponding field in the destination message, set this flag to true. When this flag is set, specified submessage fields that are missing in source will be cleared in destination.
+    #[serde(default, rename = "replaceMessageFields")]
+    pub replace_message_fields: ::core::option::Option<bool>,
+    /// When merging repeated fields, the default behavior is to append entries from the source repeated field to the destination repeated field. If you instead want to keep only the entries from the source repeated field, set this flag to true. If you want to replace a repeated field within a message field on the destination message, you must set both replace_repeated_fields and replace_message_fields to true, otherwise the repeated fields will be appended.
+    #[serde(default, rename = "replaceRepeatedFields")]
+    pub replace_repeated_fields: ::core::option::Option<bool>,
+}
+
+/// Represents the output of the Action Executor.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudContentwarehouseV1ActionExecutorOutput {
+    /// List of rule and corresponding actions result.
+    #[serde(default, rename = "ruleActionsPairs")]
+    pub rule_actions_pairs:
+        ::core::option::Option<::std::vec::Vec<GoogleCloudContentwarehouseV1RuleActionsPair>>,
+}
+
+/// Represents the output of the Rule Evaluator.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudContentwarehouseV1RuleEvaluatorOutput {
+    /// A subset of triggered rules that failed the validation check(s) after parsing.
+    #[serde(default, rename = "invalidRules")]
+    pub invalid_rules:
+        ::core::option::Option<::std::vec::Vec<GoogleCloudContentwarehouseV1InvalidRule>>,
+    /// A subset of triggered rules that are evaluated true for a given request.
+    #[serde(default, rename = "matchedRules")]
+    pub matched_rules: ::core::option::Option<::std::vec::Vec<GoogleCloudContentwarehouseV1Rule>>,
+    /// List of rules fetched from database for the given request trigger type.
+    #[serde(default, rename = "triggeredRules")]
+    pub triggered_rules: ::core::option::Option<::std::vec::Vec<GoogleCloudContentwarehouseV1Rule>>,
+}
+
+/// The options to create a spanner database. KMS key access audit logging and AxT logging will be associated with the given resource name, resource type and service name. Please ensure to give right options to enable correct audit logging and AxT logging.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CloudAiPlatformTenantresourceInfraSpannerConfigCreateDatabaseOptions {
+    /// The cloud resource name for the CMEK encryption. For example, projects//locations/
+    #[serde(default, rename = "cmekCloudResourceName")]
+    pub cmek_cloud_resource_name: ::core::option::Option<String>,
+    /// The cloud resource type for the CMEK encryption. For example, contentwarehouse.googleapis.com/Location
+    #[serde(default, rename = "cmekCloudResourceType")]
+    pub cmek_cloud_resource_type: ::core::option::Option<String>,
+    /// The service name for the CMEK encryption. For example, contentwarehouse.googleapis.com
+    #[serde(default, rename = "cmekServiceName")]
+    pub cmek_service_name: ::core::option::Option<String>,
+}
+
+/// Describes the billing configuration for a new tenant project.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleApiServiceconsumermanagementV1BillingConfig {
+    /// Name of the billing account. For example billingAccounts/012345-567890-ABCDEF.
+    #[serde(default, rename = "billingAccount")]
+    pub billing_account: ::core::option::Option<String>,
+}
+
+/// Translates to IAM Policy bindings (without auditing at this level)
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleApiServiceconsumermanagementV1PolicyBinding {
+    /// Uses the same format as in IAM policy. member must include both a prefix and ID. For example, user:{emailId}, serviceAccount:{emailId}, group:{emailId}.
+    #[serde(default)]
+    pub members: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Role. (https://cloud.google.com/iam/docs/understanding-roles) For example, roles/viewer, roles/editor, or roles/owner.
+    #[serde(default)]
+    pub role: ::core::option::Option<String>,
+}
+
+/// Specifies the schema property name.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudContentwarehouseV1WeightedSchemaProperty {
+    /// The document schema name.
+    #[serde(default, rename = "documentSchemaName")]
+    pub document_schema_name: ::core::option::Option<String>,
+    /// The property definition names in the schema.
+    #[serde(default, rename = "propertyNames")]
+    pub property_names: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// Represents a time interval, encoded as a Timestamp start (inclusive) and a Timestamp end (exclusive). The start must be less than or equal to the end. When the start equals the end, the interval is empty (matches no time). When both start and end are unspecified, the interval matches any time.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleTypeInterval {
+    /// Optional. Exclusive end of the interval. If specified, a Timestamp matching this interval will have to be before the end.
+    #[serde(default, rename = "endTime")]
+    pub end_time: ::core::option::Option<String>,
+    /// Optional. Inclusive start of the interval. If specified, a Timestamp matching this interval will have to be the same or after the start.
+    #[serde(default, rename = "startTime")]
+    pub start_time: ::core::option::Option<String>,
+}
+
+/// Document represents the canonical document resource in Document AI. It is an interchange format that provides insights into documents and allows for collaboration between users and Document AI to iterate and optimize for quality.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1Document {
+    /// Document chunked based on chunking config.
+    #[serde(default, rename = "chunkedDocument")]
+    pub chunked_document: ::core::option::Option<GoogleCloudDocumentaiV1DocumentChunkedDocument>,
+    /// Optional. Inline document content, represented as a stream of bytes. Note: As with all bytes fields, protobuffers use a pure binary representation, whereas JSON representations use base64.
+    #[serde(default)]
+    pub content: ::core::option::Option<String>,
+    /// Parsed layout of the document.
+    #[serde(default, rename = "documentLayout")]
+    pub document_layout: ::core::option::Option<GoogleCloudDocumentaiV1DocumentDocumentLayout>,
+    /// A list of entities detected on Document.text. For document shards, entities in this list may cross shard boundaries.
+    #[serde(default)]
+    pub entities: ::core::option::Option<::std::vec::Vec<GoogleCloudDocumentaiV1DocumentEntity>>,
+    /// Placeholder. Relationship among Document.entities.
+    #[serde(default, rename = "entityRelations")]
+    pub entity_relations:
+        ::core::option::Option<::std::vec::Vec<GoogleCloudDocumentaiV1DocumentEntityRelation>>,
+    /// Any error that occurred while processing this document.
+    #[serde(default)]
+    pub error: ::core::option::Option<GoogleRpcStatus>,
+    /// An IANA published [media type (MIME type)](https://www.iana.org/assignments/media-types/media-types.xhtml).
+    #[serde(default, rename = "mimeType")]
+    pub mime_type: ::core::option::Option<String>,
+    /// Visual page layout for the Document.
+    #[serde(default)]
+    pub pages: ::core::option::Option<::std::vec::Vec<GoogleCloudDocumentaiV1DocumentPage>>,
+    /// Placeholder. Revision history of this document.
+    #[serde(default)]
+    pub revisions: ::core::option::Option<::std::vec::Vec<GoogleCloudDocumentaiV1DocumentRevision>>,
+    /// Information about the sharding if this document is sharded part of a larger document. If the document is not sharded, this message is not specified.
+    #[serde(default, rename = "shardInfo")]
+    pub shard_info: ::core::option::Option<GoogleCloudDocumentaiV1DocumentShardInfo>,
+    /// Optional. UTF-8 encoded text in reading order from the document.
+    #[serde(default)]
+    pub text: ::core::option::Option<String>,
+    /// Placeholder. A list of text corrections made to Document.text. This is usually used for annotating corrections to OCR mistakes. Text changes for a given revision may not overlap with each other.
+    #[serde(default, rename = "textChanges")]
+    pub text_changes:
+        ::core::option::Option<::std::vec::Vec<GoogleCloudDocumentaiV1DocumentTextChange>>,
+    /// Styles for the Document.text.
+    #[serde(default, rename = "textStyles")]
+    pub text_styles: ::core::option::Option<::std::vec::Vec<GoogleCloudDocumentaiV1DocumentStyle>>,
+    /// Optional. Currently supports Google Cloud Storage URI of the form gs://bucket_name/object_name. Object versioning is not supported. For more information, refer to [Google Cloud Storage Request URIs](https://cloud.google.com/storage/docs/reference-uris).
+    #[serde(default)]
+    pub uri: ::core::option::Option<String>,
+}
+
+/// A text span in the search text snippet that represents a highlighted section (answer context, highly relevant sentence, etc.).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudContentwarehouseV1qAResultHighlight {
+    /// End index of the highlight, exclusive.
+    #[serde(default, rename = "endIndex")]
+    pub end_index: ::core::option::Option<i32>,
+    /// Start index of the highlight.
+    #[serde(default, rename = "startIndex")]
+    pub start_index: ::core::option::Option<i32>,
+}
+
+/// Represents a rule and outputs of associated actions.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudContentwarehouseV1RuleActionsPair {
+    /// Outputs of executing the actions associated with the above rule.
+    #[serde(default, rename = "actionOutputs")]
+    pub action_outputs:
+        ::core::option::Option<::std::vec::Vec<GoogleCloudContentwarehouseV1ActionOutput>>,
+    /// Represents the rule.
+    #[serde(default)]
+    pub rule: ::core::option::Option<GoogleCloudContentwarehouseV1Rule>,
+}
+
+/// A triggered rule that failed the validation check(s) after parsing.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudContentwarehouseV1InvalidRule {
+    /// Validation error on a parsed expression.
+    #[serde(default)]
+    pub error: ::core::option::Option<String>,
+    /// Triggered rule.
+    #[serde(default)]
+    pub rule: ::core::option::Option<GoogleCloudContentwarehouseV1Rule>,
+}
+
+/// Represents the chunks that the document is divided into.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1DocumentChunkedDocument {
+    /// List of chunks.
+    #[serde(default)]
+    pub chunks: ::core::option::Option<
+        ::std::vec::Vec<GoogleCloudDocumentaiV1DocumentChunkedDocumentChunk>,
+    >,
+}
+
+/// Represents the parsed layout of a document as a collection of blocks that the document is divided into.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1DocumentDocumentLayout {
+    /// List of blocks in the document.
+    #[serde(default)]
+    pub blocks: ::core::option::Option<
+        ::std::vec::Vec<GoogleCloudDocumentaiV1DocumentDocumentLayoutDocumentLayoutBlock>,
+    >,
+}
+
+/// An entity that could be a phrase in the text or a property that belongs to the document. It is a known entity type, such as a person, an organization, or location.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1DocumentEntity {
+    /// Optional. Confidence of detected Schema entity. Range [0, 1].
+    #[serde(default)]
+    pub confidence: ::core::option::Option<f32>,
+    /// Optional. Canonical id. This will be a unique value in the entity list for this document.
+    #[serde(default)]
+    pub id: ::core::option::Option<String>,
+    /// Optional. Deprecated. Use id field instead.
+    #[serde(default, rename = "mentionId")]
+    pub mention_id: ::core::option::Option<String>,
+    /// Optional. Text value of the entity e.g. 1600 Amphitheatre Pkwy.
+    #[serde(default, rename = "mentionText")]
+    pub mention_text: ::core::option::Option<String>,
+    /// Optional. Normalized entity value. Absent if the extracted value could not be converted or the type (e.g. address) is not supported for certain parsers. This field is also only populated for certain supported document types.
+    #[serde(default, rename = "normalizedValue")]
+    pub normalized_value:
+        ::core::option::Option<GoogleCloudDocumentaiV1DocumentEntityNormalizedValue>,
+    /// Optional. Represents the provenance of this entity wrt. the location on the page where it was found.
+    #[serde(default, rename = "pageAnchor")]
+    pub page_anchor: ::core::option::Option<GoogleCloudDocumentaiV1DocumentPageAnchor>,
+    /// Optional. Entities can be nested to form a hierarchical data structure representing the content in the document.
+    #[serde(default)]
+    pub properties: ::core::option::Option<::std::vec::Vec<GoogleCloudDocumentaiV1DocumentEntity>>,
+    /// Optional. The history of this annotation.
+    #[serde(default)]
+    pub provenance: ::core::option::Option<GoogleCloudDocumentaiV1DocumentProvenance>,
+    /// Optional. Whether the entity will be redacted for de-identification purposes.
+    #[serde(default)]
+    pub redacted: ::core::option::Option<bool>,
+    /// Optional. Provenance of the entity. Text anchor indexing into the Document.text.
+    #[serde(default, rename = "textAnchor")]
+    pub text_anchor: ::core::option::Option<GoogleCloudDocumentaiV1DocumentTextAnchor>,
+    /// Required. Entity type from a schema e.g. Address.
+    #[serde(default, rename = "type")]
+    pub type_: ::core::option::Option<String>,
+}
+
+/// Relationship between Entities.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1DocumentEntityRelation {
+    /// Object entity id.
+    #[serde(default, rename = "objectId")]
+    pub object_id: ::core::option::Option<String>,
+    /// Relationship description.
+    #[serde(default)]
+    pub relation: ::core::option::Option<String>,
+    /// Subject entity id.
+    #[serde(default, rename = "subjectId")]
+    pub subject_id: ::core::option::Option<String>,
+}
+
+/// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleRpcStatus {
+    /// The status code, which should be an enum value of google.rpc.Code.
+    #[serde(default)]
+    pub code: ::core::option::Option<i32>,
+    /// A list of messages that carry the error details. There is a common set of message types for APIs to use.
+    #[serde(default)]
+    pub details: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
+    /// A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.
+    #[serde(default)]
+    pub message: ::core::option::Option<String>,
+}
+
+/// A page in a Document.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1DocumentPage {
+    /// A list of visually detected text blocks on the page. A block has a set of lines (collected into paragraphs) that have a common line-spacing and orientation.
+    #[serde(default)]
+    pub blocks: ::core::option::Option<::std::vec::Vec<GoogleCloudDocumentaiV1DocumentPageBlock>>,
+    /// A list of detected barcodes.
+    #[serde(default, rename = "detectedBarcodes")]
+    pub detected_barcodes:
+        ::core::option::Option<::std::vec::Vec<GoogleCloudDocumentaiV1DocumentPageDetectedBarcode>>,
+    /// A list of detected languages together with confidence.
+    #[serde(default, rename = "detectedLanguages")]
+    pub detected_languages: ::core::option::Option<
+        ::std::vec::Vec<GoogleCloudDocumentaiV1DocumentPageDetectedLanguage>,
+    >,
+    /// Physical dimension of the page.
+    #[serde(default)]
+    pub dimension: ::core::option::Option<GoogleCloudDocumentaiV1DocumentPageDimension>,
+    /// A list of visually detected form fields on the page.
+    #[serde(default, rename = "formFields")]
+    pub form_fields:
+        ::core::option::Option<::std::vec::Vec<GoogleCloudDocumentaiV1DocumentPageFormField>>,
+    /// Rendered image for this page. This image is preprocessed to remove any skew, rotation, and distortions such that the annotation bounding boxes can be upright and axis-aligned.
+    #[serde(default)]
+    pub image: ::core::option::Option<GoogleCloudDocumentaiV1DocumentPageImage>,
+    /// Image quality scores.
+    #[serde(default, rename = "imageQualityScores")]
+    pub image_quality_scores:
+        ::core::option::Option<GoogleCloudDocumentaiV1DocumentPageImageQualityScores>,
+    /// Layout for the page.
+    #[serde(default)]
+    pub layout: ::core::option::Option<GoogleCloudDocumentaiV1DocumentPageLayout>,
+    /// A list of visually detected text lines on the page. A collection of tokens that a human would perceive as a line.
+    #[serde(default)]
+    pub lines: ::core::option::Option<::std::vec::Vec<GoogleCloudDocumentaiV1DocumentPageLine>>,
+    /// 1-based index for current Page in a parent Document. Useful when a page is taken out of a Document for individual processing.
+    #[serde(default, rename = "pageNumber")]
+    pub page_number: ::core::option::Option<i32>,
+    /// A list of visually detected text paragraphs on the page. A collection of lines that a human would perceive as a paragraph.
+    #[serde(default)]
+    pub paragraphs:
+        ::core::option::Option<::std::vec::Vec<GoogleCloudDocumentaiV1DocumentPageParagraph>>,
+    /// The history of this page.
+    #[serde(default)]
+    pub provenance: ::core::option::Option<GoogleCloudDocumentaiV1DocumentProvenance>,
+    /// A list of visually detected symbols on the page.
+    #[serde(default)]
+    pub symbols: ::core::option::Option<::std::vec::Vec<GoogleCloudDocumentaiV1DocumentPageSymbol>>,
+    /// A list of visually detected tables on the page.
+    #[serde(default)]
+    pub tables: ::core::option::Option<::std::vec::Vec<GoogleCloudDocumentaiV1DocumentPageTable>>,
+    /// A list of visually detected tokens on the page.
+    #[serde(default)]
+    pub tokens: ::core::option::Option<::std::vec::Vec<GoogleCloudDocumentaiV1DocumentPageToken>>,
+    /// Transformation matrices that were applied to the original document image to produce Page.image.
+    #[serde(default)]
+    pub transforms:
+        ::core::option::Option<::std::vec::Vec<GoogleCloudDocumentaiV1DocumentPageMatrix>>,
+    /// A list of detected non-text visual elements e.g. checkbox, signature etc. on the page.
+    #[serde(default, rename = "visualElements")]
+    pub visual_elements:
+        ::core::option::Option<::std::vec::Vec<GoogleCloudDocumentaiV1DocumentPageVisualElement>>,
+}
+
+/// Contains past or forward revisions of this document.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1DocumentRevision {
+    /// If the change was made by a person specify the name or id of that person.
+    #[serde(default)]
+    pub agent: ::core::option::Option<String>,
+    /// The time that the revision was created, internally generated by doc proto storage at the time of create.
+    #[serde(default, rename = "createTime")]
+    pub create_time: ::core::option::Option<String>,
+    /// Human Review information of this revision.
+    #[serde(default, rename = "humanReview")]
+    pub human_review: ::core::option::Option<GoogleCloudDocumentaiV1DocumentRevisionHumanReview>,
+    /// Id of the revision, internally generated by doc proto storage. Unique within the context of the document.
+    #[serde(default)]
+    pub id: ::core::option::Option<String>,
+    /// The revisions that this revision is based on. This can include one or more parent (when documents are merged.) This field represents the index into the revisions field.
+    #[serde(default)]
+    pub parent: ::core::option::Option<::std::vec::Vec<i32>>,
+    /// The revisions that this revision is based on. Must include all the ids that have anything to do with this revision - eg. there are provenance.parent.revision fields that index into this field.
+    #[serde(default, rename = "parentIds")]
+    pub parent_ids: ::core::option::Option<::std::vec::Vec<String>>,
+    /// If the annotation was made by processor identify the processor by its resource name.
+    #[serde(default)]
+    pub processor: ::core::option::Option<String>,
+}
+
+/// For a large document, sharding may be performed to produce several document shards. Each document shard contains this field to detail which shard it is.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1DocumentShardInfo {
+    /// Total number of shards.
+    #[serde(default, rename = "shardCount")]
+    pub shard_count: ::core::option::Option<String>,
+    /// The 0-based index of this shard.
+    #[serde(default, rename = "shardIndex")]
+    pub shard_index: ::core::option::Option<String>,
+    /// The index of the first character in Document.text in the overall document global text.
+    #[serde(default, rename = "textOffset")]
+    pub text_offset: ::core::option::Option<String>,
+}
+
+/// This message is used for text changes aka. OCR corrections.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1DocumentTextChange {
+    /// The text that replaces the text identified in the text_anchor.
+    #[serde(default, rename = "changedText")]
+    pub changed_text: ::core::option::Option<String>,
+    /// The history of this annotation.
+    #[serde(default)]
+    pub provenance:
+        ::core::option::Option<::std::vec::Vec<GoogleCloudDocumentaiV1DocumentProvenance>>,
+    /// Provenance of the correction. Text anchor indexing into the Document.text. There can only be a single TextAnchor.text_segments element. If the start and end index of the text segment are the same, the text change is inserted before that index.
+    #[serde(default, rename = "textAnchor")]
+    pub text_anchor: ::core::option::Option<GoogleCloudDocumentaiV1DocumentTextAnchor>,
+}
+
+/// Annotation for common text style attributes. This adheres to CSS conventions as much as possible.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1DocumentStyle {
+    /// Text background color.
+    #[serde(default, rename = "backgroundColor")]
+    pub background_color: ::core::option::Option<GoogleTypeColor>,
+    /// Text color.
+    #[serde(default)]
+    pub color: ::core::option::Option<GoogleTypeColor>,
+    /// Font family such as Arial, Times New Roman. https://www.w3schools.com/cssref/pr_font_font-family.asp
+    #[serde(default, rename = "fontFamily")]
+    pub font_family: ::core::option::Option<String>,
+    /// Font size.
+    #[serde(default, rename = "fontSize")]
+    pub font_size: ::core::option::Option<GoogleCloudDocumentaiV1DocumentStyleFontSize>,
+    /// [Font weight](https://www.w3schools.com/cssref/pr_font_weight.asp). Possible values are normal, bold, bolder, and lighter.
+    #[serde(default, rename = "fontWeight")]
+    pub font_weight: ::core::option::Option<String>,
+    /// Text anchor indexing into the Document.text.
+    #[serde(default, rename = "textAnchor")]
+    pub text_anchor: ::core::option::Option<GoogleCloudDocumentaiV1DocumentTextAnchor>,
+    /// [Text decoration](https://www.w3schools.com/cssref/pr_text_text-decoration.asp). Follows CSS standard.
+    #[serde(default, rename = "textDecoration")]
+    pub text_decoration: ::core::option::Option<String>,
+    /// [Text style](https://www.w3schools.com/cssref/pr_font_font-style.asp). Possible values are normal, italic, and oblique.
+    #[serde(default, rename = "textStyle")]
+    pub text_style: ::core::option::Option<String>,
+}
+
+/// Represents the result of executing an action.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudContentwarehouseV1ActionOutput {
+    /// ID of the action.
+    #[serde(default, rename = "actionId")]
+    pub action_id: ::core::option::Option<String>,
+    /// State of an action. // TODO: enum values: ["UNKNOWN", "ACTION_SUCCEEDED", "ACTION_FAILED", "ACTION_TIMED_OUT", "ACTION_PENDING"]
+    #[serde(default, rename = "actionState")]
+    pub action_state: ::core::option::Option<String>,
+    /// Action execution output message.
+    #[serde(default, rename = "outputMessage")]
+    pub output_message: ::core::option::Option<String>,
+}
+
+/// Represents the rule for a content warehouse trigger.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudContentwarehouseV1Rule {
+    /// List of actions that are executed when the rule is satisfied.
+    #[serde(default)]
+    pub actions: ::core::option::Option<::std::vec::Vec<GoogleCloudContentwarehouseV1Action>>,
+    /// Represents the conditional expression to be evaluated. Expression should evaluate to a boolean result. When the condition is true actions are executed. Example: user_role = "hsbc_role_1" AND doc.salary &gt; 20000
+    #[serde(default)]
+    pub condition: ::core::option::Option<String>,
+    /// Short description of the rule and its context.
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+    /// ID of the rule. It has to be unique across all the examples. This is managed internally.
+    #[serde(default, rename = "ruleId")]
+    pub rule_id: ::core::option::Option<String>,
+    /// Identifies the trigger type for running the policy. // TODO: enum values: ["UNKNOWN", "ON_CREATE", "ON_UPDATE", "ON_CREATE_LINK", "ON_DELETE_LINK"]
+    #[serde(default, rename = "triggerType")]
+    pub trigger_type: ::core::option::Option<String>,
+}
+
+/// Represents a chunk.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1DocumentChunkedDocumentChunk {
+    /// ID of the chunk.
+    #[serde(default, rename = "chunkId")]
+    pub chunk_id: ::core::option::Option<String>,
+    /// Text content of the chunk.
+    #[serde(default)]
+    pub content: ::core::option::Option<String>,
+    /// Page footers associated with the chunk.
+    #[serde(default, rename = "pageFooters")]
+    pub page_footers: ::core::option::Option<
+        ::std::vec::Vec<GoogleCloudDocumentaiV1DocumentChunkedDocumentChunkChunkPageFooter>,
+    >,
+    /// Page headers associated with the chunk.
+    #[serde(default, rename = "pageHeaders")]
+    pub page_headers: ::core::option::Option<
+        ::std::vec::Vec<GoogleCloudDocumentaiV1DocumentChunkedDocumentChunkChunkPageHeader>,
+    >,
+    /// Page span of the chunk.
+    #[serde(default, rename = "pageSpan")]
+    pub page_span:
+        ::core::option::Option<GoogleCloudDocumentaiV1DocumentChunkedDocumentChunkChunkPageSpan>,
+    /// Unused.
+    #[serde(default, rename = "sourceBlockIds")]
+    pub source_block_ids: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// Parsed and normalized entity value.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1DocumentEntityNormalizedValue {
+    /// Postal address. See also: https://github.com/googleapis/googleapis/blob/master/google/type/postal_address.proto
+    #[serde(default, rename = "addressValue")]
+    pub address_value: ::core::option::Option<GoogleTypePostalAddress>,
+    /// Boolean value. Can be used for entities with binary values, or for checkboxes.
+    #[serde(default, rename = "booleanValue")]
+    pub boolean_value: ::core::option::Option<bool>,
+    /// Date value. Includes year, month, day. See also: https://github.com/googleapis/googleapis/blob/master/google/type/date.proto
+    #[serde(default, rename = "dateValue")]
+    pub date_value: ::core::option::Option<GoogleTypeDate>,
+    /// DateTime value. Includes date, time, and timezone. See also: https://github.com/googleapis/googleapis/blob/master/google/type/datetime.proto
+    #[serde(default, rename = "datetimeValue")]
+    pub datetime_value: ::core::option::Option<GoogleTypeDateTime>,
+    /// Float value.
+    #[serde(default, rename = "floatValue")]
+    pub float_value: ::core::option::Option<f32>,
+    /// Integer value.
+    #[serde(default, rename = "integerValue")]
+    pub integer_value: ::core::option::Option<i32>,
+    /// Money value. See also: https://github.com/googleapis/googleapis/blob/master/google/type/money.proto
+    #[serde(default, rename = "moneyValue")]
+    pub money_value: ::core::option::Option<GoogleTypeMoney>,
+    /// Optional. An optional field to store a normalized string. For some entity types, one of respective structured_value fields may also be populated. Also not all the types of structured_value will be normalized. For example, some processors may not generate float or integer normalized text by default. Below are sample formats mapped to structured values. - Money/Currency type (money_value) is in the ISO 4217 text format. - Date type (date_value) is in the ISO 8601 text format. - Datetime type (datetime_value) is in the ISO 8601 text format.
+    #[serde(default)]
+    pub text: ::core::option::Option<String>,
+}
+
+/// Referencing the visual context of the entity in the Document.pages. Page anchors can be cross-page, consist of multiple bounding polygons and optionally reference specific layout element types.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1DocumentPageAnchor {
+    /// One or more references to visual page elements
+    #[serde(default, rename = "pageRefs")]
+    pub page_refs:
+        ::core::option::Option<::std::vec::Vec<GoogleCloudDocumentaiV1DocumentPageAnchorPageRef>>,
+}
+
+/// A block has a set of lines (collected into paragraphs) that have a common line-spacing and orientation.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1DocumentPageBlock {
+    /// A list of detected languages together with confidence.
+    #[serde(default, rename = "detectedLanguages")]
+    pub detected_languages: ::core::option::Option<
+        ::std::vec::Vec<GoogleCloudDocumentaiV1DocumentPageDetectedLanguage>,
+    >,
+    /// Layout for Block.
+    #[serde(default)]
+    pub layout: ::core::option::Option<GoogleCloudDocumentaiV1DocumentPageLayout>,
+    /// The history of this annotation.
+    #[serde(default)]
+    pub provenance: ::core::option::Option<GoogleCloudDocumentaiV1DocumentProvenance>,
+}
+
+/// A detected barcode.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1DocumentPageDetectedBarcode {
+    /// Detailed barcode information of the DetectedBarcode.
+    #[serde(default)]
+    pub barcode: ::core::option::Option<GoogleCloudDocumentaiV1Barcode>,
+    /// Layout for DetectedBarcode.
+    #[serde(default)]
+    pub layout: ::core::option::Option<GoogleCloudDocumentaiV1DocumentPageLayout>,
+}
+
+/// Dimension for the page.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1DocumentPageDimension {
+    /// Page height.
+    #[serde(default)]
+    pub height: ::core::option::Option<f32>,
+    /// Dimension unit.
+    #[serde(default)]
+    pub unit: ::core::option::Option<String>,
+    /// Page width.
+    #[serde(default)]
+    pub width: ::core::option::Option<f32>,
+}
+
+/// A form field detected on the page.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1DocumentPageFormField {
+    /// Created for Labeling UI to export key text. If corrections were made to the text identified by the field_name.text_anchor, this field will contain the correction.
+    #[serde(default, rename = "correctedKeyText")]
+    pub corrected_key_text: ::core::option::Option<String>,
+    /// Created for Labeling UI to export value text. If corrections were made to the text identified by the field_value.text_anchor, this field will contain the correction.
+    #[serde(default, rename = "correctedValueText")]
+    pub corrected_value_text: ::core::option::Option<String>,
+    /// Layout for the FormField name. e.g. Address, Email, Grand total, Phone number, etc.
+    #[serde(default, rename = "fieldName")]
+    pub field_name: ::core::option::Option<GoogleCloudDocumentaiV1DocumentPageLayout>,
+    /// Layout for the FormField value.
+    #[serde(default, rename = "fieldValue")]
+    pub field_value: ::core::option::Option<GoogleCloudDocumentaiV1DocumentPageLayout>,
+    /// A list of detected languages for name together with confidence.
+    #[serde(default, rename = "nameDetectedLanguages")]
+    pub name_detected_languages: ::core::option::Option<
+        ::std::vec::Vec<GoogleCloudDocumentaiV1DocumentPageDetectedLanguage>,
+    >,
+    /// The history of this annotation.
+    #[serde(default)]
+    pub provenance: ::core::option::Option<GoogleCloudDocumentaiV1DocumentProvenance>,
+    /// A list of detected languages for value together with confidence.
+    #[serde(default, rename = "valueDetectedLanguages")]
+    pub value_detected_languages: ::core::option::Option<
+        ::std::vec::Vec<GoogleCloudDocumentaiV1DocumentPageDetectedLanguage>,
+    >,
+    /// If the value is non-textual, this field represents the type. Current valid values are: - blank (this indicates the field_value is normal text) - unfilled_checkbox - filled_checkbox
+    #[serde(default, rename = "valueType")]
+    pub value_type: ::core::option::Option<String>,
+}
+
+/// Rendered image contents for this page.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1DocumentPageImage {
+    /// Raw byte content of the image.
+    #[serde(default)]
+    pub content: ::core::option::Option<String>,
+    /// Height of the image in pixels.
+    #[serde(default)]
+    pub height: ::core::option::Option<i32>,
+    /// Encoding [media type (MIME type)](https://www.iana.org/assignments/media-types/media-types.xhtml) for the image.
+    #[serde(default, rename = "mimeType")]
+    pub mime_type: ::core::option::Option<String>,
+    /// Width of the image in pixels.
+    #[serde(default)]
+    pub width: ::core::option::Option<i32>,
+}
+
+/// Image quality scores for the page image.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1DocumentPageImageQualityScores {
+    /// A list of detected defects.
+    #[serde(default, rename = "detectedDefects")]
+    pub detected_defects: ::core::option::Option<
+        ::std::vec::Vec<GoogleCloudDocumentaiV1DocumentPageImageQualityScoresDetectedDefect>,
+    >,
+    /// The overall quality score. Range [0, 1] where 1 is perfect quality.
+    #[serde(default, rename = "qualityScore")]
+    pub quality_score: ::core::option::Option<f32>,
+}
+
+/// A collection of tokens that a human would perceive as a line. Does not cross column boundaries, can be horizontal, vertical, etc.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1DocumentPageLine {
+    /// A list of detected languages together with confidence.
+    #[serde(default, rename = "detectedLanguages")]
+    pub detected_languages: ::core::option::Option<
+        ::std::vec::Vec<GoogleCloudDocumentaiV1DocumentPageDetectedLanguage>,
+    >,
+    /// Layout for Line.
+    #[serde(default)]
+    pub layout: ::core::option::Option<GoogleCloudDocumentaiV1DocumentPageLayout>,
+    /// The history of this annotation.
+    #[serde(default)]
+    pub provenance: ::core::option::Option<GoogleCloudDocumentaiV1DocumentProvenance>,
+}
+
+/// A collection of lines that a human would perceive as a paragraph.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1DocumentPageParagraph {
+    /// A list of detected languages together with confidence.
+    #[serde(default, rename = "detectedLanguages")]
+    pub detected_languages: ::core::option::Option<
+        ::std::vec::Vec<GoogleCloudDocumentaiV1DocumentPageDetectedLanguage>,
+    >,
+    /// Layout for Paragraph.
+    #[serde(default)]
+    pub layout: ::core::option::Option<GoogleCloudDocumentaiV1DocumentPageLayout>,
+    /// The history of this annotation.
+    #[serde(default)]
+    pub provenance: ::core::option::Option<GoogleCloudDocumentaiV1DocumentProvenance>,
+}
+
+/// A detected symbol.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1DocumentPageSymbol {
+    /// A list of detected languages together with confidence.
+    #[serde(default, rename = "detectedLanguages")]
+    pub detected_languages: ::core::option::Option<
+        ::std::vec::Vec<GoogleCloudDocumentaiV1DocumentPageDetectedLanguage>,
+    >,
+    /// Layout for Symbol.
+    #[serde(default)]
+    pub layout: ::core::option::Option<GoogleCloudDocumentaiV1DocumentPageLayout>,
+}
+
+/// A table representation similar to HTML table structure.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1DocumentPageTable {
+    /// Body rows of the table.
+    #[serde(default, rename = "bodyRows")]
+    pub body_rows:
+        ::core::option::Option<::std::vec::Vec<GoogleCloudDocumentaiV1DocumentPageTableTableRow>>,
+    /// A list of detected languages together with confidence.
+    #[serde(default, rename = "detectedLanguages")]
+    pub detected_languages: ::core::option::Option<
+        ::std::vec::Vec<GoogleCloudDocumentaiV1DocumentPageDetectedLanguage>,
+    >,
+    /// Header rows of the table.
+    #[serde(default, rename = "headerRows")]
+    pub header_rows:
+        ::core::option::Option<::std::vec::Vec<GoogleCloudDocumentaiV1DocumentPageTableTableRow>>,
+    /// Layout for Table.
+    #[serde(default)]
+    pub layout: ::core::option::Option<GoogleCloudDocumentaiV1DocumentPageLayout>,
+    /// The history of this table.
+    #[serde(default)]
+    pub provenance: ::core::option::Option<GoogleCloudDocumentaiV1DocumentProvenance>,
+}
+
+/// A detected token.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1DocumentPageToken {
+    /// Detected break at the end of a Token.
+    #[serde(default, rename = "detectedBreak")]
+    pub detected_break:
+        ::core::option::Option<GoogleCloudDocumentaiV1DocumentPageTokenDetectedBreak>,
+    /// A list of detected languages together with confidence.
+    #[serde(default, rename = "detectedLanguages")]
+    pub detected_languages: ::core::option::Option<
+        ::std::vec::Vec<GoogleCloudDocumentaiV1DocumentPageDetectedLanguage>,
+    >,
+    /// Layout for Token.
+    #[serde(default)]
+    pub layout: ::core::option::Option<GoogleCloudDocumentaiV1DocumentPageLayout>,
+    /// The history of this annotation.
+    #[serde(default)]
+    pub provenance: ::core::option::Option<GoogleCloudDocumentaiV1DocumentProvenance>,
+    /// Text style attributes.
+    #[serde(default, rename = "styleInfo")]
+    pub style_info: ::core::option::Option<GoogleCloudDocumentaiV1DocumentPageTokenStyleInfo>,
+}
+
+/// Representation for transformation matrix, intended to be compatible and used with OpenCV format for image manipulation.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1DocumentPageMatrix {
+    /// Number of columns in the matrix.
+    #[serde(default)]
+    pub cols: ::core::option::Option<i32>,
+    /// The matrix data.
+    #[serde(default)]
+    pub data: ::core::option::Option<String>,
+    /// Number of rows in the matrix.
+    #[serde(default)]
+    pub rows: ::core::option::Option<i32>,
+    /// This encodes information about what data type the matrix uses. For example, 0 (CV_8U) is an unsigned 8-bit image. For the full list of OpenCV primitive data types, please refer to https://docs.opencv.org/4.3.0/d1/d1b/group__core__hal__interface.html
+    #[serde(default, rename = "type")]
+    pub type_: ::core::option::Option<i32>,
+}
+
+/// Detected non-text visual elements e.g. checkbox, signature etc. on the page.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1DocumentPageVisualElement {
+    /// A list of detected languages together with confidence.
+    #[serde(default, rename = "detectedLanguages")]
+    pub detected_languages: ::core::option::Option<
+        ::std::vec::Vec<GoogleCloudDocumentaiV1DocumentPageDetectedLanguage>,
+    >,
+    /// Layout for VisualElement.
+    #[serde(default)]
+    pub layout: ::core::option::Option<GoogleCloudDocumentaiV1DocumentPageLayout>,
+    /// Type of the VisualElement.
+    #[serde(default, rename = "type")]
+    pub type_: ::core::option::Option<String>,
+}
+
+/// Human Review information of the document.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1DocumentRevisionHumanReview {
+    /// Human review state. e.g. requested, succeeded, rejected.
+    #[serde(default)]
+    pub state: ::core::option::Option<String>,
+    /// A message providing more details about the current state of processing. For example, the rejection reason when the state is rejected.
+    #[serde(default, rename = "stateMessage")]
+    pub state_message: ::core::option::Option<String>,
+}
+
+/// Font size with unit.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1DocumentStyleFontSize {
+    /// Font size for the text.
+    #[serde(default)]
+    pub size: ::core::option::Option<f32>,
+    /// Unit for the font size. Follows CSS naming (such as in, px, and pt).
+    #[serde(default)]
+    pub unit: ::core::option::Option<String>,
+}
+
+/// Represents the action triggered by Rule Engine when the rule is true.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudContentwarehouseV1Action {
+    /// Action triggering access control operations.
+    #[serde(default, rename = "accessControl")]
+    pub access_control: ::core::option::Option<GoogleCloudContentwarehouseV1AccessControlAction>,
+    /// ID of the action. Managed internally.
+    #[serde(default, rename = "actionId")]
+    pub action_id: ::core::option::Option<String>,
+    /// Action triggering create document link operation.
+    #[serde(default, rename = "addToFolder")]
+    pub add_to_folder: ::core::option::Option<GoogleCloudContentwarehouseV1AddToFolderAction>,
+    /// Action triggering data update operations.
+    #[serde(default, rename = "dataUpdate")]
+    pub data_update: ::core::option::Option<GoogleCloudContentwarehouseV1DataUpdateAction>,
+    /// Action triggering data validation operations.
+    #[serde(default, rename = "dataValidation")]
+    pub data_validation: ::core::option::Option<GoogleCloudContentwarehouseV1DataValidationAction>,
+    /// Action deleting the document.
+    #[serde(default, rename = "deleteDocumentAction")]
+    pub delete_document_action:
+        ::core::option::Option<GoogleCloudContentwarehouseV1DeleteDocumentAction>,
+    /// Action publish to Pub/Sub operation.
+    #[serde(default, rename = "publishToPubSub")]
+    pub publish_to_pub_sub: ::core::option::Option<GoogleCloudContentwarehouseV1PublishAction>,
+    /// Action removing a document from a folder.
+    #[serde(default, rename = "removeFromFolderAction")]
+    pub remove_from_folder_action:
+        ::core::option::Option<GoogleCloudContentwarehouseV1RemoveFromFolderAction>,
+}
+
+/// Represents the page footer associated with the chunk.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1DocumentChunkedDocumentChunkChunkPageFooter {
+    /// Page span of the footer.
+    #[serde(default, rename = "pageSpan")]
+    pub page_span:
+        ::core::option::Option<GoogleCloudDocumentaiV1DocumentChunkedDocumentChunkChunkPageSpan>,
+    /// Footer in text format.
+    #[serde(default)]
+    pub text: ::core::option::Option<String>,
+}
+
+/// Represents the page header associated with the chunk.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1DocumentChunkedDocumentChunkChunkPageHeader {
+    /// Page span of the header.
+    #[serde(default, rename = "pageSpan")]
+    pub page_span:
+        ::core::option::Option<GoogleCloudDocumentaiV1DocumentChunkedDocumentChunkChunkPageSpan>,
+    /// Header in text format.
+    #[serde(default)]
+    pub text: ::core::option::Option<String>,
+}
+
+/// Represents a postal address. For example for postal delivery or payments addresses. Given a postal address, a postal service can deliver items to a premise, P.O. Box or similar. It is not intended to model geographical locations (roads, towns, mountains). In typical usage an address would be created by user input or from importing existing data, depending on the type of process. Advice on address input / editing: - Use an internationalization-ready address widget such as https://github.com/google/libaddressinput) - Users should not be presented with UI elements for input or editing of fields outside countries where that field is used. For more guidance on how to use this schema, see: https://support.google.com/business/answer/6397478
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleTypePostalAddress {
+    /// Unstructured address lines describing the lower levels of an address. Because values in address_lines do not have type information and may sometimes contain multiple values in a single field (For example "Austin, TX"), it is important that the line order is clear. The order of address lines should be "envelope order" for the country/region of the address. In places where this can vary (For example Japan), address_language is used to make it explicit (For example "ja" for large-to-small ordering and "ja-Latn" or "en" for small-to-large). This way, the most specific line of an address can be selected based on the language. The minimum permitted structural representation of an address consists of a region_code with all remaining information placed in the address_lines. It would be possible to format such an address very approximately without geocoding, but no semantic reasoning could be made about any of the address components until it was at least partially resolved. Creating an address only containing a region_code and address_lines, and then geocoding is the recommended way to handle completely unstructured addresses (as opposed to guessing which parts of the address should be localities or administrative areas).
+    #[serde(default, rename = "addressLines")]
+    pub address_lines: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Optional. Highest administrative subdivision which is used for postal addresses of a country or region. For example, this can be a state, a province, an oblast, or a prefecture. Specifically, for Spain this is the province and not the autonomous community (For example "Barcelona" and not "Catalonia"). Many countries don''t use an administrative area in postal addresses. For example in Switzerland this should be left unpopulated.
+    #[serde(default, rename = "administrativeArea")]
+    pub administrative_area: ::core::option::Option<String>,
+    /// Optional. BCP-47 language code of the contents of this address (if known). This is often the UI language of the input form or is expected to match one of the languages used in the address'' country/region, or their transliterated equivalents. This can affect formatting in certain countries, but is not critical to the correctness of the data and will never affect any validation or other non-formatting related operations. If this value is not known, it should be omitted (rather than specifying a possibly incorrect default). Examples: "zh-Hant", "ja", "ja-Latn", "en".
+    #[serde(default, rename = "languageCode")]
+    pub language_code: ::core::option::Option<String>,
+    /// Optional. Generally refers to the city/town portion of the address. Examples: US city, IT comune, UK post town. In regions of the world where localities are not well defined or do not fit into this structure well, leave locality empty and use address_lines.
+    #[serde(default)]
+    pub locality: ::core::option::Option<String>,
+    /// Optional. The name of the organization at the address.
+    #[serde(default)]
+    pub organization: ::core::option::Option<String>,
+    /// Optional. Postal code of the address. Not all countries use or require postal codes to be present, but where they are used, they may trigger additional validation with other parts of the address (For example state/zip validation in the U.S.A.).
+    #[serde(default, rename = "postalCode")]
+    pub postal_code: ::core::option::Option<String>,
+    /// Optional. The recipient at the address. This field may, under certain circumstances, contain multiline information. For example, it might contain "care of" information.
+    #[serde(default)]
+    pub recipients: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Required. CLDR region code of the country/region of the address. This is never inferred and it is up to the user to ensure the value is correct. See https://cldr.unicode.org/ and https://www.unicode.org/cldr/charts/30/supplemental/territory_information.html for details. Example: "CH" for Switzerland.
+    #[serde(default, rename = "regionCode")]
+    pub region_code: ::core::option::Option<String>,
+    /// The schema revision of the PostalAddress. This must be set to 0, which is the latest revision. All new revisions **must** be backward compatible with old revisions.
+    #[serde(default)]
+    pub revision: ::core::option::Option<i32>,
+    /// Optional. Additional, country-specific, sorting code. This is not used in most regions. Where it is used, the value is either a string like "CEDEX", optionally followed by a number (For example "CEDEX 7"), or just a number alone, representing the "sector code" (Jamaica), "delivery area indicator" (Malawi) or "post office indicator" (For example Côte d''Ivoire).
+    #[serde(default, rename = "sortingCode")]
+    pub sorting_code: ::core::option::Option<String>,
+    /// Optional. Sublocality of the address. For example, this can be neighborhoods, boroughs, districts.
+    #[serde(default)]
+    pub sublocality: ::core::option::Option<String>,
+}
+
+/// Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleTypeDate {
+    /// Day of a month. Must be from 1 to 31 and valid for the year and month, or 0 to specify a year by itself or a year and month where the day isn''t significant.
+    #[serde(default)]
+    pub day: ::core::option::Option<i32>,
+    /// Month of a year. Must be from 1 to 12, or 0 to specify a year without a month and day.
+    #[serde(default)]
+    pub month: ::core::option::Option<i32>,
+    /// Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.
+    #[serde(default)]
+    pub year: ::core::option::Option<i32>,
+}
+
+/// Represents an amount of money with its currency type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleTypeMoney {
+    /// The three-letter currency code defined in ISO 4217.
+    #[serde(default, rename = "currencyCode")]
+    pub currency_code: ::core::option::Option<String>,
+    /// Number of nano (10^-9) units of the amount. The value must be between -999,999,999 and +999,999,999 inclusive. If units is positive, nanos must be positive or zero. If units is zero, nanos can be positive, zero, or negative. If units is negative, nanos must be negative or zero. For example $-1.75 is represented as units=-1 and nanos=-750,000,000.
+    #[serde(default)]
+    pub nanos: ::core::option::Option<i32>,
+    /// The whole units of the amount. For example if currencyCode is "USD", then 1 unit is one US dollar.
+    #[serde(default)]
+    pub units: ::core::option::Option<String>,
+}
+
+/// Represents a weak reference to a page element within a document.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1DocumentPageAnchorPageRef {
+    /// Optional. Identifies the bounding polygon of a layout element on the page. If layout_type is set, the bounding polygon must be exactly the same to the layout element it''s referring to.
+    #[serde(default, rename = "boundingPoly")]
+    pub bounding_poly: ::core::option::Option<GoogleCloudDocumentaiV1BoundingPoly>,
+    /// Optional. Confidence of detected page element, if applicable. Range [0, 1].
+    #[serde(default)]
+    pub confidence: ::core::option::Option<f32>,
+    /// Optional. Deprecated. Use PageRef.bounding_poly instead.
+    #[serde(default, rename = "layoutId")]
+    pub layout_id: ::core::option::Option<String>,
+    /// Optional. The type of the layout element that is being referenced if any. // TODO: enum values: ["LAYOUT_TYPE_UNSPECIFIED", "BLOCK", "PARAGRAPH", "LINE", "TOKEN", "VISUAL_ELEMENT", "TABLE", "FORM_FIELD"]
+    #[serde(default, rename = "layoutType")]
+    pub layout_type: ::core::option::Option<String>,
+    /// Required. Index into the Document.pages element, for example using Document.pages to locate the related page element. This field is skipped when its value is the default 0. See https://developers.google.com/protocol-buffers/docs/proto3#json.
+    #[serde(default)]
+    pub page: ::core::option::Option<String>,
+}
+
+/// Encodes the detailed information of a barcode.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1Barcode {
+    /// Format of a barcode. The supported formats are: - CODE_128: Code 128 type. - CODE_39: Code 39 type. - CODE_93: Code 93 type. - CODABAR: Codabar type. - DATA_MATRIX: 2D Data Matrix type. - ITF: ITF type. - EAN_13: EAN-13 type. - EAN_8: EAN-8 type. - QR_CODE: 2D QR code type. - UPC_A: UPC-A type. - UPC_E: UPC-E type. - PDF417: PDF417 type. - AZTEC: 2D Aztec code type. - DATABAR: GS1 DataBar code type.
+    #[serde(default)]
+    pub format: ::core::option::Option<String>,
+    /// Raw value encoded in the barcode. For example: ''MEBKM:TITLE:Google;URL:https://www.google.com;;''.
+    #[serde(default, rename = "rawValue")]
+    pub raw_value: ::core::option::Option<String>,
+    /// Value format describes the format of the value that a barcode encodes. The supported formats are: - CONTACT_INFO: Contact information. - EMAIL: Email address. - ISBN: ISBN identifier. - PHONE: Phone number. - PRODUCT: Product. - SMS: SMS message. - TEXT: Text string. - URL: URL address. - WIFI: Wifi information. - GEO: Geo-localization. - CALENDAR_EVENT: Calendar event. - DRIVER_LICENSE: Driver''s license.
+    #[serde(default, rename = "valueFormat")]
+    pub value_format: ::core::option::Option<String>,
+}
+
+/// Image Quality Defects
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1DocumentPageImageQualityScoresDetectedDefect {
+    /// Confidence of detected defect. Range [0, 1] where 1 indicates strong confidence that the defect exists.
+    #[serde(default)]
+    pub confidence: ::core::option::Option<f32>,
+    /// Name of the defect type. Supported values are: - quality/defect_blurry - quality/defect_noisy - quality/defect_dark - quality/defect_faint - quality/defect_text_too_small - quality/defect_document_cutoff - quality/defect_text_cutoff - quality/defect_glare
+    #[serde(default, rename = "type")]
+    pub type_: ::core::option::Option<String>,
+}
+
+/// A row of table cells.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1DocumentPageTableTableRow {
+    /// Cells that make up this row.
+    #[serde(default)]
+    pub cells:
+        ::core::option::Option<::std::vec::Vec<GoogleCloudDocumentaiV1DocumentPageTableTableCell>>,
+}
+
+/// Detected break at the end of a Token.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1DocumentPageTokenDetectedBreak {
+    /// Detected break type. // TODO: enum values: ["TYPE_UNSPECIFIED", "SPACE", "WIDE_SPACE", "HYPHEN"]
+    #[serde(default, rename = "type")]
+    pub type_: ::core::option::Option<String>,
+}
+
+/// Structure to identify provenance relationships between annotations in different revisions.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1DocumentProvenance {
+    /// The Id of this operation. Needs to be unique within the scope of the revision.
+    #[serde(default)]
+    pub id: ::core::option::Option<i32>,
+    /// References to the original elements that are replaced.
+    #[serde(default)]
+    pub parents:
+        ::core::option::Option<::std::vec::Vec<GoogleCloudDocumentaiV1DocumentProvenanceParent>>,
+    /// The index of the revision that produced this element.
+    #[serde(default)]
+    pub revision: ::core::option::Option<i32>,
+    /// The type of provenance operation. // TODO: enum values: ["OPERATION_TYPE_UNSPECIFIED", "ADD", "REMOVE", "UPDATE", "REPLACE", "EVAL_REQUESTED", "EVAL_APPROVED", "EVAL_SKIPPED"]
+    #[serde(default, rename = "type")]
+    pub type_: ::core::option::Option<String>,
+}
+
+/// Font and other text style attributes.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1DocumentPageTokenStyleInfo {
+    /// Color of the background.
+    #[serde(default, rename = "backgroundColor")]
+    pub background_color: ::core::option::Option<GoogleTypeColor>,
+    /// Whether the text is bold (equivalent to font_weight is at least 700).
+    #[serde(default)]
+    pub bold: ::core::option::Option<bool>,
+    /// Font size in points (1 point is ¹⁄₇₂ inches).
+    #[serde(default, rename = "fontSize")]
+    pub font_size: ::core::option::Option<i32>,
+    /// Name or style of the font.
+    #[serde(default, rename = "fontType")]
+    pub font_type: ::core::option::Option<String>,
+    /// TrueType weight on a scale 100 (thin) to 1000 (ultra-heavy). Normal is 400, bold is 700.
+    #[serde(default, rename = "fontWeight")]
+    pub font_weight: ::core::option::Option<i32>,
+    /// Whether the text is handwritten.
+    #[serde(default)]
+    pub handwritten: ::core::option::Option<bool>,
+    /// Whether the text is italic.
+    #[serde(default)]
+    pub italic: ::core::option::Option<bool>,
+    /// Letter spacing in points.
+    #[serde(default, rename = "letterSpacing")]
+    pub letter_spacing: ::core::option::Option<f64>,
+    /// Font size in pixels, equal to _unrounded font_size_ * _resolution_ ÷ 72.0.
+    #[serde(default, rename = "pixelFontSize")]
+    pub pixel_font_size: ::core::option::Option<f64>,
+    /// Whether the text is in small caps. This feature is not supported yet.
+    #[serde(default)]
+    pub smallcaps: ::core::option::Option<bool>,
+    /// Whether the text is strikethrough. This feature is not supported yet.
+    #[serde(default)]
+    pub strikeout: ::core::option::Option<bool>,
+    /// Whether the text is a subscript. This feature is not supported yet.
+    #[serde(default)]
+    pub subscript: ::core::option::Option<bool>,
+    /// Whether the text is a superscript. This feature is not supported yet.
+    #[serde(default)]
+    pub superscript: ::core::option::Option<bool>,
+    /// Color of the text.
+    #[serde(default, rename = "textColor")]
+    pub text_color: ::core::option::Option<GoogleTypeColor>,
+    /// Whether the text is underlined.
+    #[serde(default)]
+    pub underlined: ::core::option::Option<bool>,
+}
+
+/// Represents the action responsible for access control list management operations.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudContentwarehouseV1AccessControlAction {
+    /// Identifies the type of operation. // TODO: enum values: ["UNKNOWN", "ADD_POLICY_BINDING", "REMOVE_POLICY_BINDING", "REPLACE_POLICY_BINDING"]
+    #[serde(default, rename = "operationType")]
+    pub operation_type: ::core::option::Option<String>,
+    /// Represents the new policy from which bindings are added, removed or replaced based on the type of the operation. the policy is limited to a few 10s of KB.
+    #[serde(default)]
+    pub policy: ::core::option::Option<GoogleIamV1Policy>,
+}
+
+/// Represents the action responsible for adding document under a folder.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudContentwarehouseV1AddToFolderAction {
+    /// Names of the folder under which new document is to be added. Format: projects/{project_number}/locations/{location}/documents/{document_id}.
+    #[serde(default)]
+    pub folders: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// Represents the action responsible for deleting the document.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudContentwarehouseV1DeleteDocumentAction {
+    /// Boolean field to select between hard vs soft delete options. Set ''true'' for ''hard delete'' and ''false'' for ''soft delete''.
+    #[serde(default, rename = "enableHardDelete")]
+    pub enable_hard_delete: ::core::option::Option<bool>,
+}
+
+/// Represents the action responsible for publishing messages to a Pub/Sub topic.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudContentwarehouseV1PublishAction {
+    /// Messages to be published.
+    #[serde(default)]
+    pub messages: ::core::option::Option<::std::vec::Vec<String>>,
+    /// The topic id in the Pub/Sub service for which messages will be published to.
+    #[serde(default, rename = "topicId")]
+    pub topic_id: ::core::option::Option<String>,
+}
+
+/// Represents the action responsible for remove a document from a specific folder.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudContentwarehouseV1RemoveFromFolderAction {
+    /// Condition of the action to be executed.
+    #[serde(default)]
+    pub condition: ::core::option::Option<String>,
+    /// Name of the folder under which new document is to be added. Format: projects/{project_number}/locations/{location}/documents/{document_id}.
+    #[serde(default)]
+    pub folder: ::core::option::Option<String>,
+}
+
+/// Represents where the chunk starts and ends in the document.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1DocumentChunkedDocumentChunkChunkPageSpan {
+    /// Page where chunk ends in the document.
+    #[serde(default, rename = "pageEnd")]
+    pub page_end: ::core::option::Option<i32>,
+    /// Page where chunk starts in the document.
+    #[serde(default, rename = "pageStart")]
+    pub page_start: ::core::option::Option<i32>,
+}
+
+/// A cell representation inside the table.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1DocumentPageTableTableCell {
+    /// How many columns this cell spans.
+    #[serde(default, rename = "colSpan")]
+    pub col_span: ::core::option::Option<i32>,
+    /// A list of detected languages together with confidence.
+    #[serde(default, rename = "detectedLanguages")]
+    pub detected_languages: ::core::option::Option<
+        ::std::vec::Vec<GoogleCloudDocumentaiV1DocumentPageDetectedLanguage>,
+    >,
+    /// Layout for TableCell.
+    #[serde(default)]
+    pub layout: ::core::option::Option<GoogleCloudDocumentaiV1DocumentPageLayout>,
+    /// How many rows this cell spans.
+    #[serde(default, rename = "rowSpan")]
+    pub row_span: ::core::option::Option<i32>,
+}
+
+/// The parent element the current element is based on. Used for referencing/aligning, removal and replacement operations.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1DocumentProvenanceParent {
+    /// The id of the parent provenance.
+    #[serde(default)]
+    pub id: ::core::option::Option<i32>,
+    /// The index of the parent item in the corresponding item list (eg. list of entities, properties within entities, etc.) in the parent revision.
+    #[serde(default)]
+    pub index: ::core::option::Option<i32>,
+    /// The index of the index into current revision''s parent_ids list.
+    #[serde(default)]
+    pub revision: ::core::option::Option<i32>,
+}
+
+/// Represents a color in the RGBA color space. This representation is designed for simplicity of conversion to and from color representations in various languages over compactness. For example, the fields of this representation can be trivially provided to the constructor of java.awt.Color in Java; it can also be trivially provided to UIColor''s +colorWithRed:green:blue:alpha method in iOS; and, with just a little work, it can be easily formatted into a CSS rgba() string in JavaScript. This reference page doesn''t have information about the absolute color space that should be used to interpret the RGB value—for example, sRGB, Adobe RGB, DCI-P3, and BT.2020. By default, applications should assume the sRGB color space. When color equality needs to be decided, implementations, unless documented otherwise, treat two colors as equal if all their red, green, blue, and alpha values each differ by at most 1e-5. Example (Java): import com.google.type.Color; // ... public static java.awt.Color fromProto(Color protocolor) { float alpha = protocolor.hasAlpha() ? protocolor.getAlpha().getValue() : 1.0; return new java.awt.Color( protocolor.getRed(), protocolor.getGreen(), protocolor.getBlue(), alpha); } public static Color toProto(java.awt.Color color) { float red = (float) color.getRed(); float green = (float) color.getGreen(); float blue = (float) color.getBlue(); float denominator = 255.0; Color.Builder resultBuilder = Color .newBuilder() .setRed(red / denominator) .setGreen(green / denominator) .setBlue(blue / denominator); int alpha = color.getAlpha(); if (alpha != 255) { result.setAlpha( FloatValue .newBuilder() .setValue(((float) alpha) / denominator) .build()); } return resultBuilder.build(); } // ... Example (iOS / Obj-C): // ... static UIColor* fromProto(Color* protocolor) { float red = [protocolor red]; float green = [protocolor green]; float blue = [protocolor blue]; FloatValue* alpha_wrapper = [protocolor alpha]; float alpha = 1.0; if (alpha_wrapper != nil) { alpha = [alpha_wrapper value]; } return [UIColor colorWithRed:red green:green blue:blue alpha:alpha]; } static Color* toProto(UIColor* color) { CGFloat red, green, blue, alpha; if (![color getRed:&red green:&green blue:&blue alpha:&alpha]) { return nil; } Color* result = [[Color alloc] init]; [result setRed:red]; [result setGreen:green]; [result setBlue:blue]; if (alpha &lt;= 0.9999) { [result setAlpha:floatWrapperWithValue(alpha)]; } [result autorelease]; return result; } // ... Example (JavaScript): // ... var protoToCssColor = function(rgb_color) { var redFrac = rgb_color.red || 0.0; var greenFrac = rgb_color.green || 0.0; var blueFrac = rgb_color.blue || 0.0; var red = Math.floor(redFrac * 255); var green = Math.floor(greenFrac * 255); var blue = Math.floor(blueFrac * 255); if (!(''alpha'' in rgb_color)) { return rgbToCssColor(red, green, blue); } var alphaFrac = rgb_color.alpha.value || 0.0; var rgbParams = [red, green, blue].join('',''); return [''rgba('', rgbParams, '','', alphaFrac, '')''].join(''''); }; var rgbToCssColor = function(red, green, blue) { var rgbNumber = new Number((red &lt;&lt; 16) | (green &lt;&lt; 8) | blue); var hexString = rgbNumber.toString(16); var missingZeros = 6 - hexString.length; var resultBuilder = [''#'']; for (var i = 0; i &lt; missingZeros; i++) { resultBuilder.push(''0''); } resultBuilder.push(hexString); return resultBuilder.join(''''); }; // ...
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleTypeColor {
+    /// The fraction of this color that should be applied to the pixel. That is, the final pixel color is defined by the equation: pixel color = alpha * (this color) + (1.0 - alpha) * (background color) This means that a value of 1.0 corresponds to a solid color, whereas a value of 0.0 corresponds to a completely transparent color. This uses a wrapper message rather than a simple float scalar so that it is possible to distinguish between a default value and the value being unset. If omitted, this color object is rendered as a solid color (as if the alpha value had been explicitly given a value of 1.0).
+    #[serde(default)]
+    pub alpha: ::core::option::Option<f32>,
+    /// The amount of blue in the color as a value in the interval [0, 1].
+    #[serde(default)]
+    pub blue: ::core::option::Option<f32>,
+    /// The amount of green in the color as a value in the interval [0, 1].
+    #[serde(default)]
+    pub green: ::core::option::Option<f32>,
+    /// The amount of red in the color as a value in the interval [0, 1].
+    #[serde(default)]
+    pub red: ::core::option::Option<f32>,
+}
+
+/// An Identity and Access Management (IAM) policy, which specifies access controls for Google Cloud resources. A Policy is a collection of bindings. A binding binds one or more members, or principals, to a single role. Principals can be user accounts, service accounts, Google groups, and domains (such as G Suite). A role is a named list of permissions; each role can be an IAM predefined role or a user-created custom role. For some types of Google Cloud resources, a binding can also specify a condition, which is a logical expression that allows access to a resource only if the expression evaluates to true. A condition can add constraints based on attributes of the request, the resource, or both. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies). **JSON example:**  { "bindings": [ { "role": "roles/resourcemanager.organizationAdmin", "members": [ "user:mike@example.com", "group:admins@example.com", "domain:google.com", "serviceAccount:my-project-id@appspot.gserviceaccount.com" ] }, { "role": "roles/resourcemanager.organizationViewer", "members": [ "user:eve@example.com" ], "condition": { "title": "expirable access", "description": "Does not grant access after Sep 2020", "expression": "request.time &lt; timestamp(''2020-10-01T00:00:00.000Z'')", } } ], "etag": "BwWWja0YfJA=", "version": 3 }  **YAML example:**  bindings: - members: - user:mike@example.com - group:admins@example.com - domain:google.com - serviceAccount:my-project-id@appspot.gserviceaccount.com role: roles/resourcemanager.organizationAdmin - members: - user:eve@example.com role: roles/resourcemanager.organizationViewer condition: title: expirable access description: Does not grant access after Sep 2020 expression: request.time &lt; timestamp(''2020-10-01T00:00:00.000Z'') etag: BwWWja0YfJA= version: 3  For a description of IAM and its features, see the [IAM documentation](https://cloud.google.com/iam/docs/).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleIamV1Policy {
+    /// Specifies cloud audit logging configuration for this policy.
+    #[serde(default, rename = "auditConfigs")]
+    pub audit_configs: ::core::option::Option<::std::vec::Vec<GoogleIamV1AuditConfig>>,
+    /// Associates a list of members, or principals, with a role. Optionally, may specify a condition that determines how and when the bindings are applied. Each of the bindings must contain at least one principal. The bindings in a Policy can refer to up to 1,500 principals; up to 250 of these principals can be Google groups. Each occurrence of a principal counts towards these limits. For example, if the bindings grant 50 different roles to user:alice@example.com, and not to any other principal, then you can add another 1,450 principals to the bindings in the Policy.
+    #[serde(default)]
+    pub bindings: ::core::option::Option<::std::vec::Vec<GoogleIamV1Binding>>,
+    /// etag is used for optimistic concurrency control as a way to help prevent simultaneous updates of a policy from overwriting each other. It is strongly suggested that systems make use of the etag in the read-modify-write cycle to perform policy updates in order to avoid race conditions: An etag is returned in the response to getIamPolicy, and systems are expected to put that etag in the request to setIamPolicy to ensure that their change will be applied to the same version of the policy. **Important:** If you use IAM Conditions, you must include the etag field whenever you call setIamPolicy. If you omit this field, then IAM allows you to overwrite a version 3 policy with a version 1 policy, and all of the conditions in the version 3 policy are lost.
+    #[serde(default)]
+    pub etag: ::core::option::Option<String>,
+    /// Specifies the format of the policy. Valid values are 0, 1, and 3. Requests that specify an invalid value are rejected. Any operation that affects conditional role bindings must specify version 3. This requirement applies to the following operations: * Getting a policy that includes a conditional role binding * Adding a conditional role binding to a policy * Changing a conditional role binding in a policy * Removing any role binding, with or without a condition, from a policy that includes conditions **Important:** If you use IAM Conditions, you must include the etag field whenever you call setIamPolicy. If you omit this field, then IAM allows you to overwrite a version 3 policy with a version 1 policy, and all of the conditions in the version 3 policy are lost. If a policy does not include any conditions, operations on that policy may specify any valid version or leave the field unset. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies).
+    #[serde(default)]
+    pub version: ::core::option::Option<i32>,
+}
+
+/// Detected language for a structural component.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1DocumentPageDetectedLanguage {
+    /// Confidence of detected language. Range [0, 1].
+    #[serde(default)]
+    pub confidence: ::core::option::Option<f32>,
+    /// The [BCP-47 language code](https://www.unicode.org/reports/tr35/#Unicode_locale_identifier), such as en-US or sr-Latn.
+    #[serde(default, rename = "languageCode")]
+    pub language_code: ::core::option::Option<String>,
+}
+
+/// Visual element describing a layout unit on a page.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1DocumentPageLayout {
+    /// The bounding polygon for the Layout.
+    #[serde(default, rename = "boundingPoly")]
+    pub bounding_poly: ::core::option::Option<GoogleCloudDocumentaiV1BoundingPoly>,
+    /// Confidence of the current Layout within context of the object this layout is for. e.g. confidence can be for a single token, a table, a visual element, etc. depending on context. Range [0, 1].
+    #[serde(default)]
+    pub confidence: ::core::option::Option<f32>,
+    /// Detected orientation for the Layout. // TODO: enum values: ["ORIENTATION_UNSPECIFIED", "PAGE_UP", "PAGE_RIGHT", "PAGE_DOWN", "PAGE_LEFT"]
+    #[serde(default)]
+    pub orientation: ::core::option::Option<String>,
+    /// Text anchor indexing into the Document.text.
+    #[serde(default, rename = "textAnchor")]
+    pub text_anchor: ::core::option::Option<GoogleCloudDocumentaiV1DocumentTextAnchor>,
+}
+
+/// Specifies the audit configuration for a service. The configuration determines which permission types are logged, and what identities, if any, are exempted from logging. An AuditConfig must have one or more AuditLogConfigs. If there are AuditConfigs for both allServices and a specific service, the union of the two AuditConfigs is used for that service: the log_types specified in each AuditConfig are enabled, and the exempted_members in each AuditLogConfig are exempted. Example Policy with multiple AuditConfigs: { "audit_configs": [ { "service": "allServices", "audit_log_configs": [ { "log_type": "DATA_READ", "exempted_members": [ "user:jose@example.com" ] }, { "log_type": "DATA_WRITE" }, { "log_type": "ADMIN_READ" } ] }, { "service": "sampleservice.googleapis.com", "audit_log_configs": [ { "log_type": "DATA_READ" }, { "log_type": "DATA_WRITE", "exempted_members": [ "user:aliya@example.com" ] } ] } ] } For sampleservice, this policy enables DATA_READ, DATA_WRITE and ADMIN_READ logging. It also exempts jose@example.com from DATA_READ logging, and aliya@example.com from DATA_WRITE logging.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleIamV1AuditConfig {
+    /// The configuration for logging of each type of permission.
+    #[serde(default, rename = "auditLogConfigs")]
+    pub audit_log_configs: ::core::option::Option<::std::vec::Vec<GoogleIamV1AuditLogConfig>>,
+    /// Specifies a service that will be enabled for audit logging. For example, storage.googleapis.com, cloudsql.googleapis.com. allServices is a special value that covers all services.
+    #[serde(default)]
+    pub service: ::core::option::Option<String>,
+}
+
+/// Associates members, or principals, with a role.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleIamV1Binding {
+    /// The condition that is associated with this binding. If the condition evaluates to true, then this binding applies to the current request. If the condition evaluates to false, then this binding does not apply to the current request. However, a different role binding might grant the same role to one or more of the principals in this binding. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies).
+    #[serde(default)]
+    pub condition: ::core::option::Option<GoogleTypeExpr>,
+    /// Specifies the principals requesting access for a Google Cloud resource. members can have the following values: * allUsers: A special identifier that represents anyone who is on the internet; with or without a Google account. * allAuthenticatedUsers: A special identifier that represents anyone who is authenticated with a Google account or a service account. Does not include identities that come from external identity providers (IdPs) through identity federation. * user:{emailid}: An email address that represents a specific Google account. For example, alice@example.com . * serviceAccount:{emailid}: An email address that represents a Google service account. For example, my-other-app@appspot.gserviceaccount.com. * serviceAccount:{projectid}.svc.id.goog[{namespace}/{kubernetes-sa}]: An identifier for a [Kubernetes service account](https://cloud.google.com/kubernetes-engine/docs/how-to/kubernetes-service-accounts). For example, my-project.svc.id.goog[my-namespace/my-kubernetes-sa]. * group:{emailid}: An email address that represents a Google group. For example, admins@example.com. * domain:{domain}: The G Suite domain (primary) that represents all the users of that domain. For example, google.com or example.com. * principal://iam.googleapis.com/locations/global/workforcePools/{pool_id}/subject/{subject_attribute_value}: A single identity in a workforce identity pool. * principalSet://iam.googleapis.com/locations/global/workforcePools/{pool_id}/group/{group_id}: All workforce identities in a group. * principalSet://iam.googleapis.com/locations/global/workforcePools/{pool_id}/attribute.{attribute_name}/{attribute_value}: All workforce identities with a specific attribute value. * principalSet://iam.googleapis.com/locations/global/workforcePools/{pool_id}/*: All identities in a workforce identity pool. * principal://iam.googleapis.com/projects/{project_number}/locations/global/workloadIdentityPools/{pool_id}/subject/{subject_attribute_value}: A single identity in a workload identity pool. * principalSet://iam.googleapis.com/projects/{project_number}/locations/global/workloadIdentityPools/{pool_id}/group/{group_id}: A workload identity pool group. * principalSet://iam.googleapis.com/projects/{project_number}/locations/global/workloadIdentityPools/{pool_id}/attribute.{attribute_name}/{attribute_value}: All identities in a workload identity pool with a certain attribute. * principalSet://iam.googleapis.com/projects/{project_number}/locations/global/workloadIdentityPools/{pool_id}/*: All identities in a workload identity pool. * deleted:user:{emailid}?uid={uniqueid}: An email address (plus unique identifier) representing a user that has been recently deleted. For example, alice@example.com?uid=123456789012345678901. If the user is recovered, this value reverts to user:{emailid} and the recovered user retains the role in the binding. * deleted:serviceAccount:{emailid}?uid={uniqueid}: An email address (plus unique identifier) representing a service account that has been recently deleted. For example, my-other-app@appspot.gserviceaccount.com?uid=123456789012345678901. If the service account is undeleted, this value reverts to serviceAccount:{emailid} and the undeleted service account retains the role in the binding. * deleted:group:{emailid}?uid={uniqueid}: An email address (plus unique identifier) representing a Google group that has been recently deleted. For example, admins@example.com?uid=123456789012345678901. If the group is recovered, this value reverts to group:{emailid} and the recovered group retains the role in the binding. * deleted:principal://iam.googleapis.com/locations/global/workforcePools/{pool_id}/subject/{subject_attribute_value}: Deleted single identity in a workforce identity pool. For example, deleted:principal://iam.googleapis.com/locations/global/workforcePools/my-pool-id/subject/my-subject-attribute-value.
+    #[serde(default)]
+    pub members: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Role that is assigned to the list of members, or principals. For example, roles/viewer, roles/editor, or roles/owner. For an overview of the IAM roles and permissions, see the [IAM documentation](https://cloud.google.com/iam/docs/roles-overview). For a list of the available pre-defined roles, see [here](https://cloud.google.com/iam/docs/understanding-roles).
+    #[serde(default)]
+    pub role: ::core::option::Option<String>,
+}
+
+/// A bounding polygon for the detected image annotation.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1BoundingPoly {
+    /// The bounding polygon normalized vertices.
+    #[serde(default, rename = "normalizedVertices")]
+    pub normalized_vertices:
+        ::core::option::Option<::std::vec::Vec<GoogleCloudDocumentaiV1NormalizedVertex>>,
+    /// The bounding polygon vertices.
+    #[serde(default)]
+    pub vertices: ::core::option::Option<::std::vec::Vec<GoogleCloudDocumentaiV1Vertex>>,
+}
+
+/// Text reference indexing into the Document.text.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1DocumentTextAnchor {
+    /// Contains the content of the text span so that users do not have to look it up in the text_segments. It is always populated for formFields.
+    #[serde(default)]
+    pub content: ::core::option::Option<String>,
+    /// The text segments from the Document.text.
+    #[serde(default, rename = "textSegments")]
+    pub text_segments: ::core::option::Option<
+        ::std::vec::Vec<GoogleCloudDocumentaiV1DocumentTextAnchorTextSegment>,
+    >,
+}
+
+/// Provides the configuration for logging a type of permissions. Example: { "audit_log_configs": [ { "log_type": "DATA_READ", "exempted_members": [ "user:jose@example.com" ] }, { "log_type": "DATA_WRITE" } ] } This enables ''DATA_READ'' and ''DATA_WRITE'' logging, while exempting jose@example.com from DATA_READ logging.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleIamV1AuditLogConfig {
+    /// Specifies the identities that do not cause logging for this type of permission. Follows the same format of Binding.members.
+    #[serde(default, rename = "exemptedMembers")]
+    pub exempted_members: ::core::option::Option<::std::vec::Vec<String>>,
+    /// The log type that this config enables. // TODO: enum values: ["LOG_TYPE_UNSPECIFIED", "ADMIN_READ", "DATA_WRITE", "DATA_READ"]
+    #[serde(default, rename = "logType")]
+    pub log_type: ::core::option::Option<String>,
+}
+
+/// Represents a textual expression in the Common Expression Language (CEL) syntax. CEL is a C-like expression language. The syntax and semantics of CEL are documented at https://github.com/google/cel-spec. Example (Comparison): title: "Summary size limit" description: "Determines if a summary is less than 100 chars" expression: "document.summary.size() &lt; 100" Example (Equality): title: "Requestor is owner" description: "Determines if requestor is the document owner" expression: "document.owner == request.auth.claims.email" Example (Logic): title: "Public documents" description: "Determine whether the document should be publicly visible" expression: "document.type != ''private'' && document.type != ''internal''" Example (Data Manipulation): title: "Notification string" description: "Create a notification string with a timestamp." expression: "''New message received at '' + string(document.create_time)" The exact variables and functions that may be referenced within an expression are determined by the service that evaluates it. See the service documentation for additional information.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleTypeExpr {
+    /// Optional. Description of the expression. This is a longer text which describes the expression, e.g. when hovered over it in a UI.
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+    /// Textual representation of an expression in Common Expression Language syntax.
+    #[serde(default)]
+    pub expression: ::core::option::Option<String>,
+    /// Optional. String indicating the location of the expression for error reporting, e.g. a file name and a position in the file.
+    #[serde(default)]
+    pub location: ::core::option::Option<String>,
+    /// Optional. Title for the expression, i.e. a short string describing its purpose. This can be used e.g. in UIs which allow to enter the expression.
+    #[serde(default)]
+    pub title: ::core::option::Option<String>,
+}
+
+/// A vertex represents a 2D point in the image. NOTE: the normalized vertex coordinates are relative to the original image and range from 0 to 1.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1NormalizedVertex {
+    /// X coordinate.
+    #[serde(default)]
+    pub x: ::core::option::Option<f32>,
+    /// Y coordinate (starts from the top of the image).
+    #[serde(default)]
+    pub y: ::core::option::Option<f32>,
+}
+
+/// A vertex represents a 2D point in the image. NOTE: the vertex coordinates are in the same scale as the original image.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1Vertex {
+    /// X coordinate.
+    #[serde(default)]
+    pub x: ::core::option::Option<i32>,
+    /// Y coordinate (starts from the top of the image).
+    #[serde(default)]
+    pub y: ::core::option::Option<i32>,
+}
+
+/// A text segment in the Document.text. The indices may be out of bounds which indicate that the text extends into another document shard for large sharded documents. See ShardInfo.text_offset
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1DocumentTextAnchorTextSegment {
+    /// TextSegment half open end UTF-8 char index in the Document.text.
+    #[serde(default, rename = "endIndex")]
+    pub end_index: ::core::option::Option<String>,
+    /// TextSegment start UTF-8 char index in the Document.text.
+    #[serde(default, rename = "startIndex")]
+    pub start_index: ::core::option::Option<String>,
+}
+
+/// DateTime values.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudContentwarehouseV1DateTimeArray {
+    /// List of datetime values. Both OffsetDateTime and ZonedDateTime are supported.
+    #[serde(default)]
+    pub values: ::core::option::Option<::std::vec::Vec<GoogleTypeDateTime>>,
+}
+
+/// Enum values.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudContentwarehouseV1EnumArray {
+    /// List of enum values.
+    #[serde(default)]
+    pub values: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// Configurations for an enum/categorical property.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudContentwarehouseV1EnumTypeOptions {
+    /// Required. List of possible enum values.
+    #[serde(default, rename = "possibleValues")]
+    pub possible_values: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Make sure the Enum property value provided in the document is in the possile value list during document creation. The validation check runs by default.
+    #[serde(default, rename = "validationCheckDisabled")]
+    pub validation_check_disabled: ::core::option::Option<bool>,
+}
+
+/// Float values.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudContentwarehouseV1FloatArray {
+    /// List of float values.
+    #[serde(default)]
+    pub values: ::core::option::Option<::std::vec::Vec<f32>>,
+}
+
+/// Integer values.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudContentwarehouseV1IntegerArray {
+    /// List of integer values.
+    #[serde(default)]
+    pub values: ::core::option::Option<::std::vec::Vec<i32>>,
 }
 
 /// Property of a document.
@@ -1112,17 +2693,6 @@ pub struct GoogleCloudContentwarehouseV1PropertyDefinitionSchemaSource {
     pub processor_type: ::core::option::Option<String>,
 }
 
-/// GoogleCloudContentwarehouseV1PropertyFilter resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudContentwarehouseV1PropertyFilter {
-    /// The filter condition. The syntax for this expression is a subset of SQL syntax. Supported operators are: =, !=, &lt;, &lt;=, &gt;, &gt;=, and ~~ where the left of the operator is a property name and the right of the operator is a number or a quoted string. You must escape backslash (\\) and quote (\") characters. ~~ is the LIKE operator. The right of the operator must be a string. The only supported property data type for LIKE is text_values. It provides semantic search functionality by parsing, stemming and doing synonyms expansion against the input query. It matches if the property contains semantic similar content to the query. It is not regex matching or wildcard matching. For example, "property.company ~~ \"google\"" will match records whose property property.compnay have values like "Google Inc.", "Google LLC" or "Google Company". Supported functions are LOWER([property_name]) to perform a case insensitive match and EMPTY([property_name]) to filter on the existence of a key. Boolean expressions (AND/OR/NOT) are supported up to 3 levels of nesting (for example, "((A AND B AND C) OR NOT D) AND E"), a maximum of 100 comparisons or functions are allowed in the expression. The expression must be &lt; 6000 bytes in length. Only properties that are marked filterable are allowed (PropertyDefinition.is_filterable). Property names do not need to be prefixed by the document schema id (as is the case with histograms), however property names will need to be prefixed by its parent hierarchy, if any. For example: top_property_name.sub_property_name. Sample Query: (LOWER(driving_license)="class \"a\"" OR EMPTY(driving_license)) AND driving_years &gt; 10 CMEK compliant deployment only supports: * Operators: =, &lt;, &lt;=, &gt;, and &gt;=. * Boolean expressions: AND and OR.
-    #[serde(default)]
-    pub condition: ::core::option::Option<String>,
-    /// The Document schema name Document.document_schema_name. Format: projects/{project_number}/locations/{location}/documentSchemas/{document_schema_id}.
-    #[serde(default, rename = "documentSchemaName")]
-    pub document_schema_name: ::core::option::Option<String>,
-}
-
 /// Configurations for a nested structured data property.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudContentwarehouseV1PropertyTypeOptions {
@@ -1132,391 +2702,12 @@ pub struct GoogleCloudContentwarehouseV1PropertyTypeOptions {
         ::core::option::Option<::std::vec::Vec<GoogleCloudContentwarehouseV1PropertyDefinition>>,
 }
 
-/// Represents the action responsible for publishing messages to a Pub/Sub topic.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudContentwarehouseV1PublishAction {
-    /// Messages to be published.
-    #[serde(default)]
-    pub messages: ::core::option::Option<::std::vec::Vec<String>>,
-    /// The topic id in the Pub/Sub service for which messages will be published to.
-    #[serde(default, rename = "topicId")]
-    pub topic_id: ::core::option::Option<String>,
-}
-
-/// Additional result info for the question-answering feature.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudContentwarehouseV1qAResult {
-    /// The calibrated confidence score for this document, in the range [0., 1.]. This represents the confidence level for whether the returned document and snippet answers the user''s query.
-    #[serde(default, rename = "confidenceScore")]
-    pub confidence_score: ::core::option::Option<f32>,
-    /// Highlighted sections in the snippet.
-    #[serde(default)]
-    pub highlights:
-        ::core::option::Option<::std::vec::Vec<GoogleCloudContentwarehouseV1qAResultHighlight>>,
-}
-
-/// A text span in the search text snippet that represents a highlighted section (answer context, highly relevant sentence, etc.).
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudContentwarehouseV1qAResultHighlight {
-    /// End index of the highlight, exclusive.
-    #[serde(default, rename = "endIndex")]
-    pub end_index: ::core::option::Option<i32>,
-    /// Start index of the highlight.
-    #[serde(default, rename = "startIndex")]
-    pub start_index: ::core::option::Option<i32>,
-}
-
-/// Represents the action responsible for remove a document from a specific folder.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudContentwarehouseV1RemoveFromFolderAction {
-    /// Condition of the action to be executed.
-    #[serde(default)]
-    pub condition: ::core::option::Option<String>,
-    /// Name of the folder under which new document is to be added. Format: projects/{project_number}/locations/{location}/documents/{document_id}.
-    #[serde(default)]
-    pub folder: ::core::option::Option<String>,
-}
-
-/// Meta information is used to improve the performance of the service.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudContentwarehouseV1RequestMetadata {
-    /// Provides user unique identification and groups information.
-    #[serde(default, rename = "userInfo")]
-    pub user_info: ::core::option::Option<GoogleCloudContentwarehouseV1UserInfo>,
-}
-
-/// Additional information returned to client, such as debugging information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudContentwarehouseV1ResponseMetadata {
-    /// A unique id associated with this call. This id is logged for tracking purpose.
-    #[serde(default, rename = "requestId")]
-    pub request_id: ::core::option::Option<String>,
-}
-
-/// Represents the rule for a content warehouse trigger.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudContentwarehouseV1Rule {
-    /// List of actions that are executed when the rule is satisfied.
-    #[serde(default)]
-    pub actions: ::core::option::Option<::std::vec::Vec<GoogleCloudContentwarehouseV1Action>>,
-    /// Represents the conditional expression to be evaluated. Expression should evaluate to a boolean result. When the condition is true actions are executed. Example: user_role = "hsbc_role_1" AND doc.salary &gt; 20000
-    #[serde(default)]
-    pub condition: ::core::option::Option<String>,
-    /// Short description of the rule and its context.
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// ID of the rule. It has to be unique across all the examples. This is managed internally.
-    #[serde(default, rename = "ruleId")]
-    pub rule_id: ::core::option::Option<String>,
-    /// Identifies the trigger type for running the policy. // TODO: enum values: ["UNKNOWN", "ON_CREATE", "ON_UPDATE", "ON_CREATE_LINK", "ON_DELETE_LINK"]
-    #[serde(default, rename = "triggerType")]
-    pub trigger_type: ::core::option::Option<String>,
-}
-
-/// Represents a rule and outputs of associated actions.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudContentwarehouseV1RuleActionsPair {
-    /// Outputs of executing the actions associated with the above rule.
-    #[serde(default, rename = "actionOutputs")]
-    pub action_outputs:
-        ::core::option::Option<::std::vec::Vec<GoogleCloudContentwarehouseV1ActionOutput>>,
-    /// Represents the rule.
-    #[serde(default)]
-    pub rule: ::core::option::Option<GoogleCloudContentwarehouseV1Rule>,
-}
-
-/// Records the output of Rule Engine including rule evaluation and actions result.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudContentwarehouseV1RuleEngineOutput {
-    /// Output from Action Executor containing rule and corresponding actions execution result.
-    #[serde(default, rename = "actionExecutorOutput")]
-    pub action_executor_output:
-        ::core::option::Option<GoogleCloudContentwarehouseV1ActionExecutorOutput>,
-    /// Name of the document against which the rules and actions were evaluated.
-    #[serde(default, rename = "documentName")]
-    pub document_name: ::core::option::Option<String>,
-    /// Output from Rule Evaluator containing matched, unmatched and invalid rules.
-    #[serde(default, rename = "ruleEvaluatorOutput")]
-    pub rule_evaluator_output:
-        ::core::option::Option<GoogleCloudContentwarehouseV1RuleEvaluatorOutput>,
-}
-
-/// Represents the output of the Rule Evaluator.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudContentwarehouseV1RuleEvaluatorOutput {
-    /// A subset of triggered rules that failed the validation check(s) after parsing.
-    #[serde(default, rename = "invalidRules")]
-    pub invalid_rules:
-        ::core::option::Option<::std::vec::Vec<GoogleCloudContentwarehouseV1InvalidRule>>,
-    /// A subset of triggered rules that are evaluated true for a given request.
-    #[serde(default, rename = "matchedRules")]
-    pub matched_rules: ::core::option::Option<::std::vec::Vec<GoogleCloudContentwarehouseV1Rule>>,
-    /// List of rules fetched from database for the given request trigger type.
-    #[serde(default, rename = "triggeredRules")]
-    pub triggered_rules: ::core::option::Option<::std::vec::Vec<GoogleCloudContentwarehouseV1Rule>>,
-}
-
-/// Represents a set of rules from a single customer.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudContentwarehouseV1RuleSet {
-    /// Short description of the rule-set.
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// The resource name of the rule set. Managed internally. Format: projects/{project_number}/locations/{location}/ruleSet/{rule_set_id}. The name is ignored when creating a rule set.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// List of rules given by the customer.
-    #[serde(default)]
-    pub rules: ::core::option::Option<::std::vec::Vec<GoogleCloudContentwarehouseV1Rule>>,
-    /// Source of the rules i.e., customer name.
-    #[serde(default)]
-    pub source: ::core::option::Option<String>,
-}
-
-/// Metadata message of RunPipeline method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudContentwarehouseV1RunPipelineMetadata {
-    /// The pipeline metadata for Export-to-CDW pipeline.
-    #[serde(default, rename = "exportToCdwPipelineMetadata")]
-    pub export_to_cdw_pipeline_metadata: ::core::option::Option<
-        GoogleCloudContentwarehouseV1RunPipelineMetadataExportToCdwPipelineMetadata,
-    >,
-    /// Number of files that have failed at some point in the pipeline.
-    #[serde(default, rename = "failedFileCount")]
-    pub failed_file_count: ::core::option::Option<i32>,
-    /// The pipeline metadata for GcsIngest pipeline.
-    #[serde(default, rename = "gcsIngestPipelineMetadata")]
-    pub gcs_ingest_pipeline_metadata: ::core::option::Option<
-        GoogleCloudContentwarehouseV1RunPipelineMetadataGcsIngestPipelineMetadata,
-    >,
-    /// The list of response details of each document.
-    #[serde(default, rename = "individualDocumentStatuses")]
-    pub individual_document_statuses: ::core::option::Option<
-        ::std::vec::Vec<GoogleCloudContentwarehouseV1RunPipelineMetadataIndividualDocumentStatus>,
-    >,
-    /// The pipeline metadata for Process-with-DocAi pipeline.
-    #[serde(default, rename = "processWithDocAiPipelineMetadata")]
-    pub process_with_doc_ai_pipeline_metadata: ::core::option::Option<
-        GoogleCloudContentwarehouseV1RunPipelineMetadataProcessWithDocAiPipelineMetadata,
-    >,
-    /// Number of files that were processed by the pipeline.
-    #[serde(default, rename = "totalFileCount")]
-    pub total_file_count: ::core::option::Option<i32>,
-    /// User unique identification and groups information.
-    #[serde(default, rename = "userInfo")]
-    pub user_info: ::core::option::Option<GoogleCloudContentwarehouseV1UserInfo>,
-}
-
-/// The metadata message for Export-to-CDW pipeline.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudContentwarehouseV1RunPipelineMetadataExportToCdwPipelineMetadata {
-    /// The output CDW dataset resource name.
-    #[serde(default, rename = "docAiDataset")]
-    pub doc_ai_dataset: ::core::option::Option<String>,
-    /// The input list of all the resource names of the documents to be exported.
-    #[serde(default)]
-    pub documents: ::core::option::Option<::std::vec::Vec<String>>,
-    /// The output Cloud Storage folder in this pipeline.
-    #[serde(default, rename = "outputPath")]
-    pub output_path: ::core::option::Option<String>,
-}
-
-/// The metadata message for GcsIngest pipeline.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudContentwarehouseV1RunPipelineMetadataGcsIngestPipelineMetadata {
-    /// The input Cloud Storage folder in this pipeline. Format: gs:///.
-    #[serde(default, rename = "inputPath")]
-    pub input_path: ::core::option::Option<String>,
-}
-
-/// The status of processing a document.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudContentwarehouseV1RunPipelineMetadataIndividualDocumentStatus {
-    /// Document identifier of an existing document.
-    #[serde(default, rename = "documentId")]
-    pub document_id: ::core::option::Option<String>,
-    /// The status processing the document.
-    #[serde(default)]
-    pub status: ::core::option::Option<GoogleRpcStatus>,
-}
-
-/// The metadata message for Process-with-DocAi pipeline.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudContentwarehouseV1RunPipelineMetadataProcessWithDocAiPipelineMetadata {
-    /// The input list of all the resource names of the documents to be processed.
-    #[serde(default)]
-    pub documents: ::core::option::Option<::std::vec::Vec<String>>,
-    /// The DocAI processor to process the documents with.
-    #[serde(default, rename = "processorInfo")]
-    pub processor_info: ::core::option::Option<GoogleCloudContentwarehouseV1ProcessorInfo>,
-}
-
-/// Request message for DocumentService.RunPipeline.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudContentwarehouseV1RunPipelineRequest {
-    /// Export docuemnts from Document Warehouse to CDW for training purpose.
-    #[serde(default, rename = "exportCdwPipeline")]
-    pub export_cdw_pipeline:
-        ::core::option::Option<GoogleCloudContentwarehouseV1ExportToCdwPipeline>,
-    /// Cloud Storage ingestion pipeline.
-    #[serde(default, rename = "gcsIngestPipeline")]
-    pub gcs_ingest_pipeline: ::core::option::Option<GoogleCloudContentwarehouseV1GcsIngestPipeline>,
-    /// Use DocAI processors to process documents in Cloud Storage and ingest them to Document Warehouse.
-    #[serde(default, rename = "gcsIngestWithDocAiProcessorsPipeline")]
-    pub gcs_ingest_with_doc_ai_processors_pipeline:
-        ::core::option::Option<GoogleCloudContentwarehouseV1GcsIngestWithDocAiProcessorsPipeline>,
-    /// Use a DocAI processor to process documents in Document Warehouse, and re-ingest the updated results into Document Warehouse.
-    #[serde(default, rename = "processWithDocAiPipeline")]
-    pub process_with_doc_ai_pipeline:
-        ::core::option::Option<GoogleCloudContentwarehouseV1ProcessWithDocAiPipeline>,
-    /// The meta information collected about the end user, used to enforce access control for the service.
-    #[serde(default, rename = "requestMetadata")]
-    pub request_metadata: ::core::option::Option<GoogleCloudContentwarehouseV1RequestMetadata>,
-}
-
-/// Request message for DocumentService.SearchDocuments.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudContentwarehouseV1SearchDocumentsRequest {
-    /// Query used to search against documents (keyword, filters, etc.).
-    #[serde(default, rename = "documentQuery")]
-    pub document_query: ::core::option::Option<GoogleCloudContentwarehouseV1DocumentQuery>,
-    /// An expression specifying a histogram request against matching documents. Expression syntax is an aggregation function call with histogram facets and other options. The following aggregation functions are supported: * count(string_histogram_facet): Count the number of matching entities for each distinct attribute value. Data types: * Histogram facet (aka filterable properties): Facet names with format &lt;schema id&gt;.&lt;facet&gt;. Facets will have the format of: a-zA-Z. If the facet is a child facet, then the parent hierarchy needs to be specified separated by dots in the prefix after the schema id. Thus, the format for a multi- level facet is: &lt;schema id&gt;.&lt;parent facet name&gt;. &lt;child facet name&gt;. Example: schema123.root_parent_facet.middle_facet.child_facet * DocumentSchemaId: (with no schema id prefix) to get histograms for each document type (returns the schema id path, e.g. projects/12345/locations/us-west/documentSchemas/abc123). Example expression: * Document type counts: count(''DocumentSchemaId'') * For schema id, abc123, get the counts for MORTGAGE_TYPE: count(''abc123.MORTGAGE_TYPE'')
-    #[serde(default, rename = "histogramQueries")]
-    pub histogram_queries:
-        ::core::option::Option<::std::vec::Vec<GoogleCloudContentwarehouseV1HistogramQuery>>,
-    /// An integer that specifies the current offset (that is, starting result location, amongst the documents deemed by the API as relevant) in search results. This field is only considered if page_token is unset. The maximum allowed value is 5000. Otherwise an error is thrown. For example, 0 means to return results starting from the first matching document, and 10 means to return from the 11th document. This can be used for pagination, (for example, pageSize = 10 and offset = 10 means to return from the second page).
-    #[serde(default)]
-    pub offset: ::core::option::Option<i32>,
-    /// The criteria determining how search results are sorted. For non-empty query, default is "relevance desc". For empty query, default is "upload_date desc". Supported options are: * "relevance desc": By relevance descending, as determined by the API algorithms. * "upload_date desc": By upload date descending. * "upload_date": By upload date ascending. * "update_date desc": By last updated date descending. * "update_date": By last updated date ascending. * "retrieval_importance desc": By retrieval importance of properties descending. This feature is still under development, please do not use unless otherwise instructed to do so.
-    #[serde(default, rename = "orderBy")]
-    pub order_by: ::core::option::Option<String>,
-    /// A limit on the number of documents returned in the search results. Increasing this value above the default value of 10 can increase search response time. The value can be between 1 and 100.
-    #[serde(default, rename = "pageSize")]
-    pub page_size: ::core::option::Option<i32>,
-    /// The token specifying the current offset within search results. See SearchDocumentsResponse.next_page_token for an explanation of how to obtain the next set of query results.
-    #[serde(default, rename = "pageToken")]
-    pub page_token: ::core::option::Option<String>,
-    /// Experimental, do not use. The limit on the number of documents returned for the question-answering feature. To enable the question-answering feature, set [DocumentQuery].is_nl_query to true.
-    #[serde(default, rename = "qaSizeLimit")]
-    pub qa_size_limit: ::core::option::Option<i32>,
-    /// The meta information collected about the end user, used to enforce access control and improve the search quality of the service.
-    #[serde(default, rename = "requestMetadata")]
-    pub request_metadata: ::core::option::Option<GoogleCloudContentwarehouseV1RequestMetadata>,
-    /// Controls if the search document request requires the return of a total size of matched documents. See SearchDocumentsResponse.total_size. Enabling this flag may adversely impact performance. Hint: If this is used with pagination, set this flag on the initial query but set this to false on subsequent page calls (keep the total count locally). Defaults to false.
-    #[serde(default, rename = "requireTotalSize")]
-    pub require_total_size: ::core::option::Option<bool>,
-    /// Controls if the search document request requires the return of a total size of matched documents. See SearchDocumentsResponse.total_size. // TODO: enum values: ["TOTAL_RESULT_SIZE_UNSPECIFIED", "ESTIMATED_SIZE", "ACTUAL_SIZE"]
-    #[serde(default, rename = "totalResultSize")]
-    pub total_result_size: ::core::option::Option<String>,
-}
-
-/// Response message for DocumentService.SearchDocuments.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudContentwarehouseV1SearchDocumentsResponse {
-    /// The histogram results that match with the specified SearchDocumentsRequest.histogram_queries.
-    #[serde(default, rename = "histogramQueryResults")]
-    pub histogram_query_results:
-        ::core::option::Option<::std::vec::Vec<GoogleCloudContentwarehouseV1HistogramQueryResult>>,
-    /// The document entities that match the specified SearchDocumentsRequest.
-    #[serde(default, rename = "matchingDocuments")]
-    pub matching_documents: ::core::option::Option<
-        ::std::vec::Vec<GoogleCloudContentwarehouseV1SearchDocumentsResponseMatchingDocument>,
-    >,
-    /// Additional information for the API invocation, such as the request tracking id.
-    #[serde(default)]
-    pub metadata: ::core::option::Option<GoogleCloudContentwarehouseV1ResponseMetadata>,
-    /// The token that specifies the starting position of the next page of results. This field is empty if there are no more results.
-    #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: ::core::option::Option<String>,
-    /// Experimental. Question answer from the query against the document.
-    #[serde(default, rename = "questionAnswer")]
-    pub question_answer: ::core::option::Option<String>,
-    /// The total number of matched documents which is available only if the client set SearchDocumentsRequest.require_total_size to true or set SearchDocumentsRequest.total_result_size to ESTIMATED_SIZE or ACTUAL_SIZE. Otherwise, the value will be -1. Typically a UI would handle this condition by displaying "of many", for example: "Displaying 10 of many".
-    #[serde(default, rename = "totalSize")]
-    pub total_size: ::core::option::Option<i32>,
-}
-
-/// Document entry with metadata inside SearchDocumentsResponse
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudContentwarehouseV1SearchDocumentsResponseMatchingDocument {
-    /// Document that matches the specified SearchDocumentsRequest. This document only contains indexed metadata information.
-    #[serde(default)]
-    pub document: ::core::option::Option<GoogleCloudContentwarehouseV1Document>,
-    /// Return the 1-based page indices where those pages have one or more matched tokens.
-    #[serde(default, rename = "matchedTokenPageIndices")]
-    pub matched_token_page_indices: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Experimental. Additional result info if the question-answering feature is enabled.
-    #[serde(default, rename = "qaResult")]
-    pub qa_result: ::core::option::Option<GoogleCloudContentwarehouseV1qAResult>,
-    /// Contains snippets of text from the document full raw text that most closely match a search query''s keywords, if available. All HTML tags in the original fields are stripped when returned in this field, and matching query keywords are enclosed in HTML bold tags. If the question-answering feature is enabled, this field will instead contain a snippet that answers the user''s natural-language query. No HTML bold tags will be present, and highlights in the answer snippet can be found in QAResult.highlights.
-    #[serde(default, rename = "searchTextSnippet")]
-    pub search_text_snippet: ::core::option::Option<String>,
-}
-
-/// Request message for DocumentService.SetAcl.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudContentwarehouseV1SetAclRequest {
-    /// Required. REQUIRED: The complete policy to be applied to the resource. The size of the policy is limited to a few 10s of KB. This refers to an Identity and Access (IAM) policy, which specifies access controls for the Document. You can set ACL with condition for projects only. Supported operators are: =, !=, &lt;, &lt;=, &gt;, and &gt;= where the left of the operator is DocumentSchemaId or property name and the right of the operator is a number or a quoted string. You must escape backslash (\\) and quote (\") characters. Boolean expressions (AND/OR) are supported up to 3 levels of nesting (for example, "((A AND B AND C) OR D) AND E"), a maximum of 10 comparisons are allowed in the expression. The expression must be &lt; 6000 bytes in length. Sample condition: "DocumentSchemaId = \"some schema id\" OR SchemaId.floatPropertyName &gt;= 10"
-    #[serde(default)]
-    pub policy: ::core::option::Option<GoogleIamV1Policy>,
-    /// For Set Project ACL only. Authorization check for end user will be ignored when project_owner=true.
-    #[serde(default, rename = "projectOwner")]
-    pub project_owner: ::core::option::Option<bool>,
-    /// The meta information collected about the end user, used to enforce access control for the service.
-    #[serde(default, rename = "requestMetadata")]
-    pub request_metadata: ::core::option::Option<GoogleCloudContentwarehouseV1RequestMetadata>,
-}
-
-/// Response message for DocumentService.SetAcl.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudContentwarehouseV1SetAclResponse {
-    /// Additional information for the API invocation, such as the request tracking id.
-    #[serde(default)]
-    pub metadata: ::core::option::Option<GoogleCloudContentwarehouseV1ResponseMetadata>,
-    /// The policy will be attached to a resource (e.g. projecct, document).
-    #[serde(default)]
-    pub policy: ::core::option::Option<GoogleIamV1Policy>,
-}
-
-/// Represents a list of synonyms for a given context. For example a context "sales" could contain: Synonym 1: sale, invoice, bill, order Synonym 2: money, credit, finance, payment Synonym 3: shipping, freight, transport Each SynonymSets should be disjoint
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudContentwarehouseV1SynonymSet {
-    /// This is a freeform field. Example contexts can be "sales," "engineering," "real estate," "accounting," etc. The context can be supplied during search requests.
-    #[serde(default)]
-    pub context: ::core::option::Option<String>,
-    /// The resource name of the SynonymSet This is mandatory for google.api.resource. Format: projects/{project_number}/locations/{location}/synonymSets/{context}.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// List of Synonyms for the context.
-    #[serde(default)]
-    pub synonyms:
-        ::core::option::Option<::std::vec::Vec<GoogleCloudContentwarehouseV1SynonymSetSynonym>>,
-}
-
-/// Represents a list of words given by the customer All these words are synonyms of each other.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudContentwarehouseV1SynonymSetSynonym {
-    /// For example: sale, invoice, bill, order
-    #[serde(default)]
-    pub words: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
 /// String/text values.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudContentwarehouseV1TextArray {
     /// List of text values.
     #[serde(default)]
     pub values: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// Filter on create timestamp or update timestamp of documents.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudContentwarehouseV1TimeFilter {
-    /// Specifies which time field to filter documents on. Defaults to TimeField.UPLOAD_TIME. // TODO: enum values: ["TIME_FIELD_UNSPECIFIED", "CREATE_TIME", "UPDATE_TIME", "DISPOSITION_TIME"]
-    #[serde(default, rename = "timeField")]
-    pub time_field: ::core::option::Option<String>,
-    #[serde(default, rename = "timeRange")]
-    pub time_range: ::core::option::Option<GoogleTypeInterval>,
 }
 
 /// Timestamp values.
@@ -1537,286 +2728,6 @@ pub struct GoogleCloudContentwarehouseV1TimestampValue {
     /// Timestamp value
     #[serde(default, rename = "timestampValue")]
     pub timestamp_value: ::core::option::Option<String>,
-}
-
-/// Request message for DocumentService.UpdateDocument.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudContentwarehouseV1UpdateDocumentRequest {
-    /// Request Option for processing Cloud AI Document in Document Warehouse. This field offers limited support for mapping entities from Cloud AI Document to Warehouse Document. Please consult with product team before using this field and other available options.
-    #[serde(default, rename = "cloudAiDocumentOption")]
-    pub cloud_ai_document_option:
-        ::core::option::Option<GoogleCloudContentwarehouseV1CloudAIDocumentOption>,
-    /// Required. The document to update.
-    #[serde(default)]
-    pub document: ::core::option::Option<GoogleCloudContentwarehouseV1Document>,
-    /// The meta information collected about the end user, used to enforce access control for the service.
-    #[serde(default, rename = "requestMetadata")]
-    pub request_metadata: ::core::option::Option<GoogleCloudContentwarehouseV1RequestMetadata>,
-    /// Options for the update operation.
-    #[serde(default, rename = "updateOptions")]
-    pub update_options: ::core::option::Option<GoogleCloudContentwarehouseV1UpdateOptions>,
-}
-
-/// Response message for DocumentService.UpdateDocument.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudContentwarehouseV1UpdateDocumentResponse {
-    /// Updated document after executing update request.
-    #[serde(default)]
-    pub document: ::core::option::Option<GoogleCloudContentwarehouseV1Document>,
-    /// Additional information for the API invocation, such as the request tracking id.
-    #[serde(default)]
-    pub metadata: ::core::option::Option<GoogleCloudContentwarehouseV1ResponseMetadata>,
-    /// Output from Rule Engine recording the rule evaluator and action executor''s output. Refer format in: google/cloud/contentwarehouse/v1/rule_engine.proto
-    #[serde(default, rename = "ruleEngineOutput")]
-    pub rule_engine_output: ::core::option::Option<GoogleCloudContentwarehouseV1RuleEngineOutput>,
-}
-
-/// Request message for DocumentSchemaService.UpdateDocumentSchema.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudContentwarehouseV1UpdateDocumentSchemaRequest {
-    /// Required. The document schema to update with.
-    #[serde(default, rename = "documentSchema")]
-    pub document_schema: ::core::option::Option<GoogleCloudContentwarehouseV1DocumentSchema>,
-}
-
-/// Options for Update operations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudContentwarehouseV1UpdateOptions {
-    /// Options for merging.
-    #[serde(default, rename = "mergeFieldsOptions")]
-    pub merge_fields_options:
-        ::core::option::Option<GoogleCloudContentwarehouseV1MergeFieldsOptions>,
-    /// Field mask for merging Document fields. For the FieldMask definition, see https://developers.google.com/protocol-buffers/docs/reference/google.protobuf#fieldmask
-    #[serde(default, rename = "updateMask")]
-    pub update_mask: ::core::option::Option<String>,
-    /// Type for update. // TODO: enum values: ["UPDATE_TYPE_UNSPECIFIED", "UPDATE_TYPE_REPLACE", "UPDATE_TYPE_MERGE", "UPDATE_TYPE_INSERT_PROPERTIES_BY_NAMES", "UPDATE_TYPE_REPLACE_PROPERTIES_BY_NAMES", "UPDATE_TYPE_DELETE_PROPERTIES_BY_NAMES", "UPDATE_TYPE_MERGE_AND_REPLACE_OR_INSERT_PROPERTIES_BY_NAMES"]
-    #[serde(default, rename = "updateType")]
-    pub update_type: ::core::option::Option<String>,
-}
-
-/// Request message for RuleSetService.UpdateRuleSet.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudContentwarehouseV1UpdateRuleSetRequest {
-    /// Required. The rule set to update.
-    #[serde(default, rename = "ruleSet")]
-    pub rule_set: ::core::option::Option<GoogleCloudContentwarehouseV1RuleSet>,
-}
-
-/// The user information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudContentwarehouseV1UserInfo {
-    /// The unique group identifications which the user is belong to. The format is "group:yyyy@example.com";
-    #[serde(default, rename = "groupIds")]
-    pub group_ids: ::core::option::Option<::std::vec::Vec<String>>,
-    /// A unique user identification string, as determined by the client. The maximum number of allowed characters is 255. Allowed characters include numbers 0 to 9, uppercase and lowercase letters, and restricted special symbols (:, @, +, -, _, ~) The format is "user:xxxx@example.com";
-    #[serde(default)]
-    pub id: ::core::option::Option<String>,
-}
-
-/// Value represents a dynamically typed value which can be either be a float, a integer, a string, or a datetime value. A producer of value is expected to set one of these variants. Absence of any variant indicates an error.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudContentwarehouseV1Value {
-    /// Represents a boolean value.
-    #[serde(default, rename = "booleanValue")]
-    pub boolean_value: ::core::option::Option<bool>,
-    /// Represents a datetime value.
-    #[serde(default, rename = "datetimeValue")]
-    pub datetime_value: ::core::option::Option<GoogleTypeDateTime>,
-    /// Represents an enum value.
-    #[serde(default, rename = "enumValue")]
-    pub enum_value: ::core::option::Option<GoogleCloudContentwarehouseV1EnumValue>,
-    /// Represents a float value.
-    #[serde(default, rename = "floatValue")]
-    pub float_value: ::core::option::Option<f32>,
-    /// Represents a integer value.
-    #[serde(default, rename = "intValue")]
-    pub int_value: ::core::option::Option<i32>,
-    /// Represents a string value.
-    #[serde(default, rename = "stringValue")]
-    pub string_value: ::core::option::Option<String>,
-    /// Represents a timestamp value.
-    #[serde(default, rename = "timestampValue")]
-    pub timestamp_value: ::core::option::Option<GoogleCloudContentwarehouseV1TimestampValue>,
-}
-
-/// Specifies the schema property name.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudContentwarehouseV1WeightedSchemaProperty {
-    /// The document schema name.
-    #[serde(default, rename = "documentSchemaName")]
-    pub document_schema_name: ::core::option::Option<String>,
-    /// The property definition names in the schema.
-    #[serde(default, rename = "propertyNames")]
-    pub property_names: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// Response message for projectService.InitializeProject
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudContentwarehouseV1beta1InitializeProjectResponse {
-    /// The message of the project initialization process.
-    #[serde(default)]
-    pub message: ::core::option::Option<String>,
-    /// The state of the project initialization process. // TODO: enum values: ["STATE_UNSPECIFIED", "SUCCEEDED", "FAILED", "CANCELLED", "RUNNING"]
-    #[serde(default)]
-    pub state: ::core::option::Option<String>,
-}
-
-/// Encodes the detailed information of a barcode.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiV1Barcode {
-    /// Format of a barcode. The supported formats are: - CODE_128: Code 128 type. - CODE_39: Code 39 type. - CODE_93: Code 93 type. - CODABAR: Codabar type. - DATA_MATRIX: 2D Data Matrix type. - ITF: ITF type. - EAN_13: EAN-13 type. - EAN_8: EAN-8 type. - QR_CODE: 2D QR code type. - UPC_A: UPC-A type. - UPC_E: UPC-E type. - PDF417: PDF417 type. - AZTEC: 2D Aztec code type. - DATABAR: GS1 DataBar code type.
-    #[serde(default)]
-    pub format: ::core::option::Option<String>,
-    /// Raw value encoded in the barcode. For example: ''MEBKM:TITLE:Google;URL:https://www.google.com;;''.
-    #[serde(default, rename = "rawValue")]
-    pub raw_value: ::core::option::Option<String>,
-    /// Value format describes the format of the value that a barcode encodes. The supported formats are: - CONTACT_INFO: Contact information. - EMAIL: Email address. - ISBN: ISBN identifier. - PHONE: Phone number. - PRODUCT: Product. - SMS: SMS message. - TEXT: Text string. - URL: URL address. - WIFI: Wifi information. - GEO: Geo-localization. - CALENDAR_EVENT: Calendar event. - DRIVER_LICENSE: Driver''s license.
-    #[serde(default, rename = "valueFormat")]
-    pub value_format: ::core::option::Option<String>,
-}
-
-/// A bounding polygon for the detected image annotation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiV1BoundingPoly {
-    /// The bounding polygon normalized vertices.
-    #[serde(default, rename = "normalizedVertices")]
-    pub normalized_vertices:
-        ::core::option::Option<::std::vec::Vec<GoogleCloudDocumentaiV1NormalizedVertex>>,
-    /// The bounding polygon vertices.
-    #[serde(default)]
-    pub vertices: ::core::option::Option<::std::vec::Vec<GoogleCloudDocumentaiV1Vertex>>,
-}
-
-/// Document represents the canonical document resource in Document AI. It is an interchange format that provides insights into documents and allows for collaboration between users and Document AI to iterate and optimize for quality.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiV1Document {
-    /// Document chunked based on chunking config.
-    #[serde(default, rename = "chunkedDocument")]
-    pub chunked_document: ::core::option::Option<GoogleCloudDocumentaiV1DocumentChunkedDocument>,
-    /// Optional. Inline document content, represented as a stream of bytes. Note: As with all bytes fields, protobuffers use a pure binary representation, whereas JSON representations use base64.
-    #[serde(default)]
-    pub content: ::core::option::Option<String>,
-    /// Parsed layout of the document.
-    #[serde(default, rename = "documentLayout")]
-    pub document_layout: ::core::option::Option<GoogleCloudDocumentaiV1DocumentDocumentLayout>,
-    /// A list of entities detected on Document.text. For document shards, entities in this list may cross shard boundaries.
-    #[serde(default)]
-    pub entities: ::core::option::Option<::std::vec::Vec<GoogleCloudDocumentaiV1DocumentEntity>>,
-    /// Placeholder. Relationship among Document.entities.
-    #[serde(default, rename = "entityRelations")]
-    pub entity_relations:
-        ::core::option::Option<::std::vec::Vec<GoogleCloudDocumentaiV1DocumentEntityRelation>>,
-    /// Any error that occurred while processing this document.
-    #[serde(default)]
-    pub error: ::core::option::Option<GoogleRpcStatus>,
-    /// An IANA published [media type (MIME type)](https://www.iana.org/assignments/media-types/media-types.xhtml).
-    #[serde(default, rename = "mimeType")]
-    pub mime_type: ::core::option::Option<String>,
-    /// Visual page layout for the Document.
-    #[serde(default)]
-    pub pages: ::core::option::Option<::std::vec::Vec<GoogleCloudDocumentaiV1DocumentPage>>,
-    /// Placeholder. Revision history of this document.
-    #[serde(default)]
-    pub revisions: ::core::option::Option<::std::vec::Vec<GoogleCloudDocumentaiV1DocumentRevision>>,
-    /// Information about the sharding if this document is sharded part of a larger document. If the document is not sharded, this message is not specified.
-    #[serde(default, rename = "shardInfo")]
-    pub shard_info: ::core::option::Option<GoogleCloudDocumentaiV1DocumentShardInfo>,
-    /// Optional. UTF-8 encoded text in reading order from the document.
-    #[serde(default)]
-    pub text: ::core::option::Option<String>,
-    /// Placeholder. A list of text corrections made to Document.text. This is usually used for annotating corrections to OCR mistakes. Text changes for a given revision may not overlap with each other.
-    #[serde(default, rename = "textChanges")]
-    pub text_changes:
-        ::core::option::Option<::std::vec::Vec<GoogleCloudDocumentaiV1DocumentTextChange>>,
-    /// Styles for the Document.text.
-    #[serde(default, rename = "textStyles")]
-    pub text_styles: ::core::option::Option<::std::vec::Vec<GoogleCloudDocumentaiV1DocumentStyle>>,
-    /// Optional. Currently supports Google Cloud Storage URI of the form gs://bucket_name/object_name. Object versioning is not supported. For more information, refer to [Google Cloud Storage Request URIs](https://cloud.google.com/storage/docs/reference-uris).
-    #[serde(default)]
-    pub uri: ::core::option::Option<String>,
-}
-
-/// Represents the chunks that the document is divided into.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiV1DocumentChunkedDocument {
-    /// List of chunks.
-    #[serde(default)]
-    pub chunks: ::core::option::Option<
-        ::std::vec::Vec<GoogleCloudDocumentaiV1DocumentChunkedDocumentChunk>,
-    >,
-}
-
-/// Represents a chunk.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiV1DocumentChunkedDocumentChunk {
-    /// ID of the chunk.
-    #[serde(default, rename = "chunkId")]
-    pub chunk_id: ::core::option::Option<String>,
-    /// Text content of the chunk.
-    #[serde(default)]
-    pub content: ::core::option::Option<String>,
-    /// Page footers associated with the chunk.
-    #[serde(default, rename = "pageFooters")]
-    pub page_footers: ::core::option::Option<
-        ::std::vec::Vec<GoogleCloudDocumentaiV1DocumentChunkedDocumentChunkChunkPageFooter>,
-    >,
-    /// Page headers associated with the chunk.
-    #[serde(default, rename = "pageHeaders")]
-    pub page_headers: ::core::option::Option<
-        ::std::vec::Vec<GoogleCloudDocumentaiV1DocumentChunkedDocumentChunkChunkPageHeader>,
-    >,
-    /// Page span of the chunk.
-    #[serde(default, rename = "pageSpan")]
-    pub page_span:
-        ::core::option::Option<GoogleCloudDocumentaiV1DocumentChunkedDocumentChunkChunkPageSpan>,
-    /// Unused.
-    #[serde(default, rename = "sourceBlockIds")]
-    pub source_block_ids: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// Represents the page footer associated with the chunk.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiV1DocumentChunkedDocumentChunkChunkPageFooter {
-    /// Page span of the footer.
-    #[serde(default, rename = "pageSpan")]
-    pub page_span:
-        ::core::option::Option<GoogleCloudDocumentaiV1DocumentChunkedDocumentChunkChunkPageSpan>,
-    /// Footer in text format.
-    #[serde(default)]
-    pub text: ::core::option::Option<String>,
-}
-
-/// Represents the page header associated with the chunk.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiV1DocumentChunkedDocumentChunkChunkPageHeader {
-    /// Page span of the header.
-    #[serde(default, rename = "pageSpan")]
-    pub page_span:
-        ::core::option::Option<GoogleCloudDocumentaiV1DocumentChunkedDocumentChunkChunkPageSpan>,
-    /// Header in text format.
-    #[serde(default)]
-    pub text: ::core::option::Option<String>,
-}
-
-/// Represents where the chunk starts and ends in the document.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiV1DocumentChunkedDocumentChunkChunkPageSpan {
-    /// Page where chunk ends in the document.
-    #[serde(default, rename = "pageEnd")]
-    pub page_end: ::core::option::Option<i32>,
-    /// Page where chunk starts in the document.
-    #[serde(default, rename = "pageStart")]
-    pub page_start: ::core::option::Option<i32>,
-}
-
-/// Represents the parsed layout of a document as a collection of blocks that the document is divided into.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiV1DocumentDocumentLayout {
-    /// List of blocks in the document.
-    #[serde(default)]
-    pub blocks: ::core::option::Option<
-        ::std::vec::Vec<GoogleCloudDocumentaiV1DocumentDocumentLayoutDocumentLayoutBlock>,
-    >,
 }
 
 /// Represents a block. A block could be one of the various types (text, table, list) supported.
@@ -1949,837 +2860,6 @@ pub struct GoogleCloudDocumentaiV1DocumentDocumentLayoutDocumentLayoutBlockLayou
     pub type_: ::core::option::Option<String>,
 }
 
-/// An entity that could be a phrase in the text or a property that belongs to the document. It is a known entity type, such as a person, an organization, or location.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiV1DocumentEntity {
-    /// Optional. Confidence of detected Schema entity. Range [0, 1].
-    #[serde(default)]
-    pub confidence: ::core::option::Option<f32>,
-    /// Optional. Canonical id. This will be a unique value in the entity list for this document.
-    #[serde(default)]
-    pub id: ::core::option::Option<String>,
-    /// Optional. Deprecated. Use id field instead.
-    #[serde(default, rename = "mentionId")]
-    pub mention_id: ::core::option::Option<String>,
-    /// Optional. Text value of the entity e.g. 1600 Amphitheatre Pkwy.
-    #[serde(default, rename = "mentionText")]
-    pub mention_text: ::core::option::Option<String>,
-    /// Optional. Normalized entity value. Absent if the extracted value could not be converted or the type (e.g. address) is not supported for certain parsers. This field is also only populated for certain supported document types.
-    #[serde(default, rename = "normalizedValue")]
-    pub normalized_value:
-        ::core::option::Option<GoogleCloudDocumentaiV1DocumentEntityNormalizedValue>,
-    /// Optional. Represents the provenance of this entity wrt. the location on the page where it was found.
-    #[serde(default, rename = "pageAnchor")]
-    pub page_anchor: ::core::option::Option<GoogleCloudDocumentaiV1DocumentPageAnchor>,
-    /// Optional. Entities can be nested to form a hierarchical data structure representing the content in the document.
-    #[serde(default)]
-    pub properties: ::core::option::Option<::std::vec::Vec<GoogleCloudDocumentaiV1DocumentEntity>>,
-    /// Optional. The history of this annotation.
-    #[serde(default)]
-    pub provenance: ::core::option::Option<GoogleCloudDocumentaiV1DocumentProvenance>,
-    /// Optional. Whether the entity will be redacted for de-identification purposes.
-    #[serde(default)]
-    pub redacted: ::core::option::Option<bool>,
-    /// Optional. Provenance of the entity. Text anchor indexing into the Document.text.
-    #[serde(default, rename = "textAnchor")]
-    pub text_anchor: ::core::option::Option<GoogleCloudDocumentaiV1DocumentTextAnchor>,
-    /// Required. Entity type from a schema e.g. Address.
-    #[serde(default, rename = "type")]
-    pub type_: ::core::option::Option<String>,
-}
-
-/// Parsed and normalized entity value.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiV1DocumentEntityNormalizedValue {
-    /// Postal address. See also: https://github.com/googleapis/googleapis/blob/master/google/type/postal_address.proto
-    #[serde(default, rename = "addressValue")]
-    pub address_value: ::core::option::Option<GoogleTypePostalAddress>,
-    /// Boolean value. Can be used for entities with binary values, or for checkboxes.
-    #[serde(default, rename = "booleanValue")]
-    pub boolean_value: ::core::option::Option<bool>,
-    /// Date value. Includes year, month, day. See also: https://github.com/googleapis/googleapis/blob/master/google/type/date.proto
-    #[serde(default, rename = "dateValue")]
-    pub date_value: ::core::option::Option<GoogleTypeDate>,
-    /// DateTime value. Includes date, time, and timezone. See also: https://github.com/googleapis/googleapis/blob/master/google/type/datetime.proto
-    #[serde(default, rename = "datetimeValue")]
-    pub datetime_value: ::core::option::Option<GoogleTypeDateTime>,
-    /// Float value.
-    #[serde(default, rename = "floatValue")]
-    pub float_value: ::core::option::Option<f32>,
-    /// Integer value.
-    #[serde(default, rename = "integerValue")]
-    pub integer_value: ::core::option::Option<i32>,
-    /// Money value. See also: https://github.com/googleapis/googleapis/blob/master/google/type/money.proto
-    #[serde(default, rename = "moneyValue")]
-    pub money_value: ::core::option::Option<GoogleTypeMoney>,
-    /// Optional. An optional field to store a normalized string. For some entity types, one of respective structured_value fields may also be populated. Also not all the types of structured_value will be normalized. For example, some processors may not generate float or integer normalized text by default. Below are sample formats mapped to structured values. - Money/Currency type (money_value) is in the ISO 4217 text format. - Date type (date_value) is in the ISO 8601 text format. - Datetime type (datetime_value) is in the ISO 8601 text format.
-    #[serde(default)]
-    pub text: ::core::option::Option<String>,
-}
-
-/// Relationship between Entities.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiV1DocumentEntityRelation {
-    /// Object entity id.
-    #[serde(default, rename = "objectId")]
-    pub object_id: ::core::option::Option<String>,
-    /// Relationship description.
-    #[serde(default)]
-    pub relation: ::core::option::Option<String>,
-    /// Subject entity id.
-    #[serde(default, rename = "subjectId")]
-    pub subject_id: ::core::option::Option<String>,
-}
-
-/// A page in a Document.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiV1DocumentPage {
-    /// A list of visually detected text blocks on the page. A block has a set of lines (collected into paragraphs) that have a common line-spacing and orientation.
-    #[serde(default)]
-    pub blocks: ::core::option::Option<::std::vec::Vec<GoogleCloudDocumentaiV1DocumentPageBlock>>,
-    /// A list of detected barcodes.
-    #[serde(default, rename = "detectedBarcodes")]
-    pub detected_barcodes:
-        ::core::option::Option<::std::vec::Vec<GoogleCloudDocumentaiV1DocumentPageDetectedBarcode>>,
-    /// A list of detected languages together with confidence.
-    #[serde(default, rename = "detectedLanguages")]
-    pub detected_languages: ::core::option::Option<
-        ::std::vec::Vec<GoogleCloudDocumentaiV1DocumentPageDetectedLanguage>,
-    >,
-    /// Physical dimension of the page.
-    #[serde(default)]
-    pub dimension: ::core::option::Option<GoogleCloudDocumentaiV1DocumentPageDimension>,
-    /// A list of visually detected form fields on the page.
-    #[serde(default, rename = "formFields")]
-    pub form_fields:
-        ::core::option::Option<::std::vec::Vec<GoogleCloudDocumentaiV1DocumentPageFormField>>,
-    /// Rendered image for this page. This image is preprocessed to remove any skew, rotation, and distortions such that the annotation bounding boxes can be upright and axis-aligned.
-    #[serde(default)]
-    pub image: ::core::option::Option<GoogleCloudDocumentaiV1DocumentPageImage>,
-    /// Image quality scores.
-    #[serde(default, rename = "imageQualityScores")]
-    pub image_quality_scores:
-        ::core::option::Option<GoogleCloudDocumentaiV1DocumentPageImageQualityScores>,
-    /// Layout for the page.
-    #[serde(default)]
-    pub layout: ::core::option::Option<GoogleCloudDocumentaiV1DocumentPageLayout>,
-    /// A list of visually detected text lines on the page. A collection of tokens that a human would perceive as a line.
-    #[serde(default)]
-    pub lines: ::core::option::Option<::std::vec::Vec<GoogleCloudDocumentaiV1DocumentPageLine>>,
-    /// 1-based index for current Page in a parent Document. Useful when a page is taken out of a Document for individual processing.
-    #[serde(default, rename = "pageNumber")]
-    pub page_number: ::core::option::Option<i32>,
-    /// A list of visually detected text paragraphs on the page. A collection of lines that a human would perceive as a paragraph.
-    #[serde(default)]
-    pub paragraphs:
-        ::core::option::Option<::std::vec::Vec<GoogleCloudDocumentaiV1DocumentPageParagraph>>,
-    /// The history of this page.
-    #[serde(default)]
-    pub provenance: ::core::option::Option<GoogleCloudDocumentaiV1DocumentProvenance>,
-    /// A list of visually detected symbols on the page.
-    #[serde(default)]
-    pub symbols: ::core::option::Option<::std::vec::Vec<GoogleCloudDocumentaiV1DocumentPageSymbol>>,
-    /// A list of visually detected tables on the page.
-    #[serde(default)]
-    pub tables: ::core::option::Option<::std::vec::Vec<GoogleCloudDocumentaiV1DocumentPageTable>>,
-    /// A list of visually detected tokens on the page.
-    #[serde(default)]
-    pub tokens: ::core::option::Option<::std::vec::Vec<GoogleCloudDocumentaiV1DocumentPageToken>>,
-    /// Transformation matrices that were applied to the original document image to produce Page.image.
-    #[serde(default)]
-    pub transforms:
-        ::core::option::Option<::std::vec::Vec<GoogleCloudDocumentaiV1DocumentPageMatrix>>,
-    /// A list of detected non-text visual elements e.g. checkbox, signature etc. on the page.
-    #[serde(default, rename = "visualElements")]
-    pub visual_elements:
-        ::core::option::Option<::std::vec::Vec<GoogleCloudDocumentaiV1DocumentPageVisualElement>>,
-}
-
-/// Referencing the visual context of the entity in the Document.pages. Page anchors can be cross-page, consist of multiple bounding polygons and optionally reference specific layout element types.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiV1DocumentPageAnchor {
-    /// One or more references to visual page elements
-    #[serde(default, rename = "pageRefs")]
-    pub page_refs:
-        ::core::option::Option<::std::vec::Vec<GoogleCloudDocumentaiV1DocumentPageAnchorPageRef>>,
-}
-
-/// Represents a weak reference to a page element within a document.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiV1DocumentPageAnchorPageRef {
-    /// Optional. Identifies the bounding polygon of a layout element on the page. If layout_type is set, the bounding polygon must be exactly the same to the layout element it''s referring to.
-    #[serde(default, rename = "boundingPoly")]
-    pub bounding_poly: ::core::option::Option<GoogleCloudDocumentaiV1BoundingPoly>,
-    /// Optional. Confidence of detected page element, if applicable. Range [0, 1].
-    #[serde(default)]
-    pub confidence: ::core::option::Option<f32>,
-    /// Optional. Deprecated. Use PageRef.bounding_poly instead.
-    #[serde(default, rename = "layoutId")]
-    pub layout_id: ::core::option::Option<String>,
-    /// Optional. The type of the layout element that is being referenced if any. // TODO: enum values: ["LAYOUT_TYPE_UNSPECIFIED", "BLOCK", "PARAGRAPH", "LINE", "TOKEN", "VISUAL_ELEMENT", "TABLE", "FORM_FIELD"]
-    #[serde(default, rename = "layoutType")]
-    pub layout_type: ::core::option::Option<String>,
-    /// Required. Index into the Document.pages element, for example using Document.pages to locate the related page element. This field is skipped when its value is the default 0. See https://developers.google.com/protocol-buffers/docs/proto3#json.
-    #[serde(default)]
-    pub page: ::core::option::Option<String>,
-}
-
-/// A block has a set of lines (collected into paragraphs) that have a common line-spacing and orientation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiV1DocumentPageBlock {
-    /// A list of detected languages together with confidence.
-    #[serde(default, rename = "detectedLanguages")]
-    pub detected_languages: ::core::option::Option<
-        ::std::vec::Vec<GoogleCloudDocumentaiV1DocumentPageDetectedLanguage>,
-    >,
-    /// Layout for Block.
-    #[serde(default)]
-    pub layout: ::core::option::Option<GoogleCloudDocumentaiV1DocumentPageLayout>,
-    /// The history of this annotation.
-    #[serde(default)]
-    pub provenance: ::core::option::Option<GoogleCloudDocumentaiV1DocumentProvenance>,
-}
-
-/// A detected barcode.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiV1DocumentPageDetectedBarcode {
-    /// Detailed barcode information of the DetectedBarcode.
-    #[serde(default)]
-    pub barcode: ::core::option::Option<GoogleCloudDocumentaiV1Barcode>,
-    /// Layout for DetectedBarcode.
-    #[serde(default)]
-    pub layout: ::core::option::Option<GoogleCloudDocumentaiV1DocumentPageLayout>,
-}
-
-/// Detected language for a structural component.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiV1DocumentPageDetectedLanguage {
-    /// Confidence of detected language. Range [0, 1].
-    #[serde(default)]
-    pub confidence: ::core::option::Option<f32>,
-    /// The [BCP-47 language code](https://www.unicode.org/reports/tr35/#Unicode_locale_identifier), such as en-US or sr-Latn.
-    #[serde(default, rename = "languageCode")]
-    pub language_code: ::core::option::Option<String>,
-}
-
-/// Dimension for the page.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiV1DocumentPageDimension {
-    /// Page height.
-    #[serde(default)]
-    pub height: ::core::option::Option<f32>,
-    /// Dimension unit.
-    #[serde(default)]
-    pub unit: ::core::option::Option<String>,
-    /// Page width.
-    #[serde(default)]
-    pub width: ::core::option::Option<f32>,
-}
-
-/// A form field detected on the page.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiV1DocumentPageFormField {
-    /// Created for Labeling UI to export key text. If corrections were made to the text identified by the field_name.text_anchor, this field will contain the correction.
-    #[serde(default, rename = "correctedKeyText")]
-    pub corrected_key_text: ::core::option::Option<String>,
-    /// Created for Labeling UI to export value text. If corrections were made to the text identified by the field_value.text_anchor, this field will contain the correction.
-    #[serde(default, rename = "correctedValueText")]
-    pub corrected_value_text: ::core::option::Option<String>,
-    /// Layout for the FormField name. e.g. Address, Email, Grand total, Phone number, etc.
-    #[serde(default, rename = "fieldName")]
-    pub field_name: ::core::option::Option<GoogleCloudDocumentaiV1DocumentPageLayout>,
-    /// Layout for the FormField value.
-    #[serde(default, rename = "fieldValue")]
-    pub field_value: ::core::option::Option<GoogleCloudDocumentaiV1DocumentPageLayout>,
-    /// A list of detected languages for name together with confidence.
-    #[serde(default, rename = "nameDetectedLanguages")]
-    pub name_detected_languages: ::core::option::Option<
-        ::std::vec::Vec<GoogleCloudDocumentaiV1DocumentPageDetectedLanguage>,
-    >,
-    /// The history of this annotation.
-    #[serde(default)]
-    pub provenance: ::core::option::Option<GoogleCloudDocumentaiV1DocumentProvenance>,
-    /// A list of detected languages for value together with confidence.
-    #[serde(default, rename = "valueDetectedLanguages")]
-    pub value_detected_languages: ::core::option::Option<
-        ::std::vec::Vec<GoogleCloudDocumentaiV1DocumentPageDetectedLanguage>,
-    >,
-    /// If the value is non-textual, this field represents the type. Current valid values are: - blank (this indicates the field_value is normal text) - unfilled_checkbox - filled_checkbox
-    #[serde(default, rename = "valueType")]
-    pub value_type: ::core::option::Option<String>,
-}
-
-/// Rendered image contents for this page.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiV1DocumentPageImage {
-    /// Raw byte content of the image.
-    #[serde(default)]
-    pub content: ::core::option::Option<String>,
-    /// Height of the image in pixels.
-    #[serde(default)]
-    pub height: ::core::option::Option<i32>,
-    /// Encoding [media type (MIME type)](https://www.iana.org/assignments/media-types/media-types.xhtml) for the image.
-    #[serde(default, rename = "mimeType")]
-    pub mime_type: ::core::option::Option<String>,
-    /// Width of the image in pixels.
-    #[serde(default)]
-    pub width: ::core::option::Option<i32>,
-}
-
-/// Image quality scores for the page image.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiV1DocumentPageImageQualityScores {
-    /// A list of detected defects.
-    #[serde(default, rename = "detectedDefects")]
-    pub detected_defects: ::core::option::Option<
-        ::std::vec::Vec<GoogleCloudDocumentaiV1DocumentPageImageQualityScoresDetectedDefect>,
-    >,
-    /// The overall quality score. Range [0, 1] where 1 is perfect quality.
-    #[serde(default, rename = "qualityScore")]
-    pub quality_score: ::core::option::Option<f32>,
-}
-
-/// Image Quality Defects
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiV1DocumentPageImageQualityScoresDetectedDefect {
-    /// Confidence of detected defect. Range [0, 1] where 1 indicates strong confidence that the defect exists.
-    #[serde(default)]
-    pub confidence: ::core::option::Option<f32>,
-    /// Name of the defect type. Supported values are: - quality/defect_blurry - quality/defect_noisy - quality/defect_dark - quality/defect_faint - quality/defect_text_too_small - quality/defect_document_cutoff - quality/defect_text_cutoff - quality/defect_glare
-    #[serde(default, rename = "type")]
-    pub type_: ::core::option::Option<String>,
-}
-
-/// Visual element describing a layout unit on a page.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiV1DocumentPageLayout {
-    /// The bounding polygon for the Layout.
-    #[serde(default, rename = "boundingPoly")]
-    pub bounding_poly: ::core::option::Option<GoogleCloudDocumentaiV1BoundingPoly>,
-    /// Confidence of the current Layout within context of the object this layout is for. e.g. confidence can be for a single token, a table, a visual element, etc. depending on context. Range [0, 1].
-    #[serde(default)]
-    pub confidence: ::core::option::Option<f32>,
-    /// Detected orientation for the Layout. // TODO: enum values: ["ORIENTATION_UNSPECIFIED", "PAGE_UP", "PAGE_RIGHT", "PAGE_DOWN", "PAGE_LEFT"]
-    #[serde(default)]
-    pub orientation: ::core::option::Option<String>,
-    /// Text anchor indexing into the Document.text.
-    #[serde(default, rename = "textAnchor")]
-    pub text_anchor: ::core::option::Option<GoogleCloudDocumentaiV1DocumentTextAnchor>,
-}
-
-/// A collection of tokens that a human would perceive as a line. Does not cross column boundaries, can be horizontal, vertical, etc.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiV1DocumentPageLine {
-    /// A list of detected languages together with confidence.
-    #[serde(default, rename = "detectedLanguages")]
-    pub detected_languages: ::core::option::Option<
-        ::std::vec::Vec<GoogleCloudDocumentaiV1DocumentPageDetectedLanguage>,
-    >,
-    /// Layout for Line.
-    #[serde(default)]
-    pub layout: ::core::option::Option<GoogleCloudDocumentaiV1DocumentPageLayout>,
-    /// The history of this annotation.
-    #[serde(default)]
-    pub provenance: ::core::option::Option<GoogleCloudDocumentaiV1DocumentProvenance>,
-}
-
-/// Representation for transformation matrix, intended to be compatible and used with OpenCV format for image manipulation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiV1DocumentPageMatrix {
-    /// Number of columns in the matrix.
-    #[serde(default)]
-    pub cols: ::core::option::Option<i32>,
-    /// The matrix data.
-    #[serde(default)]
-    pub data: ::core::option::Option<String>,
-    /// Number of rows in the matrix.
-    #[serde(default)]
-    pub rows: ::core::option::Option<i32>,
-    /// This encodes information about what data type the matrix uses. For example, 0 (CV_8U) is an unsigned 8-bit image. For the full list of OpenCV primitive data types, please refer to https://docs.opencv.org/4.3.0/d1/d1b/group__core__hal__interface.html
-    #[serde(default, rename = "type")]
-    pub type_: ::core::option::Option<i32>,
-}
-
-/// A collection of lines that a human would perceive as a paragraph.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiV1DocumentPageParagraph {
-    /// A list of detected languages together with confidence.
-    #[serde(default, rename = "detectedLanguages")]
-    pub detected_languages: ::core::option::Option<
-        ::std::vec::Vec<GoogleCloudDocumentaiV1DocumentPageDetectedLanguage>,
-    >,
-    /// Layout for Paragraph.
-    #[serde(default)]
-    pub layout: ::core::option::Option<GoogleCloudDocumentaiV1DocumentPageLayout>,
-    /// The history of this annotation.
-    #[serde(default)]
-    pub provenance: ::core::option::Option<GoogleCloudDocumentaiV1DocumentProvenance>,
-}
-
-/// A detected symbol.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiV1DocumentPageSymbol {
-    /// A list of detected languages together with confidence.
-    #[serde(default, rename = "detectedLanguages")]
-    pub detected_languages: ::core::option::Option<
-        ::std::vec::Vec<GoogleCloudDocumentaiV1DocumentPageDetectedLanguage>,
-    >,
-    /// Layout for Symbol.
-    #[serde(default)]
-    pub layout: ::core::option::Option<GoogleCloudDocumentaiV1DocumentPageLayout>,
-}
-
-/// A table representation similar to HTML table structure.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiV1DocumentPageTable {
-    /// Body rows of the table.
-    #[serde(default, rename = "bodyRows")]
-    pub body_rows:
-        ::core::option::Option<::std::vec::Vec<GoogleCloudDocumentaiV1DocumentPageTableTableRow>>,
-    /// A list of detected languages together with confidence.
-    #[serde(default, rename = "detectedLanguages")]
-    pub detected_languages: ::core::option::Option<
-        ::std::vec::Vec<GoogleCloudDocumentaiV1DocumentPageDetectedLanguage>,
-    >,
-    /// Header rows of the table.
-    #[serde(default, rename = "headerRows")]
-    pub header_rows:
-        ::core::option::Option<::std::vec::Vec<GoogleCloudDocumentaiV1DocumentPageTableTableRow>>,
-    /// Layout for Table.
-    #[serde(default)]
-    pub layout: ::core::option::Option<GoogleCloudDocumentaiV1DocumentPageLayout>,
-    /// The history of this table.
-    #[serde(default)]
-    pub provenance: ::core::option::Option<GoogleCloudDocumentaiV1DocumentProvenance>,
-}
-
-/// A cell representation inside the table.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiV1DocumentPageTableTableCell {
-    /// How many columns this cell spans.
-    #[serde(default, rename = "colSpan")]
-    pub col_span: ::core::option::Option<i32>,
-    /// A list of detected languages together with confidence.
-    #[serde(default, rename = "detectedLanguages")]
-    pub detected_languages: ::core::option::Option<
-        ::std::vec::Vec<GoogleCloudDocumentaiV1DocumentPageDetectedLanguage>,
-    >,
-    /// Layout for TableCell.
-    #[serde(default)]
-    pub layout: ::core::option::Option<GoogleCloudDocumentaiV1DocumentPageLayout>,
-    /// How many rows this cell spans.
-    #[serde(default, rename = "rowSpan")]
-    pub row_span: ::core::option::Option<i32>,
-}
-
-/// A row of table cells.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiV1DocumentPageTableTableRow {
-    /// Cells that make up this row.
-    #[serde(default)]
-    pub cells:
-        ::core::option::Option<::std::vec::Vec<GoogleCloudDocumentaiV1DocumentPageTableTableCell>>,
-}
-
-/// A detected token.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiV1DocumentPageToken {
-    /// Detected break at the end of a Token.
-    #[serde(default, rename = "detectedBreak")]
-    pub detected_break:
-        ::core::option::Option<GoogleCloudDocumentaiV1DocumentPageTokenDetectedBreak>,
-    /// A list of detected languages together with confidence.
-    #[serde(default, rename = "detectedLanguages")]
-    pub detected_languages: ::core::option::Option<
-        ::std::vec::Vec<GoogleCloudDocumentaiV1DocumentPageDetectedLanguage>,
-    >,
-    /// Layout for Token.
-    #[serde(default)]
-    pub layout: ::core::option::Option<GoogleCloudDocumentaiV1DocumentPageLayout>,
-    /// The history of this annotation.
-    #[serde(default)]
-    pub provenance: ::core::option::Option<GoogleCloudDocumentaiV1DocumentProvenance>,
-    /// Text style attributes.
-    #[serde(default, rename = "styleInfo")]
-    pub style_info: ::core::option::Option<GoogleCloudDocumentaiV1DocumentPageTokenStyleInfo>,
-}
-
-/// Detected break at the end of a Token.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiV1DocumentPageTokenDetectedBreak {
-    /// Detected break type. // TODO: enum values: ["TYPE_UNSPECIFIED", "SPACE", "WIDE_SPACE", "HYPHEN"]
-    #[serde(default, rename = "type")]
-    pub type_: ::core::option::Option<String>,
-}
-
-/// Font and other text style attributes.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiV1DocumentPageTokenStyleInfo {
-    /// Color of the background.
-    #[serde(default, rename = "backgroundColor")]
-    pub background_color: ::core::option::Option<GoogleTypeColor>,
-    /// Whether the text is bold (equivalent to font_weight is at least 700).
-    #[serde(default)]
-    pub bold: ::core::option::Option<bool>,
-    /// Font size in points (1 point is ¹⁄₇₂ inches).
-    #[serde(default, rename = "fontSize")]
-    pub font_size: ::core::option::Option<i32>,
-    /// Name or style of the font.
-    #[serde(default, rename = "fontType")]
-    pub font_type: ::core::option::Option<String>,
-    /// TrueType weight on a scale 100 (thin) to 1000 (ultra-heavy). Normal is 400, bold is 700.
-    #[serde(default, rename = "fontWeight")]
-    pub font_weight: ::core::option::Option<i32>,
-    /// Whether the text is handwritten.
-    #[serde(default)]
-    pub handwritten: ::core::option::Option<bool>,
-    /// Whether the text is italic.
-    #[serde(default)]
-    pub italic: ::core::option::Option<bool>,
-    /// Letter spacing in points.
-    #[serde(default, rename = "letterSpacing")]
-    pub letter_spacing: ::core::option::Option<f64>,
-    /// Font size in pixels, equal to _unrounded font_size_ * _resolution_ ÷ 72.0.
-    #[serde(default, rename = "pixelFontSize")]
-    pub pixel_font_size: ::core::option::Option<f64>,
-    /// Whether the text is in small caps. This feature is not supported yet.
-    #[serde(default)]
-    pub smallcaps: ::core::option::Option<bool>,
-    /// Whether the text is strikethrough. This feature is not supported yet.
-    #[serde(default)]
-    pub strikeout: ::core::option::Option<bool>,
-    /// Whether the text is a subscript. This feature is not supported yet.
-    #[serde(default)]
-    pub subscript: ::core::option::Option<bool>,
-    /// Whether the text is a superscript. This feature is not supported yet.
-    #[serde(default)]
-    pub superscript: ::core::option::Option<bool>,
-    /// Color of the text.
-    #[serde(default, rename = "textColor")]
-    pub text_color: ::core::option::Option<GoogleTypeColor>,
-    /// Whether the text is underlined.
-    #[serde(default)]
-    pub underlined: ::core::option::Option<bool>,
-}
-
-/// Detected non-text visual elements e.g. checkbox, signature etc. on the page.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiV1DocumentPageVisualElement {
-    /// A list of detected languages together with confidence.
-    #[serde(default, rename = "detectedLanguages")]
-    pub detected_languages: ::core::option::Option<
-        ::std::vec::Vec<GoogleCloudDocumentaiV1DocumentPageDetectedLanguage>,
-    >,
-    /// Layout for VisualElement.
-    #[serde(default)]
-    pub layout: ::core::option::Option<GoogleCloudDocumentaiV1DocumentPageLayout>,
-    /// Type of the VisualElement.
-    #[serde(default, rename = "type")]
-    pub type_: ::core::option::Option<String>,
-}
-
-/// Structure to identify provenance relationships between annotations in different revisions.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiV1DocumentProvenance {
-    /// The Id of this operation. Needs to be unique within the scope of the revision.
-    #[serde(default)]
-    pub id: ::core::option::Option<i32>,
-    /// References to the original elements that are replaced.
-    #[serde(default)]
-    pub parents:
-        ::core::option::Option<::std::vec::Vec<GoogleCloudDocumentaiV1DocumentProvenanceParent>>,
-    /// The index of the revision that produced this element.
-    #[serde(default)]
-    pub revision: ::core::option::Option<i32>,
-    /// The type of provenance operation. // TODO: enum values: ["OPERATION_TYPE_UNSPECIFIED", "ADD", "REMOVE", "UPDATE", "REPLACE", "EVAL_REQUESTED", "EVAL_APPROVED", "EVAL_SKIPPED"]
-    #[serde(default, rename = "type")]
-    pub type_: ::core::option::Option<String>,
-}
-
-/// The parent element the current element is based on. Used for referencing/aligning, removal and replacement operations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiV1DocumentProvenanceParent {
-    /// The id of the parent provenance.
-    #[serde(default)]
-    pub id: ::core::option::Option<i32>,
-    /// The index of the parent item in the corresponding item list (eg. list of entities, properties within entities, etc.) in the parent revision.
-    #[serde(default)]
-    pub index: ::core::option::Option<i32>,
-    /// The index of the index into current revision''s parent_ids list.
-    #[serde(default)]
-    pub revision: ::core::option::Option<i32>,
-}
-
-/// Contains past or forward revisions of this document.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiV1DocumentRevision {
-    /// If the change was made by a person specify the name or id of that person.
-    #[serde(default)]
-    pub agent: ::core::option::Option<String>,
-    /// The time that the revision was created, internally generated by doc proto storage at the time of create.
-    #[serde(default, rename = "createTime")]
-    pub create_time: ::core::option::Option<String>,
-    /// Human Review information of this revision.
-    #[serde(default, rename = "humanReview")]
-    pub human_review: ::core::option::Option<GoogleCloudDocumentaiV1DocumentRevisionHumanReview>,
-    /// Id of the revision, internally generated by doc proto storage. Unique within the context of the document.
-    #[serde(default)]
-    pub id: ::core::option::Option<String>,
-    /// The revisions that this revision is based on. This can include one or more parent (when documents are merged.) This field represents the index into the revisions field.
-    #[serde(default)]
-    pub parent: ::core::option::Option<::std::vec::Vec<i32>>,
-    /// The revisions that this revision is based on. Must include all the ids that have anything to do with this revision - eg. there are provenance.parent.revision fields that index into this field.
-    #[serde(default, rename = "parentIds")]
-    pub parent_ids: ::core::option::Option<::std::vec::Vec<String>>,
-    /// If the annotation was made by processor identify the processor by its resource name.
-    #[serde(default)]
-    pub processor: ::core::option::Option<String>,
-}
-
-/// Human Review information of the document.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiV1DocumentRevisionHumanReview {
-    /// Human review state. e.g. requested, succeeded, rejected.
-    #[serde(default)]
-    pub state: ::core::option::Option<String>,
-    /// A message providing more details about the current state of processing. For example, the rejection reason when the state is rejected.
-    #[serde(default, rename = "stateMessage")]
-    pub state_message: ::core::option::Option<String>,
-}
-
-/// For a large document, sharding may be performed to produce several document shards. Each document shard contains this field to detail which shard it is.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiV1DocumentShardInfo {
-    /// Total number of shards.
-    #[serde(default, rename = "shardCount")]
-    pub shard_count: ::core::option::Option<String>,
-    /// The 0-based index of this shard.
-    #[serde(default, rename = "shardIndex")]
-    pub shard_index: ::core::option::Option<String>,
-    /// The index of the first character in Document.text in the overall document global text.
-    #[serde(default, rename = "textOffset")]
-    pub text_offset: ::core::option::Option<String>,
-}
-
-/// Annotation for common text style attributes. This adheres to CSS conventions as much as possible.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiV1DocumentStyle {
-    /// Text background color.
-    #[serde(default, rename = "backgroundColor")]
-    pub background_color: ::core::option::Option<GoogleTypeColor>,
-    /// Text color.
-    #[serde(default)]
-    pub color: ::core::option::Option<GoogleTypeColor>,
-    /// Font family such as Arial, Times New Roman. https://www.w3schools.com/cssref/pr_font_font-family.asp
-    #[serde(default, rename = "fontFamily")]
-    pub font_family: ::core::option::Option<String>,
-    /// Font size.
-    #[serde(default, rename = "fontSize")]
-    pub font_size: ::core::option::Option<GoogleCloudDocumentaiV1DocumentStyleFontSize>,
-    /// [Font weight](https://www.w3schools.com/cssref/pr_font_weight.asp). Possible values are normal, bold, bolder, and lighter.
-    #[serde(default, rename = "fontWeight")]
-    pub font_weight: ::core::option::Option<String>,
-    /// Text anchor indexing into the Document.text.
-    #[serde(default, rename = "textAnchor")]
-    pub text_anchor: ::core::option::Option<GoogleCloudDocumentaiV1DocumentTextAnchor>,
-    /// [Text decoration](https://www.w3schools.com/cssref/pr_text_text-decoration.asp). Follows CSS standard.
-    #[serde(default, rename = "textDecoration")]
-    pub text_decoration: ::core::option::Option<String>,
-    /// [Text style](https://www.w3schools.com/cssref/pr_font_font-style.asp). Possible values are normal, italic, and oblique.
-    #[serde(default, rename = "textStyle")]
-    pub text_style: ::core::option::Option<String>,
-}
-
-/// Font size with unit.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiV1DocumentStyleFontSize {
-    /// Font size for the text.
-    #[serde(default)]
-    pub size: ::core::option::Option<f32>,
-    /// Unit for the font size. Follows CSS naming (such as in, px, and pt).
-    #[serde(default)]
-    pub unit: ::core::option::Option<String>,
-}
-
-/// Text reference indexing into the Document.text.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiV1DocumentTextAnchor {
-    /// Contains the content of the text span so that users do not have to look it up in the text_segments. It is always populated for formFields.
-    #[serde(default)]
-    pub content: ::core::option::Option<String>,
-    /// The text segments from the Document.text.
-    #[serde(default, rename = "textSegments")]
-    pub text_segments: ::core::option::Option<
-        ::std::vec::Vec<GoogleCloudDocumentaiV1DocumentTextAnchorTextSegment>,
-    >,
-}
-
-/// A text segment in the Document.text. The indices may be out of bounds which indicate that the text extends into another document shard for large sharded documents. See ShardInfo.text_offset
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiV1DocumentTextAnchorTextSegment {
-    /// TextSegment half open end UTF-8 char index in the Document.text.
-    #[serde(default, rename = "endIndex")]
-    pub end_index: ::core::option::Option<String>,
-    /// TextSegment start UTF-8 char index in the Document.text.
-    #[serde(default, rename = "startIndex")]
-    pub start_index: ::core::option::Option<String>,
-}
-
-/// This message is used for text changes aka. OCR corrections.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiV1DocumentTextChange {
-    /// The text that replaces the text identified in the text_anchor.
-    #[serde(default, rename = "changedText")]
-    pub changed_text: ::core::option::Option<String>,
-    /// The history of this annotation.
-    #[serde(default)]
-    pub provenance:
-        ::core::option::Option<::std::vec::Vec<GoogleCloudDocumentaiV1DocumentProvenance>>,
-    /// Provenance of the correction. Text anchor indexing into the Document.text. There can only be a single TextAnchor.text_segments element. If the start and end index of the text segment are the same, the text change is inserted before that index.
-    #[serde(default, rename = "textAnchor")]
-    pub text_anchor: ::core::option::Option<GoogleCloudDocumentaiV1DocumentTextAnchor>,
-}
-
-/// A vertex represents a 2D point in the image. NOTE: the normalized vertex coordinates are relative to the original image and range from 0 to 1.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiV1NormalizedVertex {
-    /// X coordinate.
-    #[serde(default)]
-    pub x: ::core::option::Option<f32>,
-    /// Y coordinate (starts from the top of the image).
-    #[serde(default)]
-    pub y: ::core::option::Option<f32>,
-}
-
-/// A vertex represents a 2D point in the image. NOTE: the vertex coordinates are in the same scale as the original image.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudDocumentaiV1Vertex {
-    /// X coordinate.
-    #[serde(default)]
-    pub x: ::core::option::Option<i32>,
-    /// Y coordinate (starts from the top of the image).
-    #[serde(default)]
-    pub y: ::core::option::Option<i32>,
-}
-
-/// Specifies the audit configuration for a service. The configuration determines which permission types are logged, and what identities, if any, are exempted from logging. An AuditConfig must have one or more AuditLogConfigs. If there are AuditConfigs for both allServices and a specific service, the union of the two AuditConfigs is used for that service: the log_types specified in each AuditConfig are enabled, and the exempted_members in each AuditLogConfig are exempted. Example Policy with multiple AuditConfigs: { "audit_configs": [ { "service": "allServices", "audit_log_configs": [ { "log_type": "DATA_READ", "exempted_members": [ "user:jose@example.com" ] }, { "log_type": "DATA_WRITE" }, { "log_type": "ADMIN_READ" } ] }, { "service": "sampleservice.googleapis.com", "audit_log_configs": [ { "log_type": "DATA_READ" }, { "log_type": "DATA_WRITE", "exempted_members": [ "user:aliya@example.com" ] } ] } ] } For sampleservice, this policy enables DATA_READ, DATA_WRITE and ADMIN_READ logging. It also exempts jose@example.com from DATA_READ logging, and aliya@example.com from DATA_WRITE logging.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleIamV1AuditConfig {
-    /// The configuration for logging of each type of permission.
-    #[serde(default, rename = "auditLogConfigs")]
-    pub audit_log_configs: ::core::option::Option<::std::vec::Vec<GoogleIamV1AuditLogConfig>>,
-    /// Specifies a service that will be enabled for audit logging. For example, storage.googleapis.com, cloudsql.googleapis.com. allServices is a special value that covers all services.
-    #[serde(default)]
-    pub service: ::core::option::Option<String>,
-}
-
-/// Provides the configuration for logging a type of permissions. Example: { "audit_log_configs": [ { "log_type": "DATA_READ", "exempted_members": [ "user:jose@example.com" ] }, { "log_type": "DATA_WRITE" } ] } This enables ''DATA_READ'' and ''DATA_WRITE'' logging, while exempting jose@example.com from DATA_READ logging.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleIamV1AuditLogConfig {
-    /// Specifies the identities that do not cause logging for this type of permission. Follows the same format of Binding.members.
-    #[serde(default, rename = "exemptedMembers")]
-    pub exempted_members: ::core::option::Option<::std::vec::Vec<String>>,
-    /// The log type that this config enables. // TODO: enum values: ["LOG_TYPE_UNSPECIFIED", "ADMIN_READ", "DATA_WRITE", "DATA_READ"]
-    #[serde(default, rename = "logType")]
-    pub log_type: ::core::option::Option<String>,
-}
-
-/// Associates members, or principals, with a role.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleIamV1Binding {
-    /// The condition that is associated with this binding. If the condition evaluates to true, then this binding applies to the current request. If the condition evaluates to false, then this binding does not apply to the current request. However, a different role binding might grant the same role to one or more of the principals in this binding. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies).
-    #[serde(default)]
-    pub condition: ::core::option::Option<GoogleTypeExpr>,
-    /// Specifies the principals requesting access for a Google Cloud resource. members can have the following values: * allUsers: A special identifier that represents anyone who is on the internet; with or without a Google account. * allAuthenticatedUsers: A special identifier that represents anyone who is authenticated with a Google account or a service account. Does not include identities that come from external identity providers (IdPs) through identity federation. * user:{emailid}: An email address that represents a specific Google account. For example, alice@example.com . * serviceAccount:{emailid}: An email address that represents a Google service account. For example, my-other-app@appspot.gserviceaccount.com. * serviceAccount:{projectid}.svc.id.goog[{namespace}/{kubernetes-sa}]: An identifier for a [Kubernetes service account](https://cloud.google.com/kubernetes-engine/docs/how-to/kubernetes-service-accounts). For example, my-project.svc.id.goog[my-namespace/my-kubernetes-sa]. * group:{emailid}: An email address that represents a Google group. For example, admins@example.com. * domain:{domain}: The G Suite domain (primary) that represents all the users of that domain. For example, google.com or example.com. * principal://iam.googleapis.com/locations/global/workforcePools/{pool_id}/subject/{subject_attribute_value}: A single identity in a workforce identity pool. * principalSet://iam.googleapis.com/locations/global/workforcePools/{pool_id}/group/{group_id}: All workforce identities in a group. * principalSet://iam.googleapis.com/locations/global/workforcePools/{pool_id}/attribute.{attribute_name}/{attribute_value}: All workforce identities with a specific attribute value. * principalSet://iam.googleapis.com/locations/global/workforcePools/{pool_id}/*: All identities in a workforce identity pool. * principal://iam.googleapis.com/projects/{project_number}/locations/global/workloadIdentityPools/{pool_id}/subject/{subject_attribute_value}: A single identity in a workload identity pool. * principalSet://iam.googleapis.com/projects/{project_number}/locations/global/workloadIdentityPools/{pool_id}/group/{group_id}: A workload identity pool group. * principalSet://iam.googleapis.com/projects/{project_number}/locations/global/workloadIdentityPools/{pool_id}/attribute.{attribute_name}/{attribute_value}: All identities in a workload identity pool with a certain attribute. * principalSet://iam.googleapis.com/projects/{project_number}/locations/global/workloadIdentityPools/{pool_id}/*: All identities in a workload identity pool. * deleted:user:{emailid}?uid={uniqueid}: An email address (plus unique identifier) representing a user that has been recently deleted. For example, alice@example.com?uid=123456789012345678901. If the user is recovered, this value reverts to user:{emailid} and the recovered user retains the role in the binding. * deleted:serviceAccount:{emailid}?uid={uniqueid}: An email address (plus unique identifier) representing a service account that has been recently deleted. For example, my-other-app@appspot.gserviceaccount.com?uid=123456789012345678901. If the service account is undeleted, this value reverts to serviceAccount:{emailid} and the undeleted service account retains the role in the binding. * deleted:group:{emailid}?uid={uniqueid}: An email address (plus unique identifier) representing a Google group that has been recently deleted. For example, admins@example.com?uid=123456789012345678901. If the group is recovered, this value reverts to group:{emailid} and the recovered group retains the role in the binding. * deleted:principal://iam.googleapis.com/locations/global/workforcePools/{pool_id}/subject/{subject_attribute_value}: Deleted single identity in a workforce identity pool. For example, deleted:principal://iam.googleapis.com/locations/global/workforcePools/my-pool-id/subject/my-subject-attribute-value.
-    #[serde(default)]
-    pub members: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Role that is assigned to the list of members, or principals. For example, roles/viewer, roles/editor, or roles/owner. For an overview of the IAM roles and permissions, see the [IAM documentation](https://cloud.google.com/iam/docs/roles-overview). For a list of the available pre-defined roles, see [here](https://cloud.google.com/iam/docs/understanding-roles).
-    #[serde(default)]
-    pub role: ::core::option::Option<String>,
-}
-
-/// An Identity and Access Management (IAM) policy, which specifies access controls for Google Cloud resources. A Policy is a collection of bindings. A binding binds one or more members, or principals, to a single role. Principals can be user accounts, service accounts, Google groups, and domains (such as G Suite). A role is a named list of permissions; each role can be an IAM predefined role or a user-created custom role. For some types of Google Cloud resources, a binding can also specify a condition, which is a logical expression that allows access to a resource only if the expression evaluates to true. A condition can add constraints based on attributes of the request, the resource, or both. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies). **JSON example:**  { "bindings": [ { "role": "roles/resourcemanager.organizationAdmin", "members": [ "user:mike@example.com", "group:admins@example.com", "domain:google.com", "serviceAccount:my-project-id@appspot.gserviceaccount.com" ] }, { "role": "roles/resourcemanager.organizationViewer", "members": [ "user:eve@example.com" ], "condition": { "title": "expirable access", "description": "Does not grant access after Sep 2020", "expression": "request.time &lt; timestamp(''2020-10-01T00:00:00.000Z'')", } } ], "etag": "BwWWja0YfJA=", "version": 3 }  **YAML example:**  bindings: - members: - user:mike@example.com - group:admins@example.com - domain:google.com - serviceAccount:my-project-id@appspot.gserviceaccount.com role: roles/resourcemanager.organizationAdmin - members: - user:eve@example.com role: roles/resourcemanager.organizationViewer condition: title: expirable access description: Does not grant access after Sep 2020 expression: request.time &lt; timestamp(''2020-10-01T00:00:00.000Z'') etag: BwWWja0YfJA= version: 3  For a description of IAM and its features, see the [IAM documentation](https://cloud.google.com/iam/docs/).
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleIamV1Policy {
-    /// Specifies cloud audit logging configuration for this policy.
-    #[serde(default, rename = "auditConfigs")]
-    pub audit_configs: ::core::option::Option<::std::vec::Vec<GoogleIamV1AuditConfig>>,
-    /// Associates a list of members, or principals, with a role. Optionally, may specify a condition that determines how and when the bindings are applied. Each of the bindings must contain at least one principal. The bindings in a Policy can refer to up to 1,500 principals; up to 250 of these principals can be Google groups. Each occurrence of a principal counts towards these limits. For example, if the bindings grant 50 different roles to user:alice@example.com, and not to any other principal, then you can add another 1,450 principals to the bindings in the Policy.
-    #[serde(default)]
-    pub bindings: ::core::option::Option<::std::vec::Vec<GoogleIamV1Binding>>,
-    /// etag is used for optimistic concurrency control as a way to help prevent simultaneous updates of a policy from overwriting each other. It is strongly suggested that systems make use of the etag in the read-modify-write cycle to perform policy updates in order to avoid race conditions: An etag is returned in the response to getIamPolicy, and systems are expected to put that etag in the request to setIamPolicy to ensure that their change will be applied to the same version of the policy. **Important:** If you use IAM Conditions, you must include the etag field whenever you call setIamPolicy. If you omit this field, then IAM allows you to overwrite a version 3 policy with a version 1 policy, and all of the conditions in the version 3 policy are lost.
-    #[serde(default)]
-    pub etag: ::core::option::Option<String>,
-    /// Specifies the format of the policy. Valid values are 0, 1, and 3. Requests that specify an invalid value are rejected. Any operation that affects conditional role bindings must specify version 3. This requirement applies to the following operations: * Getting a policy that includes a conditional role binding * Adding a conditional role binding to a policy * Changing a conditional role binding in a policy * Removing any role binding, with or without a condition, from a policy that includes conditions **Important:** If you use IAM Conditions, you must include the etag field whenever you call setIamPolicy. If you omit this field, then IAM allows you to overwrite a version 3 policy with a version 1 policy, and all of the conditions in the version 3 policy are lost. If a policy does not include any conditions, operations on that policy may specify any valid version or leave the field unset. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies).
-    #[serde(default)]
-    pub version: ::core::option::Option<i32>,
-}
-
-/// This resource represents a long-running operation that is the result of a network API call.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleLongrunningOperation {
-    /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
-    #[serde(default)]
-    pub done: ::core::option::Option<bool>,
-    /// The error result of the operation in case of failure or cancellation.
-    #[serde(default)]
-    pub error: ::core::option::Option<GoogleRpcStatus>,
-    /// Service-specific metadata associated with the operation. It typically contains progress information and common metadata such as create time. Some services might not provide such metadata. Any method that returns a long-running operation should document the metadata type, if any.
-    #[serde(default)]
-    pub metadata: ::core::option::Option<serde_json::Value>,
-    /// The server-assigned name, which is only unique within the same service that originally returns it. If you use the default HTTP mapping, the name should be a resource name ending with operations/{unique_id}.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// The normal, successful response of the operation. If the original method returns no data on success, such as Delete, the response is google.protobuf.Empty. If the original method is standard Get/Create/Update, the response should be the resource. For other methods, the response should have the type XxxResponse, where Xxx is the original method name. For example, if the original method name is TakeSnapshot(), the inferred response type is TakeSnapshotResponse.
-    #[serde(default)]
-    pub response: ::core::option::Option<serde_json::Value>,
-}
-
-/// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleRpcStatus {
-    /// The status code, which should be an enum value of google.rpc.Code.
-    #[serde(default)]
-    pub code: ::core::option::Option<i32>,
-    /// A list of messages that carry the error details. There is a common set of message types for APIs to use.
-    #[serde(default)]
-    pub details: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
-    /// A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.
-    #[serde(default)]
-    pub message: ::core::option::Option<String>,
-}
-
-/// Represents a color in the RGBA color space. This representation is designed for simplicity of conversion to and from color representations in various languages over compactness. For example, the fields of this representation can be trivially provided to the constructor of java.awt.Color in Java; it can also be trivially provided to UIColor''s +colorWithRed:green:blue:alpha method in iOS; and, with just a little work, it can be easily formatted into a CSS rgba() string in JavaScript. This reference page doesn''t have information about the absolute color space that should be used to interpret the RGB value—for example, sRGB, Adobe RGB, DCI-P3, and BT.2020. By default, applications should assume the sRGB color space. When color equality needs to be decided, implementations, unless documented otherwise, treat two colors as equal if all their red, green, blue, and alpha values each differ by at most 1e-5. Example (Java): import com.google.type.Color; // ... public static java.awt.Color fromProto(Color protocolor) { float alpha = protocolor.hasAlpha() ? protocolor.getAlpha().getValue() : 1.0; return new java.awt.Color( protocolor.getRed(), protocolor.getGreen(), protocolor.getBlue(), alpha); } public static Color toProto(java.awt.Color color) { float red = (float) color.getRed(); float green = (float) color.getGreen(); float blue = (float) color.getBlue(); float denominator = 255.0; Color.Builder resultBuilder = Color .newBuilder() .setRed(red / denominator) .setGreen(green / denominator) .setBlue(blue / denominator); int alpha = color.getAlpha(); if (alpha != 255) { result.setAlpha( FloatValue .newBuilder() .setValue(((float) alpha) / denominator) .build()); } return resultBuilder.build(); } // ... Example (iOS / Obj-C): // ... static UIColor* fromProto(Color* protocolor) { float red = [protocolor red]; float green = [protocolor green]; float blue = [protocolor blue]; FloatValue* alpha_wrapper = [protocolor alpha]; float alpha = 1.0; if (alpha_wrapper != nil) { alpha = [alpha_wrapper value]; } return [UIColor colorWithRed:red green:green blue:blue alpha:alpha]; } static Color* toProto(UIColor* color) { CGFloat red, green, blue, alpha; if (![color getRed:&red green:&green blue:&blue alpha:&alpha]) { return nil; } Color* result = [[Color alloc] init]; [result setRed:red]; [result setGreen:green]; [result setBlue:blue]; if (alpha &lt;= 0.9999) { [result setAlpha:floatWrapperWithValue(alpha)]; } [result autorelease]; return result; } // ... Example (JavaScript): // ... var protoToCssColor = function(rgb_color) { var redFrac = rgb_color.red || 0.0; var greenFrac = rgb_color.green || 0.0; var blueFrac = rgb_color.blue || 0.0; var red = Math.floor(redFrac * 255); var green = Math.floor(greenFrac * 255); var blue = Math.floor(blueFrac * 255); if (!(''alpha'' in rgb_color)) { return rgbToCssColor(red, green, blue); } var alphaFrac = rgb_color.alpha.value || 0.0; var rgbParams = [red, green, blue].join('',''); return [''rgba('', rgbParams, '','', alphaFrac, '')''].join(''''); }; var rgbToCssColor = function(red, green, blue) { var rgbNumber = new Number((red &lt;&lt; 16) | (green &lt;&lt; 8) | blue); var hexString = rgbNumber.toString(16); var missingZeros = 6 - hexString.length; var resultBuilder = [''#'']; for (var i = 0; i &lt; missingZeros; i++) { resultBuilder.push(''0''); } resultBuilder.push(hexString); return resultBuilder.join(''''); }; // ...
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleTypeColor {
-    /// The fraction of this color that should be applied to the pixel. That is, the final pixel color is defined by the equation: pixel color = alpha * (this color) + (1.0 - alpha) * (background color) This means that a value of 1.0 corresponds to a solid color, whereas a value of 0.0 corresponds to a completely transparent color. This uses a wrapper message rather than a simple float scalar so that it is possible to distinguish between a default value and the value being unset. If omitted, this color object is rendered as a solid color (as if the alpha value had been explicitly given a value of 1.0).
-    #[serde(default)]
-    pub alpha: ::core::option::Option<f32>,
-    /// The amount of blue in the color as a value in the interval [0, 1].
-    #[serde(default)]
-    pub blue: ::core::option::Option<f32>,
-    /// The amount of green in the color as a value in the interval [0, 1].
-    #[serde(default)]
-    pub green: ::core::option::Option<f32>,
-    /// The amount of red in the color as a value in the interval [0, 1].
-    #[serde(default)]
-    pub red: ::core::option::Option<f32>,
-}
-
-/// Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleTypeDate {
-    /// Day of a month. Must be from 1 to 31 and valid for the year and month, or 0 to specify a year by itself or a year and month where the day isn''t significant.
-    #[serde(default)]
-    pub day: ::core::option::Option<i32>,
-    /// Month of a year. Must be from 1 to 12, or 0 to specify a year without a month and day.
-    #[serde(default)]
-    pub month: ::core::option::Option<i32>,
-    /// Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.
-    #[serde(default)]
-    pub year: ::core::option::Option<i32>,
-}
-
 /// Represents civil time (or occasionally physical time). This type can represent a civil time in one of a few possible ways: * When utc_offset is set and time_zone is unset: a civil time on a calendar day with a particular offset from UTC. * When time_zone is set and utc_offset is unset: a civil time on a calendar day in a particular time zone. * When neither time_zone nor utc_offset is set: a civil time on a calendar day in local time. The date is relative to the Proleptic Gregorian Calendar. If year, month, or day are 0, the DateTime is considered not to have a specific year, month, or day respectively. This type may also be used to represent a physical time if all the date and time fields are set and either case of the time_offset oneof is set. Consider using Timestamp message for physical time instead. If your use case also would like to store the user''s timezone, that can be done in another field. This type is more flexible than some applications may want. Make sure to document and validate your application''s limitations.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleTypeDateTime {
@@ -2810,86 +2890,6 @@ pub struct GoogleTypeDateTime {
     /// Optional. Year of date. Must be from 1 to 9999, or 0 if specifying a datetime without a year.
     #[serde(default)]
     pub year: ::core::option::Option<i32>,
-}
-
-/// Represents a textual expression in the Common Expression Language (CEL) syntax. CEL is a C-like expression language. The syntax and semantics of CEL are documented at https://github.com/google/cel-spec. Example (Comparison): title: "Summary size limit" description: "Determines if a summary is less than 100 chars" expression: "document.summary.size() &lt; 100" Example (Equality): title: "Requestor is owner" description: "Determines if requestor is the document owner" expression: "document.owner == request.auth.claims.email" Example (Logic): title: "Public documents" description: "Determine whether the document should be publicly visible" expression: "document.type != ''private'' && document.type != ''internal''" Example (Data Manipulation): title: "Notification string" description: "Create a notification string with a timestamp." expression: "''New message received at '' + string(document.create_time)" The exact variables and functions that may be referenced within an expression are determined by the service that evaluates it. See the service documentation for additional information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleTypeExpr {
-    /// Optional. Description of the expression. This is a longer text which describes the expression, e.g. when hovered over it in a UI.
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// Textual representation of an expression in Common Expression Language syntax.
-    #[serde(default)]
-    pub expression: ::core::option::Option<String>,
-    /// Optional. String indicating the location of the expression for error reporting, e.g. a file name and a position in the file.
-    #[serde(default)]
-    pub location: ::core::option::Option<String>,
-    /// Optional. Title for the expression, i.e. a short string describing its purpose. This can be used e.g. in UIs which allow to enter the expression.
-    #[serde(default)]
-    pub title: ::core::option::Option<String>,
-}
-
-/// Represents a time interval, encoded as a Timestamp start (inclusive) and a Timestamp end (exclusive). The start must be less than or equal to the end. When the start equals the end, the interval is empty (matches no time). When both start and end are unspecified, the interval matches any time.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleTypeInterval {
-    /// Optional. Exclusive end of the interval. If specified, a Timestamp matching this interval will have to be before the end.
-    #[serde(default, rename = "endTime")]
-    pub end_time: ::core::option::Option<String>,
-    /// Optional. Inclusive start of the interval. If specified, a Timestamp matching this interval will have to be the same or after the start.
-    #[serde(default, rename = "startTime")]
-    pub start_time: ::core::option::Option<String>,
-}
-
-/// Represents an amount of money with its currency type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleTypeMoney {
-    /// The three-letter currency code defined in ISO 4217.
-    #[serde(default, rename = "currencyCode")]
-    pub currency_code: ::core::option::Option<String>,
-    /// Number of nano (10^-9) units of the amount. The value must be between -999,999,999 and +999,999,999 inclusive. If units is positive, nanos must be positive or zero. If units is zero, nanos can be positive, zero, or negative. If units is negative, nanos must be negative or zero. For example $-1.75 is represented as units=-1 and nanos=-750,000,000.
-    #[serde(default)]
-    pub nanos: ::core::option::Option<i32>,
-    /// The whole units of the amount. For example if currencyCode is "USD", then 1 unit is one US dollar.
-    #[serde(default)]
-    pub units: ::core::option::Option<String>,
-}
-
-/// Represents a postal address. For example for postal delivery or payments addresses. Given a postal address, a postal service can deliver items to a premise, P.O. Box or similar. It is not intended to model geographical locations (roads, towns, mountains). In typical usage an address would be created by user input or from importing existing data, depending on the type of process. Advice on address input / editing: - Use an internationalization-ready address widget such as https://github.com/google/libaddressinput) - Users should not be presented with UI elements for input or editing of fields outside countries where that field is used. For more guidance on how to use this schema, see: https://support.google.com/business/answer/6397478
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleTypePostalAddress {
-    /// Unstructured address lines describing the lower levels of an address. Because values in address_lines do not have type information and may sometimes contain multiple values in a single field (For example "Austin, TX"), it is important that the line order is clear. The order of address lines should be "envelope order" for the country/region of the address. In places where this can vary (For example Japan), address_language is used to make it explicit (For example "ja" for large-to-small ordering and "ja-Latn" or "en" for small-to-large). This way, the most specific line of an address can be selected based on the language. The minimum permitted structural representation of an address consists of a region_code with all remaining information placed in the address_lines. It would be possible to format such an address very approximately without geocoding, but no semantic reasoning could be made about any of the address components until it was at least partially resolved. Creating an address only containing a region_code and address_lines, and then geocoding is the recommended way to handle completely unstructured addresses (as opposed to guessing which parts of the address should be localities or administrative areas).
-    #[serde(default, rename = "addressLines")]
-    pub address_lines: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Optional. Highest administrative subdivision which is used for postal addresses of a country or region. For example, this can be a state, a province, an oblast, or a prefecture. Specifically, for Spain this is the province and not the autonomous community (For example "Barcelona" and not "Catalonia"). Many countries don''t use an administrative area in postal addresses. For example in Switzerland this should be left unpopulated.
-    #[serde(default, rename = "administrativeArea")]
-    pub administrative_area: ::core::option::Option<String>,
-    /// Optional. BCP-47 language code of the contents of this address (if known). This is often the UI language of the input form or is expected to match one of the languages used in the address'' country/region, or their transliterated equivalents. This can affect formatting in certain countries, but is not critical to the correctness of the data and will never affect any validation or other non-formatting related operations. If this value is not known, it should be omitted (rather than specifying a possibly incorrect default). Examples: "zh-Hant", "ja", "ja-Latn", "en".
-    #[serde(default, rename = "languageCode")]
-    pub language_code: ::core::option::Option<String>,
-    /// Optional. Generally refers to the city/town portion of the address. Examples: US city, IT comune, UK post town. In regions of the world where localities are not well defined or do not fit into this structure well, leave locality empty and use address_lines.
-    #[serde(default)]
-    pub locality: ::core::option::Option<String>,
-    /// Optional. The name of the organization at the address.
-    #[serde(default)]
-    pub organization: ::core::option::Option<String>,
-    /// Optional. Postal code of the address. Not all countries use or require postal codes to be present, but where they are used, they may trigger additional validation with other parts of the address (For example state/zip validation in the U.S.A.).
-    #[serde(default, rename = "postalCode")]
-    pub postal_code: ::core::option::Option<String>,
-    /// Optional. The recipient at the address. This field may, under certain circumstances, contain multiline information. For example, it might contain "care of" information.
-    #[serde(default)]
-    pub recipients: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Required. CLDR region code of the country/region of the address. This is never inferred and it is up to the user to ensure the value is correct. See https://cldr.unicode.org/ and https://www.unicode.org/cldr/charts/30/supplemental/territory_information.html for details. Example: "CH" for Switzerland.
-    #[serde(default, rename = "regionCode")]
-    pub region_code: ::core::option::Option<String>,
-    /// The schema revision of the PostalAddress. This must be set to 0, which is the latest revision. All new revisions **must** be backward compatible with old revisions.
-    #[serde(default)]
-    pub revision: ::core::option::Option<i32>,
-    /// Optional. Additional, country-specific, sorting code. This is not used in most regions. Where it is used, the value is either a string like "CEDEX", optionally followed by a number (For example "CEDEX 7"), or just a number alone, representing the "sector code" (Jamaica), "delivery area indicator" (Malawi) or "post office indicator" (For example Côte d''Ivoire).
-    #[serde(default, rename = "sortingCode")]
-    pub sorting_code: ::core::option::Option<String>,
-    /// Optional. Sublocality of the address. For example, this can be neighborhoods, boroughs, districts.
-    #[serde(default)]
-    pub sublocality: ::core::option::Option<String>,
 }
 
 /// Represents a time zone from the [IANA Time Zone Database](https://www.iana.org/time-zones).

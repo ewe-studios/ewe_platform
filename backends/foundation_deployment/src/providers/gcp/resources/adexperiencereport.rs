@@ -10,6 +10,28 @@
 use super::*;
 use serde::{Deserialize, Serialize};
 
+/// Response message for ListViolatingSites.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ViolatingSitesResponse {
+    /// The list of violating sites.
+    #[serde(default, rename = "violatingSites")]
+    pub violating_sites: ::core::option::Option<::std::vec::Vec<SiteSummaryResponse>>,
+}
+
+/// Response message for GetSiteSummary.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SiteSummaryResponse {
+    /// The site''s Ad Experience Report summary on desktop.
+    #[serde(default, rename = "desktopSummary")]
+    pub desktop_summary: ::core::option::Option<PlatformSummary>,
+    /// The site''s Ad Experience Report summary on mobile.
+    #[serde(default, rename = "mobileSummary")]
+    pub mobile_summary: ::core::option::Option<PlatformSummary>,
+    /// The name of the reviewed site, e.g. google.com.
+    #[serde(default, rename = "reviewedSite")]
+    pub reviewed_site: ::core::option::Option<String>,
+}
+
 /// A site''s Ad Experience Report summary on a single platform.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PlatformSummary {
@@ -34,26 +56,4 @@ pub struct PlatformSummary {
     /// Whether the site is currently under review on this platform.
     #[serde(default, rename = "underReview")]
     pub under_review: ::core::option::Option<bool>,
-}
-
-/// Response message for GetSiteSummary.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SiteSummaryResponse {
-    /// The site''s Ad Experience Report summary on desktop.
-    #[serde(default, rename = "desktopSummary")]
-    pub desktop_summary: ::core::option::Option<PlatformSummary>,
-    /// The site''s Ad Experience Report summary on mobile.
-    #[serde(default, rename = "mobileSummary")]
-    pub mobile_summary: ::core::option::Option<PlatformSummary>,
-    /// The name of the reviewed site, e.g. google.com.
-    #[serde(default, rename = "reviewedSite")]
-    pub reviewed_site: ::core::option::Option<String>,
-}
-
-/// Response message for ListViolatingSites.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ViolatingSitesResponse {
-    /// The list of violating sites.
-    #[serde(default, rename = "violatingSites")]
-    pub violating_sites: ::core::option::Option<::std::vec::Vec<SiteSummaryResponse>>,
 }

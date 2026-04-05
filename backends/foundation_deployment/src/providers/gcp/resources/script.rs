@@ -32,57 +32,6 @@ pub struct CreateProjectRequest {
     pub title: ::core::option::Option<String>,
 }
 
-/// Representation of a single script deployment.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Deployment {
-    /// The deployment configuration.
-    #[serde(default, rename = "deploymentConfig")]
-    pub deployment_config: ::core::option::Option<DeploymentConfig>,
-    /// The deployment ID for this deployment.
-    #[serde(default, rename = "deploymentId")]
-    pub deployment_id: ::core::option::Option<String>,
-    /// The deployment''s entry points.
-    #[serde(default, rename = "entryPoints")]
-    pub entry_points: ::core::option::Option<::std::vec::Vec<EntryPoint>>,
-    /// Last modified date time stamp.
-    #[serde(default, rename = "updateTime")]
-    pub update_time: ::core::option::Option<String>,
-}
-
-/// Metadata the defines how a deployment is configured.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DeploymentConfig {
-    /// The description for this deployment.
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// The manifest file name for this deployment.
-    #[serde(default, rename = "manifestFileName")]
-    pub manifest_file_name: ::core::option::Option<String>,
-    /// The script project''s Drive ID.
-    #[serde(default, rename = "scriptId")]
-    pub script_id: ::core::option::Option<String>,
-    /// The version number on which this deployment is based.
-    #[serde(default, rename = "versionNumber")]
-    pub version_number: ::core::option::Option<i32>,
-}
-
-/// A configuration that defines how a deployment is accessed externally.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct EntryPoint {
-    /// Add-on properties.
-    #[serde(default, rename = "addOn")]
-    pub add_on: ::core::option::Option<GoogleAppsScriptTypeAddOnEntryPoint>,
-    /// The type of the entry point. // TODO: enum values: ["ENTRY_POINT_TYPE_UNSPECIFIED", "WEB_APP", "EXECUTION_API", "ADD_ON"]
-    #[serde(default, rename = "entryPointType")]
-    pub entry_point_type: ::core::option::Option<String>,
-    /// An entry point specification for Apps Script API execution calls.
-    #[serde(default, rename = "executionApi")]
-    pub execution_api: ::core::option::Option<GoogleAppsScriptTypeExecutionApiEntryPoint>,
-    /// An entry point specification for web apps.
-    #[serde(default, rename = "webApp")]
-    pub web_app: ::core::option::Option<GoogleAppsScriptTypeWebAppEntryPoint>,
-}
-
 /// An object that provides information about the nature of an error resulting from an attempted execution of a script function using the Apps Script API. If a run call succeeds but the script function (or Apps Script itself) throws an exception, the response body''s error field contains a Status object. The Status object''s details field contains an array with a single one of these ExecutionError objects.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ExecutionError {
@@ -113,158 +62,6 @@ pub struct ExecutionRequest {
     /// *Deprecated*. For use with Android add-ons only. An ID that represents the user''s current session in the Android app for Google Docs or Sheets, included as extra data in the [Intent](https://developer.android.com/guide/components/intents-filters.html) that launches the add-on. When an Android add-on is run with a session state, it gains the privileges of a [bound](https://developers.google.com/apps-script/guides/bound) script—that is, it can access information like the user''s current cursor position (in Docs) or selected cell (in Sheets). To retrieve the state, call Intent.getStringExtra("com.google.android.apps.docs.addons.SessionState"). Optional.
     #[serde(default, rename = "sessionState")]
     pub session_state: ::core::option::Option<String>,
-}
-
-/// An individual file within a script project. A file is a third-party source code created by one or more developers. It can be a server-side JS code, HTML, or a configuration file. Each script project can contain multiple files.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct File {
-    /// Creation date timestamp.
-    #[serde(default, rename = "createTime")]
-    pub create_time: ::core::option::Option<String>,
-    /// The defined set of functions in the script file, if any.
-    #[serde(default, rename = "functionSet")]
-    pub function_set: ::core::option::Option<GoogleAppsScriptTypeFunctionSet>,
-    /// The user who modified the file most recently. The details visible in this object are controlled by the profile visibility settings of the last modifying user.
-    #[serde(default, rename = "lastModifyUser")]
-    pub last_modify_user: ::core::option::Option<GoogleAppsScriptTypeUser>,
-    /// The name of the file. The file extension is not part of the file name, which can be identified from the type field.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// The file content.
-    #[serde(default)]
-    pub source: ::core::option::Option<String>,
-    /// The type of the file. // TODO: enum values: ["ENUM_TYPE_UNSPECIFIED", "SERVER_JS", "HTML", "JSON"]
-    #[serde(default, rename = "type")]
-    pub type_: ::core::option::Option<String>,
-    /// Last modified date timestamp.
-    #[serde(default, rename = "updateTime")]
-    pub update_time: ::core::option::Option<String>,
-}
-
-/// An add-on entry point.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleAppsScriptTypeAddOnEntryPoint {
-    /// The add-on''s required list of supported container types. // TODO: enum values: ["UNKNOWN_ADDON_TYPE", "GMAIL", "DATA_STUDIO"]
-    #[serde(default, rename = "addOnType")]
-    pub add_on_type: ::core::option::Option<String>,
-    /// The add-on''s optional description.
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// The add-on''s optional help URL.
-    #[serde(default, rename = "helpUrl")]
-    pub help_url: ::core::option::Option<String>,
-    /// The add-on''s required post install tip URL.
-    #[serde(default, rename = "postInstallTipUrl")]
-    pub post_install_tip_url: ::core::option::Option<String>,
-    /// The add-on''s optional report issue URL.
-    #[serde(default, rename = "reportIssueUrl")]
-    pub report_issue_url: ::core::option::Option<String>,
-    /// The add-on''s required title.
-    #[serde(default)]
-    pub title: ::core::option::Option<String>,
-}
-
-/// API executable entry point configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleAppsScriptTypeExecutionApiConfig {
-    /// Who has permission to run the API executable. // TODO: enum values: ["UNKNOWN_ACCESS", "MYSELF", "DOMAIN", "ANYONE", "ANYONE_ANONYMOUS"]
-    #[serde(default)]
-    pub access: ::core::option::Option<String>,
-}
-
-/// An API executable entry point.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleAppsScriptTypeExecutionApiEntryPoint {
-    /// The entry point''s configuration.
-    #[serde(default, rename = "entryPointConfig")]
-    pub entry_point_config: ::core::option::Option<GoogleAppsScriptTypeExecutionApiConfig>,
-}
-
-/// Represents a function in a script project.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleAppsScriptTypeFunction {
-    /// The function name in the script project.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// The ordered list of parameter names of the function in the script project.
-    #[serde(default)]
-    pub parameters: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// A set of functions. No duplicates are permitted.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleAppsScriptTypeFunctionSet {
-    /// A list of functions composing the set.
-    #[serde(default)]
-    pub values: ::core::option::Option<::std::vec::Vec<GoogleAppsScriptTypeFunction>>,
-}
-
-/// Representation of a single script process execution that was started from the script editor, a trigger, an application, or using the Apps Script API. This is distinct from the Operation resource, which only represents executions started via the Apps Script API.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleAppsScriptTypeProcess {
-    /// Duration the execution spent executing.
-    #[serde(default)]
-    pub duration: ::core::option::Option<String>,
-    /// Name of the function the started the execution.
-    #[serde(default, rename = "functionName")]
-    pub function_name: ::core::option::Option<String>,
-    /// The executions status. // TODO: enum values: ["PROCESS_STATUS_UNSPECIFIED", "RUNNING", "PAUSED", "COMPLETED", "CANCELED", "FAILED", "TIMED_OUT", "UNKNOWN", "DELAYED", "EXECUTION_DISABLED"]
-    #[serde(default, rename = "processStatus")]
-    pub process_status: ::core::option::Option<String>,
-    /// The executions type. // TODO: enum values: ["PROCESS_TYPE_UNSPECIFIED", "ADD_ON", "EXECUTION_API", "TIME_DRIVEN", "TRIGGER", "WEBAPP", "EDITOR", "SIMPLE_TRIGGER", "MENU", "BATCH_TASK"]
-    #[serde(default, rename = "processType")]
-    pub process_type: ::core::option::Option<String>,
-    /// Name of the script being executed.
-    #[serde(default, rename = "projectName")]
-    pub project_name: ::core::option::Option<String>,
-    /// Which version of maestro to use to execute the script. // TODO: enum values: ["RUNTIME_VERSION_UNSPECIFIED", "DEPRECATED_ES5", "V8"]
-    #[serde(default, rename = "runtimeVersion")]
-    pub runtime_version: ::core::option::Option<String>,
-    /// Time the execution started.
-    #[serde(default, rename = "startTime")]
-    pub start_time: ::core::option::Option<String>,
-    /// The executing users access level to the script. // TODO: enum values: ["USER_ACCESS_LEVEL_UNSPECIFIED", "NONE", "READ", "WRITE", "OWNER"]
-    #[serde(default, rename = "userAccessLevel")]
-    pub user_access_level: ::core::option::Option<String>,
-}
-
-/// A simple user profile resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleAppsScriptTypeUser {
-    /// The user''s domain.
-    #[serde(default)]
-    pub domain: ::core::option::Option<String>,
-    /// The user''s identifying email address.
-    #[serde(default)]
-    pub email: ::core::option::Option<String>,
-    /// The user''s display name.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// The user''s photo.
-    #[serde(default, rename = "photoUrl")]
-    pub photo_url: ::core::option::Option<String>,
-}
-
-/// Web app entry point configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleAppsScriptTypeWebAppConfig {
-    /// Who has permission to run the web app. // TODO: enum values: ["UNKNOWN_ACCESS", "MYSELF", "DOMAIN", "ANYONE", "ANYONE_ANONYMOUS"]
-    #[serde(default)]
-    pub access: ::core::option::Option<String>,
-    /// Who to execute the web app as. // TODO: enum values: ["UNKNOWN_EXECUTE_AS", "USER_ACCESSING", "USER_DEPLOYING"]
-    #[serde(default, rename = "executeAs")]
-    pub execute_as: ::core::option::Option<String>,
-}
-
-/// A web application entry point.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleAppsScriptTypeWebAppEntryPoint {
-    /// The entry point''s configuration.
-    #[serde(default, rename = "entryPointConfig")]
-    pub entry_point_config: ::core::option::Option<GoogleAppsScriptTypeWebAppConfig>,
-    /// The URL for the web application.
-    #[serde(default)]
-    pub url: ::core::option::Option<String>,
 }
 
 /// Response with the list of deployments for the specified Apps Script project.
@@ -325,20 +122,6 @@ pub struct Metrics {
     pub total_executions: ::core::option::Option<::std::vec::Vec<MetricsValue>>,
 }
 
-/// Metrics value that holds number of executions counted.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct MetricsValue {
-    /// Required field indicating the end time of the interval.
-    #[serde(default, rename = "endTime")]
-    pub end_time: ::core::option::Option<String>,
-    /// Required field indicating the start time of the interval.
-    #[serde(default, rename = "startTime")]
-    pub start_time: ::core::option::Option<String>,
-    /// Indicates the number of executions counted.
-    #[serde(default)]
-    pub value: ::core::option::Option<String>,
-}
-
 /// A representation of an execution of an Apps Script function started with run. The execution response does not arrive until the function finishes executing. The maximum execution runtime is listed in the [Apps Script quotas guide](/apps-script/guides/services/quotas#current_limitations). After execution has started, it can have one of four outcomes: - If the script function returns successfully, the response field contains an ExecutionResponse object with the function''s return value in the object''s result field. - If the script function (or Apps Script itself) throws an exception, the error field contains a Status object. The Status object''s details field contains an array with a single ExecutionError object that provides information about the nature of the error. - If the execution has not yet completed, the done field is false and the neither the response nor error fields are present. - If the run call itself fails (for example, because of a malformed request or an authorization error), the method returns an HTTP response code in the 4XX range with a different format for the response body. Client libraries automatically convert a 4XX response into an exception class.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Operation {
@@ -379,6 +162,40 @@ pub struct Project {
     pub update_time: ::core::option::Option<String>,
 }
 
+/// Request with deployment information to update an existing deployment.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct UpdateDeploymentRequest {
+    /// The deployment configuration.
+    #[serde(default, rename = "deploymentConfig")]
+    pub deployment_config: ::core::option::Option<DeploymentConfig>,
+}
+
+/// An individual file within a script project. A file is a third-party source code created by one or more developers. It can be a server-side JS code, HTML, or a configuration file. Each script project can contain multiple files.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct File {
+    /// Creation date timestamp.
+    #[serde(default, rename = "createTime")]
+    pub create_time: ::core::option::Option<String>,
+    /// The defined set of functions in the script file, if any.
+    #[serde(default, rename = "functionSet")]
+    pub function_set: ::core::option::Option<GoogleAppsScriptTypeFunctionSet>,
+    /// The user who modified the file most recently. The details visible in this object are controlled by the profile visibility settings of the last modifying user.
+    #[serde(default, rename = "lastModifyUser")]
+    pub last_modify_user: ::core::option::Option<GoogleAppsScriptTypeUser>,
+    /// The name of the file. The file extension is not part of the file name, which can be identified from the type field.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// The file content.
+    #[serde(default)]
+    pub source: ::core::option::Option<String>,
+    /// The type of the file. // TODO: enum values: ["ENUM_TYPE_UNSPECIFIED", "SERVER_JS", "HTML", "JSON"]
+    #[serde(default, rename = "type")]
+    pub type_: ::core::option::Option<String>,
+    /// Last modified date timestamp.
+    #[serde(default, rename = "updateTime")]
+    pub update_time: ::core::option::Option<String>,
+}
+
 /// A stack trace through the script that shows where the execution failed.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ScriptStackTraceElement {
@@ -390,26 +207,50 @@ pub struct ScriptStackTraceElement {
     pub line_number: ::core::option::Option<i32>,
 }
 
-/// If a run call succeeds but the script function (or Apps Script itself) throws an exception, the response body''s error field contains this Status object.
+/// Representation of a single script deployment.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Status {
-    /// The status code. For this API, this value either: - 10, indicating a SCRIPT_TIMEOUT error, - 3, indicating an INVALID_ARGUMENT error, or - 1, indicating a CANCELLED execution.
-    #[serde(default)]
-    pub code: ::core::option::Option<i32>,
-    /// An array that contains a single ExecutionError object that provides information about the nature of the error.
-    #[serde(default)]
-    pub details: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
-    /// A developer-facing error message, which is in English. Any user-facing error message is localized and sent in the details field, or localized by the client.
-    #[serde(default)]
-    pub message: ::core::option::Option<String>,
-}
-
-/// Request with deployment information to update an existing deployment.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct UpdateDeploymentRequest {
+pub struct Deployment {
     /// The deployment configuration.
     #[serde(default, rename = "deploymentConfig")]
     pub deployment_config: ::core::option::Option<DeploymentConfig>,
+    /// The deployment ID for this deployment.
+    #[serde(default, rename = "deploymentId")]
+    pub deployment_id: ::core::option::Option<String>,
+    /// The deployment''s entry points.
+    #[serde(default, rename = "entryPoints")]
+    pub entry_points: ::core::option::Option<::std::vec::Vec<EntryPoint>>,
+    /// Last modified date time stamp.
+    #[serde(default, rename = "updateTime")]
+    pub update_time: ::core::option::Option<String>,
+}
+
+/// Representation of a single script process execution that was started from the script editor, a trigger, an application, or using the Apps Script API. This is distinct from the Operation resource, which only represents executions started via the Apps Script API.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleAppsScriptTypeProcess {
+    /// Duration the execution spent executing.
+    #[serde(default)]
+    pub duration: ::core::option::Option<String>,
+    /// Name of the function the started the execution.
+    #[serde(default, rename = "functionName")]
+    pub function_name: ::core::option::Option<String>,
+    /// The executions status. // TODO: enum values: ["PROCESS_STATUS_UNSPECIFIED", "RUNNING", "PAUSED", "COMPLETED", "CANCELED", "FAILED", "TIMED_OUT", "UNKNOWN", "DELAYED", "EXECUTION_DISABLED"]
+    #[serde(default, rename = "processStatus")]
+    pub process_status: ::core::option::Option<String>,
+    /// The executions type. // TODO: enum values: ["PROCESS_TYPE_UNSPECIFIED", "ADD_ON", "EXECUTION_API", "TIME_DRIVEN", "TRIGGER", "WEBAPP", "EDITOR", "SIMPLE_TRIGGER", "MENU", "BATCH_TASK"]
+    #[serde(default, rename = "processType")]
+    pub process_type: ::core::option::Option<String>,
+    /// Name of the script being executed.
+    #[serde(default, rename = "projectName")]
+    pub project_name: ::core::option::Option<String>,
+    /// Which version of maestro to use to execute the script. // TODO: enum values: ["RUNTIME_VERSION_UNSPECIFIED", "DEPRECATED_ES5", "V8"]
+    #[serde(default, rename = "runtimeVersion")]
+    pub runtime_version: ::core::option::Option<String>,
+    /// Time the execution started.
+    #[serde(default, rename = "startTime")]
+    pub start_time: ::core::option::Option<String>,
+    /// The executing users access level to the script. // TODO: enum values: ["USER_ACCESS_LEVEL_UNSPECIFIED", "NONE", "READ", "WRITE", "OWNER"]
+    #[serde(default, rename = "userAccessLevel")]
+    pub user_access_level: ::core::option::Option<String>,
 }
 
 /// A resource representing a script project version. A version is a "snapshot" of a script project and is similar to a read-only branched release. When creating deployments, the version to use must be specified.
@@ -427,4 +268,163 @@ pub struct Version {
     /// The incremental ID that is created by Apps Script when a version is created. This is system assigned number and is immutable once created.
     #[serde(default, rename = "versionNumber")]
     pub version_number: ::core::option::Option<i32>,
+}
+
+/// Metrics value that holds number of executions counted.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MetricsValue {
+    /// Required field indicating the end time of the interval.
+    #[serde(default, rename = "endTime")]
+    pub end_time: ::core::option::Option<String>,
+    /// Required field indicating the start time of the interval.
+    #[serde(default, rename = "startTime")]
+    pub start_time: ::core::option::Option<String>,
+    /// Indicates the number of executions counted.
+    #[serde(default)]
+    pub value: ::core::option::Option<String>,
+}
+
+/// If a run call succeeds but the script function (or Apps Script itself) throws an exception, the response body''s error field contains this Status object.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Status {
+    /// The status code. For this API, this value either: - 10, indicating a SCRIPT_TIMEOUT error, - 3, indicating an INVALID_ARGUMENT error, or - 1, indicating a CANCELLED execution.
+    #[serde(default)]
+    pub code: ::core::option::Option<i32>,
+    /// An array that contains a single ExecutionError object that provides information about the nature of the error.
+    #[serde(default)]
+    pub details: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
+    /// A developer-facing error message, which is in English. Any user-facing error message is localized and sent in the details field, or localized by the client.
+    #[serde(default)]
+    pub message: ::core::option::Option<String>,
+}
+
+/// A set of functions. No duplicates are permitted.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleAppsScriptTypeFunctionSet {
+    /// A list of functions composing the set.
+    #[serde(default)]
+    pub values: ::core::option::Option<::std::vec::Vec<GoogleAppsScriptTypeFunction>>,
+}
+
+/// A simple user profile resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleAppsScriptTypeUser {
+    /// The user''s domain.
+    #[serde(default)]
+    pub domain: ::core::option::Option<String>,
+    /// The user''s identifying email address.
+    #[serde(default)]
+    pub email: ::core::option::Option<String>,
+    /// The user''s display name.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// The user''s photo.
+    #[serde(default, rename = "photoUrl")]
+    pub photo_url: ::core::option::Option<String>,
+}
+
+/// Metadata the defines how a deployment is configured.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DeploymentConfig {
+    /// The description for this deployment.
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+    /// The manifest file name for this deployment.
+    #[serde(default, rename = "manifestFileName")]
+    pub manifest_file_name: ::core::option::Option<String>,
+    /// The script project''s Drive ID.
+    #[serde(default, rename = "scriptId")]
+    pub script_id: ::core::option::Option<String>,
+    /// The version number on which this deployment is based.
+    #[serde(default, rename = "versionNumber")]
+    pub version_number: ::core::option::Option<i32>,
+}
+
+/// A configuration that defines how a deployment is accessed externally.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct EntryPoint {
+    /// Add-on properties.
+    #[serde(default, rename = "addOn")]
+    pub add_on: ::core::option::Option<GoogleAppsScriptTypeAddOnEntryPoint>,
+    /// The type of the entry point. // TODO: enum values: ["ENTRY_POINT_TYPE_UNSPECIFIED", "WEB_APP", "EXECUTION_API", "ADD_ON"]
+    #[serde(default, rename = "entryPointType")]
+    pub entry_point_type: ::core::option::Option<String>,
+    /// An entry point specification for Apps Script API execution calls.
+    #[serde(default, rename = "executionApi")]
+    pub execution_api: ::core::option::Option<GoogleAppsScriptTypeExecutionApiEntryPoint>,
+    /// An entry point specification for web apps.
+    #[serde(default, rename = "webApp")]
+    pub web_app: ::core::option::Option<GoogleAppsScriptTypeWebAppEntryPoint>,
+}
+
+/// Represents a function in a script project.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleAppsScriptTypeFunction {
+    /// The function name in the script project.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// The ordered list of parameter names of the function in the script project.
+    #[serde(default)]
+    pub parameters: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// An add-on entry point.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleAppsScriptTypeAddOnEntryPoint {
+    /// The add-on''s required list of supported container types. // TODO: enum values: ["UNKNOWN_ADDON_TYPE", "GMAIL", "DATA_STUDIO"]
+    #[serde(default, rename = "addOnType")]
+    pub add_on_type: ::core::option::Option<String>,
+    /// The add-on''s optional description.
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+    /// The add-on''s optional help URL.
+    #[serde(default, rename = "helpUrl")]
+    pub help_url: ::core::option::Option<String>,
+    /// The add-on''s required post install tip URL.
+    #[serde(default, rename = "postInstallTipUrl")]
+    pub post_install_tip_url: ::core::option::Option<String>,
+    /// The add-on''s optional report issue URL.
+    #[serde(default, rename = "reportIssueUrl")]
+    pub report_issue_url: ::core::option::Option<String>,
+    /// The add-on''s required title.
+    #[serde(default)]
+    pub title: ::core::option::Option<String>,
+}
+
+/// An API executable entry point.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleAppsScriptTypeExecutionApiEntryPoint {
+    /// The entry point''s configuration.
+    #[serde(default, rename = "entryPointConfig")]
+    pub entry_point_config: ::core::option::Option<GoogleAppsScriptTypeExecutionApiConfig>,
+}
+
+/// A web application entry point.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleAppsScriptTypeWebAppEntryPoint {
+    /// The entry point''s configuration.
+    #[serde(default, rename = "entryPointConfig")]
+    pub entry_point_config: ::core::option::Option<GoogleAppsScriptTypeWebAppConfig>,
+    /// The URL for the web application.
+    #[serde(default)]
+    pub url: ::core::option::Option<String>,
+}
+
+/// API executable entry point configuration.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleAppsScriptTypeExecutionApiConfig {
+    /// Who has permission to run the API executable. // TODO: enum values: ["UNKNOWN_ACCESS", "MYSELF", "DOMAIN", "ANYONE", "ANYONE_ANONYMOUS"]
+    #[serde(default)]
+    pub access: ::core::option::Option<String>,
+}
+
+/// Web app entry point configuration.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleAppsScriptTypeWebAppConfig {
+    /// Who has permission to run the web app. // TODO: enum values: ["UNKNOWN_ACCESS", "MYSELF", "DOMAIN", "ANYONE", "ANYONE_ANONYMOUS"]
+    #[serde(default)]
+    pub access: ::core::option::Option<String>,
+    /// Who to execute the web app as. // TODO: enum values: ["UNKNOWN_EXECUTE_AS", "USER_ACCESSING", "USER_DEPLOYING"]
+    #[serde(default, rename = "executeAs")]
+    pub execute_as: ::core::option::Option<String>,
 }

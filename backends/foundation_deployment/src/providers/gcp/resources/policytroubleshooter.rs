@@ -10,6 +10,33 @@
 use super::*;
 use serde::{Deserialize, Serialize};
 
+/// Request for TroubleshootIamPolicy.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudPolicytroubleshooterIamV3TroubleshootIamPolicyRequest {
+    /// The information to use for checking whether a principal has a permission for a resource.
+    #[serde(default, rename = "accessTuple")]
+    pub access_tuple: ::core::option::Option<GoogleCloudPolicytroubleshooterIamV3AccessTuple>,
+}
+
+/// Response for TroubleshootIamPolicy.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudPolicytroubleshooterIamV3TroubleshootIamPolicyResponse {
+    /// The access tuple from the request, including any provided context used to evaluate the condition.
+    #[serde(default, rename = "accessTuple")]
+    pub access_tuple: ::core::option::Option<GoogleCloudPolicytroubleshooterIamV3AccessTuple>,
+    /// An explanation of how the applicable IAM allow policies affect the final access state.
+    #[serde(default, rename = "allowPolicyExplanation")]
+    pub allow_policy_explanation:
+        ::core::option::Option<GoogleCloudPolicytroubleshooterIamV3AllowPolicyExplanation>,
+    /// An explanation of how the applicable IAM deny policies affect the final access state.
+    #[serde(default, rename = "denyPolicyExplanation")]
+    pub deny_policy_explanation:
+        ::core::option::Option<GoogleCloudPolicytroubleshooterIamV3DenyPolicyExplanation>,
+    /// Indicates whether the principal has the specified permission for the specified resource, based on evaluating all types of the applicable IAM policies. // TODO: enum values: ["OVERALL_ACCESS_STATE_UNSPECIFIED", "CAN_ACCESS", "CANNOT_ACCESS", "UNKNOWN_INFO", "UNKNOWN_CONDITIONAL"]
+    #[serde(default, rename = "overallAccessState")]
+    pub overall_access_state: ::core::option::Option<String>,
+}
+
 /// Information about the principal, resource, and permission to check.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudPolicytroubleshooterIamV3AccessTuple {
@@ -29,6 +56,160 @@ pub struct GoogleCloudPolicytroubleshooterIamV3AccessTuple {
     /// Required. The email address of the principal whose access you want to check. For example, alice@example.com or my-service-account@my-project.iam.gserviceaccount.com. The principal must be a Google Account or a service account. Other types of principals are not supported.
     #[serde(default)]
     pub principal: ::core::option::Option<String>,
+}
+
+/// Details about how the relevant IAM allow policies affect the final access state.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudPolicytroubleshooterIamV3AllowPolicyExplanation {
+    /// Indicates whether the principal has the specified permission for the specified resource, based on evaluating all applicable IAM allow policies. // TODO: enum values: ["ALLOW_ACCESS_STATE_UNSPECIFIED", "ALLOW_ACCESS_STATE_GRANTED", "ALLOW_ACCESS_STATE_NOT_GRANTED", "ALLOW_ACCESS_STATE_UNKNOWN_CONDITIONAL", "ALLOW_ACCESS_STATE_UNKNOWN_INFO"]
+    #[serde(default, rename = "allowAccessState")]
+    pub allow_access_state: ::core::option::Option<String>,
+    /// List of IAM allow policies that were evaluated to check the principal''s permissions, with annotations to indicate how each policy contributed to the final result. The list of policies includes the policy for the resource itself, as well as allow policies that are inherited from higher levels of the resource hierarchy, including the organization, the folder, and the project. To learn more about the resource hierarchy, see https://cloud.google.com/iam/help/resource-hierarchy.
+    #[serde(default, rename = "explainedPolicies")]
+    pub explained_policies: ::core::option::Option<
+        ::std::vec::Vec<GoogleCloudPolicytroubleshooterIamV3ExplainedAllowPolicy>,
+    >,
+    /// The relevance of the allow policy type to the overall access state. // TODO: enum values: ["HEURISTIC_RELEVANCE_UNSPECIFIED", "HEURISTIC_RELEVANCE_NORMAL", "HEURISTIC_RELEVANCE_HIGH"]
+    #[serde(default)]
+    pub relevance: ::core::option::Option<String>,
+}
+
+/// Details about how the relevant IAM deny policies affect the final access state.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudPolicytroubleshooterIamV3DenyPolicyExplanation {
+    /// Indicates whether the principal is denied the specified permission for the specified resource, based on evaluating all applicable IAM deny policies. // TODO: enum values: ["DENY_ACCESS_STATE_UNSPECIFIED", "DENY_ACCESS_STATE_DENIED", "DENY_ACCESS_STATE_NOT_DENIED", "DENY_ACCESS_STATE_UNKNOWN_CONDITIONAL", "DENY_ACCESS_STATE_UNKNOWN_INFO"]
+    #[serde(default, rename = "denyAccessState")]
+    pub deny_access_state: ::core::option::Option<String>,
+    /// List of resources with IAM deny policies that were evaluated to check the principal''s denied permissions, with annotations to indicate how each policy contributed to the final result. The list of resources includes the policy for the resource itself, as well as policies that are inherited from higher levels of the resource hierarchy, including the organization, the folder, and the project. The order of the resources starts from the resource and climbs up the resource hierarchy. To learn more about the resource hierarchy, see https://cloud.google.com/iam/help/resource-hierarchy.
+    #[serde(default, rename = "explainedResources")]
+    pub explained_resources: ::core::option::Option<
+        ::std::vec::Vec<GoogleCloudPolicytroubleshooterIamV3ExplainedDenyResource>,
+    >,
+    /// Indicates whether the permission to troubleshoot is supported in deny policies.
+    #[serde(default, rename = "permissionDeniable")]
+    pub permission_deniable: ::core::option::Option<bool>,
+    /// The relevance of the deny policy result to the overall access state. // TODO: enum values: ["HEURISTIC_RELEVANCE_UNSPECIFIED", "HEURISTIC_RELEVANCE_NORMAL", "HEURISTIC_RELEVANCE_HIGH"]
+    #[serde(default)]
+    pub relevance: ::core::option::Option<String>,
+}
+
+/// Additional context for troubleshooting conditional role bindings and deny rules.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudPolicytroubleshooterIamV3ConditionContext {
+    /// The destination of a network activity, such as accepting a TCP connection. In a multi-hop network activity, the destination represents the receiver of the last hop.
+    #[serde(default)]
+    pub destination:
+        ::core::option::Option<GoogleCloudPolicytroubleshooterIamV3ConditionContextPeer>,
+    /// Output only. The effective tags on the resource. The effective tags are fetched during troubleshooting.
+    #[serde(default, rename = "effectiveTags")]
+    pub effective_tags: ::core::option::Option<
+        ::std::vec::Vec<GoogleCloudPolicytroubleshooterIamV3ConditionContextEffectiveTag>,
+    >,
+    /// Represents a network request, such as an HTTP request.
+    #[serde(default)]
+    pub request:
+        ::core::option::Option<GoogleCloudPolicytroubleshooterIamV3ConditionContextRequest>,
+    /// Represents a target resource that is involved with a network activity. If multiple resources are involved with an activity, this must be the primary one.
+    #[serde(default)]
+    pub resource:
+        ::core::option::Option<GoogleCloudPolicytroubleshooterIamV3ConditionContextResource>,
+}
+
+/// Details about how a specific IAM allow policy contributed to the final access state.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudPolicytroubleshooterIamV3ExplainedAllowPolicy {
+    /// Required. Indicates whether _this policy_ provides the specified permission to the specified principal for the specified resource. This field does _not_ indicate whether the principal actually has the permission for the resource. There might be another policy that overrides this policy. To determine whether the principal actually has the permission, use the overall_access_state field in the TroubleshootIamPolicyResponse. // TODO: enum values: ["ALLOW_ACCESS_STATE_UNSPECIFIED", "ALLOW_ACCESS_STATE_GRANTED", "ALLOW_ACCESS_STATE_NOT_GRANTED", "ALLOW_ACCESS_STATE_UNKNOWN_CONDITIONAL", "ALLOW_ACCESS_STATE_UNKNOWN_INFO"]
+    #[serde(default, rename = "allowAccessState")]
+    pub allow_access_state: ::core::option::Option<String>,
+    /// Details about how each role binding in the policy affects the principal''s ability, or inability, to use the permission for the resource. The order of the role bindings matches the role binding order in the policy. If the sender of the request does not have access to the policy, this field is omitted.
+    #[serde(default, rename = "bindingExplanations")]
+    pub binding_explanations: ::core::option::Option<
+        ::std::vec::Vec<GoogleCloudPolicytroubleshooterIamV3AllowBindingExplanation>,
+    >,
+    /// The full resource name that identifies the resource. For example, //compute.googleapis.com/projects/my-project/zones/us-central1-a/instances/my-instance. If the sender of the request does not have access to the policy, this field is omitted. For examples of full resource names for Google Cloud services, see https://cloud.google.com/iam/help/troubleshooter/full-resource-names.
+    #[serde(default, rename = "fullResourceName")]
+    pub full_resource_name: ::core::option::Option<String>,
+    /// The IAM allow policy attached to the resource. If the sender of the request does not have access to the policy, this field is empty.
+    #[serde(default)]
+    pub policy: ::core::option::Option<GoogleIamV1Policy>,
+    /// The relevance of this policy to the overall access state in the TroubleshootIamPolicyResponse. If the sender of the request does not have access to the policy, this field is omitted. // TODO: enum values: ["HEURISTIC_RELEVANCE_UNSPECIFIED", "HEURISTIC_RELEVANCE_NORMAL", "HEURISTIC_RELEVANCE_HIGH"]
+    #[serde(default)]
+    pub relevance: ::core::option::Option<String>,
+}
+
+/// Details about how a specific resource contributed to the deny policy evaluation.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudPolicytroubleshooterIamV3ExplainedDenyResource {
+    /// Required. Indicates whether any policies attached to _this resource_ deny the specific permission to the specified principal for the specified resource. This field does _not_ indicate whether the principal actually has the permission for the resource. There might be another policy that overrides this policy. To determine whether the principal actually has the permission, use the overall_access_state field in the TroubleshootIamPolicyResponse. // TODO: enum values: ["DENY_ACCESS_STATE_UNSPECIFIED", "DENY_ACCESS_STATE_DENIED", "DENY_ACCESS_STATE_NOT_DENIED", "DENY_ACCESS_STATE_UNKNOWN_CONDITIONAL", "DENY_ACCESS_STATE_UNKNOWN_INFO"]
+    #[serde(default, rename = "denyAccessState")]
+    pub deny_access_state: ::core::option::Option<String>,
+    /// List of IAM deny policies that were evaluated to check the principal''s denied permissions, with annotations to indicate how each policy contributed to the final result.
+    #[serde(default, rename = "explainedPolicies")]
+    pub explained_policies: ::core::option::Option<
+        ::std::vec::Vec<GoogleCloudPolicytroubleshooterIamV3ExplainedDenyPolicy>,
+    >,
+    /// The full resource name that identifies the resource. For example, //compute.googleapis.com/projects/my-project/zones/us-central1-a/instances/my-instance. If the sender of the request does not have access to the policy, this field is omitted. For examples of full resource names for Google Cloud services, see https://cloud.google.com/iam/help/troubleshooter/full-resource-names.
+    #[serde(default, rename = "fullResourceName")]
+    pub full_resource_name: ::core::option::Option<String>,
+    /// The relevance of this policy to the overall access state in the TroubleshootIamPolicyResponse. If the sender of the request does not have access to the policy, this field is omitted. // TODO: enum values: ["HEURISTIC_RELEVANCE_UNSPECIFIED", "HEURISTIC_RELEVANCE_NORMAL", "HEURISTIC_RELEVANCE_HIGH"]
+    #[serde(default)]
+    pub relevance: ::core::option::Option<String>,
+}
+
+/// This message defines attributes for a node that handles a network request. The node can be either a service or an application that sends, forwards, or receives the request. Service peers should fill in principal and labels as appropriate.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudPolicytroubleshooterIamV3ConditionContextPeer {
+    /// The IPv4 or IPv6 address of the peer.
+    #[serde(default)]
+    pub ip: ::core::option::Option<String>,
+    /// The network port of the peer.
+    #[serde(default)]
+    pub port: ::core::option::Option<String>,
+}
+
+/// A tag that applies to a resource during policy evaluation. Tags can be either directly bound to a resource or inherited from its ancestor. EffectiveTag contains the name and namespaced_name of the tag value and tag key, with additional fields of inherited to indicate the inheritance status of the effective tag.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudPolicytroubleshooterIamV3ConditionContextEffectiveTag {
+    /// Output only. Indicates the inheritance status of a tag value attached to the given resource. If the tag value is inherited from one of the resource''s ancestors, inherited will be true. If false, then the tag value is directly attached to the resource, inherited will be false.
+    #[serde(default)]
+    pub inherited: ::core::option::Option<bool>,
+    /// Output only. The namespaced name of the TagKey. Can be in the form {organization_id}/{tag_key_short_name} or {project_id}/{tag_key_short_name} or {project_number}/{tag_key_short_name}.
+    #[serde(default, rename = "namespacedTagKey")]
+    pub namespaced_tag_key: ::core::option::Option<String>,
+    /// Output only. The namespaced name of the TagValue. Can be in the form {organization_id}/{tag_key_short_name}/{tag_value_short_name} or {project_id}/{tag_key_short_name}/{tag_value_short_name} or {project_number}/{tag_key_short_name}/{tag_value_short_name}.
+    #[serde(default, rename = "namespacedTagValue")]
+    pub namespaced_tag_value: ::core::option::Option<String>,
+    /// Output only. The name of the TagKey, in the format tagKeys/{id}, such as tagKeys/123.
+    #[serde(default, rename = "tagKey")]
+    pub tag_key: ::core::option::Option<String>,
+    /// The parent name of the tag key. Must be in the format organizations/{organization_id} or projects/{project_number}
+    #[serde(default, rename = "tagKeyParentName")]
+    pub tag_key_parent_name: ::core::option::Option<String>,
+    /// Output only. Resource name for TagValue in the format tagValues/456.
+    #[serde(default, rename = "tagValue")]
+    pub tag_value: ::core::option::Option<String>,
+}
+
+/// This message defines attributes for an HTTP request. If the actual request is not an HTTP request, the runtime system should try to map the actual request to an equivalent HTTP request.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudPolicytroubleshooterIamV3ConditionContextRequest {
+    /// Optional. The timestamp when the destination service receives the first byte of the request.
+    #[serde(default, rename = "receiveTime")]
+    pub receive_time: ::core::option::Option<String>,
+}
+
+/// Core attributes for a resource. A resource is an addressable (named) entity provided by the destination service. For example, a Compute Engine instance.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudPolicytroubleshooterIamV3ConditionContextResource {
+    /// The stable identifier (name) of a resource on the service. A resource can be logically identified as //{resource.service}/{resource.name}. Unlike the resource URI, the resource name doesn''t contain any protocol and version information. For a list of full resource name formats, see https://cloud.google.com/iam/help/troubleshooter/full-resource-names
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// The name of the service that this resource belongs to, such as compute.googleapis.com. The service name might not match the DNS hostname that actually serves the request. For a full list of resource service values, see https://cloud.google.com/iam/help/conditions/resource-services
+    #[serde(default)]
+    pub service: ::core::option::Option<String>,
+    /// The type of the resource, in the format {service}/{kind}. For a full list of resource type values, see https://cloud.google.com/iam/help/conditions/resource-types
+    #[serde(default, rename = "type")]
+    pub type_: ::core::option::Option<String>,
 }
 
 /// Details about how a role binding in an allow policy affects a principal''s ability to use a permission.
@@ -66,6 +247,42 @@ pub struct GoogleCloudPolicytroubleshooterIamV3AllowBindingExplanation {
     pub role_permission_relevance: ::core::option::Option<String>,
 }
 
+/// An Identity and Access Management (IAM) policy, which specifies access controls for Google Cloud resources. A Policy is a collection of bindings. A binding binds one or more members, or principals, to a single role. Principals can be user accounts, service accounts, Google groups, and domains (such as G Suite). A role is a named list of permissions; each role can be an IAM predefined role or a user-created custom role. For some types of Google Cloud resources, a binding can also specify a condition, which is a logical expression that allows access to a resource only if the expression evaluates to true. A condition can add constraints based on attributes of the request, the resource, or both. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies). **JSON example:**  { "bindings": [ { "role": "roles/resourcemanager.organizationAdmin", "members": [ "user:mike@example.com", "group:admins@example.com", "domain:google.com", "serviceAccount:my-project-id@appspot.gserviceaccount.com" ] }, { "role": "roles/resourcemanager.organizationViewer", "members": [ "user:eve@example.com" ], "condition": { "title": "expirable access", "description": "Does not grant access after Sep 2020", "expression": "request.time &lt; timestamp(''2020-10-01T00:00:00.000Z'')", } } ], "etag": "BwWWja0YfJA=", "version": 3 }  **YAML example:**  bindings: - members: - user:mike@example.com - group:admins@example.com - domain:google.com - serviceAccount:my-project-id@appspot.gserviceaccount.com role: roles/resourcemanager.organizationAdmin - members: - user:eve@example.com role: roles/resourcemanager.organizationViewer condition: title: expirable access description: Does not grant access after Sep 2020 expression: request.time &lt; timestamp(''2020-10-01T00:00:00.000Z'') etag: BwWWja0YfJA= version: 3  For a description of IAM and its features, see the [IAM documentation](https://cloud.google.com/iam/docs/).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleIamV1Policy {
+    /// Specifies cloud audit logging configuration for this policy.
+    #[serde(default, rename = "auditConfigs")]
+    pub audit_configs: ::core::option::Option<::std::vec::Vec<GoogleIamV1AuditConfig>>,
+    /// Associates a list of members, or principals, with a role. Optionally, may specify a condition that determines how and when the bindings are applied. Each of the bindings must contain at least one principal. The bindings in a Policy can refer to up to 1,500 principals; up to 250 of these principals can be Google groups. Each occurrence of a principal counts towards these limits. For example, if the bindings grant 50 different roles to user:alice@example.com, and not to any other principal, then you can add another 1,450 principals to the bindings in the Policy.
+    #[serde(default)]
+    pub bindings: ::core::option::Option<::std::vec::Vec<GoogleIamV1Binding>>,
+    /// etag is used for optimistic concurrency control as a way to help prevent simultaneous updates of a policy from overwriting each other. It is strongly suggested that systems make use of the etag in the read-modify-write cycle to perform policy updates in order to avoid race conditions: An etag is returned in the response to getIamPolicy, and systems are expected to put that etag in the request to setIamPolicy to ensure that their change will be applied to the same version of the policy. **Important:** If you use IAM Conditions, you must include the etag field whenever you call setIamPolicy. If you omit this field, then IAM allows you to overwrite a version 3 policy with a version 1 policy, and all of the conditions in the version 3 policy are lost.
+    #[serde(default)]
+    pub etag: ::core::option::Option<String>,
+    /// Specifies the format of the policy. Valid values are 0, 1, and 3. Requests that specify an invalid value are rejected. Any operation that affects conditional role bindings must specify version 3. This requirement applies to the following operations: * Getting a policy that includes a conditional role binding * Adding a conditional role binding to a policy * Changing a conditional role binding in a policy * Removing any role binding, with or without a condition, from a policy that includes conditions **Important:** If you use IAM Conditions, you must include the etag field whenever you call setIamPolicy. If you omit this field, then IAM allows you to overwrite a version 3 policy with a version 1 policy, and all of the conditions in the version 3 policy are lost. If a policy does not include any conditions, operations on that policy may specify any valid version or leave the field unset. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies).
+    #[serde(default)]
+    pub version: ::core::option::Option<i32>,
+}
+
+/// Details about how a specific IAM deny policy Policy contributed to the access check.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudPolicytroubleshooterIamV3ExplainedDenyPolicy {
+    /// Required. Indicates whether _this policy_ denies the specified permission to the specified principal for the specified resource. This field does _not_ indicate whether the principal actually has the permission for the resource. There might be another policy that overrides this policy. To determine whether the principal actually has the permission, use the overall_access_state field in the TroubleshootIamPolicyResponse. // TODO: enum values: ["DENY_ACCESS_STATE_UNSPECIFIED", "DENY_ACCESS_STATE_DENIED", "DENY_ACCESS_STATE_NOT_DENIED", "DENY_ACCESS_STATE_UNKNOWN_CONDITIONAL", "DENY_ACCESS_STATE_UNKNOWN_INFO"]
+    #[serde(default, rename = "denyAccessState")]
+    pub deny_access_state: ::core::option::Option<String>,
+    /// The IAM deny policy attached to the resource. If the sender of the request does not have access to the policy, this field is omitted.
+    #[serde(default)]
+    pub policy: ::core::option::Option<GoogleIamV2Policy>,
+    /// The relevance of this policy to the overall access state in the TroubleshootIamPolicyResponse. If the sender of the request does not have access to the policy, this field is omitted. // TODO: enum values: ["HEURISTIC_RELEVANCE_UNSPECIFIED", "HEURISTIC_RELEVANCE_NORMAL", "HEURISTIC_RELEVANCE_HIGH"]
+    #[serde(default)]
+    pub relevance: ::core::option::Option<String>,
+    /// Details about how each rule in the policy affects the principal''s inability to use the permission for the resource. The order of the deny rule matches the order of the rules in the deny policy. If the sender of the request does not have access to the policy, this field is omitted.
+    #[serde(default, rename = "ruleExplanations")]
+    pub rule_explanations: ::core::option::Option<
+        ::std::vec::Vec<GoogleCloudPolicytroubleshooterIamV3DenyRuleExplanation>,
+    >,
+}
+
 /// Details about whether the role binding includes the principal.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudPolicytroubleshooterIamV3AllowBindingExplanationAnnotatedAllowMembership {
@@ -77,150 +294,64 @@ pub struct GoogleCloudPolicytroubleshooterIamV3AllowBindingExplanationAnnotatedA
     pub relevance: ::core::option::Option<String>,
 }
 
-/// Details about how the relevant IAM allow policies affect the final access state.
+/// Specifies the audit configuration for a service. The configuration determines which permission types are logged, and what identities, if any, are exempted from logging. An AuditConfig must have one or more AuditLogConfigs. If there are AuditConfigs for both allServices and a specific service, the union of the two AuditConfigs is used for that service: the log_types specified in each AuditConfig are enabled, and the exempted_members in each AuditLogConfig are exempted. Example Policy with multiple AuditConfigs: { "audit_configs": [ { "service": "allServices", "audit_log_configs": [ { "log_type": "DATA_READ", "exempted_members": [ "user:jose@example.com" ] }, { "log_type": "DATA_WRITE" }, { "log_type": "ADMIN_READ" } ] }, { "service": "sampleservice.googleapis.com", "audit_log_configs": [ { "log_type": "DATA_READ" }, { "log_type": "DATA_WRITE", "exempted_members": [ "user:aliya@example.com" ] } ] } ] } For sampleservice, this policy enables DATA_READ, DATA_WRITE and ADMIN_READ logging. It also exempts jose@example.com from DATA_READ logging, and aliya@example.com from DATA_WRITE logging.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudPolicytroubleshooterIamV3AllowPolicyExplanation {
-    /// Indicates whether the principal has the specified permission for the specified resource, based on evaluating all applicable IAM allow policies. // TODO: enum values: ["ALLOW_ACCESS_STATE_UNSPECIFIED", "ALLOW_ACCESS_STATE_GRANTED", "ALLOW_ACCESS_STATE_NOT_GRANTED", "ALLOW_ACCESS_STATE_UNKNOWN_CONDITIONAL", "ALLOW_ACCESS_STATE_UNKNOWN_INFO"]
-    #[serde(default, rename = "allowAccessState")]
-    pub allow_access_state: ::core::option::Option<String>,
-    /// List of IAM allow policies that were evaluated to check the principal''s permissions, with annotations to indicate how each policy contributed to the final result. The list of policies includes the policy for the resource itself, as well as allow policies that are inherited from higher levels of the resource hierarchy, including the organization, the folder, and the project. To learn more about the resource hierarchy, see https://cloud.google.com/iam/help/resource-hierarchy.
-    #[serde(default, rename = "explainedPolicies")]
-    pub explained_policies: ::core::option::Option<
-        ::std::vec::Vec<GoogleCloudPolicytroubleshooterIamV3ExplainedAllowPolicy>,
-    >,
-    /// The relevance of the allow policy type to the overall access state. // TODO: enum values: ["HEURISTIC_RELEVANCE_UNSPECIFIED", "HEURISTIC_RELEVANCE_NORMAL", "HEURISTIC_RELEVANCE_HIGH"]
-    #[serde(default)]
-    pub relevance: ::core::option::Option<String>,
-}
-
-/// Additional context for troubleshooting conditional role bindings and deny rules.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudPolicytroubleshooterIamV3ConditionContext {
-    /// The destination of a network activity, such as accepting a TCP connection. In a multi-hop network activity, the destination represents the receiver of the last hop.
-    #[serde(default)]
-    pub destination:
-        ::core::option::Option<GoogleCloudPolicytroubleshooterIamV3ConditionContextPeer>,
-    /// Output only. The effective tags on the resource. The effective tags are fetched during troubleshooting.
-    #[serde(default, rename = "effectiveTags")]
-    pub effective_tags: ::core::option::Option<
-        ::std::vec::Vec<GoogleCloudPolicytroubleshooterIamV3ConditionContextEffectiveTag>,
-    >,
-    /// Represents a network request, such as an HTTP request.
-    #[serde(default)]
-    pub request:
-        ::core::option::Option<GoogleCloudPolicytroubleshooterIamV3ConditionContextRequest>,
-    /// Represents a target resource that is involved with a network activity. If multiple resources are involved with an activity, this must be the primary one.
-    #[serde(default)]
-    pub resource:
-        ::core::option::Option<GoogleCloudPolicytroubleshooterIamV3ConditionContextResource>,
-}
-
-/// A tag that applies to a resource during policy evaluation. Tags can be either directly bound to a resource or inherited from its ancestor. EffectiveTag contains the name and namespaced_name of the tag value and tag key, with additional fields of inherited to indicate the inheritance status of the effective tag.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudPolicytroubleshooterIamV3ConditionContextEffectiveTag {
-    /// Output only. Indicates the inheritance status of a tag value attached to the given resource. If the tag value is inherited from one of the resource''s ancestors, inherited will be true. If false, then the tag value is directly attached to the resource, inherited will be false.
-    #[serde(default)]
-    pub inherited: ::core::option::Option<bool>,
-    /// Output only. The namespaced name of the TagKey. Can be in the form {organization_id}/{tag_key_short_name} or {project_id}/{tag_key_short_name} or {project_number}/{tag_key_short_name}.
-    #[serde(default, rename = "namespacedTagKey")]
-    pub namespaced_tag_key: ::core::option::Option<String>,
-    /// Output only. The namespaced name of the TagValue. Can be in the form {organization_id}/{tag_key_short_name}/{tag_value_short_name} or {project_id}/{tag_key_short_name}/{tag_value_short_name} or {project_number}/{tag_key_short_name}/{tag_value_short_name}.
-    #[serde(default, rename = "namespacedTagValue")]
-    pub namespaced_tag_value: ::core::option::Option<String>,
-    /// Output only. The name of the TagKey, in the format tagKeys/{id}, such as tagKeys/123.
-    #[serde(default, rename = "tagKey")]
-    pub tag_key: ::core::option::Option<String>,
-    /// The parent name of the tag key. Must be in the format organizations/{organization_id} or projects/{project_number}
-    #[serde(default, rename = "tagKeyParentName")]
-    pub tag_key_parent_name: ::core::option::Option<String>,
-    /// Output only. Resource name for TagValue in the format tagValues/456.
-    #[serde(default, rename = "tagValue")]
-    pub tag_value: ::core::option::Option<String>,
-}
-
-/// This message defines attributes for a node that handles a network request. The node can be either a service or an application that sends, forwards, or receives the request. Service peers should fill in principal and labels as appropriate.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudPolicytroubleshooterIamV3ConditionContextPeer {
-    /// The IPv4 or IPv6 address of the peer.
-    #[serde(default)]
-    pub ip: ::core::option::Option<String>,
-    /// The network port of the peer.
-    #[serde(default)]
-    pub port: ::core::option::Option<String>,
-}
-
-/// This message defines attributes for an HTTP request. If the actual request is not an HTTP request, the runtime system should try to map the actual request to an equivalent HTTP request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudPolicytroubleshooterIamV3ConditionContextRequest {
-    /// Optional. The timestamp when the destination service receives the first byte of the request.
-    #[serde(default, rename = "receiveTime")]
-    pub receive_time: ::core::option::Option<String>,
-}
-
-/// Core attributes for a resource. A resource is an addressable (named) entity provided by the destination service. For example, a Compute Engine instance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudPolicytroubleshooterIamV3ConditionContextResource {
-    /// The stable identifier (name) of a resource on the service. A resource can be logically identified as //{resource.service}/{resource.name}. Unlike the resource URI, the resource name doesn''t contain any protocol and version information. For a list of full resource name formats, see https://cloud.google.com/iam/help/troubleshooter/full-resource-names
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// The name of the service that this resource belongs to, such as compute.googleapis.com. The service name might not match the DNS hostname that actually serves the request. For a full list of resource service values, see https://cloud.google.com/iam/help/conditions/resource-services
+pub struct GoogleIamV1AuditConfig {
+    /// The configuration for logging of each type of permission.
+    #[serde(default, rename = "auditLogConfigs")]
+    pub audit_log_configs: ::core::option::Option<::std::vec::Vec<GoogleIamV1AuditLogConfig>>,
+    /// Specifies a service that will be enabled for audit logging. For example, storage.googleapis.com, cloudsql.googleapis.com. allServices is a special value that covers all services.
     #[serde(default)]
     pub service: ::core::option::Option<String>,
-    /// The type of the resource, in the format {service}/{kind}. For a full list of resource type values, see https://cloud.google.com/iam/help/conditions/resource-types
-    #[serde(default, rename = "type")]
-    pub type_: ::core::option::Option<String>,
 }
 
-/// Explanation for how a condition affects a principal''s access
+/// Associates members, or principals, with a role.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudPolicytroubleshooterIamV3ConditionExplanation {
-    /// Any errors that prevented complete evaluation of the condition expression.
+pub struct GoogleIamV1Binding {
+    /// The condition that is associated with this binding. If the condition evaluates to true, then this binding applies to the current request. If the condition evaluates to false, then this binding does not apply to the current request. However, a different role binding might grant the same role to one or more of the principals in this binding. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies).
     #[serde(default)]
-    pub errors: ::core::option::Option<::std::vec::Vec<GoogleRpcStatus>>,
-    /// The value of each statement of the condition expression. The value can be true, false, or null. The value is null if the statement can''t be evaluated.
-    #[serde(default, rename = "evaluationStates")]
-    pub evaluation_states: ::core::option::Option<
-        ::std::vec::Vec<GoogleCloudPolicytroubleshooterIamV3ConditionExplanationEvaluationState>,
-    >,
-    /// Value of the condition.
+    pub condition: ::core::option::Option<GoogleTypeExpr>,
+    /// Specifies the principals requesting access for a Google Cloud resource. members can have the following values: * allUsers: A special identifier that represents anyone who is on the internet; with or without a Google account. * allAuthenticatedUsers: A special identifier that represents anyone who is authenticated with a Google account or a service account. Does not include identities that come from external identity providers (IdPs) through identity federation. * user:{emailid}: An email address that represents a specific Google account. For example, alice@example.com . * serviceAccount:{emailid}: An email address that represents a Google service account. For example, my-other-app@appspot.gserviceaccount.com. * serviceAccount:{projectid}.svc.id.goog[{namespace}/{kubernetes-sa}]: An identifier for a [Kubernetes service account](https://cloud.google.com/kubernetes-engine/docs/how-to/kubernetes-service-accounts). For example, my-project.svc.id.goog[my-namespace/my-kubernetes-sa]. * group:{emailid}: An email address that represents a Google group. For example, admins@example.com. * domain:{domain}: The G Suite domain (primary) that represents all the users of that domain. For example, google.com or example.com. * principal://iam.googleapis.com/locations/global/workforcePools/{pool_id}/subject/{subject_attribute_value}: A single identity in a workforce identity pool. * principalSet://iam.googleapis.com/locations/global/workforcePools/{pool_id}/group/{group_id}: All workforce identities in a group. * principalSet://iam.googleapis.com/locations/global/workforcePools/{pool_id}/attribute.{attribute_name}/{attribute_value}: All workforce identities with a specific attribute value. * principalSet://iam.googleapis.com/locations/global/workforcePools/{pool_id}/*: All identities in a workforce identity pool. * principal://iam.googleapis.com/projects/{project_number}/locations/global/workloadIdentityPools/{pool_id}/subject/{subject_attribute_value}: A single identity in a workload identity pool. * principalSet://iam.googleapis.com/projects/{project_number}/locations/global/workloadIdentityPools/{pool_id}/group/{group_id}: A workload identity pool group. * principalSet://iam.googleapis.com/projects/{project_number}/locations/global/workloadIdentityPools/{pool_id}/attribute.{attribute_name}/{attribute_value}: All identities in a workload identity pool with a certain attribute. * principalSet://iam.googleapis.com/projects/{project_number}/locations/global/workloadIdentityPools/{pool_id}/*: All identities in a workload identity pool. * deleted:user:{emailid}?uid={uniqueid}: An email address (plus unique identifier) representing a user that has been recently deleted. For example, alice@example.com?uid=123456789012345678901. If the user is recovered, this value reverts to user:{emailid} and the recovered user retains the role in the binding. * deleted:serviceAccount:{emailid}?uid={uniqueid}: An email address (plus unique identifier) representing a service account that has been recently deleted. For example, my-other-app@appspot.gserviceaccount.com?uid=123456789012345678901. If the service account is undeleted, this value reverts to serviceAccount:{emailid} and the undeleted service account retains the role in the binding. * deleted:group:{emailid}?uid={uniqueid}: An email address (plus unique identifier) representing a Google group that has been recently deleted. For example, admins@example.com?uid=123456789012345678901. If the group is recovered, this value reverts to group:{emailid} and the recovered group retains the role in the binding. * deleted:principal://iam.googleapis.com/locations/global/workforcePools/{pool_id}/subject/{subject_attribute_value}: Deleted single identity in a workforce identity pool. For example, deleted:principal://iam.googleapis.com/locations/global/workforcePools/my-pool-id/subject/my-subject-attribute-value.
     #[serde(default)]
-    pub value: ::core::option::Option<serde_json::Value>,
+    pub members: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Role that is assigned to the list of members, or principals. For example, roles/viewer, roles/editor, or roles/owner. For an overview of the IAM roles and permissions, see the [IAM documentation](https://cloud.google.com/iam/docs/roles-overview). For a list of the available pre-defined roles, see [here](https://cloud.google.com/iam/docs/understanding-roles).
+    #[serde(default)]
+    pub role: ::core::option::Option<String>,
 }
 
-/// Evaluated state of a condition expression.
+/// Data for an IAM policy.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudPolicytroubleshooterIamV3ConditionExplanationEvaluationState {
-    /// End position of an expression in the condition, by character, end included, for example: the end position of the first part of a==b || c==d would be 4.
+pub struct GoogleIamV2Policy {
+    /// A key-value map to store arbitrary metadata for the Policy. Keys can be up to 63 characters. Values can be up to 255 characters.
     #[serde(default)]
-    pub end: ::core::option::Option<i32>,
-    /// Any errors that prevented complete evaluation of the condition expression.
+    pub annotations: ::core::option::Option<serde_json::Value>,
+    /// Output only. The time when the Policy was created.
+    #[serde(default, rename = "createTime")]
+    pub create_time: ::core::option::Option<String>,
+    /// Output only. The time when the Policy was deleted. Empty if the policy is not deleted.
+    #[serde(default, rename = "deleteTime")]
+    pub delete_time: ::core::option::Option<String>,
+    /// A user-specified description of the Policy. This value can be up to 63 characters.
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+    /// An opaque tag that identifies the current version of the Policy. IAM uses this value to help manage concurrent updates, so they do not cause one update to be overwritten by another. If this field is present in a CreatePolicyRequest, the value is ignored.
     #[serde(default)]
-    pub errors: ::core::option::Option<::std::vec::Vec<GoogleRpcStatus>>,
-    /// Start position of an expression in the condition, by character.
+    pub etag: ::core::option::Option<String>,
+    /// Output only. The kind of the Policy. Always contains the value DenyPolicy.
     #[serde(default)]
-    pub start: ::core::option::Option<i32>,
-    /// Value of this expression.
+    pub kind: ::core::option::Option<String>,
+    /// Immutable. The resource name of the Policy, which must be unique. Format: policies/{attachment_point}/denypolicies/{policy_id} The attachment point is identified by its URL-encoded full resource name, which means that the forward-slash character, /, must be written as %2F. For example, policies/cloudresourcemanager.googleapis.com%2Fprojects%2Fmy-project/denypolicies/my-deny-policy. For organizations and folders, use the numeric ID in the full resource name. For projects, requests can use the alphanumeric or the numeric ID. Responses always contain the numeric ID.
     #[serde(default)]
-    pub value: ::core::option::Option<serde_json::Value>,
-}
-
-/// Details about how the relevant IAM deny policies affect the final access state.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudPolicytroubleshooterIamV3DenyPolicyExplanation {
-    /// Indicates whether the principal is denied the specified permission for the specified resource, based on evaluating all applicable IAM deny policies. // TODO: enum values: ["DENY_ACCESS_STATE_UNSPECIFIED", "DENY_ACCESS_STATE_DENIED", "DENY_ACCESS_STATE_NOT_DENIED", "DENY_ACCESS_STATE_UNKNOWN_CONDITIONAL", "DENY_ACCESS_STATE_UNKNOWN_INFO"]
-    #[serde(default, rename = "denyAccessState")]
-    pub deny_access_state: ::core::option::Option<String>,
-    /// List of resources with IAM deny policies that were evaluated to check the principal''s denied permissions, with annotations to indicate how each policy contributed to the final result. The list of resources includes the policy for the resource itself, as well as policies that are inherited from higher levels of the resource hierarchy, including the organization, the folder, and the project. The order of the resources starts from the resource and climbs up the resource hierarchy. To learn more about the resource hierarchy, see https://cloud.google.com/iam/help/resource-hierarchy.
-    #[serde(default, rename = "explainedResources")]
-    pub explained_resources: ::core::option::Option<
-        ::std::vec::Vec<GoogleCloudPolicytroubleshooterIamV3ExplainedDenyResource>,
-    >,
-    /// Indicates whether the permission to troubleshoot is supported in deny policies.
-    #[serde(default, rename = "permissionDeniable")]
-    pub permission_deniable: ::core::option::Option<bool>,
-    /// The relevance of the deny policy result to the overall access state. // TODO: enum values: ["HEURISTIC_RELEVANCE_UNSPECIFIED", "HEURISTIC_RELEVANCE_NORMAL", "HEURISTIC_RELEVANCE_HIGH"]
+    pub name: ::core::option::Option<String>,
+    /// A list of rules that specify the behavior of the Policy. All of the rules should be of the kind specified in the Policy.
     #[serde(default)]
-    pub relevance: ::core::option::Option<String>,
+    pub rules: ::core::option::Option<::std::vec::Vec<GoogleIamV2PolicyRule>>,
+    /// Immutable. The globally unique ID of the Policy. Assigned automatically when the Policy is created.
+    #[serde(default)]
+    pub uid: ::core::option::Option<String>,
+    /// Output only. The time when the Policy was last updated.
+    #[serde(default, rename = "updateTime")]
+    pub update_time: ::core::option::Option<String>,
 }
 
 /// Details about how a deny rule in a deny policy affects a principal''s ability to use a permission.
@@ -273,15 +404,26 @@ pub struct GoogleCloudPolicytroubleshooterIamV3DenyRuleExplanation {
     pub relevance: ::core::option::Option<String>,
 }
 
-/// Details about whether the principal in the request is listed as a denied principal in the deny rule, either directly or through membership in a principal set.
+/// Provides the configuration for logging a type of permissions. Example: { "audit_log_configs": [ { "log_type": "DATA_READ", "exempted_members": [ "user:jose@example.com" ] }, { "log_type": "DATA_WRITE" } ] } This enables ''DATA_READ'' and ''DATA_WRITE'' logging, while exempting jose@example.com from DATA_READ logging.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudPolicytroubleshooterIamV3DenyRuleExplanationAnnotatedDenyPrincipalMatching {
-    /// Indicates whether the principal is listed as a denied principal in the deny rule, either directly or through membership in a principal set. // TODO: enum values: ["MEMBERSHIP_MATCHING_STATE_UNSPECIFIED", "MEMBERSHIP_MATCHED", "MEMBERSHIP_NOT_MATCHED", "MEMBERSHIP_UNKNOWN_INFO", "MEMBERSHIP_UNKNOWN_UNSUPPORTED"]
+pub struct GoogleIamV1AuditLogConfig {
+    /// Specifies the identities that do not cause logging for this type of permission. Follows the same format of Binding.members.
+    #[serde(default, rename = "exemptedMembers")]
+    pub exempted_members: ::core::option::Option<::std::vec::Vec<String>>,
+    /// The log type that this config enables. // TODO: enum values: ["LOG_TYPE_UNSPECIFIED", "ADMIN_READ", "DATA_WRITE", "DATA_READ"]
+    #[serde(default, rename = "logType")]
+    pub log_type: ::core::option::Option<String>,
+}
+
+/// A single rule in a Policy.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleIamV2PolicyRule {
+    /// A rule for a deny policy.
+    #[serde(default, rename = "denyRule")]
+    pub deny_rule: ::core::option::Option<GoogleIamV2DenyRule>,
+    /// A user-specified description of the rule. This value can be up to 256 characters.
     #[serde(default)]
-    pub membership: ::core::option::Option<String>,
-    /// The relevance of the principal''s status to the overall determination for the role binding. // TODO: enum values: ["HEURISTIC_RELEVANCE_UNSPECIFIED", "HEURISTIC_RELEVANCE_NORMAL", "HEURISTIC_RELEVANCE_HIGH"]
-    #[serde(default)]
-    pub relevance: ::core::option::Option<String>,
+    pub description: ::core::option::Option<String>,
 }
 
 /// Details about whether the permission in the request is denied by the deny rule.
@@ -295,144 +437,31 @@ pub struct GoogleCloudPolicytroubleshooterIamV3DenyRuleExplanationAnnotatedPermi
     pub relevance: ::core::option::Option<String>,
 }
 
-/// Details about how a specific IAM allow policy contributed to the final access state.
+/// Details about whether the principal in the request is listed as a denied principal in the deny rule, either directly or through membership in a principal set.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudPolicytroubleshooterIamV3ExplainedAllowPolicy {
-    /// Required. Indicates whether _this policy_ provides the specified permission to the specified principal for the specified resource. This field does _not_ indicate whether the principal actually has the permission for the resource. There might be another policy that overrides this policy. To determine whether the principal actually has the permission, use the overall_access_state field in the TroubleshootIamPolicyResponse. // TODO: enum values: ["ALLOW_ACCESS_STATE_UNSPECIFIED", "ALLOW_ACCESS_STATE_GRANTED", "ALLOW_ACCESS_STATE_NOT_GRANTED", "ALLOW_ACCESS_STATE_UNKNOWN_CONDITIONAL", "ALLOW_ACCESS_STATE_UNKNOWN_INFO"]
-    #[serde(default, rename = "allowAccessState")]
-    pub allow_access_state: ::core::option::Option<String>,
-    /// Details about how each role binding in the policy affects the principal''s ability, or inability, to use the permission for the resource. The order of the role bindings matches the role binding order in the policy. If the sender of the request does not have access to the policy, this field is omitted.
-    #[serde(default, rename = "bindingExplanations")]
-    pub binding_explanations: ::core::option::Option<
-        ::std::vec::Vec<GoogleCloudPolicytroubleshooterIamV3AllowBindingExplanation>,
-    >,
-    /// The full resource name that identifies the resource. For example, //compute.googleapis.com/projects/my-project/zones/us-central1-a/instances/my-instance. If the sender of the request does not have access to the policy, this field is omitted. For examples of full resource names for Google Cloud services, see https://cloud.google.com/iam/help/troubleshooter/full-resource-names.
-    #[serde(default, rename = "fullResourceName")]
-    pub full_resource_name: ::core::option::Option<String>,
-    /// The IAM allow policy attached to the resource. If the sender of the request does not have access to the policy, this field is empty.
+pub struct GoogleCloudPolicytroubleshooterIamV3DenyRuleExplanationAnnotatedDenyPrincipalMatching {
+    /// Indicates whether the principal is listed as a denied principal in the deny rule, either directly or through membership in a principal set. // TODO: enum values: ["MEMBERSHIP_MATCHING_STATE_UNSPECIFIED", "MEMBERSHIP_MATCHED", "MEMBERSHIP_NOT_MATCHED", "MEMBERSHIP_UNKNOWN_INFO", "MEMBERSHIP_UNKNOWN_UNSUPPORTED"]
     #[serde(default)]
-    pub policy: ::core::option::Option<GoogleIamV1Policy>,
-    /// The relevance of this policy to the overall access state in the TroubleshootIamPolicyResponse. If the sender of the request does not have access to the policy, this field is omitted. // TODO: enum values: ["HEURISTIC_RELEVANCE_UNSPECIFIED", "HEURISTIC_RELEVANCE_NORMAL", "HEURISTIC_RELEVANCE_HIGH"]
+    pub membership: ::core::option::Option<String>,
+    /// The relevance of the principal''s status to the overall determination for the role binding. // TODO: enum values: ["HEURISTIC_RELEVANCE_UNSPECIFIED", "HEURISTIC_RELEVANCE_NORMAL", "HEURISTIC_RELEVANCE_HIGH"]
     #[serde(default)]
     pub relevance: ::core::option::Option<String>,
 }
 
-/// Details about how a specific IAM deny policy Policy contributed to the access check.
+/// Explanation for how a condition affects a principal''s access
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudPolicytroubleshooterIamV3ExplainedDenyPolicy {
-    /// Required. Indicates whether _this policy_ denies the specified permission to the specified principal for the specified resource. This field does _not_ indicate whether the principal actually has the permission for the resource. There might be another policy that overrides this policy. To determine whether the principal actually has the permission, use the overall_access_state field in the TroubleshootIamPolicyResponse. // TODO: enum values: ["DENY_ACCESS_STATE_UNSPECIFIED", "DENY_ACCESS_STATE_DENIED", "DENY_ACCESS_STATE_NOT_DENIED", "DENY_ACCESS_STATE_UNKNOWN_CONDITIONAL", "DENY_ACCESS_STATE_UNKNOWN_INFO"]
-    #[serde(default, rename = "denyAccessState")]
-    pub deny_access_state: ::core::option::Option<String>,
-    /// The IAM deny policy attached to the resource. If the sender of the request does not have access to the policy, this field is omitted.
+pub struct GoogleCloudPolicytroubleshooterIamV3ConditionExplanation {
+    /// Any errors that prevented complete evaluation of the condition expression.
     #[serde(default)]
-    pub policy: ::core::option::Option<GoogleIamV2Policy>,
-    /// The relevance of this policy to the overall access state in the TroubleshootIamPolicyResponse. If the sender of the request does not have access to the policy, this field is omitted. // TODO: enum values: ["HEURISTIC_RELEVANCE_UNSPECIFIED", "HEURISTIC_RELEVANCE_NORMAL", "HEURISTIC_RELEVANCE_HIGH"]
-    #[serde(default)]
-    pub relevance: ::core::option::Option<String>,
-    /// Details about how each rule in the policy affects the principal''s inability to use the permission for the resource. The order of the deny rule matches the order of the rules in the deny policy. If the sender of the request does not have access to the policy, this field is omitted.
-    #[serde(default, rename = "ruleExplanations")]
-    pub rule_explanations: ::core::option::Option<
-        ::std::vec::Vec<GoogleCloudPolicytroubleshooterIamV3DenyRuleExplanation>,
+    pub errors: ::core::option::Option<::std::vec::Vec<GoogleRpcStatus>>,
+    /// The value of each statement of the condition expression. The value can be true, false, or null. The value is null if the statement can''t be evaluated.
+    #[serde(default, rename = "evaluationStates")]
+    pub evaluation_states: ::core::option::Option<
+        ::std::vec::Vec<GoogleCloudPolicytroubleshooterIamV3ConditionExplanationEvaluationState>,
     >,
-}
-
-/// Details about how a specific resource contributed to the deny policy evaluation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudPolicytroubleshooterIamV3ExplainedDenyResource {
-    /// Required. Indicates whether any policies attached to _this resource_ deny the specific permission to the specified principal for the specified resource. This field does _not_ indicate whether the principal actually has the permission for the resource. There might be another policy that overrides this policy. To determine whether the principal actually has the permission, use the overall_access_state field in the TroubleshootIamPolicyResponse. // TODO: enum values: ["DENY_ACCESS_STATE_UNSPECIFIED", "DENY_ACCESS_STATE_DENIED", "DENY_ACCESS_STATE_NOT_DENIED", "DENY_ACCESS_STATE_UNKNOWN_CONDITIONAL", "DENY_ACCESS_STATE_UNKNOWN_INFO"]
-    #[serde(default, rename = "denyAccessState")]
-    pub deny_access_state: ::core::option::Option<String>,
-    /// List of IAM deny policies that were evaluated to check the principal''s denied permissions, with annotations to indicate how each policy contributed to the final result.
-    #[serde(default, rename = "explainedPolicies")]
-    pub explained_policies: ::core::option::Option<
-        ::std::vec::Vec<GoogleCloudPolicytroubleshooterIamV3ExplainedDenyPolicy>,
-    >,
-    /// The full resource name that identifies the resource. For example, //compute.googleapis.com/projects/my-project/zones/us-central1-a/instances/my-instance. If the sender of the request does not have access to the policy, this field is omitted. For examples of full resource names for Google Cloud services, see https://cloud.google.com/iam/help/troubleshooter/full-resource-names.
-    #[serde(default, rename = "fullResourceName")]
-    pub full_resource_name: ::core::option::Option<String>,
-    /// The relevance of this policy to the overall access state in the TroubleshootIamPolicyResponse. If the sender of the request does not have access to the policy, this field is omitted. // TODO: enum values: ["HEURISTIC_RELEVANCE_UNSPECIFIED", "HEURISTIC_RELEVANCE_NORMAL", "HEURISTIC_RELEVANCE_HIGH"]
+    /// Value of the condition.
     #[serde(default)]
-    pub relevance: ::core::option::Option<String>,
-}
-
-/// Request for TroubleshootIamPolicy.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudPolicytroubleshooterIamV3TroubleshootIamPolicyRequest {
-    /// The information to use for checking whether a principal has a permission for a resource.
-    #[serde(default, rename = "accessTuple")]
-    pub access_tuple: ::core::option::Option<GoogleCloudPolicytroubleshooterIamV3AccessTuple>,
-}
-
-/// Response for TroubleshootIamPolicy.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudPolicytroubleshooterIamV3TroubleshootIamPolicyResponse {
-    /// The access tuple from the request, including any provided context used to evaluate the condition.
-    #[serde(default, rename = "accessTuple")]
-    pub access_tuple: ::core::option::Option<GoogleCloudPolicytroubleshooterIamV3AccessTuple>,
-    /// An explanation of how the applicable IAM allow policies affect the final access state.
-    #[serde(default, rename = "allowPolicyExplanation")]
-    pub allow_policy_explanation:
-        ::core::option::Option<GoogleCloudPolicytroubleshooterIamV3AllowPolicyExplanation>,
-    /// An explanation of how the applicable IAM deny policies affect the final access state.
-    #[serde(default, rename = "denyPolicyExplanation")]
-    pub deny_policy_explanation:
-        ::core::option::Option<GoogleCloudPolicytroubleshooterIamV3DenyPolicyExplanation>,
-    /// Indicates whether the principal has the specified permission for the specified resource, based on evaluating all types of the applicable IAM policies. // TODO: enum values: ["OVERALL_ACCESS_STATE_UNSPECIFIED", "CAN_ACCESS", "CANNOT_ACCESS", "UNKNOWN_INFO", "UNKNOWN_CONDITIONAL"]
-    #[serde(default, rename = "overallAccessState")]
-    pub overall_access_state: ::core::option::Option<String>,
-}
-
-/// Specifies the audit configuration for a service. The configuration determines which permission types are logged, and what identities, if any, are exempted from logging. An AuditConfig must have one or more AuditLogConfigs. If there are AuditConfigs for both allServices and a specific service, the union of the two AuditConfigs is used for that service: the log_types specified in each AuditConfig are enabled, and the exempted_members in each AuditLogConfig are exempted. Example Policy with multiple AuditConfigs: { "audit_configs": [ { "service": "allServices", "audit_log_configs": [ { "log_type": "DATA_READ", "exempted_members": [ "user:jose@example.com" ] }, { "log_type": "DATA_WRITE" }, { "log_type": "ADMIN_READ" } ] }, { "service": "sampleservice.googleapis.com", "audit_log_configs": [ { "log_type": "DATA_READ" }, { "log_type": "DATA_WRITE", "exempted_members": [ "user:aliya@example.com" ] } ] } ] } For sampleservice, this policy enables DATA_READ, DATA_WRITE and ADMIN_READ logging. It also exempts jose@example.com from DATA_READ logging, and aliya@example.com from DATA_WRITE logging.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleIamV1AuditConfig {
-    /// The configuration for logging of each type of permission.
-    #[serde(default, rename = "auditLogConfigs")]
-    pub audit_log_configs: ::core::option::Option<::std::vec::Vec<GoogleIamV1AuditLogConfig>>,
-    /// Specifies a service that will be enabled for audit logging. For example, storage.googleapis.com, cloudsql.googleapis.com. allServices is a special value that covers all services.
-    #[serde(default)]
-    pub service: ::core::option::Option<String>,
-}
-
-/// Provides the configuration for logging a type of permissions. Example: { "audit_log_configs": [ { "log_type": "DATA_READ", "exempted_members": [ "user:jose@example.com" ] }, { "log_type": "DATA_WRITE" } ] } This enables ''DATA_READ'' and ''DATA_WRITE'' logging, while exempting jose@example.com from DATA_READ logging.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleIamV1AuditLogConfig {
-    /// Specifies the identities that do not cause logging for this type of permission. Follows the same format of Binding.members.
-    #[serde(default, rename = "exemptedMembers")]
-    pub exempted_members: ::core::option::Option<::std::vec::Vec<String>>,
-    /// The log type that this config enables. // TODO: enum values: ["LOG_TYPE_UNSPECIFIED", "ADMIN_READ", "DATA_WRITE", "DATA_READ"]
-    #[serde(default, rename = "logType")]
-    pub log_type: ::core::option::Option<String>,
-}
-
-/// Associates members, or principals, with a role.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleIamV1Binding {
-    /// The condition that is associated with this binding. If the condition evaluates to true, then this binding applies to the current request. If the condition evaluates to false, then this binding does not apply to the current request. However, a different role binding might grant the same role to one or more of the principals in this binding. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies).
-    #[serde(default)]
-    pub condition: ::core::option::Option<GoogleTypeExpr>,
-    /// Specifies the principals requesting access for a Google Cloud resource. members can have the following values: * allUsers: A special identifier that represents anyone who is on the internet; with or without a Google account. * allAuthenticatedUsers: A special identifier that represents anyone who is authenticated with a Google account or a service account. Does not include identities that come from external identity providers (IdPs) through identity federation. * user:{emailid}: An email address that represents a specific Google account. For example, alice@example.com . * serviceAccount:{emailid}: An email address that represents a Google service account. For example, my-other-app@appspot.gserviceaccount.com. * serviceAccount:{projectid}.svc.id.goog[{namespace}/{kubernetes-sa}]: An identifier for a [Kubernetes service account](https://cloud.google.com/kubernetes-engine/docs/how-to/kubernetes-service-accounts). For example, my-project.svc.id.goog[my-namespace/my-kubernetes-sa]. * group:{emailid}: An email address that represents a Google group. For example, admins@example.com. * domain:{domain}: The G Suite domain (primary) that represents all the users of that domain. For example, google.com or example.com. * principal://iam.googleapis.com/locations/global/workforcePools/{pool_id}/subject/{subject_attribute_value}: A single identity in a workforce identity pool. * principalSet://iam.googleapis.com/locations/global/workforcePools/{pool_id}/group/{group_id}: All workforce identities in a group. * principalSet://iam.googleapis.com/locations/global/workforcePools/{pool_id}/attribute.{attribute_name}/{attribute_value}: All workforce identities with a specific attribute value. * principalSet://iam.googleapis.com/locations/global/workforcePools/{pool_id}/*: All identities in a workforce identity pool. * principal://iam.googleapis.com/projects/{project_number}/locations/global/workloadIdentityPools/{pool_id}/subject/{subject_attribute_value}: A single identity in a workload identity pool. * principalSet://iam.googleapis.com/projects/{project_number}/locations/global/workloadIdentityPools/{pool_id}/group/{group_id}: A workload identity pool group. * principalSet://iam.googleapis.com/projects/{project_number}/locations/global/workloadIdentityPools/{pool_id}/attribute.{attribute_name}/{attribute_value}: All identities in a workload identity pool with a certain attribute. * principalSet://iam.googleapis.com/projects/{project_number}/locations/global/workloadIdentityPools/{pool_id}/*: All identities in a workload identity pool. * deleted:user:{emailid}?uid={uniqueid}: An email address (plus unique identifier) representing a user that has been recently deleted. For example, alice@example.com?uid=123456789012345678901. If the user is recovered, this value reverts to user:{emailid} and the recovered user retains the role in the binding. * deleted:serviceAccount:{emailid}?uid={uniqueid}: An email address (plus unique identifier) representing a service account that has been recently deleted. For example, my-other-app@appspot.gserviceaccount.com?uid=123456789012345678901. If the service account is undeleted, this value reverts to serviceAccount:{emailid} and the undeleted service account retains the role in the binding. * deleted:group:{emailid}?uid={uniqueid}: An email address (plus unique identifier) representing a Google group that has been recently deleted. For example, admins@example.com?uid=123456789012345678901. If the group is recovered, this value reverts to group:{emailid} and the recovered group retains the role in the binding. * deleted:principal://iam.googleapis.com/locations/global/workforcePools/{pool_id}/subject/{subject_attribute_value}: Deleted single identity in a workforce identity pool. For example, deleted:principal://iam.googleapis.com/locations/global/workforcePools/my-pool-id/subject/my-subject-attribute-value.
-    #[serde(default)]
-    pub members: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Role that is assigned to the list of members, or principals. For example, roles/viewer, roles/editor, or roles/owner. For an overview of the IAM roles and permissions, see the [IAM documentation](https://cloud.google.com/iam/docs/roles-overview). For a list of the available pre-defined roles, see [here](https://cloud.google.com/iam/docs/understanding-roles).
-    #[serde(default)]
-    pub role: ::core::option::Option<String>,
-}
-
-/// An Identity and Access Management (IAM) policy, which specifies access controls for Google Cloud resources. A Policy is a collection of bindings. A binding binds one or more members, or principals, to a single role. Principals can be user accounts, service accounts, Google groups, and domains (such as G Suite). A role is a named list of permissions; each role can be an IAM predefined role or a user-created custom role. For some types of Google Cloud resources, a binding can also specify a condition, which is a logical expression that allows access to a resource only if the expression evaluates to true. A condition can add constraints based on attributes of the request, the resource, or both. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies). **JSON example:**  { "bindings": [ { "role": "roles/resourcemanager.organizationAdmin", "members": [ "user:mike@example.com", "group:admins@example.com", "domain:google.com", "serviceAccount:my-project-id@appspot.gserviceaccount.com" ] }, { "role": "roles/resourcemanager.organizationViewer", "members": [ "user:eve@example.com" ], "condition": { "title": "expirable access", "description": "Does not grant access after Sep 2020", "expression": "request.time &lt; timestamp(''2020-10-01T00:00:00.000Z'')", } } ], "etag": "BwWWja0YfJA=", "version": 3 }  **YAML example:**  bindings: - members: - user:mike@example.com - group:admins@example.com - domain:google.com - serviceAccount:my-project-id@appspot.gserviceaccount.com role: roles/resourcemanager.organizationAdmin - members: - user:eve@example.com role: roles/resourcemanager.organizationViewer condition: title: expirable access description: Does not grant access after Sep 2020 expression: request.time &lt; timestamp(''2020-10-01T00:00:00.000Z'') etag: BwWWja0YfJA= version: 3  For a description of IAM and its features, see the [IAM documentation](https://cloud.google.com/iam/docs/).
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleIamV1Policy {
-    /// Specifies cloud audit logging configuration for this policy.
-    #[serde(default, rename = "auditConfigs")]
-    pub audit_configs: ::core::option::Option<::std::vec::Vec<GoogleIamV1AuditConfig>>,
-    /// Associates a list of members, or principals, with a role. Optionally, may specify a condition that determines how and when the bindings are applied. Each of the bindings must contain at least one principal. The bindings in a Policy can refer to up to 1,500 principals; up to 250 of these principals can be Google groups. Each occurrence of a principal counts towards these limits. For example, if the bindings grant 50 different roles to user:alice@example.com, and not to any other principal, then you can add another 1,450 principals to the bindings in the Policy.
-    #[serde(default)]
-    pub bindings: ::core::option::Option<::std::vec::Vec<GoogleIamV1Binding>>,
-    /// etag is used for optimistic concurrency control as a way to help prevent simultaneous updates of a policy from overwriting each other. It is strongly suggested that systems make use of the etag in the read-modify-write cycle to perform policy updates in order to avoid race conditions: An etag is returned in the response to getIamPolicy, and systems are expected to put that etag in the request to setIamPolicy to ensure that their change will be applied to the same version of the policy. **Important:** If you use IAM Conditions, you must include the etag field whenever you call setIamPolicy. If you omit this field, then IAM allows you to overwrite a version 3 policy with a version 1 policy, and all of the conditions in the version 3 policy are lost.
-    #[serde(default)]
-    pub etag: ::core::option::Option<String>,
-    /// Specifies the format of the policy. Valid values are 0, 1, and 3. Requests that specify an invalid value are rejected. Any operation that affects conditional role bindings must specify version 3. This requirement applies to the following operations: * Getting a policy that includes a conditional role binding * Adding a conditional role binding to a policy * Changing a conditional role binding in a policy * Removing any role binding, with or without a condition, from a policy that includes conditions **Important:** If you use IAM Conditions, you must include the etag field whenever you call setIamPolicy. If you omit this field, then IAM allows you to overwrite a version 3 policy with a version 1 policy, and all of the conditions in the version 3 policy are lost. If a policy does not include any conditions, operations on that policy may specify any valid version or leave the field unset. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies).
-    #[serde(default)]
-    pub version: ::core::option::Option<i32>,
+    pub value: ::core::option::Option<serde_json::Value>,
 }
 
 /// A deny rule in an IAM deny policy.
@@ -455,64 +484,21 @@ pub struct GoogleIamV2DenyRule {
     pub exception_principals: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
-/// Data for an IAM policy.
+/// Evaluated state of a condition expression.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleIamV2Policy {
-    /// A key-value map to store arbitrary metadata for the Policy. Keys can be up to 63 characters. Values can be up to 255 characters.
+pub struct GoogleCloudPolicytroubleshooterIamV3ConditionExplanationEvaluationState {
+    /// End position of an expression in the condition, by character, end included, for example: the end position of the first part of a==b || c==d would be 4.
     #[serde(default)]
-    pub annotations: ::core::option::Option<serde_json::Value>,
-    /// Output only. The time when the Policy was created.
-    #[serde(default, rename = "createTime")]
-    pub create_time: ::core::option::Option<String>,
-    /// Output only. The time when the Policy was deleted. Empty if the policy is not deleted.
-    #[serde(default, rename = "deleteTime")]
-    pub delete_time: ::core::option::Option<String>,
-    /// A user-specified description of the Policy. This value can be up to 63 characters.
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-    /// An opaque tag that identifies the current version of the Policy. IAM uses this value to help manage concurrent updates, so they do not cause one update to be overwritten by another. If this field is present in a CreatePolicyRequest, the value is ignored.
+    pub end: ::core::option::Option<i32>,
+    /// Any errors that prevented complete evaluation of the condition expression.
     #[serde(default)]
-    pub etag: ::core::option::Option<String>,
-    /// Output only. The kind of the Policy. Always contains the value DenyPolicy.
+    pub errors: ::core::option::Option<::std::vec::Vec<GoogleRpcStatus>>,
+    /// Start position of an expression in the condition, by character.
     #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-    /// Immutable. The resource name of the Policy, which must be unique. Format: policies/{attachment_point}/denypolicies/{policy_id} The attachment point is identified by its URL-encoded full resource name, which means that the forward-slash character, /, must be written as %2F. For example, policies/cloudresourcemanager.googleapis.com%2Fprojects%2Fmy-project/denypolicies/my-deny-policy. For organizations and folders, use the numeric ID in the full resource name. For projects, requests can use the alphanumeric or the numeric ID. Responses always contain the numeric ID.
+    pub start: ::core::option::Option<i32>,
+    /// Value of this expression.
     #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// A list of rules that specify the behavior of the Policy. All of the rules should be of the kind specified in the Policy.
-    #[serde(default)]
-    pub rules: ::core::option::Option<::std::vec::Vec<GoogleIamV2PolicyRule>>,
-    /// Immutable. The globally unique ID of the Policy. Assigned automatically when the Policy is created.
-    #[serde(default)]
-    pub uid: ::core::option::Option<String>,
-    /// Output only. The time when the Policy was last updated.
-    #[serde(default, rename = "updateTime")]
-    pub update_time: ::core::option::Option<String>,
-}
-
-/// A single rule in a Policy.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleIamV2PolicyRule {
-    /// A rule for a deny policy.
-    #[serde(default, rename = "denyRule")]
-    pub deny_rule: ::core::option::Option<GoogleIamV2DenyRule>,
-    /// A user-specified description of the rule. This value can be up to 256 characters.
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-}
-
-/// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleRpcStatus {
-    /// The status code, which should be an enum value of google.rpc.Code.
-    #[serde(default)]
-    pub code: ::core::option::Option<i32>,
-    /// A list of messages that carry the error details. There is a common set of message types for APIs to use.
-    #[serde(default)]
-    pub details: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
-    /// A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.
-    #[serde(default)]
-    pub message: ::core::option::Option<String>,
+    pub value: ::core::option::Option<serde_json::Value>,
 }
 
 /// Represents a textual expression in the Common Expression Language (CEL) syntax. CEL is a C-like expression language. The syntax and semantics of CEL are documented at https://github.com/google/cel-spec. Example (Comparison): title: "Summary size limit" description: "Determines if a summary is less than 100 chars" expression: "document.summary.size() &lt; 100" Example (Equality): title: "Requestor is owner" description: "Determines if requestor is the document owner" expression: "document.owner == request.auth.claims.email" Example (Logic): title: "Public documents" description: "Determine whether the document should be publicly visible" expression: "document.type != ''private'' && document.type != ''internal''" Example (Data Manipulation): title: "Notification string" description: "Create a notification string with a timestamp." expression: "''New message received at '' + string(document.create_time)" The exact variables and functions that may be referenced within an expression are determined by the service that evaluates it. See the service documentation for additional information.
@@ -530,4 +516,18 @@ pub struct GoogleTypeExpr {
     /// Optional. Title for the expression, i.e. a short string describing its purpose. This can be used e.g. in UIs which allow to enter the expression.
     #[serde(default)]
     pub title: ::core::option::Option<String>,
+}
+
+/// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleRpcStatus {
+    /// The status code, which should be an enum value of google.rpc.Code.
+    #[serde(default)]
+    pub code: ::core::option::Option<i32>,
+    /// A list of messages that carry the error details. There is a common set of message types for APIs to use.
+    #[serde(default)]
+    pub details: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
+    /// A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.
+    #[serde(default)]
+    pub message: ::core::option::Option<String>,
 }

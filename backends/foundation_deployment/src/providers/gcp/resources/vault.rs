@@ -10,47 +10,6 @@
 use super::*;
 use serde::{Deserialize, Serialize};
 
-/// The results count for each account.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AccountCount {
-    /// Account owner.
-    #[serde(default)]
-    pub account: ::core::option::Option<UserInfo>,
-    /// The number of results (messages or files) found for this account.
-    #[serde(default)]
-    pub count: ::core::option::Option<String>,
-}
-
-/// An error that occurred when querying a specific account
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AccountCountError {
-    /// Account owner.
-    #[serde(default)]
-    pub account: ::core::option::Option<UserInfo>,
-    /// Account query error. // TODO: enum values: ["ERROR_TYPE_UNSPECIFIED", "WILDCARD_TOO_BROAD", "TOO_MANY_TERMS", "LOCATION_UNAVAILABLE", "UNKNOWN", "DEADLINE_EXCEEDED"]
-    #[serde(default, rename = "errorType")]
-    pub error_type: ::core::option::Option<String>,
-}
-
-/// The accounts to search
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AccountInfo {
-    /// A set of accounts to search.
-    #[serde(default)]
-    pub emails: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// The status of each account creation, and the **HeldAccount**, if successful.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AddHeldAccountResult {
-    /// Returned when the account was successfully created.
-    #[serde(default)]
-    pub account: ::core::option::Option<HeldAccount>,
-    /// Reports the request status. If it failed, returns an error message.
-    #[serde(default)]
-    pub status: ::core::option::Option<Status>,
-}
-
 /// Add a list of accounts to a hold.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AddHeldAccountsRequest {
@@ -84,88 +43,12 @@ pub struct AddMatterPermissionsRequest {
     pub send_emails: ::core::option::Option<bool>,
 }
 
-/// The options for Calendar exports.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CalendarExportOptions {
-    /// The file format for exported text messages. // TODO: enum values: ["EXPORT_FORMAT_UNSPECIFIED", "MBOX", "PST", "ICS", "XML"]
-    #[serde(default, rename = "exportFormat")]
-    pub export_format: ::core::option::Option<String>,
-}
-
-/// Additional options for Calendar search
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CalendarOptions {
-    /// Matches only those events whose location contains all of the words in the given set. If the string contains quoted phrases, this method only matches those events whose location contain the exact phrase. Entries in the set are considered in "and". Word splitting example: ["New Zealand"] vs ["New","Zealand"] "New Zealand": matched by both "New and better Zealand": only matched by the later
-    #[serde(default, rename = "locationQuery")]
-    pub location_query: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Matches only those events that do not contain any of the words in the given set in title, description, location, or attendees. Entries in the set are considered in "or".
-    #[serde(default, rename = "minusWords")]
-    pub minus_words: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Matches only those events whose attendees contain all of the words in the given set. Entries in the set are considered in "and".
-    #[serde(default, rename = "peopleQuery")]
-    pub people_query: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Matches only events for which the custodian gave one of these responses. If the set is empty or contains ATTENDEE_RESPONSE_UNSPECIFIED there will be no filtering on responses.
-    #[serde(default, rename = "responseStatuses")]
-    pub response_statuses: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Search the current version of the Calendar event, but export the contents of the last version saved before 12:00 AM UTC on the specified date. Enter the date in UTC.
-    #[serde(default, rename = "versionDate")]
-    pub version_date: ::core::option::Option<String>,
-}
-
 /// Response to a CloseMatterRequest.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CloseMatterResponse {
     /// The updated matter, with state **CLOSED**.
     #[serde(default)]
     pub matter: ::core::option::Option<Matter>,
-}
-
-/// The export file in Cloud Storage
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CloudStorageFile {
-    /// The name of the Cloud Storage bucket for the export file. You can use this value in the Cloud Storage [JSON API](https://cloud.google.com/storage/docs/json_api) or [XML API](https://cloud.google.com/storage/docs/xml-api), but not to list the bucket contents. Instead, you can [get individual export files](https://cloud.google.com/storage/docs/json_api/v1/objects/get) by object name.
-    #[serde(default, rename = "bucketName")]
-    pub bucket_name: ::core::option::Option<String>,
-    /// The md5 hash of the file.
-    #[serde(default, rename = "md5Hash")]
-    pub md5_hash: ::core::option::Option<String>,
-    /// The name of the Cloud Storage object for the export file. You can use this value in the Cloud Storage [JSON API](https://cloud.google.com/storage/docs/json_api) or [XML API](https://cloud.google.com/storage/docs/xml-api).
-    #[serde(default, rename = "objectName")]
-    pub object_name: ::core::option::Option<String>,
-    /// The export file size.
-    #[serde(default)]
-    pub size: ::core::option::Option<String>,
-}
-
-/// Export sink for Cloud Storage files.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CloudStorageSink {
-    /// Output only. The exported files in Cloud Storage.
-    #[serde(default)]
-    pub files: ::core::option::Option<::std::vec::Vec<CloudStorageFile>>,
-}
-
-/// Service-specific options for holds.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CorpusQuery {
-    /// Service-specific options for Calendar holds. If set, **CorpusType** must be **CALENDAR**.
-    #[serde(default, rename = "calendarQuery")]
-    pub calendar_query: ::core::option::Option<serde_json::Value>,
-    /// Service-specific options for Drive holds. If set, **CorpusType** must be **DRIVE**.
-    #[serde(default, rename = "driveQuery")]
-    pub drive_query: ::core::option::Option<HeldDriveQuery>,
-    /// Service-specific options for Groups holds. If set, **CorpusType** must be **GROUPS**.
-    #[serde(default, rename = "groupsQuery")]
-    pub groups_query: ::core::option::Option<HeldGroupsQuery>,
-    /// Service-specific options for Chat holds. If set, **CorpusType** must be **HANGOUTS_CHAT**.
-    #[serde(default, rename = "hangoutsChatQuery")]
-    pub hangouts_chat_query: ::core::option::Option<HeldHangoutsChatQuery>,
-    /// Service-specific options for Gmail holds. If set, **CorpusType** must be **MAIL**.
-    #[serde(default, rename = "mailQuery")]
-    pub mail_query: ::core::option::Option<HeldMailQuery>,
-    /// Service-specific options for Voice holds. If set, **CorpusType** must be **VOICE**.
-    #[serde(default, rename = "voiceQuery")]
-    pub voice_query: ::core::option::Option<HeldVoiceQuery>,
 }
 
 /// Long running operation metadata for CountArtifacts.
@@ -208,303 +91,6 @@ pub struct CountArtifactsResponse {
     /// Total count of messages.
     #[serde(default, rename = "totalCount")]
     pub total_count: ::core::option::Option<String>,
-}
-
-/// Specify Drive documents by document ID.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DriveDocumentIds {
-    /// Required. A list of Drive document IDs.
-    #[serde(default)]
-    pub ids: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// The Drive documents to search.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DriveDocumentInfo {
-    /// Specify Drive documents by document ID.
-    #[serde(default, rename = "documentIds")]
-    pub document_ids: ::core::option::Option<DriveDocumentIds>,
-}
-
-/// Options for Drive exports.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DriveExportOptions {
-    /// To include access level information for users with [indirect access](https://support.google.com/vault/answer/6099459#metadata) to files, set to **true**.
-    #[serde(default, rename = "includeAccessInfo")]
-    pub include_access_info: ::core::option::Option<bool>,
-}
-
-/// Additional options for Drive search.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DriveOptions {
-    /// Set whether the results include only content encrypted with [Google Workspace Client-side encryption](https://support.google.com/a?p=cse_ov) content, only unencrypted content, or both. Defaults to both. Currently supported for Drive. // TODO: enum values: ["CLIENT_SIDE_ENCRYPTED_OPTION_UNSPECIFIED", "CLIENT_SIDE_ENCRYPTED_OPTION_ANY", "CLIENT_SIDE_ENCRYPTED_OPTION_ENCRYPTED", "CLIENT_SIDE_ENCRYPTED_OPTION_UNENCRYPTED"]
-    #[serde(default, rename = "clientSideEncryptedOption")]
-    pub client_side_encrypted_option: ::core::option::Option<String>,
-    /// Set to **true** to include shared drives.
-    #[serde(default, rename = "includeSharedDrives")]
-    pub include_shared_drives: ::core::option::Option<bool>,
-    /// Set to true to include Team Drive.
-    #[serde(default, rename = "includeTeamDrives")]
-    pub include_team_drives: ::core::option::Option<bool>,
-    /// Optional. Options to include or exclude documents in shared drives. We recommend using this field over include_shared_drives. This field overrides include_shared_drives and include_team_drives when set. // TODO: enum values: ["SHARED_DRIVES_OPTION_UNSPECIFIED", "NOT_INCLUDED", "INCLUDED_IF_ACCOUNT_IS_NOT_A_MEMBER", "INCLUDED"]
-    #[serde(default, rename = "sharedDrivesOption")]
-    pub shared_drives_option: ::core::option::Option<String>,
-    /// Search the current version of the Drive file, but export the contents of the last version saved before 12:00 AM UTC on the specified date. Enter the date in UTC.
-    #[serde(default, rename = "versionDate")]
-    pub version_date: ::core::option::Option<String>,
-}
-
-/// An export. To work with Vault resources, the account must have the [required Vault privileges](https://support.google.com/vault/answer/2799699) and access to the matter. To access a matter, the account must have created the matter, have the matter shared with them, or have the **View All Matters** privilege.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Export {
-    /// Output only. The sink for export files in Cloud Storage.
-    #[serde(default, rename = "cloudStorageSink")]
-    pub cloud_storage_sink: ::core::option::Option<CloudStorageSink>,
-    /// Output only. The time when the export was created.
-    #[serde(default, rename = "createTime")]
-    pub create_time: ::core::option::Option<String>,
-    /// Additional export options.
-    #[serde(default, rename = "exportOptions")]
-    pub export_options: ::core::option::Option<ExportOptions>,
-    /// Output only. The generated export ID.
-    #[serde(default)]
-    pub id: ::core::option::Option<String>,
-    /// Output only. The matter ID.
-    #[serde(default, rename = "matterId")]
-    pub matter_id: ::core::option::Option<String>,
-    /// The export name. Don''t use special characters (~!$''(),;@:/?) in the name, they can prevent you from downloading exports.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Output only. Identifies the parent export that spawned this child export. This is only set on child exports.
-    #[serde(default, rename = "parentExportId")]
-    pub parent_export_id: ::core::option::Option<String>,
-    /// The query parameters used to create the export.
-    #[serde(default)]
-    pub query: ::core::option::Option<Query>,
-    /// Output only. The requester of the export.
-    #[serde(default)]
-    pub requester: ::core::option::Option<UserInfo>,
-    /// Output only. Details about the export progress and size.
-    #[serde(default)]
-    pub stats: ::core::option::Option<ExportStats>,
-    /// Output only. The status of the export. // TODO: enum values: ["EXPORT_STATUS_UNSPECIFIED", "COMPLETED", "FAILED", "IN_PROGRESS"]
-    #[serde(default)]
-    pub status: ::core::option::Option<String>,
-}
-
-/// Additional options for exports
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ExportOptions {
-    /// Option available for Calendar export.
-    #[serde(default, rename = "calendarOptions")]
-    pub calendar_options: ::core::option::Option<CalendarExportOptions>,
-    /// Options for Drive exports.
-    #[serde(default, rename = "driveOptions")]
-    pub drive_options: ::core::option::Option<DriveExportOptions>,
-    /// Option available for Gemini export.
-    #[serde(default, rename = "geminiOptions")]
-    pub gemini_options: ::core::option::Option<GeminiExportOptions>,
-    /// Options for Groups exports.
-    #[serde(default, rename = "groupsOptions")]
-    pub groups_options: ::core::option::Option<GroupsExportOptions>,
-    /// Options for Chat exports.
-    #[serde(default, rename = "hangoutsChatOptions")]
-    pub hangouts_chat_options: ::core::option::Option<HangoutsChatExportOptions>,
-    /// Options for Gmail exports.
-    #[serde(default, rename = "mailOptions")]
-    pub mail_options: ::core::option::Option<MailExportOptions>,
-    /// The requested data region for the export. // TODO: enum values: ["EXPORT_REGION_UNSPECIFIED", "ANY", "US", "EUROPE"]
-    #[serde(default)]
-    pub region: ::core::option::Option<String>,
-    /// Options for Voice exports.
-    #[serde(default, rename = "voiceOptions")]
-    pub voice_options: ::core::option::Option<VoiceExportOptions>,
-}
-
-/// Progress information for an export.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ExportStats {
-    /// The number of messages or files already processed for export.
-    #[serde(default, rename = "exportedArtifactCount")]
-    pub exported_artifact_count: ::core::option::Option<String>,
-    /// The size of export in bytes.
-    #[serde(default, rename = "sizeInBytes")]
-    pub size_in_bytes: ::core::option::Option<String>,
-    /// The number of messages or files to be exported.
-    #[serde(default, rename = "totalArtifactCount")]
-    pub total_artifact_count: ::core::option::Option<String>,
-}
-
-/// The options for Gemini exports.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GeminiExportOptions {
-    /// The file format for exported messages. // TODO: enum values: ["EXPORT_FORMAT_UNSPECIFIED", "MBOX", "PST", "ICS", "XML"]
-    #[serde(default, rename = "exportFormat")]
-    pub export_format: ::core::option::Option<String>,
-}
-
-/// Groups specific count metrics.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GroupsCountResult {
-    /// Error occurred when querying these accounts.
-    #[serde(default, rename = "accountCountErrors")]
-    pub account_count_errors: ::core::option::Option<::std::vec::Vec<AccountCountError>>,
-    /// Subtotal count per matching account that have more than zero messages.
-    #[serde(default, rename = "accountCounts")]
-    pub account_counts: ::core::option::Option<::std::vec::Vec<AccountCount>>,
-    /// Total number of accounts that can be queried and have more than zero messages.
-    #[serde(default, rename = "matchingAccountsCount")]
-    pub matching_accounts_count: ::core::option::Option<String>,
-    /// When **DataScope** is **HELD_DATA**, these accounts in the request are not queried because they are not on hold. For other data scope, this field is not set.
-    #[serde(default, rename = "nonQueryableAccounts")]
-    pub non_queryable_accounts: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Total number of accounts involved in this count operation.
-    #[serde(default, rename = "queriedAccountsCount")]
-    pub queried_accounts_count: ::core::option::Option<String>,
-}
-
-/// Options for Groups exports.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GroupsExportOptions {
-    /// The file format for exported messages. // TODO: enum values: ["EXPORT_FORMAT_UNSPECIFIED", "MBOX", "PST", "ICS", "XML"]
-    #[serde(default, rename = "exportFormat")]
-    pub export_format: ::core::option::Option<String>,
-}
-
-/// Options for Chat exports.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct HangoutsChatExportOptions {
-    /// The file format for exported messages. // TODO: enum values: ["EXPORT_FORMAT_UNSPECIFIED", "MBOX", "PST", "ICS", "XML"]
-    #[serde(default, rename = "exportFormat")]
-    pub export_format: ::core::option::Option<String>,
-}
-
-/// The Chat spaces to search
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct HangoutsChatInfo {
-    /// A list of Chat spaces IDs, as provided by the [Chat API](https://developers.google.com/workspace/chat). There is a limit of exporting from 500 Chat spaces per request.
-    #[serde(default, rename = "roomId")]
-    pub room_id: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// Additional options for Google Chat search
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct HangoutsChatOptions {
-    /// For searches by account or organizational unit, set to **true** to include rooms.
-    #[serde(default, rename = "includeRooms")]
-    pub include_rooms: ::core::option::Option<bool>,
-}
-
-/// An account covered by a hold. This structure is immutable. It can be an individual account or a Google Group, depending on the service. To work with Vault resources, the account must have the [required Vault privileges] (https://support.google.com/vault/answer/2799699) and access to the matter. To access a matter, the account must have created the matter, have the matter shared with them, or have the **View All Matters** privilege.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct HeldAccount {
-    /// The account ID, as provided by the [Admin SDK](https://developers.google.com/admin-sdk/).
-    #[serde(default, rename = "accountId")]
-    pub account_id: ::core::option::Option<String>,
-    /// The primary email address of the account. If used as an input, this takes precedence over **accountId**.
-    #[serde(default)]
-    pub email: ::core::option::Option<String>,
-    /// Output only. The first name of the account holder.
-    #[serde(default, rename = "firstName")]
-    pub first_name: ::core::option::Option<String>,
-    /// Output only. When the account was put on hold.
-    #[serde(default, rename = "holdTime")]
-    pub hold_time: ::core::option::Option<String>,
-    /// Output only. The last name of the account holder.
-    #[serde(default, rename = "lastName")]
-    pub last_name: ::core::option::Option<String>,
-}
-
-/// Options for Drive holds.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct HeldDriveQuery {
-    /// To include files in shared drives in the hold, set to **true**.
-    #[serde(default, rename = "includeSharedDriveFiles")]
-    pub include_shared_drive_files: ::core::option::Option<bool>,
-    /// To include files in Team Drives in the hold, set to **true**.
-    #[serde(default, rename = "includeTeamDriveFiles")]
-    pub include_team_drive_files: ::core::option::Option<bool>,
-}
-
-/// Query options for group holds.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct HeldGroupsQuery {
-    /// The end time for the query. Specify in GMT. The value is rounded to 12 AM on the specified date.
-    #[serde(default, rename = "endTime")]
-    pub end_time: ::core::option::Option<String>,
-    /// The start time for the query. Specify in GMT. The value is rounded to 12 AM on the specified date.
-    #[serde(default, rename = "startTime")]
-    pub start_time: ::core::option::Option<String>,
-    /// The [search operators](https://support.google.com/vault/answer/2474474) used to refine the messages covered by the hold.
-    #[serde(default)]
-    pub terms: ::core::option::Option<String>,
-}
-
-/// Options for Chat holds.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct HeldHangoutsChatQuery {
-    /// To include messages in Chat spaces the user was a member of, set to **true**.
-    #[serde(default, rename = "includeRooms")]
-    pub include_rooms: ::core::option::Option<bool>,
-}
-
-/// Query options for Gmail holds.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct HeldMailQuery {
-    /// The end time for the query. Specify in GMT. The value is rounded to 12 AM on the specified date.
-    #[serde(default, rename = "endTime")]
-    pub end_time: ::core::option::Option<String>,
-    /// The start time for the query. Specify in GMT. The value is rounded to 12 AM on the specified date.
-    #[serde(default, rename = "startTime")]
-    pub start_time: ::core::option::Option<String>,
-    /// The [search operators](https://support.google.com/vault/answer/2474474) used to refine the messages covered by the hold.
-    #[serde(default)]
-    pub terms: ::core::option::Option<String>,
-}
-
-/// The organizational unit covered by a hold. This structure is immutable.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct HeldOrgUnit {
-    /// When the organizational unit was put on hold. This property is immutable.
-    #[serde(default, rename = "holdTime")]
-    pub hold_time: ::core::option::Option<String>,
-    /// The organizational unit''s immutable ID as provided by the [Admin SDK](https://developers.google.com/admin-sdk/).
-    #[serde(default, rename = "orgUnitId")]
-    pub org_unit_id: ::core::option::Option<String>,
-}
-
-/// Options for Voice holds.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct HeldVoiceQuery {
-    /// A list of data types covered by the hold. Should be non-empty. Order does not matter and duplicates are ignored.
-    #[serde(default, rename = "coveredData")]
-    pub covered_data: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// A hold. A hold prevents the specified Google Workspace service from purging data for specific accounts or all members of an organizational unit. To work with Vault resources, the account must have the [required Vault privileges] (https://support.google.com/vault/answer/2799699) and access to the matter. To access a matter, the account must have created the matter, have the matter shared with them, or have the **View All Matters** privilege.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Hold {
-    /// If set, the hold applies to the specified accounts and **orgUnit** must be empty.
-    #[serde(default)]
-    pub accounts: ::core::option::Option<::std::vec::Vec<HeldAccount>>,
-    /// The service to be searched. // TODO: enum values: ["CORPUS_TYPE_UNSPECIFIED", "DRIVE", "MAIL", "GROUPS", "HANGOUTS_CHAT", "VOICE", "CALENDAR", "GEMINI"]
-    #[serde(default)]
-    pub corpus: ::core::option::Option<String>,
-    /// The unique immutable ID of the hold. Assigned during creation.
-    #[serde(default, rename = "holdId")]
-    pub hold_id: ::core::option::Option<String>,
-    /// The name of the hold.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// If set, the hold applies to all members of the organizational unit and **accounts** must be empty. This property is mutable. For Groups holds, set **accounts**.
-    #[serde(default, rename = "orgUnit")]
-    pub org_unit: ::core::option::Option<HeldOrgUnit>,
-    /// Service-specific options. If set, **CorpusQuery** must match **CorpusType**.
-    #[serde(default)]
-    pub query: ::core::option::Option<CorpusQuery>,
-    /// The last time this hold was modified.
-    #[serde(default, rename = "updateTime")]
-    pub update_time: ::core::option::Option<String>,
 }
 
 /// The exports for a matter.
@@ -573,6 +159,69 @@ pub struct ListSavedQueriesResponse {
     pub saved_queries: ::core::option::Option<::std::vec::Vec<SavedQuery>>,
 }
 
+/// Remove a list of accounts from a hold.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RemoveHeldAccountsRequest {
+    /// The account IDs of the accounts to remove from the hold.
+    #[serde(default, rename = "accountIds")]
+    pub account_ids: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// Response for batch delete held accounts.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RemoveHeldAccountsResponse {
+    /// A list of statuses for the deleted accounts. Results have the same order as the request.
+    #[serde(default)]
+    pub statuses: ::core::option::Option<::std::vec::Vec<Status>>,
+}
+
+/// Remove an account as a matter collaborator.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RemoveMatterPermissionsRequest {
+    /// The account ID.
+    #[serde(default, rename = "accountId")]
+    pub account_id: ::core::option::Option<String>,
+}
+
+/// Response to a ReopenMatterRequest.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ReopenMatterResponse {
+    /// The updated matter, with state **OPEN**.
+    #[serde(default)]
+    pub matter: ::core::option::Option<Matter>,
+}
+
+/// The status of each account creation, and the **HeldAccount**, if successful.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AddHeldAccountResult {
+    /// Returned when the account was successfully created.
+    #[serde(default)]
+    pub account: ::core::option::Option<HeldAccount>,
+    /// Reports the request status. If it failed, returns an error message.
+    #[serde(default)]
+    pub status: ::core::option::Option<Status>,
+}
+
+/// Groups specific count metrics.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GroupsCountResult {
+    /// Error occurred when querying these accounts.
+    #[serde(default, rename = "accountCountErrors")]
+    pub account_count_errors: ::core::option::Option<::std::vec::Vec<AccountCountError>>,
+    /// Subtotal count per matching account that have more than zero messages.
+    #[serde(default, rename = "accountCounts")]
+    pub account_counts: ::core::option::Option<::std::vec::Vec<AccountCount>>,
+    /// Total number of accounts that can be queried and have more than zero messages.
+    #[serde(default, rename = "matchingAccountsCount")]
+    pub matching_accounts_count: ::core::option::Option<String>,
+    /// When **DataScope** is **HELD_DATA**, these accounts in the request are not queried because they are not on hold. For other data scope, this field is not set.
+    #[serde(default, rename = "nonQueryableAccounts")]
+    pub non_queryable_accounts: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Total number of accounts involved in this count operation.
+    #[serde(default, rename = "queriedAccountsCount")]
+    pub queried_accounts_count: ::core::option::Option<String>,
+}
+
 /// Gmail and classic Hangouts-specific count metrics.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct MailCountResult {
@@ -593,32 +242,108 @@ pub struct MailCountResult {
     pub queried_accounts_count: ::core::option::Option<String>,
 }
 
-/// Options for Gmail exports.
+/// An export. To work with Vault resources, the account must have the [required Vault privileges](https://support.google.com/vault/answer/2799699) and access to the matter. To access a matter, the account must have created the matter, have the matter shared with them, or have the **View All Matters** privilege.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct MailExportOptions {
-    /// The file format for exported messages. // TODO: enum values: ["EXPORT_FORMAT_UNSPECIFIED", "MBOX", "PST", "ICS", "XML"]
-    #[serde(default, rename = "exportFormat")]
-    pub export_format: ::core::option::Option<String>,
-    /// Optional. To enable exporting linked Drive files, set to **true**.
-    #[serde(default, rename = "exportLinkedDriveFiles")]
-    pub export_linked_drive_files: ::core::option::Option<bool>,
-    /// To export confidential mode content, set to **true**.
-    #[serde(default, rename = "showConfidentialModeContent")]
-    pub show_confidential_mode_content: ::core::option::Option<bool>,
-    /// To use the new export system, set to **true**.
-    #[serde(default, rename = "useNewExport")]
-    pub use_new_export: ::core::option::Option<bool>,
+pub struct Export {
+    /// Output only. The sink for export files in Cloud Storage.
+    #[serde(default, rename = "cloudStorageSink")]
+    pub cloud_storage_sink: ::core::option::Option<CloudStorageSink>,
+    /// Output only. The time when the export was created.
+    #[serde(default, rename = "createTime")]
+    pub create_time: ::core::option::Option<String>,
+    /// Additional export options.
+    #[serde(default, rename = "exportOptions")]
+    pub export_options: ::core::option::Option<ExportOptions>,
+    /// Output only. The generated export ID.
+    #[serde(default)]
+    pub id: ::core::option::Option<String>,
+    /// Output only. The matter ID.
+    #[serde(default, rename = "matterId")]
+    pub matter_id: ::core::option::Option<String>,
+    /// The export name. Don''t use special characters (~!$''(),;@:/?) in the name, they can prevent you from downloading exports.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Output only. Identifies the parent export that spawned this child export. This is only set on child exports.
+    #[serde(default, rename = "parentExportId")]
+    pub parent_export_id: ::core::option::Option<String>,
+    /// The query parameters used to create the export.
+    #[serde(default)]
+    pub query: ::core::option::Option<Query>,
+    /// Output only. The requester of the export.
+    #[serde(default)]
+    pub requester: ::core::option::Option<UserInfo>,
+    /// Output only. Details about the export progress and size.
+    #[serde(default)]
+    pub stats: ::core::option::Option<ExportStats>,
+    /// Output only. The status of the export. // TODO: enum values: ["EXPORT_STATUS_UNSPECIFIED", "COMPLETED", "FAILED", "IN_PROGRESS"]
+    #[serde(default)]
+    pub status: ::core::option::Option<String>,
 }
 
-/// Additional options for Gmail search
+/// A hold. A hold prevents the specified Google Workspace service from purging data for specific accounts or all members of an organizational unit. To work with Vault resources, the account must have the [required Vault privileges] (https://support.google.com/vault/answer/2799699) and access to the matter. To access a matter, the account must have created the matter, have the matter shared with them, or have the **View All Matters** privilege.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct MailOptions {
-    /// Specifies whether the results should include encrypted content, unencrypted content, or both. Defaults to including both. // TODO: enum values: ["CLIENT_SIDE_ENCRYPTED_OPTION_UNSPECIFIED", "CLIENT_SIDE_ENCRYPTED_OPTION_ANY", "CLIENT_SIDE_ENCRYPTED_OPTION_ENCRYPTED", "CLIENT_SIDE_ENCRYPTED_OPTION_UNENCRYPTED"]
-    #[serde(default, rename = "clientSideEncryptedOption")]
-    pub client_side_encrypted_option: ::core::option::Option<String>,
-    /// Set to **true** to exclude drafts.
-    #[serde(default, rename = "excludeDrafts")]
-    pub exclude_drafts: ::core::option::Option<bool>,
+pub struct Hold {
+    /// If set, the hold applies to the specified accounts and **orgUnit** must be empty.
+    #[serde(default)]
+    pub accounts: ::core::option::Option<::std::vec::Vec<HeldAccount>>,
+    /// The service to be searched. // TODO: enum values: ["CORPUS_TYPE_UNSPECIFIED", "DRIVE", "MAIL", "GROUPS", "HANGOUTS_CHAT", "VOICE", "CALENDAR", "GEMINI"]
+    #[serde(default)]
+    pub corpus: ::core::option::Option<String>,
+    /// The unique immutable ID of the hold. Assigned during creation.
+    #[serde(default, rename = "holdId")]
+    pub hold_id: ::core::option::Option<String>,
+    /// The name of the hold.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// If set, the hold applies to all members of the organizational unit and **accounts** must be empty. This property is mutable. For Groups holds, set **accounts**.
+    #[serde(default, rename = "orgUnit")]
+    pub org_unit: ::core::option::Option<HeldOrgUnit>,
+    /// Service-specific options. If set, **CorpusQuery** must match **CorpusType**.
+    #[serde(default)]
+    pub query: ::core::option::Option<CorpusQuery>,
+    /// The last time this hold was modified.
+    #[serde(default, rename = "updateTime")]
+    pub update_time: ::core::option::Option<String>,
+}
+
+/// This resource represents a long-running operation that is the result of a network API call.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Operation {
+    /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
+    #[serde(default)]
+    pub done: ::core::option::Option<bool>,
+    /// The error result of the operation in case of failure or cancellation.
+    #[serde(default)]
+    pub error: ::core::option::Option<Status>,
+    /// Service-specific metadata associated with the operation. It typically contains progress information and common metadata such as create time. Some services might not provide such metadata. Any method that returns a long-running operation should document the metadata type, if any.
+    #[serde(default)]
+    pub metadata: ::core::option::Option<serde_json::Value>,
+    /// The server-assigned name, which is only unique within the same service that originally returns it. If you use the default HTTP mapping, the name should be a resource name ending with operations/{unique_id}.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// The normal, successful response of the operation. If the original method returns no data on success, such as Delete, the response is google.protobuf.Empty. If the original method is standard Get/Create/Update, the response should be the resource. For other methods, the response should have the type XxxResponse, where Xxx is the original method name. For example, if the original method name is TakeSnapshot(), the inferred response type is TakeSnapshotResponse.
+    #[serde(default)]
+    pub response: ::core::option::Option<serde_json::Value>,
+}
+
+/// The definition of a saved query. To work with Vault resources, the account must have the [required Vault privileges](https://support.google.com/vault/answer/2799699) and access to the matter. To access a matter, the account must have created the matter, have the matter shared with them, or have the **View All Matters** privilege.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SavedQuery {
+    /// Output only. The server-generated timestamp when the saved query was created.
+    #[serde(default, rename = "createTime")]
+    pub create_time: ::core::option::Option<String>,
+    /// The name of the saved query.
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+    /// Output only. The matter ID of the matter the saved query is saved in. The server does not use this field during create and always uses matter ID in the URL.
+    #[serde(default, rename = "matterId")]
+    pub matter_id: ::core::option::Option<String>,
+    /// The search parameters of the saved query.
+    #[serde(default)]
+    pub query: ::core::option::Option<Query>,
+    /// A unique identifier for the saved query.
+    #[serde(default, rename = "savedQueryId")]
+    pub saved_query_id: ::core::option::Option<String>,
 }
 
 /// Represents a matter. To work with Vault resources, the account must have the [required Vault privileges] (https://support.google.com/vault/answer/2799699) and access to the matter. To access a matter, the account must have created the matter, have the matter shared with them, or have the **View All Matters** privilege.
@@ -644,43 +369,145 @@ pub struct Matter {
     pub state: ::core::option::Option<String>,
 }
 
-/// Users can be matter owners or collaborators. Each matter has only one owner. All others users who can access the matter are collaborators. When an account is purged, its corresponding MatterPermission resources cease to exist.
+/// An error that occurred when querying a specific account
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct MatterPermission {
+pub struct AccountCountError {
+    /// Account owner.
+    #[serde(default)]
+    pub account: ::core::option::Option<UserInfo>,
+    /// Account query error. // TODO: enum values: ["ERROR_TYPE_UNSPECIFIED", "WILDCARD_TOO_BROAD", "TOO_MANY_TERMS", "LOCATION_UNAVAILABLE", "UNKNOWN", "DEADLINE_EXCEEDED"]
+    #[serde(default, rename = "errorType")]
+    pub error_type: ::core::option::Option<String>,
+}
+
+/// The results count for each account.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AccountCount {
+    /// Account owner.
+    #[serde(default)]
+    pub account: ::core::option::Option<UserInfo>,
+    /// The number of results (messages or files) found for this account.
+    #[serde(default)]
+    pub count: ::core::option::Option<String>,
+}
+
+/// Export sink for Cloud Storage files.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CloudStorageSink {
+    /// Output only. The exported files in Cloud Storage.
+    #[serde(default)]
+    pub files: ::core::option::Option<::std::vec::Vec<CloudStorageFile>>,
+}
+
+/// Additional options for exports
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ExportOptions {
+    /// Option available for Calendar export.
+    #[serde(default, rename = "calendarOptions")]
+    pub calendar_options: ::core::option::Option<CalendarExportOptions>,
+    /// Options for Drive exports.
+    #[serde(default, rename = "driveOptions")]
+    pub drive_options: ::core::option::Option<DriveExportOptions>,
+    /// Option available for Gemini export.
+    #[serde(default, rename = "geminiOptions")]
+    pub gemini_options: ::core::option::Option<GeminiExportOptions>,
+    /// Options for Groups exports.
+    #[serde(default, rename = "groupsOptions")]
+    pub groups_options: ::core::option::Option<GroupsExportOptions>,
+    /// Options for Chat exports.
+    #[serde(default, rename = "hangoutsChatOptions")]
+    pub hangouts_chat_options: ::core::option::Option<HangoutsChatExportOptions>,
+    /// Options for Gmail exports.
+    #[serde(default, rename = "mailOptions")]
+    pub mail_options: ::core::option::Option<MailExportOptions>,
+    /// The requested data region for the export. // TODO: enum values: ["EXPORT_REGION_UNSPECIFIED", "ANY", "US", "EUROPE"]
+    #[serde(default)]
+    pub region: ::core::option::Option<String>,
+    /// Options for Voice exports.
+    #[serde(default, rename = "voiceOptions")]
+    pub voice_options: ::core::option::Option<VoiceExportOptions>,
+}
+
+/// Progress information for an export.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ExportStats {
+    /// The number of messages or files already processed for export.
+    #[serde(default, rename = "exportedArtifactCount")]
+    pub exported_artifact_count: ::core::option::Option<String>,
+    /// The size of export in bytes.
+    #[serde(default, rename = "sizeInBytes")]
+    pub size_in_bytes: ::core::option::Option<String>,
+    /// The number of messages or files to be exported.
+    #[serde(default, rename = "totalArtifactCount")]
+    pub total_artifact_count: ::core::option::Option<String>,
+}
+
+/// An account covered by a hold. This structure is immutable. It can be an individual account or a Google Group, depending on the service. To work with Vault resources, the account must have the [required Vault privileges] (https://support.google.com/vault/answer/2799699) and access to the matter. To access a matter, the account must have created the matter, have the matter shared with them, or have the **View All Matters** privilege.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct HeldAccount {
     /// The account ID, as provided by the [Admin SDK](https://developers.google.com/admin-sdk/).
     #[serde(default, rename = "accountId")]
     pub account_id: ::core::option::Option<String>,
-    /// The user''s role for the matter. // TODO: enum values: ["ROLE_UNSPECIFIED", "COLLABORATOR", "OWNER"]
+    /// The primary email address of the account. If used as an input, this takes precedence over **accountId**.
     #[serde(default)]
-    pub role: ::core::option::Option<String>,
+    pub email: ::core::option::Option<String>,
+    /// Output only. The first name of the account holder.
+    #[serde(default, rename = "firstName")]
+    pub first_name: ::core::option::Option<String>,
+    /// Output only. When the account was put on hold.
+    #[serde(default, rename = "holdTime")]
+    pub hold_time: ::core::option::Option<String>,
+    /// Output only. The last name of the account holder.
+    #[serde(default, rename = "lastName")]
+    pub last_name: ::core::option::Option<String>,
 }
 
-/// This resource represents a long-running operation that is the result of a network API call.
+/// The organizational unit covered by a hold. This structure is immutable.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Operation {
-    /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
-    #[serde(default)]
-    pub done: ::core::option::Option<bool>,
-    /// The error result of the operation in case of failure or cancellation.
-    #[serde(default)]
-    pub error: ::core::option::Option<Status>,
-    /// Service-specific metadata associated with the operation. It typically contains progress information and common metadata such as create time. Some services might not provide such metadata. Any method that returns a long-running operation should document the metadata type, if any.
-    #[serde(default)]
-    pub metadata: ::core::option::Option<serde_json::Value>,
-    /// The server-assigned name, which is only unique within the same service that originally returns it. If you use the default HTTP mapping, the name should be a resource name ending with operations/{unique_id}.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// The normal, successful response of the operation. If the original method returns no data on success, such as Delete, the response is google.protobuf.Empty. If the original method is standard Get/Create/Update, the response should be the resource. For other methods, the response should have the type XxxResponse, where Xxx is the original method name. For example, if the original method name is TakeSnapshot(), the inferred response type is TakeSnapshotResponse.
-    #[serde(default)]
-    pub response: ::core::option::Option<serde_json::Value>,
-}
-
-/// The organizational unit to search
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct OrgUnitInfo {
-    /// The name of the organizational unit to search, as provided by the [Admin SDK Directory API](https://developers.google.com/admin-sdk/directory/).
+pub struct HeldOrgUnit {
+    /// When the organizational unit was put on hold. This property is immutable.
+    #[serde(default, rename = "holdTime")]
+    pub hold_time: ::core::option::Option<String>,
+    /// The organizational unit''s immutable ID as provided by the [Admin SDK](https://developers.google.com/admin-sdk/).
     #[serde(default, rename = "orgUnitId")]
     pub org_unit_id: ::core::option::Option<String>,
+}
+
+/// Service-specific options for holds.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CorpusQuery {
+    /// Service-specific options for Calendar holds. If set, **CorpusType** must be **CALENDAR**.
+    #[serde(default, rename = "calendarQuery")]
+    pub calendar_query: ::core::option::Option<serde_json::Value>,
+    /// Service-specific options for Drive holds. If set, **CorpusType** must be **DRIVE**.
+    #[serde(default, rename = "driveQuery")]
+    pub drive_query: ::core::option::Option<HeldDriveQuery>,
+    /// Service-specific options for Groups holds. If set, **CorpusType** must be **GROUPS**.
+    #[serde(default, rename = "groupsQuery")]
+    pub groups_query: ::core::option::Option<HeldGroupsQuery>,
+    /// Service-specific options for Chat holds. If set, **CorpusType** must be **HANGOUTS_CHAT**.
+    #[serde(default, rename = "hangoutsChatQuery")]
+    pub hangouts_chat_query: ::core::option::Option<HeldHangoutsChatQuery>,
+    /// Service-specific options for Gmail holds. If set, **CorpusType** must be **MAIL**.
+    #[serde(default, rename = "mailQuery")]
+    pub mail_query: ::core::option::Option<HeldMailQuery>,
+    /// Service-specific options for Voice holds. If set, **CorpusType** must be **VOICE**.
+    #[serde(default, rename = "voiceQuery")]
+    pub voice_query: ::core::option::Option<HeldVoiceQuery>,
+}
+
+/// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Status {
+    /// The status code, which should be an enum value of google.rpc.Code.
+    #[serde(default)]
+    pub code: ::core::option::Option<i32>,
+    /// A list of messages that carry the error details. There is a common set of message types for APIs to use.
+    #[serde(default)]
+    pub details: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
+    /// A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.
+    #[serde(default)]
+    pub message: ::core::option::Option<String>,
 }
 
 /// The query definition used for search and export.
@@ -751,56 +578,254 @@ pub struct Query {
     pub voice_options: ::core::option::Option<VoiceOptions>,
 }
 
-/// Remove a list of accounts from a hold.
+/// Users can be matter owners or collaborators. Each matter has only one owner. All others users who can access the matter are collaborators. When an account is purged, its corresponding MatterPermission resources cease to exist.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct RemoveHeldAccountsRequest {
-    /// The account IDs of the accounts to remove from the hold.
-    #[serde(default, rename = "accountIds")]
-    pub account_ids: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// Response for batch delete held accounts.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct RemoveHeldAccountsResponse {
-    /// A list of statuses for the deleted accounts. Results have the same order as the request.
-    #[serde(default)]
-    pub statuses: ::core::option::Option<::std::vec::Vec<Status>>,
-}
-
-/// Remove an account as a matter collaborator.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct RemoveMatterPermissionsRequest {
-    /// The account ID.
+pub struct MatterPermission {
+    /// The account ID, as provided by the [Admin SDK](https://developers.google.com/admin-sdk/).
     #[serde(default, rename = "accountId")]
     pub account_id: ::core::option::Option<String>,
-}
-
-/// Response to a ReopenMatterRequest.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ReopenMatterResponse {
-    /// The updated matter, with state **OPEN**.
+    /// The user''s role for the matter. // TODO: enum values: ["ROLE_UNSPECIFIED", "COLLABORATOR", "OWNER"]
     #[serde(default)]
-    pub matter: ::core::option::Option<Matter>,
+    pub role: ::core::option::Option<String>,
 }
 
-/// The definition of a saved query. To work with Vault resources, the account must have the [required Vault privileges](https://support.google.com/vault/answer/2799699) and access to the matter. To access a matter, the account must have created the matter, have the matter shared with them, or have the **View All Matters** privilege.
+/// User''s information.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SavedQuery {
-    /// Output only. The server-generated timestamp when the saved query was created.
-    #[serde(default, rename = "createTime")]
-    pub create_time: ::core::option::Option<String>,
-    /// The name of the saved query.
+pub struct UserInfo {
+    /// The displayed name of the user.
     #[serde(default, rename = "displayName")]
     pub display_name: ::core::option::Option<String>,
-    /// Output only. The matter ID of the matter the saved query is saved in. The server does not use this field during create and always uses matter ID in the URL.
-    #[serde(default, rename = "matterId")]
-    pub matter_id: ::core::option::Option<String>,
-    /// The search parameters of the saved query.
+    /// The email address of the user.
     #[serde(default)]
-    pub query: ::core::option::Option<Query>,
-    /// A unique identifier for the saved query.
-    #[serde(default, rename = "savedQueryId")]
-    pub saved_query_id: ::core::option::Option<String>,
+    pub email: ::core::option::Option<String>,
+}
+
+/// The export file in Cloud Storage
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CloudStorageFile {
+    /// The name of the Cloud Storage bucket for the export file. You can use this value in the Cloud Storage [JSON API](https://cloud.google.com/storage/docs/json_api) or [XML API](https://cloud.google.com/storage/docs/xml-api), but not to list the bucket contents. Instead, you can [get individual export files](https://cloud.google.com/storage/docs/json_api/v1/objects/get) by object name.
+    #[serde(default, rename = "bucketName")]
+    pub bucket_name: ::core::option::Option<String>,
+    /// The md5 hash of the file.
+    #[serde(default, rename = "md5Hash")]
+    pub md5_hash: ::core::option::Option<String>,
+    /// The name of the Cloud Storage object for the export file. You can use this value in the Cloud Storage [JSON API](https://cloud.google.com/storage/docs/json_api) or [XML API](https://cloud.google.com/storage/docs/xml-api).
+    #[serde(default, rename = "objectName")]
+    pub object_name: ::core::option::Option<String>,
+    /// The export file size.
+    #[serde(default)]
+    pub size: ::core::option::Option<String>,
+}
+
+/// The options for Calendar exports.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CalendarExportOptions {
+    /// The file format for exported text messages. // TODO: enum values: ["EXPORT_FORMAT_UNSPECIFIED", "MBOX", "PST", "ICS", "XML"]
+    #[serde(default, rename = "exportFormat")]
+    pub export_format: ::core::option::Option<String>,
+}
+
+/// Options for Drive exports.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DriveExportOptions {
+    /// To include access level information for users with [indirect access](https://support.google.com/vault/answer/6099459#metadata) to files, set to **true**.
+    #[serde(default, rename = "includeAccessInfo")]
+    pub include_access_info: ::core::option::Option<bool>,
+}
+
+/// The options for Gemini exports.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GeminiExportOptions {
+    /// The file format for exported messages. // TODO: enum values: ["EXPORT_FORMAT_UNSPECIFIED", "MBOX", "PST", "ICS", "XML"]
+    #[serde(default, rename = "exportFormat")]
+    pub export_format: ::core::option::Option<String>,
+}
+
+/// Options for Groups exports.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GroupsExportOptions {
+    /// The file format for exported messages. // TODO: enum values: ["EXPORT_FORMAT_UNSPECIFIED", "MBOX", "PST", "ICS", "XML"]
+    #[serde(default, rename = "exportFormat")]
+    pub export_format: ::core::option::Option<String>,
+}
+
+/// Options for Chat exports.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct HangoutsChatExportOptions {
+    /// The file format for exported messages. // TODO: enum values: ["EXPORT_FORMAT_UNSPECIFIED", "MBOX", "PST", "ICS", "XML"]
+    #[serde(default, rename = "exportFormat")]
+    pub export_format: ::core::option::Option<String>,
+}
+
+/// Options for Gmail exports.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MailExportOptions {
+    /// The file format for exported messages. // TODO: enum values: ["EXPORT_FORMAT_UNSPECIFIED", "MBOX", "PST", "ICS", "XML"]
+    #[serde(default, rename = "exportFormat")]
+    pub export_format: ::core::option::Option<String>,
+    /// Optional. To enable exporting linked Drive files, set to **true**.
+    #[serde(default, rename = "exportLinkedDriveFiles")]
+    pub export_linked_drive_files: ::core::option::Option<bool>,
+    /// To export confidential mode content, set to **true**.
+    #[serde(default, rename = "showConfidentialModeContent")]
+    pub show_confidential_mode_content: ::core::option::Option<bool>,
+    /// To use the new export system, set to **true**.
+    #[serde(default, rename = "useNewExport")]
+    pub use_new_export: ::core::option::Option<bool>,
+}
+
+/// The options for Voice exports.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct VoiceExportOptions {
+    /// The file format for exported text messages. // TODO: enum values: ["EXPORT_FORMAT_UNSPECIFIED", "MBOX", "PST", "ICS", "XML"]
+    #[serde(default, rename = "exportFormat")]
+    pub export_format: ::core::option::Option<String>,
+}
+
+/// Options for Drive holds.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct HeldDriveQuery {
+    /// To include files in shared drives in the hold, set to **true**.
+    #[serde(default, rename = "includeSharedDriveFiles")]
+    pub include_shared_drive_files: ::core::option::Option<bool>,
+    /// To include files in Team Drives in the hold, set to **true**.
+    #[serde(default, rename = "includeTeamDriveFiles")]
+    pub include_team_drive_files: ::core::option::Option<bool>,
+}
+
+/// Query options for group holds.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct HeldGroupsQuery {
+    /// The end time for the query. Specify in GMT. The value is rounded to 12 AM on the specified date.
+    #[serde(default, rename = "endTime")]
+    pub end_time: ::core::option::Option<String>,
+    /// The start time for the query. Specify in GMT. The value is rounded to 12 AM on the specified date.
+    #[serde(default, rename = "startTime")]
+    pub start_time: ::core::option::Option<String>,
+    /// The [search operators](https://support.google.com/vault/answer/2474474) used to refine the messages covered by the hold.
+    #[serde(default)]
+    pub terms: ::core::option::Option<String>,
+}
+
+/// Options for Chat holds.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct HeldHangoutsChatQuery {
+    /// To include messages in Chat spaces the user was a member of, set to **true**.
+    #[serde(default, rename = "includeRooms")]
+    pub include_rooms: ::core::option::Option<bool>,
+}
+
+/// Query options for Gmail holds.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct HeldMailQuery {
+    /// The end time for the query. Specify in GMT. The value is rounded to 12 AM on the specified date.
+    #[serde(default, rename = "endTime")]
+    pub end_time: ::core::option::Option<String>,
+    /// The start time for the query. Specify in GMT. The value is rounded to 12 AM on the specified date.
+    #[serde(default, rename = "startTime")]
+    pub start_time: ::core::option::Option<String>,
+    /// The [search operators](https://support.google.com/vault/answer/2474474) used to refine the messages covered by the hold.
+    #[serde(default)]
+    pub terms: ::core::option::Option<String>,
+}
+
+/// Options for Voice holds.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct HeldVoiceQuery {
+    /// A list of data types covered by the hold. Should be non-empty. Order does not matter and duplicates are ignored.
+    #[serde(default, rename = "coveredData")]
+    pub covered_data: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// The accounts to search
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AccountInfo {
+    /// A set of accounts to search.
+    #[serde(default)]
+    pub emails: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// Additional options for Calendar search
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CalendarOptions {
+    /// Matches only those events whose location contains all of the words in the given set. If the string contains quoted phrases, this method only matches those events whose location contain the exact phrase. Entries in the set are considered in "and". Word splitting example: ["New Zealand"] vs ["New","Zealand"] "New Zealand": matched by both "New and better Zealand": only matched by the later
+    #[serde(default, rename = "locationQuery")]
+    pub location_query: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Matches only those events that do not contain any of the words in the given set in title, description, location, or attendees. Entries in the set are considered in "or".
+    #[serde(default, rename = "minusWords")]
+    pub minus_words: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Matches only those events whose attendees contain all of the words in the given set. Entries in the set are considered in "and".
+    #[serde(default, rename = "peopleQuery")]
+    pub people_query: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Matches only events for which the custodian gave one of these responses. If the set is empty or contains ATTENDEE_RESPONSE_UNSPECIFIED there will be no filtering on responses.
+    #[serde(default, rename = "responseStatuses")]
+    pub response_statuses: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Search the current version of the Calendar event, but export the contents of the last version saved before 12:00 AM UTC on the specified date. Enter the date in UTC.
+    #[serde(default, rename = "versionDate")]
+    pub version_date: ::core::option::Option<String>,
+}
+
+/// The Drive documents to search.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DriveDocumentInfo {
+    /// Specify Drive documents by document ID.
+    #[serde(default, rename = "documentIds")]
+    pub document_ids: ::core::option::Option<DriveDocumentIds>,
+}
+
+/// Additional options for Drive search.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DriveOptions {
+    /// Set whether the results include only content encrypted with [Google Workspace Client-side encryption](https://support.google.com/a?p=cse_ov) content, only unencrypted content, or both. Defaults to both. Currently supported for Drive. // TODO: enum values: ["CLIENT_SIDE_ENCRYPTED_OPTION_UNSPECIFIED", "CLIENT_SIDE_ENCRYPTED_OPTION_ANY", "CLIENT_SIDE_ENCRYPTED_OPTION_ENCRYPTED", "CLIENT_SIDE_ENCRYPTED_OPTION_UNENCRYPTED"]
+    #[serde(default, rename = "clientSideEncryptedOption")]
+    pub client_side_encrypted_option: ::core::option::Option<String>,
+    /// Set to **true** to include shared drives.
+    #[serde(default, rename = "includeSharedDrives")]
+    pub include_shared_drives: ::core::option::Option<bool>,
+    /// Set to true to include Team Drive.
+    #[serde(default, rename = "includeTeamDrives")]
+    pub include_team_drives: ::core::option::Option<bool>,
+    /// Optional. Options to include or exclude documents in shared drives. We recommend using this field over include_shared_drives. This field overrides include_shared_drives and include_team_drives when set. // TODO: enum values: ["SHARED_DRIVES_OPTION_UNSPECIFIED", "NOT_INCLUDED", "INCLUDED_IF_ACCOUNT_IS_NOT_A_MEMBER", "INCLUDED"]
+    #[serde(default, rename = "sharedDrivesOption")]
+    pub shared_drives_option: ::core::option::Option<String>,
+    /// Search the current version of the Drive file, but export the contents of the last version saved before 12:00 AM UTC on the specified date. Enter the date in UTC.
+    #[serde(default, rename = "versionDate")]
+    pub version_date: ::core::option::Option<String>,
+}
+
+/// The Chat spaces to search
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct HangoutsChatInfo {
+    /// A list of Chat spaces IDs, as provided by the [Chat API](https://developers.google.com/workspace/chat). There is a limit of exporting from 500 Chat spaces per request.
+    #[serde(default, rename = "roomId")]
+    pub room_id: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// Additional options for Google Chat search
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct HangoutsChatOptions {
+    /// For searches by account or organizational unit, set to **true** to include rooms.
+    #[serde(default, rename = "includeRooms")]
+    pub include_rooms: ::core::option::Option<bool>,
+}
+
+/// Additional options for Gmail search
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MailOptions {
+    /// Specifies whether the results should include encrypted content, unencrypted content, or both. Defaults to including both. // TODO: enum values: ["CLIENT_SIDE_ENCRYPTED_OPTION_UNSPECIFIED", "CLIENT_SIDE_ENCRYPTED_OPTION_ANY", "CLIENT_SIDE_ENCRYPTED_OPTION_ENCRYPTED", "CLIENT_SIDE_ENCRYPTED_OPTION_UNENCRYPTED"]
+    #[serde(default, rename = "clientSideEncryptedOption")]
+    pub client_side_encrypted_option: ::core::option::Option<String>,
+    /// Set to **true** to exclude drafts.
+    #[serde(default, rename = "excludeDrafts")]
+    pub exclude_drafts: ::core::option::Option<bool>,
+}
+
+/// The organizational unit to search
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct OrgUnitInfo {
+    /// The name of the organizational unit to search, as provided by the [Admin SDK Directory API](https://developers.google.com/admin-sdk/directory/).
+    #[serde(default, rename = "orgUnitId")]
+    pub org_unit_id: ::core::option::Option<String>,
 }
 
 /// The shared drives to search
@@ -819,20 +844,6 @@ pub struct SitesUrlInfo {
     pub urls: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
-/// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Status {
-    /// The status code, which should be an enum value of google.rpc.Code.
-    #[serde(default)]
-    pub code: ::core::option::Option<i32>,
-    /// A list of messages that carry the error details. There is a common set of message types for APIs to use.
-    #[serde(default)]
-    pub details: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
-    /// A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.
-    #[serde(default)]
-    pub message: ::core::option::Option<String>,
-}
-
 /// Team Drives to search
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TeamDriveInfo {
@@ -841,29 +852,18 @@ pub struct TeamDriveInfo {
     pub team_drive_ids: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
-/// User''s information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct UserInfo {
-    /// The displayed name of the user.
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-    /// The email address of the user.
-    #[serde(default)]
-    pub email: ::core::option::Option<String>,
-}
-
-/// The options for Voice exports.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct VoiceExportOptions {
-    /// The file format for exported text messages. // TODO: enum values: ["EXPORT_FORMAT_UNSPECIFIED", "MBOX", "PST", "ICS", "XML"]
-    #[serde(default, rename = "exportFormat")]
-    pub export_format: ::core::option::Option<String>,
-}
-
 /// Additional options for Voice search
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct VoiceOptions {
     /// Datatypes to search
     #[serde(default, rename = "coveredData")]
     pub covered_data: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// Specify Drive documents by document ID.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DriveDocumentIds {
+    /// Required. A list of Drive document IDs.
+    #[serde(default)]
+    pub ids: ::core::option::Option<::std::vec::Vec<String>>,
 }

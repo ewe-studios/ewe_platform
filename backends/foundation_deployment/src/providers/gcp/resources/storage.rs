@@ -21,47 +21,6 @@ pub struct AdvanceRelocateBucketOperationRequest {
     pub ttl: ::core::option::Option<String>,
 }
 
-/// An Anywhere Cache instance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AnywhereCache {
-    /// The cache-level entry admission policy.
-    #[serde(default, rename = "admissionPolicy")]
-    pub admission_policy: ::core::option::Option<String>,
-    /// The ID of the Anywhere cache instance.
-    #[serde(default, rename = "anywhereCacheId")]
-    pub anywhere_cache_id: ::core::option::Option<String>,
-    /// The name of the bucket containing this cache instance.
-    #[serde(default)]
-    pub bucket: ::core::option::Option<String>,
-    /// The creation time of the cache instance in RFC 3339 format.
-    #[serde(default, rename = "createTime")]
-    pub create_time: ::core::option::Option<String>,
-    /// The ID of the resource, including the project number, bucket name and anywhere cache ID.
-    #[serde(default)]
-    pub id: ::core::option::Option<String>,
-    /// The kind of item this is. For Anywhere Cache, this is always storage#anywhereCache.
-    #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-    /// True if the cache instance has an active Update long-running operation.
-    #[serde(default, rename = "pendingUpdate")]
-    pub pending_update: ::core::option::Option<bool>,
-    /// The link to this cache instance.
-    #[serde(default, rename = "selfLink")]
-    pub self_link: ::core::option::Option<String>,
-    /// The current state of the cache instance.
-    #[serde(default)]
-    pub state: ::core::option::Option<String>,
-    /// The TTL of all cache entries in whole seconds. e.g., "7200s".
-    #[serde(default)]
-    pub ttl: ::core::option::Option<String>,
-    /// The modification time of the cache instance metadata in RFC 3339 format.
-    #[serde(default, rename = "updateTime")]
-    pub update_time: ::core::option::Option<String>,
-    /// The zone in which the cache instance is running. For example, us-central1-a.
-    #[serde(default)]
-    pub zone: ::core::option::Option<String>,
-}
-
 /// A list of Anywhere Caches.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AnywhereCaches {
@@ -74,163 +33,6 @@ pub struct AnywhereCaches {
     /// The continuation token, used to page through large result sets. Provide this value in a subsequent request to return the next page of results.
     #[serde(default, rename = "nextPageToken")]
     pub next_page_token: ::core::option::Option<String>,
-}
-
-/// A bucket.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Bucket {
-    /// Access controls on the bucket.
-    #[serde(default)]
-    pub acl: ::core::option::Option<::std::vec::Vec<BucketAccessControl>>,
-    /// The bucket''s Autoclass configuration.
-    #[serde(default)]
-    pub autoclass: ::core::option::Option<serde_json::Value>,
-    /// The bucket''s billing configuration.
-    #[serde(default)]
-    pub billing: ::core::option::Option<serde_json::Value>,
-    /// The bucket''s Cross-Origin Resource Sharing (CORS) configuration.
-    #[serde(default)]
-    pub cors: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
-    /// The bucket''s custom placement configuration for Custom Dual Regions.
-    #[serde(default, rename = "customPlacementConfig")]
-    pub custom_placement_config: ::core::option::Option<serde_json::Value>,
-    /// The default value for event-based hold on newly created objects in this bucket. Event-based hold is a way to retain objects indefinitely until an event occurs, signified by the hold''s release. After being released, such objects will be subject to bucket-level retention (if any). One sample use case of this flag is for banks to hold loan documents for at least 3 years after loan is paid in full. Here, bucket-level retention is 3 years and the event is loan being paid in full. In this example, these objects will be held intact for any number of years until the event has occurred (event-based hold on the object is released) and then 3 more years after that. That means retention duration of the objects begins from the moment event-based hold transitioned from true to false. Objects under event-based hold cannot be deleted, overwritten or archived until the hold is removed.
-    #[serde(default, rename = "defaultEventBasedHold")]
-    pub default_event_based_hold: ::core::option::Option<bool>,
-    /// Default access controls to apply to new objects when no ACL is provided.
-    #[serde(default, rename = "defaultObjectAcl")]
-    pub default_object_acl: ::core::option::Option<::std::vec::Vec<ObjectAccessControl>>,
-    /// Encryption configuration for a bucket.
-    #[serde(default)]
-    pub encryption: ::core::option::Option<serde_json::Value>,
-    /// HTTP 1.1 Entity tag for the bucket.
-    #[serde(default)]
-    pub etag: ::core::option::Option<String>,
-    /// The generation of this bucket.
-    #[serde(default)]
-    pub generation: ::core::option::Option<String>,
-    /// The hard delete time of the bucket in RFC 3339 format.
-    #[serde(default, rename = "hardDeleteTime")]
-    pub hard_delete_time: ::core::option::Option<String>,
-    /// The bucket''s hierarchical namespace configuration.
-    #[serde(default, rename = "hierarchicalNamespace")]
-    pub hierarchical_namespace: ::core::option::Option<serde_json::Value>,
-    /// The bucket''s IAM configuration.
-    #[serde(default, rename = "iamConfiguration")]
-    pub iam_configuration: ::core::option::Option<serde_json::Value>,
-    /// The ID of the bucket. For buckets, the id and name properties are the same.
-    #[serde(default)]
-    pub id: ::core::option::Option<String>,
-    /// The bucket''s IP filter configuration. Specifies the network sources that are allowed to access the operations on the bucket, as well as its underlying objects. Only enforced when the mode is set to ''Enabled''.
-    #[serde(default, rename = "ipFilter")]
-    pub ip_filter: ::core::option::Option<serde_json::Value>,
-    /// The kind of item this is. For buckets, this is always storage#bucket.
-    #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-    /// User-provided labels, in key/value pairs.
-    #[serde(default)]
-    pub labels: ::core::option::Option<serde_json::Value>,
-    /// The bucket''s lifecycle configuration. See [Lifecycle Management](https://cloud.google.com/storage/docs/lifecycle) for more information.
-    #[serde(default)]
-    pub lifecycle: ::core::option::Option<serde_json::Value>,
-    /// The location of the bucket. Object data for objects in the bucket resides in physical storage within this region. Defaults to US. See the [Developer''s Guide](https://cloud.google.com/storage/docs/locations) for the authoritative list.
-    #[serde(default)]
-    pub location: ::core::option::Option<String>,
-    /// The type of the bucket location.
-    #[serde(default, rename = "locationType")]
-    pub location_type: ::core::option::Option<String>,
-    /// The bucket''s logging configuration, which defines the destination bucket and optional name prefix for the current bucket''s logs.
-    #[serde(default)]
-    pub logging: ::core::option::Option<serde_json::Value>,
-    /// The metadata generation of this bucket.
-    #[serde(default)]
-    pub metageneration: ::core::option::Option<String>,
-    /// The name of the bucket.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// The bucket''s object retention config.
-    #[serde(default, rename = "objectRetention")]
-    pub object_retention: ::core::option::Option<serde_json::Value>,
-    /// The owner of the bucket. This is always the project team''s owner group.
-    #[serde(default)]
-    pub owner: ::core::option::Option<serde_json::Value>,
-    /// The project number of the project the bucket belongs to.
-    #[serde(default, rename = "projectNumber")]
-    pub project_number: ::core::option::Option<String>,
-    /// The bucket''s retention policy. The retention policy enforces a minimum retention time for all objects contained in the bucket, based on their creation time. Any attempt to overwrite or delete objects younger than the retention period will result in a PERMISSION_DENIED error. An unlocked retention policy can be modified or removed from the bucket via a storage.buckets.update operation. A locked retention policy cannot be removed or shortened in duration for the lifetime of the bucket. Attempting to remove or decrease period of a locked retention policy will result in a PERMISSION_DENIED error.
-    #[serde(default, rename = "retentionPolicy")]
-    pub retention_policy: ::core::option::Option<serde_json::Value>,
-    /// The Recovery Point Objective (RPO) of this bucket. Set to ASYNC_TURBO to turn on Turbo Replication on a bucket.
-    #[serde(default)]
-    pub rpo: ::core::option::Option<String>,
-    /// Reserved for future use.
-    #[serde(default, rename = "satisfiesPZI")]
-    pub satisfies_p_z_i: ::core::option::Option<bool>,
-    /// Reserved for future use.
-    #[serde(default, rename = "satisfiesPZS")]
-    pub satisfies_p_z_s: ::core::option::Option<bool>,
-    /// The URI of this bucket.
-    #[serde(default, rename = "selfLink")]
-    pub self_link: ::core::option::Option<String>,
-    /// The bucket''s soft delete policy, which defines the period of time that soft-deleted objects will be retained, and cannot be permanently deleted.
-    #[serde(default, rename = "softDeletePolicy")]
-    pub soft_delete_policy: ::core::option::Option<serde_json::Value>,
-    /// The soft delete time of the bucket in RFC 3339 format.
-    #[serde(default, rename = "softDeleteTime")]
-    pub soft_delete_time: ::core::option::Option<String>,
-    /// The bucket''s default storage class, used whenever no storageClass is specified for a newly-created object. This defines how objects in the bucket are stored and determines the SLA and the cost of storage. Values include MULTI_REGIONAL, REGIONAL, STANDARD, NEARLINE, COLDLINE, ARCHIVE, and DURABLE_REDUCED_AVAILABILITY. If this value is not specified when the bucket is created, it will default to STANDARD. For more information, see [Storage Classes](https://cloud.google.com/storage/docs/storage-classes).
-    #[serde(default, rename = "storageClass")]
-    pub storage_class: ::core::option::Option<String>,
-    /// The creation time of the bucket in RFC 3339 format.
-    #[serde(default, rename = "timeCreated")]
-    pub time_created: ::core::option::Option<String>,
-    /// The modification time of the bucket in RFC 3339 format.
-    #[serde(default)]
-    pub updated: ::core::option::Option<String>,
-    /// The bucket''s versioning configuration.
-    #[serde(default)]
-    pub versioning: ::core::option::Option<serde_json::Value>,
-    /// The bucket''s website configuration, controlling how the service behaves when accessing bucket contents as a web site. See the [Static Website Examples](https://cloud.google.com/storage/docs/static-website) for more information.
-    #[serde(default)]
-    pub website: ::core::option::Option<serde_json::Value>,
-}
-
-/// An access-control entry.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct BucketAccessControl {
-    /// The name of the bucket.
-    #[serde(default)]
-    pub bucket: ::core::option::Option<String>,
-    /// The domain associated with the entity, if any.
-    #[serde(default)]
-    pub domain: ::core::option::Option<String>,
-    /// The email address associated with the entity, if any.
-    #[serde(default)]
-    pub email: ::core::option::Option<String>,
-    /// The entity holding the permission, in one of the following forms:
-    #[serde(default)]
-    pub entity: ::core::option::Option<String>,
-    /// The ID for the entity, if any.
-    #[serde(default, rename = "entityId")]
-    pub entity_id: ::core::option::Option<String>,
-    /// HTTP 1.1 Entity tag for the access-control entry.
-    #[serde(default)]
-    pub etag: ::core::option::Option<String>,
-    /// The ID of the access-control entry.
-    #[serde(default)]
-    pub id: ::core::option::Option<String>,
-    /// The kind of item this is. For bucket access control entries, this is always storage#bucketAccessControl.
-    #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-    /// The project team associated with the entity, if any.
-    #[serde(default, rename = "projectTeam")]
-    pub project_team: ::core::option::Option<serde_json::Value>,
-    /// The access permission for the entity.
-    #[serde(default)]
-    pub role: ::core::option::Option<String>,
-    /// The link to this access-control entry.
-    #[serde(default, rename = "selfLink")]
-    pub self_link: ::core::option::Option<String>,
 }
 
 /// An access-control list.
@@ -379,38 +181,6 @@ pub struct Expr {
     pub title: ::core::option::Option<String>,
 }
 
-/// A folder. Only available in buckets with hierarchical namespace enabled.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Folder {
-    /// The name of the bucket containing this folder.
-    #[serde(default)]
-    pub bucket: ::core::option::Option<String>,
-    /// The creation time of the folder in RFC 3339 format.
-    #[serde(default, rename = "createTime")]
-    pub create_time: ::core::option::Option<String>,
-    /// The ID of the folder, including the bucket name, folder name.
-    #[serde(default)]
-    pub id: ::core::option::Option<String>,
-    /// The kind of item this is. For folders, this is always storage#folder.
-    #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-    /// The version of the metadata for this folder. Used for preconditions and for detecting changes in metadata.
-    #[serde(default)]
-    pub metageneration: ::core::option::Option<String>,
-    /// The name of the folder. Required if not specified by URL parameter.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Only present if the folder is part of an ongoing rename folder operation. Contains information which can be used to query the operation status.
-    #[serde(default, rename = "pendingRenameInfo")]
-    pub pending_rename_info: ::core::option::Option<serde_json::Value>,
-    /// The link to this folder.
-    #[serde(default, rename = "selfLink")]
-    pub self_link: ::core::option::Option<String>,
-    /// The modification time of the folder metadata in RFC 3339 format.
-    #[serde(default, rename = "updateTime")]
-    pub update_time: ::core::option::Option<String>,
-}
-
 /// A list of folders.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Folders {
@@ -439,46 +209,6 @@ pub struct GoogleLongrunningListOperationsResponse {
     pub operations: ::core::option::Option<::std::vec::Vec<GoogleLongrunningOperation>>,
 }
 
-/// This resource represents a long-running operation that is the result of a network API call.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleLongrunningOperation {
-    /// If the value is "false", it means the operation is still in progress. If "true", the operation is completed, and either "error" or "response" is available.
-    #[serde(default)]
-    pub done: ::core::option::Option<bool>,
-    /// The error result of the operation in case of failure or cancellation.
-    #[serde(default)]
-    pub error: ::core::option::Option<GoogleRpcStatus>,
-    /// The kind of item this is. For operations, this is always storage#operation.
-    #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-    /// Service-specific metadata associated with the operation. It typically contains progress information and common metadata such as create time. Some services might not provide such metadata. Any method that returns a long-running operation should document the metadata type, if any.
-    #[serde(default)]
-    pub metadata: ::core::option::Option<serde_json::Value>,
-    /// The server-assigned name, which is only unique within the same service that originally returns it. If you use the default HTTP mapping, the "name" should be a resource name ending with "operations/{operationId}".
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// The normal response of the operation in case of success. If the original method returns no data on success, such as "Delete", the response is google.protobuf.Empty. If the original method is standard Get/Create/Update, the response should be the resource. For other methods, the response should have the type "XxxResponse", where "Xxx" is the original method name. For example, if the original method name is "TakeSnapshot()", the inferred response type is "TakeSnapshotResponse".
-    #[serde(default)]
-    pub response: ::core::option::Option<serde_json::Value>,
-    /// The link to this long running operation.
-    #[serde(default, rename = "selfLink")]
-    pub self_link: ::core::option::Option<String>,
-}
-
-/// The "Status" type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each "Status" message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleRpcStatus {
-    /// The status code, which should be an enum value of google.rpc.Code.
-    #[serde(default)]
-    pub code: ::core::option::Option<i32>,
-    /// A list of messages that carry the error details. There is a common set of message types for APIs to use.
-    #[serde(default)]
-    pub details: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
-    /// A developer-facing error message, which should be in English.
-    #[serde(default)]
-    pub message: ::core::option::Option<String>,
-}
-
 /// JSON template to produce a JSON-style HMAC Key resource for Create responses.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct HmacKey {
@@ -491,41 +221,6 @@ pub struct HmacKey {
     /// HMAC secret key material.
     #[serde(default)]
     pub secret: ::core::option::Option<String>,
-}
-
-/// JSON template to produce a JSON-style HMAC Key metadata resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct HmacKeyMetadata {
-    /// The ID of the HMAC Key.
-    #[serde(default, rename = "accessId")]
-    pub access_id: ::core::option::Option<String>,
-    /// HTTP 1.1 Entity tag for the HMAC key.
-    #[serde(default)]
-    pub etag: ::core::option::Option<String>,
-    /// The ID of the HMAC key, including the Project ID and the Access ID.
-    #[serde(default)]
-    pub id: ::core::option::Option<String>,
-    /// The kind of item this is. For HMAC Key metadata, this is always storage#hmacKeyMetadata.
-    #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-    /// Project ID owning the service account to which the key authenticates.
-    #[serde(default, rename = "projectId")]
-    pub project_id: ::core::option::Option<String>,
-    /// The link to this resource.
-    #[serde(default, rename = "selfLink")]
-    pub self_link: ::core::option::Option<String>,
-    /// The email address of the key''s associated service account.
-    #[serde(default, rename = "serviceAccountEmail")]
-    pub service_account_email: ::core::option::Option<String>,
-    /// The state of the key. Can be one of ACTIVE, INACTIVE, or DELETED.
-    #[serde(default)]
-    pub state: ::core::option::Option<String>,
-    /// The creation time of the HMAC key in RFC 3339 format.
-    #[serde(default, rename = "timeCreated")]
-    pub time_created: ::core::option::Option<String>,
-    /// The last modification time of the HMAC key metadata in RFC 3339 format.
-    #[serde(default)]
-    pub updated: ::core::option::Option<String>,
 }
 
 /// A list of hmacKeys.
@@ -542,35 +237,6 @@ pub struct HmacKeysMetadata {
     pub next_page_token: ::core::option::Option<String>,
 }
 
-/// A managed folder.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ManagedFolder {
-    /// The name of the bucket containing this managed folder.
-    #[serde(default)]
-    pub bucket: ::core::option::Option<String>,
-    /// The creation time of the managed folder in RFC 3339 format.
-    #[serde(default, rename = "createTime")]
-    pub create_time: ::core::option::Option<String>,
-    /// The ID of the managed folder, including the bucket name and managed folder name.
-    #[serde(default)]
-    pub id: ::core::option::Option<String>,
-    /// The kind of item this is. For managed folders, this is always storage#managedFolder.
-    #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-    /// The version of the metadata for this managed folder. Used for preconditions and for detecting changes in metadata.
-    #[serde(default)]
-    pub metageneration: ::core::option::Option<String>,
-    /// The name of the managed folder. Required if not specified by URL parameter.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// The link to this managed folder.
-    #[serde(default, rename = "selfLink")]
-    pub self_link: ::core::option::Option<String>,
-    /// The last update time of the managed folder metadata in RFC 3339 format.
-    #[serde(default, rename = "updateTime")]
-    pub update_time: ::core::option::Option<String>,
-}
-
 /// A list of managed folders.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ManagedFolders {
@@ -585,38 +251,6 @@ pub struct ManagedFolders {
     pub next_page_token: ::core::option::Option<String>,
 }
 
-/// A subscription to receive Google PubSub notifications.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Notification {
-    /// An optional list of additional attributes to attach to each Cloud PubSub message published for this notification subscription.
-    #[serde(default)]
-    pub custom_attributes: ::core::option::Option<serde_json::Value>,
-    /// HTTP 1.1 Entity tag for this subscription notification.
-    #[serde(default)]
-    pub etag: ::core::option::Option<String>,
-    /// If present, only send notifications about listed event types. If empty, sent notifications for all event types.
-    #[serde(default)]
-    pub event_types: ::core::option::Option<::std::vec::Vec<String>>,
-    /// The ID of the notification.
-    #[serde(default)]
-    pub id: ::core::option::Option<String>,
-    /// The kind of item this is. For notifications, this is always storage#notification.
-    #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-    /// If present, only apply this notification configuration to object names that begin with this prefix.
-    #[serde(default)]
-    pub object_name_prefix: ::core::option::Option<String>,
-    /// The desired content of the Payload.
-    #[serde(default)]
-    pub payload_format: ::core::option::Option<String>,
-    /// The canonical URL of this notification.
-    #[serde(default, rename = "selfLink")]
-    pub self_link: ::core::option::Option<String>,
-    /// The Cloud PubSub topic to which this subscription publishes. Formatted as: ''//pubsub.googleapis.com/projects/{project-identifier}/topics/{my-topic}''
-    #[serde(default)]
-    pub topic: ::core::option::Option<String>,
-}
-
 /// A list of notification subscriptions.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Notifications {
@@ -626,169 +260,6 @@ pub struct Notifications {
     /// The kind of item this is. For lists of notifications, this is always storage#notifications.
     #[serde(default)]
     pub kind: ::core::option::Option<String>,
-}
-
-/// An object.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Object {
-    /// Access controls on the object.
-    #[serde(default)]
-    pub acl: ::core::option::Option<::std::vec::Vec<ObjectAccessControl>>,
-    /// The name of the bucket containing this object.
-    #[serde(default)]
-    pub bucket: ::core::option::Option<String>,
-    /// Cache-Control directive for the object data. If omitted, and the object is accessible to all anonymous users, the default will be public, max-age=3600.
-    #[serde(default, rename = "cacheControl")]
-    pub cache_control: ::core::option::Option<String>,
-    /// Number of underlying components that make up this object. Components are accumulated by compose operations.
-    #[serde(default, rename = "componentCount")]
-    pub component_count: ::core::option::Option<i32>,
-    /// Content-Disposition of the object data.
-    #[serde(default, rename = "contentDisposition")]
-    pub content_disposition: ::core::option::Option<String>,
-    /// Content-Encoding of the object data.
-    #[serde(default, rename = "contentEncoding")]
-    pub content_encoding: ::core::option::Option<String>,
-    /// Content-Language of the object data.
-    #[serde(default, rename = "contentLanguage")]
-    pub content_language: ::core::option::Option<String>,
-    /// Content-Type of the object data. If an object is stored without a Content-Type, it is served as application/octet-stream.
-    #[serde(default, rename = "contentType")]
-    pub content_type: ::core::option::Option<String>,
-    /// User-defined or system-defined object contexts. Each object context is a key-payload pair, where the key provides the identification and the payload holds the associated value and additional metadata.
-    #[serde(default)]
-    pub contexts: ::core::option::Option<serde_json::Value>,
-    /// CRC32c checksum, as described in RFC 4960, Appendix B; encoded using base64 in big-endian byte order. For more information about using the CRC32c checksum, see [Data Validation and Change Detection](https://cloud.google.com/storage/docs/data-validation).
-    #[serde(default)]
-    pub crc32c: ::core::option::Option<String>,
-    /// A timestamp in RFC 3339 format specified by the user for an object.
-    #[serde(default, rename = "customTime")]
-    pub custom_time: ::core::option::Option<String>,
-    /// Metadata of customer-supplied encryption key, if the object is encrypted by such a key.
-    #[serde(default, rename = "customerEncryption")]
-    pub customer_encryption: ::core::option::Option<serde_json::Value>,
-    /// HTTP 1.1 Entity tag for the object.
-    #[serde(default)]
-    pub etag: ::core::option::Option<String>,
-    /// Whether an object is under event-based hold. Event-based hold is a way to retain objects until an event occurs, which is signified by the hold''s release (i.e. this value is set to false). After being released (set to false), such objects will be subject to bucket-level retention (if any). One sample use case of this flag is for banks to hold loan documents for at least 3 years after loan is paid in full. Here, bucket-level retention is 3 years and the event is the loan being paid in full. In this example, these objects will be held intact for any number of years until the event has occurred (event-based hold on the object is released) and then 3 more years after that. That means retention duration of the objects begins from the moment event-based hold transitioned from true to false.
-    #[serde(default, rename = "eventBasedHold")]
-    pub event_based_hold: ::core::option::Option<bool>,
-    /// The content generation of this object. Used for object versioning.
-    #[serde(default)]
-    pub generation: ::core::option::Option<String>,
-    /// This is the time (in the future) when the soft-deleted object will no longer be restorable. It is equal to the soft delete time plus the current soft delete retention duration of the bucket.
-    #[serde(default, rename = "hardDeleteTime")]
-    pub hard_delete_time: ::core::option::Option<String>,
-    /// The ID of the object, including the bucket name, object name, and generation number.
-    #[serde(default)]
-    pub id: ::core::option::Option<String>,
-    /// The kind of item this is. For objects, this is always storage#object.
-    #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-    /// Not currently supported. Specifying the parameter causes the request to fail with status code 400 - Bad Request.
-    #[serde(default, rename = "kmsKeyName")]
-    pub kms_key_name: ::core::option::Option<String>,
-    /// MD5 hash of the data; encoded using base64. For more information about using the MD5 hash, see [Data Validation and Change Detection](https://cloud.google.com/storage/docs/data-validation).
-    #[serde(default, rename = "md5Hash")]
-    pub md5_hash: ::core::option::Option<String>,
-    /// Media download link.
-    #[serde(default, rename = "mediaLink")]
-    pub media_link: ::core::option::Option<String>,
-    /// User-provided metadata, in key/value pairs.
-    #[serde(default)]
-    pub metadata: ::core::option::Option<serde_json::Value>,
-    /// The version of the metadata for this object at this generation. Used for preconditions and for detecting changes in metadata. A metageneration number is only meaningful in the context of a particular generation of a particular object.
-    #[serde(default)]
-    pub metageneration: ::core::option::Option<String>,
-    /// The name of the object. Required if not specified by URL parameter.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// The owner of the object. This will always be the uploader of the object.
-    #[serde(default)]
-    pub owner: ::core::option::Option<serde_json::Value>,
-    /// Restore token used to differentiate deleted objects with the same name and generation. This field is only returned for deleted objects in hierarchical namespace buckets.
-    #[serde(default, rename = "restoreToken")]
-    pub restore_token: ::core::option::Option<String>,
-    /// A collection of object level retention parameters.
-    #[serde(default)]
-    pub retention: ::core::option::Option<serde_json::Value>,
-    /// A server-determined value that specifies the earliest time that the object''s retention period expires. This value is in RFC 3339 format. Note 1: This field is not provided for objects with an active event-based hold, since retention expiration is unknown until the hold is removed. Note 2: This value can be provided even when temporary hold is set (so that the user can reason about policy without having to first unset the temporary hold).
-    #[serde(default, rename = "retentionExpirationTime")]
-    pub retention_expiration_time: ::core::option::Option<String>,
-    /// The link to this object.
-    #[serde(default, rename = "selfLink")]
-    pub self_link: ::core::option::Option<String>,
-    /// Content-Length of the data in bytes.
-    #[serde(default)]
-    pub size: ::core::option::Option<String>,
-    /// The time at which the object became soft-deleted in RFC 3339 format.
-    #[serde(default, rename = "softDeleteTime")]
-    pub soft_delete_time: ::core::option::Option<String>,
-    /// Storage class of the object.
-    #[serde(default, rename = "storageClass")]
-    pub storage_class: ::core::option::Option<String>,
-    /// Whether an object is under temporary hold. While this flag is set to true, the object is protected against deletion and overwrites. A common use case of this flag is regulatory investigations where objects need to be retained while the investigation is ongoing. Note that unlike event-based hold, temporary hold does not impact retention expiration time of an object.
-    #[serde(default, rename = "temporaryHold")]
-    pub temporary_hold: ::core::option::Option<bool>,
-    /// The creation time of the object in RFC 3339 format.
-    #[serde(default, rename = "timeCreated")]
-    pub time_created: ::core::option::Option<String>,
-    /// The time at which the object became noncurrent in RFC 3339 format. Will be returned if and only if this version of the object has been deleted.
-    #[serde(default, rename = "timeDeleted")]
-    pub time_deleted: ::core::option::Option<String>,
-    /// The time when the object was finalized.
-    #[serde(default, rename = "timeFinalized")]
-    pub time_finalized: ::core::option::Option<String>,
-    /// The time at which the object''s storage class was last changed. When the object is initially created, it will be set to timeCreated.
-    #[serde(default, rename = "timeStorageClassUpdated")]
-    pub time_storage_class_updated: ::core::option::Option<String>,
-    /// The modification time of the object metadata in RFC 3339 format. Set initially to object creation time and then updated whenever any metadata of the object changes. This includes changes made by a requester, such as modifying custom metadata, as well as changes made by Cloud Storage on behalf of a requester, such as changing the storage class based on an Object Lifecycle Configuration.
-    #[serde(default)]
-    pub updated: ::core::option::Option<String>,
-}
-
-/// An access-control entry.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ObjectAccessControl {
-    /// The name of the bucket.
-    #[serde(default)]
-    pub bucket: ::core::option::Option<String>,
-    /// The domain associated with the entity, if any.
-    #[serde(default)]
-    pub domain: ::core::option::Option<String>,
-    /// The email address associated with the entity, if any.
-    #[serde(default)]
-    pub email: ::core::option::Option<String>,
-    /// The entity holding the permission, in one of the following forms:
-    #[serde(default)]
-    pub entity: ::core::option::Option<String>,
-    /// The ID for the entity, if any.
-    #[serde(default, rename = "entityId")]
-    pub entity_id: ::core::option::Option<String>,
-    /// HTTP 1.1 Entity tag for the access-control entry.
-    #[serde(default)]
-    pub etag: ::core::option::Option<String>,
-    /// The content generation of the object, if applied to an object.
-    #[serde(default)]
-    pub generation: ::core::option::Option<String>,
-    /// The ID of the access-control entry.
-    #[serde(default)]
-    pub id: ::core::option::Option<String>,
-    /// The kind of item this is. For object access control entries, this is always storage#objectAccessControl.
-    #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-    /// The name of the object, if applied to an object.
-    #[serde(default)]
-    pub object: ::core::option::Option<String>,
-    /// The project team associated with the entity, if any.
-    #[serde(default, rename = "projectTeam")]
-    pub project_team: ::core::option::Option<serde_json::Value>,
-    /// The access permission for the entity.
-    #[serde(default)]
-    pub role: ::core::option::Option<String>,
-    /// The link to this access-control entry.
-    #[serde(default, rename = "selfLink")]
-    pub self_link: ::core::option::Option<String>,
 }
 
 /// An access-control list.
@@ -913,4 +384,533 @@ pub struct TestIamPermissionsResponse {
     /// The permissions held by the caller. Permissions are always of the format storage.resource.capability, where resource is one of buckets, objects, or managedFolders. The supported permissions are as follows:  
     #[serde(default)]
     pub permissions: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// An Anywhere Cache instance.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AnywhereCache {
+    /// The cache-level entry admission policy.
+    #[serde(default, rename = "admissionPolicy")]
+    pub admission_policy: ::core::option::Option<String>,
+    /// The ID of the Anywhere cache instance.
+    #[serde(default, rename = "anywhereCacheId")]
+    pub anywhere_cache_id: ::core::option::Option<String>,
+    /// The name of the bucket containing this cache instance.
+    #[serde(default)]
+    pub bucket: ::core::option::Option<String>,
+    /// The creation time of the cache instance in RFC 3339 format.
+    #[serde(default, rename = "createTime")]
+    pub create_time: ::core::option::Option<String>,
+    /// The ID of the resource, including the project number, bucket name and anywhere cache ID.
+    #[serde(default)]
+    pub id: ::core::option::Option<String>,
+    /// The kind of item this is. For Anywhere Cache, this is always storage#anywhereCache.
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+    /// True if the cache instance has an active Update long-running operation.
+    #[serde(default, rename = "pendingUpdate")]
+    pub pending_update: ::core::option::Option<bool>,
+    /// The link to this cache instance.
+    #[serde(default, rename = "selfLink")]
+    pub self_link: ::core::option::Option<String>,
+    /// The current state of the cache instance.
+    #[serde(default)]
+    pub state: ::core::option::Option<String>,
+    /// The TTL of all cache entries in whole seconds. e.g., "7200s".
+    #[serde(default)]
+    pub ttl: ::core::option::Option<String>,
+    /// The modification time of the cache instance metadata in RFC 3339 format.
+    #[serde(default, rename = "updateTime")]
+    pub update_time: ::core::option::Option<String>,
+    /// The zone in which the cache instance is running. For example, us-central1-a.
+    #[serde(default)]
+    pub zone: ::core::option::Option<String>,
+}
+
+/// A bucket.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Bucket {
+    /// Access controls on the bucket.
+    #[serde(default)]
+    pub acl: ::core::option::Option<::std::vec::Vec<BucketAccessControl>>,
+    /// The bucket''s Autoclass configuration.
+    #[serde(default)]
+    pub autoclass: ::core::option::Option<serde_json::Value>,
+    /// The bucket''s billing configuration.
+    #[serde(default)]
+    pub billing: ::core::option::Option<serde_json::Value>,
+    /// The bucket''s Cross-Origin Resource Sharing (CORS) configuration.
+    #[serde(default)]
+    pub cors: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
+    /// The bucket''s custom placement configuration for Custom Dual Regions.
+    #[serde(default, rename = "customPlacementConfig")]
+    pub custom_placement_config: ::core::option::Option<serde_json::Value>,
+    /// The default value for event-based hold on newly created objects in this bucket. Event-based hold is a way to retain objects indefinitely until an event occurs, signified by the hold''s release. After being released, such objects will be subject to bucket-level retention (if any). One sample use case of this flag is for banks to hold loan documents for at least 3 years after loan is paid in full. Here, bucket-level retention is 3 years and the event is loan being paid in full. In this example, these objects will be held intact for any number of years until the event has occurred (event-based hold on the object is released) and then 3 more years after that. That means retention duration of the objects begins from the moment event-based hold transitioned from true to false. Objects under event-based hold cannot be deleted, overwritten or archived until the hold is removed.
+    #[serde(default, rename = "defaultEventBasedHold")]
+    pub default_event_based_hold: ::core::option::Option<bool>,
+    /// Default access controls to apply to new objects when no ACL is provided.
+    #[serde(default, rename = "defaultObjectAcl")]
+    pub default_object_acl: ::core::option::Option<::std::vec::Vec<ObjectAccessControl>>,
+    /// Encryption configuration for a bucket.
+    #[serde(default)]
+    pub encryption: ::core::option::Option<serde_json::Value>,
+    /// HTTP 1.1 Entity tag for the bucket.
+    #[serde(default)]
+    pub etag: ::core::option::Option<String>,
+    /// The generation of this bucket.
+    #[serde(default)]
+    pub generation: ::core::option::Option<String>,
+    /// The hard delete time of the bucket in RFC 3339 format.
+    #[serde(default, rename = "hardDeleteTime")]
+    pub hard_delete_time: ::core::option::Option<String>,
+    /// The bucket''s hierarchical namespace configuration.
+    #[serde(default, rename = "hierarchicalNamespace")]
+    pub hierarchical_namespace: ::core::option::Option<serde_json::Value>,
+    /// The bucket''s IAM configuration.
+    #[serde(default, rename = "iamConfiguration")]
+    pub iam_configuration: ::core::option::Option<serde_json::Value>,
+    /// The ID of the bucket. For buckets, the id and name properties are the same.
+    #[serde(default)]
+    pub id: ::core::option::Option<String>,
+    /// The bucket''s IP filter configuration. Specifies the network sources that are allowed to access the operations on the bucket, as well as its underlying objects. Only enforced when the mode is set to ''Enabled''.
+    #[serde(default, rename = "ipFilter")]
+    pub ip_filter: ::core::option::Option<serde_json::Value>,
+    /// The kind of item this is. For buckets, this is always storage#bucket.
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+    /// User-provided labels, in key/value pairs.
+    #[serde(default)]
+    pub labels: ::core::option::Option<serde_json::Value>,
+    /// The bucket''s lifecycle configuration. See [Lifecycle Management](https://cloud.google.com/storage/docs/lifecycle) for more information.
+    #[serde(default)]
+    pub lifecycle: ::core::option::Option<serde_json::Value>,
+    /// The location of the bucket. Object data for objects in the bucket resides in physical storage within this region. Defaults to US. See the [Developer''s Guide](https://cloud.google.com/storage/docs/locations) for the authoritative list.
+    #[serde(default)]
+    pub location: ::core::option::Option<String>,
+    /// The type of the bucket location.
+    #[serde(default, rename = "locationType")]
+    pub location_type: ::core::option::Option<String>,
+    /// The bucket''s logging configuration, which defines the destination bucket and optional name prefix for the current bucket''s logs.
+    #[serde(default)]
+    pub logging: ::core::option::Option<serde_json::Value>,
+    /// The metadata generation of this bucket.
+    #[serde(default)]
+    pub metageneration: ::core::option::Option<String>,
+    /// The name of the bucket.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// The bucket''s object retention config.
+    #[serde(default, rename = "objectRetention")]
+    pub object_retention: ::core::option::Option<serde_json::Value>,
+    /// The owner of the bucket. This is always the project team''s owner group.
+    #[serde(default)]
+    pub owner: ::core::option::Option<serde_json::Value>,
+    /// The project number of the project the bucket belongs to.
+    #[serde(default, rename = "projectNumber")]
+    pub project_number: ::core::option::Option<String>,
+    /// The bucket''s retention policy. The retention policy enforces a minimum retention time for all objects contained in the bucket, based on their creation time. Any attempt to overwrite or delete objects younger than the retention period will result in a PERMISSION_DENIED error. An unlocked retention policy can be modified or removed from the bucket via a storage.buckets.update operation. A locked retention policy cannot be removed or shortened in duration for the lifetime of the bucket. Attempting to remove or decrease period of a locked retention policy will result in a PERMISSION_DENIED error.
+    #[serde(default, rename = "retentionPolicy")]
+    pub retention_policy: ::core::option::Option<serde_json::Value>,
+    /// The Recovery Point Objective (RPO) of this bucket. Set to ASYNC_TURBO to turn on Turbo Replication on a bucket.
+    #[serde(default)]
+    pub rpo: ::core::option::Option<String>,
+    /// Reserved for future use.
+    #[serde(default, rename = "satisfiesPZI")]
+    pub satisfies_p_z_i: ::core::option::Option<bool>,
+    /// Reserved for future use.
+    #[serde(default, rename = "satisfiesPZS")]
+    pub satisfies_p_z_s: ::core::option::Option<bool>,
+    /// The URI of this bucket.
+    #[serde(default, rename = "selfLink")]
+    pub self_link: ::core::option::Option<String>,
+    /// The bucket''s soft delete policy, which defines the period of time that soft-deleted objects will be retained, and cannot be permanently deleted.
+    #[serde(default, rename = "softDeletePolicy")]
+    pub soft_delete_policy: ::core::option::Option<serde_json::Value>,
+    /// The soft delete time of the bucket in RFC 3339 format.
+    #[serde(default, rename = "softDeleteTime")]
+    pub soft_delete_time: ::core::option::Option<String>,
+    /// The bucket''s default storage class, used whenever no storageClass is specified for a newly-created object. This defines how objects in the bucket are stored and determines the SLA and the cost of storage. Values include MULTI_REGIONAL, REGIONAL, STANDARD, NEARLINE, COLDLINE, ARCHIVE, and DURABLE_REDUCED_AVAILABILITY. If this value is not specified when the bucket is created, it will default to STANDARD. For more information, see [Storage Classes](https://cloud.google.com/storage/docs/storage-classes).
+    #[serde(default, rename = "storageClass")]
+    pub storage_class: ::core::option::Option<String>,
+    /// The creation time of the bucket in RFC 3339 format.
+    #[serde(default, rename = "timeCreated")]
+    pub time_created: ::core::option::Option<String>,
+    /// The modification time of the bucket in RFC 3339 format.
+    #[serde(default)]
+    pub updated: ::core::option::Option<String>,
+    /// The bucket''s versioning configuration.
+    #[serde(default)]
+    pub versioning: ::core::option::Option<serde_json::Value>,
+    /// The bucket''s website configuration, controlling how the service behaves when accessing bucket contents as a web site. See the [Static Website Examples](https://cloud.google.com/storage/docs/static-website) for more information.
+    #[serde(default)]
+    pub website: ::core::option::Option<serde_json::Value>,
+}
+
+/// A folder. Only available in buckets with hierarchical namespace enabled.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Folder {
+    /// The name of the bucket containing this folder.
+    #[serde(default)]
+    pub bucket: ::core::option::Option<String>,
+    /// The creation time of the folder in RFC 3339 format.
+    #[serde(default, rename = "createTime")]
+    pub create_time: ::core::option::Option<String>,
+    /// The ID of the folder, including the bucket name, folder name.
+    #[serde(default)]
+    pub id: ::core::option::Option<String>,
+    /// The kind of item this is. For folders, this is always storage#folder.
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+    /// The version of the metadata for this folder. Used for preconditions and for detecting changes in metadata.
+    #[serde(default)]
+    pub metageneration: ::core::option::Option<String>,
+    /// The name of the folder. Required if not specified by URL parameter.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Only present if the folder is part of an ongoing rename folder operation. Contains information which can be used to query the operation status.
+    #[serde(default, rename = "pendingRenameInfo")]
+    pub pending_rename_info: ::core::option::Option<serde_json::Value>,
+    /// The link to this folder.
+    #[serde(default, rename = "selfLink")]
+    pub self_link: ::core::option::Option<String>,
+    /// The modification time of the folder metadata in RFC 3339 format.
+    #[serde(default, rename = "updateTime")]
+    pub update_time: ::core::option::Option<String>,
+}
+
+/// This resource represents a long-running operation that is the result of a network API call.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleLongrunningOperation {
+    /// If the value is "false", it means the operation is still in progress. If "true", the operation is completed, and either "error" or "response" is available.
+    #[serde(default)]
+    pub done: ::core::option::Option<bool>,
+    /// The error result of the operation in case of failure or cancellation.
+    #[serde(default)]
+    pub error: ::core::option::Option<GoogleRpcStatus>,
+    /// The kind of item this is. For operations, this is always storage#operation.
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+    /// Service-specific metadata associated with the operation. It typically contains progress information and common metadata such as create time. Some services might not provide such metadata. Any method that returns a long-running operation should document the metadata type, if any.
+    #[serde(default)]
+    pub metadata: ::core::option::Option<serde_json::Value>,
+    /// The server-assigned name, which is only unique within the same service that originally returns it. If you use the default HTTP mapping, the "name" should be a resource name ending with "operations/{operationId}".
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// The normal response of the operation in case of success. If the original method returns no data on success, such as "Delete", the response is google.protobuf.Empty. If the original method is standard Get/Create/Update, the response should be the resource. For other methods, the response should have the type "XxxResponse", where "Xxx" is the original method name. For example, if the original method name is "TakeSnapshot()", the inferred response type is "TakeSnapshotResponse".
+    #[serde(default)]
+    pub response: ::core::option::Option<serde_json::Value>,
+    /// The link to this long running operation.
+    #[serde(default, rename = "selfLink")]
+    pub self_link: ::core::option::Option<String>,
+}
+
+/// JSON template to produce a JSON-style HMAC Key metadata resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct HmacKeyMetadata {
+    /// The ID of the HMAC Key.
+    #[serde(default, rename = "accessId")]
+    pub access_id: ::core::option::Option<String>,
+    /// HTTP 1.1 Entity tag for the HMAC key.
+    #[serde(default)]
+    pub etag: ::core::option::Option<String>,
+    /// The ID of the HMAC key, including the Project ID and the Access ID.
+    #[serde(default)]
+    pub id: ::core::option::Option<String>,
+    /// The kind of item this is. For HMAC Key metadata, this is always storage#hmacKeyMetadata.
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+    /// Project ID owning the service account to which the key authenticates.
+    #[serde(default, rename = "projectId")]
+    pub project_id: ::core::option::Option<String>,
+    /// The link to this resource.
+    #[serde(default, rename = "selfLink")]
+    pub self_link: ::core::option::Option<String>,
+    /// The email address of the key''s associated service account.
+    #[serde(default, rename = "serviceAccountEmail")]
+    pub service_account_email: ::core::option::Option<String>,
+    /// The state of the key. Can be one of ACTIVE, INACTIVE, or DELETED.
+    #[serde(default)]
+    pub state: ::core::option::Option<String>,
+    /// The creation time of the HMAC key in RFC 3339 format.
+    #[serde(default, rename = "timeCreated")]
+    pub time_created: ::core::option::Option<String>,
+    /// The last modification time of the HMAC key metadata in RFC 3339 format.
+    #[serde(default)]
+    pub updated: ::core::option::Option<String>,
+}
+
+/// A managed folder.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ManagedFolder {
+    /// The name of the bucket containing this managed folder.
+    #[serde(default)]
+    pub bucket: ::core::option::Option<String>,
+    /// The creation time of the managed folder in RFC 3339 format.
+    #[serde(default, rename = "createTime")]
+    pub create_time: ::core::option::Option<String>,
+    /// The ID of the managed folder, including the bucket name and managed folder name.
+    #[serde(default)]
+    pub id: ::core::option::Option<String>,
+    /// The kind of item this is. For managed folders, this is always storage#managedFolder.
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+    /// The version of the metadata for this managed folder. Used for preconditions and for detecting changes in metadata.
+    #[serde(default)]
+    pub metageneration: ::core::option::Option<String>,
+    /// The name of the managed folder. Required if not specified by URL parameter.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// The link to this managed folder.
+    #[serde(default, rename = "selfLink")]
+    pub self_link: ::core::option::Option<String>,
+    /// The last update time of the managed folder metadata in RFC 3339 format.
+    #[serde(default, rename = "updateTime")]
+    pub update_time: ::core::option::Option<String>,
+}
+
+/// A subscription to receive Google PubSub notifications.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Notification {
+    /// An optional list of additional attributes to attach to each Cloud PubSub message published for this notification subscription.
+    #[serde(default)]
+    pub custom_attributes: ::core::option::Option<serde_json::Value>,
+    /// HTTP 1.1 Entity tag for this subscription notification.
+    #[serde(default)]
+    pub etag: ::core::option::Option<String>,
+    /// If present, only send notifications about listed event types. If empty, sent notifications for all event types.
+    #[serde(default)]
+    pub event_types: ::core::option::Option<::std::vec::Vec<String>>,
+    /// The ID of the notification.
+    #[serde(default)]
+    pub id: ::core::option::Option<String>,
+    /// The kind of item this is. For notifications, this is always storage#notification.
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+    /// If present, only apply this notification configuration to object names that begin with this prefix.
+    #[serde(default)]
+    pub object_name_prefix: ::core::option::Option<String>,
+    /// The desired content of the Payload.
+    #[serde(default)]
+    pub payload_format: ::core::option::Option<String>,
+    /// The canonical URL of this notification.
+    #[serde(default, rename = "selfLink")]
+    pub self_link: ::core::option::Option<String>,
+    /// The Cloud PubSub topic to which this subscription publishes. Formatted as: ''//pubsub.googleapis.com/projects/{project-identifier}/topics/{my-topic}''
+    #[serde(default)]
+    pub topic: ::core::option::Option<String>,
+}
+
+/// An object.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Object {
+    /// Access controls on the object.
+    #[serde(default)]
+    pub acl: ::core::option::Option<::std::vec::Vec<ObjectAccessControl>>,
+    /// The name of the bucket containing this object.
+    #[serde(default)]
+    pub bucket: ::core::option::Option<String>,
+    /// Cache-Control directive for the object data. If omitted, and the object is accessible to all anonymous users, the default will be public, max-age=3600.
+    #[serde(default, rename = "cacheControl")]
+    pub cache_control: ::core::option::Option<String>,
+    /// Number of underlying components that make up this object. Components are accumulated by compose operations.
+    #[serde(default, rename = "componentCount")]
+    pub component_count: ::core::option::Option<i32>,
+    /// Content-Disposition of the object data.
+    #[serde(default, rename = "contentDisposition")]
+    pub content_disposition: ::core::option::Option<String>,
+    /// Content-Encoding of the object data.
+    #[serde(default, rename = "contentEncoding")]
+    pub content_encoding: ::core::option::Option<String>,
+    /// Content-Language of the object data.
+    #[serde(default, rename = "contentLanguage")]
+    pub content_language: ::core::option::Option<String>,
+    /// Content-Type of the object data. If an object is stored without a Content-Type, it is served as application/octet-stream.
+    #[serde(default, rename = "contentType")]
+    pub content_type: ::core::option::Option<String>,
+    /// User-defined or system-defined object contexts. Each object context is a key-payload pair, where the key provides the identification and the payload holds the associated value and additional metadata.
+    #[serde(default)]
+    pub contexts: ::core::option::Option<serde_json::Value>,
+    /// CRC32c checksum, as described in RFC 4960, Appendix B; encoded using base64 in big-endian byte order. For more information about using the CRC32c checksum, see [Data Validation and Change Detection](https://cloud.google.com/storage/docs/data-validation).
+    #[serde(default)]
+    pub crc32c: ::core::option::Option<String>,
+    /// A timestamp in RFC 3339 format specified by the user for an object.
+    #[serde(default, rename = "customTime")]
+    pub custom_time: ::core::option::Option<String>,
+    /// Metadata of customer-supplied encryption key, if the object is encrypted by such a key.
+    #[serde(default, rename = "customerEncryption")]
+    pub customer_encryption: ::core::option::Option<serde_json::Value>,
+    /// HTTP 1.1 Entity tag for the object.
+    #[serde(default)]
+    pub etag: ::core::option::Option<String>,
+    /// Whether an object is under event-based hold. Event-based hold is a way to retain objects until an event occurs, which is signified by the hold''s release (i.e. this value is set to false). After being released (set to false), such objects will be subject to bucket-level retention (if any). One sample use case of this flag is for banks to hold loan documents for at least 3 years after loan is paid in full. Here, bucket-level retention is 3 years and the event is the loan being paid in full. In this example, these objects will be held intact for any number of years until the event has occurred (event-based hold on the object is released) and then 3 more years after that. That means retention duration of the objects begins from the moment event-based hold transitioned from true to false.
+    #[serde(default, rename = "eventBasedHold")]
+    pub event_based_hold: ::core::option::Option<bool>,
+    /// The content generation of this object. Used for object versioning.
+    #[serde(default)]
+    pub generation: ::core::option::Option<String>,
+    /// This is the time (in the future) when the soft-deleted object will no longer be restorable. It is equal to the soft delete time plus the current soft delete retention duration of the bucket.
+    #[serde(default, rename = "hardDeleteTime")]
+    pub hard_delete_time: ::core::option::Option<String>,
+    /// The ID of the object, including the bucket name, object name, and generation number.
+    #[serde(default)]
+    pub id: ::core::option::Option<String>,
+    /// The kind of item this is. For objects, this is always storage#object.
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+    /// Not currently supported. Specifying the parameter causes the request to fail with status code 400 - Bad Request.
+    #[serde(default, rename = "kmsKeyName")]
+    pub kms_key_name: ::core::option::Option<String>,
+    /// MD5 hash of the data; encoded using base64. For more information about using the MD5 hash, see [Data Validation and Change Detection](https://cloud.google.com/storage/docs/data-validation).
+    #[serde(default, rename = "md5Hash")]
+    pub md5_hash: ::core::option::Option<String>,
+    /// Media download link.
+    #[serde(default, rename = "mediaLink")]
+    pub media_link: ::core::option::Option<String>,
+    /// User-provided metadata, in key/value pairs.
+    #[serde(default)]
+    pub metadata: ::core::option::Option<serde_json::Value>,
+    /// The version of the metadata for this object at this generation. Used for preconditions and for detecting changes in metadata. A metageneration number is only meaningful in the context of a particular generation of a particular object.
+    #[serde(default)]
+    pub metageneration: ::core::option::Option<String>,
+    /// The name of the object. Required if not specified by URL parameter.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// The owner of the object. This will always be the uploader of the object.
+    #[serde(default)]
+    pub owner: ::core::option::Option<serde_json::Value>,
+    /// Restore token used to differentiate deleted objects with the same name and generation. This field is only returned for deleted objects in hierarchical namespace buckets.
+    #[serde(default, rename = "restoreToken")]
+    pub restore_token: ::core::option::Option<String>,
+    /// A collection of object level retention parameters.
+    #[serde(default)]
+    pub retention: ::core::option::Option<serde_json::Value>,
+    /// A server-determined value that specifies the earliest time that the object''s retention period expires. This value is in RFC 3339 format. Note 1: This field is not provided for objects with an active event-based hold, since retention expiration is unknown until the hold is removed. Note 2: This value can be provided even when temporary hold is set (so that the user can reason about policy without having to first unset the temporary hold).
+    #[serde(default, rename = "retentionExpirationTime")]
+    pub retention_expiration_time: ::core::option::Option<String>,
+    /// The link to this object.
+    #[serde(default, rename = "selfLink")]
+    pub self_link: ::core::option::Option<String>,
+    /// Content-Length of the data in bytes.
+    #[serde(default)]
+    pub size: ::core::option::Option<String>,
+    /// The time at which the object became soft-deleted in RFC 3339 format.
+    #[serde(default, rename = "softDeleteTime")]
+    pub soft_delete_time: ::core::option::Option<String>,
+    /// Storage class of the object.
+    #[serde(default, rename = "storageClass")]
+    pub storage_class: ::core::option::Option<String>,
+    /// Whether an object is under temporary hold. While this flag is set to true, the object is protected against deletion and overwrites. A common use case of this flag is regulatory investigations where objects need to be retained while the investigation is ongoing. Note that unlike event-based hold, temporary hold does not impact retention expiration time of an object.
+    #[serde(default, rename = "temporaryHold")]
+    pub temporary_hold: ::core::option::Option<bool>,
+    /// The creation time of the object in RFC 3339 format.
+    #[serde(default, rename = "timeCreated")]
+    pub time_created: ::core::option::Option<String>,
+    /// The time at which the object became noncurrent in RFC 3339 format. Will be returned if and only if this version of the object has been deleted.
+    #[serde(default, rename = "timeDeleted")]
+    pub time_deleted: ::core::option::Option<String>,
+    /// The time when the object was finalized.
+    #[serde(default, rename = "timeFinalized")]
+    pub time_finalized: ::core::option::Option<String>,
+    /// The time at which the object''s storage class was last changed. When the object is initially created, it will be set to timeCreated.
+    #[serde(default, rename = "timeStorageClassUpdated")]
+    pub time_storage_class_updated: ::core::option::Option<String>,
+    /// The modification time of the object metadata in RFC 3339 format. Set initially to object creation time and then updated whenever any metadata of the object changes. This includes changes made by a requester, such as modifying custom metadata, as well as changes made by Cloud Storage on behalf of a requester, such as changing the storage class based on an Object Lifecycle Configuration.
+    #[serde(default)]
+    pub updated: ::core::option::Option<String>,
+}
+
+/// An access-control entry.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BucketAccessControl {
+    /// The name of the bucket.
+    #[serde(default)]
+    pub bucket: ::core::option::Option<String>,
+    /// The domain associated with the entity, if any.
+    #[serde(default)]
+    pub domain: ::core::option::Option<String>,
+    /// The email address associated with the entity, if any.
+    #[serde(default)]
+    pub email: ::core::option::Option<String>,
+    /// The entity holding the permission, in one of the following forms:
+    #[serde(default)]
+    pub entity: ::core::option::Option<String>,
+    /// The ID for the entity, if any.
+    #[serde(default, rename = "entityId")]
+    pub entity_id: ::core::option::Option<String>,
+    /// HTTP 1.1 Entity tag for the access-control entry.
+    #[serde(default)]
+    pub etag: ::core::option::Option<String>,
+    /// The ID of the access-control entry.
+    #[serde(default)]
+    pub id: ::core::option::Option<String>,
+    /// The kind of item this is. For bucket access control entries, this is always storage#bucketAccessControl.
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+    /// The project team associated with the entity, if any.
+    #[serde(default, rename = "projectTeam")]
+    pub project_team: ::core::option::Option<serde_json::Value>,
+    /// The access permission for the entity.
+    #[serde(default)]
+    pub role: ::core::option::Option<String>,
+    /// The link to this access-control entry.
+    #[serde(default, rename = "selfLink")]
+    pub self_link: ::core::option::Option<String>,
+}
+
+/// The "Status" type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each "Status" message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleRpcStatus {
+    /// The status code, which should be an enum value of google.rpc.Code.
+    #[serde(default)]
+    pub code: ::core::option::Option<i32>,
+    /// A list of messages that carry the error details. There is a common set of message types for APIs to use.
+    #[serde(default)]
+    pub details: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
+    /// A developer-facing error message, which should be in English.
+    #[serde(default)]
+    pub message: ::core::option::Option<String>,
+}
+
+/// An access-control entry.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ObjectAccessControl {
+    /// The name of the bucket.
+    #[serde(default)]
+    pub bucket: ::core::option::Option<String>,
+    /// The domain associated with the entity, if any.
+    #[serde(default)]
+    pub domain: ::core::option::Option<String>,
+    /// The email address associated with the entity, if any.
+    #[serde(default)]
+    pub email: ::core::option::Option<String>,
+    /// The entity holding the permission, in one of the following forms:
+    #[serde(default)]
+    pub entity: ::core::option::Option<String>,
+    /// The ID for the entity, if any.
+    #[serde(default, rename = "entityId")]
+    pub entity_id: ::core::option::Option<String>,
+    /// HTTP 1.1 Entity tag for the access-control entry.
+    #[serde(default)]
+    pub etag: ::core::option::Option<String>,
+    /// The content generation of the object, if applied to an object.
+    #[serde(default)]
+    pub generation: ::core::option::Option<String>,
+    /// The ID of the access-control entry.
+    #[serde(default)]
+    pub id: ::core::option::Option<String>,
+    /// The kind of item this is. For object access control entries, this is always storage#objectAccessControl.
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+    /// The name of the object, if applied to an object.
+    #[serde(default)]
+    pub object: ::core::option::Option<String>,
+    /// The project team associated with the entity, if any.
+    #[serde(default, rename = "projectTeam")]
+    pub project_team: ::core::option::Option<serde_json::Value>,
+    /// The access permission for the entity.
+    #[serde(default)]
+    pub role: ::core::option::Option<String>,
+    /// The link to this access-control entry.
+    #[serde(default, rename = "selfLink")]
+    pub self_link: ::core::option::Option<String>,
 }

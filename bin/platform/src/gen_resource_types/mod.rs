@@ -1148,8 +1148,74 @@ impl ResourceGenerator {
              use super::*;\n"
         ).map_err(|e| GenResourceError::WriteFile { path: format!("generated code for {label}"), source: std::io::Error::new(std::io::ErrorKind::Other, e) })?;
 
-        for resource in resources { self.generate_struct(&mut out, resource)?; }
+        // Topologically sort resources so types are defined before use
+        let sorted = self.sort_resources_topo(resources);
+        for resource in sorted { self.generate_struct(&mut out, resource)?; }
         Ok(out)
+    }
+
+    /// Topologically sort resources so types with no dependencies come first.
+    /// Types referenced by other types must be defined before the referencing type.
+    fn sort_resources_topo<'a>(&self, resources: &'a [ResourceDef]) -> Vec<&'a ResourceDef> {
+        use std::collections::{HashMap, HashSet, VecDeque};
+
+        // Build a map of name -> resource and collect dependencies
+        let name_to_idx: HashMap<&str, usize> = resources.iter().enumerate().map(|(i, r)| (r.name.as_str(), i)).collect();
+        let mut deps: Vec<Vec<usize>> = Vec::with_capacity(resources.len());
+        let mut in_degree: Vec<usize> = Vec::with_capacity(resources.len());
+
+        for (i, resource) in resources.iter().enumerate() {
+            let mut dep_idxs = Vec::new();
+            let mut seen = HashSet::new();
+
+            for field in &resource.fields {
+                // Extract type names from the field type string
+                // Types are PascalCase identifiers (may have generics like Option<T>)
+                for ty_name in extract_type_names(&field.ty) {
+                    // Check if this type name matches a resource in our list
+                    if let Some(&dep_idx) = name_to_idx.get(ty_name.as_str()) {
+                        if dep_idx != i && !seen.contains(&dep_idx) {
+                            dep_idxs.push(dep_idx);
+                            seen.insert(dep_idx);
+                        }
+                    }
+                }
+            }
+            deps.push(dep_idxs);
+            in_degree.push(0);
+        }
+
+        // Calculate in-degrees
+        for d in &deps {
+            for &dep in d {
+                in_degree[dep] += 1;
+            }
+        }
+
+        // Kahn's algorithm
+        let mut queue: VecDeque<usize> = in_degree.iter().enumerate().filter(|&(_, &d)| d == 0).map(|(i, _)| i).collect();
+        let mut result = Vec::with_capacity(resources.len());
+
+        while let Some(idx) = queue.pop_front() {
+            result.push(&resources[idx]);
+            for &dep in &deps[idx] {
+                in_degree[dep] -= 1;
+                if in_degree[dep] == 0 {
+                    queue.push_back(dep);
+                }
+            }
+        }
+
+        // If we couldn't process all resources, there's a cycle - just append remaining
+        if result.len() < resources.len() {
+            for r in resources.iter() {
+                if !result.iter().any(|&rr| rr.name == r.name) {
+                    result.push(r);
+                }
+            }
+        }
+
+        result
     }
 
     /// Get display name for a provider.
@@ -1167,6 +1233,59 @@ impl ResourceGenerator {
             other => Cow::Owned(other.to_string()),
         }
     }
+}
+
+/// Extract Rust type names from a type string (e.g., "Option<Foo>" -> ["Foo"]).
+fn extract_type_names(ty: &str) -> Vec<String> {
+    let mut result = Vec::new();
+    // Remove common wrappers
+    let ty = ty
+        .replace("::core::option::Option<", "")
+        .replace("::std::vec::Vec<", "")
+        .replace("Option<", "")
+        .replace("Vec<", "")
+        .replace("HashMap<", "")
+        .replace("BTreeMap<", "")
+        .replace("BTreeSet<", "")
+        .replace("::serde_json::Value", "")
+        .replace("String", "")
+        .replace("bool", "")
+        .replace("i32", "")
+        .replace("i64", "")
+        .replace("u32", "")
+        .replace("u64", "")
+        .replace("f32", "")
+        .replace("f64", "")
+        .replace("char", "");
+
+    // Extract remaining identifiers (PascalCase type names)
+    // They may be separated by commas or angle brackets
+    let mut current = String::new();
+    let mut depth: i32 = 0;
+    for c in ty.chars() {
+        match c {
+            '<' | ',' | '>' | ' ' => {
+                if !current.is_empty() && depth == 0 {
+                    // Check if it looks like a type name (starts with uppercase)
+                    if current.chars().next().map_or(false, |c| c.is_uppercase()) {
+                        result.push(current.clone());
+                    }
+                    current.clear();
+                }
+                if c == '<' {
+                    depth += 1;
+                } else if c == '>' {
+                    depth = depth.saturating_sub(1);
+                }
+            }
+            _ => current.push(c),
+        }
+    }
+    if !current.is_empty() && current.chars().next().map_or(false, |c| c.is_uppercase()) {
+        result.push(current);
+    }
+
+    result
 }
 
 // ---------------------------------------------------------------------------

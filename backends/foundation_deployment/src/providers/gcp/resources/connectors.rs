@@ -10,66 +10,6 @@
 use super::*;
 use serde::{Deserialize, Serialize};
 
-/// AccessCredentials includes the OAuth access token, and the other fields returned along with it.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AccessCredentials {
-    /// OAuth access token.
-    #[serde(default, rename = "accessToken")]
-    pub access_token: ::core::option::Option<String>,
-    /// Duration till the access token expires.
-    #[serde(default, rename = "expiresIn")]
-    pub expires_in: ::core::option::Option<String>,
-    /// OAuth refresh token.
-    #[serde(default, rename = "refreshToken")]
-    pub refresh_token: ::core::option::Option<String>,
-}
-
-/// Action message contains metadata information about a single action present in the external system.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Action {
-    /// Brief Description of action
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// Display Name of action to be shown on client side
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-    /// JsonSchema representation of this actions''s input schema
-    #[serde(default, rename = "inputJsonSchema")]
-    pub input_json_schema: ::core::option::Option<JsonSchema>,
-    /// List containing input parameter metadata.
-    #[serde(default, rename = "inputParameters")]
-    pub input_parameters: ::core::option::Option<::std::vec::Vec<InputParameter>>,
-    /// Metadata like service latency, etc.
-    #[serde(default)]
-    pub metadata: ::core::option::Option<serde_json::Value>,
-    /// Name of the action.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// JsonSchema representation of this actions''s result schema
-    #[serde(default, rename = "resultJsonSchema")]
-    pub result_json_schema: ::core::option::Option<JsonSchema>,
-    /// List containing the metadata of result fields.
-    #[serde(default, rename = "resultMetadata")]
-    pub result_metadata: ::core::option::Option<::std::vec::Vec<ResultMetadata>>,
-}
-
-/// AuthCodeData contains the data the runtime plane will give the connector backend in exchange for access and refresh tokens.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AuthCodeData {
-    /// OAuth authorization code.
-    #[serde(default, rename = "authCode")]
-    pub auth_code: ::core::option::Option<String>,
-    /// OAuth PKCE verifier, needed if PKCE is enabled for this particular connection.
-    #[serde(default, rename = "pkceVerifier")]
-    pub pkce_verifier: ::core::option::Option<String>,
-    /// OAuth redirect URI passed in during the auth code flow, required by some OAuth backends.
-    #[serde(default, rename = "redirectUri")]
-    pub redirect_uri: ::core::option::Option<String>,
-    /// Scopes the connection will request when the user performs the auth code flow.
-    #[serde(default)]
-    pub scopes: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
 /// Response containing status of the connector for readiness prober.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CheckReadinessResponse {
@@ -89,80 +29,6 @@ pub struct CheckStatusResponse {
     /// State of the connector. // TODO: enum values: ["STATE_UNSPECIFIED", "ACTIVE", "ERROR", "AUTH_ERROR"]
     #[serde(default)]
     pub state: ::core::option::Option<String>,
-}
-
-/// Time window specified for daily operations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DailyCycle {
-    /// Output only. Duration of the time window, set by service producer.
-    #[serde(default)]
-    pub duration: ::core::option::Option<String>,
-    /// Time within the day to start the operations.
-    #[serde(default, rename = "startTime")]
-    pub start_time: ::core::option::Option<TimeOfDay>,
-}
-
-/// Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Date {
-    /// Day of a month. Must be from 1 to 31 and valid for the year and month, or 0 to specify a year by itself or a year and month where the day isn''t significant.
-    #[serde(default)]
-    pub day: ::core::option::Option<i32>,
-    /// Month of a year. Must be from 1 to 12, or 0 to specify a year without a month and day.
-    #[serde(default)]
-    pub month: ::core::option::Option<i32>,
-    /// Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.
-    #[serde(default)]
-    pub year: ::core::option::Option<i32>,
-}
-
-/// DenyMaintenancePeriod definition. Maintenance is forbidden within the deny period. The start_date must be less than the end_date.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DenyMaintenancePeriod {
-    /// Deny period end date. This can be: * A full date, with non-zero year, month and day values. * A month and day value, with a zero year. Allows recurring deny periods each year. Date matching this period will have to be before the end.
-    #[serde(default, rename = "endDate")]
-    pub end_date: ::core::option::Option<Date>,
-    /// Deny period start date. This can be: * A full date, with non-zero year, month and day values. * A month and day value, with a zero year. Allows recurring deny periods each year. Date matching this period will have to be the same or after the start.
-    #[serde(default, rename = "startDate")]
-    pub start_date: ::core::option::Option<Date>,
-    /// Time in UTC when the Blackout period starts on start_date and ends on end_date. This can be: * Full time. * All zeros for 00:00:00 UTC
-    #[serde(default)]
-    pub time: ::core::option::Option<TimeOfDay>,
-}
-
-/// ''Entity row''/ ''Entity'' refers to a single row of an entity type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Entity {
-    /// Fields of the entity. The key is name of the field and the value contains the applicable google.protobuf.Value entry for this field.
-    #[serde(default)]
-    pub fields: ::core::option::Option<serde_json::Value>,
-    /// Metadata like service latency, etc.
-    #[serde(default)]
-    pub metadata: ::core::option::Option<serde_json::Value>,
-    /// Output only. Resource name of the Entity. Format: projects/{project}/locations/{location}/connections/{connection}/entityTypes/{type}/entities/{id}
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-}
-
-/// EntityType message contains metadata information about a single entity type present in the external system.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct EntityType {
-    #[serde(default, rename = "defaultSortBy")]
-    pub default_sort_by: ::core::option::Option<String>,
-    /// List containing metadata information about each field of the entity type.
-    #[serde(default)]
-    pub fields: ::core::option::Option<::std::vec::Vec<Field>>,
-    /// JsonSchema representation of this entity''s schema
-    #[serde(default, rename = "jsonSchema")]
-    pub json_schema: ::core::option::Option<JsonSchema>,
-    /// Metadata like service latency, etc.
-    #[serde(default)]
-    pub metadata: ::core::option::Option<serde_json::Value>,
-    /// The name of the entity type.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    #[serde(default)]
-    pub operations: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// ExchangeAuthCodeRequest currently includes the auth code data.
@@ -255,46 +121,6 @@ pub struct ExecuteToolResponse {
     pub result: ::core::option::Option<serde_json::Value>,
 }
 
-/// ExecutionConfig resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ExecutionConfig {
-    /// headers to be used for the request. For example: headers:''{"x-integration-connectors-managed-connection-id":"conn-id","x-integration-connectors-runtime-config":"runtime-cfg"}''
-    #[serde(default)]
-    pub headers: ::core::option::Option<String>,
-}
-
-/// Message contains EntityType''s Field metadata.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Field {
-    /// The following map contains fields that are not explicitly mentioned above,this give connectors the flexibility to add new metadata fields.
-    #[serde(default, rename = "additionalDetails")]
-    pub additional_details: ::core::option::Option<serde_json::Value>,
-    /// The data type of the Field. // TODO: enum values: ["DATA_TYPE_UNSPECIFIED", "INT", "SMALLINT", "DOUBLE", "DATE", "DATETIME", "TIME", "STRING", "LONG", "BOOLEAN", "DECIMAL", "UUID", "BLOB", "BIT", "TINYINT", "INTEGER", "BIGINT", "FLOAT", "REAL", "NUMERIC", "CHAR", "VARCHAR", "LONGVARCHAR", "TIMESTAMP", "NCHAR", "NVARCHAR", "LONGNVARCHAR", "NULL", "OTHER", "JAVA_OBJECT", "DISTINCT", "STRUCT", "ARRAY", "CLOB", "REF", "DATALINK", "ROWID", "BINARY", "VARBINARY", "LONGVARBINARY", "NCLOB", "SQLXML", "REF_CURSOR", "TIME_WITH_TIMEZONE", "TIMESTAMP_WITH_TIMEZONE"]
-    #[serde(default, rename = "dataType")]
-    pub data_type: ::core::option::Option<String>,
-    /// The following field specifies the default value of the Field provided by the external system if a value is not provided.
-    #[serde(default, rename = "defaultValue")]
-    pub default_value: ::core::option::Option<serde_json::Value>,
-    /// A brief description of the Field.
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// JsonSchema of the field, applicable only if field is of type STRUCT
-    #[serde(default, rename = "jsonSchema")]
-    pub json_schema: ::core::option::Option<JsonSchema>,
-    /// The following boolean field specifies if the current Field acts as a primary key or id if the parent is of type entity.
-    #[serde(default)]
-    pub key: ::core::option::Option<bool>,
-    /// Name of the Field.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Specifies whether a null value is allowed.
-    #[serde(default)]
-    pub nullable: ::core::option::Option<bool>,
-    /// Reference captures the association between two different entity types. Value links to the reference of another entity type.
-    #[serde(default)]
-    pub reference: ::core::option::Option<Reference>,
-}
-
 /// GenerateCustomToolspecRequest resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GenerateCustomToolspecRequest {
@@ -337,32 +163,6 @@ pub struct GetResourceResponse {
     /// The MIME type of the resource.
     #[serde(default, rename = "mimeType")]
     pub mime_type: ::core::option::Option<String>,
-}
-
-/// Input Parameter message contains metadata about the parameters required for executing an Action.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct InputParameter {
-    /// The following map contains fields that are not explicitly mentioned above,this give connectors the flexibility to add new metadata fields.
-    #[serde(default, rename = "additionalDetails")]
-    pub additional_details: ::core::option::Option<serde_json::Value>,
-    /// The data type of the Parameter // TODO: enum values: ["DATA_TYPE_UNSPECIFIED", "INT", "SMALLINT", "DOUBLE", "DATE", "DATETIME", "TIME", "STRING", "LONG", "BOOLEAN", "DECIMAL", "UUID", "BLOB", "BIT", "TINYINT", "INTEGER", "BIGINT", "FLOAT", "REAL", "NUMERIC", "CHAR", "VARCHAR", "LONGVARCHAR", "TIMESTAMP", "NCHAR", "NVARCHAR", "LONGNVARCHAR", "NULL", "OTHER", "JAVA_OBJECT", "DISTINCT", "STRUCT", "ARRAY", "CLOB", "REF", "DATALINK", "ROWID", "BINARY", "VARBINARY", "LONGVARBINARY", "NCLOB", "SQLXML", "REF_CURSOR", "TIME_WITH_TIMEZONE", "TIMESTAMP_WITH_TIMEZONE"]
-    #[serde(default, rename = "dataType")]
-    pub data_type: ::core::option::Option<String>,
-    /// The following field specifies the default value of the Parameter provided by the external system if a value is not provided.
-    #[serde(default, rename = "defaultValue")]
-    pub default_value: ::core::option::Option<serde_json::Value>,
-    /// A brief description of the Parameter.
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// JsonSchema of the parameter, applicable only if parameter is of type STRUCT
-    #[serde(default, rename = "jsonSchema")]
-    pub json_schema: ::core::option::Option<JsonSchema>,
-    /// Name of the Parameter.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Specifies whether a null value is allowed.
-    #[serde(default)]
-    pub nullable: ::core::option::Option<bool>,
 }
 
 /// Instance represents the interface for SLM services to actuate the state of control plane resources. Example Instance in JSON, where consumer-project-number=123456, producer-project-id=cloud-sql: json Instance: { "name": "projects/123456/locations/us-east1/instances/prod-instance", "create_time": { "seconds": 1526406431, }, "labels": { "env": "prod", "foo": "bar" }, "state": READY, "software_versions": { "software_update": "cloud-sql-09-28-2018", }, "maintenance_policy_names": { "UpdatePolicy": "projects/123456/locations/us-east1/maintenancePolicies/prod-update-policy", } "tenant_project_id": "cloud-sql-test-tenant", "producer_metadata": { "cloud-sql-tier": "basic", "cloud-sql-instance-size": "1G", }, "provisioned_resources": [ { "resource-type": "compute-instance", "resource-url": "https://www.googleapis.com/compute/v1/projects/cloud-sql/zones/us-east1-b/instances/vm-1", } ], "maintenance_schedules": { "csa_rollout": { "start_time": { "seconds": 1526406431, }, "end_time": { "seconds": 1535406431, }, }, "ncsa_rollout": { "start_time": { "seconds": 1526406431, }, "end_time": { "seconds": 1535406431, }, } }, "consumer_defined_name": "my-sql-instance1", }  LINT.IfChange
@@ -422,71 +222,6 @@ pub struct Instance {
     /// Output only. Timestamp when the resource was last modified.
     #[serde(default, rename = "updateTime")]
     pub update_time: ::core::option::Option<String>,
-}
-
-/// JsonSchema representation of schema metadata
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct JsonSchema {
-    /// Additional details apart from standard json schema fields, this gives flexibility to store metadata about the schema
-    #[serde(default, rename = "additionalDetails")]
-    pub additional_details: ::core::option::Option<serde_json::Value>,
-    /// The default value of the field or object described by this schema.
-    #[serde(default)]
-    pub default: ::core::option::Option<serde_json::Value>,
-    /// A description of this schema.
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// Possible values for an enumeration. This works in conjunction with type to represent types with a fixed set of legal values
-    #[serde(default, rename = "enum")]
-    pub enum_: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
-    /// Whether the maximum number value is exclusive.
-    #[serde(default, rename = "exclusiveMaximum")]
-    pub exclusive_maximum: ::core::option::Option<bool>,
-    /// Whether the minimum number value is exclusive.
-    #[serde(default, rename = "exclusiveMinimum")]
-    pub exclusive_minimum: ::core::option::Option<bool>,
-    /// Format of the value as per https://json-schema.org/understanding-json-schema/reference/string.html#format
-    #[serde(default)]
-    pub format: ::core::option::Option<String>,
-    /// Schema that applies to array values, applicable only if this is of type array.
-    #[serde(default)]
-    pub items: ::core::option::Option<JsonSchema>,
-    /// JDBC datatype of the field. // TODO: enum values: ["DATA_TYPE_UNSPECIFIED", "INT", "SMALLINT", "DOUBLE", "DATE", "DATETIME", "TIME", "STRING", "LONG", "BOOLEAN", "DECIMAL", "UUID", "BLOB", "BIT", "TINYINT", "INTEGER", "BIGINT", "FLOAT", "REAL", "NUMERIC", "CHAR", "VARCHAR", "LONGVARCHAR", "TIMESTAMP", "NCHAR", "NVARCHAR", "LONGNVARCHAR", "NULL", "OTHER", "JAVA_OBJECT", "DISTINCT", "STRUCT", "ARRAY", "CLOB", "REF", "DATALINK", "ROWID", "BINARY", "VARBINARY", "LONGVARBINARY", "NCLOB", "SQLXML", "REF_CURSOR", "TIME_WITH_TIMEZONE", "TIMESTAMP_WITH_TIMEZONE"]
-    #[serde(default, rename = "jdbcType")]
-    pub jdbc_type: ::core::option::Option<String>,
-    /// Maximum number of items in the array field.
-    #[serde(default, rename = "maxItems")]
-    pub max_items: ::core::option::Option<i32>,
-    /// Maximum length of the string field.
-    #[serde(default, rename = "maxLength")]
-    pub max_length: ::core::option::Option<i32>,
-    /// Maximum value of the number field.
-    #[serde(default)]
-    pub maximum: ::core::option::Option<serde_json::Value>,
-    /// Minimum number of items in the array field.
-    #[serde(default, rename = "minItems")]
-    pub min_items: ::core::option::Option<i32>,
-    /// Minimum length of the string field.
-    #[serde(default, rename = "minLength")]
-    pub min_length: ::core::option::Option<i32>,
-    /// Minimum value of the number field.
-    #[serde(default)]
-    pub minimum: ::core::option::Option<serde_json::Value>,
-    /// Regex pattern of the string field. This is a string value that describes the regular expression that the string value should match.
-    #[serde(default)]
-    pub pattern: ::core::option::Option<String>,
-    /// The child schemas, applicable only if this is of type object. The key is the name of the property and the value is the json schema that describes that property
-    #[serde(default)]
-    pub properties: ::core::option::Option<serde_json::Value>,
-    /// Whether this property is required.
-    #[serde(default)]
-    pub required: ::core::option::Option<::std::vec::Vec<String>>,
-    /// JSON Schema Validation: A Vocabulary for Structural Validation of JSON
-    #[serde(default, rename = "type")]
-    pub type_: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Whether the items in the array field are unique.
-    #[serde(default, rename = "uniqueItems")]
-    pub unique_items: ::core::option::Option<bool>,
 }
 
 /// Response message for ActionService.ListActions
@@ -636,114 +371,12 @@ pub struct MaintenanceSchedule {
     pub start_time: ::core::option::Option<String>,
 }
 
-/// Maintenance settings associated with instance. Allows service producers and end users to assign settings that controls maintenance on this instance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct MaintenanceSettings {
-    /// Optional. Exclude instance from maintenance. When true, rollout service will not attempt maintenance on the instance. Rollout service will include the instance in reported rollout progress as not attempted.
-    #[serde(default)]
-    pub exclude: ::core::option::Option<bool>,
-    /// Optional. If the update call is triggered from rollback, set the value as true.
-    #[serde(default, rename = "isRollback")]
-    pub is_rollback: ::core::option::Option<bool>,
-    /// Optional. The MaintenancePolicies that have been attached to the instance. The key must be of the type name of the oneof policy name defined in MaintenancePolicy, and the embedded policy must define the same policy type. For details, please refer to go/mr-user-guide. Should not be set if maintenance_policy_names is set. If only the name is needed, then only populate MaintenancePolicy.name.
-    #[serde(default, rename = "maintenancePolicies")]
-    pub maintenance_policies: ::core::option::Option<serde_json::Value>,
-}
-
-/// MaintenanceWindow definition.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct MaintenanceWindow {
-    /// Daily cycle.
-    #[serde(default, rename = "dailyCycle")]
-    pub daily_cycle: ::core::option::Option<DailyCycle>,
-    /// Weekly cycle.
-    #[serde(default, rename = "weeklyCycle")]
-    pub weekly_cycle: ::core::option::Option<WeeklyCycle>,
-}
-
-/// Node information for custom per-node SLO implementations. SSA does not support per-node SLO, but producers can populate per-node information in SloMetadata for custom precomputations. SSA Eligibility Exporter will emit per-node metric based on this information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct NodeSloMetadata {
-    /// The location of the node, if different from instance location.
-    #[serde(default)]
-    pub location: ::core::option::Option<String>,
-    /// The id of the node. This should be equal to SaasInstanceNode.node_id.
-    #[serde(default, rename = "nodeId")]
-    pub node_id: ::core::option::Option<String>,
-    /// If present, this will override eligibility for the node coming from instance or exclusions for specified SLIs.
-    #[serde(default, rename = "perSliEligibility")]
-    pub per_sli_eligibility: ::core::option::Option<PerSliSloEligibility>,
-}
-
 /// Contains notification related data.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct NotificationParameter {
     /// Optional. Array of string values. e.g. instance''s replica information.
     #[serde(default)]
     pub values: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// OAuth2Config resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct OAuth2Config {
-    /// Authorization Server URL/Token Endpoint for Authorization Code Flow
-    #[serde(default, rename = "authUri")]
-    pub auth_uri: ::core::option::Option<String>,
-    /// Client ID for the OAuth2 flow.
-    #[serde(default, rename = "clientId")]
-    pub client_id: ::core::option::Option<String>,
-    /// Client secret for the OAuth2 flow.
-    #[serde(default, rename = "clientSecret")]
-    pub client_secret: ::core::option::Option<String>,
-}
-
-/// Describes provisioned dataplane resources.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ProvisionedResource {
-    /// Type of the resource. This can be either a GCP resource or a custom one (e.g. another cloud provider''s VM). For GCP compute resources use singular form of the names listed in GCP compute API documentation (https://cloud.google.com/compute/docs/reference/rest/v1/), prefixed with ''compute-'', for example: ''compute-instance'', ''compute-disk'', ''compute-autoscaler''.
-    #[serde(default, rename = "resourceType")]
-    pub resource_type: ::core::option::Option<String>,
-    /// URL identifying the resource, e.g. "https://www.googleapis.com/compute/v1/projects/...)".
-    #[serde(default, rename = "resourceUrl")]
-    pub resource_url: ::core::option::Option<String>,
-}
-
-/// A wrapper around the SQL query statement. This is needed so that the JSON representation of ExecuteSqlQueryRequest has the following format: {"query":"select *"}.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Query {
-    /// Sets the limit for the maximum number of rows returned after the query execution.
-    #[serde(default, rename = "maxRows")]
-    pub max_rows: ::core::option::Option<String>,
-    /// Required. Sql query to execute.
-    #[serde(default)]
-    pub query: ::core::option::Option<String>,
-    /// In the struct, the value corresponds to the value of query parameter and date type corresponds to the date type of the query parameter.
-    #[serde(default, rename = "queryParameters")]
-    pub query_parameters: ::core::option::Option<::std::vec::Vec<QueryParameter>>,
-    /// Sets the number of seconds the driver will wait for a query to execute.
-    #[serde(default)]
-    pub timeout: ::core::option::Option<String>,
-}
-
-/// Query parameter definition
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct QueryParameter {
-    /// TODO: enum values: ["DATA_TYPE_UNSPECIFIED", "INT", "SMALLINT", "DOUBLE", "DATE", "DATETIME", "TIME", "STRING", "LONG", "BOOLEAN", "DECIMAL", "UUID", "BLOB", "BIT", "TINYINT", "INTEGER", "BIGINT", "FLOAT", "REAL", "NUMERIC", "CHAR", "VARCHAR", "LONGVARCHAR", "TIMESTAMP", "NCHAR", "NVARCHAR", "LONGNVARCHAR", "NULL", "OTHER", "JAVA_OBJECT", "DISTINCT", "STRUCT", "ARRAY", "CLOB", "REF", "DATALINK", "ROWID", "BINARY", "VARBINARY", "LONGVARBINARY", "NCLOB", "SQLXML", "REF_CURSOR", "TIME_WITH_TIMEZONE", "TIMESTAMP_WITH_TIMEZONE"]
-    #[serde(default, rename = "dataType")]
-    pub data_type: ::core::option::Option<String>,
-    #[serde(default)]
-    pub value: ::core::option::Option<serde_json::Value>,
-}
-
-/// Reference resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Reference {
-    /// Name of the reference field.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Name of reference entity type.
-    #[serde(default, rename = "type")]
-    pub type_: ::core::option::Option<String>,
 }
 
 /// RefreshAccessTokenRequest includes the refresh token.
@@ -770,6 +403,179 @@ pub struct RefreshAccessTokenResponse {
     pub metadata: ::core::option::Option<serde_json::Value>,
 }
 
+/// SloEligibility is a tuple containing eligibility value: true if an instance is eligible for SLO calculation or false if it should be excluded from all SLO-related calculations along with a user-defined reason.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SloEligibility {
+    /// Whether an instance is eligible or ineligible.
+    #[serde(default)]
+    pub eligible: ::core::option::Option<bool>,
+    /// User-defined reason for the current value of instance eligibility. Usually, this can be directly mapped to the internal state. An empty reason is allowed.
+    #[serde(default)]
+    pub reason: ::core::option::Option<String>,
+}
+
+/// Response message for EntityService.UpdateEntitiesWithConditions
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct UpdateEntitiesWithConditionsResponse {
+    /// Metadata like service latency, etc.
+    #[serde(default)]
+    pub metadata: ::core::option::Option<serde_json::Value>,
+    /// Response returned by the external system.
+    #[serde(default)]
+    pub response: ::core::option::Option<serde_json::Value>,
+}
+
+/// AuthCodeData contains the data the runtime plane will give the connector backend in exchange for access and refresh tokens.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AuthCodeData {
+    /// OAuth authorization code.
+    #[serde(default, rename = "authCode")]
+    pub auth_code: ::core::option::Option<String>,
+    /// OAuth PKCE verifier, needed if PKCE is enabled for this particular connection.
+    #[serde(default, rename = "pkceVerifier")]
+    pub pkce_verifier: ::core::option::Option<String>,
+    /// OAuth redirect URI passed in during the auth code flow, required by some OAuth backends.
+    #[serde(default, rename = "redirectUri")]
+    pub redirect_uri: ::core::option::Option<String>,
+    /// Scopes the connection will request when the user performs the auth code flow.
+    #[serde(default)]
+    pub scopes: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// A wrapper around the SQL query statement. This is needed so that the JSON representation of ExecuteSqlQueryRequest has the following format: {"query":"select *"}.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Query {
+    /// Sets the limit for the maximum number of rows returned after the query execution.
+    #[serde(default, rename = "maxRows")]
+    pub max_rows: ::core::option::Option<String>,
+    /// Required. Sql query to execute.
+    #[serde(default)]
+    pub query: ::core::option::Option<String>,
+    /// In the struct, the value corresponds to the value of query parameter and date type corresponds to the date type of the query parameter.
+    #[serde(default, rename = "queryParameters")]
+    pub query_parameters: ::core::option::Option<::std::vec::Vec<QueryParameter>>,
+    /// Sets the number of seconds the driver will wait for a query to execute.
+    #[serde(default)]
+    pub timeout: ::core::option::Option<String>,
+}
+
+/// Maintenance settings associated with instance. Allows service producers and end users to assign settings that controls maintenance on this instance.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MaintenanceSettings {
+    /// Optional. Exclude instance from maintenance. When true, rollout service will not attempt maintenance on the instance. Rollout service will include the instance in reported rollout progress as not attempted.
+    #[serde(default)]
+    pub exclude: ::core::option::Option<bool>,
+    /// Optional. If the update call is triggered from rollback, set the value as true.
+    #[serde(default, rename = "isRollback")]
+    pub is_rollback: ::core::option::Option<bool>,
+    /// Optional. The MaintenancePolicies that have been attached to the instance. The key must be of the type name of the oneof policy name defined in MaintenancePolicy, and the embedded policy must define the same policy type. For details, please refer to go/mr-user-guide. Should not be set if maintenance_policy_names is set. If only the name is needed, then only populate MaintenancePolicy.name.
+    #[serde(default, rename = "maintenancePolicies")]
+    pub maintenance_policies: ::core::option::Option<serde_json::Value>,
+}
+
+/// Describes provisioned dataplane resources.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ProvisionedResource {
+    /// Type of the resource. This can be either a GCP resource or a custom one (e.g. another cloud provider''s VM). For GCP compute resources use singular form of the names listed in GCP compute API documentation (https://cloud.google.com/compute/docs/reference/rest/v1/), prefixed with ''compute-'', for example: ''compute-instance'', ''compute-disk'', ''compute-autoscaler''.
+    #[serde(default, rename = "resourceType")]
+    pub resource_type: ::core::option::Option<String>,
+    /// URL identifying the resource, e.g. "https://www.googleapis.com/compute/v1/projects/...)".
+    #[serde(default, rename = "resourceUrl")]
+    pub resource_url: ::core::option::Option<String>,
+}
+
+/// SloMetadata contains resources required for proper SLO classification of the instance.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SloMetadata {
+    /// Optional. List of nodes. Some producers need to use per-node metadata to calculate SLO. This field allows such producers to publish per-node SLO meta data, which will be consumed by SSA Eligibility Exporter and published in the form of per node metric to Monarch.
+    #[serde(default)]
+    pub nodes: ::core::option::Option<::std::vec::Vec<NodeSloMetadata>>,
+    /// Optional. Multiple per-instance SLI eligibilities which apply for individual SLIs.
+    #[serde(default, rename = "perSliEligibility")]
+    pub per_sli_eligibility: ::core::option::Option<PerSliSloEligibility>,
+    /// Name of the SLO tier the Instance belongs to. This name will be expected to match the tiers specified in the service SLO configuration. Field is mandatory and must not be empty.
+    #[serde(default)]
+    pub tier: ::core::option::Option<String>,
+}
+
+/// Action message contains metadata information about a single action present in the external system.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Action {
+    /// Brief Description of action
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+    /// Display Name of action to be shown on client side
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+    /// JsonSchema representation of this actions''s input schema
+    #[serde(default, rename = "inputJsonSchema")]
+    pub input_json_schema: ::core::option::Option<JsonSchema>,
+    /// List containing input parameter metadata.
+    #[serde(default, rename = "inputParameters")]
+    pub input_parameters: ::core::option::Option<::std::vec::Vec<InputParameter>>,
+    /// Metadata like service latency, etc.
+    #[serde(default)]
+    pub metadata: ::core::option::Option<serde_json::Value>,
+    /// Name of the action.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// JsonSchema representation of this actions''s result schema
+    #[serde(default, rename = "resultJsonSchema")]
+    pub result_json_schema: ::core::option::Option<JsonSchema>,
+    /// List containing the metadata of result fields.
+    #[serde(default, rename = "resultMetadata")]
+    pub result_metadata: ::core::option::Option<::std::vec::Vec<ResultMetadata>>,
+}
+
+/// ToolName resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ToolName {
+    /// Entity name for which the tool was generated.
+    #[serde(default, rename = "entityName")]
+    pub entity_name: ::core::option::Option<String>,
+    /// Tool name that was generated in the list tools call.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Operation for which the tool was generated. // TODO: enum values: ["OPERATION_UNSPECIFIED", "LIST", "GET", "CREATE", "UPDATE", "DELETE"]
+    #[serde(default)]
+    pub operation: ::core::option::Option<String>,
+}
+
+/// ''Entity row''/ ''Entity'' refers to a single row of an entity type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Entity {
+    /// Fields of the entity. The key is name of the field and the value contains the applicable google.protobuf.Value entry for this field.
+    #[serde(default)]
+    pub fields: ::core::option::Option<serde_json::Value>,
+    /// Metadata like service latency, etc.
+    #[serde(default)]
+    pub metadata: ::core::option::Option<serde_json::Value>,
+    /// Output only. Resource name of the Entity. Format: projects/{project}/locations/{location}/connections/{connection}/entityTypes/{type}/entities/{id}
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+}
+
+/// EntityType message contains metadata information about a single entity type present in the external system.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct EntityType {
+    #[serde(default, rename = "defaultSortBy")]
+    pub default_sort_by: ::core::option::Option<String>,
+    /// List containing metadata information about each field of the entity type.
+    #[serde(default)]
+    pub fields: ::core::option::Option<::std::vec::Vec<Field>>,
+    /// JsonSchema representation of this entity''s schema
+    #[serde(default, rename = "jsonSchema")]
+    pub json_schema: ::core::option::Option<JsonSchema>,
+    /// Metadata like service latency, etc.
+    #[serde(default)]
+    pub metadata: ::core::option::Option<serde_json::Value>,
+    /// The name of the entity type.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    #[serde(default)]
+    pub operations: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
 /// Resource resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Resource {
@@ -793,83 +599,15 @@ pub struct Resource {
     pub uri: ::core::option::Option<String>,
 }
 
-/// Result Metadata message contains metadata about the result returned after executing an Action.
+/// ToolSpec resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ResultMetadata {
-    /// The data type of the metadata field // TODO: enum values: ["DATA_TYPE_UNSPECIFIED", "INT", "SMALLINT", "DOUBLE", "DATE", "DATETIME", "TIME", "STRING", "LONG", "BOOLEAN", "DECIMAL", "UUID", "BLOB", "BIT", "TINYINT", "INTEGER", "BIGINT", "FLOAT", "REAL", "NUMERIC", "CHAR", "VARCHAR", "LONGVARCHAR", "TIMESTAMP", "NCHAR", "NVARCHAR", "LONGNVARCHAR", "NULL", "OTHER", "JAVA_OBJECT", "DISTINCT", "STRUCT", "ARRAY", "CLOB", "REF", "DATALINK", "ROWID", "BINARY", "VARBINARY", "LONGVARBINARY", "NCLOB", "SQLXML", "REF_CURSOR", "TIME_WITH_TIMEZONE", "TIMESTAMP_WITH_TIMEZONE"]
-    #[serde(default, rename = "dataType")]
-    pub data_type: ::core::option::Option<String>,
-    /// The following field specifies the default value of the Parameter provided by the external system if a value is not provided.
-    #[serde(default, rename = "defaultValue")]
-    pub default_value: ::core::option::Option<serde_json::Value>,
-    /// A brief description of the metadata field.
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// JsonSchema of the result, applicable only if parameter is of type STRUCT
-    #[serde(default, rename = "jsonSchema")]
-    pub json_schema: ::core::option::Option<JsonSchema>,
-    /// Name of the metadata field.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Specifies whether a null value is allowed.
-    #[serde(default)]
-    pub nullable: ::core::option::Option<bool>,
-}
-
-/// Configure the schedule.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Schedule {
-    /// Allows to define schedule that runs specified day of the week. // TODO: enum values: ["DAY_OF_WEEK_UNSPECIFIED", "MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY"]
-    #[serde(default)]
-    pub day: ::core::option::Option<String>,
-    /// Output only. Duration of the time window, set by service producer.
-    #[serde(default)]
-    pub duration: ::core::option::Option<String>,
-    /// Time within the window to start the operations.
-    #[serde(default, rename = "startTime")]
-    pub start_time: ::core::option::Option<TimeOfDay>,
-}
-
-/// SloEligibility is a tuple containing eligibility value: true if an instance is eligible for SLO calculation or false if it should be excluded from all SLO-related calculations along with a user-defined reason.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SloEligibility {
-    /// Whether an instance is eligible or ineligible.
-    #[serde(default)]
-    pub eligible: ::core::option::Option<bool>,
-    /// User-defined reason for the current value of instance eligibility. Usually, this can be directly mapped to the internal state. An empty reason is allowed.
-    #[serde(default)]
-    pub reason: ::core::option::Option<String>,
-}
-
-/// SloMetadata contains resources required for proper SLO classification of the instance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SloMetadata {
-    /// Optional. List of nodes. Some producers need to use per-node metadata to calculate SLO. This field allows such producers to publish per-node SLO meta data, which will be consumed by SSA Eligibility Exporter and published in the form of per node metric to Monarch.
-    #[serde(default)]
-    pub nodes: ::core::option::Option<::std::vec::Vec<NodeSloMetadata>>,
-    /// Optional. Multiple per-instance SLI eligibilities which apply for individual SLIs.
-    #[serde(default, rename = "perSliEligibility")]
-    pub per_sli_eligibility: ::core::option::Option<PerSliSloEligibility>,
-    /// Name of the SLO tier the Instance belongs to. This name will be expected to match the tiers specified in the service SLO configuration. Field is mandatory and must not be empty.
-    #[serde(default)]
-    pub tier: ::core::option::Option<String>,
-}
-
-/// Represents a time of day. The date and time zone are either not significant or are specified elsewhere. An API may choose to allow leap seconds. Related types are google.type.Date and google.protobuf.Timestamp.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct TimeOfDay {
-    /// Hours of a day in 24 hour format. Must be greater than or equal to 0 and typically must be less than or equal to 23. An API may choose to allow the value "24:00:00" for scenarios like business closing time.
-    #[serde(default)]
-    pub hours: ::core::option::Option<i32>,
-    /// Minutes of an hour. Must be greater than or equal to 0 and less than or equal to 59.
-    #[serde(default)]
-    pub minutes: ::core::option::Option<i32>,
-    /// Fractions of seconds, in nanoseconds. Must be greater than or equal to 0 and less than or equal to 999,999,999.
-    #[serde(default)]
-    pub nanos: ::core::option::Option<i32>,
-    /// Seconds of a minute. Must be greater than or equal to 0 and typically must be less than or equal to 59. An API may allow the value 60 if it allows leap-seconds.
-    #[serde(default)]
-    pub seconds: ::core::option::Option<i32>,
+pub struct ToolSpec {
+    /// List of tool definitions.
+    #[serde(default, rename = "toolDefinitions")]
+    pub tool_definitions: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
+    /// Version of the tool spec. Format: providerId/connectorId/versionId/toolSpecId
+    #[serde(default, rename = "toolSpecVersion")]
+    pub tool_spec_version: ::core::option::Option<String>,
 }
 
 /// Message representing a single tool.
@@ -898,6 +636,161 @@ pub struct Tool {
     pub output_schema: ::core::option::Option<JsonSchema>,
 }
 
+/// Maintenance policy applicable to instance updates.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct UpdatePolicy {
+    /// Optional. Relative scheduling channel applied to resource. // TODO: enum values: ["UPDATE_CHANNEL_UNSPECIFIED", "EARLIER", "LATER", "WEEK1", "WEEK2", "WEEK5"]
+    #[serde(default)]
+    pub channel: ::core::option::Option<String>,
+    /// Deny Maintenance Period that is applied to resource to indicate when maintenance is forbidden. The protocol supports zero-to-many such periods, but the current SLM Rollout implementation only supports zero-to-one.
+    #[serde(default, rename = "denyMaintenancePeriods")]
+    pub deny_maintenance_periods: ::core::option::Option<::std::vec::Vec<DenyMaintenancePeriod>>,
+    /// Optional. Maintenance window that is applied to resources covered by this policy.
+    #[serde(default)]
+    pub window: ::core::option::Option<MaintenanceWindow>,
+}
+
+/// ExecutionConfig resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ExecutionConfig {
+    /// headers to be used for the request. For example: headers:''{"x-integration-connectors-managed-connection-id":"conn-id","x-integration-connectors-runtime-config":"runtime-cfg"}''
+    #[serde(default)]
+    pub headers: ::core::option::Option<String>,
+}
+
+/// OAuth2Config resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct OAuth2Config {
+    /// Authorization Server URL/Token Endpoint for Authorization Code Flow
+    #[serde(default, rename = "authUri")]
+    pub auth_uri: ::core::option::Option<String>,
+    /// Client ID for the OAuth2 flow.
+    #[serde(default, rename = "clientId")]
+    pub client_id: ::core::option::Option<String>,
+    /// Client secret for the OAuth2 flow.
+    #[serde(default, rename = "clientSecret")]
+    pub client_secret: ::core::option::Option<String>,
+}
+
+/// AccessCredentials includes the OAuth access token, and the other fields returned along with it.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AccessCredentials {
+    /// OAuth access token.
+    #[serde(default, rename = "accessToken")]
+    pub access_token: ::core::option::Option<String>,
+    /// Duration till the access token expires.
+    #[serde(default, rename = "expiresIn")]
+    pub expires_in: ::core::option::Option<String>,
+    /// OAuth refresh token.
+    #[serde(default, rename = "refreshToken")]
+    pub refresh_token: ::core::option::Option<String>,
+}
+
+/// Query parameter definition
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct QueryParameter {
+    /// TODO: enum values: ["DATA_TYPE_UNSPECIFIED", "INT", "SMALLINT", "DOUBLE", "DATE", "DATETIME", "TIME", "STRING", "LONG", "BOOLEAN", "DECIMAL", "UUID", "BLOB", "BIT", "TINYINT", "INTEGER", "BIGINT", "FLOAT", "REAL", "NUMERIC", "CHAR", "VARCHAR", "LONGVARCHAR", "TIMESTAMP", "NCHAR", "NVARCHAR", "LONGNVARCHAR", "NULL", "OTHER", "JAVA_OBJECT", "DISTINCT", "STRUCT", "ARRAY", "CLOB", "REF", "DATALINK", "ROWID", "BINARY", "VARBINARY", "LONGVARBINARY", "NCLOB", "SQLXML", "REF_CURSOR", "TIME_WITH_TIMEZONE", "TIMESTAMP_WITH_TIMEZONE"]
+    #[serde(default, rename = "dataType")]
+    pub data_type: ::core::option::Option<String>,
+    #[serde(default)]
+    pub value: ::core::option::Option<serde_json::Value>,
+}
+
+/// Node information for custom per-node SLO implementations. SSA does not support per-node SLO, but producers can populate per-node information in SloMetadata for custom precomputations. SSA Eligibility Exporter will emit per-node metric based on this information.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct NodeSloMetadata {
+    /// The location of the node, if different from instance location.
+    #[serde(default)]
+    pub location: ::core::option::Option<String>,
+    /// The id of the node. This should be equal to SaasInstanceNode.node_id.
+    #[serde(default, rename = "nodeId")]
+    pub node_id: ::core::option::Option<String>,
+    /// If present, this will override eligibility for the node coming from instance or exclusions for specified SLIs.
+    #[serde(default, rename = "perSliEligibility")]
+    pub per_sli_eligibility: ::core::option::Option<PerSliSloEligibility>,
+}
+
+/// Input Parameter message contains metadata about the parameters required for executing an Action.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct InputParameter {
+    /// The following map contains fields that are not explicitly mentioned above,this give connectors the flexibility to add new metadata fields.
+    #[serde(default, rename = "additionalDetails")]
+    pub additional_details: ::core::option::Option<serde_json::Value>,
+    /// The data type of the Parameter // TODO: enum values: ["DATA_TYPE_UNSPECIFIED", "INT", "SMALLINT", "DOUBLE", "DATE", "DATETIME", "TIME", "STRING", "LONG", "BOOLEAN", "DECIMAL", "UUID", "BLOB", "BIT", "TINYINT", "INTEGER", "BIGINT", "FLOAT", "REAL", "NUMERIC", "CHAR", "VARCHAR", "LONGVARCHAR", "TIMESTAMP", "NCHAR", "NVARCHAR", "LONGNVARCHAR", "NULL", "OTHER", "JAVA_OBJECT", "DISTINCT", "STRUCT", "ARRAY", "CLOB", "REF", "DATALINK", "ROWID", "BINARY", "VARBINARY", "LONGVARBINARY", "NCLOB", "SQLXML", "REF_CURSOR", "TIME_WITH_TIMEZONE", "TIMESTAMP_WITH_TIMEZONE"]
+    #[serde(default, rename = "dataType")]
+    pub data_type: ::core::option::Option<String>,
+    /// The following field specifies the default value of the Parameter provided by the external system if a value is not provided.
+    #[serde(default, rename = "defaultValue")]
+    pub default_value: ::core::option::Option<serde_json::Value>,
+    /// A brief description of the Parameter.
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+    /// JsonSchema of the parameter, applicable only if parameter is of type STRUCT
+    #[serde(default, rename = "jsonSchema")]
+    pub json_schema: ::core::option::Option<JsonSchema>,
+    /// Name of the Parameter.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Specifies whether a null value is allowed.
+    #[serde(default)]
+    pub nullable: ::core::option::Option<bool>,
+}
+
+/// Result Metadata message contains metadata about the result returned after executing an Action.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ResultMetadata {
+    /// The data type of the metadata field // TODO: enum values: ["DATA_TYPE_UNSPECIFIED", "INT", "SMALLINT", "DOUBLE", "DATE", "DATETIME", "TIME", "STRING", "LONG", "BOOLEAN", "DECIMAL", "UUID", "BLOB", "BIT", "TINYINT", "INTEGER", "BIGINT", "FLOAT", "REAL", "NUMERIC", "CHAR", "VARCHAR", "LONGVARCHAR", "TIMESTAMP", "NCHAR", "NVARCHAR", "LONGNVARCHAR", "NULL", "OTHER", "JAVA_OBJECT", "DISTINCT", "STRUCT", "ARRAY", "CLOB", "REF", "DATALINK", "ROWID", "BINARY", "VARBINARY", "LONGVARBINARY", "NCLOB", "SQLXML", "REF_CURSOR", "TIME_WITH_TIMEZONE", "TIMESTAMP_WITH_TIMEZONE"]
+    #[serde(default, rename = "dataType")]
+    pub data_type: ::core::option::Option<String>,
+    /// The following field specifies the default value of the Parameter provided by the external system if a value is not provided.
+    #[serde(default, rename = "defaultValue")]
+    pub default_value: ::core::option::Option<serde_json::Value>,
+    /// A brief description of the metadata field.
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+    /// JsonSchema of the result, applicable only if parameter is of type STRUCT
+    #[serde(default, rename = "jsonSchema")]
+    pub json_schema: ::core::option::Option<JsonSchema>,
+    /// Name of the metadata field.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Specifies whether a null value is allowed.
+    #[serde(default)]
+    pub nullable: ::core::option::Option<bool>,
+}
+
+/// Message contains EntityType''s Field metadata.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Field {
+    /// The following map contains fields that are not explicitly mentioned above,this give connectors the flexibility to add new metadata fields.
+    #[serde(default, rename = "additionalDetails")]
+    pub additional_details: ::core::option::Option<serde_json::Value>,
+    /// The data type of the Field. // TODO: enum values: ["DATA_TYPE_UNSPECIFIED", "INT", "SMALLINT", "DOUBLE", "DATE", "DATETIME", "TIME", "STRING", "LONG", "BOOLEAN", "DECIMAL", "UUID", "BLOB", "BIT", "TINYINT", "INTEGER", "BIGINT", "FLOAT", "REAL", "NUMERIC", "CHAR", "VARCHAR", "LONGVARCHAR", "TIMESTAMP", "NCHAR", "NVARCHAR", "LONGNVARCHAR", "NULL", "OTHER", "JAVA_OBJECT", "DISTINCT", "STRUCT", "ARRAY", "CLOB", "REF", "DATALINK", "ROWID", "BINARY", "VARBINARY", "LONGVARBINARY", "NCLOB", "SQLXML", "REF_CURSOR", "TIME_WITH_TIMEZONE", "TIMESTAMP_WITH_TIMEZONE"]
+    #[serde(default, rename = "dataType")]
+    pub data_type: ::core::option::Option<String>,
+    /// The following field specifies the default value of the Field provided by the external system if a value is not provided.
+    #[serde(default, rename = "defaultValue")]
+    pub default_value: ::core::option::Option<serde_json::Value>,
+    /// A brief description of the Field.
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+    /// JsonSchema of the field, applicable only if field is of type STRUCT
+    #[serde(default, rename = "jsonSchema")]
+    pub json_schema: ::core::option::Option<JsonSchema>,
+    /// The following boolean field specifies if the current Field acts as a primary key or id if the parent is of type entity.
+    #[serde(default)]
+    pub key: ::core::option::Option<bool>,
+    /// Name of the Field.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Specifies whether a null value is allowed.
+    #[serde(default)]
+    pub nullable: ::core::option::Option<bool>,
+    /// Reference captures the association between two different entity types. Value links to the reference of another entity type.
+    #[serde(default)]
+    pub reference: ::core::option::Option<Reference>,
+}
+
 /// ToolAnnotations holds annotations for a tool.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ToolAnnotations {
@@ -918,54 +811,130 @@ pub struct ToolAnnotations {
     pub title: ::core::option::Option<String>,
 }
 
-/// ToolName resource type.
+/// DenyMaintenancePeriod definition. Maintenance is forbidden within the deny period. The start_date must be less than the end_date.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ToolName {
-    /// Entity name for which the tool was generated.
-    #[serde(default, rename = "entityName")]
-    pub entity_name: ::core::option::Option<String>,
-    /// Tool name that was generated in the list tools call.
+pub struct DenyMaintenancePeriod {
+    /// Deny period end date. This can be: * A full date, with non-zero year, month and day values. * A month and day value, with a zero year. Allows recurring deny periods each year. Date matching this period will have to be before the end.
+    #[serde(default, rename = "endDate")]
+    pub end_date: ::core::option::Option<Date>,
+    /// Deny period start date. This can be: * A full date, with non-zero year, month and day values. * A month and day value, with a zero year. Allows recurring deny periods each year. Date matching this period will have to be the same or after the start.
+    #[serde(default, rename = "startDate")]
+    pub start_date: ::core::option::Option<Date>,
+    /// Time in UTC when the Blackout period starts on start_date and ends on end_date. This can be: * Full time. * All zeros for 00:00:00 UTC
+    #[serde(default)]
+    pub time: ::core::option::Option<TimeOfDay>,
+}
+
+/// MaintenanceWindow definition.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MaintenanceWindow {
+    /// Daily cycle.
+    #[serde(default, rename = "dailyCycle")]
+    pub daily_cycle: ::core::option::Option<DailyCycle>,
+    /// Weekly cycle.
+    #[serde(default, rename = "weeklyCycle")]
+    pub weekly_cycle: ::core::option::Option<WeeklyCycle>,
+}
+
+/// JsonSchema representation of schema metadata
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct JsonSchema {
+    /// Additional details apart from standard json schema fields, this gives flexibility to store metadata about the schema
+    #[serde(default, rename = "additionalDetails")]
+    pub additional_details: ::core::option::Option<serde_json::Value>,
+    /// The default value of the field or object described by this schema.
+    #[serde(default)]
+    pub default: ::core::option::Option<serde_json::Value>,
+    /// A description of this schema.
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+    /// Possible values for an enumeration. This works in conjunction with type to represent types with a fixed set of legal values
+    #[serde(default, rename = "enum")]
+    pub enum_: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
+    /// Whether the maximum number value is exclusive.
+    #[serde(default, rename = "exclusiveMaximum")]
+    pub exclusive_maximum: ::core::option::Option<bool>,
+    /// Whether the minimum number value is exclusive.
+    #[serde(default, rename = "exclusiveMinimum")]
+    pub exclusive_minimum: ::core::option::Option<bool>,
+    /// Format of the value as per https://json-schema.org/understanding-json-schema/reference/string.html#format
+    #[serde(default)]
+    pub format: ::core::option::Option<String>,
+    /// Schema that applies to array values, applicable only if this is of type array.
+    #[serde(default)]
+    pub items: ::core::option::Option<JsonSchema>,
+    /// JDBC datatype of the field. // TODO: enum values: ["DATA_TYPE_UNSPECIFIED", "INT", "SMALLINT", "DOUBLE", "DATE", "DATETIME", "TIME", "STRING", "LONG", "BOOLEAN", "DECIMAL", "UUID", "BLOB", "BIT", "TINYINT", "INTEGER", "BIGINT", "FLOAT", "REAL", "NUMERIC", "CHAR", "VARCHAR", "LONGVARCHAR", "TIMESTAMP", "NCHAR", "NVARCHAR", "LONGNVARCHAR", "NULL", "OTHER", "JAVA_OBJECT", "DISTINCT", "STRUCT", "ARRAY", "CLOB", "REF", "DATALINK", "ROWID", "BINARY", "VARBINARY", "LONGVARBINARY", "NCLOB", "SQLXML", "REF_CURSOR", "TIME_WITH_TIMEZONE", "TIMESTAMP_WITH_TIMEZONE"]
+    #[serde(default, rename = "jdbcType")]
+    pub jdbc_type: ::core::option::Option<String>,
+    /// Maximum number of items in the array field.
+    #[serde(default, rename = "maxItems")]
+    pub max_items: ::core::option::Option<i32>,
+    /// Maximum length of the string field.
+    #[serde(default, rename = "maxLength")]
+    pub max_length: ::core::option::Option<i32>,
+    /// Maximum value of the number field.
+    #[serde(default)]
+    pub maximum: ::core::option::Option<serde_json::Value>,
+    /// Minimum number of items in the array field.
+    #[serde(default, rename = "minItems")]
+    pub min_items: ::core::option::Option<i32>,
+    /// Minimum length of the string field.
+    #[serde(default, rename = "minLength")]
+    pub min_length: ::core::option::Option<i32>,
+    /// Minimum value of the number field.
+    #[serde(default)]
+    pub minimum: ::core::option::Option<serde_json::Value>,
+    /// Regex pattern of the string field. This is a string value that describes the regular expression that the string value should match.
+    #[serde(default)]
+    pub pattern: ::core::option::Option<String>,
+    /// The child schemas, applicable only if this is of type object. The key is the name of the property and the value is the json schema that describes that property
+    #[serde(default)]
+    pub properties: ::core::option::Option<serde_json::Value>,
+    /// Whether this property is required.
+    #[serde(default)]
+    pub required: ::core::option::Option<::std::vec::Vec<String>>,
+    /// JSON Schema Validation: A Vocabulary for Structural Validation of JSON
+    #[serde(default, rename = "type")]
+    pub type_: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Whether the items in the array field are unique.
+    #[serde(default, rename = "uniqueItems")]
+    pub unique_items: ::core::option::Option<bool>,
+}
+
+/// Reference resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Reference {
+    /// Name of the reference field.
     #[serde(default)]
     pub name: ::core::option::Option<String>,
-    /// Operation for which the tool was generated. // TODO: enum values: ["OPERATION_UNSPECIFIED", "LIST", "GET", "CREATE", "UPDATE", "DELETE"]
-    #[serde(default)]
-    pub operation: ::core::option::Option<String>,
+    /// Name of reference entity type.
+    #[serde(default, rename = "type")]
+    pub type_: ::core::option::Option<String>,
 }
 
-/// ToolSpec resource type.
+/// Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ToolSpec {
-    /// List of tool definitions.
-    #[serde(default, rename = "toolDefinitions")]
-    pub tool_definitions: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
-    /// Version of the tool spec. Format: providerId/connectorId/versionId/toolSpecId
-    #[serde(default, rename = "toolSpecVersion")]
-    pub tool_spec_version: ::core::option::Option<String>,
+pub struct Date {
+    /// Day of a month. Must be from 1 to 31 and valid for the year and month, or 0 to specify a year by itself or a year and month where the day isn''t significant.
+    #[serde(default)]
+    pub day: ::core::option::Option<i32>,
+    /// Month of a year. Must be from 1 to 12, or 0 to specify a year without a month and day.
+    #[serde(default)]
+    pub month: ::core::option::Option<i32>,
+    /// Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.
+    #[serde(default)]
+    pub year: ::core::option::Option<i32>,
 }
 
-/// Response message for EntityService.UpdateEntitiesWithConditions
+/// Time window specified for daily operations.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct UpdateEntitiesWithConditionsResponse {
-    /// Metadata like service latency, etc.
+pub struct DailyCycle {
+    /// Output only. Duration of the time window, set by service producer.
     #[serde(default)]
-    pub metadata: ::core::option::Option<serde_json::Value>,
-    /// Response returned by the external system.
-    #[serde(default)]
-    pub response: ::core::option::Option<serde_json::Value>,
-}
-
-/// Maintenance policy applicable to instance updates.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct UpdatePolicy {
-    /// Optional. Relative scheduling channel applied to resource. // TODO: enum values: ["UPDATE_CHANNEL_UNSPECIFIED", "EARLIER", "LATER", "WEEK1", "WEEK2", "WEEK5"]
-    #[serde(default)]
-    pub channel: ::core::option::Option<String>,
-    /// Deny Maintenance Period that is applied to resource to indicate when maintenance is forbidden. The protocol supports zero-to-many such periods, but the current SLM Rollout implementation only supports zero-to-one.
-    #[serde(default, rename = "denyMaintenancePeriods")]
-    pub deny_maintenance_periods: ::core::option::Option<::std::vec::Vec<DenyMaintenancePeriod>>,
-    /// Optional. Maintenance window that is applied to resources covered by this policy.
-    #[serde(default)]
-    pub window: ::core::option::Option<MaintenanceWindow>,
+    pub duration: ::core::option::Option<String>,
+    /// Time within the day to start the operations.
+    #[serde(default, rename = "startTime")]
+    pub start_time: ::core::option::Option<TimeOfDay>,
 }
 
 /// Time window specified for weekly operations.
@@ -974,4 +943,35 @@ pub struct WeeklyCycle {
     /// User can specify multiple windows in a week. Minimum of 1 window.
     #[serde(default)]
     pub schedule: ::core::option::Option<::std::vec::Vec<Schedule>>,
+}
+
+/// Configure the schedule.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Schedule {
+    /// Allows to define schedule that runs specified day of the week. // TODO: enum values: ["DAY_OF_WEEK_UNSPECIFIED", "MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY"]
+    #[serde(default)]
+    pub day: ::core::option::Option<String>,
+    /// Output only. Duration of the time window, set by service producer.
+    #[serde(default)]
+    pub duration: ::core::option::Option<String>,
+    /// Time within the window to start the operations.
+    #[serde(default, rename = "startTime")]
+    pub start_time: ::core::option::Option<TimeOfDay>,
+}
+
+/// Represents a time of day. The date and time zone are either not significant or are specified elsewhere. An API may choose to allow leap seconds. Related types are google.type.Date and google.protobuf.Timestamp.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TimeOfDay {
+    /// Hours of a day in 24 hour format. Must be greater than or equal to 0 and typically must be less than or equal to 23. An API may choose to allow the value "24:00:00" for scenarios like business closing time.
+    #[serde(default)]
+    pub hours: ::core::option::Option<i32>,
+    /// Minutes of an hour. Must be greater than or equal to 0 and less than or equal to 59.
+    #[serde(default)]
+    pub minutes: ::core::option::Option<i32>,
+    /// Fractions of seconds, in nanoseconds. Must be greater than or equal to 0 and less than or equal to 999,999,999.
+    #[serde(default)]
+    pub nanos: ::core::option::Option<i32>,
+    /// Seconds of a minute. Must be greater than or equal to 0 and typically must be less than or equal to 59. An API may allow the value 60 if it allows leap-seconds.
+    #[serde(default)]
+    pub seconds: ::core::option::Option<i32>,
 }

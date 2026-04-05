@@ -50,91 +50,6 @@ pub struct BatchUpdatePhotosResponse {
     pub results: ::core::option::Option<::std::vec::Vec<PhotoResponse>>,
 }
 
-/// A connection is the link from a source photo to a destination photo.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Connection {
-    /// Required. The destination of the connection from the containing photo to another photo.
-    #[serde(default)]
-    pub target: ::core::option::Option<PhotoId>,
-}
-
-/// Details related to ProcessingFailureReason#GPS_DATA_GAP. If there are multiple GPS data gaps, only the one with the largest duration is reported here.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GpsDataGapFailureDetails {
-    /// The duration of the gap in GPS data that was found.
-    #[serde(default, rename = "gapDuration")]
-    pub gap_duration: ::core::option::Option<String>,
-    /// Relative time (from the start of the video stream) when the gap started.
-    #[serde(default, rename = "gapStartTime")]
-    pub gap_start_time: ::core::option::Option<String>,
-}
-
-/// IMU data from the device sensors.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Imu {
-    /// The accelerometer measurements in meters/sec^2 with increasing timestamps from devices.
-    #[serde(default, rename = "accelMpsps")]
-    pub accel_mpsps: ::core::option::Option<::std::vec::Vec<Measurement3d>>,
-    /// The gyroscope measurements in radians/sec with increasing timestamps from devices.
-    #[serde(default, rename = "gyroRps")]
-    pub gyro_rps: ::core::option::Option<::std::vec::Vec<Measurement3d>>,
-    /// The magnetometer measurements of the magnetic field in microtesla (uT) with increasing timestamps from devices.
-    #[serde(default, rename = "magUt")]
-    pub mag_ut: ::core::option::Option<::std::vec::Vec<Measurement3d>>,
-}
-
-/// Details related to ProcessingFailureReason#IMU_DATA_GAP. If there are multiple IMU data gaps, only the one with the largest duration is reported here.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ImuDataGapFailureDetails {
-    /// The duration of the gap in IMU data that was found.
-    #[serde(default, rename = "gapDuration")]
-    pub gap_duration: ::core::option::Option<String>,
-    /// Relative time (from the start of the video stream) when the gap started.
-    #[serde(default, rename = "gapStartTime")]
-    pub gap_start_time: ::core::option::Option<String>,
-}
-
-/// Details related to ProcessingFailureReason#INSUFFICIENT_GPS.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct InsufficientGpsFailureDetails {
-    /// The number of GPS points that were found in the video.
-    #[serde(default, rename = "gpsPointsFound")]
-    pub gps_points_found: ::core::option::Option<i32>,
-}
-
-/// An object that represents a latitude/longitude pair. This is expressed as a pair of doubles to represent degrees latitude and degrees longitude. Unless specified otherwise, this object must conform to the WGS84 standard. Values must be within normalized ranges.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct LatLng {
-    /// The latitude in degrees. It must be in the range [-90.0, +90.0].
-    #[serde(default)]
-    pub latitude: ::core::option::Option<f64>,
-    /// The longitude in degrees. It must be in the range [-180.0, +180.0].
-    #[serde(default)]
-    pub longitude: ::core::option::Option<f64>,
-}
-
-/// A rectangle in geographical coordinates.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct LatLngBounds {
-    /// The northeast corner of these bounds.
-    #[serde(default)]
-    pub northeast: ::core::option::Option<LatLng>,
-    /// The southwest corner of these bounds.
-    #[serde(default)]
-    pub southwest: ::core::option::Option<LatLng>,
-}
-
-/// Level information containing level number and its corresponding name.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Level {
-    /// Required. A name assigned to this Level, restricted to 3 characters. Consider how the elevator buttons would be labeled for this level if there was an elevator.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Optional. Floor number, used for ordering. 0 indicates the ground level, 1 indicates the first level above ground level, -1 indicates the first level under ground level. Non-integer values are OK.
-    #[serde(default)]
-    pub number: ::core::option::Option<f64>,
-}
-
 /// Response to list all photo sequences that belong to a user.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ListPhotoSequencesResponse {
@@ -155,131 +70,6 @@ pub struct ListPhotosResponse {
     /// List of photos. The pageSize field in the request determines the number of items returned.
     #[serde(default)]
     pub photos: ::core::option::Option<::std::vec::Vec<Photo>>,
-}
-
-/// A Generic 3d measurement sample.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Measurement3d {
-    /// The timestamp of the IMU measurement.
-    #[serde(default, rename = "captureTime")]
-    pub capture_time: ::core::option::Option<String>,
-    /// The sensor measurement in the x axis.
-    #[serde(default)]
-    pub x: ::core::option::Option<f32>,
-    /// The sensor measurement in the y axis.
-    #[serde(default)]
-    pub y: ::core::option::Option<f32>,
-    /// The sensor measurement in the z axis.
-    #[serde(default)]
-    pub z: ::core::option::Option<f32>,
-}
-
-/// Details related to PhotoSequenceProcessingFailureReason#NO_OVERLAP_GPS.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct NoOverlapGpsFailureDetails {
-    /// Time of last recorded GPS point.
-    #[serde(default, rename = "gpsEndTime")]
-    pub gps_end_time: ::core::option::Option<String>,
-    /// Time of first recorded GPS point.
-    #[serde(default, rename = "gpsStartTime")]
-    pub gps_start_time: ::core::option::Option<String>,
-    /// End time of video.
-    #[serde(default, rename = "videoEndTime")]
-    pub video_end_time: ::core::option::Option<String>,
-    /// Start time of video.
-    #[serde(default, rename = "videoStartTime")]
-    pub video_start_time: ::core::option::Option<String>,
-}
-
-/// Details related to ProcessingFailureReason#NOT_OUTDOORS. If there are multiple indoor frames found, the first frame is recorded here.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct NotOutdoorsFailureDetails {
-    /// Relative time (from the start of the video stream) when an indoor frame was found.
-    #[serde(default, rename = "startTime")]
-    pub start_time: ::core::option::Option<String>,
-}
-
-/// This resource represents a long-running operation that is the result of a network API call.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Operation {
-    /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
-    #[serde(default)]
-    pub done: ::core::option::Option<bool>,
-    /// The error result of the operation in case of failure or cancellation.
-    #[serde(default)]
-    pub error: ::core::option::Option<Status>,
-    /// Service-specific metadata associated with the operation. It typically contains progress information and common metadata such as create time. Some services might not provide such metadata. Any method that returns a long-running operation should document the metadata type, if any.
-    #[serde(default)]
-    pub metadata: ::core::option::Option<serde_json::Value>,
-    /// The server-assigned name, which is only unique within the same service that originally returns it. If you use the default HTTP mapping, the name should be a resource name ending with operations/{unique_id}.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// The normal, successful response of the operation. If the original method returns no data on success, such as Delete, the response is google.protobuf.Empty. If the original method is standard Get/Create/Update, the response should be the resource. For other methods, the response should have the type XxxResponse, where Xxx is the original method name. For example, if the original method name is TakeSnapshot(), the inferred response type is TakeSnapshotResponse.
-    #[serde(default)]
-    pub response: ::core::option::Option<serde_json::Value>,
-}
-
-/// Photo is used to store 360 photos along with photo metadata.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Photo {
-    /// Optional. Absolute time when the photo was captured. When the photo has no exif timestamp, this is used to set a timestamp in the photo metadata.
-    #[serde(default, rename = "captureTime")]
-    pub capture_time: ::core::option::Option<String>,
-    /// Optional. Connections to other photos. A connection represents the link from this photo to another photo.
-    #[serde(default)]
-    pub connections: ::core::option::Option<::std::vec::Vec<Connection>>,
-    /// Output only. The download URL for the photo bytes. This field is set only when GetPhotoRequest.view is set to PhotoView.INCLUDE_DOWNLOAD_URL.
-    #[serde(default, rename = "downloadUrl")]
-    pub download_url: ::core::option::Option<String>,
-    /// Output only. Status in Google Maps, whether this photo was published or rejected. // TODO: enum values: ["UNSPECIFIED_MAPS_PUBLISH_STATUS", "PUBLISHED", "REJECTED_UNKNOWN"]
-    #[serde(default, rename = "mapsPublishStatus")]
-    pub maps_publish_status: ::core::option::Option<String>,
-    /// Required. Output only. Required when updating a photo. Output only when creating a photo. Identifier for the photo, which is unique among all photos in Google.
-    #[serde(default, rename = "photoId")]
-    pub photo_id: ::core::option::Option<PhotoId>,
-    /// Optional. Places where this photo belongs.
-    #[serde(default)]
-    pub places: ::core::option::Option<::std::vec::Vec<Place>>,
-    /// Optional. Pose of the photo.
-    #[serde(default)]
-    pub pose: ::core::option::Option<Pose>,
-    /// Output only. The share link for the photo.
-    #[serde(default, rename = "shareLink")]
-    pub share_link: ::core::option::Option<String>,
-    /// Output only. The thumbnail URL for showing a preview of the given photo.
-    #[serde(default, rename = "thumbnailUrl")]
-    pub thumbnail_url: ::core::option::Option<String>,
-    /// Output only. Status of rights transfer on this photo. // TODO: enum values: ["TRANSFER_STATUS_UNKNOWN", "NEVER_TRANSFERRED", "PENDING", "COMPLETED", "REJECTED", "EXPIRED", "CANCELLED", "RECEIVED_VIA_TRANSFER"]
-    #[serde(default, rename = "transferStatus")]
-    pub transfer_status: ::core::option::Option<String>,
-    /// Input only. Required when creating a photo. Input only. The resource URL where the photo bytes are uploaded to.
-    #[serde(default, rename = "uploadReference")]
-    pub upload_reference: ::core::option::Option<UploadRef>,
-    /// Output only. Time when the image was uploaded.
-    #[serde(default, rename = "uploadTime")]
-    pub upload_time: ::core::option::Option<String>,
-    /// Output only. View count of the photo.
-    #[serde(default, rename = "viewCount")]
-    pub view_count: ::core::option::Option<String>,
-}
-
-/// Identifier for a Photo.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PhotoId {
-    /// A unique identifier for a photo.
-    #[serde(default)]
-    pub id: ::core::option::Option<String>,
-}
-
-/// Response payload for a single Photo in batch operations including BatchGetPhotos and BatchUpdatePhotos.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PhotoResponse {
-    /// The Photo resource, if the request was successful.
-    #[serde(default)]
-    pub photo: ::core::option::Option<Photo>,
-    /// The status for the operation to get or update a single photo in the batch request.
-    #[serde(default)]
-    pub status: ::core::option::Option<Status>,
 }
 
 /// A sequence of 360 photos along with metadata.
@@ -332,6 +122,231 @@ pub struct PhotoSequence {
     pub view_count: ::core::option::Option<String>,
 }
 
+/// Request to update the metadata of a Photo. Updating the pixels of a photo is not supported.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct UpdatePhotoRequest {
+    /// Required. Photo object containing the new metadata.
+    #[serde(default)]
+    pub photo: ::core::option::Option<Photo>,
+    /// Required. Mask that identifies fields on the photo metadata to update. If not present, the old Photo metadata is entirely replaced with the new Photo metadata in this request. The update fails if invalid fields are specified. Multiple fields can be specified in a comma-delimited list. The following fields are valid: * pose.heading * pose.lat_lng_pair * pose.pitch * pose.roll * pose.level * pose.altitude * connections * places &gt; Note: When updateMask contains repeated fields, the entire set of repeated values get replaced with the new contents. For example, if updateMask contains connections and UpdatePhotoRequest.photo.connections is empty, all connections are removed.
+    #[serde(default, rename = "updateMask")]
+    pub update_mask: ::core::option::Option<String>,
+}
+
+/// Response payload for a single Photo in batch operations including BatchGetPhotos and BatchUpdatePhotos.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PhotoResponse {
+    /// The Photo resource, if the request was successful.
+    #[serde(default)]
+    pub photo: ::core::option::Option<Photo>,
+    /// The status for the operation to get or update a single photo in the batch request.
+    #[serde(default)]
+    pub status: ::core::option::Option<Status>,
+}
+
+/// This resource represents a long-running operation that is the result of a network API call.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Operation {
+    /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
+    #[serde(default)]
+    pub done: ::core::option::Option<bool>,
+    /// The error result of the operation in case of failure or cancellation.
+    #[serde(default)]
+    pub error: ::core::option::Option<Status>,
+    /// Service-specific metadata associated with the operation. It typically contains progress information and common metadata such as create time. Some services might not provide such metadata. Any method that returns a long-running operation should document the metadata type, if any.
+    #[serde(default)]
+    pub metadata: ::core::option::Option<serde_json::Value>,
+    /// The server-assigned name, which is only unique within the same service that originally returns it. If you use the default HTTP mapping, the name should be a resource name ending with operations/{unique_id}.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// The normal, successful response of the operation. If the original method returns no data on success, such as Delete, the response is google.protobuf.Empty. If the original method is standard Get/Create/Update, the response should be the resource. For other methods, the response should have the type XxxResponse, where Xxx is the original method name. For example, if the original method name is TakeSnapshot(), the inferred response type is TakeSnapshotResponse.
+    #[serde(default)]
+    pub response: ::core::option::Option<serde_json::Value>,
+}
+
+/// Additional details to accompany the ProcessingFailureReason enum. This message is always expected to be used in conjunction with ProcessingFailureReason, and the oneof value set in this message should match the FailureReason.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ProcessingFailureDetails {
+    /// See GpsDataGapFailureDetails.
+    #[serde(default, rename = "gpsDataGapDetails")]
+    pub gps_data_gap_details: ::core::option::Option<GpsDataGapFailureDetails>,
+    /// See ImuDataGapFailureDetails.
+    #[serde(default, rename = "imuDataGapDetails")]
+    pub imu_data_gap_details: ::core::option::Option<ImuDataGapFailureDetails>,
+    /// See InsufficientGpsFailureDetails.
+    #[serde(default, rename = "insufficientGpsDetails")]
+    pub insufficient_gps_details: ::core::option::Option<InsufficientGpsFailureDetails>,
+    /// See NoOverlapGpsFailureDetails.
+    #[serde(default, rename = "noOverlapGpsDetails")]
+    pub no_overlap_gps_details: ::core::option::Option<NoOverlapGpsFailureDetails>,
+    /// See NotOutdoorsFailureDetails.
+    #[serde(default, rename = "notOutdoorsDetails")]
+    pub not_outdoors_details: ::core::option::Option<NotOutdoorsFailureDetails>,
+}
+
+/// IMU data from the device sensors.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Imu {
+    /// The accelerometer measurements in meters/sec^2 with increasing timestamps from devices.
+    #[serde(default, rename = "accelMpsps")]
+    pub accel_mpsps: ::core::option::Option<::std::vec::Vec<Measurement3d>>,
+    /// The gyroscope measurements in radians/sec with increasing timestamps from devices.
+    #[serde(default, rename = "gyroRps")]
+    pub gyro_rps: ::core::option::Option<::std::vec::Vec<Measurement3d>>,
+    /// The magnetometer measurements of the magnetic field in microtesla (uT) with increasing timestamps from devices.
+    #[serde(default, rename = "magUt")]
+    pub mag_ut: ::core::option::Option<::std::vec::Vec<Measurement3d>>,
+}
+
+/// A rectangle in geographical coordinates.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LatLngBounds {
+    /// The northeast corner of these bounds.
+    #[serde(default)]
+    pub northeast: ::core::option::Option<LatLng>,
+    /// The southwest corner of these bounds.
+    #[serde(default)]
+    pub southwest: ::core::option::Option<LatLng>,
+}
+
+/// Photo is used to store 360 photos along with photo metadata.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Photo {
+    /// Optional. Absolute time when the photo was captured. When the photo has no exif timestamp, this is used to set a timestamp in the photo metadata.
+    #[serde(default, rename = "captureTime")]
+    pub capture_time: ::core::option::Option<String>,
+    /// Optional. Connections to other photos. A connection represents the link from this photo to another photo.
+    #[serde(default)]
+    pub connections: ::core::option::Option<::std::vec::Vec<Connection>>,
+    /// Output only. The download URL for the photo bytes. This field is set only when GetPhotoRequest.view is set to PhotoView.INCLUDE_DOWNLOAD_URL.
+    #[serde(default, rename = "downloadUrl")]
+    pub download_url: ::core::option::Option<String>,
+    /// Output only. Status in Google Maps, whether this photo was published or rejected. // TODO: enum values: ["UNSPECIFIED_MAPS_PUBLISH_STATUS", "PUBLISHED", "REJECTED_UNKNOWN"]
+    #[serde(default, rename = "mapsPublishStatus")]
+    pub maps_publish_status: ::core::option::Option<String>,
+    /// Required. Output only. Required when updating a photo. Output only when creating a photo. Identifier for the photo, which is unique among all photos in Google.
+    #[serde(default, rename = "photoId")]
+    pub photo_id: ::core::option::Option<PhotoId>,
+    /// Optional. Places where this photo belongs.
+    #[serde(default)]
+    pub places: ::core::option::Option<::std::vec::Vec<Place>>,
+    /// Optional. Pose of the photo.
+    #[serde(default)]
+    pub pose: ::core::option::Option<Pose>,
+    /// Output only. The share link for the photo.
+    #[serde(default, rename = "shareLink")]
+    pub share_link: ::core::option::Option<String>,
+    /// Output only. The thumbnail URL for showing a preview of the given photo.
+    #[serde(default, rename = "thumbnailUrl")]
+    pub thumbnail_url: ::core::option::Option<String>,
+    /// Output only. Status of rights transfer on this photo. // TODO: enum values: ["TRANSFER_STATUS_UNKNOWN", "NEVER_TRANSFERRED", "PENDING", "COMPLETED", "REJECTED", "EXPIRED", "CANCELLED", "RECEIVED_VIA_TRANSFER"]
+    #[serde(default, rename = "transferStatus")]
+    pub transfer_status: ::core::option::Option<String>,
+    /// Input only. Required when creating a photo. Input only. The resource URL where the photo bytes are uploaded to.
+    #[serde(default, rename = "uploadReference")]
+    pub upload_reference: ::core::option::Option<UploadRef>,
+    /// Output only. Time when the image was uploaded.
+    #[serde(default, rename = "uploadTime")]
+    pub upload_time: ::core::option::Option<String>,
+    /// Output only. View count of the photo.
+    #[serde(default, rename = "viewCount")]
+    pub view_count: ::core::option::Option<String>,
+}
+
+/// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Status {
+    /// The status code, which should be an enum value of google.rpc.Code.
+    #[serde(default)]
+    pub code: ::core::option::Option<i32>,
+    /// A list of messages that carry the error details. There is a common set of message types for APIs to use.
+    #[serde(default)]
+    pub details: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
+    /// A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.
+    #[serde(default)]
+    pub message: ::core::option::Option<String>,
+}
+
+/// Details related to ProcessingFailureReason#GPS_DATA_GAP. If there are multiple GPS data gaps, only the one with the largest duration is reported here.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GpsDataGapFailureDetails {
+    /// The duration of the gap in GPS data that was found.
+    #[serde(default, rename = "gapDuration")]
+    pub gap_duration: ::core::option::Option<String>,
+    /// Relative time (from the start of the video stream) when the gap started.
+    #[serde(default, rename = "gapStartTime")]
+    pub gap_start_time: ::core::option::Option<String>,
+}
+
+/// Details related to ProcessingFailureReason#IMU_DATA_GAP. If there are multiple IMU data gaps, only the one with the largest duration is reported here.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ImuDataGapFailureDetails {
+    /// The duration of the gap in IMU data that was found.
+    #[serde(default, rename = "gapDuration")]
+    pub gap_duration: ::core::option::Option<String>,
+    /// Relative time (from the start of the video stream) when the gap started.
+    #[serde(default, rename = "gapStartTime")]
+    pub gap_start_time: ::core::option::Option<String>,
+}
+
+/// Details related to ProcessingFailureReason#INSUFFICIENT_GPS.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct InsufficientGpsFailureDetails {
+    /// The number of GPS points that were found in the video.
+    #[serde(default, rename = "gpsPointsFound")]
+    pub gps_points_found: ::core::option::Option<i32>,
+}
+
+/// Details related to PhotoSequenceProcessingFailureReason#NO_OVERLAP_GPS.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct NoOverlapGpsFailureDetails {
+    /// Time of last recorded GPS point.
+    #[serde(default, rename = "gpsEndTime")]
+    pub gps_end_time: ::core::option::Option<String>,
+    /// Time of first recorded GPS point.
+    #[serde(default, rename = "gpsStartTime")]
+    pub gps_start_time: ::core::option::Option<String>,
+    /// End time of video.
+    #[serde(default, rename = "videoEndTime")]
+    pub video_end_time: ::core::option::Option<String>,
+    /// Start time of video.
+    #[serde(default, rename = "videoStartTime")]
+    pub video_start_time: ::core::option::Option<String>,
+}
+
+/// Details related to ProcessingFailureReason#NOT_OUTDOORS. If there are multiple indoor frames found, the first frame is recorded here.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct NotOutdoorsFailureDetails {
+    /// Relative time (from the start of the video stream) when an indoor frame was found.
+    #[serde(default, rename = "startTime")]
+    pub start_time: ::core::option::Option<String>,
+}
+
+/// A Generic 3d measurement sample.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Measurement3d {
+    /// The timestamp of the IMU measurement.
+    #[serde(default, rename = "captureTime")]
+    pub capture_time: ::core::option::Option<String>,
+    /// The sensor measurement in the x axis.
+    #[serde(default)]
+    pub x: ::core::option::Option<f32>,
+    /// The sensor measurement in the y axis.
+    #[serde(default)]
+    pub y: ::core::option::Option<f32>,
+    /// The sensor measurement in the z axis.
+    #[serde(default)]
+    pub z: ::core::option::Option<f32>,
+}
+
+/// A connection is the link from a source photo to a destination photo.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Connection {
+    /// Required. The destination of the connection from the containing photo to another photo.
+    #[serde(default)]
+    pub target: ::core::option::Option<PhotoId>,
+}
+
 /// Place metadata for an entity.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Place {
@@ -375,55 +390,40 @@ pub struct Pose {
     pub roll: ::core::option::Option<f64>,
 }
 
-/// Additional details to accompany the ProcessingFailureReason enum. This message is always expected to be used in conjunction with ProcessingFailureReason, and the oneof value set in this message should match the FailureReason.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ProcessingFailureDetails {
-    /// See GpsDataGapFailureDetails.
-    #[serde(default, rename = "gpsDataGapDetails")]
-    pub gps_data_gap_details: ::core::option::Option<GpsDataGapFailureDetails>,
-    /// See ImuDataGapFailureDetails.
-    #[serde(default, rename = "imuDataGapDetails")]
-    pub imu_data_gap_details: ::core::option::Option<ImuDataGapFailureDetails>,
-    /// See InsufficientGpsFailureDetails.
-    #[serde(default, rename = "insufficientGpsDetails")]
-    pub insufficient_gps_details: ::core::option::Option<InsufficientGpsFailureDetails>,
-    /// See NoOverlapGpsFailureDetails.
-    #[serde(default, rename = "noOverlapGpsDetails")]
-    pub no_overlap_gps_details: ::core::option::Option<NoOverlapGpsFailureDetails>,
-    /// See NotOutdoorsFailureDetails.
-    #[serde(default, rename = "notOutdoorsDetails")]
-    pub not_outdoors_details: ::core::option::Option<NotOutdoorsFailureDetails>,
-}
-
-/// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Status {
-    /// The status code, which should be an enum value of google.rpc.Code.
-    #[serde(default)]
-    pub code: ::core::option::Option<i32>,
-    /// A list of messages that carry the error details. There is a common set of message types for APIs to use.
-    #[serde(default)]
-    pub details: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
-    /// A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.
-    #[serde(default)]
-    pub message: ::core::option::Option<String>,
-}
-
-/// Request to update the metadata of a Photo. Updating the pixels of a photo is not supported.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct UpdatePhotoRequest {
-    /// Required. Photo object containing the new metadata.
-    #[serde(default)]
-    pub photo: ::core::option::Option<Photo>,
-    /// Required. Mask that identifies fields on the photo metadata to update. If not present, the old Photo metadata is entirely replaced with the new Photo metadata in this request. The update fails if invalid fields are specified. Multiple fields can be specified in a comma-delimited list. The following fields are valid: * pose.heading * pose.lat_lng_pair * pose.pitch * pose.roll * pose.level * pose.altitude * connections * places &gt; Note: When updateMask contains repeated fields, the entire set of repeated values get replaced with the new contents. For example, if updateMask contains connections and UpdatePhotoRequest.photo.connections is empty, all connections are removed.
-    #[serde(default, rename = "updateMask")]
-    pub update_mask: ::core::option::Option<String>,
-}
-
 /// Upload reference for media files.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct UploadRef {
     /// An upload reference should be unique for each user. It follows the form: "https://streetviewpublish.googleapis.com/media/user/{account_id}/photo/{upload_reference}"
     #[serde(default, rename = "uploadUrl")]
     pub upload_url: ::core::option::Option<String>,
+}
+
+/// Identifier for a Photo.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PhotoId {
+    /// A unique identifier for a photo.
+    #[serde(default)]
+    pub id: ::core::option::Option<String>,
+}
+
+/// An object that represents a latitude/longitude pair. This is expressed as a pair of doubles to represent degrees latitude and degrees longitude. Unless specified otherwise, this object must conform to the WGS84 standard. Values must be within normalized ranges.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LatLng {
+    /// The latitude in degrees. It must be in the range [-90.0, +90.0].
+    #[serde(default)]
+    pub latitude: ::core::option::Option<f64>,
+    /// The longitude in degrees. It must be in the range [-180.0, +180.0].
+    #[serde(default)]
+    pub longitude: ::core::option::Option<f64>,
+}
+
+/// Level information containing level number and its corresponding name.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Level {
+    /// Required. A name assigned to this Level, restricted to 3 characters. Consider how the elevator buttons would be labeled for this level if there was an elevator.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Optional. Floor number, used for ordering. 0 indicates the ground level, 1 indicates the first level above ground level, -1 indicates the first level under ground level. Non-integer values are OK.
+    #[serde(default)]
+    pub number: ::core::option::Option<f64>,
 }

@@ -50,66 +50,6 @@ pub struct CreateInboundSamlSsoProfileOperationMetadata {
     pub state: ::core::option::Option<String>,
 }
 
-/// Information of a DSA public key.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DsaPublicKeyInfo {
-    /// Key size in bits (size of parameter P).
-    #[serde(default, rename = "keySize")]
-    pub key_size: ::core::option::Option<i32>,
-}
-
-/// Dynamic group metadata like queries and status.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DynamicGroupMetadata {
-    /// Memberships will be the union of all queries. Only one entry with USER resource is currently supported. Customers can create up to 500 dynamic groups.
-    #[serde(default)]
-    pub queries: ::core::option::Option<::std::vec::Vec<DynamicGroupQuery>>,
-    /// Output only. Status of the dynamic group.
-    #[serde(default)]
-    pub status: ::core::option::Option<DynamicGroupStatus>,
-}
-
-/// Defines a query on a resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DynamicGroupQuery {
-    /// Query that determines the memberships of the dynamic group. Examples: All users with at least one organizations.department of engineering. user.organizations.exists(org, org.department==''engineering'') All users with at least one location that has area of foo and building_id of bar. user.locations.exists(loc, loc.area==''foo'' && loc.building_id==''bar'') All users with any variation of the name John Doe (case-insensitive queries add equalsIgnoreCase() to the value being queried). user.name.value.equalsIgnoreCase(''jOhn DoE'')
-    #[serde(default)]
-    pub query: ::core::option::Option<String>,
-    /// Resource type for the Dynamic Group Query // TODO: enum values: ["RESOURCE_TYPE_UNSPECIFIED", "USER"]
-    #[serde(default, rename = "resourceType")]
-    pub resource_type: ::core::option::Option<String>,
-}
-
-/// The current status of a dynamic group along with timestamp.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DynamicGroupStatus {
-    /// Status of the dynamic group. // TODO: enum values: ["STATUS_UNSPECIFIED", "UP_TO_DATE", "UPDATING_MEMBERSHIPS", "INVALID_QUERY"]
-    #[serde(default)]
-    pub status: ::core::option::Option<String>,
-    /// The latest time at which the dynamic group is guaranteed to be in the given status. If status is UP_TO_DATE, the latest time at which the dynamic group was confirmed to be up-to-date. If status is UPDATING_MEMBERSHIPS, the time at which dynamic group was created.
-    #[serde(default, rename = "statusTime")]
-    pub status_time: ::core::option::Option<String>,
-}
-
-/// A unique identifier for an entity in the Cloud Identity Groups API. An entity can represent either a group with an optional namespace or a user without a namespace. The combination of id and namespace must be unique; however, the same id can be used with different namespaces.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct EntityKey {
-    /// The ID of the entity. For Google-managed entities, the id should be the email address of an existing group or user. Email addresses need to adhere to [name guidelines for users and groups](https://support.google.com/a/answer/9193374). For external-identity-mapped entities, the id must be a string conforming to the Identity Source''s requirements. Must be unique within a namespace.
-    #[serde(default)]
-    pub id: ::core::option::Option<String>,
-    /// The namespace in which the entity exists. If not specified, the EntityKey represents a Google-managed entity such as a Google user or a Google Group. If specified, the EntityKey represents an external-identity-mapped group. The namespace must correspond to an identity source created in Admin Console and must be in the form of identitysources/{identity_source}.
-    #[serde(default)]
-    pub namespace: ::core::option::Option<String>,
-}
-
-/// The MembershipRole expiry details.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ExpiryDetail {
-    /// The time at which the MembershipRole will expire.
-    #[serde(default, rename = "expireTime")]
-    pub expire_time: ::core::option::Option<String>,
-}
-
 /// The response message for MembershipsService.GetMembershipGraph.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GetMembershipGraphResponse {
@@ -119,35 +59,6 @@ pub struct GetMembershipGraphResponse {
     /// The resources representing each group in the adjacency list. Each group in this list can be correlated to a ''group'' of the MembershipAdjacencyList using the ''name'' of the Group resource.
     #[serde(default)]
     pub groups: ::core::option::Option<::std::vec::Vec<Group>>,
-}
-
-/// Resource representing the Android specific attributes of a Device.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleAppsCloudidentityDevicesV1AndroidAttributes {
-    /// Whether the device passes Android CTS compliance.
-    #[serde(default, rename = "ctsProfileMatch")]
-    pub cts_profile_match: ::core::option::Option<bool>,
-    /// Whether applications from unknown sources can be installed on device.
-    #[serde(default, rename = "enabledUnknownSources")]
-    pub enabled_unknown_sources: ::core::option::Option<bool>,
-    /// Whether any potentially harmful apps were detected on the device.
-    #[serde(default, rename = "hasPotentiallyHarmfulApps")]
-    pub has_potentially_harmful_apps: ::core::option::Option<bool>,
-    /// Whether this account is on an owner/primary profile. For phones, only true for owner profiles. Android 4+ devices can have secondary or restricted user profiles.
-    #[serde(default, rename = "ownerProfileAccount")]
-    pub owner_profile_account: ::core::option::Option<bool>,
-    /// Ownership privileges on device. // TODO: enum values: ["OWNERSHIP_PRIVILEGE_UNSPECIFIED", "DEVICE_ADMINISTRATOR", "PROFILE_OWNER", "DEVICE_OWNER"]
-    #[serde(default, rename = "ownershipPrivilege")]
-    pub ownership_privilege: ::core::option::Option<String>,
-    /// Whether device supports Android work profiles. If false, this service will not block access to corp data even if an administrator turns on the "Enforce Work Profile" policy.
-    #[serde(default, rename = "supportsWorkProfile")]
-    pub supports_work_profile: ::core::option::Option<bool>,
-    /// Whether Android verified boot status is GREEN.
-    #[serde(default, rename = "verifiedBoot")]
-    pub verified_boot: ::core::option::Option<bool>,
-    /// Whether Google Play Protect Verify Apps is enabled.
-    #[serde(default, rename = "verifyAppsEnabled")]
-    pub verify_apps_enabled: ::core::option::Option<bool>,
 }
 
 /// Request message for approving the device to access user data.
@@ -182,67 +93,6 @@ pub struct GoogleAppsCloudidentityDevicesV1BlockDeviceUserResponse {
     pub device_user: ::core::option::Option<GoogleAppsCloudidentityDevicesV1DeviceUser>,
 }
 
-/// Contains information about browser profiles reported by the [Endpoint Verification extension](https://chromewebstore.google.com/detail/endpoint-verification/callobklhcbilhphinckomhgkigmfocg?pli=1).
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleAppsCloudidentityDevicesV1BrowserAttributes {
-    /// Represents the current state of the [Chrome browser attributes](https://cloud.google.com/access-context-manager/docs/browser-attributes) sent by the [Endpoint Verification extension](https://chromewebstore.google.com/detail/endpoint-verification/callobklhcbilhphinckomhgkigmfocg?pli=1).
-    #[serde(default, rename = "chromeBrowserInfo")]
-    pub chrome_browser_info: ::core::option::Option<GoogleAppsCloudidentityDevicesV1BrowserInfo>,
-    /// Chrome profile ID that is exposed by the Chrome API. It is unique for each device.
-    #[serde(default, rename = "chromeProfileId")]
-    pub chrome_profile_id: ::core::option::Option<String>,
-    /// Timestamp in milliseconds since the Unix epoch when the profile/gcm id was last synced.
-    #[serde(default, rename = "lastProfileSyncTime")]
-    pub last_profile_sync_time: ::core::option::Option<String>,
-}
-
-/// Browser-specific fields reported by the [Endpoint Verification extension](https://chromewebstore.google.com/detail/endpoint-verification/callobklhcbilhphinckomhgkigmfocg?pli=1).
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleAppsCloudidentityDevicesV1BrowserInfo {
-    /// Output only. Browser''s management state. // TODO: enum values: ["UNSPECIFIED", "UNMANAGED", "MANAGED_BY_OTHER_DOMAIN", "PROFILE_MANAGED", "BROWSER_MANAGED"]
-    #[serde(default, rename = "browserManagementState")]
-    pub browser_management_state: ::core::option::Option<String>,
-    /// Version of the request initiating browser. E.g. 91.0.4442.4.
-    #[serde(default, rename = "browserVersion")]
-    pub browser_version: ::core::option::Option<String>,
-    /// Current state of [built-in DNS client](https://chromeenterprise.google/policies/#BuiltInDnsClientEnabled).
-    #[serde(default, rename = "isBuiltInDnsClientEnabled")]
-    pub is_built_in_dns_client_enabled: ::core::option::Option<bool>,
-    /// Current state of [bulk data analysis](https://chromeenterprise.google/policies/#OnBulkDataEntryEnterpriseConnector). Set to true if provider list from Chrome is non-empty.
-    #[serde(default, rename = "isBulkDataEntryAnalysisEnabled")]
-    pub is_bulk_data_entry_analysis_enabled: ::core::option::Option<bool>,
-    /// Deprecated: This field is not used for Chrome version 118 and later. Current state of [Chrome Cleanup](https://chromeenterprise.google/policies/#ChromeCleanupEnabled).
-    #[serde(default, rename = "isChromeCleanupEnabled")]
-    pub is_chrome_cleanup_enabled: ::core::option::Option<bool>,
-    /// Current state of [Chrome Remote Desktop app](https://chromeenterprise.google/policies/#URLBlocklist).
-    #[serde(default, rename = "isChromeRemoteDesktopAppBlocked")]
-    pub is_chrome_remote_desktop_app_blocked: ::core::option::Option<bool>,
-    /// Current state of [file download analysis](https://chromeenterprise.google/policies/#OnFileDownloadedEnterpriseConnector). Set to true if provider list from Chrome is non-empty.
-    #[serde(default, rename = "isFileDownloadAnalysisEnabled")]
-    pub is_file_download_analysis_enabled: ::core::option::Option<bool>,
-    /// Current state of [file upload analysis](https://chromeenterprise.google/policies/#OnFileAttachedEnterpriseConnector). Set to true if provider list from Chrome is non-empty.
-    #[serde(default, rename = "isFileUploadAnalysisEnabled")]
-    pub is_file_upload_analysis_enabled: ::core::option::Option<bool>,
-    /// Current state of [real-time URL check](https://chromeenterprise.google/policies/#EnterpriseRealTimeUrlCheckMode). Set to true if provider list from Chrome is non-empty.
-    #[serde(default, rename = "isRealtimeUrlCheckEnabled")]
-    pub is_realtime_url_check_enabled: ::core::option::Option<bool>,
-    /// Current state of [security event analysis](https://chromeenterprise.google/policies/#OnSecurityEventEnterpriseConnector). Set to true if provider list from Chrome is non-empty.
-    #[serde(default, rename = "isSecurityEventAnalysisEnabled")]
-    pub is_security_event_analysis_enabled: ::core::option::Option<bool>,
-    /// Current state of [site isolation](https://chromeenterprise.google/policies/?policy=IsolateOrigins).
-    #[serde(default, rename = "isSiteIsolationEnabled")]
-    pub is_site_isolation_enabled: ::core::option::Option<bool>,
-    /// Current state of [third-party blocking](https://chromeenterprise.google/policies/#ThirdPartyBlockingEnabled).
-    #[serde(default, rename = "isThirdPartyBlockingEnabled")]
-    pub is_third_party_blocking_enabled: ::core::option::Option<bool>,
-    /// Current state of [password protection trigger](https://chromeenterprise.google/policies/#PasswordProtectionWarningTrigger). // TODO: enum values: ["PASSWORD_PROTECTION_TRIGGER_UNSPECIFIED", "PROTECTION_OFF", "PASSWORD_REUSE", "PHISHING_REUSE"]
-    #[serde(default, rename = "passwordProtectionWarningTrigger")]
-    pub password_protection_warning_trigger: ::core::option::Option<String>,
-    /// Current state of [Safe Browsing protection level](https://chromeenterprise.google/policies/#SafeBrowsingProtectionLevel). // TODO: enum values: ["SAFE_BROWSING_LEVEL_UNSPECIFIED", "DISABLED", "STANDARD", "ENHANCED"]
-    #[serde(default, rename = "safeBrowsingProtectionLevel")]
-    pub safe_browsing_protection_level: ::core::option::Option<String>,
-}
-
 /// Request message for cancelling an unfinished device wipe.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleAppsCloudidentityDevicesV1CancelWipeDeviceRequest {
@@ -275,51 +125,338 @@ pub struct GoogleAppsCloudidentityDevicesV1CancelWipeDeviceUserResponse {
     pub device_user: ::core::option::Option<GoogleAppsCloudidentityDevicesV1DeviceUser>,
 }
 
-/// Stores information about a certificate.
+/// Additional custom attribute values may be one of these types
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleAppsCloudidentityDevicesV1CertificateAttributes {
-    /// The X.509 extension for CertificateTemplate.
-    #[serde(default, rename = "certificateTemplate")]
-    pub certificate_template:
-        ::core::option::Option<GoogleAppsCloudidentityDevicesV1CertificateTemplate>,
-    /// The encoded certificate fingerprint.
-    #[serde(default)]
-    pub fingerprint: ::core::option::Option<String>,
-    /// The name of the issuer of this certificate.
-    #[serde(default)]
-    pub issuer: ::core::option::Option<String>,
-    /// Serial number of the certificate, Example: "123456789".
-    #[serde(default, rename = "serialNumber")]
-    pub serial_number: ::core::option::Option<String>,
-    /// The subject name of this certificate.
-    #[serde(default)]
-    pub subject: ::core::option::Option<String>,
-    /// The certificate thumbprint.
-    #[serde(default)]
-    pub thumbprint: ::core::option::Option<String>,
-    /// Output only. Validation state of this certificate. // TODO: enum values: ["CERTIFICATE_VALIDATION_STATE_UNSPECIFIED", "VALIDATION_SUCCESSFUL", "VALIDATION_FAILED"]
-    #[serde(default, rename = "validationState")]
-    pub validation_state: ::core::option::Option<String>,
-    /// Certificate not valid at or after this timestamp.
-    #[serde(default, rename = "validityExpirationTime")]
-    pub validity_expiration_time: ::core::option::Option<String>,
-    /// Certificate not valid before this timestamp.
-    #[serde(default, rename = "validityStartTime")]
-    pub validity_start_time: ::core::option::Option<String>,
+pub struct GoogleAppsCloudidentityDevicesV1CustomAttributeValue {
+    /// Represents a boolean value.
+    #[serde(default, rename = "boolValue")]
+    pub bool_value: ::core::option::Option<bool>,
+    /// Represents a double value.
+    #[serde(default, rename = "numberValue")]
+    pub number_value: ::core::option::Option<f64>,
+    /// Represents a string value.
+    #[serde(default, rename = "stringValue")]
+    pub string_value: ::core::option::Option<String>,
 }
 
-/// CertificateTemplate (v3 Extension in X.509).
+/// Response message that is returned in ListClientStates.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleAppsCloudidentityDevicesV1CertificateTemplate {
-    /// The template id of the template. Example: "1.3.6.1.4.1.311.21.8.15608621.11768144.5720724.16068415.6889630.81.2472537.7784047".
+pub struct GoogleAppsCloudidentityDevicesV1ListClientStatesResponse {
+    /// Client states meeting the list restrictions.
+    #[serde(default, rename = "clientStates")]
+    pub client_states:
+        ::core::option::Option<::std::vec::Vec<GoogleAppsCloudidentityDevicesV1ClientState>>,
+    /// Token to retrieve the next page of results. Empty if there are no more results.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+}
+
+/// Response message that is returned from the ListDeviceUsers method.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleAppsCloudidentityDevicesV1ListDeviceUsersResponse {
+    /// Devices meeting the list restrictions.
+    #[serde(default, rename = "deviceUsers")]
+    pub device_users:
+        ::core::option::Option<::std::vec::Vec<GoogleAppsCloudidentityDevicesV1DeviceUser>>,
+    /// Token to retrieve the next page of results. Empty if there are no more results.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+}
+
+/// Response message that is returned from the ListDevices method.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleAppsCloudidentityDevicesV1ListDevicesResponse {
+    /// Devices meeting the list restrictions.
     #[serde(default)]
-    pub id: ::core::option::Option<String>,
-    /// The Major version of the template. Example: 100.
-    #[serde(default, rename = "majorVersion")]
-    pub major_version: ::core::option::Option<i32>,
-    /// The minor version of the template. Example: 12.
-    #[serde(default, rename = "minorVersion")]
-    pub minor_version: ::core::option::Option<i32>,
+    pub devices: ::core::option::Option<::std::vec::Vec<GoogleAppsCloudidentityDevicesV1Device>>,
+    /// Token to retrieve the next page of results. Empty if there are no more results.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+}
+
+/// Response containing resource names of the DeviceUsers associated with the caller''s credentials.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleAppsCloudidentityDevicesV1LookupSelfDeviceUsersResponse {
+    /// The customer resource name that may be passed back to other Devices API methods such as List, Get, etc.
+    #[serde(default)]
+    pub customer: ::core::option::Option<String>,
+    /// [Resource names](https://cloud.google.com/apis/design/resource_names) of the DeviceUsers in the format: devices/{device}/deviceUsers/{user_resource}, where device is the unique ID assigned to a Device and user_resource is the unique user ID
+    #[serde(default)]
+    pub names: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Token to retrieve the next page of results. Empty if there are no more results.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+}
+
+/// Request message for wiping all data on the device.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleAppsCloudidentityDevicesV1WipeDeviceRequest {
+    /// Optional. [Resource name](https://cloud.google.com/apis/design/resource_names) of the customer. If you''re using this API for your own organization, use customers/my_customer If you''re using this API to manage another organization, use customers/{customer}, where customer is the customer to whom the device belongs.
+    #[serde(default)]
+    pub customer: ::core::option::Option<String>,
+    /// Optional. Specifies if a user is able to factory reset a device after a Device Wipe. On iOS, this is called "Activation Lock", while on Android, this is known as "Factory Reset Protection". If true, this protection will be removed from the device, so that a user can successfully factory reset. If false, the setting is untouched on the device.
+    #[serde(default, rename = "removeResetLock")]
+    pub remove_reset_lock: ::core::option::Option<bool>,
+}
+
+/// Response message for wiping all data on the device.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleAppsCloudidentityDevicesV1WipeDeviceResponse {
+    /// Resultant Device object for the action. Note that asset tags will not be returned in the device object.
+    #[serde(default)]
+    pub device: ::core::option::Option<GoogleAppsCloudidentityDevicesV1Device>,
+}
+
+/// Request message for starting an account wipe on device.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleAppsCloudidentityDevicesV1WipeDeviceUserRequest {
+    /// Optional. [Resource name](https://cloud.google.com/apis/design/resource_names) of the customer. If you''re using this API for your own organization, use customers/my_customer If you''re using this API to manage another organization, use customers/{customer}, where customer is the customer to whom the device belongs.
+    #[serde(default)]
+    pub customer: ::core::option::Option<String>,
+}
+
+/// Response message for wiping the user''s account from the device.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleAppsCloudidentityDevicesV1WipeDeviceUserResponse {
+    /// Resultant DeviceUser object for the action.
+    #[serde(default, rename = "deviceUser")]
+    pub device_user: ::core::option::Option<GoogleAppsCloudidentityDevicesV1DeviceUser>,
+}
+
+/// Response for IsInvitableUser RPC.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct IsInvitableUserResponse {
+    /// Returns true if the email address is invitable.
+    #[serde(default, rename = "isInvitableUser")]
+    pub is_invitable_user: ::core::option::Option<bool>,
+}
+
+/// Response message for ListGroups operation.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ListGroupsResponse {
+    /// Groups returned in response to list request. The results are not sorted.
+    #[serde(default)]
+    pub groups: ::core::option::Option<::std::vec::Vec<Group>>,
+    /// Token to retrieve the next page of results, or empty if there are no more results available for listing.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+}
+
+/// Response of the InboundSamlSsoProfilesService.ListIdpCredentials method.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ListIdpCredentialsResponse {
+    /// The IdpCredentials from the specified InboundSamlSsoProfile.
+    #[serde(default, rename = "idpCredentials")]
+    pub idp_credentials: ::core::option::Option<::std::vec::Vec<IdpCredential>>,
+    /// A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+}
+
+/// Response of the InboundOidcSsoProfilesService.ListInboundOidcSsoProfiles method.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ListInboundOidcSsoProfilesResponse {
+    /// List of InboundOidcSsoProfiles.
+    #[serde(default, rename = "inboundOidcSsoProfiles")]
+    pub inbound_oidc_sso_profiles: ::core::option::Option<::std::vec::Vec<InboundOidcSsoProfile>>,
+    /// A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+}
+
+/// Response of the InboundSamlSsoProfilesService.ListInboundSamlSsoProfiles method.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ListInboundSamlSsoProfilesResponse {
+    /// List of InboundSamlSsoProfiles.
+    #[serde(default, rename = "inboundSamlSsoProfiles")]
+    pub inbound_saml_sso_profiles: ::core::option::Option<::std::vec::Vec<InboundSamlSsoProfile>>,
+    /// A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+}
+
+/// Response of the InboundSsoAssignmentsService.ListInboundSsoAssignments method.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ListInboundSsoAssignmentsResponse {
+    /// The assignments.
+    #[serde(default, rename = "inboundSsoAssignments")]
+    pub inbound_sso_assignments: ::core::option::Option<::std::vec::Vec<InboundSsoAssignment>>,
+    /// A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+}
+
+/// The response message for MembershipsService.ListMemberships.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ListMembershipsResponse {
+    /// The Memberships under the specified parent.
+    #[serde(default)]
+    pub memberships: ::core::option::Option<::std::vec::Vec<Membership>>,
+    /// A continuation token to retrieve the next page of results, or empty if there are no more results available.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+}
+
+/// The response message for PoliciesService.ListPolicies.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ListPoliciesResponse {
+    /// The pagination token to retrieve the next page of results. If this field is empty, there are no subsequent pages.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+    /// The results
+    #[serde(default)]
+    pub policies: ::core::option::Option<::std::vec::Vec<Policy>>,
+}
+
+/// Response message for UserInvitation listing request.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ListUserInvitationsResponse {
+    /// The token for the next page. If not empty, indicates that there may be more UserInvitation resources that match the listing request; this value can be used in a subsequent ListUserInvitationsRequest to get continued results with the current list call.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+    /// The list of UserInvitation resources.
+    #[serde(default, rename = "userInvitations")]
+    pub user_invitations: ::core::option::Option<::std::vec::Vec<UserInvitation>>,
+}
+
+/// The response message for GroupsService.LookupGroupName.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LookupGroupNameResponse {
+    /// The [resource name](https://cloud.google.com/apis/design/resource_names) of the looked-up Group.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+}
+
+/// The response message for MembershipsService.LookupMembershipName.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LookupMembershipNameResponse {
+    /// The [resource name](https://cloud.google.com/apis/design/resource_names) of the looked-up Membership. Must be of the form groups/{group}/memberships/{membership}.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+}
+
+/// The request message for MembershipsService.ModifyMembershipRoles.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ModifyMembershipRolesRequest {
+    /// The MembershipRoles to be added. Adding or removing roles in the same request as updating roles is not supported. Must not be set if update_roles_params is set.
+    #[serde(default, rename = "addRoles")]
+    pub add_roles: ::core::option::Option<::std::vec::Vec<MembershipRole>>,
+    /// The names of the MembershipRoles to be removed. Adding or removing roles in the same request as updating roles is not supported. It is not possible to remove the MEMBER MembershipRole. If you wish to delete a Membership, call MembershipsService.DeleteMembership instead. Must not contain MEMBER. Must not be set if update_roles_params is set.
+    #[serde(default, rename = "removeRoles")]
+    pub remove_roles: ::core::option::Option<::std::vec::Vec<String>>,
+    /// The MembershipRoles to be updated. Updating roles in the same request as adding or removing roles is not supported. Must not be set if either add_roles or remove_roles is set.
+    #[serde(default, rename = "updateRolesParams")]
+    pub update_roles_params: ::core::option::Option<::std::vec::Vec<UpdateMembershipRolesParams>>,
+}
+
+/// The response message for MembershipsService.ModifyMembershipRoles.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ModifyMembershipRolesResponse {
+    /// The Membership resource after modifying its MembershipRoles.
+    #[serde(default)]
+    pub membership: ::core::option::Option<Membership>,
+}
+
+/// This resource represents a long-running operation that is the result of a network API call.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Operation {
+    /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
+    #[serde(default)]
+    pub done: ::core::option::Option<bool>,
+    /// The error result of the operation in case of failure or cancellation.
+    #[serde(default)]
+    pub error: ::core::option::Option<Status>,
+    /// Service-specific metadata associated with the operation. It typically contains progress information and common metadata such as create time. Some services might not provide such metadata. Any method that returns a long-running operation should document the metadata type, if any.
+    #[serde(default)]
+    pub metadata: ::core::option::Option<serde_json::Value>,
+    /// The server-assigned name, which is only unique within the same service that originally returns it. If you use the default HTTP mapping, the name should be a resource name ending with operations/{unique_id}.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// The normal, successful response of the operation. If the original method returns no data on success, such as Delete, the response is google.protobuf.Empty. If the original method is standard Get/Create/Update, the response should be the resource. For other methods, the response should have the type XxxResponse, where Xxx is the original method name. For example, if the original method name is TakeSnapshot(), the inferred response type is TakeSnapshotResponse.
+    #[serde(default)]
+    pub response: ::core::option::Option<serde_json::Value>,
+}
+
+/// The response message for MembershipsService.SearchDirectGroups.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SearchDirectGroupsResponse {
+    /// List of direct groups satisfying the query.
+    #[serde(default)]
+    pub memberships: ::core::option::Option<::std::vec::Vec<MembershipRelation>>,
+    /// Token to retrieve the next page of results, or empty if there are no more results available for listing.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+}
+
+/// The response message for GroupsService.SearchGroups.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SearchGroupsResponse {
+    /// The Group resources that match the search query.
+    #[serde(default)]
+    pub groups: ::core::option::Option<::std::vec::Vec<Group>>,
+    /// A continuation token to retrieve the next page of results, or empty if there are no more results available.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+}
+
+/// The response message for MembershipsService.SearchTransitiveGroups.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SearchTransitiveGroupsResponse {
+    /// List of transitive groups satisfying the query.
+    #[serde(default)]
+    pub memberships: ::core::option::Option<::std::vec::Vec<GroupRelation>>,
+    /// Token to retrieve the next page of results, or empty if there are no more results available for listing.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+}
+
+/// The response message for MembershipsService.SearchTransitiveMemberships.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SearchTransitiveMembershipsResponse {
+    /// List of transitive members satisfying the query.
+    #[serde(default)]
+    pub memberships: ::core::option::Option<::std::vec::Vec<MemberRelation>>,
+    /// Token to retrieve the next page of results, or empty if there are no more results.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+}
+
+/// The definition of security settings.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SecuritySettings {
+    /// The Member Restriction value
+    #[serde(default, rename = "memberRestriction")]
+    pub member_restriction: ::core::option::Option<MemberRestriction>,
+    /// Output only. The resource name of the security settings. Shall be of the form groups/{group_id}/securitySettings.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+}
+
+/// LRO response metadata for InboundOidcSsoProfilesService.UpdateInboundOidcSsoProfile.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct UpdateInboundOidcSsoProfileOperationMetadata {
+    /// State of this Operation Will be "awaiting-multi-party-approval" when the operation is deferred due to the target customer having enabled [Multi-party approval for sensitive actions](https://support.google.com/a/answer/13790448).
+    #[serde(default)]
+    pub state: ::core::option::Option<String>,
+}
+
+/// LRO response metadata for InboundSamlSsoProfilesService.UpdateInboundSamlSsoProfile.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct UpdateInboundSamlSsoProfileOperationMetadata {
+    /// State of this Operation Will be "awaiting-multi-party-approval" when the operation is deferred due to the target customer having enabled [Multi-party approval for sensitive actions](https://support.google.com/a/answer/13790448).
+    #[serde(default)]
+    pub state: ::core::option::Option<String>,
+}
+
+/// Membership graph''s path information as an adjacency list.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MembershipAdjacencyList {
+    /// Each edge contains information about the member that belongs to this group. Note: Fields returned here will help identify the specific Membership resource (e.g name, preferred_member_key and role), but may not be a comprehensive list of all fields.
+    #[serde(default)]
+    pub edges: ::core::option::Option<::std::vec::Vec<Membership>>,
+    /// Resource name of the group that the members belong to.
+    #[serde(default)]
+    pub group: ::core::option::Option<String>,
 }
 
 /// Represents the state associated with an API client calling the Devices API. Resource representing ClientState and supports updates from API users
@@ -361,20 +498,6 @@ pub struct GoogleAppsCloudidentityDevicesV1ClientState {
     /// A descriptive cause of the health score.
     #[serde(default, rename = "scoreReason")]
     pub score_reason: ::core::option::Option<String>,
-}
-
-/// Additional custom attribute values may be one of these types
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleAppsCloudidentityDevicesV1CustomAttributeValue {
-    /// Represents a boolean value.
-    #[serde(default, rename = "boolValue")]
-    pub bool_value: ::core::option::Option<bool>,
-    /// Represents a double value.
-    #[serde(default, rename = "numberValue")]
-    pub number_value: ::core::option::Option<f64>,
-    /// Represents a string value.
-    #[serde(default, rename = "stringValue")]
-    pub string_value: ::core::option::Option<String>,
 }
 
 ///  A Device within the Cloud Identity Devices API. Represents a Device known to Google Cloud, independent of the device ownership, type, and whether it is assigned or in use by a user.
@@ -516,165 +639,6 @@ pub struct GoogleAppsCloudidentityDevicesV1DeviceUser {
     pub user_email: ::core::option::Option<String>,
 }
 
-/// Resource representing the [Endpoint Verification-specific attributes](https://cloud.google.com/endpoint-verification/docs/device-information) of a device.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleAppsCloudidentityDevicesV1EndpointVerificationSpecificAttributes {
-    /// [Additional signals](https://cloud.google.com/endpoint-verification/docs/device-information) reported by Endpoint Verification. It includes the following attributes: * Non-configurable attributes: hotfixes, av_installed, av_enabled, windows_domain_name, is_os_native_firewall_enabled, and is_secure_boot_enabled. * [Configurable attributes](https://cloud.google.com/endpoint-verification/docs/collect-config-attributes): file, folder, and binary attributes; registry entries; and properties in a plist.
-    #[serde(default, rename = "additionalSignals")]
-    pub additional_signals: ::core::option::Option<serde_json::Value>,
-    /// Details of browser profiles reported by Endpoint Verification.
-    #[serde(default, rename = "browserAttributes")]
-    pub browser_attributes:
-        ::core::option::Option<::std::vec::Vec<GoogleAppsCloudidentityDevicesV1BrowserAttributes>>,
-    /// Details of certificates.
-    #[serde(default, rename = "certificateAttributes")]
-    pub certificate_attributes: ::core::option::Option<
-        ::std::vec::Vec<GoogleAppsCloudidentityDevicesV1CertificateAttributes>,
-    >,
-}
-
-/// Response message that is returned in ListClientStates.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleAppsCloudidentityDevicesV1ListClientStatesResponse {
-    /// Client states meeting the list restrictions.
-    #[serde(default, rename = "clientStates")]
-    pub client_states:
-        ::core::option::Option<::std::vec::Vec<GoogleAppsCloudidentityDevicesV1ClientState>>,
-    /// Token to retrieve the next page of results. Empty if there are no more results.
-    #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: ::core::option::Option<String>,
-}
-
-/// Response message that is returned from the ListDeviceUsers method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleAppsCloudidentityDevicesV1ListDeviceUsersResponse {
-    /// Devices meeting the list restrictions.
-    #[serde(default, rename = "deviceUsers")]
-    pub device_users:
-        ::core::option::Option<::std::vec::Vec<GoogleAppsCloudidentityDevicesV1DeviceUser>>,
-    /// Token to retrieve the next page of results. Empty if there are no more results.
-    #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: ::core::option::Option<String>,
-}
-
-/// Response message that is returned from the ListDevices method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleAppsCloudidentityDevicesV1ListDevicesResponse {
-    /// Devices meeting the list restrictions.
-    #[serde(default)]
-    pub devices: ::core::option::Option<::std::vec::Vec<GoogleAppsCloudidentityDevicesV1Device>>,
-    /// Token to retrieve the next page of results. Empty if there are no more results.
-    #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: ::core::option::Option<String>,
-}
-
-/// Response containing resource names of the DeviceUsers associated with the caller''s credentials.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleAppsCloudidentityDevicesV1LookupSelfDeviceUsersResponse {
-    /// The customer resource name that may be passed back to other Devices API methods such as List, Get, etc.
-    #[serde(default)]
-    pub customer: ::core::option::Option<String>,
-    /// [Resource names](https://cloud.google.com/apis/design/resource_names) of the DeviceUsers in the format: devices/{device}/deviceUsers/{user_resource}, where device is the unique ID assigned to a Device and user_resource is the unique user ID
-    #[serde(default)]
-    pub names: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Token to retrieve the next page of results. Empty if there are no more results.
-    #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: ::core::option::Option<String>,
-}
-
-/// Request message for wiping all data on the device.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleAppsCloudidentityDevicesV1WipeDeviceRequest {
-    /// Optional. [Resource name](https://cloud.google.com/apis/design/resource_names) of the customer. If you''re using this API for your own organization, use customers/my_customer If you''re using this API to manage another organization, use customers/{customer}, where customer is the customer to whom the device belongs.
-    #[serde(default)]
-    pub customer: ::core::option::Option<String>,
-    /// Optional. Specifies if a user is able to factory reset a device after a Device Wipe. On iOS, this is called "Activation Lock", while on Android, this is known as "Factory Reset Protection". If true, this protection will be removed from the device, so that a user can successfully factory reset. If false, the setting is untouched on the device.
-    #[serde(default, rename = "removeResetLock")]
-    pub remove_reset_lock: ::core::option::Option<bool>,
-}
-
-/// Response message for wiping all data on the device.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleAppsCloudidentityDevicesV1WipeDeviceResponse {
-    /// Resultant Device object for the action. Note that asset tags will not be returned in the device object.
-    #[serde(default)]
-    pub device: ::core::option::Option<GoogleAppsCloudidentityDevicesV1Device>,
-}
-
-/// Request message for starting an account wipe on device.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleAppsCloudidentityDevicesV1WipeDeviceUserRequest {
-    /// Optional. [Resource name](https://cloud.google.com/apis/design/resource_names) of the customer. If you''re using this API for your own organization, use customers/my_customer If you''re using this API to manage another organization, use customers/{customer}, where customer is the customer to whom the device belongs.
-    #[serde(default)]
-    pub customer: ::core::option::Option<String>,
-}
-
-/// Response message for wiping the user''s account from the device.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleAppsCloudidentityDevicesV1WipeDeviceUserResponse {
-    /// Resultant DeviceUser object for the action.
-    #[serde(default, rename = "deviceUser")]
-    pub device_user: ::core::option::Option<GoogleAppsCloudidentityDevicesV1DeviceUser>,
-}
-
-/// A group within the Cloud Identity Groups API. A Group is a collection of entities, where each entity is either a user, another group, or a service account.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Group {
-    /// Output only. Additional group keys associated with the Group.
-    #[serde(default, rename = "additionalGroupKeys")]
-    pub additional_group_keys: ::core::option::Option<::std::vec::Vec<EntityKey>>,
-    /// Output only. The time when the Group was created.
-    #[serde(default, rename = "createTime")]
-    pub create_time: ::core::option::Option<String>,
-    /// An extended description to help users determine the purpose of a Group. Must not be longer than 4,096 characters.
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// The display name of the Group.
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-    /// Optional. Dynamic group metadata like queries and status.
-    #[serde(default, rename = "dynamicGroupMetadata")]
-    pub dynamic_group_metadata: ::core::option::Option<DynamicGroupMetadata>,
-    /// Required. The EntityKey of the Group.
-    #[serde(default, rename = "groupKey")]
-    pub group_key: ::core::option::Option<EntityKey>,
-    /// Required. One or more label entries that apply to the Group. Labels contain a key with an empty value. Google Groups are the default type of group and have a label with a key of cloudidentity.googleapis.com/groups.discussion_forum and an empty value. Existing Google Groups can have an additional label with a key of cloudidentity.googleapis.com/groups.security and an empty value added to them. **This is an immutable change and the security label cannot be removed once added.** Dynamic groups have a label with a key of cloudidentity.googleapis.com/groups.dynamic. Identity-mapped groups for Cloud Search have a label with a key of system/groups/external and an empty value. Google Groups can be [locked](https://support.google.com/a?p=locked-groups). To lock a group, add a label with a key of cloudidentity.googleapis.com/groups.locked and an empty value. Doing so locks the group. To unlock the group, remove this label.
-    #[serde(default)]
-    pub labels: ::core::option::Option<serde_json::Value>,
-    /// Output only. The [resource name](https://cloud.google.com/apis/design/resource_names) of the Group. Shall be of the form groups/{group}.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Required. Immutable. The resource name of the entity under which this Group resides in the Cloud Identity resource hierarchy. Must be of the form identitysources/{identity_source} for external [identity-mapped groups](https://support.google.com/a/answer/9039510) or customers/{customer_id} for Google Groups. The customer_id must begin with "C" (for example, ''C046psxkn''). [Find your customer ID.] (https://support.google.com/cloudidentity/answer/10070793)
-    #[serde(default)]
-    pub parent: ::core::option::Option<String>,
-    /// Output only. The time when the Group was last updated.
-    #[serde(default, rename = "updateTime")]
-    pub update_time: ::core::option::Option<String>,
-}
-
-/// Message representing a transitive group of a user or a group.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GroupRelation {
-    /// Display name for this group.
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-    /// Resource name for this group.
-    #[serde(default)]
-    pub group: ::core::option::Option<String>,
-    /// Entity key has an id and a namespace. In case of discussion forums, the id will be an email address without a namespace.
-    #[serde(default, rename = "groupKey")]
-    pub group_key: ::core::option::Option<EntityKey>,
-    /// Labels for Group resource.
-    #[serde(default)]
-    pub labels: ::core::option::Option<serde_json::Value>,
-    /// The relation between the member and the transitive group. // TODO: enum values: ["RELATION_TYPE_UNSPECIFIED", "DIRECT", "INDIRECT", "DIRECT_AND_INDIRECT"]
-    #[serde(default, rename = "relationType")]
-    pub relation_type: ::core::option::Option<String>,
-    /// Membership roles of the member for the group.
-    #[serde(default)]
-    pub roles: ::core::option::Option<::std::vec::Vec<TransitiveMembershipRole>>,
-}
-
 /// Credential for verifying signatures produced by the Identity Provider.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct IdpCredential {
@@ -764,116 +728,150 @@ pub struct InboundSsoAssignment {
     pub target_org_unit: ::core::option::Option<String>,
 }
 
-/// Response for IsInvitableUser RPC.
+/// A Policy resource binds an instance of a single Setting with the scope of a PolicyQuery. The Setting instance will be applied to all entities that satisfy the query.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct IsInvitableUserResponse {
-    /// Returns true if the email address is invitable.
-    #[serde(default, rename = "isInvitableUser")]
-    pub is_invitable_user: ::core::option::Option<bool>,
-}
-
-/// Response message for ListGroups operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ListGroupsResponse {
-    /// Groups returned in response to list request. The results are not sorted.
+pub struct Policy {
+    /// Immutable. Customer that the Policy belongs to. The value is in the format ''customers/{customerId}''. The customerId must begin with "C" To find your customer ID in Admin Console see https://support.google.com/a/answer/10070793.
     #[serde(default)]
-    pub groups: ::core::option::Option<::std::vec::Vec<Group>>,
-    /// Token to retrieve the next page of results, or empty if there are no more results available for listing.
-    #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: ::core::option::Option<String>,
-}
-
-/// Response of the InboundSamlSsoProfilesService.ListIdpCredentials method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ListIdpCredentialsResponse {
-    /// The IdpCredentials from the specified InboundSamlSsoProfile.
-    #[serde(default, rename = "idpCredentials")]
-    pub idp_credentials: ::core::option::Option<::std::vec::Vec<IdpCredential>>,
-    /// A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
-    #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: ::core::option::Option<String>,
-}
-
-/// Response of the InboundOidcSsoProfilesService.ListInboundOidcSsoProfiles method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ListInboundOidcSsoProfilesResponse {
-    /// List of InboundOidcSsoProfiles.
-    #[serde(default, rename = "inboundOidcSsoProfiles")]
-    pub inbound_oidc_sso_profiles: ::core::option::Option<::std::vec::Vec<InboundOidcSsoProfile>>,
-    /// A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
-    #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: ::core::option::Option<String>,
-}
-
-/// Response of the InboundSamlSsoProfilesService.ListInboundSamlSsoProfiles method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ListInboundSamlSsoProfilesResponse {
-    /// List of InboundSamlSsoProfiles.
-    #[serde(default, rename = "inboundSamlSsoProfiles")]
-    pub inbound_saml_sso_profiles: ::core::option::Option<::std::vec::Vec<InboundSamlSsoProfile>>,
-    /// A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
-    #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: ::core::option::Option<String>,
-}
-
-/// Response of the InboundSsoAssignmentsService.ListInboundSsoAssignments method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ListInboundSsoAssignmentsResponse {
-    /// The assignments.
-    #[serde(default, rename = "inboundSsoAssignments")]
-    pub inbound_sso_assignments: ::core::option::Option<::std::vec::Vec<InboundSsoAssignment>>,
-    /// A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
-    #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: ::core::option::Option<String>,
-}
-
-/// The response message for MembershipsService.ListMemberships.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ListMembershipsResponse {
-    /// The Memberships under the specified parent.
-    #[serde(default)]
-    pub memberships: ::core::option::Option<::std::vec::Vec<Membership>>,
-    /// A continuation token to retrieve the next page of results, or empty if there are no more results available.
-    #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: ::core::option::Option<String>,
-}
-
-/// The response message for PoliciesService.ListPolicies.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ListPoliciesResponse {
-    /// The pagination token to retrieve the next page of results. If this field is empty, there are no subsequent pages.
-    #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: ::core::option::Option<String>,
-    /// The results
-    #[serde(default)]
-    pub policies: ::core::option::Option<::std::vec::Vec<Policy>>,
-}
-
-/// Response message for UserInvitation listing request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ListUserInvitationsResponse {
-    /// The token for the next page. If not empty, indicates that there may be more UserInvitation resources that match the listing request; this value can be used in a subsequent ListUserInvitationsRequest to get continued results with the current list call.
-    #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: ::core::option::Option<String>,
-    /// The list of UserInvitation resources.
-    #[serde(default, rename = "userInvitations")]
-    pub user_invitations: ::core::option::Option<::std::vec::Vec<UserInvitation>>,
-}
-
-/// The response message for GroupsService.LookupGroupName.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct LookupGroupNameResponse {
-    /// The [resource name](https://cloud.google.com/apis/design/resource_names) of the looked-up Group.
+    pub customer: ::core::option::Option<String>,
+    /// Output only. Identifier. The [resource name](https://cloud.google.com/apis/design/resource_names) of the Policy. Format: policies/{policy}.
     #[serde(default)]
     pub name: ::core::option::Option<String>,
+    /// Required. The PolicyQuery the Setting applies to.
+    #[serde(default, rename = "policyQuery")]
+    pub policy_query: ::core::option::Option<PolicyQuery>,
+    /// Required. The Setting configured by this Policy.
+    #[serde(default)]
+    pub setting: ::core::option::Option<Setting>,
+    /// Output only. The type of the policy. // TODO: enum values: ["POLICY_TYPE_UNSPECIFIED", "SYSTEM", "ADMIN"]
+    #[serde(default, rename = "type")]
+    pub type_: ::core::option::Option<String>,
 }
 
-/// The response message for MembershipsService.LookupMembershipName.
+/// The UserInvitation resource represents an email that can be sent to an unmanaged user account inviting them to join the customer''s Google Workspace or Cloud Identity account. An unmanaged account shares an email address domain with the Google Workspace or Cloud Identity account but is not managed by it yet. If the user accepts the UserInvitation, the user account will become managed.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct LookupMembershipNameResponse {
-    /// The [resource name](https://cloud.google.com/apis/design/resource_names) of the looked-up Membership. Must be of the form groups/{group}/memberships/{membership}.
+pub struct UserInvitation {
+    /// Number of invitation emails sent to the user.
+    #[serde(default, rename = "mailsSentCount")]
+    pub mails_sent_count: ::core::option::Option<String>,
+    /// Shall be of the form customers/{customer}/userinvitations/{user_email_address}.
     #[serde(default)]
     pub name: ::core::option::Option<String>,
+    /// State of the UserInvitation. // TODO: enum values: ["STATE_UNSPECIFIED", "NOT_YET_SENT", "INVITED", "ACCEPTED", "DECLINED"]
+    #[serde(default)]
+    pub state: ::core::option::Option<String>,
+    /// Time when the UserInvitation was last updated.
+    #[serde(default, rename = "updateTime")]
+    pub update_time: ::core::option::Option<String>,
+}
+
+/// The details of an update to a MembershipRole.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct UpdateMembershipRolesParams {
+    /// The fully-qualified names of fields to update. May only contain the field expiry_detail.expire_time.
+    #[serde(default, rename = "fieldMask")]
+    pub field_mask: ::core::option::Option<String>,
+    /// The MembershipRoles to be updated. Only MEMBER MembershipRole can currently be updated.
+    #[serde(default, rename = "membershipRole")]
+    pub membership_role: ::core::option::Option<MembershipRole>,
+}
+
+/// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Status {
+    /// The status code, which should be an enum value of google.rpc.Code.
+    #[serde(default)]
+    pub code: ::core::option::Option<i32>,
+    /// A list of messages that carry the error details. There is a common set of message types for APIs to use.
+    #[serde(default)]
+    pub details: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
+    /// A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.
+    #[serde(default)]
+    pub message: ::core::option::Option<String>,
+}
+
+/// Message containing membership relation.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MembershipRelation {
+    /// An extended description to help users determine the purpose of a Group.
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+    /// The display name of the Group.
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+    /// The [resource name](https://cloud.google.com/apis/design/resource_names) of the Group. Shall be of the form groups/{group_id}.
+    #[serde(default)]
+    pub group: ::core::option::Option<String>,
+    /// The EntityKey of the Group.
+    #[serde(default, rename = "groupKey")]
+    pub group_key: ::core::option::Option<EntityKey>,
+    /// One or more label entries that apply to the Group. Currently supported labels contain a key with an empty value.
+    #[serde(default)]
+    pub labels: ::core::option::Option<serde_json::Value>,
+    /// The [resource name](https://cloud.google.com/apis/design/resource_names) of the Membership. Shall be of the form groups/{group_id}/memberships/{membership_id}.
+    #[serde(default)]
+    pub membership: ::core::option::Option<String>,
+    /// The MembershipRoles that apply to the Membership.
+    #[serde(default)]
+    pub roles: ::core::option::Option<::std::vec::Vec<MembershipRole>>,
+}
+
+/// A group within the Cloud Identity Groups API. A Group is a collection of entities, where each entity is either a user, another group, or a service account.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Group {
+    /// Output only. Additional group keys associated with the Group.
+    #[serde(default, rename = "additionalGroupKeys")]
+    pub additional_group_keys: ::core::option::Option<::std::vec::Vec<EntityKey>>,
+    /// Output only. The time when the Group was created.
+    #[serde(default, rename = "createTime")]
+    pub create_time: ::core::option::Option<String>,
+    /// An extended description to help users determine the purpose of a Group. Must not be longer than 4,096 characters.
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+    /// The display name of the Group.
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+    /// Optional. Dynamic group metadata like queries and status.
+    #[serde(default, rename = "dynamicGroupMetadata")]
+    pub dynamic_group_metadata: ::core::option::Option<DynamicGroupMetadata>,
+    /// Required. The EntityKey of the Group.
+    #[serde(default, rename = "groupKey")]
+    pub group_key: ::core::option::Option<EntityKey>,
+    /// Required. One or more label entries that apply to the Group. Labels contain a key with an empty value. Google Groups are the default type of group and have a label with a key of cloudidentity.googleapis.com/groups.discussion_forum and an empty value. Existing Google Groups can have an additional label with a key of cloudidentity.googleapis.com/groups.security and an empty value added to them. **This is an immutable change and the security label cannot be removed once added.** Dynamic groups have a label with a key of cloudidentity.googleapis.com/groups.dynamic. Identity-mapped groups for Cloud Search have a label with a key of system/groups/external and an empty value. Google Groups can be [locked](https://support.google.com/a?p=locked-groups). To lock a group, add a label with a key of cloudidentity.googleapis.com/groups.locked and an empty value. Doing so locks the group. To unlock the group, remove this label.
+    #[serde(default)]
+    pub labels: ::core::option::Option<serde_json::Value>,
+    /// Output only. The [resource name](https://cloud.google.com/apis/design/resource_names) of the Group. Shall be of the form groups/{group}.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Required. Immutable. The resource name of the entity under which this Group resides in the Cloud Identity resource hierarchy. Must be of the form identitysources/{identity_source} for external [identity-mapped groups](https://support.google.com/a/answer/9039510) or customers/{customer_id} for Google Groups. The customer_id must begin with "C" (for example, ''C046psxkn''). [Find your customer ID.] (https://support.google.com/cloudidentity/answer/10070793)
+    #[serde(default)]
+    pub parent: ::core::option::Option<String>,
+    /// Output only. The time when the Group was last updated.
+    #[serde(default, rename = "updateTime")]
+    pub update_time: ::core::option::Option<String>,
+}
+
+/// Message representing a transitive group of a user or a group.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GroupRelation {
+    /// Display name for this group.
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+    /// Resource name for this group.
+    #[serde(default)]
+    pub group: ::core::option::Option<String>,
+    /// Entity key has an id and a namespace. In case of discussion forums, the id will be an email address without a namespace.
+    #[serde(default, rename = "groupKey")]
+    pub group_key: ::core::option::Option<EntityKey>,
+    /// Labels for Group resource.
+    #[serde(default)]
+    pub labels: ::core::option::Option<serde_json::Value>,
+    /// The relation between the member and the transitive group. // TODO: enum values: ["RELATION_TYPE_UNSPECIFIED", "DIRECT", "INDIRECT", "DIRECT_AND_INDIRECT"]
+    #[serde(default, rename = "relationType")]
+    pub relation_type: ::core::option::Option<String>,
+    /// Membership roles of the member for the group.
+    #[serde(default)]
+    pub roles: ::core::option::Option<::std::vec::Vec<TransitiveMembershipRole>>,
 }
 
 /// Message representing a transitive membership of a group.
@@ -930,85 +928,66 @@ pub struct Membership {
     pub update_time: ::core::option::Option<String>,
 }
 
-/// Membership graph''s path information as an adjacency list.
+/// Resource representing the Android specific attributes of a Device.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct MembershipAdjacencyList {
-    /// Each edge contains information about the member that belongs to this group. Note: Fields returned here will help identify the specific Membership resource (e.g name, preferred_member_key and role), but may not be a comprehensive list of all fields.
-    #[serde(default)]
-    pub edges: ::core::option::Option<::std::vec::Vec<Membership>>,
-    /// Resource name of the group that the members belong to.
-    #[serde(default)]
-    pub group: ::core::option::Option<String>,
+pub struct GoogleAppsCloudidentityDevicesV1AndroidAttributes {
+    /// Whether the device passes Android CTS compliance.
+    #[serde(default, rename = "ctsProfileMatch")]
+    pub cts_profile_match: ::core::option::Option<bool>,
+    /// Whether applications from unknown sources can be installed on device.
+    #[serde(default, rename = "enabledUnknownSources")]
+    pub enabled_unknown_sources: ::core::option::Option<bool>,
+    /// Whether any potentially harmful apps were detected on the device.
+    #[serde(default, rename = "hasPotentiallyHarmfulApps")]
+    pub has_potentially_harmful_apps: ::core::option::Option<bool>,
+    /// Whether this account is on an owner/primary profile. For phones, only true for owner profiles. Android 4+ devices can have secondary or restricted user profiles.
+    #[serde(default, rename = "ownerProfileAccount")]
+    pub owner_profile_account: ::core::option::Option<bool>,
+    /// Ownership privileges on device. // TODO: enum values: ["OWNERSHIP_PRIVILEGE_UNSPECIFIED", "DEVICE_ADMINISTRATOR", "PROFILE_OWNER", "DEVICE_OWNER"]
+    #[serde(default, rename = "ownershipPrivilege")]
+    pub ownership_privilege: ::core::option::Option<String>,
+    /// Whether device supports Android work profiles. If false, this service will not block access to corp data even if an administrator turns on the "Enforce Work Profile" policy.
+    #[serde(default, rename = "supportsWorkProfile")]
+    pub supports_work_profile: ::core::option::Option<bool>,
+    /// Whether Android verified boot status is GREEN.
+    #[serde(default, rename = "verifiedBoot")]
+    pub verified_boot: ::core::option::Option<bool>,
+    /// Whether Google Play Protect Verify Apps is enabled.
+    #[serde(default, rename = "verifyAppsEnabled")]
+    pub verify_apps_enabled: ::core::option::Option<bool>,
 }
 
-/// Message containing membership relation.
+/// Resource representing the [Endpoint Verification-specific attributes](https://cloud.google.com/endpoint-verification/docs/device-information) of a device.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct MembershipRelation {
-    /// An extended description to help users determine the purpose of a Group.
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// The display name of the Group.
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-    /// The [resource name](https://cloud.google.com/apis/design/resource_names) of the Group. Shall be of the form groups/{group_id}.
-    #[serde(default)]
-    pub group: ::core::option::Option<String>,
-    /// The EntityKey of the Group.
-    #[serde(default, rename = "groupKey")]
-    pub group_key: ::core::option::Option<EntityKey>,
-    /// One or more label entries that apply to the Group. Currently supported labels contain a key with an empty value.
-    #[serde(default)]
-    pub labels: ::core::option::Option<serde_json::Value>,
-    /// The [resource name](https://cloud.google.com/apis/design/resource_names) of the Membership. Shall be of the form groups/{group_id}/memberships/{membership_id}.
-    #[serde(default)]
-    pub membership: ::core::option::Option<String>,
-    /// The MembershipRoles that apply to the Membership.
-    #[serde(default)]
-    pub roles: ::core::option::Option<::std::vec::Vec<MembershipRole>>,
+pub struct GoogleAppsCloudidentityDevicesV1EndpointVerificationSpecificAttributes {
+    /// [Additional signals](https://cloud.google.com/endpoint-verification/docs/device-information) reported by Endpoint Verification. It includes the following attributes: * Non-configurable attributes: hotfixes, av_installed, av_enabled, windows_domain_name, is_os_native_firewall_enabled, and is_secure_boot_enabled. * [Configurable attributes](https://cloud.google.com/endpoint-verification/docs/collect-config-attributes): file, folder, and binary attributes; registry entries; and properties in a plist.
+    #[serde(default, rename = "additionalSignals")]
+    pub additional_signals: ::core::option::Option<serde_json::Value>,
+    /// Details of browser profiles reported by Endpoint Verification.
+    #[serde(default, rename = "browserAttributes")]
+    pub browser_attributes:
+        ::core::option::Option<::std::vec::Vec<GoogleAppsCloudidentityDevicesV1BrowserAttributes>>,
+    /// Details of certificates.
+    #[serde(default, rename = "certificateAttributes")]
+    pub certificate_attributes: ::core::option::Option<
+        ::std::vec::Vec<GoogleAppsCloudidentityDevicesV1CertificateAttributes>,
+    >,
 }
 
-/// A membership role within the Cloud Identity Groups API. A MembershipRole defines the privileges granted to a Membership.
+/// Information of a DSA public key.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct MembershipRole {
-    /// The expiry details of the MembershipRole. Expiry details are only supported for MEMBER MembershipRoles. May be set if name is MEMBER. Must not be set if name is any other value.
-    #[serde(default, rename = "expiryDetail")]
-    pub expiry_detail: ::core::option::Option<ExpiryDetail>,
-    /// The name of the MembershipRole. Must be one of OWNER, MANAGER, MEMBER.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Evaluations of restrictions applied to parent group on this membership.
-    #[serde(default, rename = "restrictionEvaluations")]
-    pub restriction_evaluations: ::core::option::Option<RestrictionEvaluations>,
+pub struct DsaPublicKeyInfo {
+    /// Key size in bits (size of parameter P).
+    #[serde(default, rename = "keySize")]
+    pub key_size: ::core::option::Option<i32>,
 }
 
-/// The evaluated state of this restriction.
+/// Information of a RSA public key.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct MembershipRoleRestrictionEvaluation {
-    /// Output only. The current state of the restriction // TODO: enum values: ["STATE_UNSPECIFIED", "COMPLIANT", "FORWARD_COMPLIANT", "NON_COMPLIANT", "EVALUATING"]
-    #[serde(default)]
-    pub state: ::core::option::Option<String>,
-}
-
-/// The request message for MembershipsService.ModifyMembershipRoles.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ModifyMembershipRolesRequest {
-    /// The MembershipRoles to be added. Adding or removing roles in the same request as updating roles is not supported. Must not be set if update_roles_params is set.
-    #[serde(default, rename = "addRoles")]
-    pub add_roles: ::core::option::Option<::std::vec::Vec<MembershipRole>>,
-    /// The names of the MembershipRoles to be removed. Adding or removing roles in the same request as updating roles is not supported. It is not possible to remove the MEMBER MembershipRole. If you wish to delete a Membership, call MembershipsService.DeleteMembership instead. Must not contain MEMBER. Must not be set if update_roles_params is set.
-    #[serde(default, rename = "removeRoles")]
-    pub remove_roles: ::core::option::Option<::std::vec::Vec<String>>,
-    /// The MembershipRoles to be updated. Updating roles in the same request as adding or removing roles is not supported. Must not be set if either add_roles or remove_roles is set.
-    #[serde(default, rename = "updateRolesParams")]
-    pub update_roles_params: ::core::option::Option<::std::vec::Vec<UpdateMembershipRolesParams>>,
-}
-
-/// The response message for MembershipsService.ModifyMembershipRoles.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ModifyMembershipRolesResponse {
-    /// The Membership resource after modifying its MembershipRoles.
-    #[serde(default)]
-    pub membership: ::core::option::Option<Membership>,
+pub struct RsaPublicKeyInfo {
+    /// Key size in bits (size of the modulus).
+    #[serde(default, rename = "keySize")]
+    pub key_size: ::core::option::Option<i32>,
 }
 
 /// OIDC IDP (identity provider) configuration.
@@ -1034,95 +1013,6 @@ pub struct OidcRpConfig {
     /// Output only. The URL(s) that this client may use in authentication requests.
     #[serde(default, rename = "redirectUris")]
     pub redirect_uris: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// Details that are applicable when sso_mode is set to OIDC_SSO.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct OidcSsoInfo {
-    /// Required. Name of the InboundOidcSsoProfile to use. Must be of the form inboundOidcSsoProfiles/{inbound_oidc_sso_profile}.
-    #[serde(default, rename = "inboundOidcSsoProfile")]
-    pub inbound_oidc_sso_profile: ::core::option::Option<String>,
-}
-
-/// This resource represents a long-running operation that is the result of a network API call.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Operation {
-    /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
-    #[serde(default)]
-    pub done: ::core::option::Option<bool>,
-    /// The error result of the operation in case of failure or cancellation.
-    #[serde(default)]
-    pub error: ::core::option::Option<Status>,
-    /// Service-specific metadata associated with the operation. It typically contains progress information and common metadata such as create time. Some services might not provide such metadata. Any method that returns a long-running operation should document the metadata type, if any.
-    #[serde(default)]
-    pub metadata: ::core::option::Option<serde_json::Value>,
-    /// The server-assigned name, which is only unique within the same service that originally returns it. If you use the default HTTP mapping, the name should be a resource name ending with operations/{unique_id}.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// The normal, successful response of the operation. If the original method returns no data on success, such as Delete, the response is google.protobuf.Empty. If the original method is standard Get/Create/Update, the response should be the resource. For other methods, the response should have the type XxxResponse, where Xxx is the original method name. For example, if the original method name is TakeSnapshot(), the inferred response type is TakeSnapshotResponse.
-    #[serde(default)]
-    pub response: ::core::option::Option<serde_json::Value>,
-}
-
-/// A Policy resource binds an instance of a single Setting with the scope of a PolicyQuery. The Setting instance will be applied to all entities that satisfy the query.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Policy {
-    /// Immutable. Customer that the Policy belongs to. The value is in the format ''customers/{customerId}''. The customerId must begin with "C" To find your customer ID in Admin Console see https://support.google.com/a/answer/10070793.
-    #[serde(default)]
-    pub customer: ::core::option::Option<String>,
-    /// Output only. Identifier. The [resource name](https://cloud.google.com/apis/design/resource_names) of the Policy. Format: policies/{policy}.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Required. The PolicyQuery the Setting applies to.
-    #[serde(default, rename = "policyQuery")]
-    pub policy_query: ::core::option::Option<PolicyQuery>,
-    /// Required. The Setting configured by this Policy.
-    #[serde(default)]
-    pub setting: ::core::option::Option<Setting>,
-    /// Output only. The type of the policy. // TODO: enum values: ["POLICY_TYPE_UNSPECIFIED", "SYSTEM", "ADMIN"]
-    #[serde(default, rename = "type")]
-    pub type_: ::core::option::Option<String>,
-}
-
-/// PolicyQuery
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PolicyQuery {
-    /// Immutable. The group that the query applies to. This field is only set if there is a single value for group that satisfies all clauses of the query. If no group applies, this will be the empty string.
-    #[serde(default)]
-    pub group: ::core::option::Option<String>,
-    /// Required. Immutable. Non-empty default. The OrgUnit the query applies to. This field is only set if there is a single value for org_unit that satisfies all clauses of the query.
-    #[serde(default, rename = "orgUnit")]
-    pub org_unit: ::core::option::Option<String>,
-    /// Immutable. The CEL query that defines which entities the Policy applies to (ex. a User entity). For details about CEL see https://opensource.google.com/projects/cel. The OrgUnits the Policy applies to are represented by a clause like so: entity.org_units.exists(org_unit, org_unit.org_unit_id == orgUnitId(''{orgUnitId}'')) The Group the Policy applies to are represented by a clause like so: entity.groups.exists(group, group.group_id == groupId(''{groupId}'')) The Licenses the Policy applies to are represented by a clause like so: entity.licenses.exists(license, license in [''/product/{productId}/sku/{skuId}'']) The above clauses can be present in any combination, and used in conjunction with the &&, || and ! operators. The org_unit and group fields below are helper fields that contain the corresponding value(s) as the query to make the query easier to use.
-    #[serde(default)]
-    pub query: ::core::option::Option<String>,
-    /// Output only. The decimal sort order of this PolicyQuery. The value is relative to all other policies with the same setting type for the customer. (There are no duplicates within this set).
-    #[serde(default, rename = "sortOrder")]
-    pub sort_order: ::core::option::Option<f64>,
-}
-
-/// The evaluated state of this restriction.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct RestrictionEvaluation {
-    /// Output only. The current state of the restriction // TODO: enum values: ["STATE_UNSPECIFIED", "EVALUATING", "COMPLIANT", "FORWARD_COMPLIANT", "NON_COMPLIANT"]
-    #[serde(default)]
-    pub state: ::core::option::Option<String>,
-}
-
-/// Evaluations of restrictions applied to parent group on this membership.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct RestrictionEvaluations {
-    /// Evaluation of the member restriction applied to this membership. Empty if the user lacks permission to view the restriction evaluation.
-    #[serde(default, rename = "memberRestrictionEvaluation")]
-    pub member_restriction_evaluation: ::core::option::Option<MembershipRoleRestrictionEvaluation>,
-}
-
-/// Information of a RSA public key.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct RsaPublicKeyInfo {
-    /// Key size in bits (size of the modulus).
-    #[serde(default, rename = "keySize")]
-    pub key_size: ::core::option::Option<i32>,
 }
 
 /// SAML IDP (identity provider) configuration.
@@ -1153,6 +1043,14 @@ pub struct SamlSpConfig {
     pub entity_id: ::core::option::Option<String>,
 }
 
+/// Details that are applicable when sso_mode is set to OIDC_SSO.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct OidcSsoInfo {
+    /// Required. Name of the InboundOidcSsoProfile to use. Must be of the form inboundOidcSsoProfiles/{inbound_oidc_sso_profile}.
+    #[serde(default, rename = "inboundOidcSsoProfile")]
+    pub inbound_oidc_sso_profile: ::core::option::Option<String>,
+}
+
 /// Details that are applicable when sso_mode == SAML_SSO.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SamlSsoInfo {
@@ -1161,59 +1059,29 @@ pub struct SamlSsoInfo {
     pub inbound_saml_sso_profile: ::core::option::Option<String>,
 }
 
-/// The response message for MembershipsService.SearchDirectGroups.
+/// Controls sign-in behavior.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SearchDirectGroupsResponse {
-    /// List of direct groups satisfying the query.
-    #[serde(default)]
-    pub memberships: ::core::option::Option<::std::vec::Vec<MembershipRelation>>,
-    /// Token to retrieve the next page of results, or empty if there are no more results available for listing.
-    #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: ::core::option::Option<String>,
+pub struct SignInBehavior {
+    /// When to redirect sign-ins to the IdP. // TODO: enum values: ["REDIRECT_CONDITION_UNSPECIFIED", "NEVER"]
+    #[serde(default, rename = "redirectCondition")]
+    pub redirect_condition: ::core::option::Option<String>,
 }
 
-/// The response message for GroupsService.SearchGroups.
+/// PolicyQuery
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SearchGroupsResponse {
-    /// The Group resources that match the search query.
+pub struct PolicyQuery {
+    /// Immutable. The group that the query applies to. This field is only set if there is a single value for group that satisfies all clauses of the query. If no group applies, this will be the empty string.
     #[serde(default)]
-    pub groups: ::core::option::Option<::std::vec::Vec<Group>>,
-    /// A continuation token to retrieve the next page of results, or empty if there are no more results available.
-    #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: ::core::option::Option<String>,
-}
-
-/// The response message for MembershipsService.SearchTransitiveGroups.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SearchTransitiveGroupsResponse {
-    /// List of transitive groups satisfying the query.
+    pub group: ::core::option::Option<String>,
+    /// Required. Immutable. Non-empty default. The OrgUnit the query applies to. This field is only set if there is a single value for org_unit that satisfies all clauses of the query.
+    #[serde(default, rename = "orgUnit")]
+    pub org_unit: ::core::option::Option<String>,
+    /// Immutable. The CEL query that defines which entities the Policy applies to (ex. a User entity). For details about CEL see https://opensource.google.com/projects/cel. The OrgUnits the Policy applies to are represented by a clause like so: entity.org_units.exists(org_unit, org_unit.org_unit_id == orgUnitId(''{orgUnitId}'')) The Group the Policy applies to are represented by a clause like so: entity.groups.exists(group, group.group_id == groupId(''{groupId}'')) The Licenses the Policy applies to are represented by a clause like so: entity.licenses.exists(license, license in [''/product/{productId}/sku/{skuId}'']) The above clauses can be present in any combination, and used in conjunction with the &&, || and ! operators. The org_unit and group fields below are helper fields that contain the corresponding value(s) as the query to make the query easier to use.
     #[serde(default)]
-    pub memberships: ::core::option::Option<::std::vec::Vec<GroupRelation>>,
-    /// Token to retrieve the next page of results, or empty if there are no more results available for listing.
-    #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: ::core::option::Option<String>,
-}
-
-/// The response message for MembershipsService.SearchTransitiveMemberships.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SearchTransitiveMembershipsResponse {
-    /// List of transitive members satisfying the query.
-    #[serde(default)]
-    pub memberships: ::core::option::Option<::std::vec::Vec<MemberRelation>>,
-    /// Token to retrieve the next page of results, or empty if there are no more results.
-    #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: ::core::option::Option<String>,
-}
-
-/// The definition of security settings.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SecuritySettings {
-    /// The Member Restriction value
-    #[serde(default, rename = "memberRestriction")]
-    pub member_restriction: ::core::option::Option<MemberRestriction>,
-    /// Output only. The resource name of the security settings. Shall be of the form groups/{group_id}/securitySettings.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
+    pub query: ::core::option::Option<String>,
+    /// Output only. The decimal sort order of this PolicyQuery. The value is relative to all other policies with the same setting type for the customer. (There are no duplicates within this set).
+    #[serde(default, rename = "sortOrder")]
+    pub sort_order: ::core::option::Option<f64>,
 }
 
 /// Setting
@@ -1227,26 +1095,15 @@ pub struct Setting {
     pub value: ::core::option::Option<serde_json::Value>,
 }
 
-/// Controls sign-in behavior.
+/// Dynamic group metadata like queries and status.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SignInBehavior {
-    /// When to redirect sign-ins to the IdP. // TODO: enum values: ["REDIRECT_CONDITION_UNSPECIFIED", "NEVER"]
-    #[serde(default, rename = "redirectCondition")]
-    pub redirect_condition: ::core::option::Option<String>,
-}
-
-/// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Status {
-    /// The status code, which should be an enum value of google.rpc.Code.
+pub struct DynamicGroupMetadata {
+    /// Memberships will be the union of all queries. Only one entry with USER resource is currently supported. Customers can create up to 500 dynamic groups.
     #[serde(default)]
-    pub code: ::core::option::Option<i32>,
-    /// A list of messages that carry the error details. There is a common set of message types for APIs to use.
+    pub queries: ::core::option::Option<::std::vec::Vec<DynamicGroupQuery>>,
+    /// Output only. Status of the dynamic group.
     #[serde(default)]
-    pub details: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
-    /// A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.
-    #[serde(default)]
-    pub message: ::core::option::Option<String>,
+    pub status: ::core::option::Option<DynamicGroupStatus>,
 }
 
 /// Message representing the role of a TransitiveMembership.
@@ -1257,46 +1114,189 @@ pub struct TransitiveMembershipRole {
     pub role: ::core::option::Option<String>,
 }
 
-/// LRO response metadata for InboundOidcSsoProfilesService.UpdateInboundOidcSsoProfile.
+/// The evaluated state of this restriction.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct UpdateInboundOidcSsoProfileOperationMetadata {
-    /// State of this Operation Will be "awaiting-multi-party-approval" when the operation is deferred due to the target customer having enabled [Multi-party approval for sensitive actions](https://support.google.com/a/answer/13790448).
+pub struct RestrictionEvaluation {
+    /// Output only. The current state of the restriction // TODO: enum values: ["STATE_UNSPECIFIED", "EVALUATING", "COMPLIANT", "FORWARD_COMPLIANT", "NON_COMPLIANT"]
     #[serde(default)]
     pub state: ::core::option::Option<String>,
 }
 
-/// LRO response metadata for InboundSamlSsoProfilesService.UpdateInboundSamlSsoProfile.
+/// A unique identifier for an entity in the Cloud Identity Groups API. An entity can represent either a group with an optional namespace or a user without a namespace. The combination of id and namespace must be unique; however, the same id can be used with different namespaces.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct UpdateInboundSamlSsoProfileOperationMetadata {
-    /// State of this Operation Will be "awaiting-multi-party-approval" when the operation is deferred due to the target customer having enabled [Multi-party approval for sensitive actions](https://support.google.com/a/answer/13790448).
+pub struct EntityKey {
+    /// The ID of the entity. For Google-managed entities, the id should be the email address of an existing group or user. Email addresses need to adhere to [name guidelines for users and groups](https://support.google.com/a/answer/9193374). For external-identity-mapped entities, the id must be a string conforming to the Identity Source''s requirements. Must be unique within a namespace.
     #[serde(default)]
-    pub state: ::core::option::Option<String>,
+    pub id: ::core::option::Option<String>,
+    /// The namespace in which the entity exists. If not specified, the EntityKey represents a Google-managed entity such as a Google user or a Google Group. If specified, the EntityKey represents an external-identity-mapped group. The namespace must correspond to an identity source created in Admin Console and must be in the form of identitysources/{identity_source}.
+    #[serde(default)]
+    pub namespace: ::core::option::Option<String>,
 }
 
-/// The details of an update to a MembershipRole.
+/// A membership role within the Cloud Identity Groups API. A MembershipRole defines the privileges granted to a Membership.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct UpdateMembershipRolesParams {
-    /// The fully-qualified names of fields to update. May only contain the field expiry_detail.expire_time.
-    #[serde(default, rename = "fieldMask")]
-    pub field_mask: ::core::option::Option<String>,
-    /// The MembershipRoles to be updated. Only MEMBER MembershipRole can currently be updated.
-    #[serde(default, rename = "membershipRole")]
-    pub membership_role: ::core::option::Option<MembershipRole>,
-}
-
-/// The UserInvitation resource represents an email that can be sent to an unmanaged user account inviting them to join the customer''s Google Workspace or Cloud Identity account. An unmanaged account shares an email address domain with the Google Workspace or Cloud Identity account but is not managed by it yet. If the user accepts the UserInvitation, the user account will become managed.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct UserInvitation {
-    /// Number of invitation emails sent to the user.
-    #[serde(default, rename = "mailsSentCount")]
-    pub mails_sent_count: ::core::option::Option<String>,
-    /// Shall be of the form customers/{customer}/userinvitations/{user_email_address}.
+pub struct MembershipRole {
+    /// The expiry details of the MembershipRole. Expiry details are only supported for MEMBER MembershipRoles. May be set if name is MEMBER. Must not be set if name is any other value.
+    #[serde(default, rename = "expiryDetail")]
+    pub expiry_detail: ::core::option::Option<ExpiryDetail>,
+    /// The name of the MembershipRole. Must be one of OWNER, MANAGER, MEMBER.
     #[serde(default)]
     pub name: ::core::option::Option<String>,
-    /// State of the UserInvitation. // TODO: enum values: ["STATE_UNSPECIFIED", "NOT_YET_SENT", "INVITED", "ACCEPTED", "DECLINED"]
+    /// Evaluations of restrictions applied to parent group on this membership.
+    #[serde(default, rename = "restrictionEvaluations")]
+    pub restriction_evaluations: ::core::option::Option<RestrictionEvaluations>,
+}
+
+/// Contains information about browser profiles reported by the [Endpoint Verification extension](https://chromewebstore.google.com/detail/endpoint-verification/callobklhcbilhphinckomhgkigmfocg?pli=1).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleAppsCloudidentityDevicesV1BrowserAttributes {
+    /// Represents the current state of the [Chrome browser attributes](https://cloud.google.com/access-context-manager/docs/browser-attributes) sent by the [Endpoint Verification extension](https://chromewebstore.google.com/detail/endpoint-verification/callobklhcbilhphinckomhgkigmfocg?pli=1).
+    #[serde(default, rename = "chromeBrowserInfo")]
+    pub chrome_browser_info: ::core::option::Option<GoogleAppsCloudidentityDevicesV1BrowserInfo>,
+    /// Chrome profile ID that is exposed by the Chrome API. It is unique for each device.
+    #[serde(default, rename = "chromeProfileId")]
+    pub chrome_profile_id: ::core::option::Option<String>,
+    /// Timestamp in milliseconds since the Unix epoch when the profile/gcm id was last synced.
+    #[serde(default, rename = "lastProfileSyncTime")]
+    pub last_profile_sync_time: ::core::option::Option<String>,
+}
+
+/// Stores information about a certificate.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleAppsCloudidentityDevicesV1CertificateAttributes {
+    /// The X.509 extension for CertificateTemplate.
+    #[serde(default, rename = "certificateTemplate")]
+    pub certificate_template:
+        ::core::option::Option<GoogleAppsCloudidentityDevicesV1CertificateTemplate>,
+    /// The encoded certificate fingerprint.
+    #[serde(default)]
+    pub fingerprint: ::core::option::Option<String>,
+    /// The name of the issuer of this certificate.
+    #[serde(default)]
+    pub issuer: ::core::option::Option<String>,
+    /// Serial number of the certificate, Example: "123456789".
+    #[serde(default, rename = "serialNumber")]
+    pub serial_number: ::core::option::Option<String>,
+    /// The subject name of this certificate.
+    #[serde(default)]
+    pub subject: ::core::option::Option<String>,
+    /// The certificate thumbprint.
+    #[serde(default)]
+    pub thumbprint: ::core::option::Option<String>,
+    /// Output only. Validation state of this certificate. // TODO: enum values: ["CERTIFICATE_VALIDATION_STATE_UNSPECIFIED", "VALIDATION_SUCCESSFUL", "VALIDATION_FAILED"]
+    #[serde(default, rename = "validationState")]
+    pub validation_state: ::core::option::Option<String>,
+    /// Certificate not valid at or after this timestamp.
+    #[serde(default, rename = "validityExpirationTime")]
+    pub validity_expiration_time: ::core::option::Option<String>,
+    /// Certificate not valid before this timestamp.
+    #[serde(default, rename = "validityStartTime")]
+    pub validity_start_time: ::core::option::Option<String>,
+}
+
+/// Defines a query on a resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DynamicGroupQuery {
+    /// Query that determines the memberships of the dynamic group. Examples: All users with at least one organizations.department of engineering. user.organizations.exists(org, org.department==''engineering'') All users with at least one location that has area of foo and building_id of bar. user.locations.exists(loc, loc.area==''foo'' && loc.building_id==''bar'') All users with any variation of the name John Doe (case-insensitive queries add equalsIgnoreCase() to the value being queried). user.name.value.equalsIgnoreCase(''jOhn DoE'')
+    #[serde(default)]
+    pub query: ::core::option::Option<String>,
+    /// Resource type for the Dynamic Group Query // TODO: enum values: ["RESOURCE_TYPE_UNSPECIFIED", "USER"]
+    #[serde(default, rename = "resourceType")]
+    pub resource_type: ::core::option::Option<String>,
+}
+
+/// The current status of a dynamic group along with timestamp.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DynamicGroupStatus {
+    /// Status of the dynamic group. // TODO: enum values: ["STATUS_UNSPECIFIED", "UP_TO_DATE", "UPDATING_MEMBERSHIPS", "INVALID_QUERY"]
+    #[serde(default)]
+    pub status: ::core::option::Option<String>,
+    /// The latest time at which the dynamic group is guaranteed to be in the given status. If status is UP_TO_DATE, the latest time at which the dynamic group was confirmed to be up-to-date. If status is UPDATING_MEMBERSHIPS, the time at which dynamic group was created.
+    #[serde(default, rename = "statusTime")]
+    pub status_time: ::core::option::Option<String>,
+}
+
+/// The MembershipRole expiry details.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ExpiryDetail {
+    /// The time at which the MembershipRole will expire.
+    #[serde(default, rename = "expireTime")]
+    pub expire_time: ::core::option::Option<String>,
+}
+
+/// Evaluations of restrictions applied to parent group on this membership.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RestrictionEvaluations {
+    /// Evaluation of the member restriction applied to this membership. Empty if the user lacks permission to view the restriction evaluation.
+    #[serde(default, rename = "memberRestrictionEvaluation")]
+    pub member_restriction_evaluation: ::core::option::Option<MembershipRoleRestrictionEvaluation>,
+}
+
+/// Browser-specific fields reported by the [Endpoint Verification extension](https://chromewebstore.google.com/detail/endpoint-verification/callobklhcbilhphinckomhgkigmfocg?pli=1).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleAppsCloudidentityDevicesV1BrowserInfo {
+    /// Output only. Browser''s management state. // TODO: enum values: ["UNSPECIFIED", "UNMANAGED", "MANAGED_BY_OTHER_DOMAIN", "PROFILE_MANAGED", "BROWSER_MANAGED"]
+    #[serde(default, rename = "browserManagementState")]
+    pub browser_management_state: ::core::option::Option<String>,
+    /// Version of the request initiating browser. E.g. 91.0.4442.4.
+    #[serde(default, rename = "browserVersion")]
+    pub browser_version: ::core::option::Option<String>,
+    /// Current state of [built-in DNS client](https://chromeenterprise.google/policies/#BuiltInDnsClientEnabled).
+    #[serde(default, rename = "isBuiltInDnsClientEnabled")]
+    pub is_built_in_dns_client_enabled: ::core::option::Option<bool>,
+    /// Current state of [bulk data analysis](https://chromeenterprise.google/policies/#OnBulkDataEntryEnterpriseConnector). Set to true if provider list from Chrome is non-empty.
+    #[serde(default, rename = "isBulkDataEntryAnalysisEnabled")]
+    pub is_bulk_data_entry_analysis_enabled: ::core::option::Option<bool>,
+    /// Deprecated: This field is not used for Chrome version 118 and later. Current state of [Chrome Cleanup](https://chromeenterprise.google/policies/#ChromeCleanupEnabled).
+    #[serde(default, rename = "isChromeCleanupEnabled")]
+    pub is_chrome_cleanup_enabled: ::core::option::Option<bool>,
+    /// Current state of [Chrome Remote Desktop app](https://chromeenterprise.google/policies/#URLBlocklist).
+    #[serde(default, rename = "isChromeRemoteDesktopAppBlocked")]
+    pub is_chrome_remote_desktop_app_blocked: ::core::option::Option<bool>,
+    /// Current state of [file download analysis](https://chromeenterprise.google/policies/#OnFileDownloadedEnterpriseConnector). Set to true if provider list from Chrome is non-empty.
+    #[serde(default, rename = "isFileDownloadAnalysisEnabled")]
+    pub is_file_download_analysis_enabled: ::core::option::Option<bool>,
+    /// Current state of [file upload analysis](https://chromeenterprise.google/policies/#OnFileAttachedEnterpriseConnector). Set to true if provider list from Chrome is non-empty.
+    #[serde(default, rename = "isFileUploadAnalysisEnabled")]
+    pub is_file_upload_analysis_enabled: ::core::option::Option<bool>,
+    /// Current state of [real-time URL check](https://chromeenterprise.google/policies/#EnterpriseRealTimeUrlCheckMode). Set to true if provider list from Chrome is non-empty.
+    #[serde(default, rename = "isRealtimeUrlCheckEnabled")]
+    pub is_realtime_url_check_enabled: ::core::option::Option<bool>,
+    /// Current state of [security event analysis](https://chromeenterprise.google/policies/#OnSecurityEventEnterpriseConnector). Set to true if provider list from Chrome is non-empty.
+    #[serde(default, rename = "isSecurityEventAnalysisEnabled")]
+    pub is_security_event_analysis_enabled: ::core::option::Option<bool>,
+    /// Current state of [site isolation](https://chromeenterprise.google/policies/?policy=IsolateOrigins).
+    #[serde(default, rename = "isSiteIsolationEnabled")]
+    pub is_site_isolation_enabled: ::core::option::Option<bool>,
+    /// Current state of [third-party blocking](https://chromeenterprise.google/policies/#ThirdPartyBlockingEnabled).
+    #[serde(default, rename = "isThirdPartyBlockingEnabled")]
+    pub is_third_party_blocking_enabled: ::core::option::Option<bool>,
+    /// Current state of [password protection trigger](https://chromeenterprise.google/policies/#PasswordProtectionWarningTrigger). // TODO: enum values: ["PASSWORD_PROTECTION_TRIGGER_UNSPECIFIED", "PROTECTION_OFF", "PASSWORD_REUSE", "PHISHING_REUSE"]
+    #[serde(default, rename = "passwordProtectionWarningTrigger")]
+    pub password_protection_warning_trigger: ::core::option::Option<String>,
+    /// Current state of [Safe Browsing protection level](https://chromeenterprise.google/policies/#SafeBrowsingProtectionLevel). // TODO: enum values: ["SAFE_BROWSING_LEVEL_UNSPECIFIED", "DISABLED", "STANDARD", "ENHANCED"]
+    #[serde(default, rename = "safeBrowsingProtectionLevel")]
+    pub safe_browsing_protection_level: ::core::option::Option<String>,
+}
+
+/// CertificateTemplate (v3 Extension in X.509).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleAppsCloudidentityDevicesV1CertificateTemplate {
+    /// The template id of the template. Example: "1.3.6.1.4.1.311.21.8.15608621.11768144.5720724.16068415.6889630.81.2472537.7784047".
+    #[serde(default)]
+    pub id: ::core::option::Option<String>,
+    /// The Major version of the template. Example: 100.
+    #[serde(default, rename = "majorVersion")]
+    pub major_version: ::core::option::Option<i32>,
+    /// The minor version of the template. Example: 12.
+    #[serde(default, rename = "minorVersion")]
+    pub minor_version: ::core::option::Option<i32>,
+}
+
+/// The evaluated state of this restriction.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MembershipRoleRestrictionEvaluation {
+    /// Output only. The current state of the restriction // TODO: enum values: ["STATE_UNSPECIFIED", "COMPLIANT", "FORWARD_COMPLIANT", "NON_COMPLIANT", "EVALUATING"]
     #[serde(default)]
     pub state: ::core::option::Option<String>,
-    /// Time when the UserInvitation was last updated.
-    #[serde(default, rename = "updateTime")]
-    pub update_time: ::core::option::Option<String>,
 }

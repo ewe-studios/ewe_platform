@@ -54,41 +54,326 @@ pub struct About {
     pub user: ::core::option::Option<User>,
 }
 
-/// Manage outstanding access proposals on a file.
+/// A list of third-party applications which the user has installed or given access to Google Drive.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AccessProposal {
-    /// The creation time.
-    #[serde(default, rename = "createTime")]
-    pub create_time: ::core::option::Option<String>,
-    /// The file ID that the proposal for access is on.
-    #[serde(default, rename = "fileId")]
-    pub file_id: ::core::option::Option<String>,
-    /// The ID of the access proposal.
-    #[serde(default, rename = "proposalId")]
-    pub proposal_id: ::core::option::Option<String>,
-    /// The email address of the user that will receive permissions, if accepted.
-    #[serde(default, rename = "recipientEmailAddress")]
-    pub recipient_email_address: ::core::option::Option<String>,
-    /// The message that the requester added to the proposal.
-    #[serde(default, rename = "requestMessage")]
-    pub request_message: ::core::option::Option<String>,
-    /// The email address of the requesting user.
-    #[serde(default, rename = "requesterEmailAddress")]
-    pub requester_email_address: ::core::option::Option<String>,
-    /// A wrapper for the role and view of an access proposal. For more information, see [Roles and permissions](https://developers.google.com/workspace/drive/api/guides/ref-roles).
-    #[serde(default, rename = "rolesAndViews")]
-    pub roles_and_views: ::core::option::Option<::std::vec::Vec<AccessProposalRoleAndView>>,
+pub struct AppList {
+    /// The list of app IDs that the user has specified to use by default. The list is in reverse-priority order (lowest to highest).
+    #[serde(default, rename = "defaultAppIds")]
+    pub default_app_ids: ::core::option::Option<::std::vec::Vec<String>>,
+    /// The list of apps.
+    #[serde(default)]
+    pub items: ::core::option::Option<::std::vec::Vec<App>>,
+    /// Output only. Identifies what kind of resource this is. Value: the fixed string "drive#appList".
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+    /// A link back to this list.
+    #[serde(default, rename = "selfLink")]
+    pub self_link: ::core::option::Option<String>,
 }
 
-/// A wrapper for the role and view of an access proposal. For more information, see [Roles and permissions](https://developers.google.com/workspace/drive/api/guides/ref-roles).
+/// The response of an Approvals list request.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AccessProposalRoleAndView {
-    /// The role that was proposed by the requester. The supported values are: * writer * commenter * reader
+pub struct ApprovalList {
+    /// The list of Approvals. If nextPageToken is populated, then this list may be incomplete and an additional page of results should be fetched.
     #[serde(default)]
-    pub role: ::core::option::Option<String>,
-    /// Indicates the view for this access proposal. Only populated for proposals that belong to a view. Only published is supported.
+    pub items: ::core::option::Option<::std::vec::Vec<Approval>>,
+    /// This is always drive#approvalList
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+    /// The page token for the next page of Approvals. This will be absent if the end of the Approvals list has been reached. If the token is rejected for any reason, it should be discarded, and pagination should be restarted from the first page of results.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+}
+
+/// A list of changes for a user.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ChangeList {
+    /// The list of changes. If nextPageToken is populated, then this list may be incomplete and an additional page of results should be fetched.
+    #[serde(default)]
+    pub changes: ::core::option::Option<::std::vec::Vec<Change>>,
+    /// Identifies what kind of resource this is. Value: the fixed string "drive#changeList".
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+    /// The starting page token for future changes. This will be present only if the end of the current changes list has been reached. The page token doesn''t expire.
+    #[serde(default, rename = "newStartPageToken")]
+    pub new_start_page_token: ::core::option::Option<String>,
+    /// The page token for the next page of changes. This will be absent if the end of the changes list has been reached. The page token doesn''t expire.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+}
+
+/// A notification channel used to watch for resource changes.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Channel {
+    /// The address where notifications are delivered for this channel.
+    #[serde(default)]
+    pub address: ::core::option::Option<String>,
+    /// Date and time of notification channel expiration, expressed as a Unix timestamp, in milliseconds. Optional.
+    #[serde(default)]
+    pub expiration: ::core::option::Option<String>,
+    /// A UUID or similar unique string that identifies this channel.
+    #[serde(default)]
+    pub id: ::core::option::Option<String>,
+    /// Identifies this as a notification channel used to watch for changes to a resource, which is api#channel.
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+    /// Additional parameters controlling delivery channel behavior. Optional.
+    #[serde(default)]
+    pub params: ::core::option::Option<serde_json::Value>,
+    /// A Boolean value to indicate whether payload is wanted. Optional.
+    #[serde(default)]
+    pub payload: ::core::option::Option<bool>,
+    /// An opaque ID that identifies the resource being watched on this channel. Stable across different API versions.
+    #[serde(default, rename = "resourceId")]
+    pub resource_id: ::core::option::Option<String>,
+    /// A version-specific identifier for the watched resource.
+    #[serde(default, rename = "resourceUri")]
+    pub resource_uri: ::core::option::Option<String>,
+    /// An arbitrary string delivered to the target address with each notification delivered over this channel. Optional.
+    #[serde(default)]
+    pub token: ::core::option::Option<String>,
+    /// The type of delivery mechanism used for this channel. Valid values are "web_hook" or "webhook".
+    #[serde(default, rename = "type")]
+    pub type_: ::core::option::Option<String>,
+}
+
+/// A list of comments on a file.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CommentList {
+    /// The list of comments. If nextPageToken is populated, then this list may be incomplete and an additional page of results should be fetched.
+    #[serde(default)]
+    pub comments: ::core::option::Option<::std::vec::Vec<Comment>>,
+    /// Identifies what kind of resource this is. Value: the fixed string "drive#commentList".
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+    /// The page token for the next page of comments. This will be absent if the end of the comments list has been reached. If the token is rejected for any reason, it should be discarded, and pagination should be restarted from the first page of results. The page token is typically valid for several hours. However, if new items are added or removed, your expected results might differ.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+}
+
+/// A list of shared drives.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DriveList {
+    /// The list of shared drives. If nextPageToken is populated, then this list may be incomplete and an additional page of results should be fetched.
+    #[serde(default)]
+    pub drives: ::core::option::Option<::std::vec::Vec<Drive>>,
+    /// Identifies what kind of resource this is. Value: the fixed string "drive#driveList".
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+    /// The page token for the next page of shared drives. This will be absent if the end of the list has been reached. If the token is rejected for any reason, it should be discarded, and pagination should be restarted from the first page of results. The page token is typically valid for several hours. However, if new items are added or removed, your expected results might differ.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+}
+
+/// A list of files.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct FileList {
+    /// The list of files. If nextPageToken is populated, then this list may be incomplete and an additional page of results should be fetched.
+    #[serde(default)]
+    pub files: ::core::option::Option<::std::vec::Vec<File>>,
+    /// Whether the search process was incomplete. If true, then some search results might be missing, since all documents were not searched. This can occur when searching multiple drives with the allDrives corpora, but all corpora couldn''t be searched. When this happens, it''s suggested that clients narrow their query by choosing a different corpus such as user or drive.
+    #[serde(default, rename = "incompleteSearch")]
+    pub incomplete_search: ::core::option::Option<bool>,
+    /// Identifies what kind of resource this is. Value: the fixed string "drive#fileList".
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+    /// The page token for the next page of files. This will be absent if the end of the files list has been reached. If the token is rejected for any reason, it should be discarded, and pagination should be restarted from the first page of results. The page token is typically valid for several hours. However, if new items are added or removed, your expected results might differ.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+}
+
+/// A list of generated file IDs which can be provided in create requests.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GeneratedIds {
+    /// The IDs generated for the requesting user in the specified space.
+    #[serde(default)]
+    pub ids: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Identifies what kind of resource this is. Value: the fixed string "drive#generatedIds".
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+    /// The type of file that can be created with these IDs.
+    #[serde(default)]
+    pub space: ::core::option::Option<String>,
+}
+
+/// Representation of field, which is a typed key-value pair.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LabelField {
+    /// Only present if valueType is dateString. RFC 3339 formatted date: YYYY-MM-DD.
+    #[serde(default, rename = "dateString")]
+    pub date_string: ::core::option::Option<::std::vec::Vec<String>>,
+    /// The identifier of this label field.
+    #[serde(default)]
+    pub id: ::core::option::Option<String>,
+    /// Only present if valueType is integer.
+    #[serde(default)]
+    pub integer: ::core::option::Option<::std::vec::Vec<String>>,
+    /// This is always drive#labelField.
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+    /// Only present if valueType is selection
+    #[serde(default)]
+    pub selection: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Only present if valueType is text.
+    #[serde(default)]
+    pub text: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Only present if valueType is user.
+    #[serde(default)]
+    pub user: ::core::option::Option<::std::vec::Vec<User>>,
+    /// The field type. While new values may be supported in the future, the following are currently allowed: * dateString * integer * selection * text * user
+    #[serde(default, rename = "valueType")]
+    pub value_type: ::core::option::Option<String>,
+}
+
+/// A list of labels applied to a file.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LabelList {
+    /// This is always "drive#labelList".
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+    /// The list of labels.
+    #[serde(default)]
+    pub labels: ::core::option::Option<::std::vec::Vec<Label>>,
+    /// The page token for the next page of labels. This field will be absent if the end of the list has been reached. If the token is rejected for any reason, it should be discarded, and pagination should be restarted from the first page of results. The page token is typically valid for several hours. However, if new items are added or removed, your expected results might differ.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+}
+
+/// The response to an access proposal list request.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ListAccessProposalsResponse {
+    /// The list of access proposals. This field is only populated in Drive API v3.
+    #[serde(default, rename = "accessProposals")]
+    pub access_proposals: ::core::option::Option<::std::vec::Vec<AccessProposal>>,
+    /// The continuation token for the next page of results. This will be absent if the end of the results list has been reached. If the token is rejected for any reason, it should be discarded, and pagination should be restarted from the first page of results.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+}
+
+/// A request to modify the set of labels on a file. This request may contain many modifications that will either all succeed or all fail atomically.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ModifyLabelsRequest {
+    /// This is always "drive#modifyLabelsRequest".
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+    /// The list of modifications to apply to the labels on the file.
+    #[serde(default, rename = "labelModifications")]
+    pub label_modifications: ::core::option::Option<::std::vec::Vec<LabelModification>>,
+}
+
+/// Response to a ModifyLabels request. This contains only those labels which were added or updated by the request.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ModifyLabelsResponse {
+    /// This is always "drive#modifyLabelsResponse".
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+    /// The list of labels which were added or updated by the request.
+    #[serde(default, rename = "modifiedLabels")]
+    pub modified_labels: ::core::option::Option<::std::vec::Vec<Label>>,
+}
+
+/// This resource represents a long-running operation that is the result of a network API call.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Operation {
+    /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
+    #[serde(default)]
+    pub done: ::core::option::Option<bool>,
+    /// The error result of the operation in case of failure or cancellation.
+    #[serde(default)]
+    pub error: ::core::option::Option<Status>,
+    /// Service-specific metadata associated with the operation. It typically contains progress information and common metadata such as create time. Some services might not provide such metadata. Any method that returns a long-running operation should document the metadata type, if any.
+    #[serde(default)]
+    pub metadata: ::core::option::Option<serde_json::Value>,
+    /// The server-assigned name, which is only unique within the same service that originally returns it. If you use the default HTTP mapping, the name should be a resource name ending with operations/{unique_id}.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// The normal, successful response of the operation. If the original method returns no data on success, such as Delete, the response is google.protobuf.Empty. If the original method is standard Get/Create/Update, the response should be the resource. For other methods, the response should have the type XxxResponse, where Xxx is the original method name. For example, if the original method name is TakeSnapshot(), the inferred response type is TakeSnapshotResponse.
+    #[serde(default)]
+    pub response: ::core::option::Option<serde_json::Value>,
+}
+
+/// A list of permissions for a file.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PermissionList {
+    /// Identifies what kind of resource this is. Value: the fixed string "drive#permissionList".
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+    /// The page token for the next page of permissions. This field will be absent if the end of the permissions list has been reached. If the token is rejected for any reason, it should be discarded, and pagination should be restarted from the first page of results. The page token is typically valid for several hours. However, if new items are added or removed, your expected results might differ.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+    /// The list of permissions. If nextPageToken is populated, then this list may be incomplete and an additional page of results should be fetched.
+    #[serde(default)]
+    pub permissions: ::core::option::Option<::std::vec::Vec<Permission>>,
+}
+
+/// A list of replies to a comment on a file.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ReplyList {
+    /// Identifies what kind of resource this is. Value: the fixed string "drive#replyList".
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+    /// The page token for the next page of replies. This will be absent if the end of the replies list has been reached. If the token is rejected for any reason, it should be discarded, and pagination should be restarted from the first page of results. The page token is typically valid for several hours. However, if new items are added or removed, your expected results might differ.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+    /// The list of replies. If nextPageToken is populated, then this list may be incomplete and an additional page of results should be fetched.
+    #[serde(default)]
+    pub replies: ::core::option::Option<::std::vec::Vec<Reply>>,
+}
+
+/// Request message for resolving an AccessProposal on a file.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ResolveAccessProposalRequest {
+    /// Required. The action to take on the access proposal. // TODO: enum values: ["ACTION_UNSPECIFIED", "ACCEPT", "DENY"]
+    #[serde(default)]
+    pub action: ::core::option::Option<String>,
+    /// Optional. The roles that the approver has allowed, if any. For more information, see [Roles and permissions](https://developers.google.com/workspace/drive/api/guides/ref-roles). Note: This field is required for the ACCEPT action.
+    #[serde(default)]
+    pub role: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Optional. Whether to send an email to the requester when the access proposal is denied or accepted.
+    #[serde(default, rename = "sendNotification")]
+    pub send_notification: ::core::option::Option<bool>,
+    /// Optional. Indicates the view for this access proposal. This should only be set when the proposal belongs to a view. Only published is supported.
     #[serde(default)]
     pub view: ::core::option::Option<String>,
+}
+
+/// A list of revisions of a file.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RevisionList {
+    /// Identifies what kind of resource this is. Value: the fixed string "drive#revisionList".
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+    /// The page token for the next page of revisions. This will be absent if the end of the revisions list has been reached. If the token is rejected for any reason, it should be discarded, and pagination should be restarted from the first page of results. The page token is typically valid for several hours. However, if new items are added or removed, your expected results might differ.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+    /// The list of revisions. If nextPageToken is populated, then this list may be incomplete and an additional page of results should be fetched.
+    #[serde(default)]
+    pub revisions: ::core::option::Option<::std::vec::Vec<Revision>>,
+}
+
+/// StartPageToken resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct StartPageToken {
+    /// Identifies what kind of resource this is. Value: the fixed string "drive#startPageToken".
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+    /// The starting page token for listing future changes. The page token doesn''t expire.
+    #[serde(default, rename = "startPageToken")]
+    pub start_page_token: ::core::option::Option<String>,
+}
+
+/// A list of Team Drives.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TeamDriveList {
+    /// Identifies what kind of resource this is. Value: the fixed string "drive#teamDriveList".
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+    /// The page token for the next page of Team Drives. This will be absent if the end of the Team Drives list has been reached. If the token is rejected for any reason, it should be discarded, and pagination should be restarted from the first page of results. The page token is typically valid for several hours. However, if new items are added or removed, your expected results might differ.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+    /// The list of Team Drives. If nextPageToken is populated, then this list may be incomplete and an additional page of results should be fetched.
+    #[serde(default, rename = "teamDrives")]
+    pub team_drives: ::core::option::Option<::std::vec::Vec<TeamDrive>>,
 }
 
 /// The apps resource provides a list of apps that a user has installed, with information about each app''s supported MIME types, file extensions, and other details. Some resource methods (such as apps.get) require an appId. Use the apps.list method to retrieve the ID for an installed application.
@@ -168,37 +453,6 @@ pub struct App {
     pub use_by_default: ::core::option::Option<bool>,
 }
 
-/// AppIcons resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AppIcons {
-    /// Category of the icon. Allowed values are: * application - The icon for the application. * document - The icon for a file associated with the app. * documentShared - The icon for a shared file associated with the app.
-    #[serde(default)]
-    pub category: ::core::option::Option<String>,
-    /// URL for the icon.
-    #[serde(default, rename = "iconUrl")]
-    pub icon_url: ::core::option::Option<String>,
-    /// Size of the icon. Represented as the maximum of the width and height.
-    #[serde(default)]
-    pub size: ::core::option::Option<i32>,
-}
-
-/// A list of third-party applications which the user has installed or given access to Google Drive.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AppList {
-    /// The list of app IDs that the user has specified to use by default. The list is in reverse-priority order (lowest to highest).
-    #[serde(default, rename = "defaultAppIds")]
-    pub default_app_ids: ::core::option::Option<::std::vec::Vec<String>>,
-    /// The list of apps.
-    #[serde(default)]
-    pub items: ::core::option::Option<::std::vec::Vec<App>>,
-    /// Output only. Identifies what kind of resource this is. Value: the fixed string "drive#appList".
-    #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-    /// A link back to this list.
-    #[serde(default, rename = "selfLink")]
-    pub self_link: ::core::option::Option<String>,
-}
-
 /// Metadata for an approval. An approval is a review/approve process for a Drive item.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Approval {
@@ -232,20 +486,6 @@ pub struct Approval {
     /// Target file id of the approval.
     #[serde(default, rename = "targetFileId")]
     pub target_file_id: ::core::option::Option<String>,
-}
-
-/// The response of an Approvals list request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ApprovalList {
-    /// The list of Approvals. If nextPageToken is populated, then this list may be incomplete and an additional page of results should be fetched.
-    #[serde(default)]
-    pub items: ::core::option::Option<::std::vec::Vec<Approval>>,
-    /// This is always drive#approvalList
-    #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-    /// The page token for the next page of Approvals. This will be absent if the end of the Approvals list has been reached. If the token is rejected for any reason, it should be discarded, and pagination should be restarted from the first page of results.
-    #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// A change to a file or shared drive.
@@ -282,58 +522,6 @@ pub struct Change {
     #[serde(default)]
     pub time: ::core::option::Option<String>,
     /// Deprecated: Use changeType instead.
-    #[serde(default, rename = "type")]
-    pub type_: ::core::option::Option<String>,
-}
-
-/// A list of changes for a user.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ChangeList {
-    /// The list of changes. If nextPageToken is populated, then this list may be incomplete and an additional page of results should be fetched.
-    #[serde(default)]
-    pub changes: ::core::option::Option<::std::vec::Vec<Change>>,
-    /// Identifies what kind of resource this is. Value: the fixed string "drive#changeList".
-    #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-    /// The starting page token for future changes. This will be present only if the end of the current changes list has been reached. The page token doesn''t expire.
-    #[serde(default, rename = "newStartPageToken")]
-    pub new_start_page_token: ::core::option::Option<String>,
-    /// The page token for the next page of changes. This will be absent if the end of the changes list has been reached. The page token doesn''t expire.
-    #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: ::core::option::Option<String>,
-}
-
-/// A notification channel used to watch for resource changes.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Channel {
-    /// The address where notifications are delivered for this channel.
-    #[serde(default)]
-    pub address: ::core::option::Option<String>,
-    /// Date and time of notification channel expiration, expressed as a Unix timestamp, in milliseconds. Optional.
-    #[serde(default)]
-    pub expiration: ::core::option::Option<String>,
-    /// A UUID or similar unique string that identifies this channel.
-    #[serde(default)]
-    pub id: ::core::option::Option<String>,
-    /// Identifies this as a notification channel used to watch for changes to a resource, which is api#channel.
-    #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-    /// Additional parameters controlling delivery channel behavior. Optional.
-    #[serde(default)]
-    pub params: ::core::option::Option<serde_json::Value>,
-    /// A Boolean value to indicate whether payload is wanted. Optional.
-    #[serde(default)]
-    pub payload: ::core::option::Option<bool>,
-    /// An opaque ID that identifies the resource being watched on this channel. Stable across different API versions.
-    #[serde(default, rename = "resourceId")]
-    pub resource_id: ::core::option::Option<String>,
-    /// A version-specific identifier for the watched resource.
-    #[serde(default, rename = "resourceUri")]
-    pub resource_uri: ::core::option::Option<String>,
-    /// An arbitrary string delivered to the target address with each notification delivered over this channel. Optional.
-    #[serde(default)]
-    pub token: ::core::option::Option<String>,
-    /// The type of delivery mechanism used for this channel. Valid values are "web_hook" or "webhook".
     #[serde(default, rename = "type")]
     pub type_: ::core::option::Option<String>,
 }
@@ -385,66 +573,153 @@ pub struct Comment {
     pub resolved: ::core::option::Option<bool>,
 }
 
-/// A list of comments on a file.
+/// Manage outstanding access proposals on a file.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CommentList {
-    /// The list of comments. If nextPageToken is populated, then this list may be incomplete and an additional page of results should be fetched.
-    #[serde(default)]
-    pub comments: ::core::option::Option<::std::vec::Vec<Comment>>,
-    /// Identifies what kind of resource this is. Value: the fixed string "drive#commentList".
+pub struct AccessProposal {
+    /// The creation time.
+    #[serde(default, rename = "createTime")]
+    pub create_time: ::core::option::Option<String>,
+    /// The file ID that the proposal for access is on.
+    #[serde(default, rename = "fileId")]
+    pub file_id: ::core::option::Option<String>,
+    /// The ID of the access proposal.
+    #[serde(default, rename = "proposalId")]
+    pub proposal_id: ::core::option::Option<String>,
+    /// The email address of the user that will receive permissions, if accepted.
+    #[serde(default, rename = "recipientEmailAddress")]
+    pub recipient_email_address: ::core::option::Option<String>,
+    /// The message that the requester added to the proposal.
+    #[serde(default, rename = "requestMessage")]
+    pub request_message: ::core::option::Option<String>,
+    /// The email address of the requesting user.
+    #[serde(default, rename = "requesterEmailAddress")]
+    pub requester_email_address: ::core::option::Option<String>,
+    /// A wrapper for the role and view of an access proposal. For more information, see [Roles and permissions](https://developers.google.com/workspace/drive/api/guides/ref-roles).
+    #[serde(default, rename = "rolesAndViews")]
+    pub roles_and_views: ::core::option::Option<::std::vec::Vec<AccessProposalRoleAndView>>,
+}
+
+/// A modification to a label on a file. A LabelModification can be used to apply a label to a file, update an existing label on a file, or remove a label from a file.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LabelModification {
+    /// The list of modifications to this label''s fields.
+    #[serde(default, rename = "fieldModifications")]
+    pub field_modifications: ::core::option::Option<::std::vec::Vec<LabelFieldModification>>,
+    /// This is always "drive#labelModification".
     #[serde(default)]
     pub kind: ::core::option::Option<String>,
-    /// The page token for the next page of comments. This will be absent if the end of the comments list has been reached. If the token is rejected for any reason, it should be discarded, and pagination should be restarted from the first page of results. The page token is typically valid for several hours. However, if new items are added or removed, your expected results might differ.
-    #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: ::core::option::Option<String>,
+    /// The ID of the label to modify.
+    #[serde(default, rename = "labelId")]
+    pub label_id: ::core::option::Option<String>,
+    /// If true, the label will be removed from the file.
+    #[serde(default, rename = "removeLabel")]
+    pub remove_label: ::core::option::Option<bool>,
 }
 
-/// A restriction for accessing the content of the file.
+/// Representation of label and label fields.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ContentRestriction {
-    /// Whether the content restriction can only be modified or removed by a user who owns the file. For files in shared drives, any user with organizer capabilities can modify or remove this content restriction.
-    #[serde(default, rename = "ownerRestricted")]
-    pub owner_restricted: ::core::option::Option<bool>,
-    /// Whether the content of the file is read-only. If a file is read-only, a new revision of the file may not be added, comments may not be added or modified, and the title of the file may not be modified.
-    #[serde(default, rename = "readOnly")]
-    pub read_only: ::core::option::Option<bool>,
-    /// Reason for why the content of the file is restricted. This is only mutable on requests that also set readOnly=true.
+pub struct Label {
+    /// A map of the fields on the label, keyed by the field''s ID.
     #[serde(default)]
-    pub reason: ::core::option::Option<String>,
-    /// Output only. The user who set the content restriction. Only populated if readOnly=true.
-    #[serde(default, rename = "restrictingUser")]
-    pub restricting_user: ::core::option::Option<User>,
-    /// The time at which the content restriction was set (formatted RFC 3339 timestamp). Only populated if readOnly is true.
-    #[serde(default, rename = "restrictionTime")]
-    pub restriction_time: ::core::option::Option<String>,
-    /// Output only. Whether the content restriction was applied by the system, for example due to an esignature. Users cannot modify or remove system restricted content restrictions.
-    #[serde(default, rename = "systemRestricted")]
-    pub system_restricted: ::core::option::Option<bool>,
-    /// Output only. The type of the content restriction. Currently the only possible value is globalContentRestriction.
-    #[serde(default, rename = "type")]
-    pub type_: ::core::option::Option<String>,
+    pub fields: ::core::option::Option<serde_json::Value>,
+    /// The ID of the label.
+    #[serde(default)]
+    pub id: ::core::option::Option<String>,
+    /// This is always drive#label
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+    /// The revision ID of the label.
+    #[serde(default, rename = "revisionId")]
+    pub revision_id: ::core::option::Option<String>,
 }
 
-/// A restriction for copy and download of the file.
+/// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DownloadRestriction {
-    /// Whether download and copy is restricted for readers.
-    #[serde(default, rename = "restrictedForReaders")]
-    pub restricted_for_readers: ::core::option::Option<bool>,
-    /// Whether download and copy is restricted for writers. If true, download is also restricted for readers.
-    #[serde(default, rename = "restrictedForWriters")]
-    pub restricted_for_writers: ::core::option::Option<bool>,
+pub struct Status {
+    /// The status code, which should be an enum value of google.rpc.Code.
+    #[serde(default)]
+    pub code: ::core::option::Option<i32>,
+    /// A list of messages that carry the error details. There is a common set of message types for APIs to use.
+    #[serde(default)]
+    pub details: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
+    /// A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.
+    #[serde(default)]
+    pub message: ::core::option::Option<String>,
 }
 
-/// Download restrictions applied to the file.
+/// The metadata for a revision to a file. Some resource methods (such as revisions.update) require a revisionId. Use the revisions.list method to retrieve the ID for a revision.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DownloadRestrictionsMetadata {
-    /// Output only. The effective download restriction applied to this file. This considers all restriction settings and DLP rules.
-    #[serde(default, rename = "effectiveDownloadRestrictionWithContext")]
-    pub effective_download_restriction_with_context: ::core::option::Option<DownloadRestriction>,
-    /// The download restriction of the file applied directly by the owner or organizer. This doesn''t take into account shared drive settings or DLP rules.
-    #[serde(default, rename = "itemDownloadRestriction")]
-    pub item_download_restriction: ::core::option::Option<DownloadRestriction>,
+pub struct Revision {
+    /// Output only. Links for exporting Docs Editors files to specific formats.
+    #[serde(default, rename = "exportLinks")]
+    pub export_links: ::core::option::Option<serde_json::Value>,
+    /// Output only. The ID of the revision.
+    #[serde(default)]
+    pub id: ::core::option::Option<String>,
+    /// Whether to keep this revision forever, even if it is no longer the head revision. If not set, the revision will be automatically purged 30 days after newer content is uploaded. This can be set on a maximum of 200 revisions for a file. This field is only applicable to files with binary content in Drive.
+    #[serde(default, rename = "keepForever")]
+    pub keep_forever: ::core::option::Option<bool>,
+    /// Output only. Identifies what kind of resource this is. Value: the fixed string "drive#revision".
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+    /// Output only. The last user to modify this revision. This field is only populated when the last modification was performed by a signed-in user.
+    #[serde(default, rename = "lastModifyingUser")]
+    pub last_modifying_user: ::core::option::Option<User>,
+    /// Output only. The MD5 checksum of the revision''s content. This is only applicable to files with binary content in Drive.
+    #[serde(default, rename = "md5Checksum")]
+    pub md5_checksum: ::core::option::Option<String>,
+    /// Output only. The MIME type of the revision.
+    #[serde(default, rename = "mimeType")]
+    pub mime_type: ::core::option::Option<String>,
+    /// The last time the revision was modified (RFC 3339 date-time).
+    #[serde(default, rename = "modifiedTime")]
+    pub modified_time: ::core::option::Option<String>,
+    /// Output only. The original filename used to create this revision. This is only applicable to files with binary content in Drive.
+    #[serde(default, rename = "originalFilename")]
+    pub original_filename: ::core::option::Option<String>,
+    /// Whether subsequent revisions will be automatically republished. This is only applicable to Docs Editors files.
+    #[serde(default, rename = "publishAuto")]
+    pub publish_auto: ::core::option::Option<bool>,
+    /// Whether this revision is published. This is only applicable to Docs Editors files.
+    #[serde(default)]
+    pub published: ::core::option::Option<bool>,
+    /// Output only. A link to the published revision. This is only populated for Docs Editors files.
+    #[serde(default, rename = "publishedLink")]
+    pub published_link: ::core::option::Option<String>,
+    /// Whether this revision is published outside the domain. This is only applicable to Docs Editors files.
+    #[serde(default, rename = "publishedOutsideDomain")]
+    pub published_outside_domain: ::core::option::Option<bool>,
+    /// Output only. The size of the revision''s content in bytes. This is only applicable to files with binary content in Drive.
+    #[serde(default)]
+    pub size: ::core::option::Option<String>,
+}
+
+/// AppIcons resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AppIcons {
+    /// Category of the icon. Allowed values are: * application - The icon for the application. * document - The icon for a file associated with the app. * documentShared - The icon for a shared file associated with the app.
+    #[serde(default)]
+    pub category: ::core::option::Option<String>,
+    /// URL for the icon.
+    #[serde(default, rename = "iconUrl")]
+    pub icon_url: ::core::option::Option<String>,
+    /// Size of the icon. Represented as the maximum of the width and height.
+    #[serde(default)]
+    pub size: ::core::option::Option<i32>,
+}
+
+/// A response on an Approval made by a specific Reviewer.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ReviewerResponse {
+    /// This is always drive#reviewerResponse.
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+    /// A Reviewer’s Response for the Approval. // TODO: enum values: ["RESPONSE_UNSPECIFIED", "NO_RESPONSE", "APPROVED", "DECLINED"]
+    #[serde(default)]
+    pub response: ::core::option::Option<String>,
+    /// The user that is responsible for this response.
+    #[serde(default)]
+    pub reviewer: ::core::option::Option<User>,
 }
 
 /// Representation of a shared drive. Some resource methods (such as drives.update) require a driveId. Use the drives.list method to retrieve the ID for a shared drive.
@@ -486,20 +761,6 @@ pub struct Drive {
     /// The ID of the theme from which the background image and color will be set. The set of possible driveThemes can be retrieved from a drive.about.get response. When not specified on a drive.drives.create request, a random theme is chosen from which the background image and color are set. This is a write-only field; it can only be set on requests that don''t set colorRgb or backgroundImageFile.
     #[serde(default, rename = "themeId")]
     pub theme_id: ::core::option::Option<String>,
-}
-
-/// A list of shared drives.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DriveList {
-    /// The list of shared drives. If nextPageToken is populated, then this list may be incomplete and an additional page of results should be fetched.
-    #[serde(default)]
-    pub drives: ::core::option::Option<::std::vec::Vec<Drive>>,
-    /// Identifies what kind of resource this is. Value: the fixed string "drive#driveList".
-    #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-    /// The page token for the next page of shared drives. This will be absent if the end of the list has been reached. If the token is rejected for any reason, it should be discarded, and pagination should be restarted from the first page of results. The page token is typically valid for several hours. However, if new items are added or removed, your expected results might differ.
-    #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: ::core::option::Option<String>,
 }
 
 /// The metadata for a file. Some resource methods (such as files.update) require a fileId. Use the files.list method to retrieve the ID for a file.
@@ -699,81 +960,91 @@ pub struct File {
     pub writers_can_share: ::core::option::Option<bool>,
 }
 
-/// A list of files.
+/// Deprecated: use the drive collection instead.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct FileList {
-    /// The list of files. If nextPageToken is populated, then this list may be incomplete and an additional page of results should be fetched.
+pub struct TeamDrive {
+    /// An image file and cropping parameters from which a background image for this Team Drive is set. This is a write only field; it can only be set on drive.teamdrives.update requests that don''t set themeId. When specified, all fields of the backgroundImageFile must be set.
+    #[serde(default, rename = "backgroundImageFile")]
+    pub background_image_file: ::core::option::Option<serde_json::Value>,
+    /// A short-lived link to this Team Drive''s background image.
+    #[serde(default, rename = "backgroundImageLink")]
+    pub background_image_link: ::core::option::Option<String>,
+    /// Capabilities the current user has on this Team Drive.
     #[serde(default)]
-    pub files: ::core::option::Option<::std::vec::Vec<File>>,
-    /// Whether the search process was incomplete. If true, then some search results might be missing, since all documents were not searched. This can occur when searching multiple drives with the allDrives corpora, but all corpora couldn''t be searched. When this happens, it''s suggested that clients narrow their query by choosing a different corpus such as user or drive.
-    #[serde(default, rename = "incompleteSearch")]
-    pub incomplete_search: ::core::option::Option<bool>,
-    /// Identifies what kind of resource this is. Value: the fixed string "drive#fileList".
-    #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-    /// The page token for the next page of files. This will be absent if the end of the files list has been reached. If the token is rejected for any reason, it should be discarded, and pagination should be restarted from the first page of results. The page token is typically valid for several hours. However, if new items are added or removed, your expected results might differ.
-    #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: ::core::option::Option<String>,
-}
-
-/// A list of generated file IDs which can be provided in create requests.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GeneratedIds {
-    /// The IDs generated for the requesting user in the specified space.
-    #[serde(default)]
-    pub ids: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Identifies what kind of resource this is. Value: the fixed string "drive#generatedIds".
-    #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-    /// The type of file that can be created with these IDs.
-    #[serde(default)]
-    pub space: ::core::option::Option<String>,
-}
-
-/// Representation of label and label fields.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Label {
-    /// A map of the fields on the label, keyed by the field''s ID.
-    #[serde(default)]
-    pub fields: ::core::option::Option<serde_json::Value>,
-    /// The ID of the label.
+    pub capabilities: ::core::option::Option<serde_json::Value>,
+    /// The color of this Team Drive as an RGB hex string. It can only be set on a drive.teamdrives.update request that does not set themeId.
+    #[serde(default, rename = "colorRgb")]
+    pub color_rgb: ::core::option::Option<String>,
+    /// The time at which the Team Drive was created (RFC 3339 date-time).
+    #[serde(default, rename = "createdTime")]
+    pub created_time: ::core::option::Option<String>,
+    /// The ID of this Team Drive which is also the ID of the top level folder of this Team Drive.
     #[serde(default)]
     pub id: ::core::option::Option<String>,
-    /// This is always drive#label
+    /// Identifies what kind of resource this is. Value: the fixed string "drive#teamDrive".
     #[serde(default)]
     pub kind: ::core::option::Option<String>,
-    /// The revision ID of the label.
-    #[serde(default, rename = "revisionId")]
-    pub revision_id: ::core::option::Option<String>,
+    /// The name of this Team Drive.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// The organizational unit of this shared drive. This field is only populated on drives.list responses when the useDomainAdminAccess parameter is set to true.
+    #[serde(default, rename = "orgUnitId")]
+    pub org_unit_id: ::core::option::Option<String>,
+    /// A set of restrictions that apply to this Team Drive or items inside this Team Drive.
+    #[serde(default)]
+    pub restrictions: ::core::option::Option<serde_json::Value>,
+    /// The ID of the theme from which the background image and color will be set. The set of possible teamDriveThemes can be retrieved from a drive.about.get response. When not specified on a drive.teamdrives.create request, a random theme is chosen from which the background image and color are set. This is a write-only field; it can only be set on requests that don''t set colorRgb or backgroundImageFile.
+    #[serde(default, rename = "themeId")]
+    pub theme_id: ::core::option::Option<String>,
 }
 
-/// Representation of field, which is a typed key-value pair.
+/// A reply to a comment on a file. Some resource methods (such as replies.update) require a replyId. Use the replies.list method to retrieve the ID for a reply.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct LabelField {
-    /// Only present if valueType is dateString. RFC 3339 formatted date: YYYY-MM-DD.
-    #[serde(default, rename = "dateString")]
-    pub date_string: ::core::option::Option<::std::vec::Vec<String>>,
-    /// The identifier of this label field.
+pub struct Reply {
+    /// The action the reply performed to the parent comment. The supported values are: * resolve * reopen
+    #[serde(default)]
+    pub action: ::core::option::Option<String>,
+    /// Output only. The email address of the user assigned to this comment. If no user is assigned, the field is unset.
+    #[serde(default, rename = "assigneeEmailAddress")]
+    pub assignee_email_address: ::core::option::Option<String>,
+    /// Output only. The author of the reply. The author''s email address and permission ID won''t be populated.
+    #[serde(default)]
+    pub author: ::core::option::Option<User>,
+    /// The plain text content of the reply. This field is used for setting the content, while htmlContent should be displayed. This field is required by the create method if no action value is specified.
+    #[serde(default)]
+    pub content: ::core::option::Option<String>,
+    /// The time at which the reply was created (RFC 3339 date-time).
+    #[serde(default, rename = "createdTime")]
+    pub created_time: ::core::option::Option<String>,
+    /// Output only. Whether the reply has been deleted. A deleted reply has no content.
+    #[serde(default)]
+    pub deleted: ::core::option::Option<bool>,
+    /// Output only. The content of the reply with HTML formatting.
+    #[serde(default, rename = "htmlContent")]
+    pub html_content: ::core::option::Option<String>,
+    /// Output only. The ID of the reply.
     #[serde(default)]
     pub id: ::core::option::Option<String>,
-    /// Only present if valueType is integer.
-    #[serde(default)]
-    pub integer: ::core::option::Option<::std::vec::Vec<String>>,
-    /// This is always drive#labelField.
+    /// Output only. Identifies what kind of resource this is. Value: the fixed string "drive#reply".
     #[serde(default)]
     pub kind: ::core::option::Option<String>,
-    /// Only present if valueType is selection
+    /// Output only. A list of email addresses for users mentioned in this comment. If no users are mentioned, the list is empty.
+    #[serde(default, rename = "mentionedEmailAddresses")]
+    pub mentioned_email_addresses: ::core::option::Option<::std::vec::Vec<String>>,
+    /// The last time the reply was modified (RFC 3339 date-time).
+    #[serde(default, rename = "modifiedTime")]
+    pub modified_time: ::core::option::Option<String>,
+}
+
+/// A wrapper for the role and view of an access proposal. For more information, see [Roles and permissions](https://developers.google.com/workspace/drive/api/guides/ref-roles).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AccessProposalRoleAndView {
+    /// The role that was proposed by the requester. The supported values are: * writer * commenter * reader
     #[serde(default)]
-    pub selection: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Only present if valueType is text.
+    pub role: ::core::option::Option<String>,
+    /// Indicates the view for this access proposal. Only populated for proposals that belong to a view. Only published is supported.
     #[serde(default)]
-    pub text: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Only present if valueType is user.
-    #[serde(default)]
-    pub user: ::core::option::Option<::std::vec::Vec<User>>,
-    /// The field type. While new values may be supported in the future, the following are currently allowed: * dateString * integer * selection * text * user
-    #[serde(default, rename = "valueType")]
-    pub value_type: ::core::option::Option<String>,
+    pub view: ::core::option::Option<String>,
 }
 
 /// A modification to a label''s field.
@@ -805,88 +1076,41 @@ pub struct LabelFieldModification {
     pub unset_values: ::core::option::Option<bool>,
 }
 
-/// A list of labels applied to a file.
+/// A restriction for accessing the content of the file.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct LabelList {
-    /// This is always "drive#labelList".
+pub struct ContentRestriction {
+    /// Whether the content restriction can only be modified or removed by a user who owns the file. For files in shared drives, any user with organizer capabilities can modify or remove this content restriction.
+    #[serde(default, rename = "ownerRestricted")]
+    pub owner_restricted: ::core::option::Option<bool>,
+    /// Whether the content of the file is read-only. If a file is read-only, a new revision of the file may not be added, comments may not be added or modified, and the title of the file may not be modified.
+    #[serde(default, rename = "readOnly")]
+    pub read_only: ::core::option::Option<bool>,
+    /// Reason for why the content of the file is restricted. This is only mutable on requests that also set readOnly=true.
     #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-    /// The list of labels.
-    #[serde(default)]
-    pub labels: ::core::option::Option<::std::vec::Vec<Label>>,
-    /// The page token for the next page of labels. This field will be absent if the end of the list has been reached. If the token is rejected for any reason, it should be discarded, and pagination should be restarted from the first page of results. The page token is typically valid for several hours. However, if new items are added or removed, your expected results might differ.
-    #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: ::core::option::Option<String>,
+    pub reason: ::core::option::Option<String>,
+    /// Output only. The user who set the content restriction. Only populated if readOnly=true.
+    #[serde(default, rename = "restrictingUser")]
+    pub restricting_user: ::core::option::Option<User>,
+    /// The time at which the content restriction was set (formatted RFC 3339 timestamp). Only populated if readOnly is true.
+    #[serde(default, rename = "restrictionTime")]
+    pub restriction_time: ::core::option::Option<String>,
+    /// Output only. Whether the content restriction was applied by the system, for example due to an esignature. Users cannot modify or remove system restricted content restrictions.
+    #[serde(default, rename = "systemRestricted")]
+    pub system_restricted: ::core::option::Option<bool>,
+    /// Output only. The type of the content restriction. Currently the only possible value is globalContentRestriction.
+    #[serde(default, rename = "type")]
+    pub type_: ::core::option::Option<String>,
 }
 
-/// A modification to a label on a file. A LabelModification can be used to apply a label to a file, update an existing label on a file, or remove a label from a file.
+/// Download restrictions applied to the file.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct LabelModification {
-    /// The list of modifications to this label''s fields.
-    #[serde(default, rename = "fieldModifications")]
-    pub field_modifications: ::core::option::Option<::std::vec::Vec<LabelFieldModification>>,
-    /// This is always "drive#labelModification".
-    #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-    /// The ID of the label to modify.
-    #[serde(default, rename = "labelId")]
-    pub label_id: ::core::option::Option<String>,
-    /// If true, the label will be removed from the file.
-    #[serde(default, rename = "removeLabel")]
-    pub remove_label: ::core::option::Option<bool>,
-}
-
-/// The response to an access proposal list request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ListAccessProposalsResponse {
-    /// The list of access proposals. This field is only populated in Drive API v3.
-    #[serde(default, rename = "accessProposals")]
-    pub access_proposals: ::core::option::Option<::std::vec::Vec<AccessProposal>>,
-    /// The continuation token for the next page of results. This will be absent if the end of the results list has been reached. If the token is rejected for any reason, it should be discarded, and pagination should be restarted from the first page of results.
-    #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: ::core::option::Option<String>,
-}
-
-/// A request to modify the set of labels on a file. This request may contain many modifications that will either all succeed or all fail atomically.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ModifyLabelsRequest {
-    /// This is always "drive#modifyLabelsRequest".
-    #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-    /// The list of modifications to apply to the labels on the file.
-    #[serde(default, rename = "labelModifications")]
-    pub label_modifications: ::core::option::Option<::std::vec::Vec<LabelModification>>,
-}
-
-/// Response to a ModifyLabels request. This contains only those labels which were added or updated by the request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ModifyLabelsResponse {
-    /// This is always "drive#modifyLabelsResponse".
-    #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-    /// The list of labels which were added or updated by the request.
-    #[serde(default, rename = "modifiedLabels")]
-    pub modified_labels: ::core::option::Option<::std::vec::Vec<Label>>,
-}
-
-/// This resource represents a long-running operation that is the result of a network API call.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Operation {
-    /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
-    #[serde(default)]
-    pub done: ::core::option::Option<bool>,
-    /// The error result of the operation in case of failure or cancellation.
-    #[serde(default)]
-    pub error: ::core::option::Option<Status>,
-    /// Service-specific metadata associated with the operation. It typically contains progress information and common metadata such as create time. Some services might not provide such metadata. Any method that returns a long-running operation should document the metadata type, if any.
-    #[serde(default)]
-    pub metadata: ::core::option::Option<serde_json::Value>,
-    /// The server-assigned name, which is only unique within the same service that originally returns it. If you use the default HTTP mapping, the name should be a resource name ending with operations/{unique_id}.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// The normal, successful response of the operation. If the original method returns no data on success, such as Delete, the response is google.protobuf.Empty. If the original method is standard Get/Create/Update, the response should be the resource. For other methods, the response should have the type XxxResponse, where Xxx is the original method name. For example, if the original method name is TakeSnapshot(), the inferred response type is TakeSnapshotResponse.
-    #[serde(default)]
-    pub response: ::core::option::Option<serde_json::Value>,
+pub struct DownloadRestrictionsMetadata {
+    /// Output only. The effective download restriction applied to this file. This considers all restriction settings and DLP rules.
+    #[serde(default, rename = "effectiveDownloadRestrictionWithContext")]
+    pub effective_download_restriction_with_context: ::core::option::Option<DownloadRestriction>,
+    /// The download restriction of the file applied directly by the owner or organizer. This doesn''t take into account shared drive settings or DLP rules.
+    #[serde(default, rename = "itemDownloadRestriction")]
+    pub item_download_restriction: ::core::option::Option<DownloadRestriction>,
 }
 
 /// A permission for a file. A permission grants a user, group, domain, or the world access to a file or a folder hierarchy. For more information, see [Share files, folders, and drives](https://developers.google.com/workspace/drive/api/guides/manage-sharing). By default, permission requests only return a subset of fields. Permission kind, ID, type, and role are always returned. To retrieve specific fields, see [Return specific fields](https://developers.google.com/workspace/drive/api/guides/fields-parameter). Some resource methods (such as permissions.update) require a permissionId. Use the permissions.list method to retrieve the ID for a file, folder, or shared drive.
@@ -942,241 +1166,6 @@ pub struct Permission {
     pub view: ::core::option::Option<String>,
 }
 
-/// A list of permissions for a file.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PermissionList {
-    /// Identifies what kind of resource this is. Value: the fixed string "drive#permissionList".
-    #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-    /// The page token for the next page of permissions. This field will be absent if the end of the permissions list has been reached. If the token is rejected for any reason, it should be discarded, and pagination should be restarted from the first page of results. The page token is typically valid for several hours. However, if new items are added or removed, your expected results might differ.
-    #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: ::core::option::Option<String>,
-    /// The list of permissions. If nextPageToken is populated, then this list may be incomplete and an additional page of results should be fetched.
-    #[serde(default)]
-    pub permissions: ::core::option::Option<::std::vec::Vec<Permission>>,
-}
-
-/// A reply to a comment on a file. Some resource methods (such as replies.update) require a replyId. Use the replies.list method to retrieve the ID for a reply.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Reply {
-    /// The action the reply performed to the parent comment. The supported values are: * resolve * reopen
-    #[serde(default)]
-    pub action: ::core::option::Option<String>,
-    /// Output only. The email address of the user assigned to this comment. If no user is assigned, the field is unset.
-    #[serde(default, rename = "assigneeEmailAddress")]
-    pub assignee_email_address: ::core::option::Option<String>,
-    /// Output only. The author of the reply. The author''s email address and permission ID won''t be populated.
-    #[serde(default)]
-    pub author: ::core::option::Option<User>,
-    /// The plain text content of the reply. This field is used for setting the content, while htmlContent should be displayed. This field is required by the create method if no action value is specified.
-    #[serde(default)]
-    pub content: ::core::option::Option<String>,
-    /// The time at which the reply was created (RFC 3339 date-time).
-    #[serde(default, rename = "createdTime")]
-    pub created_time: ::core::option::Option<String>,
-    /// Output only. Whether the reply has been deleted. A deleted reply has no content.
-    #[serde(default)]
-    pub deleted: ::core::option::Option<bool>,
-    /// Output only. The content of the reply with HTML formatting.
-    #[serde(default, rename = "htmlContent")]
-    pub html_content: ::core::option::Option<String>,
-    /// Output only. The ID of the reply.
-    #[serde(default)]
-    pub id: ::core::option::Option<String>,
-    /// Output only. Identifies what kind of resource this is. Value: the fixed string "drive#reply".
-    #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-    /// Output only. A list of email addresses for users mentioned in this comment. If no users are mentioned, the list is empty.
-    #[serde(default, rename = "mentionedEmailAddresses")]
-    pub mentioned_email_addresses: ::core::option::Option<::std::vec::Vec<String>>,
-    /// The last time the reply was modified (RFC 3339 date-time).
-    #[serde(default, rename = "modifiedTime")]
-    pub modified_time: ::core::option::Option<String>,
-}
-
-/// A list of replies to a comment on a file.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ReplyList {
-    /// Identifies what kind of resource this is. Value: the fixed string "drive#replyList".
-    #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-    /// The page token for the next page of replies. This will be absent if the end of the replies list has been reached. If the token is rejected for any reason, it should be discarded, and pagination should be restarted from the first page of results. The page token is typically valid for several hours. However, if new items are added or removed, your expected results might differ.
-    #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: ::core::option::Option<String>,
-    /// The list of replies. If nextPageToken is populated, then this list may be incomplete and an additional page of results should be fetched.
-    #[serde(default)]
-    pub replies: ::core::option::Option<::std::vec::Vec<Reply>>,
-}
-
-/// Request message for resolving an AccessProposal on a file.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ResolveAccessProposalRequest {
-    /// Required. The action to take on the access proposal. // TODO: enum values: ["ACTION_UNSPECIFIED", "ACCEPT", "DENY"]
-    #[serde(default)]
-    pub action: ::core::option::Option<String>,
-    /// Optional. The roles that the approver has allowed, if any. For more information, see [Roles and permissions](https://developers.google.com/workspace/drive/api/guides/ref-roles). Note: This field is required for the ACCEPT action.
-    #[serde(default)]
-    pub role: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Optional. Whether to send an email to the requester when the access proposal is denied or accepted.
-    #[serde(default, rename = "sendNotification")]
-    pub send_notification: ::core::option::Option<bool>,
-    /// Optional. Indicates the view for this access proposal. This should only be set when the proposal belongs to a view. Only published is supported.
-    #[serde(default)]
-    pub view: ::core::option::Option<String>,
-}
-
-/// A response on an Approval made by a specific Reviewer.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ReviewerResponse {
-    /// This is always drive#reviewerResponse.
-    #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-    /// A Reviewer’s Response for the Approval. // TODO: enum values: ["RESPONSE_UNSPECIFIED", "NO_RESPONSE", "APPROVED", "DECLINED"]
-    #[serde(default)]
-    pub response: ::core::option::Option<String>,
-    /// The user that is responsible for this response.
-    #[serde(default)]
-    pub reviewer: ::core::option::Option<User>,
-}
-
-/// The metadata for a revision to a file. Some resource methods (such as revisions.update) require a revisionId. Use the revisions.list method to retrieve the ID for a revision.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Revision {
-    /// Output only. Links for exporting Docs Editors files to specific formats.
-    #[serde(default, rename = "exportLinks")]
-    pub export_links: ::core::option::Option<serde_json::Value>,
-    /// Output only. The ID of the revision.
-    #[serde(default)]
-    pub id: ::core::option::Option<String>,
-    /// Whether to keep this revision forever, even if it is no longer the head revision. If not set, the revision will be automatically purged 30 days after newer content is uploaded. This can be set on a maximum of 200 revisions for a file. This field is only applicable to files with binary content in Drive.
-    #[serde(default, rename = "keepForever")]
-    pub keep_forever: ::core::option::Option<bool>,
-    /// Output only. Identifies what kind of resource this is. Value: the fixed string "drive#revision".
-    #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-    /// Output only. The last user to modify this revision. This field is only populated when the last modification was performed by a signed-in user.
-    #[serde(default, rename = "lastModifyingUser")]
-    pub last_modifying_user: ::core::option::Option<User>,
-    /// Output only. The MD5 checksum of the revision''s content. This is only applicable to files with binary content in Drive.
-    #[serde(default, rename = "md5Checksum")]
-    pub md5_checksum: ::core::option::Option<String>,
-    /// Output only. The MIME type of the revision.
-    #[serde(default, rename = "mimeType")]
-    pub mime_type: ::core::option::Option<String>,
-    /// The last time the revision was modified (RFC 3339 date-time).
-    #[serde(default, rename = "modifiedTime")]
-    pub modified_time: ::core::option::Option<String>,
-    /// Output only. The original filename used to create this revision. This is only applicable to files with binary content in Drive.
-    #[serde(default, rename = "originalFilename")]
-    pub original_filename: ::core::option::Option<String>,
-    /// Whether subsequent revisions will be automatically republished. This is only applicable to Docs Editors files.
-    #[serde(default, rename = "publishAuto")]
-    pub publish_auto: ::core::option::Option<bool>,
-    /// Whether this revision is published. This is only applicable to Docs Editors files.
-    #[serde(default)]
-    pub published: ::core::option::Option<bool>,
-    /// Output only. A link to the published revision. This is only populated for Docs Editors files.
-    #[serde(default, rename = "publishedLink")]
-    pub published_link: ::core::option::Option<String>,
-    /// Whether this revision is published outside the domain. This is only applicable to Docs Editors files.
-    #[serde(default, rename = "publishedOutsideDomain")]
-    pub published_outside_domain: ::core::option::Option<bool>,
-    /// Output only. The size of the revision''s content in bytes. This is only applicable to files with binary content in Drive.
-    #[serde(default)]
-    pub size: ::core::option::Option<String>,
-}
-
-/// A list of revisions of a file.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct RevisionList {
-    /// Identifies what kind of resource this is. Value: the fixed string "drive#revisionList".
-    #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-    /// The page token for the next page of revisions. This will be absent if the end of the revisions list has been reached. If the token is rejected for any reason, it should be discarded, and pagination should be restarted from the first page of results. The page token is typically valid for several hours. However, if new items are added or removed, your expected results might differ.
-    #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: ::core::option::Option<String>,
-    /// The list of revisions. If nextPageToken is populated, then this list may be incomplete and an additional page of results should be fetched.
-    #[serde(default)]
-    pub revisions: ::core::option::Option<::std::vec::Vec<Revision>>,
-}
-
-/// StartPageToken resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct StartPageToken {
-    /// Identifies what kind of resource this is. Value: the fixed string "drive#startPageToken".
-    #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-    /// The starting page token for listing future changes. The page token doesn''t expire.
-    #[serde(default, rename = "startPageToken")]
-    pub start_page_token: ::core::option::Option<String>,
-}
-
-/// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Status {
-    /// The status code, which should be an enum value of google.rpc.Code.
-    #[serde(default)]
-    pub code: ::core::option::Option<i32>,
-    /// A list of messages that carry the error details. There is a common set of message types for APIs to use.
-    #[serde(default)]
-    pub details: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
-    /// A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.
-    #[serde(default)]
-    pub message: ::core::option::Option<String>,
-}
-
-/// Deprecated: use the drive collection instead.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct TeamDrive {
-    /// An image file and cropping parameters from which a background image for this Team Drive is set. This is a write only field; it can only be set on drive.teamdrives.update requests that don''t set themeId. When specified, all fields of the backgroundImageFile must be set.
-    #[serde(default, rename = "backgroundImageFile")]
-    pub background_image_file: ::core::option::Option<serde_json::Value>,
-    /// A short-lived link to this Team Drive''s background image.
-    #[serde(default, rename = "backgroundImageLink")]
-    pub background_image_link: ::core::option::Option<String>,
-    /// Capabilities the current user has on this Team Drive.
-    #[serde(default)]
-    pub capabilities: ::core::option::Option<serde_json::Value>,
-    /// The color of this Team Drive as an RGB hex string. It can only be set on a drive.teamdrives.update request that does not set themeId.
-    #[serde(default, rename = "colorRgb")]
-    pub color_rgb: ::core::option::Option<String>,
-    /// The time at which the Team Drive was created (RFC 3339 date-time).
-    #[serde(default, rename = "createdTime")]
-    pub created_time: ::core::option::Option<String>,
-    /// The ID of this Team Drive which is also the ID of the top level folder of this Team Drive.
-    #[serde(default)]
-    pub id: ::core::option::Option<String>,
-    /// Identifies what kind of resource this is. Value: the fixed string "drive#teamDrive".
-    #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-    /// The name of this Team Drive.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// The organizational unit of this shared drive. This field is only populated on drives.list responses when the useDomainAdminAccess parameter is set to true.
-    #[serde(default, rename = "orgUnitId")]
-    pub org_unit_id: ::core::option::Option<String>,
-    /// A set of restrictions that apply to this Team Drive or items inside this Team Drive.
-    #[serde(default)]
-    pub restrictions: ::core::option::Option<serde_json::Value>,
-    /// The ID of the theme from which the background image and color will be set. The set of possible teamDriveThemes can be retrieved from a drive.about.get response. When not specified on a drive.teamdrives.create request, a random theme is chosen from which the background image and color are set. This is a write-only field; it can only be set on requests that don''t set colorRgb or backgroundImageFile.
-    #[serde(default, rename = "themeId")]
-    pub theme_id: ::core::option::Option<String>,
-}
-
-/// A list of Team Drives.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct TeamDriveList {
-    /// Identifies what kind of resource this is. Value: the fixed string "drive#teamDriveList".
-    #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-    /// The page token for the next page of Team Drives. This will be absent if the end of the Team Drives list has been reached. If the token is rejected for any reason, it should be discarded, and pagination should be restarted from the first page of results. The page token is typically valid for several hours. However, if new items are added or removed, your expected results might differ.
-    #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: ::core::option::Option<String>,
-    /// The list of Team Drives. If nextPageToken is populated, then this list may be incomplete and an additional page of results should be fetched.
-    #[serde(default, rename = "teamDrives")]
-    pub team_drives: ::core::option::Option<::std::vec::Vec<TeamDrive>>,
-}
-
 /// Information about a Drive user.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct User {
@@ -1198,4 +1187,15 @@ pub struct User {
     /// Output only. A link to the user''s profile photo, if available.
     #[serde(default, rename = "photoLink")]
     pub photo_link: ::core::option::Option<String>,
+}
+
+/// A restriction for copy and download of the file.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DownloadRestriction {
+    /// Whether download and copy is restricted for readers.
+    #[serde(default, rename = "restrictedForReaders")]
+    pub restricted_for_readers: ::core::option::Option<bool>,
+    /// Whether download and copy is restricted for writers. If true, download is also restricted for readers.
+    #[serde(default, rename = "restrictedForWriters")]
+    pub restricted_for_writers: ::core::option::Option<bool>,
 }

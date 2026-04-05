@@ -30,64 +30,6 @@ pub struct Annotation {
     pub update_time: ::core::option::Option<String>,
 }
 
-/// Message describing Collector object.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Collector {
-    /// Output only. Store cloud storage bucket name (which is a guid) created with this Collector.
-    #[serde(default)]
-    pub bucket: ::core::option::Option<String>,
-    /// Output only. Client version.
-    #[serde(default, rename = "clientVersion")]
-    pub client_version: ::core::option::Option<String>,
-    /// How many days to collect data.
-    #[serde(default, rename = "collectionDays")]
-    pub collection_days: ::core::option::Option<i32>,
-    /// Output only. Create time stamp.
-    #[serde(default, rename = "createTime")]
-    pub create_time: ::core::option::Option<String>,
-    /// User specified description of the Collector.
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// User specified name of the Collector.
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-    /// Uri for EULA (End User License Agreement) from customer.
-    #[serde(default, rename = "eulaUri")]
-    pub eula_uri: ::core::option::Option<String>,
-    /// User specified expected asset count.
-    #[serde(default, rename = "expectedAssetCount")]
-    pub expected_asset_count: ::core::option::Option<String>,
-    /// Output only. Reference to MC Source Guest Os Scan.
-    #[serde(default, rename = "guestOsScan")]
-    pub guest_os_scan: ::core::option::Option<GuestOsScan>,
-    /// Labels as key value pairs.
-    #[serde(default)]
-    pub labels: ::core::option::Option<serde_json::Value>,
-    /// name of resource.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Service Account email used to ingest data to this Collector.
-    #[serde(default, rename = "serviceAccount")]
-    pub service_account: ::core::option::Option<String>,
-    /// Output only. State of the Collector. // TODO: enum values: ["STATE_UNSPECIFIED", "STATE_INITIALIZING", "STATE_READY_TO_USE", "STATE_REGISTERED", "STATE_ACTIVE", "STATE_PAUSED", "STATE_DELETING", "STATE_DECOMMISSIONED", "STATE_ERROR"]
-    #[serde(default)]
-    pub state: ::core::option::Option<String>,
-    /// Output only. Update time stamp.
-    #[serde(default, rename = "updateTime")]
-    pub update_time: ::core::option::Option<String>,
-    /// Output only. Reference to MC Source vsphere_scan.
-    #[serde(default, rename = "vsphereScan")]
-    pub vsphere_scan: ::core::option::Option<VSphereScan>,
-}
-
-/// Message describing a MC Source of type Guest OS Scan.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GuestOsScan {
-    /// reference to the corresponding Guest OS Scan in MC Source.
-    #[serde(default, rename = "coreSource")]
-    pub core_source: ::core::option::Option<String>,
-}
-
 /// Message for response to listing Collectors.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ListCollectorsResponse {
@@ -122,46 +64,6 @@ pub struct ListOperationsResponse {
     /// A list of operations that matches the specified filter in the request.
     #[serde(default)]
     pub operations: ::core::option::Option<::std::vec::Vec<Operation>>,
-}
-
-/// A resource that represents a Google Cloud location.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Location {
-    /// The friendly name for this location, typically a nearby city name. For example, "Tokyo".
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-    /// Cross-service attributes for the location. For example {"cloud.googleapis.com/region": "us-east1"}
-    #[serde(default)]
-    pub labels: ::core::option::Option<serde_json::Value>,
-    /// The canonical id for this location. For example: "us-east1".
-    #[serde(default, rename = "locationId")]
-    pub location_id: ::core::option::Option<String>,
-    /// Service-specific metadata. For example the available capacity at the given location.
-    #[serde(default)]
-    pub metadata: ::core::option::Option<serde_json::Value>,
-    /// Resource name for the location, which may vary between implementations. For example: "projects/example-project/locations/us-east1"
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-}
-
-/// This resource represents a long-running operation that is the result of a network API call.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Operation {
-    /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
-    #[serde(default)]
-    pub done: ::core::option::Option<bool>,
-    /// The error result of the operation in case of failure or cancellation.
-    #[serde(default)]
-    pub error: ::core::option::Option<Status>,
-    /// Service-specific metadata associated with the operation. It typically contains progress information and common metadata such as create time. Some services might not provide such metadata. Any method that returns a long-running operation should document the metadata type, if any.
-    #[serde(default)]
-    pub metadata: ::core::option::Option<serde_json::Value>,
-    /// The server-assigned name, which is only unique within the same service that originally returns it. If you use the default HTTP mapping, the name should be a resource name ending with operations/{unique_id}.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// The normal, successful response of the operation. If the original method returns no data on success, such as Delete, the response is google.protobuf.Empty. If the original method is standard Get/Create/Update, the response should be the resource. For other methods, the response should have the type XxxResponse, where Xxx is the original method name. For example, if the original method name is TakeSnapshot(), the inferred response type is TakeSnapshotResponse.
-    #[serde(default)]
-    pub response: ::core::option::Option<serde_json::Value>,
 }
 
 /// Represents the metadata of the long-running operation.
@@ -214,6 +116,112 @@ pub struct ResumeCollectorRequest {
     pub request_id: ::core::option::Option<String>,
 }
 
+/// Message describing Collector object.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Collector {
+    /// Output only. Store cloud storage bucket name (which is a guid) created with this Collector.
+    #[serde(default)]
+    pub bucket: ::core::option::Option<String>,
+    /// Output only. Client version.
+    #[serde(default, rename = "clientVersion")]
+    pub client_version: ::core::option::Option<String>,
+    /// How many days to collect data.
+    #[serde(default, rename = "collectionDays")]
+    pub collection_days: ::core::option::Option<i32>,
+    /// Output only. Create time stamp.
+    #[serde(default, rename = "createTime")]
+    pub create_time: ::core::option::Option<String>,
+    /// User specified description of the Collector.
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+    /// User specified name of the Collector.
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+    /// Uri for EULA (End User License Agreement) from customer.
+    #[serde(default, rename = "eulaUri")]
+    pub eula_uri: ::core::option::Option<String>,
+    /// User specified expected asset count.
+    #[serde(default, rename = "expectedAssetCount")]
+    pub expected_asset_count: ::core::option::Option<String>,
+    /// Output only. Reference to MC Source Guest Os Scan.
+    #[serde(default, rename = "guestOsScan")]
+    pub guest_os_scan: ::core::option::Option<GuestOsScan>,
+    /// Labels as key value pairs.
+    #[serde(default)]
+    pub labels: ::core::option::Option<serde_json::Value>,
+    /// name of resource.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Service Account email used to ingest data to this Collector.
+    #[serde(default, rename = "serviceAccount")]
+    pub service_account: ::core::option::Option<String>,
+    /// Output only. State of the Collector. // TODO: enum values: ["STATE_UNSPECIFIED", "STATE_INITIALIZING", "STATE_READY_TO_USE", "STATE_REGISTERED", "STATE_ACTIVE", "STATE_PAUSED", "STATE_DELETING", "STATE_DECOMMISSIONED", "STATE_ERROR"]
+    #[serde(default)]
+    pub state: ::core::option::Option<String>,
+    /// Output only. Update time stamp.
+    #[serde(default, rename = "updateTime")]
+    pub update_time: ::core::option::Option<String>,
+    /// Output only. Reference to MC Source vsphere_scan.
+    #[serde(default, rename = "vsphereScan")]
+    pub vsphere_scan: ::core::option::Option<VSphereScan>,
+}
+
+/// A resource that represents a Google Cloud location.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Location {
+    /// The friendly name for this location, typically a nearby city name. For example, "Tokyo".
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+    /// Cross-service attributes for the location. For example {"cloud.googleapis.com/region": "us-east1"}
+    #[serde(default)]
+    pub labels: ::core::option::Option<serde_json::Value>,
+    /// The canonical id for this location. For example: "us-east1".
+    #[serde(default, rename = "locationId")]
+    pub location_id: ::core::option::Option<String>,
+    /// Service-specific metadata. For example the available capacity at the given location.
+    #[serde(default)]
+    pub metadata: ::core::option::Option<serde_json::Value>,
+    /// Resource name for the location, which may vary between implementations. For example: "projects/example-project/locations/us-east1"
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+}
+
+/// This resource represents a long-running operation that is the result of a network API call.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Operation {
+    /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
+    #[serde(default)]
+    pub done: ::core::option::Option<bool>,
+    /// The error result of the operation in case of failure or cancellation.
+    #[serde(default)]
+    pub error: ::core::option::Option<Status>,
+    /// Service-specific metadata associated with the operation. It typically contains progress information and common metadata such as create time. Some services might not provide such metadata. Any method that returns a long-running operation should document the metadata type, if any.
+    #[serde(default)]
+    pub metadata: ::core::option::Option<serde_json::Value>,
+    /// The server-assigned name, which is only unique within the same service that originally returns it. If you use the default HTTP mapping, the name should be a resource name ending with operations/{unique_id}.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// The normal, successful response of the operation. If the original method returns no data on success, such as Delete, the response is google.protobuf.Empty. If the original method is standard Get/Create/Update, the response should be the resource. For other methods, the response should have the type XxxResponse, where Xxx is the original method name. For example, if the original method name is TakeSnapshot(), the inferred response type is TakeSnapshotResponse.
+    #[serde(default)]
+    pub response: ::core::option::Option<serde_json::Value>,
+}
+
+/// Message describing a MC Source of type Guest OS Scan.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GuestOsScan {
+    /// reference to the corresponding Guest OS Scan in MC Source.
+    #[serde(default, rename = "coreSource")]
+    pub core_source: ::core::option::Option<String>,
+}
+
+/// Message describing a MC Source of type VSphere Scan.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct VSphereScan {
+    /// reference to the corresponding VSphere Scan in MC Source.
+    #[serde(default, rename = "coreSource")]
+    pub core_source: ::core::option::Option<String>,
+}
+
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Status {
@@ -226,12 +234,4 @@ pub struct Status {
     /// A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.
     #[serde(default)]
     pub message: ::core::option::Option<String>,
-}
-
-/// Message describing a MC Source of type VSphere Scan.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct VSphereScan {
-    /// reference to the corresponding VSphere Scan in MC Source.
-    #[serde(default, rename = "coreSource")]
-    pub core_source: ::core::option::Option<String>,
 }

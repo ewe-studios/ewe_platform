@@ -10,47 +10,6 @@
 use super::*;
 use serde::{Deserialize, Serialize};
 
-/// An add-on attachment on a post.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AddOnAttachment {
-    /// Output only. Identifiers of attachments that were previous copies of this attachment. If the attachment was previously copied by virtue of its parent post being copied, this enumerates the identifiers of attachments that were its previous copies in ascending chronological order of copy.
-    #[serde(default, rename = "copyHistory")]
-    pub copy_history: ::core::option::Option<::std::vec::Vec<CopyHistory>>,
-    /// Immutable. Identifier of the course.
-    #[serde(default, rename = "courseId")]
-    pub course_id: ::core::option::Option<String>,
-    /// Date, in UTC, that work on this attachment is due. This must be specified if due_time is specified.
-    #[serde(default, rename = "dueDate")]
-    pub due_date: ::core::option::Option<Date>,
-    /// Time of day, in UTC, that work on this attachment is due. This must be specified if due_date is specified.
-    #[serde(default, rename = "dueTime")]
-    pub due_time: ::core::option::Option<TimeOfDay>,
-    /// Immutable. Classroom-assigned identifier for this attachment, unique per post.
-    #[serde(default)]
-    pub id: ::core::option::Option<String>,
-    /// Immutable. Identifier of the Announcement, CourseWork, or CourseWorkMaterial under which the attachment is attached. Unique per course.
-    #[serde(default, rename = "itemId")]
-    pub item_id: ::core::option::Option<String>,
-    /// Maximum grade for this attachment. Can only be set if studentWorkReviewUri is set. Set to a non-zero value to indicate that the attachment supports grade passback. If set, this must be a non-negative integer value. When set to zero, the attachment will not support grade passback.
-    #[serde(default, rename = "maxPoints")]
-    pub max_points: ::core::option::Option<f64>,
-    /// Immutable. Deprecated, use item_id instead.
-    #[serde(default, rename = "postId")]
-    pub post_id: ::core::option::Option<String>,
-    /// Required. URI to show the student view of the attachment. The URI will be opened in an iframe with the courseId, itemId, itemType, and attachmentId query parameters set.
-    #[serde(default, rename = "studentViewUri")]
-    pub student_view_uri: ::core::option::Option<EmbedUri>,
-    /// URI for the teacher to see student work on the attachment, if applicable. The URI will be opened in an iframe with the courseId, itemId, itemType, attachmentId, and submissionId query parameters set. This is the same submissionId returned in the [AddOnContext.studentContext](//devsite.google.com/classroom/reference/rest/v1/AddOnContext#StudentContext) field when a student views the attachment. If the URI is omitted or removed, max_points will also be discarded.
-    #[serde(default, rename = "studentWorkReviewUri")]
-    pub student_work_review_uri: ::core::option::Option<EmbedUri>,
-    /// Required. URI to show the teacher view of the attachment. The URI will be opened in an iframe with the courseId, itemId, itemType, and attachmentId query parameters set.
-    #[serde(default, rename = "teacherViewUri")]
-    pub teacher_view_uri: ::core::option::Option<EmbedUri>,
-    /// Required. Title of this attachment. The title must be between 1 and 1000 characters.
-    #[serde(default)]
-    pub title: ::core::option::Option<String>,
-}
-
 /// Payload for grade update requests.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AddOnAttachmentStudentSubmission {
@@ -88,537 +47,6 @@ pub struct AddOnContext {
     pub teacher_context: ::core::option::Option<serde_json::Value>,
 }
 
-/// Announcement created by a teacher for students of the course
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Announcement {
-    /// Absolute link to this announcement in the Classroom web UI. This is only populated if state is PUBLISHED. Read-only.
-    #[serde(default, rename = "alternateLink")]
-    pub alternate_link: ::core::option::Option<String>,
-    /// Assignee mode of the announcement. If unspecified, the default value is ALL_STUDENTS. // TODO: enum values: ["ASSIGNEE_MODE_UNSPECIFIED", "ALL_STUDENTS", "INDIVIDUAL_STUDENTS"]
-    #[serde(default, rename = "assigneeMode")]
-    pub assignee_mode: ::core::option::Option<String>,
-    /// Identifier of the course. Read-only.
-    #[serde(default, rename = "courseId")]
-    pub course_id: ::core::option::Option<String>,
-    /// Timestamp when this announcement was created. Read-only.
-    #[serde(default, rename = "creationTime")]
-    pub creation_time: ::core::option::Option<String>,
-    /// Identifier for the user that created the announcement. Read-only.
-    #[serde(default, rename = "creatorUserId")]
-    pub creator_user_id: ::core::option::Option<String>,
-    /// Classroom-assigned identifier of this announcement, unique per course. Read-only.
-    #[serde(default)]
-    pub id: ::core::option::Option<String>,
-    /// Identifiers of students with access to the announcement. This field is set only if assigneeMode is INDIVIDUAL_STUDENTS. If the assigneeMode is INDIVIDUAL_STUDENTS, then only students specified in this field can see the announcement.
-    #[serde(default, rename = "individualStudentsOptions")]
-    pub individual_students_options: ::core::option::Option<IndividualStudentsOptions>,
-    /// Additional materials. Announcements must have no more than 20 material items.
-    #[serde(default)]
-    pub materials: ::core::option::Option<::std::vec::Vec<Material>>,
-    /// Optional timestamp when this announcement is scheduled to be published.
-    #[serde(default, rename = "scheduledTime")]
-    pub scheduled_time: ::core::option::Option<String>,
-    /// Status of this announcement. If unspecified, the default state is DRAFT. // TODO: enum values: ["ANNOUNCEMENT_STATE_UNSPECIFIED", "PUBLISHED", "DRAFT", "DELETED"]
-    #[serde(default)]
-    pub state: ::core::option::Option<String>,
-    /// Description of this announcement. The text must be a valid UTF-8 string containing no more than 30,000 characters.
-    #[serde(default)]
-    pub text: ::core::option::Option<String>,
-    /// Timestamp of the most recent change to this announcement. Read-only.
-    #[serde(default, rename = "updateTime")]
-    pub update_time: ::core::option::Option<String>,
-}
-
-/// Additional details for assignments.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Assignment {
-    /// Drive folder where attachments from student submissions are placed. This is only populated for course teachers and administrators.
-    #[serde(default, rename = "studentWorkFolder")]
-    pub student_work_folder: ::core::option::Option<DriveFolder>,
-}
-
-/// Student work for an assignment.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AssignmentSubmission {
-    /// Attachments added by the student. Drive files that correspond to materials with a share mode of STUDENT_COPY may not exist yet if the student has not accessed the assignment in Classroom. Some attachment metadata is only populated if the requesting user has permission to access it. Identifier and alternate_link fields are always available, but others (for example, title) may not be.
-    #[serde(default)]
-    pub attachments: ::core::option::Option<::std::vec::Vec<Attachment>>,
-}
-
-/// Attachment added to student assignment work. When creating attachments, setting the form field is not supported.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Attachment {
-    /// Google Drive file attachment.
-    #[serde(default, rename = "driveFile")]
-    pub drive_file: ::core::option::Option<DriveFile>,
-    /// Google Forms attachment.
-    #[serde(default)]
-    pub form: ::core::option::Option<Form>,
-    /// Link attachment.
-    #[serde(default)]
-    pub link: ::core::option::Option<Link>,
-    /// Youtube video attachment.
-    #[serde(default, rename = "youTubeVideo")]
-    pub you_tube_video: ::core::option::Option<YouTubeVideo>,
-}
-
-/// A reference to a Cloud Pub/Sub topic. To register for notifications, the owner of the topic must grant classroom-notifications@system.gserviceaccount.com the projects.topics.publish permission.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CloudPubsubTopic {
-    /// The name field of a Cloud Pub/Sub [Topic](https://cloud.google.com/pubsub/docs/reference/rest/v1/projects.topics#Topic).
-    #[serde(default, rename = "topicName")]
-    pub topic_name: ::core::option::Option<String>,
-}
-
-/// Identifier of a previous copy of a given attachment.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CopyHistory {
-    /// Immutable. Identifier of the attachment.
-    #[serde(default, rename = "attachmentId")]
-    pub attachment_id: ::core::option::Option<String>,
-    /// Immutable. Identifier of the course.
-    #[serde(default, rename = "courseId")]
-    pub course_id: ::core::option::Option<String>,
-    /// Immutable. Identifier of the Announcement, CourseWork, or CourseWorkMaterial under which the attachment is attached.
-    #[serde(default, rename = "itemId")]
-    pub item_id: ::core::option::Option<String>,
-    /// Immutable. Deprecated, use item_id instead.
-    #[serde(default, rename = "postId")]
-    pub post_id: ::core::option::Option<String>,
-}
-
-/// A Course in Classroom.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Course {
-    /// Absolute link to this course in the Classroom web UI. Read-only.
-    #[serde(default, rename = "alternateLink")]
-    pub alternate_link: ::core::option::Option<String>,
-    /// The Calendar ID for a calendar that all course members can see, to which Classroom adds events for course work and announcements in the course. The Calendar for a course is created asynchronously when the course is set to CourseState.ACTIVE for the first time (at creation time or when it is updated to ACTIVE through the UI or the API). The Calendar ID will not be populated until the creation process is completed. Read-only.
-    #[serde(default, rename = "calendarId")]
-    pub calendar_id: ::core::option::Option<String>,
-    /// The email address of a Google group containing all members of the course. This group does not accept email and can only be used for permissions. Read-only.
-    #[serde(default, rename = "courseGroupEmail")]
-    pub course_group_email: ::core::option::Option<String>,
-    /// Sets of materials that appear on the "about" page of this course. Read-only.
-    #[serde(default, rename = "courseMaterialSets")]
-    pub course_material_sets: ::core::option::Option<::std::vec::Vec<CourseMaterialSet>>,
-    /// State of the course. If unspecified, the default state is PROVISIONED. // TODO: enum values: ["COURSE_STATE_UNSPECIFIED", "ACTIVE", "ARCHIVED", "PROVISIONED", "DECLINED", "SUSPENDED"]
-    #[serde(default, rename = "courseState")]
-    pub course_state: ::core::option::Option<String>,
-    /// Creation time of the course. Specifying this field in a course update mask results in an error. Read-only.
-    #[serde(default, rename = "creationTime")]
-    pub creation_time: ::core::option::Option<String>,
-    /// Optional description. For example, "We''ll be learning about the structure of living creatures from a combination of textbooks, guest lectures, and lab work. Expect to be excited!" If set, this field must be a valid UTF-8 string and no longer than 30,000 characters.
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// Optional heading for the description. For example, "Welcome to 10th Grade Biology." If set, this field must be a valid UTF-8 string and no longer than 3600 characters.
-    #[serde(default, rename = "descriptionHeading")]
-    pub description_heading: ::core::option::Option<String>,
-    /// Enrollment code to use when joining this course. Specifying this field in a course update mask results in an error. Read-only.
-    #[serde(default, rename = "enrollmentCode")]
-    pub enrollment_code: ::core::option::Option<String>,
-    /// The gradebook settings that specify how a student''s overall grade for the course will be calculated and who it will be displayed to. Read-only.
-    #[serde(default, rename = "gradebookSettings")]
-    pub gradebook_settings: ::core::option::Option<GradebookSettings>,
-    /// Whether or not guardian notifications are enabled for this course. Read-only.
-    #[serde(default, rename = "guardiansEnabled")]
-    pub guardians_enabled: ::core::option::Option<bool>,
-    /// Identifier for this course assigned by Classroom. When creating a course, you may optionally set this identifier to an alias string in the request to create a corresponding alias. The id is still assigned by Classroom and cannot be updated after the course is created. Specifying this field in a course update mask results in an error.
-    #[serde(default)]
-    pub id: ::core::option::Option<String>,
-    /// Name of the course. For example, "10th Grade Biology". The name is required. It must be between 1 and 750 characters and a valid UTF-8 string.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// The identifier of the owner of a course. When specified as a parameter of a create course request, this field is required. The identifier can be one of the following: * the numeric identifier for the user * the email address of the user * the string literal "me", indicating the requesting user This must be set in a create request. Admins can also specify this field in a patch course request to transfer ownership. In other contexts, it is read-only.
-    #[serde(default, rename = "ownerId")]
-    pub owner_id: ::core::option::Option<String>,
-    /// Optional room location. For example, "301". If set, this field must be a valid UTF-8 string and no longer than 650 characters.
-    #[serde(default)]
-    pub room: ::core::option::Option<String>,
-    /// Section of the course. For example, "Period 2". If set, this field must be a valid UTF-8 string and no longer than 2800 characters.
-    #[serde(default)]
-    pub section: ::core::option::Option<String>,
-    /// Optional. The subject of the course.
-    #[serde(default)]
-    pub subject: ::core::option::Option<String>,
-    /// Information about a Drive Folder that is shared with all teachers of the course. This field will only be set for teachers of the course and domain administrators. Read-only.
-    #[serde(default, rename = "teacherFolder")]
-    pub teacher_folder: ::core::option::Option<DriveFolder>,
-    /// The email address of a Google group containing all teachers of the course. This group does not accept email and can only be used for permissions. Read-only.
-    #[serde(default, rename = "teacherGroupEmail")]
-    pub teacher_group_email: ::core::option::Option<String>,
-    /// Time of the most recent update to this course. Specifying this field in a course update mask results in an error. Read-only.
-    #[serde(default, rename = "updateTime")]
-    pub update_time: ::core::option::Option<String>,
-}
-
-/// Alternative identifier for a course. An alias uniquely identifies a course. It must be unique within one of the following scopes: * domain: A domain-scoped alias is visible to all users within the alias creator''s domain and can be created only by a domain admin. A domain-scoped alias is often used when a course has an identifier external to Classroom. * project: A project-scoped alias is visible to any request from an application using the Developer Console project ID that created the alias and can be created by any project. A project-scoped alias is often used when an application has alternative identifiers. A random value can also be used to avoid duplicate courses in the event of transmission failures, as retrying a request will return ALREADY_EXISTS if a previous one has succeeded.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CourseAlias {
-    /// Alias string. The format of the string indicates the desired alias scoping. * d: indicates a domain-scoped alias. Example: d:math_101 * p: indicates a project-scoped alias. Example: p:abc123 This field has a maximum length of 256 characters.
-    #[serde(default)]
-    pub alias: ::core::option::Option<String>,
-}
-
-/// A material attached to a course as part of a material set.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CourseMaterial {
-    /// Google Drive file attachment.
-    #[serde(default, rename = "driveFile")]
-    pub drive_file: ::core::option::Option<DriveFile>,
-    /// Google Forms attachment.
-    #[serde(default)]
-    pub form: ::core::option::Option<Form>,
-    /// Link atatchment.
-    #[serde(default)]
-    pub link: ::core::option::Option<Link>,
-    /// Youtube video attachment.
-    #[serde(default, rename = "youTubeVideo")]
-    pub you_tube_video: ::core::option::Option<YouTubeVideo>,
-}
-
-/// A set of materials that appears on the "About" page of the course. These materials might include a syllabus, schedule, or other background information relating to the course as a whole.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CourseMaterialSet {
-    /// Materials attached to this set.
-    #[serde(default)]
-    pub materials: ::core::option::Option<::std::vec::Vec<CourseMaterial>>,
-    /// Title for this set.
-    #[serde(default)]
-    pub title: ::core::option::Option<String>,
-}
-
-/// Information about a Feed with a feed_type of COURSE_ROSTER_CHANGES.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CourseRosterChangesInfo {
-    /// The course_id of the course to subscribe to roster changes for.
-    #[serde(default, rename = "courseId")]
-    pub course_id: ::core::option::Option<String>,
-}
-
-/// Course work created by a teacher for students of the course.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CourseWork {
-    /// Absolute link to this course work in the Classroom web UI. This is only populated if state is PUBLISHED. Read-only.
-    #[serde(default, rename = "alternateLink")]
-    pub alternate_link: ::core::option::Option<String>,
-    /// Assignee mode of the coursework. If unspecified, the default value is ALL_STUDENTS. // TODO: enum values: ["ASSIGNEE_MODE_UNSPECIFIED", "ALL_STUDENTS", "INDIVIDUAL_STUDENTS"]
-    #[serde(default, rename = "assigneeMode")]
-    pub assignee_mode: ::core::option::Option<String>,
-    /// Assignment details. This is populated only when work_type is ASSIGNMENT. Read-only.
-    #[serde(default)]
-    pub assignment: ::core::option::Option<Assignment>,
-    /// Whether this course work item is associated with the Developer Console project making the request. See CreateCourseWork for more details. Read-only.
-    #[serde(default, rename = "associatedWithDeveloper")]
-    pub associated_with_developer: ::core::option::Option<bool>,
-    /// Identifier of the course. Read-only.
-    #[serde(default, rename = "courseId")]
-    pub course_id: ::core::option::Option<String>,
-    /// Timestamp when this course work was created. Read-only.
-    #[serde(default, rename = "creationTime")]
-    pub creation_time: ::core::option::Option<String>,
-    /// Identifier for the user that created the coursework. Read-only.
-    #[serde(default, rename = "creatorUserId")]
-    pub creator_user_id: ::core::option::Option<String>,
-    /// Optional description of this course work. If set, the description must be a valid UTF-8 string containing no more than 30,000 characters.
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// Optional date, in UTC, that submissions for this course work are due. This must be specified if due_time is specified.
-    #[serde(default, rename = "dueDate")]
-    pub due_date: ::core::option::Option<Date>,
-    /// Optional time of day, in UTC, that submissions for this course work are due. This must be specified if due_date is specified.
-    #[serde(default, rename = "dueTime")]
-    pub due_time: ::core::option::Option<TimeOfDay>,
-    /// The category that this coursework''s grade contributes to. Present only when a category has been chosen for the coursework. May be used in calculating the overall grade. Read-only.
-    #[serde(default, rename = "gradeCategory")]
-    pub grade_category: ::core::option::Option<GradeCategory>,
-    /// Identifier of the grading period associated with the coursework. * At creation, if unspecified, the grading period ID will be set based on the dueDate (or scheduledTime if no dueDate is set). * To indicate no association to any grading period, set this field to an empty string (""). * If specified, it must match an existing grading period ID in the course.
-    #[serde(default, rename = "gradingPeriodId")]
-    pub grading_period_id: ::core::option::Option<String>,
-    /// Classroom-assigned identifier of this course work, unique per course. Read-only.
-    #[serde(default)]
-    pub id: ::core::option::Option<String>,
-    /// Identifiers of students with access to the coursework. This field is set only if assigneeMode is INDIVIDUAL_STUDENTS. If the assigneeMode is INDIVIDUAL_STUDENTS, then only students specified in this field are assigned the coursework.
-    #[serde(default, rename = "individualStudentsOptions")]
-    pub individual_students_options: ::core::option::Option<IndividualStudentsOptions>,
-    /// Additional materials. CourseWork must have no more than 20 material items.
-    #[serde(default)]
-    pub materials: ::core::option::Option<::std::vec::Vec<Material>>,
-    /// Maximum grade for this course work. If zero or unspecified, this assignment is considered ungraded. This must be a non-negative integer value.
-    #[serde(default, rename = "maxPoints")]
-    pub max_points: ::core::option::Option<f64>,
-    /// Multiple choice question details. For read operations, this field is populated only when work_type is MULTIPLE_CHOICE_QUESTION. For write operations, this field must be specified when creating course work with a work_type of MULTIPLE_CHOICE_QUESTION, and it must not be set otherwise.
-    #[serde(default, rename = "multipleChoiceQuestion")]
-    pub multiple_choice_question: ::core::option::Option<MultipleChoiceQuestion>,
-    /// Optional timestamp when this course work is scheduled to be published.
-    #[serde(default, rename = "scheduledTime")]
-    pub scheduled_time: ::core::option::Option<String>,
-    /// Status of this course work. If unspecified, the default state is DRAFT. // TODO: enum values: ["COURSE_WORK_STATE_UNSPECIFIED", "PUBLISHED", "DRAFT", "DELETED"]
-    #[serde(default)]
-    pub state: ::core::option::Option<String>,
-    /// Setting to determine when students are allowed to modify submissions. If unspecified, the default value is MODIFIABLE_UNTIL_TURNED_IN. // TODO: enum values: ["SUBMISSION_MODIFICATION_MODE_UNSPECIFIED", "MODIFIABLE_UNTIL_TURNED_IN", "MODIFIABLE"]
-    #[serde(default, rename = "submissionModificationMode")]
-    pub submission_modification_mode: ::core::option::Option<String>,
-    /// Title of this course work. The title must be a valid UTF-8 string containing between 1 and 3000 characters.
-    #[serde(default)]
-    pub title: ::core::option::Option<String>,
-    /// Identifier for the topic that this coursework is associated with. Must match an existing topic in the course.
-    #[serde(default, rename = "topicId")]
-    pub topic_id: ::core::option::Option<String>,
-    /// Timestamp of the most recent change to this course work. Read-only.
-    #[serde(default, rename = "updateTime")]
-    pub update_time: ::core::option::Option<String>,
-    /// Type of this course work. The type is set when the course work is created and cannot be changed. // TODO: enum values: ["COURSE_WORK_TYPE_UNSPECIFIED", "ASSIGNMENT", "SHORT_ANSWER_QUESTION", "MULTIPLE_CHOICE_QUESTION"]
-    #[serde(default, rename = "workType")]
-    pub work_type: ::core::option::Option<String>,
-}
-
-/// Information about a Feed with a feed_type of COURSE_WORK_CHANGES.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CourseWorkChangesInfo {
-    /// The course_id of the course to subscribe to work changes for.
-    #[serde(default, rename = "courseId")]
-    pub course_id: ::core::option::Option<String>,
-}
-
-/// Course work material created by a teacher for students of the course
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CourseWorkMaterial {
-    /// Absolute link to this course work material in the Classroom web UI. This is only populated if state is PUBLISHED. Read-only.
-    #[serde(default, rename = "alternateLink")]
-    pub alternate_link: ::core::option::Option<String>,
-    /// Assignee mode of the course work material. If unspecified, the default value is ALL_STUDENTS. // TODO: enum values: ["ASSIGNEE_MODE_UNSPECIFIED", "ALL_STUDENTS", "INDIVIDUAL_STUDENTS"]
-    #[serde(default, rename = "assigneeMode")]
-    pub assignee_mode: ::core::option::Option<String>,
-    /// Identifier of the course. Read-only.
-    #[serde(default, rename = "courseId")]
-    pub course_id: ::core::option::Option<String>,
-    /// Timestamp when this course work material was created. Read-only.
-    #[serde(default, rename = "creationTime")]
-    pub creation_time: ::core::option::Option<String>,
-    /// Identifier for the user that created the course work material. Read-only.
-    #[serde(default, rename = "creatorUserId")]
-    pub creator_user_id: ::core::option::Option<String>,
-    /// Optional description of this course work material. The text must be a valid UTF-8 string containing no more than 30,000 characters.
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// Classroom-assigned identifier of this course work material, unique per course. Read-only.
-    #[serde(default)]
-    pub id: ::core::option::Option<String>,
-    /// Identifiers of students with access to the course work material. This field is set only if assigneeMode is INDIVIDUAL_STUDENTS. If the assigneeMode is INDIVIDUAL_STUDENTS, then only students specified in this field can see the course work material.
-    #[serde(default, rename = "individualStudentsOptions")]
-    pub individual_students_options: ::core::option::Option<IndividualStudentsOptions>,
-    /// Additional materials. A course work material must have no more than 20 material items.
-    #[serde(default)]
-    pub materials: ::core::option::Option<::std::vec::Vec<Material>>,
-    /// Optional timestamp when this course work material is scheduled to be published.
-    #[serde(default, rename = "scheduledTime")]
-    pub scheduled_time: ::core::option::Option<String>,
-    /// Status of this course work material. If unspecified, the default state is DRAFT. // TODO: enum values: ["COURSEWORK_MATERIAL_STATE_UNSPECIFIED", "PUBLISHED", "DRAFT", "DELETED"]
-    #[serde(default)]
-    pub state: ::core::option::Option<String>,
-    /// Title of this course work material. The title must be a valid UTF-8 string containing between 1 and 3000 characters.
-    #[serde(default)]
-    pub title: ::core::option::Option<String>,
-    /// Identifier for the topic that this course work material is associated with. Must match an existing topic in the course.
-    #[serde(default, rename = "topicId")]
-    pub topic_id: ::core::option::Option<String>,
-    /// Timestamp of the most recent change to this course work material. Read-only.
-    #[serde(default, rename = "updateTime")]
-    pub update_time: ::core::option::Option<String>,
-}
-
-/// A rubric criterion. Each criterion is a dimension on which performance is rated.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Criterion {
-    /// The description of the criterion.
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// The criterion ID. On creation, an ID is assigned.
-    #[serde(default)]
-    pub id: ::core::option::Option<String>,
-    /// The list of levels within this criterion.
-    #[serde(default)]
-    pub levels: ::core::option::Option<::std::vec::Vec<Level>>,
-    /// The title of the criterion.
-    #[serde(default)]
-    pub title: ::core::option::Option<String>,
-}
-
-/// Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Date {
-    /// Day of a month. Must be from 1 to 31 and valid for the year and month, or 0 to specify a year by itself or a year and month where the day isn''t significant.
-    #[serde(default)]
-    pub day: ::core::option::Option<i32>,
-    /// Month of a year. Must be from 1 to 12, or 0 to specify a year without a month and day.
-    #[serde(default)]
-    pub month: ::core::option::Option<i32>,
-    /// Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.
-    #[serde(default)]
-    pub year: ::core::option::Option<i32>,
-}
-
-/// Representation of a Google Drive file.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DriveFile {
-    /// URL that can be used to access the Drive item. Read-only.
-    #[serde(default, rename = "alternateLink")]
-    pub alternate_link: ::core::option::Option<String>,
-    /// Drive API resource ID.
-    #[serde(default)]
-    pub id: ::core::option::Option<String>,
-    /// URL of a thumbnail image of the Drive item. Read-only.
-    #[serde(default, rename = "thumbnailUrl")]
-    pub thumbnail_url: ::core::option::Option<String>,
-    /// Title of the Drive item. Read-only.
-    #[serde(default)]
-    pub title: ::core::option::Option<String>,
-}
-
-/// Representation of a Google Drive folder.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DriveFolder {
-    /// URL that can be used to access the Drive folder. Read-only.
-    #[serde(default, rename = "alternateLink")]
-    pub alternate_link: ::core::option::Option<String>,
-    /// Drive API resource ID.
-    #[serde(default)]
-    pub id: ::core::option::Option<String>,
-    /// Title of the Drive folder. Read-only.
-    #[serde(default)]
-    pub title: ::core::option::Option<String>,
-}
-
-/// URI to be iframed after being populated with query parameters.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct EmbedUri {
-    /// Required. URI to be iframed after being populated with query parameters. This must be a valid UTF-8 string containing between 1 and 1800 characters.
-    #[serde(default)]
-    pub uri: ::core::option::Option<String>,
-}
-
-/// A class of notifications that an application can register to receive. For example: "all roster changes for a domain".
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Feed {
-    /// Information about a Feed with a feed_type of COURSE_ROSTER_CHANGES. This field must be specified if feed_type is COURSE_ROSTER_CHANGES.
-    #[serde(default, rename = "courseRosterChangesInfo")]
-    pub course_roster_changes_info: ::core::option::Option<CourseRosterChangesInfo>,
-    /// Information about a Feed with a feed_type of COURSE_WORK_CHANGES. This field must be specified if feed_type is COURSE_WORK_CHANGES.
-    #[serde(default, rename = "courseWorkChangesInfo")]
-    pub course_work_changes_info: ::core::option::Option<CourseWorkChangesInfo>,
-    /// The type of feed. // TODO: enum values: ["FEED_TYPE_UNSPECIFIED", "DOMAIN_ROSTER_CHANGES", "COURSE_ROSTER_CHANGES", "COURSE_WORK_CHANGES"]
-    #[serde(default, rename = "feedType")]
-    pub feed_type: ::core::option::Option<String>,
-}
-
-/// Google Forms item.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Form {
-    /// URL of the form.
-    #[serde(default, rename = "formUrl")]
-    pub form_url: ::core::option::Option<String>,
-    /// URL of the form responses document. Only set if responses have been recorded and only when the requesting user is an editor of the form. Read-only.
-    #[serde(default, rename = "responseUrl")]
-    pub response_url: ::core::option::Option<String>,
-    /// URL of a thumbnail image of the Form. Read-only.
-    #[serde(default, rename = "thumbnailUrl")]
-    pub thumbnail_url: ::core::option::Option<String>,
-    /// Title of the Form. Read-only.
-    #[serde(default)]
-    pub title: ::core::option::Option<String>,
-}
-
-/// Gemini Gem link.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GeminiGem {
-    /// Gems resource id.
-    #[serde(default)]
-    pub id: ::core::option::Option<String>,
-    /// Title of the Gem.
-    #[serde(default)]
-    pub title: ::core::option::Option<String>,
-    /// URL that can be used to access the Gem.
-    #[serde(default)]
-    pub url: ::core::option::Option<String>,
-}
-
-/// Global user permission description.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GlobalPermission {
-    /// Permission value. // TODO: enum values: ["PERMISSION_UNSPECIFIED", "CREATE_COURSE"]
-    #[serde(default)]
-    pub permission: ::core::option::Option<String>,
-}
-
-/// Details for a grade category in a course. Coursework may have zero or one grade category, and the category may be used in computing the overall grade. See the [help center article](https://support.google.com/edu/classroom/answer/9184995) for details.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GradeCategory {
-    /// Default value of denominator. Only applicable when grade calculation type is TOTAL_POINTS.
-    #[serde(default, rename = "defaultGradeDenominator")]
-    pub default_grade_denominator: ::core::option::Option<i32>,
-    /// ID of the grade category.
-    #[serde(default)]
-    pub id: ::core::option::Option<String>,
-    /// Name of the grade category.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// The weight of the category average as part of overall average. A weight of 12.34% is represented as 123400 (100% is 1,000,000). The last two digits should always be zero since we use two decimal precision. Only applicable when grade calculation type is WEIGHTED_CATEGORIES.
-    #[serde(default)]
-    pub weight: ::core::option::Option<i32>,
-}
-
-/// The history of each grade on this submission.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GradeHistory {
-    /// The teacher who made the grade change.
-    #[serde(default, rename = "actorUserId")]
-    pub actor_user_id: ::core::option::Option<String>,
-    /// The type of grade change at this time in the submission grade history. // TODO: enum values: ["UNKNOWN_GRADE_CHANGE_TYPE", "DRAFT_GRADE_POINTS_EARNED_CHANGE", "ASSIGNED_GRADE_POINTS_EARNED_CHANGE", "MAX_POINTS_CHANGE"]
-    #[serde(default, rename = "gradeChangeType")]
-    pub grade_change_type: ::core::option::Option<String>,
-    /// When the grade of the submission was changed.
-    #[serde(default, rename = "gradeTimestamp")]
-    pub grade_timestamp: ::core::option::Option<String>,
-    /// The denominator of the grade at this time in the submission grade history.
-    #[serde(default, rename = "maxPoints")]
-    pub max_points: ::core::option::Option<f64>,
-    /// The numerator of the grade at this time in the submission grade history.
-    #[serde(default, rename = "pointsEarned")]
-    pub points_earned: ::core::option::Option<f64>,
-}
-
-/// The gradebook settings for a course. See the [help center article](https://support.google.com/edu/classroom/answer/9184995) for details.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GradebookSettings {
-    /// Indicates how the overall grade is calculated. // TODO: enum values: ["CALCULATION_TYPE_UNSPECIFIED", "TOTAL_POINTS", "WEIGHTED_CATEGORIES"]
-    #[serde(default, rename = "calculationType")]
-    pub calculation_type: ::core::option::Option<String>,
-    /// Indicates who can see the overall grade.. // TODO: enum values: ["DISPLAY_SETTING_UNSPECIFIED", "SHOW_OVERALL_GRADE", "HIDE_OVERALL_GRADE", "SHOW_TEACHERS_ONLY"]
-    #[serde(default, rename = "displaySetting")]
-    pub display_setting: ::core::option::Option<String>,
-    /// Grade categories that are available for coursework in the course.
-    #[serde(default, rename = "gradeCategories")]
-    pub grade_categories: ::core::option::Option<::std::vec::Vec<GradeCategory>>,
-}
-
-/// An individual grading period. Grading periods must not have overlapping date ranges and must be listed in chronological order. For example, if the end_date of a grading period is 2024-01-25, then the start_date of the next grading period must be 2024-01-26 or later. Each grading period must have a unique title within a course.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GradingPeriod {
-    /// Required. End date, in UTC, of the grading period. Inclusive.
-    #[serde(default, rename = "endDate")]
-    pub end_date: ::core::option::Option<Date>,
-    /// Output only. System generated grading period ID. Read-only.
-    #[serde(default)]
-    pub id: ::core::option::Option<String>,
-    /// Required. Start date, in UTC, of the grading period. Inclusive.
-    #[serde(default, rename = "startDate")]
-    pub start_date: ::core::option::Option<Date>,
-    /// Required. Title of the grading period. For example, “Semester 1”.
-    #[serde(default)]
-    pub title: ::core::option::Option<String>,
-}
-
 /// Grading period settings that include all the individual grading periods in a course.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GradingPeriodSettings {
@@ -628,99 +56,6 @@ pub struct GradingPeriodSettings {
     /// The list of grading periods in a specific course. Grading periods must not have overlapping date ranges and must be listed in chronological order. Each grading period must have a unique title within a course.
     #[serde(default, rename = "gradingPeriods")]
     pub grading_periods: ::core::option::Option<::std::vec::Vec<GradingPeriod>>,
-}
-
-/// Association between a student and a guardian of that student. The guardian may receive information about the student''s course work.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Guardian {
-    /// Identifier for the guardian.
-    #[serde(default, rename = "guardianId")]
-    pub guardian_id: ::core::option::Option<String>,
-    /// User profile for the guardian.
-    #[serde(default, rename = "guardianProfile")]
-    pub guardian_profile: ::core::option::Option<UserProfile>,
-    /// The email address to which the initial guardian invitation was sent. This field is only visible to domain administrators.
-    #[serde(default, rename = "invitedEmailAddress")]
-    pub invited_email_address: ::core::option::Option<String>,
-    /// Identifier for the student to whom the guardian relationship applies.
-    #[serde(default, rename = "studentId")]
-    pub student_id: ::core::option::Option<String>,
-}
-
-/// An invitation to become the guardian of a specified user, sent to a specified email address.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GuardianInvitation {
-    /// The time that this invitation was created. Read-only.
-    #[serde(default, rename = "creationTime")]
-    pub creation_time: ::core::option::Option<String>,
-    /// Unique identifier for this invitation. Read-only.
-    #[serde(default, rename = "invitationId")]
-    pub invitation_id: ::core::option::Option<String>,
-    /// Email address that the invitation was sent to. This field is only visible to domain administrators.
-    #[serde(default, rename = "invitedEmailAddress")]
-    pub invited_email_address: ::core::option::Option<String>,
-    /// The state that this invitation is in. // TODO: enum values: ["GUARDIAN_INVITATION_STATE_UNSPECIFIED", "PENDING", "COMPLETE"]
-    #[serde(default)]
-    pub state: ::core::option::Option<String>,
-    /// ID of the student (in standard format)
-    #[serde(default, rename = "studentId")]
-    pub student_id: ::core::option::Option<String>,
-}
-
-/// Assignee details about a coursework/announcement. This field is set if and only if assigneeMode is INDIVIDUAL_STUDENTS.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct IndividualStudentsOptions {
-    /// Identifiers for the students that have access to the coursework/announcement.
-    #[serde(default, rename = "studentIds")]
-    pub student_ids: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// An invitation to join a course.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Invitation {
-    /// Identifier of the course to invite the user to.
-    #[serde(default, rename = "courseId")]
-    pub course_id: ::core::option::Option<String>,
-    /// Identifier assigned by Classroom. Read-only.
-    #[serde(default)]
-    pub id: ::core::option::Option<String>,
-    /// Role to invite the user to have. Must not be COURSE_ROLE_UNSPECIFIED. // TODO: enum values: ["COURSE_ROLE_UNSPECIFIED", "STUDENT", "TEACHER", "OWNER"]
-    #[serde(default)]
-    pub role: ::core::option::Option<String>,
-    /// Identifier of the invited user. When specified as a parameter of a request, this identifier can be set to one of the following: * the numeric identifier for the user * the email address of the user * the string literal "me", indicating the requesting user
-    #[serde(default, rename = "userId")]
-    pub user_id: ::core::option::Option<String>,
-}
-
-/// A level of the criterion.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Level {
-    /// The description of the level.
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// The level ID. On creation, an ID is assigned.
-    #[serde(default)]
-    pub id: ::core::option::Option<String>,
-    /// Optional points associated with this level. If set, all levels within the rubric must specify points and the value must be distinct across all levels within a single criterion. 0 is distinct from no points.
-    #[serde(default)]
-    pub points: ::core::option::Option<f64>,
-    /// The title of the level. If the level has no points set, title must be set.
-    #[serde(default)]
-    pub title: ::core::option::Option<String>,
-}
-
-/// URL item.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Link {
-    /// URL of a thumbnail image of the target URL. Read-only.
-    #[serde(default, rename = "thumbnailUrl")]
-    pub thumbnail_url: ::core::option::Option<String>,
-    /// Title of the target of the URL. Read-only.
-    #[serde(default)]
-    pub title: ::core::option::Option<String>,
-    /// URL to link to. This must be a valid UTF-8 string containing between 1 and 2024 characters.
-    #[serde(default)]
-    pub url: ::core::option::Option<String>,
 }
 
 /// Response when listing add-on attachments.
@@ -899,29 +234,6 @@ pub struct ListTopicResponse {
     pub topic: ::core::option::Option<::std::vec::Vec<Topic>>,
 }
 
-/// Material attached to course work. When creating attachments, setting the form, gem, or notebook field is not supported.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Material {
-    /// Google Drive file material.
-    #[serde(default, rename = "driveFile")]
-    pub drive_file: ::core::option::Option<SharedDriveFile>,
-    /// Google Forms material. Read-only.
-    #[serde(default)]
-    pub form: ::core::option::Option<Form>,
-    /// Gemini Gem material. Read-only.
-    #[serde(default)]
-    pub gem: ::core::option::Option<GeminiGem>,
-    /// Link material. On creation, this is upgraded to a more appropriate type if possible, and this is reflected in the response.
-    #[serde(default)]
-    pub link: ::core::option::Option<Link>,
-    /// NotebookLM Notebook material. Read-only.
-    #[serde(default)]
-    pub notebook: ::core::option::Option<NotebookLmNotebook>,
-    /// YouTube video material.
-    #[serde(default, rename = "youtubeVideo")]
-    pub youtube_video: ::core::option::Option<YouTubeVideo>,
-}
-
 /// Request to modify assignee mode and options of an announcement.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ModifyAnnouncementAssigneesRequest {
@@ -952,61 +264,6 @@ pub struct ModifyCourseWorkAssigneesRequest {
     pub modify_individual_students_options: ::core::option::Option<ModifyIndividualStudentsOptions>,
 }
 
-/// Contains fields to add or remove students from a course work or announcement where the assigneeMode is set to INDIVIDUAL_STUDENTS.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ModifyIndividualStudentsOptions {
-    /// IDs of students to be added as having access to this coursework/announcement.
-    #[serde(default, rename = "addStudentIds")]
-    pub add_student_ids: ::core::option::Option<::std::vec::Vec<String>>,
-    /// IDs of students to be removed from having access to this coursework/announcement.
-    #[serde(default, rename = "removeStudentIds")]
-    pub remove_student_ids: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// Additional details for multiple-choice questions.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct MultipleChoiceQuestion {
-    /// Possible choices.
-    #[serde(default)]
-    pub choices: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// Student work for a multiple-choice question.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct MultipleChoiceSubmission {
-    /// Student''s select choice.
-    #[serde(default)]
-    pub answer: ::core::option::Option<String>,
-}
-
-/// Details of the user''s name.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Name {
-    /// The user''s last name. Read-only.
-    #[serde(default, rename = "familyName")]
-    pub family_name: ::core::option::Option<String>,
-    /// The user''s full name formed by concatenating the first and last name values. Read-only.
-    #[serde(default, rename = "fullName")]
-    pub full_name: ::core::option::Option<String>,
-    /// The user''s first name. Read-only.
-    #[serde(default, rename = "givenName")]
-    pub given_name: ::core::option::Option<String>,
-}
-
-/// NotebookLM Notebook link.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct NotebookLmNotebook {
-    /// Notebook resource id.
-    #[serde(default)]
-    pub id: ::core::option::Option<String>,
-    /// Title of the Notebook.
-    #[serde(default)]
-    pub title: ::core::option::Option<String>,
-    /// URL that can be used to access the Notebook.
-    #[serde(default)]
-    pub url: ::core::option::Option<String>,
-}
-
 /// An instruction to Classroom to send notifications from the feed to the provided destination.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Registration {
@@ -1022,6 +279,378 @@ pub struct Registration {
     /// A server-generated unique identifier for this Registration. Read-only.
     #[serde(default, rename = "registrationId")]
     pub registration_id: ::core::option::Option<String>,
+}
+
+/// A rubric grade set for the student submission. There is at most one entry per rubric criterion.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RubricGrade {
+    /// Optional. Criterion ID.
+    #[serde(default, rename = "criterionId")]
+    pub criterion_id: ::core::option::Option<String>,
+    /// Optional. Optional level ID of the selected level. If empty, no level was selected.
+    #[serde(default, rename = "levelId")]
+    pub level_id: ::core::option::Option<String>,
+    /// Optional. Optional points assigned for this criterion, typically based on the level. Levels might or might not have points. If unset, no points were set for this criterion.
+    #[serde(default)]
+    pub points: ::core::option::Option<f64>,
+}
+
+/// Role-specific context if the requesting user is a student.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct StudentContext {
+    /// Requesting user''s submission id to be used for grade passback and to identify the student when showing student work to the teacher. This is set exactly when supportsStudentWork is true.
+    #[serde(default, rename = "submissionId")]
+    pub submission_id: ::core::option::Option<String>,
+}
+
+/// An individual grading period. Grading periods must not have overlapping date ranges and must be listed in chronological order. For example, if the end_date of a grading period is 2024-01-25, then the start_date of the next grading period must be 2024-01-26 or later. Each grading period must have a unique title within a course.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GradingPeriod {
+    /// Required. End date, in UTC, of the grading period. Inclusive.
+    #[serde(default, rename = "endDate")]
+    pub end_date: ::core::option::Option<Date>,
+    /// Output only. System generated grading period ID. Read-only.
+    #[serde(default)]
+    pub id: ::core::option::Option<String>,
+    /// Required. Start date, in UTC, of the grading period. Inclusive.
+    #[serde(default, rename = "startDate")]
+    pub start_date: ::core::option::Option<Date>,
+    /// Required. Title of the grading period. For example, “Semester 1”.
+    #[serde(default)]
+    pub title: ::core::option::Option<String>,
+}
+
+/// An add-on attachment on a post.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AddOnAttachment {
+    /// Output only. Identifiers of attachments that were previous copies of this attachment. If the attachment was previously copied by virtue of its parent post being copied, this enumerates the identifiers of attachments that were its previous copies in ascending chronological order of copy.
+    #[serde(default, rename = "copyHistory")]
+    pub copy_history: ::core::option::Option<::std::vec::Vec<CopyHistory>>,
+    /// Immutable. Identifier of the course.
+    #[serde(default, rename = "courseId")]
+    pub course_id: ::core::option::Option<String>,
+    /// Date, in UTC, that work on this attachment is due. This must be specified if due_time is specified.
+    #[serde(default, rename = "dueDate")]
+    pub due_date: ::core::option::Option<Date>,
+    /// Time of day, in UTC, that work on this attachment is due. This must be specified if due_date is specified.
+    #[serde(default, rename = "dueTime")]
+    pub due_time: ::core::option::Option<TimeOfDay>,
+    /// Immutable. Classroom-assigned identifier for this attachment, unique per post.
+    #[serde(default)]
+    pub id: ::core::option::Option<String>,
+    /// Immutable. Identifier of the Announcement, CourseWork, or CourseWorkMaterial under which the attachment is attached. Unique per course.
+    #[serde(default, rename = "itemId")]
+    pub item_id: ::core::option::Option<String>,
+    /// Maximum grade for this attachment. Can only be set if studentWorkReviewUri is set. Set to a non-zero value to indicate that the attachment supports grade passback. If set, this must be a non-negative integer value. When set to zero, the attachment will not support grade passback.
+    #[serde(default, rename = "maxPoints")]
+    pub max_points: ::core::option::Option<f64>,
+    /// Immutable. Deprecated, use item_id instead.
+    #[serde(default, rename = "postId")]
+    pub post_id: ::core::option::Option<String>,
+    /// Required. URI to show the student view of the attachment. The URI will be opened in an iframe with the courseId, itemId, itemType, and attachmentId query parameters set.
+    #[serde(default, rename = "studentViewUri")]
+    pub student_view_uri: ::core::option::Option<EmbedUri>,
+    /// URI for the teacher to see student work on the attachment, if applicable. The URI will be opened in an iframe with the courseId, itemId, itemType, attachmentId, and submissionId query parameters set. This is the same submissionId returned in the [AddOnContext.studentContext](//devsite.google.com/classroom/reference/rest/v1/AddOnContext#StudentContext) field when a student views the attachment. If the URI is omitted or removed, max_points will also be discarded.
+    #[serde(default, rename = "studentWorkReviewUri")]
+    pub student_work_review_uri: ::core::option::Option<EmbedUri>,
+    /// Required. URI to show the teacher view of the attachment. The URI will be opened in an iframe with the courseId, itemId, itemType, and attachmentId query parameters set.
+    #[serde(default, rename = "teacherViewUri")]
+    pub teacher_view_uri: ::core::option::Option<EmbedUri>,
+    /// Required. Title of this attachment. The title must be between 1 and 1000 characters.
+    #[serde(default)]
+    pub title: ::core::option::Option<String>,
+}
+
+/// Announcement created by a teacher for students of the course
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Announcement {
+    /// Absolute link to this announcement in the Classroom web UI. This is only populated if state is PUBLISHED. Read-only.
+    #[serde(default, rename = "alternateLink")]
+    pub alternate_link: ::core::option::Option<String>,
+    /// Assignee mode of the announcement. If unspecified, the default value is ALL_STUDENTS. // TODO: enum values: ["ASSIGNEE_MODE_UNSPECIFIED", "ALL_STUDENTS", "INDIVIDUAL_STUDENTS"]
+    #[serde(default, rename = "assigneeMode")]
+    pub assignee_mode: ::core::option::Option<String>,
+    /// Identifier of the course. Read-only.
+    #[serde(default, rename = "courseId")]
+    pub course_id: ::core::option::Option<String>,
+    /// Timestamp when this announcement was created. Read-only.
+    #[serde(default, rename = "creationTime")]
+    pub creation_time: ::core::option::Option<String>,
+    /// Identifier for the user that created the announcement. Read-only.
+    #[serde(default, rename = "creatorUserId")]
+    pub creator_user_id: ::core::option::Option<String>,
+    /// Classroom-assigned identifier of this announcement, unique per course. Read-only.
+    #[serde(default)]
+    pub id: ::core::option::Option<String>,
+    /// Identifiers of students with access to the announcement. This field is set only if assigneeMode is INDIVIDUAL_STUDENTS. If the assigneeMode is INDIVIDUAL_STUDENTS, then only students specified in this field can see the announcement.
+    #[serde(default, rename = "individualStudentsOptions")]
+    pub individual_students_options: ::core::option::Option<IndividualStudentsOptions>,
+    /// Additional materials. Announcements must have no more than 20 material items.
+    #[serde(default)]
+    pub materials: ::core::option::Option<::std::vec::Vec<Material>>,
+    /// Optional timestamp when this announcement is scheduled to be published.
+    #[serde(default, rename = "scheduledTime")]
+    pub scheduled_time: ::core::option::Option<String>,
+    /// Status of this announcement. If unspecified, the default state is DRAFT. // TODO: enum values: ["ANNOUNCEMENT_STATE_UNSPECIFIED", "PUBLISHED", "DRAFT", "DELETED"]
+    #[serde(default)]
+    pub state: ::core::option::Option<String>,
+    /// Description of this announcement. The text must be a valid UTF-8 string containing no more than 30,000 characters.
+    #[serde(default)]
+    pub text: ::core::option::Option<String>,
+    /// Timestamp of the most recent change to this announcement. Read-only.
+    #[serde(default, rename = "updateTime")]
+    pub update_time: ::core::option::Option<String>,
+}
+
+/// Alternative identifier for a course. An alias uniquely identifies a course. It must be unique within one of the following scopes: * domain: A domain-scoped alias is visible to all users within the alias creator''s domain and can be created only by a domain admin. A domain-scoped alias is often used when a course has an identifier external to Classroom. * project: A project-scoped alias is visible to any request from an application using the Developer Console project ID that created the alias and can be created by any project. A project-scoped alias is often used when an application has alternative identifiers. A random value can also be used to avoid duplicate courses in the event of transmission failures, as retrying a request will return ALREADY_EXISTS if a previous one has succeeded.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CourseAlias {
+    /// Alias string. The format of the string indicates the desired alias scoping. * d: indicates a domain-scoped alias. Example: d:math_101 * p: indicates a project-scoped alias. Example: p:abc123 This field has a maximum length of 256 characters.
+    #[serde(default)]
+    pub alias: ::core::option::Option<String>,
+}
+
+/// Course work material created by a teacher for students of the course
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CourseWorkMaterial {
+    /// Absolute link to this course work material in the Classroom web UI. This is only populated if state is PUBLISHED. Read-only.
+    #[serde(default, rename = "alternateLink")]
+    pub alternate_link: ::core::option::Option<String>,
+    /// Assignee mode of the course work material. If unspecified, the default value is ALL_STUDENTS. // TODO: enum values: ["ASSIGNEE_MODE_UNSPECIFIED", "ALL_STUDENTS", "INDIVIDUAL_STUDENTS"]
+    #[serde(default, rename = "assigneeMode")]
+    pub assignee_mode: ::core::option::Option<String>,
+    /// Identifier of the course. Read-only.
+    #[serde(default, rename = "courseId")]
+    pub course_id: ::core::option::Option<String>,
+    /// Timestamp when this course work material was created. Read-only.
+    #[serde(default, rename = "creationTime")]
+    pub creation_time: ::core::option::Option<String>,
+    /// Identifier for the user that created the course work material. Read-only.
+    #[serde(default, rename = "creatorUserId")]
+    pub creator_user_id: ::core::option::Option<String>,
+    /// Optional description of this course work material. The text must be a valid UTF-8 string containing no more than 30,000 characters.
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+    /// Classroom-assigned identifier of this course work material, unique per course. Read-only.
+    #[serde(default)]
+    pub id: ::core::option::Option<String>,
+    /// Identifiers of students with access to the course work material. This field is set only if assigneeMode is INDIVIDUAL_STUDENTS. If the assigneeMode is INDIVIDUAL_STUDENTS, then only students specified in this field can see the course work material.
+    #[serde(default, rename = "individualStudentsOptions")]
+    pub individual_students_options: ::core::option::Option<IndividualStudentsOptions>,
+    /// Additional materials. A course work material must have no more than 20 material items.
+    #[serde(default)]
+    pub materials: ::core::option::Option<::std::vec::Vec<Material>>,
+    /// Optional timestamp when this course work material is scheduled to be published.
+    #[serde(default, rename = "scheduledTime")]
+    pub scheduled_time: ::core::option::Option<String>,
+    /// Status of this course work material. If unspecified, the default state is DRAFT. // TODO: enum values: ["COURSEWORK_MATERIAL_STATE_UNSPECIFIED", "PUBLISHED", "DRAFT", "DELETED"]
+    #[serde(default)]
+    pub state: ::core::option::Option<String>,
+    /// Title of this course work material. The title must be a valid UTF-8 string containing between 1 and 3000 characters.
+    #[serde(default)]
+    pub title: ::core::option::Option<String>,
+    /// Identifier for the topic that this course work material is associated with. Must match an existing topic in the course.
+    #[serde(default, rename = "topicId")]
+    pub topic_id: ::core::option::Option<String>,
+    /// Timestamp of the most recent change to this course work material. Read-only.
+    #[serde(default, rename = "updateTime")]
+    pub update_time: ::core::option::Option<String>,
+}
+
+/// Course work created by a teacher for students of the course.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CourseWork {
+    /// Absolute link to this course work in the Classroom web UI. This is only populated if state is PUBLISHED. Read-only.
+    #[serde(default, rename = "alternateLink")]
+    pub alternate_link: ::core::option::Option<String>,
+    /// Assignee mode of the coursework. If unspecified, the default value is ALL_STUDENTS. // TODO: enum values: ["ASSIGNEE_MODE_UNSPECIFIED", "ALL_STUDENTS", "INDIVIDUAL_STUDENTS"]
+    #[serde(default, rename = "assigneeMode")]
+    pub assignee_mode: ::core::option::Option<String>,
+    /// Assignment details. This is populated only when work_type is ASSIGNMENT. Read-only.
+    #[serde(default)]
+    pub assignment: ::core::option::Option<Assignment>,
+    /// Whether this course work item is associated with the Developer Console project making the request. See CreateCourseWork for more details. Read-only.
+    #[serde(default, rename = "associatedWithDeveloper")]
+    pub associated_with_developer: ::core::option::Option<bool>,
+    /// Identifier of the course. Read-only.
+    #[serde(default, rename = "courseId")]
+    pub course_id: ::core::option::Option<String>,
+    /// Timestamp when this course work was created. Read-only.
+    #[serde(default, rename = "creationTime")]
+    pub creation_time: ::core::option::Option<String>,
+    /// Identifier for the user that created the coursework. Read-only.
+    #[serde(default, rename = "creatorUserId")]
+    pub creator_user_id: ::core::option::Option<String>,
+    /// Optional description of this course work. If set, the description must be a valid UTF-8 string containing no more than 30,000 characters.
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+    /// Optional date, in UTC, that submissions for this course work are due. This must be specified if due_time is specified.
+    #[serde(default, rename = "dueDate")]
+    pub due_date: ::core::option::Option<Date>,
+    /// Optional time of day, in UTC, that submissions for this course work are due. This must be specified if due_date is specified.
+    #[serde(default, rename = "dueTime")]
+    pub due_time: ::core::option::Option<TimeOfDay>,
+    /// The category that this coursework''s grade contributes to. Present only when a category has been chosen for the coursework. May be used in calculating the overall grade. Read-only.
+    #[serde(default, rename = "gradeCategory")]
+    pub grade_category: ::core::option::Option<GradeCategory>,
+    /// Identifier of the grading period associated with the coursework. * At creation, if unspecified, the grading period ID will be set based on the dueDate (or scheduledTime if no dueDate is set). * To indicate no association to any grading period, set this field to an empty string (""). * If specified, it must match an existing grading period ID in the course.
+    #[serde(default, rename = "gradingPeriodId")]
+    pub grading_period_id: ::core::option::Option<String>,
+    /// Classroom-assigned identifier of this course work, unique per course. Read-only.
+    #[serde(default)]
+    pub id: ::core::option::Option<String>,
+    /// Identifiers of students with access to the coursework. This field is set only if assigneeMode is INDIVIDUAL_STUDENTS. If the assigneeMode is INDIVIDUAL_STUDENTS, then only students specified in this field are assigned the coursework.
+    #[serde(default, rename = "individualStudentsOptions")]
+    pub individual_students_options: ::core::option::Option<IndividualStudentsOptions>,
+    /// Additional materials. CourseWork must have no more than 20 material items.
+    #[serde(default)]
+    pub materials: ::core::option::Option<::std::vec::Vec<Material>>,
+    /// Maximum grade for this course work. If zero or unspecified, this assignment is considered ungraded. This must be a non-negative integer value.
+    #[serde(default, rename = "maxPoints")]
+    pub max_points: ::core::option::Option<f64>,
+    /// Multiple choice question details. For read operations, this field is populated only when work_type is MULTIPLE_CHOICE_QUESTION. For write operations, this field must be specified when creating course work with a work_type of MULTIPLE_CHOICE_QUESTION, and it must not be set otherwise.
+    #[serde(default, rename = "multipleChoiceQuestion")]
+    pub multiple_choice_question: ::core::option::Option<MultipleChoiceQuestion>,
+    /// Optional timestamp when this course work is scheduled to be published.
+    #[serde(default, rename = "scheduledTime")]
+    pub scheduled_time: ::core::option::Option<String>,
+    /// Status of this course work. If unspecified, the default state is DRAFT. // TODO: enum values: ["COURSE_WORK_STATE_UNSPECIFIED", "PUBLISHED", "DRAFT", "DELETED"]
+    #[serde(default)]
+    pub state: ::core::option::Option<String>,
+    /// Setting to determine when students are allowed to modify submissions. If unspecified, the default value is MODIFIABLE_UNTIL_TURNED_IN. // TODO: enum values: ["SUBMISSION_MODIFICATION_MODE_UNSPECIFIED", "MODIFIABLE_UNTIL_TURNED_IN", "MODIFIABLE"]
+    #[serde(default, rename = "submissionModificationMode")]
+    pub submission_modification_mode: ::core::option::Option<String>,
+    /// Title of this course work. The title must be a valid UTF-8 string containing between 1 and 3000 characters.
+    #[serde(default)]
+    pub title: ::core::option::Option<String>,
+    /// Identifier for the topic that this coursework is associated with. Must match an existing topic in the course.
+    #[serde(default, rename = "topicId")]
+    pub topic_id: ::core::option::Option<String>,
+    /// Timestamp of the most recent change to this course work. Read-only.
+    #[serde(default, rename = "updateTime")]
+    pub update_time: ::core::option::Option<String>,
+    /// Type of this course work. The type is set when the course work is created and cannot be changed. // TODO: enum values: ["COURSE_WORK_TYPE_UNSPECIFIED", "ASSIGNMENT", "SHORT_ANSWER_QUESTION", "MULTIPLE_CHOICE_QUESTION"]
+    #[serde(default, rename = "workType")]
+    pub work_type: ::core::option::Option<String>,
+}
+
+/// A Course in Classroom.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Course {
+    /// Absolute link to this course in the Classroom web UI. Read-only.
+    #[serde(default, rename = "alternateLink")]
+    pub alternate_link: ::core::option::Option<String>,
+    /// The Calendar ID for a calendar that all course members can see, to which Classroom adds events for course work and announcements in the course. The Calendar for a course is created asynchronously when the course is set to CourseState.ACTIVE for the first time (at creation time or when it is updated to ACTIVE through the UI or the API). The Calendar ID will not be populated until the creation process is completed. Read-only.
+    #[serde(default, rename = "calendarId")]
+    pub calendar_id: ::core::option::Option<String>,
+    /// The email address of a Google group containing all members of the course. This group does not accept email and can only be used for permissions. Read-only.
+    #[serde(default, rename = "courseGroupEmail")]
+    pub course_group_email: ::core::option::Option<String>,
+    /// Sets of materials that appear on the "about" page of this course. Read-only.
+    #[serde(default, rename = "courseMaterialSets")]
+    pub course_material_sets: ::core::option::Option<::std::vec::Vec<CourseMaterialSet>>,
+    /// State of the course. If unspecified, the default state is PROVISIONED. // TODO: enum values: ["COURSE_STATE_UNSPECIFIED", "ACTIVE", "ARCHIVED", "PROVISIONED", "DECLINED", "SUSPENDED"]
+    #[serde(default, rename = "courseState")]
+    pub course_state: ::core::option::Option<String>,
+    /// Creation time of the course. Specifying this field in a course update mask results in an error. Read-only.
+    #[serde(default, rename = "creationTime")]
+    pub creation_time: ::core::option::Option<String>,
+    /// Optional description. For example, "We''ll be learning about the structure of living creatures from a combination of textbooks, guest lectures, and lab work. Expect to be excited!" If set, this field must be a valid UTF-8 string and no longer than 30,000 characters.
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+    /// Optional heading for the description. For example, "Welcome to 10th Grade Biology." If set, this field must be a valid UTF-8 string and no longer than 3600 characters.
+    #[serde(default, rename = "descriptionHeading")]
+    pub description_heading: ::core::option::Option<String>,
+    /// Enrollment code to use when joining this course. Specifying this field in a course update mask results in an error. Read-only.
+    #[serde(default, rename = "enrollmentCode")]
+    pub enrollment_code: ::core::option::Option<String>,
+    /// The gradebook settings that specify how a student''s overall grade for the course will be calculated and who it will be displayed to. Read-only.
+    #[serde(default, rename = "gradebookSettings")]
+    pub gradebook_settings: ::core::option::Option<GradebookSettings>,
+    /// Whether or not guardian notifications are enabled for this course. Read-only.
+    #[serde(default, rename = "guardiansEnabled")]
+    pub guardians_enabled: ::core::option::Option<bool>,
+    /// Identifier for this course assigned by Classroom. When creating a course, you may optionally set this identifier to an alias string in the request to create a corresponding alias. The id is still assigned by Classroom and cannot be updated after the course is created. Specifying this field in a course update mask results in an error.
+    #[serde(default)]
+    pub id: ::core::option::Option<String>,
+    /// Name of the course. For example, "10th Grade Biology". The name is required. It must be between 1 and 750 characters and a valid UTF-8 string.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// The identifier of the owner of a course. When specified as a parameter of a create course request, this field is required. The identifier can be one of the following: * the numeric identifier for the user * the email address of the user * the string literal "me", indicating the requesting user This must be set in a create request. Admins can also specify this field in a patch course request to transfer ownership. In other contexts, it is read-only.
+    #[serde(default, rename = "ownerId")]
+    pub owner_id: ::core::option::Option<String>,
+    /// Optional room location. For example, "301". If set, this field must be a valid UTF-8 string and no longer than 650 characters.
+    #[serde(default)]
+    pub room: ::core::option::Option<String>,
+    /// Section of the course. For example, "Period 2". If set, this field must be a valid UTF-8 string and no longer than 2800 characters.
+    #[serde(default)]
+    pub section: ::core::option::Option<String>,
+    /// Optional. The subject of the course.
+    #[serde(default)]
+    pub subject: ::core::option::Option<String>,
+    /// Information about a Drive Folder that is shared with all teachers of the course. This field will only be set for teachers of the course and domain administrators. Read-only.
+    #[serde(default, rename = "teacherFolder")]
+    pub teacher_folder: ::core::option::Option<DriveFolder>,
+    /// The email address of a Google group containing all teachers of the course. This group does not accept email and can only be used for permissions. Read-only.
+    #[serde(default, rename = "teacherGroupEmail")]
+    pub teacher_group_email: ::core::option::Option<String>,
+    /// Time of the most recent update to this course. Specifying this field in a course update mask results in an error. Read-only.
+    #[serde(default, rename = "updateTime")]
+    pub update_time: ::core::option::Option<String>,
+}
+
+/// An invitation to become the guardian of a specified user, sent to a specified email address.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GuardianInvitation {
+    /// The time that this invitation was created. Read-only.
+    #[serde(default, rename = "creationTime")]
+    pub creation_time: ::core::option::Option<String>,
+    /// Unique identifier for this invitation. Read-only.
+    #[serde(default, rename = "invitationId")]
+    pub invitation_id: ::core::option::Option<String>,
+    /// Email address that the invitation was sent to. This field is only visible to domain administrators.
+    #[serde(default, rename = "invitedEmailAddress")]
+    pub invited_email_address: ::core::option::Option<String>,
+    /// The state that this invitation is in. // TODO: enum values: ["GUARDIAN_INVITATION_STATE_UNSPECIFIED", "PENDING", "COMPLETE"]
+    #[serde(default)]
+    pub state: ::core::option::Option<String>,
+    /// ID of the student (in standard format)
+    #[serde(default, rename = "studentId")]
+    pub student_id: ::core::option::Option<String>,
+}
+
+/// Association between a student and a guardian of that student. The guardian may receive information about the student''s course work.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Guardian {
+    /// Identifier for the guardian.
+    #[serde(default, rename = "guardianId")]
+    pub guardian_id: ::core::option::Option<String>,
+    /// User profile for the guardian.
+    #[serde(default, rename = "guardianProfile")]
+    pub guardian_profile: ::core::option::Option<UserProfile>,
+    /// The email address to which the initial guardian invitation was sent. This field is only visible to domain administrators.
+    #[serde(default, rename = "invitedEmailAddress")]
+    pub invited_email_address: ::core::option::Option<String>,
+    /// Identifier for the student to whom the guardian relationship applies.
+    #[serde(default, rename = "studentId")]
+    pub student_id: ::core::option::Option<String>,
+}
+
+/// An invitation to join a course.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Invitation {
+    /// Identifier of the course to invite the user to.
+    #[serde(default, rename = "courseId")]
+    pub course_id: ::core::option::Option<String>,
+    /// Identifier assigned by Classroom. Read-only.
+    #[serde(default)]
+    pub id: ::core::option::Option<String>,
+    /// Role to invite the user to have. Must not be COURSE_ROLE_UNSPECIFIED. // TODO: enum values: ["COURSE_ROLE_UNSPECIFIED", "STUDENT", "TEACHER", "OWNER"]
+    #[serde(default)]
+    pub role: ::core::option::Option<String>,
+    /// Identifier of the invited user. When specified as a parameter of a request, this identifier can be set to one of the following: * the numeric identifier for the user * the email address of the user * the string literal "me", indicating the requesting user
+    #[serde(default, rename = "userId")]
+    pub user_id: ::core::option::Option<String>,
 }
 
 /// The rubric of the course work. A rubric is a scoring guide used to evaluate student work and give feedback. For further details, see [Rubrics structure and known limitations](/classroom/rubrics/limitations).
@@ -1050,76 +679,18 @@ pub struct Rubric {
     pub update_time: ::core::option::Option<String>,
 }
 
-/// A rubric grade set for the student submission. There is at most one entry per rubric criterion.
+/// A student member in a student group.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct RubricGrade {
-    /// Optional. Criterion ID.
-    #[serde(default, rename = "criterionId")]
-    pub criterion_id: ::core::option::Option<String>,
-    /// Optional. Optional level ID of the selected level. If empty, no level was selected.
-    #[serde(default, rename = "levelId")]
-    pub level_id: ::core::option::Option<String>,
-    /// Optional. Optional points assigned for this criterion, typically based on the level. Levels might or might not have points. If unset, no points were set for this criterion.
-    #[serde(default)]
-    pub points: ::core::option::Option<f64>,
-}
-
-/// Drive file that is used as material for course work.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SharedDriveFile {
-    /// Drive file details.
-    #[serde(default, rename = "driveFile")]
-    pub drive_file: ::core::option::Option<DriveFile>,
-    /// Mechanism by which students access the Drive item. // TODO: enum values: ["UNKNOWN_SHARE_MODE", "VIEW", "EDIT", "STUDENT_COPY"]
-    #[serde(default, rename = "shareMode")]
-    pub share_mode: ::core::option::Option<String>,
-}
-
-/// Student work for a short answer question.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ShortAnswerSubmission {
-    /// Student response to a short-answer question.
-    #[serde(default)]
-    pub answer: ::core::option::Option<String>,
-}
-
-/// The history of each state this submission has been in.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct StateHistory {
-    /// The teacher or student who made the change.
-    #[serde(default, rename = "actorUserId")]
-    pub actor_user_id: ::core::option::Option<String>,
-    /// The workflow pipeline stage. // TODO: enum values: ["STATE_UNSPECIFIED", "CREATED", "TURNED_IN", "RETURNED", "RECLAIMED_BY_STUDENT", "STUDENT_EDITED_AFTER_TURN_IN"]
-    #[serde(default)]
-    pub state: ::core::option::Option<String>,
-    /// When the submission entered this state.
-    #[serde(default, rename = "stateTimestamp")]
-    pub state_timestamp: ::core::option::Option<String>,
-}
-
-/// Student in a course.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Student {
-    /// Identifier of the course. Read-only.
+pub struct StudentGroupMember {
+    /// The identifier of the course.
     #[serde(default, rename = "courseId")]
     pub course_id: ::core::option::Option<String>,
-    /// Global user information for the student. Read-only.
-    #[serde(default)]
-    pub profile: ::core::option::Option<UserProfile>,
-    /// Information about a Drive Folder for this student''s work in this course. Only visible to the student and domain administrators. Read-only.
-    #[serde(default, rename = "studentWorkFolder")]
-    pub student_work_folder: ::core::option::Option<DriveFolder>,
-    /// Identifier of the user. When specified as a parameter of a request, this identifier can be one of the following: * the numeric identifier for the user * the email address of the user * the string literal "me", indicating the requesting user
+    /// The identifier of the student group.
+    #[serde(default, rename = "studentGroupId")]
+    pub student_group_id: ::core::option::Option<String>,
+    /// Identifier of the student.
     #[serde(default, rename = "userId")]
     pub user_id: ::core::option::Option<String>,
-}
-
-/// Role-specific context if the requesting user is a student.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct StudentContext {
-    /// Requesting user''s submission id to be used for grade passback and to identify the student when showing student work to the teacher. This is set exactly when supportsStudentWork is true.
-    #[serde(default, rename = "submissionId")]
-    pub submission_id: ::core::option::Option<String>,
 }
 
 /// A student group in a course.
@@ -1134,20 +705,6 @@ pub struct StudentGroup {
     /// The title of the student group.
     #[serde(default)]
     pub title: ::core::option::Option<String>,
-}
-
-/// A student member in a student group.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct StudentGroupMember {
-    /// The identifier of the course.
-    #[serde(default, rename = "courseId")]
-    pub course_id: ::core::option::Option<String>,
-    /// The identifier of the student group.
-    #[serde(default, rename = "studentGroupId")]
-    pub student_group_id: ::core::option::Option<String>,
-    /// Identifier of the student.
-    #[serde(default, rename = "userId")]
-    pub user_id: ::core::option::Option<String>,
 }
 
 /// Student submission for course work. StudentSubmission items are generated when a CourseWork item is created. Student submissions that have never been accessed (i.e. with state = NEW) may not have a creation time or update time.
@@ -1212,15 +769,21 @@ pub struct StudentSubmission {
     pub user_id: ::core::option::Option<String>,
 }
 
-/// The history of the submission. This currently includes state and grade histories.
+/// Student in a course.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SubmissionHistory {
-    /// The grade history information of the submission, if present.
-    #[serde(default, rename = "gradeHistory")]
-    pub grade_history: ::core::option::Option<GradeHistory>,
-    /// The state history information of the submission, if present.
-    #[serde(default, rename = "stateHistory")]
-    pub state_history: ::core::option::Option<StateHistory>,
+pub struct Student {
+    /// Identifier of the course. Read-only.
+    #[serde(default, rename = "courseId")]
+    pub course_id: ::core::option::Option<String>,
+    /// Global user information for the student. Read-only.
+    #[serde(default)]
+    pub profile: ::core::option::Option<UserProfile>,
+    /// Information about a Drive Folder for this student''s work in this course. Only visible to the student and domain administrators. Read-only.
+    #[serde(default, rename = "studentWorkFolder")]
+    pub student_work_folder: ::core::option::Option<DriveFolder>,
+    /// Identifier of the user. When specified as a parameter of a request, this identifier can be one of the following: * the numeric identifier for the user * the email address of the user * the string literal "me", indicating the requesting user
+    #[serde(default, rename = "userId")]
+    pub user_id: ::core::option::Option<String>,
 }
 
 /// Teacher of a course.
@@ -1235,6 +798,103 @@ pub struct Teacher {
     /// Identifier of the user. When specified as a parameter of a request, this identifier can be one of the following: * the numeric identifier for the user * the email address of the user * the string literal "me", indicating the requesting user
     #[serde(default, rename = "userId")]
     pub user_id: ::core::option::Option<String>,
+}
+
+/// Topic created by a teacher for the course
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Topic {
+    /// Identifier of the course. Read-only.
+    #[serde(default, rename = "courseId")]
+    pub course_id: ::core::option::Option<String>,
+    /// The name of the topic, generated by the user. Leading and trailing whitespaces, if any, are trimmed. Also, multiple consecutive whitespaces are collapsed into one inside the name. The result must be a non-empty string. Topic names are case sensitive, and must be no longer than 100 characters.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Unique identifier for the topic. Read-only.
+    #[serde(default, rename = "topicId")]
+    pub topic_id: ::core::option::Option<String>,
+    /// The time the topic was last updated by the system. Read-only.
+    #[serde(default, rename = "updateTime")]
+    pub update_time: ::core::option::Option<String>,
+}
+
+/// Contains fields to add or remove students from a course work or announcement where the assigneeMode is set to INDIVIDUAL_STUDENTS.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ModifyIndividualStudentsOptions {
+    /// IDs of students to be added as having access to this coursework/announcement.
+    #[serde(default, rename = "addStudentIds")]
+    pub add_student_ids: ::core::option::Option<::std::vec::Vec<String>>,
+    /// IDs of students to be removed from having access to this coursework/announcement.
+    #[serde(default, rename = "removeStudentIds")]
+    pub remove_student_ids: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// A reference to a Cloud Pub/Sub topic. To register for notifications, the owner of the topic must grant classroom-notifications@system.gserviceaccount.com the projects.topics.publish permission.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CloudPubsubTopic {
+    /// The name field of a Cloud Pub/Sub [Topic](https://cloud.google.com/pubsub/docs/reference/rest/v1/projects.topics#Topic).
+    #[serde(default, rename = "topicName")]
+    pub topic_name: ::core::option::Option<String>,
+}
+
+/// A class of notifications that an application can register to receive. For example: "all roster changes for a domain".
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Feed {
+    /// Information about a Feed with a feed_type of COURSE_ROSTER_CHANGES. This field must be specified if feed_type is COURSE_ROSTER_CHANGES.
+    #[serde(default, rename = "courseRosterChangesInfo")]
+    pub course_roster_changes_info: ::core::option::Option<CourseRosterChangesInfo>,
+    /// Information about a Feed with a feed_type of COURSE_WORK_CHANGES. This field must be specified if feed_type is COURSE_WORK_CHANGES.
+    #[serde(default, rename = "courseWorkChangesInfo")]
+    pub course_work_changes_info: ::core::option::Option<CourseWorkChangesInfo>,
+    /// The type of feed. // TODO: enum values: ["FEED_TYPE_UNSPECIFIED", "DOMAIN_ROSTER_CHANGES", "COURSE_ROSTER_CHANGES", "COURSE_WORK_CHANGES"]
+    #[serde(default, rename = "feedType")]
+    pub feed_type: ::core::option::Option<String>,
+}
+
+/// Identifier of a previous copy of a given attachment.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CopyHistory {
+    /// Immutable. Identifier of the attachment.
+    #[serde(default, rename = "attachmentId")]
+    pub attachment_id: ::core::option::Option<String>,
+    /// Immutable. Identifier of the course.
+    #[serde(default, rename = "courseId")]
+    pub course_id: ::core::option::Option<String>,
+    /// Immutable. Identifier of the Announcement, CourseWork, or CourseWorkMaterial under which the attachment is attached.
+    #[serde(default, rename = "itemId")]
+    pub item_id: ::core::option::Option<String>,
+    /// Immutable. Deprecated, use item_id instead.
+    #[serde(default, rename = "postId")]
+    pub post_id: ::core::option::Option<String>,
+}
+
+/// URI to be iframed after being populated with query parameters.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct EmbedUri {
+    /// Required. URI to be iframed after being populated with query parameters. This must be a valid UTF-8 string containing between 1 and 1800 characters.
+    #[serde(default)]
+    pub uri: ::core::option::Option<String>,
+}
+
+/// Additional details for assignments.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Assignment {
+    /// Drive folder where attachments from student submissions are placed. This is only populated for course teachers and administrators.
+    #[serde(default, rename = "studentWorkFolder")]
+    pub student_work_folder: ::core::option::Option<DriveFolder>,
+}
+
+/// Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Date {
+    /// Day of a month. Must be from 1 to 31 and valid for the year and month, or 0 to specify a year by itself or a year and month where the day isn''t significant.
+    #[serde(default)]
+    pub day: ::core::option::Option<i32>,
+    /// Month of a year. Must be from 1 to 12, or 0 to specify a year without a month and day.
+    #[serde(default)]
+    pub month: ::core::option::Option<i32>,
+    /// Year of the date. Must be from 1 to 9999, or 0 to specify a date without a year.
+    #[serde(default)]
+    pub year: ::core::option::Option<i32>,
 }
 
 /// Represents a time of day. The date and time zone are either not significant or are specified elsewhere. An API may choose to allow leap seconds. Related types are google.type.Date and google.protobuf.Timestamp.
@@ -1254,21 +914,120 @@ pub struct TimeOfDay {
     pub seconds: ::core::option::Option<i32>,
 }
 
-/// Topic created by a teacher for the course
+/// Assignee details about a coursework/announcement. This field is set if and only if assigneeMode is INDIVIDUAL_STUDENTS.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Topic {
-    /// Identifier of the course. Read-only.
-    #[serde(default, rename = "courseId")]
-    pub course_id: ::core::option::Option<String>,
-    /// The name of the topic, generated by the user. Leading and trailing whitespaces, if any, are trimmed. Also, multiple consecutive whitespaces are collapsed into one inside the name. The result must be a non-empty string. Topic names are case sensitive, and must be no longer than 100 characters.
+pub struct IndividualStudentsOptions {
+    /// Identifiers for the students that have access to the coursework/announcement.
+    #[serde(default, rename = "studentIds")]
+    pub student_ids: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// Material attached to course work. When creating attachments, setting the form, gem, or notebook field is not supported.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Material {
+    /// Google Drive file material.
+    #[serde(default, rename = "driveFile")]
+    pub drive_file: ::core::option::Option<SharedDriveFile>,
+    /// Google Forms material. Read-only.
     #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Unique identifier for the topic. Read-only.
-    #[serde(default, rename = "topicId")]
-    pub topic_id: ::core::option::Option<String>,
-    /// The time the topic was last updated by the system. Read-only.
-    #[serde(default, rename = "updateTime")]
-    pub update_time: ::core::option::Option<String>,
+    pub form: ::core::option::Option<Form>,
+    /// Gemini Gem material. Read-only.
+    #[serde(default)]
+    pub gem: ::core::option::Option<GeminiGem>,
+    /// Link material. On creation, this is upgraded to a more appropriate type if possible, and this is reflected in the response.
+    #[serde(default)]
+    pub link: ::core::option::Option<Link>,
+    /// NotebookLM Notebook material. Read-only.
+    #[serde(default)]
+    pub notebook: ::core::option::Option<NotebookLmNotebook>,
+    /// YouTube video material.
+    #[serde(default, rename = "youtubeVideo")]
+    pub youtube_video: ::core::option::Option<YouTubeVideo>,
+}
+
+/// Additional details for multiple-choice questions.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MultipleChoiceQuestion {
+    /// Possible choices.
+    #[serde(default)]
+    pub choices: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// A set of materials that appears on the "About" page of the course. These materials might include a syllabus, schedule, or other background information relating to the course as a whole.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CourseMaterialSet {
+    /// Materials attached to this set.
+    #[serde(default)]
+    pub materials: ::core::option::Option<::std::vec::Vec<CourseMaterial>>,
+    /// Title for this set.
+    #[serde(default)]
+    pub title: ::core::option::Option<String>,
+}
+
+/// The gradebook settings for a course. See the [help center article](https://support.google.com/edu/classroom/answer/9184995) for details.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GradebookSettings {
+    /// Indicates how the overall grade is calculated. // TODO: enum values: ["CALCULATION_TYPE_UNSPECIFIED", "TOTAL_POINTS", "WEIGHTED_CATEGORIES"]
+    #[serde(default, rename = "calculationType")]
+    pub calculation_type: ::core::option::Option<String>,
+    /// Indicates who can see the overall grade.. // TODO: enum values: ["DISPLAY_SETTING_UNSPECIFIED", "SHOW_OVERALL_GRADE", "HIDE_OVERALL_GRADE", "SHOW_TEACHERS_ONLY"]
+    #[serde(default, rename = "displaySetting")]
+    pub display_setting: ::core::option::Option<String>,
+    /// Grade categories that are available for coursework in the course.
+    #[serde(default, rename = "gradeCategories")]
+    pub grade_categories: ::core::option::Option<::std::vec::Vec<GradeCategory>>,
+}
+
+/// A rubric criterion. Each criterion is a dimension on which performance is rated.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Criterion {
+    /// The description of the criterion.
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+    /// The criterion ID. On creation, an ID is assigned.
+    #[serde(default)]
+    pub id: ::core::option::Option<String>,
+    /// The list of levels within this criterion.
+    #[serde(default)]
+    pub levels: ::core::option::Option<::std::vec::Vec<Level>>,
+    /// The title of the criterion.
+    #[serde(default)]
+    pub title: ::core::option::Option<String>,
+}
+
+/// Student work for an assignment.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AssignmentSubmission {
+    /// Attachments added by the student. Drive files that correspond to materials with a share mode of STUDENT_COPY may not exist yet if the student has not accessed the assignment in Classroom. Some attachment metadata is only populated if the requesting user has permission to access it. Identifier and alternate_link fields are always available, but others (for example, title) may not be.
+    #[serde(default)]
+    pub attachments: ::core::option::Option<::std::vec::Vec<Attachment>>,
+}
+
+/// Student work for a multiple-choice question.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MultipleChoiceSubmission {
+    /// Student''s select choice.
+    #[serde(default)]
+    pub answer: ::core::option::Option<String>,
+}
+
+/// Student work for a short answer question.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ShortAnswerSubmission {
+    /// Student response to a short-answer question.
+    #[serde(default)]
+    pub answer: ::core::option::Option<String>,
+}
+
+/// The history of the submission. This currently includes state and grade histories.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SubmissionHistory {
+    /// The grade history information of the submission, if present.
+    #[serde(default, rename = "gradeHistory")]
+    pub grade_history: ::core::option::Option<GradeHistory>,
+    /// The state history information of the submission, if present.
+    #[serde(default, rename = "stateHistory")]
+    pub state_history: ::core::option::Option<StateHistory>,
 }
 
 /// Global information for a user.
@@ -1292,6 +1051,247 @@ pub struct UserProfile {
     /// Represents whether a Google Workspace for Education user''s domain administrator has explicitly verified them as being a teacher. This field is always false if the user is not a member of a Google Workspace for Education domain. Read-only
     #[serde(default, rename = "verifiedTeacher")]
     pub verified_teacher: ::core::option::Option<bool>,
+}
+
+/// Information about a Feed with a feed_type of COURSE_ROSTER_CHANGES.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CourseRosterChangesInfo {
+    /// The course_id of the course to subscribe to roster changes for.
+    #[serde(default, rename = "courseId")]
+    pub course_id: ::core::option::Option<String>,
+}
+
+/// Information about a Feed with a feed_type of COURSE_WORK_CHANGES.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CourseWorkChangesInfo {
+    /// The course_id of the course to subscribe to work changes for.
+    #[serde(default, rename = "courseId")]
+    pub course_id: ::core::option::Option<String>,
+}
+
+/// Representation of a Google Drive folder.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DriveFolder {
+    /// URL that can be used to access the Drive folder. Read-only.
+    #[serde(default, rename = "alternateLink")]
+    pub alternate_link: ::core::option::Option<String>,
+    /// Drive API resource ID.
+    #[serde(default)]
+    pub id: ::core::option::Option<String>,
+    /// Title of the Drive folder. Read-only.
+    #[serde(default)]
+    pub title: ::core::option::Option<String>,
+}
+
+/// Drive file that is used as material for course work.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SharedDriveFile {
+    /// Drive file details.
+    #[serde(default, rename = "driveFile")]
+    pub drive_file: ::core::option::Option<DriveFile>,
+    /// Mechanism by which students access the Drive item. // TODO: enum values: ["UNKNOWN_SHARE_MODE", "VIEW", "EDIT", "STUDENT_COPY"]
+    #[serde(default, rename = "shareMode")]
+    pub share_mode: ::core::option::Option<String>,
+}
+
+/// Gemini Gem link.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GeminiGem {
+    /// Gems resource id.
+    #[serde(default)]
+    pub id: ::core::option::Option<String>,
+    /// Title of the Gem.
+    #[serde(default)]
+    pub title: ::core::option::Option<String>,
+    /// URL that can be used to access the Gem.
+    #[serde(default)]
+    pub url: ::core::option::Option<String>,
+}
+
+/// NotebookLM Notebook link.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct NotebookLmNotebook {
+    /// Notebook resource id.
+    #[serde(default)]
+    pub id: ::core::option::Option<String>,
+    /// Title of the Notebook.
+    #[serde(default)]
+    pub title: ::core::option::Option<String>,
+    /// URL that can be used to access the Notebook.
+    #[serde(default)]
+    pub url: ::core::option::Option<String>,
+}
+
+/// A material attached to a course as part of a material set.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CourseMaterial {
+    /// Google Drive file attachment.
+    #[serde(default, rename = "driveFile")]
+    pub drive_file: ::core::option::Option<DriveFile>,
+    /// Google Forms attachment.
+    #[serde(default)]
+    pub form: ::core::option::Option<Form>,
+    /// Link atatchment.
+    #[serde(default)]
+    pub link: ::core::option::Option<Link>,
+    /// Youtube video attachment.
+    #[serde(default, rename = "youTubeVideo")]
+    pub you_tube_video: ::core::option::Option<YouTubeVideo>,
+}
+
+/// Details for a grade category in a course. Coursework may have zero or one grade category, and the category may be used in computing the overall grade. See the [help center article](https://support.google.com/edu/classroom/answer/9184995) for details.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GradeCategory {
+    /// Default value of denominator. Only applicable when grade calculation type is TOTAL_POINTS.
+    #[serde(default, rename = "defaultGradeDenominator")]
+    pub default_grade_denominator: ::core::option::Option<i32>,
+    /// ID of the grade category.
+    #[serde(default)]
+    pub id: ::core::option::Option<String>,
+    /// Name of the grade category.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// The weight of the category average as part of overall average. A weight of 12.34% is represented as 123400 (100% is 1,000,000). The last two digits should always be zero since we use two decimal precision. Only applicable when grade calculation type is WEIGHTED_CATEGORIES.
+    #[serde(default)]
+    pub weight: ::core::option::Option<i32>,
+}
+
+/// A level of the criterion.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Level {
+    /// The description of the level.
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+    /// The level ID. On creation, an ID is assigned.
+    #[serde(default)]
+    pub id: ::core::option::Option<String>,
+    /// Optional points associated with this level. If set, all levels within the rubric must specify points and the value must be distinct across all levels within a single criterion. 0 is distinct from no points.
+    #[serde(default)]
+    pub points: ::core::option::Option<f64>,
+    /// The title of the level. If the level has no points set, title must be set.
+    #[serde(default)]
+    pub title: ::core::option::Option<String>,
+}
+
+/// Attachment added to student assignment work. When creating attachments, setting the form field is not supported.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Attachment {
+    /// Google Drive file attachment.
+    #[serde(default, rename = "driveFile")]
+    pub drive_file: ::core::option::Option<DriveFile>,
+    /// Google Forms attachment.
+    #[serde(default)]
+    pub form: ::core::option::Option<Form>,
+    /// Link attachment.
+    #[serde(default)]
+    pub link: ::core::option::Option<Link>,
+    /// Youtube video attachment.
+    #[serde(default, rename = "youTubeVideo")]
+    pub you_tube_video: ::core::option::Option<YouTubeVideo>,
+}
+
+/// The history of each grade on this submission.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GradeHistory {
+    /// The teacher who made the grade change.
+    #[serde(default, rename = "actorUserId")]
+    pub actor_user_id: ::core::option::Option<String>,
+    /// The type of grade change at this time in the submission grade history. // TODO: enum values: ["UNKNOWN_GRADE_CHANGE_TYPE", "DRAFT_GRADE_POINTS_EARNED_CHANGE", "ASSIGNED_GRADE_POINTS_EARNED_CHANGE", "MAX_POINTS_CHANGE"]
+    #[serde(default, rename = "gradeChangeType")]
+    pub grade_change_type: ::core::option::Option<String>,
+    /// When the grade of the submission was changed.
+    #[serde(default, rename = "gradeTimestamp")]
+    pub grade_timestamp: ::core::option::Option<String>,
+    /// The denominator of the grade at this time in the submission grade history.
+    #[serde(default, rename = "maxPoints")]
+    pub max_points: ::core::option::Option<f64>,
+    /// The numerator of the grade at this time in the submission grade history.
+    #[serde(default, rename = "pointsEarned")]
+    pub points_earned: ::core::option::Option<f64>,
+}
+
+/// The history of each state this submission has been in.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct StateHistory {
+    /// The teacher or student who made the change.
+    #[serde(default, rename = "actorUserId")]
+    pub actor_user_id: ::core::option::Option<String>,
+    /// The workflow pipeline stage. // TODO: enum values: ["STATE_UNSPECIFIED", "CREATED", "TURNED_IN", "RETURNED", "RECLAIMED_BY_STUDENT", "STUDENT_EDITED_AFTER_TURN_IN"]
+    #[serde(default)]
+    pub state: ::core::option::Option<String>,
+    /// When the submission entered this state.
+    #[serde(default, rename = "stateTimestamp")]
+    pub state_timestamp: ::core::option::Option<String>,
+}
+
+/// Details of the user''s name.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Name {
+    /// The user''s last name. Read-only.
+    #[serde(default, rename = "familyName")]
+    pub family_name: ::core::option::Option<String>,
+    /// The user''s full name formed by concatenating the first and last name values. Read-only.
+    #[serde(default, rename = "fullName")]
+    pub full_name: ::core::option::Option<String>,
+    /// The user''s first name. Read-only.
+    #[serde(default, rename = "givenName")]
+    pub given_name: ::core::option::Option<String>,
+}
+
+/// Global user permission description.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GlobalPermission {
+    /// Permission value. // TODO: enum values: ["PERMISSION_UNSPECIFIED", "CREATE_COURSE"]
+    #[serde(default)]
+    pub permission: ::core::option::Option<String>,
+}
+
+/// Representation of a Google Drive file.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DriveFile {
+    /// URL that can be used to access the Drive item. Read-only.
+    #[serde(default, rename = "alternateLink")]
+    pub alternate_link: ::core::option::Option<String>,
+    /// Drive API resource ID.
+    #[serde(default)]
+    pub id: ::core::option::Option<String>,
+    /// URL of a thumbnail image of the Drive item. Read-only.
+    #[serde(default, rename = "thumbnailUrl")]
+    pub thumbnail_url: ::core::option::Option<String>,
+    /// Title of the Drive item. Read-only.
+    #[serde(default)]
+    pub title: ::core::option::Option<String>,
+}
+
+/// Google Forms item.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Form {
+    /// URL of the form.
+    #[serde(default, rename = "formUrl")]
+    pub form_url: ::core::option::Option<String>,
+    /// URL of the form responses document. Only set if responses have been recorded and only when the requesting user is an editor of the form. Read-only.
+    #[serde(default, rename = "responseUrl")]
+    pub response_url: ::core::option::Option<String>,
+    /// URL of a thumbnail image of the Form. Read-only.
+    #[serde(default, rename = "thumbnailUrl")]
+    pub thumbnail_url: ::core::option::Option<String>,
+    /// Title of the Form. Read-only.
+    #[serde(default)]
+    pub title: ::core::option::Option<String>,
+}
+
+/// URL item.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Link {
+    /// URL of a thumbnail image of the target URL. Read-only.
+    #[serde(default, rename = "thumbnailUrl")]
+    pub thumbnail_url: ::core::option::Option<String>,
+    /// Title of the target of the URL. Read-only.
+    #[serde(default)]
+    pub title: ::core::option::Option<String>,
+    /// URL to link to. This must be a valid UTF-8 string containing between 1 and 2024 characters.
+    #[serde(default)]
+    pub url: ::core::option::Option<String>,
 }
 
 /// YouTube video item.

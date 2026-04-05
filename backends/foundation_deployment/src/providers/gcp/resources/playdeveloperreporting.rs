@@ -10,27 +10,6 @@
 use super::*;
 use serde::{Deserialize, Serialize};
 
-/// Represents an anomaly detected in a dataset. Our anomaly detection systems flag datapoints in a time series that fall outside of and expected range derived from historical data. Although those expected ranges have an upper and a lower bound, we only flag anomalies when the data has become unexpectedly _worse_, which usually corresponds to the case where the metric crosses the upper bound. Multiple contiguous datapoints in a timeline outside of the expected range will be grouped into a single anomaly. Therefore, an anomaly represents effectively a segment of a metric''s timeline. The information stored in the timeline_spec, dimensions and metric can be used to fetch a full timeline with extended ragne for context. **Required permissions**: to access this resource, the calling user needs the _View app information (read-only)_ permission for the app.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GooglePlayDeveloperReportingV1beta1Anomaly {
-    /// Combination of dimensions in which the anomaly was detected.
-    #[serde(default)]
-    pub dimensions:
-        ::core::option::Option<::std::vec::Vec<GooglePlayDeveloperReportingV1beta1DimensionValue>>,
-    /// Metric where the anomaly was detected, together with the anomalous value.
-    #[serde(default)]
-    pub metric: ::core::option::Option<GooglePlayDeveloperReportingV1beta1MetricValue>,
-    /// Metric set resource where the anomaly was detected.
-    #[serde(default, rename = "metricSet")]
-    pub metric_set: ::core::option::Option<String>,
-    /// Identifier. Name of the anomaly. Format: apps/{app}/anomalies/{anomaly}
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Timeline specification that covers the anomaly period.
-    #[serde(default, rename = "timelineSpec")]
-    pub timeline_spec: ::core::option::Option<GooglePlayDeveloperReportingV1beta1TimelineSpec>,
-}
-
 /// Singleton resource representing the set of ANR (Application not responding) metrics. This metric set contains ANRs data combined with usage data to produce a normalized metric independent of user counts. **Supported aggregation periods:** * DAILY: metrics are aggregated in calendar date intervals. Due to historical constraints, the only supported timezone is America/Los_Angeles. * HOURLY: metrics are aggregated in hourly intervals. The default and only supported timezone is UTC. **Supported metrics:** * anrRate (google.type.Decimal): Percentage of distinct users in the aggregation period that experienced at least one ANR. * anrRate7dUserWeighted (google.type.Decimal): Rolling average value of anrRate in the last 7 days. The daily values are weighted by the count of distinct users for the day. Not supported in HOURLY granularity. * anrRate28dUserWeighted (google.type.Decimal): Rolling average value of anrRate in the last 28 days. The daily values are weighted by the count of distinct users for the day. Not supported in HOURLY granularity. * userPerceivedAnrRate (google.type.Decimal): Percentage of distinct users in the aggregation period that experienced at least one user-perceived ANR. User-perceived ANRs are currently those of ''Input dispatching'' type. * userPerceivedAnrRate7dUserWeighted (google.type.Decimal): Rolling average value of userPerceivedAnrRate in the last 7 days. The daily values are weighted by the count of distinct users for the day. Not supported in HOURLY granularity. * userPerceivedAnrRate28dUserWeighted (google.type.Decimal): Rolling average value of userPerceivedAnrRate in the last 28 days. The daily values are weighted by the count of distinct users for the day. * distinctUsers (google.type.Decimal): Count of distinct users in the aggregation period that were used as normalization value for the anrRate and userPerceivedAnrRate metrics. A user is counted in this metric if they used the app in the foreground during the aggregation period. Care must be taken not to aggregate this count further, as it may result in users being counted multiple times. The value is rounded to the nearest multiple of 10, 100, 1,000 or 1,000,000, depending on the magnitude of the value. **Supported dimensions:** * apiLevel (string): the API level of Android that was running on the user''s device, e.g., 26. * versionCode (int64): version of the app that was running on the user''s device. * deviceModel (string): unique identifier of the user''s device model. The form of the identifier is ''deviceBrand/device'', where deviceBrand corresponds to Build.BRAND and device corresponds to Build.DEVICE, e.g., google/coral. * deviceBrand (string): unique identifier of the user''s device brand, e.g., google. * deviceType (string): the type (also known as form factor) of the user''s device, e.g., PHONE. * countryCode (string): the country or region of the user''s device based on their IP address, represented as a 2-letter ISO-3166 code (e.g. US for the United States). * deviceRamBucket (int64): RAM of the device, in MB, in buckets (3GB, 4GB, etc.). * deviceSocMake (string): Make of the device''s primary system-on-chip, e.g., Samsung. [Reference](https://developer.android.com/reference/android/os/Build#SOC_MANUFACTURER) * deviceSocModel (string): Model of the device''s primary system-on-chip, e.g., "Exynos 2100". [Reference](https://developer.android.com/reference/android/os/Build#SOC_MODEL) * deviceCpuMake (string): Make of the device''s CPU, e.g., Qualcomm. * deviceCpuModel (string): Model of the device''s CPU, e.g., "Kryo 240". * deviceGpuMake (string): Make of the device''s GPU, e.g., ARM. * deviceGpuModel (string): Model of the device''s GPU, e.g., Mali. * deviceGpuVersion (string): Version of the device''s GPU, e.g., T750. * deviceVulkanVersion (string): Vulkan version of the device, e.g., "4198400". * deviceGlEsVersion (string): OpenGL ES version of the device, e.g., "196610". * deviceScreenSize (string): Screen size of the device, e.g., NORMAL, LARGE. * deviceScreenDpi (string): Screen density of the device, e.g., mdpi, hdpi. **Required permissions**: to access this resource, the calling user needs the _View app information (read-only)_ permission for the app. **Related metric sets:** * vitals.errors contains unnormalized version (absolute counts) of crashes. * vitals.errors contains normalized metrics about crashes, another stability metric.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GooglePlayDeveloperReportingV1beta1AnrRateMetricSet {
@@ -40,28 +19,6 @@ pub struct GooglePlayDeveloperReportingV1beta1AnrRateMetricSet {
     /// Identifier. The resource name. Format: apps/{app}/anrRateMetricSet
     #[serde(default)]
     pub name: ::core::option::Option<String>,
-}
-
-/// A representation of an app in the Play Store.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GooglePlayDeveloperReportingV1beta1App {
-    /// Title of the app. This is the latest title as set in the Play Console and may not yet have been reviewed, so might not match the Play Store. Example: Google Maps.
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-    /// Identifier. The resource name. Format: apps/{app}
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Package name of the app. Example: com.example.app123.
-    #[serde(default, rename = "packageName")]
-    pub package_name: ::core::option::Option<String>,
-}
-
-/// Representations of an app version.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GooglePlayDeveloperReportingV1beta1AppVersion {
-    /// Optional. Numeric version code of the app version (set by the app''s developer).
-    #[serde(default, rename = "versionCode")]
-    pub version_code: ::core::option::Option<String>,
 }
 
 /// Singleton resource representing the set of crashrate metrics. This metric set contains crashes data combined with usage data to produce a normalized metric independent of user counts. **Supported aggregation periods:** * DAILY: metrics are aggregated in calendar date intervals. Due to historical constraints, the only supported timezone is America/Los_Angeles. * HOURLY: metrics are aggregated in hourly intervals. The default and only supported timezone is UTC. **Supported metrics:** * crashRate (google.type.Decimal): Percentage of distinct users in the aggregation period that experienced at least one crash. * crashRate7dUserWeighted (google.type.Decimal): Rolling average value of crashRate in the last 7 days. The daily values are weighted by the count of distinct users for the day. Not supported in HOURLY granularity. * crashRate28dUserWeighted (google.type.Decimal): Rolling average value of crashRate in the last 28 days. The daily values are weighted by the count of distinct users for the day. Not supported in HOURLY granularity. * userPerceivedCrashRate (google.type.Decimal): Percentage of distinct users in the aggregation period that experienced at least one crash while they were actively using your app (a user-perceived crash). An app is considered to be in active use if it is displaying any activity or executing any foreground service. * userPerceivedCrashRate7dUserWeighted (google.type.Decimal): Rolling average value of userPerceivedCrashRate in the last 7 days. The daily values are weighted by the count of distinct users for the day. Not supported in HOURLY granularity. * userPerceivedCrashRate28dUserWeighted (google.type.Decimal): Rolling average value of userPerceivedCrashRate in the last 28 days. The daily values are weighted by the count of distinct users for the day. Not supported in HOURLY granularity. * distinctUsers (google.type.Decimal): Count of distinct users in the aggregation period that were used as normalization value for the crashRate and userPerceivedCrashRate metrics. A user is counted in this metric if they used the app actively during the aggregation period. An app is considered to be in active use if it is displaying any activity or executing any foreground service. Care must be taken not to aggregate this count further, as it may result in users being counted multiple times. The value is rounded to the nearest multiple of 10, 100, 1,000 or 1,000,000, depending on the magnitude of the value. **Supported dimensions:** * apiLevel (string): the API level of Android that was running on the user''s device, e.g., 26. * versionCode (int64): version of the app that was running on the user''s device. * deviceModel (string): unique identifier of the user''s device model. The form of the identifier is ''deviceBrand/device'', where deviceBrand corresponds to Build.BRAND and device corresponds to Build.DEVICE, e.g., google/coral. * deviceBrand (string): unique identifier of the user''s device brand, e.g., google. * deviceType (string): the type (also known as form factor) of the user''s device, e.g., PHONE. * countryCode (string): the country or region of the user''s device based on their IP address, represented as a 2-letter ISO-3166 code (e.g. US for the United States). * deviceRamBucket (int64): RAM of the device, in MB, in buckets (3GB, 4GB, etc.). * deviceSocMake (string): Make of the device''s primary system-on-chip, e.g., Samsung. [Reference](https://developer.android.com/reference/android/os/Build#SOC_MANUFACTURER) * deviceSocModel (string): Model of the device''s primary system-on-chip, e.g., "Exynos 2100". [Reference](https://developer.android.com/reference/android/os/Build#SOC_MODEL) * deviceCpuMake (string): Make of the device''s CPU, e.g., Qualcomm. * deviceCpuModel (string): Model of the device''s CPU, e.g., "Kryo 240". * deviceGpuMake (string): Make of the device''s GPU, e.g., ARM. * deviceGpuModel (string): Model of the device''s GPU, e.g., Mali. * deviceGpuVersion (string): Version of the device''s GPU, e.g., T750. * deviceVulkanVersion (string): Vulkan version of the device, e.g., "4198400". * deviceGlEsVersion (string): OpenGL ES version of the device, e.g., "196610". * deviceScreenSize (string): Screen size of the device, e.g., NORMAL, LARGE. * deviceScreenDpi (string): Screen density of the device, e.g., mdpi, hdpi. **Required permissions**: to access this resource, the calling user needs the _View app information (read-only)_ permission for the app. **Related metric sets:** * vitals.errors contains unnormalized version (absolute counts) of crashes. * vitals.errors contains normalized metrics about ANRs, another stability metric.
@@ -75,59 +32,6 @@ pub struct GooglePlayDeveloperReportingV1beta1CrashRateMetricSet {
     pub name: ::core::option::Option<String>,
 }
 
-/// Represents the confidence interval of a metric.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GooglePlayDeveloperReportingV1beta1DecimalConfidenceInterval {
-    /// The confidence interval''s lower bound.
-    #[serde(default, rename = "lowerBound")]
-    pub lower_bound: ::core::option::Option<GoogleTypeDecimal>,
-    /// The confidence interval''s upper bound.
-    #[serde(default, rename = "upperBound")]
-    pub upper_bound: ::core::option::Option<GoogleTypeDecimal>,
-}
-
-/// Identifier of a device.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GooglePlayDeveloperReportingV1beta1DeviceId {
-    /// Value of Build.BRAND.
-    #[serde(default, rename = "buildBrand")]
-    pub build_brand: ::core::option::Option<String>,
-    /// Value of Build.DEVICE.
-    #[serde(default, rename = "buildDevice")]
-    pub build_device: ::core::option::Option<String>,
-}
-
-/// Summary of a device
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GooglePlayDeveloperReportingV1beta1DeviceModelSummary {
-    /// Identifier of the device.
-    #[serde(default, rename = "deviceId")]
-    pub device_id: ::core::option::Option<GooglePlayDeveloperReportingV1beta1DeviceId>,
-    /// Link to the device in Play Device Catalog.
-    #[serde(default, rename = "deviceUri")]
-    pub device_uri: ::core::option::Option<String>,
-    /// Display name of the device.
-    #[serde(default, rename = "marketingName")]
-    pub marketing_name: ::core::option::Option<String>,
-}
-
-/// Represents the value of a single dimension.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GooglePlayDeveloperReportingV1beta1DimensionValue {
-    /// Name of the dimension.
-    #[serde(default)]
-    pub dimension: ::core::option::Option<String>,
-    /// Actual value, represented as an int64.
-    #[serde(default, rename = "int64Value")]
-    pub int64_value: ::core::option::Option<String>,
-    /// Actual value, represented as a string.
-    #[serde(default, rename = "stringValue")]
-    pub string_value: ::core::option::Option<String>,
-    /// Optional. Human-friendly label for the value, always in English. For example, ''Spain'' for the ''ES'' country code. Whereas the dimension value is stable, this value label is subject to change. Do not assume that the (value, value_label) relationship is stable. For example, the ISO country code ''MK'' changed its name recently to ''North Macedonia''.
-    #[serde(default, rename = "valueLabel")]
-    pub value_label: ::core::option::Option<String>,
-}
-
 /// Singleton resource representing the set of error report metrics. This metric set contains un-normalized error report counts. **Supported aggregation periods:** * HOURLY: metrics are aggregated in hourly intervals. The default and only supported timezone is UTC. * DAILY: metrics are aggregated in calendar date intervals. The default and only supported timezone is America/Los_Angeles. **Supported metrics:** * errorReportCount (google.type.Decimal): Absolute count of individual error reports that have been received for an app. * distinctUsers (google.type.Decimal): Count of distinct users for which reports have been received. Care must be taken not to aggregate this count further, as it may result in users being counted multiple times. This value is not rounded, however it may be an approximation. **Required dimension:** This dimension must be always specified in all requests in the dimensions field in query requests. * reportType (string): the type of error. The value should correspond to one of the possible values in ErrorType. **Supported dimensions:** * apiLevel (string): the API level of Android that was running on the user''s device, e.g., 26. * versionCode (int64): version of the app that was running on the user''s device. * deviceModel (string): unique identifier of the user''s device model. The form of the identifier is ''deviceBrand/device'', where deviceBrand corresponds to Build.BRAND and device corresponds to Build.DEVICE, e.g., google/coral. * deviceType (string): identifier of the device''s form factor, e.g., PHONE. * issueId (string): the id an error was assigned to. The value should correspond to the {issue} component of the issue name. * deviceRamBucket (int64): RAM of the device, in MB, in buckets (3GB, 4GB, etc.). * deviceSocMake (string): Make of the device''s primary system-on-chip, e.g., Samsung. [Reference](https://developer.android.com/reference/android/os/Build#SOC_MANUFACTURER) * deviceSocModel (string): Model of the device''s primary system-on-chip, e.g., "Exynos 2100". [Reference](https://developer.android.com/reference/android/os/Build#SOC_MODEL) * deviceCpuMake (string): Make of the device''s CPU, e.g., Qualcomm. * deviceCpuModel (string): Model of the device''s CPU, e.g., "Kryo 240". * deviceGpuMake (string): Make of the device''s GPU, e.g., ARM. * deviceGpuModel (string): Model of the device''s GPU, e.g., Mali. * deviceGpuVersion (string): Version of the device''s GPU, e.g., T750. * deviceVulkanVersion (string): Vulkan version of the device, e.g., "4198400". * deviceGlEsVersion (string): OpenGL ES version of the device, e.g., "196610". * deviceScreenSize (string): Screen size of the device, e.g., NORMAL, LARGE. * deviceScreenDpi (string): Screen density of the device, e.g., mdpi, hdpi. **Required permissions**: to access this resource, the calling user needs the _View app information (read-only)_ permission for the app. **Related metric sets:** * vitals.errors.counts contains normalized metrics about Crashes, another stability metric. * vitals.errors.counts contains normalized metrics about ANRs, another stability metric.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GooglePlayDeveloperReportingV1beta1ErrorCountMetricSet {
@@ -139,89 +43,6 @@ pub struct GooglePlayDeveloperReportingV1beta1ErrorCountMetricSet {
     pub name: ::core::option::Option<String>,
 }
 
-/// A group of related ErrorReports received for an app. Similar error reports are grouped together into issues with a likely identical root cause. **Please note:** this resource is currently in Alpha. There could be changes to the issue grouping that would result in similar but more recent error reports being assigned to different issues. This could also cause some issues disappearing entirely and being replaced by new ones. **Required permissions**: to access this resource, the calling user needs the _View app information (read-only)_ permission for the app.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GooglePlayDeveloperReportingV1beta1ErrorIssue {
-    /// List of annotations for an issue. Annotations provide additional information that may help in diagnosing and fixing the issue.
-    #[serde(default)]
-    pub annotations:
-        ::core::option::Option<::std::vec::Vec<GooglePlayDeveloperReportingV1beta1IssueAnnotation>>,
-    /// Cause of the issue. Depending on the type this can be either: * APPLICATION_NOT_RESPONDING: the type of ANR that occurred, e.g., ''Input dispatching timed out''. * CRASH: for Java unhandled exception errors, the type of the innermost exception that was thrown, e.g., IllegalArgumentException. For signals in native code, the signal that was raised, e.g. SIGSEGV.
-    #[serde(default)]
-    pub cause: ::core::option::Option<String>,
-    /// An estimate of the number of unique users who have experienced this issue (only considering occurrences matching the filters and within the requested time period).
-    #[serde(default, rename = "distinctUsers")]
-    pub distinct_users: ::core::option::Option<String>,
-    /// An estimated percentage of users affected by any issue that are affected by this issue (only considering occurrences matching the filters and within the requested time period).
-    #[serde(default, rename = "distinctUsersPercent")]
-    pub distinct_users_percent: ::core::option::Option<GoogleTypeDecimal>,
-    /// The total number of error reports in this issue (only considering occurrences matching the filters and within the requested time period).
-    #[serde(default, rename = "errorReportCount")]
-    pub error_report_count: ::core::option::Option<String>,
-    /// The earliest (inclusive) app version appearing in this ErrorIssue in the requested time period (only considering occurrences matching the filters).
-    #[serde(default, rename = "firstAppVersion")]
-    pub first_app_version: ::core::option::Option<GooglePlayDeveloperReportingV1beta1AppVersion>,
-    /// The smallest OS version in which this error cluster has occurred in the requested time period (only considering occurrences matching the filters and within the requested time period).
-    #[serde(default, rename = "firstOsVersion")]
-    pub first_os_version: ::core::option::Option<GooglePlayDeveloperReportingV1beta1OsVersion>,
-    /// Link to the issue in Android vitals in the Play Console.
-    #[serde(default, rename = "issueUri")]
-    pub issue_uri: ::core::option::Option<String>,
-    /// The latest (inclusive) app version appearing in this ErrorIssue in the requested time period (only considering occurrences matching the filters).
-    #[serde(default, rename = "lastAppVersion")]
-    pub last_app_version: ::core::option::Option<GooglePlayDeveloperReportingV1beta1AppVersion>,
-    /// Start of the hour during which the last error report in this issue occurred.
-    #[serde(default, rename = "lastErrorReportTime")]
-    pub last_error_report_time: ::core::option::Option<String>,
-    /// The latest OS version in which this error cluster has occurred in the requested time period (only considering occurrences matching the filters and within the requested time period).
-    #[serde(default, rename = "lastOsVersion")]
-    pub last_os_version: ::core::option::Option<GooglePlayDeveloperReportingV1beta1OsVersion>,
-    /// Location where the issue happened. Depending on the type this can be either: * APPLICATION_NOT_RESPONDING: the name of the activity or service that stopped responding. * CRASH: the likely method name that caused the error.
-    #[serde(default)]
-    pub location: ::core::option::Option<String>,
-    /// Identifier. The resource name of the issue. Format: apps/{app}/{issue}
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Output only. Sample error reports which belong to this ErrorIssue. *Note:* currently a maximum of 1 per ErrorIssue is supported. Format: "apps/{app}/{report}"
-    #[serde(default, rename = "sampleErrorReports")]
-    pub sample_error_reports: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Type of the errors grouped in this issue. // TODO: enum values: ["ERROR_TYPE_UNSPECIFIED", "APPLICATION_NOT_RESPONDING", "CRASH", "NON_FATAL"]
-    #[serde(default, rename = "type")]
-    pub type_: ::core::option::Option<String>,
-}
-
-/// An error report received for an app. There reports are produced by the Android platform code when a (potentially fatal) error condition is detected. Identical reports from many users will be deduplicated and coalesced into a single ErrorReport. **Required permissions**: to access this resource, the calling user needs the _View app information (read-only)_ permission for the app.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GooglePlayDeveloperReportingV1beta1ErrorReport {
-    /// The app version on which an event in this error report occurred on.
-    #[serde(default, rename = "appVersion")]
-    pub app_version: ::core::option::Option<GooglePlayDeveloperReportingV1beta1AppVersion>,
-    /// A device model on which an event in this error report occurred on.
-    #[serde(default, rename = "deviceModel")]
-    pub device_model: ::core::option::Option<GooglePlayDeveloperReportingV1beta1DeviceModelSummary>,
-    /// Start of the hour during which the latest event in this error report occurred.
-    #[serde(default, rename = "eventTime")]
-    pub event_time: ::core::option::Option<String>,
-    /// The issue this report was associated with. **Please note:** this resource is currently in Alpha. There could be changes to the issue grouping that would result in similar but more recent error reports being assigned to a different issue.
-    #[serde(default)]
-    pub issue: ::core::option::Option<String>,
-    /// Identifier. The resource name of the report. Format: apps/{app}/{report}
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// The OS version on which an event in this error report occurred on.
-    #[serde(default, rename = "osVersion")]
-    pub os_version: ::core::option::Option<GooglePlayDeveloperReportingV1beta1OsVersion>,
-    /// Textual representation of the error report. These textual reports are produced by the platform. The reports are then sanitized and filtered to remove any potentially sensitive information. Although their format is fairly stable, they are not entirely meant for machine consumption and we cannot guarantee that there won''t be subtle changes to the formatting that may break systems trying to parse information out of the reports.
-    #[serde(default, rename = "reportText")]
-    pub report_text: ::core::option::Option<String>,
-    /// Type of the error for which this report was generated. // TODO: enum values: ["ERROR_TYPE_UNSPECIFIED", "APPLICATION_NOT_RESPONDING", "CRASH", "NON_FATAL"]
-    #[serde(default, rename = "type")]
-    pub type_: ::core::option::Option<String>,
-    /// Version control system information from BUNDLE-METADATA/version-control-info.textproto or META-INF/version-control-info.textproto of the app bundle or APK, respectively.
-    #[serde(default, rename = "vcsInformation")]
-    pub vcs_information: ::core::option::Option<String>,
-}
-
 /// Singleton resource representing the set of Excessive Weakeups metrics. This metric set contains AlarmManager wakeup counts data combined with process state data to produce a normalized metric independent of user counts. **Supported aggregation periods:** * DAILY: metrics are aggregated in calendar date intervals. Due to historical constraints, the only supported timezone is America/Los_Angeles. **Supported metrics:** * excessiveWakeupRate (google.type.Decimal): Percentage of distinct users in the aggregation period that had more than 10 wakeups per hour. * excessiveWakeupRate7dUserWeighted (google.type.Decimal): Rolling average value of excessiveWakeupRate in the last 7 days. The daily values are weighted by the count of distinct users for the day. * excessiveWakeupRate28dUserWeighted (google.type.Decimal): Rolling average value of excessiveWakeupRate in the last 28 days. The daily values are weighted by the count of distinct users for the day. * distinctUsers (google.type.Decimal): Count of distinct users in the aggregation period that were used as normalization value for the excessiveWakeupRate metric. A user is counted in this metric if they app was doing any work on the device, i.e., not just active foreground usage but also background work. Care must be taken not to aggregate this count further, as it may result in users being counted multiple times. The value is rounded to the nearest multiple of 10, 100, 1,000 or 1,000,000, depending on the magnitude of the value. **Supported dimensions:** * apiLevel (string): the API level of Android that was running on the user''s device, e.g., 26. * versionCode (int64): version of the app that was running on the user''s device. * deviceModel (string): unique identifier of the user''s device model. The form of the identifier is ''deviceBrand/device'', where deviceBrand corresponds to Build.BRAND and device corresponds to Build.DEVICE, e.g., google/coral. * deviceBrand (string): unique identifier of the user''s device brand, e.g., google. * deviceType (string): the type (also known as form factor) of the user''s device, e.g., PHONE. * countryCode (string): the country or region of the user''s device based on their IP address, represented as a 2-letter ISO-3166 code (e.g. US for the United States). * deviceRamBucket (int64): RAM of the device, in MB, in buckets (3GB, 4GB, etc.). * deviceSocMake (string): Make of the device''s primary system-on-chip, e.g., Samsung. [Reference](https://developer.android.com/reference/android/os/Build#SOC_MANUFACTURER) * deviceSocModel (string): Model of the device''s primary system-on-chip, e.g., "Exynos 2100". [Reference](https://developer.android.com/reference/android/os/Build#SOC_MODEL) * deviceCpuMake (string): Make of the device''s CPU, e.g., Qualcomm. * deviceCpuModel (string): Model of the device''s CPU, e.g., "Kryo 240". * deviceGpuMake (string): Make of the device''s GPU, e.g., ARM. * deviceGpuModel (string): Model of the device''s GPU, e.g., Mali. * deviceGpuVersion (string): Version of the device''s GPU, e.g., T750. * deviceVulkanVersion (string): Vulkan version of the device, e.g., "4198400". * deviceGlEsVersion (string): OpenGL ES version of the device, e.g., "196610". * deviceScreenSize (string): Screen size of the device, e.g., NORMAL, LARGE. * deviceScreenDpi (string): Screen density of the device, e.g., mdpi, hdpi. **Required permissions**: to access this resource, the calling user needs the _View app information (read-only)_ permission for the app.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GooglePlayDeveloperReportingV1beta1ExcessiveWakeupRateMetricSet {
@@ -231,41 +52,6 @@ pub struct GooglePlayDeveloperReportingV1beta1ExcessiveWakeupRateMetricSet {
     /// Identifier. The resource name. Format: apps/{app}/excessiveWakeupRateMetricSet
     #[serde(default)]
     pub name: ::core::option::Option<String>,
-}
-
-/// Represents the latest available time that can be requested in a TimelineSpec. Different aggregation periods have different freshness. For example, DAILY aggregation may lag behind HOURLY in cases where such aggregation is computed only once at the end of the day.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GooglePlayDeveloperReportingV1beta1FreshnessInfo {
-    /// Information about data freshness for every supported aggregation period. This field has set semantics, keyed by the aggregation_period field.
-    #[serde(default)]
-    pub freshnesses: ::core::option::Option<
-        ::std::vec::Vec<GooglePlayDeveloperReportingV1beta1FreshnessInfoFreshness>,
-    >,
-}
-
-/// Information about data freshness for a single aggregation period.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GooglePlayDeveloperReportingV1beta1FreshnessInfoFreshness {
-    /// Aggregation period for which data is available. // TODO: enum values: ["AGGREGATION_PERIOD_UNSPECIFIED", "HOURLY", "DAILY", "FULL_RANGE"]
-    #[serde(default, rename = "aggregationPeriod")]
-    pub aggregation_period: ::core::option::Option<String>,
-    /// Latest end time for which data is available, for the aggregation period. The time is specified in the metric set''s default timezone. *Note:* time ranges in TimelineSpec are represented as start_time, end_time). For example, if the latest available timeline data point for a DAILY aggregation period is 2021-06-23 00:00:00 America/Los_Angeles, the value of this field would be 2021-06-24 00:00:00 America/Los_Angeles so it can be easily reused in [TimelineSpec.end_time.
-    #[serde(default, rename = "latestEndTime")]
-    pub latest_end_time: ::core::option::Option<GoogleTypeDateTime>,
-}
-
-/// Representation of an annotation message for an issue.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GooglePlayDeveloperReportingV1beta1IssueAnnotation {
-    /// Contains the contents of the annotation message.
-    #[serde(default)]
-    pub body: ::core::option::Option<String>,
-    /// Category that the annotation belongs to. An annotation will belong to a single category. Example categories: "Potential fix", "Insight".
-    #[serde(default)]
-    pub category: ::core::option::Option<String>,
-    /// Title for the annotation.
-    #[serde(default)]
-    pub title: ::core::option::Option<String>,
 }
 
 /// Response with a list of anomalies in datasets.
@@ -289,48 +75,6 @@ pub struct GooglePlayDeveloperReportingV1beta1LmkRateMetricSet {
     /// Identifier. The resource name. Format: apps/{app}/lmkRateMetricSet
     #[serde(default)]
     pub name: ::core::option::Option<String>,
-}
-
-/// Represents the value of a metric.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GooglePlayDeveloperReportingV1beta1MetricValue {
-    /// Actual value, represented as a decimal number.
-    #[serde(default, rename = "decimalValue")]
-    pub decimal_value: ::core::option::Option<GoogleTypeDecimal>,
-    /// Confidence interval of a value that is of type type.Decimal.
-    #[serde(default, rename = "decimalValueConfidenceInterval")]
-    pub decimal_value_confidence_interval:
-        ::core::option::Option<GooglePlayDeveloperReportingV1beta1DecimalConfidenceInterval>,
-    /// Name of the metric.
-    #[serde(default)]
-    pub metric: ::core::option::Option<String>,
-}
-
-/// Represents a row of dimensions and metrics.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GooglePlayDeveloperReportingV1beta1MetricsRow {
-    /// Optional. Granularity of the aggregation period of the row. // TODO: enum values: ["AGGREGATION_PERIOD_UNSPECIFIED", "HOURLY", "DAILY", "FULL_RANGE"]
-    #[serde(default, rename = "aggregationPeriod")]
-    pub aggregation_period: ::core::option::Option<String>,
-    /// Optional. Dimension columns in the row.
-    #[serde(default)]
-    pub dimensions:
-        ::core::option::Option<::std::vec::Vec<GooglePlayDeveloperReportingV1beta1DimensionValue>>,
-    /// Optional. Metric columns in the row.
-    #[serde(default)]
-    pub metrics:
-        ::core::option::Option<::std::vec::Vec<GooglePlayDeveloperReportingV1beta1MetricValue>>,
-    /// Optional. Starting date (and time for hourly aggregation) of the period covered by this row.
-    #[serde(default, rename = "startTime")]
-    pub start_time: ::core::option::Option<GoogleTypeDateTime>,
-}
-
-/// Representation of an OS version.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GooglePlayDeveloperReportingV1beta1OsVersion {
-    /// Optional. Numeric version code of the OS - API level
-    #[serde(default, rename = "apiLevel")]
-    pub api_level: ::core::option::Option<String>,
 }
 
 /// Request message for QueryAnrRateMetricSet.
@@ -634,17 +378,6 @@ pub struct GooglePlayDeveloperReportingV1beta1QueryStuckBackgroundWakelockRateMe
         ::core::option::Option<::std::vec::Vec<GooglePlayDeveloperReportingV1beta1MetricsRow>>,
 }
 
-/// A representation of an app release.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GooglePlayDeveloperReportingV1beta1Release {
-    /// Readable identifier of the release.
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-    /// The version codes contained in this release.
-    #[serde(default, rename = "versionCodes")]
-    pub version_codes: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
 /// A set of filtering options for releases and version codes specific to an app.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GooglePlayDeveloperReportingV1beta1ReleaseFilterOptions {
@@ -721,16 +454,42 @@ pub struct GooglePlayDeveloperReportingV1beta1StuckBackgroundWakelockRateMetricS
     pub name: ::core::option::Option<String>,
 }
 
-/// Specification of the time-related aggregation parameters of a timeline. Timelines have an aggregation period (DAILY, HOURLY, etc) which defines how events are aggregated in metrics. The points in a timeline are defined by the starting DateTime of the aggregation period. The duration is implicit in the AggregationPeriod. Hourly aggregation periods, when supported by a metric set, are always specified in UTC to avoid ambiguities around daylight saving time transitions, where an hour is skipped when adopting DST, and repeated when abandoning DST. For example, the timestamp ''2021-11-07 01:00:00 America/Los_Angeles'' is ambiguous since it can correspond to ''2021-11-07 08:00:00 UTC'' or ''2021-11-07 09:00:00 UTC''. Daily aggregation periods require specifying a timezone which will determine the precise instants of the start and the end of the day. Not all metric sets support all timezones, so make sure to check which timezones are supported by the metric set you want to query.
+/// Represents an anomaly detected in a dataset. Our anomaly detection systems flag datapoints in a time series that fall outside of and expected range derived from historical data. Although those expected ranges have an upper and a lower bound, we only flag anomalies when the data has become unexpectedly _worse_, which usually corresponds to the case where the metric crosses the upper bound. Multiple contiguous datapoints in a timeline outside of the expected range will be grouped into a single anomaly. Therefore, an anomaly represents effectively a segment of a metric''s timeline. The information stored in the timeline_spec, dimensions and metric can be used to fetch a full timeline with extended ragne for context. **Required permissions**: to access this resource, the calling user needs the _View app information (read-only)_ permission for the app.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GooglePlayDeveloperReportingV1beta1TimelineSpec {
-    /// Optional. Type of the aggregation period of the datapoints in the timeline. Intervals are identified by the date and time at the start of the interval. // TODO: enum values: ["AGGREGATION_PERIOD_UNSPECIFIED", "HOURLY", "DAILY", "FULL_RANGE"]
+pub struct GooglePlayDeveloperReportingV1beta1Anomaly {
+    /// Combination of dimensions in which the anomaly was detected.
+    #[serde(default)]
+    pub dimensions:
+        ::core::option::Option<::std::vec::Vec<GooglePlayDeveloperReportingV1beta1DimensionValue>>,
+    /// Metric where the anomaly was detected, together with the anomalous value.
+    #[serde(default)]
+    pub metric: ::core::option::Option<GooglePlayDeveloperReportingV1beta1MetricValue>,
+    /// Metric set resource where the anomaly was detected.
+    #[serde(default, rename = "metricSet")]
+    pub metric_set: ::core::option::Option<String>,
+    /// Identifier. Name of the anomaly. Format: apps/{app}/anomalies/{anomaly}
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Timeline specification that covers the anomaly period.
+    #[serde(default, rename = "timelineSpec")]
+    pub timeline_spec: ::core::option::Option<GooglePlayDeveloperReportingV1beta1TimelineSpec>,
+}
+
+/// Represents a row of dimensions and metrics.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GooglePlayDeveloperReportingV1beta1MetricsRow {
+    /// Optional. Granularity of the aggregation period of the row. // TODO: enum values: ["AGGREGATION_PERIOD_UNSPECIFIED", "HOURLY", "DAILY", "FULL_RANGE"]
     #[serde(default, rename = "aggregationPeriod")]
     pub aggregation_period: ::core::option::Option<String>,
-    /// Optional. Ending datapoint of the timeline (exclusive). See start_time for restrictions. The timezone of the end point must match the timezone of the start point.
-    #[serde(default, rename = "endTime")]
-    pub end_time: ::core::option::Option<GoogleTypeDateTime>,
-    /// Optional. Starting datapoint of the timeline (inclusive). Must be aligned to the aggregation period as follows: * HOURLY: the ''minutes'', ''seconds'' and ''nanos'' fields must be unset. The time_zone can be left unset (defaults to UTC) or set explicitly to "UTC". Setting any other utc_offset or timezone id will result in a validation error. * DAILY: the ''hours'', ''minutes'', ''seconds'' and ''nanos'' fields must be unset. Different metric sets support different timezones. It can be left unset to use the default timezone specified by the metric set. The timezone of the end point must match the timezone of the start point.
+    /// Optional. Dimension columns in the row.
+    #[serde(default)]
+    pub dimensions:
+        ::core::option::Option<::std::vec::Vec<GooglePlayDeveloperReportingV1beta1DimensionValue>>,
+    /// Optional. Metric columns in the row.
+    #[serde(default)]
+    pub metrics:
+        ::core::option::Option<::std::vec::Vec<GooglePlayDeveloperReportingV1beta1MetricValue>>,
+    /// Optional. Starting date (and time for hourly aggregation) of the period covered by this row.
     #[serde(default, rename = "startTime")]
     pub start_time: ::core::option::Option<GoogleTypeDateTime>,
 }
@@ -748,6 +507,247 @@ pub struct GooglePlayDeveloperReportingV1beta1Track {
     /// The type of the track.
     #[serde(default, rename = "type")]
     pub type_: ::core::option::Option<String>,
+}
+
+/// A representation of an app in the Play Store.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GooglePlayDeveloperReportingV1beta1App {
+    /// Title of the app. This is the latest title as set in the Play Console and may not yet have been reviewed, so might not match the Play Store. Example: Google Maps.
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+    /// Identifier. The resource name. Format: apps/{app}
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Package name of the app. Example: com.example.app123.
+    #[serde(default, rename = "packageName")]
+    pub package_name: ::core::option::Option<String>,
+}
+
+/// A group of related ErrorReports received for an app. Similar error reports are grouped together into issues with a likely identical root cause. **Please note:** this resource is currently in Alpha. There could be changes to the issue grouping that would result in similar but more recent error reports being assigned to different issues. This could also cause some issues disappearing entirely and being replaced by new ones. **Required permissions**: to access this resource, the calling user needs the _View app information (read-only)_ permission for the app.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GooglePlayDeveloperReportingV1beta1ErrorIssue {
+    /// List of annotations for an issue. Annotations provide additional information that may help in diagnosing and fixing the issue.
+    #[serde(default)]
+    pub annotations:
+        ::core::option::Option<::std::vec::Vec<GooglePlayDeveloperReportingV1beta1IssueAnnotation>>,
+    /// Cause of the issue. Depending on the type this can be either: * APPLICATION_NOT_RESPONDING: the type of ANR that occurred, e.g., ''Input dispatching timed out''. * CRASH: for Java unhandled exception errors, the type of the innermost exception that was thrown, e.g., IllegalArgumentException. For signals in native code, the signal that was raised, e.g. SIGSEGV.
+    #[serde(default)]
+    pub cause: ::core::option::Option<String>,
+    /// An estimate of the number of unique users who have experienced this issue (only considering occurrences matching the filters and within the requested time period).
+    #[serde(default, rename = "distinctUsers")]
+    pub distinct_users: ::core::option::Option<String>,
+    /// An estimated percentage of users affected by any issue that are affected by this issue (only considering occurrences matching the filters and within the requested time period).
+    #[serde(default, rename = "distinctUsersPercent")]
+    pub distinct_users_percent: ::core::option::Option<GoogleTypeDecimal>,
+    /// The total number of error reports in this issue (only considering occurrences matching the filters and within the requested time period).
+    #[serde(default, rename = "errorReportCount")]
+    pub error_report_count: ::core::option::Option<String>,
+    /// The earliest (inclusive) app version appearing in this ErrorIssue in the requested time period (only considering occurrences matching the filters).
+    #[serde(default, rename = "firstAppVersion")]
+    pub first_app_version: ::core::option::Option<GooglePlayDeveloperReportingV1beta1AppVersion>,
+    /// The smallest OS version in which this error cluster has occurred in the requested time period (only considering occurrences matching the filters and within the requested time period).
+    #[serde(default, rename = "firstOsVersion")]
+    pub first_os_version: ::core::option::Option<GooglePlayDeveloperReportingV1beta1OsVersion>,
+    /// Link to the issue in Android vitals in the Play Console.
+    #[serde(default, rename = "issueUri")]
+    pub issue_uri: ::core::option::Option<String>,
+    /// The latest (inclusive) app version appearing in this ErrorIssue in the requested time period (only considering occurrences matching the filters).
+    #[serde(default, rename = "lastAppVersion")]
+    pub last_app_version: ::core::option::Option<GooglePlayDeveloperReportingV1beta1AppVersion>,
+    /// Start of the hour during which the last error report in this issue occurred.
+    #[serde(default, rename = "lastErrorReportTime")]
+    pub last_error_report_time: ::core::option::Option<String>,
+    /// The latest OS version in which this error cluster has occurred in the requested time period (only considering occurrences matching the filters and within the requested time period).
+    #[serde(default, rename = "lastOsVersion")]
+    pub last_os_version: ::core::option::Option<GooglePlayDeveloperReportingV1beta1OsVersion>,
+    /// Location where the issue happened. Depending on the type this can be either: * APPLICATION_NOT_RESPONDING: the name of the activity or service that stopped responding. * CRASH: the likely method name that caused the error.
+    #[serde(default)]
+    pub location: ::core::option::Option<String>,
+    /// Identifier. The resource name of the issue. Format: apps/{app}/{issue}
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Output only. Sample error reports which belong to this ErrorIssue. *Note:* currently a maximum of 1 per ErrorIssue is supported. Format: "apps/{app}/{report}"
+    #[serde(default, rename = "sampleErrorReports")]
+    pub sample_error_reports: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Type of the errors grouped in this issue. // TODO: enum values: ["ERROR_TYPE_UNSPECIFIED", "APPLICATION_NOT_RESPONDING", "CRASH", "NON_FATAL"]
+    #[serde(default, rename = "type")]
+    pub type_: ::core::option::Option<String>,
+}
+
+/// An error report received for an app. There reports are produced by the Android platform code when a (potentially fatal) error condition is detected. Identical reports from many users will be deduplicated and coalesced into a single ErrorReport. **Required permissions**: to access this resource, the calling user needs the _View app information (read-only)_ permission for the app.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GooglePlayDeveloperReportingV1beta1ErrorReport {
+    /// The app version on which an event in this error report occurred on.
+    #[serde(default, rename = "appVersion")]
+    pub app_version: ::core::option::Option<GooglePlayDeveloperReportingV1beta1AppVersion>,
+    /// A device model on which an event in this error report occurred on.
+    #[serde(default, rename = "deviceModel")]
+    pub device_model: ::core::option::Option<GooglePlayDeveloperReportingV1beta1DeviceModelSummary>,
+    /// Start of the hour during which the latest event in this error report occurred.
+    #[serde(default, rename = "eventTime")]
+    pub event_time: ::core::option::Option<String>,
+    /// The issue this report was associated with. **Please note:** this resource is currently in Alpha. There could be changes to the issue grouping that would result in similar but more recent error reports being assigned to a different issue.
+    #[serde(default)]
+    pub issue: ::core::option::Option<String>,
+    /// Identifier. The resource name of the report. Format: apps/{app}/{report}
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// The OS version on which an event in this error report occurred on.
+    #[serde(default, rename = "osVersion")]
+    pub os_version: ::core::option::Option<GooglePlayDeveloperReportingV1beta1OsVersion>,
+    /// Textual representation of the error report. These textual reports are produced by the platform. The reports are then sanitized and filtered to remove any potentially sensitive information. Although their format is fairly stable, they are not entirely meant for machine consumption and we cannot guarantee that there won''t be subtle changes to the formatting that may break systems trying to parse information out of the reports.
+    #[serde(default, rename = "reportText")]
+    pub report_text: ::core::option::Option<String>,
+    /// Type of the error for which this report was generated. // TODO: enum values: ["ERROR_TYPE_UNSPECIFIED", "APPLICATION_NOT_RESPONDING", "CRASH", "NON_FATAL"]
+    #[serde(default, rename = "type")]
+    pub type_: ::core::option::Option<String>,
+    /// Version control system information from BUNDLE-METADATA/version-control-info.textproto or META-INF/version-control-info.textproto of the app bundle or APK, respectively.
+    #[serde(default, rename = "vcsInformation")]
+    pub vcs_information: ::core::option::Option<String>,
+}
+
+/// Represents the latest available time that can be requested in a TimelineSpec. Different aggregation periods have different freshness. For example, DAILY aggregation may lag behind HOURLY in cases where such aggregation is computed only once at the end of the day.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GooglePlayDeveloperReportingV1beta1FreshnessInfo {
+    /// Information about data freshness for every supported aggregation period. This field has set semantics, keyed by the aggregation_period field.
+    #[serde(default)]
+    pub freshnesses: ::core::option::Option<
+        ::std::vec::Vec<GooglePlayDeveloperReportingV1beta1FreshnessInfoFreshness>,
+    >,
+}
+
+/// Specification of the time-related aggregation parameters of a timeline. Timelines have an aggregation period (DAILY, HOURLY, etc) which defines how events are aggregated in metrics. The points in a timeline are defined by the starting DateTime of the aggregation period. The duration is implicit in the AggregationPeriod. Hourly aggregation periods, when supported by a metric set, are always specified in UTC to avoid ambiguities around daylight saving time transitions, where an hour is skipped when adopting DST, and repeated when abandoning DST. For example, the timestamp ''2021-11-07 01:00:00 America/Los_Angeles'' is ambiguous since it can correspond to ''2021-11-07 08:00:00 UTC'' or ''2021-11-07 09:00:00 UTC''. Daily aggregation periods require specifying a timezone which will determine the precise instants of the start and the end of the day. Not all metric sets support all timezones, so make sure to check which timezones are supported by the metric set you want to query.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GooglePlayDeveloperReportingV1beta1TimelineSpec {
+    /// Optional. Type of the aggregation period of the datapoints in the timeline. Intervals are identified by the date and time at the start of the interval. // TODO: enum values: ["AGGREGATION_PERIOD_UNSPECIFIED", "HOURLY", "DAILY", "FULL_RANGE"]
+    #[serde(default, rename = "aggregationPeriod")]
+    pub aggregation_period: ::core::option::Option<String>,
+    /// Optional. Ending datapoint of the timeline (exclusive). See start_time for restrictions. The timezone of the end point must match the timezone of the start point.
+    #[serde(default, rename = "endTime")]
+    pub end_time: ::core::option::Option<GoogleTypeDateTime>,
+    /// Optional. Starting datapoint of the timeline (inclusive). Must be aligned to the aggregation period as follows: * HOURLY: the ''minutes'', ''seconds'' and ''nanos'' fields must be unset. The time_zone can be left unset (defaults to UTC) or set explicitly to "UTC". Setting any other utc_offset or timezone id will result in a validation error. * DAILY: the ''hours'', ''minutes'', ''seconds'' and ''nanos'' fields must be unset. Different metric sets support different timezones. It can be left unset to use the default timezone specified by the metric set. The timezone of the end point must match the timezone of the start point.
+    #[serde(default, rename = "startTime")]
+    pub start_time: ::core::option::Option<GoogleTypeDateTime>,
+}
+
+/// Represents the value of a single dimension.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GooglePlayDeveloperReportingV1beta1DimensionValue {
+    /// Name of the dimension.
+    #[serde(default)]
+    pub dimension: ::core::option::Option<String>,
+    /// Actual value, represented as an int64.
+    #[serde(default, rename = "int64Value")]
+    pub int64_value: ::core::option::Option<String>,
+    /// Actual value, represented as a string.
+    #[serde(default, rename = "stringValue")]
+    pub string_value: ::core::option::Option<String>,
+    /// Optional. Human-friendly label for the value, always in English. For example, ''Spain'' for the ''ES'' country code. Whereas the dimension value is stable, this value label is subject to change. Do not assume that the (value, value_label) relationship is stable. For example, the ISO country code ''MK'' changed its name recently to ''North Macedonia''.
+    #[serde(default, rename = "valueLabel")]
+    pub value_label: ::core::option::Option<String>,
+}
+
+/// Represents the value of a metric.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GooglePlayDeveloperReportingV1beta1MetricValue {
+    /// Actual value, represented as a decimal number.
+    #[serde(default, rename = "decimalValue")]
+    pub decimal_value: ::core::option::Option<GoogleTypeDecimal>,
+    /// Confidence interval of a value that is of type type.Decimal.
+    #[serde(default, rename = "decimalValueConfidenceInterval")]
+    pub decimal_value_confidence_interval:
+        ::core::option::Option<GooglePlayDeveloperReportingV1beta1DecimalConfidenceInterval>,
+    /// Name of the metric.
+    #[serde(default)]
+    pub metric: ::core::option::Option<String>,
+}
+
+/// A representation of an app release.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GooglePlayDeveloperReportingV1beta1Release {
+    /// Readable identifier of the release.
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+    /// The version codes contained in this release.
+    #[serde(default, rename = "versionCodes")]
+    pub version_codes: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// Representation of an annotation message for an issue.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GooglePlayDeveloperReportingV1beta1IssueAnnotation {
+    /// Contains the contents of the annotation message.
+    #[serde(default)]
+    pub body: ::core::option::Option<String>,
+    /// Category that the annotation belongs to. An annotation will belong to a single category. Example categories: "Potential fix", "Insight".
+    #[serde(default)]
+    pub category: ::core::option::Option<String>,
+    /// Title for the annotation.
+    #[serde(default)]
+    pub title: ::core::option::Option<String>,
+}
+
+/// Representations of an app version.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GooglePlayDeveloperReportingV1beta1AppVersion {
+    /// Optional. Numeric version code of the app version (set by the app''s developer).
+    #[serde(default, rename = "versionCode")]
+    pub version_code: ::core::option::Option<String>,
+}
+
+/// Summary of a device
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GooglePlayDeveloperReportingV1beta1DeviceModelSummary {
+    /// Identifier of the device.
+    #[serde(default, rename = "deviceId")]
+    pub device_id: ::core::option::Option<GooglePlayDeveloperReportingV1beta1DeviceId>,
+    /// Link to the device in Play Device Catalog.
+    #[serde(default, rename = "deviceUri")]
+    pub device_uri: ::core::option::Option<String>,
+    /// Display name of the device.
+    #[serde(default, rename = "marketingName")]
+    pub marketing_name: ::core::option::Option<String>,
+}
+
+/// Representation of an OS version.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GooglePlayDeveloperReportingV1beta1OsVersion {
+    /// Optional. Numeric version code of the OS - API level
+    #[serde(default, rename = "apiLevel")]
+    pub api_level: ::core::option::Option<String>,
+}
+
+/// Information about data freshness for a single aggregation period.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GooglePlayDeveloperReportingV1beta1FreshnessInfoFreshness {
+    /// Aggregation period for which data is available. // TODO: enum values: ["AGGREGATION_PERIOD_UNSPECIFIED", "HOURLY", "DAILY", "FULL_RANGE"]
+    #[serde(default, rename = "aggregationPeriod")]
+    pub aggregation_period: ::core::option::Option<String>,
+    /// Latest end time for which data is available, for the aggregation period. The time is specified in the metric set''s default timezone. *Note:* time ranges in TimelineSpec are represented as start_time, end_time). For example, if the latest available timeline data point for a DAILY aggregation period is 2021-06-23 00:00:00 America/Los_Angeles, the value of this field would be 2021-06-24 00:00:00 America/Los_Angeles so it can be easily reused in [TimelineSpec.end_time.
+    #[serde(default, rename = "latestEndTime")]
+    pub latest_end_time: ::core::option::Option<GoogleTypeDateTime>,
+}
+
+/// Represents the confidence interval of a metric.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GooglePlayDeveloperReportingV1beta1DecimalConfidenceInterval {
+    /// The confidence interval''s lower bound.
+    #[serde(default, rename = "lowerBound")]
+    pub lower_bound: ::core::option::Option<GoogleTypeDecimal>,
+    /// The confidence interval''s upper bound.
+    #[serde(default, rename = "upperBound")]
+    pub upper_bound: ::core::option::Option<GoogleTypeDecimal>,
+}
+
+/// Identifier of a device.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GooglePlayDeveloperReportingV1beta1DeviceId {
+    /// Value of Build.BRAND.
+    #[serde(default, rename = "buildBrand")]
+    pub build_brand: ::core::option::Option<String>,
+    /// Value of Build.DEVICE.
+    #[serde(default, rename = "buildDevice")]
+    pub build_device: ::core::option::Option<String>,
 }
 
 /// Represents civil time (or occasionally physical time). This type can represent a civil time in one of a few possible ways: * When utc_offset is set and time_zone is unset: a civil time on a calendar day with a particular offset from UTC. * When time_zone is set and utc_offset is unset: a civil time on a calendar day in a particular time zone. * When neither time_zone nor utc_offset is set: a civil time on a calendar day in local time. The date is relative to the Proleptic Gregorian Calendar. If year, month, or day are 0, the DateTime is considered not to have a specific year, month, or day respectively. This type may also be used to represent a physical time if all the date and time fields are set and either case of the time_offset oneof is set. Consider using Timestamp message for physical time instead. If your use case also would like to store the user''s timezone, that can be done in another field. This type is more flexible than some applications may want. Make sure to document and validate your application''s limitations.

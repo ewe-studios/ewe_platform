@@ -18,73 +18,6 @@ pub struct GoogleCloudChannelV1ActivateEntitlementRequest {
     pub request_id: ::core::option::Option<String>,
 }
 
-/// Information needed to create an Admin User for Google Workspace.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudChannelV1AdminUser {
-    /// Primary email of the admin user.
-    #[serde(default)]
-    pub email: ::core::option::Option<String>,
-    /// Family name of the admin user.
-    #[serde(default, rename = "familyName")]
-    pub family_name: ::core::option::Option<String>,
-    /// Given name of the admin user.
-    #[serde(default, rename = "givenName")]
-    pub given_name: ::core::option::Option<String>,
-}
-
-/// Association links that an entitlement has to other entitlements.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudChannelV1AssociationInfo {
-    /// The name of the base entitlement, for which this entitlement is an add-on.
-    #[serde(default, rename = "baseEntitlement")]
-    pub base_entitlement: ::core::option::Option<String>,
-}
-
-/// Represents the Billable SKU information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudChannelV1BillableSku {
-    /// Resource name of Service which contains Repricing SKU. Format: services/{service}. Example: "services/B7D9-FDCB-15D8".
-    #[serde(default)]
-    pub service: ::core::option::Option<String>,
-    /// Unique human readable name for the Service.
-    #[serde(default, rename = "serviceDisplayName")]
-    pub service_display_name: ::core::option::Option<String>,
-    /// Resource name of Billable SKU. Format: billableSkus/{sku}. Example: billableSkus/6E1B-6634-470F".
-    #[serde(default)]
-    pub sku: ::core::option::Option<String>,
-    /// Unique human readable name for the SKU.
-    #[serde(default, rename = "skuDisplayName")]
-    pub sku_display_name: ::core::option::Option<String>,
-}
-
-/// Represents a billing account.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudChannelV1BillingAccount {
-    /// Output only. The time when this billing account was created.
-    #[serde(default, rename = "createTime")]
-    pub create_time: ::core::option::Option<String>,
-    /// Output only. The 3-letter currency code defined in ISO 4217.
-    #[serde(default, rename = "currencyCode")]
-    pub currency_code: ::core::option::Option<String>,
-    /// Display name of the billing account.
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-    /// Output only. Resource name of the billing account. Format: accounts/{account_id}/billingAccounts/{billing_account_id}.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Output only. The CLDR region code.
-    #[serde(default, rename = "regionCode")]
-    pub region_code: ::core::option::Option<String>,
-}
-
-/// Represents a billing account that can be used to make a purchase.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudChannelV1BillingAccountPurchaseInfo {
-    /// The billing account resource.
-    #[serde(default, rename = "billingAccount")]
-    pub billing_account: ::core::option::Option<GoogleCloudChannelV1BillingAccount>,
-}
-
 /// Request message for CloudChannelService.CancelEntitlement.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudChannelV1CancelEntitlementRequest {
@@ -141,50 +74,6 @@ pub struct GoogleCloudChannelV1ChangeRenewalSettingsRequest {
     pub request_id: ::core::option::Option<String>,
 }
 
-/// Entity representing a link between distributors and their indirect resellers in an n-tier resale channel.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudChannelV1ChannelPartnerLink {
-    /// Output only. Cloud Identity info of the channel partner (IR).
-    #[serde(default, rename = "channelPartnerCloudIdentityInfo")]
-    pub channel_partner_cloud_identity_info:
-        ::core::option::Option<GoogleCloudChannelV1CloudIdentityInfo>,
-    /// Output only. Timestamp of when the channel partner link is created.
-    #[serde(default, rename = "createTime")]
-    pub create_time: ::core::option::Option<String>,
-    /// Output only. URI of the web page where partner accepts the link invitation.
-    #[serde(default, rename = "inviteLinkUri")]
-    pub invite_link_uri: ::core::option::Option<String>,
-    /// Required. State of the channel partner link. // TODO: enum values: ["CHANNEL_PARTNER_LINK_STATE_UNSPECIFIED", "INVITED", "ACTIVE", "REVOKED", "SUSPENDED"]
-    #[serde(default, rename = "linkState")]
-    pub link_state: ::core::option::Option<String>,
-    /// Output only. Resource name for the channel partner link, in the format accounts/{account_id}/channelPartnerLinks/{id}.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Output only. Public identifier that a customer must use to generate a transfer token to move to this distributor-reseller combination.
-    #[serde(default, rename = "publicId")]
-    pub public_id: ::core::option::Option<String>,
-    /// Required. Cloud Identity ID of the linked reseller.
-    #[serde(default, rename = "resellerCloudIdentityId")]
-    pub reseller_cloud_identity_id: ::core::option::Option<String>,
-    /// Output only. Timestamp of when the channel partner link is updated.
-    #[serde(default, rename = "updateTime")]
-    pub update_time: ::core::option::Option<String>,
-}
-
-/// Configuration for how a distributor will rebill a channel partner (also known as a distributor-authorized reseller).
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudChannelV1ChannelPartnerRepricingConfig {
-    /// Output only. Resource name of the ChannelPartnerRepricingConfig. Format: accounts/{account_id}/channelPartnerLinks/{channel_partner_id}/channelPartnerRepricingConfigs/{id}.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Required. The configuration for bill modifications made by a reseller before sending it to ChannelPartner.
-    #[serde(default, rename = "repricingConfig")]
-    pub repricing_config: ::core::option::Option<GoogleCloudChannelV1RepricingConfig>,
-    /// Output only. Timestamp of an update to the repricing rule. If update_time is after RepricingConfig.effective_invoice_month then it indicates this was set mid-month.
-    #[serde(default, rename = "updateTime")]
-    pub update_time: ::core::option::Option<String>,
-}
-
 /// Request message for CloudChannelService.CheckCloudIdentityAccountsExist.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudChannelV1CheckCloudIdentityAccountsExistRequest {
@@ -205,131 +94,6 @@ pub struct GoogleCloudChannelV1CheckCloudIdentityAccountsExistResponse {
         ::core::option::Option<::std::vec::Vec<GoogleCloudChannelV1CloudIdentityCustomerAccount>>,
 }
 
-/// Entity representing a Cloud Identity account that may be associated with a Channel Services API partner.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudChannelV1CloudIdentityCustomerAccount {
-    /// If existing = true, and is 2-tier customer, the channel partner of the customer.
-    #[serde(default, rename = "channelPartnerCloudIdentityId")]
-    pub channel_partner_cloud_identity_id: ::core::option::Option<String>,
-    /// If existing = true, the Cloud Identity ID of the customer.
-    #[serde(default, rename = "customerCloudIdentityId")]
-    pub customer_cloud_identity_id: ::core::option::Option<String>,
-    /// If owned = true, the name of the customer that owns the Cloud Identity account. Customer_name uses the format: accounts/{account_id}/customers/{customer_id}
-    #[serde(default, rename = "customerName")]
-    pub customer_name: ::core::option::Option<String>,
-    /// If existing = true, the type of the customer. // TODO: enum values: ["CUSTOMER_TYPE_UNSPECIFIED", "DOMAIN", "TEAM"]
-    #[serde(default, rename = "customerType")]
-    pub customer_type: ::core::option::Option<String>,
-    /// Returns true if a Cloud Identity account exists for a specific domain.
-    #[serde(default)]
-    pub existing: ::core::option::Option<bool>,
-    /// Returns true if the Cloud Identity account is associated with a customer of the Channel Services partner (with active subscriptions or purchase consents).
-    #[serde(default)]
-    pub owned: ::core::option::Option<bool>,
-}
-
-/// Cloud Identity information for the Cloud Channel Customer.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudChannelV1CloudIdentityInfo {
-    /// Output only. URI of Customer''s Admin console dashboard.
-    #[serde(default, rename = "adminConsoleUri")]
-    pub admin_console_uri: ::core::option::Option<String>,
-    /// The alternate email.
-    #[serde(default, rename = "alternateEmail")]
-    pub alternate_email: ::core::option::Option<String>,
-    /// CustomerType indicates verification type needed for using services. // TODO: enum values: ["CUSTOMER_TYPE_UNSPECIFIED", "DOMAIN", "TEAM"]
-    #[serde(default, rename = "customerType")]
-    pub customer_type: ::core::option::Option<String>,
-    /// Edu information about the customer.
-    #[serde(default, rename = "eduData")]
-    pub edu_data: ::core::option::Option<GoogleCloudChannelV1EduData>,
-    /// Output only. Whether the domain is verified. This field is not returned for a Customer''s cloud_identity_info resource. Partners can use the domains.get() method of the Workspace SDK''s Directory API, or listen to the PRIMARY_DOMAIN_VERIFIED Pub/Sub event in to track domain verification of their resolve Workspace customers.
-    #[serde(default, rename = "isDomainVerified")]
-    pub is_domain_verified: ::core::option::Option<bool>,
-    /// Language code.
-    #[serde(default, rename = "languageCode")]
-    pub language_code: ::core::option::Option<String>,
-    /// Phone number associated with the Cloud Identity.
-    #[serde(default, rename = "phoneNumber")]
-    pub phone_number: ::core::option::Option<String>,
-    /// Output only. The primary domain name.
-    #[serde(default, rename = "primaryDomain")]
-    pub primary_domain: ::core::option::Option<String>,
-}
-
-/// The definition of a report column. Specifies the data properties in the corresponding position of the report rows.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudChannelV1Column {
-    /// The unique name of the column (for example, customer_domain, channel_partner, customer_cost). You can use column IDs in RunReportJobRequest.filter. To see all reports and their columns, call CloudChannelReportsService.ListReports.
-    #[serde(default, rename = "columnId")]
-    pub column_id: ::core::option::Option<String>,
-    /// The type of the values for this column. // TODO: enum values: ["DATA_TYPE_UNSPECIFIED", "STRING", "INT", "DECIMAL", "MONEY", "DATE", "DATE_TIME"]
-    #[serde(default, rename = "dataType")]
-    pub data_type: ::core::option::Option<String>,
-    /// The column''s display name.
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-}
-
-/// Commitment settings for commitment-based offers.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudChannelV1CommitmentSettings {
-    /// Output only. Commitment end timestamp.
-    #[serde(default, rename = "endTime")]
-    pub end_time: ::core::option::Option<String>,
-    /// Optional. Renewal settings applicable for a commitment-based Offer.
-    #[serde(default, rename = "renewalSettings")]
-    pub renewal_settings: ::core::option::Option<GoogleCloudChannelV1RenewalSettings>,
-    /// Output only. Commitment start timestamp.
-    #[serde(default, rename = "startTime")]
-    pub start_time: ::core::option::Option<String>,
-}
-
-/// Specifies the override to conditionally apply.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudChannelV1ConditionalOverride {
-    /// Required. Information about the applied override''s adjustment.
-    #[serde(default)]
-    pub adjustment: ::core::option::Option<GoogleCloudChannelV1RepricingAdjustment>,
-    /// Required. The RebillingBasis to use for the applied override. Shows the relative cost based on your repricing costs. // TODO: enum values: ["REBILLING_BASIS_UNSPECIFIED", "COST_AT_LIST", "DIRECT_CUSTOMER_COST"]
-    #[serde(default, rename = "rebillingBasis")]
-    pub rebilling_basis: ::core::option::Option<String>,
-    /// Required. Specifies the condition which, if met, will apply the override.
-    #[serde(default, rename = "repricingCondition")]
-    pub repricing_condition: ::core::option::Option<GoogleCloudChannelV1RepricingCondition>,
-}
-
-/// Represents the constraints for buying the Offer.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudChannelV1Constraints {
-    /// Represents constraints required to purchase the Offer for a customer.
-    #[serde(default, rename = "customerConstraints")]
-    pub customer_constraints: ::core::option::Option<GoogleCloudChannelV1CustomerConstraints>,
-}
-
-/// Contact information for a customer account.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudChannelV1ContactInfo {
-    /// Output only. The customer account contact''s display name, formatted as a combination of the customer''s first and last name.
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-    /// The customer account''s contact email. Required for entitlements that create admin.google.com accounts, and serves as the customer''s username for those accounts. Use this email to invite Team customers.
-    #[serde(default)]
-    pub email: ::core::option::Option<String>,
-    /// The customer account contact''s first name. Optional for Team customers.
-    #[serde(default, rename = "firstName")]
-    pub first_name: ::core::option::Option<String>,
-    /// The customer account contact''s last name. Optional for Team customers.
-    #[serde(default, rename = "lastName")]
-    pub last_name: ::core::option::Option<String>,
-    /// The customer account''s contact phone number.
-    #[serde(default)]
-    pub phone: ::core::option::Option<String>,
-    /// Optional. The customer account contact''s job title.
-    #[serde(default)]
-    pub title: ::core::option::Option<String>,
-}
-
 /// Request message for CloudChannelService.CreateEntitlement
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudChannelV1CreateEntitlementRequest {
@@ -339,236 +103,6 @@ pub struct GoogleCloudChannelV1CreateEntitlementRequest {
     /// Optional. You can specify an optional unique request ID, and if you need to retry your request, the server will know to ignore the request if it''s complete. For example, you make an initial request and the request times out. If you make the request again with the same request ID, the server can check if it received the original operation with the same request ID. If it did, it will ignore the second request. The request ID must be a valid [UUID](https://tools.ietf.org/html/rfc4122) with the exception that zero UUID is not supported (00000000-0000-0000-0000-000000000000).
     #[serde(default, rename = "requestId")]
     pub request_id: ::core::option::Option<String>,
-}
-
-/// Entity representing a customer of a reseller or distributor.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudChannelV1Customer {
-    /// Secondary contact email. You need to provide an alternate email to create different domains if a primary contact email already exists. Users will receive a notification with credentials when you create an admin.google.com account. Secondary emails are also recovery email addresses. Alternate emails are optional when you create Team customers.
-    #[serde(default, rename = "alternateEmail")]
-    pub alternate_email: ::core::option::Option<String>,
-    /// Cloud Identity ID of the customer''s channel partner. Populated only if a channel partner exists for this customer.
-    #[serde(default, rename = "channelPartnerId")]
-    pub channel_partner_id: ::core::option::Option<String>,
-    /// Output only. The customer''s Cloud Identity ID if the customer has a Cloud Identity resource.
-    #[serde(default, rename = "cloudIdentityId")]
-    pub cloud_identity_id: ::core::option::Option<String>,
-    /// Output only. Cloud Identity information for the customer. Populated only if a Cloud Identity account exists for this customer.
-    #[serde(default, rename = "cloudIdentityInfo")]
-    pub cloud_identity_info: ::core::option::Option<GoogleCloudChannelV1CloudIdentityInfo>,
-    /// Optional. External CRM ID for the customer. Populated only if a CRM ID exists for this customer.
-    #[serde(default, rename = "correlationId")]
-    pub correlation_id: ::core::option::Option<String>,
-    /// Output only. Time when the customer was created.
-    #[serde(default, rename = "createTime")]
-    pub create_time: ::core::option::Option<String>,
-    /// Optional. Indicate if a customer is attesting about the correctness of provided information. Only required if creating a GCP Entitlement. // TODO: enum values: ["CUSTOMER_ATTESTATION_STATE_UNSPECIFIED", "EXEMPT", "NON_EXEMPT_AND_INFO_VERIFIED"]
-    #[serde(default, rename = "customerAttestationState")]
-    pub customer_attestation_state: ::core::option::Option<String>,
-    /// Required. The customer''s primary domain. Must match the primary contact email''s domain.
-    #[serde(default)]
-    pub domain: ::core::option::Option<String>,
-    /// Optional. The BCP-47 language code, such as "en-US" or "sr-Latn". For more information, see https://www.unicode.org/reports/tr35/#Unicode_locale_identifier.
-    #[serde(default, rename = "languageCode")]
-    pub language_code: ::core::option::Option<String>,
-    /// Output only. Resource name of the customer. Format: accounts/{account_id}/customers/{customer_id}
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Required. Name of the organization that the customer entity represents.
-    #[serde(default, rename = "orgDisplayName")]
-    pub org_display_name: ::core::option::Option<String>,
-    /// Required. The organization address for the customer. To enforce US laws and embargoes, we require a region, postal code, and address lines. You must provide valid addresses for every customer. To set the customer''s language, use the Customer-level language code.
-    #[serde(default, rename = "orgPostalAddress")]
-    pub org_postal_address: ::core::option::Option<GoogleTypePostalAddress>,
-    /// Primary contact info.
-    #[serde(default, rename = "primaryContactInfo")]
-    pub primary_contact_info: ::core::option::Option<GoogleCloudChannelV1ContactInfo>,
-    /// Output only. Time when the customer was updated.
-    #[serde(default, rename = "updateTime")]
-    pub update_time: ::core::option::Option<String>,
-}
-
-/// Represents constraints required to purchase the Offer for a customer.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudChannelV1CustomerConstraints {
-    /// Allowed Customer Type.
-    #[serde(default, rename = "allowedCustomerTypes")]
-    pub allowed_customer_types: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Allowed geographical regions of the customer.
-    #[serde(default, rename = "allowedRegions")]
-    pub allowed_regions: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Allowed Promotional Order Type. Present for Promotional offers.
-    #[serde(default, rename = "promotionalOrderTypes")]
-    pub promotional_order_types: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// Represents Pub/Sub message content describing customer update.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudChannelV1CustomerEvent {
-    /// Resource name of the customer. Format: accounts/{account_id}/customers/{customer_id}
-    #[serde(default)]
-    pub customer: ::core::option::Option<String>,
-    /// Type of event which happened for the customer. // TODO: enum values: ["TYPE_UNSPECIFIED", "PRIMARY_DOMAIN_CHANGED", "PRIMARY_DOMAIN_VERIFIED"]
-    #[serde(default, rename = "eventType")]
-    pub event_type: ::core::option::Option<String>,
-}
-
-/// Configuration for how a reseller will reprice a Customer.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudChannelV1CustomerRepricingConfig {
-    /// Output only. Resource name of the CustomerRepricingConfig. Format: accounts/{account_id}/customers/{customer_id}/customerRepricingConfigs/{id}.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Required. The configuration for bill modifications made by a reseller before sending it to customers.
-    #[serde(default, rename = "repricingConfig")]
-    pub repricing_config: ::core::option::Option<GoogleCloudChannelV1RepricingConfig>,
-    /// Output only. Timestamp of an update to the repricing rule. If update_time is after RepricingConfig.effective_invoice_month then it indicates this was set mid-month.
-    #[serde(default, rename = "updateTime")]
-    pub update_time: ::core::option::Option<String>,
-}
-
-/// A representation of usage or invoice date ranges.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudChannelV1DateRange {
-    /// The latest invoice date (inclusive). If this value is not the last day of a month, this will move it forward to the last day of the given month.
-    #[serde(default, rename = "invoiceEndDate")]
-    pub invoice_end_date: ::core::option::Option<GoogleTypeDate>,
-    /// The earliest invoice date (inclusive). If this value is not the first day of a month, this will move it back to the first day of the given month.
-    #[serde(default, rename = "invoiceStartDate")]
-    pub invoice_start_date: ::core::option::Option<GoogleTypeDate>,
-    /// The latest usage date time (exclusive). If you use time groupings (daily, weekly, etc), each group uses midnight to midnight (Pacific time). The usage end date is rounded down to include all usage from the specified date. We recommend that clients pass usage_start_date_time in Pacific time.
-    #[serde(default, rename = "usageEndDateTime")]
-    pub usage_end_date_time: ::core::option::Option<GoogleTypeDateTime>,
-    /// The earliest usage date time (inclusive). If you use time groupings (daily, weekly, etc), each group uses midnight to midnight (Pacific time). The usage start date is rounded down to include all usage from the specified date. We recommend that clients pass usage_start_date_time in Pacific time.
-    #[serde(default, rename = "usageStartDateTime")]
-    pub usage_start_date_time: ::core::option::Option<GoogleTypeDateTime>,
-}
-
-/// Represents a single component of the total discount applicable on a Price.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudChannelV1DiscountComponent {
-    /// Fixed value discount.
-    #[serde(default, rename = "discountAbsolute")]
-    pub discount_absolute: ::core::option::Option<GoogleTypeMoney>,
-    /// Discount percentage, represented as decimal. For example, a 20% discount will be represented as 0.2.
-    #[serde(default, rename = "discountPercentage")]
-    pub discount_percentage: ::core::option::Option<f64>,
-    /// Type of the discount. // TODO: enum values: ["DISCOUNT_TYPE_UNSPECIFIED", "REGIONAL_DISCOUNT", "PROMOTIONAL_DISCOUNT", "SALES_DISCOUNT", "RESELLER_MARGIN", "DEAL_CODE"]
-    #[serde(default, rename = "discountType")]
-    pub discount_type: ::core::option::Option<String>,
-}
-
-/// Required Edu Attributes
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudChannelV1EduData {
-    /// Size of the institute. // TODO: enum values: ["INSTITUTE_SIZE_UNSPECIFIED", "SIZE_1_100", "SIZE_101_500", "SIZE_501_1000", "SIZE_1001_2000", "SIZE_2001_5000", "SIZE_5001_10000", "SIZE_10001_OR_MORE"]
-    #[serde(default, rename = "instituteSize")]
-    pub institute_size: ::core::option::Option<String>,
-    /// Designated institute type of customer. // TODO: enum values: ["INSTITUTE_TYPE_UNSPECIFIED", "K12", "UNIVERSITY"]
-    #[serde(default, rename = "instituteType")]
-    pub institute_type: ::core::option::Option<String>,
-    /// Web address for the edu customer''s institution.
-    #[serde(default)]
-    pub website: ::core::option::Option<String>,
-}
-
-/// An entitlement is a representation of a customer''s ability to use a service.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudChannelV1Entitlement {
-    /// Association information to other entitlements.
-    #[serde(default, rename = "associationInfo")]
-    pub association_info: ::core::option::Option<GoogleCloudChannelV1AssociationInfo>,
-    /// Optional. The billing account resource name that is used to pay for this entitlement.
-    #[serde(default, rename = "billingAccount")]
-    pub billing_account: ::core::option::Option<String>,
-    /// Commitment settings for a commitment-based Offer. Required for commitment based offers.
-    #[serde(default, rename = "commitmentSettings")]
-    pub commitment_settings: ::core::option::Option<GoogleCloudChannelV1CommitmentSettings>,
-    /// Output only. The time at which the entitlement is created.
-    #[serde(default, rename = "createTime")]
-    pub create_time: ::core::option::Option<String>,
-    /// Output only. Resource name of an entitlement in the form: accounts/{account_id}/customers/{customer_id}/entitlements/{entitlement_id}.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Required. The offer resource name for which the entitlement is to be created. Takes the form: accounts/{account_id}/offers/{offer_id}.
-    #[serde(default)]
-    pub offer: ::core::option::Option<String>,
-    /// Extended entitlement parameters. When creating an entitlement, valid parameter names and values are defined in the Offer.parameter_definitions. For Google Workspace, the following Parameters may be accepted as input: - max_units: The maximum assignable units for a flexible offer OR - num_units: The total commitment for commitment-based offers The response may additionally include the following output-only Parameters: - assigned_units: The number of licenses assigned to users. For Google Cloud billing subaccounts, the following Parameter may be accepted as input: - display_name: The display name of the billing subaccount.
-    #[serde(default)]
-    pub parameters: ::core::option::Option<::std::vec::Vec<GoogleCloudChannelV1Parameter>>,
-    /// Optional. Price reference ID for the offer. Only for offers that require additional price information. Used to guarantee that the pricing is consistent between quoting the offer and placing the order.
-    #[serde(default, rename = "priceReferenceId")]
-    pub price_reference_id: ::core::option::Option<String>,
-    /// Output only. Service provisioning details for the entitlement.
-    #[serde(default, rename = "provisionedService")]
-    pub provisioned_service: ::core::option::Option<GoogleCloudChannelV1ProvisionedService>,
-    /// Output only. Current provisioning state of the entitlement. // TODO: enum values: ["PROVISIONING_STATE_UNSPECIFIED", "ACTIVE", "SUSPENDED"]
-    #[serde(default, rename = "provisioningState")]
-    pub provisioning_state: ::core::option::Option<String>,
-    /// Optional. This purchase order (PO) information is for resellers to use for their company tracking usage. If a purchaseOrderId value is given, it appears in the API responses and shows up in the invoice. The property accepts up to 80 plain text characters. This is only supported for Google Workspace entitlements.
-    #[serde(default, rename = "purchaseOrderId")]
-    pub purchase_order_id: ::core::option::Option<String>,
-    /// Output only. Enumerable of all current suspension reasons for an entitlement.
-    #[serde(default, rename = "suspensionReasons")]
-    pub suspension_reasons: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Output only. Settings for trial offers.
-    #[serde(default, rename = "trialSettings")]
-    pub trial_settings: ::core::option::Option<GoogleCloudChannelV1TrialSettings>,
-    /// Output only. The time at which the entitlement is updated.
-    #[serde(default, rename = "updateTime")]
-    pub update_time: ::core::option::Option<String>,
-}
-
-/// Change event entry for Entitlement order history
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudChannelV1EntitlementChange {
-    /// The Entitlement''s activation reason // TODO: enum values: ["ACTIVATION_REASON_UNSPECIFIED", "RESELLER_REVOKED_SUSPENSION", "CUSTOMER_ACCEPTED_PENDING_TOS", "RENEWAL_SETTINGS_CHANGED", "OTHER_ACTIVATION_REASON"]
-    #[serde(default, rename = "activationReason")]
-    pub activation_reason: ::core::option::Option<String>,
-    /// Cancellation reason for the Entitlement. // TODO: enum values: ["CANCELLATION_REASON_UNSPECIFIED", "SERVICE_TERMINATED", "RELATIONSHIP_ENDED", "PARTIAL_TRANSFER"]
-    #[serde(default, rename = "cancellationReason")]
-    pub cancellation_reason: ::core::option::Option<String>,
-    /// The change action type. // TODO: enum values: ["CHANGE_TYPE_UNSPECIFIED", "CREATED", "PRICE_PLAN_SWITCHED", "COMMITMENT_CHANGED", "RENEWED", "SUSPENDED", "ACTIVATED", "CANCELLED", "SKU_CHANGED", "RENEWAL_SETTING_CHANGED", "PAID_SUBSCRIPTION_STARTED", "LICENSE_CAP_CHANGED", "SUSPENSION_DETAILS_CHANGED", "TRIAL_END_DATE_EXTENDED", "TRIAL_STARTED"]
-    #[serde(default, rename = "changeType")]
-    pub change_type: ::core::option::Option<String>,
-    /// The submitted time of the change.
-    #[serde(default, rename = "createTime")]
-    pub create_time: ::core::option::Option<String>,
-    /// Required. Resource name of an entitlement in the form: accounts/{account_id}/customers/{customer_id}/entitlements/{entitlement_id}
-    #[serde(default)]
-    pub entitlement: ::core::option::Option<String>,
-    /// Required. Resource name of the Offer at the time of change. Takes the form: accounts/{account_id}/offers/{offer_id}.
-    #[serde(default)]
-    pub offer: ::core::option::Option<String>,
-    /// Human-readable identifier that shows what operator made a change. When the operator_type is RESELLER, this is the user''s email address. For all other operator types, this is empty.
-    #[serde(default)]
-    pub operator: ::core::option::Option<String>,
-    /// Operator type responsible for the change. // TODO: enum values: ["OPERATOR_TYPE_UNSPECIFIED", "CUSTOMER_SERVICE_REPRESENTATIVE", "SYSTEM", "CUSTOMER", "RESELLER"]
-    #[serde(default, rename = "operatorType")]
-    pub operator_type: ::core::option::Option<String>,
-    /// e.g. purchase_number change reason, entered by CRS.
-    #[serde(default, rename = "otherChangeReason")]
-    pub other_change_reason: ::core::option::Option<String>,
-    /// Extended parameters, such as: purchase_order_number, gcp_details; internal_correlation_id, long_running_operation_id, order_id; etc.
-    #[serde(default)]
-    pub parameters: ::core::option::Option<::std::vec::Vec<GoogleCloudChannelV1Parameter>>,
-    /// Service provisioned for an Entitlement.
-    #[serde(default, rename = "provisionedService")]
-    pub provisioned_service: ::core::option::Option<GoogleCloudChannelV1ProvisionedService>,
-    /// Suspension reason for the Entitlement. // TODO: enum values: ["SUSPENSION_REASON_UNSPECIFIED", "RESELLER_INITIATED", "TRIAL_ENDED", "RENEWAL_WITH_TYPE_CANCEL", "PENDING_TOS_ACCEPTANCE", "OTHER"]
-    #[serde(default, rename = "suspensionReason")]
-    pub suspension_reason: ::core::option::Option<String>,
-}
-
-/// Represents Pub/Sub message content describing entitlement update.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudChannelV1EntitlementEvent {
-    /// Resource name of an entitlement of the form: accounts/{account_id}/customers/{customer_id}/entitlements/{entitlement_id}
-    #[serde(default)]
-    pub entitlement: ::core::option::Option<String>,
-    /// Type of event which happened for the entitlement. // TODO: enum values: ["TYPE_UNSPECIFIED", "CREATED", "PRICE_PLAN_SWITCHED", "COMMITMENT_CHANGED", "RENEWED", "SUSPENDED", "ACTIVATED", "CANCELLED", "SKU_CHANGED", "RENEWAL_SETTING_CHANGED", "PAID_SERVICE_STARTED", "LICENSE_ASSIGNMENT_CHANGED", "LICENSE_CAP_CHANGED"]
-    #[serde(default, rename = "eventType")]
-    pub event_type: ::core::option::Option<String>,
 }
 
 /// Request message for CloudChannelReportsService.FetchReportResults.
@@ -872,236 +406,12 @@ pub struct GoogleCloudChannelV1ListTransferableSkusResponse {
         ::core::option::Option<::std::vec::Vec<GoogleCloudChannelV1TransferableSku>>,
 }
 
-/// Represents the marketing information for a Product, SKU or Offer.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudChannelV1MarketingInfo {
-    /// Default logo.
-    #[serde(default, rename = "defaultLogo")]
-    pub default_logo: ::core::option::Option<GoogleCloudChannelV1Media>,
-    /// Human readable description. Description can contain HTML.
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// Human readable name.
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-}
-
-/// Represents media information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudChannelV1Media {
-    /// URL of the media.
-    #[serde(default)]
-    pub content: ::core::option::Option<String>,
-    /// Title of the media.
-    #[serde(default)]
-    pub title: ::core::option::Option<String>,
-    /// Type of the media. // TODO: enum values: ["MEDIA_TYPE_UNSPECIFIED", "MEDIA_TYPE_IMAGE"]
-    #[serde(default, rename = "type")]
-    pub type_: ::core::option::Option<String>,
-}
-
-/// Represents an offer made to resellers for purchase. An offer is associated with a Sku, has a plan for payment, a price, and defines the constraints for buying.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudChannelV1Offer {
-    /// Constraints on transacting the Offer.
-    #[serde(default)]
-    pub constraints: ::core::option::Option<GoogleCloudChannelV1Constraints>,
-    /// The deal code of the offer to get a special promotion or discount.
-    #[serde(default, rename = "dealCode")]
-    pub deal_code: ::core::option::Option<String>,
-    /// Output only. End of the Offer validity time.
-    #[serde(default, rename = "endTime")]
-    pub end_time: ::core::option::Option<String>,
-    /// Marketing information for the Offer.
-    #[serde(default, rename = "marketingInfo")]
-    pub marketing_info: ::core::option::Option<GoogleCloudChannelV1MarketingInfo>,
-    /// Resource Name of the Offer. Format: accounts/{account_id}/offers/{offer_id}
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Parameters required to use current Offer to purchase.
-    #[serde(default, rename = "parameterDefinitions")]
-    pub parameter_definitions:
-        ::core::option::Option<::std::vec::Vec<GoogleCloudChannelV1ParameterDefinition>>,
-    /// Describes the payment plan for the Offer.
-    #[serde(default)]
-    pub plan: ::core::option::Option<GoogleCloudChannelV1Plan>,
-    /// Price for each monetizable resource type.
-    #[serde(default, rename = "priceByResources")]
-    pub price_by_resources:
-        ::core::option::Option<::std::vec::Vec<GoogleCloudChannelV1PriceByResource>>,
-    /// SKU the offer is associated with.
-    #[serde(default)]
-    pub sku: ::core::option::Option<GoogleCloudChannelV1Sku>,
-    /// Start of the Offer validity time.
-    #[serde(default, rename = "startTime")]
-    pub start_time: ::core::option::Option<String>,
-}
-
 /// Provides contextual information about a google.longrunning.Operation.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudChannelV1OperationMetadata {
     /// The RPC that initiated this Long Running Operation. // TODO: enum values: ["OPERATION_TYPE_UNSPECIFIED", "CREATE_ENTITLEMENT", "CHANGE_RENEWAL_SETTINGS", "START_PAID_SERVICE", "ACTIVATE_ENTITLEMENT", "SUSPEND_ENTITLEMENT", "CANCEL_ENTITLEMENT", "TRANSFER_ENTITLEMENTS", "TRANSFER_ENTITLEMENTS_TO_GOOGLE", "CHANGE_OFFER", "CHANGE_PARAMETERS", "PROVISION_CLOUD_IDENTITY"]
     #[serde(default, rename = "operationType")]
     pub operation_type: ::core::option::Option<String>,
-}
-
-/// Definition for extended entitlement parameters.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudChannelV1Parameter {
-    /// Output only. Specifies whether this parameter is allowed to be changed. For example, for a Google Workspace Business Starter entitlement in commitment plan, num_units is editable when entitlement is active.
-    #[serde(default)]
-    pub editable: ::core::option::Option<bool>,
-    /// Name of the parameter.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Value of the parameter.
-    #[serde(default)]
-    pub value: ::core::option::Option<GoogleCloudChannelV1Value>,
-}
-
-/// Parameter''s definition. Specifies what parameter is required to use the current Offer to purchase.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudChannelV1ParameterDefinition {
-    /// If not empty, parameter values must be drawn from this list. For example, [us-west1, us-west2, ...] Applicable to STRING parameter type.
-    #[serde(default, rename = "allowedValues")]
-    pub allowed_values: ::core::option::Option<::std::vec::Vec<GoogleCloudChannelV1Value>>,
-    /// Maximum value of the parameter, if applicable. Inclusive. For example, maximum seats when purchasing Google Workspace Business Standard. Applicable to INT64 and DOUBLE parameter types.
-    #[serde(default, rename = "maxValue")]
-    pub max_value: ::core::option::Option<GoogleCloudChannelV1Value>,
-    /// Minimal value of the parameter, if applicable. Inclusive. For example, minimal commitment when purchasing Anthos is 0.01. Applicable to INT64 and DOUBLE parameter types.
-    #[serde(default, rename = "minValue")]
-    pub min_value: ::core::option::Option<GoogleCloudChannelV1Value>,
-    /// Name of the parameter.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// If set to true, parameter is optional to purchase this Offer.
-    #[serde(default)]
-    pub optional: ::core::option::Option<bool>,
-    /// Data type of the parameter. Minimal value, Maximum value and allowed values will use specified data type here. // TODO: enum values: ["PARAMETER_TYPE_UNSPECIFIED", "INT64", "STRING", "DOUBLE", "BOOLEAN"]
-    #[serde(default, rename = "parameterType")]
-    pub parameter_type: ::core::option::Option<String>,
-}
-
-/// An adjustment that applies a flat markup or markdown to an entire bill.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudChannelV1PercentageAdjustment {
-    /// The percentage of the bill to adjust. For example: Mark down by 1% =&gt; "-1.00" Mark up by 1% =&gt; "1.00" Pass-Through =&gt; "0.00"
-    #[serde(default)]
-    pub percentage: ::core::option::Option<GoogleTypeDecimal>,
-}
-
-/// Represents period in days/months/years.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudChannelV1Period {
-    /// Total duration of Period Type defined.
-    #[serde(default)]
-    pub duration: ::core::option::Option<i32>,
-    /// Period Type. // TODO: enum values: ["PERIOD_TYPE_UNSPECIFIED", "DAY", "MONTH", "YEAR"]
-    #[serde(default, rename = "periodType")]
-    pub period_type: ::core::option::Option<String>,
-}
-
-/// The payment plan for the Offer. Describes how to make a payment.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudChannelV1Plan {
-    /// Reseller Billing account to charge after an offer transaction. Only present for Google Cloud offers.
-    #[serde(default, rename = "billingAccount")]
-    pub billing_account: ::core::option::Option<String>,
-    /// Describes how frequently the reseller will be billed, such as once per month.
-    #[serde(default, rename = "paymentCycle")]
-    pub payment_cycle: ::core::option::Option<GoogleCloudChannelV1Period>,
-    /// Describes how a reseller will be billed. // TODO: enum values: ["PAYMENT_PLAN_UNSPECIFIED", "COMMITMENT", "FLEXIBLE", "FREE", "TRIAL", "OFFLINE"]
-    #[serde(default, rename = "paymentPlan")]
-    pub payment_plan: ::core::option::Option<String>,
-    /// Specifies when the payment needs to happen. // TODO: enum values: ["PAYMENT_TYPE_UNSPECIFIED", "PREPAY", "POSTPAY"]
-    #[serde(default, rename = "paymentType")]
-    pub payment_type: ::core::option::Option<String>,
-    /// Present for Offers with a trial period. For trial-only Offers, a paid service needs to start before the trial period ends for continued service. For Regular Offers with a trial period, the regular pricing goes into effect when trial period ends, or if paid service is started before the end of the trial period.
-    #[serde(default, rename = "trialPeriod")]
-    pub trial_period: ::core::option::Option<GoogleCloudChannelV1Period>,
-}
-
-/// Represents the price of the Offer.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudChannelV1Price {
-    /// Base price.
-    #[serde(default, rename = "basePrice")]
-    pub base_price: ::core::option::Option<GoogleTypeMoney>,
-    /// Discount percentage, represented as decimal. For example, a 20% discount will be represent as 0.2.
-    #[serde(default)]
-    pub discount: ::core::option::Option<f64>,
-    /// Breakdown of the discount into its components. This will be empty if there is no discount present.
-    #[serde(default, rename = "discountComponents")]
-    pub discount_components:
-        ::core::option::Option<::std::vec::Vec<GoogleCloudChannelV1DiscountComponent>>,
-    /// Effective Price after applying the discounts.
-    #[serde(default, rename = "effectivePrice")]
-    pub effective_price: ::core::option::Option<GoogleTypeMoney>,
-    /// Link to external price list, such as link to Google Voice rate card.
-    #[serde(default, rename = "externalPriceUri")]
-    pub external_price_uri: ::core::option::Option<String>,
-    /// The time period with respect to which base and effective prices are defined. Example: 1 month, 6 months, 1 year, etc.
-    #[serde(default, rename = "pricePeriod")]
-    pub price_period: ::core::option::Option<GoogleCloudChannelV1Period>,
-}
-
-/// Represents price by resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudChannelV1PriceByResource {
-    /// Price of the Offer. Present if there are no price phases.
-    #[serde(default)]
-    pub price: ::core::option::Option<GoogleCloudChannelV1Price>,
-    /// Specifies the price by time range.
-    #[serde(default, rename = "pricePhases")]
-    pub price_phases: ::core::option::Option<::std::vec::Vec<GoogleCloudChannelV1PricePhase>>,
-    /// Resource Type. Example: SEAT // TODO: enum values: ["RESOURCE_TYPE_UNSPECIFIED", "SEAT", "MAU", "GB", "LICENSED_USER", "MINUTES", "IAAS_USAGE", "SUBSCRIPTION"]
-    #[serde(default, rename = "resourceType")]
-    pub resource_type: ::core::option::Option<String>,
-}
-
-/// Specifies the price by the duration of months. For example, a 20% discount for the first six months, then a 10% discount starting on the seventh month.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudChannelV1PricePhase {
-    /// Defines first period for the phase.
-    #[serde(default, rename = "firstPeriod")]
-    pub first_period: ::core::option::Option<i32>,
-    /// Defines first period for the phase.
-    #[serde(default, rename = "lastPeriod")]
-    pub last_period: ::core::option::Option<i32>,
-    /// Defines the phase period type. // TODO: enum values: ["PERIOD_TYPE_UNSPECIFIED", "DAY", "MONTH", "YEAR"]
-    #[serde(default, rename = "periodType")]
-    pub period_type: ::core::option::Option<String>,
-    /// Price of the phase. Present if there are no price tiers.
-    #[serde(default)]
-    pub price: ::core::option::Option<GoogleCloudChannelV1Price>,
-    /// Price by the resource tiers.
-    #[serde(default, rename = "priceTiers")]
-    pub price_tiers: ::core::option::Option<::std::vec::Vec<GoogleCloudChannelV1PriceTier>>,
-}
-
-/// Defines price at resource tier level. For example, an offer with following definition : * Tier 1: Provide 25% discount for all seats between 1 and 25. * Tier 2: Provide 10% discount for all seats between 26 and 100. * Tier 3: Provide flat 15% discount for all seats above 100. Each of these tiers is represented as a PriceTier.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudChannelV1PriceTier {
-    /// First resource for which the tier price applies.
-    #[serde(default, rename = "firstResource")]
-    pub first_resource: ::core::option::Option<i32>,
-    /// Last resource for which the tier price applies.
-    #[serde(default, rename = "lastResource")]
-    pub last_resource: ::core::option::Option<i32>,
-    /// Price of the tier.
-    #[serde(default)]
-    pub price: ::core::option::Option<GoogleCloudChannelV1Price>,
-}
-
-/// A Product is the entity a customer uses when placing an order. For example, Google Workspace, Google Voice, etc.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudChannelV1Product {
-    /// Marketing information for the product.
-    #[serde(default, rename = "marketingInfo")]
-    pub marketing_info: ::core::option::Option<GoogleCloudChannelV1MarketingInfo>,
-    /// Resource Name of the Product. Format: products/{product_id}
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
 }
 
 /// Request message for CloudChannelService.ProvisionCloudIdentity
@@ -1116,39 +426,6 @@ pub struct GoogleCloudChannelV1ProvisionCloudIdentityRequest {
     /// Validate the request and preview the review, but do not post it.
     #[serde(default, rename = "validateOnly")]
     pub validate_only: ::core::option::Option<bool>,
-}
-
-/// Service provisioned for an entitlement.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudChannelV1ProvisionedService {
-    /// Output only. The product pertaining to the provisioning resource as specified in the Offer.
-    #[serde(default, rename = "productId")]
-    pub product_id: ::core::option::Option<String>,
-    /// Output only. Provisioning ID of the entitlement. For Google Workspace, this is the underlying Subscription ID. For Google Cloud, this is the Billing Account ID of the billing subaccount.
-    #[serde(default, rename = "provisioningId")]
-    pub provisioning_id: ::core::option::Option<String>,
-    /// Output only. The SKU pertaining to the provisioning resource as specified in the Offer.
-    #[serde(default, rename = "skuId")]
-    pub sku_id: ::core::option::Option<String>,
-}
-
-/// Offer that you can purchase for a customer. This is used in the ListPurchasableOffer API response.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudChannelV1PurchasableOffer {
-    /// Offer.
-    #[serde(default)]
-    pub offer: ::core::option::Option<GoogleCloudChannelV1Offer>,
-    /// Optional. Price reference ID for the offer. Only for offers that require additional price information. Used to guarantee that the pricing is consistent between quoting the offer and placing the order.
-    #[serde(default, rename = "priceReferenceId")]
-    pub price_reference_id: ::core::option::Option<String>,
-}
-
-/// SKU that you can purchase. This is used in ListPurchasableSku API response.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudChannelV1PurchasableSku {
-    /// SKU
-    #[serde(default)]
-    pub sku: ::core::option::Option<GoogleCloudChannelV1Sku>,
 }
 
 /// Response message for QueryEligibleBillingAccounts.
@@ -1182,165 +459,6 @@ pub struct GoogleCloudChannelV1RegisterSubscriberResponse {
     pub topic: ::core::option::Option<String>,
 }
 
-/// Renewal settings for renewable Offers.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudChannelV1RenewalSettings {
-    /// If false, the plan will be completed at the end date.
-    #[serde(default, rename = "enableRenewal")]
-    pub enable_renewal: ::core::option::Option<bool>,
-    /// Describes how frequently the reseller will be billed, such as once per month.
-    #[serde(default, rename = "paymentCycle")]
-    pub payment_cycle: ::core::option::Option<GoogleCloudChannelV1Period>,
-    /// Describes how a reseller will be billed. // TODO: enum values: ["PAYMENT_PLAN_UNSPECIFIED", "COMMITMENT", "FLEXIBLE", "FREE", "TRIAL", "OFFLINE"]
-    #[serde(default, rename = "paymentPlan")]
-    pub payment_plan: ::core::option::Option<String>,
-    /// If true and enable_renewal = true, the unit (for example seats or licenses) will be set to the number of active units at renewal time.
-    #[serde(default, rename = "resizeUnitCount")]
-    pub resize_unit_count: ::core::option::Option<bool>,
-}
-
-/// The ID and description of a report that was used to generate report data. For example, "Google Cloud Daily Spend", "Google Workspace License Activity", etc.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudChannelV1Report {
-    /// The list of columns included in the report. This defines the schema of the report results.
-    #[serde(default)]
-    pub columns: ::core::option::Option<::std::vec::Vec<GoogleCloudChannelV1Column>>,
-    /// A description of other aspects of the report, such as the products it supports.
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// A human-readable name for this report.
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-    /// Required. The report''s resource name. Specifies the account and report used to generate report data. The report_id identifier is a UID (for example, 613bf59q). Name uses the format: accounts/{account_id}/reports/{report_id}
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-}
-
-/// The result of a RunReportJob operation. Contains the name to use in FetchReportResultsRequest.report_job and the status of the operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudChannelV1ReportJob {
-    /// Required. The resource name of a report job. Name uses the format: accounts/{account_id}/reportJobs/{report_job_id}
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// The current status of report generation.
-    #[serde(default, rename = "reportStatus")]
-    pub report_status: ::core::option::Option<GoogleCloudChannelV1ReportStatus>,
-}
-
-/// The features describing the data. Returned by CloudChannelReportsService.RunReportJob and CloudChannelReportsService.FetchReportResults.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudChannelV1ReportResultsMetadata {
-    /// The date range of reported usage.
-    #[serde(default, rename = "dateRange")]
-    pub date_range: ::core::option::Option<GoogleCloudChannelV1DateRange>,
-    /// The usage dates immediately preceding date_range with the same duration. Use this to calculate trending usage and costs. This is only populated if you request trending data. For example, if date_range is July 1-15, preceding_date_range will be June 16-30.
-    #[serde(default, rename = "precedingDateRange")]
-    pub preceding_date_range: ::core::option::Option<GoogleCloudChannelV1DateRange>,
-    /// Details of the completed report.
-    #[serde(default)]
-    pub report: ::core::option::Option<GoogleCloudChannelV1Report>,
-    /// The total number of rows of data in the final report.
-    #[serde(default, rename = "rowCount")]
-    pub row_count: ::core::option::Option<String>,
-}
-
-/// Status of a report generation process.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudChannelV1ReportStatus {
-    /// The report generation''s completion time.
-    #[serde(default, rename = "endTime")]
-    pub end_time: ::core::option::Option<String>,
-    /// The report generation''s start time.
-    #[serde(default, rename = "startTime")]
-    pub start_time: ::core::option::Option<String>,
-    /// The current state of the report generation process. // TODO: enum values: ["STATE_UNSPECIFIED", "STARTED", "WRITING", "AVAILABLE", "FAILED"]
-    #[serde(default)]
-    pub state: ::core::option::Option<String>,
-}
-
-/// A single report value.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudChannelV1ReportValue {
-    /// A value of type google.type.DateTime (year, month, day, hour, minute, second, and UTC offset or timezone.)
-    #[serde(default, rename = "dateTimeValue")]
-    pub date_time_value: ::core::option::Option<GoogleTypeDateTime>,
-    /// A value of type google.type.Date (year, month, day).
-    #[serde(default, rename = "dateValue")]
-    pub date_value: ::core::option::Option<GoogleTypeDate>,
-    /// A value of type google.type.Decimal, representing non-integer numeric values.
-    #[serde(default, rename = "decimalValue")]
-    pub decimal_value: ::core::option::Option<GoogleTypeDecimal>,
-    /// A value of type int.
-    #[serde(default, rename = "intValue")]
-    pub int_value: ::core::option::Option<String>,
-    /// A value of type google.type.Money (currency code, whole units, decimal units).
-    #[serde(default, rename = "moneyValue")]
-    pub money_value: ::core::option::Option<GoogleTypeMoney>,
-    /// A value of type string.
-    #[serde(default, rename = "stringValue")]
-    pub string_value: ::core::option::Option<String>,
-}
-
-/// A type that represents the various adjustments you can apply to a bill.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudChannelV1RepricingAdjustment {
-    /// Flat markup or markdown on an entire bill.
-    #[serde(default, rename = "percentageAdjustment")]
-    pub percentage_adjustment: ::core::option::Option<GoogleCloudChannelV1PercentageAdjustment>,
-}
-
-/// Represents the various repricing conditions you can use for a conditional override.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudChannelV1RepricingCondition {
-    /// SKU Group condition for override.
-    #[serde(default, rename = "skuGroupCondition")]
-    pub sku_group_condition: ::core::option::Option<GoogleCloudChannelV1SkuGroupCondition>,
-}
-
-/// Configuration for repricing a Google bill over a period of time.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudChannelV1RepricingConfig {
-    /// Required. Information about the adjustment.
-    #[serde(default)]
-    pub adjustment: ::core::option::Option<GoogleCloudChannelV1RepricingAdjustment>,
-    /// Applies the repricing configuration at the channel partner level. Only ChannelPartnerRepricingConfig supports this value. Deprecated: This is no longer supported. Use RepricingConfig.entitlement_granularity instead.
-    #[serde(default, rename = "channelPartnerGranularity")]
-    pub channel_partner_granularity: ::core::option::Option<serde_json::Value>,
-    /// The conditional overrides to apply for this configuration. If you list multiple overrides, only the first valid override is used. If you don''t list any overrides, the API uses the normal adjustment and rebilling basis.
-    #[serde(default, rename = "conditionalOverrides")]
-    pub conditional_overrides:
-        ::core::option::Option<::std::vec::Vec<GoogleCloudChannelV1ConditionalOverride>>,
-    /// Required. The YearMonth when these adjustments activate. The Day field needs to be "0" since we only accept YearMonth repricing boundaries.
-    #[serde(default, rename = "effectiveInvoiceMonth")]
-    pub effective_invoice_month: ::core::option::Option<GoogleTypeDate>,
-    /// Required. Applies the repricing configuration at the entitlement level. Note: If a ChannelPartnerRepricingConfig using RepricingConfig.EntitlementGranularity becomes effective, then no existing or future RepricingConfig.ChannelPartnerGranularity will apply to the RepricingConfig.EntitlementGranularity.entitlement. This is the recommended value for both CustomerRepricingConfig and ChannelPartnerRepricingConfig.
-    #[serde(default, rename = "entitlementGranularity")]
-    pub entitlement_granularity:
-        ::core::option::Option<GoogleCloudChannelV1RepricingConfigEntitlementGranularity>,
-    /// Required. The RebillingBasis to use for this bill. Specifies the relative cost based on repricing costs you will apply. // TODO: enum values: ["REBILLING_BASIS_UNSPECIFIED", "COST_AT_LIST", "DIRECT_CUSTOMER_COST"]
-    #[serde(default, rename = "rebillingBasis")]
-    pub rebilling_basis: ::core::option::Option<String>,
-}
-
-/// Applies the repricing configuration at the entitlement level.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudChannelV1RepricingConfigEntitlementGranularity {
-    /// Resource name of the entitlement. Format: accounts/{account_id}/customers/{customer_id}/entitlements/{entitlement_id}
-    #[serde(default)]
-    pub entitlement: ::core::option::Option<String>,
-}
-
-/// A row of report values.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudChannelV1Row {
-    /// The key for the partition this row belongs to. This field is empty if the report is not partitioned.
-    #[serde(default, rename = "partitionKey")]
-    pub partition_key: ::core::option::Option<String>,
-    /// The list of values in the row.
-    #[serde(default)]
-    pub values: ::core::option::Option<::std::vec::Vec<GoogleCloudChannelV1ReportValue>>,
-}
-
 /// Request message for CloudChannelReportsService.RunReportJob.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudChannelV1RunReportJobRequest {
@@ -1364,51 +482,6 @@ pub struct GoogleCloudChannelV1RunReportJobResponse {
     /// The metadata for the report''s results (display name, columns, row count, and date range). If you view this before the operation finishes, you may see incomplete data.
     #[serde(default, rename = "reportMetadata")]
     pub report_metadata: ::core::option::Option<GoogleCloudChannelV1ReportResultsMetadata>,
-}
-
-/// Represents a product''s purchasable Stock Keeping Unit (SKU). SKUs represent the different variations of the product. For example, Google Workspace Business Standard and Google Workspace Business Plus are Google Workspace product SKUs.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudChannelV1Sku {
-    /// Marketing information for the SKU.
-    #[serde(default, rename = "marketingInfo")]
-    pub marketing_info: ::core::option::Option<GoogleCloudChannelV1MarketingInfo>,
-    /// Resource Name of the SKU. Format: products/{product_id}/skus/{sku_id}
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Product the SKU is associated with.
-    #[serde(default)]
-    pub product: ::core::option::Option<GoogleCloudChannelV1Product>,
-}
-
-/// Represents the SKU group information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudChannelV1SkuGroup {
-    /// Unique human readable identifier for the SKU group.
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-    /// Resource name of SKU group. Format: accounts/{account}/skuGroups/{sku_group}. Example: "accounts/C01234/skuGroups/3d50fd57-3157-4577-a5a9-a219b8490041".
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-}
-
-/// A condition that applies the override if a line item SKU is found in the SKU group.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudChannelV1SkuGroupCondition {
-    /// Specifies a SKU group (https://cloud.google.com/skus/sku-groups). Resource name of SKU group. Format: accounts/{account}/skuGroups/{sku_group}. Example: "accounts/C01234/skuGroups/3d50fd57-3157-4577-a5a9-a219b8490041".
-    #[serde(default, rename = "skuGroup")]
-    pub sku_group: ::core::option::Option<String>,
-}
-
-/// Represents a set of SKUs that must be purchased using the same billing account.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudChannelV1SkuPurchaseGroup {
-    /// List of billing accounts that are eligible to purhcase these SKUs.
-    #[serde(default, rename = "billingAccountPurchaseInfos")]
-    pub billing_account_purchase_infos:
-        ::core::option::Option<::std::vec::Vec<GoogleCloudChannelV1BillingAccountPurchaseInfo>>,
-    /// Resource names of the SKUs included in this group. Format: products/{product_id}/skus/{sku_id}.
-    #[serde(default)]
-    pub skus: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Request message for CloudChannelService.StartPaidService.
@@ -1436,20 +509,6 @@ pub struct GoogleCloudChannelV1SuspendEntitlementRequest {
     /// Optional. You can specify an optional unique request ID, and if you need to retry your request, the server will know to ignore the request if it''s complete. For example, you make an initial request and the request times out. If you make the request again with the same request ID, the server can check if it received the original operation with the same request ID. If it did, it will ignore the second request. The request ID must be a valid [UUID](https://tools.ietf.org/html/rfc4122) with the exception that zero UUID is not supported (00000000-0000-0000-0000-000000000000).
     #[serde(default, rename = "requestId")]
     pub request_id: ::core::option::Option<String>,
-}
-
-/// Specifies transfer eligibility of a SKU.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudChannelV1TransferEligibility {
-    /// Localized description if reseller is not eligible to transfer the SKU.
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// Specified the reason for ineligibility. // TODO: enum values: ["REASON_UNSPECIFIED", "PENDING_TOS_ACCEPTANCE", "SKU_NOT_ELIGIBLE", "SKU_SUSPENDED", "CHANNEL_PARTNER_NOT_AUTHORIZED_FOR_SKU"]
-    #[serde(default, rename = "ineligibilityReason")]
-    pub ineligibility_reason: ::core::option::Option<String>,
-    /// Whether reseller is eligible to transfer the SKU.
-    #[serde(default, rename = "isEligible")]
-    pub is_eligible: ::core::option::Option<bool>,
 }
 
 /// Request message for CloudChannelService.TransferEntitlements.
@@ -1485,42 +544,6 @@ pub struct GoogleCloudChannelV1TransferEntitlementsToGoogleRequest {
     pub request_id: ::core::option::Option<String>,
 }
 
-/// TransferableOffer represents an Offer that can be used in Transfer. Read-only.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudChannelV1TransferableOffer {
-    /// Offer with parameter constraints updated to allow the Transfer.
-    #[serde(default)]
-    pub offer: ::core::option::Option<GoogleCloudChannelV1Offer>,
-    /// Optional. Price reference ID for the offer. Only for offers that require additional price information. Used to guarantee that the pricing is consistent between quoting the offer and placing the order.
-    #[serde(default, rename = "priceReferenceId")]
-    pub price_reference_id: ::core::option::Option<String>,
-}
-
-/// TransferableSku represents information a reseller needs to view existing provisioned services for a customer that they do not own. Read-only.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudChannelV1TransferableSku {
-    /// Optional. The customer to transfer has an entitlement with the populated legacy SKU.
-    #[serde(default, rename = "legacySku")]
-    pub legacy_sku: ::core::option::Option<GoogleCloudChannelV1Sku>,
-    /// The SKU pertaining to the provisioning resource as specified in the Offer.
-    #[serde(default)]
-    pub sku: ::core::option::Option<GoogleCloudChannelV1Sku>,
-    /// Describes the transfer eligibility of a SKU.
-    #[serde(default, rename = "transferEligibility")]
-    pub transfer_eligibility: ::core::option::Option<GoogleCloudChannelV1TransferEligibility>,
-}
-
-/// Settings for trial offers.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudChannelV1TrialSettings {
-    /// Date when the trial ends. The value is in milliseconds using the UNIX Epoch format. See an example [Epoch converter](https://www.epochconverter.com).
-    #[serde(default, rename = "endTime")]
-    pub end_time: ::core::option::Option<String>,
-    /// Determines if the entitlement is in a trial or not: * true - The entitlement is in trial. * false - The entitlement is not in trial.
-    #[serde(default)]
-    pub trial: ::core::option::Option<bool>,
-}
-
 /// Request Message for UnregisterSubscriber.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudChannelV1UnregisterSubscriberRequest {
@@ -1554,32 +577,467 @@ pub struct GoogleCloudChannelV1UpdateChannelPartnerLinkRequest {
     pub update_mask: ::core::option::Option<String>,
 }
 
-/// Data type and value of a parameter.
+/// Provides contextual information about a google.longrunning.Operation.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudChannelV1Value {
-    /// Represents a boolean value.
-    #[serde(default, rename = "boolValue")]
-    pub bool_value: ::core::option::Option<bool>,
-    /// Represents a double value.
-    #[serde(default, rename = "doubleValue")]
-    pub double_value: ::core::option::Option<f64>,
-    /// Represents an int64 value.
-    #[serde(default, rename = "int64Value")]
-    pub int64_value: ::core::option::Option<String>,
-    /// Represents an ''Any'' proto value.
-    #[serde(default, rename = "protoValue")]
-    pub proto_value: ::core::option::Option<serde_json::Value>,
-    /// Represents a string value.
-    #[serde(default, rename = "stringValue")]
-    pub string_value: ::core::option::Option<String>,
+pub struct GoogleCloudChannelV1alpha1OperationMetadata {
+    /// The RPC that initiated this Long Running Operation. // TODO: enum values: ["OPERATION_TYPE_UNSPECIFIED", "CREATE_ENTITLEMENT", "CHANGE_QUANTITY", "CHANGE_RENEWAL_SETTINGS", "CHANGE_PLAN", "START_PAID_SERVICE", "CHANGE_SKU", "ACTIVATE_ENTITLEMENT", "SUSPEND_ENTITLEMENT", "CANCEL_ENTITLEMENT", "TRANSFER_ENTITLEMENTS", "TRANSFER_ENTITLEMENTS_TO_GOOGLE", "CHANGE_OFFER", "CHANGE_PARAMETERS", "PROVISION_CLOUD_IDENTITY"]
+    #[serde(default, rename = "operationType")]
+    pub operation_type: ::core::option::Option<String>,
 }
 
-/// Association links that an entitlement has to other entitlements.
+/// Response message for CloudChannelReportsService.RunReportJob.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudChannelV1alpha1AssociationInfo {
-    /// The name of the base entitlement, for which this entitlement is an add-on.
-    #[serde(default, rename = "baseEntitlement")]
-    pub base_entitlement: ::core::option::Option<String>,
+pub struct GoogleCloudChannelV1alpha1RunReportJobResponse {
+    /// Pass report_job.name to FetchReportResultsRequest.report_job to retrieve the report''s results.
+    #[serde(default, rename = "reportJob")]
+    pub report_job: ::core::option::Option<GoogleCloudChannelV1alpha1ReportJob>,
+    /// The metadata for the report''s results (display name, columns, row count, and date range). If you view this before the operation finishes, you may see incomplete data.
+    #[serde(default, rename = "reportMetadata")]
+    pub report_metadata: ::core::option::Option<GoogleCloudChannelV1alpha1ReportResultsMetadata>,
+}
+
+/// Represents information which resellers will get as part of notification from Pub/Sub.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudChannelV1alpha1SubscriberEvent {
+    /// Channel Partner event sent as part of Pub/Sub event to partners.
+    #[serde(default, rename = "channelPartnerEvent")]
+    pub channel_partner_event:
+        ::core::option::Option<GoogleCloudChannelV1alpha1ChannelPartnerEvent>,
+    /// Customer event sent as part of Pub/Sub event to partners.
+    #[serde(default, rename = "customerEvent")]
+    pub customer_event: ::core::option::Option<GoogleCloudChannelV1alpha1CustomerEvent>,
+    /// Entitlement event sent as part of Pub/Sub event to partners.
+    #[serde(default, rename = "entitlementEvent")]
+    pub entitlement_event: ::core::option::Option<GoogleCloudChannelV1alpha1EntitlementEvent>,
+    /// Opportunity event sent as part of Pub/Sub event to partners/integrators.
+    #[serde(default, rename = "opportunityEvent")]
+    pub opportunity_event: ::core::option::Option<GoogleCloudChannelV1alpha1OpportunityEvent>,
+}
+
+/// Response message for CloudChannelService.TransferEntitlements. This is put in the response field of google.longrunning.Operation.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudChannelV1alpha1TransferEntitlementsResponse {
+    /// The transferred entitlements.
+    #[serde(default)]
+    pub entitlements:
+        ::core::option::Option<::std::vec::Vec<GoogleCloudChannelV1alpha1Entitlement>>,
+}
+
+/// The response message for Operations.ListOperations.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleLongrunningListOperationsResponse {
+    /// The standard List next-page token.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+    /// A list of operations that matches the specified filter in the request.
+    #[serde(default)]
+    pub operations: ::core::option::Option<::std::vec::Vec<GoogleLongrunningOperation>>,
+    /// Unordered list. Unreachable resources. Populated when the request sets ListOperationsRequest.return_partial_success and reads across collections. For example, when attempting to list all resources across all supported locations.
+    #[serde(default)]
+    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// Entity representing a Cloud Identity account that may be associated with a Channel Services API partner.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudChannelV1CloudIdentityCustomerAccount {
+    /// If existing = true, and is 2-tier customer, the channel partner of the customer.
+    #[serde(default, rename = "channelPartnerCloudIdentityId")]
+    pub channel_partner_cloud_identity_id: ::core::option::Option<String>,
+    /// If existing = true, the Cloud Identity ID of the customer.
+    #[serde(default, rename = "customerCloudIdentityId")]
+    pub customer_cloud_identity_id: ::core::option::Option<String>,
+    /// If owned = true, the name of the customer that owns the Cloud Identity account. Customer_name uses the format: accounts/{account_id}/customers/{customer_id}
+    #[serde(default, rename = "customerName")]
+    pub customer_name: ::core::option::Option<String>,
+    /// If existing = true, the type of the customer. // TODO: enum values: ["CUSTOMER_TYPE_UNSPECIFIED", "DOMAIN", "TEAM"]
+    #[serde(default, rename = "customerType")]
+    pub customer_type: ::core::option::Option<String>,
+    /// Returns true if a Cloud Identity account exists for a specific domain.
+    #[serde(default)]
+    pub existing: ::core::option::Option<bool>,
+    /// Returns true if the Cloud Identity account is associated with a customer of the Channel Services partner (with active subscriptions or purchase consents).
+    #[serde(default)]
+    pub owned: ::core::option::Option<bool>,
+}
+
+/// A row of report values.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudChannelV1Row {
+    /// The key for the partition this row belongs to. This field is empty if the report is not partitioned.
+    #[serde(default, rename = "partitionKey")]
+    pub partition_key: ::core::option::Option<String>,
+    /// The list of values in the row.
+    #[serde(default)]
+    pub values: ::core::option::Option<::std::vec::Vec<GoogleCloudChannelV1ReportValue>>,
+}
+
+/// Configuration for how a distributor will rebill a channel partner (also known as a distributor-authorized reseller).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudChannelV1ChannelPartnerRepricingConfig {
+    /// Output only. Resource name of the ChannelPartnerRepricingConfig. Format: accounts/{account_id}/channelPartnerLinks/{channel_partner_id}/channelPartnerRepricingConfigs/{id}.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Required. The configuration for bill modifications made by a reseller before sending it to ChannelPartner.
+    #[serde(default, rename = "repricingConfig")]
+    pub repricing_config: ::core::option::Option<GoogleCloudChannelV1RepricingConfig>,
+    /// Output only. Timestamp of an update to the repricing rule. If update_time is after RepricingConfig.effective_invoice_month then it indicates this was set mid-month.
+    #[serde(default, rename = "updateTime")]
+    pub update_time: ::core::option::Option<String>,
+}
+
+/// Configuration for how a reseller will reprice a Customer.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudChannelV1CustomerRepricingConfig {
+    /// Output only. Resource name of the CustomerRepricingConfig. Format: accounts/{account_id}/customers/{customer_id}/customerRepricingConfigs/{id}.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Required. The configuration for bill modifications made by a reseller before sending it to customers.
+    #[serde(default, rename = "repricingConfig")]
+    pub repricing_config: ::core::option::Option<GoogleCloudChannelV1RepricingConfig>,
+    /// Output only. Timestamp of an update to the repricing rule. If update_time is after RepricingConfig.effective_invoice_month then it indicates this was set mid-month.
+    #[serde(default, rename = "updateTime")]
+    pub update_time: ::core::option::Option<String>,
+}
+
+/// Entity representing a customer of a reseller or distributor.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudChannelV1Customer {
+    /// Secondary contact email. You need to provide an alternate email to create different domains if a primary contact email already exists. Users will receive a notification with credentials when you create an admin.google.com account. Secondary emails are also recovery email addresses. Alternate emails are optional when you create Team customers.
+    #[serde(default, rename = "alternateEmail")]
+    pub alternate_email: ::core::option::Option<String>,
+    /// Cloud Identity ID of the customer''s channel partner. Populated only if a channel partner exists for this customer.
+    #[serde(default, rename = "channelPartnerId")]
+    pub channel_partner_id: ::core::option::Option<String>,
+    /// Output only. The customer''s Cloud Identity ID if the customer has a Cloud Identity resource.
+    #[serde(default, rename = "cloudIdentityId")]
+    pub cloud_identity_id: ::core::option::Option<String>,
+    /// Output only. Cloud Identity information for the customer. Populated only if a Cloud Identity account exists for this customer.
+    #[serde(default, rename = "cloudIdentityInfo")]
+    pub cloud_identity_info: ::core::option::Option<GoogleCloudChannelV1CloudIdentityInfo>,
+    /// Optional. External CRM ID for the customer. Populated only if a CRM ID exists for this customer.
+    #[serde(default, rename = "correlationId")]
+    pub correlation_id: ::core::option::Option<String>,
+    /// Output only. Time when the customer was created.
+    #[serde(default, rename = "createTime")]
+    pub create_time: ::core::option::Option<String>,
+    /// Optional. Indicate if a customer is attesting about the correctness of provided information. Only required if creating a GCP Entitlement. // TODO: enum values: ["CUSTOMER_ATTESTATION_STATE_UNSPECIFIED", "EXEMPT", "NON_EXEMPT_AND_INFO_VERIFIED"]
+    #[serde(default, rename = "customerAttestationState")]
+    pub customer_attestation_state: ::core::option::Option<String>,
+    /// Required. The customer''s primary domain. Must match the primary contact email''s domain.
+    #[serde(default)]
+    pub domain: ::core::option::Option<String>,
+    /// Optional. The BCP-47 language code, such as "en-US" or "sr-Latn". For more information, see https://www.unicode.org/reports/tr35/#Unicode_locale_identifier.
+    #[serde(default, rename = "languageCode")]
+    pub language_code: ::core::option::Option<String>,
+    /// Output only. Resource name of the customer. Format: accounts/{account_id}/customers/{customer_id}
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Required. Name of the organization that the customer entity represents.
+    #[serde(default, rename = "orgDisplayName")]
+    pub org_display_name: ::core::option::Option<String>,
+    /// Required. The organization address for the customer. To enforce US laws and embargoes, we require a region, postal code, and address lines. You must provide valid addresses for every customer. To set the customer''s language, use the Customer-level language code.
+    #[serde(default, rename = "orgPostalAddress")]
+    pub org_postal_address: ::core::option::Option<GoogleTypePostalAddress>,
+    /// Primary contact info.
+    #[serde(default, rename = "primaryContactInfo")]
+    pub primary_contact_info: ::core::option::Option<GoogleCloudChannelV1ContactInfo>,
+    /// Output only. Time when the customer was updated.
+    #[serde(default, rename = "updateTime")]
+    pub update_time: ::core::option::Option<String>,
+}
+
+/// Change event entry for Entitlement order history
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudChannelV1EntitlementChange {
+    /// The Entitlement''s activation reason // TODO: enum values: ["ACTIVATION_REASON_UNSPECIFIED", "RESELLER_REVOKED_SUSPENSION", "CUSTOMER_ACCEPTED_PENDING_TOS", "RENEWAL_SETTINGS_CHANGED", "OTHER_ACTIVATION_REASON"]
+    #[serde(default, rename = "activationReason")]
+    pub activation_reason: ::core::option::Option<String>,
+    /// Cancellation reason for the Entitlement. // TODO: enum values: ["CANCELLATION_REASON_UNSPECIFIED", "SERVICE_TERMINATED", "RELATIONSHIP_ENDED", "PARTIAL_TRANSFER"]
+    #[serde(default, rename = "cancellationReason")]
+    pub cancellation_reason: ::core::option::Option<String>,
+    /// The change action type. // TODO: enum values: ["CHANGE_TYPE_UNSPECIFIED", "CREATED", "PRICE_PLAN_SWITCHED", "COMMITMENT_CHANGED", "RENEWED", "SUSPENDED", "ACTIVATED", "CANCELLED", "SKU_CHANGED", "RENEWAL_SETTING_CHANGED", "PAID_SUBSCRIPTION_STARTED", "LICENSE_CAP_CHANGED", "SUSPENSION_DETAILS_CHANGED", "TRIAL_END_DATE_EXTENDED", "TRIAL_STARTED"]
+    #[serde(default, rename = "changeType")]
+    pub change_type: ::core::option::Option<String>,
+    /// The submitted time of the change.
+    #[serde(default, rename = "createTime")]
+    pub create_time: ::core::option::Option<String>,
+    /// Required. Resource name of an entitlement in the form: accounts/{account_id}/customers/{customer_id}/entitlements/{entitlement_id}
+    #[serde(default)]
+    pub entitlement: ::core::option::Option<String>,
+    /// Required. Resource name of the Offer at the time of change. Takes the form: accounts/{account_id}/offers/{offer_id}.
+    #[serde(default)]
+    pub offer: ::core::option::Option<String>,
+    /// Human-readable identifier that shows what operator made a change. When the operator_type is RESELLER, this is the user''s email address. For all other operator types, this is empty.
+    #[serde(default)]
+    pub operator: ::core::option::Option<String>,
+    /// Operator type responsible for the change. // TODO: enum values: ["OPERATOR_TYPE_UNSPECIFIED", "CUSTOMER_SERVICE_REPRESENTATIVE", "SYSTEM", "CUSTOMER", "RESELLER"]
+    #[serde(default, rename = "operatorType")]
+    pub operator_type: ::core::option::Option<String>,
+    /// e.g. purchase_number change reason, entered by CRS.
+    #[serde(default, rename = "otherChangeReason")]
+    pub other_change_reason: ::core::option::Option<String>,
+    /// Extended parameters, such as: purchase_order_number, gcp_details; internal_correlation_id, long_running_operation_id, order_id; etc.
+    #[serde(default)]
+    pub parameters: ::core::option::Option<::std::vec::Vec<GoogleCloudChannelV1Parameter>>,
+    /// Service provisioned for an Entitlement.
+    #[serde(default, rename = "provisionedService")]
+    pub provisioned_service: ::core::option::Option<GoogleCloudChannelV1ProvisionedService>,
+    /// Suspension reason for the Entitlement. // TODO: enum values: ["SUSPENSION_REASON_UNSPECIFIED", "RESELLER_INITIATED", "TRIAL_ENDED", "RENEWAL_WITH_TYPE_CANCEL", "PENDING_TOS_ACCEPTANCE", "OTHER"]
+    #[serde(default, rename = "suspensionReason")]
+    pub suspension_reason: ::core::option::Option<String>,
+}
+
+/// Offer that you can purchase for a customer. This is used in the ListPurchasableOffer API response.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudChannelV1PurchasableOffer {
+    /// Offer.
+    #[serde(default)]
+    pub offer: ::core::option::Option<GoogleCloudChannelV1Offer>,
+    /// Optional. Price reference ID for the offer. Only for offers that require additional price information. Used to guarantee that the pricing is consistent between quoting the offer and placing the order.
+    #[serde(default, rename = "priceReferenceId")]
+    pub price_reference_id: ::core::option::Option<String>,
+}
+
+/// SKU that you can purchase. This is used in ListPurchasableSku API response.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudChannelV1PurchasableSku {
+    /// SKU
+    #[serde(default)]
+    pub sku: ::core::option::Option<GoogleCloudChannelV1Sku>,
+}
+
+/// Represents the Billable SKU information.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudChannelV1BillableSku {
+    /// Resource name of Service which contains Repricing SKU. Format: services/{service}. Example: "services/B7D9-FDCB-15D8".
+    #[serde(default)]
+    pub service: ::core::option::Option<String>,
+    /// Unique human readable name for the Service.
+    #[serde(default, rename = "serviceDisplayName")]
+    pub service_display_name: ::core::option::Option<String>,
+    /// Resource name of Billable SKU. Format: billableSkus/{sku}. Example: billableSkus/6E1B-6634-470F".
+    #[serde(default)]
+    pub sku: ::core::option::Option<String>,
+    /// Unique human readable name for the SKU.
+    #[serde(default, rename = "skuDisplayName")]
+    pub sku_display_name: ::core::option::Option<String>,
+}
+
+/// Represents the SKU group information.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudChannelV1SkuGroup {
+    /// Unique human readable identifier for the SKU group.
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+    /// Resource name of SKU group. Format: accounts/{account}/skuGroups/{sku_group}. Example: "accounts/C01234/skuGroups/3d50fd57-3157-4577-a5a9-a219b8490041".
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+}
+
+/// TransferableOffer represents an Offer that can be used in Transfer. Read-only.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudChannelV1TransferableOffer {
+    /// Offer with parameter constraints updated to allow the Transfer.
+    #[serde(default)]
+    pub offer: ::core::option::Option<GoogleCloudChannelV1Offer>,
+    /// Optional. Price reference ID for the offer. Only for offers that require additional price information. Used to guarantee that the pricing is consistent between quoting the offer and placing the order.
+    #[serde(default, rename = "priceReferenceId")]
+    pub price_reference_id: ::core::option::Option<String>,
+}
+
+/// TransferableSku represents information a reseller needs to view existing provisioned services for a customer that they do not own. Read-only.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudChannelV1TransferableSku {
+    /// Optional. The customer to transfer has an entitlement with the populated legacy SKU.
+    #[serde(default, rename = "legacySku")]
+    pub legacy_sku: ::core::option::Option<GoogleCloudChannelV1Sku>,
+    /// The SKU pertaining to the provisioning resource as specified in the Offer.
+    #[serde(default)]
+    pub sku: ::core::option::Option<GoogleCloudChannelV1Sku>,
+    /// Describes the transfer eligibility of a SKU.
+    #[serde(default, rename = "transferEligibility")]
+    pub transfer_eligibility: ::core::option::Option<GoogleCloudChannelV1TransferEligibility>,
+}
+
+/// Information needed to create an Admin User for Google Workspace.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudChannelV1AdminUser {
+    /// Primary email of the admin user.
+    #[serde(default)]
+    pub email: ::core::option::Option<String>,
+    /// Family name of the admin user.
+    #[serde(default, rename = "familyName")]
+    pub family_name: ::core::option::Option<String>,
+    /// Given name of the admin user.
+    #[serde(default, rename = "givenName")]
+    pub given_name: ::core::option::Option<String>,
+}
+
+/// Represents a set of SKUs that must be purchased using the same billing account.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudChannelV1SkuPurchaseGroup {
+    /// List of billing accounts that are eligible to purhcase these SKUs.
+    #[serde(default, rename = "billingAccountPurchaseInfos")]
+    pub billing_account_purchase_infos:
+        ::core::option::Option<::std::vec::Vec<GoogleCloudChannelV1BillingAccountPurchaseInfo>>,
+    /// Resource names of the SKUs included in this group. Format: products/{product_id}/skus/{sku_id}.
+    #[serde(default)]
+    pub skus: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// The result of a RunReportJob operation. Contains the name to use in FetchReportResultsRequest.report_job and the status of the operation.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudChannelV1ReportJob {
+    /// Required. The resource name of a report job. Name uses the format: accounts/{account_id}/reportJobs/{report_job_id}
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// The current status of report generation.
+    #[serde(default, rename = "reportStatus")]
+    pub report_status: ::core::option::Option<GoogleCloudChannelV1ReportStatus>,
+}
+
+/// The features describing the data. Returned by CloudChannelReportsService.RunReportJob and CloudChannelReportsService.FetchReportResults.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudChannelV1ReportResultsMetadata {
+    /// The date range of reported usage.
+    #[serde(default, rename = "dateRange")]
+    pub date_range: ::core::option::Option<GoogleCloudChannelV1DateRange>,
+    /// The usage dates immediately preceding date_range with the same duration. Use this to calculate trending usage and costs. This is only populated if you request trending data. For example, if date_range is July 1-15, preceding_date_range will be June 16-30.
+    #[serde(default, rename = "precedingDateRange")]
+    pub preceding_date_range: ::core::option::Option<GoogleCloudChannelV1DateRange>,
+    /// Details of the completed report.
+    #[serde(default)]
+    pub report: ::core::option::Option<GoogleCloudChannelV1Report>,
+    /// The total number of rows of data in the final report.
+    #[serde(default, rename = "rowCount")]
+    pub row_count: ::core::option::Option<String>,
+}
+
+/// Represents Pub/Sub message content describing customer update.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudChannelV1CustomerEvent {
+    /// Resource name of the customer. Format: accounts/{account_id}/customers/{customer_id}
+    #[serde(default)]
+    pub customer: ::core::option::Option<String>,
+    /// Type of event which happened for the customer. // TODO: enum values: ["TYPE_UNSPECIFIED", "PRIMARY_DOMAIN_CHANGED", "PRIMARY_DOMAIN_VERIFIED"]
+    #[serde(default, rename = "eventType")]
+    pub event_type: ::core::option::Option<String>,
+}
+
+/// Represents Pub/Sub message content describing entitlement update.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudChannelV1EntitlementEvent {
+    /// Resource name of an entitlement of the form: accounts/{account_id}/customers/{customer_id}/entitlements/{entitlement_id}
+    #[serde(default)]
+    pub entitlement: ::core::option::Option<String>,
+    /// Type of event which happened for the entitlement. // TODO: enum values: ["TYPE_UNSPECIFIED", "CREATED", "PRICE_PLAN_SWITCHED", "COMMITMENT_CHANGED", "RENEWED", "SUSPENDED", "ACTIVATED", "CANCELLED", "SKU_CHANGED", "RENEWAL_SETTING_CHANGED", "PAID_SERVICE_STARTED", "LICENSE_ASSIGNMENT_CHANGED", "LICENSE_CAP_CHANGED"]
+    #[serde(default, rename = "eventType")]
+    pub event_type: ::core::option::Option<String>,
+}
+
+/// An entitlement is a representation of a customer''s ability to use a service.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudChannelV1Entitlement {
+    /// Association information to other entitlements.
+    #[serde(default, rename = "associationInfo")]
+    pub association_info: ::core::option::Option<GoogleCloudChannelV1AssociationInfo>,
+    /// Optional. The billing account resource name that is used to pay for this entitlement.
+    #[serde(default, rename = "billingAccount")]
+    pub billing_account: ::core::option::Option<String>,
+    /// Commitment settings for a commitment-based Offer. Required for commitment based offers.
+    #[serde(default, rename = "commitmentSettings")]
+    pub commitment_settings: ::core::option::Option<GoogleCloudChannelV1CommitmentSettings>,
+    /// Output only. The time at which the entitlement is created.
+    #[serde(default, rename = "createTime")]
+    pub create_time: ::core::option::Option<String>,
+    /// Output only. Resource name of an entitlement in the form: accounts/{account_id}/customers/{customer_id}/entitlements/{entitlement_id}.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Required. The offer resource name for which the entitlement is to be created. Takes the form: accounts/{account_id}/offers/{offer_id}.
+    #[serde(default)]
+    pub offer: ::core::option::Option<String>,
+    /// Extended entitlement parameters. When creating an entitlement, valid parameter names and values are defined in the Offer.parameter_definitions. For Google Workspace, the following Parameters may be accepted as input: - max_units: The maximum assignable units for a flexible offer OR - num_units: The total commitment for commitment-based offers The response may additionally include the following output-only Parameters: - assigned_units: The number of licenses assigned to users. For Google Cloud billing subaccounts, the following Parameter may be accepted as input: - display_name: The display name of the billing subaccount.
+    #[serde(default)]
+    pub parameters: ::core::option::Option<::std::vec::Vec<GoogleCloudChannelV1Parameter>>,
+    /// Optional. Price reference ID for the offer. Only for offers that require additional price information. Used to guarantee that the pricing is consistent between quoting the offer and placing the order.
+    #[serde(default, rename = "priceReferenceId")]
+    pub price_reference_id: ::core::option::Option<String>,
+    /// Output only. Service provisioning details for the entitlement.
+    #[serde(default, rename = "provisionedService")]
+    pub provisioned_service: ::core::option::Option<GoogleCloudChannelV1ProvisionedService>,
+    /// Output only. Current provisioning state of the entitlement. // TODO: enum values: ["PROVISIONING_STATE_UNSPECIFIED", "ACTIVE", "SUSPENDED"]
+    #[serde(default, rename = "provisioningState")]
+    pub provisioning_state: ::core::option::Option<String>,
+    /// Optional. This purchase order (PO) information is for resellers to use for their company tracking usage. If a purchaseOrderId value is given, it appears in the API responses and shows up in the invoice. The property accepts up to 80 plain text characters. This is only supported for Google Workspace entitlements.
+    #[serde(default, rename = "purchaseOrderId")]
+    pub purchase_order_id: ::core::option::Option<String>,
+    /// Output only. Enumerable of all current suspension reasons for an entitlement.
+    #[serde(default, rename = "suspensionReasons")]
+    pub suspension_reasons: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Output only. Settings for trial offers.
+    #[serde(default, rename = "trialSettings")]
+    pub trial_settings: ::core::option::Option<GoogleCloudChannelV1TrialSettings>,
+    /// Output only. The time at which the entitlement is updated.
+    #[serde(default, rename = "updateTime")]
+    pub update_time: ::core::option::Option<String>,
+}
+
+/// Entity representing a link between distributors and their indirect resellers in an n-tier resale channel.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudChannelV1ChannelPartnerLink {
+    /// Output only. Cloud Identity info of the channel partner (IR).
+    #[serde(default, rename = "channelPartnerCloudIdentityInfo")]
+    pub channel_partner_cloud_identity_info:
+        ::core::option::Option<GoogleCloudChannelV1CloudIdentityInfo>,
+    /// Output only. Timestamp of when the channel partner link is created.
+    #[serde(default, rename = "createTime")]
+    pub create_time: ::core::option::Option<String>,
+    /// Output only. URI of the web page where partner accepts the link invitation.
+    #[serde(default, rename = "inviteLinkUri")]
+    pub invite_link_uri: ::core::option::Option<String>,
+    /// Required. State of the channel partner link. // TODO: enum values: ["CHANNEL_PARTNER_LINK_STATE_UNSPECIFIED", "INVITED", "ACTIVE", "REVOKED", "SUSPENDED"]
+    #[serde(default, rename = "linkState")]
+    pub link_state: ::core::option::Option<String>,
+    /// Output only. Resource name for the channel partner link, in the format accounts/{account_id}/channelPartnerLinks/{id}.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Output only. Public identifier that a customer must use to generate a transfer token to move to this distributor-reseller combination.
+    #[serde(default, rename = "publicId")]
+    pub public_id: ::core::option::Option<String>,
+    /// Required. Cloud Identity ID of the linked reseller.
+    #[serde(default, rename = "resellerCloudIdentityId")]
+    pub reseller_cloud_identity_id: ::core::option::Option<String>,
+    /// Output only. Timestamp of when the channel partner link is updated.
+    #[serde(default, rename = "updateTime")]
+    pub update_time: ::core::option::Option<String>,
+}
+
+/// The result of a RunReportJob operation. Contains the name to use in FetchReportResultsRequest.report_job and the status of the operation.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudChannelV1alpha1ReportJob {
+    /// Required. The resource name of a report job. Name uses the format: accounts/{account_id}/reportJobs/{report_job_id}
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// The current status of report generation.
+    #[serde(default, rename = "reportStatus")]
+    pub report_status: ::core::option::Option<GoogleCloudChannelV1alpha1ReportStatus>,
+}
+
+/// The features describing the data. Returned by CloudChannelReportsService.RunReportJob and CloudChannelReportsService.FetchReportResults.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudChannelV1alpha1ReportResultsMetadata {
+    /// The date range of reported usage.
+    #[serde(default, rename = "dateRange")]
+    pub date_range: ::core::option::Option<GoogleCloudChannelV1alpha1DateRange>,
+    /// The usage dates immediately preceding date_range with the same duration. Use this to calculate trending usage and costs. This is only populated if you request trending data. For example, if date_range is July 1-15, preceding_date_range will be June 16-30.
+    #[serde(default, rename = "precedingDateRange")]
+    pub preceding_date_range: ::core::option::Option<GoogleCloudChannelV1alpha1DateRange>,
+    /// Details of the completed report.
+    #[serde(default)]
+    pub report: ::core::option::Option<GoogleCloudChannelV1alpha1Report>,
+    /// The total number of rows of data in the final report.
+    #[serde(default, rename = "rowCount")]
+    pub row_count: ::core::option::Option<String>,
 }
 
 /// Represents Pub/Sub messages about updates to a Channel Partner. You can retrieve updated values through the ChannelPartnerLinks API.
@@ -1593,34 +1051,6 @@ pub struct GoogleCloudChannelV1alpha1ChannelPartnerEvent {
     pub event_type: ::core::option::Option<String>,
 }
 
-/// The definition of a report column. Specifies the data properties in the corresponding position of the report rows.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudChannelV1alpha1Column {
-    /// The unique name of the column (for example, customer_domain, channel_partner, customer_cost). You can use column IDs in RunReportJobRequest.filter. To see all reports and their columns, call CloudChannelReportsService.ListReports.
-    #[serde(default, rename = "columnId")]
-    pub column_id: ::core::option::Option<String>,
-    /// The type of the values for this column. // TODO: enum values: ["DATA_TYPE_UNSPECIFIED", "STRING", "INT", "DECIMAL", "MONEY", "DATE", "DATE_TIME"]
-    #[serde(default, rename = "dataType")]
-    pub data_type: ::core::option::Option<String>,
-    /// The column''s display name.
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-}
-
-/// Commitment settings for commitment-based offers.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudChannelV1alpha1CommitmentSettings {
-    /// Output only. Commitment end timestamp.
-    #[serde(default, rename = "endTime")]
-    pub end_time: ::core::option::Option<String>,
-    /// Optional. Renewal settings applicable for a commitment-based Offer.
-    #[serde(default, rename = "renewalSettings")]
-    pub renewal_settings: ::core::option::Option<GoogleCloudChannelV1alpha1RenewalSettings>,
-    /// Output only. Commitment start timestamp.
-    #[serde(default, rename = "startTime")]
-    pub start_time: ::core::option::Option<String>,
-}
-
 /// Represents Pub/Sub message content describing customer update.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudChannelV1alpha1CustomerEvent {
@@ -1632,21 +1062,29 @@ pub struct GoogleCloudChannelV1alpha1CustomerEvent {
     pub event_type: ::core::option::Option<String>,
 }
 
-/// A representation of usage or invoice date ranges.
+/// Represents Pub/Sub message content describing entitlement update.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudChannelV1alpha1DateRange {
-    /// The latest invoice date (inclusive). If this value is not the last day of a month, this will move it forward to the last day of the given month.
-    #[serde(default, rename = "invoiceEndDate")]
-    pub invoice_end_date: ::core::option::Option<GoogleTypeDate>,
-    /// The earliest invoice date (inclusive). If this value is not the first day of a month, this will move it back to the first day of the given month.
-    #[serde(default, rename = "invoiceStartDate")]
-    pub invoice_start_date: ::core::option::Option<GoogleTypeDate>,
-    /// The latest usage date time (exclusive). If you use time groupings (daily, weekly, etc), each group uses midnight to midnight (Pacific time). The usage end date is rounded down to include all usage from the specified date. We recommend that clients pass usage_start_date_time in Pacific time.
-    #[serde(default, rename = "usageEndDateTime")]
-    pub usage_end_date_time: ::core::option::Option<GoogleTypeDateTime>,
-    /// The earliest usage date time (inclusive). If you use time groupings (daily, weekly, etc), each group uses midnight to midnight (Pacific time). The usage start date is rounded down to include all usage from the specified date. We recommend that clients pass usage_start_date_time in Pacific time.
-    #[serde(default, rename = "usageStartDateTime")]
-    pub usage_start_date_time: ::core::option::Option<GoogleTypeDateTime>,
+pub struct GoogleCloudChannelV1alpha1EntitlementEvent {
+    /// Resource name of an entitlement of the form: accounts/{account_id}/customers/{customer_id}/entitlements/{entitlement_id}
+    #[serde(default)]
+    pub entitlement: ::core::option::Option<String>,
+    /// Type of event which happened for the entitlement. // TODO: enum values: ["TYPE_UNSPECIFIED", "CREATED", "PRICE_PLAN_SWITCHED", "COMMITMENT_CHANGED", "RENEWED", "SUSPENDED", "ACTIVATED", "CANCELLED", "SKU_CHANGED", "RENEWAL_SETTING_CHANGED", "PAID_SERVICE_STARTED", "LICENSE_ASSIGNMENT_CHANGED", "LICENSE_CAP_CHANGED"]
+    #[serde(default, rename = "eventType")]
+    pub event_type: ::core::option::Option<String>,
+}
+
+/// Represents Pub/Sub message content describing opportunity updates.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudChannelV1alpha1OpportunityEvent {
+    /// Type of event which happened for the opportunity. // TODO: enum values: ["TYPE_UNSPECIFIED", "CREATED", "UPDATED", "PARTNER_DETACHED"]
+    #[serde(default, rename = "eventType")]
+    pub event_type: ::core::option::Option<String>,
+    /// Resource name of the opportunity. Format: opportunities/{opportunity}
+    #[serde(default)]
+    pub opportunity: ::core::option::Option<String>,
+    /// Resource name of the partner. Format: partners/{partner}
+    #[serde(default)]
+    pub partner: ::core::option::Option<String>,
 }
 
 /// An entitlement is a representation of a customer''s ability to use a service.
@@ -1708,246 +1146,6 @@ pub struct GoogleCloudChannelV1alpha1Entitlement {
     pub update_time: ::core::option::Option<String>,
 }
 
-/// Represents Pub/Sub message content describing entitlement update.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudChannelV1alpha1EntitlementEvent {
-    /// Resource name of an entitlement of the form: accounts/{account_id}/customers/{customer_id}/entitlements/{entitlement_id}
-    #[serde(default)]
-    pub entitlement: ::core::option::Option<String>,
-    /// Type of event which happened for the entitlement. // TODO: enum values: ["TYPE_UNSPECIFIED", "CREATED", "PRICE_PLAN_SWITCHED", "COMMITMENT_CHANGED", "RENEWED", "SUSPENDED", "ACTIVATED", "CANCELLED", "SKU_CHANGED", "RENEWAL_SETTING_CHANGED", "PAID_SERVICE_STARTED", "LICENSE_ASSIGNMENT_CHANGED", "LICENSE_CAP_CHANGED"]
-    #[serde(default, rename = "eventType")]
-    pub event_type: ::core::option::Option<String>,
-}
-
-/// Provides contextual information about a google.longrunning.Operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudChannelV1alpha1OperationMetadata {
-    /// The RPC that initiated this Long Running Operation. // TODO: enum values: ["OPERATION_TYPE_UNSPECIFIED", "CREATE_ENTITLEMENT", "CHANGE_QUANTITY", "CHANGE_RENEWAL_SETTINGS", "CHANGE_PLAN", "START_PAID_SERVICE", "CHANGE_SKU", "ACTIVATE_ENTITLEMENT", "SUSPEND_ENTITLEMENT", "CANCEL_ENTITLEMENT", "TRANSFER_ENTITLEMENTS", "TRANSFER_ENTITLEMENTS_TO_GOOGLE", "CHANGE_OFFER", "CHANGE_PARAMETERS", "PROVISION_CLOUD_IDENTITY"]
-    #[serde(default, rename = "operationType")]
-    pub operation_type: ::core::option::Option<String>,
-}
-
-/// Represents Pub/Sub message content describing opportunity updates.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudChannelV1alpha1OpportunityEvent {
-    /// Type of event which happened for the opportunity. // TODO: enum values: ["TYPE_UNSPECIFIED", "CREATED", "UPDATED", "PARTNER_DETACHED"]
-    #[serde(default, rename = "eventType")]
-    pub event_type: ::core::option::Option<String>,
-    /// Resource name of the opportunity. Format: opportunities/{opportunity}
-    #[serde(default)]
-    pub opportunity: ::core::option::Option<String>,
-    /// Resource name of the partner. Format: partners/{partner}
-    #[serde(default)]
-    pub partner: ::core::option::Option<String>,
-}
-
-/// Definition for extended entitlement parameters.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudChannelV1alpha1Parameter {
-    /// Output only. Specifies whether this parameter is allowed to be changed. For example, for a Google Workspace Business Starter entitlement in commitment plan, num_units is editable when entitlement is active.
-    #[serde(default)]
-    pub editable: ::core::option::Option<bool>,
-    /// Name of the parameter.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Value of the parameter.
-    #[serde(default)]
-    pub value: ::core::option::Option<GoogleCloudChannelV1alpha1Value>,
-}
-
-/// Represents period in days/months/years.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudChannelV1alpha1Period {
-    /// Total duration of Period Type defined.
-    #[serde(default)]
-    pub duration: ::core::option::Option<i32>,
-    /// Period Type. // TODO: enum values: ["PERIOD_TYPE_UNSPECIFIED", "DAY", "MONTH", "YEAR"]
-    #[serde(default, rename = "periodType")]
-    pub period_type: ::core::option::Option<String>,
-}
-
-/// Service provisioned for an entitlement.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudChannelV1alpha1ProvisionedService {
-    /// Output only. The product pertaining to the provisioning resource as specified in the Offer.
-    #[serde(default, rename = "productId")]
-    pub product_id: ::core::option::Option<String>,
-    /// Output only. Provisioning ID of the entitlement. For Google Workspace, this is the underlying Subscription ID. For Google Cloud, this is the Billing Account ID of the billing subaccount.
-    #[serde(default, rename = "provisioningId")]
-    pub provisioning_id: ::core::option::Option<String>,
-    /// Output only. The SKU pertaining to the provisioning resource as specified in the Offer.
-    #[serde(default, rename = "skuId")]
-    pub sku_id: ::core::option::Option<String>,
-}
-
-/// Renewal settings for renewable Offers.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudChannelV1alpha1RenewalSettings {
-    /// If true, disables commitment-based offer on renewal and switches to flexible or pay as you go. Deprecated: Use payment_plan instead.
-    #[serde(default, rename = "disableCommitment")]
-    pub disable_commitment: ::core::option::Option<bool>,
-    /// If false, the plan will be completed at the end date.
-    #[serde(default, rename = "enableRenewal")]
-    pub enable_renewal: ::core::option::Option<bool>,
-    /// Describes how frequently the reseller will be billed, such as once per month.
-    #[serde(default, rename = "paymentCycle")]
-    pub payment_cycle: ::core::option::Option<GoogleCloudChannelV1alpha1Period>,
-    /// Set if enable_renewal=true. Deprecated: Use payment_cycle instead. // TODO: enum values: ["PAYMENT_OPTION_UNSPECIFIED", "ANNUAL", "MONTHLY"]
-    #[serde(default, rename = "paymentOption")]
-    pub payment_option: ::core::option::Option<String>,
-    /// Describes how a reseller will be billed. // TODO: enum values: ["PAYMENT_PLAN_UNSPECIFIED", "COMMITMENT", "FLEXIBLE", "FREE", "TRIAL", "OFFLINE"]
-    #[serde(default, rename = "paymentPlan")]
-    pub payment_plan: ::core::option::Option<String>,
-    /// If true and enable_renewal = true, the unit (for example seats or licenses) will be set to the number of active units at renewal time.
-    #[serde(default, rename = "resizeUnitCount")]
-    pub resize_unit_count: ::core::option::Option<bool>,
-    /// Output only. The offer resource name that the entitlement will renew on at the end date. Takes the form: accounts/{account_id}/offers/{offer_id}.
-    #[serde(default, rename = "scheduledRenewalOffer")]
-    pub scheduled_renewal_offer: ::core::option::Option<String>,
-}
-
-/// The ID and description of a report that was used to generate report data. For example, "Google Cloud Daily Spend", "Google Workspace License Activity", etc.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudChannelV1alpha1Report {
-    /// The list of columns included in the report. This defines the schema of the report results.
-    #[serde(default)]
-    pub columns: ::core::option::Option<::std::vec::Vec<GoogleCloudChannelV1alpha1Column>>,
-    /// A description of other aspects of the report, such as the products it supports.
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// A human-readable name for this report.
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-    /// Required. The report''s resource name. Specifies the account and report used to generate report data. The report_id identifier is a UID (for example, 613bf59q). Name uses the format: accounts/{account_id}/reports/{report_id}
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-}
-
-/// The result of a RunReportJob operation. Contains the name to use in FetchReportResultsRequest.report_job and the status of the operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudChannelV1alpha1ReportJob {
-    /// Required. The resource name of a report job. Name uses the format: accounts/{account_id}/reportJobs/{report_job_id}
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// The current status of report generation.
-    #[serde(default, rename = "reportStatus")]
-    pub report_status: ::core::option::Option<GoogleCloudChannelV1alpha1ReportStatus>,
-}
-
-/// The features describing the data. Returned by CloudChannelReportsService.RunReportJob and CloudChannelReportsService.FetchReportResults.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudChannelV1alpha1ReportResultsMetadata {
-    /// The date range of reported usage.
-    #[serde(default, rename = "dateRange")]
-    pub date_range: ::core::option::Option<GoogleCloudChannelV1alpha1DateRange>,
-    /// The usage dates immediately preceding date_range with the same duration. Use this to calculate trending usage and costs. This is only populated if you request trending data. For example, if date_range is July 1-15, preceding_date_range will be June 16-30.
-    #[serde(default, rename = "precedingDateRange")]
-    pub preceding_date_range: ::core::option::Option<GoogleCloudChannelV1alpha1DateRange>,
-    /// Details of the completed report.
-    #[serde(default)]
-    pub report: ::core::option::Option<GoogleCloudChannelV1alpha1Report>,
-    /// The total number of rows of data in the final report.
-    #[serde(default, rename = "rowCount")]
-    pub row_count: ::core::option::Option<String>,
-}
-
-/// Status of a report generation process.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudChannelV1alpha1ReportStatus {
-    /// The report generation''s completion time.
-    #[serde(default, rename = "endTime")]
-    pub end_time: ::core::option::Option<String>,
-    /// The report generation''s start time.
-    #[serde(default, rename = "startTime")]
-    pub start_time: ::core::option::Option<String>,
-    /// The current state of the report generation process. // TODO: enum values: ["STATE_UNSPECIFIED", "STARTED", "WRITING", "AVAILABLE", "FAILED"]
-    #[serde(default)]
-    pub state: ::core::option::Option<String>,
-}
-
-/// Response message for CloudChannelReportsService.RunReportJob.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudChannelV1alpha1RunReportJobResponse {
-    /// Pass report_job.name to FetchReportResultsRequest.report_job to retrieve the report''s results.
-    #[serde(default, rename = "reportJob")]
-    pub report_job: ::core::option::Option<GoogleCloudChannelV1alpha1ReportJob>,
-    /// The metadata for the report''s results (display name, columns, row count, and date range). If you view this before the operation finishes, you may see incomplete data.
-    #[serde(default, rename = "reportMetadata")]
-    pub report_metadata: ::core::option::Option<GoogleCloudChannelV1alpha1ReportResultsMetadata>,
-}
-
-/// Represents information which resellers will get as part of notification from Pub/Sub.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudChannelV1alpha1SubscriberEvent {
-    /// Channel Partner event sent as part of Pub/Sub event to partners.
-    #[serde(default, rename = "channelPartnerEvent")]
-    pub channel_partner_event:
-        ::core::option::Option<GoogleCloudChannelV1alpha1ChannelPartnerEvent>,
-    /// Customer event sent as part of Pub/Sub event to partners.
-    #[serde(default, rename = "customerEvent")]
-    pub customer_event: ::core::option::Option<GoogleCloudChannelV1alpha1CustomerEvent>,
-    /// Entitlement event sent as part of Pub/Sub event to partners.
-    #[serde(default, rename = "entitlementEvent")]
-    pub entitlement_event: ::core::option::Option<GoogleCloudChannelV1alpha1EntitlementEvent>,
-    /// Opportunity event sent as part of Pub/Sub event to partners/integrators.
-    #[serde(default, rename = "opportunityEvent")]
-    pub opportunity_event: ::core::option::Option<GoogleCloudChannelV1alpha1OpportunityEvent>,
-}
-
-/// Response message for CloudChannelService.TransferEntitlements. This is put in the response field of google.longrunning.Operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudChannelV1alpha1TransferEntitlementsResponse {
-    /// The transferred entitlements.
-    #[serde(default)]
-    pub entitlements:
-        ::core::option::Option<::std::vec::Vec<GoogleCloudChannelV1alpha1Entitlement>>,
-}
-
-/// Settings for trial offers.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudChannelV1alpha1TrialSettings {
-    /// Date when the trial ends. The value is in milliseconds using the UNIX Epoch format. See an example [Epoch converter](https://www.epochconverter.com).
-    #[serde(default, rename = "endTime")]
-    pub end_time: ::core::option::Option<String>,
-    /// Determines if the entitlement is in a trial or not: * true - The entitlement is in trial. * false - The entitlement is not in trial.
-    #[serde(default)]
-    pub trial: ::core::option::Option<bool>,
-}
-
-/// Data type and value of a parameter.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleCloudChannelV1alpha1Value {
-    /// Represents a boolean value.
-    #[serde(default, rename = "boolValue")]
-    pub bool_value: ::core::option::Option<bool>,
-    /// Represents a double value.
-    #[serde(default, rename = "doubleValue")]
-    pub double_value: ::core::option::Option<f64>,
-    /// Represents an int64 value.
-    #[serde(default, rename = "int64Value")]
-    pub int64_value: ::core::option::Option<String>,
-    /// Represents an ''Any'' proto value.
-    #[serde(default, rename = "protoValue")]
-    pub proto_value: ::core::option::Option<serde_json::Value>,
-    /// Represents a string value.
-    #[serde(default, rename = "stringValue")]
-    pub string_value: ::core::option::Option<String>,
-}
-
-/// The response message for Operations.ListOperations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleLongrunningListOperationsResponse {
-    /// The standard List next-page token.
-    #[serde(default, rename = "nextPageToken")]
-    pub next_page_token: ::core::option::Option<String>,
-    /// A list of operations that matches the specified filter in the request.
-    #[serde(default)]
-    pub operations: ::core::option::Option<::std::vec::Vec<GoogleLongrunningOperation>>,
-    /// Unordered list. Unreachable resources. Populated when the request sets ListOperationsRequest.return_partial_success and reads across collections. For example, when attempting to list all resources across all supported locations.
-    #[serde(default)]
-    pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
 /// This resource represents a long-running operation that is the result of a network API call.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleLongrunningOperation {
@@ -1968,6 +1166,421 @@ pub struct GoogleLongrunningOperation {
     pub response: ::core::option::Option<serde_json::Value>,
 }
 
+/// A single report value.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudChannelV1ReportValue {
+    /// A value of type google.type.DateTime (year, month, day, hour, minute, second, and UTC offset or timezone.)
+    #[serde(default, rename = "dateTimeValue")]
+    pub date_time_value: ::core::option::Option<GoogleTypeDateTime>,
+    /// A value of type google.type.Date (year, month, day).
+    #[serde(default, rename = "dateValue")]
+    pub date_value: ::core::option::Option<GoogleTypeDate>,
+    /// A value of type google.type.Decimal, representing non-integer numeric values.
+    #[serde(default, rename = "decimalValue")]
+    pub decimal_value: ::core::option::Option<GoogleTypeDecimal>,
+    /// A value of type int.
+    #[serde(default, rename = "intValue")]
+    pub int_value: ::core::option::Option<String>,
+    /// A value of type google.type.Money (currency code, whole units, decimal units).
+    #[serde(default, rename = "moneyValue")]
+    pub money_value: ::core::option::Option<GoogleTypeMoney>,
+    /// A value of type string.
+    #[serde(default, rename = "stringValue")]
+    pub string_value: ::core::option::Option<String>,
+}
+
+/// Configuration for repricing a Google bill over a period of time.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudChannelV1RepricingConfig {
+    /// Required. Information about the adjustment.
+    #[serde(default)]
+    pub adjustment: ::core::option::Option<GoogleCloudChannelV1RepricingAdjustment>,
+    /// Applies the repricing configuration at the channel partner level. Only ChannelPartnerRepricingConfig supports this value. Deprecated: This is no longer supported. Use RepricingConfig.entitlement_granularity instead.
+    #[serde(default, rename = "channelPartnerGranularity")]
+    pub channel_partner_granularity: ::core::option::Option<serde_json::Value>,
+    /// The conditional overrides to apply for this configuration. If you list multiple overrides, only the first valid override is used. If you don''t list any overrides, the API uses the normal adjustment and rebilling basis.
+    #[serde(default, rename = "conditionalOverrides")]
+    pub conditional_overrides:
+        ::core::option::Option<::std::vec::Vec<GoogleCloudChannelV1ConditionalOverride>>,
+    /// Required. The YearMonth when these adjustments activate. The Day field needs to be "0" since we only accept YearMonth repricing boundaries.
+    #[serde(default, rename = "effectiveInvoiceMonth")]
+    pub effective_invoice_month: ::core::option::Option<GoogleTypeDate>,
+    /// Required. Applies the repricing configuration at the entitlement level. Note: If a ChannelPartnerRepricingConfig using RepricingConfig.EntitlementGranularity becomes effective, then no existing or future RepricingConfig.ChannelPartnerGranularity will apply to the RepricingConfig.EntitlementGranularity.entitlement. This is the recommended value for both CustomerRepricingConfig and ChannelPartnerRepricingConfig.
+    #[serde(default, rename = "entitlementGranularity")]
+    pub entitlement_granularity:
+        ::core::option::Option<GoogleCloudChannelV1RepricingConfigEntitlementGranularity>,
+    /// Required. The RebillingBasis to use for this bill. Specifies the relative cost based on repricing costs you will apply. // TODO: enum values: ["REBILLING_BASIS_UNSPECIFIED", "COST_AT_LIST", "DIRECT_CUSTOMER_COST"]
+    #[serde(default, rename = "rebillingBasis")]
+    pub rebilling_basis: ::core::option::Option<String>,
+}
+
+/// Represents a postal address, such as for postal delivery or payments addresses. With a postal address, a postal service can deliver items to a premise, P.O. box, or similar. A postal address is not intended to model geographical locations like roads, towns, or mountains. In typical usage, an address would be created by user input or from importing existing data, depending on the type of process. Advice on address input or editing: - Use an internationalization-ready address widget such as https://github.com/google/libaddressinput. - Users should not be presented with UI elements for input or editing of fields outside countries where that field is used. For more guidance on how to use this schema, see: https://support.google.com/business/answer/6397478.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleTypePostalAddress {
+    /// Unstructured address lines describing the lower levels of an address. Because values in address_lines do not have type information and may sometimes contain multiple values in a single field (for example, "Austin, TX"), it is important that the line order is clear. The order of address lines should be "envelope order" for the country or region of the address. In places where this can vary (for example, Japan), address_language is used to make it explicit (for example, "ja" for large-to-small ordering and "ja-Latn" or "en" for small-to-large). In this way, the most specific line of an address can be selected based on the language. The minimum permitted structural representation of an address consists of a region_code with all remaining information placed in the address_lines. It would be possible to format such an address very approximately without geocoding, but no semantic reasoning could be made about any of the address components until it was at least partially resolved. Creating an address only containing a region_code and address_lines and then geocoding is the recommended way to handle completely unstructured addresses (as opposed to guessing which parts of the address should be localities or administrative areas).
+    #[serde(default, rename = "addressLines")]
+    pub address_lines: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Optional. Highest administrative subdivision which is used for postal addresses of a country or region. For example, this can be a state, a province, an oblast, or a prefecture. For Spain, this is the province and not the autonomous community (for example, "Barcelona" and not "Catalonia"). Many countries don''t use an administrative area in postal addresses. For example, in Switzerland, this should be left unpopulated.
+    #[serde(default, rename = "administrativeArea")]
+    pub administrative_area: ::core::option::Option<String>,
+    /// Optional. BCP-47 language code of the contents of this address (if known). This is often the UI language of the input form or is expected to match one of the languages used in the address'' country/region, or their transliterated equivalents. This can affect formatting in certain countries, but is not critical to the correctness of the data and will never affect any validation or other non-formatting related operations. If this value is not known, it should be omitted (rather than specifying a possibly incorrect default). Examples: "zh-Hant", "ja", "ja-Latn", "en".
+    #[serde(default, rename = "languageCode")]
+    pub language_code: ::core::option::Option<String>,
+    /// Optional. Generally refers to the city or town portion of the address. Examples: US city, IT comune, UK post town. In regions of the world where localities are not well defined or do not fit into this structure well, leave locality empty and use address_lines.
+    #[serde(default)]
+    pub locality: ::core::option::Option<String>,
+    /// Optional. The name of the organization at the address.
+    #[serde(default)]
+    pub organization: ::core::option::Option<String>,
+    /// Optional. Postal code of the address. Not all countries use or require postal codes to be present, but where they are used, they may trigger additional validation with other parts of the address (for example, state or zip code validation in the United States).
+    #[serde(default, rename = "postalCode")]
+    pub postal_code: ::core::option::Option<String>,
+    /// Optional. The recipient at the address. This field may, under certain circumstances, contain multiline information. For example, it might contain "care of" information.
+    #[serde(default)]
+    pub recipients: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Required. CLDR region code of the country/region of the address. This is never inferred and it is up to the user to ensure the value is correct. See https://cldr.unicode.org/ and https://www.unicode.org/cldr/charts/30/supplemental/territory_information.html for details. Example: "CH" for Switzerland.
+    #[serde(default, rename = "regionCode")]
+    pub region_code: ::core::option::Option<String>,
+    /// The schema revision of the PostalAddress. This must be set to 0, which is the latest revision. All new revisions **must** be backward compatible with old revisions.
+    #[serde(default)]
+    pub revision: ::core::option::Option<i32>,
+    /// Optional. Additional, country-specific, sorting code. This is not used in most regions. Where it is used, the value is either a string like "CEDEX", optionally followed by a number (for example, "CEDEX 7"), or just a number alone, representing the "sector code" (Jamaica), "delivery area indicator" (Malawi) or "post office indicator" (Côte d''Ivoire).
+    #[serde(default, rename = "sortingCode")]
+    pub sorting_code: ::core::option::Option<String>,
+    /// Optional. Sublocality of the address. For example, this can be a neighborhood, borough, or district.
+    #[serde(default)]
+    pub sublocality: ::core::option::Option<String>,
+}
+
+/// Contact information for a customer account.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudChannelV1ContactInfo {
+    /// Output only. The customer account contact''s display name, formatted as a combination of the customer''s first and last name.
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+    /// The customer account''s contact email. Required for entitlements that create admin.google.com accounts, and serves as the customer''s username for those accounts. Use this email to invite Team customers.
+    #[serde(default)]
+    pub email: ::core::option::Option<String>,
+    /// The customer account contact''s first name. Optional for Team customers.
+    #[serde(default, rename = "firstName")]
+    pub first_name: ::core::option::Option<String>,
+    /// The customer account contact''s last name. Optional for Team customers.
+    #[serde(default, rename = "lastName")]
+    pub last_name: ::core::option::Option<String>,
+    /// The customer account''s contact phone number.
+    #[serde(default)]
+    pub phone: ::core::option::Option<String>,
+    /// Optional. The customer account contact''s job title.
+    #[serde(default)]
+    pub title: ::core::option::Option<String>,
+}
+
+/// Represents an offer made to resellers for purchase. An offer is associated with a Sku, has a plan for payment, a price, and defines the constraints for buying.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudChannelV1Offer {
+    /// Constraints on transacting the Offer.
+    #[serde(default)]
+    pub constraints: ::core::option::Option<GoogleCloudChannelV1Constraints>,
+    /// The deal code of the offer to get a special promotion or discount.
+    #[serde(default, rename = "dealCode")]
+    pub deal_code: ::core::option::Option<String>,
+    /// Output only. End of the Offer validity time.
+    #[serde(default, rename = "endTime")]
+    pub end_time: ::core::option::Option<String>,
+    /// Marketing information for the Offer.
+    #[serde(default, rename = "marketingInfo")]
+    pub marketing_info: ::core::option::Option<GoogleCloudChannelV1MarketingInfo>,
+    /// Resource Name of the Offer. Format: accounts/{account_id}/offers/{offer_id}
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Parameters required to use current Offer to purchase.
+    #[serde(default, rename = "parameterDefinitions")]
+    pub parameter_definitions:
+        ::core::option::Option<::std::vec::Vec<GoogleCloudChannelV1ParameterDefinition>>,
+    /// Describes the payment plan for the Offer.
+    #[serde(default)]
+    pub plan: ::core::option::Option<GoogleCloudChannelV1Plan>,
+    /// Price for each monetizable resource type.
+    #[serde(default, rename = "priceByResources")]
+    pub price_by_resources:
+        ::core::option::Option<::std::vec::Vec<GoogleCloudChannelV1PriceByResource>>,
+    /// SKU the offer is associated with.
+    #[serde(default)]
+    pub sku: ::core::option::Option<GoogleCloudChannelV1Sku>,
+    /// Start of the Offer validity time.
+    #[serde(default, rename = "startTime")]
+    pub start_time: ::core::option::Option<String>,
+}
+
+/// Specifies transfer eligibility of a SKU.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudChannelV1TransferEligibility {
+    /// Localized description if reseller is not eligible to transfer the SKU.
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+    /// Specified the reason for ineligibility. // TODO: enum values: ["REASON_UNSPECIFIED", "PENDING_TOS_ACCEPTANCE", "SKU_NOT_ELIGIBLE", "SKU_SUSPENDED", "CHANNEL_PARTNER_NOT_AUTHORIZED_FOR_SKU"]
+    #[serde(default, rename = "ineligibilityReason")]
+    pub ineligibility_reason: ::core::option::Option<String>,
+    /// Whether reseller is eligible to transfer the SKU.
+    #[serde(default, rename = "isEligible")]
+    pub is_eligible: ::core::option::Option<bool>,
+}
+
+/// Represents a billing account that can be used to make a purchase.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudChannelV1BillingAccountPurchaseInfo {
+    /// The billing account resource.
+    #[serde(default, rename = "billingAccount")]
+    pub billing_account: ::core::option::Option<GoogleCloudChannelV1BillingAccount>,
+}
+
+/// Status of a report generation process.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudChannelV1ReportStatus {
+    /// The report generation''s completion time.
+    #[serde(default, rename = "endTime")]
+    pub end_time: ::core::option::Option<String>,
+    /// The report generation''s start time.
+    #[serde(default, rename = "startTime")]
+    pub start_time: ::core::option::Option<String>,
+    /// The current state of the report generation process. // TODO: enum values: ["STATE_UNSPECIFIED", "STARTED", "WRITING", "AVAILABLE", "FAILED"]
+    #[serde(default)]
+    pub state: ::core::option::Option<String>,
+}
+
+/// A representation of usage or invoice date ranges.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudChannelV1DateRange {
+    /// The latest invoice date (inclusive). If this value is not the last day of a month, this will move it forward to the last day of the given month.
+    #[serde(default, rename = "invoiceEndDate")]
+    pub invoice_end_date: ::core::option::Option<GoogleTypeDate>,
+    /// The earliest invoice date (inclusive). If this value is not the first day of a month, this will move it back to the first day of the given month.
+    #[serde(default, rename = "invoiceStartDate")]
+    pub invoice_start_date: ::core::option::Option<GoogleTypeDate>,
+    /// The latest usage date time (exclusive). If you use time groupings (daily, weekly, etc), each group uses midnight to midnight (Pacific time). The usage end date is rounded down to include all usage from the specified date. We recommend that clients pass usage_start_date_time in Pacific time.
+    #[serde(default, rename = "usageEndDateTime")]
+    pub usage_end_date_time: ::core::option::Option<GoogleTypeDateTime>,
+    /// The earliest usage date time (inclusive). If you use time groupings (daily, weekly, etc), each group uses midnight to midnight (Pacific time). The usage start date is rounded down to include all usage from the specified date. We recommend that clients pass usage_start_date_time in Pacific time.
+    #[serde(default, rename = "usageStartDateTime")]
+    pub usage_start_date_time: ::core::option::Option<GoogleTypeDateTime>,
+}
+
+/// The ID and description of a report that was used to generate report data. For example, "Google Cloud Daily Spend", "Google Workspace License Activity", etc.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudChannelV1Report {
+    /// The list of columns included in the report. This defines the schema of the report results.
+    #[serde(default)]
+    pub columns: ::core::option::Option<::std::vec::Vec<GoogleCloudChannelV1Column>>,
+    /// A description of other aspects of the report, such as the products it supports.
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+    /// A human-readable name for this report.
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+    /// Required. The report''s resource name. Specifies the account and report used to generate report data. The report_id identifier is a UID (for example, 613bf59q). Name uses the format: accounts/{account_id}/reports/{report_id}
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+}
+
+/// Association links that an entitlement has to other entitlements.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudChannelV1AssociationInfo {
+    /// The name of the base entitlement, for which this entitlement is an add-on.
+    #[serde(default, rename = "baseEntitlement")]
+    pub base_entitlement: ::core::option::Option<String>,
+}
+
+/// Commitment settings for commitment-based offers.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudChannelV1CommitmentSettings {
+    /// Output only. Commitment end timestamp.
+    #[serde(default, rename = "endTime")]
+    pub end_time: ::core::option::Option<String>,
+    /// Optional. Renewal settings applicable for a commitment-based Offer.
+    #[serde(default, rename = "renewalSettings")]
+    pub renewal_settings: ::core::option::Option<GoogleCloudChannelV1RenewalSettings>,
+    /// Output only. Commitment start timestamp.
+    #[serde(default, rename = "startTime")]
+    pub start_time: ::core::option::Option<String>,
+}
+
+/// Definition for extended entitlement parameters.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudChannelV1Parameter {
+    /// Output only. Specifies whether this parameter is allowed to be changed. For example, for a Google Workspace Business Starter entitlement in commitment plan, num_units is editable when entitlement is active.
+    #[serde(default)]
+    pub editable: ::core::option::Option<bool>,
+    /// Name of the parameter.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Value of the parameter.
+    #[serde(default)]
+    pub value: ::core::option::Option<GoogleCloudChannelV1Value>,
+}
+
+/// Service provisioned for an entitlement.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudChannelV1ProvisionedService {
+    /// Output only. The product pertaining to the provisioning resource as specified in the Offer.
+    #[serde(default, rename = "productId")]
+    pub product_id: ::core::option::Option<String>,
+    /// Output only. Provisioning ID of the entitlement. For Google Workspace, this is the underlying Subscription ID. For Google Cloud, this is the Billing Account ID of the billing subaccount.
+    #[serde(default, rename = "provisioningId")]
+    pub provisioning_id: ::core::option::Option<String>,
+    /// Output only. The SKU pertaining to the provisioning resource as specified in the Offer.
+    #[serde(default, rename = "skuId")]
+    pub sku_id: ::core::option::Option<String>,
+}
+
+/// Settings for trial offers.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudChannelV1TrialSettings {
+    /// Date when the trial ends. The value is in milliseconds using the UNIX Epoch format. See an example [Epoch converter](https://www.epochconverter.com).
+    #[serde(default, rename = "endTime")]
+    pub end_time: ::core::option::Option<String>,
+    /// Determines if the entitlement is in a trial or not: * true - The entitlement is in trial. * false - The entitlement is not in trial.
+    #[serde(default)]
+    pub trial: ::core::option::Option<bool>,
+}
+
+/// Cloud Identity information for the Cloud Channel Customer.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudChannelV1CloudIdentityInfo {
+    /// Output only. URI of Customer''s Admin console dashboard.
+    #[serde(default, rename = "adminConsoleUri")]
+    pub admin_console_uri: ::core::option::Option<String>,
+    /// The alternate email.
+    #[serde(default, rename = "alternateEmail")]
+    pub alternate_email: ::core::option::Option<String>,
+    /// CustomerType indicates verification type needed for using services. // TODO: enum values: ["CUSTOMER_TYPE_UNSPECIFIED", "DOMAIN", "TEAM"]
+    #[serde(default, rename = "customerType")]
+    pub customer_type: ::core::option::Option<String>,
+    /// Edu information about the customer.
+    #[serde(default, rename = "eduData")]
+    pub edu_data: ::core::option::Option<GoogleCloudChannelV1EduData>,
+    /// Output only. Whether the domain is verified. This field is not returned for a Customer''s cloud_identity_info resource. Partners can use the domains.get() method of the Workspace SDK''s Directory API, or listen to the PRIMARY_DOMAIN_VERIFIED Pub/Sub event in to track domain verification of their resolve Workspace customers.
+    #[serde(default, rename = "isDomainVerified")]
+    pub is_domain_verified: ::core::option::Option<bool>,
+    /// Language code.
+    #[serde(default, rename = "languageCode")]
+    pub language_code: ::core::option::Option<String>,
+    /// Phone number associated with the Cloud Identity.
+    #[serde(default, rename = "phoneNumber")]
+    pub phone_number: ::core::option::Option<String>,
+    /// Output only. The primary domain name.
+    #[serde(default, rename = "primaryDomain")]
+    pub primary_domain: ::core::option::Option<String>,
+}
+
+/// Status of a report generation process.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudChannelV1alpha1ReportStatus {
+    /// The report generation''s completion time.
+    #[serde(default, rename = "endTime")]
+    pub end_time: ::core::option::Option<String>,
+    /// The report generation''s start time.
+    #[serde(default, rename = "startTime")]
+    pub start_time: ::core::option::Option<String>,
+    /// The current state of the report generation process. // TODO: enum values: ["STATE_UNSPECIFIED", "STARTED", "WRITING", "AVAILABLE", "FAILED"]
+    #[serde(default)]
+    pub state: ::core::option::Option<String>,
+}
+
+/// A representation of usage or invoice date ranges.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudChannelV1alpha1DateRange {
+    /// The latest invoice date (inclusive). If this value is not the last day of a month, this will move it forward to the last day of the given month.
+    #[serde(default, rename = "invoiceEndDate")]
+    pub invoice_end_date: ::core::option::Option<GoogleTypeDate>,
+    /// The earliest invoice date (inclusive). If this value is not the first day of a month, this will move it back to the first day of the given month.
+    #[serde(default, rename = "invoiceStartDate")]
+    pub invoice_start_date: ::core::option::Option<GoogleTypeDate>,
+    /// The latest usage date time (exclusive). If you use time groupings (daily, weekly, etc), each group uses midnight to midnight (Pacific time). The usage end date is rounded down to include all usage from the specified date. We recommend that clients pass usage_start_date_time in Pacific time.
+    #[serde(default, rename = "usageEndDateTime")]
+    pub usage_end_date_time: ::core::option::Option<GoogleTypeDateTime>,
+    /// The earliest usage date time (inclusive). If you use time groupings (daily, weekly, etc), each group uses midnight to midnight (Pacific time). The usage start date is rounded down to include all usage from the specified date. We recommend that clients pass usage_start_date_time in Pacific time.
+    #[serde(default, rename = "usageStartDateTime")]
+    pub usage_start_date_time: ::core::option::Option<GoogleTypeDateTime>,
+}
+
+/// The ID and description of a report that was used to generate report data. For example, "Google Cloud Daily Spend", "Google Workspace License Activity", etc.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudChannelV1alpha1Report {
+    /// The list of columns included in the report. This defines the schema of the report results.
+    #[serde(default)]
+    pub columns: ::core::option::Option<::std::vec::Vec<GoogleCloudChannelV1alpha1Column>>,
+    /// A description of other aspects of the report, such as the products it supports.
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+    /// A human-readable name for this report.
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+    /// Required. The report''s resource name. Specifies the account and report used to generate report data. The report_id identifier is a UID (for example, 613bf59q). Name uses the format: accounts/{account_id}/reports/{report_id}
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+}
+
+/// Association links that an entitlement has to other entitlements.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudChannelV1alpha1AssociationInfo {
+    /// The name of the base entitlement, for which this entitlement is an add-on.
+    #[serde(default, rename = "baseEntitlement")]
+    pub base_entitlement: ::core::option::Option<String>,
+}
+
+/// Commitment settings for commitment-based offers.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudChannelV1alpha1CommitmentSettings {
+    /// Output only. Commitment end timestamp.
+    #[serde(default, rename = "endTime")]
+    pub end_time: ::core::option::Option<String>,
+    /// Optional. Renewal settings applicable for a commitment-based Offer.
+    #[serde(default, rename = "renewalSettings")]
+    pub renewal_settings: ::core::option::Option<GoogleCloudChannelV1alpha1RenewalSettings>,
+    /// Output only. Commitment start timestamp.
+    #[serde(default, rename = "startTime")]
+    pub start_time: ::core::option::Option<String>,
+}
+
+/// Definition for extended entitlement parameters.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudChannelV1alpha1Parameter {
+    /// Output only. Specifies whether this parameter is allowed to be changed. For example, for a Google Workspace Business Starter entitlement in commitment plan, num_units is editable when entitlement is active.
+    #[serde(default)]
+    pub editable: ::core::option::Option<bool>,
+    /// Name of the parameter.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Value of the parameter.
+    #[serde(default)]
+    pub value: ::core::option::Option<GoogleCloudChannelV1alpha1Value>,
+}
+
+/// Service provisioned for an entitlement.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudChannelV1alpha1ProvisionedService {
+    /// Output only. The product pertaining to the provisioning resource as specified in the Offer.
+    #[serde(default, rename = "productId")]
+    pub product_id: ::core::option::Option<String>,
+    /// Output only. Provisioning ID of the entitlement. For Google Workspace, this is the underlying Subscription ID. For Google Cloud, this is the Billing Account ID of the billing subaccount.
+    #[serde(default, rename = "provisioningId")]
+    pub provisioning_id: ::core::option::Option<String>,
+    /// Output only. The SKU pertaining to the provisioning resource as specified in the Offer.
+    #[serde(default, rename = "skuId")]
+    pub sku_id: ::core::option::Option<String>,
+}
+
+/// Settings for trial offers.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudChannelV1alpha1TrialSettings {
+    /// Date when the trial ends. The value is in milliseconds using the UNIX Epoch format. See an example [Epoch converter](https://www.epochconverter.com).
+    #[serde(default, rename = "endTime")]
+    pub end_time: ::core::option::Option<String>,
+    /// Determines if the entitlement is in a trial or not: * true - The entitlement is in trial. * false - The entitlement is not in trial.
+    #[serde(default)]
+    pub trial: ::core::option::Option<bool>,
+}
+
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleRpcStatus {
@@ -1980,6 +1593,172 @@ pub struct GoogleRpcStatus {
     /// A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.
     #[serde(default)]
     pub message: ::core::option::Option<String>,
+}
+
+/// Specifies the override to conditionally apply.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudChannelV1ConditionalOverride {
+    /// Required. Information about the applied override''s adjustment.
+    #[serde(default)]
+    pub adjustment: ::core::option::Option<GoogleCloudChannelV1RepricingAdjustment>,
+    /// Required. The RebillingBasis to use for the applied override. Shows the relative cost based on your repricing costs. // TODO: enum values: ["REBILLING_BASIS_UNSPECIFIED", "COST_AT_LIST", "DIRECT_CUSTOMER_COST"]
+    #[serde(default, rename = "rebillingBasis")]
+    pub rebilling_basis: ::core::option::Option<String>,
+    /// Required. Specifies the condition which, if met, will apply the override.
+    #[serde(default, rename = "repricingCondition")]
+    pub repricing_condition: ::core::option::Option<GoogleCloudChannelV1RepricingCondition>,
+}
+
+/// Applies the repricing configuration at the entitlement level.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudChannelV1RepricingConfigEntitlementGranularity {
+    /// Resource name of the entitlement. Format: accounts/{account_id}/customers/{customer_id}/entitlements/{entitlement_id}
+    #[serde(default)]
+    pub entitlement: ::core::option::Option<String>,
+}
+
+/// Represents the constraints for buying the Offer.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudChannelV1Constraints {
+    /// Represents constraints required to purchase the Offer for a customer.
+    #[serde(default, rename = "customerConstraints")]
+    pub customer_constraints: ::core::option::Option<GoogleCloudChannelV1CustomerConstraints>,
+}
+
+/// Parameter''s definition. Specifies what parameter is required to use the current Offer to purchase.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudChannelV1ParameterDefinition {
+    /// If not empty, parameter values must be drawn from this list. For example, [us-west1, us-west2, ...] Applicable to STRING parameter type.
+    #[serde(default, rename = "allowedValues")]
+    pub allowed_values: ::core::option::Option<::std::vec::Vec<GoogleCloudChannelV1Value>>,
+    /// Maximum value of the parameter, if applicable. Inclusive. For example, maximum seats when purchasing Google Workspace Business Standard. Applicable to INT64 and DOUBLE parameter types.
+    #[serde(default, rename = "maxValue")]
+    pub max_value: ::core::option::Option<GoogleCloudChannelV1Value>,
+    /// Minimal value of the parameter, if applicable. Inclusive. For example, minimal commitment when purchasing Anthos is 0.01. Applicable to INT64 and DOUBLE parameter types.
+    #[serde(default, rename = "minValue")]
+    pub min_value: ::core::option::Option<GoogleCloudChannelV1Value>,
+    /// Name of the parameter.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// If set to true, parameter is optional to purchase this Offer.
+    #[serde(default)]
+    pub optional: ::core::option::Option<bool>,
+    /// Data type of the parameter. Minimal value, Maximum value and allowed values will use specified data type here. // TODO: enum values: ["PARAMETER_TYPE_UNSPECIFIED", "INT64", "STRING", "DOUBLE", "BOOLEAN"]
+    #[serde(default, rename = "parameterType")]
+    pub parameter_type: ::core::option::Option<String>,
+}
+
+/// The payment plan for the Offer. Describes how to make a payment.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudChannelV1Plan {
+    /// Reseller Billing account to charge after an offer transaction. Only present for Google Cloud offers.
+    #[serde(default, rename = "billingAccount")]
+    pub billing_account: ::core::option::Option<String>,
+    /// Describes how frequently the reseller will be billed, such as once per month.
+    #[serde(default, rename = "paymentCycle")]
+    pub payment_cycle: ::core::option::Option<GoogleCloudChannelV1Period>,
+    /// Describes how a reseller will be billed. // TODO: enum values: ["PAYMENT_PLAN_UNSPECIFIED", "COMMITMENT", "FLEXIBLE", "FREE", "TRIAL", "OFFLINE"]
+    #[serde(default, rename = "paymentPlan")]
+    pub payment_plan: ::core::option::Option<String>,
+    /// Specifies when the payment needs to happen. // TODO: enum values: ["PAYMENT_TYPE_UNSPECIFIED", "PREPAY", "POSTPAY"]
+    #[serde(default, rename = "paymentType")]
+    pub payment_type: ::core::option::Option<String>,
+    /// Present for Offers with a trial period. For trial-only Offers, a paid service needs to start before the trial period ends for continued service. For Regular Offers with a trial period, the regular pricing goes into effect when trial period ends, or if paid service is started before the end of the trial period.
+    #[serde(default, rename = "trialPeriod")]
+    pub trial_period: ::core::option::Option<GoogleCloudChannelV1Period>,
+}
+
+/// Represents price by resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudChannelV1PriceByResource {
+    /// Price of the Offer. Present if there are no price phases.
+    #[serde(default)]
+    pub price: ::core::option::Option<GoogleCloudChannelV1Price>,
+    /// Specifies the price by time range.
+    #[serde(default, rename = "pricePhases")]
+    pub price_phases: ::core::option::Option<::std::vec::Vec<GoogleCloudChannelV1PricePhase>>,
+    /// Resource Type. Example: SEAT // TODO: enum values: ["RESOURCE_TYPE_UNSPECIFIED", "SEAT", "MAU", "GB", "LICENSED_USER", "MINUTES", "IAAS_USAGE", "SUBSCRIPTION"]
+    #[serde(default, rename = "resourceType")]
+    pub resource_type: ::core::option::Option<String>,
+}
+
+/// Represents a product''s purchasable Stock Keeping Unit (SKU). SKUs represent the different variations of the product. For example, Google Workspace Business Standard and Google Workspace Business Plus are Google Workspace product SKUs.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudChannelV1Sku {
+    /// Marketing information for the SKU.
+    #[serde(default, rename = "marketingInfo")]
+    pub marketing_info: ::core::option::Option<GoogleCloudChannelV1MarketingInfo>,
+    /// Resource Name of the SKU. Format: products/{product_id}/skus/{sku_id}
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Product the SKU is associated with.
+    #[serde(default)]
+    pub product: ::core::option::Option<GoogleCloudChannelV1Product>,
+}
+
+/// Represents a billing account.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudChannelV1BillingAccount {
+    /// Output only. The time when this billing account was created.
+    #[serde(default, rename = "createTime")]
+    pub create_time: ::core::option::Option<String>,
+    /// Output only. The 3-letter currency code defined in ISO 4217.
+    #[serde(default, rename = "currencyCode")]
+    pub currency_code: ::core::option::Option<String>,
+    /// Display name of the billing account.
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+    /// Output only. Resource name of the billing account. Format: accounts/{account_id}/billingAccounts/{billing_account_id}.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Output only. The CLDR region code.
+    #[serde(default, rename = "regionCode")]
+    pub region_code: ::core::option::Option<String>,
+}
+
+/// The definition of a report column. Specifies the data properties in the corresponding position of the report rows.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudChannelV1Column {
+    /// The unique name of the column (for example, customer_domain, channel_partner, customer_cost). You can use column IDs in RunReportJobRequest.filter. To see all reports and their columns, call CloudChannelReportsService.ListReports.
+    #[serde(default, rename = "columnId")]
+    pub column_id: ::core::option::Option<String>,
+    /// The type of the values for this column. // TODO: enum values: ["DATA_TYPE_UNSPECIFIED", "STRING", "INT", "DECIMAL", "MONEY", "DATE", "DATE_TIME"]
+    #[serde(default, rename = "dataType")]
+    pub data_type: ::core::option::Option<String>,
+    /// The column''s display name.
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+}
+
+/// Renewal settings for renewable Offers.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudChannelV1RenewalSettings {
+    /// If false, the plan will be completed at the end date.
+    #[serde(default, rename = "enableRenewal")]
+    pub enable_renewal: ::core::option::Option<bool>,
+    /// Describes how frequently the reseller will be billed, such as once per month.
+    #[serde(default, rename = "paymentCycle")]
+    pub payment_cycle: ::core::option::Option<GoogleCloudChannelV1Period>,
+    /// Describes how a reseller will be billed. // TODO: enum values: ["PAYMENT_PLAN_UNSPECIFIED", "COMMITMENT", "FLEXIBLE", "FREE", "TRIAL", "OFFLINE"]
+    #[serde(default, rename = "paymentPlan")]
+    pub payment_plan: ::core::option::Option<String>,
+    /// If true and enable_renewal = true, the unit (for example seats or licenses) will be set to the number of active units at renewal time.
+    #[serde(default, rename = "resizeUnitCount")]
+    pub resize_unit_count: ::core::option::Option<bool>,
+}
+
+/// Required Edu Attributes
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudChannelV1EduData {
+    /// Size of the institute. // TODO: enum values: ["INSTITUTE_SIZE_UNSPECIFIED", "SIZE_1_100", "SIZE_101_500", "SIZE_501_1000", "SIZE_1001_2000", "SIZE_2001_5000", "SIZE_5001_10000", "SIZE_10001_OR_MORE"]
+    #[serde(default, rename = "instituteSize")]
+    pub institute_size: ::core::option::Option<String>,
+    /// Designated institute type of customer. // TODO: enum values: ["INSTITUTE_TYPE_UNSPECIFIED", "K12", "UNIVERSITY"]
+    #[serde(default, rename = "instituteType")]
+    pub institute_type: ::core::option::Option<String>,
+    /// Web address for the edu customer''s institution.
+    #[serde(default)]
+    pub website: ::core::option::Option<String>,
 }
 
 /// Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp
@@ -2028,12 +1807,282 @@ pub struct GoogleTypeDateTime {
     pub year: ::core::option::Option<i32>,
 }
 
+/// The definition of a report column. Specifies the data properties in the corresponding position of the report rows.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudChannelV1alpha1Column {
+    /// The unique name of the column (for example, customer_domain, channel_partner, customer_cost). You can use column IDs in RunReportJobRequest.filter. To see all reports and their columns, call CloudChannelReportsService.ListReports.
+    #[serde(default, rename = "columnId")]
+    pub column_id: ::core::option::Option<String>,
+    /// The type of the values for this column. // TODO: enum values: ["DATA_TYPE_UNSPECIFIED", "STRING", "INT", "DECIMAL", "MONEY", "DATE", "DATE_TIME"]
+    #[serde(default, rename = "dataType")]
+    pub data_type: ::core::option::Option<String>,
+    /// The column''s display name.
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+}
+
+/// Renewal settings for renewable Offers.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudChannelV1alpha1RenewalSettings {
+    /// If true, disables commitment-based offer on renewal and switches to flexible or pay as you go. Deprecated: Use payment_plan instead.
+    #[serde(default, rename = "disableCommitment")]
+    pub disable_commitment: ::core::option::Option<bool>,
+    /// If false, the plan will be completed at the end date.
+    #[serde(default, rename = "enableRenewal")]
+    pub enable_renewal: ::core::option::Option<bool>,
+    /// Describes how frequently the reseller will be billed, such as once per month.
+    #[serde(default, rename = "paymentCycle")]
+    pub payment_cycle: ::core::option::Option<GoogleCloudChannelV1alpha1Period>,
+    /// Set if enable_renewal=true. Deprecated: Use payment_cycle instead. // TODO: enum values: ["PAYMENT_OPTION_UNSPECIFIED", "ANNUAL", "MONTHLY"]
+    #[serde(default, rename = "paymentOption")]
+    pub payment_option: ::core::option::Option<String>,
+    /// Describes how a reseller will be billed. // TODO: enum values: ["PAYMENT_PLAN_UNSPECIFIED", "COMMITMENT", "FLEXIBLE", "FREE", "TRIAL", "OFFLINE"]
+    #[serde(default, rename = "paymentPlan")]
+    pub payment_plan: ::core::option::Option<String>,
+    /// If true and enable_renewal = true, the unit (for example seats or licenses) will be set to the number of active units at renewal time.
+    #[serde(default, rename = "resizeUnitCount")]
+    pub resize_unit_count: ::core::option::Option<bool>,
+    /// Output only. The offer resource name that the entitlement will renew on at the end date. Takes the form: accounts/{account_id}/offers/{offer_id}.
+    #[serde(default, rename = "scheduledRenewalOffer")]
+    pub scheduled_renewal_offer: ::core::option::Option<String>,
+}
+
+/// Data type and value of a parameter.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudChannelV1alpha1Value {
+    /// Represents a boolean value.
+    #[serde(default, rename = "boolValue")]
+    pub bool_value: ::core::option::Option<bool>,
+    /// Represents a double value.
+    #[serde(default, rename = "doubleValue")]
+    pub double_value: ::core::option::Option<f64>,
+    /// Represents an int64 value.
+    #[serde(default, rename = "int64Value")]
+    pub int64_value: ::core::option::Option<String>,
+    /// Represents an ''Any'' proto value.
+    #[serde(default, rename = "protoValue")]
+    pub proto_value: ::core::option::Option<serde_json::Value>,
+    /// Represents a string value.
+    #[serde(default, rename = "stringValue")]
+    pub string_value: ::core::option::Option<String>,
+}
+
+/// A type that represents the various adjustments you can apply to a bill.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudChannelV1RepricingAdjustment {
+    /// Flat markup or markdown on an entire bill.
+    #[serde(default, rename = "percentageAdjustment")]
+    pub percentage_adjustment: ::core::option::Option<GoogleCloudChannelV1PercentageAdjustment>,
+}
+
+/// Represents the various repricing conditions you can use for a conditional override.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudChannelV1RepricingCondition {
+    /// SKU Group condition for override.
+    #[serde(default, rename = "skuGroupCondition")]
+    pub sku_group_condition: ::core::option::Option<GoogleCloudChannelV1SkuGroupCondition>,
+}
+
+/// Represents constraints required to purchase the Offer for a customer.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudChannelV1CustomerConstraints {
+    /// Allowed Customer Type.
+    #[serde(default, rename = "allowedCustomerTypes")]
+    pub allowed_customer_types: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Allowed geographical regions of the customer.
+    #[serde(default, rename = "allowedRegions")]
+    pub allowed_regions: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Allowed Promotional Order Type. Present for Promotional offers.
+    #[serde(default, rename = "promotionalOrderTypes")]
+    pub promotional_order_types: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// Data type and value of a parameter.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudChannelV1Value {
+    /// Represents a boolean value.
+    #[serde(default, rename = "boolValue")]
+    pub bool_value: ::core::option::Option<bool>,
+    /// Represents a double value.
+    #[serde(default, rename = "doubleValue")]
+    pub double_value: ::core::option::Option<f64>,
+    /// Represents an int64 value.
+    #[serde(default, rename = "int64Value")]
+    pub int64_value: ::core::option::Option<String>,
+    /// Represents an ''Any'' proto value.
+    #[serde(default, rename = "protoValue")]
+    pub proto_value: ::core::option::Option<serde_json::Value>,
+    /// Represents a string value.
+    #[serde(default, rename = "stringValue")]
+    pub string_value: ::core::option::Option<String>,
+}
+
+/// Specifies the price by the duration of months. For example, a 20% discount for the first six months, then a 10% discount starting on the seventh month.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudChannelV1PricePhase {
+    /// Defines first period for the phase.
+    #[serde(default, rename = "firstPeriod")]
+    pub first_period: ::core::option::Option<i32>,
+    /// Defines first period for the phase.
+    #[serde(default, rename = "lastPeriod")]
+    pub last_period: ::core::option::Option<i32>,
+    /// Defines the phase period type. // TODO: enum values: ["PERIOD_TYPE_UNSPECIFIED", "DAY", "MONTH", "YEAR"]
+    #[serde(default, rename = "periodType")]
+    pub period_type: ::core::option::Option<String>,
+    /// Price of the phase. Present if there are no price tiers.
+    #[serde(default)]
+    pub price: ::core::option::Option<GoogleCloudChannelV1Price>,
+    /// Price by the resource tiers.
+    #[serde(default, rename = "priceTiers")]
+    pub price_tiers: ::core::option::Option<::std::vec::Vec<GoogleCloudChannelV1PriceTier>>,
+}
+
+/// A Product is the entity a customer uses when placing an order. For example, Google Workspace, Google Voice, etc.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudChannelV1Product {
+    /// Marketing information for the product.
+    #[serde(default, rename = "marketingInfo")]
+    pub marketing_info: ::core::option::Option<GoogleCloudChannelV1MarketingInfo>,
+    /// Resource Name of the Product. Format: products/{product_id}
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+}
+
+/// Represents a time zone from the [IANA Time Zone Database](https://www.iana.org/time-zones).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleTypeTimeZone {
+    /// IANA Time Zone Database time zone. For example "America/New_York".
+    #[serde(default)]
+    pub id: ::core::option::Option<String>,
+    /// Optional. IANA Time Zone Database version number. For example "2019a".
+    #[serde(default)]
+    pub version: ::core::option::Option<String>,
+}
+
+/// Represents period in days/months/years.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudChannelV1alpha1Period {
+    /// Total duration of Period Type defined.
+    #[serde(default)]
+    pub duration: ::core::option::Option<i32>,
+    /// Period Type. // TODO: enum values: ["PERIOD_TYPE_UNSPECIFIED", "DAY", "MONTH", "YEAR"]
+    #[serde(default, rename = "periodType")]
+    pub period_type: ::core::option::Option<String>,
+}
+
+/// An adjustment that applies a flat markup or markdown to an entire bill.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudChannelV1PercentageAdjustment {
+    /// The percentage of the bill to adjust. For example: Mark down by 1% =&gt; "-1.00" Mark up by 1% =&gt; "1.00" Pass-Through =&gt; "0.00"
+    #[serde(default)]
+    pub percentage: ::core::option::Option<GoogleTypeDecimal>,
+}
+
+/// A condition that applies the override if a line item SKU is found in the SKU group.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudChannelV1SkuGroupCondition {
+    /// Specifies a SKU group (https://cloud.google.com/skus/sku-groups). Resource name of SKU group. Format: accounts/{account}/skuGroups/{sku_group}. Example: "accounts/C01234/skuGroups/3d50fd57-3157-4577-a5a9-a219b8490041".
+    #[serde(default, rename = "skuGroup")]
+    pub sku_group: ::core::option::Option<String>,
+}
+
+/// Defines price at resource tier level. For example, an offer with following definition : * Tier 1: Provide 25% discount for all seats between 1 and 25. * Tier 2: Provide 10% discount for all seats between 26 and 100. * Tier 3: Provide flat 15% discount for all seats above 100. Each of these tiers is represented as a PriceTier.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudChannelV1PriceTier {
+    /// First resource for which the tier price applies.
+    #[serde(default, rename = "firstResource")]
+    pub first_resource: ::core::option::Option<i32>,
+    /// Last resource for which the tier price applies.
+    #[serde(default, rename = "lastResource")]
+    pub last_resource: ::core::option::Option<i32>,
+    /// Price of the tier.
+    #[serde(default)]
+    pub price: ::core::option::Option<GoogleCloudChannelV1Price>,
+}
+
+/// Represents the marketing information for a Product, SKU or Offer.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudChannelV1MarketingInfo {
+    /// Default logo.
+    #[serde(default, rename = "defaultLogo")]
+    pub default_logo: ::core::option::Option<GoogleCloudChannelV1Media>,
+    /// Human readable description. Description can contain HTML.
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+    /// Human readable name.
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+}
+
 /// A representation of a decimal value, such as 2.5. Clients may convert values into language-native decimal formats, such as Java''s [BigDecimal](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/math/BigDecimal.html) or Python''s [decimal.Decimal](https://docs.python.org/3/library/decimal.html).
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleTypeDecimal {
     /// The decimal value, as a string. The string representation consists of an optional sign, + (U+002B) or - (U+002D), followed by a sequence of zero or more decimal digits ("the integer"), optionally followed by a fraction, optionally followed by an exponent. An empty string **should** be interpreted as 0. The fraction consists of a decimal point followed by zero or more decimal digits. The string must contain at least one digit in either the integer or the fraction. The number formed by the sign, the integer and the fraction is referred to as the significand. The exponent consists of the character e (U+0065) or E (U+0045) followed by one or more decimal digits. Services **should** normalize decimal values before storing them by: - Removing an explicitly-provided + sign (+2.5 -&gt; 2.5). - Replacing a zero-length integer value with 0 (.5 -&gt; 0.5). - Coercing the exponent character to upper-case, with explicit sign (2.5e8 -&gt; 2.5E+8). - Removing an explicitly-provided zero exponent (2.5E0 -&gt; 2.5). Services **may** perform additional normalization based on its own needs and the internal decimal implementation selected, such as shifting the decimal point and exponent value together (example: 2.5E-1 &lt;-&gt; 0.25). Additionally, services **may** preserve trailing zeroes in the fraction to indicate increased precision, but are not required to do so. Note that only the . character is supported to divide the integer and the fraction; , **should not** be supported regardless of locale. Additionally, thousand separators **should not** be supported. If a service does support them, values **must** be normalized. The ENBF grammar is: DecimalString = '''' | [Sign] Significand [Exponent]; Sign = ''+'' | ''-''; Significand = Digits ''.'' | [Digits] ''.'' Digits; Exponent = (''e'' | ''E'') [Sign] Digits; Digits = { ''0'' | ''1'' | ''2'' | ''3'' | ''4'' | ''5'' | ''6'' | ''7'' | ''8'' | ''9'' }; Services **should** clearly document the range of supported values, the maximum supported precision (total number of digits), and, if applicable, the scale (number of digits after the decimal point), as well as how it behaves when receiving out-of-bounds values. Services **may** choose to accept values passed as input even when the value has a higher precision or scale than the service supports, and **should** round the value to fit the supported scale. Alternatively, the service **may** error with 400 Bad Request (INVALID_ARGUMENT in gRPC) if precision would be lost. Services **should** error with 400 Bad Request (INVALID_ARGUMENT in gRPC) if the service receives a value outside of the supported range.
     #[serde(default)]
     pub value: ::core::option::Option<String>,
+}
+
+/// Represents the price of the Offer.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudChannelV1Price {
+    /// Base price.
+    #[serde(default, rename = "basePrice")]
+    pub base_price: ::core::option::Option<GoogleTypeMoney>,
+    /// Discount percentage, represented as decimal. For example, a 20% discount will be represent as 0.2.
+    #[serde(default)]
+    pub discount: ::core::option::Option<f64>,
+    /// Breakdown of the discount into its components. This will be empty if there is no discount present.
+    #[serde(default, rename = "discountComponents")]
+    pub discount_components:
+        ::core::option::Option<::std::vec::Vec<GoogleCloudChannelV1DiscountComponent>>,
+    /// Effective Price after applying the discounts.
+    #[serde(default, rename = "effectivePrice")]
+    pub effective_price: ::core::option::Option<GoogleTypeMoney>,
+    /// Link to external price list, such as link to Google Voice rate card.
+    #[serde(default, rename = "externalPriceUri")]
+    pub external_price_uri: ::core::option::Option<String>,
+    /// The time period with respect to which base and effective prices are defined. Example: 1 month, 6 months, 1 year, etc.
+    #[serde(default, rename = "pricePeriod")]
+    pub price_period: ::core::option::Option<GoogleCloudChannelV1Period>,
+}
+
+/// Represents media information.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudChannelV1Media {
+    /// URL of the media.
+    #[serde(default)]
+    pub content: ::core::option::Option<String>,
+    /// Title of the media.
+    #[serde(default)]
+    pub title: ::core::option::Option<String>,
+    /// Type of the media. // TODO: enum values: ["MEDIA_TYPE_UNSPECIFIED", "MEDIA_TYPE_IMAGE"]
+    #[serde(default, rename = "type")]
+    pub type_: ::core::option::Option<String>,
+}
+
+/// Represents a single component of the total discount applicable on a Price.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudChannelV1DiscountComponent {
+    /// Fixed value discount.
+    #[serde(default, rename = "discountAbsolute")]
+    pub discount_absolute: ::core::option::Option<GoogleTypeMoney>,
+    /// Discount percentage, represented as decimal. For example, a 20% discount will be represented as 0.2.
+    #[serde(default, rename = "discountPercentage")]
+    pub discount_percentage: ::core::option::Option<f64>,
+    /// Type of the discount. // TODO: enum values: ["DISCOUNT_TYPE_UNSPECIFIED", "REGIONAL_DISCOUNT", "PROMOTIONAL_DISCOUNT", "SALES_DISCOUNT", "RESELLER_MARGIN", "DEAL_CODE"]
+    #[serde(default, rename = "discountType")]
+    pub discount_type: ::core::option::Option<String>,
+}
+
+/// Represents period in days/months/years.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudChannelV1Period {
+    /// Total duration of Period Type defined.
+    #[serde(default)]
+    pub duration: ::core::option::Option<i32>,
+    /// Period Type. // TODO: enum values: ["PERIOD_TYPE_UNSPECIFIED", "DAY", "MONTH", "YEAR"]
+    #[serde(default, rename = "periodType")]
+    pub period_type: ::core::option::Option<String>,
 }
 
 /// Represents an amount of money with its currency type.
@@ -2048,53 +2097,4 @@ pub struct GoogleTypeMoney {
     /// The whole units of the amount. For example if currencyCode is "USD", then 1 unit is one US dollar.
     #[serde(default)]
     pub units: ::core::option::Option<String>,
-}
-
-/// Represents a postal address, such as for postal delivery or payments addresses. With a postal address, a postal service can deliver items to a premise, P.O. box, or similar. A postal address is not intended to model geographical locations like roads, towns, or mountains. In typical usage, an address would be created by user input or from importing existing data, depending on the type of process. Advice on address input or editing: - Use an internationalization-ready address widget such as https://github.com/google/libaddressinput. - Users should not be presented with UI elements for input or editing of fields outside countries where that field is used. For more guidance on how to use this schema, see: https://support.google.com/business/answer/6397478.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleTypePostalAddress {
-    /// Unstructured address lines describing the lower levels of an address. Because values in address_lines do not have type information and may sometimes contain multiple values in a single field (for example, "Austin, TX"), it is important that the line order is clear. The order of address lines should be "envelope order" for the country or region of the address. In places where this can vary (for example, Japan), address_language is used to make it explicit (for example, "ja" for large-to-small ordering and "ja-Latn" or "en" for small-to-large). In this way, the most specific line of an address can be selected based on the language. The minimum permitted structural representation of an address consists of a region_code with all remaining information placed in the address_lines. It would be possible to format such an address very approximately without geocoding, but no semantic reasoning could be made about any of the address components until it was at least partially resolved. Creating an address only containing a region_code and address_lines and then geocoding is the recommended way to handle completely unstructured addresses (as opposed to guessing which parts of the address should be localities or administrative areas).
-    #[serde(default, rename = "addressLines")]
-    pub address_lines: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Optional. Highest administrative subdivision which is used for postal addresses of a country or region. For example, this can be a state, a province, an oblast, or a prefecture. For Spain, this is the province and not the autonomous community (for example, "Barcelona" and not "Catalonia"). Many countries don''t use an administrative area in postal addresses. For example, in Switzerland, this should be left unpopulated.
-    #[serde(default, rename = "administrativeArea")]
-    pub administrative_area: ::core::option::Option<String>,
-    /// Optional. BCP-47 language code of the contents of this address (if known). This is often the UI language of the input form or is expected to match one of the languages used in the address'' country/region, or their transliterated equivalents. This can affect formatting in certain countries, but is not critical to the correctness of the data and will never affect any validation or other non-formatting related operations. If this value is not known, it should be omitted (rather than specifying a possibly incorrect default). Examples: "zh-Hant", "ja", "ja-Latn", "en".
-    #[serde(default, rename = "languageCode")]
-    pub language_code: ::core::option::Option<String>,
-    /// Optional. Generally refers to the city or town portion of the address. Examples: US city, IT comune, UK post town. In regions of the world where localities are not well defined or do not fit into this structure well, leave locality empty and use address_lines.
-    #[serde(default)]
-    pub locality: ::core::option::Option<String>,
-    /// Optional. The name of the organization at the address.
-    #[serde(default)]
-    pub organization: ::core::option::Option<String>,
-    /// Optional. Postal code of the address. Not all countries use or require postal codes to be present, but where they are used, they may trigger additional validation with other parts of the address (for example, state or zip code validation in the United States).
-    #[serde(default, rename = "postalCode")]
-    pub postal_code: ::core::option::Option<String>,
-    /// Optional. The recipient at the address. This field may, under certain circumstances, contain multiline information. For example, it might contain "care of" information.
-    #[serde(default)]
-    pub recipients: ::core::option::Option<::std::vec::Vec<String>>,
-    /// Required. CLDR region code of the country/region of the address. This is never inferred and it is up to the user to ensure the value is correct. See https://cldr.unicode.org/ and https://www.unicode.org/cldr/charts/30/supplemental/territory_information.html for details. Example: "CH" for Switzerland.
-    #[serde(default, rename = "regionCode")]
-    pub region_code: ::core::option::Option<String>,
-    /// The schema revision of the PostalAddress. This must be set to 0, which is the latest revision. All new revisions **must** be backward compatible with old revisions.
-    #[serde(default)]
-    pub revision: ::core::option::Option<i32>,
-    /// Optional. Additional, country-specific, sorting code. This is not used in most regions. Where it is used, the value is either a string like "CEDEX", optionally followed by a number (for example, "CEDEX 7"), or just a number alone, representing the "sector code" (Jamaica), "delivery area indicator" (Malawi) or "post office indicator" (Côte d''Ivoire).
-    #[serde(default, rename = "sortingCode")]
-    pub sorting_code: ::core::option::Option<String>,
-    /// Optional. Sublocality of the address. For example, this can be a neighborhood, borough, or district.
-    #[serde(default)]
-    pub sublocality: ::core::option::Option<String>,
-}
-
-/// Represents a time zone from the [IANA Time Zone Database](https://www.iana.org/time-zones).
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GoogleTypeTimeZone {
-    /// IANA Time Zone Database time zone. For example "America/New_York".
-    #[serde(default)]
-    pub id: ::core::option::Option<String>,
-    /// Optional. IANA Time Zone Database version number. For example "2019a".
-    #[serde(default)]
-    pub version: ::core::option::Option<String>,
 }
