@@ -4,7 +4,7 @@ spec_directory: "specifications/11-foundation-deployment"
 feature_directory: "specifications/11-foundation-deployment/features/22-provider-api-feature-flags"
 this_file: "specifications/11-foundation-deployment/features/22-provider-api-feature-flags/feature.md"
 
-status: pending
+status: shipped
 priority: high
 created: 2026-04-05
 updated: 2026-04-05
@@ -12,10 +12,10 @@ updated: 2026-04-05
 depends_on: ["20-gen-resource-types", "10-provider-spec-fetcher-core"]
 
 tasks:
-  completed: 0
-  uncompleted: 6
+  completed: 6
+  uncompleted: 0
   total: 6
-  completion_percentage: 0%
+  completion_percentage: 100%
 ---
 
 
@@ -182,24 +182,24 @@ foundation_deployment = { path = "../backends/foundation_deployment" }
 
 1. **Update Cargo.toml**
    - [x] Add provider-level feature flags
-   - [ ] Remove API-level feature flags (simplify)
+   - [x] Remove API-level feature flags (simplify)
 
 2. **Simplify generator**
-   - [ ] Remove dependency analysis code
-   - [ ] Use provider-level `cfg` only
-   - [ ] Generate clean, simple headers
+   - [x] Remove dependency analysis code
+   - [x] Use provider-level `cfg` only
+   - [x] Generate clean, simple headers
 
 3. **Verification**
-   - [ ] Test with `--no-default-features --features "gcp"`
-   - [ ] Verify compile time improvements
-   - [ ] Verify zero warnings
+   - [x] Test with `--no-default-features --features "gcp"`
+   - [x] Verify compile time improvements
+   - [x] Verify zero warnings
 
 ## Success Criteria
 
-- [ ] Generator produces simple `#![cfg(feature = "provider")]` headers
-- [ ] No dependency analysis complexity
-- [ ] Users can exclude providers they don't need
-- [ ] Clean, maintainable generator code
+- [x] Generator produces simple `#![cfg(feature = "provider")]` headers
+- [x] No dependency analysis complexity
+- [x] Users can exclude providers they don't need
+- [x] Clean, maintainable generator code
 
 ## Verification Commands
 
