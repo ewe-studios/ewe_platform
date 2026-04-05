@@ -7,6 +7,8 @@
 
 #![cfg(feature = "planetscale")]
 
+pub mod types;
+
 use crate::providers::planetscale::clients::types::*;
 use crate::providers::planetscale::resources::*;
 use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt};

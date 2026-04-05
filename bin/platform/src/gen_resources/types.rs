@@ -623,7 +623,16 @@ impl ResourceGenerator {
         let description = schema.description.clone();
 
         let mut fields = Vec::new();
+        let mut seen_field_names: std::collections::HashSet<String> = std::collections::HashSet::new();
         for (field_name, field_schema) in properties {
+            let snake_case_name = self.to_snake_case(&field_name);
+
+            // Skip duplicate fields (same snake_case name)
+            if seen_field_names.contains(&snake_case_name) {
+                continue;
+            }
+            seen_field_names.insert(snake_case_name.clone());
+
             let field_ty = self.schema_to_rust_type(&field_schema, object_schemas);
             let required = schema.required.contains(&field_name);
 
@@ -648,7 +657,7 @@ impl ResourceGenerator {
             };
 
             fields.push(FieldDef {
-                name: self.to_snake_case(&field_name),
+                name: snake_case_name,
                 original_name: field_name.clone(),
                 ty: field_ty,
                 required,

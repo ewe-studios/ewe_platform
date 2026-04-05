@@ -438,7 +438,7 @@ impl ClientGenerator {
 
         // Imports
         let provider_module = label.split('/').next().unwrap_or(label).replace('-', "_");
-        writeln!(out, "use foundation_core::valtron::{{execute, StreamIterator, StreamIteratorExt}};")?;
+        writeln!(out, "use foundation_core::valtron::{{execute, StreamIterator, StreamIteratorExt, TaskIteratorExt}};")?;
         writeln!(out, "use foundation_core::wire::simple_http::client::{{")?;
         writeln!(out, "    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,")?;
         writeln!(out, "}};")?;
@@ -844,13 +844,13 @@ impl ClientGenerator {
         writeln!(out, "        .build_send_request()")?;
         writeln!(out, "        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?")?;
         writeln!(out, "        .map_ready(|intro| match intro {{")?;
-        writeln!(out, "            RequestIntro::Success {{ stream, status }} => {{")?;
-        writeln!(out, "                let headers = status.headers().clone();")?;
+        writeln!(out, "            RequestIntro::Success {{ stream, intro, headers, .. }} => {{")?;
+        writeln!(out, "                let status = &intro.status;")?;
         writeln!(out)?;
         writeln!(out, "                if !status.is_success() {{")?;
         writeln!(out, "                    return Err(ApiError::HttpStatus {{")?;
         writeln!(out, "                        code: status.as_u16(),")?;
-        writeln!(out, "                        headers,")?;
+        writeln!(out, "                        headers: headers.clone(),")?;
         writeln!(out, "                    }});")?;
         writeln!(out, "                }}")?;
         writeln!(out)?;
@@ -859,7 +859,7 @@ impl ClientGenerator {
         if return_type == "()" {
             writeln!(out, "                Ok(ApiResponse {{")?;
             writeln!(out, "                    status: status.as_u16(),")?;
-            writeln!(out, "                    headers,")?;
+            writeln!(out, "                    headers: headers.clone(),")?;
             writeln!(out, "                    body: (),")?;
             writeln!(out, "                }})")?;
         } else {
@@ -868,7 +868,7 @@ impl ClientGenerator {
             writeln!(out)?;
             writeln!(out, "                Ok(ApiResponse {{")?;
             writeln!(out, "                    status: status.as_u16(),")?;
-            writeln!(out, "                    headers,")?;
+            writeln!(out, "                    headers: headers.clone(),")?;
             writeln!(out, "                    body: parsed,")?;
             writeln!(out, "                }})")?;
         }

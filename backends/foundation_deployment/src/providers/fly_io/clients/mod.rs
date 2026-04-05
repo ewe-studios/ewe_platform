@@ -7,6 +7,8 @@
 
 #![cfg(feature = "fly_io")]
 
+pub mod types;
+
 use crate::providers::fly_io::clients::types::*;
 use crate::providers::fly_io::resources::*;
 use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt};
