@@ -18,8 +18,6 @@
 #![allow(clippy::must_use_candidate)]
 #![allow(clippy::unnecessary_wraps)]
 
-mod gen_model_descriptors;
-mod gen_provider_specs;
 mod gen_resources;
 mod generate;
 mod local;
@@ -34,21 +32,17 @@ type BoxedError = Box<dyn std::error::Error + Send + Sync + 'static>;
 #[tokio::main]
 async fn main() -> std::result::Result<(), BoxedError> {
     let commander = wasm_bins::register(
-        gen_model_descriptors::register(
-            gen_resources::register(
-                sandbox::register(
-                    sandbox_app::register(
-                        watchful::register(
-                            local::register(
-                                gen_provider_specs::register(
-                                    tcp_capture::register(
-                                        generate::register(
-                                            clap::Command::new("platform")
-                                                .about("The Ewe platform toolset")
-                                                .arg_required_else_help(true)
-                                                .allow_external_subcommands(true),
-                                        ),
-                                    ),
+        gen_resources::register(
+            sandbox::register(
+                sandbox_app::register(
+                    watchful::register(
+                        local::register(
+                            tcp_capture::register(
+                                generate::register(
+                                    clap::Command::new("platform")
+                                        .about("The Ewe platform toolset")
+                                        .arg_required_else_help(true)
+                                        .allow_external_subcommands(true),
                                 ),
                             ),
                         ),
@@ -64,8 +58,6 @@ async fn main() -> std::result::Result<(), BoxedError> {
         Some(("sandbox", arguments)) => sandbox::run(arguments).await?,
         Some(("sandbox_app", arguments)) => sandbox_app::run(arguments).await?,
         Some(("generate", arguments)) => generate::run(arguments)?,
-        Some(("gen_model_descriptors", arguments)) => gen_model_descriptors::run(arguments)?,
-        Some(("gen_provider_specs", arguments)) => gen_provider_specs::run(arguments)?,
         Some(("gen_resources", arguments)) => gen_resources::run(arguments)?,
         Some(("wasm_bins", arguments)) => wasm_bins::run(arguments)?,
         Some(("watch", arguments)) => watchful::run(arguments)?,

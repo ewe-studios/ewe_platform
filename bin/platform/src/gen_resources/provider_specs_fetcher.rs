@@ -18,8 +18,8 @@ use std::collections::BTreeMap;
 use std::path::PathBuf;
 use std::time::Instant;
 
-use super::core::{DistilledSpec, SpecEndpoint};
-use super::errors::SpecFetchError;
+use crate::gen_resources::provider_specs_core::{DistilledSpec, SpecEndpoint};
+use crate::gen_resources::provider_specs_errors::SpecFetchError;
 
 /// WHY: Orchestrates fetching specs from multiple providers.
 ///
@@ -48,12 +48,12 @@ impl ProviderSpecFetcher {
         &self,
         client: &SimpleHttpClient,
         gcp_api_filter: Option<Vec<String>>,
-    ) -> Result<BTreeMap<String, DistilledSpec>, crate::gen_provider_specs::errors::SpecFetchError>
+    ) -> Result<BTreeMap<String, DistilledSpec>, SpecFetchError>
     {
         // Artefacts directory for raw JSON specs
         let artefacts_dir = PathBuf::from("artefacts/cloud_providers");
         std::fs::create_dir_all(&artefacts_dir).map_err(|e| {
-            crate::gen_provider_specs::errors::SpecFetchError::WriteFile {
+            SpecFetchError::WriteFile {
                 path: artefacts_dir.display().to_string(),
                 source: e,
             }
@@ -65,7 +65,7 @@ impl ProviderSpecFetcher {
         // Create temp dir for cloudflare
         let temp_dir = std::env::temp_dir().join("cloudflare-spec-fetch");
         std::fs::create_dir_all(&temp_dir).map_err(|e| {
-            crate::gen_provider_specs::errors::SpecFetchError::WriteFile {
+            SpecFetchError::WriteFile {
                 path: temp_dir.display().to_string(),
                 source: e,
             }
@@ -210,7 +210,7 @@ impl ProviderSpecFetcher {
         client: &SimpleHttpClient,
         provider: &str,
         gcp_api_filter: Option<Vec<String>>,
-    ) -> Result<DistilledSpec, crate::gen_provider_specs::errors::SpecFetchError> {
+    ) -> Result<DistilledSpec, SpecFetchError> {
         let artefacts_dir = PathBuf::from("artefacts/cloud_providers");
         let provider_dir = artefacts_dir.join(provider);
 
@@ -355,7 +355,7 @@ impl ProviderSpecFetcher {
         let provider_name = provider.to_string();
 
         match provider {
-            "fly-io" => {
+            "fly_io" => {
                 let stream = fly_io::fetch::fetch_fly_io_specs(output_dir)
                     .map_err(|e| SpecFetchError::Generic(format!("{provider_name}: {e}")))?;
                 Ok(Box::new(stream.map_done(move |r| {
@@ -369,7 +369,7 @@ impl ProviderSpecFetcher {
                     r.map_err(|e| SpecFetchError::Generic(format!("{provider_name}: {e}")))
                 })))
             }
-            "prisma-postgres" => {
+            "prisma_postgres" => {
                 let stream = prisma_postgres::fetch::fetch_prisma_postgres_specs(output_dir)
                     .map_err(|e| SpecFetchError::Generic(format!("{provider_name}: {e}")))?;
                 Ok(Box::new(stream.map_done(move |r| {
@@ -383,7 +383,7 @@ impl ProviderSpecFetcher {
                     r.map_err(|e| SpecFetchError::Generic(format!("{provider_name}: {e}")))
                 })))
             }
-            "mongodb-atlas" => {
+            "mongodb_atlas" => {
                 let stream = mongodb_atlas::fetch::fetch_mongodb_atlas_specs(output_dir)
                     .map_err(|e| SpecFetchError::Generic(format!("{provider_name}: {e}")))?;
                 Ok(Box::new(stream.map_done(move |r| {

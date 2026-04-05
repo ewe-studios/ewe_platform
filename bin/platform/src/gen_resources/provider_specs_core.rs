@@ -81,4 +81,4 @@ pub struct SpecEndpoint {
 /// WHAT: Contains the distilled spec and metadata about the fetch.
 ///
 /// HOW: Returned by individual fetch tasks.
-pub type FetchResult = Result<DistilledSpec, super::errors::SpecFetchError>;
+pub type FetchResult = Result<DistilledSpec, crate::gen_resources::provider_specs_errors::SpecFetchError>;

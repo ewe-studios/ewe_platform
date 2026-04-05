@@ -19,7 +19,7 @@ use std::path::PathBuf;
 pub const SPEC_URL: &str = "https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2.json";
 
 /// Provider identifier.
-pub const PROVIDER_NAME: &str = "mongodb-atlas";
+pub const PROVIDER_NAME: &str = "mongodb_atlas";
 
 /// Fetch the MongoDB Atlas OpenAPI spec.
 pub fn fetch_mongodb_atlas_specs(
@@ -42,7 +42,7 @@ mod tests {
 
     #[test]
     fn constants_are_correct() {
-        assert_eq!(PROVIDER_NAME, "mongodb-atlas");
+        assert_eq!(PROVIDER_NAME, "mongodb_atlas");
         assert!(SPEC_URL.starts_with("https://"));
         assert!(SPEC_URL.contains("mongodb.com"));
     }

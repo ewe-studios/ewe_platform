@@ -8,65 +8,18 @@
 //! Valtron's `execute` for parallel fetch execution, `serde_json` for parsing,
 //! and blocking `std::fs` for file I/O at sync boundaries (after Valtron execution).
 
-pub mod core;
-pub mod errors;
-pub mod fetcher;
-
-use clap::{ArgMatches, Command};
+use clap::ArgMatches;
 use foundation_core::valtron;
 use foundation_core::wire::simple_http::client::SimpleHttpClient;
 use std::time::Duration;
 use tracing::Level;
 use tracing_subscriber::FmtSubscriber;
 
-pub use errors::SpecFetchError;
-pub use fetcher::ProviderSpecFetcher;
+pub use crate::gen_resources::provider_specs_core::DistilledSpec;
+pub use crate::gen_resources::provider_specs_errors::SpecFetchError;
+pub use crate::gen_resources::provider_specs_fetcher::ProviderSpecFetcher;
 
-/// Register the `gen_provider_specs` subcommand.
-pub fn register(cmd: Command) -> Command {
-    cmd.subcommand(
-        Command::new("gen_provider_specs")
-            .about("Fetch and distill OpenAPI specs from deployment providers")
-            .arg(
-                clap::Arg::new("provider")
-                    .long("provider")
-                    .short('p')
-                    .help("Fetch only this provider's spec (default: all)")
-                    .value_name("PROVIDER"),
-            )
-            .arg(
-                clap::Arg::new("gcp-apis")
-                    .long("gcp-apis")
-                    .help("Comma-separated list of GCP API names to fetch (default: all APIs)")
-                    .value_name("APIS"),
-            )
-            .arg(
-                clap::Arg::new("dry-run")
-                    .long("dry-run")
-                    .help("Fetch specs but don't write to disk")
-                    .action(clap::ArgAction::SetTrue),
-            )
-            .arg(
-                clap::Arg::new("force")
-                    .long("force")
-                    .help("Write specs even if content hasn't changed")
-                    .action(clap::ArgAction::SetTrue),
-            )
-            .arg(
-                clap::Arg::new("debug")
-                    .long("debug")
-                    .default_value("false")
-                    .action(clap::ArgAction::SetTrue)
-                    .help("Enables debug logs (default: false)"),
-            ),
-    )
-}
-
-/// Run the `gen_provider_specs` command.
-///
-/// # Panics
-///
-/// Panics if Valtron pool initialization fails.
+/// Run the provider specs fetch command.
 pub fn run(matches: &ArgMatches) -> Result<(), SpecFetchError> {
     let logging_level = if matches.get_flag("debug") {
         Level::DEBUG
@@ -103,6 +56,7 @@ pub fn run(matches: &ArgMatches) -> Result<(), SpecFetchError> {
     }
 }
 
+/// Fetch all provider specs.
 fn fetch_all_providers(
     fetcher: &ProviderSpecFetcher,
     client: &mut SimpleHttpClient,
