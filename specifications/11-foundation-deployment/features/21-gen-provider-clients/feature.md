@@ -13,13 +13,13 @@ depends_on: ["20-gen-resource-types", "10-provider-spec-fetcher-core", "02-build
 
 tasks:
   completed: 0
-  uncompleted: 7
-  total: 7
+  uncompleted: 6
+  total: 6
   completion_percentage: 0%
 ---
 
 
-# Gen Provider Clients - API Client Code Generation from OpenAPI Specs
+# Gen Provider Clients - API Client Functions from OpenAPI Specs
 
 ## Iron Law: Zero Warnings
 
@@ -32,7 +32,12 @@ tasks:
 
 ## Overview
 
-The `gen_provider_clients` tool generates **type-safe API client functions** from OpenAPI specifications. These clients use the generated resource types (Feature 20) and `SimpleHttpClient` to provide a fluent, ergonomic API for interacting with cloud provider APIs.
+The `gen_provider_clients` tool generates **type-safe API endpoint functions** from OpenAPI specifications. 
+
+**Design Philosophy:**
+- **No client structs** - Just plain functions
+- **No hidden state** - Pass `SimpleHttpClient` explicitly
+- **Two-tier API** - Builder function + execute function for each endpoint
 
 **Input:** 
 - OpenAPI specs in `artefacts/cloud_providers/{provider}/{api}/openapi.json`
@@ -41,11 +46,153 @@ The `gen_provider_clients` tool generates **type-safe API client functions** fro
 **Output:** 
 - Rust client modules in `backends/foundation_deployment/src/providers/{provider}/clients/`
 
-The tool generates:
-1. **Client structs** - One per API service (e.g., `CloudRunClient`, `ComputeClient`)
-2. **Request builders** - Fluent builders for each endpoint with type-safe parameters
-3. **Response handlers** - Transform HTTP responses using generated resource types
-4. **StreamIterators** - Use valtron combinators for async streaming operations
+## Two-Tier Function Design
+
+For each OpenAPI endpoint, generate **two functions**:
+
+### Tier 1: Request Builder Function
+
+Returns a `ClientRequestBuilder` that users can customize before sending:
+
+```rust
+// providers/gcp/clients/run.rs - Generated
+
+use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
+use crate::providers::gcp::resources::run::*;
+
+/// GET /apis/serving.k8s.io/v1/namespaces/{namespace}/services
+/// List all Cloud Run services in a namespace.
+///
+/// Returns a `ClientRequestBuilder` for customization (auth, headers, etc.).
+/// Use `list_services_execute()` for a ready-to-send version.
+pub fn list_services_builder(
+    client: &SimpleHttpClient,
+    namespace: &str,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, Error> {
+    let url = format!(
+        "https://api.gcp.io/run/v1/apis/serving.k8s.io/v1/namespaces/{}/services",
+        namespace
+    );
+    
+    client.get(&url)
+        .map_err(|e| Error::RequestBuildFailed(e.to_string()))
+}
+```
+
+**Use cases for builder functions:**
+- Add custom authentication headers
+- Add tracing/correlation IDs
+- Modify timeouts per-request
+- Add custom middleware
+
+### Tier 2: Execute Function
+
+Builds the request, sends it, and returns a `StreamIterator` with the transformed response:
+
+```rust
+// providers/gcp/clients/run.rs - Generated
+
+use foundation_core::valtron::{execute, from_future, StreamIterator, StreamIteratorExt};
+use foundation_core::wire::simple_http::client::{
+    SendRequestTask, RequestIntro, body_reader, PreparedRequest,
+};
+
+/// GET /apis/serving.k8s.io/v1/namespaces/{namespace}/services
+/// List all Cloud Run services in a namespace.
+///
+/// Builds the request, executes it, and returns the parsed response.
+/// For request customization, use `list_services_builder()` instead.
+pub fn list_services_execute(
+    client: &SimpleHttpClient,
+    namespace: &str,
+) -> impl StreamIterator<
+    D = Result<ApiResponse<ListServicesResponse>, Error>,
+    P = ClientPending
+> + Send + 'static {
+    // Step 1: Build request using the builder function
+    let builder_result = list_services_builder(client, namespace);
+    
+    // Step 2: Wrap in future for valtron execution
+    let future = async move {
+        let builder = builder_result?;
+        let request = builder
+            .send()
+            .await
+            .map_err(|e| Error::RequestSendFailed(e.to_string()))?;
+        Ok(request)
+    };
+    
+    // Step 3: Execute and transform response
+    let task = from_future(future);
+    execute(task, None)
+        .map_iter_done(|request_result| {
+            let prepared = match request_result {
+                Ok(p) => p,
+                Err(e) => return Some(Err(e)),
+            };
+            
+            // Create SendRequestTask for HTTP execution
+            let send_task = SendRequestTask::new(
+                prepared,
+                3, // retries
+                pool,
+                config
+            )
+            .map_ready(|intro| match intro {
+                RequestIntro::Success { stream, status } => {
+                    // Extract headers
+                    let headers = status.headers().clone();
+                    
+                    // Check status
+                    if !status.is_success() {
+                        return Err(Error::HttpStatus {
+                            code: status.as_u16(),
+                            headers,
+                        });
+                    }
+                    
+                    // Parse body
+                    let body = body_reader::collect_string(stream);
+                    let parsed: ListServicesResponse = serde_json::from_str(&body)
+                        .map_err(|e| Error::ParseFailed(e.to_string()))?;
+                    
+                    // Return full response with headers, status, body
+                    Ok(ApiResponse {
+                        status: status.as_u16(),
+                        headers,
+                        body: parsed,
+                    })
+                }
+                RequestIntro::Failed(e) => Err(Error::RequestFailed(e.to_string())),
+            })
+            .map_pending(|_| ClientPending::Sending);
+            
+            Some(Ok(send_task))
+        })
+        .map_pending(|_| ClientPending::Building)
+}
+```
+
+**Response wrapper type:**
+
+```rust
+/// Generic API response wrapper.
+pub struct ApiResponse<T> {
+    pub status: u16,
+    pub headers: SimpleHeaders,
+    pub body: T,
+}
+```
+
+## Function Naming Convention
+
+| OpenAPI | Builder Function | Execute Function |
+|---------|-----------------|------------------|
+| `GET /services` | `list_services_builder()` | `list_services_execute()` |
+| `POST /services` | `create_service_builder()` | `create_service_execute()` |
+| `GET /services/{name}` | `get_service_builder()` | `get_service_execute()` |
+| `PUT /services/{name}` | `update_service_builder()` | `update_service_execute()` |
+| `DELETE /services/{name}` | `delete_service_builder()` | `delete_service_execute()` |
 
 ## Directory Structure
 
@@ -57,297 +204,186 @@ backends/foundation_deployment/src/providers/{provider}/
 ├── resources/
 │   └── mod.rs              # Generated resource types
 └── clients/
-    ├── mod.rs              # Generated client module declarations
-    ├── {api}.rs            # Generated client for each API
-    └── shared.rs           # Shared client utilities
+    ├── mod.rs              # Generated module declarations
+    ├── {api}.rs            # Generated functions for each API
+    └── types.rs            # Shared types (ApiResponse, Error, Pending)
 ```
 
-### Example: GCP Cloud Run Client
+### Shared Types
 
 ```rust
-// providers/gcp/clients/run.rs - Generated
+// providers/{provider}/clients/types.rs - Generated
 
-use crate::providers::gcp::resources::run::*;
-use foundation_core::valtron::{execute, from_future, StreamIterator, StreamIteratorExt};
-use foundation_core::wire::simple_http::client::{
-    SimpleHttpClient, ClientConfig, HttpConnectionPool, SystemDnsResolver, body_reader,
-};
-use std::sync::Arc;
-
-/// Client for Google Cloud Run API.
-pub struct CloudRunClient {
-    client: SimpleHttpClient,
-    base_url: String,
+/// Generic API response with status, headers, and parsed body.
+pub struct ApiResponse<T> {
+    pub status: u16,
+    pub headers: SimpleHeaders,
+    pub body: T,
 }
 
-impl CloudRunClient {
-    /// Create a new Cloud Run client.
-    pub fn new(client: SimpleHttpClient) -> Self {
-        Self {
-            client,
-            base_url: "https://api.gcp.io/run/v1".to_string(),
-        }
-    }
-
-    /// GET /apis/serving.k8s.io/v1/namespaces/{namespace}/services
-    /// List all Cloud Run services in a namespace.
-    pub fn list_services(
-        &self,
-        namespace: String,
-    ) -> impl StreamIterator<D = Result<ListServicesResponse, CloudRunError>, P = CloudRunPending> + Send + 'static {
-        let url = format!("{}/apis/serving.k8s.io/v1/namespaces/{}/services", 
-                          self.base_url, namespace);
-        
-        let future = async move {
-            // Build request
-            let request = self.client
-                .get(&url)
-                .map_err(|e| CloudRunError::RequestBuildFailed(e.to_string()))?;
-            
-            // Execute and transform response
-            // Uses valtron SendRequestTask combinator internally
-            // ...
-        };
-        
-        let task = from_future(future);
-        execute(task, None)
-            .map_pending(|_| CloudRunPending::FetchingServices)
-    }
-
-    /// POST /apis/serving.k8s.io/v1/namespaces/{namespace}/services
-    /// Create a new Cloud Run service.
-    pub fn create_service(
-        &self,
-        namespace: String,
-        service: Service,
-    ) -> impl StreamIterator<D = Result<Service, CloudRunError>, P = CloudRunPending> + Send + 'static {
-        // Implementation using valtron combinators
-    }
-
-    /// PUT /apis/serving.k8s.io/v1/namespaces/{namespace}/services/{name}
-    /// Update an existing Cloud Run service.
-    pub fn update_service(
-        &self,
-        namespace: String,
-        name: String,
-        service: Service,
-    ) -> impl StreamIterator<D = Result<Service, CloudRunError>, P = CloudRunPending> + Send + 'static {
-        // Implementation
-    }
-
-    /// DELETE /apis/serving.k8s.io/v1/namespaces/{namespace}/services/{name}
-    /// Delete a Cloud Run service.
-    pub fn delete_service(
-        &self,
-        namespace: String,
-        name: String,
-    ) -> impl StreamIterator<D = Result<DeleteResponse, CloudRunError>, P = CloudRunPending> + Send + 'static {
-        // Implementation
-    }
-}
-
-/// Progress states for Cloud Run operations.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum CloudRunPending {
-    FetchingServices,
-    CreatingService,
-    UpdatingService,
-    DeletingService,
-}
-
-/// Cloud Run API errors.
+/// Provider-agnostic error type for API operations.
 #[derive(Debug)]
-pub enum CloudRunError {
+pub enum ApiError {
     RequestBuildFailed(String),
-    HttpStatus { code: u16, message: String },
+    RequestSendFailed(String),
+    HttpStatus { code: u16, headers: SimpleHeaders },
     ParseFailed(String),
+}
+
+/// Progress states for API operations.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum ApiPending {
+    Building,
+    Sending,
 }
 ```
 
-## Client Generation Rules
+## Parameter Mapping
 
-### 1. One Client Per API Service
+### Path Parameters
 
-For multi-API providers (GCP, AWS), generate one client module per API:
-
-| Provider | API | Client Module |
-|----------|-----|---------------|
-| GCP | Cloud Run | `clients/run.rs` |
-| GCP | Compute | `clients/compute.rs` |
-| GCP | Cloud Storage | `clients/storage.rs` |
-| AWS | Lambda | `clients/lambda.rs` |
-| Cloudflare | Workers | `clients/workers.rs` |
-
-### 2. One Method Per Endpoint
-
-Each OpenAPI path + HTTP method combination becomes a client method:
-
-| OpenAPI Path | Method | Generated Method |
-|--------------|--------|------------------|
-| `/services` | GET | `list_services()` |
-| `/services` | POST | `create_service()` |
-| `/services/{name}` | GET | `get_service(name)` |
-| `/services/{name}` | PUT | `update_service(name)` |
-| `/services/{name}` | DELETE | `delete_service(name)` |
-
-### 3. Type-Safe Parameters
-
-Path parameters and query parameters become method arguments:
+Become function arguments:
 
 ```rust
 // OpenAPI: GET /projects/{project}/locations/{location}/services/{name}
-pub fn get_service(
-    &self,
-    project: String,
-    location: String,
-    name: String,
-) -> impl StreamIterator<D = Result<Service, Error>, P = Pending>
+pub fn get_service_builder(
+    client: &SimpleHttpClient,
+    project: &str,
+    location: &str,
+    name: &str,
+) -> Result<ClientRequestBuilder, Error> {
+    let url = format!(
+        ".../projects/{}/locations/{}/services/{}",
+        project, location, name
+    );
+    // ...
+}
 ```
 
-### 4. Request Bodies Use Resource Types
+### Query Parameters
 
-Request body schemas reference generated resource types:
+Become optional function arguments:
+
+```rust
+// OpenAPI: GET /services?pageSize={pageSize}&pageToken={pageToken}
+pub fn list_services_builder(
+    client: &SimpleHttpClient,
+    page_size: Option<i32>,
+    page_token: Option<&str>,
+) -> Result<ClientRequestBuilder, Error> {
+    let mut url = ".../services".to_string();
+    let mut query = Vec::new();
+    
+    if let Some(size) = page_size {
+        query.push(format!("pageSize={}", size));
+    }
+    if let Some(token) = page_token {
+        query.push(format!("pageToken={}", token));
+    }
+    
+    if !query.is_empty() {
+        url.push_str(&format!("?{}", query.join("&")));
+    }
+    
+    client.get(&url)
+}
+```
+
+### Request Body
+
+Uses generated resource types:
 
 ```rust
 // OpenAPI: POST /services with body: Service
-pub fn create_service(
-    &self,
-    namespace: String,
-    service: Service,  // From resources::run::Service
-) -> impl StreamIterator<D = Result<Service, Error>, P = Pending>
-```
-
-### 5. Response Types Use Resource Types
-
-Response schemas reference generated resource types:
-
-```rust
-// OpenAPI: 200 response with schema: Service
-// Returns: Result<Service, Error>
-
-// OpenAPI: 200 response with schema: ListServicesResponse  
-// Returns: Result<ListServicesResponse, Error>
-```
-
-## Valtron Combinator Usage
-
-All client methods return `StreamIterator` using valtron combinators:
-
-```rust
-use foundation_core::valtron::{
-    execute, from_future, StreamIterator, StreamIteratorExt,
-    TaskIteratorExt, TaskShortCircuit, TaskStatus,
-};
-use foundation_core::wire::simple_http::client::{
-    SendRequestTask, RequestIntro, body_reader,
-};
-
-pub fn get_service(
-    &self,
-    name: String,
-) -> impl StreamIterator<D = Result<Service, Error>, P = Pending> {
-    let url = format!("{}/services/{}", self.base_url, name);
+pub fn create_service_builder(
+    client: &SimpleHttpClient,
+    namespace: &str,
+    body: &Service,  // From resources::run::Service
+) -> Result<ClientRequestBuilder, Error> {
+    let url = format!(".../namespaces/{}/services", namespace);
     
-    // Build request in future
-    let future = async move {
-        let request = self.client.get(&url)?;
-        Ok(request)
-    };
+    let json = serde_json::to_string(body)
+        .map_err(|e| Error::SerializeFailed(e.to_string()))?;
     
-    // Wrap in valtron task
-    let task = from_future(future);
-    
-    // Execute and chain combinators
-    let stream = execute(task, None)
-        .map_iter_done(move |request_result| {
-            let request = match request_result {
-                Ok(r) => r,
-                Err(e) => return Some(Err(e)),
-            };
-            
-            // Create SendRequestTask for HTTP execution
-            let send_task = SendRequestTask::new(
-                request, 
-                3, // retries
-                self.pool.clone(),
-                self.config.clone()
-            )
-            .map_ready(|intro| match intro {
-                RequestIntro::Success { stream, status } => {
-                    if !status.is_success() {
-                        return Err(Error::HttpStatus { 
-                            code: status.as_u16(),
-                            message: "Request failed".to_string()
-                        });
-                    }
-                    
-                    // Parse response body
-                    let body = body_reader::collect_string(stream);
-                    serde_json::from_str::<Service>(&body)
-                        .map_err(|e| Error::ParseFailed(e.to_string()))
-                }
-                RequestIntro::Failed(e) => Err(Error::RequestFailed(e.to_string())),
-            })
-            .map_pending(|_| Pending::Fetching);
-            
-            // Return single-item iterator
-            Some(Ok(send_task))
-        })
-        .map_pending(|_| Pending::BuildingRequest);
-    
-    // Flatten nested StreamIterator
-    collect_next_from_streams(stream)
+    client.post(&url)
+        .header("Content-Type", "application/json")
+        .body_text(json)
 }
 ```
 
-## Provider-Specific Generators
+## Response Type Mapping
 
-Some providers have unique requirements. Use provider-specific generator modules when needed:
+| OpenAPI Response | Generated Return Type |
+|-----------------|----------------------|
+| `200` with schema `Service` | `ApiResponse<Service>` |
+| `200` with schema `ListServicesResponse` | `ApiResponse<ListServicesResponse>` |
+| `204` No Content | `ApiResponse<()>` |
+| Error status | `Err(ApiError::HttpStatus { code, headers })` |
 
-### Generic Generator (Default)
+## Valtron Combinator Flow
 
-For most providers, the generic generator in `gen_resource_types/mod.rs` handles everything:
-
-```rust
-// bin/platform/src/gen_resource_types/mod.rs
-
-impl ResourceGenerator {
-    pub fn generate_clients(&self, provider: &str) -> Result<(), GenResourceError> {
-        // Generic implementation
-    }
-}
 ```
-
-### Provider-Specific Generator
-
-For providers with unique auth or request patterns:
-
-```rust
-// providers/gcp/clients/generator.rs
-
-pub struct GcpClientGenerator {
-    // GCP-specific configuration
-}
-
-impl GcpClientGenerator {
-    pub fn generate(&self, spec: &Value) -> Result<String, GenResourceError> {
-        // GCP-specific client generation
-        // - Handles OAuth2 token injection
-        // - Generates methods for long-running operations
-        // - Handles GCP-specific response patterns
-    }
-}
+User calls execute function
+         │
+         ▼
+┌────────────────────────┐
+│ 1. Call builder        │
+│    function            │
+└───────────┬────────────┘
+            │
+            ▼
+┌────────────────────────┐
+│ 2. Wrap in future      │
+│    (async block)       │
+└───────────┬────────────┘
+            │
+            ▼
+┌────────────────────────┐
+│ 3. from_future()       │
+│    wraps in Task       │
+└───────────┬────────────┘
+            │
+            ▼
+┌────────────────────────┐
+│ 4. execute()           │
+│    schedules task      │
+└───────────┬────────────┘
+            │
+            ▼
+┌────────────────────────┐
+│ 5. map_iter_done()     │
+│    transforms to       │
+│    SendRequestTask     │
+└───────────┬────────────┘
+            │
+            ▼
+┌────────────────────────┐
+│ 6. map_ready()         │
+│    handles response:   │
+│    - Extract headers   │
+│    - Check status      │
+│    - Parse body        │
+│    - Wrap in ApiResponse│
+└───────────┬────────────┘
+            │
+            ▼
+┌────────────────────────┐
+│ 7. map_pending()       │
+│    adds progress state │
+└───────────┬────────────┘
+            │
+            ▼
+┌────────────────────────┐
+│ 8. collect_next_from_  │
+│    streams()           │
+│    flattens nested     │
+│    StreamIterator      │
+└───────────┬────────────┘
+            │
+            ▼
+    StreamIterator yielded
+    to user
 ```
-
-### When to Use Provider-Specific Generators
-
-| Provider | Use Custom Generator? | Reason |
-|----------|----------------------|--------|
-| GCP | Yes | OAuth2, long-running operations, API versioning |
-| AWS | Yes | SigV4 signing, request format |
-| Cloudflare | No | Standard REST API |
-| Stripe | No | Standard REST API |
-| Supabase | No | Standard REST API |
 
 ## Implementation
 
@@ -357,7 +393,6 @@ impl GcpClientGenerator {
 fn extract_endpoints(spec: &Value) -> Vec<ApiEndpoint> {
     let mut endpoints = Vec::new();
     
-    // Handle OpenAPI 3.x: paths object
     if let Some(paths) = spec.get("paths").and_then(|p| p.as_object()) {
         for (path, path_item) in paths {
             for method in &["get", "post", "put", "patch", "delete"] {
@@ -366,9 +401,6 @@ fn extract_endpoints(spec: &Value) -> Vec<ApiEndpoint> {
                         path: path.clone(),
                         method: method.to_uppercase(),
                         operation_id: operation.get("operationId")
-                            .and_then(|v| v.as_str())
-                            .map(String::from),
-                        summary: operation.get("summary")
                             .and_then(|v| v.as_str())
                             .map(String::from),
                         parameters: extract_parameters(operation),
@@ -384,86 +416,129 @@ fn extract_endpoints(spec: &Value) -> Vec<ApiEndpoint> {
 }
 ```
 
-### Step 2: Generate Client Struct
+### Step 2: Generate Builder Function
 
 ```rust
-fn generate_client_struct(out: &mut String, client_name: &str) {
-    writeln!(out, "/// Client for {} API.", client_name).unwrap();
-    writeln!(out, "#[derive(Clone)]").unwrap();
-    writeln!(out, "pub struct {}Client {{", client_name).unwrap();
-    writeln!(out, "    client: SimpleHttpClient,").unwrap();
-    writeln!(out, "    base_url: String,").unwrap();
-    writeln!(out, "}}").unwrap();
-}
-```
-
-### Step 3: Generate Methods
-
-```rust
-fn generate_method(
+fn generate_builder_fn(
     out: &mut String,
     endpoint: &ApiEndpoint,
     resource_types: &HashMap<String, String>,
 ) {
-    let method_name = to_snake_case(&endpoint.operation_id.clone()
+    let fn_name = to_snake_case(&endpoint.operation_id.clone()
         .unwrap_or_else(|| format!("{}_{}", endpoint.method, endpoint.path)));
     
-    // Generate doc comment
+    // Doc comment
     writeln!(out, "/// {} {}", endpoint.method, endpoint.path).unwrap();
     if let Some(summary) = &endpoint.summary {
         writeln!(out, "/// {}", sanitize_doc_comment(summary)).unwrap();
     }
+    writeln!(out, "///").unwrap();
+    writeln!(out, "/// Returns `ClientRequestBuilder` for customization.").unwrap();
+    writeln!(out, "/// Use `{}_execute()` for ready-to-send version.", fn_name).unwrap();
     
-    // Generate signature
-    write!(out, "pub fn {}(&self", method_name).unwrap();
+    // Signature
+    write!(out, "pub fn {}_builder(\n    client: &SimpleHttpClient,", fn_name).unwrap();
     
-    // Add path/query parameters
-    for param in &endpoint.parameters {
-        write!(out, ", {}: {}", to_snake_case(&param.name), param.rust_type).unwrap();
+    // Path parameters
+    for param in &endpoint.path_params {
+        write!(out, "\n    {}: &str,", to_snake_case(&param.name)).unwrap();
     }
     
-    // Add request body if present
-    if let Some(body_type) = &endpoint.request_body {
-        write!(out, ", body: {}", body_type).unwrap();
+    // Query parameters (optional)
+    for param in &endpoint.query_params {
+        let rust_type = param.rust_type.replace("String", "&str");
+        write!(out, "\n    {}: Option<{}>,", to_snake_case(&param.name), rust_type).unwrap();
+    }
+    
+    // Request body
+    if let Some(body_type) = &endpoint.request_body_type {
+        write!(out, "\n    body: &{},", body_type).unwrap();
     }
     
     // Return type
-    let return_type = get_return_type(&endpoint.responses, resource_types);
-    writeln!(out, ") -> impl StreamIterator<D = {}, P = {}Pending>", 
-             return_type, client_name).unwrap();
+    writeln!(out, "\n) -> Result<ClientRequestBuilder<SystemDnsResolver>, Error> {{").unwrap();
     
-    // Generate implementation using valtron combinators
-    // ...
+    // Generate URL building code
+    generate_url_builder(out, endpoint);
+    
+    // Generate request building code
+    generate_request_builder(out, endpoint);
+    
+    writeln!(out, "}}\n").unwrap();
+}
+```
+
+### Step 3: Generate Execute Function
+
+```rust
+fn generate_execute_fn(
+    out: &mut String,
+    endpoint: &ApiEndpoint,
+    resource_types: &HashMap<String, String>,
+) {
+    let fn_name = to_snake_case(&endpoint.operation_id.clone()
+        .unwrap_or_else(|| format!("{}_{}", endpoint.method, endpoint.path)));
+    
+    let return_type = get_response_type(&endpoint.responses, resource_types);
+    
+    // Doc comment
+    writeln!(out, "/// {} {}", endpoint.method, endpoint.path).unwrap();
+    if let Some(summary) = &endpoint.summary {
+        writeln!(out, "/// {}", sanitize_doc_comment(summary)).unwrap();
+    }
+    writeln!(out, "///").unwrap();
+    writeln!(out, "/// Builds, sends, and parses response.").unwrap();
+    writeln!(out, "/// For customization, use `{}_builder()` instead.", fn_name).unwrap();
+    
+    // Signature - same parameters as builder
+    write!(out, "pub fn {}_execute(\n    client: &SimpleHttpClient,", fn_name).unwrap();
+    // ... (same params as builder)
+    
+    // Return StreamIterator
+    writeln!(out)
+    writeln!(out, ") -> impl StreamIterator<").unwrap();
+    writeln!(out, "    D = Result<ApiResponse<{}>, Error>,", return_type).unwrap();
+    writeln!(out, "    P = ApiPending").unwrap();
+    writeln!(out, "> + Send + 'static {{").unwrap();
+    
+    // Call builder
+    writeln!(out, "    let builder = {}_builder(client, /* params */)?;", fn_name).unwrap();
+    
+    // Generate valtron combinator chain
+    generate_valtron_chain(out, endpoint, return_type);
+    
+    writeln!(out, "}}\n").unwrap();
 }
 ```
 
 ## Tasks
 
 1. **Create generator infrastructure**
-   - [ ] Add `gen_provider_clients` subcommand to platform CLI
-   - [ ] Create generator module structure
-   - [ ] Implement OpenAPI endpoint extraction
-   - [ ] Implement parameter type mapping
+   - [ ] Add `gen_provider_clients` subcommand (or extend `gen_resource_types`)
+   - [ ] Create endpoint extraction logic
+   - [ ] Create parameter type mapping
+   - [ ] Create response type mapping
 
-2. **Implement generic client generator**
-   - [ ] Generate client structs
-   - [ ] Generate methods for each endpoint
-   - [ ] Generate response type mappings
-   - [ ] Generate progress state enums
-   - [ ] Generate error types
+2. **Implement builder function generation**
+   - [ ] Generate URL building code
+   - [ ] Generate query parameter handling
+   - [ ] Generate request body serialization
+   - [ ] Generate `ClientRequestBuilder` return
 
-3. **Implement valtron integration**
-   - [ ] Use `from_future` for async operations
-   - [ ] Use `SendRequestTask` for HTTP execution
-   - [ ] Use `map_ready` for response transformation
-   - [ ] Use `collect_next_from_streams` for flattening
+3. **Implement execute function generation**
+   - [ ] Generate valtron task wrapping
+   - [ ] Generate `SendRequestTask` integration
+   - [ ] Generate response parsing
+   - [ ] Generate `ApiResponse` wrapping
+   - [ ] Generate error mapping
 
-4. **Implement provider-specific generators**
-   - [ ] Create GCP generator with OAuth2 support
-   - [ ] Create AWS generator with SigV4 signing
-   - [ ] Keep generic generator for simple providers
+4. **Generate shared types**
+   - [ ] Generate `ApiResponse<T>` wrapper
+   - [ ] Generate `ApiError` enum
+   - [ ] Generate `ApiPending` states
+   - [ ] Generate module exports
 
-5. **Generate clients for all providers**
+5. **Generate for all providers**
    - [ ] GCP (all APIs)
    - [ ] Cloudflare
    - [ ] Stripe
@@ -472,25 +547,21 @@ fn generate_method(
    - [ ] Fly.io
    - [ ] PlanetScale
 
-6. **Integration tests**
-   - [ ] Test client compilation with all features
-   - [ ] Test type-safe parameter passing
-   - [ ] Test response parsing
-   - [ ] Test error handling
-
-7. **Documentation**
-   - [ ] Document generator architecture
-   - [ ] Add usage examples
-   - [ ] Document valtron combinator patterns
+6. **Verification**
+   - [ ] All generated code compiles
+   - [ ] Zero clippy warnings
+   - [ ] Zero rustdoc warnings
+   - [ ] Type-safe parameter passing
+   - [ ] Response parsing works
 
 ## Success Criteria
 
-- [ ] All 7 tasks completed
-- [ ] Generated clients compile with zero warnings
-- [ ] All client methods return proper StreamIterator
-- [ ] Type-safe parameter and response handling
-- [ ] Provider-specific generators for GCP and AWS
-- [ ] Documentation complete
+- [ ] All 6 tasks completed
+- [ ] Two functions per endpoint (builder + execute)
+- [ ] Builder returns `ClientRequestBuilder`
+- [ ] Execute returns `StreamIterator<ApiResponse<T>>`
+- [ ] Generated code compiles with zero warnings
+- [ ] All providers have generated clients
 
 ## Verification
 
@@ -513,34 +584,35 @@ cargo clippy -p foundation_deployment -- -D warnings -W clippy::pedantic
 ## Example Usage
 
 ```rust
-use crate::providers::gcp::clients::run::CloudRunClient;
-use crate::providers::gcp::resources::run::Service;
-use foundation_core::valtron::StreamIteratorExt;
+use crate::providers::gcp::clients::run::*;
+use crate::providers::gcp::resources::run::*;
+use foundation_core::valtron::Stream;
 
-// Create client
-let client = CloudRunClient::new(http_client);
-
-// List services - returns StreamIterator
-let stream = client.list_services("my-project".to_string());
-
-// Consume stream (synchronous iteration)
+// Option 1: Use execute function for simple calls
+let stream = list_services_execute(&client, "my-project");
 for item in stream {
     match item {
-        Stream::Pending(CloudRunPending::FetchingServices) => {
-            println!("Fetching services...");
-        }
+        Stream::Pending(ApiPending::Building) => println!("Building request..."),
+        Stream::Pending(ApiPending::Sending) => println!("Sending request..."),
         Stream::Next(Ok(response)) => {
-            for service in response.items {
+            println!("Status: {}", response.status);
+            for service in response.body.items {
                 println!("Service: {}", service.metadata.name);
             }
         }
-        Stream::Next(Err(e)) => {
-            eprintln!("Error: {:?}", e);
-        }
+        Stream::Next(Err(e)) => eprintln!("Error: {:?}", e),
     }
 }
+
+// Option 2: Use builder for customization
+let builder = list_services_builder(&client, "my-project")?
+    .header("X-Custom-Header", "value");
+
+// Add auth, modify, then send manually
+let request = builder.send().await?;
 ```
 
 ---
 
 _Created: 2026-04-05_
+_Updated: 2026-04-05 - Two-tier design (builder + execute functions)_
