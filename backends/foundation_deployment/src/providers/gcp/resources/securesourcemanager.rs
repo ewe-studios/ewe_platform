@@ -26,6 +26,10 @@ pub struct BatchCreatePullRequestCommentsResponse {
     pub pull_request_comments: ::core::option::Option<::std::vec::Vec<PullRequestComment>>,
 }
 
+/// The request message for Operations.CancelOperation.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CancelOperationRequest {}
+
 /// The request to close an issue.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CloseIssueRequest {
@@ -33,6 +37,14 @@ pub struct CloseIssueRequest {
     #[serde(default)]
     pub etag: ::core::option::Option<String>,
 }
+
+/// ClosePullRequestRequest is the request to close a pull request.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ClosePullRequestRequest {}
+
+/// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Empty {}
 
 /// Response message containing the content of a blob.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -183,6 +195,10 @@ pub struct ListRepositoriesResponse {
     pub repositories: ::core::option::Option<::std::vec::Vec<Repository>>,
 }
 
+/// MergePullRequestRequest is the request to merge a pull request.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MergePullRequestRequest {}
+
 /// The request to open an issue.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct OpenIssueRequest {
@@ -190,6 +206,10 @@ pub struct OpenIssueRequest {
     #[serde(default)]
     pub etag: ::core::option::Option<String>,
 }
+
+/// OpenPullRequestRequest is the request to open a pull request.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct OpenPullRequestRequest {}
 
 /// Represents the metadata of the long-running operation.
 #[derive(Debug, Clone, Serialize, Deserialize)]

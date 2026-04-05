@@ -218,6 +218,10 @@ pub struct BatchUpdateValuesResponse {
     pub total_updated_sheets: ::core::option::Option<i32>,
 }
 
+/// The request for clearing a range of values in a spreadsheet.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ClearValuesRequest {}
+
 /// The response when clearing a range of values in a spreadsheet.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ClearValuesResponse {

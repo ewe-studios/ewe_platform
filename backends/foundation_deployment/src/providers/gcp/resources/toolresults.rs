@@ -18,6 +18,18 @@ pub struct ANR {
     pub stack_trace: ::core::option::Option<StackTrace>,
 }
 
+/// Test Loops are tests that can be launched by the app itself, determining when to run by listening for an intent.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AndroidTestLoop {}
+
+/// There was an issue with the assets in this test.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AssetIssue {}
+
+/// A suggestion to use deep links for a Robo run.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AvailableDeepLinks {}
+
 /// The request must provide up to a maximum of 5000 samples to be created; a larger sample size will cause an INVALID_ARGUMENT error
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct BatchCreatePerfSamplesRequest {
@@ -49,6 +61,14 @@ pub struct CrashDialogError {
     pub crash_package: ::core::option::Option<String>,
 }
 
+/// A notification that Robo detected a splash screen provided by app (vs. Android OS splash screen).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DetectedAppSplashScreen {}
+
+/// A warning that device ran out of memory
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DeviceOutOfMemory {}
+
 /// Additional details about encountered login screens.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct EncounteredLoginScreen {
@@ -71,6 +91,10 @@ pub struct EncounteredNonAndroidUiWidgetScreen {
     pub screen_ids: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
+/// Failed to install the App.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct FailedToInstall {}
+
 /// Additional details for a fatal exception.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct FatalException {
@@ -90,6 +114,10 @@ pub struct InAppPurchasesFound {
     pub in_app_purchases_flows_started: ::core::option::Option<i32>,
 }
 
+/// A warning that Robo did not crawl potentially important parts of the app.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct InsufficientCoverage {}
+
 /// Additional details for an iOS app crash.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct IosAppCrashed {
@@ -97,6 +125,14 @@ pub struct IosAppCrashed {
     #[serde(default, rename = "stackTrace")]
     pub stack_trace: ::core::option::Option<StackTrace>,
 }
+
+/// A Robo test for an iOS application.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct IosRoboTest {}
+
+/// Failed to find the launcher activity of an app.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LauncherActivityNotFound {}
 
 /// Response message for EnvironmentService.ListEnvironments.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -209,6 +245,14 @@ pub struct ListTestCasesResponse {
     pub test_cases: ::core::option::Option<::std::vec::Vec<TestCase>>,
 }
 
+/// A warning that there were issues in logcat collection.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LogcatCollectionError {}
+
+/// One dimension of the matrix of different runs of a step.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MatrixDimensionDefinition {}
+
 /// Additional details for a native crash.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct NativeCrash {
@@ -284,6 +328,10 @@ pub struct PerfMetricsSummary {
     pub step_id: ::core::option::Option<String>,
 }
 
+/// A notification that Robo signed in with Google.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PerformedGoogleLogin {}
+
 /// A notification that Robo performed some monkey actions.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PerformedMonkeyActions {
@@ -331,6 +379,10 @@ pub struct StartActivityNotFound {
     pub uri: ::core::option::Option<String>,
 }
 
+/// Lightweight summary of a step within this execution.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct StepSummary {}
+
 /// A warning that the screen hierarchy is deeper than the recommended threshold.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct UIElementTooDeep {
@@ -344,6 +396,10 @@ pub struct UIElementTooDeep {
     #[serde(default, rename = "screenStateId")]
     pub screen_state_id: ::core::option::Option<String>,
 }
+
+/// Default unspecified warning.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct UnspecifiedWarning {}
 
 /// Additional details of an unused robodirective.
 #[derive(Debug, Clone, Serialize, Deserialize)]

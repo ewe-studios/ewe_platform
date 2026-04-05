@@ -24,6 +24,10 @@ pub struct AutoMigrationConfig {
     pub update_time: ::core::option::Option<String>,
 }
 
+/// The request message for Operations.CancelOperation.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CancelOperationRequest {}
+
 /// A request to delete a state file passed to a ''DeleteStatefile'' call.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct DeleteStatefileRequest {
@@ -54,6 +58,10 @@ pub struct DeprovisionDeploymentGroupRequest {
     pub force: ::core::option::Option<bool>,
 }
 
+/// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Empty {}
+
 /// A request to export a state file passed to a ''ExportDeploymentStatefile'' call.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ExportDeploymentStatefileRequest {
@@ -62,6 +70,10 @@ pub struct ExportDeploymentStatefileRequest {
     pub draft: ::core::option::Option<bool>,
 }
 
+/// A request to export preview results.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ExportPreviewResultRequest {}
+
 /// A response to ExportPreviewResult call. Contains preview results.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ExportPreviewResultResponse {
@@ -69,6 +81,10 @@ pub struct ExportPreviewResultResponse {
     #[serde(default)]
     pub result: ::core::option::Option<PreviewResult>,
 }
+
+/// A request to export a state file passed to a ''ExportRevisionStatefile'' call.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ExportRevisionStatefileRequest {}
 
 /// Configuration for a source of an external value.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -237,6 +253,10 @@ pub struct ListTerraformVersionsResponse {
     #[serde(default)]
     pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
 }
+
+/// A request to lock a deployment passed to a ''LockDeployment'' call.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LockDeploymentRequest {}
 
 /// Details about the lock which locked the deployment.
 #[derive(Debug, Clone, Serialize, Deserialize)]

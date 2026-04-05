@@ -41,6 +41,18 @@ pub struct CheckUpgradeResponse {
     pub pypi_dependencies: ::core::option::Option<serde_json::Value>,
 }
 
+/// Request to trigger database failover (only for highly resilient environments).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DatabaseFailoverRequest {}
+
+/// Response for DatabaseFailoverRequest.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DatabaseFailoverResponse {}
+
+/// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Empty {}
+
 /// Execute Airflow Command request.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ExecuteAirflowCommandRequest {
@@ -175,6 +187,10 @@ pub struct LoadSnapshotRequest {
     pub snapshot_path: ::core::option::Option<String>,
 }
 
+/// Response to LoadSnapshotRequest.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LoadSnapshotResponse {}
+
 /// Metadata describing an operation.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct OperationMetadata {
@@ -228,6 +244,10 @@ pub struct PollAirflowCommandResponse {
     #[serde(default, rename = "outputEnd")]
     pub output_end: ::core::option::Option<bool>,
 }
+
+/// Restart Airflow web server.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RestartWebServerRequest {}
 
 /// Request to create a snapshot of a Cloud Composer environment.
 #[derive(Debug, Clone, Serialize, Deserialize)]

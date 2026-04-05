@@ -10,6 +10,30 @@
 use super::*;
 use serde::{Deserialize, Serialize};
 
+/// Further data for the accepted state.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AcceptedData {}
+
+/// Further data for the active state.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ActiveData {}
+
+/// Further data for the creating state.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CreatingData {}
+
+/// Further data for the deleting state.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DeletingData {}
+
+/// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Empty {}
+
+/// Request for GenerateServiceIdentity.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GenerateServiceIdentityRequest {}
+
 /// Response for GenerateServiceIdentity.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GenerateServiceIdentityResponse {
@@ -143,6 +167,34 @@ pub struct OperationMetadata {
     #[serde(default)]
     pub verb: ::core::option::Option<String>,
 }
+
+/// Further data for the provisioning state.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ProvisioningData {}
+
+/// Request for ResetQueuedResource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ResetQueuedResourceRequest {}
+
+/// Spot tier definition.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Spot {}
+
+/// Request for StartNode.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct StartNodeRequest {}
+
+/// Request for StopNode.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct StopNodeRequest {}
+
+/// Further data for the suspended state.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SuspendedData {}
+
+/// Further data for the suspending state.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SuspendingData {}
 
 /// The per-product per-project service identity for Cloud TPU service.
 #[derive(Debug, Clone, Serialize, Deserialize)]

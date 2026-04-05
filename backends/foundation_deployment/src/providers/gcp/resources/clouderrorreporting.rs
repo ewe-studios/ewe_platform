@@ -10,6 +10,10 @@
 use super::*;
 use serde::{Deserialize, Serialize};
 
+/// Response message for deleting error events.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DeleteEventsResponse {}
+
 /// Contains a set of requested error events.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ListEventsResponse {
@@ -37,6 +41,10 @@ pub struct ListGroupStatsResponse {
     #[serde(default, rename = "timeRangeBegin")]
     pub time_range_begin: ::core::option::Option<String>,
 }
+
+/// Response for reporting an individual error event. Data may be added to this message in the future.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ReportErrorEventResponse {}
 
 /// An error event which is reported to the Error Reporting system.
 #[derive(Debug, Clone, Serialize, Deserialize)]

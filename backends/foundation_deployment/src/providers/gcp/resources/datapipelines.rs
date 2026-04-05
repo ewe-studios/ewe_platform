@@ -32,6 +32,10 @@ pub struct GoogleCloudDatapipelinesV1ListPipelinesResponse {
     pub pipelines: ::core::option::Option<::std::vec::Vec<GoogleCloudDatapipelinesV1Pipeline>>,
 }
 
+/// Request message for RunPipeline
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDatapipelinesV1RunPipelineRequest {}
+
 /// Response message for RunPipeline
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDatapipelinesV1RunPipelineResponse {
@@ -39,6 +43,14 @@ pub struct GoogleCloudDatapipelinesV1RunPipelineResponse {
     #[serde(default)]
     pub job: ::core::option::Option<GoogleCloudDatapipelinesV1Job>,
 }
+
+/// Request message for StopPipeline.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDatapipelinesV1StopPipelineRequest {}
+
+/// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleProtobufEmpty {}
 
 /// The main pipeline entity and all the necessary metadata for launching and managing linked jobs.
 #[derive(Debug, Clone, Serialize, Deserialize)]

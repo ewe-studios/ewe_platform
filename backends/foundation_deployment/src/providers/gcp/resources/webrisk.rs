@@ -61,6 +61,10 @@ pub struct GoogleCloudWebriskV1Submission {
     pub uri: ::core::option::Option<String>,
 }
 
+/// The request message for Operations.CancelOperation.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleLongrunningCancelOperationRequest {}
+
 /// The response message for Operations.ListOperations.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleLongrunningListOperationsResponse {
@@ -74,6 +78,10 @@ pub struct GoogleLongrunningListOperationsResponse {
     #[serde(default)]
     pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
 }
+
+/// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleProtobufEmpty {}
 
 /// Contains the set of entries to add to a local database. May contain a combination of compressed and raw data in a single response.
 #[derive(Debug, Clone, Serialize, Deserialize)]

@@ -10,6 +10,10 @@
 use super::*;
 use serde::{Deserialize, Serialize};
 
+/// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Empty {}
+
 /// A GoogleChannelConfig is a resource that stores the custom settings respected by Eventarc first-party triggers in the matching region. Once configured, first-party event data will be protected using the specified custom managed encryption key instead of Google-managed encryption keys.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleChannelConfig {
@@ -26,6 +30,14 @@ pub struct GoogleChannelConfig {
     #[serde(default, rename = "updateTime")]
     pub update_time: ::core::option::Option<String>,
 }
+
+/// The format of a JSON message payload.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudEventarcV1PipelineMessagePayloadFormatJsonFormat {}
+
+/// The request message for Operations.CancelOperation.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleLongrunningCancelOperationRequest {}
 
 /// The response message for Operations.ListOperations.
 #[derive(Debug, Clone, Serialize, Deserialize)]

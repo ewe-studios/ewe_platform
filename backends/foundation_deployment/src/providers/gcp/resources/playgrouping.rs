@@ -34,6 +34,10 @@ pub struct VerifyTokenRequest {
     pub persona: ::core::option::Option<String>,
 }
 
+/// Response message for VerifyToken.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct VerifyTokenResponse {}
+
 /// A tag is associated with exactly one package name and user.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Tag {

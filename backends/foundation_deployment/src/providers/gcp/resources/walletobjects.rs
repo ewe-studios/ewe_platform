@@ -319,6 +319,10 @@ pub struct SetPassUpdateNoticeRequest {
     pub updated_pass_jwt_signature: ::core::option::Option<String>,
 }
 
+/// A response to a request to notify Google of an awaiting update to a private pass.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SetPassUpdateNoticeResponse {}
+
 /// SmartTap resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SmartTap {
@@ -385,6 +389,10 @@ pub struct TransitObjectUploadRotatingBarcodeValuesRequest {
     pub media_request_info: ::core::option::Option<MediaRequestInfo>,
 }
 
+/// Response for uploading rotating barcode values.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TransitObjectUploadRotatingBarcodeValuesResponse {}
+
 /// TranslatedString resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TranslatedString {
@@ -398,6 +406,10 @@ pub struct TranslatedString {
     #[serde(default)]
     pub value: ::core::option::Option<String>,
 }
+
+/// Request to upload a private image to use in a pass.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct UploadPrivateImageRequest {}
 
 /// Response for uploading the private image.
 #[derive(Debug, Clone, Serialize, Deserialize)]

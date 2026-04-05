@@ -38,6 +38,10 @@ pub struct GoogleCloudDocumentaiUiv1beta3AutoLabelDocumentsMetadata {
     pub total_document_count: ::core::option::Option<i32>,
 }
 
+/// The response proto of AutoLabelDocuments method.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiUiv1beta3AutoLabelDocumentsResponse {}
+
 /// GoogleCloudDocumentaiUiv1beta3BatchDeleteDocumentsMetadata resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDocumentaiUiv1beta3BatchDeleteDocumentsMetadata {
@@ -59,6 +63,10 @@ pub struct GoogleCloudDocumentaiUiv1beta3BatchDeleteDocumentsMetadata {
     #[serde(default, rename = "totalDocumentCount")]
     pub total_document_count: ::core::option::Option<i32>,
 }
+
+/// Response of the delete documents operation.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiUiv1beta3BatchDeleteDocumentsResponse {}
 
 /// GoogleCloudDocumentaiUiv1beta3BatchMoveDocumentsMetadata resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -82,6 +90,10 @@ pub struct GoogleCloudDocumentaiUiv1beta3BatchMoveDocumentsMetadata {
     >,
 }
 
+/// Response of the batch move documents operation.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiUiv1beta3BatchMoveDocumentsResponse {}
+
 /// GoogleCloudDocumentaiUiv1beta3BatchUpdateDocumentsMetadata resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDocumentaiUiv1beta3BatchUpdateDocumentsMetadata {
@@ -97,6 +109,10 @@ pub struct GoogleCloudDocumentaiUiv1beta3BatchUpdateDocumentsMetadata {
         >,
     >,
 }
+
+/// Response of the batch update documents operation.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiUiv1beta3BatchUpdateDocumentsResponse {}
 
 /// The long-running operation metadata for the CreateLabelerPool method.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -143,6 +159,10 @@ pub struct GoogleCloudDocumentaiUiv1beta3DeployProcessorVersionMetadata {
         ::core::option::Option<GoogleCloudDocumentaiUiv1beta3CommonOperationMetadata>,
 }
 
+/// Response message for the DeployProcessorVersion method.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiUiv1beta3DeployProcessorVersionResponse {}
+
 /// The long-running operation metadata for the DisableProcessor method.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDocumentaiUiv1beta3DisableProcessorMetadata {
@@ -152,6 +172,10 @@ pub struct GoogleCloudDocumentaiUiv1beta3DisableProcessorMetadata {
         ::core::option::Option<GoogleCloudDocumentaiUiv1beta3CommonOperationMetadata>,
 }
 
+/// Response message for the DisableProcessor method. Intentionally empty proto for adding fields in future.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiUiv1beta3DisableProcessorResponse {}
+
 /// The long-running operation metadata for the EnableProcessor method.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDocumentaiUiv1beta3EnableProcessorMetadata {
@@ -160,6 +184,10 @@ pub struct GoogleCloudDocumentaiUiv1beta3EnableProcessorMetadata {
     pub common_metadata:
         ::core::option::Option<GoogleCloudDocumentaiUiv1beta3CommonOperationMetadata>,
 }
+
+/// Response message for the EnableProcessor method. Intentionally empty proto for adding fields in future.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiUiv1beta3EnableProcessorResponse {}
 
 /// Metadata of the EvaluateProcessorVersion method.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -198,6 +226,10 @@ pub struct GoogleCloudDocumentaiUiv1beta3ExportDocumentsMetadata {
         ::std::vec::Vec<GoogleCloudDocumentaiUiv1beta3ExportDocumentsMetadataSplitExportStat>,
     >,
 }
+
+/// The response proto of ExportDocuments method.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiUiv1beta3ExportDocumentsResponse {}
 
 /// Metadata message associated with the ExportProcessorVersion operation.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -241,6 +273,10 @@ pub struct GoogleCloudDocumentaiUiv1beta3ImportDocumentsMetadata {
     #[serde(default, rename = "totalDocumentCount")]
     pub total_document_count: ::core::option::Option<i32>,
 }
+
+/// Response of the import document operation.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiUiv1beta3ImportDocumentsResponse {}
 
 /// The long-running operation metadata for the ImportProcessorVersion method.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -379,6 +415,10 @@ pub struct GoogleCloudDocumentaiUiv1beta3ResyncDatasetMetadata {
     >,
 }
 
+/// The response proto of ResyncDataset method.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiUiv1beta3ResyncDatasetResponse {}
+
 /// Metadata of the sample documents operation.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDocumentaiUiv1beta3SampleDocumentsMetadata {
@@ -412,6 +452,10 @@ pub struct GoogleCloudDocumentaiUiv1beta3SetDefaultProcessorVersionMetadata {
     pub common_metadata:
         ::core::option::Option<GoogleCloudDocumentaiUiv1beta3CommonOperationMetadata>,
 }
+
+/// Response message for the SetDefaultProcessorVersion method.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiUiv1beta3SetDefaultProcessorVersionResponse {}
 
 /// The metadata that represents a processor version being created.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -448,6 +492,10 @@ pub struct GoogleCloudDocumentaiUiv1beta3UndeployProcessorVersionMetadata {
     pub common_metadata:
         ::core::option::Option<GoogleCloudDocumentaiUiv1beta3CommonOperationMetadata>,
 }
+
+/// Response message for the UndeployProcessorVersion method.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiUiv1beta3UndeployProcessorVersionResponse {}
 
 /// GoogleCloudDocumentaiUiv1beta3UpdateDatasetOperationMetadata resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -527,6 +575,10 @@ pub struct GoogleCloudDocumentaiV1BatchProcessRequest {
     pub skip_human_review: ::core::option::Option<bool>,
 }
 
+/// Response message for BatchProcessDocuments.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1BatchProcessResponse {}
+
 /// The long-running operation metadata for the DeleteProcessor method.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDocumentaiV1DeleteProcessorMetadata {
@@ -551,6 +603,14 @@ pub struct GoogleCloudDocumentaiV1DeployProcessorVersionMetadata {
     pub common_metadata: ::core::option::Option<GoogleCloudDocumentaiV1CommonOperationMetadata>,
 }
 
+/// Request message for the DeployProcessorVersion method.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1DeployProcessorVersionRequest {}
+
+/// Response message for the DeployProcessorVersion method.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1DeployProcessorVersionResponse {}
+
 /// The long-running operation metadata for the DisableProcessor method.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDocumentaiV1DisableProcessorMetadata {
@@ -559,6 +619,14 @@ pub struct GoogleCloudDocumentaiV1DisableProcessorMetadata {
     pub common_metadata: ::core::option::Option<GoogleCloudDocumentaiV1CommonOperationMetadata>,
 }
 
+/// Request message for the DisableProcessor method.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1DisableProcessorRequest {}
+
+/// Response message for the DisableProcessor method. Intentionally empty proto for adding fields in future.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1DisableProcessorResponse {}
+
 /// The long-running operation metadata for the EnableProcessor method.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDocumentaiV1EnableProcessorMetadata {
@@ -566,6 +634,14 @@ pub struct GoogleCloudDocumentaiV1EnableProcessorMetadata {
     #[serde(default, rename = "commonMetadata")]
     pub common_metadata: ::core::option::Option<GoogleCloudDocumentaiV1CommonOperationMetadata>,
 }
+
+/// Request message for the EnableProcessor method.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1EnableProcessorRequest {}
+
+/// Response message for the EnableProcessor method. Intentionally empty proto for adding fields in future.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1EnableProcessorResponse {}
 
 /// Metadata of the EvaluateProcessorVersion method.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -801,6 +877,10 @@ pub struct GoogleCloudDocumentaiV1SetDefaultProcessorVersionRequest {
     pub default_processor_version: ::core::option::Option<String>,
 }
 
+/// Response message for the SetDefaultProcessorVersion method.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1SetDefaultProcessorVersionResponse {}
+
 /// The metadata that represents a processor version being created.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDocumentaiV1TrainProcessorVersionMetadata {
@@ -863,6 +943,14 @@ pub struct GoogleCloudDocumentaiV1UndeployProcessorVersionMetadata {
     pub common_metadata: ::core::option::Option<GoogleCloudDocumentaiV1CommonOperationMetadata>,
 }
 
+/// Request message for the UndeployProcessorVersion method.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1UndeployProcessorVersionRequest {}
+
+/// Response message for the UndeployProcessorVersion method.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1UndeployProcessorVersionResponse {}
+
 /// GoogleCloudDocumentaiV1beta3BatchDeleteDocumentsMetadata resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDocumentaiV1beta3BatchDeleteDocumentsMetadata {
@@ -885,6 +973,10 @@ pub struct GoogleCloudDocumentaiV1beta3BatchDeleteDocumentsMetadata {
     pub total_document_count: ::core::option::Option<i32>,
 }
 
+/// Response of the delete documents operation.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1beta3BatchDeleteDocumentsResponse {}
+
 /// The long-running operation metadata for BatchProcessDocuments.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDocumentaiV1beta3BatchProcessMetadata {
@@ -906,6 +998,10 @@ pub struct GoogleCloudDocumentaiV1beta3BatchProcessMetadata {
     #[serde(default, rename = "updateTime")]
     pub update_time: ::core::option::Option<String>,
 }
+
+/// Response message for BatchProcessDocuments.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1beta3BatchProcessResponse {}
 
 /// A singleton resource under a Processor which configures a collection of documents.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -935,6 +1031,10 @@ pub struct GoogleCloudDocumentaiV1beta3Dataset {
     pub unmanaged_dataset_config: ::core::option::Option<serde_json::Value>,
 }
 
+/// Configuration specific to an unmanaged dataset.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1beta3DatasetUnmanagedDatasetConfig {}
+
 /// The long-running operation metadata for the DeleteProcessor method.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDocumentaiV1beta3DeleteProcessorMetadata {
@@ -962,6 +1062,10 @@ pub struct GoogleCloudDocumentaiV1beta3DeployProcessorVersionMetadata {
         ::core::option::Option<GoogleCloudDocumentaiV1beta3CommonOperationMetadata>,
 }
 
+/// Response message for the DeployProcessorVersion method.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1beta3DeployProcessorVersionResponse {}
+
 /// The long-running operation metadata for the DisableProcessor method.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDocumentaiV1beta3DisableProcessorMetadata {
@@ -971,6 +1075,10 @@ pub struct GoogleCloudDocumentaiV1beta3DisableProcessorMetadata {
         ::core::option::Option<GoogleCloudDocumentaiV1beta3CommonOperationMetadata>,
 }
 
+/// Response message for the DisableProcessor method. Intentionally empty proto for adding fields in future.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1beta3DisableProcessorResponse {}
+
 /// The long-running operation metadata for the EnableProcessor method.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDocumentaiV1beta3EnableProcessorMetadata {
@@ -979,6 +1087,10 @@ pub struct GoogleCloudDocumentaiV1beta3EnableProcessorMetadata {
     pub common_metadata:
         ::core::option::Option<GoogleCloudDocumentaiV1beta3CommonOperationMetadata>,
 }
+
+/// Response message for the EnableProcessor method. Intentionally empty proto for adding fields in future.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1beta3EnableProcessorResponse {}
 
 /// Metadata of the EvaluateProcessorVersion method.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -1020,6 +1132,10 @@ pub struct GoogleCloudDocumentaiV1beta3ImportDocumentsMetadata {
     #[serde(default, rename = "totalDocumentCount")]
     pub total_document_count: ::core::option::Option<i32>,
 }
+
+/// Response of the import document operation.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1beta3ImportDocumentsResponse {}
 
 /// The long-running operation metadata for the ImportProcessorVersion method.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -1176,6 +1292,10 @@ pub struct GoogleCloudDocumentaiV1beta3SetDefaultProcessorVersionMetadata {
         ::core::option::Option<GoogleCloudDocumentaiV1beta3CommonOperationMetadata>,
 }
 
+/// Response message for the SetDefaultProcessorVersion method.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1beta3SetDefaultProcessorVersionResponse {}
+
 /// The metadata that represents a processor version being created.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDocumentaiV1beta3TrainProcessorVersionMetadata {
@@ -1211,6 +1331,10 @@ pub struct GoogleCloudDocumentaiV1beta3UndeployProcessorVersionMetadata {
     pub common_metadata:
         ::core::option::Option<GoogleCloudDocumentaiV1beta3CommonOperationMetadata>,
 }
+
+/// Response message for the UndeployProcessorVersion method.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDocumentaiV1beta3UndeployProcessorVersionResponse {}
 
 /// GoogleCloudDocumentaiV1beta3UpdateDatasetOperationMetadata resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -1254,6 +1378,10 @@ pub struct GoogleLongrunningListOperationsResponse {
     #[serde(default)]
     pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
 }
+
+/// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleProtobufEmpty {}
 
 /// Next ID: 9
 #[derive(Debug, Clone, Serialize, Deserialize)]

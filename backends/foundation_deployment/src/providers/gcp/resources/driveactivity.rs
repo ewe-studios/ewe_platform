@@ -10,6 +10,46 @@
 use super::*;
 use serde::{Deserialize, Serialize};
 
+/// Empty message representing an administrator.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Administrator {}
+
+/// Empty message representing an anonymous user or indicating the authenticated user should be anonymized.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AnonymousUser {}
+
+/// Represents any user (including a logged out user).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Anyone {}
+
+/// A user whose account has since been deleted.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DeletedUser {}
+
+/// A Drive item which is a file.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DriveFile {}
+
+/// An empty message indicating an object was edited.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Edit {}
+
+/// This item is deprecated; please see DriveFile instead.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct File {}
+
+/// A strategy that consolidates activities using the grouping rules from the legacy V1 Activity API. Similar actions occurring within a window of time can be grouped across multiple targets (such as moving a set of files at once) or multiple actors (such as several users editing the same item). Grouping rules for this strategy are specific to each type of action.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Legacy {}
+
+/// An object was created from scratch.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct New {}
+
+/// A strategy that does no consolidation of individual activities.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct NoConsolidation {}
+
 /// The request message for querying Drive activity.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct QueryDriveActivityRequest {
@@ -43,6 +83,14 @@ pub struct QueryDriveActivityResponse {
     #[serde(default, rename = "nextPageToken")]
     pub next_page_token: ::core::option::Option<String>,
 }
+
+/// A user about whom nothing is currently known.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct UnknownUser {}
+
+/// An object was uploaded into Drive.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Upload {}
 
 /// How the individual activities are consolidated. If a set of activities is related they can be consolidated into one combined activity, such as one actor performing the same action on multiple targets, or multiple actors performing the same action on a single target. The strategy defines the rules for which activities are related.
 #[derive(Debug, Clone, Serialize, Deserialize)]

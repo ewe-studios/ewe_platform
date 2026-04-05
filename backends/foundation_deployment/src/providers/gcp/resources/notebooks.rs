@@ -10,6 +10,10 @@
 use super::*;
 use serde::{Deserialize, Serialize};
 
+/// The request message for Operations.CancelOperation.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CancelOperationRequest {}
+
 /// Request message for checking authorization for the instance owner.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CheckAuthorizationRequest {
@@ -76,6 +80,10 @@ pub struct DiagnoseInstanceRequest {
     #[serde(default, rename = "timeoutMinutes")]
     pub timeout_minutes: ::core::option::Option<i32>,
 }
+
+/// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Empty {}
 
 /// Request message for generating an EUC for the instance owner.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -181,6 +189,10 @@ pub struct ReportInstanceInfoSystemRequest {
     pub vm_id: ::core::option::Option<String>,
 }
 
+/// Request for resetting a notebook instance
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ResetInstanceRequest {}
+
 /// Request for resizing the notebook instance disks
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ResizeDiskRequest {
@@ -219,6 +231,14 @@ pub struct SetIamPolicyRequest {
     pub policy: ::core::option::Option<Policy>,
 }
 
+/// Request for starting a notebook instance
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct StartInstanceRequest {}
+
+/// Request for stopping a notebook instance
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct StopInstanceRequest {}
+
 /// Request message for TestIamPermissions method.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TestIamPermissionsRequest {
@@ -234,6 +254,10 @@ pub struct TestIamPermissionsResponse {
     #[serde(default)]
     pub permissions: ::core::option::Option<::std::vec::Vec<String>>,
 }
+
+/// Request for upgrading a notebook instance
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct UpgradeInstanceRequest {}
 
 /// Request for upgrading a notebook instance from within the VM
 #[derive(Debug, Clone, Serialize, Deserialize)]

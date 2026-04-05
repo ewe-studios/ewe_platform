@@ -10,6 +10,10 @@
 use super::*;
 use serde::{Deserialize, Serialize};
 
+/// The request object for cancelling a Device Session.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CancelDeviceSessionRequest {}
+
 /// Response containing the current state of the specified test matrix.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CancelTestMatrixResponse {
@@ -18,6 +22,10 @@ pub struct CancelTestMatrixResponse {
     pub test_state: ::core::option::Option<String>,
 }
 
+/// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Empty {}
+
 /// Response containing the details of the specified Android application.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GetApkDetailsResponse {
@@ -25,6 +33,14 @@ pub struct GetApkDetailsResponse {
     #[serde(default, rename = "apkDetail")]
     pub apk_detail: ::core::option::Option<ApkDetail>,
 }
+
+/// Enables automatic Google account login. If set, the service automatically generates a Google test account and adds it to the device, before executing the test. Note that test accounts might be reused. Many applications show their full set of functionalities when an account is present on the device. Logging into the device with these generated accounts allows testing more functionalities.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleAuto {}
+
+/// Specifies an intent that starts the main launcher activity.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LauncherActivityIntent {}
 
 /// A list of device sessions.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -36,6 +52,10 @@ pub struct ListDeviceSessionsResponse {
     #[serde(default, rename = "nextPageToken")]
     pub next_page_token: ::core::option::Option<String>,
 }
+
+/// Skips the starting activity
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct NoActivityIntent {}
 
 /// A description of a test environment.
 #[derive(Debug, Clone, Serialize, Deserialize)]

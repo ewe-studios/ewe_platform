@@ -231,6 +231,10 @@ pub struct IndexItemRequest {
     pub mode: ::core::option::Option<String>,
 }
 
+/// Request message for InitializeCustomer method.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct InitializeCustomerRequest {}
+
 /// ListDataSourceResponse resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ListDataSourceResponse {
@@ -372,6 +376,10 @@ pub struct RemoveActivityRequest {
     #[serde(default, rename = "userActivity")]
     pub user_activity: ::core::option::Option<UserActivity>,
 }
+
+/// Remove Logged Activity Response. will return an empty response for now. Will be revisited in later phases.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RemoveActivityResponse {}
 
 /// ResetSearchApplicationRequest resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]

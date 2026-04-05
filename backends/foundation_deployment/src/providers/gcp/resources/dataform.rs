@@ -10,6 +10,22 @@
 use super::*;
 use serde::{Deserialize, Serialize};
 
+/// Simple load definition
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ActionSimpleLoadMode {}
+
+/// The request message for Operations.CancelOperation.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CancelOperationRequest {}
+
+/// CancelWorkflowInvocation request message.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CancelWorkflowInvocationRequest {}
+
+/// CancelWorkflowInvocation response message.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CancelWorkflowInvocationResponse {}
+
 /// CommitRepositoryChanges request message.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CommitRepositoryChangesRequest {
@@ -46,6 +62,10 @@ pub struct CommitWorkspaceChangesRequest {
     pub paths: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
+/// CommitWorkspaceChanges response message.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CommitWorkspaceChangesResponse {}
+
 /// ComputeRepositoryAccessTokenStatus response message.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ComputeRepositoryAccessTokenStatusResponse {
@@ -68,6 +88,10 @@ pub struct Config {
     pub name: ::core::option::Option<String>,
 }
 
+/// Represents the delete file operation.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DeleteFile {}
+
 /// DeleteFolderTree request message.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct DeleteFolderTreeRequest {
@@ -83,6 +107,10 @@ pub struct DeleteTeamFolderTreeRequest {
     #[serde(default)]
     pub force: ::core::option::Option<bool>,
 }
+
+/// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Empty {}
 
 /// FetchFileDiff response message.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -151,6 +179,14 @@ pub struct IamPolicyOverrideView {
     #[serde(default, rename = "isActive")]
     pub is_active: ::core::option::Option<bool>,
 }
+
+/// InstallNpmPackages request message.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct InstallNpmPackagesRequest {}
+
+/// InstallNpmPackages response message.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct InstallNpmPackagesResponse {}
 
 /// ListCompilationResults response message.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -269,6 +305,10 @@ pub struct MakeDirectoryRequest {
     pub path: ::core::option::Option<String>,
 }
 
+/// MakeDirectory response message.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MakeDirectoryResponse {}
+
 /// MoveDirectory request message.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct MoveDirectoryRequest {
@@ -280,6 +320,10 @@ pub struct MoveDirectoryRequest {
     pub path: ::core::option::Option<String>,
 }
 
+/// MoveDirectory response message.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MoveDirectoryResponse {}
+
 /// MoveFile request message.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct MoveFileRequest {
@@ -290,6 +334,10 @@ pub struct MoveFileRequest {
     #[serde(default)]
     pub path: ::core::option::Option<String>,
 }
+
+/// MoveFile response message.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MoveFileResponse {}
 
 /// MoveFolder request message.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -344,6 +392,10 @@ pub struct PullGitCommitsRequest {
     pub remote_branch: ::core::option::Option<String>,
 }
 
+/// PullGitCommits response message.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PullGitCommitsResponse {}
+
 /// PushGitCommits request message.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PushGitCommitsRequest {
@@ -351,6 +403,10 @@ pub struct PushGitCommitsRequest {
     #[serde(default, rename = "remoteBranch")]
     pub remote_branch: ::core::option::Option<String>,
 }
+
+/// PushGitCommits response message.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PushGitCommitsResponse {}
 
 /// QueryCompilationResultActions response message.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -455,6 +511,10 @@ pub struct RemoveDirectoryRequest {
     pub path: ::core::option::Option<String>,
 }
 
+/// RemoveDirectory response message.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RemoveDirectoryResponse {}
+
 /// RemoveFile request message.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct RemoveFileRequest {
@@ -462,6 +522,10 @@ pub struct RemoveFileRequest {
     #[serde(default)]
     pub path: ::core::option::Option<String>,
 }
+
+/// RemoveFile response message.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RemoveFileResponse {}
 
 /// ResetWorkspaceChanges request message.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -473,6 +537,10 @@ pub struct ResetWorkspaceChangesRequest {
     #[serde(default)]
     pub paths: ::core::option::Option<::std::vec::Vec<String>>,
 }
+
+/// ResetWorkspaceChanges response message.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ResetWorkspaceChangesResponse {}
 
 /// Client-facing representation of a file search response.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -504,6 +572,10 @@ pub struct SetIamPolicyRequest {
     pub policy: ::core::option::Option<Policy>,
 }
 
+/// Simple load definition
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SimpleLoadMode {}
+
 /// Request message for TestIamPermissions method.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TestIamPermissionsRequest {
@@ -530,6 +602,10 @@ pub struct WriteFileRequest {
     #[serde(default)]
     pub path: ::core::option::Option<String>,
 }
+
+/// WriteFile response message.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct WriteFileResponse {}
 
 /// Represents a Dataform Git commit.
 #[derive(Debug, Clone, Serialize, Deserialize)]

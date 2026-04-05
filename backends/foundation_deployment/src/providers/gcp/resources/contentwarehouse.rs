@@ -35,6 +35,10 @@ pub struct GoogleCloudContentwarehouseV1CreateDocumentLinkRequest {
     pub request_metadata: ::core::option::Option<GoogleCloudContentwarehouseV1RequestMetadata>,
 }
 
+/// Metadata object for CreateDocument request (currently empty).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudContentwarehouseV1CreateDocumentMetadata {}
+
 /// Request message for DocumentService.CreateDocument.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudContentwarehouseV1CreateDocumentRequest {
@@ -74,6 +78,10 @@ pub struct GoogleCloudContentwarehouseV1CreateDocumentResponse {
     pub rule_engine_output: ::core::option::Option<GoogleCloudContentwarehouseV1RuleEngineOutput>,
 }
 
+/// Configurations for a date time property.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudContentwarehouseV1DateTimeTypeOptions {}
+
 /// Request message for DocumentLinkService.DeleteDocumentLink.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudContentwarehouseV1DeleteDocumentLinkRequest {
@@ -111,6 +119,10 @@ pub struct GoogleCloudContentwarehouseV1FetchAclResponse {
     #[serde(default)]
     pub policy: ::core::option::Option<GoogleIamV1Policy>,
 }
+
+/// Configurations for a float property.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudContentwarehouseV1FloatTypeOptions {}
 
 /// Request message for DocumentService.GetDocument.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -150,6 +162,10 @@ pub struct GoogleCloudContentwarehouseV1InitializeProjectResponse {
     #[serde(default)]
     pub state: ::core::option::Option<String>,
 }
+
+/// Configurations for an integer property.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudContentwarehouseV1IntegerTypeOptions {}
 
 /// Response message for DocumentSchemaService.ListDocumentSchemas.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -242,6 +258,10 @@ pub struct GoogleCloudContentwarehouseV1LockDocumentRequest {
     #[serde(default, rename = "lockingUser")]
     pub locking_user: ::core::option::Option<GoogleCloudContentwarehouseV1UserInfo>,
 }
+
+/// Configurations for a Map property.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudContentwarehouseV1MapTypeOptions {}
 
 /// Status of a project, including the project state, dbType, aclMode and etc.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -410,6 +430,18 @@ pub struct GoogleCloudContentwarehouseV1SetAclResponse {
     pub policy: ::core::option::Option<GoogleIamV1Policy>,
 }
 
+/// Configurations for a text property.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudContentwarehouseV1TextTypeOptions {}
+
+/// Configurations for a timestamp property.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudContentwarehouseV1TimestampTypeOptions {}
+
+/// Metadata object for UpdateDocument request (currently empty).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudContentwarehouseV1UpdateDocumentMetadata {}
+
 /// Request message for DocumentService.UpdateDocument.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudContentwarehouseV1UpdateDocumentRequest {
@@ -484,6 +516,10 @@ pub struct GoogleCloudContentwarehouseV1Value {
     pub timestamp_value: ::core::option::Option<GoogleCloudContentwarehouseV1TimestampValue>,
 }
 
+/// Metadata object for CreateDocument request (currently empty).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudContentwarehouseV1beta1CreateDocumentMetadata {}
+
 /// Response message for projectService.InitializeProject
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudContentwarehouseV1beta1InitializeProjectResponse {
@@ -494,6 +530,14 @@ pub struct GoogleCloudContentwarehouseV1beta1InitializeProjectResponse {
     #[serde(default)]
     pub state: ::core::option::Option<String>,
 }
+
+/// Metadata object for UpdateDocument request (currently empty).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudContentwarehouseV1beta1UpdateDocumentMetadata {}
+
+/// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleProtobufEmpty {}
 
 /// The identity to configure a service account.
 #[derive(Debug, Clone, Serialize, Deserialize)]

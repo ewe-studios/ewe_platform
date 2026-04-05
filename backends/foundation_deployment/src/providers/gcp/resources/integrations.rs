@@ -300,6 +300,10 @@ pub struct GoogleCloudIntegrationsV1alphaCreateCloudFunctionResponse {
     pub trigger_url: ::core::option::Option<String>,
 }
 
+/// Request for the Deprovision rpc
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudIntegrationsV1alphaDeprovisionClientRequest {}
+
 /// Response for downloading an execution.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudIntegrationsV1alphaDownloadExecutionResponse {
@@ -419,6 +423,10 @@ pub struct GoogleCloudIntegrationsV1alphaExecuteTestCaseRequest {
     #[serde(default, rename = "inputParameters")]
     pub input_parameters: ::core::option::Option<serde_json::Value>,
 }
+
+/// Request for ExecuteTestCases.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudIntegrationsV1alphaExecuteTestCasesRequest {}
 
 /// Response for ExecuteTestCases.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -699,6 +707,10 @@ pub struct GoogleCloudIntegrationsV1alphaProvisionClientPostProcessorRequest {
     pub workflows: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
+/// Response for PostProvisioning rpc call.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudIntegrationsV1alphaProvisionClientPostProcessorResponse {}
+
 /// Request for the Provision rpc
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudIntegrationsV1alphaProvisionClientRequest {
@@ -732,6 +744,10 @@ pub struct GoogleCloudIntegrationsV1alphaPublishIntegrationVersionRequest {
     #[serde(default, rename = "configParameters")]
     pub config_parameters: ::core::option::Option<serde_json::Value>,
 }
+
+/// Response for PublishIntegrationVersion.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudIntegrationsV1alphaPublishIntegrationVersionResponse {}
 
 /// Request for the ReplaceServiceAccount rpc
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -779,6 +795,10 @@ pub struct GoogleCloudIntegrationsV1alphaResolveSuspensionRequest {
     #[serde(default)]
     pub suspension: ::core::option::Option<GoogleCloudIntegrationsV1alphaSuspension>,
 }
+
+/// Response for Suspensions.ResolveSuspensions.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudIntegrationsV1alphaResolveSuspensionResponse {}
 
 /// The request for scheduling an integration.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -873,6 +893,10 @@ pub struct GoogleCloudIntegrationsV1alphaSwitchVariableMaskingRequest {
     pub enable_variable_masking: ::core::option::Option<bool>,
 }
 
+/// Request for TakeoverEditLock.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudIntegrationsV1alphaTakeoverEditLockRequest {}
+
 /// Response for TakeoverEditLock.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudIntegrationsV1alphaTakeoverEditLockResponse {
@@ -881,6 +905,10 @@ pub struct GoogleCloudIntegrationsV1alphaTakeoverEditLockResponse {
     pub integration_version:
         ::core::option::Option<GoogleCloudIntegrationsV1alphaIntegrationVersion>,
 }
+
+/// Request for TakeoverTestCaseEditLock.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudIntegrationsV1alphaTakeoverTestCaseEditLockRequest {}
 
 /// The request for testing an integration.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -941,6 +969,10 @@ pub struct GoogleCloudIntegrationsV1alphaToggleHttpRequest {
     #[serde(default, rename = "enableHttpCall")]
     pub enable_http_call: ::core::option::Option<bool>,
 }
+
+/// Request for UnpublishIntegrationVersion.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudIntegrationsV1alphaUnpublishIntegrationVersionRequest {}
 
 /// Request to Unshare template
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -1035,6 +1067,10 @@ pub struct GoogleCloudIntegrationsV1alphaUseTemplateResponse {
     pub sub_integration_versions:
         ::core::option::Option<::std::vec::Vec<GoogleCloudIntegrationsV1alphaIntegrationVersion>>,
 }
+
+/// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleProtobufEmpty {}
 
 /// EnterpriseCrmEventbusProtoConnectorsConnection resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]

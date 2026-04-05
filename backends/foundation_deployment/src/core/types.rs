@@ -10,9 +10,10 @@
 //! factory methods for dry-run and skipped scenarios.
 
 use chrono::{DateTime, Utc};
+use serde::{Deserialize, Serialize};
 
 /// Output from a build step.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct BuildOutput {
     /// Artifacts produced by the build.
     pub artifacts: Vec<BuildArtifact>,
@@ -21,7 +22,7 @@ pub struct BuildOutput {
 }
 
 /// A single build artifact.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct BuildArtifact {
     /// Path to the artifact on disk.
     pub path: std::path::PathBuf,
@@ -32,7 +33,7 @@ pub struct BuildArtifact {
 }
 
 /// The kind of build artifact produced.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum ArtifactType {
     /// WebAssembly module (`.wasm`).
     WasmModule,
@@ -50,7 +51,7 @@ pub enum ArtifactType {
 }
 
 /// Output from a deployment.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct DeploymentResult {
     /// Provider-assigned deployment identifier.
     pub deployment_id: String,

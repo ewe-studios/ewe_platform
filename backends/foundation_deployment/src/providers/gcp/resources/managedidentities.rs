@@ -18,6 +18,14 @@ pub struct AttachTrustRequest {
     pub trust: ::core::option::Option<Trust>,
 }
 
+/// The request message for Operations.CancelOperation.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CancelOperationRequest {}
+
+/// CheckMigrationPermissionRequest is the request message for CheckMigrationPermission method.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CheckMigrationPermissionRequest {}
+
 /// CheckMigrationPermissionResponse is the response message for CheckMigrationPermission method.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CheckMigrationPermissionResponse {
@@ -36,6 +44,10 @@ pub struct DetachTrustRequest {
     #[serde(default)]
     pub trust: ::core::option::Option<Trust>,
 }
+
+/// DisableMigrationRequest is the request message for DisableMigration method.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DisableMigrationRequest {}
 
 /// DomainJoinMachineRequest is the request message for DomainJoinMachine method
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -58,6 +70,10 @@ pub struct DomainJoinMachineResponse {
     #[serde(default, rename = "domainJoinBlob")]
     pub domain_join_blob: ::core::option::Option<String>,
 }
+
+/// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Empty {}
 
 /// EnableMigrationRequest is the request message for EnableMigration method.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -418,6 +434,10 @@ pub struct ReconfigureTrustRequest {
     #[serde(default, rename = "targetDomainName")]
     pub target_domain_name: ::core::option::Option<String>,
 }
+
+/// Request message for ResetAdminPassword
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ResetAdminPasswordRequest {}
 
 /// Response message for ResetAdminPassword
 #[derive(Debug, Clone, Serialize, Deserialize)]

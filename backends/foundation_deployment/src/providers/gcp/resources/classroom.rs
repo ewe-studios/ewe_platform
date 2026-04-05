@@ -47,6 +47,10 @@ pub struct AddOnContext {
     pub teacher_context: ::core::option::Option<serde_json::Value>,
 }
 
+/// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Empty {}
+
 /// Grading period settings that include all the individual grading periods in a course.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GradingPeriodSettings {
@@ -264,6 +268,10 @@ pub struct ModifyCourseWorkAssigneesRequest {
     pub modify_individual_students_options: ::core::option::Option<ModifyIndividualStudentsOptions>,
 }
 
+/// Request to reclaim a student submission.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ReclaimStudentSubmissionRequest {}
+
 /// An instruction to Classroom to send notifications from the feed to the provided destination.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Registration {
@@ -281,6 +289,10 @@ pub struct Registration {
     pub registration_id: ::core::option::Option<String>,
 }
 
+/// Request to return a student submission.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ReturnStudentSubmissionRequest {}
+
 /// A rubric grade set for the student submission. There is at most one entry per rubric criterion.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct RubricGrade {
@@ -294,6 +306,14 @@ pub struct RubricGrade {
     #[serde(default)]
     pub points: ::core::option::Option<f64>,
 }
+
+/// Role-specific context if the requesting user is a teacher.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TeacherContext {}
+
+/// Request to turn in a student submission.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TurnInStudentSubmissionRequest {}
 
 /// Role-specific context if the requesting user is a student.
 #[derive(Debug, Clone, Serialize, Deserialize)]

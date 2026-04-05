@@ -10,6 +10,10 @@
 use super::*;
 use serde::{Deserialize, Serialize};
 
+/// The message to appeal an assessment.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudContactcenterinsightsV1AppealAssessmentRequest {}
+
 /// The metadata for a bulk analyze conversations operation.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudContactcenterinsightsV1BulkAnalyzeConversationsMetadata {
@@ -69,6 +73,10 @@ pub struct GoogleCloudContactcenterinsightsV1BulkDeleteConversationsMetadata {
         ::core::option::Option<GoogleCloudContactcenterinsightsV1BulkDeleteConversationsRequest>,
 }
 
+/// The response for a bulk delete conversations operation.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudContactcenterinsightsV1BulkDeleteConversationsResponse {}
+
 /// Metadata for the BulkDeleteFeedbackLabels endpoint.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudContactcenterinsightsV1BulkDeleteFeedbackLabelsMetadata {
@@ -80,6 +88,10 @@ pub struct GoogleCloudContactcenterinsightsV1BulkDeleteFeedbackLabelsMetadata {
     pub request:
         ::core::option::Option<GoogleCloudContactcenterinsightsV1BulkDeleteFeedbackLabelsRequest>,
 }
+
+/// Response for the BulkDeleteFeedbackLabels endpoint.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudContactcenterinsightsV1BulkDeleteFeedbackLabelsResponse {}
 
 /// Metadata for the BulkDownloadFeedbackLabel endpoint.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -103,6 +115,10 @@ pub struct GoogleCloudContactcenterinsightsV1BulkDownloadFeedbackLabelsMetadata 
     pub request:
         ::core::option::Option<GoogleCloudContactcenterinsightsV1BulkDownloadFeedbackLabelsRequest>,
 }
+
+/// Response for the BulkDownloadFeedbackLabel endpoint.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudContactcenterinsightsV1BulkDownloadFeedbackLabelsResponse {}
 
 /// The request for bulk uploading feedback labels.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -258,6 +274,14 @@ pub struct GoogleCloudContactcenterinsightsV1DeployIssueModelMetadata {
     pub request: ::core::option::Option<GoogleCloudContactcenterinsightsV1DeployIssueModelRequest>,
 }
 
+/// The response to deploy an issue model.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudContactcenterinsightsV1DeployIssueModelResponse {}
+
+/// The request to deploy a QaScorecardRevision
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudContactcenterinsightsV1DeployQaScorecardRevisionRequest {}
+
 /// The data for a Dialogflow intent. Represents a detected intent in the conversation, e.g. MAKES_PROMISE.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudContactcenterinsightsV1DialogflowIntent {
@@ -310,6 +334,10 @@ pub struct GoogleCloudContactcenterinsightsV1ExportInsightsDataMetadata {
         ::core::option::Option<GoogleCloudContactcenterinsightsV1ExportInsightsDataRequest>,
 }
 
+/// Response for an export insights operation.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudContactcenterinsightsV1ExportInsightsDataResponse {}
+
 /// Metadata used for export issue model.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudContactcenterinsightsV1ExportIssueModelMetadata {
@@ -323,6 +351,14 @@ pub struct GoogleCloudContactcenterinsightsV1ExportIssueModelMetadata {
     #[serde(default)]
     pub request: ::core::option::Option<GoogleCloudContactcenterinsightsV1ExportIssueModelRequest>,
 }
+
+/// Response from export issue model
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudContactcenterinsightsV1ExportIssueModelResponse {}
+
+/// The message to finalize an assessment. Finalizing makes an assessment and its notes immutable.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudContactcenterinsightsV1FinalizeAssessmentRequest {}
 
 /// The response from a GenerateConversationSignedAudio request.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -390,6 +426,10 @@ pub struct GoogleCloudContactcenterinsightsV1GenerativeInsightsResponse {
     >,
 }
 
+/// The data for a hold annotation.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudContactcenterinsightsV1HoldData {}
+
 /// Metadata used for import issue model.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudContactcenterinsightsV1ImportIssueModelMetadata {
@@ -438,6 +478,10 @@ pub struct GoogleCloudContactcenterinsightsV1IngestConversationsMetadata {
     pub sampled_conversations: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
+/// The response to an IngestConversations operation.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudContactcenterinsightsV1IngestConversationsResponse {}
+
 /// Metadata for initializing a location-level encryption specification.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudContactcenterinsightsV1InitializeEncryptionSpecMetadata {
@@ -456,6 +500,10 @@ pub struct GoogleCloudContactcenterinsightsV1InitializeEncryptionSpecMetadata {
         ::core::option::Option<GoogleCloudContactcenterinsightsV1InitializeEncryptionSpecRequest>,
 }
 
+/// The response to initialize a location-level encryption specification.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudContactcenterinsightsV1InitializeEncryptionSpecResponse {}
+
 /// The data for an intent. Represents a detected intent in the conversation, for example MAKES_PROMISE.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudContactcenterinsightsV1Intent {
@@ -466,6 +514,10 @@ pub struct GoogleCloudContactcenterinsightsV1Intent {
     #[serde(default)]
     pub id: ::core::option::Option<String>,
 }
+
+/// The data for an interruption annotation.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudContactcenterinsightsV1InterruptionData {}
 
 /// Aggregated statistics about an issue.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -737,6 +789,14 @@ pub struct GoogleCloudContactcenterinsightsV1ListViewsResponse {
     pub views: ::core::option::Option<::std::vec::Vec<GoogleCloudContactcenterinsightsV1View>>,
 }
 
+/// A note about the entire parent assessment.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudContactcenterinsightsV1NoteAssessmentNote {}
+
+/// The message to publish an assessment. Draft and appealed assessments can be published. Publishing simply changes the state of the assessment to published, allowing the console and authorized views to filter on the state.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudContactcenterinsightsV1PublishAssessmentRequest {}
+
 /// The metadata from querying metrics.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudContactcenterinsightsV1QueryMetricsMetadata {
@@ -783,6 +843,10 @@ pub struct GoogleCloudContactcenterinsightsV1QueryMetricsResponse {
     pub update_time: ::core::option::Option<String>,
 }
 
+/// The metadata for querying performance overview.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudContactcenterinsightsV1QueryPerformanceOverviewMetadata {}
+
 /// The request for summarizing performance according to different metrics for conversations over a specified time window.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudContactcenterinsightsV1QueryPerformanceOverviewRequest {
@@ -811,6 +875,10 @@ pub struct GoogleCloudContactcenterinsightsV1QueryPerformanceOverviewResponse {
     pub summary_text: ::core::option::Option<String>,
 }
 
+/// Regex match configuration.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudContactcenterinsightsV1RegexMatchConfig {}
+
 /// The metadata for an SampleConversations operation.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudContactcenterinsightsV1SampleConversationsMetadata {
@@ -833,6 +901,10 @@ pub struct GoogleCloudContactcenterinsightsV1SampleConversationsMetadata {
         GoogleCloudContactcenterinsightsV1SampleConversationsMetadataSampleConversationsStats,
     >,
 }
+
+/// The response to an SampleConversations operation.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudContactcenterinsightsV1SampleConversationsResponse {}
 
 /// The response from a ListAuthorizedViews request.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -884,6 +956,10 @@ pub struct GoogleCloudContactcenterinsightsV1Settings {
     #[serde(default, rename = "updateTime")]
     pub update_time: ::core::option::Option<String>,
 }
+
+/// The data for a silence annotation.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudContactcenterinsightsV1SilenceData {}
 
 /// The request message for testing auto labeling rules.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -977,6 +1053,14 @@ pub struct GoogleCloudContactcenterinsightsV1UndeployIssueModelMetadata {
     pub request:
         ::core::option::Option<GoogleCloudContactcenterinsightsV1UndeployIssueModelRequest>,
 }
+
+/// The response to undeploy an issue model.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudContactcenterinsightsV1UndeployIssueModelResponse {}
+
+/// The request to undeploy a QaScorecardRevision
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudContactcenterinsightsV1UndeployQaScorecardRevisionRequest {}
 
 /// The metadata for updating a QaQuestionTag Resource.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -1076,6 +1160,10 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1BulkDeleteConversationsMetada
     >,
 }
 
+/// The response for a bulk delete conversations operation.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudContactcenterinsightsV1alpha1BulkDeleteConversationsResponse {}
+
 /// Metadata for the BulkDeleteFeedbackLabels endpoint.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudContactcenterinsightsV1alpha1BulkDeleteFeedbackLabelsMetadata {
@@ -1088,6 +1176,10 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1BulkDeleteFeedbackLabelsMetad
         GoogleCloudContactcenterinsightsV1alpha1BulkDeleteFeedbackLabelsRequest,
     >,
 }
+
+/// Response for the BulkDeleteFeedbackLabels endpoint.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudContactcenterinsightsV1alpha1BulkDeleteFeedbackLabelsResponse {}
 
 /// Metadata for a create analysis operation.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -1181,6 +1273,10 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1DeployIssueModelMetadata {
         ::core::option::Option<GoogleCloudContactcenterinsightsV1alpha1DeployIssueModelRequest>,
 }
 
+/// The response to deploy an issue model.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudContactcenterinsightsV1alpha1DeployIssueModelResponse {}
+
 /// The data for a Dialogflow intent. Represents a detected intent in the conversation, e.g. MAKES_PROMISE.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudContactcenterinsightsV1alpha1DialogflowIntent {
@@ -1233,6 +1329,10 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1ExportInsightsDataMetadata {
         ::core::option::Option<GoogleCloudContactcenterinsightsV1alpha1ExportInsightsDataRequest>,
 }
 
+/// Response for an export insights operation.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudContactcenterinsightsV1alpha1ExportInsightsDataResponse {}
+
 /// Metadata used for export issue model.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudContactcenterinsightsV1alpha1ExportIssueModelMetadata {
@@ -1247,6 +1347,10 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1ExportIssueModelMetadata {
     pub request:
         ::core::option::Option<GoogleCloudContactcenterinsightsV1alpha1ExportIssueModelRequest>,
 }
+
+/// Response from export issue model
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudContactcenterinsightsV1alpha1ExportIssueModelResponse {}
 
 /// The metadata for generative insights.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -1272,6 +1376,10 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1GenerativeInsightsResponse {
         GoogleCloudContactcenterinsightsV1alpha1GenerativeInsightConversationTranscript,
     >,
 }
+
+/// The data for a hold annotation.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudContactcenterinsightsV1alpha1HoldData {}
 
 /// Metadata used for import issue model.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -1322,6 +1430,10 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1IngestConversationsMetadata {
     pub sampled_conversations: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
+/// The response to an IngestConversations operation.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudContactcenterinsightsV1alpha1IngestConversationsResponse {}
+
 /// Metadata for initializing a location-level encryption specification.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudContactcenterinsightsV1alpha1InitializeEncryptionSpecMetadata {
@@ -1341,6 +1453,10 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1InitializeEncryptionSpecMetad
     >,
 }
 
+/// The response to initialize a location-level encryption specification.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudContactcenterinsightsV1alpha1InitializeEncryptionSpecResponse {}
+
 /// The data for an intent. Represents a detected intent in the conversation, for example MAKES_PROMISE.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudContactcenterinsightsV1alpha1Intent {
@@ -1351,6 +1467,10 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1Intent {
     #[serde(default)]
     pub id: ::core::option::Option<String>,
 }
+
+/// The data for an interruption annotation.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudContactcenterinsightsV1alpha1InterruptionData {}
 
 /// Aggregated statistics about an issue.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -1420,6 +1540,10 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1QueryMetricsResponse {
     pub update_time: ::core::option::Option<String>,
 }
 
+/// The metadata for querying performance overview.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudContactcenterinsightsV1alpha1QueryPerformanceOverviewMetadata {}
+
 /// The response for querying performance overview.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudContactcenterinsightsV1alpha1QueryPerformanceOverviewResponse {
@@ -1450,6 +1574,14 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1SampleConversationsMetadata {
         GoogleCloudContactcenterinsightsV1alpha1SampleConversationsMetadataSampleConversationsStats,
     >,
 }
+
+/// The response to an SampleConversations operation.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudContactcenterinsightsV1alpha1SampleConversationsResponse {}
+
+/// The data for a silence annotation.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudContactcenterinsightsV1alpha1SilenceData {}
 
 /// Metadata for testing correlation config.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -1490,6 +1622,10 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1UndeployIssueModelMetadata {
     pub request:
         ::core::option::Option<GoogleCloudContactcenterinsightsV1alpha1UndeployIssueModelRequest>,
 }
+
+/// The response to undeploy an issue model.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudContactcenterinsightsV1alpha1UndeployIssueModelResponse {}
 
 /// The metadata for updating a QaQuestionTag Resource.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -1589,6 +1725,10 @@ pub struct GoogleCloudContactcenterinsightsV1mainBulkDeleteConversationsMetadata
     >,
 }
 
+/// The response for a bulk delete conversations operation.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudContactcenterinsightsV1mainBulkDeleteConversationsResponse {}
+
 /// Metadata for the BulkDeleteFeedbackLabels endpoint.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudContactcenterinsightsV1mainBulkDeleteFeedbackLabelsMetadata {
@@ -1601,6 +1741,10 @@ pub struct GoogleCloudContactcenterinsightsV1mainBulkDeleteFeedbackLabelsMetadat
         GoogleCloudContactcenterinsightsV1mainBulkDeleteFeedbackLabelsRequest,
     >,
 }
+
+/// Response for the BulkDeleteFeedbackLabels endpoint.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudContactcenterinsightsV1mainBulkDeleteFeedbackLabelsResponse {}
 
 /// Metadata for the BulkDownloadFeedbackLabel endpoint.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -1625,6 +1769,10 @@ pub struct GoogleCloudContactcenterinsightsV1mainBulkDownloadFeedbackLabelsMetad
         GoogleCloudContactcenterinsightsV1mainBulkDownloadFeedbackLabelsRequest,
     >,
 }
+
+/// Response for the BulkDownloadFeedbackLabel endpoint.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudContactcenterinsightsV1mainBulkDownloadFeedbackLabelsResponse {}
 
 /// Metadata for a create analysis operation.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -1718,6 +1866,10 @@ pub struct GoogleCloudContactcenterinsightsV1mainDeployIssueModelMetadata {
         ::core::option::Option<GoogleCloudContactcenterinsightsV1mainDeployIssueModelRequest>,
 }
 
+/// The response to deploy an issue model.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudContactcenterinsightsV1mainDeployIssueModelResponse {}
+
 /// The data for a Dialogflow intent. Represents a detected intent in the conversation, e.g. MAKES_PROMISE.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudContactcenterinsightsV1mainDialogflowIntent {
@@ -1770,6 +1922,10 @@ pub struct GoogleCloudContactcenterinsightsV1mainExportInsightsDataMetadata {
         ::core::option::Option<GoogleCloudContactcenterinsightsV1mainExportInsightsDataRequest>,
 }
 
+/// Response for an export insights operation.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudContactcenterinsightsV1mainExportInsightsDataResponse {}
+
 /// Metadata used for export issue model.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudContactcenterinsightsV1mainExportIssueModelMetadata {
@@ -1784,6 +1940,10 @@ pub struct GoogleCloudContactcenterinsightsV1mainExportIssueModelMetadata {
     pub request:
         ::core::option::Option<GoogleCloudContactcenterinsightsV1mainExportIssueModelRequest>,
 }
+
+/// Response from export issue model
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudContactcenterinsightsV1mainExportIssueModelResponse {}
 
 /// The metadata for generative insights.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -1809,6 +1969,10 @@ pub struct GoogleCloudContactcenterinsightsV1mainGenerativeInsightsResponse {
         GoogleCloudContactcenterinsightsV1mainGenerativeInsightConversationTranscript,
     >,
 }
+
+/// The data for a hold annotation.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudContactcenterinsightsV1mainHoldData {}
 
 /// Metadata used for import issue model.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -1859,6 +2023,10 @@ pub struct GoogleCloudContactcenterinsightsV1mainIngestConversationsMetadata {
     pub sampled_conversations: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
+/// The response to an IngestConversations operation.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudContactcenterinsightsV1mainIngestConversationsResponse {}
+
 /// Metadata for initializing a location-level encryption specification.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudContactcenterinsightsV1mainInitializeEncryptionSpecMetadata {
@@ -1878,6 +2046,10 @@ pub struct GoogleCloudContactcenterinsightsV1mainInitializeEncryptionSpecMetadat
     >,
 }
 
+/// The response to initialize a location-level encryption specification.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudContactcenterinsightsV1mainInitializeEncryptionSpecResponse {}
+
 /// The data for an intent. Represents a detected intent in the conversation, for example MAKES_PROMISE.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudContactcenterinsightsV1mainIntent {
@@ -1888,6 +2060,10 @@ pub struct GoogleCloudContactcenterinsightsV1mainIntent {
     #[serde(default)]
     pub id: ::core::option::Option<String>,
 }
+
+/// The data for an interruption annotation.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudContactcenterinsightsV1mainInterruptionData {}
 
 /// Aggregated statistics about an issue.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -1957,6 +2133,10 @@ pub struct GoogleCloudContactcenterinsightsV1mainQueryMetricsResponse {
     pub update_time: ::core::option::Option<String>,
 }
 
+/// The metadata for querying performance overview.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudContactcenterinsightsV1mainQueryPerformanceOverviewMetadata {}
+
 /// The response for querying performance overview.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudContactcenterinsightsV1mainQueryPerformanceOverviewResponse {
@@ -1987,6 +2167,14 @@ pub struct GoogleCloudContactcenterinsightsV1mainSampleConversationsMetadata {
         GoogleCloudContactcenterinsightsV1mainSampleConversationsMetadataSampleConversationsStats,
     >,
 }
+
+/// The response to an SampleConversations operation.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudContactcenterinsightsV1mainSampleConversationsResponse {}
+
+/// The data for a silence annotation.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudContactcenterinsightsV1mainSilenceData {}
 
 /// Metadata for testing correlation config.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -2027,6 +2215,10 @@ pub struct GoogleCloudContactcenterinsightsV1mainUndeployIssueModelMetadata {
     pub request:
         ::core::option::Option<GoogleCloudContactcenterinsightsV1mainUndeployIssueModelRequest>,
 }
+
+/// The response to undeploy an issue model.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudContactcenterinsightsV1mainUndeployIssueModelResponse {}
 
 /// The metadata for updating a QaQuestionTag Resource.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -2105,6 +2297,10 @@ pub struct GoogleLongrunningListOperationsResponse {
     #[serde(default)]
     pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
 }
+
+/// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleProtobufEmpty {}
 
 /// The request to analyze conversations in bulk.
 #[derive(Debug, Clone, Serialize, Deserialize)]

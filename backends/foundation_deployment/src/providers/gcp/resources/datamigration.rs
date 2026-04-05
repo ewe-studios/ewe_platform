@@ -35,6 +35,10 @@ pub struct BadRequest {
     pub field_violations: ::core::option::Option<::std::vec::Vec<FieldViolation>>,
 }
 
+/// The request message for Operations.CancelOperation.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CancelOperationRequest {}
+
 /// Request message for ''CommitConversionWorkspace'' request.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CommitConversionWorkspaceRequest {
@@ -68,6 +72,10 @@ pub struct DebugInfo {
     pub stack_entries: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
+/// Request message for ''DemoteDestination'' request.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DemoteDestinationRequest {}
+
 /// Response message for ''DescribeConversionWorkspaceRevisions'' request.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct DescribeConversionWorkspaceRevisionsResponse {
@@ -86,6 +94,10 @@ pub struct DescribeDatabaseEntitiesResponse {
     #[serde(default, rename = "nextPageToken")]
     pub next_page_token: ::core::option::Option<String>,
 }
+
+/// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Empty {}
 
 /// Describes the cause of the error with structured details. Example of an error when contacting the "pubsub.googleapis.com" API when it is not enabled: { "reason": "API_DISABLED" "domain": "googleapis.com" "metadata": { "resource": "projects/123", "service": "pubsub.googleapis.com" } } This response indicates that the pubsub.googleapis.com API is not enabled. Example of an error that is returned when attempting to create a Spanner instance in a region that is out of stock: { "reason": "STOCKOUT" "domain": "spanner.googleapis.com", "metadata": { "availableRegions": "us-central1,us-east2" } }
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -300,6 +312,10 @@ pub struct ListPrivateConnectionsResponse {
     pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
+/// Configuration to use LogMiner CDC method.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LogMiner {}
+
 /// Request for looking up a specific migration job object by its source object identifier.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct LookupMigrationJobObjectRequest {
@@ -321,6 +337,10 @@ pub struct MigrationJobVerificationError {
     #[serde(default, rename = "errorMessage")]
     pub error_message: ::core::option::Option<String>,
 }
+
+/// Configuration to use Oracle ASM to access the log files.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct OracleAsmLogFileAccess {}
 
 /// Describes what preconditions have failed. For example, if an RPC failed because it required the Terms of Service to be acknowledged, it could list the terms of service violation in the PreconditionFailure message.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -404,6 +424,10 @@ pub struct RetryInfo {
     pub retry_delay: ::core::option::Option<String>,
 }
 
+/// Request message for ''RollbackConversionWorkspace'' request.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RollbackConversionWorkspaceRequest {}
+
 /// Response message for ''SearchBackgroundJobs'' request.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SearchBackgroundJobsResponse {
@@ -452,6 +476,18 @@ pub struct StartMigrationJobRequest {
     #[serde(default, rename = "skipValidation")]
     pub skip_validation: ::core::option::Option<bool>,
 }
+
+/// The source database will allow incoming connections from the public IP of the destination database. You can retrieve the public IP of the Cloud SQL instance from the Cloud SQL console or using Cloud SQL APIs. No additional configuration is required.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct StaticIpConnectivity {}
+
+/// Static IP address connectivity configured on service project.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct StaticServiceIpConnectivity {}
+
+/// Request message for ''StopMigrationJob'' request.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct StopMigrationJobRequest {}
 
 /// Response message for ''GenerateTcpProxyScript'' request.
 #[derive(Debug, Clone, Serialize, Deserialize)]

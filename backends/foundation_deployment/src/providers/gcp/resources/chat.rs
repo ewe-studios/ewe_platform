@@ -24,6 +24,10 @@ pub struct ChatAppLogEntry {
     pub error: ::core::option::Option<Status>,
 }
 
+/// Request message for completing the import process for a space.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CompleteImportSpaceRequest {}
+
 /// Response message for completing the import process for a space.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CompleteImportSpaceResponse {
@@ -78,6 +82,14 @@ pub struct DeprecatedEvent {
     #[serde(default)]
     pub user: ::core::option::Option<User>,
 }
+
+/// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Empty {}
+
+/// Displays a divider between widgets as a horizontal line. For an example in Google Chat apps, see [Add a horizontal divider between widgets](https://developers.google.com/workspace/chat/format-structure-card-dialog#add_a_horizontal_divider_between_widgets). [Google Workspace add-ons and Chat apps](https://developers.google.com/workspace/extend): For example, the following JSON creates a divider:  "divider": {}
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleAppsCardV1Divider {}
 
 /// Types of data that users can [input on cards or dialogs](https://developers.google.com/chat/ui/read-form-data). The input type depends on the type of values that the widget accepts.
 #[derive(Debug, Clone, Serialize, Deserialize)]

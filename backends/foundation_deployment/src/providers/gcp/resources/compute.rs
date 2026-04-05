@@ -2275,6 +2275,10 @@ pub struct InstantSnapshotsScopedList {
     pub warning: ::core::option::Option<serde_json::Value>,
 }
 
+/// Specify configuration for StrictPriorityPolicy.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct InterconnectApplicationAwareInterconnectStrictPriorityPolicy {}
+
 /// InterconnectAttachmentAggregatedList resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct InterconnectAttachmentAggregatedList {
@@ -4378,6 +4382,10 @@ pub struct ResourcePolicyAggregatedList {
     #[serde(default)]
     pub warning: ::core::option::Option<serde_json::Value>,
 }
+
+/// Resource policy for disk consistency groups.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ResourcePolicyDiskConsistencyGroupPolicy {}
 
 /// ResourcePolicyList resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]

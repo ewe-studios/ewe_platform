@@ -10,6 +10,10 @@
 use super::*;
 use serde::{Deserialize, Serialize};
 
+/// Message included in the metadata field of operations returned from AddPublicKey.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AddPublicKeyMetadata {}
+
 /// Request message for AddPublicKey.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AddPublicKeyRequest {
@@ -26,6 +30,10 @@ pub struct AddPublicKeyResponse {
     pub key: ::core::option::Option<String>,
 }
 
+/// Message included in the metadata field of operations returned from AuthorizeEnvironment.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AuthorizeEnvironmentMetadata {}
+
 /// Request message for AuthorizeEnvironment.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AuthorizeEnvironmentRequest {
@@ -39,6 +47,26 @@ pub struct AuthorizeEnvironmentRequest {
     #[serde(default, rename = "idToken")]
     pub id_token: ::core::option::Option<String>,
 }
+
+/// Response message for AuthorizeEnvironment.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AuthorizeEnvironmentResponse {}
+
+/// The request message for Operations.CancelOperation.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CancelOperationRequest {}
+
+/// Message included in the metadata field of operations returned from CreateEnvironment.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CreateEnvironmentMetadata {}
+
+/// Message included in the metadata field of operations returned from DeleteEnvironment.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DeleteEnvironmentMetadata {}
+
+/// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Empty {}
 
 /// Response message for GenerateAccessToken.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -62,6 +90,10 @@ pub struct ListOperationsResponse {
     pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
+/// Message included in the metadata field of operations returned from RemovePublicKey.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RemovePublicKeyMetadata {}
+
 /// Request message for RemovePublicKey.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct RemovePublicKeyRequest {
@@ -69,6 +101,10 @@ pub struct RemovePublicKeyRequest {
     #[serde(default)]
     pub key: ::core::option::Option<String>,
 }
+
+/// Response message for RemovePublicKey.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RemovePublicKeyResponse {}
 
 /// Message included in the metadata field of operations returned from StartEnvironment.
 #[derive(Debug, Clone, Serialize, Deserialize)]

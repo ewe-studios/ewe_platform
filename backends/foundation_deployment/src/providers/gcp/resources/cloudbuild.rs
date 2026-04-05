@@ -26,6 +26,18 @@ pub struct BatchCreateRepositoriesResponse {
     pub repositories: ::core::option::Option<::std::vec::Vec<Repository>>,
 }
 
+/// The request message for Operations.CancelOperation.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CancelOperationRequest {}
+
+/// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Empty {}
+
+/// Represents an empty Volume source.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct EmptyDirVolumeSource {}
+
 /// Response for fetching git refs
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct FetchGitRefsResponse {
@@ -48,6 +60,10 @@ pub struct FetchLinkableRepositoriesResponse {
     pub repositories: ::core::option::Option<::std::vec::Vec<Repository>>,
 }
 
+/// Message for fetching SCM read token.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct FetchReadTokenRequest {}
+
 /// Message for responding to get read token.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct FetchReadTokenResponse {
@@ -58,6 +74,10 @@ pub struct FetchReadTokenResponse {
     #[serde(default)]
     pub token: ::core::option::Option<String>,
 }
+
+/// Message for fetching SCM read/write token.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct FetchReadWriteTokenRequest {}
 
 /// Message for responding to get read/write token.
 #[derive(Debug, Clone, Serialize, Deserialize)]

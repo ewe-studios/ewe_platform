@@ -10,6 +10,10 @@
 use super::*;
 use serde::{Deserialize, Serialize};
 
+/// Future parameters for the availability SLI.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AvailabilityCriteria {}
+
 /// The CreateCollectdTimeSeries request.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CreateCollectdTimeSeriesRequest {
@@ -43,6 +47,10 @@ pub struct CreateTimeSeriesRequest {
     pub time_series: ::core::option::Option<::std::vec::Vec<TimeSeries>>,
 }
 
+/// Use a custom service to designate a service that you want to monitor when none of the other service types (like App Engine, Cloud Run, or a GKE type) matches your intended service.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Custom {}
+
 /// A set of (label, value) pairs that were removed from a Distribution time series during aggregation and then added as an attachment to a Distribution.Exemplar.The full label set for the exemplars is constructed by using the dropped pairs in combination with the label values that remain on the aggregated Distribution time series. The constructed full label set can be used to identify the specific entity, such as the instance or job, which might be contributing to a long-tail. However, with dropped labels, the storage requirements are reduced because only the aggregated distribution values for a large group of time series are stored.Note that there are no guarantees on ordering of the labels from exemplar-to-exemplar and from distribution-to-distribution in the same stream, and there may be duplicates. It is up to clients to resolve any ambiguities.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct DroppedLabels {
@@ -50,6 +58,10 @@ pub struct DroppedLabels {
     #[serde(default)]
     pub label: ::core::option::Option<serde_json::Value>,
 }
+
+/// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Empty {}
 
 /// The GetNotificationChannelVerificationCode request.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -292,6 +304,10 @@ pub struct QueryTimeSeriesResponse {
     #[serde(default, rename = "timeSeriesDescriptor")]
     pub time_series_descriptor: ::core::option::Option<TimeSeriesDescriptor>,
 }
+
+/// The SendNotificationChannelVerificationCode request.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SendNotificationChannelVerificationCodeRequest {}
 
 /// The context of a span. This is attached to an Exemplar in Distribution values during aggregation.It contains the name of a span with format: projects/[PROJECT_ID_OR_NUMBER]/traces/[TRACE_ID]/spans/[SPAN_ID]
 #[derive(Debug, Clone, Serialize, Deserialize)]

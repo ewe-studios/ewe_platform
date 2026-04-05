@@ -107,6 +107,10 @@ pub struct CommitResponse {
     pub write_results: ::core::option::Option<::std::vec::Vec<WriteResult>>,
 }
 
+/// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Empty {}
+
 /// The request for Firestore.ExecutePipeline.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ExecutePipelineRequest {
@@ -221,6 +225,26 @@ pub struct GoogleFirestoreAdminV1CloneDatabaseRequest {
     pub tags: ::core::option::Option<serde_json::Value>,
 }
 
+/// Metadata related to the create database operation.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleFirestoreAdminV1CreateDatabaseMetadata {}
+
+/// Represents a recurring schedule that runs every day. The time zone is UTC.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleFirestoreAdminV1DailyRecurrence {}
+
+/// Metadata related to the delete database operation.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleFirestoreAdminV1DeleteDatabaseMetadata {}
+
+/// The request for FirestoreAdmin.DisableUserCreds.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleFirestoreAdminV1DisableUserCredsRequest {}
+
+/// The request for FirestoreAdmin.EnableUserCreds.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleFirestoreAdminV1EnableUserCredsRequest {}
+
 /// Metadata for google.longrunning.Operation results from FirestoreAdmin.ExportDocuments.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleFirestoreAdminV1ExportDocumentsMetadata {
@@ -307,6 +331,14 @@ pub struct GoogleFirestoreAdminV1FieldOperationMetadata {
     #[serde(default, rename = "ttlConfigDelta")]
     pub ttl_config_delta: ::core::option::Option<GoogleFirestoreAdminV1TtlConfigDelta>,
 }
+
+/// An index that stores vectors in a flat data structure, and supports exhaustive search.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleFirestoreAdminV1FlatIndex {}
+
+/// The configuration options for using Google default encryption.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleFirestoreAdminV1GoogleDefaultEncryptionOptions {}
 
 /// Metadata for google.longrunning.Operation results from FirestoreAdmin.ImportDocuments.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -435,6 +467,14 @@ pub struct GoogleFirestoreAdminV1ListUserCredsResponse {
     pub user_creds: ::core::option::Option<::std::vec::Vec<GoogleFirestoreAdminV1UserCreds>>,
 }
 
+/// The metadata message for google.cloud.location.Location.metadata.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleFirestoreAdminV1LocationMetadata {}
+
+/// The request for FirestoreAdmin.ResetUserPassword.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleFirestoreAdminV1ResetUserPasswordRequest {}
+
 /// Metadata for the long-running operation from the RestoreDatabase request.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleFirestoreAdminV1RestoreDatabaseMetadata {
@@ -474,6 +514,18 @@ pub struct GoogleFirestoreAdminV1RestoreDatabaseRequest {
     #[serde(default)]
     pub tags: ::core::option::Option<serde_json::Value>,
 }
+
+/// The configuration options for using the same encryption method as the source.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleFirestoreAdminV1SourceEncryptionOptions {}
+
+/// Metadata related to the update database operation.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleFirestoreAdminV1UpdateDatabaseMetadata {}
+
+/// The request message for Operations.CancelOperation.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleLongrunningCancelOperationRequest {}
 
 /// The response message for Operations.ListOperations.
 #[derive(Debug, Clone, Serialize, Deserialize)]

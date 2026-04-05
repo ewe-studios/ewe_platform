@@ -66,6 +66,10 @@ pub struct CreateWatchRequest {
     pub watch_id: ::core::option::Option<String>,
 }
 
+/// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Empty {}
+
 /// Response to a ListFormResponsesRequest.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ListFormResponsesResponse {
@@ -84,6 +88,14 @@ pub struct ListWatchesResponse {
     #[serde(default)]
     pub watches: ::core::option::Option<::std::vec::Vec<Watch>>,
 }
+
+/// A page break. The title and description of this item are shown at the top of the new page.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PageBreakItem {}
+
+/// Renew an existing Watch for seven days.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RenewWatchRequest {}
 
 /// Updates the publish settings of a Form.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -106,6 +118,10 @@ pub struct SetPublishSettingsResponse {
     #[serde(default, rename = "publishSettings")]
     pub publish_settings: ::core::option::Option<PublishSettings>,
 }
+
+/// A text item.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TextItem {}
 
 /// All submitted files for a FileUpload question.
 #[derive(Debug, Clone, Serialize, Deserialize)]

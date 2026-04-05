@@ -10,6 +10,14 @@
 use super::*;
 use serde::{Deserialize, Serialize};
 
+/// The request message for Operations.CancelOperation.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CancelOperationRequest {}
+
+/// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Empty {}
+
 /// Google service account
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleServiceAccount {
@@ -56,6 +64,14 @@ pub struct ListTransferJobsResponse {
     #[serde(default, rename = "transferJobs")]
     pub transfer_jobs: ::core::option::Option<::std::vec::Vec<TransferJob>>,
 }
+
+/// Request passed to PauseTransferOperation.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PauseTransferOperationRequest {}
+
+/// Request passed to ResumeTransferOperation.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ResumeTransferOperationRequest {}
 
 /// Request passed to RunTransferJob.
 #[derive(Debug, Clone, Serialize, Deserialize)]

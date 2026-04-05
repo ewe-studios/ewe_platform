@@ -10,6 +10,10 @@
 use super::*;
 use serde::{Deserialize, Serialize};
 
+/// Response to deleting a reader of a publication.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DeleteReaderResponse {}
+
 /// A reader of a publication.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Reader {

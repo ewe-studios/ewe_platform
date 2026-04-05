@@ -10,6 +10,10 @@
 use super::*;
 use serde::{Deserialize, Serialize};
 
+/// The request sent to the DisableDatabaseInstance method.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DisableDatabaseInstanceRequest {}
+
 /// The response from the ListDatabaseInstances method.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ListDatabaseInstancesResponse {
@@ -20,6 +24,14 @@ pub struct ListDatabaseInstancesResponse {
     #[serde(default, rename = "nextPageToken")]
     pub next_page_token: ::core::option::Option<String>,
 }
+
+/// The request sent to the ReenableDatabaseInstance method.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ReenableDatabaseInstanceRequest {}
+
+/// The request sent to UndeleteDatabaseInstance method.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct UndeleteDatabaseInstanceRequest {}
 
 /// Representation of a Realtime Database instance. Details on interacting with contents of a DatabaseInstance can be found at: https://firebase.google.com/docs/database/rest/start.
 #[derive(Debug, Clone, Serialize, Deserialize)]

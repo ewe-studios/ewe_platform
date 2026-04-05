@@ -167,6 +167,12 @@ impl From<serde_json::Error> for DeploymentError {
     }
 }
 
+impl From<foundation_db::StorageError> for DeploymentError {
+    fn from(err: foundation_db::StorageError) -> Self {
+        Self::StateFailed(err.to_string())
+    }
+}
+
 impl DeploymentError {
     /// Create a generic error from a string.
     pub fn generic(msg: impl Into<String>) -> Self {

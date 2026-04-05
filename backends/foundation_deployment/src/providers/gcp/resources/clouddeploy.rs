@@ -10,6 +10,18 @@
 use super::*;
 use serde::{Deserialize, Serialize};
 
+/// The request object used by AbandonRelease.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AbandonReleaseRequest {}
+
+/// The response object for AbandonRelease.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AbandonReleaseResponse {}
+
+/// An advanceChildRollout Job.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AdvanceChildRolloutJob {}
+
 /// The request object used by AdvanceRollout.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AdvanceRolloutRequest {
@@ -21,6 +33,10 @@ pub struct AdvanceRolloutRequest {
     pub phase_id: ::core::option::Option<String>,
 }
 
+/// The response object from AdvanceRollout.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AdvanceRolloutResponse {}
+
 /// The request object used by ApproveRollout.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ApproveRolloutRequest {
@@ -31,6 +47,10 @@ pub struct ApproveRolloutRequest {
     #[serde(default, rename = "overrideDeployPolicy")]
     pub override_deploy_policy: ::core::option::Option<::std::vec::Vec<String>>,
 }
+
+/// The response object from ApproveRollout.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ApproveRolloutResponse {}
 
 /// Information about entities associated with a Target.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -86,6 +106,18 @@ pub struct AutomationRunEvent {
     pub type_: ::core::option::Option<String>,
 }
 
+/// The request object used by CancelAutomationRun.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CancelAutomationRunRequest {}
+
+/// The response object from CancelAutomationRun.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CancelAutomationRunResponse {}
+
+/// The request message for Operations.CancelOperation.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CancelOperationRequest {}
+
 /// The request object used by CancelRollout.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CancelRolloutRequest {
@@ -93,6 +125,10 @@ pub struct CancelRolloutRequest {
     #[serde(default, rename = "overrideDeployPolicy")]
     pub override_deploy_policy: ::core::option::Option<::std::vec::Vec<String>>,
 }
+
+/// The response object from CancelRollout.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CancelRolloutResponse {}
 
 /// Service-wide configuration.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -110,6 +146,10 @@ pub struct Config {
     #[serde(default, rename = "supportedVersions")]
     pub supported_versions: ::core::option::Option<::std::vec::Vec<SkaffoldVersion>>,
 }
+
+/// A createChildRollout Job.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CreateChildRolloutJob {}
 
 /// Payload proto for "clouddeploy.googleapis.com/customtargettype_notification" Platform Log event that describes the failure to send a custom target type status change Pub/Sub notification.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -144,6 +184,10 @@ pub struct DeliveryPipelineNotificationEvent {
     #[serde(default, rename = "type")]
     pub type_: ::core::option::Option<String>,
 }
+
+/// A deploy Job.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DeployJob {}
 
 /// Payload proto for "clouddeploy.googleapis.com/deploypolicy_evaluation" Platform Log event that describes the deploy policy evaluation event.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -206,6 +250,10 @@ pub struct DeployPolicyNotificationEvent {
     pub type_: ::core::option::Option<String>,
 }
 
+/// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Empty {}
+
 /// The request object used by IgnoreJob.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct IgnoreJobRequest {
@@ -219,6 +267,10 @@ pub struct IgnoreJobRequest {
     #[serde(default, rename = "phaseId")]
     pub phase_id: ::core::option::Option<String>,
 }
+
+/// The response object from IgnoreJob.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct IgnoreJobResponse {}
 
 /// Payload proto for "clouddeploy.googleapis.com/jobrun_notification" Platform Log event that describes the failure to send JobRun resource update Pub/Sub notification.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -497,6 +549,10 @@ pub struct RetryJobRequest {
     pub phase_id: ::core::option::Option<String>,
 }
 
+/// The response object from ''RetryJob''.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RetryJobResponse {}
+
 /// The request object for RollbackTarget.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct RollbackTargetRequest {
@@ -658,6 +714,10 @@ pub struct TerminateJobRunRequest {
     #[serde(default, rename = "overrideDeployPolicy")]
     pub override_deploy_policy: ::core::option::Option<::std::vec::Vec<String>>,
 }
+
+/// The response object from TerminateJobRun.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TerminateJobRunResponse {}
 
 /// Request message for TestIamPermissions method.
 #[derive(Debug, Clone, Serialize, Deserialize)]

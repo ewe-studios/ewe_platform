@@ -63,6 +63,10 @@ pub struct GoogleIamV1LoggingAuditData {
     pub policy_delta: ::core::option::Option<GoogleIamV1PolicyDelta>,
 }
 
+/// Metadata for long-running WorkloadIdentityPool operations.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleIamV1betaWorkloadIdentityPoolOperationMetadata {}
+
 /// Response message for ListPolicies.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleIamV2ListPoliciesResponse {

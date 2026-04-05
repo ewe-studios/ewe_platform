@@ -57,6 +57,10 @@ pub struct AddSplitPointsRequest {
     pub split_points: ::core::option::Option<::std::vec::Vec<SplitPoints>>,
 }
 
+/// The response for AddSplitPoints.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AddSplitPointsResponse {}
+
 /// The request for BatchCreateSessions.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct BatchCreateSessionsRequest {
@@ -383,6 +387,14 @@ pub struct CreateSessionRequest {
     pub session: ::core::option::Option<Session>,
 }
 
+/// Message type for a dual-region quorum. Currently this type has no options.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DualRegionQuorum {}
+
+/// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Empty {}
+
 /// The request for ExecuteBatchDml.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ExecuteBatchDmlRequest {
@@ -461,6 +473,10 @@ pub struct ExecuteSqlRequest {
     pub transaction: ::core::option::Option<TransactionSelector>,
 }
 
+/// The specification for full backups. A full backup stores the entire contents of the database at a given version time.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct FullBackupSpec {}
+
 /// The response for GetDatabaseDdl.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GetDatabaseDdlResponse {
@@ -479,6 +495,10 @@ pub struct GetIamPolicyRequest {
     #[serde(default)]
     pub options: ::core::option::Option<GetPolicyOptions>,
 }
+
+/// The specification for incremental backup chains. An incremental backup stores the delta of changes between a previous backup and the database contents at a given version time. An incremental backup chain consists of a full backup and zero or more successive incremental backups. The first backup created for an incremental backup chain is always a full backup.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct IncrementalBackupSpec {}
 
 /// A message representing a (sparse) collection of hot keys for specific key buckets.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -788,6 +808,10 @@ pub struct PartitionResponse {
     #[serde(default)]
     pub transaction: ::core::option::Option<Transaction>,
 }
+
+/// Message type to initiate a Partitioned DML transaction.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PartitionedDml {}
 
 /// The request for Read and StreamingRead.
 #[derive(Debug, Clone, Serialize, Deserialize)]

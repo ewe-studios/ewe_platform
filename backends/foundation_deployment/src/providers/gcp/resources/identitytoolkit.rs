@@ -287,6 +287,10 @@ pub struct IdentitytoolkitRelyingpartyGetProjectConfigResponse {
     pub verify_email_template: ::core::option::Option<EmailTemplate>,
 }
 
+/// Respone of getting public keys.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct IdentitytoolkitRelyingpartyGetPublicKeysResponse {}
+
 /// Request to reset the password.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct IdentitytoolkitRelyingpartyResetPasswordRequest {

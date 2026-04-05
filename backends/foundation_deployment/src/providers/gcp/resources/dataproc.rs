@@ -191,6 +191,10 @@ pub struct BatchOperationMetadata {
     pub warnings: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
+/// A request to cancel a job.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CancelJobRequest {}
+
 /// Metadata describing the operation.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ClusterOperationMetadata {
@@ -256,6 +260,10 @@ pub struct DiagnoseClusterResults {
     #[serde(default, rename = "outputUri")]
     pub output_uri: ::core::option::Option<String>,
 }
+
+/// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Empty {}
 
 /// Resources used per executor used by the application.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -730,6 +738,10 @@ pub struct SetIamPolicyRequest {
     pub policy: ::core::option::Option<Policy>,
 }
 
+/// Spark connect configuration for an interactive session.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SparkConnectConfig {}
+
 /// A request to start a cluster.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct StartClusterRequest {
@@ -950,6 +962,10 @@ pub struct WriteSessionSparkApplicationContextRequest {
     pub spark_wrapper_objects: ::core::option::Option<::std::vec::Vec<SparkWrapperObject>>,
 }
 
+/// Response returned as an acknowledgement of receipt of data.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct WriteSessionSparkApplicationContextResponse {}
+
 /// Write Spark Application data to internal storage systems
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct WriteSparkApplicationContextRequest {
@@ -959,6 +975,10 @@ pub struct WriteSparkApplicationContextRequest {
     #[serde(default, rename = "sparkWrapperObjects")]
     pub spark_wrapper_objects: ::core::option::Option<::std::vec::Vec<SparkWrapperObject>>,
 }
+
+/// Response returned as an acknowledgement of receipt of data.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct WriteSparkApplicationContextResponse {}
 
 /// Represents a time interval, encoded as a Timestamp start (inclusive) and a Timestamp end (exclusive).The start must be less than or equal to the end. When the start equals the end, the interval is empty (matches no time). When both start and end are unspecified, the interval matches any time.
 #[derive(Debug, Clone, Serialize, Deserialize)]

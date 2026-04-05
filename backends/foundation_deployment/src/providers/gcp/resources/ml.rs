@@ -18,6 +18,10 @@ pub struct GoogleCloudMlV1AddTrialMeasurementRequest {
     pub measurement: ::core::option::Option<GoogleCloudMlV1Measurement>,
 }
 
+/// Request message for the CancelJob method.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudMlV1CancelJobRequest {}
+
 /// This message will be placed in the metadata field of a google.longrunning.Operation associated with a CheckTrialEarlyStoppingState request.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudMlV1CheckTrialEarlyStoppingStateMetatdata {
@@ -31,6 +35,10 @@ pub struct GoogleCloudMlV1CheckTrialEarlyStoppingStateMetatdata {
     #[serde(default)]
     pub trial: ::core::option::Option<String>,
 }
+
+/// The request message for the CheckTrialEarlyStoppingState service method.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudMlV1CheckTrialEarlyStoppingStateRequest {}
 
 /// The message will be placed in the response field of a completed google.longrunning.Operation associated with a CheckTrialEarlyStoppingState request.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -114,6 +122,10 @@ pub struct GoogleCloudMlV1ListModelsResponse {
     pub next_page_token: ::core::option::Option<String>,
 }
 
+/// The request message for the ListTrials service method.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudMlV1ListOptimalTrialsRequest {}
+
 /// The response message for the ListOptimalTrials method.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudMlV1ListOptimalTrialsResponse {
@@ -188,6 +200,14 @@ pub struct GoogleCloudMlV1PredictRequest {
     #[serde(default, rename = "httpBody")]
     pub http_body: ::core::option::Option<GoogleApiHttpBody>,
 }
+
+/// Request message for the SetDefaultVersion request.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudMlV1SetDefaultVersionRequest {}
+
+/// GoogleCloudMlV1StopTrialRequest resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudMlV1StopTrialRequest {}
 
 /// Metadata field of a google.longrunning.Operation associated with a SuggestTrialsRequest.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -274,6 +294,10 @@ pub struct GoogleLongrunningListOperationsResponse {
     #[serde(default)]
     pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
 }
+
+/// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleProtobufEmpty {}
 
 /// GoogleCloudMlV1Config resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]

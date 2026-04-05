@@ -10,6 +10,14 @@
 use super::*;
 use serde::{Deserialize, Serialize};
 
+/// The request message for Operations.CancelOperation.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CancelOperationRequest {}
+
+/// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Empty {}
+
 /// The response message for Locations.ListLocations.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ListLocationsResponse {
@@ -116,6 +124,10 @@ pub struct RBACRoleBindingActuationRBACRoleBindingState {
     #[serde(default, rename = "updateTime")]
     pub update_time: ::core::option::Option<String>,
 }
+
+/// **RBAC RoleBinding Actuation**: The membership-specific input for RBACRoleBindingActuation feature.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RBACRoleBindingActuationSpec {}
 
 /// IdentityProviderStateDetail represents the state of an Identity Provider.
 #[derive(Debug, Clone, Serialize, Deserialize)]

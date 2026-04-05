@@ -78,6 +78,10 @@ pub struct ListVerificationsResponse {
     pub verifications: ::core::option::Option<::std::vec::Vec<Verification>>,
 }
 
+/// Indicates that the location duplicates another location that is in good standing.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ResolveOwnershipConflict {}
+
 /// Request message for Verifications.VerifyLocation.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct VerifyLocationRequest {
@@ -137,6 +141,10 @@ pub struct VoiceOfMerchantState {
     #[serde(default, rename = "waitForVoiceOfMerchant")]
     pub wait_for_voice_of_merchant: ::core::option::Option<serde_json::Value>,
 }
+
+/// Indicates that the location will gain voice of merchant after passing review.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct WaitForVoiceOfMerchant {}
 
 /// The verification option represents how to verify the location (indicated by verification method) and where the verification will be sent to (indicated by display data).
 #[derive(Debug, Clone, Serialize, Deserialize)]

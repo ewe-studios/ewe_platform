@@ -10,6 +10,10 @@
 use super::*;
 use serde::{Deserialize, Serialize};
 
+/// The request used to link a Google Cloud Storage bucket to a Firebase project.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AddFirebaseRequest {}
+
 /// Spark tier-eligible Cloud Storage bucket. One per project. This resource exists if the underlying Cloud Storage bucket exists and it is linked to your Firebase project. See https://firebase.google.com/pricing for pricing details.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct DefaultBucket {
@@ -27,6 +31,10 @@ pub struct DefaultBucket {
     pub storage_class: ::core::option::Option<String>,
 }
 
+/// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Empty {}
+
 /// The response returned by ListBuckets.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ListBucketsResponse {
@@ -37,6 +45,10 @@ pub struct ListBucketsResponse {
     #[serde(default, rename = "nextPageToken")]
     pub next_page_token: ::core::option::Option<String>,
 }
+
+/// The request used to unlink a Google Cloud Storage bucket from a Firebase project.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RemoveFirebaseRequest {}
 
 /// A storage bucket and its relation to a parent Firebase project.
 #[derive(Debug, Clone, Serialize, Deserialize)]

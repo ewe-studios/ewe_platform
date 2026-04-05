@@ -383,6 +383,10 @@ pub struct GoogleChromeManagementV1ListTelemetryUsersResponse {
         ::core::option::Option<::std::vec::Vec<GoogleChromeManagementV1TelemetryUser>>,
 }
 
+/// TelemetryAudioSevereUnderrunEvent is triggered when a audio devices run out of buffer data for more than 5 seconds. * Granular permission needed: TELEMETRY_API_AUDIO_REPORT
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleChromeManagementV1TelemetryAudioSevereUnderrunEvent {}
+
 /// Request message for claiming a certificate provisioning process.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleChromeManagementVersionsV1ClaimCertificateProvisioningProcessRequest {
@@ -390,6 +394,10 @@ pub struct GoogleChromeManagementVersionsV1ClaimCertificateProvisioningProcessRe
     #[serde(default, rename = "callerInstanceId")]
     pub caller_instance_id: ::core::option::Option<String>,
 }
+
+/// Response message for claiming a certificate provisioning process.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleChromeManagementVersionsV1ClaimCertificateProvisioningProcessResponse {}
 
 /// Response to ListChromeBrowserProfileCommands method.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -448,6 +456,10 @@ pub struct GoogleChromeManagementVersionsV1SetFailureRequest {
     pub error_message: ::core::option::Option<String>,
 }
 
+/// Response message for publishing a failure for a certificate provisioning process.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleChromeManagementVersionsV1SetFailureResponse {}
+
 /// Metadata for the long-running operation returned by signData.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleChromeManagementVersionsV1SignDataMetadata {
@@ -484,6 +496,14 @@ pub struct GoogleChromeManagementVersionsV1UploadCertificateRequest {
     pub certificate_pem: ::core::option::Option<String>,
 }
 
+/// Response message for publishing an issued certificate for a certificate provisioning process.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleChromeManagementVersionsV1UploadCertificateResponse {}
+
+/// The request message for Operations.CancelOperation.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleLongrunningCancelOperationRequest {}
+
 /// The response message for Operations.ListOperations.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleLongrunningListOperationsResponse {
@@ -497,6 +517,10 @@ pub struct GoogleLongrunningListOperationsResponse {
     #[serde(default)]
     pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
 }
+
+/// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleProtobufEmpty {}
 
 /// Android app information.
 #[derive(Debug, Clone, Serialize, Deserialize)]

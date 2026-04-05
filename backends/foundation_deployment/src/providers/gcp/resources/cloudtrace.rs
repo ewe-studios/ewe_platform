@@ -32,6 +32,10 @@ pub struct BatchWriteSpansRequest {
     pub spans: ::core::option::Option<::std::vec::Vec<Span>>,
 }
 
+/// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Empty {}
+
 /// Represents a string that might be shortened to a specified length.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TruncatableString {

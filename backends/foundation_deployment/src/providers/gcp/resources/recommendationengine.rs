@@ -24,6 +24,10 @@ pub struct GoogleApiHttpBody {
     pub extensions: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
 }
 
+/// Metadata for TriggerCatalogRejoin method.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudRecommendationengineV1alphaRejoinCatalogMetadata {}
+
 /// Response message for TriggerCatalogRejoin method.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudRecommendationengineV1alphaRejoinCatalogResponse {
@@ -39,6 +43,10 @@ pub struct GoogleCloudRecommendationengineV1alphaTuningMetadata {
     #[serde(default, rename = "recommendationModel")]
     pub recommendation_model: ::core::option::Option<String>,
 }
+
+/// Response associated with a tune operation.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudRecommendationengineV1alphaTuningResponse {}
 
 /// Request message for the CreatePredictionApiKeyRegistration method.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -283,6 +291,10 @@ pub struct GoogleCloudRecommendationengineV1beta1PurgeUserEventsResponse {
         ::core::option::Option<::std::vec::Vec<GoogleCloudRecommendationengineV1beta1UserEvent>>,
 }
 
+/// Metadata for RejoinUserEvents method.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudRecommendationengineV1beta1RejoinUserEventsMetadata {}
+
 /// Request message for CatalogRejoin method.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudRecommendationengineV1beta1RejoinUserEventsRequest {
@@ -312,6 +324,10 @@ pub struct GoogleLongrunningListOperationsResponse {
     #[serde(default)]
     pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
 }
+
+/// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleProtobufEmpty {}
 
 /// The input config source.
 #[derive(Debug, Clone, Serialize, Deserialize)]

@@ -128,6 +128,10 @@ pub struct ListFindingsResponse {
     pub next_page_token: ::core::option::Option<String>,
 }
 
+/// Request message for MarkAlertAsBenign.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MarkAlertAsBenignRequest {}
+
 /// Request message for MarkAlertAsDuplicate.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct MarkAlertAsDuplicateRequest {
@@ -135,6 +139,34 @@ pub struct MarkAlertAsDuplicateRequest {
     #[serde(default, rename = "duplicateOf")]
     pub duplicate_of: ::core::option::Option<String>,
 }
+
+/// Request message for MarkAlertAsEscalated.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MarkAlertAsEscalatedRequest {}
+
+/// Request message for MarkAlertAsFalsePositive.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MarkAlertAsFalsePositiveRequest {}
+
+/// Request message for MarkAlertAsNotActionable.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MarkAlertAsNotActionableRequest {}
+
+/// Request message for MarkAlertAsRead.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MarkAlertAsReadRequest {}
+
+/// Request message for MarkAlertAsResolved.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MarkAlertAsResolvedRequest {}
+
+/// Request message for MarkAlertAsTrackedExternally.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MarkAlertAsTrackedExternallyRequest {}
+
+/// Request message for MarkAlertAsTriaged.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MarkAlertAsTriagedRequest {}
 
 /// This resource represents a long-running operation that is the result of a network API call.
 #[derive(Debug, Clone, Serialize, Deserialize)]

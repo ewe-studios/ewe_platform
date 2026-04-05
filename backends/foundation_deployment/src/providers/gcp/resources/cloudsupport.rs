@@ -10,6 +10,10 @@
 use super::*;
 use serde::{Deserialize, Serialize};
 
+/// The request message for the CloseCase endpoint.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CloseCaseRequest {}
+
 /// The request message for the CreateAttachment endpoint.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CreateAttachmentRequest {
