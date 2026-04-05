@@ -22,10 +22,6 @@ use std::process::Command;
 
 use serde::de::Error;
 use serde::Deserialize;
-use tracing::Level;
-use tracing_subscriber::FmtSubscriber;
-
-type BoxedError = Box<dyn std::error::Error + Send + Sync + 'static>;
 
 // ---------------------------------------------------------------------------
 // Error types
@@ -1207,64 +1203,4 @@ impl ClientGenerator {
 
         Ok(())
     }
-}
-
-// ---------------------------------------------------------------------------
-// CLI registration
-// ---------------------------------------------------------------------------
-
-pub fn register(cmd: clap::Command) -> clap::Command {
-    cmd.subcommand(
-        clap::Command::new("gen_provider_clients")
-            .about("Generate Rust API client functions from OpenAPI specs")
-            .arg(
-                clap::Arg::new("provider")
-                    .long("provider")
-                    .short('p')
-                    .help("Generate clients for only this provider (default: all)")
-                    .value_name("PROVIDER"),
-            )
-            .arg(
-                clap::Arg::new("output-dir")
-                    .long("output-dir")
-                    .help("Output directory for generated files")
-                    .value_name("DIR")
-                    .default_value("backends/foundation_deployment/src/providers"),
-            ),
-    )
-}
-
-pub fn run(matches: &clap::ArgMatches) -> Result<(), BoxedError> {
-    // Initialize tracing with stdout output
-    let subscriber = FmtSubscriber::builder()
-        .with_max_level(Level::INFO)
-        .with_target(false)
-        .with_thread_ids(false)
-        .with_file(false)
-        .with_line_number(false)
-        .with_writer(std::io::stdout)
-        .finish();
-    tracing::subscriber::set_global_default(subscriber).expect("setting default subscriber failed");
-
-    let artefacts_dir = PathBuf::from("artefacts/cloud_providers");
-    let output_dir = matches
-        .get_one::<String>("output-dir")
-        .map(PathBuf::from)
-        .unwrap_or_else(|| PathBuf::from("backends/foundation_deployment/src/providers"));
-
-    // Create output directory
-    std::fs::create_dir_all(&output_dir).map_err(|e| GenClientError::WriteFile {
-        path: output_dir.display().to_string(),
-        source: e,
-    })?;
-
-    let generator = ClientGenerator::new(artefacts_dir, output_dir.clone());
-
-    if let Some(provider) = matches.get_one::<String>("provider") {
-        generator.generate_for_provider(provider)?;
-    } else {
-        generator.generate_all()?;
-    }
-
-    Ok(())
 }

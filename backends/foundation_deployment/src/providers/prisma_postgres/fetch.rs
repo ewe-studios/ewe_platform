@@ -19,7 +19,7 @@ use std::path::PathBuf;
 pub const SPEC_URL: &str = "https://api.prisma.io/v1/doc";
 
 /// Provider identifier.
-pub const PROVIDER_NAME: &str = "prisma-postgres";
+pub const PROVIDER_NAME: &str = "prisma_postgres";
 
 /// Fetch the Prisma Postgres OpenAPI spec.
 pub fn fetch_prisma_postgres_specs(
@@ -42,7 +42,7 @@ mod tests {
 
     #[test]
     fn constants_are_correct() {
-        assert_eq!(PROVIDER_NAME, "prisma-postgres");
+        assert_eq!(PROVIDER_NAME, "prisma_postgres");
         assert!(SPEC_URL.starts_with("https://"));
         assert!(SPEC_URL.contains("prisma.io"));
     }

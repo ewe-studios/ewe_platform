@@ -1,31 +1,31 @@
-//! WHY: Unified generator for resource types and API clients from OpenAPI specs.
+//! WHY: Unified generator for resource types, API clients, provider specs, and model descriptors.
 //!
-//! WHAT: Combines gen_resource_types and gen_provider_clients functionality with
-//! subcommands: `types` and `clients`.
+//! WHAT: Combines gen_resource_types, gen_provider_clients, gen_provider_specs, and gen_model_descriptors
+//! functionality with subcommands: `types`, `clients`, `specs`, and `models`.
 //!
 //! HOW: Delegates to respective generator modules based on subcommand.
 
 mod clients;
+mod model_descriptors;
+mod provider_specs;
+mod provider_specs_core;
+mod provider_specs_errors;
+mod provider_specs_fetcher;
 mod types;
 
 use std::path::PathBuf;
 
 type BoxedError = Box<dyn std::error::Error + Send + Sync + 'static>;
 
-/// Normalize provider name from CLI (fly_io -> fly-io) to match artefacts directory.
-fn normalize_provider_name(provider: &str) -> String {
-    provider.replace('_', "-")
-}
-
 // ---------------------------------------------------------------------------
 // CLI registration
 // ---------------------------------------------------------------------------
 
-/// Register the `gen_resources` subcommand with `types` and `clients` sub-subcommands.
+/// Register the `gen_resources` subcommand with all generator sub-subcommands.
 pub fn register(cmd: clap::Command) -> clap::Command {
     cmd.subcommand(
         clap::Command::new("gen_resources")
-            .about("Generate Rust types and API clients from OpenAPI specs")
+            .about("Generate Rust types, API clients, provider specs, and model descriptors")
             .subcommand_required(true)
             .subcommand(
                 clap::Command::new("types")
@@ -63,6 +63,53 @@ pub fn register(cmd: clap::Command) -> clap::Command {
                             .default_value("backends/foundation_deployment/src/providers"),
                     ),
             )
+            .subcommand(
+                clap::Command::new("specs")
+                    .about("Fetch and distill OpenAPI specs from deployment providers")
+                    .arg(
+                        clap::Arg::new("provider")
+                            .long("provider")
+                            .short('p')
+                            .help("Fetch only this provider's spec (default: all)")
+                            .value_name("PROVIDER"),
+                    )
+                    .arg(
+                        clap::Arg::new("gcp-apis")
+                            .long("gcp-apis")
+                            .help("Comma-separated list of GCP API names to fetch (default: all APIs)")
+                            .value_name("APIS"),
+                    )
+                    .arg(
+                        clap::Arg::new("dry-run")
+                            .long("dry-run")
+                            .help("Fetch specs but don't write to disk")
+                            .action(clap::ArgAction::SetTrue),
+                    )
+                    .arg(
+                        clap::Arg::new("force")
+                            .long("force")
+                            .help("Write specs even if content hasn't changed")
+                            .action(clap::ArgAction::SetTrue),
+                    )
+                    .arg(
+                        clap::Arg::new("debug")
+                            .long("debug")
+                            .default_value("false")
+                            .action(clap::ArgAction::SetTrue)
+                            .help("Enables debug logs (default: false)"),
+                    ),
+            )
+            .subcommand(
+                clap::Command::new("models")
+                    .about("Fetch upstream model catalogs and regenerate model descriptors")
+                    .arg(
+                        clap::Arg::new("debug")
+                            .long("debug")
+                            .default_value("false")
+                            .action(clap::ArgAction::SetTrue)
+                            .help("Enables debug logs (default: false)"),
+                    ),
+            ),
     )
 }
 
@@ -81,9 +128,8 @@ pub fn run(matches: &clap::ArgMatches) -> Result<(), BoxedError> {
             let generator = types::ResourceGenerator::new(artefacts_dir, output_dir);
 
             if let Some(provider) = provider {
-                // Normalize provider name (fly_io -> fly-io) for directory lookup
-                let normalized = normalize_provider_name(provider);
-                generator.generate_for_provider(&normalized)?;
+                // Provider name uses underscores everywhere (fly_io, prisma_postgres, etc.)
+                generator.generate_for_provider(provider)?;
             } else {
                 generator.generate_all()?;
             }
@@ -102,13 +148,20 @@ pub fn run(matches: &clap::ArgMatches) -> Result<(), BoxedError> {
             let generator = clients::ClientGenerator::new(artefacts_dir, output_dir);
 
             if let Some(provider) = provider {
-                // Normalize provider name (fly_io -> fly-io) for directory lookup
-                let normalized = normalize_provider_name(provider);
-                generator.generate_for_provider(&normalized)?;
+                // Provider name uses underscores everywhere (fly_io, prisma_postgres, etc.)
+                generator.generate_for_provider(provider)?;
             } else {
                 generator.generate_all()?;
             }
 
+            Ok(())
+        }
+        Some(("specs", sub_matches)) => {
+            provider_specs::run(sub_matches)?;
+            Ok(())
+        }
+        Some(("models", sub_matches)) => {
+            model_descriptors::run(sub_matches)?;
             Ok(())
         }
         _ => unreachable!("subcommand_required ensures a subcommand is present"),

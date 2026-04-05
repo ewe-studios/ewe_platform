@@ -19,7 +19,7 @@ use std::path::PathBuf;
 pub const SPEC_URL: &str = "https://docs.machines.dev/spec/openapi3.json";
 
 /// Provider identifier used in output paths and logs.
-pub const PROVIDER_NAME: &str = "fly-io";
+pub const PROVIDER_NAME: &str = "fly_io";
 
 /// Fetch the Fly.io OpenAPI spec.
 ///
@@ -44,7 +44,7 @@ mod tests {
 
     #[test]
     fn constants_are_correct() {
-        assert_eq!(PROVIDER_NAME, "fly-io");
+        assert_eq!(PROVIDER_NAME, "fly_io");
         assert!(SPEC_URL.starts_with("https://"));
         assert!(SPEC_URL.contains("machines.dev"));
     }
