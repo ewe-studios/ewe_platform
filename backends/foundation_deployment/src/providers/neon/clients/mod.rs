@@ -7,6 +7,8 @@
 
 #![cfg(feature = "neon")]
 
+pub mod types;
+
 use crate::providers::neon::clients::types::*;
 use crate::providers::neon::resources::*;
 use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt};

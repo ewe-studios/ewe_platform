@@ -7,6 +7,8 @@
 
 #![cfg(feature = "stripe")]
 
+pub mod types;
+
 use crate::providers::stripe::clients::types::*;
 use crate::providers::stripe::resources::*;
 use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt};

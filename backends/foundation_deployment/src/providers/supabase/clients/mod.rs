@@ -7,6 +7,8 @@
 
 #![cfg(feature = "supabase")]
 
+pub mod types;
+
 use crate::providers::supabase::clients::types::*;
 use crate::providers::supabase::resources::*;
 use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt};

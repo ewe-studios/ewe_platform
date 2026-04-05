@@ -33,8 +33,6 @@ pub struct AppSecretsUpdateResp {
     pub version: ::core::option::Option<i64>,
     #[serde(default)]
     pub secrets: ::core::option::Option<::std::vec::Vec<AppSecret>>,
-    #[serde(default)]
-    pub version: ::core::option::Option<i64>,
 }
 
 /// CertificateCheckResponse resource type.
@@ -224,8 +222,6 @@ pub struct DeleteAppSecretResponse {
     /// DEPRECATED
     #[serde(default, rename = "Version")]
     pub version: ::core::option::Option<i64>,
-    #[serde(default)]
-    pub version: ::core::option::Option<i64>,
 }
 
 /// DeleteSecretkeyResponse resource type.
@@ -233,8 +229,6 @@ pub struct DeleteAppSecretResponse {
 pub struct DeleteSecretkeyResponse {
     /// DEPRECATED
     #[serde(default, rename = "Version")]
-    pub version: ::core::option::Option<i64>,
-    #[serde(default)]
     pub version: ::core::option::Option<i64>,
 }
 
@@ -452,8 +446,6 @@ pub struct SetAppSecretResponse {
     pub updated_at: ::core::option::Option<String>,
     #[serde(default)]
     pub value: ::core::option::Option<String>,
-    #[serde(default)]
-    pub version: ::core::option::Option<i64>,
 }
 
 /// SetSecretkeyRequest resource type.
@@ -481,8 +473,6 @@ pub struct SetSecretkeyResponse {
     pub type_: ::core::option::Option<String>,
     #[serde(default)]
     pub updated_at: ::core::option::Option<String>,
-    #[serde(default)]
-    pub version: ::core::option::Option<i64>,
 }
 
 /// SignSecretkeyRequest resource type.
