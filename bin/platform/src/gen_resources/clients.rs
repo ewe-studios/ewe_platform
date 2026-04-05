@@ -435,6 +435,8 @@ impl ClientGenerator {
         writeln!(out)?;
         writeln!(out, "#![cfg(feature = \"{}\")]", label)?;
         writeln!(out)?;
+        writeln!(out, "pub mod types;")?;
+        writeln!(out)?;
 
         // Imports
         let provider_module = label.split('/').next().unwrap_or(label).replace('-', "_");
@@ -777,25 +779,39 @@ impl ClientGenerator {
         // Build request
         writeln!(out)?;
         writeln!(out, "    // Build request")?;
-        let method_lower = endpoint.method.to_lowercase();
-        writeln!(out, "    client.{}(&url)", method_lower)?;
-        writeln!(out, "        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))")?;
 
-        // Add query parameters
-        for param in &endpoint.query_params {
-            let param_name = &param.name;
+        // Build query string if there are query parameters
+        if !endpoint.query_params.is_empty() {
+            writeln!(out, "    let mut query_parts = Vec::new();")?;
+            for param in &endpoint.query_params {
+                let param_name = &param.name;
+                writeln!(out, "    if let Some(val) = {} {{", self.escape_keyword(param_name))?;
+                writeln!(out, "        query_parts.push(format!(\"{}={{}}\", val));", param_name)?;
+                writeln!(out, "    }}")?;
+            }
             writeln!(out)?;
-            writeln!(out, "        .query(")?;
-            writeln!(out, "            \"{}\",", param_name)?;
-            writeln!(out, "            {}.as_ref().map(|s| s.to_string()).unwrap_or_default().as_str(),", self.escape_keyword(param_name))?;
-            writeln!(out, "        )")?;
+            writeln!(out, "    let url_with_query = if query_parts.is_empty() {{")?;
+            writeln!(out, "        url")?;
+            writeln!(out, "    }} else {{")?;
+            writeln!(out, "        format!(\"{{}}?{{}}\", url, query_parts.join(\"&\"))")?;
+            writeln!(out, "    }};")?;
+            writeln!(out)?;
+            let method_lower = endpoint.method.to_lowercase();
+            writeln!(out, "    let builder = client.{}(&url_with_query)", method_lower)?;
+        } else {
+            let method_lower = endpoint.method.to_lowercase();
+            writeln!(out, "    let builder = client.{}(&url)", method_lower)?;
         }
+        writeln!(out, "        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;")?;
 
         // Add request body
         if endpoint.request_body_type.is_some() {
             writeln!(out)?;
-            writeln!(out, "        .body_json(body)")?;
-            writeln!(out, "        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?")?;
+            writeln!(out, "    builder.body_json(body)")?;
+            writeln!(out, "        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))")?;
+        } else {
+            writeln!(out)?;
+            writeln!(out, "    Ok(builder)")?;
         }
 
         writeln!(out, "}}")?;
@@ -845,11 +861,11 @@ impl ClientGenerator {
         writeln!(out, "        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?")?;
         writeln!(out, "        .map_ready(|intro| match intro {{")?;
         writeln!(out, "            RequestIntro::Success {{ stream, intro, headers, .. }} => {{")?;
-        writeln!(out, "                let status = &intro.status;")?;
+        writeln!(out, "                let status_code: usize = intro.0.into();")?;
         writeln!(out)?;
-        writeln!(out, "                if !status.is_success() {{")?;
+        writeln!(out, "                if status_code < 200 || status_code >= 300 {{")?;
         writeln!(out, "                    return Err(ApiError::HttpStatus {{")?;
-        writeln!(out, "                        code: status.as_u16(),")?;
+        writeln!(out, "                        code: status_code as u16,")?;
         writeln!(out, "                        headers: headers.clone(),")?;
         writeln!(out, "                    }});")?;
         writeln!(out, "                }}")?;
@@ -858,7 +874,7 @@ impl ClientGenerator {
 
         if return_type == "()" {
             writeln!(out, "                Ok(ApiResponse {{")?;
-            writeln!(out, "                    status: status.as_u16(),")?;
+            writeln!(out, "                    status: status_code as u16,")?;
             writeln!(out, "                    headers: headers.clone(),")?;
             writeln!(out, "                    body: (),")?;
             writeln!(out, "                }})")?;
@@ -867,7 +883,7 @@ impl ClientGenerator {
             writeln!(out, "                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;")?;
             writeln!(out)?;
             writeln!(out, "                Ok(ApiResponse {{")?;
-            writeln!(out, "                    status: status.as_u16(),")?;
+            writeln!(out, "                    status: status_code as u16,")?;
             writeln!(out, "                    headers: headers.clone(),")?;
             writeln!(out, "                    body: parsed,")?;
             writeln!(out, "                }})")?;

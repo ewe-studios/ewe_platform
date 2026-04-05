@@ -1170,7 +1170,6 @@ pub struct SupavisorConfigResponse {
     /// Use connection_string instead
     #[serde(rename = "connectionString")]
     pub connection_string: String,
-    pub connection_string: String,
     /// TODO: enum values: ["PRIMARY", "READ_REPLICA"]
     pub database_type: String,
     pub db_host: String,
