@@ -10,6 +10,18 @@
 use super::*;
 use serde::{Deserialize, Serialize};
 
+/// Message for approving a QueryTemplate.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ApproveQueryTemplateRequest {}
+
+/// Default Analytics Hub data exchange, used for secured data sharing.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DefaultExchangeConfig {}
+
+/// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Empty {}
+
 /// Request message for GetIamPolicy method.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GetIamPolicyRequest {
@@ -130,6 +142,14 @@ pub struct OperationMetadata {
     pub verb: ::core::option::Option<String>,
 }
 
+/// The payload to the push endpoint is in the form of the JSON representation of a PubsubMessage (https://cloud.google.com/pubsub/docs/reference/rpc/google.pubsub.v1#pubsubmessage).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PubsubWrapper {}
+
+/// Message for refreshing a subscription.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RefreshSubscriptionRequest {}
+
 /// Message for response when you refresh a subscription.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct RefreshSubscriptionResponse {
@@ -146,6 +166,10 @@ pub struct RevokeSubscriptionRequest {
     pub revoke_commercial: ::core::option::Option<bool>,
 }
 
+/// Message for response when you revoke a subscription. Empty for now.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RevokeSubscriptionResponse {}
+
 /// Request message for SetIamPolicy method.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SetIamPolicyRequest {
@@ -156,6 +180,10 @@ pub struct SetIamPolicyRequest {
     #[serde(default, rename = "updateMask")]
     pub update_mask: ::core::option::Option<String>,
 }
+
+/// Message for submitting a QueryTemplate.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SubmitQueryTemplateRequest {}
 
 /// Message for subscribing to a Data Exchange.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -216,6 +244,10 @@ pub struct TestIamPermissionsResponse {
     #[serde(default)]
     pub permissions: ::core::option::Option<::std::vec::Vec<String>>,
 }
+
+/// Configuration for writing message data in text format. Message payloads will be written to files as raw text, separated by a newline.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TextConfig {}
 
 /// Encapsulates settings provided to GetIamPolicy.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -995,4 +1027,12 @@ pub struct OidcToken {
     /// Optional. [Service account email](https://cloud.google.com/iam/docs/service-accounts) used for generating the OIDC token. For more information on setting up authentication, see [Push subscriptions](https://cloud.google.com/pubsub/docs/push).
     #[serde(default, rename = "serviceAccountEmail")]
     pub service_account_email: ::core::option::Option<String>,
+}
+
+/// Configuration for making inferences using arbitrary JSON payloads.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct UnstructuredInference {
+    /// Optional. A parameters object to be included in each inference request. The parameters object is combined with the data field of the Pub/Sub message to form the inference request.
+    #[serde(default)]
+    pub parameters: ::core::option::Option<serde_json::Value>,
 }

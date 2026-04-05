@@ -65,6 +65,14 @@ pub struct BatchUpdateContactsRequest {
     pub update_mask: ::core::option::Option<String>,
 }
 
+/// If not successful, returns BatchUpdateContactsErrorDetails, a list of errors corresponding to each contact. The response to a request to update a batch of contacts.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BatchUpdateContactsResponse {
+    /// A map of resource names to the contacts that were updated, unless the request read_mask is empty.
+    #[serde(default, rename = "updateResult")]
+    pub update_result: ::core::option::Option<serde_json::Value>,
+}
+
 /// A request to copy an "Other contact" to my contacts group.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CopyOtherContactToMyContactsGroupRequest {

@@ -64,6 +64,14 @@ pub struct ExecutionRequest {
     pub session_state: ::core::option::Option<String>,
 }
 
+/// An object that provides the return value of a function executed using the Apps Script API. If the script function returns successfully, the response body''s response field contains this ExecutionResponse object.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ExecutionResponse {
+    /// The return value of the script function. The type matches the object type returned in Apps Script. Functions called using the Apps Script API cannot return Apps Script-specific objects (such as a Document or a Calendar); they can only return primitive types such as a string, number, array, object, or boolean.
+    #[serde(default)]
+    pub result: ::core::option::Option<serde_json::Value>,
+}
+
 /// Response with the list of deployments for the specified Apps Script project.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ListDeploymentsResponse {

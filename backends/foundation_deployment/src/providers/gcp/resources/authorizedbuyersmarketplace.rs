@@ -18,6 +18,14 @@ pub struct AcceptProposalRequest {
     pub proposal_revision: ::core::option::Option<String>,
 }
 
+/// Request message for activating a client.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ActivateClientRequest {}
+
+/// Request message for activating a client user.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ActivateClientUserRequest {}
+
 /// Request message for adding creative to be used in the bidding process for the finalized deal.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AddCreativeRequest {
@@ -49,6 +57,22 @@ pub struct BatchUpdateDealsResponse {
     #[serde(default)]
     pub deals: ::core::option::Option<::std::vec::Vec<Deal>>,
 }
+
+/// Request to cancel an ongoing negotiation.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CancelNegotiationRequest {}
+
+/// Request message for disabling a client.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DeactivateClientRequest {}
+
+/// Request message for deactivating a client user.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DeactivateClientUserRequest {}
+
+/// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Empty {}
 
 /// Response message for listing auction packages.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -135,6 +159,10 @@ pub struct PauseFinalizedDealRequest {
     pub reason: ::core::option::Option<String>,
 }
 
+/// Request message for resuming a finalized deal.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ResumeFinalizedDealRequest {}
+
 /// Request to send an RFP. All fields in this request are proposed to publisher and subject to changes by publisher during later negotiation.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SendRfpRequest {
@@ -176,6 +204,14 @@ pub struct SendRfpRequest {
     pub publisher_profile: ::core::option::Option<String>,
 }
 
+/// Request message for setting ready to serve for a finalized deal.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SetReadyToServeRequest {}
+
+/// Request message for SubscribeAuctionPackage.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SubscribeAuctionPackageRequest {}
+
 /// Request message for SubscribeAuctionPackageClients.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SubscribeClientsRequest {
@@ -183,6 +219,10 @@ pub struct SubscribeClientsRequest {
     #[serde(default)]
     pub clients: ::core::option::Option<::std::vec::Vec<String>>,
 }
+
+/// Request message for UnsubscribeAuctionPackage.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct UnsubscribeAuctionPackageRequest {}
 
 /// Request message for UnsubscribeAuctionPackage.
 #[derive(Debug, Clone, Serialize, Deserialize)]

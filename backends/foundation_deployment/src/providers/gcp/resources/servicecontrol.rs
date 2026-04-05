@@ -102,6 +102,14 @@ pub struct ReportRequest {
     pub service_config_id: ::core::option::Option<String>,
 }
 
+/// Response message for the Report method.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ReportResponse {
+    /// The extension field to store serialized OTel responses. e.g. ExportLogsServiceResponse, ExportMetricsServiceResponse.
+    #[serde(default)]
+    pub extensions: ::core::option::Option<serde_json::Value>,
+}
+
 /// The context of a span. This is attached to an Exemplar in Distribution values during aggregation. It contains the name of a span with format: projects/[PROJECT_ID_OR_NUMBER]/traces/[TRACE_ID]/spans/[SPAN_ID]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SpanContext {
@@ -617,6 +625,14 @@ pub struct FirstPartyPrincipal {
     /// Metadata about the service that uses the service account. .
     #[serde(default, rename = "serviceMetadata")]
     pub service_metadata: ::core::option::Option<serde_json::Value>,
+}
+
+/// Third party identity principal.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ThirdPartyPrincipal {
+    /// Metadata about third party identity.
+    #[serde(default, rename = "thirdPartyClaims")]
+    pub third_party_claims: ::core::option::Option<serde_json::Value>,
 }
 
 /// Metadata describing the service and additional service specific information used to identify the job or unit of work at hand.

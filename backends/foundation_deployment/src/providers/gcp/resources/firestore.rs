@@ -734,6 +734,14 @@ pub struct StructuredPipeline {
     pub pipeline: ::core::option::Option<Pipeline>,
 }
 
+/// Pipeline explain stats. Depending on the explain options in the original request, this can contain the optimized plan and / or execution stats.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ExplainStats {
+    /// The format depends on the output_format options in the request. Currently there are two supported options: TEXT and JSON. Both supply a google.protobuf.StringValue.
+    #[serde(default)]
+    pub data: ::core::option::Option<serde_json::Value>,
+}
+
 /// A consistent snapshot of a database at a specific point in time. A PITR (Point-in-time recovery) snapshot with previous versions of a database''s data is available for every minute up to the associated database''s data retention period. If the PITR feature is enabled, the retention period is 7 days; otherwise, it is one hour.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleFirestoreAdminV1PitrSnapshot {
@@ -1110,6 +1118,14 @@ pub struct StructuredAggregationQuery {
     /// Nested structured query.
     #[serde(default, rename = "structuredQuery")]
     pub structured_query: ::core::option::Option<StructuredQuery>,
+}
+
+/// The result of a single bucket from a Firestore aggregation query. The keys of aggregate_fields are the same for all results in an aggregation query, unlike document queries which can have different fields present for each result.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AggregationResult {
+    /// The result of the aggregation functions, ex: COUNT(*) AS total_docs. The key is the alias assigned to the aggregation function on input and the size of this map equals the number of aggregation functions in the query.
+    #[serde(default, rename = "aggregateFields")]
+    pub aggregate_fields: ::core::option::Option<serde_json::Value>,
 }
 
 /// Explain options for the query.
@@ -1786,6 +1802,14 @@ pub struct LatLng {
     /// The longitude in degrees. It must be in the range [-180.0, +180.0].
     #[serde(default)]
     pub longitude: ::core::option::Option<f64>,
+}
+
+/// A map value.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MapValue {
+    /// The map''s fields. The map keys represent field names. Field names matching the regular expression __.*__ are reserved. Reserved field names are forbidden except in certain documented contexts. The map keys, represented as UTF-8, must not exceed 1,500 bytes and cannot be empty.
+    #[serde(default)]
+    pub fields: ::core::option::Option<serde_json::Value>,
 }
 
 /// A Firestore query represented as an ordered list of operations / stages.

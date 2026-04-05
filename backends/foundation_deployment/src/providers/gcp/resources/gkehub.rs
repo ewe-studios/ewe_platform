@@ -468,6 +468,14 @@ pub struct PolicyControllerState {
     pub state: ::core::option::Option<String>,
 }
 
+/// **RBAC RoleBinding Actuation**: A membership-specific Feature state for the RBACRoleBindingActuation fleet feature.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RBACRoleBindingActuationState {
+    /// Output only. The state of RBACRoleBindings using custom roles that exist on the cluster, keyed by RBACRoleBinding resource name with format: projects/{project}/locations/{location}/scopes/{scope}/rbacrolebindings/{rbacrolebinding}.
+    #[serde(default, rename = "rbacrolebindingStates")]
+    pub rbacrolebinding_states: ::core::option::Option<serde_json::Value>,
+}
+
 /// **Service Mesh**: State for a single Membership, as analyzed by the Service Mesh Hub Controller.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ServiceMeshState {

@@ -60,6 +60,14 @@ pub struct BackendMetastore {
     pub name: ::core::option::Option<String>,
 }
 
+/// Error details in public error message for DataprocMetastore.QueryMetadata.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ErrorDetails {
+    /// Additional structured details about this error.Keys define the failure items. Value describes the exception or details of the item.
+    #[serde(default)]
+    pub details: ::core::option::Option<serde_json::Value>,
+}
+
 /// Request message for DataprocMetastore.ExportMetadata.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ExportMetadataRequest {

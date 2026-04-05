@@ -1765,6 +1765,14 @@ pub struct CustomModuleValidationErrors {
     pub errors: ::core::option::Option<::std::vec::Vec<CustomModuleValidationError>>,
 }
 
+/// Vulnerability count by severity.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct VulnerabilityCountBySeverity {
+    /// Key is the Severity enum.
+    #[serde(default, rename = "severityToFindingCount")]
+    pub severity_to_finding_count: ::core::option::Option<serde_json::Value>,
+}
+
 /// A resource value configuration (RVC) is a mapping configuration of user''s resources to resource values. Used in Attack path simulations.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudSecuritycenterV1ResourceValueConfig {

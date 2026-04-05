@@ -898,3 +898,11 @@ pub struct TextFormat {
     #[serde(default)]
     pub delimiter: ::core::option::Option<String>,
 }
+
+/// Configuration for making inferences using arbitrary JSON payloads.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct UnstructuredInference {
+    /// Optional. A parameters object to be included in each inference request. The parameters object is combined with the data field of the Pub/Sub message to form the inference request.
+    #[serde(default)]
+    pub parameters: ::core::option::Option<serde_json::Value>,
+}

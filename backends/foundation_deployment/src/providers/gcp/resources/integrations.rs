@@ -412,6 +412,14 @@ pub struct GoogleCloudIntegrationsV1alphaExecuteIntegrationsResponse {
     pub parameters: ::core::option::Option<serde_json::Value>,
 }
 
+/// The request for executing a functional test.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudIntegrationsV1alphaExecuteTestCaseRequest {
+    /// Optional. Input parameters used by test case execution.
+    #[serde(default, rename = "inputParameters")]
+    pub input_parameters: ::core::option::Option<serde_json::Value>,
+}
+
 /// Response for ExecuteTestCases.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudIntegrationsV1alphaExecuteTestCasesResponse {
@@ -715,6 +723,14 @@ pub struct GoogleCloudIntegrationsV1alphaProvisionClientRequest {
     /// Optional. Indicates if skip CP provision or not
     #[serde(default, rename = "skipCpProvision")]
     pub skip_cp_provision: ::core::option::Option<bool>,
+}
+
+/// Request for PublishIntegrationVersion.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudIntegrationsV1alphaPublishIntegrationVersionRequest {
+    /// Optional. Config parameters used during integration execution.
+    #[serde(default, rename = "configParameters")]
+    pub config_parameters: ::core::option::Option<serde_json::Value>,
 }
 
 /// Request for the ReplaceServiceAccount rpc

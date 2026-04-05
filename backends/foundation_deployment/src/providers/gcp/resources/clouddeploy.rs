@@ -2271,6 +2271,14 @@ pub struct CloudRunMetadata {
     pub worker_pool: ::core::option::Option<String>,
 }
 
+/// CustomMetadata contains information from a user-defined operation.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CustomMetadata {
+    /// Output only. Key-value pairs provided by the user-defined operation.
+    #[serde(default)]
+    pub values: ::core::option::Option<serde_json::Value>,
+}
+
 /// ChildRollouts job composition
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ChildRolloutJobs {

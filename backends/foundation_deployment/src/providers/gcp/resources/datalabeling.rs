@@ -949,6 +949,14 @@ pub struct GoogleLongrunningListOperationsResponse {
     pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
+/// Statistics about annotation specs.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDatalabelingV1alpha1LabelStats {
+    /// Map of each annotation spec''s example count. Key is the annotation spec name and value is the number of examples for that annotation spec. If the annotated dataset does not have annotation spec, the map will return a pair where the key is empty string and value is the total number of annotations.
+    #[serde(default, rename = "exampleCount")]
+    pub example_count: ::core::option::Option<serde_json::Value>,
+}
+
 /// The configuration of output data.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDatalabelingV1alpha1OutputConfig {
@@ -1410,6 +1418,14 @@ pub struct GoogleCloudDatalabelingV1beta1ExampleComparison {
         ::core::option::Option<::std::vec::Vec<GoogleCloudDatalabelingV1beta1Example>>,
 }
 
+/// Statistics about annotation specs.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDatalabelingV1p1alpha1LabelStats {
+    /// Map of each annotation spec''s example count. Key is the annotation spec name and value is the number of examples for that annotation spec. If the annotated dataset does not have annotation spec, the map will return a pair where the key is empty string and value is the total number of annotations.
+    #[serde(default, rename = "exampleCount")]
+    pub example_count: ::core::option::Option<serde_json::Value>,
+}
+
 /// The configuration of output data.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudDatalabelingV1p1alpha1OutputConfig {
@@ -1528,6 +1544,14 @@ pub struct GoogleCloudDatalabelingV1p1alpha1LabelVideoObjectTrackingOperationMet
     #[serde(default, rename = "basicConfig")]
     pub basic_config:
         ::core::option::Option<GoogleCloudDatalabelingV1p1alpha1HumanAnnotationConfig>,
+}
+
+/// Statistics about annotation specs.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDatalabelingV1p2alpha1LabelStats {
+    /// Map of each annotation spec''s example count. Key is the annotation spec name and value is the number of examples for that annotation spec. If the annotated dataset does not have annotation spec, the map will return a pair where the key is empty string and value is the total number of annotations.
+    #[serde(default, rename = "exampleCount")]
+    pub example_count: ::core::option::Option<serde_json::Value>,
 }
 
 /// The configuration of output data.
@@ -1738,6 +1762,14 @@ pub struct GoogleCloudDatalabelingV1beta1GcsFolderDestination {
     /// Required. Cloud Storage directory to export data to.
     #[serde(default, rename = "outputFolderUri")]
     pub output_folder_uri: ::core::option::Option<String>,
+}
+
+/// Statistics about annotation specs.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudDatalabelingV1beta1LabelStats {
+    /// Map of each annotation spec''s example count. Key is the annotation spec name and value is the number of examples for that annotation spec. If the annotated dataset does not have annotation spec, the map will return a pair where the key is empty string and value is the total number of annotations.
+    #[serde(default, rename = "exampleCount")]
+    pub example_count: ::core::option::Option<serde_json::Value>,
 }
 
 /// Metadata on AnnotatedDataset.

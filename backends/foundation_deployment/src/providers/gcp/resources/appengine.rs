@@ -88,6 +88,10 @@ pub struct DebugInstanceRequest {
     pub ssh_key: ::core::option::Option<String>,
 }
 
+/// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Empty {}
+
 /// Request message for Versions.ExportAppImage.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ExportAppImageRequest {
@@ -351,6 +355,10 @@ pub struct ProjectEvent {
     #[serde(default)]
     pub state: ::core::option::Option<ContainerState>,
 }
+
+/// Request message for ''Applications.RepairApplication''.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RepairApplicationRequest {}
 
 /// The request that is passed to CLH during per-resource events. The request will be sent with update semantics in all cases except for data governance purge events. These events will be sent with delete semantics and the CLH is expected to delete the resource receiving this event.
 #[derive(Debug, Clone, Serialize, Deserialize)]

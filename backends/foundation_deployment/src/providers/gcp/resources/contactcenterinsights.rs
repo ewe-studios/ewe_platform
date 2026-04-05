@@ -9934,6 +9934,13 @@ pub struct GoogleCloudContactcenterinsightsV1QueryInterval {
     pub start_time: ::core::option::Option<String>,
 }
 
+/// Request data that use the existing QueryMetrics.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudContactcenterinsightsV1QueryMetrics {
+    #[serde(default)]
+    pub request: ::core::option::Option<serde_json::Value>,
+}
+
 /// The redirect action to be taken when the chart is clicked.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudContactcenterinsightsV1RedirectAction {

@@ -10,6 +10,10 @@
 use super::*;
 use serde::{Deserialize, Serialize};
 
+/// This metadata is currently blank.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AudienceListMetadata {}
+
 /// The batch request containing multiple pivot report requests.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct BatchRunPivotReportsRequest {
@@ -78,6 +82,10 @@ pub struct CheckCompatibilityResponse {
     #[serde(default, rename = "metricCompatibilities")]
     pub metric_compatibilities: ::core::option::Option<::std::vec::Vec<MetricCompatibility>>,
 }
+
+/// Filter for empty values.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct EmptyFilter {}
 
 /// A list of all audience exports for a property.
 #[derive(Debug, Clone, Serialize, Deserialize)]

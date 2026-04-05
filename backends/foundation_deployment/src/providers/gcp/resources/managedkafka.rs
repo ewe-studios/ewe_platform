@@ -60,6 +60,14 @@ pub struct ConsumerPartitionMetadata {
     pub offset: ::core::option::Option<String>,
 }
 
+/// Metadata for a consumer group corresponding to a specific topic.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ConsumerTopicMetadata {
+    /// Optional. Metadata for this consumer group and topic for all partition indexes it has metadata for.
+    #[serde(default)]
+    pub partitions: ::core::option::Option<serde_json::Value>,
+}
+
 /// Context represents an independent schema grouping in a schema registry instance.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Context {

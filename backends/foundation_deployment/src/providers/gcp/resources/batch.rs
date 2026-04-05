@@ -18,6 +18,14 @@ pub struct CancelJobRequest {
     pub request_id: ::core::option::Option<String>,
 }
 
+/// The request message for Operations.CancelOperation.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CancelOperationRequest {}
+
+/// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Empty {}
+
 /// ListJob Response.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ListJobsResponse {
@@ -609,6 +617,14 @@ pub struct TaskStatus {
     /// Detailed info about why the state is reached.
     #[serde(default, rename = "statusEvents")]
     pub status_events: ::core::option::Option<::std::vec::Vec<StatusEvent>>,
+}
+
+/// AgentTaskLoggingOption contains the options for the logging of the task.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AgentTaskLoggingOption {
+    /// Labels to be added to the log entry. Now only cloud logging is supported.
+    #[serde(default)]
+    pub labels: ::core::option::Option<serde_json::Value>,
 }
 
 /// AgentTaskRunnable is the Runnable representation between Agent and CLH communication.

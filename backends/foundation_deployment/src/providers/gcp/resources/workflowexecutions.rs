@@ -277,6 +277,14 @@ pub struct StepEntryMetadata {
     pub thread_id: ::core::option::Option<String>,
 }
 
+/// VariableData contains the variable data for this step.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct VariableData {
+    /// Variables that are associated with this step.
+    #[serde(default)]
+    pub variables: ::core::option::Option<serde_json::Value>,
+}
+
 /// A collection of stack elements (frames) where an error occurred.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct StackTrace {

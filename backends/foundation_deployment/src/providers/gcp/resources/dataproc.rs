@@ -2806,6 +2806,14 @@ pub struct UsageSnapshot {
     pub snapshot_time: ::core::option::Option<String>,
 }
 
+/// Properties of the workload organized by origin.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PropertiesInfo {
+    /// Output only. Properties set by autotuning engine.
+    #[serde(default, rename = "autotuningProperties")]
+    pub autotuning_properties: ::core::option::Option<serde_json::Value>,
+}
+
 /// A Dataproc job for running Apache Flink applications on YARN.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct FlinkJob {
@@ -3545,6 +3553,14 @@ pub struct PyPiRepositoryConfig {
     pub pypi_repository: ::core::option::Option<String>,
 }
 
+/// The runtime logging config of the job.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LoggingConfig {
+    /// The per-package log levels for the driver. This can include "root" package name to configure rootLogger. Examples: - ''com.google = FATAL'' - ''root = INFO'' - ''org.apache = DEBUG''
+    #[serde(default, rename = "driverLogLevels")]
+    pub driver_log_levels: ::core::option::Option<serde_json::Value>,
+}
+
 /// A list of queries to run on a cluster.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct QueryList {
@@ -4007,6 +4023,13 @@ pub struct SoftwareConfig {
     pub properties: ::core::option::Option<serde_json::Value>,
 }
 
+/// ExecutorMetrics resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ExecutorMetrics {
+    #[serde(default)]
+    pub metrics: ::core::option::Option<serde_json::Value>,
+}
+
 /// StageShufflePushReadMetrics resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct StageShufflePushReadMetrics {
@@ -4171,6 +4194,14 @@ pub struct GkeNodePoolTarget {
     /// Required. The roles associated with the GKE node pool.
     #[serde(default)]
     pub roles: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// Identity related configuration, including service account based secure multi-tenancy user mappings.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct IdentityConfig {
+    /// Required. Map of user to service account.
+    #[serde(default, rename = "userServiceAccountMapping")]
+    pub user_service_account_mapping: ::core::option::Option<serde_json::Value>,
 }
 
 /// Specifies Kerberos related configuration.

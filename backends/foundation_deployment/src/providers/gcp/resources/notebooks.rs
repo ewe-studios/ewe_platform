@@ -10,6 +10,14 @@
 use super::*;
 use serde::{Deserialize, Serialize};
 
+/// Request message for checking authorization for the instance owner.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CheckAuthorizationRequest {
+    /// Optional. The details of the OAuth authorization response. This may include additional params such as dry_run, version_info, origin, propagate, etc.
+    #[serde(default, rename = "authorizationDetails")]
+    pub authorization_details: ::core::option::Option<serde_json::Value>,
+}
+
 /// Response message for checking authorization for the instance owner.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CheckAuthorizationResponse {

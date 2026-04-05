@@ -1191,6 +1191,14 @@ pub struct IosDeviceFile {
     pub device_path: ::core::option::Option<String>,
 }
 
+/// Identifies an account and how to log into it.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Account {
+    /// An automatic google login account.
+    #[serde(default, rename = "googleAuto")]
+    pub google_auto: ::core::option::Option<serde_json::Value>,
+}
+
 /// An Android package file to install.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Apk {

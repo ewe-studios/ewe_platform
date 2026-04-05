@@ -11,6 +11,7 @@ mod crypto;
 mod errors;
 mod rows_stream;
 mod schema;
+pub mod state;
 mod storage_provider;
 
 pub use backends::*;
@@ -18,4 +19,5 @@ pub use crypto::*;
 pub use errors::*;
 pub use rows_stream::*;
 pub use schema::*;
+pub use state::*;
 pub use storage_provider::*;

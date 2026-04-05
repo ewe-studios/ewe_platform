@@ -44,6 +44,54 @@ pub struct EstablishVolumePeeringRequest {
     pub peer_volume_name: ::core::option::Option<String>,
 }
 
+/// Response message for ExecuteOntapDelete API.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ExecuteOntapDeleteResponse {
+    /// The raw JSON body of the response.
+    #[serde(default)]
+    pub body: ::core::option::Option<serde_json::Value>,
+}
+
+/// Response message for ExecuteOntapGet API.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ExecuteOntapGetResponse {
+    /// The raw JSON body of the response.
+    #[serde(default)]
+    pub body: ::core::option::Option<serde_json::Value>,
+}
+
+/// Request message for ExecuteOntapPatch API.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ExecuteOntapPatchRequest {
+    /// Required. The raw JSON body of the request. The body should be in the format of the ONTAP resource. For example:  { "body": { "field1": "value1", "field2": "value2", } }
+    #[serde(default)]
+    pub body: ::core::option::Option<serde_json::Value>,
+}
+
+/// Response message for ExecuteOntapPatch API.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ExecuteOntapPatchResponse {
+    /// The raw JSON body of the response.
+    #[serde(default)]
+    pub body: ::core::option::Option<serde_json::Value>,
+}
+
+/// Request message for ExecuteOntapPost API.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ExecuteOntapPostRequest {
+    /// Required. The raw JSON body of the request. The body should be in the format of the ONTAP resource. For example:  { "body": { "field1": "value1", "field2": "value2", } }
+    #[serde(default)]
+    pub body: ::core::option::Option<serde_json::Value>,
+}
+
+/// Response message for ExecuteOntapPost API.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ExecuteOntapPostResponse {
+    /// The raw JSON body of the response.
+    #[serde(default)]
+    pub body: ::core::option::Option<serde_json::Value>,
+}
+
 /// ListActiveDirectoriesResponse contains all the active directories requested.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ListActiveDirectoriesResponse {

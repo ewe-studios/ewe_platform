@@ -378,6 +378,13 @@ pub struct Part {
     pub text: ::core::option::Option<String>,
 }
 
+/// DataPart represents a structured blob. This is most commonly a JSON payload.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DataPart {
+    #[serde(default)]
+    pub data: ::core::option::Option<serde_json::Value>,
+}
+
 /// FilePart represents the different ways files can be provided. If files are small, directly feeding the bytes is supported via file_with_bytes. If the file is large, the agent should read the content as appropriate directly from the file_with_uri source.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct FilePart {

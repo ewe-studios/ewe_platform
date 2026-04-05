@@ -888,6 +888,14 @@ pub struct WorkerDetails {
     pub worker_name: ::core::option::Option<String>,
 }
 
+/// Information useful for debugging a hot key detection.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct HotKeyDebuggingInfo {
+    /// Debugging information for each detected hot key. Keyed by a hash of the key.
+    #[serde(default, rename = "detectedHotKeys")]
+    pub detected_hot_keys: ::core::option::Option<serde_json::Value>,
+}
+
 /// A structuredstacktrace for a process running on the worker.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Stack {
@@ -1172,6 +1180,14 @@ pub struct Environment {
     /// Optional. The Compute Engine zone (https://cloud.google.com/compute/docs/regions-zones/regions-zones) in which worker processing should occur, e.g. "us-west1-a". Mutually exclusive with worker_region. If neither worker_region nor worker_zone is specified, a zone in the control plane''s region is chosen based on available capacity.
     #[serde(default, rename = "workerZone")]
     pub worker_zone: ::core::option::Option<String>,
+}
+
+/// Additional information about how a Cloud Dataflow job will be executed that isn''t contained in the submitted job.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct JobExecutionInfo {
+    /// A mapping from each stage to the information about that stage.
+    #[serde(default)]
+    pub stages: ::core::option::Option<serde_json::Value>,
 }
 
 /// Metadata available primarily for filtering jobs. Will be included in the ListJob response and Job SUMMARY view.

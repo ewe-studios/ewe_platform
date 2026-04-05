@@ -18,6 +18,10 @@ pub struct AddTargetingRequest {
     pub targeting_update: ::core::option::Option<TargetingUpdate>,
 }
 
+/// Response message for AddTargeting.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AddTargetingResponse {}
+
 /// Request to create a new externally hosted APK.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ApksAddExternallyHostedRequest {
@@ -72,6 +76,18 @@ pub struct AppEdit {
     #[serde(default)]
     pub id: ::core::option::Option<String>,
 }
+
+/// Deprecated: subscription archiving is not supported.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ArchiveSubscriptionRequest {}
+
+/// Details of a base price pricing phase.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BaseDetails {}
+
+/// Details about base price offer phase.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BasePriceOfferPhase {}
 
 /// Request message for BatchDeleteOneTimeProductOffers.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -307,6 +323,14 @@ pub struct BundlesListResponse {
     pub kind: ::core::option::Option<String>,
 }
 
+/// Request message for CancelAppRecovery.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CancelAppRecoveryRequest {}
+
+/// Response message for CancelAppRecovery.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CancelAppRecoveryResponse {}
+
 /// Request for the purchases.subscriptionsv2.cancel API.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CancelSubscriptionPurchaseRequest {
@@ -314,6 +338,10 @@ pub struct CancelSubscriptionPurchaseRequest {
     #[serde(default, rename = "cancellationContext")]
     pub cancellation_context: ::core::option::Option<CancellationContext>,
 }
+
+/// Response for the purchases.subscriptionsv2.cancel API.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CancelSubscriptionPurchaseResponse {}
 
 /// Request message for ConvertRegionPrices.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -381,6 +409,10 @@ pub struct DeferSubscriptionPurchaseResponse {
     pub item_expiry_time_details: ::core::option::Option<::std::vec::Vec<ItemExpiryTimeDetails>>,
 }
 
+/// Information related to deferred item replacement.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DeferredItemRemoval {}
+
 /// Responses for the upload.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct DeobfuscationFilesUploadResponse {
@@ -388,6 +420,18 @@ pub struct DeobfuscationFilesUploadResponse {
     #[serde(default, rename = "deobfuscationFile")]
     pub deobfuscation_file: ::core::option::Option<DeobfuscationFile>,
 }
+
+/// Request message for DeployAppRecovery.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DeployAppRecoveryRequest {}
+
+/// Response message for DeployAppRecovery.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DeployAppRecoveryResponse {}
+
+/// Information specific to cancellations initiated by developers.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DeveloperInitiatedCancellation {}
 
 /// Response for uploading an expansion file.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -446,6 +490,22 @@ pub struct ExternalTransaction {
     #[serde(default, rename = "userTaxAddress")]
     pub user_tax_address: ::core::option::Option<ExternalTransactionAddress>,
 }
+
+/// Represents a transaction performed using a test account. These transactions will not be charged by Google.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ExternalTransactionTestPurchase {}
+
+/// Details of a free trial pricing phase.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct FreeTrialDetails {}
+
+/// Details about free trial offer phase.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct FreeTrialOfferPhase {}
+
+/// A full refund of the remaining amount of a transaction.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct FullRefund {}
 
 /// Response to list generated APKs.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -556,6 +616,14 @@ pub struct InternalAppSharingArtifact {
     pub sha256: ::core::option::Option<String>,
 }
 
+/// Details of an introductory price pricing phase.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct IntroductoryPriceDetails {}
+
+/// Details about introductory price offer phase.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct IntroductoryPriceOfferPhase {}
+
 /// Response message for ListAppRecoveries. -- api-linter: core::0158::response-next-page-token-field=disabled
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ListAppRecoveriesResponse {
@@ -648,6 +716,38 @@ pub struct ListingsListResponse {
     #[serde(default)]
     pub listings: ::core::option::Option<::std::vec::Vec<Listing>>,
 }
+
+/// Response message for MigrateBasePlanPrices.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MigrateBasePlanPricesResponse {}
+
+/// A single use promotion code.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct OneTimeCode {}
+
+/// Options for one-time product offers without a regional price override.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct OneTimeProductOfferNoPriceOverrideOptions {}
+
+/// Details of a recurring external transaction product which doesn''t belong to any other more specific category.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct OtherRecurringProduct {}
+
+/// Represents the free price override configuration for any new locations Play may launch for a single offer phase.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct OtherRegionsSubscriptionOfferPhaseFreePriceOverride {}
+
+/// Details of a paid app purchase.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PaidAppDetails {}
+
+/// This is an indicator of whether there is a pending cancellation on the virtual installment plan. The cancellation will happen only after the user finished all committed payments.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PendingCancellation {}
+
+/// Details of a pre-order purchase.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PreorderDetails {}
 
 /// A ProductPurchase resource indicates the status of a user''s inapp product purchase.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -756,6 +856,10 @@ pub struct RefundExternalTransactionRequest {
     pub refund_time: ::core::option::Option<String>,
 }
 
+/// Represents the free price override configuration for a single phase of a subscription offer
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RegionalSubscriptionOfferPhaseFreePriceOverride {}
+
 /// Specified details about taxation in a given geographical region.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct RegionalTaxRateInfo {
@@ -769,6 +873,18 @@ pub struct RegionalTaxRateInfo {
     #[serde(default, rename = "taxTier")]
     pub tax_tier: ::core::option::Option<String>,
 }
+
+/// Offer details information related to a rental line item.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RentOfferDetails {}
+
+/// Details of a rental purchase.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RentalDetails {}
+
+/// Information specific to cancellations caused by subscription replacement.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ReplacementCancellation {}
 
 /// Response listing reviews.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -800,6 +916,14 @@ pub struct ReviewsReplyResponse {
     pub result: ::core::option::Option<ReviewReplyResult>,
 }
 
+/// Used to determine if the refund type in the RevocationContext is a full refund.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RevocationContextFullRefund {}
+
+/// Used to determine if the refund type in the RevocationContext is a prorated refund.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RevocationContextProratedRefund {}
+
 /// Request for the purchases.subscriptionsv2.revoke API.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct RevokeSubscriptionPurchaseRequest {
@@ -808,6 +932,10 @@ pub struct RevokeSubscriptionPurchaseRequest {
     pub revocation_context: ::core::option::Option<RevocationContext>,
 }
 
+/// Response for the purchases.subscriptionsv2.revoke API.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RevokeSubscriptionPurchaseResponse {}
+
 /// Request to update Safety Labels of an app.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SafetyLabelsUpdateRequest {
@@ -815,6 +943,10 @@ pub struct SafetyLabelsUpdateRequest {
     #[serde(default, rename = "safetyLabels")]
     pub safety_labels: ::core::option::Option<String>,
 }
+
+/// Response for SafetyLabelsUpdate rpc.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SafetyLabelsUpdateResponse {}
 
 /// A SubscriptionPurchase resource indicates the status of a user''s subscription purchase.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -992,6 +1124,22 @@ pub struct SystemApksListResponse {
     #[serde(default)]
     pub variants: ::core::option::Option<::std::vec::Vec<Variant>>,
 }
+
+/// Information specific to cancellations initiated by Google system.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SystemInitiatedCancellation {}
+
+/// Represents the targeting rule scope corresponding to any subscription in the parent app.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TargetingRuleScopeAnySubscriptionInApp {}
+
+/// Represents the targeting rule scope corresponding to the subscriptions in which this offer is defined.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TargetingRuleScopeThisSubscription {}
+
+/// Whether this subscription purchase is a test purchase.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TestPurchase {}
 
 /// The testers of an app. The resource for TestersService. Note: while it is possible in the Play Console UI to add testers via email lists, email lists are not supported by this resource.
 #[derive(Debug, Clone, Serialize, Deserialize)]

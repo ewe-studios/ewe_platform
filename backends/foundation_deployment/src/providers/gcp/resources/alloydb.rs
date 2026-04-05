@@ -10,6 +10,10 @@
 use super::*;
 use serde::{Deserialize, Serialize};
 
+/// The request message for Operations.CancelOperation.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CancelOperationRequest {}
+
 /// Operation metadata returned by the CLH during resource state reconciliation.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CloudControl2SharedOperationsReconciliationOperationMetadata {
@@ -37,6 +41,10 @@ pub struct ConnectionInfo {
     #[serde(default, rename = "publicIpAddress")]
     pub public_ip_address: ::core::option::Option<String>,
 }
+
+/// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Empty {}
 
 /// Export cluster request.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -307,6 +315,10 @@ pub struct RestoreFromCloudSQLRequest {
     #[serde(default, rename = "clusterId")]
     pub cluster_id: ::core::option::Option<String>,
 }
+
+/// Options for importing data in SQL format.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SqlImportOptions {}
 
 /// DatabaseResourceFeed is the top level proto to be used to ingest different database resource level events into Condor platform. Next ID: 13
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -1774,6 +1786,21 @@ pub struct StorageDatabasecenterPartnerapiV1mainResourceFlags {
     /// Optional. Value of the resource flag.
     #[serde(default)]
     pub value: ::core::option::Option<String>,
+}
+
+/// Message type for storing tags. Tags provide a way to create annotations for resources, and in some cases conditionally allow or deny policies based on whether a resource has a specific tag.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct StorageDatabasecenterPartnerapiV1mainTags {
+    /// The Tag key/value mappings.
+    #[serde(default)]
+    pub tags: ::core::option::Option<serde_json::Value>,
+}
+
+/// Message type for storing user labels. User labels are used to tag App Engine resources, allowing users to search for resources matching a set of labels and to aggregate usage data by labels.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct StorageDatabasecenterPartnerapiV1mainUserLabels {
+    #[serde(default)]
+    pub labels: ::core::option::Option<serde_json::Value>,
 }
 
 /// Details regarding the upgrade of instances associated with a cluster.

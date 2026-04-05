@@ -241,6 +241,10 @@ pub struct JobList {
     pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
+/// Represents a single JSON object.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct JsonObject {}
+
 /// Response format for a single page when listing BigQuery ML models.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ListModelsResponse {
@@ -1873,6 +1877,13 @@ pub struct PrivacyPolicy {
     pub join_restriction_policy: ::core::option::Option<JoinRestrictionPolicy>,
 }
 
+/// TableCell resource type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TableCell {
+    #[serde(default)]
+    pub v: ::core::option::Option<serde_json::Value>,
+}
+
 /// JobConfigurationTableCopy configures a job that copies data from one table to another. For more information on copying tables, see [Copy a table](https://cloud.google.com/bigquery/docs/managing-tables#copy-table).
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct JobConfigurationTableCopy {
@@ -3008,6 +3019,14 @@ pub struct PerformanceInsights {
     #[serde(default, rename = "stagePerformanceStandaloneInsights")]
     pub stage_performance_standalone_insights:
         ::core::option::Option<::std::vec::Vec<StagePerformanceStandaloneInsight>>,
+}
+
+/// Query optimization information for a QUERY job.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct QueryInfo {
+    /// Output only. Information about query optimizations.
+    #[serde(default, rename = "optimizationDetails")]
+    pub optimization_details: ::core::option::Option<serde_json::Value>,
 }
 
 /// A single stage of query execution.

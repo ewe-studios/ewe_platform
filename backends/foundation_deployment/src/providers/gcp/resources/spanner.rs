@@ -480,6 +480,22 @@ pub struct GetIamPolicyRequest {
     pub options: ::core::option::Option<GetPolicyOptions>,
 }
 
+/// A message representing a (sparse) collection of hot keys for specific key buckets.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct IndexedHotKey {
+    /// A (sparse) mapping from key bucket index to the index of the specific hot row key for that key bucket. The index of the hot row key can be translated to the actual row key via the ScanData.VisualizationData.indexed_keys repeated field.
+    #[serde(default, rename = "sparseHotKeys")]
+    pub sparse_hot_keys: ::core::option::Option<serde_json::Value>,
+}
+
+/// A message representing a (sparse) collection of KeyRangeInfos for specific key buckets.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct IndexedKeyRangeInfos {
+    /// A (sparse) mapping from key bucket index to the KeyRangeInfos for that key bucket.
+    #[serde(default, rename = "keyRangeInfos")]
+    pub key_range_infos: ::core::option::Option<serde_json::Value>,
+}
+
 /// A message representing a list of specific information for multiple key ranges.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct KeyRangeInfos {
@@ -1924,6 +1940,14 @@ pub struct IncludeReplicas {
     /// The directed read replica selector.
     #[serde(default, rename = "replicaSelections")]
     pub replica_selections: ::core::option::Option<::std::vec::Vec<ReplicaSelection>>,
+}
+
+/// Container for various pieces of client-owned context attached to a request.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ClientContext {
+    /// Optional. Map of parameter name to value for this request. These values will be returned by any SECURE_CONTEXT() calls invoked by this request (e.g., by queries against Parameterized Secure Views).
+    #[serde(default, rename = "secureContext")]
+    pub secure_context: ::core::option::Option<serde_json::Value>,
 }
 
 /// Options to use for transactions.

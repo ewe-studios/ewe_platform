@@ -416,11 +416,9 @@ impl ResourceGenerator {
         // Dedup pass: detect PascalCase name collisions and append numeric suffix
         let resources = Self::dedup_type_names(resources);
 
-        // Skip trivial types: structs with only a single serde_json::Value field
-        let resources: Vec<ResourceDef> = resources
-            .into_iter()
-            .filter(|r| !Self::is_trivial_type(r))
-            .collect();
+        // Note: We no longer filter out 'trivial' types (single serde_json::Value field)
+        // because types like GoogleCloudAiplatformV1ContentMap have semantic meaning
+        // even with one `additionalProperties` field that references another type.
 
         let rust_code = self.generate_rust(label, &resources)?;
 
@@ -522,15 +520,6 @@ impl ResourceGenerator {
         resources
     }
 
-    /// Check if a type is trivial (single `serde_json::Value` field).
-    fn is_trivial_type(resource: &ResourceDef) -> bool {
-        if resource.fields.len() != 1 {
-            return false;
-        }
-        let field = &resource.fields[0];
-        field.ty == "serde_json::Value"
-    }
-
     /// Extract resource definitions from OpenAPI spec.
     ///
     /// Handles multiple formats:
@@ -612,15 +601,13 @@ impl ResourceGenerator {
     ) -> Option<ResourceDef> {
         let schema: Schema = serde_json::from_value(schema_value.clone()).ok()?;
 
-        // Only process object types with properties
+        // Only process object types
         if schema.schema_type.as_deref() != Some("object") {
             return None;
         }
 
-        let properties = schema.properties.as_ref()?;
-        if properties.is_empty() {
-            return None;
-        }
+        // Get properties (may be empty for marker types)
+        let properties = schema.properties.unwrap_or_default();
 
         let rust_name = self.to_pascal_case(schema_name);
         // Rename types that conflict with Rust built-ins and keywords
@@ -641,8 +628,8 @@ impl ResourceGenerator {
 
         let mut fields = Vec::new();
         for (field_name, field_schema) in properties {
-            let field_ty = self.schema_to_rust_type(field_schema, object_schemas);
-            let required = schema.required.contains(field_name);
+            let field_ty = self.schema_to_rust_type(&field_schema, object_schemas);
+            let required = schema.required.contains(&field_name);
 
             // Build description, appending enum TODO comment if applicable
             let description = {
@@ -665,7 +652,7 @@ impl ResourceGenerator {
             };
 
             fields.push(FieldDef {
-                name: self.to_snake_case(field_name),
+                name: self.to_snake_case(&field_name),
                 original_name: field_name.clone(),
                 ty: field_ty,
                 required,
@@ -1088,7 +1075,8 @@ impl ResourceGenerator {
         let object_schemas = self.collect_object_schema_names(&spec);
         let resources = self.extract_resources(&spec, &object_schemas)?;
         let resources = Self::dedup_type_names(resources);
-        let resources: Vec<ResourceDef> = resources.into_iter().filter(|r| !Self::is_trivial_type(r)).collect();
+        // Note: We no longer filter out "trivial" types because single-field types
+        // with semantic meaning (like maps with additionalProperties refs) are useful
 
         let rust_code = self.generate_rust_simple(label, &resources)?;
 

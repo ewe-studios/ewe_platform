@@ -252,6 +252,14 @@ pub struct XPSStringStatsUnigramStats {
     pub value: ::core::option::Option<String>,
 }
 
+/// Stats split by a defined in context granularity.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct XPSTimestampStatsGranularStats {
+    /// A map from granularity key to example count for that key. E.g. for hour_of_day 13 means 1pm, or for month_of_year 5 means May).
+    #[serde(default)]
+    pub buckets: ::core::option::Option<serde_json::Value>,
+}
+
 /// XPSTrainResponse resource type.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct XPSTrainResponse {
@@ -786,6 +794,14 @@ pub struct EntityMention {
     /// The type of the entity mention. // TODO: enum values: ["TYPE_UNKNOWN", "PROPER", "COMMON"]
     #[serde(default, rename = "type")]
     pub type_: ::core::option::Option<String>,
+}
+
+/// StructType defines the DataType-s of a STRUCT type.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct XPSStructType {
+    /// Unordered map of struct field names to their data types.
+    #[serde(default)]
+    pub fields: ::core::option::Option<serde_json::Value>,
 }
 
 /// A correlation statistics between two series of DataType values. The series may have differing DataType-s, but within a single series the DataType must be the same.

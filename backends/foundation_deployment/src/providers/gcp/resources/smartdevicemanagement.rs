@@ -21,6 +21,14 @@ pub struct GoogleHomeEnterpriseSdmV1ExecuteDeviceCommandRequest {
     pub params: ::core::option::Option<serde_json::Value>,
 }
 
+/// Response message for SmartDeviceManagementService.ExecuteDeviceCommand
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleHomeEnterpriseSdmV1ExecuteDeviceCommandResponse {
+    /// The results of executing the command.
+    #[serde(default)]
+    pub results: ::core::option::Option<serde_json::Value>,
+}
+
 /// Response message for SmartDeviceManagementService.ListDevices
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleHomeEnterpriseSdmV1ListDevicesResponse {

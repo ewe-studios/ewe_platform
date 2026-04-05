@@ -10,6 +10,10 @@
 use super::*;
 use serde::{Deserialize, Serialize};
 
+/// A request to determine whether the user has valid credentials. This method is used to limit the number of OAuth popups in the user interface. The user id is inferred from the API call context. If the data source has the Google+ authorization type, this method returns false, as it cannot be determined whether the credentials are already valid merely based on the user id.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CheckValidCredsRequest {}
+
 /// A response indicating whether the credentials exist and are valid.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CheckValidCredsResponse {
@@ -17,6 +21,10 @@ pub struct CheckValidCredsResponse {
     #[serde(default, rename = "hasValidCreds")]
     pub has_valid_creds: ::core::option::Option<bool>,
 }
+
+/// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Empty {}
 
 /// A request to enroll a set of data sources so they are visible in the BigQuery UI''s Transfer tab.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -91,6 +99,10 @@ pub struct ListTransferRunsResponse {
     #[serde(default, rename = "transferRuns")]
     pub transfer_runs: ::core::option::Option<::std::vec::Vec<TransferRun>>,
 }
+
+/// Options customizing manual transfers schedule.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ManualSchedule {}
 
 /// A request to schedule transfer runs for a time range.
 #[derive(Debug, Clone, Serialize, Deserialize)]

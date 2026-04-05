@@ -21,6 +21,10 @@ pub struct GoogleMapsAddressvalidationV1ProvideValidationFeedbackRequest {
     pub response_id: ::core::option::Option<String>,
 }
 
+/// The response for validation feedback. The response is empty if the feedback is sent successfully.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleMapsAddressvalidationV1ProvideValidationFeedbackResponse {}
+
 /// The request for validating an address.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleMapsAddressvalidationV1ValidateAddressRequest {

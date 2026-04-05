@@ -1582,6 +1582,13 @@ pub struct ChannelBrandingSettings {
     pub watch: ::core::option::Option<WatchSettings>,
 }
 
+/// Details about the content of a channel.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ChannelContentDetails {
+    #[serde(default, rename = "relatedPlaylists")]
+    pub related_playlists: ::core::option::Option<serde_json::Value>,
+}
+
 /// The contentOwnerDetails object encapsulates channel data that is relevant for YouTube Partners linked with the channel.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ChannelContentOwnerDetails {

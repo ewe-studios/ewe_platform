@@ -24,6 +24,10 @@ pub struct GoogleCloudAssuredworkloadsV1AcknowledgeViolationRequest {
     pub non_compliant_org_policy: ::core::option::Option<String>,
 }
 
+/// Response for violation acknowledgement
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudAssuredworkloadsV1AcknowledgeViolationResponse {}
+
 /// Response containing the analysis results for the hypothetical resource move.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleCloudAssuredworkloadsV1AnalyzeWorkloadMoveResponse {
@@ -82,6 +86,14 @@ pub struct GoogleCloudAssuredworkloadsV1CreateWorkloadOperationMetadata {
     #[serde(default)]
     pub parent: ::core::option::Option<String>,
 }
+
+/// Response for EnableComplianceUpdates endpoint.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudAssuredworkloadsV1EnableComplianceUpdatesResponse {}
+
+/// Response for EnableResourceMonitoring endpoint.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudAssuredworkloadsV1EnableResourceMonitoringResponse {}
 
 /// Response of ListViolations endpoint.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -151,6 +163,10 @@ pub struct GoogleCloudAssuredworkloadsV1RestrictAllowedResourcesRequest {
     pub restriction_type: ::core::option::Option<String>,
 }
 
+/// Response for restricting the list of allowed resources.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleCloudAssuredworkloadsV1RestrictAllowedResourcesResponse {}
+
 /// The response message for Operations.ListOperations.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleLongrunningListOperationsResponse {
@@ -164,6 +180,10 @@ pub struct GoogleLongrunningListOperationsResponse {
     #[serde(default)]
     pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
 }
+
+/// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleProtobufEmpty {}
 
 /// Represents move analysis results for an asset.
 #[derive(Debug, Clone, Serialize, Deserialize)]

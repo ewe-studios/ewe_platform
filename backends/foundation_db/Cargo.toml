@@ -32,6 +32,10 @@ rand = "0.8"
 hex = "0.4"
 base64 = "0.22"
 
+# Hashing
+sha2 = "0.10"
+chrono = { workspace = true }
+
 # Utilities
 tracing = "0.1"
 futures-core = "0.3"
