@@ -26,7 +26,7 @@
     "x16": "http://www.google.com/images/icons/product/search-16.gif",
     "x32": "http://www.google.com/images/icons/product/search-32.gif"
   },
-  "id": "cloudbilling:v1beta",
+  "id": "cloudbilling:v1",
   "kind": "discovery#restDescription",
   "mtlsRootUrl": "https://cloudbilling.mtls.googleapis.com/",
   "name": "cloudbilling",
@@ -112,399 +112,85 @@
   "protocol": "rest",
   "resources": {
     "billingAccounts": {
-      "resources": {
-        "services": {
-          "methods": {
-            "get": {
-              "description": "Gets a Google Cloud service visible to a billing account.",
-              "flatPath": "v1beta/billingAccounts/{billingAccountsId}/services/{servicesId}",
-              "httpMethod": "GET",
-              "id": "cloudbilling.billingAccounts.services.get",
-              "parameterOrder": [
-                "name"
-              ],
-              "parameters": {
-                "name": {
-                  "description": "Required. The name of the billing account service to retrieve. Format: billingAccounts/{billing_account}/services/{service}",
-                  "location": "path",
-                  "pattern": "^billingAccounts/[^/]+/services/[^/]+$",
-                  "required": true,
-                  "type": "string"
-                }
-              },
-              "path": "v1beta/{+name}",
-              "response": {
-                "$ref": "GoogleCloudBillingBillingaccountservicesV1betaBillingAccountService"
-              },
-              "scopes": [
-                "https://www.googleapis.com/auth/cloud-billing",
-                "https://www.googleapis.com/auth/cloud-billing.readonly",
-                "https://www.googleapis.com/auth/cloud-platform"
-              ]
-            },
-            "list": {
-              "description": "Lists services visible to a billing account.",
-              "flatPath": "v1beta/billingAccounts/{billingAccountsId}/services",
-              "httpMethod": "GET",
-              "id": "cloudbilling.billingAccounts.services.list",
-              "parameterOrder": [
-                "parent"
-              ],
-              "parameters": {
-                "pageSize": {
-                  "description": "Maximum number of billing account service to return. Results may return fewer than this value. Default value is 50 and maximum value is 5000.",
-                  "format": "int32",
-                  "location": "query",
-                  "type": "integer"
-                },
-                "pageToken": {
-                  "description": "Page token received from a previous ListBillingAccountServices call to retrieve the next page of results. If this field is empty, the first page is returned.",
-                  "location": "query",
-                  "type": "string"
-                },
-                "parent": {
-                  "description": "Required. The billing account to list billing account service from. Format: billingAccounts/{billing_account}",
-                  "location": "path",
-                  "pattern": "^billingAccounts/[^/]+$",
-                  "required": true,
-                  "type": "string"
-                }
-              },
-              "path": "v1beta/{+parent}/services",
-              "response": {
-                "$ref": "GoogleCloudBillingBillingaccountservicesV1betaListBillingAccountServicesResponse"
-              },
-              "scopes": [
-                "https://www.googleapis.com/auth/cloud-billing",
-                "https://www.googleapis.com/auth/cloud-billing.readonly",
-                "https://www.googleapis.com/auth/cloud-platform"
-              ]
-            }
-          }
-        },
-        "skuGroups": {
-          "methods": {
-            "get": {
-              "description": "Gets a SKU group visible to a billing account.",
-              "flatPath": "v1beta/billingAccounts/{billingAccountsId}/skuGroups/{skuGroupsId}",
-              "httpMethod": "GET",
-              "id": "cloudbilling.billingAccounts.skuGroups.get",
-              "parameterOrder": [
-                "name"
-              ],
-              "parameters": {
-                "name": {
-                  "description": "Required. The name of the BillingAccountSkuGroup to retrieve. Format: billingAccounts/{billing_account}/skuGroups/{sku_group}",
-                  "location": "path",
-                  "pattern": "^billingAccounts/[^/]+/skuGroups/[^/]+$",
-                  "required": true,
-                  "type": "string"
-                }
-              },
-              "path": "v1beta/{+name}",
-              "response": {
-                "$ref": "GoogleCloudBillingBillingaccountskugroupsV1betaBillingAccountSkuGroup"
-              },
-              "scopes": [
-                "https://www.googleapis.com/auth/cloud-billing",
-                "https://www.googleapis.com/auth/cloud-billing.readonly",
-                "https://www.googleapis.com/auth/cloud-platform"
-              ]
-            },
-            "list": {
-              "description": "Lists SKU groups visible to a billing account.",
-              "flatPath": "v1beta/billingAccounts/{billingAccountsId}/skuGroups",
-              "httpMethod": "GET",
-              "id": "cloudbilling.billingAccounts.skuGroups.list",
-              "parameterOrder": [
-                "parent"
-              ],
-              "parameters": {
-                "pageSize": {
-                  "description": "Maximum number of billing account SKU groups to return. Results may return fewer than this value. Default value is 50 and maximum value is 5000.",
-                  "format": "int32",
-                  "location": "query",
-                  "type": "integer"
-                },
-                "pageToken": {
-                  "description": "Page token received from a previous ListBillingAccountSkuGroups call to retrieve the next page of results. If this field is empty, the first page is returned.",
-                  "location": "query",
-                  "type": "string"
-                },
-                "parent": {
-                  "description": "Required. The billing account to list billing account SKU groups from. Format: billingAccounts/{billing_account}",
-                  "location": "path",
-                  "pattern": "^billingAccounts/[^/]+$",
-                  "required": true,
-                  "type": "string"
-                }
-              },
-              "path": "v1beta/{+parent}/skuGroups",
-              "response": {
-                "$ref": "GoogleCloudBillingBillingaccountskugroupsV1betaListBillingAccountSkuGroupsResponse"
-              },
-              "scopes": [
-                "https://www.googleapis.com/auth/cloud-billing",
-                "https://www.googleapis.com/auth/cloud-billing.readonly",
-                "https://www.googleapis.com/auth/cloud-platform"
-              ]
-            }
-          },
-          "resources": {
-            "skus": {
-              "methods": {
-                "get": {
-                  "description": "Gets a SKU that is part of a billing account SKU group.",
-                  "flatPath": "v1beta/billingAccounts/{billingAccountsId}/skuGroups/{skuGroupsId}/skus/{skusId}",
-                  "httpMethod": "GET",
-                  "id": "cloudbilling.billingAccounts.skuGroups.skus.get",
-                  "parameterOrder": [
-                    "name"
-                  ],
-                  "parameters": {
-                    "name": {
-                      "description": "Required. The name of the billing account SKU group SKU to retrieve. Format: billingAccounts/{billing_account}/skuGroups/{sku_group}/skus/{sku}",
-                      "location": "path",
-                      "pattern": "^billingAccounts/[^/]+/skuGroups/[^/]+/skus/[^/]+$",
-                      "required": true,
-                      "type": "string"
-                    }
-                  },
-                  "path": "v1beta/{+name}",
-                  "response": {
-                    "$ref": "GoogleCloudBillingBillingaccountskugroupskusV1betaBillingAccountSkuGroupSku"
-                  },
-                  "scopes": [
-                    "https://www.googleapis.com/auth/cloud-billing",
-                    "https://www.googleapis.com/auth/cloud-billing.readonly",
-                    "https://www.googleapis.com/auth/cloud-platform"
-                  ]
-                },
-                "list": {
-                  "description": "Lists SKUs that is part of billing account SKU groups.",
-                  "flatPath": "v1beta/billingAccounts/{billingAccountsId}/skuGroups/{skuGroupsId}/skus",
-                  "httpMethod": "GET",
-                  "id": "cloudbilling.billingAccounts.skuGroups.skus.list",
-                  "parameterOrder": [
-                    "parent"
-                  ],
-                  "parameters": {
-                    "pageSize": {
-                      "description": "Maximum number of billing account SKU group SKUs to return. Results may return fewer than this value. Default value is 50 and maximum value is 5000.",
-                      "format": "int32",
-                      "location": "query",
-                      "type": "integer"
-                    },
-                    "pageToken": {
-                      "description": "Page token received from a previous ListBillingAccountSkuGroupSkus call to retrieve the next page of results. If this field is empty, the first page is returned.",
-                      "location": "query",
-                      "type": "string"
-                    },
-                    "parent": {
-                      "description": "Required. The billing account SKU group to list billing account SKU group SKUs from. Format: billingAccounts/{billing_account}/skuGroups/{sku_group}",
-                      "location": "path",
-                      "pattern": "^billingAccounts/[^/]+/skuGroups/[^/]+$",
-                      "required": true,
-                      "type": "string"
-                    }
-                  },
-                  "path": "v1beta/{+parent}/skus",
-                  "response": {
-                    "$ref": "GoogleCloudBillingBillingaccountskugroupskusV1betaListBillingAccountSkuGroupSkusResponse"
-                  },
-                  "scopes": [
-                    "https://www.googleapis.com/auth/cloud-billing",
-                    "https://www.googleapis.com/auth/cloud-billing.readonly",
-                    "https://www.googleapis.com/auth/cloud-platform"
-                  ]
-                }
-              }
-            }
-          }
-        },
-        "skus": {
-          "methods": {
-            "get": {
-              "description": "Gets a SKU visible to a billing account.",
-              "flatPath": "v1beta/billingAccounts/{billingAccountsId}/skus/{skusId}",
-              "httpMethod": "GET",
-              "id": "cloudbilling.billingAccounts.skus.get",
-              "parameterOrder": [
-                "name"
-              ],
-              "parameters": {
-                "name": {
-                  "description": "Required. The name of the billing account SKU to retrieve. Format: billingAccounts/{billing_account}/skus/{sku}",
-                  "location": "path",
-                  "pattern": "^billingAccounts/[^/]+/skus/[^/]+$",
-                  "required": true,
-                  "type": "string"
-                }
-              },
-              "path": "v1beta/{+name}",
-              "response": {
-                "$ref": "GoogleCloudBillingBillingaccountskusV1betaBillingAccountSku"
-              },
-              "scopes": [
-                "https://www.googleapis.com/auth/cloud-billing",
-                "https://www.googleapis.com/auth/cloud-billing.readonly",
-                "https://www.googleapis.com/auth/cloud-platform"
-              ]
-            },
-            "list": {
-              "description": "Lists SKUs visible to a billing account.",
-              "flatPath": "v1beta/billingAccounts/{billingAccountsId}/skus",
-              "httpMethod": "GET",
-              "id": "cloudbilling.billingAccounts.skus.list",
-              "parameterOrder": [
-                "parent"
-              ],
-              "parameters": {
-                "filter": {
-                  "description": "Options for how to filter the billing account SKUs. Currently, only filter on `billing_account_service` is supported. Only !=, = operators are supported. Examples: - billing_account_service = \"billingAccounts/012345-567890-ABCDEF/services/DA34-426B-A397\"",
-                  "location": "query",
-                  "type": "string"
-                },
-                "pageSize": {
-                  "description": "Maximum number of billing account SKUs to return. Results may return fewer than this value. Default value is 50 and maximum value is 5000.",
-                  "format": "int32",
-                  "location": "query",
-                  "type": "integer"
-                },
-                "pageToken": {
-                  "description": "Page token received from a previous ListBillingAccountSkus call to retrieve the next page of results. If this field is empty, the first page is returned.",
-                  "location": "query",
-                  "type": "string"
-                },
-                "parent": {
-                  "description": "Required. The billing account to list billing account SKU from. Format: billingAccounts/{billing_account}",
-                  "location": "path",
-                  "pattern": "^billingAccounts/[^/]+$",
-                  "required": true,
-                  "type": "string"
-                }
-              },
-              "path": "v1beta/{+parent}/skus",
-              "response": {
-                "$ref": "GoogleCloudBillingBillingaccountskusV1betaListBillingAccountSkusResponse"
-              },
-              "scopes": [
-                "https://www.googleapis.com/auth/cloud-billing",
-                "https://www.googleapis.com/auth/cloud-billing.readonly",
-                "https://www.googleapis.com/auth/cloud-platform"
-              ]
-            }
-          },
-          "resources": {
-            "price": {
-              "methods": {
-                "get": {
-                  "description": "Gets the latest price for SKUs available to your Cloud Billing account.",
-                  "flatPath": "v1beta/billingAccounts/{billingAccountsId}/skus/{skusId}/price",
-                  "httpMethod": "GET",
-                  "id": "cloudbilling.billingAccounts.skus.price.get",
-                  "parameterOrder": [
-                    "name"
-                  ],
-                  "parameters": {
-                    "currencyCode": {
-                      "description": "Optional. ISO-4217 currency code for the price. If not specified, the currency of the billing account is used.",
-                      "location": "query",
-                      "type": "string"
-                    },
-                    "name": {
-                      "description": "Required. Name of the billing account price to retrieve. Format: billingAccounts/{billing_account}/skus/{sku}/price",
-                      "location": "path",
-                      "pattern": "^billingAccounts/[^/]+/skus/[^/]+/price$",
-                      "required": true,
-                      "type": "string"
-                    }
-                  },
-                  "path": "v1beta/{+name}",
-                  "response": {
-                    "$ref": "GoogleCloudBillingBillingaccountpricesV1betaBillingAccountPrice"
-                  },
-                  "scopes": [
-                    "https://www.googleapis.com/auth/cloud-billing",
-                    "https://www.googleapis.com/auth/cloud-billing.readonly",
-                    "https://www.googleapis.com/auth/cloud-platform"
-                  ]
-                }
-              }
-            },
-            "prices": {
-              "methods": {
-                "list": {
-                  "description": "Lists the latest prices for SKUs available to your Cloud Billing account.",
-                  "flatPath": "v1beta/billingAccounts/{billingAccountsId}/skus/{skusId}/prices",
-                  "httpMethod": "GET",
-                  "id": "cloudbilling.billingAccounts.skus.prices.list",
-                  "parameterOrder": [
-                    "parent"
-                  ],
-                  "parameters": {
-                    "currencyCode": {
-                      "description": "Optional. ISO-4217 currency code for the price. If not specified, currency of billing account will be used.",
-                      "location": "query",
-                      "type": "string"
-                    },
-                    "pageSize": {
-                      "description": "Optional. Maximum number of billing account price to return. Results may return fewer than this value. Default value is 50 and maximum value is 5000.",
-                      "format": "int32",
-                      "location": "query",
-                      "type": "integer"
-                    },
-                    "pageToken": {
-                      "description": "Optional. Page token received from a previous ListBillingAccountPrices call to retrieve the next page of results. If this field is empty, the first page is returned.",
-                      "location": "query",
-                      "type": "string"
-                    },
-                    "parent": {
-                      "description": "Required. To list all Billing Account SKUs, use `-` as the SKU ID. Format: `billingAccounts/{billing_account}/skus/-` Note: Specifying an actual SKU resource id will return a collection of one Billing Account Price.",
-                      "location": "path",
-                      "pattern": "^billingAccounts/[^/]+/skus/[^/]+$",
-                      "required": true,
-                      "type": "string"
-                    }
-                  },
-                  "path": "v1beta/{+parent}/prices",
-                  "response": {
-                    "$ref": "GoogleCloudBillingBillingaccountpricesV1betaListBillingAccountPricesResponse"
-                  },
-                  "scopes": [
-                    "https://www.googleapis.com/auth/cloud-billing",
-                    "https://www.googleapis.com/auth/cloud-billing.readonly",
-                    "https://www.googleapis.com/auth/cloud-platform"
-                  ]
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "skuGroups": {
       "methods": {
+        "create": {
+          "description": "This method creates [billing subaccounts](https://cloud.google.com/billing/docs/concepts#subaccounts). Google Cloud resellers should use the Channel Services APIs, [accounts.customers.create](https://cloud.google.com/channel/docs/reference/rest/v1/accounts.customers/create) and [accounts.customers.entitlements.create](https://cloud.google.com/channel/docs/reference/rest/v1/accounts.customers.entitlements/create). When creating a subaccount, the current authenticated user must have the `billing.accounts.update` IAM permission on the parent account, which is typically given to billing account [administrators](https://cloud.google.com/billing/docs/how-to/billing-access). This method will return an error if the parent account has not been provisioned for subaccounts.",
+          "flatPath": "v1/billingAccounts",
+          "httpMethod": "POST",
+          "id": "cloudbilling.billingAccounts.create",
+          "parameterOrder": [],
+          "parameters": {
+            "parent": {
+              "description": "Optional. The parent to create a billing account from. Format: - `billingAccounts/{billing_account_id}`, for example, `billingAccounts/012345-567890-ABCDEF`",
+              "location": "query",
+              "type": "string"
+            }
+          },
+          "path": "v1/billingAccounts",
+          "request": {
+            "$ref": "BillingAccount"
+          },
+          "response": {
+            "$ref": "BillingAccount"
+          },
+          "scopes": [
+            "https://www.googleapis.com/auth/cloud-billing",
+            "https://www.googleapis.com/auth/cloud-platform"
+          ]
+        },
         "get": {
-          "description": "Gets a publicly listed SKU group.",
-          "flatPath": "v1beta/skuGroups/{skuGroupsId}",
+          "description": "Gets information about a billing account. The current authenticated user must be a [viewer of the billing account](https://cloud.google.com/billing/docs/how-to/billing-access).",
+          "flatPath": "v1/billingAccounts/{billingAccountsId}",
           "httpMethod": "GET",
-          "id": "cloudbilling.skuGroups.get",
+          "id": "cloudbilling.billingAccounts.get",
           "parameterOrder": [
             "name"
           ],
           "parameters": {
             "name": {
-              "description": "Required. The name of the SKU group to retrieve. Format: skuGroups/{sku_group}",
+              "description": "Required. The resource name of the billing account to retrieve. For example, `billingAccounts/012345-567890-ABCDEF`.",
               "location": "path",
-              "pattern": "^skuGroups/[^/]+$",
+              "pattern": "^billingAccounts/[^/]+$",
               "required": true,
               "type": "string"
             }
           },
-          "path": "v1beta/{+name}",
+          "path": "v1/{+name}",
           "response": {
-            "$ref": "GoogleCloudBillingSkugroupsV1betaSkuGroup"
+            "$ref": "BillingAccount"
+          },
+          "scopes": [
+            "https://www.googleapis.com/auth/cloud-billing",
+            "https://www.googleapis.com/auth/cloud-billing.readonly",
+            "https://www.googleapis.com/auth/cloud-platform"
+          ]
+        },
+        "getIamPolicy": {
+          "description": "Gets the access control policy for a billing account. The caller must have the `billing.accounts.getIamPolicy` permission on the account, which is often given to billing account [viewers](https://cloud.google.com/billing/docs/how-to/billing-access).",
+          "flatPath": "v1/billingAccounts/{billingAccountsId}:getIamPolicy",
+          "httpMethod": "GET",
+          "id": "cloudbilling.billingAccounts.getIamPolicy",
+          "parameterOrder": [
+            "resource"
+          ],
+          "parameters": {
+            "options.requestedPolicyVersion": {
+              "description": "Optional. The maximum policy version that will be used to format the policy. Valid values are 0, 1, and 3. Requests specifying an invalid value will be rejected. Requests for policies with any conditional role bindings must specify version 3. Policies with no conditional role bindings may specify any valid value or leave the field unset. The policy in the response might use the policy version that you specified, or it might use a lower policy version. For example, if you specify version 3, but the policy has no conditional role bindings, the response uses version 1. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies).",
+              "format": "int32",
+              "location": "query",
+              "type": "integer"
+            },
+            "resource": {
+              "description": "REQUIRED: The resource for which the policy is being requested. See [Resource names](https://cloud.google.com/apis/design/resource_names) for the appropriate value for this field.",
+              "location": "path",
+              "pattern": "^billingAccounts/[^/]+$",
+              "required": true,
+              "type": "string"
+            }
+          },
+          "path": "v1/{+resource}:getIamPolicy",
+          "response": {
+            "$ref": "Policy"
           },
           "scopes": [
             "https://www.googleapis.com/auth/cloud-billing",
@@ -513,27 +199,487 @@
           ]
         },
         "list": {
-          "description": "Lists all publicly listed SKU groups.",
-          "flatPath": "v1beta/skuGroups",
+          "description": "Lists the billing accounts that the current authenticated user has permission to [view](https://cloud.google.com/billing/docs/how-to/billing-access).",
+          "flatPath": "v1/billingAccounts",
           "httpMethod": "GET",
-          "id": "cloudbilling.skuGroups.list",
+          "id": "cloudbilling.billingAccounts.list",
           "parameterOrder": [],
           "parameters": {
+            "filter": {
+              "description": "Options for how to filter the returned billing accounts. This only supports filtering for [subaccounts](https://cloud.google.com/billing/docs/concepts) under a single provided parent billing account. (for example, `master_billing_account=billingAccounts/012345-678901-ABCDEF`). Boolean algebra and other fields are not currently supported.",
+              "location": "query",
+              "type": "string"
+            },
             "pageSize": {
-              "description": "Maximum number of SKU groups to return. Results may return fewer than this value. Default value is 50 and maximum value is 5000.",
+              "description": "Requested page size. The maximum page size is 100; this is also the default.",
               "format": "int32",
               "location": "query",
               "type": "integer"
             },
             "pageToken": {
-              "description": "Page token received from a previous ListSkuGroups call to retrieve the next page of results. If this field is empty, the first page is returned.",
+              "description": "A token identifying a page of results to return. This should be a `next_page_token` value returned from a previous `ListBillingAccounts` call. If unspecified, the first page of results is returned.",
+              "location": "query",
+              "type": "string"
+            },
+            "parent": {
+              "description": "Optional. The parent resource to list billing accounts from. Format: - `organizations/{organization_id}`, for example, `organizations/12345678` - `billingAccounts/{billing_account_id}`, for example, `billingAccounts/012345-567890-ABCDEF`",
               "location": "query",
               "type": "string"
             }
           },
-          "path": "v1beta/skuGroups",
+          "path": "v1/billingAccounts",
           "response": {
-            "$ref": "GoogleCloudBillingSkugroupsV1betaListSkuGroupsResponse"
+            "$ref": "ListBillingAccountsResponse"
+          },
+          "scopes": [
+            "https://www.googleapis.com/auth/cloud-billing",
+            "https://www.googleapis.com/auth/cloud-billing.readonly",
+            "https://www.googleapis.com/auth/cloud-platform"
+          ]
+        },
+        "move": {
+          "description": "Changes which parent organization a billing account belongs to.",
+          "flatPath": "v1/billingAccounts/{billingAccountsId}:move",
+          "httpMethod": "POST",
+          "id": "cloudbilling.billingAccounts.move",
+          "parameterOrder": [
+            "name"
+          ],
+          "parameters": {
+            "name": {
+              "description": "Required. The resource name of the billing account to move. Must be of the form `billingAccounts/{billing_account_id}`. The specified billing account cannot be a subaccount, since a subaccount always belongs to the same organization as its parent account.",
+              "location": "path",
+              "pattern": "^billingAccounts/[^/]+$",
+              "required": true,
+              "type": "string"
+            }
+          },
+          "path": "v1/{+name}:move",
+          "request": {
+            "$ref": "MoveBillingAccountRequest"
+          },
+          "response": {
+            "$ref": "BillingAccount"
+          },
+          "scopes": [
+            "https://www.googleapis.com/auth/cloud-billing",
+            "https://www.googleapis.com/auth/cloud-platform"
+          ]
+        },
+        "patch": {
+          "description": "Updates a billing account's fields. Currently the only field that can be edited is `display_name`. The current authenticated user must have the `billing.accounts.update` IAM permission, which is typically given to the [administrator](https://cloud.google.com/billing/docs/how-to/billing-access) of the billing account.",
+          "flatPath": "v1/billingAccounts/{billingAccountsId}",
+          "httpMethod": "PATCH",
+          "id": "cloudbilling.billingAccounts.patch",
+          "parameterOrder": [
+            "name"
+          ],
+          "parameters": {
+            "name": {
+              "description": "Required. The name of the billing account resource to be updated.",
+              "location": "path",
+              "pattern": "^billingAccounts/[^/]+$",
+              "required": true,
+              "type": "string"
+            },
+            "updateMask": {
+              "description": "The update mask applied to the resource. Only \"display_name\" is currently supported.",
+              "format": "google-fieldmask",
+              "location": "query",
+              "type": "string"
+            }
+          },
+          "path": "v1/{+name}",
+          "request": {
+            "$ref": "BillingAccount"
+          },
+          "response": {
+            "$ref": "BillingAccount"
+          },
+          "scopes": [
+            "https://www.googleapis.com/auth/cloud-billing",
+            "https://www.googleapis.com/auth/cloud-platform"
+          ]
+        },
+        "setIamPolicy": {
+          "description": "Sets the access control policy for a billing account. Replaces any existing policy. The caller must have the `billing.accounts.setIamPolicy` permission on the account, which is often given to billing account [administrators](https://cloud.google.com/billing/docs/how-to/billing-access).",
+          "flatPath": "v1/billingAccounts/{billingAccountsId}:setIamPolicy",
+          "httpMethod": "POST",
+          "id": "cloudbilling.billingAccounts.setIamPolicy",
+          "parameterOrder": [
+            "resource"
+          ],
+          "parameters": {
+            "resource": {
+              "description": "REQUIRED: The resource for which the policy is being specified. See [Resource names](https://cloud.google.com/apis/design/resource_names) for the appropriate value for this field.",
+              "location": "path",
+              "pattern": "^billingAccounts/[^/]+$",
+              "required": true,
+              "type": "string"
+            }
+          },
+          "path": "v1/{+resource}:setIamPolicy",
+          "request": {
+            "$ref": "SetIamPolicyRequest"
+          },
+          "response": {
+            "$ref": "Policy"
+          },
+          "scopes": [
+            "https://www.googleapis.com/auth/cloud-billing",
+            "https://www.googleapis.com/auth/cloud-platform"
+          ]
+        },
+        "testIamPermissions": {
+          "description": "Tests the access control policy for a billing account. This method takes the resource and a set of permissions as input and returns the subset of the input permissions that the caller is allowed for that resource.",
+          "flatPath": "v1/billingAccounts/{billingAccountsId}:testIamPermissions",
+          "httpMethod": "POST",
+          "id": "cloudbilling.billingAccounts.testIamPermissions",
+          "parameterOrder": [
+            "resource"
+          ],
+          "parameters": {
+            "resource": {
+              "description": "REQUIRED: The resource for which the policy detail is being requested. See [Resource names](https://cloud.google.com/apis/design/resource_names) for the appropriate value for this field.",
+              "location": "path",
+              "pattern": "^billingAccounts/[^/]+$",
+              "required": true,
+              "type": "string"
+            }
+          },
+          "path": "v1/{+resource}:testIamPermissions",
+          "request": {
+            "$ref": "TestIamPermissionsRequest"
+          },
+          "response": {
+            "$ref": "TestIamPermissionsResponse"
+          },
+          "scopes": [
+            "https://www.googleapis.com/auth/cloud-billing",
+            "https://www.googleapis.com/auth/cloud-billing.readonly",
+            "https://www.googleapis.com/auth/cloud-platform"
+          ]
+        }
+      },
+      "resources": {
+        "projects": {
+          "methods": {
+            "list": {
+              "description": "Lists the projects associated with a billing account. The current authenticated user must have the `billing.resourceAssociations.list` IAM permission, which is often given to billing account [viewers](https://cloud.google.com/billing/docs/how-to/billing-access).",
+              "flatPath": "v1/billingAccounts/{billingAccountsId}/projects",
+              "httpMethod": "GET",
+              "id": "cloudbilling.billingAccounts.projects.list",
+              "parameterOrder": [
+                "name"
+              ],
+              "parameters": {
+                "name": {
+                  "description": "Required. The resource name of the billing account associated with the projects that you want to list. For example, `billingAccounts/012345-567890-ABCDEF`.",
+                  "location": "path",
+                  "pattern": "^billingAccounts/[^/]+$",
+                  "required": true,
+                  "type": "string"
+                },
+                "pageSize": {
+                  "description": "Requested page size. The maximum page size is 100; this is also the default.",
+                  "format": "int32",
+                  "location": "query",
+                  "type": "integer"
+                },
+                "pageToken": {
+                  "description": "A token identifying a page of results to be returned. This should be a `next_page_token` value returned from a previous `ListProjectBillingInfo` call. If unspecified, the first page of results is returned.",
+                  "location": "query",
+                  "type": "string"
+                }
+              },
+              "path": "v1/{+name}/projects",
+              "response": {
+                "$ref": "ListProjectBillingInfoResponse"
+              },
+              "scopes": [
+                "https://www.googleapis.com/auth/cloud-billing",
+                "https://www.googleapis.com/auth/cloud-billing.readonly",
+                "https://www.googleapis.com/auth/cloud-platform"
+              ]
+            }
+          }
+        },
+        "subAccounts": {
+          "methods": {
+            "create": {
+              "description": "This method creates [billing subaccounts](https://cloud.google.com/billing/docs/concepts#subaccounts). Google Cloud resellers should use the Channel Services APIs, [accounts.customers.create](https://cloud.google.com/channel/docs/reference/rest/v1/accounts.customers/create) and [accounts.customers.entitlements.create](https://cloud.google.com/channel/docs/reference/rest/v1/accounts.customers.entitlements/create). When creating a subaccount, the current authenticated user must have the `billing.accounts.update` IAM permission on the parent account, which is typically given to billing account [administrators](https://cloud.google.com/billing/docs/how-to/billing-access). This method will return an error if the parent account has not been provisioned for subaccounts.",
+              "flatPath": "v1/billingAccounts/{billingAccountsId}/subAccounts",
+              "httpMethod": "POST",
+              "id": "cloudbilling.billingAccounts.subAccounts.create",
+              "parameterOrder": [
+                "parent"
+              ],
+              "parameters": {
+                "parent": {
+                  "description": "Optional. The parent to create a billing account from. Format: - `billingAccounts/{billing_account_id}`, for example, `billingAccounts/012345-567890-ABCDEF`",
+                  "location": "path",
+                  "pattern": "^billingAccounts/[^/]+$",
+                  "required": true,
+                  "type": "string"
+                }
+              },
+              "path": "v1/{+parent}/subAccounts",
+              "request": {
+                "$ref": "BillingAccount"
+              },
+              "response": {
+                "$ref": "BillingAccount"
+              },
+              "scopes": [
+                "https://www.googleapis.com/auth/cloud-billing",
+                "https://www.googleapis.com/auth/cloud-platform"
+              ]
+            },
+            "list": {
+              "description": "Lists the billing accounts that the current authenticated user has permission to [view](https://cloud.google.com/billing/docs/how-to/billing-access).",
+              "flatPath": "v1/billingAccounts/{billingAccountsId}/subAccounts",
+              "httpMethod": "GET",
+              "id": "cloudbilling.billingAccounts.subAccounts.list",
+              "parameterOrder": [
+                "parent"
+              ],
+              "parameters": {
+                "filter": {
+                  "description": "Options for how to filter the returned billing accounts. This only supports filtering for [subaccounts](https://cloud.google.com/billing/docs/concepts) under a single provided parent billing account. (for example, `master_billing_account=billingAccounts/012345-678901-ABCDEF`). Boolean algebra and other fields are not currently supported.",
+                  "location": "query",
+                  "type": "string"
+                },
+                "pageSize": {
+                  "description": "Requested page size. The maximum page size is 100; this is also the default.",
+                  "format": "int32",
+                  "location": "query",
+                  "type": "integer"
+                },
+                "pageToken": {
+                  "description": "A token identifying a page of results to return. This should be a `next_page_token` value returned from a previous `ListBillingAccounts` call. If unspecified, the first page of results is returned.",
+                  "location": "query",
+                  "type": "string"
+                },
+                "parent": {
+                  "description": "Optional. The parent resource to list billing accounts from. Format: - `organizations/{organization_id}`, for example, `organizations/12345678` - `billingAccounts/{billing_account_id}`, for example, `billingAccounts/012345-567890-ABCDEF`",
+                  "location": "path",
+                  "pattern": "^billingAccounts/[^/]+$",
+                  "required": true,
+                  "type": "string"
+                }
+              },
+              "path": "v1/{+parent}/subAccounts",
+              "response": {
+                "$ref": "ListBillingAccountsResponse"
+              },
+              "scopes": [
+                "https://www.googleapis.com/auth/cloud-billing",
+                "https://www.googleapis.com/auth/cloud-billing.readonly",
+                "https://www.googleapis.com/auth/cloud-platform"
+              ]
+            }
+          }
+        }
+      }
+    },
+    "organizations": {
+      "resources": {
+        "billingAccounts": {
+          "methods": {
+            "create": {
+              "description": "This method creates [billing subaccounts](https://cloud.google.com/billing/docs/concepts#subaccounts). Google Cloud resellers should use the Channel Services APIs, [accounts.customers.create](https://cloud.google.com/channel/docs/reference/rest/v1/accounts.customers/create) and [accounts.customers.entitlements.create](https://cloud.google.com/channel/docs/reference/rest/v1/accounts.customers.entitlements/create). When creating a subaccount, the current authenticated user must have the `billing.accounts.update` IAM permission on the parent account, which is typically given to billing account [administrators](https://cloud.google.com/billing/docs/how-to/billing-access). This method will return an error if the parent account has not been provisioned for subaccounts.",
+              "flatPath": "v1/organizations/{organizationsId}/billingAccounts",
+              "httpMethod": "POST",
+              "id": "cloudbilling.organizations.billingAccounts.create",
+              "parameterOrder": [
+                "parent"
+              ],
+              "parameters": {
+                "parent": {
+                  "description": "Optional. The parent to create a billing account from. Format: - `billingAccounts/{billing_account_id}`, for example, `billingAccounts/012345-567890-ABCDEF`",
+                  "location": "path",
+                  "pattern": "^organizations/[^/]+$",
+                  "required": true,
+                  "type": "string"
+                }
+              },
+              "path": "v1/{+parent}/billingAccounts",
+              "request": {
+                "$ref": "BillingAccount"
+              },
+              "response": {
+                "$ref": "BillingAccount"
+              },
+              "scopes": [
+                "https://www.googleapis.com/auth/cloud-billing",
+                "https://www.googleapis.com/auth/cloud-platform"
+              ]
+            },
+            "list": {
+              "description": "Lists the billing accounts that the current authenticated user has permission to [view](https://cloud.google.com/billing/docs/how-to/billing-access).",
+              "flatPath": "v1/organizations/{organizationsId}/billingAccounts",
+              "httpMethod": "GET",
+              "id": "cloudbilling.organizations.billingAccounts.list",
+              "parameterOrder": [
+                "parent"
+              ],
+              "parameters": {
+                "filter": {
+                  "description": "Options for how to filter the returned billing accounts. This only supports filtering for [subaccounts](https://cloud.google.com/billing/docs/concepts) under a single provided parent billing account. (for example, `master_billing_account=billingAccounts/012345-678901-ABCDEF`). Boolean algebra and other fields are not currently supported.",
+                  "location": "query",
+                  "type": "string"
+                },
+                "pageSize": {
+                  "description": "Requested page size. The maximum page size is 100; this is also the default.",
+                  "format": "int32",
+                  "location": "query",
+                  "type": "integer"
+                },
+                "pageToken": {
+                  "description": "A token identifying a page of results to return. This should be a `next_page_token` value returned from a previous `ListBillingAccounts` call. If unspecified, the first page of results is returned.",
+                  "location": "query",
+                  "type": "string"
+                },
+                "parent": {
+                  "description": "Optional. The parent resource to list billing accounts from. Format: - `organizations/{organization_id}`, for example, `organizations/12345678` - `billingAccounts/{billing_account_id}`, for example, `billingAccounts/012345-567890-ABCDEF`",
+                  "location": "path",
+                  "pattern": "^organizations/[^/]+$",
+                  "required": true,
+                  "type": "string"
+                }
+              },
+              "path": "v1/{+parent}/billingAccounts",
+              "response": {
+                "$ref": "ListBillingAccountsResponse"
+              },
+              "scopes": [
+                "https://www.googleapis.com/auth/cloud-billing",
+                "https://www.googleapis.com/auth/cloud-billing.readonly",
+                "https://www.googleapis.com/auth/cloud-platform"
+              ]
+            },
+            "move": {
+              "description": "Changes which parent organization a billing account belongs to.",
+              "flatPath": "v1/organizations/{organizationsId}/billingAccounts/{billingAccountsId}:move",
+              "httpMethod": "GET",
+              "id": "cloudbilling.organizations.billingAccounts.move",
+              "parameterOrder": [
+                "destinationParent",
+                "name"
+              ],
+              "parameters": {
+                "destinationParent": {
+                  "description": "Required. The resource name of the Organization to move the billing account under. Must be of the form `organizations/{organization_id}`.",
+                  "location": "path",
+                  "pattern": "^organizations/[^/]+$",
+                  "required": true,
+                  "type": "string"
+                },
+                "name": {
+                  "description": "Required. The resource name of the billing account to move. Must be of the form `billingAccounts/{billing_account_id}`. The specified billing account cannot be a subaccount, since a subaccount always belongs to the same organization as its parent account.",
+                  "location": "path",
+                  "pattern": "^billingAccounts/[^/]+$",
+                  "required": true,
+                  "type": "string"
+                }
+              },
+              "path": "v1/{+destinationParent}/{+name}:move",
+              "response": {
+                "$ref": "BillingAccount"
+              },
+              "scopes": [
+                "https://www.googleapis.com/auth/cloud-billing",
+                "https://www.googleapis.com/auth/cloud-platform"
+              ]
+            }
+          }
+        }
+      }
+    },
+    "projects": {
+      "methods": {
+        "getBillingInfo": {
+          "description": "Gets the billing information for a project. The current authenticated user must have the `resourcemanager.projects.get` permission for the project, which can be granted by assigning the [Project Viewer](https://cloud.google.com/iam/docs/understanding-roles#predefined_roles) role.",
+          "flatPath": "v1/projects/{projectsId}/billingInfo",
+          "httpMethod": "GET",
+          "id": "cloudbilling.projects.getBillingInfo",
+          "parameterOrder": [
+            "name"
+          ],
+          "parameters": {
+            "name": {
+              "description": "Required. The resource name of the project for which billing information is retrieved. For example, `projects/tokyo-rain-123`.",
+              "location": "path",
+              "pattern": "^projects/[^/]+$",
+              "required": true,
+              "type": "string"
+            }
+          },
+          "path": "v1/{+name}/billingInfo",
+          "response": {
+            "$ref": "ProjectBillingInfo"
+          },
+          "scopes": [
+            "https://www.googleapis.com/auth/cloud-billing",
+            "https://www.googleapis.com/auth/cloud-billing.readonly",
+            "https://www.googleapis.com/auth/cloud-platform"
+          ]
+        },
+        "updateBillingInfo": {
+          "description": "Sets or updates the billing account associated with a project. You specify the new billing account by setting the `billing_account_name` in the `ProjectBillingInfo` resource to the resource name of a billing account. Associating a project with an open billing account enables billing on the project and allows charges for resource usage. If the project already had a billing account, this method changes the billing account used for resource usage charges. *Note:* Incurred charges that have not yet been reported in the transaction history of the Google Cloud Console might be billed to the new billing account, even if the charge occurred before the new billing account was assigned to the project. The current authenticated user must have ownership privileges for both the [project](https://cloud.google.com/docs/permissions-overview#h.bgs0oxofvnoo ) and the [billing account](https://cloud.google.com/billing/docs/how-to/billing-access). You can disable billing on the project by setting the `billing_account_name` field to empty. This action disassociates the current billing account from the project. Any billable activity of your in-use services will stop, and your application could stop functioning as expected. Any unbilled charges to date will be billed to the previously associated account. The current authenticated user must be either an owner of the project or an owner of the billing account for the project. Note that associating a project with a *closed* billing account will have much the same effect as disabling billing on the project: any paid resources used by the project will be shut down. Thus, unless you wish to disable billing, you should always call this method with the name of an *open* billing account.",
+          "flatPath": "v1/projects/{projectsId}/billingInfo",
+          "httpMethod": "PUT",
+          "id": "cloudbilling.projects.updateBillingInfo",
+          "parameterOrder": [
+            "name"
+          ],
+          "parameters": {
+            "name": {
+              "description": "Required. The resource name of the project associated with the billing information that you want to update. For example, `projects/tokyo-rain-123`.",
+              "location": "path",
+              "pattern": "^projects/[^/]+$",
+              "required": true,
+              "type": "string"
+            }
+          },
+          "path": "v1/{+name}/billingInfo",
+          "request": {
+            "$ref": "ProjectBillingInfo"
+          },
+          "response": {
+            "$ref": "ProjectBillingInfo"
+          },
+          "scopes": [
+            "https://www.googleapis.com/auth/cloud-billing",
+            "https://www.googleapis.com/auth/cloud-platform"
+          ]
+        }
+      }
+    },
+    "services": {
+      "methods": {
+        "list": {
+          "description": "Lists all public cloud services.",
+          "flatPath": "v1/services",
+          "httpMethod": "GET",
+          "id": "cloudbilling.services.list",
+          "parameterOrder": [],
+          "parameters": {
+            "pageSize": {
+              "description": "Requested page size. Defaults to 5000.",
+              "format": "int32",
+              "location": "query",
+              "type": "integer"
+            },
+            "pageToken": {
+              "description": "A token identifying a page of results to return. This should be a `next_page_token` value returned from a previous `ListServices` call. If unspecified, the first page of results is returned.",
+              "location": "query",
+              "type": "string"
+            }
+          },
+          "path": "v1/services",
+          "response": {
+            "$ref": "ListServicesResponse"
           },
           "scopes": [
             "https://www.googleapis.com/auth/cloud-billing",
@@ -545,151 +691,54 @@
       "resources": {
         "skus": {
           "methods": {
-            "get": {
-              "description": "Gets a publicly listed SKU that is part of a publicly listed SKU group.",
-              "flatPath": "v1beta/skuGroups/{skuGroupsId}/skus/{skusId}",
-              "httpMethod": "GET",
-              "id": "cloudbilling.skuGroups.skus.get",
-              "parameterOrder": [
-                "name"
-              ],
-              "parameters": {
-                "name": {
-                  "description": "Required. The name of the SKU group SKU to retrieve. Format: skuGroups/{sku_group}/skus/{sku}",
-                  "location": "path",
-                  "pattern": "^skuGroups/[^/]+/skus/[^/]+$",
-                  "required": true,
-                  "type": "string"
-                }
-              },
-              "path": "v1beta/{+name}",
-              "response": {
-                "$ref": "GoogleCloudBillingSkugroupskusV1betaSkuGroupSku"
-              },
-              "scopes": [
-                "https://www.googleapis.com/auth/cloud-billing",
-                "https://www.googleapis.com/auth/cloud-billing.readonly",
-                "https://www.googleapis.com/auth/cloud-platform"
-              ]
-            },
             "list": {
-              "description": "Lists all publicly listed SKUs contained by a publicly listed SKU group.",
-              "flatPath": "v1beta/skuGroups/{skuGroupsId}/skus",
+              "description": "Lists all publicly available SKUs for a given cloud service.",
+              "flatPath": "v1/services/{servicesId}/skus",
               "httpMethod": "GET",
-              "id": "cloudbilling.skuGroups.skus.list",
-              "parameterOrder": [
-                "parent"
-              ],
-              "parameters": {
-                "pageSize": {
-                  "description": "Maximum number of SKU group SKUs to return. Results may return fewer than this value. Default value is 50 and maximum value is 5000.",
-                  "format": "int32",
-                  "location": "query",
-                  "type": "integer"
-                },
-                "pageToken": {
-                  "description": "Page token received from a previous ListSkuGroupSkus call to retrieve the next page of results. If this field is empty, the first page is returned.",
-                  "location": "query",
-                  "type": "string"
-                },
-                "parent": {
-                  "description": "Required. The SkuGroup to list SkuGroupSku from. Format: skuGroups/{sku_group}",
-                  "location": "path",
-                  "pattern": "^skuGroups/[^/]+$",
-                  "required": true,
-                  "type": "string"
-                }
-              },
-              "path": "v1beta/{+parent}/skus",
-              "response": {
-                "$ref": "GoogleCloudBillingSkugroupskusV1betaListSkuGroupSkusResponse"
-              },
-              "scopes": [
-                "https://www.googleapis.com/auth/cloud-billing",
-                "https://www.googleapis.com/auth/cloud-billing.readonly",
-                "https://www.googleapis.com/auth/cloud-platform"
-              ]
-            }
-          }
-        }
-      }
-    },
-    "skus": {
-      "resources": {
-        "price": {
-          "methods": {
-            "get": {
-              "description": "Gets the latest price for the given SKU.",
-              "flatPath": "v1beta/skus/{skusId}/price",
-              "httpMethod": "GET",
-              "id": "cloudbilling.skus.price.get",
-              "parameterOrder": [
-                "name"
-              ],
-              "parameters": {
-                "currencyCode": {
-                  "description": "Optional. ISO-4217 currency code for the price. If not specified, USD will be used.",
-                  "location": "query",
-                  "type": "string"
-                },
-                "name": {
-                  "description": "Required. Name of the latest price to retrieve. Format: skus/{sku}/price",
-                  "location": "path",
-                  "pattern": "^skus/[^/]+/price$",
-                  "required": true,
-                  "type": "string"
-                }
-              },
-              "path": "v1beta/{+name}",
-              "response": {
-                "$ref": "GoogleCloudBillingPricesV1betaPrice"
-              },
-              "scopes": [
-                "https://www.googleapis.com/auth/cloud-billing",
-                "https://www.googleapis.com/auth/cloud-billing.readonly",
-                "https://www.googleapis.com/auth/cloud-platform"
-              ]
-            }
-          }
-        },
-        "prices": {
-          "methods": {
-            "list": {
-              "description": "Lists the latest prices for all SKUs.",
-              "flatPath": "v1beta/skus/{skusId}/prices",
-              "httpMethod": "GET",
-              "id": "cloudbilling.skus.prices.list",
+              "id": "cloudbilling.services.skus.list",
               "parameterOrder": [
                 "parent"
               ],
               "parameters": {
                 "currencyCode": {
-                  "description": "Optional. ISO-4217 currency code for the price. If not specified, USD will be used.",
+                  "description": "The ISO 4217 currency code for the pricing info in the response proto. Will use the conversion rate as of start_time. Optional. If not specified USD will be used.",
+                  "location": "query",
+                  "type": "string"
+                },
+                "endTime": {
+                  "description": "Optional exclusive end time of the time range for which the pricing versions will be returned. Timestamps in the future are not allowed. The time range has to be within a single calendar month in America/Los_Angeles timezone. Time range as a whole is optional. If not specified, the latest pricing will be returned (up to 12 hours old at most).",
+                  "format": "google-datetime",
                   "location": "query",
                   "type": "string"
                 },
                 "pageSize": {
-                  "description": "Optional. Maximum number of prices to return. Results may return fewer than this value. Default value is 50 and maximum value is 5000.",
+                  "description": "Requested page size. Defaults to 5000.",
                   "format": "int32",
                   "location": "query",
                   "type": "integer"
                 },
                 "pageToken": {
-                  "description": "Optional. Page token received from a previous ListPrices call to retrieve the next page of results. If this field is empty, the first page is returned.",
+                  "description": "A token identifying a page of results to return. This should be a `next_page_token` value returned from a previous `ListSkus` call. If unspecified, the first page of results is returned.",
                   "location": "query",
                   "type": "string"
                 },
                 "parent": {
-                  "description": "Required. To list the prices for all SKUs, use `-` as the SKU ID. Format: `skus/-` Specifying a specific SKU ID returns a collection with one Price object for the SKU.",
+                  "description": "Required. The name of the service. Example: \"services/6F81-5844-456A\"",
                   "location": "path",
-                  "pattern": "^skus/[^/]+$",
+                  "pattern": "^services/[^/]+$",
                   "required": true,
+                  "type": "string"
+                },
+                "startTime": {
+                  "description": "Optional inclusive start time of the time range for which the pricing versions will be returned. Timestamps in the future are not allowed. The time range has to be within a single calendar month in America/Los_Angeles timezone. Time range as a whole is optional. If not specified, the latest pricing will be returned (up to 12 hours old at most).",
+                  "format": "google-datetime",
+                  "location": "query",
                   "type": "string"
                 }
               },
-              "path": "v1beta/{+parent}/prices",
+              "path": "v1/{+parent}/skus",
               "response": {
-                "$ref": "GoogleCloudBillingPricesV1betaListPricesResponse"
+                "$ref": "ListSkusResponse"
               },
               "scopes": [
                 "https://www.googleapis.com/auth/cloud-billing",
@@ -698,30 +747,6 @@
               ]
             }
           }
-        }
-      }
-    },
-    "v1beta": {
-      "methods": {
-        "generateInsights": {
-          "description": "Analyzes cost data for a billing account and/or specific projects. Returns a natural language summary and supporting datasets.",
-          "flatPath": "v1beta:generateInsights",
-          "httpMethod": "POST",
-          "id": "cloudbilling.generateInsights",
-          "parameterOrder": [],
-          "parameters": {},
-          "path": "v1beta:generateInsights",
-          "request": {
-            "$ref": "GenerateInsightsRequest"
-          },
-          "response": {
-            "$ref": "GenerateInsightsResponse"
-          },
-          "scopes": [
-            "https://www.googleapis.com/auth/cloud-billing",
-            "https://www.googleapis.com/auth/cloud-billing.readonly",
-            "https://www.googleapis.com/auth/cloud-platform"
-          ]
         }
       }
     }
@@ -729,1305 +754,292 @@
   "revision": "20260320",
   "rootUrl": "https://cloudbilling.googleapis.com/",
   "schemas": {
-    "AgenticQueryInfo": {
-      "description": "A local representation of the query used to fetch the data. This is used instead of the raw QueryBillingDataRequest to avoid pulling in Cloud Policy Enforcement (CPE) resource_type annotations into the response payload, which causes ESF validation failures.",
-      "id": "AgenticQueryInfo",
+    "AggregationInfo": {
+      "description": "Represents the aggregation level and interval for pricing of a single SKU.",
+      "id": "AggregationInfo",
       "properties": {
-        "columns": {
-          "description": "The columns queried.",
-          "type": "string"
-        },
-        "filter": {
-          "description": "The filter applied to the query.",
-          "type": "string"
-        },
-        "groupBy": {
-          "description": "The group-by clause applied to the query.",
-          "type": "string"
-        },
-        "limit": {
-          "description": "The row limit applied to the query.",
+        "aggregationCount": {
+          "description": "The number of intervals to aggregate over. Example: If aggregation_level is \"DAILY\" and aggregation_count is 14, aggregation will be over 14 days.",
           "format": "int32",
           "type": "integer"
         },
-        "orderBy": {
-          "description": "The order-by clause applied to the query.",
+        "aggregationInterval": {
+          "enum": [
+            "AGGREGATION_INTERVAL_UNSPECIFIED",
+            "DAILY",
+            "MONTHLY"
+          ],
+          "enumDescriptions": [
+            "",
+            "",
+            ""
+          ],
           "type": "string"
         },
-        "parents": {
-          "description": "The parents (e.g. projects, billing accounts) queried.",
+        "aggregationLevel": {
+          "enum": [
+            "AGGREGATION_LEVEL_UNSPECIFIED",
+            "ACCOUNT",
+            "PROJECT"
+          ],
+          "enumDescriptions": [
+            "",
+            "",
+            ""
+          ],
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "AuditConfig": {
+      "description": "Specifies the audit configuration for a service. The configuration determines which permission types are logged, and what identities, if any, are exempted from logging. An AuditConfig must have one or more AuditLogConfigs. If there are AuditConfigs for both `allServices` and a specific service, the union of the two AuditConfigs is used for that service: the log_types specified in each AuditConfig are enabled, and the exempted_members in each AuditLogConfig are exempted. Example Policy with multiple AuditConfigs: { \"audit_configs\": [ { \"service\": \"allServices\", \"audit_log_configs\": [ { \"log_type\": \"DATA_READ\", \"exempted_members\": [ \"user:jose@example.com\" ] }, { \"log_type\": \"DATA_WRITE\" }, { \"log_type\": \"ADMIN_READ\" } ] }, { \"service\": \"sampleservice.googleapis.com\", \"audit_log_configs\": [ { \"log_type\": \"DATA_READ\" }, { \"log_type\": \"DATA_WRITE\", \"exempted_members\": [ \"user:aliya@example.com\" ] } ] } ] } For sampleservice, this policy enables DATA_READ, DATA_WRITE and ADMIN_READ logging. It also exempts `jose@example.com` from DATA_READ logging, and `aliya@example.com` from DATA_WRITE logging.",
+      "id": "AuditConfig",
+      "properties": {
+        "auditLogConfigs": {
+          "description": "The configuration for logging of each type of permission.",
+          "items": {
+            "$ref": "AuditLogConfig"
+          },
+          "type": "array"
+        },
+        "service": {
+          "description": "Specifies a service that will be enabled for audit logging. For example, `storage.googleapis.com`, `cloudsql.googleapis.com`. `allServices` is a special value that covers all services.",
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "AuditLogConfig": {
+      "description": "Provides the configuration for logging a type of permissions. Example: { \"audit_log_configs\": [ { \"log_type\": \"DATA_READ\", \"exempted_members\": [ \"user:jose@example.com\" ] }, { \"log_type\": \"DATA_WRITE\" } ] } This enables 'DATA_READ' and 'DATA_WRITE' logging, while exempting jose@example.com from DATA_READ logging.",
+      "id": "AuditLogConfig",
+      "properties": {
+        "exemptedMembers": {
+          "description": "Specifies the identities that do not cause logging for this type of permission. Follows the same format of Binding.members.",
           "items": {
             "type": "string"
           },
           "type": "array"
         },
-        "view": {
-          "description": "The view queried.",
-          "type": "string"
-        }
-      },
-      "type": "object"
-    },
-    "Array": {
-      "description": "An ordered collection of elements of arbitrary count.",
-      "id": "Array",
-      "properties": {
-        "element": {
-          "description": "The elements of the array.",
-          "items": {
-            "$ref": "ValueProto"
-          },
-          "type": "array"
-        }
-      },
-      "type": "object"
-    },
-    "BillingData": {
-      "description": "Encapsulates billing data.",
-      "id": "BillingData",
-      "properties": {
-        "columnInfo": {
-          "description": "Information about columns.",
-          "items": {
-            "$ref": "ColumnInfo"
-          },
-          "type": "array"
-        },
-        "rows": {
-          "description": "Rows.",
-          "items": {
-            "$ref": "Row"
-          },
-          "type": "array"
-        }
-      },
-      "type": "object"
-    },
-    "BillingDataResource": {
-      "description": "Specifies a Billing data resource that can be used for authorization to access billing data.",
-      "id": "BillingDataResource",
-      "properties": {
-        "billingAccount": {
-          "description": "Optional. If not provided the billing account currently associated with the resource will be used.",
-          "type": "string"
-        },
-        "resource": {
-          "description": "Required. Resource name for an entitity that can be used for authorization to access billing data such as `projects/{project}` or `billingAccounts/{billing_account}`",
-          "type": "string"
-        }
-      },
-      "type": "object"
-    },
-    "ColumnInfo": {
-      "description": "Represents a column header.",
-      "id": "ColumnInfo",
-      "properties": {
-        "column": {
-          "description": "Name of the column.",
-          "type": "string"
-        }
-      },
-      "type": "object"
-    },
-    "DataSet": {
-      "description": "A dataset used to support an insight, suitable for UI rendering (tables/charts).",
-      "id": "DataSet",
-      "properties": {
-        "billingData": {
-          "$ref": "BillingData",
-          "description": "Output only. Actual billing data returned from the Data Mart. Uses the formal message from the Billing Data Service.",
-          "readOnly": true
-        },
-        "queryInfo": {
-          "$ref": "AgenticQueryInfo",
-          "description": "Output only. The query used to fetch this data.",
-          "readOnly": true
-        },
-        "suggestedChart": {
-          "$ref": "SuggestedChart",
-          "description": "Output only. A suggested chart for the data set, used for UI rendering.",
-          "readOnly": true
-        }
-      },
-      "type": "object"
-    },
-    "Datetime": {
-      "description": "A datetime value.",
-      "id": "Datetime",
-      "properties": {
-        "bitFieldDatetimeSeconds": {
-          "description": "Represents bit field encoding of year/month/day/hour/minute/second. See class DatetimeValue in civil_time.h for details of encoding.",
-          "format": "int64",
-          "type": "string"
-        },
-        "nanos": {
-          "description": "Non-negative fractions of a second at nanosecond resolution.",
-          "format": "int32",
-          "type": "integer"
-        }
-      },
-      "type": "object"
-    },
-    "Decimal": {
-      "description": "A representation of a decimal value, such as 2.5. Clients may convert values into language-native decimal formats, such as Java's [BigDecimal](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/math/BigDecimal.html) or Python's [decimal.Decimal](https://docs.python.org/3/library/decimal.html).",
-      "id": "Decimal",
-      "properties": {
-        "value": {
-          "description": "The decimal value, as a string. The string representation consists of an optional sign, `+` (`U+002B`) or `-` (`U+002D`), followed by a sequence of zero or more decimal digits (\"the integer\"), optionally followed by a fraction, optionally followed by an exponent. An empty string **should** be interpreted as `0`. The fraction consists of a decimal point followed by zero or more decimal digits. The string must contain at least one digit in either the integer or the fraction. The number formed by the sign, the integer and the fraction is referred to as the significand. The exponent consists of the character `e` (`U+0065`) or `E` (`U+0045`) followed by one or more decimal digits. Services **should** normalize decimal values before storing them by: - Removing an explicitly-provided `+` sign (`+2.5` -> `2.5`). - Replacing a zero-length integer value with `0` (`.5` -> `0.5`). - Coercing the exponent character to upper-case, with explicit sign (`2.5e8` -> `2.5E+8`). - Removing an explicitly-provided zero exponent (`2.5E0` -> `2.5`). Services **may** perform additional normalization based on its own needs and the internal decimal implementation selected, such as shifting the decimal point and exponent value together (example: `2.5E-1` <-> `0.25`). Additionally, services **may** preserve trailing zeroes in the fraction to indicate increased precision, but are not required to do so. Note that only the `.` character is supported to divide the integer and the fraction; `,` **should not** be supported regardless of locale. Additionally, thousand separators **should not** be supported. If a service does support them, values **must** be normalized. The ENBF grammar is: DecimalString = '' | [Sign] Significand [Exponent]; Sign = '+' | '-'; Significand = Digits '.' | [Digits] '.' Digits; Exponent = ('e' | 'E') [Sign] Digits; Digits = { '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' }; Services **should** clearly document the range of supported values, the maximum supported precision (total number of digits), and, if applicable, the scale (number of digits after the decimal point), as well as how it behaves when receiving out-of-bounds values. Services **may** choose to accept values passed as input even when the value has a higher precision or scale than the service supports, and **should** round the value to fit the supported scale. Alternatively, the service **may** error with `400 Bad Request` (`INVALID_ARGUMENT` in gRPC) if precision would be lost. Services **should** error with `400 Bad Request` (`INVALID_ARGUMENT` in gRPC) if the service receives a value outside of the supported range.",
-          "type": "string"
-        }
-      },
-      "type": "object"
-    },
-    "FinalResult": {
-      "description": "Encapsulates all structured data and the completed summary.",
-      "id": "FinalResult",
-      "properties": {
-        "dataSets": {
-          "description": "Output only. Data sets used to support the insights, suitable for UI rendering (tables/charts).",
-          "items": {
-            "$ref": "DataSet"
-          },
-          "readOnly": true,
-          "type": "array"
-        },
-        "fullAnalysis": {
-          "description": "Output only. Contains the full natural language analysis, including thoughts, reasoning, and references.",
-          "readOnly": true,
-          "type": "string"
-        },
-        "insights": {
-          "description": "Output only. A list of discrete insights gleaned from the data.",
-          "items": {
-            "$ref": "Insight"
-          },
-          "readOnly": true,
-          "type": "array"
-        },
-        "interopLinks": {
-          "description": "Output only. Links to interoperable tools (e.g., pre-filtered Cost Reports or BQE queries).",
-          "items": {
-            "$ref": "InteropLink"
-          },
-          "readOnly": true,
-          "type": "array"
-        },
-        "suggestedQueries": {
-          "description": "Output only. A list of suggested follow-up queries for the user.",
-          "items": {
-            "$ref": "SuggestedQuery"
-          },
-          "readOnly": true,
-          "type": "array"
-        },
-        "summary": {
-          "description": "Output only. The full natural language summary (re-sent for consistency).",
-          "readOnly": true,
-          "type": "string"
-        }
-      },
-      "type": "object"
-    },
-    "GenerateInsightsRequest": {
-      "description": "Request for GenerateInsights.",
-      "id": "GenerateInsightsRequest",
-      "properties": {
-        "filter": {
-          "description": "Optional. Filters cost data by service id. Follows https://google.aip.dev/160 for the filter syntax. eg. filter: \"service = 'C7E2-9256-1C43'\"",
-          "type": "string"
-        },
-        "overriddenMaxIterationCounts": {
-          "description": "Optional. Overrides the maximum iterations for any selected strategy.",
-          "format": "int32",
-          "type": "integer"
-        },
-        "parents": {
-          "description": "Optional. The billing account or projects to analyze.",
-          "items": {
-            "$ref": "BillingDataResource"
-          },
-          "type": "array"
-        },
-        "prompt": {
-          "description": "Required. The natural language prompt from the user.",
-          "type": "string"
-        },
-        "userContext": {
-          "$ref": "UserContext",
-          "description": "Optional. Additional context for personalization (e.g., user persona, role)."
-        }
-      },
-      "type": "object"
-    },
-    "GenerateInsightsResponse": {
-      "description": "Response for GenerateInsights.",
-      "id": "GenerateInsightsResponse",
-      "properties": {
-        "finalResult": {
-          "$ref": "FinalResult",
-          "description": "Output only. The final structured results and metadata. Usually sent as the final message in the stream.",
-          "readOnly": true
-        },
-        "rejection": {
-          "$ref": "Rejection",
-          "description": "Output only. The request was rejected (e.g. out of scope).",
-          "readOnly": true
-        },
-        "summaryChunk": {
-          "description": "Output only. A chunk of the natural language summary (customer-facing). The UI can append these chunks to provide a real-time \"typing\" effect.",
-          "readOnly": true,
-          "type": "string"
-        },
-        "thoughtChunk": {
-          "description": "Output only. A chunk of the agent's internal reasoning process. The UI can use this to render a \"Thinking...\" log or status.",
-          "readOnly": true,
-          "type": "string"
-        }
-      },
-      "type": "object"
-    },
-    "GoogleCloudBillingBillingaccountpricesV1betaAggregationInfo": {
-      "description": "Encapsulates the aggregation information such as aggregation level and interval for a billing account price.",
-      "id": "GoogleCloudBillingBillingaccountpricesV1betaAggregationInfo",
-      "properties": {
-        "interval": {
-          "description": "Interval at which usage is aggregated to compute cost. Example: \"MONTHLY\" interval indicates that usage is aggregated every month.",
+        "logType": {
+          "description": "The log type that this config enables.",
           "enum": [
-            "INTERVAL_UNSPECIFIED",
-            "INTERVAL_MONTHLY",
-            "INTERVAL_DAILY"
+            "LOG_TYPE_UNSPECIFIED",
+            "ADMIN_READ",
+            "DATA_WRITE",
+            "DATA_READ"
           ],
           "enumDescriptions": [
-            "Default unspecified value.",
-            "Usage is aggregated every month.",
-            "Usage is aggregated every day."
-          ],
-          "type": "string"
-        },
-        "level": {
-          "description": "Level at which usage is aggregated to compute cost. Example: \"ACCOUNT\" level indicates that usage is aggregated across all projects in a single account.",
-          "enum": [
-            "LEVEL_UNSPECIFIED",
-            "LEVEL_ACCOUNT",
-            "LEVEL_PROJECT"
-          ],
-          "enumDescriptions": [
-            "Default unspecified value.",
-            "Usage is aggregated at an account level.",
-            "Usage is aggregated at a project level."
+            "Default case. Should never be this.",
+            "Admin reads. Example: CloudIAM getIamPolicy",
+            "Data writes. Example: CloudSQL Users create",
+            "Data reads. Example: CloudSQL Users list"
           ],
           "type": "string"
         }
       },
       "type": "object"
     },
-    "GoogleCloudBillingBillingaccountpricesV1betaBillingAccountPrice": {
-      "description": "Encapsulates the latest price for a billing account SKU.",
-      "id": "GoogleCloudBillingBillingaccountpricesV1betaBillingAccountPrice",
+    "BillingAccount": {
+      "description": "A billing account in the [Google Cloud Console](https://console.cloud.google.com/). You can assign a billing account to one or more projects.",
+      "id": "BillingAccount",
       "properties": {
         "currencyCode": {
-          "description": "ISO-4217 currency code for the price.",
-          "type": "string"
-        },
-        "name": {
-          "description": "Resource name for the latest billing account price.",
-          "type": "string"
-        },
-        "priceReason": {
-          "$ref": "GoogleCloudBillingBillingaccountpricesV1betaPriceReason",
-          "description": "Background information on the origin of the price."
-        },
-        "rate": {
-          "$ref": "GoogleCloudBillingBillingaccountpricesV1betaRate",
-          "description": "Rate price metadata. Billing account SKUs with `Rate` price are offered by pricing tiers. The price can have 1 or more rate pricing tiers."
-        },
-        "valueType": {
-          "description": "Type of the price. The possible values are: [\"unspecified\", \"rate\"].",
-          "type": "string"
-        }
-      },
-      "type": "object"
-    },
-    "GoogleCloudBillingBillingaccountpricesV1betaDefaultPrice": {
-      "description": "Encapsulates a default price which is the current list price.",
-      "id": "GoogleCloudBillingBillingaccountpricesV1betaDefaultPrice",
-      "properties": {},
-      "type": "object"
-    },
-    "GoogleCloudBillingBillingaccountpricesV1betaFixedDiscount": {
-      "description": "Encapsulates a discount off the list price, anchored to the list price as of a fixed time.",
-      "id": "GoogleCloudBillingBillingaccountpricesV1betaFixedDiscount",
-      "properties": {
-        "discountPercent": {
-          "$ref": "Decimal",
-          "description": "Percentage of the fixed discount."
-        },
-        "discountScopeType": {
-          "description": "Type of the fixed discount scope which indicates the source of the discount. It can have values such as 'unspecified' and 'sku-group'.",
-          "type": "string"
-        },
-        "fixTime": {
-          "description": "Time that the fixed discount is anchored to.",
-          "format": "google-datetime",
-          "type": "string"
-        },
-        "skuGroup": {
-          "description": "SKU group where the fixed discount comes from.",
-          "type": "string"
-        }
-      },
-      "type": "object"
-    },
-    "GoogleCloudBillingBillingaccountpricesV1betaFixedPrice": {
-      "description": "Encapsulates a set fixed price applicable during the terms of a contract agreement.",
-      "id": "GoogleCloudBillingBillingaccountpricesV1betaFixedPrice",
-      "properties": {},
-      "type": "object"
-    },
-    "GoogleCloudBillingBillingaccountpricesV1betaFloatingDiscount": {
-      "description": "Encapsulates a discount off the current list price, not anchored to any list price as of a fixed time.",
-      "id": "GoogleCloudBillingBillingaccountpricesV1betaFloatingDiscount",
-      "properties": {
-        "discountPercent": {
-          "$ref": "Decimal",
-          "description": "Percentage of the floating discount."
-        },
-        "discountScopeType": {
-          "description": "Type of the floating discount scope which indicates the source of the discount. It can have values such as 'unspecified' and 'sku-group'.",
-          "type": "string"
-        },
-        "skuGroup": {
-          "description": "SKU group where the floating discount comes from.",
-          "type": "string"
-        }
-      },
-      "type": "object"
-    },
-    "GoogleCloudBillingBillingaccountpricesV1betaListBillingAccountPricesResponse": {
-      "description": "Response message for ListBillingAccountPrices.",
-      "id": "GoogleCloudBillingBillingaccountpricesV1betaListBillingAccountPricesResponse",
-      "properties": {
-        "billingAccountPrices": {
-          "description": "The returned billing account prices.",
-          "items": {
-            "$ref": "GoogleCloudBillingBillingaccountpricesV1betaBillingAccountPrice"
-          },
-          "type": "array"
-        },
-        "nextPageToken": {
-          "description": "Token that can be sent as `page_token` in the subsequent request to retrieve the next page. If this field is empty, there are no subsequent pages.",
-          "type": "string"
-        }
-      },
-      "type": "object"
-    },
-    "GoogleCloudBillingBillingaccountpricesV1betaListPriceAsCeiling": {
-      "description": "Encapsulates a contract feature that the list price (DefaultPrice) will be used for the price if the current list price drops lower than the custom fixed price. Available to new contracts after March 21, 2022. Applies to all fixed price SKUs in the contract, including FixedPrice, FixedDiscount, MigratedPrice, and MergedPrice.",
-      "id": "GoogleCloudBillingBillingaccountpricesV1betaListPriceAsCeiling",
-      "properties": {},
-      "type": "object"
-    },
-    "GoogleCloudBillingBillingaccountpricesV1betaMergedPrice": {
-      "description": "Encapsulates a price after merging from multiple sources. With merged tiers, each individual tier can be from a different source with different discount types.",
-      "id": "GoogleCloudBillingBillingaccountpricesV1betaMergedPrice",
-      "properties": {},
-      "type": "object"
-    },
-    "GoogleCloudBillingBillingaccountpricesV1betaMigratedPrice": {
-      "description": "Encapsulates a price migrated from other SKUs.",
-      "id": "GoogleCloudBillingBillingaccountpricesV1betaMigratedPrice",
-      "properties": {
-        "sourceSku": {
-          "description": "Source SKU where the discount is migrated from. Format: billingAccounts/{billing_account}/skus/{sku}",
-          "type": "string"
-        }
-      },
-      "type": "object"
-    },
-    "GoogleCloudBillingBillingaccountpricesV1betaPriceReason": {
-      "description": "Encapsulates a price reason which contains background information about the origin of the price.",
-      "id": "GoogleCloudBillingBillingaccountpricesV1betaPriceReason",
-      "properties": {
-        "defaultPrice": {
-          "$ref": "GoogleCloudBillingBillingaccountpricesV1betaDefaultPrice",
-          "description": "Default price which is the current list price."
-        },
-        "fixedDiscount": {
-          "$ref": "GoogleCloudBillingBillingaccountpricesV1betaFixedDiscount",
-          "description": "Discount off the list price, anchored to the list price as of a fixed time."
-        },
-        "fixedPrice": {
-          "$ref": "GoogleCloudBillingBillingaccountpricesV1betaFixedPrice",
-          "description": "Fixed price applicable during the terms of a contract agreement."
-        },
-        "floatingDiscount": {
-          "$ref": "GoogleCloudBillingBillingaccountpricesV1betaFloatingDiscount",
-          "description": "Discount off the current list price, not anchored to any list price as of a fixed time."
-        },
-        "listPriceAsCeiling": {
-          "$ref": "GoogleCloudBillingBillingaccountpricesV1betaListPriceAsCeiling",
-          "description": "Contract feature that the list price (DefaultPrice) will be used for the price if the current list price drops lower than the custom fixed price. Available to new contracts after March 21, 2022. Applies to all fixed price SKUs in the contract, including FixedPrice, FixedDiscount, MigratedPrice, and MergedPrice."
-        },
-        "mergedPrice": {
-          "$ref": "GoogleCloudBillingBillingaccountpricesV1betaMergedPrice",
-          "description": "Price after merging from multiple sources."
-        },
-        "migratedPrice": {
-          "$ref": "GoogleCloudBillingBillingaccountpricesV1betaMigratedPrice",
-          "description": "Price migrated from other SKUs."
-        },
-        "type": {
-          "description": "Type of the price reason. It can have values such as 'unspecified', 'default-price', 'fixed-price', 'fixed-discount', 'floating-discount', 'migrated-price', 'merged-price', 'list-price-as-ceiling'.",
-          "type": "string"
-        }
-      },
-      "type": "object"
-    },
-    "GoogleCloudBillingBillingaccountpricesV1betaRate": {
-      "description": "Encapsulates a `Rate` price. Billing account SKUs with `Rate` price are offered by pricing tiers. The price have 1 or more rate pricing tiers.",
-      "id": "GoogleCloudBillingBillingaccountpricesV1betaRate",
-      "properties": {
-        "aggregationInfo": {
-          "$ref": "GoogleCloudBillingBillingaccountpricesV1betaAggregationInfo",
-          "description": "Aggregation info for tiers such as aggregation level and interval."
-        },
-        "tiers": {
-          "description": "All tiers associated with the `Rate` price.",
-          "items": {
-            "$ref": "GoogleCloudBillingBillingaccountpricesV1betaRateTier"
-          },
-          "type": "array"
-        },
-        "unitInfo": {
-          "$ref": "GoogleCloudBillingBillingaccountpricesV1betaUnitInfo",
-          "description": "Unit info such as name and quantity."
-        }
-      },
-      "type": "object"
-    },
-    "GoogleCloudBillingBillingaccountpricesV1betaRateTier": {
-      "description": "Encapsulates a rate price tier.",
-      "id": "GoogleCloudBillingBillingaccountpricesV1betaRateTier",
-      "properties": {
-        "contractPrice": {
-          "$ref": "Money",
-          "description": "Negotiated contract price specific for a billing account."
-        },
-        "effectiveDiscountPercent": {
-          "$ref": "Decimal",
-          "description": "Percentage of effective discount calculated using the current list price per pricing tier. Formula used: effective_discount_percent = (list_price - contract_price) / list_price × 100 If list_price and contract_price are zero, this field is the same as `discount_percent` of FixedDiscount and FloatingDiscount. If your contract does NOT have the feature LIST_PRICE_AS_CEILING enabled, the effective_discount_percent can be negative if the SKU has a FixedDiscount and the current list price is lower than the list price on the date of the contract agreement. See the `FixedDiscount.fix_time` on when the discount was set. If you have questions regarding pricing per SKU, contact your Account team for more details."
-        },
-        "listPrice": {
-          "$ref": "Money",
-          "description": "List price of one tier."
-        },
-        "startAmount": {
-          "$ref": "Decimal",
-          "description": "Lower bound amount for a tier. Tiers 0-100, 100-200 will be represented with two tiers with `start_amount` 0 and 100."
-        }
-      },
-      "type": "object"
-    },
-    "GoogleCloudBillingBillingaccountpricesV1betaUnitInfo": {
-      "description": "Encapsulates the unit information for a Rate",
-      "id": "GoogleCloudBillingBillingaccountpricesV1betaUnitInfo",
-      "properties": {
-        "unit": {
-          "description": "Shorthand for the unit. Example: GiBy.mo.",
-          "type": "string"
-        },
-        "unitDescription": {
-          "description": "Human-readable description of the unit. Example: gibibyte month.",
-          "type": "string"
-        },
-        "unitQuantity": {
-          "$ref": "Decimal",
-          "description": "Unit quantity for the tier. Example: if the RateTier price is $1 per 1000000 Bytes, then `unit_quantity` is set to 1000000."
-        }
-      },
-      "type": "object"
-    },
-    "GoogleCloudBillingBillingaccountservicesV1betaBillingAccountService": {
-      "description": "Encapsulates a Google Cloud service visible to a billing account.",
-      "id": "GoogleCloudBillingBillingaccountservicesV1betaBillingAccountService",
-      "properties": {
-        "displayName": {
-          "description": "Description of the BillingAccountService. Example: \"BigQuery\", \"Compute Engine\".",
-          "type": "string"
-        },
-        "name": {
-          "description": "Resource name for the BillingAccountService. Example: \"billingAccounts/012345-567890-ABCDEF/services/DA34-426B-A397\".",
-          "type": "string"
-        },
-        "serviceId": {
-          "description": "Identifier for the service. It is the string after the collection identifier \"services/\". Example: \"DA34-426B-A397\".",
-          "type": "string"
-        }
-      },
-      "type": "object"
-    },
-    "GoogleCloudBillingBillingaccountservicesV1betaListBillingAccountServicesResponse": {
-      "description": "Response message for ListBillingAccountServices.",
-      "id": "GoogleCloudBillingBillingaccountservicesV1betaListBillingAccountServicesResponse",
-      "properties": {
-        "billingAccountServices": {
-          "description": "The returned billing account services.",
-          "items": {
-            "$ref": "GoogleCloudBillingBillingaccountservicesV1betaBillingAccountService"
-          },
-          "type": "array"
-        },
-        "nextPageToken": {
-          "description": "Token that can be sent as `page_token` in the subsequent request to retrieve the next page. If this field is empty, there are no subsequent pages.",
-          "type": "string"
-        }
-      },
-      "type": "object"
-    },
-    "GoogleCloudBillingBillingaccountskugroupsV1betaBillingAccountSkuGroup": {
-      "description": "Encapsulates a stock keeping (SKU) group visible to a billing account. A SKU group represents a collection of SKUs that are related to each other. For example, the `AI Platform APIs` SKU group includes SKUs from the Cloud Dialogflow API, the Cloud Text-to-Speech API, and additional related APIs.",
-      "id": "GoogleCloudBillingBillingaccountskugroupsV1betaBillingAccountSkuGroup",
-      "properties": {
-        "displayName": {
-          "description": "Description of the BillingAccountSkuGroup. Example: \"A2 VMs (1 Year CUD)\".",
-          "type": "string"
-        },
-        "name": {
-          "description": "Resource name for the BillingAccountSkuGroup. Example: \"billingAccounts/012345-567890-ABCDEF/skuGroups/0e6403d1-4694-44d2-a696-7a78b1a69301\".",
-          "type": "string"
-        }
-      },
-      "type": "object"
-    },
-    "GoogleCloudBillingBillingaccountskugroupsV1betaListBillingAccountSkuGroupsResponse": {
-      "description": "Response message for ListBillingAccountSkuGroups.",
-      "id": "GoogleCloudBillingBillingaccountskugroupsV1betaListBillingAccountSkuGroupsResponse",
-      "properties": {
-        "billingAccountSkuGroups": {
-          "description": "The returned publicly listed billing account SKU groups.",
-          "items": {
-            "$ref": "GoogleCloudBillingBillingaccountskugroupsV1betaBillingAccountSkuGroup"
-          },
-          "type": "array"
-        },
-        "nextPageToken": {
-          "description": "Token that can be sent as `page_token` in the subsequent request to retrieve the next page. If this field is empty, there are no subsequent pages.",
-          "type": "string"
-        }
-      },
-      "type": "object"
-    },
-    "GoogleCloudBillingBillingaccountskugroupskusV1betaBillingAccountSkuGroupSku": {
-      "description": "Encapsulates a SKU that is part of a billing account SKU group.",
-      "id": "GoogleCloudBillingBillingaccountskugroupskusV1betaBillingAccountSkuGroupSku",
-      "properties": {
-        "billingAccountService": {
-          "description": "BillingAccountService that the BillingAccountSkuGroupSku belongs to.",
+          "description": "Optional. The currency in which the billing account is billed and charged, represented as an ISO 4217 code such as `USD`. Billing account currency is determined at the time of billing account creation and cannot be updated subsequently, so this field should not be set on update requests. In addition, a subaccount always matches the currency of its parent billing account, so this field should not be set on subaccount creation requests. Clients can read this field to determine the currency of an existing billing account.",
           "type": "string"
         },
         "displayName": {
-          "description": "Description of the BillingAccountSkuGroupSku. Example: \"A2 Instance Core running in Hong Kong\".",
+          "description": "The display name given to the billing account, such as `My Billing Account`. This name is displayed in the Google Cloud Console.",
           "type": "string"
         },
-        "geoTaxonomy": {
-          "$ref": "GoogleCloudBillingBillingaccountskugroupskusV1betaGeoTaxonomy",
-          "description": "Geographic metadata that applies to the BillingAccountSkuGroupSku."
-        },
-        "name": {
-          "description": "Resource name for the BillingAccountSkuGroupSku. Example: \"billingAccounts/012345-567890-ABCDEF/skuGroups/0e6403d1-4694-44d2-a696-7a78b1a69301/skus/AA95-CD31-42FE\".",
-          "type": "string"
-        },
-        "productTaxonomy": {
-          "$ref": "GoogleCloudBillingBillingaccountskugroupskusV1betaProductTaxonomy",
-          "description": "List of product categories that apply to the BillingAccountSkuGroupSku."
-        },
-        "skuId": {
-          "description": "Unique identifier for the SKU. It is the string after the collection identifier \"skus/\" Example: \"AA95-CD31-42FE\".",
-          "type": "string"
-        }
-      },
-      "type": "object"
-    },
-    "GoogleCloudBillingBillingaccountskugroupskusV1betaGeoTaxonomy": {
-      "description": "Encapsulates geographic metadata, such as regions and multi-regions like `us-east4` or `European Union`.",
-      "id": "GoogleCloudBillingBillingaccountskugroupskusV1betaGeoTaxonomy",
-      "properties": {
-        "globalMetadata": {
-          "$ref": "GoogleCloudBillingBillingaccountskugroupskusV1betaGeoTaxonomyGlobal",
-          "description": "Global geographic metadata with no regions."
-        },
-        "multiRegionalMetadata": {
-          "$ref": "GoogleCloudBillingBillingaccountskugroupskusV1betaGeoTaxonomyMultiRegional",
-          "description": "Multi-regional geographic metadata with 2 or more regions."
-        },
-        "regionalMetadata": {
-          "$ref": "GoogleCloudBillingBillingaccountskugroupskusV1betaGeoTaxonomyRegional",
-          "description": "Regional geographic metadata with 1 region."
-        },
-        "type": {
-          "description": "Type of geographic taxonomy associated with the billing account SKU group SKU.",
-          "enum": [
-            "TYPE_UNSPECIFIED",
-            "TYPE_GLOBAL",
-            "TYPE_REGIONAL",
-            "TYPE_MULTI_REGIONAL"
-          ],
-          "enumDescriptions": [
-            "Default value. Unspecified type.",
-            "Global geographic taxonomy with no regions.",
-            "Regional geographic taxonomy with 1 region.",
-            "Multi-regional geographic taxonomy with 2 or more regions."
-          ],
-          "type": "string"
-        }
-      },
-      "type": "object"
-    },
-    "GoogleCloudBillingBillingaccountskugroupskusV1betaGeoTaxonomyGlobal": {
-      "description": "Encapsulates a global geographic taxonomy.",
-      "id": "GoogleCloudBillingBillingaccountskugroupskusV1betaGeoTaxonomyGlobal",
-      "properties": {},
-      "type": "object"
-    },
-    "GoogleCloudBillingBillingaccountskugroupskusV1betaGeoTaxonomyMultiRegional": {
-      "description": "Encapsulates a multi-regional geographic taxonomy.",
-      "id": "GoogleCloudBillingBillingaccountskugroupskusV1betaGeoTaxonomyMultiRegional",
-      "properties": {
-        "regions": {
-          "description": "Google Cloud regions associated with the multi-regional geographic taxonomy.",
-          "items": {
-            "$ref": "GoogleCloudBillingBillingaccountskugroupskusV1betaGeoTaxonomyRegion"
-          },
-          "type": "array"
-        }
-      },
-      "type": "object"
-    },
-    "GoogleCloudBillingBillingaccountskugroupskusV1betaGeoTaxonomyRegion": {
-      "description": "Encapsulates a Google Cloud region.",
-      "id": "GoogleCloudBillingBillingaccountskugroupskusV1betaGeoTaxonomyRegion",
-      "properties": {
-        "region": {
-          "description": "Description of a Google Cloud region. Example: \"us-west2\".",
-          "type": "string"
-        }
-      },
-      "type": "object"
-    },
-    "GoogleCloudBillingBillingaccountskugroupskusV1betaGeoTaxonomyRegional": {
-      "description": "Encapsulates a regional geographic taxonomy.",
-      "id": "GoogleCloudBillingBillingaccountskugroupskusV1betaGeoTaxonomyRegional",
-      "properties": {
-        "region": {
-          "$ref": "GoogleCloudBillingBillingaccountskugroupskusV1betaGeoTaxonomyRegion",
-          "description": "Google Cloud region associated with the regional geographic taxonomy."
-        }
-      },
-      "type": "object"
-    },
-    "GoogleCloudBillingBillingaccountskugroupskusV1betaListBillingAccountSkuGroupSkusResponse": {
-      "description": "Response message for ListBillingAccountSkuGroupSkus.",
-      "id": "GoogleCloudBillingBillingaccountskugroupskusV1betaListBillingAccountSkuGroupSkusResponse",
-      "properties": {
-        "billingAccountSkuGroupSkus": {
-          "description": "The returned billing account SKU group SKUs.",
-          "items": {
-            "$ref": "GoogleCloudBillingBillingaccountskugroupskusV1betaBillingAccountSkuGroupSku"
-          },
-          "type": "array"
-        },
-        "nextPageToken": {
-          "description": "Token that can be sent as `page_token` in the subsequent request to retrieve the next page. If this field is empty, there are no subsequent pages.",
-          "type": "string"
-        }
-      },
-      "type": "object"
-    },
-    "GoogleCloudBillingBillingaccountskugroupskusV1betaProductTaxonomy": {
-      "description": "Encapsulates product categories, such as `Serverless`, `Cloud Run`, `TaskQueue`, and others.",
-      "id": "GoogleCloudBillingBillingaccountskugroupskusV1betaProductTaxonomy",
-      "properties": {
-        "taxonomyCategories": {
-          "description": "All product categories that the billing account SKU group SKU belong to.",
-          "items": {
-            "$ref": "GoogleCloudBillingBillingaccountskugroupskusV1betaTaxonomyCategory"
-          },
-          "type": "array"
-        }
-      },
-      "type": "object"
-    },
-    "GoogleCloudBillingBillingaccountskugroupskusV1betaTaxonomyCategory": {
-      "description": "Encapsulates a product category.",
-      "id": "GoogleCloudBillingBillingaccountskugroupskusV1betaTaxonomyCategory",
-      "properties": {
-        "category": {
-          "description": "Name of the product category.",
-          "type": "string"
-        }
-      },
-      "type": "object"
-    },
-    "GoogleCloudBillingBillingaccountskusV1betaBillingAccountSku": {
-      "description": "Encapsulates a stock keeping unit (SKU) visible to a billing account. A SKU distinctly identifies a resource that you can purchase. For a list of available SKUs, see [SKUs](https://cloud.google.com/skus).",
-      "id": "GoogleCloudBillingBillingaccountskusV1betaBillingAccountSku",
-      "properties": {
-        "billingAccountService": {
-          "description": "BillingAccountService that the BillingAccountSku belongs to.",
-          "type": "string"
-        },
-        "displayName": {
-          "description": "Description of the BillingAccountSku. Example: \"A2 Instance Core running in Hong Kong\".",
-          "type": "string"
-        },
-        "geoTaxonomy": {
-          "$ref": "GoogleCloudBillingBillingaccountskusV1betaGeoTaxonomy",
-          "description": "Geographic metadata that applies to the BillingAccountSku."
-        },
-        "name": {
-          "description": "Resource name for the BillingAccountSku. Example: \"billingAccounts/012345-567890-ABCDEF/skus/AA95-CD31-42FE\".",
-          "type": "string"
-        },
-        "productTaxonomy": {
-          "$ref": "GoogleCloudBillingBillingaccountskusV1betaProductTaxonomy",
-          "description": "List of product categories that apply to the BillingAccountSku."
-        },
-        "skuId": {
-          "description": "Unique identifier for the SKU. It is the string after the collection identifier \"skus/\" Example: \"AA95-CD31-42FE\".",
-          "type": "string"
-        }
-      },
-      "type": "object"
-    },
-    "GoogleCloudBillingBillingaccountskusV1betaGeoTaxonomy": {
-      "description": "Encapsulates geographic metadata, such as regions and multi-regions like `us-east4` or `European Union`.",
-      "id": "GoogleCloudBillingBillingaccountskusV1betaGeoTaxonomy",
-      "properties": {
-        "globalMetadata": {
-          "$ref": "GoogleCloudBillingBillingaccountskusV1betaGeoTaxonomyGlobal",
-          "description": "Global geographic metadata with no regions."
-        },
-        "multiRegionalMetadata": {
-          "$ref": "GoogleCloudBillingBillingaccountskusV1betaGeoTaxonomyMultiRegional",
-          "description": "Multi-regional geographic metadata with 2 or more regions."
-        },
-        "regionalMetadata": {
-          "$ref": "GoogleCloudBillingBillingaccountskusV1betaGeoTaxonomyRegional",
-          "description": "Regional geographic metadata with 1 region."
-        },
-        "type": {
-          "description": "Type of geographic taxonomy associated with the billing account SKU.",
-          "enum": [
-            "TYPE_UNSPECIFIED",
-            "TYPE_GLOBAL",
-            "TYPE_REGIONAL",
-            "TYPE_MULTI_REGIONAL"
-          ],
-          "enumDescriptions": [
-            "Default value. Unspecified type.",
-            "Global geographic taxonomy with no regions.",
-            "Regional geographic taxonomy with 1 region.",
-            "Multi-regional geographic taxonomy with 2 or more regions."
-          ],
-          "type": "string"
-        }
-      },
-      "type": "object"
-    },
-    "GoogleCloudBillingBillingaccountskusV1betaGeoTaxonomyGlobal": {
-      "description": "Encapsulates a global geographic taxonomy.",
-      "id": "GoogleCloudBillingBillingaccountskusV1betaGeoTaxonomyGlobal",
-      "properties": {},
-      "type": "object"
-    },
-    "GoogleCloudBillingBillingaccountskusV1betaGeoTaxonomyMultiRegional": {
-      "description": "Encapsulates a multi-regional geographic taxonomy.",
-      "id": "GoogleCloudBillingBillingaccountskusV1betaGeoTaxonomyMultiRegional",
-      "properties": {
-        "regions": {
-          "description": "Google Cloud regions associated with the multi-regional geographic taxonomy.",
-          "items": {
-            "$ref": "GoogleCloudBillingBillingaccountskusV1betaGeoTaxonomyRegion"
-          },
-          "type": "array"
-        }
-      },
-      "type": "object"
-    },
-    "GoogleCloudBillingBillingaccountskusV1betaGeoTaxonomyRegion": {
-      "description": "Encapsulates a Google Cloud region.",
-      "id": "GoogleCloudBillingBillingaccountskusV1betaGeoTaxonomyRegion",
-      "properties": {
-        "region": {
-          "description": "Description of a Google Cloud region. Example: \"us-west2\".",
-          "type": "string"
-        }
-      },
-      "type": "object"
-    },
-    "GoogleCloudBillingBillingaccountskusV1betaGeoTaxonomyRegional": {
-      "description": "Encapsulates a regional geographic taxonomy.",
-      "id": "GoogleCloudBillingBillingaccountskusV1betaGeoTaxonomyRegional",
-      "properties": {
-        "region": {
-          "$ref": "GoogleCloudBillingBillingaccountskusV1betaGeoTaxonomyRegion",
-          "description": "Google Cloud region associated with the regional geographic taxonomy."
-        }
-      },
-      "type": "object"
-    },
-    "GoogleCloudBillingBillingaccountskusV1betaListBillingAccountSkusResponse": {
-      "description": "Response message for ListBillingAccountSkus.",
-      "id": "GoogleCloudBillingBillingaccountskusV1betaListBillingAccountSkusResponse",
-      "properties": {
-        "billingAccountSkus": {
-          "description": "The returned billing account SKUs.",
-          "items": {
-            "$ref": "GoogleCloudBillingBillingaccountskusV1betaBillingAccountSku"
-          },
-          "type": "array"
-        },
-        "nextPageToken": {
-          "description": "Token that can be sent as `page_token` in the subsequent request to retrieve the next page. If this field is empty, there are no subsequent pages.",
-          "type": "string"
-        }
-      },
-      "type": "object"
-    },
-    "GoogleCloudBillingBillingaccountskusV1betaProductTaxonomy": {
-      "description": "Encapsulates product categories, such as `Serverless`, `Cloud Run`, `TaskQueue`, and others.",
-      "id": "GoogleCloudBillingBillingaccountskusV1betaProductTaxonomy",
-      "properties": {
-        "taxonomyCategories": {
-          "description": "All product categories that the billing account SKU belong to.",
-          "items": {
-            "$ref": "GoogleCloudBillingBillingaccountskusV1betaTaxonomyCategory"
-          },
-          "type": "array"
-        }
-      },
-      "type": "object"
-    },
-    "GoogleCloudBillingBillingaccountskusV1betaTaxonomyCategory": {
-      "description": "Encapsulates a product category.",
-      "id": "GoogleCloudBillingBillingaccountskusV1betaTaxonomyCategory",
-      "properties": {
-        "category": {
-          "description": "Name of the product category.",
-          "type": "string"
-        }
-      },
-      "type": "object"
-    },
-    "GoogleCloudBillingPricesV1betaAggregationInfo": {
-      "description": "Encapsulates the aggregation information such as aggregation level and interval for a price.",
-      "id": "GoogleCloudBillingPricesV1betaAggregationInfo",
-      "properties": {
-        "interval": {
-          "description": "Interval at which usage is aggregated to compute cost. Example: \"MONTHLY\" interval indicates that usage is aggregated every month.",
-          "enum": [
-            "INTERVAL_UNSPECIFIED",
-            "INTERVAL_MONTHLY",
-            "INTERVAL_DAILY"
-          ],
-          "enumDescriptions": [
-            "Default unspecified value.",
-            "Usage is aggregated every month.",
-            "Usage is aggregated every day."
-          ],
-          "type": "string"
-        },
-        "level": {
-          "description": "Level at which usage is aggregated to compute cost. Example: \"ACCOUNT\" level indicates that usage is aggregated across all projects in a single account.",
-          "enum": [
-            "LEVEL_UNSPECIFIED",
-            "LEVEL_ACCOUNT",
-            "LEVEL_PROJECT"
-          ],
-          "enumDescriptions": [
-            "Default unspecified value.",
-            "Usage is aggregated at an account level.",
-            "Usage is aggregated at a project level."
-          ],
-          "type": "string"
-        }
-      },
-      "type": "object"
-    },
-    "GoogleCloudBillingPricesV1betaListPricesResponse": {
-      "description": "Response message for ListPrices.",
-      "id": "GoogleCloudBillingPricesV1betaListPricesResponse",
-      "properties": {
-        "nextPageToken": {
-          "description": "Token that can be sent as `page_token` in the subsequent request to retrieve the next page. If this field is empty, there are no subsequent pages.",
-          "type": "string"
-        },
-        "prices": {
-          "description": "The returned publicly listed prices.",
-          "items": {
-            "$ref": "GoogleCloudBillingPricesV1betaPrice"
-          },
-          "type": "array"
-        }
-      },
-      "type": "object"
-    },
-    "GoogleCloudBillingPricesV1betaPrice": {
-      "description": "Encapsulates the latest price for a SKU.",
-      "id": "GoogleCloudBillingPricesV1betaPrice",
-      "properties": {
-        "currencyCode": {
-          "description": "ISO-4217 currency code for the price.",
+        "masterBillingAccount": {
+          "description": "If this account is a [subaccount](https://cloud.google.com/billing/docs/concepts), then this will be the resource name of the parent billing account that it is being resold through. Otherwise this will be empty.",
           "type": "string"
         },
         "name": {
-          "description": "Resource name for the latest price.",
+          "description": "Output only. The resource name of the billing account. The resource name has the form `billingAccounts/{billing_account_id}`. For example, `billingAccounts/012345-567890-ABCDEF` would be the resource name for billing account `012345-567890-ABCDEF`.",
+          "readOnly": true,
           "type": "string"
         },
-        "rate": {
-          "$ref": "GoogleCloudBillingPricesV1betaRate",
-          "description": "Rate price metadata. SKUs with `Rate` price are offered by pricing tiers. The price can have 1 or more rate pricing tiers."
+        "open": {
+          "description": "Output only. True if the billing account is open, and will therefore be charged for any usage on associated projects. False if the billing account is closed, and therefore projects associated with it are unable to use paid services.",
+          "readOnly": true,
+          "type": "boolean"
         },
-        "valueType": {
-          "description": "Type of the price. It can have values: [\"unspecified\", \"rate\"].",
+        "parent": {
+          "description": "Output only. The billing account's parent resource identifier. Use the `MoveBillingAccount` method to update the account's parent resource if it is a organization. Format: - `organizations/{organization_id}`, for example, `organizations/12345678` - `billingAccounts/{billing_account_id}`, for example, `billingAccounts/012345-567890-ABCDEF`",
+          "readOnly": true,
           "type": "string"
         }
       },
       "type": "object"
     },
-    "GoogleCloudBillingPricesV1betaRate": {
-      "description": "Encapsulates a `Rate` price. SKUs with `Rate` price are offered by pricing tiers. The price have 1 or more rate pricing tiers.",
-      "id": "GoogleCloudBillingPricesV1betaRate",
+    "Binding": {
+      "description": "Associates `members`, or principals, with a `role`.",
+      "id": "Binding",
       "properties": {
-        "aggregationInfo": {
-          "$ref": "GoogleCloudBillingPricesV1betaAggregationInfo",
-          "description": "Aggregation info for tiers such as aggregation level and interval."
+        "condition": {
+          "$ref": "Expr",
+          "description": "The condition that is associated with this binding. If the condition evaluates to `true`, then this binding applies to the current request. If the condition evaluates to `false`, then this binding does not apply to the current request. However, a different role binding might grant the same role to one or more of the principals in this binding. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies)."
         },
-        "tiers": {
-          "description": "All tiers associated with the `Rate` price.",
+        "members": {
+          "description": "Specifies the principals requesting access for a Google Cloud resource. `members` can have the following values: * `allUsers`: A special identifier that represents anyone who is on the internet; with or without a Google account. * `allAuthenticatedUsers`: A special identifier that represents anyone who is authenticated with a Google account or a service account. Does not include identities that come from external identity providers (IdPs) through identity federation. * `user:{emailid}`: An email address that represents a specific Google account. For example, `alice@example.com` . * `serviceAccount:{emailid}`: An email address that represents a Google service account. For example, `my-other-app@appspot.gserviceaccount.com`. * `serviceAccount:{projectid}.svc.id.goog[{namespace}/{kubernetes-sa}]`: An identifier for a [Kubernetes service account](https://cloud.google.com/kubernetes-engine/docs/how-to/kubernetes-service-accounts). For example, `my-project.svc.id.goog[my-namespace/my-kubernetes-sa]`. * `group:{emailid}`: An email address that represents a Google group. For example, `admins@example.com`. * `domain:{domain}`: The G Suite domain (primary) that represents all the users of that domain. For example, `google.com` or `example.com`. * `principal://iam.googleapis.com/locations/global/workforcePools/{pool_id}/subject/{subject_attribute_value}`: A single identity in a workforce identity pool. * `principalSet://iam.googleapis.com/locations/global/workforcePools/{pool_id}/group/{group_id}`: All workforce identities in a group. * `principalSet://iam.googleapis.com/locations/global/workforcePools/{pool_id}/attribute.{attribute_name}/{attribute_value}`: All workforce identities with a specific attribute value. * `principalSet://iam.googleapis.com/locations/global/workforcePools/{pool_id}/*`: All identities in a workforce identity pool. * `principal://iam.googleapis.com/projects/{project_number}/locations/global/workloadIdentityPools/{pool_id}/subject/{subject_attribute_value}`: A single identity in a workload identity pool. * `principalSet://iam.googleapis.com/projects/{project_number}/locations/global/workloadIdentityPools/{pool_id}/group/{group_id}`: A workload identity pool group. * `principalSet://iam.googleapis.com/projects/{project_number}/locations/global/workloadIdentityPools/{pool_id}/attribute.{attribute_name}/{attribute_value}`: All identities in a workload identity pool with a certain attribute. * `principalSet://iam.googleapis.com/projects/{project_number}/locations/global/workloadIdentityPools/{pool_id}/*`: All identities in a workload identity pool. * `deleted:user:{emailid}?uid={uniqueid}`: An email address (plus unique identifier) representing a user that has been recently deleted. For example, `alice@example.com?uid=123456789012345678901`. If the user is recovered, this value reverts to `user:{emailid}` and the recovered user retains the role in the binding. * `deleted:serviceAccount:{emailid}?uid={uniqueid}`: An email address (plus unique identifier) representing a service account that has been recently deleted. For example, `my-other-app@appspot.gserviceaccount.com?uid=123456789012345678901`. If the service account is undeleted, this value reverts to `serviceAccount:{emailid}` and the undeleted service account retains the role in the binding. * `deleted:group:{emailid}?uid={uniqueid}`: An email address (plus unique identifier) representing a Google group that has been recently deleted. For example, `admins@example.com?uid=123456789012345678901`. If the group is recovered, this value reverts to `group:{emailid}` and the recovered group retains the role in the binding. * `deleted:principal://iam.googleapis.com/locations/global/workforcePools/{pool_id}/subject/{subject_attribute_value}`: Deleted single identity in a workforce identity pool. For example, `deleted:principal://iam.googleapis.com/locations/global/workforcePools/my-pool-id/subject/my-subject-attribute-value`.",
           "items": {
-            "$ref": "GoogleCloudBillingPricesV1betaRateTier"
+            "type": "string"
           },
           "type": "array"
         },
-        "unitInfo": {
-          "$ref": "GoogleCloudBillingPricesV1betaUnitInfo",
-          "description": "Unit info such as name and quantity."
+        "role": {
+          "description": "Role that is assigned to the list of `members`, or principals. For example, `roles/viewer`, `roles/editor`, or `roles/owner`. For an overview of the IAM roles and permissions, see the [IAM documentation](https://cloud.google.com/iam/docs/roles-overview). For a list of the available pre-defined roles, see [here](https://cloud.google.com/iam/docs/understanding-roles).",
+          "type": "string"
         }
       },
       "type": "object"
     },
-    "GoogleCloudBillingPricesV1betaRateTier": {
-      "description": "Encapsulates a rate price tier.",
-      "id": "GoogleCloudBillingPricesV1betaRateTier",
+    "Category": {
+      "description": "Represents the category hierarchy of a SKU.",
+      "id": "Category",
       "properties": {
-        "listPrice": {
-          "$ref": "Money",
-          "description": "List price of one tier."
-        },
-        "startAmount": {
-          "$ref": "Decimal",
-          "description": "Lower bound amount for a tier. Tiers 0-100, 100-200 will be represented with two tiers with `start_amount` 0 and 100."
-        }
-      },
-      "type": "object"
-    },
-    "GoogleCloudBillingPricesV1betaUnitInfo": {
-      "description": "Encapsulates the unit information for a Rate",
-      "id": "GoogleCloudBillingPricesV1betaUnitInfo",
-      "properties": {
-        "unit": {
-          "description": "Shorthand for the unit. Example: GiBy.mo.",
+        "resourceFamily": {
+          "description": "The type of product the SKU refers to. Example: \"Compute\", \"Storage\", \"Network\", \"ApplicationServices\" etc.",
           "type": "string"
         },
-        "unitDescription": {
-          "description": "Human-readable description of the unit. Example: gibibyte month.",
+        "resourceGroup": {
+          "description": "A group classification for related SKUs. Example: \"RAM\", \"GPU\", \"Prediction\", \"Ops\", \"GoogleEgress\" etc.",
           "type": "string"
         },
-        "unitQuantity": {
-          "$ref": "Decimal",
-          "description": "Unit quantity for the tier. Example: if the RateTier price is $1 per 1000000 Bytes, then `unit_quantity` is set to 1000000."
-        }
-      },
-      "type": "object"
-    },
-    "GoogleCloudBillingSkugroupsV1betaListSkuGroupsResponse": {
-      "description": "Response message for ListSkuGroups.",
-      "id": "GoogleCloudBillingSkugroupsV1betaListSkuGroupsResponse",
-      "properties": {
-        "nextPageToken": {
-          "description": "Token that can be sent as `page_token` in the subsequent request to retrieve the next page. If this field is empty, there are no subsequent pages.",
+        "serviceDisplayName": {
+          "description": "The display name of the service this SKU belongs to.",
           "type": "string"
         },
-        "skuGroups": {
-          "description": "The returned publicly listed SKU groups.",
-          "items": {
-            "$ref": "GoogleCloudBillingSkugroupsV1betaSkuGroup"
-          },
-          "type": "array"
-        }
-      },
-      "type": "object"
-    },
-    "GoogleCloudBillingSkugroupsV1betaSkuGroup": {
-      "description": "Encapsulates a publicly listed stock keeping unit (SKU) group. A SKU group represents a collection of SKUs that are related to each other. For example, the `AI Platform APIs` SKU group includes SKUs from the Cloud Dialogflow API, the Cloud Text-to-Speech API, and additional related APIs.",
-      "id": "GoogleCloudBillingSkugroupsV1betaSkuGroup",
-      "properties": {
-        "displayName": {
-          "description": "Description of the SKU group. Example: \"A2 VMs (1 Year CUD)\".",
-          "type": "string"
-        },
-        "name": {
-          "description": "Resource name for the SKU group. Example: \"skuGroups/0e6403d1-4694-44d2-a696-7a78b1a69301\".",
+        "usageType": {
+          "description": "Represents how the SKU is consumed. Example: \"OnDemand\", \"Preemptible\", \"Commit1Mo\", \"Commit1Yr\" etc.",
           "type": "string"
         }
       },
       "type": "object"
     },
-    "GoogleCloudBillingSkugroupskusV1betaGeoTaxonomy": {
-      "description": "Encapsulates geographic metadata, such as regions and multi-regions like `us-east4` or `European Union`.",
-      "id": "GoogleCloudBillingSkugroupskusV1betaGeoTaxonomy",
-      "properties": {
-        "globalMetadata": {
-          "$ref": "GoogleCloudBillingSkugroupskusV1betaGeoTaxonomyGlobal",
-          "description": "Global geographic metadata with no regions."
-        },
-        "multiRegionalMetadata": {
-          "$ref": "GoogleCloudBillingSkugroupskusV1betaGeoTaxonomyMultiRegional",
-          "description": "Multi-regional geographic metadata with 2 or more regions."
-        },
-        "regionalMetadata": {
-          "$ref": "GoogleCloudBillingSkugroupskusV1betaGeoTaxonomyRegional",
-          "description": "Regional geographic metadata with 1 region."
-        },
-        "type": {
-          "description": "Type of geographic taxonomy associated with the SKU group SKU.",
-          "enum": [
-            "TYPE_UNSPECIFIED",
-            "TYPE_GLOBAL",
-            "TYPE_REGIONAL",
-            "TYPE_MULTI_REGIONAL"
-          ],
-          "enumDescriptions": [
-            "Default value. Unspecified type.",
-            "Global geographic taxonomy with no regions.",
-            "Regional geographic taxonomy with 1 region.",
-            "Multi-regional geographic taxonomy with 2 or more regions."
-          ],
-          "type": "string"
-        }
-      },
-      "type": "object"
-    },
-    "GoogleCloudBillingSkugroupskusV1betaGeoTaxonomyGlobal": {
-      "description": "Encapsulates a global geographic taxonomy.",
-      "id": "GoogleCloudBillingSkugroupskusV1betaGeoTaxonomyGlobal",
-      "properties": {},
-      "type": "object"
-    },
-    "GoogleCloudBillingSkugroupskusV1betaGeoTaxonomyMultiRegional": {
-      "description": "Encapsulates a multi-regional geographic taxonomy.",
-      "id": "GoogleCloudBillingSkugroupskusV1betaGeoTaxonomyMultiRegional",
-      "properties": {
-        "regions": {
-          "description": "Google Cloud regions associated with the multi-regional geographic taxonomy.",
-          "items": {
-            "$ref": "GoogleCloudBillingSkugroupskusV1betaGeoTaxonomyRegion"
-          },
-          "type": "array"
-        }
-      },
-      "type": "object"
-    },
-    "GoogleCloudBillingSkugroupskusV1betaGeoTaxonomyRegion": {
-      "description": "Encapsulates a Google Cloud region.",
-      "id": "GoogleCloudBillingSkugroupskusV1betaGeoTaxonomyRegion",
-      "properties": {
-        "region": {
-          "description": "Description of a Google Cloud region. Example: \"us-west2\".",
-          "type": "string"
-        }
-      },
-      "type": "object"
-    },
-    "GoogleCloudBillingSkugroupskusV1betaGeoTaxonomyRegional": {
-      "description": "Encapsulates a regional geographic taxonomy.",
-      "id": "GoogleCloudBillingSkugroupskusV1betaGeoTaxonomyRegional",
-      "properties": {
-        "region": {
-          "$ref": "GoogleCloudBillingSkugroupskusV1betaGeoTaxonomyRegion",
-          "description": "Google Cloud region associated with the regional geographic taxonomy."
-        }
-      },
-      "type": "object"
-    },
-    "GoogleCloudBillingSkugroupskusV1betaListSkuGroupSkusResponse": {
-      "description": "Response message for ListSkuGroupSkus.",
-      "id": "GoogleCloudBillingSkugroupskusV1betaListSkuGroupSkusResponse",
-      "properties": {
-        "nextPageToken": {
-          "description": "Token that can be sent as `page_token` in the subsequent request to retrieve the next page. If this field is empty, there are no subsequent pages.",
-          "type": "string"
-        },
-        "skuGroupSkus": {
-          "description": "The returned SKU group SKUs.",
-          "items": {
-            "$ref": "GoogleCloudBillingSkugroupskusV1betaSkuGroupSku"
-          },
-          "type": "array"
-        }
-      },
-      "type": "object"
-    },
-    "GoogleCloudBillingSkugroupskusV1betaProductTaxonomy": {
-      "description": "Encapsulates product categories, such as `Serverless`, `Cloud Run`, `TaskQueue`, and others.",
-      "id": "GoogleCloudBillingSkugroupskusV1betaProductTaxonomy",
-      "properties": {
-        "taxonomyCategories": {
-          "description": "All product categories that the SKU group SKU belongs to.",
-          "items": {
-            "$ref": "GoogleCloudBillingSkugroupskusV1betaTaxonomyCategory"
-          },
-          "type": "array"
-        }
-      },
-      "type": "object"
-    },
-    "GoogleCloudBillingSkugroupskusV1betaSkuGroupSku": {
-      "description": "Encapsulates a publicly listed stock keeping unit (SKU) that is part of a publicly listed SKU group. A SKU group represents a collection of SKUs that are related to each other. For example, the `AI Platform APIs` SKU group includes SKUs from the Cloud Dialogflow API, the Cloud Text-to-Speech API, and additional related APIs.",
-      "id": "GoogleCloudBillingSkugroupskusV1betaSkuGroupSku",
-      "properties": {
-        "displayName": {
-          "description": "Description of the SkuGroupSku. Example: \"A2 Instance Core running in Hong Kong\".",
-          "type": "string"
-        },
-        "geoTaxonomy": {
-          "$ref": "GoogleCloudBillingSkugroupskusV1betaGeoTaxonomy",
-          "description": "Geographic metadata that applies to the SkuGroupSku."
-        },
-        "name": {
-          "description": "Resource name for the SkuGroupSku. Example: \"skuGroups/0e6403d1-4694-44d2-a696-7a78b1a69301/skus/AA95-CD31-42FE\".",
-          "type": "string"
-        },
-        "productTaxonomy": {
-          "$ref": "GoogleCloudBillingSkugroupskusV1betaProductTaxonomy",
-          "description": "List of product categories that apply to the SkuGroupSku."
-        },
-        "service": {
-          "description": "Service that the SkuGroupSku belongs to.",
-          "type": "string"
-        },
-        "skuId": {
-          "description": "Unique identifier for the SKU. It is the string after the collection identifier \"skus/\" Example: \"AA95-CD31-42FE\".",
-          "type": "string"
-        }
-      },
-      "type": "object"
-    },
-    "GoogleCloudBillingSkugroupskusV1betaTaxonomyCategory": {
-      "description": "Encapsulates a product category.",
-      "id": "GoogleCloudBillingSkugroupskusV1betaTaxonomyCategory",
-      "properties": {
-        "category": {
-          "description": "Name of the product category.",
-          "type": "string"
-        }
-      },
-      "type": "object"
-    },
-    "Insight": {
-      "description": "e.g. insight: title: \"Cost Increase (The Explanation)\" description: \"Your cost increase was driven by Vertex AI Online Prediction in us-central1...\" severity: INFO",
-      "id": "Insight",
+    "Expr": {
+      "description": "Represents a textual expression in the Common Expression Language (CEL) syntax. CEL is a C-like expression language. The syntax and semantics of CEL are documented at https://github.com/google/cel-spec. Example (Comparison): title: \"Summary size limit\" description: \"Determines if a summary is less than 100 chars\" expression: \"document.summary.size() < 100\" Example (Equality): title: \"Requestor is owner\" description: \"Determines if requestor is the document owner\" expression: \"document.owner == request.auth.claims.email\" Example (Logic): title: \"Public documents\" description: \"Determine whether the document should be publicly visible\" expression: \"document.type != 'private' && document.type != 'internal'\" Example (Data Manipulation): title: \"Notification string\" description: \"Create a notification string with a timestamp.\" expression: \"'New message received at ' + string(document.create_time)\" The exact variables and functions that may be referenced within an expression are determined by the service that evaluates it. See the service documentation for additional information.",
+      "id": "Expr",
       "properties": {
         "description": {
-          "description": "Output only. The description of the insight.",
-          "readOnly": true,
+          "description": "Optional. Description of the expression. This is a longer text which describes the expression, e.g. when hovered over it in a UI.",
           "type": "string"
         },
-        "severity": {
-          "description": "Output only. The severity of the insight, used for UI rendering (e.g., color-coding).",
-          "enum": [
-            "SEVERITY_UNSPECIFIED",
-            "INFO",
-            "WARNING",
-            "CRITICAL"
-          ],
-          "enumDescriptions": [
-            "Default value. Should not be used.",
-            "The insight is useful, but no action is required.",
-            "The insight is useful, and some action may be required.",
-            "The insight is useful, and immediate action is required."
-          ],
-          "readOnly": true,
+        "expression": {
+          "description": "Textual representation of an expression in Common Expression Language syntax.",
+          "type": "string"
+        },
+        "location": {
+          "description": "Optional. String indicating the location of the expression for error reporting, e.g. a file name and a position in the file.",
           "type": "string"
         },
         "title": {
-          "description": "Output only. The title of the insight.",
-          "readOnly": true,
+          "description": "Optional. Title for the expression, i.e. a short string describing its purpose. This can be used e.g. in UIs which allow to enter the expression.",
           "type": "string"
         }
       },
       "type": "object"
     },
-    "InteropLink": {
-      "description": "A link to interoperable tools (e.g., pre-filtered Cost Reports, BQE queries).",
-      "id": "InteropLink",
+    "GeoTaxonomy": {
+      "description": "Encapsulates the geographic taxonomy data for a sku.",
+      "id": "GeoTaxonomy",
       "properties": {
-        "label": {
-          "description": "Output only. The label of the link, suitable for UI rendering.",
-          "readOnly": true,
-          "type": "string"
+        "regions": {
+          "description": "The list of regions associated with a sku. Empty for Global skus, which are associated with all Google Cloud regions.",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
         },
-        "linkType": {
-          "description": "Output only. The type of the interop link, e.g., \"COST_REPORT\", \"BQE_QUERY\", etc.",
+        "type": {
+          "description": "The type of Geo Taxonomy: GLOBAL, REGIONAL, or MULTI_REGIONAL.",
           "enum": [
-            "LINK_TYPE_UNSPECIFIED",
-            "COST_REPORT",
-            "BQE_QUERY",
-            "FINOPS_HUB"
+            "TYPE_UNSPECIFIED",
+            "GLOBAL",
+            "REGIONAL",
+            "MULTI_REGIONAL"
           ],
           "enumDescriptions": [
-            "Default value. Should not be used.",
-            "A link to a Cost Report in Google Cloud Console.",
-            "A link to a BigQuery Export query.",
-            "A link to a FinOps Hub page."
+            "The type is not specified.",
+            "The sku is global in nature, e.g. a license sku. Global skus are available in all regions, and so have an empty region list.",
+            "The sku is available in a specific region, e.g. \"us-west2\".",
+            "The sku is associated with multiple regions, e.g. \"us-west2\" and \"us-east1\"."
           ],
-          "readOnly": true,
-          "type": "string"
-        },
-        "url": {
-          "description": "Output only. The URL of the link.",
-          "readOnly": true,
           "type": "string"
         }
       },
       "type": "object"
     },
-    "Map": {
-      "description": "An unordered mapping from key to value, represented as a collection of map entries.",
-      "id": "Map",
+    "ListBillingAccountsResponse": {
+      "description": "Response message for `ListBillingAccounts`.",
+      "id": "ListBillingAccountsResponse",
       "properties": {
-        "entry": {
-          "description": "Represents the map entries in the map.",
+        "billingAccounts": {
+          "description": "A list of billing accounts.",
           "items": {
-            "$ref": "MapEntry"
+            "$ref": "BillingAccount"
+          },
+          "type": "array"
+        },
+        "nextPageToken": {
+          "description": "A token to retrieve the next page of results. To retrieve the next page, call `ListBillingAccounts` again with the `page_token` field set to this value. This field is empty if there are no more results to retrieve.",
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "ListProjectBillingInfoResponse": {
+      "description": "Request message for `ListProjectBillingInfoResponse`.",
+      "id": "ListProjectBillingInfoResponse",
+      "properties": {
+        "nextPageToken": {
+          "description": "A token to retrieve the next page of results. To retrieve the next page, call `ListProjectBillingInfo` again with the `page_token` field set to this value. This field is empty if there are no more results to retrieve.",
+          "type": "string"
+        },
+        "projectBillingInfo": {
+          "description": "A list of `ProjectBillingInfo` resources representing the projects associated with the billing account.",
+          "items": {
+            "$ref": "ProjectBillingInfo"
           },
           "type": "array"
         }
       },
       "type": "object"
     },
-    "MapEntry": {
-      "description": "A single entry in a Map, representing the mapping between `key` and `value`.",
-      "id": "MapEntry",
+    "ListServicesResponse": {
+      "description": "Response message for `ListServices`.",
+      "id": "ListServicesResponse",
       "properties": {
-        "key": {
-          "$ref": "ValueProto",
-          "description": "Represents the serialized map key for the entry."
+        "nextPageToken": {
+          "description": "A token to retrieve the next page of results. To retrieve the next page, call `ListServices` again with the `page_token` field set to this value. This field is empty if there are no more results to retrieve.",
+          "type": "string"
         },
-        "value": {
-          "$ref": "ValueProto",
-          "description": "Represents the serialized map value of the entry."
+        "services": {
+          "description": "A list of services.",
+          "items": {
+            "$ref": "Service"
+          },
+          "type": "array"
+        }
+      },
+      "type": "object"
+    },
+    "ListSkusResponse": {
+      "description": "Response message for `ListSkus`.",
+      "id": "ListSkusResponse",
+      "properties": {
+        "nextPageToken": {
+          "description": "A token to retrieve the next page of results. To retrieve the next page, call `ListSkus` again with the `page_token` field set to this value. This field is empty if there are no more results to retrieve.",
+          "type": "string"
+        },
+        "skus": {
+          "description": "The list of public SKUs of the given service.",
+          "items": {
+            "$ref": "Sku"
+          },
+          "type": "array"
         }
       },
       "type": "object"
@@ -2053,293 +1065,267 @@
       },
       "type": "object"
     },
-    "Range": {
-      "description": "A range of values, bounded by the values 'start' (inclusive) and 'end' (exclusive). A range has an element type, and values must be of this element type. A range is contiguous, ie it contains all values of the given element type starting at 'start' and ending before 'end'. A \"null\" value on start or end represents an unbounded start or end value respectively. Start and end values must always be present.",
-      "id": "Range",
+    "MoveBillingAccountRequest": {
+      "description": "Request message for `MoveBillingAccount` RPC.",
+      "id": "MoveBillingAccountRequest",
       "properties": {
-        "end": {
-          "$ref": "ValueProto",
-          "description": "Represents the end of the range."
-        },
-        "start": {
-          "$ref": "ValueProto",
-          "description": "Represents the start of the range."
-        }
-      },
-      "type": "object"
-    },
-    "Rejection": {
-      "description": "Encapsulates details about why a request was rejected.",
-      "id": "Rejection",
-      "properties": {
-        "displayMessage": {
-          "description": "Output only. A user-facing message explaining the rejection.",
-          "readOnly": true,
-          "type": "string"
-        },
-        "reason": {
-          "description": "Output only. The reason for the rejection.",
-          "enum": [
-            "REASON_UNSPECIFIED",
-            "EXPLICIT_OUT_OF_SCOPE"
-          ],
-          "enumDescriptions": [
-            "Default value. Should not be used.",
-            "The user explicitly asked about a service that is not Gemini or Vertex AI."
-          ],
-          "readOnly": true,
+        "destinationParent": {
+          "description": "Required. The resource name of the Organization to move the billing account under. Must be of the form `organizations/{organization_id}`.",
           "type": "string"
         }
       },
       "type": "object"
     },
-    "Row": {
-      "description": "Represents a row in the query result.",
-      "id": "Row",
+    "Policy": {
+      "description": "An Identity and Access Management (IAM) policy, which specifies access controls for Google Cloud resources. A `Policy` is a collection of `bindings`. A `binding` binds one or more `members`, or principals, to a single `role`. Principals can be user accounts, service accounts, Google groups, and domains (such as G Suite). A `role` is a named list of permissions; each `role` can be an IAM predefined role or a user-created custom role. For some types of Google Cloud resources, a `binding` can also specify a `condition`, which is a logical expression that allows access to a resource only if the expression evaluates to `true`. A condition can add constraints based on attributes of the request, the resource, or both. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies). **JSON example:** ``` { \"bindings\": [ { \"role\": \"roles/resourcemanager.organizationAdmin\", \"members\": [ \"user:mike@example.com\", \"group:admins@example.com\", \"domain:google.com\", \"serviceAccount:my-project-id@appspot.gserviceaccount.com\" ] }, { \"role\": \"roles/resourcemanager.organizationViewer\", \"members\": [ \"user:eve@example.com\" ], \"condition\": { \"title\": \"expirable access\", \"description\": \"Does not grant access after Sep 2020\", \"expression\": \"request.time < timestamp('2020-10-01T00:00:00.000Z')\", } } ], \"etag\": \"BwWWja0YfJA=\", \"version\": 3 } ``` **YAML example:** ``` bindings: - members: - user:mike@example.com - group:admins@example.com - domain:google.com - serviceAccount:my-project-id@appspot.gserviceaccount.com role: roles/resourcemanager.organizationAdmin - members: - user:eve@example.com role: roles/resourcemanager.organizationViewer condition: title: expirable access description: Does not grant access after Sep 2020 expression: request.time < timestamp('2020-10-01T00:00:00.000Z') etag: BwWWja0YfJA= version: 3 ``` For a description of IAM and its features, see the [IAM documentation](https://cloud.google.com/iam/docs/).",
+      "id": "Policy",
       "properties": {
-        "values": {
-          "description": "Values for a row in the column order.",
+        "auditConfigs": {
+          "description": "Specifies cloud audit logging configuration for this policy.",
           "items": {
-            "$ref": "ValueProto"
+            "$ref": "AuditConfig"
           },
           "type": "array"
-        }
-      },
-      "type": "object"
-    },
-    "Struct": {
-      "description": "A collection of fields. The count, order, and type of the fields is determined by the type associated with this value.",
-      "id": "Struct",
-      "properties": {
-        "field": {
-          "description": "The fields in the struct",
+        },
+        "bindings": {
+          "description": "Associates a list of `members`, or principals, with a `role`. Optionally, may specify a `condition` that determines how and when the `bindings` are applied. Each of the `bindings` must contain at least one principal. The `bindings` in a `Policy` can refer to up to 1,500 principals; up to 250 of these principals can be Google groups. Each occurrence of a principal counts towards these limits. For example, if the `bindings` grant 50 different roles to `user:alice@example.com`, and not to any other principal, then you can add another 1,450 principals to the `bindings` in the `Policy`.",
           "items": {
-            "$ref": "ValueProto"
+            "$ref": "Binding"
           },
           "type": "array"
-        }
-      },
-      "type": "object"
-    },
-    "SuggestedChart": {
-      "description": "A suggested chart for the data set, used for UI rendering.",
-      "id": "SuggestedChart",
-      "properties": {
-        "chartTitle": {
-          "description": "The title of the chart.",
-          "type": "string"
         },
-        "chartType": {
-          "description": "The type of the chart.",
-          "enum": [
-            "CHART_TYPE_UNSPECIFIED",
-            "BAR_CHART",
-            "UNCHARTABLE",
-            "LINE_CHART",
-            "AREA_CHART"
-          ],
-          "enumDescriptions": [
-            "Default value. Should not be used.",
-            "Represents a bar chart.",
-            "The data set cannot be rendered as a chart.",
-            "Represents a line chart. Suitable for quantitative and temporal data on the x-axis.",
-            "Represents an area chart."
-          ],
-          "type": "string"
-        },
-        "seriesField": {
-          "description": "The field used for the series (e.g., color-coding). Optional, but recommended for time-series data.",
-          "type": "string"
-        },
-        "xAxisField": {
-          "description": "The field used for the x-axis.",
-          "type": "string"
-        },
-        "xAxisLabel": {
-          "description": "The label of the x-axis.",
-          "type": "string"
-        },
-        "yAxisField": {
-          "description": "The field used for the y-axis.",
-          "type": "string"
-        },
-        "yAxisLabel": {
-          "description": "The label of the y-axis.",
-          "type": "string"
-        }
-      },
-      "type": "object"
-    },
-    "SuggestedQuery": {
-      "description": "A suggested follow-up query for the user.",
-      "id": "SuggestedQuery",
-      "properties": {
-        "query": {
-          "description": "The natural language query.",
-          "type": "string"
-        }
-      },
-      "type": "object"
-    },
-    "UserContext": {
-      "description": "Additional context for personalization (e.g., user persona, role).",
-      "id": "UserContext",
-      "properties": {
-        "persona": {
-          "description": "Optional. The user's persona (e.g., FinOps Manager, Developer).",
-          "enum": [
-            "PERSONA_UNSPECIFIED",
-            "FINOPS_MANAGER",
-            "DEVELOPER"
-          ],
-          "enumDescriptions": [
-            "Default value. Should not be used.",
-            "The user is a FinOps Manager.",
-            "The user is a Developer."
-          ],
-          "type": "string"
-        },
-        "role": {
-          "description": "Optional. The user's role (e.g., Billing Admin, Project Owner, etc.).",
-          "type": "string"
-        }
-      },
-      "type": "object"
-    },
-    "ValueProto": {
-      "description": "This is a copy of storage/googlesql/public/value.proto. ValueProto represents the serialized form of the googlesql::Value. The intention is to support multiple languages including Java and C++, so we must be sensitive to the distinction between Java Strings and byte arrays or ByteStrings. We also want to support use-cases which do not want to serialize a copy of the GoogleSQL type for every instance (which might be very repetitive). Therefore, unlike googlesql::Value, ValueProto does not carry full type information with every instance, and can only be fully interpreted with an associated TypeProto.",
-      "id": "ValueProto",
-      "properties": {
-        "ValueProtoSwitchMustHaveADefault": {
-          "description": "User code that switches on this oneoff enum must have a default case so builds won't break when new fields are added.",
-          "type": "boolean"
-        },
-        "arrayValue": {
-          "$ref": "Array",
-          "description": "An array of value"
-        },
-        "bignumericValue": {
-          "description": "Encoded bignumeric value. For the encoding format see documentation for BigNumericValue::SerializeAsProtoBytes().",
+        "etag": {
+          "description": "`etag` is used for optimistic concurrency control as a way to help prevent simultaneous updates of a policy from overwriting each other. It is strongly suggested that systems make use of the `etag` in the read-modify-write cycle to perform policy updates in order to avoid race conditions: An `etag` is returned in the response to `getIamPolicy`, and systems are expected to put that etag in the request to `setIamPolicy` to ensure that their change will be applied to the same version of the policy. **Important:** If you use IAM Conditions, you must include the `etag` field whenever you call `setIamPolicy`. If you omit this field, then IAM allows you to overwrite a version `3` policy with a version `1` policy, and all of the conditions in the version `3` policy are lost.",
           "format": "byte",
           "type": "string"
         },
-        "boolValue": {
-          "description": "Primitive for bool.",
-          "type": "boolean"
-        },
-        "bytesValue": {
-          "description": "Primitive for bytes.",
-          "format": "byte",
-          "type": "string"
-        },
-        "dateValue": {
-          "description": "Primitive for date.",
+        "version": {
+          "description": "Specifies the format of the policy. Valid values are `0`, `1`, and `3`. Requests that specify an invalid value are rejected. Any operation that affects conditional role bindings must specify version `3`. This requirement applies to the following operations: * Getting a policy that includes a conditional role binding * Adding a conditional role binding to a policy * Changing a conditional role binding in a policy * Removing any role binding, with or without a condition, from a policy that includes conditions **Important:** If you use IAM Conditions, you must include the `etag` field whenever you call `setIamPolicy`. If you omit this field, then IAM allows you to overwrite a version `3` policy with a version `1` policy, and all of the conditions in the version `3` policy are lost. If a policy does not include any conditions, operations on that policy may specify any valid version or leave the field unset. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies).",
           "format": "int32",
           "type": "integer"
+        }
+      },
+      "type": "object"
+    },
+    "PricingExpression": {
+      "description": "Expresses a mathematical pricing formula. For Example:- `usage_unit: GBy` `tiered_rates:` `[start_usage_amount: 20, unit_price: $10]` `[start_usage_amount: 100, unit_price: $5]` The above expresses a pricing formula where the first 20GB is free, the next 80GB is priced at $10 per GB followed by $5 per GB for additional usage.",
+      "id": "PricingExpression",
+      "properties": {
+        "baseUnit": {
+          "description": "The base unit for the SKU which is the unit used in usage exports. Example: \"By\"",
+          "type": "string"
         },
-        "datetimeValue": {
-          "$ref": "Datetime",
-          "description": "primitive for datetime"
-        },
-        "doubleValue": {
-          "description": "Primitive for double.",
+        "baseUnitConversionFactor": {
+          "description": "Conversion factor for converting from price per usage_unit to price per base_unit, and start_usage_amount to start_usage_amount in base_unit. unit_price / base_unit_conversion_factor = price per base_unit. start_usage_amount * base_unit_conversion_factor = start_usage_amount in base_unit.",
           "format": "double",
           "type": "number"
         },
-        "enumValue": {
-          "description": "Tag 11 was used for specifying micros timestamps as int64, now obsolete.",
-          "format": "int32",
-          "type": "integer"
+        "baseUnitDescription": {
+          "description": "The base unit in human readable form. Example: \"byte\".",
+          "type": "string"
         },
-        "floatValue": {
-          "description": "Primitive for float.",
-          "format": "float",
+        "displayQuantity": {
+          "description": "The recommended quantity of units for displaying pricing info. When displaying pricing info it is recommended to display: (unit_price * display_quantity) per display_quantity usage_unit. This field does not affect the pricing formula and is for display purposes only. Example: If the unit_price is \"0.0001 USD\", the usage_unit is \"GB\" and the display_quantity is \"1000\" then the recommended way of displaying the pricing info is \"0.10 USD per 1000 GB\"",
+          "format": "double",
           "type": "number"
         },
-        "geographyValue": {
-          "description": "Geography encoded using ::stlib::STGeographyEncoder",
-          "format": "byte",
+        "tieredRates": {
+          "description": "The list of tiered rates for this pricing. The total cost is computed by applying each of the tiered rates on usage. This repeated list is sorted by ascending order of start_usage_amount.",
+          "items": {
+            "$ref": "TierRate"
+          },
+          "type": "array"
+        },
+        "usageUnit": {
+          "description": "The short hand for unit of usage this pricing is specified in. Example: usage_unit of \"GiBy\" means that usage is specified in \"Gibi Byte\".",
           "type": "string"
         },
-        "int32Value": {
-          "description": "Primitive value for int32.",
-          "format": "int32",
-          "type": "integer"
-        },
-        "int64Value": {
-          "description": "Primitive for int64.",
-          "format": "int64",
+        "usageUnitDescription": {
+          "description": "The unit of usage in human readable form. Example: \"gibi byte\".",
           "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "PricingInfo": {
+      "description": "Represents the pricing information for a SKU at a single point of time.",
+      "id": "PricingInfo",
+      "properties": {
+        "aggregationInfo": {
+          "$ref": "AggregationInfo",
+          "description": "Aggregation Info. This can be left unspecified if the pricing expression doesn't require aggregation."
         },
-        "intervalValue": {
-          "description": "Encoded interval value. For the encoding format see documentation for IntervalValue::SerializeAsBytes().",
-          "format": "byte",
-          "type": "string"
+        "currencyConversionRate": {
+          "description": "Conversion rate used for currency conversion, from USD to the currency specified in the request. This includes any surcharge collected for billing in non USD currency. If a currency is not specified in the request this defaults to 1.0. Example: USD * currency_conversion_rate = JPY",
+          "format": "double",
+          "type": "number"
         },
-        "jsonValue": {
-          "description": "Tag 22 was used for json value as bytes, now obsolete. Json value represented as a string document.",
-          "type": "string"
-        },
-        "mapValue": {
-          "$ref": "Map",
-          "description": "Encoded map value. See go/googlesql_map."
-        },
-        "numericValue": {
-          "description": "Encoded numeric value. For the encoding format see documentation for NumericValue::SerializeAsProtoBytes().",
-          "format": "byte",
-          "type": "string"
-        },
-        "protoValue": {
-          "description": "Stores a serialized protocol message.",
-          "format": "byte",
-          "type": "string"
-        },
-        "rangeValue": {
-          "$ref": "Range",
-          "description": "Encoded range value. See go/googlesql_range."
-        },
-        "stringValue": {
-          "description": "Primitive for string.",
-          "type": "string"
-        },
-        "structValue": {
-          "$ref": "Struct",
-          "description": "A struct of values"
-        },
-        "timeValue": {
-          "description": "Bit field encoding of hour/minute/second/nanos. See TimeValue class for details.",
-          "format": "int64",
-          "type": "string"
-        },
-        "timestampPicoValue": {
-          "description": "Encoded timestamp_pico value. For the encoding format see documentation for googlesql::TimestampPico::SerializeAsBytes().",
-          "format": "byte",
-          "type": "string"
-        },
-        "timestampValue": {
-          "description": "primitive for timestamp",
+        "effectiveTime": {
+          "description": "The timestamp from which this pricing was effective within the requested time range. This is guaranteed to be greater than or equal to the start_time field in the request and less than the end_time field in the request. If a time range was not specified in the request this field will be equivalent to a time within the last 12 hours, indicating the latest pricing info.",
           "format": "google-datetime",
           "type": "string"
         },
-        "tokenlistValue": {
-          "description": "Encoded tokenlist value. copybara:strip_begin(internal-comment) See //search/tokens:token_list. copybara:strip_end",
-          "format": "byte",
+        "pricingExpression": {
+          "$ref": "PricingExpression",
+          "description": "Expresses the pricing formula. See `PricingExpression` for an example."
+        },
+        "summary": {
+          "description": "An optional human readable summary of the pricing information, has a maximum length of 256 characters.",
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "ProjectBillingInfo": {
+      "description": "Encapsulation of billing information for a Google Cloud Console project. A project has at most one associated billing account at a time (but a billing account can be assigned to multiple projects).",
+      "id": "ProjectBillingInfo",
+      "properties": {
+        "billingAccountName": {
+          "description": "The resource name of the billing account associated with the project, if any. For example, `billingAccounts/012345-567890-ABCDEF`.",
           "type": "string"
         },
-        "uint32Value": {
-          "description": "Primitive for uint32.",
-          "format": "uint32",
-          "type": "integer"
+        "billingEnabled": {
+          "description": "Output only. True if the project is associated with an open billing account, to which usage on the project is charged. False if the project is associated with a closed billing account, or no billing account at all, and therefore cannot use paid services.",
+          "readOnly": true,
+          "type": "boolean"
         },
-        "uint64Value": {
-          "description": "Primitive for uint64.",
-          "format": "uint64",
+        "name": {
+          "description": "Output only. The resource name for the `ProjectBillingInfo`; has the form `projects/{project_id}/billingInfo`. For example, the resource name for the billing information for project `tokyo-rain-123` would be `projects/tokyo-rain-123/billingInfo`.",
+          "readOnly": true,
           "type": "string"
         },
-        "uuidValue": {
-          "description": "Encoded uuid value. For the encoding format see documentation for UuidValue::SerializeAsBytes().",
-          "format": "byte",
+        "projectId": {
+          "description": "Output only. The ID of the project that this `ProjectBillingInfo` represents, such as `tokyo-rain-123`. This is a convenience field so that you don't need to parse the `name` field to obtain a project ID.",
+          "readOnly": true,
           "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "Service": {
+      "description": "Encapsulates a single service in Google Cloud Platform.",
+      "id": "Service",
+      "properties": {
+        "businessEntityName": {
+          "description": "The business under which the service is offered. Ex. \"businessEntities/GCP\", \"businessEntities/Maps\"",
+          "type": "string"
+        },
+        "displayName": {
+          "description": "A human readable display name for this service.",
+          "type": "string"
+        },
+        "name": {
+          "description": "The resource name for the service. Example: \"services/6F81-5844-456A\"",
+          "type": "string"
+        },
+        "serviceId": {
+          "description": "The identifier for the service. Example: \"6F81-5844-456A\"",
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "SetIamPolicyRequest": {
+      "description": "Request message for `SetIamPolicy` method.",
+      "id": "SetIamPolicyRequest",
+      "properties": {
+        "policy": {
+          "$ref": "Policy",
+          "description": "REQUIRED: The complete policy to be applied to the `resource`. The size of the policy is limited to a few 10s of KB. An empty policy is a valid policy but certain Google Cloud services (such as Projects) might reject them."
+        },
+        "updateMask": {
+          "description": "OPTIONAL: A FieldMask specifying which fields of the policy to modify. Only the fields in the mask will be modified. If no mask is provided, the following default mask is used: `paths: \"bindings, etag\"`",
+          "format": "google-fieldmask",
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "Sku": {
+      "description": "Encapsulates a single SKU in Google Cloud",
+      "id": "Sku",
+      "properties": {
+        "category": {
+          "$ref": "Category",
+          "description": "The category hierarchy of this SKU, purely for organizational purpose."
+        },
+        "description": {
+          "description": "A human readable description of the SKU, has a maximum length of 256 characters.",
+          "type": "string"
+        },
+        "geoTaxonomy": {
+          "$ref": "GeoTaxonomy",
+          "description": "The geographic taxonomy for this sku."
+        },
+        "name": {
+          "description": "The resource name for the SKU. Example: \"services/6F81-5844-456A/skus/D041-B8A1-6E0B\"",
+          "type": "string"
+        },
+        "pricingInfo": {
+          "description": "A timeline of pricing info for this SKU in chronological order.",
+          "items": {
+            "$ref": "PricingInfo"
+          },
+          "type": "array"
+        },
+        "serviceProviderName": {
+          "description": "Identifies the service provider. This is 'Google' for first party services in Google Cloud Platform.",
+          "type": "string"
+        },
+        "serviceRegions": {
+          "description": "List of service regions this SKU is offered at. Example: \"asia-east1\" Service regions can be found at https://cloud.google.com/about/locations/",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "skuId": {
+          "description": "The identifier for the SKU. Example: \"D041-B8A1-6E0B\"",
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "TestIamPermissionsRequest": {
+      "description": "Request message for `TestIamPermissions` method.",
+      "id": "TestIamPermissionsRequest",
+      "properties": {
+        "permissions": {
+          "description": "The set of permissions to check for the `resource`. Permissions with wildcards (such as `*` or `storage.*`) are not allowed. For more information see [IAM Overview](https://cloud.google.com/iam/docs/overview#permissions).",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        }
+      },
+      "type": "object"
+    },
+    "TestIamPermissionsResponse": {
+      "description": "Response message for `TestIamPermissions` method.",
+      "id": "TestIamPermissionsResponse",
+      "properties": {
+        "permissions": {
+          "description": "A subset of `TestPermissionsRequest.permissions` that the caller is allowed.",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        }
+      },
+      "type": "object"
+    },
+    "TierRate": {
+      "description": "The price rate indicating starting usage and its corresponding price.",
+      "id": "TierRate",
+      "properties": {
+        "startUsageAmount": {
+          "description": "Usage is priced at this rate only after this amount. Example: start_usage_amount of 10 indicates that the usage will be priced at the unit_price after the first 10 usage_units.",
+          "format": "double",
+          "type": "number"
+        },
+        "unitPrice": {
+          "$ref": "Money",
+          "description": "The price per unit of usage. Example: unit_price of amount $10 indicates that each unit will cost $10."
         }
       },
       "type": "object"
@@ -2347,6 +1333,5 @@
   },
   "servicePath": "",
   "title": "Cloud Billing API",
-  "version": "v1beta",
-  "version_module": true
+  "version": "v1"
 }

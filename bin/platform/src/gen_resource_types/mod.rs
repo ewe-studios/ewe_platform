@@ -256,15 +256,23 @@ fn sanitize_doc_comment(description: &str, first_line_only: bool) -> String {
     // containing special characters (like single quotes) break rustdoc
     result = result.replace('`', "");
 
-    // 2. Convert HTML <code> tags to plain text (no backticks)
+    // 2. Escape single quotes to prevent them being interpreted as character literals
+    // This is necessary for examples like: timestamp('2020-10-01T00:00:00Z')
+    result = result.replace('\'', "''");
+
+    // 3. Escape angle brackets using HTML entities to prevent them being
+    // interpreted as generics in rustdoc
+    result = result.replace('<', "&lt;").replace('>', "&gt;");
+
+    // 4. Convert HTML <code> tags to plain text (no backticks)
     let code_tag_re = Regex::new(r"<code>([^<]+)</code>").unwrap();
     result = code_tag_re.replace_all(&result, "$1").to_string();
 
-    // 3. Remove other HTML tags but keep content
+    // 5. Remove other HTML tags but keep content
     let html_tag_re = Regex::new(r"</?[^>]+>").unwrap();
     result = html_tag_re.replace_all(&result, "").to_string();
 
-    // 4. For field comments, use only first line
+    // 6. For field comments, use only first line
     if first_line_only {
         if let Some(first) = result.lines().next() {
             result = first.to_string();
@@ -313,17 +321,24 @@ impl ResourceGenerator {
     /// (e.g. `gcp/compute/openapi.json`), generates one file per sub-API.
     /// Otherwise generates a single `mod.rs` from the top-level spec.
     pub fn generate_for_provider(&self, provider: &str) -> Result<(), GenResourceError> {
+        tracing::info!("Generating for provider: {}", provider);
         let provider_dir = self.artefacts_dir.join(provider);
+        tracing::info!("  Provider dir: {}", provider_dir.display());
+        tracing::info!("  Artefacts dir: {}", self.artefacts_dir.display());
+        tracing::info!("  Output dir: {}", self.output_dir.display());
 
         // Discover sub-API directories (e.g. gcp/compute/, gcp/run/)
         let sub_apis = self.discover_sub_apis(&provider_dir);
+        tracing::info!("  Found {} sub-APIs", sub_apis.len());
 
         // Output goes to providers/{provider}/resources/
         // self.output_dir is already backends/foundation_deployment/src/providers
         let provider_output_dir = self.output_dir.join(provider).join("resources");
         std::fs::create_dir_all(&provider_output_dir)?;
+        tracing::info!("  Output dir: {}", provider_output_dir.display());
 
         if sub_apis.is_empty() {
+            tracing::info!("  Single spec mode");
             // Single spec: provider/openapi.json -> resources/mod.rs (all types in one file)
             self.generate_from_spec(
                 provider,
@@ -331,6 +346,7 @@ impl ResourceGenerator {
                 &provider_output_dir.join("mod.rs"),
             )?;
         } else {
+            tracing::info!("  Multi-API mode");
             // Per-API specs: provider/{api}/openapi.json -> resources/{api}.rs
             tracing::info!(
                 "Generating resource types for {provider} ({} sub-APIs)...",
@@ -379,8 +395,6 @@ impl ResourceGenerator {
         }
 
         tracing::info!("Generating resource types for {label}...");
-        tracing::info!("  Spec path: {}", spec_path.display());
-        tracing::info!("  Output path: {}", output_path.display());
 
         let spec_content =
             std::fs::read_to_string(spec_path).map_err(|e| GenResourceError::ReadFile {
@@ -394,12 +408,9 @@ impl ResourceGenerator {
                 source: e,
             })?;
 
-        tracing::info!("  Parsed spec, top-level keys: {:?}", spec.as_object().map(|o| o.keys().take(5).collect::<Vec<_>>()));
-
         // Collect the set of schema names that are object types with properties,
         // so we can validate $ref targets during type resolution.
         let object_schemas = self.collect_object_schema_names(&spec);
-        tracing::info!("  Collected {} object schemas", object_schemas.len());
 
         let resources = self.extract_resources(&spec, &object_schemas)?;
 
@@ -413,8 +424,6 @@ impl ResourceGenerator {
             .into_iter()
             .filter(|r| !Self::is_trivial_type(r))
             .collect();
-
-        tracing::info!("  After filtering trivial types: {} resource types", resources.len());
 
         let rust_code = self.generate_rust(label, &resources)?;
 
@@ -544,7 +553,6 @@ impl ResourceGenerator {
             .and_then(|c| c.get("schemas"))
             .and_then(|s| s.as_object())
         {
-            tracing::info!("  Found {} schemas (standard OpenAPI format)", schemas.len());
             for (schema_name, schema_value) in schemas {
                 if let Some(resource) =
                     self.extract_resource(schema_name, schema_value, object_schemas)
@@ -557,7 +565,6 @@ impl ResourceGenerator {
 
         // Try GCP Discovery format: top-level `schemas`
         if let Some(schemas) = spec.get("schemas").and_then(|s| s.as_object()) {
-            tracing::info!("  Found {} schemas (GCP Discovery format)", schemas.len());
             for (schema_name, schema_value) in schemas {
                 if let Some(resource) =
                     self.extract_resource(schema_name, schema_value, object_schemas)
@@ -569,18 +576,14 @@ impl ResourceGenerator {
         }
 
         // Try consolidated format: each top-level key is an API spec
-        tracing::info!("  Trying consolidated format...");
         if let Some(obj) = spec.as_object() {
-            tracing::info!("  Top-level object has {} keys", obj.len());
             for (api_name, api_spec) in obj {
-                tracing::info!("    Checking key: {}", api_name);
                 // Each entry might be an OpenAPI spec or a Discovery doc
                 if let Some(schemas) = api_spec
                     .get("components")
                     .and_then(|c| c.get("schemas"))
                     .and_then(|s| s.as_object())
                 {
-                    tracing::info!("      Found {} schemas in components/schemas", schemas.len());
                     for (schema_name, schema_value) in schemas {
                         if let Some(resource) =
                             self.extract_resource(schema_name, schema_value, object_schemas)
@@ -589,7 +592,6 @@ impl ResourceGenerator {
                         }
                     }
                 } else if let Some(schemas) = api_spec.get("schemas").and_then(|s| s.as_object()) {
-                    tracing::info!("      Found {} schemas in top-level schemas", schemas.len());
                     for (schema_name, schema_value) in schemas {
                         if let Some(resource) =
                             self.extract_resource(schema_name, schema_value, object_schemas)
@@ -601,7 +603,6 @@ impl ResourceGenerator {
             }
         }
 
-        tracing::info!("  Extracted {} resources total", resources.len());
         Ok(resources)
     }
 
@@ -625,6 +626,12 @@ impl ResourceGenerator {
         }
 
         let rust_name = self.to_pascal_case(schema_name);
+        // Rename structs that conflict with imported types (e.g., serde_json::Value)
+        let rust_name = if rust_name == "Value" {
+            "ApiValue".to_string()
+        } else {
+            rust_name
+        };
         let description = schema.description.clone();
 
         let mut fields = Vec::new();
@@ -693,7 +700,7 @@ impl ResourceGenerator {
                     let inner_ty = self.schema_to_rust_type(items, object_schemas);
                     format!("Vec<{inner_ty}>")
                 } else {
-                    "Vec<Value>".to_string()
+                    "Vec<serde_json::Value>".to_string()
                 }
             }
             Some("object") => "serde_json::Value".to_string(),
@@ -733,7 +740,13 @@ impl ResourceGenerator {
         // Also handle GCP Discovery refs like "#/schemas/Foo"
         let ref_name = ref_name.trim_start_matches("#/schemas/");
         if object_schemas.contains(ref_name) {
-            self.to_pascal_case(ref_name)
+            let ty = self.to_pascal_case(ref_name);
+            // Rename types that conflict with imported types
+            if ty == "Value" {
+                "ApiValue".to_string()
+            } else {
+                ty
+            }
         } else {
             "serde_json::Value".to_string()
         }
@@ -863,6 +876,7 @@ impl ResourceGenerator {
              \n\
              use serde::{{Deserialize, Serialize}};\n\
              use serde_json::Value;\n\
+             use super::*;\n\
              "
         )
         .map_err(|e| GenResourceError::WriteFile {
@@ -885,12 +899,28 @@ impl ResourceGenerator {
         resource: &ResourceDef,
     ) -> Result<(), GenResourceError> {
         // Write struct-level doc comment (full description, sanitized)
+        // Split by newlines and write each line as a separate doc comment
         if let Some(desc) = &resource.description {
             let sanitized = sanitize_doc_comment(desc, false);
-            writeln!(out, "/// {sanitized}").map_err(|e| GenResourceError::WriteFile {
-                path: format!("struct {}", resource.name),
-                source: std::io::Error::new(std::io::ErrorKind::Other, e),
-            })?;
+            let mut has_written_doc = false;
+            for line in sanitized.lines() {
+                let trimmed = line.trim();
+                // Skip empty lines unless we've already written some doc content
+                if trimmed.is_empty() {
+                    if has_written_doc {
+                        writeln!(out, "///").map_err(|e| GenResourceError::WriteFile {
+                            path: format!("struct {}", resource.name),
+                            source: std::io::Error::new(std::io::ErrorKind::Other, e),
+                        })?;
+                    }
+                } else {
+                    writeln!(out, "/// {line}").map_err(|e| GenResourceError::WriteFile {
+                        path: format!("struct {}", resource.name),
+                        source: std::io::Error::new(std::io::ErrorKind::Other, e),
+                    })?;
+                    has_written_doc = true;
+                }
+            }
         } else {
             writeln!(out, "/// {} resource type.", resource.name).map_err(|e| {
                 GenResourceError::WriteFile {
@@ -1053,9 +1083,14 @@ pub fn register(cmd: clap::Command) -> clap::Command {
 
 /// Run the `gen_resource_types` command.
 pub fn run(matches: &clap::ArgMatches) -> Result<(), BoxedError> {
-    // Initialize tracing
+    // Initialize tracing with stdout output
     let subscriber = FmtSubscriber::builder()
         .with_max_level(Level::INFO)
+        .with_target(false)
+        .with_thread_ids(false)
+        .with_file(false)
+        .with_line_number(false)
+        .with_writer(std::io::stdout)
         .finish();
     tracing::subscriber::set_global_default(subscriber).expect("setting default subscriber failed");
 
